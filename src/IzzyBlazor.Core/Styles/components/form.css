@@ -180,6 +180,123 @@
   .ib-has-start .ib-field-input { padding-inline-start: calc(var(--ib-field-px) + 1.5em); }
   .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + 1.75em); }
 
+  /*
+   * Add-ons: text, buttons or another field attached to the control, sharing its height and
+   * border. Neighbors overlap by one pixel so the seam is a single line; the focused part
+   * comes forward so its ring isn't covered.
+   */
+  .ib-field-group {
+    display: flex;
+    align-items: stretch;
+    min-width: 0;
+  }
+
+  .ib-field-group > .ib-field-control {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .ib-field-addon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--ib-space-1);
+    min-height: var(--ib-field-h);
+    padding: 0 var(--ib-field-px);
+    border: 1px solid var(--ib-field-border);
+    background-color: var(--ib-color-surface-container);
+    color: var(--ib-color-subtle);
+    font-size: var(--ib-field-font);
+    white-space: nowrap;
+  }
+
+  .ib-field-addon-start {
+    margin-inline-end: -1px;
+    border-start-start-radius: var(--ib-radius-md);
+    border-end-start-radius: var(--ib-radius-md);
+  }
+
+  .ib-field-addon-end {
+    margin-inline-start: -1px;
+    border-start-end-radius: var(--ib-radius-md);
+    border-end-end-radius: var(--ib-radius-md);
+  }
+
+  .ib-field-group:has(> .ib-field-addon-start) > .ib-field-control .ib-field-input {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+  }
+
+  .ib-field-group:has(> .ib-field-addon-end) > .ib-field-control .ib-field-input {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
+  }
+
+  .ib-field-group > .ib-field-control:focus-within,
+  .ib-field-addon:focus-within {
+    z-index: 1;
+  }
+
+  /* A button or nested field fills the add-on: no padding or fill of its own, field height. */
+  .ib-field-addon:has(> .ib-btn, > .ib-field) {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .ib-field-addon > .ib-btn {
+    --ib-btn-h: var(--ib-field-h);
+    --ib-btn-font: var(--ib-field-font);
+    position: relative;
+    border-radius: inherit;
+  }
+
+  .ib-field-addon > .ib-btn:not(.ib-btn-solid) {
+    border-color: var(--ib-field-border);
+  }
+
+  /* The focus ring sits inside so it isn't clipped by the field next to it. */
+  .ib-field-addon > .ib-btn:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .ib-field-addon > .ib-field {
+    --ib-field-h: inherit;
+    --ib-field-px: inherit;
+    --ib-field-font: inherit;
+    gap: 0;
+  }
+
+  .ib-field-addon > .ib-field > .ib-field-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+  }
+
+  .ib-field-addon > .ib-field .ib-field-input {
+    width: auto;
+    border-radius: inherit;
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-field-addon-start > .ib-field .ib-field-input {
+    border-start-start-radius: var(--ib-radius-md);
+    border-end-start-radius: var(--ib-radius-md);
+  }
+
+  .ib-field-addon-end > .ib-field .ib-field-input {
+    border-start-end-radius: var(--ib-radius-md);
+    border-end-end-radius: var(--ib-radius-md);
+  }
+
+  .ib-field-disabled .ib-field-addon {
+    color: var(--ib-color-disabled);
+  }
+
   select.ib-field-select {
     appearance: none;
     cursor: pointer;

@@ -4,10 +4,19 @@
 @*
     A single-line text input with label, hint and errors.
     <TextField @bind-Value="Model.Email" StartIcon="Lucide.Mail" />
+
+    Add-ons attach text, a button or another field to either end of the control:
+    <TextField @bind-Value="Model.Website">
+        <StartAddon>https://</StartAddon>
+    </TextField>
+    <TextField @bind-Value="Model.Query" Type="TextFieldType.Search">
+        <EndAddon><Button Type="ButtonType.Submit">Search</Button></EndAddon>
+    </TextField>
 *@
 
 <FieldFrame Class="@WrapperClass("text")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <FieldAddons Start="StartAddon" End="EndAddon">
     <ib-field-control class="@ControlClass">
         @if (StartIcon is { } start)
         {
@@ -40,6 +49,7 @@
             <Icon Name="end" Class="ib-field-icon ib-field-icon-end" />
         }
     </ib-field-control>
+    </FieldAddons>
 </FieldFrame>
 
 @code {
@@ -63,6 +73,17 @@
 
     /// <summary>An icon inside the field, after the text. Ignored for passwords with <see cref="Reveal"/>.</summary>
     [Parameter] public IconData? EndIcon { get; set; }
+
+    /// <summary>
+    /// Content attached before the control, outside its border: short text (<c>https://</c>, <c>$</c>),
+    /// a button, or another field such as a <see cref="Select{TValue}"/> (its label is kept for screen
+    /// readers but not shown). Text here is not part of the field's accessible name, so say it in the label
+    /// when it matters, as in "Price (USD)".
+    /// </summary>
+    [Parameter] public RenderFragment? StartAddon { get; set; }
+
+    /// <summary>Content attached after the control, outside its border. See <see cref="StartAddon"/>.</summary>
+    [Parameter] public RenderFragment? EndAddon { get; set; }
 
     /// <summary>For passwords: a button that shows or hides the text. Appears once scripts run. Defaults to true.</summary>
     [Parameter] public bool Reveal { get; set; } = true;
