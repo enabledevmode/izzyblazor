@@ -181,6 +181,79 @@
   .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + 1.75em); }
 
   /*
+   * NumberInput. The script reveals the stepper buttons; only then are the browser's own spin
+   * buttons hidden, so a page without script keeps them.
+   */
+  .ib-field-number {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-field-steppers {
+    position: absolute;
+    inset-block: 1px;
+    inset-inline-end: 1px;
+    display: flex;
+    flex-direction: column;
+    width: 1.75rem;
+    border-inline-start: 1px solid var(--ib-field-border);
+    border-start-end-radius: calc(var(--ib-radius-md) - 1px);
+    border-end-end-radius: calc(var(--ib-radius-md) - 1px);
+    overflow: hidden;
+  }
+
+  .ib-field-steppers[hidden] {
+    display: none;
+  }
+
+  .ib-field-step {
+    display: flex;
+    flex: 1 1 0;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+    color: var(--ib-color-subtle);
+    cursor: pointer;
+  }
+
+  .ib-field-step + .ib-field-step {
+    border-top: 1px solid var(--ib-field-border);
+  }
+
+  .ib-field-step .ib-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .ib-field-step:hover:not(:disabled) {
+    background-color: var(--ib-color-surface-container);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-field-step:disabled {
+    color: var(--ib-color-disabled);
+    cursor: default;
+  }
+
+  .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input {
+    padding-inline-end: calc(1.75rem + var(--ib-field-px));
+    -moz-appearance: textfield;
+  }
+
+  .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input::-webkit-inner-spin-button,
+  .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
+  }
+
+  /* The field next to an end add-on loses its rounded end; so do its steppers. */
+  .ib-field-group:has(> .ib-field-addon-end) .ib-field-steppers {
+    border-radius: 0;
+  }
+
+  /*
    * Add-ons: text, buttons or another field attached to the control, sharing its height and
    * border. Neighbors overlap by one pixel so the seam is a single line; the focused part
    * comes forward so its ring isn't covered.

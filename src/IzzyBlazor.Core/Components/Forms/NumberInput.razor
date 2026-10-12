@@ -1,0 +1,152 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+
+@*
+    A number field: a native number input, so it posts with the form, validates min, max and step
+    in the browser, and brings up a number keyboard on phones. With JavaScript, increase and
+    decrease buttons appear (hold to repeat), and the native spin buttons are hidden.
+    <NumberInput @bind-Value="Model.Quantity" Min="1" Max="99" />
+    <NumberInput @bind-Value="Model.Price" Step="0.01">
+        <StartAddon>$</StartAddon>
+    </NumberInput>
+*@
+
+<FieldFrame Class="@WrapperClass("number")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <FieldAddons Start="StartAddon" End="EndAddon">
+        <ib-field-control class="@ControlClass">
+            @if (StartIcon is { } start)
+            {
+                <Icon Name="start" Class="ib-field-icon ib-field-icon-start" />
+            }
+            <input @attributes="ControlAttributes"
+                   id="@FieldId"
+                   class="ib-field-input ib-field-number"
+                   type="number"
+                   name="@NameAttributeValue"
+                   @bind="CurrentValueAsString"
+                   min="@Format(ResolvedMin)"
+                   max="@Format(ResolvedMax)"
+                   step="@ResolvedStep"
+                   placeholder="@Placeholder"
+                   required="@IsRequired"
+                   disabled="@Disabled"
+                   readonly="@ReadOnly"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   aria-describedby="@DescribedBy" />
+            @if (Steppers)
+            {
+                @* Revealed by the script, which does the stepping. Not tab stops: arrow keys step. *@
+                <span class="ib-field-steppers" data-ib-steppers hidden>
+                    <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@IncreaseLabel" disabled="@(Disabled || ReadOnly)">
+                        <Icon Role="IconRole.ChevronUp" />
+                    </button>
+                    <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@(Disabled || ReadOnly)">
+                        <Icon Role="IconRole.ChevronDown" />
+                    </button>
+                </span>
+            }
+        </ib-field-control>
+    </FieldAddons>
+</FieldFrame>
+
+@code {
+    /// <summary>The lowest value. Defaults to <c>[Range]</c>'s minimum.</summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>The highest value. Defaults to <c>[Range]</c>'s maximum.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>
+    /// The step between allowed values, such as 0.01 for cents. Defaults to 1 for whole-number types
+    /// and to any value for decimal types.
+    /// </summary>
+    [Parameter] public double? Step { get; set; }
+
+    /// <summary>Example text shown when empty.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>An icon inside the field, before the number.</summary>
+    [Parameter] public IconData? StartIcon { get; set; }
+
+    /// <summary>Content attached before the control, outside its border. See <see cref="TextField.StartAddon"/>.</summary>
+    [Parameter] public RenderFragment? StartAddon { get; set; }
+
+    /// <summary>Content attached after the control, outside its border, such as a unit.</summary>
+    [Parameter] public RenderFragment? EndAddon { get; set; }
+
+    /// <summary>Increase and decrease buttons, shown once scripts run. Defaults to true.</summary>
+    [Parameter] public bool Steppers { get; set; } = true;
+
+    /// <summary>The increase button's accessible name.</summary>
+    [Parameter] public string IncreaseLabel { get; set; } = "Increase";
+
+    /// <summary>The decrease button's accessible name.</summary>
+    [Parameter] public string DecreaseLabel { get; set; } = "Decrease";
+
+    private static readonly Type NumberType = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+    private static bool IsWholeNumber =>
+        NumberType == typeof(int) || NumberType == typeof(long) || NumberType == typeof(short)
+        || NumberType == typeof(byte) || NumberType == typeof(sbyte) || NumberType == typeof(uint)
+        || NumberType == typeof(ulong) || NumberType == typeof(ushort);
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    private double? ResolvedMin => Min ?? ToDouble(Range?.Minimum);
+
+    private double? ResolvedMax => Max ?? ToDouble(Range?.Maximum);
+
+    private string? ResolvedStep => Step is { } step ? Format(step) : IsWholeNumber ? null : "any";
+
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control")
+        .Add("ib-has-start", StartIcon is not null)
+        .Add("ib-has-steppers", Steppers)
+        .Build()!;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!IsWholeNumber && NumberType != typeof(decimal) && NumberType != typeof(double) && NumberType != typeof(float))
+        {
+            throw new InvalidOperationException($"NumberInput doesn't support {typeof(TValue)}. Bind it to a number type, such as int, decimal or double, or a nullable one.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    // Number inputs always use invariant formatting ("1.5"), whatever the page's culture.
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => value switch
+    {
+        null => null,
+        IFormattable number => number.ToString(null, System.Globalization.CultureInfo.InvariantCulture),
+        _ => value.ToString(),
+    };
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (BindConverter.TryConvertTo<TValue>(value, System.Globalization.CultureInfo.InvariantCulture, out result))
+        {
+            validationErrorMessage = null;
+            return true;
+        }
+
+        validationErrorMessage = $"The {ResolvedLabel ?? FieldIdentifier.FieldName} field must be a number.";
+        return false;
+    }
+
+    private static string? Format(double? value) =>
+        value?.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+    private static double? ToDouble(object? value) => value switch
+    {
+        null => null,
+        IConvertible c => c.ToDouble(System.Globalization.CultureInfo.InvariantCulture),
+        _ => null,
+    };
+}

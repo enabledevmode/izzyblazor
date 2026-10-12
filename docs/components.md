@@ -97,7 +97,7 @@ JavaScript off), with enhanced handling when scripts run, and with live validati
 pages. Pair it with `[SupplyParameterFromForm(FormName = "...")]` on the model property; see
 [Getting started](getting-started.md#forms-on-static-pages).
 
-Fields (`TextField`, `TextArea`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
+Fields (`TextField`, `TextArea`, `NumberInput`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
 
 - take their label, required marker, input type and length limits from the model's DataAnnotations,
 - wire up `aria-describedby` and `aria-invalid`,
@@ -105,7 +105,16 @@ Fields (`TextField`, `TextArea`, `Select`, `Combobox`, `Checkbox`, `Switch`, `Ra
 
 `Select` and `RadioGroup` list enum values automatically, using `[Display(Name)]`.
 
-**Add-ons.** `TextField` takes `StartAddon` and `EndAddon`: content attached to the control, outside its
+**NumberInput.** A native number input bound to any number type (`int`, `decimal`, `double`, and
+their nullable forms), so it posts with the form, the browser checks `Min`, `Max` and `Step`, and phones
+show a number keyboard. `Min` and `Max` default to the model's `[Range]`; `Step` defaults to 1 for
+whole numbers and to any value for decimal types (set `Step="0.01"` for cents). Values always use
+invariant formatting (`1.5`), as number inputs require, whatever the page's culture. With JavaScript,
+stepper buttons replace the browser's spin buttons: hold one to repeat, and each end disables at
+`Min` or `Max`. Arrow keys step either way. `Steppers="false"` leaves them out. It takes the same
+`StartIcon` and add-ons as `TextField`.
+
+**Add-ons.** `TextField` and `NumberInput` take `StartAddon` and `EndAddon`: content attached to the control, outside its
 border, at the field's height. Use them for short text (`https://`, `kg`), a `Button` (a submit button
 posts the form, so it works with JavaScript off), or another field, such as a currency `Select`, whose
 label is kept for screen readers but not shown. Add-on text isn't part of the field's accessible name,
