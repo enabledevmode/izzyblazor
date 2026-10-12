@@ -111,7 +111,7 @@
         </Box>
     </Example>
 
-    <Example Title="Numbers" Note="NumberInput is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons replace the browser's spin buttons (hold to repeat); arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
+    <Example Title="Numbers" Note="NumberInput is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons appear, stacked or split (hold to repeat); the browser's own spin buttons are always hidden, and arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Numbers" FormName="numbers" OnValidSubmit="() => _numbersSaved = true">
                 <NumberInput @bind-Value="Numbers!.Quantity" />
@@ -121,12 +121,36 @@
                 <NumberInput @bind-Value="Numbers!.Discount" Step="5">
                     <EndAddon>%</EndAddon>
                 </NumberInput>
-                <NumberInput @bind-Value="Numbers!.Seats" Steppers="false" Hint="No steppers: type a number." />
+                <NumberInput @bind-Value="Numbers!.Guests" Steppers="StepperLayout.Split" Hint="Split steppers: easier to tap." />
+                <NumberInput @bind-Value="Numbers!.Seats" Steppers="StepperLayout.None" Hint="No steppers: type a number, or use the arrow keys." />
                 <Row Gap="2" Align="Align.Center">
                     <Button Type="ButtonType.Submit">Save</Button>
                     @if (_numbersSaved)
                     {
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Numbers!.Quantity × @(Numbers.Price?.ToString("0.00") ?? "no price"), @Numbers.Discount% off, @(Numbers.Seats?.ToString() ?? "no") seats</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Numbers!.Quantity × @(Numbers.Price?.ToString("0.00") ?? "no price"), @Numbers.Discount% off, @Numbers.Guests guests, @(Numbers.Seats?.ToString() ?? "no") seats</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Sliders" Note="Slider is a native range input: it posts with the form and takes arrow keys, Page Up/Down and Home/End with no script. With JavaScript the track fills to the thumb and the value follows as you drag. ValueFormat sets how the value reads, shown and announced. On interactive pages, Live updates the bound value while dragging; here the sample below follows it." Code="@SlidersCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Sliders" FormName="sliders" OnValidSubmit="() => _slidersSaved = true">
+                <Slider @bind-Value="Sliders!.Volume" ShowValue />
+                <Slider @bind-Value="Sliders!.Discount" Step="5" ShowValue ValueFormat="{0}%" Hint="Steps of 5, up to 50%." />
+                <Slider @bind-Value="Sliders!.Opacity" Min="0" Max="1" Step="0.05" ShowValue Live />
+                <div style="@($"height: 2rem; border-radius: var(--ib-radius-md); background: var(--ib-color-primary); opacity: {Sliders!.Opacity.ToString(System.Globalization.CultureInfo.InvariantCulture)}")"></div>
+                <Row Gap="3">
+                    <Slider @bind-Value="Sliders!.Small" Size="ControlSize.Sm" Class="host-grow" />
+                    <Slider @bind-Value="Sliders!.Large" Size="ControlSize.Lg" Class="host-grow" />
+                </Row>
+                <Slider @bind-Value="Sliders!.Locked" Disabled ShowValue />
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    @if (_slidersSaved)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: volume @Sliders!.Volume, @Sliders.Discount% off, opacity @Sliders.Opacity</TextBlock>
                     }
                 </Row>
             </Form>
@@ -208,6 +232,8 @@
     private bool _addonsSaved;
     [SupplyParameterFromForm(FormName = "numbers")] public NumbersModel? Numbers { get; set; }
     private bool _numbersSaved;
+    [SupplyParameterFromForm(FormName = "sliders")] public SlidersModel? Sliders { get; set; }
+    private bool _slidersSaved;
     private bool _choicesSaved;
 
     private static readonly string[] Skills =
@@ -271,6 +297,7 @@
         Choices ??= new();
         Addons ??= new();
         Numbers ??= new();
+        Sliders ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
 
@@ -375,7 +402,18 @@
         [Range(1, 99)] public int Quantity { get; set; } = 1;
         [Range(typeof(decimal), "0", "10000")] public decimal? Price { get; set; }
         [Range(0, 100)] public double Discount { get; set; } = 10;
+        [Range(1, 12)] public int Guests { get; set; } = 2;
         [Display(Name = "Seats")] public int? Seats { get; set; }
+    }
+
+    public class SlidersModel
+    {
+        public int Volume { get; set; } = 60;
+        [Range(0, 50)] public int Discount { get; set; } = 15;
+        public double Opacity { get; set; } = 0.8;
+        public int Small { get; set; } = 30;
+        public int Large { get; set; } = 70;
+        [Display(Name = "Locked")] public int Locked { get; set; } = 40;
     }
 
     public enum Currency
@@ -484,7 +522,15 @@
         <NumberInput @bind-Value="Model.Price" Step="0.01">
             <StartAddon>$</StartAddon>
         </NumberInput>
-        <NumberInput @bind-Value="Model.Seats" Steppers="false" />
+        <NumberInput @bind-Value="Model.Guests" Steppers="StepperLayout.Split" />
+        <NumberInput @bind-Value="Model.Seats" Steppers="StepperLayout.None" />
+        """;
+
+    private const string SlidersCode =
+        """
+        <Slider @bind-Value="Model.Volume" ShowValue />
+        <Slider @bind-Value="Model.Discount" Step="5" ShowValue ValueFormat="{0}%" />   @* [Range(0, 50)] *@
+        <Slider @bind-Value="Model.Opacity" Min="0" Max="1" Step="0.05" Live />          @* updates while dragging *@
         """;
 
     private const string AddonsCode =

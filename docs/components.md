@@ -97,7 +97,7 @@ JavaScript off), with enhanced handling when scripts run, and with live validati
 pages. Pair it with `[SupplyParameterFromForm(FormName = "...")]` on the model property; see
 [Getting started](getting-started.md#forms-on-static-pages).
 
-Fields (`TextField`, `TextArea`, `NumberInput`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
+Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
 
 - take their label, required marker, input type and length limits from the model's DataAnnotations,
 - wire up `aria-describedby` and `aria-invalid`,
@@ -110,9 +110,19 @@ their nullable forms), so it posts with the form, the browser checks `Min`, `Max
 show a number keyboard. `Min` and `Max` default to the model's `[Range]`; `Step` defaults to 1 for
 whole numbers and to any value for decimal types (set `Step="0.01"` for cents). Values always use
 invariant formatting (`1.5`), as number inputs require, whatever the page's culture. With JavaScript,
-stepper buttons replace the browser's spin buttons: hold one to repeat, and each end disables at
-`Min` or `Max`. Arrow keys step either way. `Steppers="false"` leaves them out. It takes the same
+stepper buttons appear: hold one to repeat, and each end disables at `Min` or `Max`.
+`Steppers` places them: `StepperLayout.Stacked` at the end (the default), `Split` (a full-height
+button at each end, easier to tap) or `None`. The browser's own spin buttons are always hidden, and
+arrow keys step either way. It takes the same
 `StartIcon` and add-ons as `TextField`.
+
+**Slider.** A native range input bound to a number type, so it posts with the form and takes arrow
+keys, Page Up/Down and Home/End with no script. `Min` and `Max` default to `[Range]`, or 0 to 100;
+`Step` to 1. With JavaScript the track fills up to the thumb and the value shown by `ShowValue`
+follows as you drag. `ValueFormat` sets how the value reads, both shown and announced to screen
+readers: `"{0}%"`, `"${0}"`. On interactive pages the bound value updates on release; `Live` updates
+it while dragging, at one round trip per move. A read-only slider is disabled and posts its value
+through a hidden input.
 
 **Add-ons.** `TextField` and `NumberInput` take `StartAddon` and `EndAddon`: content attached to the control, outside its
 border, at the field's height. Use them for short text (`https://`, `kg`), a `Button` (a submit button

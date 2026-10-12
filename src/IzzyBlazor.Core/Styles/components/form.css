@@ -181,11 +181,18 @@
   .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + 1.75em); }
 
   /*
-   * NumberInput. The script reveals the stepper buttons; only then are the browser's own spin
-   * buttons hidden, so a page without script keeps them.
+   * NumberInput. The browser's own spin buttons are hidden; the script reveals IzzyBlazor's
+   * stepper buttons, stacked at the end or split across both ends.
    */
   .ib-field-number {
     font-variant-numeric: tabular-nums;
+    -moz-appearance: textfield;
+  }
+
+  .ib-field-number::-webkit-inner-spin-button,
+  .ib-field-number::-webkit-outer-spin-button {
+    -webkit-appearance: none;
+    margin: 0;
   }
 
   .ib-field-steppers {
@@ -232,6 +239,29 @@
     color: var(--ib-color-on-surface);
   }
 
+  /* Pressed: set by the script while held (it cancels the pointer's default, so :active may not apply). */
+  .ib-field-step:is(:active, [data-pressed]):not(:disabled) {
+    background-color: var(--ib-color-surface-container-high);
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-field-step .ib-icon {
+    transition: translate var(--ib-duration-fast) var(--ib-ease), scale var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-field-step[data-ib-step="up"]:is(:active, [data-pressed]):not(:disabled) .ib-icon {
+    translate: 0 -1px;
+  }
+
+  .ib-field-step[data-ib-step="down"]:is(:active, [data-pressed]):not(:disabled) .ib-icon {
+    translate: 0 1px;
+  }
+
+  .ib-field-steppers-split .ib-field-step:is(:active, [data-pressed]):not(:disabled) .ib-icon {
+    translate: none;
+    scale: 0.85;
+  }
+
   .ib-field-step:disabled {
     color: var(--ib-color-disabled);
     cursor: default;
@@ -239,18 +269,187 @@
 
   .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input {
     padding-inline-end: calc(1.75rem + var(--ib-field-px));
-    -moz-appearance: textfield;
   }
 
-  .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input::-webkit-inner-spin-button,
-  .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input::-webkit-outer-spin-button {
-    -webkit-appearance: none;
-    margin: 0;
+  /* Split: a square button at each end, inside the border, and the number centered between. */
+  .ib-field-steppers-split {
+    inset-inline: 1px;
+    width: auto;
+    flex-direction: row;
+    justify-content: space-between;
+    border: 0;
+    pointer-events: none;
+  }
+
+  .ib-field-steppers-split .ib-field-step {
+    flex: none;
+    width: calc(var(--ib-field-h) - 2px);
+    pointer-events: auto;
+  }
+
+  .ib-field-steppers-split .ib-field-step + .ib-field-step {
+    border-top: 0;
+  }
+
+  .ib-field-step-down {
+    border-inline-end: 1px solid var(--ib-field-border);
+    border-start-start-radius: calc(var(--ib-radius-md) - 1px);
+    border-end-start-radius: calc(var(--ib-radius-md) - 1px);
+  }
+
+  .ib-field-step-up {
+    border-inline-start: 1px solid var(--ib-field-border);
+    border-start-end-radius: calc(var(--ib-radius-md) - 1px);
+    border-end-end-radius: calc(var(--ib-radius-md) - 1px);
+  }
+
+  .ib-field-steppers-split .ib-field-step .ib-icon {
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .ib-has-split-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input {
+    padding-inline: calc(var(--ib-field-h) + var(--ib-field-px));
+    text-align: center;
+  }
+
+  .ib-has-split-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-icon-start {
+    inset-inline-start: calc(var(--ib-field-h) + var(--ib-field-px));
+  }
+
+  .ib-field-group:has(> .ib-field-addon-start) .ib-field-step-down {
+    border-radius: 0;
+  }
+
+  .ib-field-group:has(> .ib-field-addon-end) .ib-field-step-up {
+    border-radius: 0;
   }
 
   /* The field next to an end add-on loses its rounded end; so do its steppers. */
   .ib-field-group:has(> .ib-field-addon-end) .ib-field-steppers {
     border-radius: 0;
+  }
+
+  /*
+   * Slider: a native range input, restyled. The track fills up to the thumb from
+   * --ib-slider-fill (0 to 100), which the server sets and the script keeps current while dragging.
+   * Firefox draws the fill itself (::-moz-range-progress).
+   */
+  .ib-slider {
+    --ib-slider-track: 0.375rem;
+    --ib-slider-thumb: 1.125rem;
+    --ib-slider-accent: var(--ib-color-primary);
+    /* The fill ends at the thumb's center, which travels the track minus one thumb width. */
+    --ib-slider-stop: calc(var(--ib-slider-thumb) / 2 + (100% - var(--ib-slider-thumb)) * var(--ib-slider-fill, 0) / 100);
+
+    gap: var(--ib-space-3);
+    min-height: var(--ib-field-h);
+  }
+
+  .ib-field-sm .ib-slider {
+    --ib-slider-track: 0.25rem;
+    --ib-slider-thumb: 0.875rem;
+  }
+
+  .ib-field-lg .ib-slider {
+    --ib-slider-track: 0.5rem;
+    --ib-slider-thumb: 1.375rem;
+  }
+
+  .ib-slider-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: var(--ib-slider-thumb);
+    margin: 0;
+    background: transparent;
+    -webkit-appearance: none;
+    appearance: none;
+    cursor: pointer;
+  }
+
+  .ib-slider-input::-webkit-slider-runnable-track {
+    height: var(--ib-slider-track);
+    border-radius: 999px;
+    background: linear-gradient(to right, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-surface-container-high, var(--ib-color-outline)) 0);
+  }
+
+  .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
+    background: linear-gradient(to left, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-surface-container-high, var(--ib-color-outline)) 0);
+  }
+
+  .ib-slider-input::-moz-range-track {
+    height: var(--ib-slider-track);
+    border-radius: 999px;
+    background: var(--ib-color-surface-container-high, var(--ib-color-outline));
+  }
+
+  .ib-slider-input::-moz-range-progress {
+    height: var(--ib-slider-track);
+    border-radius: 999px;
+    background: var(--ib-slider-accent);
+  }
+
+  .ib-slider-input::-webkit-slider-thumb {
+    width: var(--ib-slider-thumb);
+    height: var(--ib-slider-thumb);
+    margin-top: calc((var(--ib-slider-track) - var(--ib-slider-thumb)) / 2);
+    border: 2px solid var(--ib-slider-accent);
+    border-radius: 50%;
+    background: var(--ib-color-surface);
+    box-shadow: var(--ib-shadow-sm);
+    -webkit-appearance: none;
+    appearance: none;
+    transition: box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-slider-input::-moz-range-thumb {
+    width: var(--ib-slider-thumb);
+    height: var(--ib-slider-thumb);
+    box-sizing: border-box;
+    border: 2px solid var(--ib-slider-accent);
+    border-radius: 50%;
+    background: var(--ib-color-surface);
+    box-shadow: var(--ib-shadow-sm);
+  }
+
+  .ib-slider-input:focus-visible {
+    outline: none;
+  }
+
+  .ib-slider-input:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ib-color-focus) 30%, transparent);
+  }
+
+  .ib-slider-input:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ib-color-focus) 30%, transparent);
+  }
+
+  .ib-slider-input:disabled {
+    --ib-slider-accent: var(--ib-color-disabled);
+    cursor: not-allowed;
+  }
+
+  .ib-field-invalid .ib-slider {
+    --ib-slider-accent: var(--ib-color-danger);
+  }
+
+  .ib-slider-value {
+    flex: none;
+    min-width: 3ch;
+    font-size: var(--ib-field-font);
+    font-variant-numeric: tabular-nums;
+    text-align: end;
+    color: var(--ib-color-on-surface);
+  }
+
+  /* With script, the live value comes from data-current (the server's text is kept for Blazor). */
+  .ib-slider-value[data-current] {
+    font-size: 0;
+  }
+
+  .ib-slider-value[data-current]::after {
+    content: attr(data-current);
+    font-size: var(--ib-field-font);
   }
 
   /*
