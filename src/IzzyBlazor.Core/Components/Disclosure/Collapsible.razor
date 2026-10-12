@@ -1,0 +1,67 @@
+@namespace IzzyBlazor
+@inherits ToggleComponentBase
+
+@*
+    A single show-and-hide section without accordion styling: "Show more", "Advanced options",
+    a FAQ entry. A native <details>, so it works with JavaScript off.
+
+    <Collapsible Label="Advanced options">...</Collapsible>
+*@
+
+<details @attributes="AdditionalAttributes"
+         id="@ElementId"
+         class="@_class"
+         style="@_style"
+         open="@IsOpen"
+         @onibtoggle="HandleToggle">
+    <summary class="ib-collapsible-trigger">
+        @if (Trigger is not null)
+        {
+            @Trigger
+        }
+        else
+        {
+            <Icon Role="IconRole.ChevronRight" Class="ib-collapsible-chevron" />
+            <span>@Label</span>
+        }
+    </summary>
+    <div class="ib-collapsible-panel">
+        @ChildContent
+    </div>
+</details>
+
+@code {
+    /// <summary>The trigger text, after a chevron.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Custom trigger content, in place of <see cref="Label"/> and the chevron. Inline content only.</summary>
+    [Parameter] public RenderFragment? Trigger { get; set; }
+
+    /// <summary>The hidden content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override string IdPrefix => "ib-collapsible";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-collapsible");
+        classes.Add("ib-disclosure");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Label is null && Trigger is null)
+        {
+            throw new InvalidOperationException("Collapsible needs a Label or a Trigger.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+}

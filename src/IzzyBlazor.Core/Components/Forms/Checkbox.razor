@@ -1,0 +1,50 @@
+@namespace IzzyBlazor
+@inherits FieldBase<bool>
+
+@*
+    A checkbox with its label beside it.
+    <Checkbox @bind-Value="Model.AcceptTerms" Label="I agree to the terms" />
+
+    Posting: a checked box posts "true"; an unchecked box posts nothing, so the model keeps its
+    default (false). No hidden input is needed.
+*@
+
+<FieldFrame Class="@WrapperClass(AsSwitch ? "switch" : "checkbox")" Id="@FieldId" LabelInControl
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <label class="ib-check" for="@FieldId">
+        <input @attributes="ControlAttributes"
+               id="@FieldId"
+               class="@(AsSwitch ? "ib-switch-input" : "ib-check-input")"
+               type="checkbox"
+               role="@(AsSwitch ? "switch" : null)"
+               name="@NameAttributeValue"
+               value="true"
+               @bind="CurrentValue"
+               required="@IsRequired"
+               disabled="@Disabled"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy" />
+        <span class="ib-check-label">
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else
+            {
+                @ResolvedLabel
+            }
+            @if (IsRequired)
+            {
+                <span class="ib-field-required" aria-hidden="true"> *</span>
+            }
+        </span>
+    </label>
+</FieldFrame>
+
+@code {
+    /// <summary>Rich label content, such as text with a link. Overrides <c>Label</c>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Renders as a switch. Use <see cref="Switch"/> instead of setting this.</summary>
+    protected virtual bool AsSwitch => false;
+}

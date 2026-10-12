@@ -1,0 +1,13 @@
+@* Shows how this page is rendering, so it is always obvious which mode you are testing. *@
+
+<Row Inline Gap="2" Align="Align.Center" Class="host-badges">
+    @if (RendererInfo.IsInteractive)
+    {
+        <span class="host-badge host-badge-interactive">Interactive · @RendererInfo.Name</span>
+    }
+    else
+    {
+        <span class="host-badge host-badge-static">Static SSR</span>
+    }
+    <span class="host-badge host-badge-nojs">JavaScript off</span>
+</Row>

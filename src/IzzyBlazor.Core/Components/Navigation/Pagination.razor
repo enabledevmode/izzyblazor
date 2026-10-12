@@ -1,0 +1,197 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    Page links. Each page is a link that sets the page in the query string, so paging works on
+    static pages with no script, survives reloads and can be shared; the page reads it with
+    [SupplyParameterFromQuery]. On interactive pages, @bind-Page turns the links into buttons
+    that update C# without touching the URL.
+
+    <Pagination PageCount="12" />                       reads and writes ?page=
+    <Pagination @bind-Page="page" PageCount="12" />     interactive, no URL
+*@
+
+<nav @attributes="AdditionalAttributes" aria-label="@Label" class="@_class" style="@_style">
+    <ul class="ib-pagination-list">
+        <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel, IconRole.ChevronLeft, "ib-pagination-prev")</li>
+        @foreach (var item in Items())
+        {
+            if (item == 0)
+            {
+                <li class="ib-pagination-gap" aria-hidden="true">…</li>
+            }
+            else if (item == _page)
+            {
+                @if (UseButtons)
+                {
+                    @* A button, so focus stays on it after it becomes the current page. *@
+                    <li><button type="button" class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@item</button></li>
+                }
+                else
+                {
+                    <li><span class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@item</span></li>
+                }
+            }
+            else
+            {
+                <li class="@(Math.Abs(item - _page) > 1 ? "ib-pagination-far" : null)">@PageLink(item)</li>
+            }
+        }
+        <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel, IconRole.ChevronRight, "ib-pagination-next")</li>
+    </ul>
+</nav>
+
+@code {
+    /// <summary>
+    /// The current page, from 1. When not set it is read from the query string (<see cref="QueryKey"/>).
+    /// With <c>@bind-Page</c> on an interactive page, the links become buttons that update it.
+    /// </summary>
+    [Parameter] public int? Page { get; set; }
+
+    /// <summary>Called with the new page when a page is picked (interactive pages, with <c>@bind-Page</c>).</summary>
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    /// <summary>How many pages there are. Or set <see cref="TotalItems"/> and <see cref="PageSize"/>.</summary>
+    [Parameter] public int? PageCount { get; set; }
+
+    /// <summary>How many items there are, with <see cref="PageSize"/>, in place of <see cref="PageCount"/>.</summary>
+    [Parameter] public int? TotalItems { get; set; }
+
+    /// <summary>Items per page, with <see cref="TotalItems"/>. Defaults to 20.</summary>
+    [Parameter] public int PageSize { get; set; } = 20;
+
+    /// <summary>The query-string key for the page. Defaults to <c>page</c>. Page 1 leaves it out of the URL.</summary>
+    [Parameter] public string QueryKey { get; set; } = "page";
+
+    /// <summary>Pages shown on each side of the current one. Defaults to 1.</summary>
+    [Parameter] public int Siblings { get; set; } = 1;
+
+    /// <summary>Pages always shown at each end. Defaults to 1.</summary>
+    [Parameter] public int Boundaries { get; set; } = 1;
+
+    /// <summary>Button size, shared with buttons and fields. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>The navigation landmark's name. Defaults to "Pagination".</summary>
+    [Parameter] public string Label { get; set; } = "Pagination";
+
+    /// <summary>The previous button's name. Defaults to "Previous page".</summary>
+    [Parameter] public string PreviousLabel { get; set; } = "Previous page";
+
+    /// <summary>The next button's name. Defaults to "Next page".</summary>
+    [Parameter] public string NextLabel { get; set; } = "Next page";
+
+    /// <summary>Read before each page number by screen readers. Defaults to "Page".</summary>
+    [Parameter] public string PageLabel { get; set; } = "Page";
+
+    private int _page = 1;
+    private int _count = 1;
+    private string? _class;
+    private string? _style;
+
+    private bool UseButtons => PageChanged.HasDelegate && RendererInfo.IsInteractive;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    // The links carry the rest of the query string, so they're rebuilt when the URL changes
+    // on an interactive page (sorting a table, say), even if the page number didn't.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(() =>
+    {
+        OnParametersSet();
+        StateHasChanged();
+    });
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _count = Math.Max(1, PageCount ?? (TotalItems is { } total ? (int)Math.Ceiling(total / (double)Math.Max(1, PageSize)) : 1));
+        _page = Math.Clamp(Page ?? FromQuery() ?? 1, 1, _count);
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-pagination");
+        classes.Add("ib-pagination-sm", Size == ControlSize.Sm);
+        classes.Add("ib-pagination-lg", Size == ControlSize.Lg);
+    }
+
+    /// <summary>The pages to show, with 0 for a gap: 1 … 4 5 6 … 12.</summary>
+    internal IEnumerable<int> Items() => Range(_page, _count, Siblings, Boundaries);
+
+    internal static IEnumerable<int> Range(int page, int count, int siblings, int boundaries)
+    {
+        siblings = Math.Max(0, siblings);
+        boundaries = Math.Max(0, boundaries);
+        // Show everything when it fits in the space the full layout would take anyway.
+        var slots = 2 * boundaries + 2 * siblings + 3;
+        if (count <= slots)
+        {
+            for (var i = 1; i <= count; i++) yield return i;
+            yield break;
+        }
+
+        // Keep the window the same width at the ends, so the control doesn't jump around.
+        var start = Math.Max(Math.Min(page - siblings, count - boundaries - 1 - 2 * siblings), boundaries + 2);
+        var end = Math.Min(Math.Max(page + siblings, boundaries + 2 + 2 * siblings), count - boundaries - 1);
+
+        for (var i = 1; i <= boundaries; i++) yield return i;
+        yield return start > boundaries + 2 ? 0 : boundaries + 1;
+        for (var i = start; i <= end; i++) yield return i;
+        yield return end < count - boundaries - 1 ? 0 : count - boundaries;
+        for (var i = count - boundaries + 1; i <= count; i++) yield return i;
+    }
+
+    private int? FromQuery()
+    {
+        var query = QueryString.Of(Navigation.Uri);
+        return query.TryGetValue(QueryKey, out var value) && int.TryParse(value, out var page) ? page : null;
+    }
+
+    private string Href(int page) =>
+        Navigation.GetUriWithQueryParameter(QueryKey, page == 1 ? null : (int?)page);
+
+    private static string ItemClass(string extra) =>
+        extra.Length == 0 ? "ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item" : $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item {extra}";
+
+    private RenderFragment PageLink(int number) => __builder =>
+    {
+        if (UseButtons)
+        {
+            <button type="button" class="@ItemClass("")" @onclick="() => PageChanged.InvokeAsync(number)"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@(number)</button>
+        }
+        else
+        {
+            <a href="@Href(number)" class="@ItemClass("")"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@(number)</a>
+        }
+    };
+
+    private RenderFragment PageControl(int target, bool disabled, string label, IconRole icon, string extra) => __builder =>
+    {
+        if (disabled && UseButtons)
+        {
+            @* Still a button (focusable, announced as unavailable), so focus isn't lost at the ends. *@
+            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="true" aria-label="@label"><Icon Role="icon" /></button>
+        }
+        else if (disabled)
+        {
+            <span class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="true" aria-label="@label" role="link"><Icon Role="icon" /></span>
+        }
+        else if (UseButtons)
+        {
+            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-label="@label" @onclick="() => PageChanged.InvokeAsync(target)"><Icon Role="icon" /></button>
+        }
+        else
+        {
+            <a href="@Href(target)" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-label="@label" rel="@(target < _page ? "prev" : "next")"><Icon Role="icon" /></a>
+        }
+    };
+}

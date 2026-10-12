@@ -1,0 +1,106 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+
+@*
+    One tab of a Tabs: its label goes in the tab list and its content in a panel. All panels
+    are rendered; CSS shows the selected one.
+*@
+
+@if (Context is not null)
+{
+    @* Tab roles come from <ib-tabs> with script; with no script the tabs are a radio group. *@
+    <div @attributes="AdditionalAttributes"
+         id="@Context.PanelId(this)"
+         class="@_class"
+         style="@_style">
+        @ChildContent
+    </div>
+}
+
+@code {
+    /// <summary>The label in the tab list.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>
+    /// The value that identifies this tab in <c>@bind-Selected</c> and in the URL. Defaults to
+    /// the title in lower case with dashes, such as <c>billing-history</c>. Tabs that end up
+    /// with the same value get <c>-2</c>, <c>-3</c>... added.
+    /// </summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>An icon before the label.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>A small count or label after the title, such as "3".</summary>
+    [Parameter] public string? Badge { get; set; }
+
+    /// <summary>Shows the tab but stops it being selected.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>The panel content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] internal TabsContext? Context { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <summary>The value used for ids and selection.</summary>
+    internal string Key => Value ?? Slug(Label);
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException($"{nameof(Tab)} needs a {nameof(Label)}.");
+        }
+
+        Context?.Register(this);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-tab-panel");
+
+    private (string, string?, IconData?, string?, bool)? _shown;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+
+        // The tab list is rendered by Tabs, so tell it when what it shows has changed.
+        var shown = (Label, Value, Icon, Badge, Disabled);
+        if (_shown is { } previous && previous != shown)
+        {
+            Context?.Changed();
+        }
+
+        _shown = shown;
+    }
+
+    internal static string Slug(string text)
+    {
+        var chars = new System.Text.StringBuilder(text.Length);
+        var dash = false;
+        foreach (var c in text.Trim().ToLowerInvariant())
+        {
+            if (char.IsLetterOrDigit(c))
+            {
+                chars.Append(c);
+                dash = false;
+            }
+            else if (!dash && chars.Length > 0)
+            {
+                chars.Append('-');
+                dash = true;
+            }
+        }
+
+        return chars.ToString().TrimEnd('-') is { Length: > 0 } slug ? slug : "tab";
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+}

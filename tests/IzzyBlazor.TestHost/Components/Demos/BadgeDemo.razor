@@ -1,0 +1,53 @@
+<Stack Gap="8">
+
+    <Example Title="Statuses and variants" Code="@VariantsCode">
+        <Stack Gap="3">
+            @foreach (var variant in Enum.GetValues<BadgeVariant>())
+            {
+                <Row Gap="2" Align="Align.Center" Wrap>
+                    <TextBlock As="span" Class="host-label">@variant</TextBlock>
+                    @foreach (var status in Enum.GetValues<Status>())
+                    {
+                        <Badge Status="status" Variant="variant">@status</Badge>
+                    }
+                    <Badge Color="Color.Primary" Variant="variant">Primary (Color)</Badge>
+                </Row>
+            }
+        </Stack>
+    </Example>
+
+    <Example Title="Statuses, counts and icons" Code="@UsesCode">
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Badge Status="Status.Success" Dot>Published</Badge>
+            <Badge Status="Status.Warning" Dot>In review</Badge>
+            <Badge Status="Status.Neutral" Dot>Draft</Badge>
+            <Badge Status="Status.Danger" Variant="BadgeVariant.Solid" Pill>3</Badge>
+            <Badge Color="Color.Primary" Variant="BadgeVariant.Solid" Pill Size="BadgeSize.Sm">12</Badge>
+            <Badge Status="Status.Info" StartIcon="Lucide.Sparkles">New</Badge>
+        </Row>
+    </Example>
+
+    <Example Title="Inside text and buttons" Code="@InlineCode">
+        <Stack Gap="3">
+            <Heading Level="3" Size="TextSize.Lg">Release notes <Badge Color="Color.Primary">v0.1</Badge></Heading>
+            <Row Gap="2">
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Inbox">Inbox <Badge Color="Color.Primary" Variant="BadgeVariant.Solid" Pill Size="BadgeSize.Sm">4</Badge></Button>
+            </Row>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string VariantsCode = """<Badge Status="Status.Success" Variant="BadgeVariant.Soft">Published</Badge>""";
+
+    private const string UsesCode =
+        """
+        <Badge Status="Status.Success" Dot>Published</Badge>
+        <Badge Status="Status.Danger" Variant="BadgeVariant.Solid" Pill>3</Badge>
+        <Badge Status="Status.Info" StartIcon="Lucide.Sparkles">New</Badge>
+        """;
+
+    private const string InlineCode =
+        """<Heading Level="3">Release notes <Badge Color="Color.Primary">v0.1</Badge></Heading>""";
+}

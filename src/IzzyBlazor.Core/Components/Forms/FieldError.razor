@@ -1,0 +1,63 @@
+@namespace IzzyBlazor
+@implements IDisposable
+@typeparam TValue
+
+@*
+    Validation messages for one model property, for fields that are not IzzyBlazor fields.
+    IzzyBlazor fields show their own errors.
+    <FieldError For="() => Model.Email" />
+*@
+
+@if (Messages.Count > 0)
+{
+    <div class="ib-field-error">
+        @foreach (var message in Messages)
+        {
+            <p><Icon Role="IconRole.Error" /> @message</p>
+        }
+    </div>
+}
+
+@code {
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>The property whose messages to show.</summary>
+    [Parameter, EditorRequired] public System.Linq.Expressions.Expression<Func<TValue>> For { get; set; } = default!;
+
+    private IReadOnlyList<string> Messages =>
+        EditContext is null ? [] : EditContext.GetValidationMessages(FieldIdentifier.Create(For)).ToList();
+
+    private EditContext? _subscribed;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_subscribed, EditContext))
+        {
+            return;
+        }
+
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+        }
+
+        _subscribed = EditContext;
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged += OnValidationStateChanged;
+        }
+    }
+
+    // Validation runs after this component first renders (on submit), so re-render when it changes.
+    private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+        }
+    }
+}

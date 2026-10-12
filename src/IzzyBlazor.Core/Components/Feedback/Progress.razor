@@ -1,0 +1,91 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A progress bar. With a Value it shows how far along something is; without one it's
+    indeterminate (a bar that moves, for "working on it"). Rendered on the server, so it works on
+    static pages; on interactive pages, update Value from C#.
+
+    <Progress Value="40" Label="Uploading" ShowValue />
+    <Progress Value="3" Max="5" ValueText="3 of 5 files" Color="Color.Success" />
+    <Progress Label="Preparing export" />                       (indeterminate)
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (Label is not null || ShowValue || ValueText is not null)
+    {
+        <div class="ib-progress-head">
+            @if (Label is not null)
+            {
+                <span class="ib-progress-label" id="@LabelId">@Label</span>
+            }
+            @if ((ShowValue || ValueText is not null) && Value is not null)
+            {
+                <span class="ib-progress-value" aria-hidden="true">@DisplayValue</span>
+            }
+        </div>
+    }
+    <div class="ib-progress-track"
+         role="progressbar"
+         aria-labelledby="@(Label is not null ? LabelId : null)"
+         aria-valuemin="@(Value is null ? null : "0")"
+         aria-valuemax="@(Value is null ? null : Max.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+         aria-valuenow="@(Value is null ? null : Clamped.ToString(System.Globalization.CultureInfo.InvariantCulture))"
+         aria-valuetext="@(Value is null ? null : DisplayValue)">
+        <div class="ib-progress-bar" style="@BarStyle"></div>
+    </div>
+</div>
+
+@code {
+    private static int _ids;
+    private readonly string _labelId = $"ib-progress-{Interlocked.Increment(ref _ids)}";
+    private string? _class;
+    private string? _style;
+
+    /// <summary>How far along, from 0 to <see cref="Max"/>. Leave it out for an indeterminate bar.</summary>
+    [Parameter] public double? Value { get; set; }
+
+    /// <summary>The value that means done. Defaults to 100.</summary>
+    [Parameter] public double Max { get; set; } = 100;
+
+    /// <summary>A label above the bar, also its accessible name. Without one, give the bar an <c>aria-label</c>.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Shows the percentage above the bar, at the end.</summary>
+    [Parameter] public bool ShowValue { get; set; }
+
+    /// <summary>Text for the value in place of a percentage, such as "3 of 5 files". Shown, and read by screen readers.</summary>
+    [Parameter] public string? ValueText { get; set; }
+
+    /// <summary>The bar's color. Defaults to the primary color.</summary>
+    [Parameter] public Color? Color { get; set; }
+
+    /// <summary>Thickness. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private string LabelId => (AdditionalAttributes?.TryGetValue("id", out var id) == true ? $"{id}-label" : _labelId);
+
+    private double Clamped => Math.Clamp(Value ?? 0, 0, Max <= 0 ? 0 : Max);
+
+    private double Percent => Max <= 0 ? 0 : Clamped / Max * 100;
+
+    private string DisplayValue => ValueText ?? $"{Math.Round(Percent):0}%";
+
+    private string? BarStyle => Value is null ? null : $"width:{Percent.ToString("0.##", System.Globalization.CultureInfo.InvariantCulture)}%";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-progress");
+        classes.Add("ib-progress-sm", Size == ControlSize.Sm);
+        classes.Add("ib-progress-lg", Size == ControlSize.Lg);
+        classes.Add("ib-progress-indeterminate", Value is null);
+        if (Color is { } color)
+        {
+            styles.AddVar("progress-color", StyleValues.Color(color));
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

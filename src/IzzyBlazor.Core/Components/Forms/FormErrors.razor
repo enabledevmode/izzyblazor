@@ -1,0 +1,65 @@
+@namespace IzzyBlazor
+@implements IDisposable
+
+@*
+    A summary of every validation message in the form, announced to screen readers when it appears.
+    Place it at the top of a long form.
+    <FormErrors />
+*@
+
+@if (Messages.Count > 0)
+{
+    <div class="ib-form-errors" role="alert">
+        <p class="ib-form-errors-title"><Icon Role="IconRole.Error" /> @Title</p>
+        <ul>
+            @foreach (var message in Messages)
+            {
+                <li>@message</li>
+            }
+        </ul>
+    </div>
+}
+
+@code {
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>The heading. Defaults to "Please fix the following".</summary>
+    [Parameter] public string Title { get; set; } = "Please fix the following";
+
+    private IReadOnlyList<string> Messages =>
+        EditContext is null ? [] : EditContext.GetValidationMessages().ToList();
+
+    private EditContext? _subscribed;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (ReferenceEquals(_subscribed, EditContext))
+        {
+            return;
+        }
+
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+        }
+
+        _subscribed = EditContext;
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged += OnValidationStateChanged;
+        }
+    }
+
+    // Validation runs after this component first renders (on submit), so re-render when it changes.
+    private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+        }
+    }
+}

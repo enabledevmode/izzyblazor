@@ -1,0 +1,186 @@
+/*
+ * Text and Heading. Component defaults live in izzy.components; the modifier
+ * classes for typography props live in izzy.utilities so they win over defaults.
+ */
+@layer izzy.components {
+  .ib-text,
+  .ib-heading {
+    margin: 0;
+  }
+
+  .ib-heading {
+    font-weight: var(--ib-weight-bold);
+    line-height: var(--ib-leading-tight);
+    text-wrap: balance;
+  }
+}
+
+@layer izzy.utilities {
+  .ib-fw-light { font-weight: var(--ib-weight-light); }
+  .ib-fw-normal { font-weight: var(--ib-weight-normal); }
+  .ib-fw-medium { font-weight: var(--ib-weight-medium); }
+  .ib-fw-semibold { font-weight: var(--ib-weight-semibold); }
+  .ib-fw-bold { font-weight: var(--ib-weight-bold); }
+  .ib-fw-extrabold { font-weight: var(--ib-weight-extrabold); }
+
+  .ib-ff-sans { font-family: var(--ib-font-sans); }
+  .ib-ff-serif { font-family: var(--ib-font-serif); }
+  .ib-ff-mono { font-family: var(--ib-font-mono); }
+
+  .ib-lh-none { line-height: var(--ib-leading-none); }
+  .ib-lh-tight { line-height: var(--ib-leading-tight); }
+  .ib-lh-snug { line-height: var(--ib-leading-snug); }
+  .ib-lh-normal { line-height: var(--ib-leading-normal); }
+  .ib-lh-relaxed { line-height: var(--ib-leading-relaxed); }
+  .ib-lh-loose { line-height: var(--ib-leading-loose); }
+
+  .ib-ls-tighter { letter-spacing: var(--ib-tracking-tighter); }
+  .ib-ls-tight { letter-spacing: var(--ib-tracking-tight); }
+  .ib-ls-normal { letter-spacing: var(--ib-tracking-normal); }
+  .ib-ls-wide { letter-spacing: var(--ib-tracking-wide); }
+  .ib-ls-wider { letter-spacing: var(--ib-tracking-wider); }
+  .ib-ls-widest { letter-spacing: var(--ib-tracking-widest); }
+
+  .ib-tt-none { text-transform: none; }
+  .ib-tt-uppercase { text-transform: uppercase; }
+  .ib-tt-lowercase { text-transform: lowercase; }
+  .ib-tt-capitalize { text-transform: capitalize; }
+
+  .ib-td-none { text-decoration-line: none; }
+  .ib-td-underline { text-decoration-line: underline; text-underline-offset: 0.15em; }
+  .ib-td-line-through { text-decoration-line: line-through; }
+
+  .ib-tw-wrap { text-wrap: wrap; }
+  .ib-tw-no-wrap { text-wrap: nowrap; }
+  .ib-tw-balance { text-wrap: balance; }
+  .ib-tw-pretty { text-wrap: pretty; }
+
+  .ib-italic { font-style: italic; }
+  .ib-tabular { font-variant-numeric: tabular-nums; }
+
+  .ib-truncate {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    min-width: 0;
+  }
+
+  .ib-clamp {
+    display: -webkit-box;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: var(--ib-clamp);
+    line-clamp: var(--ib-clamp);
+    overflow: hidden;
+  }
+}
+
+/* Link and Code */
+@layer izzy.components {
+  .ib-link {
+    border-radius: var(--ib-radius-sm);
+    color: var(--ib-color-primary-text);
+    text-decoration: underline;
+    text-decoration-thickness: from-font;
+    text-underline-offset: 0.2em;
+    transition: color var(--ib-duration-fast) var(--ib-ease), text-decoration-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-link:hover {
+    text-decoration-color: currentColor;
+    text-decoration-thickness: 2px;
+  }
+
+  .ib-link-hover,
+  .ib-link-plain {
+    text-decoration: none;
+  }
+
+  .ib-link-hover:hover {
+    text-decoration: underline;
+  }
+
+  .ib-link-inherit {
+    color: inherit;
+  }
+
+  .ib-link:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-link-icon {
+    width: 0.85em;
+    height: 0.85em;
+    margin-inline-start: 0.15em;
+    vertical-align: -0.05em;
+  }
+
+  .ib-code {
+    padding: 0.125em 0.375em;
+    border-radius: var(--ib-radius-sm);
+    background-color: var(--ib-color-surface-container);
+    font-family: var(--ib-font-mono);
+    font-size: 0.875em;
+    overflow-wrap: anywhere;
+  }
+
+  .ib-code-block {
+    position: relative;
+    display: block;
+    min-width: 0;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-code-bar {
+    position: absolute;
+    top: var(--ib-space-2);
+    inset-inline-end: var(--ib-space-2);
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-code-language {
+    color: var(--ib-color-subtle);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-code-pre {
+    margin: 0;
+    padding: var(--ib-space-4);
+    overflow-x: auto;
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-text-sm);
+    line-height: var(--ib-leading-normal);
+    tab-size: 4;
+  }
+
+  .ib-code-block:has(.ib-code-bar) .ib-code-pre {
+    padding-inline-end: 7rem;
+  }
+
+  .ib-code-pre:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: -2px;
+    border-radius: inherit;
+  }
+
+  /* The copy button needs script: hidden until <ib-code> is defined. */
+  .ib-code-bar > .ib-code-copy,
+  .ib-code-copied-icon,
+  .ib-code-copy[data-copied] .ib-code-copy-icon {
+    display: none;
+  }
+
+  ib-code:defined .ib-code-bar > .ib-code-copy {
+    display: inline-flex;
+  }
+
+  .ib-code-copy[data-copied] .ib-code-copied-icon {
+    display: block;
+    color: var(--ib-color-success-text);
+  }
+}

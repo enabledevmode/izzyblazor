@@ -1,0 +1,87 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@typeparam TItem
+@inherits FieldBase<TValue>
+
+@*
+    A group of checkboxes for picking several options, bound to a collection: an array,
+    List<T>, HashSet<T> or an interface they implement. Both types are inferred, from the bound
+    property and from Items; for an enum, pass its values.
+
+    <CheckboxGroup @bind-Value="Model.Toppings" Items="Toppings" />
+    <CheckboxGroup @bind-Value="Model.Days" Items="Enum.GetValues<DayOfWeek>()" Orientation="Orientation.Horizontal" />
+
+    Posting: each checked box posts the field's name with its value, and Blazor binds the
+    repeated values to the collection, so it works on static pages with no script.
+*@
+
+<FieldFrame Class="@WrapperClass("checkboxes")" Label="@ResolvedLabel" Required="IsRequired" Group
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <div class="@OptionsClass">
+        @foreach (var (item, index) in ChoiceOptions.Of(Items).Select((o, i) => (o, i)))
+        {
+            var id = $"{FieldId}-{index}";
+            <label class="ib-check" for="@id">
+                <input id="@id"
+                       class="ib-check-input"
+                       type="checkbox"
+                       name="@NameAttributeValue"
+                       value="@ChoiceOptions.Value(item)"
+                       checked="@IsChecked(item)"
+                       @onchange="e => Toggle(item, e)"
+                       disabled="@Disabled"
+                       aria-invalid="@(Invalid ? "true" : null)" />
+                <span class="ib-check-label">
+                    @if (ItemTemplate is not null)
+                    {
+                        @ItemTemplate(item)
+                    }
+                    else
+                    {
+                        @ChoiceOptions.Text(item, ItemText)
+                    }
+                </span>
+            </label>
+        }
+    </div>
+</FieldFrame>
+
+@code {
+    /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Topping&gt;()"</c>.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>The text for each option. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
+    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+
+    /// <summary>Markup for each option's label, such as a description under the name.</summary>
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    /// <summary>Stack options vertically (the default) or in a row.</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    private string OptionsClass => Orientation == Orientation.Horizontal
+        ? "ib-radio-options ib-radio-horizontal"
+        : "ib-radio-options";
+
+    private bool IsChecked(TItem item) =>
+        ChoiceCollection<TValue, TItem>.Items(CurrentValue).Contains(item);
+
+    private void Toggle(TItem item, ChangeEventArgs e)
+    {
+        var on = e.Value is true || (e.Value is string text && bool.TryParse(text, out var parsed) && parsed);
+        var current = ChoiceCollection<TValue, TItem>.Items(CurrentValue).ToList();
+        if (on && !current.Contains(item))
+        {
+            // Keep the options' order, whatever order they were checked in.
+            var order = ChoiceOptions.Of(Items).ToList();
+            current.Add(item);
+            current = current.OrderBy(i => order.IndexOf(i) is var at && at < 0 ? int.MaxValue : at).ToList();
+        }
+        else if (!on)
+        {
+            current.Remove(item);
+        }
+
+        CurrentValue = ChoiceCollection<TValue, TItem>.Create(current);
+    }
+}

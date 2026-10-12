@@ -1,0 +1,391 @@
+/* Card and Table */
+@layer izzy.components {
+  .ib-card {
+    --ib-card-p: var(--ib-space-5);
+    --ib-card-gap: var(--ib-space-4);
+    --ib-card-title: var(--ib-text-lg);
+
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid transparent;
+    border-radius: var(--ib-radius-xl);
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-card-sm {
+    --ib-card-p: var(--ib-space-4);
+    --ib-card-gap: var(--ib-space-3);
+    --ib-card-title: var(--ib-text-md);
+  }
+
+  .ib-card-lg {
+    --ib-card-p: var(--ib-space-6);
+    --ib-card-gap: var(--ib-space-5);
+    --ib-card-title: var(--ib-text-xl);
+  }
+
+  .ib-card-outline {
+    border-color: var(--ib-color-border);
+  }
+
+  .ib-card-elevated {
+    border-color: var(--ib-color-raised-border);
+    background-color: var(--ib-color-surface-raised);
+    box-shadow: var(--ib-shadow-md);
+  }
+
+  .ib-card-filled {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  /* Sections share the padding; the space between them is the gap. */
+  .ib-card-header,
+  .ib-card-body,
+  .ib-card-footer {
+    padding: var(--ib-card-gap) var(--ib-card-p) 0;
+  }
+
+  .ib-card > :first-child:not(.ib-card-media) {
+    padding-top: var(--ib-card-p);
+  }
+
+  .ib-card > :last-child:not(.ib-card-media) {
+    padding-bottom: var(--ib-card-p);
+  }
+
+  .ib-card-media > :is(img, video, picture, svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    object-fit: cover;
+  }
+
+  .ib-card-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ib-space-3);
+  }
+
+  .ib-card-heading {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    min-width: 0;
+  }
+
+  .ib-card-title {
+    margin: 0;
+    font-size: var(--ib-card-title);
+    font-weight: var(--ib-weight-semibold);
+    line-height: var(--ib-leading-snug);
+  }
+
+  .ib-card-description {
+    margin: 0;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-card-actions {
+    display: flex;
+    flex: none;
+    gap: var(--ib-space-1);
+    margin: calc(var(--ib-space-1) * -1) calc(var(--ib-space-2) * -1) 0 0;
+  }
+
+  .ib-card-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-card-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  /* A linked card: the title's link covers the card; actions and footer controls sit above it. */
+  .ib-card-link {
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ib-card-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+  }
+
+  .ib-card-link:focus-visible {
+    outline: none;
+  }
+
+  .ib-card-linked:has(.ib-card-link:focus-visible) {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-card-linked :is(.ib-card-actions, .ib-card-footer, .ib-card-body) :is(a, button, input, select, textarea, label, summary, [tabindex]) {
+    position: relative;
+    z-index: 1;
+  }
+
+  .ib-card-linked {
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-card-linked:hover {
+    border-color: var(--ib-color-outline);
+  }
+
+  .ib-card-linked.ib-card-elevated:hover {
+    box-shadow: var(--ib-shadow-lg);
+  }
+
+  .ib-card-linked:hover .ib-card-title {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+}
+
+/*
+ * Table. The scroll box lets wide tables scroll sideways on small screens; with MaxHeight the
+ * rows scroll too and the header sticks. Sort headers and pages are links.
+ */
+@layer izzy.components {
+  .ib-table {
+    --ib-table-py: var(--ib-space-3);
+    --ib-table-px: var(--ib-space-4);
+    --ib-table-font: var(--ib-text-sm);
+    --ib-table-stripe: color-mix(in oklab, var(--ib-color-surface-container) 50%, transparent);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    min-width: 0;
+  }
+
+  .ib-table-sm {
+    --ib-table-py: var(--ib-space-2);
+    --ib-table-px: var(--ib-space-3);
+    --ib-table-font: var(--ib-text-xs);
+  }
+
+  .ib-table-lg {
+    --ib-table-py: var(--ib-space-4);
+    --ib-table-px: var(--ib-space-5);
+    --ib-table-font: var(--ib-text-md);
+  }
+
+  .ib-table-scroll {
+    overflow: auto;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+  }
+
+  .ib-table-scroll:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-table-grid {
+    width: 100%;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: var(--ib-table-font);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-table-grid :is(th, td) {
+    padding: var(--ib-table-py) var(--ib-table-px);
+    border-bottom: 1px solid var(--ib-color-border);
+    text-align: start;
+    vertical-align: middle;
+  }
+
+  .ib-table-grid tbody tr:last-child > td {
+    border-bottom: 0;
+  }
+
+  .ib-table-grid th {
+    background-color: var(--ib-color-surface-container);
+    color: var(--ib-color-muted);
+    font-weight: var(--ib-weight-semibold);
+    white-space: nowrap;
+  }
+
+  .ib-table-grid :is(th, td).ib-cell-end {
+    text-align: end;
+  }
+
+  .ib-table-grid :is(th, td).ib-cell-center {
+    text-align: center;
+  }
+
+  .ib-table-grid tbody tr:hover > td {
+    background-color: color-mix(in oklab, var(--ib-color-surface-container) 60%, transparent);
+  }
+
+  .ib-table-striped .ib-table-grid tbody tr:nth-child(even) > td {
+    background-color: var(--ib-table-stripe);
+  }
+
+  /* Hover still shows on striped rows. */
+  .ib-table-striped .ib-table-grid tbody tr:hover > td {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-table-sticky .ib-table-grid thead th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+
+  .ib-table-empty > td {
+    padding-block: var(--ib-space-8);
+    color: var(--ib-color-muted);
+    text-align: center;
+  }
+
+  /* Sort headers: the whole header is the link; the icon shows the state. */
+  .ib-table-sort {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+    margin: -0.25rem -0.375rem;
+    padding: 0.25rem 0.375rem;
+    border-radius: var(--ib-radius-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ib-cell-end > .ib-table-sort {
+    flex-direction: row-reverse;
+  }
+
+  .ib-table-sort:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-table-sort:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 0;
+  }
+
+  .ib-table-sort-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+    opacity: 0.45;
+  }
+
+  th[aria-sort="ascending"],
+  th[aria-sort="descending"] {
+    color: var(--ib-color-on-surface);
+  }
+
+  th:is([aria-sort="ascending"], [aria-sort="descending"]) .ib-table-sort-icon {
+    opacity: 1;
+  }
+
+  /* Footer row (column FooterText or Footer): totals and the like. */
+  .ib-table-grid tfoot td {
+    border-top: 1px solid var(--ib-color-border);
+    border-bottom: 0;
+    background-color: var(--ib-color-surface-container);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  /* Selection: a checkbox column; checked rows are tinted, with or without script. */
+  .ib-table-grid :is(th, td).ib-table-select-cell {
+    width: 1%;
+    padding-inline-end: 0;
+  }
+
+  .ib-table-select,
+  .ib-table-select-all {
+    display: block;
+    width: 1rem;
+    height: 1rem;
+    margin: 0;
+    accent-color: var(--ib-color-primary);
+    cursor: pointer;
+  }
+
+  /* Select-all only works with script. */
+  ib-table:not([data-ready]) .ib-table-select-all {
+    visibility: hidden;
+  }
+
+  .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
+  .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td {
+    background-color: color-mix(in oklab, var(--ib-color-primary) 9%, transparent);
+  }
+
+  /* Linked rows: one link per row, stretched over it; controls inside stay above it. */
+  .ib-table-grid tbody tr.ib-table-row-linked {
+    position: relative;
+    cursor: pointer;
+  }
+
+  .ib-table-row-link::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+
+  .ib-table-row-link:focus-visible {
+    outline: none;
+  }
+
+  .ib-table-grid tbody tr:has(> td > .ib-table-row-link:focus-visible) {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: -2px;
+  }
+
+  .ib-table-row-linked > td :is(a, button, input, select, textarea, label, summary, [tabindex]):not(.ib-table-row-link) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Loading: rows dim; with none yet, placeholder rows shimmer. */
+  .ib-table-grid[aria-busy="true"] > tbody:not(:has(.ib-table-skeleton-row)) {
+    opacity: 0.55;
+    transition: opacity var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  /* The shimmer comes from .ib-skeleton (feedback.css); this sizes it for a cell. */
+  .ib-table-skeleton {
+    width: 70%;
+    height: 0.75em;
+  }
+
+  .ib-cell-end > .ib-table-skeleton {
+    width: 40%;
+    margin-inline-start: auto;
+  }
+
+  .ib-table-footer {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ib-space-2) var(--ib-space-4);
+  }
+
+  .ib-table-summary {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    font-variant-numeric: tabular-nums;
+  }
+}

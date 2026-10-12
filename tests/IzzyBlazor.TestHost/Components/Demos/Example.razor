@@ -1,0 +1,28 @@
+@* One labelled example on a demo page: a title, an optional note, the live result, and the code. *@
+
+<section class="host-example">
+    <Stack Gap="1">
+        <h2 class="host-example-title">@Title</h2>
+        @if (Note is not null)
+        {
+            <p class="host-example-note">@Note</p>
+        }
+    </Stack>
+    @if (ChildContent is not null)
+    {
+        <div class="host-example-canvas">
+            @ChildContent
+        </div>
+    }
+    @if (Code is not null)
+    {
+        <pre class="host-example-code"><code>@Code</code></pre>
+    }
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string? Note { get; set; }
+    [Parameter] public string? Code { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

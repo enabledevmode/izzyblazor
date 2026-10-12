@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    @* Applied before first paint: the saved theme, and a class that says JavaScript is running. *@
+    <script>
+        (function () {
+            var d = document.documentElement;
+            d.classList.add("js");
+            try {
+                var t = localStorage.getItem("ib-host-theme");
+                if (t === "light" || t === "dark") d.setAttribute("data-theme", t);
+            } catch (e) { }
+        })();
+    </script>
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+    <link rel="stylesheet" href="@Assets["host.css"]" />
+    <ImportMap />
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    <script src="_framework/blazor.web.js"></script>
+    <script src="@Assets["host.js"]"></script>
+</body>
+
+</html>

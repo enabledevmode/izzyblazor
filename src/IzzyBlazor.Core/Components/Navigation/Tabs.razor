@@ -1,0 +1,163 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@inject NavigationManager Navigation
+
+@*
+    A set of tabs, in three layers:
+      - No script: each tab is a label around a radio button, and CSS :has(:checked) shows the
+        matching panel. Switching is instant and keeps form input; arrow keys move between tabs
+        like any radio group.
+      - With script: <ib-tabs> turns the list into ARIA tabs (tablist, tab, aria-selected,
+        roving focus) and, with QueryKey, keeps the URL in step so the tab can be linked to.
+      - Interactive: @bind-Selected follows the radios' change events and can set the tab from C#.
+
+    <Tabs @bind-Selected="tab" Label="Account">
+        <Tab Label="Profile" Icon="Lucide.User">...</Tab>
+        <Tab Label="Billing" Badge="2">...</Tab>
+    </Tabs>
+*@
+
+<ib-tabs @attributes="AdditionalAttributes"
+         id="@RootId"
+         class="@_class"
+         style="@_style"
+         data-selected="@SelectedValue"
+         data-query-key="@QueryKey">
+    <div class="ib-tabs-list" role="radiogroup" aria-label="@Label">
+        @foreach (var tab in _context.Items)
+        {
+            var selected = _context.IsSelected(tab);
+            var key = _context.KeyOf(tab);
+            <label class="@(tab.Disabled ? "ib-tab ib-tab-disabled" : "ib-tab")" id="@_context.TabId(tab)" data-value="@key">
+                <input type="radio"
+                       class="ib-tab-input ib-visually-hidden"
+                       name="@RootId"
+                       id="@_context.InputId(tab)"
+                       value="@key"
+                       checked="@selected"
+                       disabled="@tab.Disabled"
+                       aria-controls="@_context.PanelId(tab)"
+                       @onchange="() => SelectAsync(key)" />
+                @if (tab.Icon is { } icon)
+                {
+                    <Icon Name="icon" />
+                }
+                <span class="ib-tab-text">@tab.Label</span>
+                @if (tab.Badge is not null)
+                {
+                    <Badge Size="BadgeSize.Sm" Pill>@tab.Badge</Badge>
+                }
+            </label>
+        }
+    </div>
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</ib-tabs>
+
+@code {
+    /// <summary>The selected tab's <see cref="Tab.Value"/>. Defaults to the first tab that isn't disabled.</summary>
+    [Parameter] public string? Selected { get; set; }
+
+    /// <summary>Called when someone picks a tab (interactive pages).</summary>
+    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+
+    /// <summary>The tab list's name for screen readers, such as "Account settings".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// Keeps the selected tab in the URL under this query-string key, such as <c>tab</c>: a link
+    /// to <c>?tab=billing</c> opens that tab, and with JavaScript switching tabs updates the URL.
+    /// </summary>
+    [Parameter] public string? QueryKey { get; set; }
+
+    /// <summary>How the tabs look. Defaults to <see cref="TabsVariant.Line"/>.</summary>
+    [Parameter] public TabsVariant Variant { get; set; } = TabsVariant.Line;
+
+    /// <summary>Tab height and text size, shared with buttons and fields. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>Stretches the tabs to share the full width.</summary>
+    [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>The element id; tab and panel ids build on it. Generated when not set.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>The <see cref="Tab"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private TabsContext _context = null!;
+    private string? _generatedId;
+    private string? _selected;
+    private string? _lastSelectedParam;
+    private bool _initialized;
+    private string? _class;
+    private string? _style;
+
+    internal string RootId => Id ?? (_generatedId ??= IdGenerator.Next("ib-tabs"));
+
+    /// <summary>The selected tab: the chosen one if it exists and isn't disabled, else the first that isn't.</summary>
+    internal string? SelectedValue =>
+        _context.Items.Where(t => !t.Disabled).Select(_context.KeyOf).FirstOrDefault(k => k == _selected)
+        ?? _context.Items.Where(t => !t.Disabled).Select(_context.KeyOf).FirstOrDefault();
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _context = new TabsContext(this);
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        if (!_initialized)
+        {
+            _initialized = true;
+            _selected = FromQuery() ?? Selected;
+            _lastSelectedParam = Selected;
+            (_class, _style) = BuildRootAttributes();
+
+            // A tab named in the URL wins; a bound parent hears about it once the page is interactive.
+            if (_selected != Selected && _selected is not null && RendererInfo.IsInteractive && SelectedChanged.HasDelegate)
+            {
+                await SelectedChanged.InvokeAsync(_selected);
+            }
+
+            return;
+        }
+
+        if (Selected != _lastSelectedParam)
+        {
+            _selected = Selected;
+            _lastSelectedParam = Selected;
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-tabs");
+        classes.Add($"ib-tabs-{Variant.Name()}");
+        classes.Add("ib-tabs-sm", Size == ControlSize.Sm);
+        classes.Add("ib-tabs-lg", Size == ControlSize.Lg);
+        classes.Add("ib-tabs-fitted", FullWidth);
+    }
+
+    internal void TabsChanged() => StateHasChanged();
+
+    private string? FromQuery()
+    {
+        if (QueryKey is null)
+        {
+            return null;
+        }
+
+        var query = QueryString.Of(Navigation.Uri);
+        return query.TryGetValue(QueryKey, out var value) ? value.ToString() : null;
+    }
+
+    private Task SelectAsync(string value)
+    {
+        _selected = value;
+        return SelectedChanged.InvokeAsync(value);
+    }
+}

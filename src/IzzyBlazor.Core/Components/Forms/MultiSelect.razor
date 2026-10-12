@@ -1,0 +1,142 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@typeparam TItem
+@inherits FieldBase<TValue>
+
+@*
+    Pick several options from a longer list, bound to a collection: an array, List<T>,
+    HashSet<T> or an interface they implement. Both types are inferred, from the bound property
+    and from Items; for an enum, pass its values (Items="Enum.GetValues<Skill>()").
+
+    <MultiSelect @bind-Value="Model.Skills" Items="AllSkills" Placeholder="Add skills" />
+
+    How it works three ways:
+    - No script: a native <select multiple> holds and posts the values (repeated form fields,
+      which Blazor binds to the collection).
+    - With script (<ib-combobox>): the chosen options show as chips in a field you can type in
+      to filter the list; choosing toggles an option and the list stays open.
+    - Interactive: the same, and @bind-Value follows every change.
+    For a short list, CheckboxGroup shows every option at once.
+*@
+
+<FieldFrame Class="@WrapperClass("multiselect")" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-combobox class="ib-field-control ib-has-end ib-combobox ib-multiselect"
+                 style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
+                 data-remove-label="@RemoveLabel">
+        <select @attributes="ControlAttributes"
+                id="@FieldId"
+                class="ib-field-input ib-combobox-select ib-multiselect-select"
+                name="@NameAttributeValue"
+                multiple
+                size="@Math.Clamp(ItemList.Count, 2, 6)"
+                required="@IsRequired"
+                disabled="@Disabled"
+                aria-invalid="@(Invalid ? "true" : null)"
+                aria-describedby="@DescribedBy"
+                @onchange="OnSelectChanged">
+            @foreach (var item in ItemList)
+            {
+                <option value="@ChoiceOptions.Value(item)" selected="@IsChosen(item)">@ChoiceOptions.Text(item, ItemText)</option>
+            }
+        </select>
+        <div class="ib-field-input ib-multiselect-box">
+            @* Chips are drawn by the script from the select's chosen options; Blazor leaves this empty. *@
+            <span class="ib-multiselect-chips"></span>
+            <input type="text"
+                   id="@InputId"
+                   class="ib-combobox-input ib-multiselect-input"
+                   placeholder="@Placeholder"
+                   role="combobox"
+                   aria-autocomplete="list"
+                   aria-expanded="false"
+                   aria-controls="@ListId"
+                   aria-labelledby="@LabelId"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   aria-describedby="@DescribedBy"
+                   autocomplete="off"
+                   autocapitalize="off"
+                   spellcheck="false"
+                   disabled="@Disabled"
+                   readonly="@ReadOnly" />
+        </div>
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@ToggleLabel" disabled="@Disabled">
+            <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
+        </button>
+        <div id="@ListId"
+             class="ib-pop ib-place-bottom-start ib-combobox-list"
+             style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
+             popover="manual"
+             role="listbox"
+             aria-multiselectable="true"
+             aria-labelledby="@LabelId">
+            @{ var index = 0; }
+            @foreach (var item in ItemList)
+            {
+                <div role="option"
+                     id="@($"{ListId}-{index++}")"
+                     class="ib-combobox-option ib-multiselect-option"
+                     data-value="@ChoiceOptions.Value(item)"
+                     data-text="@ChoiceOptions.Text(item, ItemText)"
+                     aria-selected="@(IsChosen(item) ? "true" : "false")">
+                    <span class="ib-multiselect-check" aria-hidden="true"></span>
+                    @if (ItemTemplate is null)
+                    {
+                        @ChoiceOptions.Text(item, ItemText)
+                    }
+                    else
+                    {
+                        @ItemTemplate(item)
+                    }
+                </div>
+            }
+            <div class="ib-combobox-empty" role="status">@EmptyText</div>
+        </div>
+    </ib-combobox>
+</FieldFrame>
+
+@code {
+    /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Skill&gt;()"</c>.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>The text for each option, also what's typed to find it and the chip's text. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
+    [Parameter] public Func<TItem, string>? ItemText { get; set; }
+
+    /// <summary>Markup for each option in the list, such as an icon. Chips show <see cref="ItemText"/>.</summary>
+    [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    /// <summary>Text in the empty field, such as "Add skills".</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Shown when nothing matches.</summary>
+    [Parameter] public string EmptyText { get; set; } = "No matches";
+
+    /// <summary>The accessible name of the button that opens the list.</summary>
+    [Parameter] public string ToggleLabel { get; set; } = "Show options";
+
+    /// <summary>The start of each chip's remove button name for screen readers, before the option's text. Defaults to "Remove".</summary>
+    [Parameter] public string RemoveLabel { get; set; } = "Remove";
+
+    private string InputId => FieldId + "-input";
+    private string ListId => FieldId + "-list";
+    private string LabelId => FieldId + "-label";
+
+    private IReadOnlyList<TItem> ItemList => ChoiceOptions.Of(Items).ToList();
+
+    private bool IsChosen(TItem item) => ChoiceCollection<TValue, TItem>.Items(CurrentValue).Contains(item);
+
+    // The browser reports a multiple select's change as the chosen values, in list order.
+    private void OnSelectChanged(ChangeEventArgs e)
+    {
+        string[] values = e.Value switch
+        {
+            string[] many => many,
+            string one => [one],
+            System.Collections.IEnumerable many => many.Cast<object?>().Select(v => v?.ToString() ?? "").ToArray(),
+            _ => [],
+        };
+
+        var chosen = ItemList.Where(i => values.Contains(ChoiceOptions.Value(i)));
+        CurrentValue = ChoiceCollection<TValue, TItem>.Create(chosen);
+    }
+}

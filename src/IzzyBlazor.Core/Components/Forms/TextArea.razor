@@ -1,0 +1,55 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+
+@*
+    Multi-line text with label, hint and errors.
+    <TextArea @bind-Value="Model.Message" Rows="5" AutoGrow ShowCount />
+*@
+
+<FieldFrame Class="@WrapperClass("textarea")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-field-control class="ib-field-control">
+        <textarea @attributes="ControlAttributes"
+                  id="@FieldId"
+                  class="@InputClass"
+                  name="@NameAttributeValue"
+                  @bind="CurrentValueAsString"
+                  rows="@Rows"
+                  placeholder="@Placeholder"
+                  required="@IsRequired"
+                  maxlength="@Max"
+                  minlength="@(MinLength ?? AnnotatedMinLength)"
+                  disabled="@Disabled"
+                  readonly="@ReadOnly"
+                  aria-invalid="@(Invalid ? "true" : null)"
+                  aria-describedby="@DescribedBy"></textarea>
+        @if (ShowCount && Max is { } max)
+        {
+            <span class="ib-field-count" data-ib-count="@max">@(CurrentValueAsString?.Length ?? 0) / @max</span>
+        }
+    </ib-field-control>
+</FieldFrame>
+
+@code {
+    /// <summary>Visible lines. Defaults to 4.</summary>
+    [Parameter] public int Rows { get; set; } = 4;
+
+    /// <summary>Grows with the text instead of scrolling.</summary>
+    [Parameter] public bool AutoGrow { get; set; }
+
+    /// <summary>Example text shown when empty.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Maximum length. Defaults to <c>[StringLength]</c> or <c>[MaxLength]</c>.</summary>
+    [Parameter] public int? MaxLength { get; set; }
+
+    /// <summary>Minimum length. Defaults to <c>[StringLength(MinimumLength)]</c> or <c>[MinLength]</c>.</summary>
+    [Parameter] public int? MinLength { get; set; }
+
+    /// <summary>Shows "n / max" under the field. Needs a maximum length. Updates as you type once scripts run.</summary>
+    [Parameter] public bool ShowCount { get; set; }
+
+    private int? Max => MaxLength ?? AnnotatedMaxLength;
+
+    private string InputClass => AutoGrow ? "ib-field-input ib-field-autogrow" : "ib-field-input";
+}

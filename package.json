@@ -1,0 +1,15 @@
+{
+  "name": "izzyblazor-assets",
+  "private": true,
+  "description": "Build tooling for IzzyBlazor's CSS and custom elements. Not published.",
+  "type": "module",
+  "scripts": {
+    "build": "node build/build-assets.mjs --configuration Release",
+    "watch": "node build/build-assets.mjs --watch",
+    "dev": "node build/dev.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.25.0",
+    "lucide-static": "^1.55.0"
+  }
+}

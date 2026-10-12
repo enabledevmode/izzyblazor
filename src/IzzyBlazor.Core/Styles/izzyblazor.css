@@ -1,0 +1,35 @@
+/*
+ * IzzyBlazor stylesheet entry point. Bundled by build/build-assets.mjs into
+ * wwwroot/izzyblazor.css.
+ *
+ * Everything lives in cascade layers, so any unlayered CSS in the app wins
+ * over IzzyBlazor without specificity tricks:
+ *
+ *   izzy.tokens      design tokens (custom properties)
+ *   izzy.base        light page defaults
+ *   izzy.components  each component's own styles
+ *   izzy.utilities   style props (Padding, Bg, Gap...), which beat component defaults
+ */
+@layer izzy.tokens, izzy.base, izzy.components, izzy.utilities;
+
+@import "./_generated/properties.css";
+@import "./tokens.css";
+@import "./base.css";
+@import "./components/layout.css";
+@import "./components/typography.css";
+@import "./components/icon.css";
+@import "./components/button.css";
+@import "./components/form.css";
+@import "./components/badge.css";
+@import "./components/avatar.css";
+@import "./components/alert.css";
+@import "./components/feedback.css";
+@import "./components/shell.css";
+@import "./components/nav.css";
+@import "./components/disclosure.css";
+@import "./components/overlay.css";
+@import "./components/tabs.css";
+@import "./components/navigation.css";
+@import "./components/data.css";
+@import "./components/snap.css";
+@import "./_generated/style-props.css";

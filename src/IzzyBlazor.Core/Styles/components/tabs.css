@@ -1,0 +1,187 @@
+/*
+ * Tabs. Each tab is a label around a radio button; CSS shows the panel whose tab is checked,
+ * so switching works with no script. Panels follow the list in order, so tab N shows panel N
+ * (up to 30 tabs). With script, <ib-tabs> adds ARIA tab roles and roving focus; the radios
+ * stay the source of truth.
+ */
+@layer izzy.components {
+  .ib-tabs {
+    --ib-tab-h: 2.25rem;
+    --ib-tab-px: var(--ib-space-3);
+    --ib-tab-font: var(--ib-text-sm);
+
+    display: block;
+    min-width: 0;
+  }
+
+  .ib-tabs-sm {
+    --ib-tab-h: 2rem;
+    --ib-tab-px: var(--ib-space-2);
+    --ib-tab-font: var(--ib-text-xs);
+  }
+
+  .ib-tabs-lg {
+    --ib-tab-h: 2.75rem;
+    --ib-tab-px: var(--ib-space-4);
+    --ib-tab-font: var(--ib-text-md);
+  }
+
+  .ib-tabs-list {
+    display: flex;
+    gap: var(--ib-space-1);
+    min-width: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ib-tab {
+    position: relative;
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ib-space-2);
+    height: var(--ib-tab-h);
+    padding: 0 var(--ib-tab-px);
+    border-radius: var(--ib-radius-md);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-tab-font);
+    font-weight: var(--ib-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition: color var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-tab-text {
+    text-box: trim-both cap alphabetic;
+  }
+
+  .ib-tab:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-tab .ib-icon {
+    width: 1.125em;
+    height: 1.125em;
+  }
+
+  /* Focus: on the radio with no script, on the tab itself with script. */
+  .ib-tab:has(> .ib-tab-input:focus-visible),
+  .ib-tab:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: -2px;
+  }
+
+  .ib-tab-disabled,
+  .ib-tab-disabled:hover {
+    color: var(--ib-color-disabled);
+    cursor: not-allowed;
+  }
+
+  .ib-tabs-fitted > .ib-tabs-list > .ib-tab {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  /* Line: a rule under the list; the selected tab is underlined in the accent color. */
+  .ib-tabs-line > .ib-tabs-list {
+    gap: var(--ib-space-1);
+    box-shadow: inset 0 -1px 0 var(--ib-color-border);
+  }
+
+  .ib-tabs-line > .ib-tabs-list > .ib-tab {
+    border-radius: var(--ib-radius-md) var(--ib-radius-md) 0 0;
+  }
+
+  .ib-tabs-line > .ib-tabs-list > .ib-tab:has(> .ib-tab-input:checked) {
+    color: var(--ib-color-primary-text);
+    box-shadow: inset 0 -2px 0 var(--ib-color-primary);
+  }
+
+  /* Soft: the selected tab gets a tinted background. */
+  .ib-tabs-soft > .ib-tabs-list > .ib-tab:not(.ib-tab-disabled):hover {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-tabs-soft > .ib-tabs-list > .ib-tab:has(> .ib-tab-input:checked) {
+    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    color: var(--ib-color-primary-text);
+  }
+
+  /* Segmented: a tray with the selected tab raised. */
+  .ib-tabs-segmented > .ib-tabs-list {
+    display: inline-flex;
+    max-width: 100%;
+    gap: 0.125rem;
+    padding: 0.1875rem;
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-tabs-segmented.ib-tabs-fitted > .ib-tabs-list {
+    display: flex;
+  }
+
+  .ib-tabs-segmented > .ib-tabs-list > .ib-tab {
+    height: calc(var(--ib-tab-h) - 0.375rem);
+  }
+
+  .ib-tabs-segmented > .ib-tabs-list > .ib-tab:has(> .ib-tab-input:checked) {
+    background-color: var(--ib-color-surface-raised);
+    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-raised-border);
+    color: var(--ib-color-on-surface);
+  }
+
+  /* Panels: hidden unless their tab is checked. */
+  .ib-tab-panel {
+    display: none;
+    padding-block: var(--ib-space-4);
+  }
+
+  .ib-tab-panel:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(1) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(2),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(2) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(3),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(3) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(4),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(4) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(5),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(5) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(6),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(6) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(7),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(7) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(8),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(8) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(9),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(9) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(10),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(10) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(11),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(11) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(12),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(12) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(13),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(13) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(14),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(14) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(15),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(15) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(16),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(16) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(17),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(17) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(18),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(18) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(19),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(19) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(20),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(20) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(21),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(21) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(22),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(22) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(23),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(23) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(24),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(24) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(25),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(25) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(26),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(26) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(27),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(27) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(28),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(28) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(29),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(29) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(30),
+  .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(30) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(31) {
+    display: block;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-tab {
+      transition: none;
+    }
+  }
+}

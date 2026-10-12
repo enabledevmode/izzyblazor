@@ -1,0 +1,59 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    The menu button that opens an AppShell's sidebar below its breakpoint. Hidden above it.
+    It is a link to the sidebar's id, so it works with no JavaScript; with JavaScript the shell
+    opens the drawer without changing the URL and keeps aria-expanded in sync.
+
+    When the sidebar is Collapsible, a second button takes its place above the breakpoint: a
+    label for the sidebar's collapse checkbox, so it works with no JavaScript too. The checkbox
+    itself is the control screen readers and keyboards use; this label is a mouse shortcut.
+*@
+
+<a @attributes="AdditionalAttributes"
+   class="@_class"
+   style="@_style"
+   href="@($"#{For}")"
+   role="button"
+   aria-controls="@For"
+   aria-expanded="false"
+   aria-label="@Label"
+   data-ib-shell-toggle>
+    <Icon Role="IconRole.Menu" />
+</a>
+<label class="@_collapseClass" style="@_style" for="@($"{For}-collapse")" aria-hidden="true" title="@CollapseLabel">
+    <Icon Role="IconRole.Menu" />
+</label>
+
+@code {
+    /// <summary>The accessible name. Defaults to "Open menu".</summary>
+    [Parameter] public string Label { get; set; } = "Open menu";
+
+    /// <summary>The sidebar to open. Defaults to <c>ib-sidebar</c>, AppShell's default.</summary>
+    [Parameter] public string For { get; set; } = "ib-sidebar";
+
+    /// <summary>Visual weight. Defaults to ghost.</summary>
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;
+
+    /// <summary>The tooltip on the wide-screen collapse button. Defaults to "Collapse sidebar".</summary>
+    [Parameter] public string CollapseLabel { get; set; } = "Collapse sidebar";
+
+    private string? _class;
+    private string? _collapseClass;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-btn ib-btn-neutral ib-btn-icon-only ib-shell-toggle");
+        classes.Add($"ib-btn-{Variant.ToString().ToLowerInvariant()}");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        _collapseClass = _class?.Replace("ib-shell-toggle", "ib-shell-collapse-toggle");
+    }
+}

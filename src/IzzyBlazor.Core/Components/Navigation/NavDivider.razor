@@ -1,0 +1,17 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@* A line between groups of items in a NavMenu. *@
+
+<li @attributes="AdditionalAttributes" class="@_class" style="@_style" role="separator"></li>
+
+@code {
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-nav-divider");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

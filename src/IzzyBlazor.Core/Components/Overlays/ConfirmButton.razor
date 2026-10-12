@@ -1,0 +1,127 @@
+@namespace IzzyBlazor
+@inherits ButtonBase
+
+@*
+    A button that asks first: it opens a small dialog ("Delete this project?") and only the
+    dialog's confirm button carries out the action. What confirming does:
+
+      - Inside a form (the usual case): submits that form, with Name=Value if given, so one
+        handler can tell which action was confirmed. Works with JavaScript off.
+        <ConfirmButton Title="Delete this project?" Message="This can't be undone."
+                       Accent="Accent.Danger" Name="action" Value="delete">Delete</ConfirmButton>
+      - Form="id": submits a form elsewhere on the page instead.
+      - Href: follows a link.
+      - OnConfirm: runs C# on an interactive page.
+
+    The trigger opens the dialog with the native command attributes (no script needed in current
+    browsers). The dialog is rendered beside the trigger with InsideForm set, so it can live
+    inside the form it submits. With script, the dialog closes as the form posts; without, the
+    response is a new page.
+*@
+
+<button type="button"
+        @attributes="AdditionalAttributes"
+        id="@Id"
+        class="@_class"
+        style="@_style"
+        disabled="@Disabled"
+        aria-disabled="@(Loading ? "true" : null)"
+        aria-busy="@(Loading ? "true" : null)"
+        aria-haspopup="dialog"
+        commandfor="@DialogId"
+        command="show-modal">
+    @{ RenderContent(__builder); }
+</button>
+<Dialog Id="@DialogId"
+        Title="@Title"
+        Size="DialogSize.Sm"
+        InsideForm
+        QueryKey="@null"
+        ShowCloseButton="false"
+        CloseOnBackdrop="false"
+        role="alertdialog"
+        aria-describedby="@(Message is not null || Body is not null ? MessageId : null)">
+    <ChildContent>
+        @if (Message is not null || Body is not null)
+        {
+            <div id="@MessageId" class="ib-confirm-message">
+                @if (Message is not null)
+                {
+                    <p>@Message</p>
+                }
+                @Body
+            </div>
+        }
+    </ChildContent>
+    <Footer>
+        <DialogClose autofocus>@CancelText</DialogClose>
+        @if (Href is not null)
+        {
+            <LinkButton Href="@Href" Accent="Accent" Color="Color">@ResolvedConfirmText</LinkButton>
+        }
+        else if (OnConfirm.HasDelegate && IsInteractive)
+        {
+            <Button Accent="Accent" Color="Color" OnClick="Confirm" commandfor="@DialogId" command="close">@ResolvedConfirmText</Button>
+        }
+        else
+        {
+            <Button Type="ButtonType.Submit" Accent="Accent" Color="Color" Form="@Form" Name="@Name" Value="@Value" FormAction="@FormAction">@ResolvedConfirmText</Button>
+        }
+    </Footer>
+</Dialog>
+
+@code {
+    private static int _ids;
+    private readonly string _fallbackId = $"ib-confirm-{Interlocked.Increment(ref _ids)}";
+    private string? _class;
+    private string? _style;
+
+    /// <summary>The question, such as "Delete this project?". Also the dialog's accessible name.</summary>
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    /// <summary>A line under the question, such as "This can't be undone."</summary>
+    [Parameter] public string? Message { get; set; }
+
+    /// <summary>More content under the question, such as a list of what will be deleted.</summary>
+    [Parameter] public RenderFragment? Body { get; set; }
+
+    /// <summary>The confirm button's text, such as "Delete". Defaults to "Confirm".</summary>
+    [Parameter] public string? ConfirmText { get; set; }
+
+    /// <summary>The cancel button's text. Defaults to "Cancel".</summary>
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+
+    /// <summary>Posted as <c>Name=Value</c> with the form when confirmed, so one handler can tell which action it was.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The value posted with <see cref="Name"/>.</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>The id of a form elsewhere on the page to submit when confirmed. Defaults to the form the button is in.</summary>
+    [Parameter] public string? Form { get; set; }
+
+    /// <summary>Submits to this URL instead of the form's own action.</summary>
+    [Parameter] public string? FormAction { get; set; }
+
+    /// <summary>A link to follow when confirmed, in place of submitting a form.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>Runs when confirmed, on an interactive page. On a static page the confirm button submits the form instead.</summary>
+    [Parameter] public EventCallback OnConfirm { get; set; }
+
+    /// <summary>The trigger's id. The dialog's is this plus <c>-dialog</c>.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    private string BaseId => Id ?? _fallbackId;
+
+    private string DialogId => $"{BaseId}-dialog";
+
+    private string MessageId => $"{BaseId}-message";
+
+    private string ResolvedConfirmText => ConfirmText ?? "Confirm";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    private async Task Confirm() => await OnConfirm.InvokeAsync();
+}

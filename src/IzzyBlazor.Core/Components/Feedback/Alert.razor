@@ -1,0 +1,160 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A message on the page: an icon, an optional title, the message and optional actions.
+
+    Dismissible adds a close button that works with no script: a visually hidden checkbox and
+    its label, with CSS :has(:checked) hiding the alert. On interactive pages @bind-Dismissed
+    follows it, and setting Dismissed from C# hides or shows it again.
+
+    Danger and Warning alerts are role="alert", so screen readers announce them when they
+    appear; the rest are role="status".
+*@
+
+@if (!_dismissed)
+{
+    <div @attributes="AdditionalAttributes" id="@ElementId" class="@_class" style="@_style" role="@(Announce ? (IsUrgent ? "alert" : "status") : null)">
+        @if (!HideIcon)
+        {
+            <Icon Name="@(Icon ?? DefaultIcon(Status))" Class="ib-alert-icon" />
+        }
+        <div class="ib-alert-body">
+            @if (ResolvedStatusLabel is { } statusLabel)
+            {
+                @* The icon and color say what kind of message this is; screen readers get it in words. *@
+                <span class="ib-visually-hidden">@(statusLabel + ": ")</span>
+            }
+            @if (Title is not null)
+            {
+                <div class="ib-alert-title">@Title</div>
+            }
+            @if (ChildContent is not null)
+            {
+                <div class="ib-alert-message">@ChildContent</div>
+            }
+            @if (Actions is not null)
+            {
+                <div class="ib-alert-actions">@Actions</div>
+            }
+        </div>
+        @if (Dismissible)
+        {
+            <input type="checkbox"
+                   id="@($"{ElementId}-dismiss")"
+                   class="ib-alert-dismiss ib-visually-hidden"
+                   aria-label="@DismissLabel"
+                   @onchange="OnDismiss" />
+            <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-hidden="true" title="@DismissLabel">
+                <Icon Role="IconRole.Close" />
+            </label>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>What the message means; sets the color and icon. Defaults to <see cref="IzzyBlazor.Status.Info"/>.</summary>
+    [Parameter] public Status Status { get; set; } = Status.Info;
+
+    /// <summary>How it's drawn. Defaults to <see cref="AlertVariant.Soft"/>.</summary>
+    [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Soft;
+
+    /// <summary>A short bold line above the message.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The message.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Buttons or links below the message, such as "Retry".</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>An icon in place of the status's own.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Leaves out the icon.</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>Adds a close button. Works with JavaScript off.</summary>
+    [Parameter] public bool Dismissible { get; set; }
+
+    /// <summary>Whether it has been dismissed. Use <c>@bind-Dismissed</c> on interactive pages.</summary>
+    [Parameter] public bool Dismissed { get; set; }
+
+    /// <summary>Called when someone dismisses it (interactive pages).</summary>
+    [Parameter] public EventCallback<bool> DismissedChanged { get; set; }
+
+    /// <summary>
+    /// Whether screen readers announce it when it appears (<c>role="alert"</c> for danger and
+    /// warning, <c>role="status"</c> otherwise). Defaults to true; toasts turn it off because
+    /// their region announces them.
+    /// </summary>
+    [Parameter] public bool Announce { get; set; } = true;
+
+    /// <summary>
+    /// What kind of message it is, read to screen readers before it (the icon and color carry it
+    /// visually). Defaults to "Info", "Success", "Warning" or "Error" by <see cref="Status"/>, and
+    /// nothing for Neutral. Set it to translate, or to "" to leave it out.
+    /// </summary>
+    [Parameter] public string? StatusLabel { get; set; }
+
+    /// <summary>The close button's accessible name. Defaults to "Dismiss".</summary>
+    [Parameter] public string DismissLabel { get; set; } = "Dismiss";
+
+    /// <summary>The element id. Generated when not set.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    private string? _generatedId;
+    private bool _dismissed;
+    private bool? _lastDismissedParam;
+    private string? _class;
+    private string? _style;
+
+    private string ElementId => Id ?? (_generatedId ??= IdGenerator.Next("ib-alert"));
+
+    private string? ResolvedStatusLabel => StatusLabel is { } label
+        ? (label.Length > 0 ? label : null)
+        : Status switch
+        {
+            Status.Info => "Info",
+            Status.Success => "Success",
+            Status.Warning => "Warning",
+            Status.Danger => "Error",
+            _ => null,
+        };
+
+    private bool IsUrgent => Status is Status.Danger or Status.Warning;
+
+    internal static IconData DefaultIcon(Status status) => IconSet.Current.Get(status switch
+    {
+        Status.Success => IconRole.Success,
+        Status.Warning => IconRole.Warning,
+        Status.Danger => IconRole.Error,
+        _ => IconRole.Info,
+    });
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-alert");
+        classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
+        classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (_lastDismissedParam != Dismissed)
+        {
+            _lastDismissedParam = Dismissed;
+            _dismissed = Dismissed;
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private Task OnDismiss(ChangeEventArgs e)
+    {
+        _dismissed = true;
+        return DismissedChanged.InvokeAsync(true);
+    }
+}

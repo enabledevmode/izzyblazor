@@ -1,0 +1,472 @@
+/*
+ * Menu, Popover, Tooltip, Dialog.
+ *
+ * Floating panels live in the browser's top layer ([popover] and modal <dialog>), so no
+ * z-index is needed and no ancestor's overflow can clip them. Placement uses CSS anchor
+ * positioning where supported; elsewhere the script positions them (.ib-pop-placed), and
+ * with no script either they fall back to the browser's centered popover.
+ */
+@layer izzy.components {
+  .ib-pop-root {
+    display: inline-flex;
+    vertical-align: middle;
+  }
+
+  /* Shared floating surface */
+  .ib-pop {
+    --ib-pop-gap: 0.375rem;
+    box-sizing: border-box;
+    max-width: min(24rem, calc(100vw - 1rem));
+    max-height: min(32rem, calc(100dvh - 1rem));
+    overflow: auto;
+    padding: var(--ib-space-1);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface-raised);
+    color: var(--ib-color-on-surface);
+    box-shadow: var(--ib-shadow-lg);
+    font-size: var(--ib-text-sm);
+    transition:
+      opacity var(--ib-duration-fast) var(--ib-ease),
+      translate var(--ib-duration-fast) var(--ib-ease),
+      overlay var(--ib-duration-fast) allow-discrete,
+      display var(--ib-duration-fast) allow-discrete;
+  }
+
+  /* Only fade where popovers exist: without the Popover API the panel must stay visible. */
+  @supports selector(:popover-open) {
+    .ib-pop {
+      opacity: 0;
+    }
+
+    .ib-pop:popover-open {
+      opacity: 1;
+    }
+
+    @starting-style {
+      .ib-pop:popover-open {
+        opacity: 0;
+      }
+    }
+  }
+
+  .ib-pop-placed {
+    inset: auto;
+    margin: 0;
+  }
+
+  .ib-pop.ib-menu {
+    min-width: 10rem;
+  }
+
+  @supports (anchor-name: --a) {
+    .ib-pop,
+    .ib-tooltip[popover] {
+      inset: auto;
+      margin: 0;
+      position-try-fallbacks: flip-block, flip-inline, flip-block flip-inline;
+    }
+
+    .ib-pop.ib-menu {
+      min-width: max(10rem, anchor-size(width));
+    }
+
+    .ib-place-bottom-start { position-area: block-end span-inline-end; margin-block-start: var(--ib-pop-gap); }
+    .ib-place-bottom { position-area: block-end center; margin-block-start: var(--ib-pop-gap); }
+    .ib-place-bottom-end { position-area: block-end span-inline-start; margin-block-start: var(--ib-pop-gap); }
+    .ib-place-top-start { position-area: block-start span-inline-end; margin-block-end: var(--ib-pop-gap); }
+    .ib-place-top { position-area: block-start center; margin-block-end: var(--ib-pop-gap); }
+    .ib-place-top-end { position-area: block-start span-inline-start; margin-block-end: var(--ib-pop-gap); }
+    .ib-place-start { position-area: center inline-start; margin-inline-end: var(--ib-pop-gap); }
+    .ib-place-end { position-area: center inline-end; margin-inline-start: var(--ib-pop-gap); }
+  }
+
+  /* Menu */
+  .ib-menu-item {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    width: 100%;
+    min-height: 2rem;
+    padding: var(--ib-space-1) var(--ib-space-2);
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: none;
+    color: inherit;
+    font: inherit;
+    text-align: start;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .ib-menu-item:hover,
+  .ib-menu-item:focus-visible {
+    background-color: var(--ib-color-surface-container);
+    outline: none;
+  }
+
+  .ib-menu-item:focus-visible {
+    box-shadow: inset 0 0 0 2px var(--ib-color-focus);
+  }
+
+  .ib-menu-item:disabled,
+  .ib-menu-item[aria-disabled="true"] {
+    color: var(--ib-color-disabled);
+    pointer-events: none;
+  }
+
+  .ib-menu-item .ib-icon {
+    width: 1rem;
+    height: 1rem;
+    color: var(--ib-color-muted);
+  }
+
+  .ib-menu-label {
+    flex: 1;
+    min-width: 0;
+    text-box: trim-both cap alphabetic;
+  }
+
+  .ib-menu-shortcut {
+    color: var(--ib-color-subtle);
+    font-size: var(--ib-text-xs);
+    letter-spacing: var(--ib-tracking-wide);
+  }
+
+  .ib-menu-item-primary { color: var(--ib-color-primary-text); }
+  .ib-menu-item-danger { color: var(--ib-color-danger-text); }
+
+  .ib-menu-item-primary .ib-icon,
+  .ib-menu-item-danger .ib-icon {
+    color: inherit;
+  }
+
+  .ib-menu-heading {
+    padding: var(--ib-space-2) var(--ib-space-2) var(--ib-space-1);
+    color: var(--ib-color-subtle);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-menu-divider {
+    height: 1px;
+    margin: var(--ib-space-1) calc(var(--ib-space-1) * -1);
+    background-color: var(--ib-color-border);
+  }
+
+  /* Popover */
+  .ib-pop.ib-popover {
+    padding: var(--ib-space-4);
+    font-size: var(--ib-text-md);
+  }
+
+  .ib-popover-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    margin-bottom: var(--ib-space-3);
+  }
+
+  .ib-popover-title {
+    flex: 1;
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-popover-close {
+    margin: calc(var(--ib-space-2) * -1);
+    margin-inline-start: auto;
+  }
+
+  /* Tooltip: CSS only first, positioned inside its root */
+  .ib-tooltip-root {
+    position: relative;
+    display: inline-flex;
+    vertical-align: middle;
+  }
+
+  .ib-tooltip {
+    --ib-tooltip-gap: 0.375rem;
+    position: absolute;
+    z-index: 50;
+    box-sizing: border-box;
+    width: max-content;
+    max-width: 18rem;
+    padding: var(--ib-space-1) var(--ib-space-2);
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background-color: var(--ib-color-on-surface);
+    color: var(--ib-color-surface);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-medium);
+    line-height: var(--ib-leading-snug);
+    text-align: start;
+    white-space: normal;
+    overflow: visible;
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+    transition: opacity var(--ib-duration-fast) var(--ib-ease), visibility var(--ib-duration-fast);
+  }
+
+  /* An invisible bridge over the gap, so the pointer can move onto the tooltip. */
+  .ib-tooltip::before {
+    content: "";
+    position: absolute;
+    inset: calc(var(--ib-tooltip-gap) * -1);
+  }
+
+  /* Hover only where there's a real pointer: on touch screens :hover sticks after a tap. */
+  @media (hover: hover) {
+    .ib-tooltip-root:hover > .ib-tooltip:not([popover]) {
+      opacity: 1;
+      visibility: visible;
+      pointer-events: auto;
+      transition-delay: var(--ib-tooltip-delay, 300ms);
+    }
+  }
+
+  .ib-tooltip-root:has(:focus-visible) > .ib-tooltip:not([popover]) {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+  }
+
+  .ib-tooltip-root:has(:focus-visible) > .ib-tooltip:not([popover]) {
+    transition-delay: 0s;
+  }
+
+  .ib-tooltip-top,
+  .ib-tooltip-top-start,
+  .ib-tooltip-top-end { bottom: 100%; margin-bottom: var(--ib-tooltip-gap); }
+  .ib-tooltip-bottom,
+  .ib-tooltip-bottom-start,
+  .ib-tooltip-bottom-end { top: 100%; margin-top: var(--ib-tooltip-gap); }
+  .ib-tooltip-top,
+  .ib-tooltip-bottom { left: 50%; translate: -50% 0; }
+  .ib-tooltip-top-start,
+  .ib-tooltip-bottom-start { inset-inline-start: 0; }
+  .ib-tooltip-top-end,
+  .ib-tooltip-bottom-end { inset-inline-end: 0; }
+  .ib-tooltip-start { inset-inline-end: 100%; top: 50%; translate: 0 -50%; margin-inline-end: var(--ib-tooltip-gap); }
+  .ib-tooltip-end { inset-inline-start: 100%; top: 50%; translate: 0 -50%; margin-inline-start: var(--ib-tooltip-gap); }
+
+  /* Tooltip upgraded by the script to the top layer */
+  .ib-tooltip[popover] {
+    position: fixed;
+    inset: auto;
+    translate: none;
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    margin: 0;
+  }
+
+  @supports (anchor-name: --a) {
+    .ib-tooltip-top[popover] { position-area: block-start center; margin-block-end: var(--ib-tooltip-gap); }
+    .ib-tooltip-top-start[popover] { position-area: block-start span-inline-end; margin-block-end: var(--ib-tooltip-gap); }
+    .ib-tooltip-top-end[popover] { position-area: block-start span-inline-start; margin-block-end: var(--ib-tooltip-gap); }
+    .ib-tooltip-bottom[popover] { position-area: block-end center; margin-block-start: var(--ib-tooltip-gap); }
+    .ib-tooltip-bottom-start[popover] { position-area: block-end span-inline-end; margin-block-start: var(--ib-tooltip-gap); }
+    .ib-tooltip-bottom-end[popover] { position-area: block-end span-inline-start; margin-block-start: var(--ib-tooltip-gap); }
+    .ib-tooltip-start[popover] { position-area: center inline-start; margin-inline-end: var(--ib-tooltip-gap); }
+    .ib-tooltip-end[popover] { position-area: center inline-end; margin-inline-start: var(--ib-tooltip-gap); }
+  }
+
+  /* Dialog */
+  .ib-dialog {
+    --ib-dialog-w: 32rem;
+    box-sizing: border-box;
+    width: min(var(--ib-dialog-w), calc(100% - 2rem));
+    max-width: none;
+    max-height: calc(100dvh - 2rem);
+    padding: 0;
+    border: 1px solid var(--ib-color-raised-border);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface-raised);
+    color: var(--ib-color-on-surface);
+    box-shadow: var(--ib-shadow-lg);
+    opacity: 0;
+    scale: 0.97;
+    transition:
+      opacity var(--ib-duration-normal) var(--ib-ease),
+      scale var(--ib-duration-normal) var(--ib-ease),
+      translate var(--ib-duration-normal) var(--ib-ease),
+      overlay var(--ib-duration-normal) allow-discrete,
+      display var(--ib-duration-normal) allow-discrete;
+  }
+
+  .ib-dialog[open] {
+    display: flex;
+    flex-direction: column;
+    opacity: 1;
+    scale: 1;
+  }
+
+  @starting-style {
+    .ib-dialog[open] {
+      opacity: 0;
+      scale: 0.97;
+    }
+  }
+
+  .ib-dialog::backdrop {
+    background-color: rgb(15 23 42 / 0);
+    transition:
+      background-color var(--ib-duration-normal) var(--ib-ease),
+      overlay var(--ib-duration-normal) allow-discrete,
+      display var(--ib-duration-normal) allow-discrete;
+  }
+
+  .ib-dialog[open]::backdrop {
+    background-color: var(--ib-color-backdrop);
+  }
+
+  @starting-style {
+    .ib-dialog[open]::backdrop {
+      background-color: rgb(15 23 42 / 0);
+    }
+  }
+
+  /* Rendered open by the server with no script: not modal, so draw the backdrop by hand. */
+  .ib-dialog[open]:not(:modal) {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    margin: auto;
+    box-shadow: var(--ib-shadow-lg);
+  }
+
+  /* A backdrop that covers the page and catches its clicks (a box-shadow doesn't). */
+  body:has(.ib-dialog[open]:not(:modal))::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: 999;
+    background-color: var(--ib-color-backdrop);
+  }
+
+  html:has(.ib-dialog:modal),
+  html:has(.ib-dialog[open]:not(:modal)) {
+    overflow: hidden;
+  }
+
+  .ib-dialog-sm { --ib-dialog-w: 24rem; }
+  .ib-dialog-lg { --ib-dialog-w: 48rem; }
+  .ib-dialog-xl { --ib-dialog-w: 64rem; }
+
+  .ib-dialog-full {
+    width: 100%;
+    height: 100%;
+    max-height: none;
+    border-radius: 0;
+  }
+
+  /* Side drawers */
+  .ib-dialog-start,
+  .ib-dialog-end {
+    --ib-dialog-w: 24rem;
+    width: min(var(--ib-dialog-w), calc(100% - 3rem));
+    height: 100%;
+    max-height: none;
+    margin-block: 0;
+    border-radius: 0;
+    scale: 1;
+  }
+
+  .ib-dialog-start { margin-inline-start: 0; translate: -100% 0; }
+  .ib-dialog-end { margin-inline-end: 0; translate: 100% 0; }
+  .ib-dialog-start:dir(rtl) { translate: 100% 0; }
+  .ib-dialog-end:dir(rtl) { translate: -100% 0; }
+
+  .ib-dialog-start[open],
+  .ib-dialog-end[open] {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  @starting-style {
+    .ib-dialog-start[open] { translate: -100% 0; }
+    .ib-dialog-end[open] { translate: 100% 0; }
+    .ib-dialog-start[open]:dir(rtl) { translate: 100% 0; }
+    .ib-dialog-end[open]:dir(rtl) { translate: -100% 0; }
+  }
+
+  .ib-dialog-start[open]:not(:modal) { margin-inline-start: 0; margin-block: 0; }
+  .ib-dialog-end[open]:not(:modal) { margin-inline-end: 0; margin-block: 0; }
+
+  .ib-dialog-header {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    padding: var(--ib-space-5) var(--ib-space-6) var(--ib-space-2);
+  }
+
+  .ib-dialog-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: var(--ib-text-lg);
+    font-weight: var(--ib-weight-semibold);
+    line-height: var(--ib-leading-tight);
+  }
+
+  .ib-dialog-close {
+    margin-inline-start: auto;
+    margin-inline-end: calc(var(--ib-space-2) * -1);
+  }
+
+  .ib-dialog-body {
+    flex: 1;
+    min-height: 0;
+    overflow: auto;
+    padding: var(--ib-space-2) var(--ib-space-6) var(--ib-space-5);
+  }
+
+  /* ConfirmButton's message: muted, under the question. */
+  .ib-confirm-message {
+    color: var(--ib-color-muted);
+  }
+
+  .ib-confirm-message > p {
+    margin: 0;
+  }
+
+  .ib-confirm-message > * + * {
+    margin-top: var(--ib-space-2);
+  }
+
+  .ib-dialog-header + .ib-dialog-body {
+    padding-top: var(--ib-space-1);
+  }
+
+  .ib-dialog-body:first-child {
+    padding-top: var(--ib-space-6);
+  }
+
+  .ib-dialog-footer {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ib-space-2);
+    padding: var(--ib-space-4) var(--ib-space-6);
+    border-top: 1px solid var(--ib-color-border);
+    /* A step off the dialog's own surface: a little darker in light mode, lighter in dark. */
+    background-color: color-mix(in oklab, var(--ib-color-surface-raised), var(--ib-color-on-surface) 4%);
+    border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
+  }
+
+  .ib-dialog-start .ib-dialog-footer,
+  .ib-dialog-end .ib-dialog-footer,
+  .ib-dialog-full .ib-dialog-footer {
+    border-radius: 0;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-pop,
+    .ib-dialog,
+    .ib-dialog::backdrop,
+    .ib-tooltip {
+      transition: none;
+    }
+  }
+}

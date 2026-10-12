@@ -1,0 +1,40 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A list of navigation links: vertical for sidebars, horizontal for headers.
+    <NavMenu>
+        <NavLabel>Workspace</NavLabel>
+        <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Home</NavItem>
+        <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="/projects">
+            <NavItem Href="/projects/active">Active</NavItem>
+        </NavGroup>
+        <NavDivider />
+        <NavItem Href="/settings" Icon="Lucide.Settings">Settings</NavItem>
+    </NavMenu>
+*@
+
+<ul @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @ChildContent
+</ul>
+
+@code {
+    /// <summary>Vertical for sidebars (the default), horizontal for header bars.</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>The items: <see cref="NavItem"/>, <see cref="NavGroup"/>, <see cref="NavLabel"/>, <see cref="NavDivider"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-nav");
+        classes.Add(Orientation == Orientation.Horizontal ? "ib-nav-horizontal" : "ib-nav-vertical");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

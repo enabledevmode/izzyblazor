@@ -1,0 +1,132 @@
+/*
+ * Avatar: a photo (a background image) over a fallback (initials or an icon). A photo that
+ * fails to load draws nothing, so the fallback shows through.
+ */
+@layer izzy.components {
+  .ib-avatar {
+    --ib-avatar-size: 2.5rem;
+    --ib-avatar-hue: 250;
+    position: relative;
+    display: inline-flex;
+    flex-shrink: 0;
+    width: var(--ib-avatar-size);
+    height: var(--ib-avatar-size);
+    border-radius: var(--ib-radius-full);
+    vertical-align: middle;
+    font-size: calc(var(--ib-avatar-size) * 0.4);
+    font-weight: var(--ib-weight-medium);
+    line-height: 1;
+    user-select: none;
+  }
+
+  .ib-avatar-xs { --ib-avatar-size: 1.5rem; }
+  .ib-avatar-sm { --ib-avatar-size: 2rem; }
+  .ib-avatar-lg { --ib-avatar-size: 3rem; }
+  .ib-avatar-xl { --ib-avatar-size: 4rem; }
+  .ib-avatar-xl2 { --ib-avatar-size: 6rem; }
+
+  .ib-avatar-square {
+    border-radius: calc(var(--ib-avatar-size) * 0.2);
+  }
+
+  /* A soft color from the name's hue, readable in both schemes. */
+  .ib-avatar-fallback {
+    display: grid;
+    place-items: center;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+    border-radius: inherit;
+    background: light-dark(oklch(0.92 0.045 var(--ib-avatar-hue)), oklch(0.36 0.06 var(--ib-avatar-hue)));
+    color: light-dark(oklch(0.42 0.11 var(--ib-avatar-hue)), oklch(0.9 0.06 var(--ib-avatar-hue)));
+    letter-spacing: 0.02em;
+  }
+
+  .ib-avatar-fallback > .ib-icon {
+    width: 55%;
+    height: 55%;
+  }
+
+  /* No name: a neutral fill behind the person icon. */
+  .ib-avatar-anonymous > .ib-avatar-fallback {
+    background: var(--ib-color-surface-container-high);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-avatar-colored > .ib-avatar-fallback {
+    background: var(--ib-accent);
+    color: var(--ib-on-accent);
+  }
+
+  .ib-avatar-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border-radius: inherit;
+    background-position: center;
+    background-size: cover;
+    background-repeat: no-repeat;
+  }
+
+  /* Status dot in the bottom corner, ringed in the page color so it reads on the image. */
+  .ib-avatar-status {
+    position: absolute;
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    width: max(0.5rem, calc(var(--ib-avatar-size) * 0.28));
+    height: max(0.5rem, calc(var(--ib-avatar-size) * 0.28));
+    border-radius: var(--ib-radius-full);
+    box-shadow: 0 0 0 2px var(--ib-avatar-ring, var(--ib-color-surface));
+    background: var(--ib-color-muted);
+  }
+
+  .ib-avatar-square > .ib-avatar-status {
+    translate: 25% 25%;
+  }
+
+  .ib-avatar-status:dir(rtl) {
+    translate: -25% 25%;
+  }
+
+  .ib-avatar-status-success { background: var(--ib-color-success); }
+  .ib-avatar-status-warning { background: var(--ib-color-warning); }
+  .ib-avatar-status-danger { background: var(--ib-color-danger); }
+  .ib-avatar-status-info { background: var(--ib-color-info); }
+
+  /* Group: overlapping, each ringed in the page color. Set --ib-avatar-ring on a tinted surface. */
+  .ib-avatar-group {
+    display: inline-flex;
+    align-items: center;
+    flex-direction: row;
+    padding-inline-start: 0.125rem;
+  }
+
+  .ib-avatar-group > .ib-avatar {
+    box-shadow: 0 0 0 2px var(--ib-avatar-ring, var(--ib-color-surface));
+  }
+
+  .ib-avatar-group > .ib-avatar + .ib-avatar {
+    margin-inline-start: calc(var(--ib-avatar-size) * -0.25);
+  }
+
+  .ib-avatar-more > .ib-avatar-fallback {
+    background: var(--ib-color-surface-container-high);
+    color: var(--ib-color-on-surface);
+    font-size: 0.9em;
+  }
+
+  /* Max: hide the avatars past it. */
+  .ib-avatar-group[data-max="1"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 2),
+  .ib-avatar-group[data-max="2"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 3),
+  .ib-avatar-group[data-max="3"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 4),
+  .ib-avatar-group[data-max="4"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 5),
+  .ib-avatar-group[data-max="5"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 6),
+  .ib-avatar-group[data-max="6"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 7),
+  .ib-avatar-group[data-max="7"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 8),
+  .ib-avatar-group[data-max="8"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 9),
+  .ib-avatar-group[data-max="9"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 10),
+  .ib-avatar-group[data-max="10"] > .ib-avatar:not(.ib-avatar-more):nth-child(n + 11) {
+    display: none;
+  }
+}

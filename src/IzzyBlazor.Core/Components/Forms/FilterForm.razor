@@ -1,0 +1,105 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    A search-and-filter bar that puts its values in the URL, for a table or any list. The page
+    reads them with [SupplyParameterFromQuery] and filters its own data.
+      - No script: a GET form. It keeps the rest of the query string (a table's sort, other
+        tables' state) as hidden fields and drops page numbers, so filtering starts at page 1.
+      - With script: <ib-filter-form> applies as you type (after a pause) and when a select or
+        checkbox changes, without a full reload, and keeps focus in the search box.
+      - Interactive: the same navigation runs through Blazor; the page's query parameters update.
+
+    <FilterForm>
+        <FilterSearch Placeholder="Search customers" />
+        <FilterSelect Name="status" Label="Status" Items="statuses" />
+    </FilterForm>
+*@
+
+<ib-filter-form class="@_class" style="@_style" data-live="@(Live ? "" : null)">
+    <form @attributes="AdditionalAttributes" method="get" action="@ActionPath" role="search" aria-label="@Label" class="ib-filter-row">
+        @foreach (var (key, value) in Kept())
+        {
+            <input type="hidden" name="@key" value="@value" />
+        }
+        <CascadingValue Value="_context" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+        <div class="ib-filter-buttons">
+            <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-filter-apply">@ApplyText</button>
+            @if (HasValues)
+            {
+                <a href="@ClearHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-filter-clear">@ClearText</a>
+            }
+        </div>
+    </form>
+</ib-filter-form>
+
+@code {
+    /// <summary>The filter fields: <see cref="FilterSearch"/>, <see cref="FilterSelect"/>, <see cref="FilterCheckbox"/>, or your own inputs (list their names in <see cref="Fields"/>).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Applies as you type and on every change, with JavaScript. Defaults to true; false keeps the Apply button.</summary>
+    [Parameter] public bool Live { get; set; } = true;
+
+    /// <summary>The names of inputs you add yourself, so the form doesn't also carry them over from the URL.</summary>
+    [Parameter] public IReadOnlyList<string>? Fields { get; set; }
+
+    /// <summary>The search landmark's name. Defaults to "Filters".</summary>
+    [Parameter] public string Label { get; set; } = "Filters";
+
+    /// <summary>The submit button's text, shown when JavaScript is off or <see cref="Live"/> is false. Defaults to "Apply".</summary>
+    [Parameter] public string ApplyText { get; set; } = "Apply";
+
+    /// <summary>The text of the link that removes every filter. Defaults to "Clear".</summary>
+    [Parameter] public string ClearText { get; set; } = "Clear";
+
+    private readonly FilterFormContext _context = new();
+    private string? _class;
+    private string? _style;
+
+    private Dictionary<string, Microsoft.Extensions.Primitives.StringValues> Query =>
+        QueryString.Of(Navigation.Uri);
+
+    // GET replaces the query string with the form's fields, so the action is just the path.
+    private string ActionPath => new Uri(Navigation.Uri).AbsolutePath;
+
+    private bool HasValues => Query.Any(q => IsField(q.Key) && q.Value.Any(v => !string.IsNullOrEmpty(v)));
+
+    private string ClearHref => Navigation.GetUriWithQueryParameters(
+        Query.Keys.Where(k => IsField(k) || IsPage(k)).ToDictionary(k => k, _ => (object?)null));
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _context.Changed = StateHasChanged;
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-filter-form");
+
+    private bool IsField(string key) => _context.Names.Contains(key) || Fields?.Contains(key) == true;
+
+    // Page numbers are dropped, so a new filter starts at page 1: "page", or a table's
+    // prefixed key such as "orders-page" or "p_page" (not "perPage" or "homepage").
+    internal static bool IsPage(string key) => PageKey.IsMatch(key);
+
+    private static readonly System.Text.RegularExpressions.Regex PageKey =
+        new(@"^(.*[-_.])?page$", System.Text.RegularExpressions.RegexOptions.IgnoreCase | System.Text.RegularExpressions.RegexOptions.CultureInvariant);
+
+    private IEnumerable<(string Key, string Value)> Kept() =>
+        Query.Where(q => !IsField(q.Key) && !IsPage(q.Key))
+             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

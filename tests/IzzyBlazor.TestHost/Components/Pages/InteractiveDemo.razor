@@ -1,0 +1,8 @@
+@page "/interactive/{Slug}"
+@rendermode InteractiveServer
+
+<DemoPage Slug="@Slug" />
+
+@code {
+    [Parameter] public string? Slug { get; set; }
+}

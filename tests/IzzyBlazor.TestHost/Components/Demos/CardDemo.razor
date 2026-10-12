@@ -1,0 +1,95 @@
+@* Card. No script involved. *@
+
+<Stack Gap="8">
+
+    <Example Title="Variants" Note="Outline (the default), Elevated and Filled. Sections share the card's padding; Size changes it." Code="@VariantsCode">
+        <Row Gap="4" Wrap Align="Align.Stretch">
+            @foreach (var variant in Enum.GetValues<CardVariant>())
+            {
+                <Card Variant="variant" Title="@variant.ToString()" Description="Updated 2 hours ago" Grow Basis="16.Rem">
+                    <TextBlock>Static pages, fast first paint, and interactivity where you need it.</TextBlock>
+                </Card>
+            }
+        </Row>
+    </Example>
+
+    <Example Title="Linked card with actions" Note="Href makes the whole card a link through its title, so it reads as one link to screen readers. Buttons in Actions and Footer stay clickable on their own." Code="@LinkedCode">
+        <Row Gap="4" Wrap Align="Align.Stretch">
+            <Card Title="Website" Description="enabledevmode.com" Href="static/card" Grow Basis="18.Rem" data-testid="linked-card">
+                <Actions>
+                    <Menu Label="Project actions" Id="card-menu">
+                        <Trigger><IconButton Icon="Lucide.Ellipsis" Label="Project actions" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="context" /></Trigger>
+                        <ChildContent>
+                            <MenuItem Icon="Lucide.Settings">Settings</MenuItem>
+                            <MenuItem Icon="Lucide.Archive">Archive</MenuItem>
+                        </ChildContent>
+                    </Menu>
+                </Actions>
+                <ChildContent>
+                    <Row Gap="2" Wrap>
+                        <Badge Status="Status.Success" Dot>Deployed</Badge>
+                        <Badge>Blazor</Badge>
+                    </Row>
+                </ChildContent>
+                <Footer>
+                    <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">3 contributors</TextBlock>
+                </Footer>
+            </Card>
+            <Card Variant="CardVariant.Elevated" Title="Course app" Description="Lessons and progress" Href="static/card" Grow Basis="18.Rem">
+                <Media>
+                    <svg viewBox="0 0 400 140" role="img" aria-label="Abstract cover">
+                        <defs><linearGradient id="cover" x1="0" x2="1"><stop offset="0" stop-color="#4f46e5" /><stop offset="1" stop-color="#0ea5e9" /></linearGradient></defs>
+                        <rect width="400" height="140" fill="url(#cover)" />
+                    </svg>
+                </Media>
+                <ChildContent>
+                    <TextBlock Color="Color.Muted">12 lessons · 3 hours</TextBlock>
+                </ChildContent>
+            </Card>
+        </Row>
+    </Example>
+
+    <Example Title="Footer actions" Code="@FooterCode">
+        <Box MaxWidth="26.Rem">
+            <Card Variant="CardVariant.Filled" Title="Delete project?" Size="ControlSize.Sm">
+                <ChildContent>
+                    <TextBlock>This removes the project and its deployments. It can't be undone.</TextBlock>
+                </ChildContent>
+                <Footer>
+                    <Button Accent="Accent.Danger" Size="ControlSize.Sm">Delete</Button>
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Cancel</Button>
+                </Footer>
+            </Card>
+        </Box>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string VariantsCode =
+        """
+        <Card Title="Outline" Description="Updated 2 hours ago">...</Card>
+        <Card Variant="CardVariant.Elevated">...</Card>
+        """;
+
+    private const string LinkedCode =
+        """
+        <Card Title="Website" Description="enabledevmode.com" Href="/projects/website">
+            <Actions><Menu>...</Menu></Actions>
+            <ChildContent>...</ChildContent>
+            <Footer>...</Footer>
+        </Card>
+
+        <Card Variant="CardVariant.Elevated" Title="Course app" Href="...">
+            <Media><img src="cover.jpg" alt="" /></Media>
+        </Card>
+        """;
+
+    private const string FooterCode =
+        """
+        <Card Variant="CardVariant.Filled" Title="Delete project?" Size="ControlSize.Sm">
+            <ChildContent>...</ChildContent>
+            <Footer><Button Accent="Accent.Danger">Delete</Button></Footer>
+        </Card>
+        """;
+}

@@ -1,0 +1,168 @@
+@namespace IzzyBlazor
+@inherits ToggleComponentBase
+@inject NavigationManager Navigation
+
+@*
+    A modal built on the native <dialog>: the browser traps focus, makes the page behind it
+    inert, closes it on Escape and returns focus afterwards.
+
+    <DialogTrigger For="confirm-delete" Accent="Accent.Danger">Delete</DialogTrigger>
+
+    <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm">
+        <ChildContent>This can't be undone.</ChildContent>
+        <Footer>
+            <DialogClose>Cancel</DialogClose>
+            <Button Type="ButtonType.Submit" Form="delete-form" Accent="Accent.Danger">Delete</Button>
+        </Footer>
+    </Dialog>
+
+    Ways to open it:
+      - DialogTrigger: a button with commandfor="id" command="show-modal" (native, with a
+        script fallback for older browsers).
+      - A link that adds ?dialog=id to the URL: the server renders it already open. Works
+        with JavaScript off.
+      - Open="true" or @bind-Open, for confirmations the server or C# decides to show.
+
+    Put forms inside the Dialog rather than the Dialog inside a form. When it has to be inside
+    one (a confirmation for that form's own submit button, say), set InsideForm: forms can't
+    nest, so it then closes with the native close command instead of its own form.
+*@
+
+<ib-dialog data-open="@(IsOpen ? "" : null)"
+           data-close-on-backdrop="@(CloseOnBackdrop ? "" : null)">
+    <dialog @attributes="AdditionalAttributes"
+            id="@ElementId"
+            class="@_class"
+            style="@_style"
+            aria-labelledby="@(Title is not null || Header is not null ? TitleId : null)"
+            closedby="@(CloseOnBackdrop ? "any" : "closerequest")"
+            open="@(IsOpen && !IsInteractive)"
+            @onibtoggle="HandleToggle">
+        @* Close buttons submit this form: method="dialog" closes the dialog natively in every
+           browser, with or without script. They also carry the native close command, which
+           browsers use when there's no form (InsideForm). *@
+        @if (!InsideForm)
+        {
+            <form method="dialog" id="@($"{ElementId}-close")" hidden></form>
+        }
+        <CascadingValue Value="_context" IsFixed="true">
+            @if (Title is not null || Header is not null || ShowCloseButton)
+            {
+                <header class="ib-dialog-header">
+                    @if (Header is not null)
+                    {
+                        <div class="ib-dialog-title" id="@TitleId">@Header</div>
+                    }
+                    else if (Title is not null)
+                    {
+                        <h2 class="ib-dialog-title" id="@TitleId">@Title</h2>
+                    }
+                    @if (ShowCloseButton)
+                    {
+                        <button type="@(InsideForm ? "button" : "submit")"
+                                form="@(InsideForm ? null : $"{ElementId}-close")"
+                                commandfor="@ElementId"
+                                command="close"
+                                class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-dialog-close"
+                                aria-label="@CloseLabel">
+                            <Icon Role="IconRole.Close" />
+                        </button>
+                    }
+                </header>
+            }
+            <div class="ib-dialog-body">
+                @ChildContent
+            </div>
+            @if (Footer is not null)
+            {
+                <footer class="ib-dialog-footer">
+                    @Footer
+                </footer>
+            }
+        </CascadingValue>
+    </dialog>
+</ib-dialog>
+
+@code {
+    /// <summary>The heading, which also names the dialog for screen readers.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The close button's name. Defaults to "Close".</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close";
+
+    /// <summary>Heading content in place of <see cref="Title"/>.</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>The body.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The action row at the bottom, usually a <see cref="DialogClose"/> and a primary button.</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
+    [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
+
+    /// <summary>Center (the default), or a full-height drawer on the start or end side.</summary>
+    [Parameter] public DialogPlacement Placement { get; set; } = DialogPlacement.Center;
+
+    /// <summary>Closes when the backdrop is clicked. Defaults to true. Escape always closes it.</summary>
+    [Parameter] public bool CloseOnBackdrop { get; set; } = true;
+
+    /// <summary>Shows the close button in the header. Defaults to true.</summary>
+    [Parameter] public bool ShowCloseButton { get; set; } = true;
+
+    /// <summary>
+    /// Set when the dialog is inside a <c>&lt;form&gt;</c>. Forms can't nest, so the dialog then
+    /// closes with the native <c>close</c> command (with a script fallback in older browsers)
+    /// instead of its own <c>method="dialog"</c> form, and its buttons don't submit the outer form.
+    /// </summary>
+    [Parameter] public bool InsideForm { get; set; }
+
+    /// <summary>
+    /// The query-string key that opens a dialog from a link: <c>?dialog=my-id</c> renders the
+    /// dialog with that id already open. Defaults to <c>dialog</c>; null turns it off.
+    /// </summary>
+    [Parameter] public string? QueryKey { get; set; } = "dialog";
+
+    private DialogContext _context = null!;
+    private string? _lastQueryValue;
+    private string? _class;
+    private string? _style;
+
+    private string TitleId => $"{ElementId}-title";
+
+    /// <inheritdoc />
+    protected override string IdPrefix => "ib-dialog";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-dialog");
+        classes.Add($"ib-dialog-{Size.Name()}");
+        classes.Add($"ib-dialog-{Placement.Name()}");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        _context ??= new DialogContext(ElementId, !InsideForm);
+
+        // ?dialog=id opens it. Only a change in the URL does, so closing it in the browser sticks.
+        if (QueryKey is not null)
+        {
+            var query = QueryString.Of(Navigation.Uri);
+            var value = query.TryGetValue(QueryKey, out var values) ? values.ToString() : null;
+            if (value != _lastQueryValue)
+            {
+                _lastQueryValue = value;
+                if (value == ElementId)
+                {
+                    IsOpen = true;
+                }
+            }
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+}

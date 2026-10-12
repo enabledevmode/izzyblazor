@@ -1,0 +1,98 @@
+@namespace IzzyBlazor
+
+@*
+    The shared frame around every field: label, control, hint, errors. Field components use it;
+    custom fields can too, to match the built-in ones.
+*@
+
+@if (Group)
+{
+    <fieldset class="@Class" aria-describedby="@DescribedBy">
+        @if (!string.IsNullOrEmpty(Label))
+        {
+            <legend class="ib-field-label">@Label@RequiredMark</legend>
+        }
+        @ChildContent
+        @Footer
+    </fieldset>
+}
+else
+{
+    <div class="@Class">
+        @if (!string.IsNullOrEmpty(Label) && !LabelInControl)
+        {
+            <label class="ib-field-label" for="@Id" id="@LabelId">@Label@RequiredMark</label>
+        }
+        @ChildContent
+        @Footer
+    </div>
+}
+
+@code {
+    /// <summary>Classes for the wrapper.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>The control's id, for the label's <c>for</c>.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>An id for the label, for controls that point to it with <c>aria-labelledby</c>.</summary>
+    [Parameter] public string? LabelId { get; set; }
+
+    /// <summary>The label text.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Whether to show the required marker.</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>Help text.</summary>
+    [Parameter] public string? Hint { get; set; }
+
+    /// <summary>The hint element's id.</summary>
+    [Parameter] public string? HintId { get; set; }
+
+    /// <summary>Validation messages.</summary>
+    [Parameter] public IReadOnlyList<string>? Errors { get; set; }
+
+    /// <summary>The error element's id.</summary>
+    [Parameter] public string? ErrorId { get; set; }
+
+    /// <summary>Renders a fieldset with a legend, for groups of controls such as radios.</summary>
+    [Parameter] public bool Group { get; set; }
+
+    /// <summary>The control renders its own label (checkboxes and switches).</summary>
+    [Parameter] public bool LabelInControl { get; set; }
+
+    /// <summary>The control.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? DescribedBy => Group
+        ? string.Join(' ', new[] { string.IsNullOrEmpty(Hint) ? null : HintId, Errors is { Count: > 0 } ? ErrorId : null }.Where(x => x is not null)) is { Length: > 0 } ids ? ids : null
+        : null;
+
+    private RenderFragment? RequiredMark => Required ? RenderRequiredMark : null;
+
+    private static void RenderRequiredMark(RenderTreeBuilder builder)
+    {
+        builder.OpenElement(0, "span");
+        builder.AddAttribute(1, "class", "ib-field-required");
+        builder.AddAttribute(2, "aria-hidden", "true");
+        builder.AddContent(3, " *");
+        builder.CloseElement();
+    }
+
+    private RenderFragment Footer => @<text>
+        @if (!string.IsNullOrEmpty(Hint))
+        {
+            <p class="ib-field-hint" id="@HintId">@Hint</p>
+        }
+        @if (Errors is { Count: > 0 })
+        {
+            <div class="ib-field-error" id="@ErrorId">
+                @foreach (var error in Errors)
+                {
+                    <p><Icon Role="IconRole.Error" /> @error</p>
+                }
+            </div>
+        }
+    </text>;
+}

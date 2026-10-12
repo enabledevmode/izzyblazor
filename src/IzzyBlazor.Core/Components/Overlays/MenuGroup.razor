@@ -1,0 +1,27 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@* A labeled section of a Menu. *@
+
+<div @attributes="AdditionalAttributes" role="group" aria-labelledby="@_labelId" class="@_class" style="@_style">
+    <div class="ib-menu-heading" id="@_labelId">@Label</div>
+    @ChildContent
+</div>
+
+@code {
+    /// <summary>The section heading.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>The section's <see cref="MenuItem"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-menu-group");
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-menu-group");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

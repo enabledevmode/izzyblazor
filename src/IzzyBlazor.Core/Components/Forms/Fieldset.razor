@@ -1,0 +1,54 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    Groups related fields under a heading, such as a shipping address.
+    <Fieldset Label="Shipping address" Description="Where we send your order.">
+        <TextField @bind-Value="Model.Street" /> ...
+    </Fieldset>
+*@
+
+<fieldset @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <legend class="ib-fieldset-legend">@Label</legend>
+    @if (Description is not null)
+    {
+        <p class="ib-fieldset-description">@Description</p>
+    }
+    <div class="@_bodyClass" style="@_bodyStyle">
+        @ChildContent
+    </div>
+</fieldset>
+
+@code {
+    /// <summary>The group's heading. Screen readers announce it with each field in the group.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>A short explanation under the heading.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>Space between the fields, in spacing steps. Defaults to 4.</summary>
+    [Parameter] public Responsive<int> Gap { get; set; } = 4;
+
+    /// <summary>The fields.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+    private string? _bodyClass;
+    private string? _bodyStyle;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-fieldset");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+
+        // The gap applies to the body that holds the fields, not to the legend.
+        var bodyClasses = new ClassBuilder().Add("ib-fieldset-body");
+        var bodyStyles = new StyleBuilder();
+        ApplyResponsive(bodyClasses, bodyStyles, Gap, "ib-gap", "gap", StyleValues.Spacing);
+        (_bodyClass, _bodyStyle) = (bodyClasses.Build(), bodyStyles.Build());
+    }
+}

@@ -1,0 +1,112 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@using Microsoft.AspNetCore.Components.Web
+
+@*
+    One entry in a Menu. Three kinds, so items act on static pages too:
+      - Href: a link.
+      - Type="ButtonType.Submit": posts the surrounding form (or Form="id"), optionally to FormAction.
+      - OnClick: runs C# on interactive pages; the item closes the menu natively.
+*@
+
+@if (Href is not null)
+{
+    <a @attributes="AdditionalAttributes"
+       role="menuitem"
+       class="@_class"
+       style="@_style"
+       href="@(Disabled ? null : Href)"
+       aria-disabled="@(Disabled ? "true" : null)">
+        @Content
+    </a>
+}
+else
+{
+    var closes = Type == ButtonType.Button && Menu is not null;
+    <button @attributes="AdditionalAttributes"
+            type="@(Type == ButtonType.Submit ? "submit" : "button")"
+            role="menuitem"
+            class="@_class"
+            style="@_style"
+            disabled="@Disabled"
+            name="@Name"
+            value="@Value"
+            formaction="@FormAction"
+            form="@Form"
+            popovertarget="@(closes ? Menu!.Id : null)"
+            popovertargetaction="@(closes ? "hide" : null)"
+            @onclick="HandleClick">
+        @Content
+    </button>
+}
+
+@code {
+    /// <summary>Makes the item a link to this URL.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>For button items: <see cref="ButtonType.Submit"/> posts a form. Defaults to <see cref="ButtonType.Button"/>.</summary>
+    [Parameter] public ButtonType Type { get; set; } = ButtonType.Button;
+
+    /// <summary>Posted as <c>Name=Value</c> when a submit item is chosen.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The value posted with <see cref="Name"/>.</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>Submits to this URL instead of the form's own action.</summary>
+    [Parameter] public string? FormAction { get; set; }
+
+    /// <summary>The id of the form to submit, when the menu is not inside it.</summary>
+    [Parameter] public string? Form { get; set; }
+
+    /// <summary>An icon before the text.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>A keyboard hint shown at the end, such as "Ctrl+C". Display only.</summary>
+    [Parameter] public string? Shortcut { get; set; }
+
+    /// <summary>
+    /// The text color. <see cref="Accent.Neutral"/> (the default) is plain; use
+    /// <see cref="Accent.Danger"/> for destructive items.
+    /// </summary>
+    [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
+
+    /// <summary>Shows the item but stops it from being chosen.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>Runs on click on interactive pages.</summary>
+    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>The item text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private MenuContext? Menu { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-menu-item");
+        classes.Add($"ib-menu-item-{Accent.ToString().ToLowerInvariant()}", Accent != Accent.Neutral);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    private Task HandleClick(MouseEventArgs e) =>
+        Disabled || !OnClick.HasDelegate ? Task.CompletedTask : OnClick.InvokeAsync(e);
+
+    private RenderFragment Content => @<text>
+        @if (Icon is { } icon)
+        {
+            <Icon Name="icon" />
+        }
+        <span class="ib-menu-label">@ChildContent</span>
+        @if (Shortcut is not null)
+        {
+            <span class="ib-menu-shortcut">@Shortcut</span>
+        }
+    </text>;
+}

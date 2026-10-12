@@ -1,0 +1,26 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- bunit 2.x depends on AngleSharp 1.8.1+, past the CVE-2026-54570 fix in 1.5.0.
+         bunit 1.x can't use a patched AngleSharp: 1.8 is not binary compatible with it. -->
+    <PackageReference Include="bunit" Version="2.11.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+    <Using Include="Bunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IzzyBlazor\IzzyBlazor.csproj" />
+  </ItemGroup>
+
+</Project>

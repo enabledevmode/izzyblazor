@@ -1,0 +1,413 @@
+@using System.ComponentModel.DataAnnotations
+
+<Stack Gap="8">
+
+    <Example Title="Sign-up form" Note="A real form. On the static page it posts to the server and re-renders with errors, even with JavaScript off. Labels, required markers, lengths and input types all come from the model's DataAnnotations." Code="@SignupCode">
+        @if (_submitted)
+        {
+            <Stack Gap="3" Padding="4" Bg="Color.Success" Radius="Radius.Md" MarginY="0">
+                <Row Gap="2" Align="Align.Center">
+                    <Icon Role="IconRole.Success" Size="IconSize.Lg" />
+                    <Heading Level="3" Size="TextSize.Lg">Welcome, @Signup!.Name</Heading>
+                </Row>
+                <TextBlock Size="TextSize.Sm">The server validated and accepted the form: @Signup!.Email on the @Signup!.Plan plan.</TextBlock>
+            </Stack>
+        }
+        <Box MaxWidth="32.Rem" MarginY="new() { Base = 4 }">
+            <Form Model="Signup" FormName="signup" OnValidSubmit="SubmitAsync">
+                <FormErrors />
+                <TextField @bind-Value="Signup!.Name" AutoComplete="name" StartIcon="Lucide.User" />
+                <TextField @bind-Value="Signup!.Email" AutoComplete="email" StartIcon="Lucide.Mail" Placeholder="you@example.com" Hint="We'll never share your email." />
+                <TextField @bind-Value="Signup!.Password" AutoComplete="new-password" Hint="At least 8 characters." />
+                <Select @bind-Value="Signup!.Plan" Placeholder="Choose a plan" />
+                <RadioGroup @bind-Value="Signup!.Contact" Orientation="Orientation.Horizontal" />
+                <TextArea @bind-Value="Signup!.Bio" Rows="3" AutoGrow ShowCount Placeholder="Tell us a little about yourself" />
+                <Switch @bind-Value="Signup!.Newsletter" />
+                <Checkbox @bind-Value="Signup!.AcceptTerms">I agree to the <a href="static/forms">terms of service</a></Checkbox>
+                <Row Gap="2">
+                    <Button Type="ButtonType.Submit" StartIcon="Lucide.UserPlus">Create account</Button>
+                    <Button Type="ButtonType.Reset" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Rich options" Note="ItemTemplate puts icons and a second line in the options. Where the browser supports the customizable select (Chrome and Edge 135+), the list is themed and shows the markup, and the closed field shows the chosen option without its hint. Other browsers, and iPhones, use their own list with ItemText." Code="@RichCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Rich" FormName="rich" OnValidSubmit="() => { }">
+                <Select @bind-Value="Rich!.Plan" Placeholder="Choose a plan" ItemText="PlanName">
+                    <ItemTemplate Context="plan">
+                        <Icon Name="PlanIcon(plan)" />
+                        <span>@PlanName(plan) <span class="ib-option-hint">@PlanHint(plan)</span></span>
+                    </ItemTemplate>
+                </Select>
+                <Select @bind-Value="Rich!.Priority">
+                    <ItemTemplate Context="priority">
+                        <span class="host-dot" style="--dot: var(--ib-color-@(PriorityColor(priority)))"></span>
+                        @priority
+                    </ItemTemplate>
+                </Select>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Combobox" Note="A select you can type in. Without JavaScript it's a native select, so the form still works; with it, typing filters the list (accents and case ignored), arrow keys move, Enter chooses and Escape closes. On interactive pages, Search runs on the server as you type; on static pages, Search(&quot;&quot;) fills the list once and it filters in the browser." Code="@ComboCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Combo" FormName="combo" OnValidSubmit="() => _comboSaved = true">
+                <Combobox @bind-Value="Combo!.Country" Items="Countries.Keys" ItemText="code => Countries[code!]" Placeholder="Search countries">
+                    <ItemTemplate Context="code">
+                        <span class="host-flag" aria-hidden="true">@Flag(code!)</span> @Countries[code!]
+                    </ItemTemplate>
+                </Combobox>
+                <Combobox @bind-Value="Combo!.OwnerId" Search="FindPeople" ItemText="id => P(id).Name" Placeholder="Search people"
+                          Hint="Search runs on the server on interactive pages.">
+                    <ItemTemplate Context="id">
+                        <span class="host-avatar" aria-hidden="true">@P(id).Initials</span>
+                        <span>@P(id).Name <span class="ib-option-hint">@P(id).Role</span></span>
+                    </ItemTemplate>
+                </Combobox>
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    @if (_comboSaved)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @(Combo!.Country is { } c ? Countries[c] : "no country"), @(Combo!.OwnerId is { } o ? P(o).Name : "no owner")</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Several choices" Note="CheckboxGroup shows a short list as checkboxes; MultiSelect suits a longer one. Both bind to a collection (an array, List or HashSet) and post repeated form fields, which Blazor binds back, so they work with JavaScript off. With it, MultiSelect becomes a field of chips you can type in: choosing toggles an option and the list stays open, and Backspace removes the last chip." Code="@ChoicesCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Choices" FormName="choices" OnValidSubmit="() => _choicesSaved = true">
+                <CheckboxGroup @bind-Value="Choices!.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" />
+                <MultiSelect @bind-Value="Choices!.Skills" Items="Skills" Placeholder="Add skills" Hint="Type to filter." />
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    @if (_choicesSaved)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="choices-saved">Saved: @(Choices!.Toppings.Count == 0 ? "no toppings" : string.Join(", ", Choices.Toppings)); @(Choices.Skills.Length == 0 ? "no skills" : string.Join(", ", Choices.Skills))</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Groups and sizes" Note="Fieldset groups related fields. ControlSize matches the button sizes, so fields and buttons line up." Code="@GroupsCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Address" FormName="address" OnValidSubmit="() => { }">
+                <Fieldset Label="Shipping address" Description="Where we send your order.">
+                    <TextField @bind-Value="Address!.Street" AutoComplete="street-address" />
+                    <Row Gap="3">
+                        <TextField @bind-Value="Address!.City" Class="host-grow" />
+                        <TextField @bind-Value="Address!.PostalCode" />
+                    </Row>
+                </Fieldset>
+                <Row Gap="2" Align="Align.End">
+                    <TextField @bind-Value="Address!.Coupon" Size="ControlSize.Sm" Placeholder="Coupon code" Class="host-grow" />
+                    <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Apply</Button>
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Sizes" Note="Label, text and hint scale with ControlSize, and each field lines up with a button of the same size. On touch screens field text is at least 16px, so iPhones don't zoom in." Code="@SizesCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Sizes" FormName="sizes" OnValidSubmit="() => { }">
+                <Row Gap="2" Align="Align.End">
+                    <TextField @bind-Value="Sizes!.Small" Size="ControlSize.Sm" Hint="A hint below the field." Placeholder="Search" StartIcon="Lucide.Search" Class="host-grow" />
+                    <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="host-hint-offset">Go</Button>
+                </Row>
+                <Row Gap="2" Align="Align.End">
+                    <TextField @bind-Value="Sizes!.Medium" Hint="A hint below the field." Placeholder="Search" StartIcon="Lucide.Search" Class="host-grow" />
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="host-hint-offset">Go</Button>
+                </Row>
+                <Row Gap="2" Align="Align.End">
+                    <TextField @bind-Value="Sizes!.Large" Size="ControlSize.Lg" Hint="A hint below the field." Placeholder="Search" StartIcon="Lucide.Search" Class="host-grow" />
+                    <Button Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="host-hint-offset-lg">Go</Button>
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Horizontal layout" Note="Labels in a column from 640px up; stacked on phones." Code="@HorizontalCode">
+        <Box MaxWidth="36.Rem">
+            <Form Model="Profile" FormName="profile" Layout="FormLayout.Horizontal" OnValidSubmit="() => { }">
+                <TextField @bind-Value="Profile!.DisplayName" />
+                <TextField @bind-Value="Profile!.Website" StartIcon="Lucide.Globe" />
+                <Select @bind-Value="Profile!.Language" />
+                <TextField @bind-Value="Profile!.Username" ReadOnly Hint="Usernames can't be changed." />
+            </Form>
+        </Box>
+    </Example>
+
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "signup")] public SignupModel? Signup { get; set; }
+    [SupplyParameterFromForm(FormName = "address")] public AddressModel? Address { get; set; }
+    [SupplyParameterFromForm(FormName = "profile")] public ProfileModel? Profile { get; set; }
+    [SupplyParameterFromForm(FormName = "sizes")] public SizesModel? Sizes { get; set; }
+    [SupplyParameterFromForm(FormName = "rich")] public RichModel? Rich { get; set; }
+    [SupplyParameterFromForm(FormName = "combo")] public ComboModel? Combo { get; set; }
+    [SupplyParameterFromForm(FormName = "choices")] public ChoicesModel? Choices { get; set; }
+    private bool _choicesSaved;
+
+    private static readonly string[] Skills =
+    [
+        "Accessibility", "ASP.NET Core", "Azure", "Blazor", "C#", "CSS", "Docker", "Entity Framework",
+        "F#", "Git", "GraphQL", "HTML", "JavaScript", "Kubernetes", "Playwright", "PostgreSQL",
+        "React", "Rust", "SignalR", "SQL Server", "TypeScript", "Vue",
+    ];
+    private bool _comboSaved;
+
+    private static readonly Dictionary<string, string> Countries = new()
+    {
+        ["AR"] = "Argentina", ["AU"] = "Australia", ["AT"] = "Austria", ["BE"] = "Belgium", ["BR"] = "Brazil",
+        ["CA"] = "Canada", ["CL"] = "Chile", ["CN"] = "China", ["CO"] = "Colombia", ["CI"] = "Côte d'Ivoire",
+        ["CZ"] = "Czechia", ["DK"] = "Denmark", ["EG"] = "Egypt", ["FI"] = "Finland", ["FR"] = "France",
+        ["DE"] = "Germany", ["GR"] = "Greece", ["IN"] = "India", ["IE"] = "Ireland", ["IL"] = "Israel",
+        ["IT"] = "Italy", ["JP"] = "Japan", ["KE"] = "Kenya", ["MX"] = "Mexico", ["NL"] = "Netherlands",
+        ["NZ"] = "New Zealand", ["NG"] = "Nigeria", ["NO"] = "Norway", ["PE"] = "Peru", ["PL"] = "Poland",
+        ["PT"] = "Portugal", ["RE"] = "Réunion", ["KR"] = "South Korea", ["ES"] = "Spain", ["SE"] = "Sweden",
+        ["CH"] = "Switzerland", ["TR"] = "Türkiye", ["UA"] = "Ukraine", ["GB"] = "United Kingdom", ["US"] = "United States",
+    };
+
+    private static string Flag(string code) => string.Concat(code.Select(c => char.ConvertFromUtf32(0x1F1E6 + c - 'A')));
+
+    private record Person(string Name, string Role)
+    {
+        public string Initials => string.Concat(Name.Split(' ').Select(p => p[0]));
+    }
+
+    private static Person P(int? id) => People[id!.Value];
+
+    private static readonly Dictionary<int, Person> People = new[]
+    {
+        "Ada Lovelace:Engineering", "Alan Turing:Research", "Grace Hopper:Engineering", "Katherine Johnson:Mathematics",
+        "Linus Torvalds:Kernel", "Margaret Hamilton:Flight software", "Tim Berners-Lee:Web", "Barbara Liskov:Research",
+        "Donald Knuth:Typesetting", "Edsger Dijkstra:Algorithms", "Frances Allen:Compilers", "Hedy Lamarr:Radio",
+        "John von Neumann:Architecture", "Ken Thompson:Systems", "Radia Perlman:Networking", "Sophie Wilson:Chips",
+    }.Select((p, i) => (i + 1, new Person(p.Split(':')[0], p.Split(':')[1]))).ToDictionary(p => p.Item1, p => p.Item2);
+
+    // Pretend database search: a short delay, then the first matches.
+    private static async Task<IEnumerable<int?>> FindPeople(string text, CancellationToken token)
+    {
+        await Task.Delay(text.Length == 0 ? 0 : 300, token);
+        return People.Where(p => p.Value.Name.Contains(text, StringComparison.OrdinalIgnoreCase)).Take(8).Select(p => (int?)p.Key);
+    }
+
+    private static string PlanName(Plan? plan) => plan switch { Plan.Pro => "Pro", Plan.Team => "Team", _ => "Free" };
+    private static string PlanHint(Plan? plan) => plan switch { Plan.Pro => "$12/month", Plan.Team => "$10/user/month", _ => "For side projects" };
+    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Lucide.Rocket, Plan.Team => Lucide.Users, _ => Lucide.Sprout };
+    private static string PriorityColor(Priority p) => p switch { Priority.Urgent => "danger", Priority.High => "warning", Priority.Medium => "primary", _ => "subtle" };
+
+    private bool _submitted;
+
+    protected override void OnInitialized()
+    {
+        Signup ??= new();
+        Address ??= new();
+        Sizes ??= new();
+        Rich ??= new();
+        Combo ??= new();
+        Choices ??= new();
+        Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
+    }
+
+    private async Task SubmitAsync()
+    {
+        await Task.Delay(400); // pretend to save, so the submit spinner is visible
+        _submitted = true;
+    }
+
+    public enum Plan
+    {
+        Free,
+        [Display(Name = "Pro ($12/month)")] Pro,
+        Team,
+    }
+
+    public enum Priority
+    {
+        Low,
+        Medium,
+        High,
+        Urgent,
+    }
+
+    public enum Topping
+    {
+        Cheese,
+        Mushrooms,
+        Olives,
+        Peppers,
+        [Display(Name = "Extra sauce")] ExtraSauce,
+    }
+
+    public class ChoicesModel
+    {
+        public List<Topping> Toppings { get; set; } = [];
+
+        [Display(Name = "Skills"), MaxLength(5, ErrorMessage = "Pick up to 5 skills.")]
+        public string[] Skills { get; set; } = [];
+    }
+
+    public class ComboModel
+    {
+        [Required(ErrorMessage = "Choose a country.")]
+        public string? Country { get; set; }
+
+        [Display(Name = "Owner")]
+        public int? OwnerId { get; set; }
+    }
+
+    public class RichModel
+    {
+        [Required(ErrorMessage = "Choose a plan.")]
+        public Plan? Plan { get; set; }
+
+        public Priority Priority { get; set; } = Priority.Medium;
+    }
+
+    public enum ContactMethod
+    {
+        Email,
+        Phone,
+        [Display(Name = "Don't contact me")] None,
+    }
+
+    public enum Language
+    {
+        English,
+        Spanish,
+        German,
+    }
+
+    public class SignupModel
+    {
+        [Required, Display(Name = "Full name"), StringLength(80, MinimumLength = 2)]
+        public string? Name { get; set; }
+
+        [Required, EmailAddress]
+        public string? Email { get; set; }
+
+        [Required, DataType(DataType.Password), StringLength(64, MinimumLength = 8)]
+        public string? Password { get; set; }
+
+        [Required(ErrorMessage = "Choose a plan.")]
+        public Plan? Plan { get; set; }
+
+        [Display(Name = "Preferred contact")]
+        public ContactMethod Contact { get; set; } = ContactMethod.Email;
+
+        [StringLength(200), Display(Name = "About you")]
+        public string? Bio { get; set; }
+
+        [Display(Name = "Email me product updates")]
+        public bool Newsletter { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "You need to accept the terms.")]
+        public bool AcceptTerms { get; set; }
+    }
+
+    public class SizesModel
+    {
+        [Display(Name = "Small")] public string? Small { get; set; }
+        [Display(Name = "Medium (default)")] public string? Medium { get; set; }
+        [Display(Name = "Large")] public string? Large { get; set; }
+    }
+
+    public class AddressModel
+    {
+        [Required] public string? Street { get; set; }
+        [Required] public string? City { get; set; }
+        [Required, Display(Name = "Postal code"), StringLength(10)] public string? PostalCode { get; set; }
+        public string? Coupon { get; set; }
+    }
+
+    public class ProfileModel
+    {
+        [Required, Display(Name = "Display name")] public string? DisplayName { get; set; }
+        [Url] public string? Website { get; set; }
+        public Language Language { get; set; }
+        public string? Username { get; set; }
+    }
+
+    private const string SignupCode =
+        """
+        <Form Model="Signup" FormName="signup" OnValidSubmit="SubmitAsync">
+            <FormErrors />
+            <TextField @bind-Value="Signup.Name" StartIcon="Lucide.User" />
+            <TextField @bind-Value="Signup.Email" StartIcon="Lucide.Mail" Hint="We'll never share your email." />
+            <TextField @bind-Value="Signup.Password" />        @* [DataType(Password)]: masked, with show/hide *@
+            <Select @bind-Value="Signup.Plan" Placeholder="Choose a plan" />   @* enum: options automatic *@
+            <RadioGroup @bind-Value="Signup.Contact" Orientation="Orientation.Horizontal" />
+            <TextArea @bind-Value="Signup.Bio" AutoGrow ShowCount />
+            <Switch @bind-Value="Signup.Newsletter" />
+            <Checkbox @bind-Value="Signup.AcceptTerms">I agree to the <a href="/terms">terms</a></Checkbox>
+            <Button Type="ButtonType.Submit">Create account</Button>
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "signup")] public SignupModel? Signup { get; set; }
+            protected override void OnInitialized() => Signup ??= new();
+        }
+        """;
+
+    private const string ChoicesCode =
+        """
+        <CheckboxGroup @bind-Value="Model.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" />
+        <MultiSelect @bind-Value="Model.Skills" Items="Skills" Placeholder="Add skills" />
+
+        @code {
+            public class OrderModel
+            {
+                public List<Topping> Toppings { get; set; } = [];   // List, array or HashSet
+                [MaxLength(5)] public string[] Skills { get; set; } = [];
+            }
+        }
+        """;
+
+    private const string ComboCode =
+        """
+        <Combobox @bind-Value="Model.Country" Items="Countries.Keys" ItemText="code => Countries[code]" Placeholder="Search countries" />
+
+        <Combobox @bind-Value="Model.OwnerId" Search="FindPeople" ItemText="id => People[id].Name">
+            <ItemTemplate Context="id">@People[id].Name <span class="ib-option-hint">@People[id].Role</span></ItemTemplate>
+        </Combobox>
+
+        @code {
+            // Called with "" for the first list, then (interactive pages) with what's typed.
+            Task<IEnumerable<int?>> FindPeople(string text, CancellationToken token) => ...;
+        }
+        """;
+
+    private const string RichCode =
+        """
+        <Select @bind-Value="Model.Plan" Placeholder="Choose a plan" ItemText="PlanName">
+            <ItemTemplate Context="plan">
+                <Icon Name="PlanIcon(plan)" />
+                <span>@PlanName(plan) <span class="ib-option-hint">@PlanHint(plan)</span></span>
+            </ItemTemplate>
+        </Select>
+        """;
+
+    private const string SizesCode =
+        """
+        <TextField @bind-Value="Model.Small" Size="ControlSize.Sm" Hint="A hint below the field." />
+        <Button Size="ControlSize.Sm">Go</Button>
+        """;
+
+    private const string GroupsCode =
+        """
+        <Fieldset Label="Shipping address" Description="Where we send your order.">
+            <TextField @bind-Value="Address.Street" />
+        </Fieldset>
+        <TextField @bind-Value="Address.Coupon" Size="ControlSize.Sm" />
+        <Button Size="ControlSize.Sm">Apply</Button>
+        """;
+
+    private const string HorizontalCode =
+        """<Form Model="Profile" FormName="profile" Layout="FormLayout.Horizontal">...</Form>""";
+}

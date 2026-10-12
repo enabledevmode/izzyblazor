@@ -1,0 +1,36 @@
+/*
+ * Icon: inline SVG sized in em, so it matches the text beside it, and painted
+ * with currentColor, so it follows text color and dark mode.
+ */
+@layer izzy.components {
+  .ib-icon {
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    flex-shrink: 0;
+    vertical-align: -0.125em;
+  }
+
+  .ib-icon-xs { width: 0.75em; height: 0.75em; }
+  .ib-icon-sm { width: 0.875em; height: 0.875em; }
+  .ib-icon-lg { width: 1.25em; height: 1.25em; vertical-align: -0.25em; }
+  .ib-icon-xl { width: 1.5em; height: 1.5em; vertical-align: -0.3em; }
+  .ib-icon-xl2 { width: 2em; height: 2em; vertical-align: -0.5em; }
+  .ib-icon-xl3 { width: 3em; height: 3em; vertical-align: -1em; }
+
+  /* One turn a second; set --ib-spin-duration to change it. Slower with reduced motion,
+     but never stopped, since the spin is what says "still working". */
+  .ib-icon-spin {
+    animation: ib-spin var(--ib-spin-duration, 1s) linear infinite;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-icon-spin {
+      animation-duration: var(--ib-spin-duration-reduced, 2s);
+    }
+  }
+
+  @keyframes ib-spin {
+    to { transform: rotate(360deg); }
+  }
+}

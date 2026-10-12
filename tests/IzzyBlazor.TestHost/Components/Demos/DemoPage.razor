@@ -1,0 +1,27 @@
+@* Renders one demo from the catalog, with a header showing the current mode. *@
+
+@if (_demo is null)
+{
+    <PageTitle>Not found · IzzyBlazor</PageTitle>
+    <h1>No demo called "@Slug"</h1>
+    <p>Pick a component from the menu.</p>
+}
+else
+{
+    <PageTitle>@_demo.Title · IzzyBlazor</PageTitle>
+    <Stack Gap="2" MarginY="new() { Md = 2 }">
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <h1 class="host-title">@_demo.Title</h1>
+            <ModeBadge />
+        </Row>
+    </Stack>
+    <DynamicComponent Type="_demo.Component" />
+}
+
+@code {
+    [Parameter] public string? Slug { get; set; }
+
+    private Demo? _demo;
+
+    protected override void OnParametersSet() => _demo = DemoCatalog.Find(Slug);
+}

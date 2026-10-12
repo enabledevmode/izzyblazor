@@ -1,0 +1,73 @@
+@* Breadcrumb and Pagination: plain links, so they need no script. *@
+
+<Stack Gap="8">
+
+    <Example Title="Breadcrumb" Note="The last item, with no link, is the current page (aria-current). Separators are drawn by CSS, so screen readers skip them." Code="@BreadcrumbCode">
+        <Stack Gap="4">
+            <Breadcrumb>
+                <BreadcrumbItem Href="/" Icon="Lucide.House">Home</BreadcrumbItem>
+                <BreadcrumbItem Href="static/paging">Projects</BreadcrumbItem>
+                <BreadcrumbItem Href="static/paging">Website</BreadcrumbItem>
+                <BreadcrumbItem>Settings</BreadcrumbItem>
+            </Breadcrumb>
+            <Breadcrumb Separator="BreadcrumbSeparator.Slash">
+                <BreadcrumbItem Href="/">Docs</BreadcrumbItem>
+                <BreadcrumbItem Href="static/paging">Components</BreadcrumbItem>
+                <BreadcrumbItem>Breadcrumb</BreadcrumbItem>
+            </Breadcrumb>
+        </Stack>
+    </Example>
+
+    <Example Title="Pagination in the URL" Note="Each page is a link that sets ?page= in the address, so paging works with JavaScript off, survives a reload and can be shared. The page reads it with [SupplyParameterFromQuery]. On phones only the neighbours and the ends are shown." Code="@UrlCode">
+        <Stack Gap="4">
+            <TextBlock data-testid="items">Showing items @((CurrentPage - 1) * 10 + 1)–@(Math.Min(CurrentPage * 10, Total)) of @Total</TextBlock>
+            <Pagination TotalItems="Total" PageSize="10" id="url-pager" />
+            <Pagination TotalItems="Total" PageSize="10" Size="ControlSize.Sm" Siblings="0" Label="Pagination (small)" />
+        </Stack>
+    </Example>
+
+    <Example Title="Bound to C# on interactive pages" Note="@BindNote" Code="@BindCode">
+        <Stack Gap="3">
+            <Pagination @bind-Page="_page" PageCount="8" Label="Results" id="bound-pager" />
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Page in C#: <strong data-testid="page">@_page</strong></TextBlock>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    private const int Total = 237;
+
+    [SupplyParameterFromQuery(Name = "page")] private int? QueryPage { get; set; }
+
+    private int CurrentPage => Math.Clamp(QueryPage ?? 1, 1, 24);
+
+    private int _page = 1;
+
+    private string BindNote => RendererInfo.IsInteractive
+        ? "With @bind-Page on an interactive page the pages are buttons that update C#, and the URL stays as it is."
+        : "On static pages there is no C# to update, so these are links like the ones above; switch to Interactive to see @bind-Page.";
+
+    private const string BreadcrumbCode =
+        """
+        <Breadcrumb>
+            <BreadcrumbItem Href="/" Icon="Lucide.House">Home</BreadcrumbItem>
+            <BreadcrumbItem Href="/projects">Projects</BreadcrumbItem>
+            <BreadcrumbItem>Settings</BreadcrumbItem>
+        </Breadcrumb>
+        """;
+
+    private const string UrlCode =
+        """
+        <Pagination TotalItems="237" PageSize="10" />
+
+        @code {
+            [SupplyParameterFromQuery] public int? Page { get; set; }
+        }
+        """;
+
+    private const string BindCode =
+        """
+        <Pagination @bind-Page="page" PageCount="8" />
+        """;
+}

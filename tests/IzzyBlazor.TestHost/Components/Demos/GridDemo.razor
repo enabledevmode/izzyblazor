@@ -1,0 +1,135 @@
+@* Grid, GridItem, Container, Center, Spacer, Divider, AspectRatio. Pure CSS. *@
+
+<Stack Gap="8">
+
+    <Example Title="Grid columns per breakpoint" Note="One column on phones, two from Sm (640px), four from Lg (1024px). Resize the window." Code="@ColumnsCode">
+        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="3" id="grid-cols">
+            @foreach (var i in Enumerable.Range(1, 8))
+            {
+                <Tile>Item @i</Tile>
+            }
+        </Grid>
+    </Example>
+
+    <Example Title="As many columns as fit" Note="MinChildWidth fits as many columns as there is room for, each at least that wide, with no breakpoints." Code="@AutoCode">
+        <Grid MinChildWidth="12.Rem" Gap="3" id="grid-auto">
+            @foreach (var i in Enumerable.Range(1, 6))
+            {
+                <Tile>Card @i</Tile>
+            }
+        </Grid>
+    </Example>
+
+    <Example Title="Fill or stretch" Note="With few items, MinChildWidth keeps the empty columns so every item is the same width (top). Stretch lets a short row's items grow to fill it (bottom)." Code="@StretchCode">
+        <Stack Gap="3">
+            <Grid MinChildWidth="12.Rem" Gap="3" id="grid-fill">
+                <Tile>Card 1</Tile>
+                <Tile>Card 2</Tile>
+            </Grid>
+            <Grid MinChildWidth="12.Rem" Stretch Gap="3" id="grid-stretch">
+                <Tile>Card 1</Tile>
+                <Tile>Card 2</Tile>
+            </Grid>
+        </Stack>
+    </Example>
+
+    <Example Title="Your own column sizes" Note="Template takes CSS column sizes per breakpoint: one column on phones, then a fixed 15rem side column with the rest for the content from Md." Code="@TemplateCode">
+        <Grid Template='new() { Base = "minmax(0, 1fr)", Md = "15rem minmax(0, 1fr)" }' Gap="3" id="grid-template">
+            <Tile>Filters (15rem)</Tile>
+            <Tile>Results (the rest)</Tile>
+        </Grid>
+    </Example>
+
+    <Example Title="Spanning cells" Note="GridItem spans columns or rows, also per breakpoint." Code="@SpanCode">
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="3" id="grid-span">
+            <GridItem ColSpan="new() { Base = 1, Md = 2 }" RowSpan="new() { Base = 1, Md = 2 }" data-testid="wide"><Tile Style="height:100%">Main (2 × 2)</Tile></GridItem>
+            <Tile>Side 1</Tile>
+            <Tile>Side 2</Tile>
+            <GridItem ColSpan="new() { Base = 1, Md = 3 }"><Tile>Footer (3)</Tile></GridItem>
+        </Grid>
+    </Example>
+
+    <Example Title="Container" Note="Centers content at a readable width with side padding that grows on larger screens. Sizes: Sm 40rem, Md 48rem, Lg 64rem, Xl 80rem (the default), Full." Code="@ContainerCode">
+        <Box Bg="Color.SurfaceContainer" Radius="Radius.Md" PaddingY="3">
+            <Container Size="ContainerSize.Sm" data-testid="container">
+                <Tile Bg="Color.Surface">Container Sm: at most 40rem wide, centered.</Tile>
+            </Container>
+        </Box>
+    </Example>
+
+    <Example Title="Center, Spacer, AspectRatio" Code="@MiscCode">
+        <Stack Gap="4">
+            <Row Gap="3" Align="Align.Center">
+                <Center Width="3.Rem" MinHeight="3.Rem" Bg="Color.Primary" Radius="Radius.Full"><Icon Name="Lucide.Zap" /></Center>
+                <TextBlock As="span" Weight="FontWeight.Semibold">Acme</TextBlock>
+                <Spacer />
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Sign in</Button>
+            </Row>
+            <Box MaxWidth="20.Rem">
+                <AspectRatio Ratio="16 / 9.0" Radius="Radius.Lg" data-testid="ratio">
+                    <svg viewBox="0 0 160 90" role="img" aria-label="Placeholder"><rect width="160" height="90" fill="#4f46e5" /><circle cx="80" cy="45" r="20" fill="#a5b4fc" /></svg>
+                </AspectRatio>
+            </Box>
+        </Stack>
+    </Example>
+
+    <Example Title="Divider" Note="A plain line (hr), a dashed one, a labelled one, and vertical dividers in a row." Code="@DividerCode">
+        <Stack Gap="4">
+            <Divider />
+            <Divider Dashed />
+            <Divider Label="or" />
+            <Row Gap="3" Align="Align.Center">
+                <TextBlock As="span">Docs</TextBlock>
+                <Divider Orientation="Orientation.Vertical" />
+                <TextBlock As="span">Blog</TextBlock>
+                <Divider Orientation="Orientation.Vertical" />
+                <TextBlock As="span">Changelog</TextBlock>
+            </Row>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string ColumnsCode = """<Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="3">...</Grid>""";
+
+    private const string AutoCode = """<Grid MinChildWidth="12.Rem" Gap="3">...</Grid>""";
+
+    private const string StretchCode =
+        """
+        <Grid MinChildWidth="12.Rem">...</Grid>           // items keep their width
+        <Grid MinChildWidth="12.Rem" Stretch>...</Grid>   // a short row fills the width
+        """;
+
+    private const string TemplateCode =
+        """
+        <Grid Template='new() { Base = "minmax(0, 1fr)", Md = "15rem minmax(0, 1fr)" }' Gap="3">
+            <aside>...</aside>
+            <section>...</section>
+        </Grid>
+        """;
+
+    private const string SpanCode =
+        """
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="3">
+            <GridItem ColSpan="new() { Base = 1, Md = 2 }" RowSpan="new() { Base = 1, Md = 2 }">...</GridItem>
+            ...
+        </Grid>
+        """;
+
+    private const string ContainerCode = """<Container Size="ContainerSize.Sm">...</Container>""";
+
+    private const string MiscCode =
+        """
+        <Row Align="Align.Center"><Logo /><Spacer /><Button>Sign in</Button></Row>
+        <Center Width="3.Rem" MinHeight="3.Rem">...</Center>
+        <AspectRatio Ratio="16 / 9.0"><img src="..." alt="..." /></AspectRatio>
+        """;
+
+    private const string DividerCode =
+        """
+        <Divider />
+        <Divider Label="or" />
+        <Divider Orientation="Orientation.Vertical" />
+        """;
+}

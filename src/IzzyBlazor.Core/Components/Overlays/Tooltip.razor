@@ -1,0 +1,82 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    Short text shown on hover and keyboard focus. With JavaScript off it is pure CSS; with
+    JavaScript it moves to the top layer (popover="hint"), so overflow never clips it, and
+    links itself to the trigger with aria-describedby.
+
+    Tooltips never hold essential content: touch screens can't hover.
+
+    <Tooltip Text="Copy to clipboard">
+        <IconButton Icon="Lucide.Copy" Label="Copy" />
+    </Tooltip>
+*@
+
+<ib-tooltip class="@RootClass"
+            style="@($"anchor-name:{StyleValues.AnchorName(_id)}")"
+            data-placement="@Placement.Name()"
+            data-delay="@Delay">
+    @ChildContent
+    <span @attributes="AdditionalAttributes" id="@_id" role="tooltip" class="@_class" style="@_style">
+        @if (Content is not null)
+        {
+            @Content
+        }
+        else
+        {
+            @Text
+        }
+    </span>
+</ib-tooltip>
+
+@code {
+    /// <summary>The tooltip text.</summary>
+    [Parameter] public string? Text { get; set; }
+
+    /// <summary>Tooltip content in place of <see cref="Text"/>. Inline content only, nothing interactive.</summary>
+    [Parameter] public RenderFragment? Content { get; set; }
+
+    /// <summary>Where it appears. Defaults to <see cref="Placement.Top"/>.</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.Top;
+
+    /// <summary>Milliseconds of hover before it appears. Defaults to 300. Keyboard focus shows it at once.</summary>
+    [Parameter] public int Delay { get; set; } = 300;
+
+    /// <summary>The element the tooltip describes, usually a button or link.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _id = IdGenerator.Next("ib-tooltip");
+    private string? _class;
+    private string? _style;
+
+    private string RootClass => VisibilityClasses is { } visibility ? $"ib-tooltip-root {visibility}" : "ib-tooltip-root";
+
+    /// <inheritdoc />
+    protected override bool VisibilityOnRoot => false;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-tooltip");
+        classes.Add($"ib-tooltip-{Placement.Name()}");
+        styles.AddRaw($"position-anchor:{StyleValues.AnchorName(_id)}");
+        styles.AddVar("tooltip-delay", $"{Delay}ms");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Text is null && Content is null)
+        {
+            throw new InvalidOperationException("Tooltip needs Text or Content.");
+        }
+
+        if (Delay < 0)
+        {
+            throw new ArgumentOutOfRangeException(nameof(Delay), Delay, "Delay can't be negative.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+}

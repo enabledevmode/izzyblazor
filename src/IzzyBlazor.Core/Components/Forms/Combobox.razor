@@ -1,0 +1,260 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+
+@*
+    A select you can type in to filter. Options come from Items, an enum, or Search.
+
+    <Combobox @bind-Value="Model.CountryId" Items="CountryIds" ItemText="id => Countries[id]" Placeholder="Search countries" />
+    <Combobox @bind-Value="Model.OwnerId" Search="FindPeople" ItemText="id => People[id].Name">
+        <ItemTemplate Context="id"><Avatar ... /> @People[id].Name</ItemTemplate>
+    </Combobox>
+
+    How it works three ways:
+    - No script: a native select holds and posts the value, so the form works as is.
+    - With script (<ib-combobox>): a text input and a listbox take over, filtering as you type.
+      The select stays in the form, hidden under the input, so posting, required validation and
+      @bind still go through it.
+    - Interactive with Search: typing calls Search on the server (debounced) and the list shows
+      its results. Without a circuit, Search("") fills the list once and it filters in the browser.
+*@
+
+<FieldFrame Class="@WrapperClass("combobox")" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-combobox class="ib-field-control ib-has-end ib-combobox"
+                 style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
+                 data-server="@(ServerFiltered ? "" : null)">
+        <select @attributes="ControlAttributes"
+                id="@FieldId"
+                class="ib-field-input ib-field-select ib-combobox-select"
+                name="@NameAttributeValue"
+                @bind="CurrentValueAsString"
+                required="@IsRequired"
+                disabled="@Disabled"
+                aria-invalid="@(Invalid ? "true" : null)"
+                aria-describedby="@DescribedBy">
+            @* Always present: clearing the text clears the value. *@
+            <option value="" disabled="@IsRequired" selected="@string.IsNullOrEmpty(CurrentValueAsString)">@Placeholder</option>
+            @foreach (var item in SelectOptions)
+            {
+                <option value="@FormatValueAsString(item)">@TextFor(item)</option>
+            }
+        </select>
+        <input type="text"
+               id="@InputId"
+               class="ib-field-input ib-combobox-input"
+               value="@SelectedText"
+               placeholder="@Placeholder"
+               role="combobox"
+               aria-autocomplete="list"
+               aria-expanded="false"
+               aria-controls="@ListId"
+               aria-labelledby="@LabelId"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy"
+               autocomplete="off"
+               autocapitalize="off"
+               spellcheck="false"
+               enterkeyhint="done"
+               disabled="@Disabled"
+               readonly="@ReadOnly"
+               @attributes="SearchAttributes" />
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@ToggleLabel" disabled="@Disabled">
+            <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
+        </button>
+        <div id="@ListId"
+             class="ib-pop ib-place-bottom-start ib-combobox-list"
+             style="@($"position-anchor:{StyleValues.AnchorName(ListId)}")"
+             popover="manual"
+             role="listbox"
+             aria-labelledby="@LabelId"
+             aria-busy="@(_searching ? "true" : null)">
+            @{ var index = 0; }
+            @foreach (var item in ListOptions)
+            {
+                var value = FormatValueAsString(item);
+                <div role="option"
+                     id="@($"{ListId}-{index++}")"
+                     class="ib-combobox-option"
+                     data-value="@value"
+                     data-text="@TextFor(item)"
+                     aria-selected="@(value == CurrentValueAsString ? "true" : "false")">
+                    @if (ItemTemplate is null)
+                    {
+                        @TextFor(item)
+                    }
+                    else
+                    {
+                        @ItemTemplate(item)
+                    }
+                </div>
+            }
+            <div class="ib-combobox-empty" role="status">@(_searching ? SearchingText : EmptyText)</div>
+        </div>
+    </ib-combobox>
+</FieldFrame>
+
+@code {
+    private CancellationTokenSource? _searchCts;
+    private IReadOnlyList<TValue>? _results;
+    private bool _searching;
+
+    /// <summary>The options. Not needed for enums, whose values are listed automatically, or with <see cref="Search"/>.</summary>
+    [Parameter] public IEnumerable<TValue>? Items { get; set; }
+
+    /// <summary>
+    /// Finds options for the typed text, for lists too long to send whole. Called with "" to fill
+    /// the list at first (on every page), and as the user types on interactive pages. Return a
+    /// short list, such as the first 50 matches.
+    /// </summary>
+    [Parameter] public Func<string, CancellationToken, Task<IEnumerable<TValue>>>? Search { get; set; }
+
+    /// <summary>Milliseconds to wait after the last keystroke before calling <see cref="Search"/>.</summary>
+    [Parameter] public int Debounce { get; set; } = 250;
+
+    /// <summary>
+    /// The text for each option, also what's typed to find it and what the field shows once chosen.
+    /// Defaults to the enum value's <c>[Display(Name)]</c> or its string form. Keep it unique.
+    /// </summary>
+    [Parameter] public Func<TValue, string>? ItemText { get; set; }
+
+    /// <summary>Markup for each option in the list, such as an icon or avatar. The field shows <see cref="ItemText"/>.</summary>
+    [Parameter] public RenderFragment<TValue>? ItemTemplate { get; set; }
+
+    /// <summary>Text in the empty field, such as "Search countries". Also the empty option without script.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>Shown when nothing matches.</summary>
+    [Parameter] public string EmptyText { get; set; } = "No matches";
+
+    /// <summary>Shown while <see cref="Search"/> runs.</summary>
+    [Parameter] public string SearchingText { get; set; } = "Searching…";
+
+    /// <summary>The accessible name of the button that opens the list.</summary>
+    [Parameter] public string ToggleLabel { get; set; } = "Show options";
+
+    private string InputId => FieldId + "-input";
+    private string ListId => FieldId + "-list";
+    private string LabelId => FieldId + "-label";
+
+    // Server filtering needs a circuit; without one the browser filters the first results.
+    private bool ServerFiltered => Search is not null && RendererInfo.IsInteractive;
+
+    // Keystrokes go to the server only when it does the searching.
+    private Dictionary<string, object>? SearchAttributes => ServerFiltered
+        ? new() { ["oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, OnSearchInput) }
+        : null;
+
+    private string SelectedText => HasValue ? TextFor(CurrentValue!) : "";
+
+    private bool HasValue => !string.IsNullOrEmpty(CurrentValueAsString);
+
+    private IEnumerable<TValue> ListOptions
+    {
+        get
+        {
+            if (Search is not null)
+            {
+                return _results ?? [];
+            }
+
+            if (Items is not null)
+            {
+                return Items;
+            }
+
+            var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+            return type.IsEnum ? Enum.GetValues(type).Cast<object>().Select(v => (TValue)v) : [];
+        }
+    }
+
+    // The select needs the chosen value even when the current results don't include it.
+    private IEnumerable<TValue> SelectOptions
+    {
+        get
+        {
+            var options = ListOptions.ToList();
+            if (HasValue && !options.Any(o => FormatValueAsString(o) == CurrentValueAsString))
+            {
+                options.Insert(0, CurrentValue!);
+            }
+
+            return options;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Search is not null && _results is null)
+        {
+            _results = (await Search("", CancellationToken.None)).ToList();
+        }
+    }
+
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        if (Search is null || !RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        _searchCts?.Cancel();
+        _searchCts?.Dispose();
+        var cts = _searchCts = new CancellationTokenSource();
+        var query = e.Value?.ToString() ?? "";
+
+        try
+        {
+            await Task.Delay(Debounce, cts.Token);
+            _searching = true;
+            StateHasChanged();
+            var results = (await Search(query, cts.Token)).ToList();
+            if (!cts.IsCancellationRequested)
+            {
+                _results = results;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            return;
+        }
+        finally
+        {
+            if (ReferenceEquals(_searchCts, cts))
+            {
+                _searching = false;
+            }
+        }
+    }
+
+    private string TextFor(TValue item)
+    {
+        if (ItemText is not null)
+        {
+            return ItemText(item);
+        }
+
+        if (item is Enum e)
+        {
+            var member = e.GetType().GetMember(e.ToString()).FirstOrDefault();
+            var display = member?.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                .OfType<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault();
+            return display?.GetName() ?? e.ToString();
+        }
+
+        return item?.ToString() ?? "";
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _searchCts?.Cancel();
+            _searchCts?.Dispose();
+        }
+
+        base.Dispose(disposing);
+    }
+}

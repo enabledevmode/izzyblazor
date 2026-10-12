@@ -1,0 +1,71 @@
+<Project Sdk="Microsoft.NET.Sdk.Razor">
+
+  <PropertyGroup>
+    <PackageId>IzzyBlazor.Core</PackageId>
+    <RootNamespace>IzzyBlazor</RootNamespace>
+    <Description>IzzyBlazor's components, CSS and JavaScript, for any render mode including WebAssembly. Server apps install IzzyBlazor, which includes this and adds the server-only pieces.</Description>
+    <PackageTags>blazor;components;ssr;static-ssr;ui;design-system</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AddRazorSupportForMvc>false</AddRazorSupportForMvc>
+
+    <!-- Asset pipeline: CSS and TypeScript are built by esbuild (see /build). -->
+    <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
+    <SkipAssetBuild Condition="'$(SkipAssetBuild)' == ''">false</SkipAssetBuild>
+  </PropertyGroup>
+
+  <!-- No server framework: this assembly also runs in the browser (WebAssembly). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="10.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IzzyBlazor" />
+    <InternalsVisibleTo Include="IzzyBlazor.Tests" />
+  </ItemGroup>
+
+  <!-- Source assets are inputs to the build, not content. -->
+  <ItemGroup>
+    <None Remove="Styles\**;Scripts\**" />
+    <AssetSource Include="Styles\**\*.css;Scripts\**\*.ts" Exclude="Styles\_generated\**" />
+    <AssetSource Include="$(RepoRoot)build\build-assets.mjs" />
+    <AssetSource Include="$(RepoRoot)package-lock.json" />
+    <AssetOutput Include="wwwroot\izzyblazor.css;wwwroot\IzzyBlazor.Core.lib.module.js;Icons\_generated\Lucide.g.cs" />
+    <!-- Per-configuration stamp, so switching Debug/Release rebuilds minified or debug assets. -->
+    <AssetOutput Include="$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor-assets.stamp" />
+  </ItemGroup>
+
+  <Target Name="InstallAssetTools"
+          Condition="'$(SkipAssetBuild)' != 'true' And !Exists('$(RepoRoot)node_modules\esbuild')"
+          BeforeTargets="BuildAssets">
+    <Message Importance="high" Text="IzzyBlazor: installing asset build tools (npm ci)..." />
+    <Exec Command="npm ci" WorkingDirectory="$(RepoRoot)" />
+  </Target>
+
+  <Target Name="BuildAssets"
+          Condition="'$(SkipAssetBuild)' != 'true'"
+          BeforeTargets="BeforeBuild;ResolveStaticWebAssetsInputs"
+          Inputs="@(AssetSource)"
+          Outputs="@(AssetOutput)">
+    <Message Importance="high" Text="IzzyBlazor: building CSS and JS assets..." />
+    <Exec Command="node build/build-assets.mjs --configuration $(Configuration)" WorkingDirectory="$(RepoRoot)" />
+    <MakeDir Directories="$(BaseIntermediateOutputPath)$(Configuration)" />
+    <Touch Files="$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor-assets.stamp" AlwaysCreate="true" />
+    <ItemGroup>
+      <Content Remove="wwwroot\**" />
+      <Content Include="wwwroot\**" />
+    </ItemGroup>
+  </Target>
+
+  <!-- The generated icon class may not exist when the project is first evaluated. -->
+  <Target Name="IncludeGeneratedIcons" AfterTargets="BuildAssets" BeforeTargets="CoreCompile">
+    <ItemGroup>
+      <Compile Remove="Icons\_generated\**" />
+      <Compile Include="Icons\_generated\**\*.cs" />
+    </ItemGroup>
+  </Target>
+
+  <ItemGroup>
+    <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+</Project>

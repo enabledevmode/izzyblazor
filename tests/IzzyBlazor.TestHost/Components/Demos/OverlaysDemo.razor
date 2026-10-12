@@ -1,0 +1,272 @@
+@using Microsoft.AspNetCore.WebUtilities
+@inject NavigationManager Navigation
+
+@* Menu, Popover, Tooltip and Dialog. Native top-layer elements, enhanced by small custom elements. *@
+
+<Stack Gap="8">
+
+    @if (_chosen is not null || _invited is not null)
+    {
+        <Box Padding="3" Radius="Radius.Md" Bg="Color.SurfaceContainer" data-testid="server-result">
+            <TextBlock Size="TextSize.Sm">
+                The server received:
+                @if (_chosen is not null) { <strong>action=@_chosen</strong> }
+                @if (_invited is not null) { <strong>invite=@_invited</strong> }
+            </TextBlock>
+        </Box>
+    }
+
+    <Example Title="Menu" Note="Links, form posts and C# actions. Open, Escape and click-outside are native; the script adds arrow keys, Home, End and type-ahead." Code="@MenuCode">
+        <form method="get" action="@_path">
+            <Row Gap="3" Wrap Align="Align.Center">
+                <Menu Label="Project" StartIcon="Lucide.Folder" Id="project-menu">
+                    <MenuItem Href="@($"{_path}#settings")" Icon="Lucide.Settings" Shortcut="Ctrl+,">Settings</MenuItem>
+                    <MenuItem Icon="Lucide.Copy" Shortcut="Ctrl+D" OnClick="@(() => _clicked = "duplicate")">Duplicate</MenuItem>
+                    <MenuItem Icon="Lucide.Share2" Disabled="true">Share (soon)</MenuItem>
+                    <MenuDivider />
+                    <MenuGroup Label="Posts the form">
+                        <MenuItem Type="ButtonType.Submit" Name="action" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
+                        <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                    </MenuGroup>
+                </Menu>
+
+                <Menu Placement="Placement.BottomEnd" Id="more-menu">
+                    <Trigger>
+                        <IconButton Icon="Lucide.Ellipsis" Label="More actions" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
+                    </Trigger>
+                    <ChildContent>
+                        <MenuItem Icon="Lucide.Pencil">Rename</MenuItem>
+                        <MenuItem Icon="Lucide.Download">Export</MenuItem>
+                    </ChildContent>
+                </Menu>
+
+                @if (RendererInfo.IsInteractive)
+                {
+                    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Last C# action: <strong data-testid="clicked">@(_clicked ?? "none")</strong></TextBlock>
+                }
+            </Row>
+        </form>
+    </Example>
+
+    <Example Title="Placement" Note="CSS anchor positioning places each panel and flips it when there is no room. Older browsers get the same result from a small script." Code="@PlacementCode">
+        <Row Gap="2" Wrap>
+            @foreach (var placement in Enum.GetValues<Placement>())
+            {
+                <Menu Label="@placement.ToString()" Placement="placement" Size="ControlSize.Sm">
+                    <MenuItem>First</MenuItem>
+                    <MenuItem>Second</MenuItem>
+                </Menu>
+            }
+        </Row>
+    </Example>
+
+    <Example Title="Popover" Note="Non-modal content next to its trigger. Auto mode closes on Escape and outside clicks; Manual stays until closed." Code="@PopoverCode">
+        <Row Gap="3" Wrap>
+            <Popover Label="Filters" StartIcon="Lucide.SlidersHorizontal" Title="Filter results" Id="filters">
+                <Stack Gap="2">
+                    <label class="ib-check"><input type="checkbox" class="ib-check-input" checked /> Open issues</label>
+                    <label class="ib-check"><input type="checkbox" class="ib-check-input" /> Closed issues</label>
+                    <label class="ib-check"><input type="checkbox" class="ib-check-input" /> Assigned to me</label>
+                </Stack>
+            </Popover>
+            <Popover Label="Pinned note" Mode="PopoverMode.Manual" Title="Pinned" Placement="Placement.End" Id="pinned" @bind-Open="_pinnedOpen">
+                <TextBlock Size="TextSize.Sm" MaxWidth="16.Rem">Manual popovers stay open while you work elsewhere on the page.</TextBlock>
+            </Popover>
+            @if (RendererInfo.IsInteractive)
+            {
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" OnClick="() => _pinnedOpen = !_pinnedOpen">Toggle pinned from C#</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Pinned open: <strong data-testid="pinned-open">@_pinnedOpen</strong></TextBlock>
+            }
+        </Row>
+    </Example>
+
+    <Example Title="Tooltip" Note="Pure CSS with JavaScript off. With it, tooltips move to the top layer, so the clipped box below can't cut them off." Code="@TooltipCode">
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Tooltip Text="Saved to your drafts"><Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Hover me</Button></Tooltip>
+            <Tooltip Text="Bottom" Placement="Placement.Bottom"><Button Variant="ButtonVariant.Soft">Bottom</Button></Tooltip>
+            <Tooltip Text="Start side" Placement="Placement.Start"><Button Variant="ButtonVariant.Soft">Start</Button></Tooltip>
+            <Tooltip Text="End side" Placement="Placement.End"><Button Variant="ButtonVariant.Soft">End</Button></Tooltip>
+            <Box Padding="2" Radius="Radius.Md" Class="host-dashed" Style="overflow:hidden">
+                <Tooltip Text="Notifications: 3 unread" Delay="0"><IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" /></Tooltip>
+            </Box>
+        </Row>
+    </Example>
+
+    <Example Title="Dialog" Note="A native modal dialog: focus is trapped, the page behind is inert, Escape closes it. Opened by DialogTrigger (commandfor), by a ?dialog= link rendered open on the server, or from C#." Code="@DialogCode">
+        <Row Gap="3" Wrap>
+            <DialogTrigger For="invite" StartIcon="Lucide.UserPlus">Invite people</DialogTrigger>
+            <DialogTrigger For="confirm-delete" Accent="Accent.Danger" Variant="ButtonVariant.Outline">Delete project</DialogTrigger>
+            <DialogTrigger For="details-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.PanelRight">Open drawer</DialogTrigger>
+            <LinkButton Href="@($"{_path}?dialog=confirm-delete")" Variant="ButtonVariant.Link">Open with a link (?dialog=)</LinkButton>
+            @if (RendererInfo.IsInteractive)
+            {
+                <Button Variant="ButtonVariant.Ghost" OnClick="() => _confirmOpen = true">Open from C#</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Confirm open: <strong data-testid="confirm-open">@_confirmOpen</strong></TextBlock>
+            }
+        </Row>
+
+        <Dialog Id="invite" Title="Invite people">
+            <ChildContent>
+                <form method="get" action="@_path" id="invite-form">
+                    <Stack Gap="3">
+                        <TextBlock Color="Color.Muted" Size="TextSize.Sm">They'll get an email with a link to join.</TextBlock>
+                        <div class="ib-field">
+                            <label class="ib-field-label" for="invite-email">Email</label>
+                            <ib-field-control class="ib-field-control">
+                                <input id="invite-email" class="ib-field-input" type="email" name="invite" required autofocus />
+                            </ib-field-control>
+                        </div>
+                    </Stack>
+                </form>
+            </ChildContent>
+            <Footer>
+                <DialogClose>Cancel</DialogClose>
+                <Button Type="ButtonType.Submit" Form="invite-form" StartIcon="Lucide.Mail">Send invite</Button>
+            </Footer>
+        </Dialog>
+
+        <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm" CloseOnBackdrop="false" @bind-Open="_confirmOpen">
+            <ChildContent>
+                <TextBlock>This removes the project and its history. It can't be undone.</TextBlock>
+            </ChildContent>
+            <Footer>
+                <DialogClose>Cancel</DialogClose>
+                <form method="get" action="@_path" style="display:contents">
+                    <Button Type="ButtonType.Submit" Name="action" Value="delete" Accent="Accent.Danger">Delete</Button>
+                </form>
+            </Footer>
+        </Dialog>
+
+        <Dialog Id="details-drawer" Title="Project details" Placement="DialogPlacement.End">
+            <Stack Gap="4">
+                <TextBlock Color="Color.Muted">Drawers are dialogs placed on the start or end side. They flip in right-to-left languages.</TextBlock>
+                <Accordion Variant="AccordionVariant.Flush">
+                    <AccordionItem Title="Owner">Israel</AccordionItem>
+                    <AccordionItem Title="Visibility">Private</AccordionItem>
+                </Accordion>
+            </Stack>
+        </Dialog>
+    </Example>
+
+    <Example Title="ConfirmButton" Note="@ConfirmNote" Code="@ConfirmCode">
+        <form method="get" action="@_path" id="project-form" data-testid="confirm-form">
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <TextBlock As="span">Website redesign</TextBlock>
+                <ConfirmButton Id="confirm-archive"
+                               Title="Archive this project?"
+                               Message="It moves to Archived, where you can restore it."
+                               ConfirmText="Archive"
+                               Accent="Accent.Neutral"
+                               Variant="ButtonVariant.Outline"
+                               Size="ControlSize.Sm"
+                               Name="action"
+                               Value="archive">Archive</ConfirmButton>
+                <ConfirmButton Id="confirm-delete-project"
+                               Title="Delete this project?"
+                               Message="This removes the project and its history. It can't be undone."
+                               ConfirmText="Delete"
+                               Accent="Accent.Danger"
+                               Variant="ButtonVariant.Outline"
+                               Size="ControlSize.Sm"
+                               StartIcon="Lucide.Trash"
+                               Name="action"
+                               Value="delete">Delete</ConfirmButton>
+                @if (RendererInfo.IsInteractive)
+                {
+                    <ConfirmButton Id="confirm-csharp"
+                                   Title="Reset the counter?"
+                                   ConfirmText="Reset"
+                                   Variant="ButtonVariant.Ghost"
+                                   Size="ControlSize.Sm"
+                                   OnConfirm="() => _resets++">Reset from C#</ConfirmButton>
+                    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Resets: <strong data-testid="resets">@_resets</strong></TextBlock>
+                }
+            </Row>
+        </form>
+    </Example>
+
+</Stack>
+
+@code {
+    private int _resets;
+
+    private string ConfirmNote => RendererInfo.IsInteractive
+        ? "Archive and Delete submit the form they're in once confirmed; Reset runs C# with OnConfirm. Cancel is focused first."
+        : "The buttons sit inside a form; confirming submits it with action=archive or action=delete. Works with JavaScript off. Cancel is focused first.";
+
+    private const string ConfirmCode =
+        """
+        <form method="post" @formname="project" @onsubmit="Save">
+            ...
+            <ConfirmButton Title="Delete this project?" Message="It can't be undone."
+                           ConfirmText="Delete" Accent="Accent.Danger"
+                           Name="action" Value="delete">Delete</ConfirmButton>
+        </form>
+
+        <ConfirmButton Title="Reset the counter?" OnConfirm="Reset">Reset</ConfirmButton>   @* interactive *@
+        """;
+
+    private string _path = "";
+    private string? _chosen;
+    private string? _invited;
+    private string? _clicked;
+    private bool _pinnedOpen;
+    private bool _confirmOpen;
+
+    protected override void OnParametersSet()
+    {
+        var uri = new Uri(Navigation.Uri);
+        _path = uri.AbsolutePath;
+        var query = QueryHelpers.ParseQuery(uri.Query);
+        _chosen = query.TryGetValue("action", out var action) ? action.ToString() : null;
+        _invited = query.TryGetValue("invite", out var invite) ? invite.ToString() : null;
+    }
+
+    private const string MenuCode =
+        """
+        <Menu Label="Project" StartIcon="Lucide.Folder">
+            <MenuItem Href="/settings" Icon="Lucide.Settings">Settings</MenuItem>
+            <MenuItem Icon="Lucide.Copy" OnClick="Duplicate">Duplicate</MenuItem>
+            <MenuDivider />
+            <MenuGroup Label="Posts the form">
+                <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Accent="Accent.Danger">Delete</MenuItem>
+            </MenuGroup>
+        </Menu>
+
+        <Menu Placement="Placement.BottomEnd">
+            <Trigger><IconButton Icon="Lucide.Ellipsis" Label="More actions" @attributes="context" /></Trigger>
+            <ChildContent>...</ChildContent>
+        </Menu>
+        """;
+
+    private const string PlacementCode = """<Menu Label="Top end" Placement="Placement.TopEnd">...</Menu>""";
+
+    private const string PopoverCode =
+        """
+        <Popover Label="Filters" Title="Filter results">...</Popover>
+        <Popover Label="Pinned note" Mode="PopoverMode.Manual" Placement="Placement.End" @bind-Open="pinned">...</Popover>
+        """;
+
+    private const string TooltipCode =
+        """
+        <Tooltip Text="Saved to your drafts">
+            <Button>Hover me</Button>
+        </Tooltip>
+        """;
+
+    private const string DialogCode =
+        """
+        <DialogTrigger For="confirm-delete" Accent="Accent.Danger">Delete project</DialogTrigger>
+        <LinkButton Href="?dialog=confirm-delete">Open with a link</LinkButton>
+
+        <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm" @bind-Open="confirmOpen">
+            <ChildContent>It can't be undone.</ChildContent>
+            <Footer>
+                <DialogClose>Cancel</DialogClose>
+                <Button Type="ButtonType.Submit" Form="delete-form" Accent="Accent.Danger">Delete</Button>
+            </Footer>
+        </Dialog>
+
+        <Dialog Id="details" Title="Project details" Placement="DialogPlacement.End">...</Dialog>
+        """;
+}

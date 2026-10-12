@@ -1,0 +1,157 @@
+<Stack Gap="8">
+
+    <Example Title="Padding scale" Note="Steps 0 to 16; one step is 4px." Code="@PaddingCode">
+        <Row Gap="3" Wrap Align="Align.Start">
+            @foreach (var step in new[] { 0, 1, 2, 4, 6, 8, 12 })
+            {
+                <Box Padding="step" Bg="Color.Primary" Radius="Radius.Sm" Class="host-outline">
+                    <Box Bg="Color.Surface" Padding="2" Radius="Radius.Sm">@step</Box>
+                </Box>
+            }
+        </Row>
+    </Example>
+
+    <Example Title="Surfaces" Note="Background and text color tokens, radius and shadow." Code="@SurfacesCode">
+        <Row Gap="4" Wrap>
+            <Box Padding="5" Bg="Color.Surface" Radius="Radius.Md" Shadow="Shadow.Sm" Width="Length.Rem(12)">Surface, shadow Sm</Box>
+            <Box Padding="5" Bg="Color.SurfaceContainer" Radius="Radius.Md" Width="Length.Rem(12)">SurfaceContainer</Box>
+            <Box Padding="5" Bg="Color.SurfaceContainerHigh" Radius="Radius.Lg" Width="Length.Rem(12)">SurfaceContainerHigh</Box>
+            <Box Padding="5" Bg="Color.Primary" Radius="Radius.Xl" Shadow="Shadow.Md" Width="Length.Rem(12)">Primary</Box>
+            <Box Padding="5" Bg="Color.Danger" Radius="Radius.Full" Width="Length.Rem(12)">Danger, radius Full</Box>
+        </Row>
+    </Example>
+
+    <Example Title="Automatic text contrast" Note="With Bg set to a theme color and no Color, text uses the matching On color. An explicit Color still wins." Code="@ContrastCode">
+        <Row Gap="3" Wrap>
+            @foreach (var (name, bg) in Accents)
+            {
+                <Box Padding="4" Bg="bg" Radius="Radius.Md">@name</Box>
+            }
+            <Box Padding="4" Bg="Color.Primary" Color="Color.Surface" Radius="Radius.Md">Explicit Color wins</Box>
+        </Row>
+    </Example>
+
+    <Example Title="Color scheme" Note="Scheme gives part of a page the other color scheme. Everything inside follows it: text, links, buttons, badges, fields. Dark stays dark; Inverse is the opposite of the page, so switch the theme in the header to see it flip." Code="@SchemeCode">
+        <Row Gap="4" Wrap>
+            @foreach (var scheme in new[] { Scheme.Dark, Scheme.Inverse, Scheme.Light })
+            {
+                <Box Scheme="scheme" Padding="5" Radius="Radius.Lg" Grow Basis="16.Rem" data-testid="@($"scheme-{scheme}")">
+                    <Stack Gap="3">
+                        <TextBlock Weight="FontWeight.Semibold">Scheme.@scheme</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Muted text and a <a href="static/box">link</a>.</TextBlock>
+                        <Row Gap="2" Align="Align.Center">
+                            <Button Size="ControlSize.Sm">Primary</Button>
+                            <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Neutral</Button>
+                            <Badge Status="Status.Success">Live</Badge>
+                        </Row>
+                    </Stack>
+                </Box>
+            }
+        </Row>
+    </Example>
+
+    <Example Title="Responsive padding" Note="Resize the window: 4 steps on small screens, 10 from Md (768px), 16 from Xl (1280px)." Code="@ResponsiveCode">
+        <Box Padding="new() { Base = 4, Md = 10, Xl = 16 }" Bg="Color.SurfaceContainerHigh" Radius="Radius.Md">
+            <Box Padding="3" Bg="Color.Surface" Radius="Radius.Sm">Content</Box>
+        </Box>
+    </Example>
+
+    <Example Title="Axis and side overrides" Note="PaddingX and MarginY replace Padding and Margin on one axis; PaddingTop, PaddingStart, MarginEnd and the rest replace them on one side. Start and End follow the text direction, so layouts flip correctly in right-to-left languages." Code="@AxisCode">
+        <Row Gap="3" Wrap>
+            <Box Padding="2" PaddingX="10" Bg="Color.SurfaceContainerHigh" Radius="Radius.Md" Width="Length.FitContent">
+                Padding 2, PaddingX 10
+            </Box>
+            <Box Padding="4" PaddingTop="10" PaddingStart="10" Bg="Color.SurfaceContainerHigh" Radius="Radius.Md" Width="Length.FitContent">
+                Padding 4, PaddingTop 10, PaddingStart 10
+            </Box>
+        </Row>
+    </Example>
+
+    <Example Title="Semantic element and width" Note="As renders any element; Length.Prose is a comfortable reading width (68ch)." Code="@SemanticCode">
+        <Box As="article" MaxWidth="Length.Prose" Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Md">
+            <p style="margin:0">
+                This Box renders as an &lt;article&gt; and stops growing at a comfortable line length,
+                however wide the window gets. Long text stays readable without any custom CSS.
+            </p>
+        </Box>
+    </Example>
+
+    <Example Title="Visibility by breakpoint" Note="Resize across 768px: one box shows below Md, the other from Md up." Code="@VisibilityCode">
+        <Row Gap="3">
+            <Box HiddenFrom="Breakpoint.Md" Padding="4" Bg="Color.Warning" Color="Color.OnWarning" Radius="Radius.Md">Mobile only (HiddenFrom Md)</Box>
+            <Box VisibleFrom="Breakpoint.Md" Padding="4" Bg="Color.Success" Color="Color.OnSuccess" Radius="Radius.Md">Desktop only (VisibleFrom Md)</Box>
+        </Row>
+    </Example>
+
+    <Example Title="Custom colors and lengths" Note="Color.Token and Color.Of, Length.Of: escape hatches with IntelliSense still on the common cases." Code="@CustomCode">
+        <Row Gap="3" Wrap>
+            <Box Padding="4" Bg='Color.Of("#ff6a00")' Color='Color.Of("#fff")' Radius="Radius.Md">Color.Of("#ff6a00")</Box>
+            <Box Padding="4" Bg="Color.SurfaceContainerHigh" Radius="Radius.Md" Width='Length.Of("calc(100% - 20rem)")'>Length.Of("calc(100% - 20rem)")</Box>
+        </Row>
+    </Example>
+
+    <Example Title="User classes and styles merge" Note="Class and Style are appended after the component's own; app CSS always wins over IzzyBlazor's layers." Code="@MergeCode">
+        <Box Padding="4" Bg="Color.SurfaceContainerHigh" Radius="Radius.Md" Class="host-dashed" Style="font-style: italic">
+            Dashed border from an app class, italic from Style
+        </Box>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string PaddingCode =
+        """<Box Padding="4" Bg="Color.Primary" Radius="Radius.Sm">...</Box>""";
+
+    private const string SurfacesCode =
+        """
+        <Box Padding="5" Bg="Color.Surface" Radius="Radius.Md" Shadow="Shadow.Sm">...</Box>
+        <Box Padding="5" Bg="Color.Primary" Radius="Radius.Xl">...</Box>
+        """;
+
+    private static readonly (string Name, Color Bg)[] Accents =
+    [
+        ("Primary", Color.Primary), ("Success", Color.Success),
+        ("Warning", Color.Warning), ("Danger", Color.Danger), ("Info", Color.Info), ("SurfaceContainer", Color.SurfaceContainer),
+    ];
+
+    private const string ContrastCode =
+        """
+        <Box Bg="Color.Primary">White text in light mode, dark text in dark mode</Box>
+        <Box Bg="Color.Warning">...</Box>
+        """;
+
+    private const string SchemeCode =
+        """
+        <Box Scheme="Scheme.Dark" Padding="5">...</Box>
+        <Box Scheme="Scheme.Inverse" Padding="5">...</Box>
+        """;
+
+    private const string ResponsiveCode =
+        """<Box Padding="new() { Base = 4, Md = 10, Xl = 16 }">...</Box>""";
+
+    private const string AxisCode =
+        """
+        <Box Padding="2" PaddingX="10">...</Box>
+        <Box Padding="4" PaddingTop="10" PaddingStart="10">...</Box>
+        <Box MarginTop="new() { Base = 4, Md = 8 }" MarginEnd="-2">...</Box>
+        """;
+
+    private const string SemanticCode =
+        """<Box As="article" MaxWidth="Length.Prose" Padding="6">...</Box>""";
+
+    private const string VisibilityCode =
+        """
+        <Box HiddenFrom="Breakpoint.Md">Mobile only</Box>
+        <Box VisibleFrom="Breakpoint.Md">Desktop only</Box>
+        """;
+
+    private const string CustomCode =
+        """
+        <Box Bg='Color.Of("#ff6a00")'>...</Box>
+        <Box Bg='Color.Token("brand-500")'>...</Box>   @* var(--ib-color-brand-500) *@
+        <Box Width='Length.Of("calc(100% - 20rem)")'>...</Box>
+        """;
+
+    private const string MergeCode =
+        """<Box Padding="4" Class="my-dashed" Style="font-style: italic">...</Box>""";
+}
