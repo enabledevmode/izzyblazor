@@ -6,6 +6,7 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * - a show/hide toggle for passwords (rendered hidden, revealed here)
  * - a live character count for text areas
  * - increase and decrease buttons for number inputs (hold to repeat)
+ * - a slider's track fill and shown value, kept current while dragging
  */
 class FieldControl extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -28,6 +29,11 @@ class FieldControl extends IzzyElement {
       );
     }
 
+    if (input instanceof HTMLInputElement && input.type === "range") {
+      setupSlider(this, input, signal);
+      return;
+    }
+
     const steppers = this.querySelector<HTMLElement>("[data-ib-steppers]");
     if (steppers && input instanceof HTMLInputElement && input.type === "number") {
       setupSteppers(input, steppers, signal);
@@ -43,6 +49,34 @@ class FieldControl extends IzzyElement {
       observer.observe(count, { childList: true, characterData: true, subtree: true });
       signal.addEventListener("abort", () => observer.disconnect());
     }
+  }
+}
+
+/**
+ * Keeps a slider's fill (--ib-slider-fill on the control) and its shown value current as it
+ * moves. The value's text belongs to Blazor, so the live one goes in data-current, which CSS
+ * shows; aria-valuetext gets the same formatted text.
+ */
+function setupSlider(control: HTMLElement, input: HTMLInputElement, signal: AbortSignal): void {
+  const output = control.querySelector<HTMLElement>(".ib-slider-value");
+  const format = input.dataset.ibFormat ?? "{0}";
+  const update = () => {
+    const min = input.min === "" ? 0 : Number(input.min);
+    const max = input.max === "" ? 100 : Number(input.max);
+    const percent = max > min ? ((input.valueAsNumber - min) / (max - min)) * 100 : 0;
+    control.style.setProperty("--ib-slider-fill", String(Math.min(100, Math.max(0, percent))));
+    const text = format.replace("{0}", input.value);
+    input.setAttribute("aria-valuetext", text);
+    if (output) output.dataset.current = text;
+  };
+  input.addEventListener("input", update, { signal });
+  input.addEventListener("change", update, { signal });
+
+  // When Blazor re-renders the value, the server's text and fill are current again.
+  if (output) {
+    const observer = new MutationObserver(() => delete output.dataset.current);
+    observer.observe(output, { childList: true, characterData: true, subtree: true });
+    signal.addEventListener("abort", () => observer.disconnect());
   }
 }
 
@@ -95,6 +129,8 @@ function setupSteppers(input: HTMLInputElement, steppers: HTMLElement, signal: A
   const stop = () => {
     clearTimeout(delay);
     clearInterval(repeat);
+    up.removeAttribute("data-pressed");
+    down.removeAttribute("data-pressed");
     if (pending) {
       pending = false;
       input.dispatchEvent(new Event("change", { bubbles: true }));
@@ -111,6 +147,7 @@ function setupSteppers(input: HTMLInputElement, steppers: HTMLElement, signal: A
         if (document.activeElement !== input) input.focus({ preventScroll: true });
         stop();
         pending = true;
+        button.setAttribute("data-pressed", "");
         step(direction);
         delay = window.setTimeout(() => {
           repeat = window.setInterval(() => (button.disabled ? stop() : step(direction)), 60);

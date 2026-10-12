@@ -5,8 +5,9 @@
 @*
     A number field: a native number input, so it posts with the form, validates min, max and step
     in the browser, and brings up a number keyboard on phones. With JavaScript, increase and
-    decrease buttons appear (hold to repeat), and the native spin buttons are hidden.
+    decrease buttons appear (hold to repeat); the browser's own spin buttons are always hidden.
     <NumberInput @bind-Value="Model.Quantity" Min="1" Max="99" />
+    <NumberInput @bind-Value="Model.Guests" Steppers="StepperLayout.Split" />
     <NumberInput @bind-Value="Model.Price" Step="0.01">
         <StartAddon>$</StartAddon>
     </NumberInput>
@@ -35,15 +36,26 @@
                    readonly="@ReadOnly"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
-            @if (Steppers)
+            @if (Steppers == StepperLayout.Stacked)
             {
                 @* Revealed by the script, which does the stepping. Not tab stops: arrow keys step. *@
                 <span class="ib-field-steppers" data-ib-steppers hidden>
-                    <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@IncreaseLabel" disabled="@(Disabled || ReadOnly)">
+                    <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@IncreaseLabel" disabled="@Locked">
                         <Icon Role="IconRole.ChevronUp" />
                     </button>
-                    <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@(Disabled || ReadOnly)">
+                    <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@Locked">
                         <Icon Role="IconRole.ChevronDown" />
+                    </button>
+                </span>
+            }
+            else if (Steppers == StepperLayout.Split)
+            {
+                <span class="ib-field-steppers ib-field-steppers-split" data-ib-steppers hidden>
+                    <button type="button" class="ib-field-step ib-field-step-down" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@Locked">
+                        <Icon Role="IconRole.Minus" />
+                    </button>
+                    <button type="button" class="ib-field-step ib-field-step-up" data-ib-step="up" tabindex="-1" aria-label="@IncreaseLabel" disabled="@Locked">
+                        <Icon Role="IconRole.Plus" />
                     </button>
                 </span>
             }
@@ -76,8 +88,12 @@
     /// <summary>Content attached after the control, outside its border, such as a unit.</summary>
     [Parameter] public RenderFragment? EndAddon { get; set; }
 
-    /// <summary>Increase and decrease buttons, shown once scripts run. Defaults to true.</summary>
-    [Parameter] public bool Steppers { get; set; } = true;
+    /// <summary>
+    /// Increase and decrease buttons, shown once scripts run: stacked at the end (the default), split
+    /// across both ends, or none. The browser's own spin buttons are always hidden; arrow keys step
+    /// either way.
+    /// </summary>
+    [Parameter] public StepperLayout Steppers { get; set; } = StepperLayout.Stacked;
 
     /// <summary>The increase button's accessible name.</summary>
     [Parameter] public string IncreaseLabel { get; set; } = "Increase";
@@ -85,12 +101,7 @@
     /// <summary>The decrease button's accessible name.</summary>
     [Parameter] public string DecreaseLabel { get; set; } = "Decrease";
 
-    private static readonly Type NumberType = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
-
-    private static bool IsWholeNumber =>
-        NumberType == typeof(int) || NumberType == typeof(long) || NumberType == typeof(short)
-        || NumberType == typeof(byte) || NumberType == typeof(sbyte) || NumberType == typeof(uint)
-        || NumberType == typeof(ulong) || NumberType == typeof(ushort);
+    private static bool IsWholeNumber => NumberTypes.IsWholeNumber(typeof(TValue));
 
     private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
         Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
@@ -104,13 +115,16 @@
     private string ControlClass => new ClassBuilder()
         .Add("ib-field-control")
         .Add("ib-has-start", StartIcon is not null)
-        .Add("ib-has-steppers", Steppers)
+        .Add("ib-has-steppers", Steppers == StepperLayout.Stacked)
+        .Add("ib-has-split-steppers", Steppers == StepperLayout.Split)
         .Build()!;
+
+    private bool Locked => Disabled || ReadOnly;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (!IsWholeNumber && NumberType != typeof(decimal) && NumberType != typeof(double) && NumberType != typeof(float))
+        if (!NumberTypes.IsNumber(typeof(TValue)))
         {
             throw new InvalidOperationException($"NumberInput doesn't support {typeof(TValue)}. Bind it to a number type, such as int, decimal or double, or a nullable one.");
         }
@@ -143,10 +157,5 @@
     private static string? Format(double? value) =>
         value?.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
 
-    private static double? ToDouble(object? value) => value switch
-    {
-        null => null,
-        IConvertible c => c.ToDouble(System.Globalization.CultureInfo.InvariantCulture),
-        _ => null,
-    };
+    private static double? ToDouble(object? value) => NumberTypes.ToDouble(value);
 }

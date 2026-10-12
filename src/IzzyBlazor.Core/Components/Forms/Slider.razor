@@ -1,0 +1,150 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+
+@*
+    A slider: a native range input, so it posts with the form, works with arrow keys, Page Up/Down
+    and Home/End, and needs no script. With JavaScript the track fills up to the thumb and the
+    value beside it follows as you drag.
+    <Slider @bind-Value="Model.Volume" ShowValue />
+    <Slider @bind-Value="Model.Discount" Min="0" Max="50" Step="5" ShowValue ValueFormat="{0}%" />
+*@
+
+<FieldFrame Class="@WrapperClass("slider")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-field-control class="ib-field-control ib-slider" style="@FillStyle">
+        <input @attributes="InputAttributes"
+               id="@FieldId"
+               class="ib-slider-input"
+               type="range"
+               name="@NameAttributeValue"
+               value="@CurrentValueAsString"
+               min="@Format(ResolvedMin)"
+               max="@Format(ResolvedMax)"
+               step="@ResolvedStep"
+               disabled="@(Disabled || ReadOnly)"
+               aria-valuetext="@ValueText"
+               data-ib-format="@ValueFormat"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy" />
+        @if (ShowValue)
+        {
+            @* The script shows the live value through data-current; this text stays Blazor's. *@
+            <output class="ib-slider-value" for="@FieldId" aria-hidden="true">@ValueText</output>
+        }
+    </ib-field-control>
+    @if (ReadOnly && !Disabled)
+    {
+        @* A disabled input isn't posted, so a read-only slider posts its value here. *@
+        <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>The lowest value. Defaults to <c>[Range]</c>'s minimum, or 0.</summary>
+    [Parameter] public double? Min { get; set; }
+
+    /// <summary>The highest value. Defaults to <c>[Range]</c>'s maximum, or 100.</summary>
+    [Parameter] public double? Max { get; set; }
+
+    /// <summary>The step between values. Defaults to 1.</summary>
+    [Parameter] public double? Step { get; set; }
+
+    /// <summary>Shows the current value beside the slider.</summary>
+    [Parameter] public bool ShowValue { get; set; }
+
+    /// <summary>
+    /// How the value reads, with <c>{0}</c> for the number: <c>"{0}%"</c>, <c>"${0}"</c>. Used for the
+    /// shown value and for what screen readers announce. Defaults to the number alone.
+    /// </summary>
+    [Parameter] public string ValueFormat { get; set; } = "{0}";
+
+    /// <summary>
+    /// On interactive pages, update the bound value while dragging rather than on release. Each move
+    /// is a round trip, so use it only when something on the page follows the value live.
+    /// </summary>
+    [Parameter] public bool Live { get; set; }
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    private double ResolvedMin => Min ?? ToDouble(Range?.Minimum) ?? 0;
+
+    private double ResolvedMax => Max ?? ToDouble(Range?.Maximum) ?? 100;
+
+    private string? ResolvedStep => Step is { } step ? Format(step) : null;
+
+    private double? Number => ToDouble(CurrentValue);
+
+    // A range input always has a value: an empty one sits at the midpoint, as the browser shows it.
+    private double Shown => Number ?? ResolvedMin + (ResolvedMax - ResolvedMin) / 2;
+
+    private string ValueText => ValueFormat.Replace("{0}", Format(Shown), StringComparison.Ordinal);
+
+    private string FillStyle
+    {
+        get
+        {
+            var span = ResolvedMax - ResolvedMin;
+            var percent = span <= 0 ? 0 : Math.Clamp((Shown - ResolvedMin) / span * 100, 0, 100);
+            return "--ib-slider-fill: " + Format(Math.Round(percent, 3));
+        }
+    }
+
+    private IEnumerable<KeyValuePair<string, object>> InputAttributes
+    {
+        get
+        {
+            if (ControlAttributes is { } attributes)
+            {
+                foreach (var attribute in attributes) yield return attribute;
+            }
+
+            yield return new("onchange", EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString));
+            if (Live)
+            {
+                yield return new("oninput", EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString));
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!NumberTypes.IsNumber(typeof(TValue)))
+        {
+            throw new InvalidOperationException($"Slider doesn't support {typeof(TValue)}. Bind it to a number type, such as int, decimal or double, or a nullable one.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    // Range inputs always use invariant formatting ("1.5"), whatever the page's culture.
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => value switch
+    {
+        null => null,
+        IFormattable number => number.ToString(null, System.Globalization.CultureInfo.InvariantCulture),
+        _ => value.ToString(),
+    };
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (BindConverter.TryConvertTo<TValue>(value, System.Globalization.CultureInfo.InvariantCulture, out result))
+        {
+            validationErrorMessage = null;
+            return true;
+        }
+
+        validationErrorMessage = $"The {ResolvedLabel ?? FieldIdentifier.FieldName} field must be a number.";
+        return false;
+    }
+
+    private static string Format(double value) =>
+        value.ToString("R", System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string? Format(double? value) => value is { } v ? Format(v) : null;
+
+    private static double? ToDouble(object? value) => NumberTypes.ToDouble(value);
+}

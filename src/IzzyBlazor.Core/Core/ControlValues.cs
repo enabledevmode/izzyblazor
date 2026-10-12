@@ -86,3 +86,16 @@ public enum ButtonType
     /// <summary>Resets the form it is in.</summary>
     Reset,
 }
+
+/// <summary>Where a <see cref="NumberInput{TValue}"/> puts its increase and decrease buttons.</summary>
+public enum StepperLayout
+{
+    /// <summary>Stacked at the end of the field (the default).</summary>
+    Stacked,
+
+    /// <summary>Decrease at the start and increase at the end, full height: easier to tap.</summary>
+    Split,
+
+    /// <summary>No buttons; arrow keys still step.</summary>
+    None,
+}
