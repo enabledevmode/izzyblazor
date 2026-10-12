@@ -116,6 +116,47 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
+    public void Field_without_addons_has_no_group()
+    {
+        var cut = TextFieldFor(() => _model.FavoriteColor);
+
+        Assert.Empty(cut.FindAll(".ib-field-group"));
+    }
+
+    [Fact]
+    public void Addons_wrap_the_control_in_order()
+    {
+        var cut = TextFieldFor(() => _model.FavoriteColor, p => p
+            .Add(f => f.StartAddon, "https://")
+            .Add(f => f.EndAddon, ".com"));
+
+        var group = cut.Find(".ib-field > .ib-field-group");
+        var parts = group.Children.Select(c => c.ClassName).ToArray();
+
+        Assert.Equal(new[] { "ib-field-addon ib-field-addon-start", "ib-field-control", "ib-field-addon ib-field-addon-end" }, parts);
+        Assert.Equal("https://", group.Children[0].TextContent);
+        Assert.Equal(".com", group.Children[2].TextContent);
+        Assert.NotNull(group.Children[1].QuerySelector("input"));
+    }
+
+    [Fact]
+    public void Addon_can_hold_a_button()
+    {
+        var cut = TextFieldFor(() => _model.FavoriteColor, p => p.Add(f => f.EndAddon, b =>
+        {
+            b.OpenComponent<Button>(0);
+            b.AddAttribute(1, nameof(Button.Type), ButtonType.Submit);
+            b.AddAttribute(2, nameof(Button.ChildContent), (RenderFragment)(c => c.AddContent(0, "Go")));
+            b.CloseComponent();
+        }));
+
+        var button = cut.Find(".ib-field-addon-end > button");
+
+        Assert.Equal("submit", button.GetAttribute("type"));
+        Assert.Empty(cut.FindAll(".ib-field-addon-start"));
+    }
+
+    [Fact]
     public void Checkbox_posts_true_and_renders_its_label_beside_it()
     {
         var cut = Render<Checkbox>(p => p

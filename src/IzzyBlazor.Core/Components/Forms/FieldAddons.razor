@@ -1,0 +1,40 @@
+@namespace IzzyBlazor
+
+@*
+    Attaches add-ons to the start or end of a field's control: text such as "https://" or "kg",
+    a button, or another field such as a currency Select. Text fields have StartAddon and
+    EndAddon; custom fields can wrap their own control in this to match.
+    <FieldAddons Start="@(@<text>https://</text>)">
+        <ib-field-control class="ib-field-control">...</ib-field-control>
+    </FieldAddons>
+*@
+
+@if (Start is null && End is null)
+{
+    @ChildContent
+}
+else
+{
+    <div class="ib-field-group">
+        @if (Start is not null)
+        {
+            <div class="ib-field-addon ib-field-addon-start">@Start</div>
+        }
+        @ChildContent
+        @if (End is not null)
+        {
+            <div class="ib-field-addon ib-field-addon-end">@End</div>
+        }
+    </div>
+}
+
+@code {
+    /// <summary>Content attached before the control.</summary>
+    [Parameter] public RenderFragment? Start { get; set; }
+
+    /// <summary>Content attached after the control.</summary>
+    [Parameter] public RenderFragment? End { get; set; }
+
+    /// <summary>The control, usually an <c>ib-field-control</c> element.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

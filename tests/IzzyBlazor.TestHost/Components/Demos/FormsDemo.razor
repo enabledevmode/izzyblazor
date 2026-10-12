@@ -111,6 +111,37 @@
         </Box>
     </Example>
 
+    <Example Title="Add-ons" Note="StartAddon and EndAddon attach text, a button or another field to the control, outside its border. A nested field keeps its label for screen readers only. Add-on text isn't part of the field's accessible name, so put units that matter in the label too. Everything here posts with the form, JavaScript or not." Code="@AddonsCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Addons" FormName="addons" OnValidSubmit="() => _addonsSaved = true">
+                <TextField @bind-Value="Addons!.Website" Placeholder="example.com">
+                    <StartAddon>https://</StartAddon>
+                </TextField>
+                <TextField @bind-Value="Addons!.Price" Placeholder="0.00" StartIcon="Lucide.Banknote">
+                    <EndAddon><Select @bind-Value="Addons!.Currency" /></EndAddon>
+                </TextField>
+                <TextField @bind-Value="Addons!.Weight">
+                    <EndAddon>kg</EndAddon>
+                </TextField>
+                <TextField @bind-Value="Addons!.Invite" Type="TextFieldType.Email" Placeholder="teammate@example.com">
+                    <EndAddon><Button Type="ButtonType.Submit" StartIcon="Lucide.Send">Invite</Button></EndAddon>
+                </TextField>
+                @if (_addonsSaved)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: https://@Addons!.Website, @Addons.Price @Addons.Currency, @Addons.Weight kg, invite to @Addons.Invite</TextBlock>
+                }
+                <Row Gap="2" Align="Align.End">
+                    <TextField @bind-Value="Addons!.Small" Size="ControlSize.Sm" Placeholder="Search" Class="host-grow">
+                        <EndAddon><Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Go</Button></EndAddon>
+                    </TextField>
+                    <TextField @bind-Value="Addons!.Large" Size="ControlSize.Lg" Placeholder="Search" Class="host-grow">
+                        <StartAddon>@@</StartAddon>
+                    </TextField>
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="Sizes" Note="Label, text and hint scale with ControlSize, and each field lines up with a button of the same size. On touch screens field text is at least 16px, so iPhones don't zoom in." Code="@SizesCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Sizes" FormName="sizes" OnValidSubmit="() => { }">
@@ -151,6 +182,8 @@
     [SupplyParameterFromForm(FormName = "rich")] public RichModel? Rich { get; set; }
     [SupplyParameterFromForm(FormName = "combo")] public ComboModel? Combo { get; set; }
     [SupplyParameterFromForm(FormName = "choices")] public ChoicesModel? Choices { get; set; }
+    [SupplyParameterFromForm(FormName = "addons")] public AddonsModel? Addons { get; set; }
+    private bool _addonsSaved;
     private bool _choicesSaved;
 
     private static readonly string[] Skills =
@@ -212,6 +245,7 @@
         Rich ??= new();
         Combo ??= new();
         Choices ??= new();
+        Addons ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
 
@@ -311,6 +345,24 @@
         public bool AcceptTerms { get; set; }
     }
 
+    public enum Currency
+    {
+        USD,
+        EUR,
+        GBP,
+    }
+
+    public class AddonsModel
+    {
+        [Required] public string? Website { get; set; }
+        [Display(Name = "Price")] public string? Price { get; set; }
+        public Currency Currency { get; set; }
+        [Display(Name = "Weight (kg)")] public string? Weight { get; set; }
+        [Display(Name = "Invite a teammate")] public string? Invite { get; set; }
+        [Display(Name = "Small")] public string? Small { get; set; }
+        [Display(Name = "Handle")] public string? Large { get; set; }
+    }
+
     public class SizesModel
     {
         [Display(Name = "Small")] public string? Small { get; set; }
@@ -391,6 +443,19 @@
                 <span>@PlanName(plan) <span class="ib-option-hint">@PlanHint(plan)</span></span>
             </ItemTemplate>
         </Select>
+        """;
+
+    private const string AddonsCode =
+        """
+        <TextField @bind-Value="Model.Website">
+            <StartAddon>https://</StartAddon>
+        </TextField>
+        <TextField @bind-Value="Model.Price">
+            <EndAddon><Select @bind-Value="Model.Currency" /></EndAddon>
+        </TextField>
+        <TextField @bind-Value="Model.Invite" Type="TextFieldType.Email">
+            <EndAddon><Button Type="ButtonType.Submit">Invite</Button></EndAddon>
+        </TextField>
         """;
 
     private const string SizesCode =

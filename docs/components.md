@@ -105,6 +105,22 @@ Fields (`TextField`, `TextArea`, `Select`, `Combobox`, `Checkbox`, `Switch`, `Ra
 
 `Select` and `RadioGroup` list enum values automatically, using `[Display(Name)]`.
 
+**Add-ons.** `TextField` takes `StartAddon` and `EndAddon`: content attached to the control, outside its
+border, at the field's height. Use them for short text (`https://`, `kg`), a `Button` (a submit button
+posts the form, so it works with JavaScript off), or another field, such as a currency `Select`, whose
+label is kept for screen readers but not shown. Add-on text isn't part of the field's accessible name,
+so put a unit that matters in the label too ("Weight (kg)"). Custom fields get the same look by
+wrapping their `ib-field-control` in `FieldAddons`.
+
+```razor
+<TextField @bind-Value="Model.Website">
+    <StartAddon>https://</StartAddon>
+</TextField>
+<TextField @bind-Value="Model.Price">
+    <EndAddon><Select @bind-Value="Model.Currency" /></EndAddon>
+</TextField>
+```
+
 **Select.** A native select. Where the browser supports the customizable select
 (`appearance: base-select`, Chrome and Edge 135+), the open list is themed like a menu, and
 `ItemTemplate` adds markup to options: an icon, a colored dot, or an `ib-option-hint` second line that
