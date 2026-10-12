@@ -111,6 +111,28 @@
         </Box>
     </Example>
 
+    <Example Title="Numbers" Note="NumberInput is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons replace the browser's spin buttons (hold to repeat); arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Numbers" FormName="numbers" OnValidSubmit="() => _numbersSaved = true">
+                <NumberInput @bind-Value="Numbers!.Quantity" />
+                <NumberInput @bind-Value="Numbers!.Price" Step="0.01" Placeholder="0.00">
+                    <StartAddon>$</StartAddon>
+                </NumberInput>
+                <NumberInput @bind-Value="Numbers!.Discount" Step="5">
+                    <EndAddon>%</EndAddon>
+                </NumberInput>
+                <NumberInput @bind-Value="Numbers!.Seats" Steppers="false" Hint="No steppers: type a number." />
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    @if (_numbersSaved)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Numbers!.Quantity × @(Numbers.Price?.ToString("0.00") ?? "no price"), @Numbers.Discount% off, @(Numbers.Seats?.ToString() ?? "no") seats</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="Add-ons" Note="StartAddon and EndAddon attach text, a button or another field to the control, outside its border. A nested field keeps its label for screen readers only. Add-on text isn't part of the field's accessible name, so put units that matter in the label too. Everything here posts with the form, JavaScript or not." Code="@AddonsCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Addons" FormName="addons" OnValidSubmit="() => _addonsSaved = true">
@@ -184,6 +206,8 @@
     [SupplyParameterFromForm(FormName = "choices")] public ChoicesModel? Choices { get; set; }
     [SupplyParameterFromForm(FormName = "addons")] public AddonsModel? Addons { get; set; }
     private bool _addonsSaved;
+    [SupplyParameterFromForm(FormName = "numbers")] public NumbersModel? Numbers { get; set; }
+    private bool _numbersSaved;
     private bool _choicesSaved;
 
     private static readonly string[] Skills =
@@ -246,6 +270,7 @@
         Combo ??= new();
         Choices ??= new();
         Addons ??= new();
+        Numbers ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
 
@@ -343,6 +368,14 @@
 
         [Range(typeof(bool), "true", "true", ErrorMessage = "You need to accept the terms.")]
         public bool AcceptTerms { get; set; }
+    }
+
+    public class NumbersModel
+    {
+        [Range(1, 99)] public int Quantity { get; set; } = 1;
+        [Range(typeof(decimal), "0", "10000")] public decimal? Price { get; set; }
+        [Range(0, 100)] public double Discount { get; set; } = 10;
+        [Display(Name = "Seats")] public int? Seats { get; set; }
     }
 
     public enum Currency
@@ -443,6 +476,15 @@
                 <span>@PlanName(plan) <span class="ib-option-hint">@PlanHint(plan)</span></span>
             </ItemTemplate>
         </Select>
+        """;
+
+    private const string NumbersCode =
+        """
+        <NumberInput @bind-Value="Model.Quantity" />            @* [Range(1, 99)]: min and max *@
+        <NumberInput @bind-Value="Model.Price" Step="0.01">
+            <StartAddon>$</StartAddon>
+        </NumberInput>
+        <NumberInput @bind-Value="Model.Seats" Steppers="false" />
         """;
 
     private const string AddonsCode =
