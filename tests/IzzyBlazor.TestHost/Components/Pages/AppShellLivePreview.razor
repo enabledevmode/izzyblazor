@@ -1,0 +1,39 @@
+@page "/preview/app-shell-live"
+@page "/preview/app-shell-live/{*Rest}"
+@layout BareLayout
+@rendermode InteractiveServer
+
+@* An interactive AppShell with a collapsible sidebar bound to C#, shown on the AppShell demo page. *@
+
+<PageTitle>AppShell interactive preview</PageTitle>
+
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
+    </AppHeader>
+
+    <AppSidebar Collapsible @bind-Collapsed="_collapsed">
+        <NavMenu>
+            <NavItem Href="preview/app-shell-live" Icon="Lucide.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
+            <NavItem Href="preview/app-shell-live/inbox" Icon="Lucide.Inbox" Badge="4" BadgeColor="Color.Primary">Inbox</NavItem>
+            <NavItem Href="preview/app-shell-live/settings" Icon="Lucide.Settings">Settings</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="4" Padding="6">
+            <Heading Level="1" Size="TextSize.Xl2">@(Rest is null ? "Interactive" : Rest)</Heading>
+            <TextBlock>Collapsed in C#: <strong data-testid="collapsed">@_collapsed</strong></TextBlock>
+            <Row Gap="2">
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _collapsed = !_collapsed" data-testid="toggle">Toggle from C#</Button>
+            </Row>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    [Parameter] public string? Rest { get; set; }
+
+    private bool _collapsed;
+}

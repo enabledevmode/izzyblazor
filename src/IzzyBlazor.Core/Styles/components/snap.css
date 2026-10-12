@@ -1,0 +1,30 @@
+/*
+ * Whole-pixel line boxes. A line height like 1.25 at 18px is 22.5px, and every element
+ * below it then sits on a half pixel: backgrounds and borders blur across two pixel rows,
+ * and text, which browsers snap to whole pixels, lands a pixel off-center in buttons and
+ * fields. Rounding the line box to a whole pixel keeps the page on the pixel grid.
+ *
+ * Imported after the component styles, so these win over the plain line heights there.
+ * Browsers without round() keep the unrounded values.
+ */
+@supports (line-height: round(nearest, 1.5px, 1px)) {
+  @layer izzy.components {
+    .ib-heading,
+    .ib-dialog-title {
+      line-height: round(nearest, calc(1em * var(--ib-leading-tight)), 1px);
+    }
+
+    .ib-alert,
+    .ib-card-title,
+    .ib-tooltip {
+      line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px);
+    }
+  }
+
+  @layer izzy.utilities {
+    .ib-lh-tight { line-height: round(nearest, calc(1em * var(--ib-leading-tight)), 1px); }
+    .ib-lh-snug { line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px); }
+    .ib-lh-normal { line-height: round(nearest, calc(1em * var(--ib-leading-normal)), 1px); }
+    .ib-lh-relaxed { line-height: round(nearest, calc(1em * var(--ib-leading-relaxed)), 1px); }
+  }
+}

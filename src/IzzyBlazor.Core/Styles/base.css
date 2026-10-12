@@ -1,0 +1,63 @@
+/*
+ * Light page defaults. Layered, so any app CSS overrides them.
+ */
+@layer izzy.base {
+  *,
+  *::before,
+  *::after {
+    box-sizing: border-box;
+  }
+
+  /* Part of a page in the other color scheme: its own text and surface colors. */
+  .ib-scheme-light,
+  .ib-scheme-dark,
+  .ib-scheme-inverse {
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+  }
+
+  body {
+    margin: 0;
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+    font-family: var(--ib-font-sans);
+    font-size: var(--ib-text-md);
+    line-height: var(--ib-leading-normal);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* Visible to screen readers only. */
+  .ib-visually-hidden {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Headings and <main> receive focus from script, not from the user: Blazor's
+   * FocusOnNavigate moves focus to the page's h1 after each navigation (adding
+   * tabindex="-1"), and AppShell's skip link targets <main>. Screen readers still
+   * announce them; the ring would only make sighted users think they'd clicked something.
+   */
+  :is(h1, h2, h3, h4, h5, h6, main)[tabindex="-1"]:focus-visible {
+    outline: none;
+  }
+
+  /*
+   * No page-wide reduced-motion reset here: forcing every animation to 0.01ms with
+   * !important turned the loading spinner into a flicker and reached into the app's own
+   * CSS. Each component with movement (drawers, dialogs, disclosures, popovers, the
+   * spinner) handles prefers-reduced-motion itself; color and fade transitions stay.
+   */
+}

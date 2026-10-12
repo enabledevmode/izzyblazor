@@ -1,0 +1,140 @@
+/*
+ * Layout primitives: Box, Stack, Row, Column.
+ * Responsive values come from the style-prop utilities (izzy.utilities layer).
+ */
+@layer izzy.components {
+  .ib-stack {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ib-stack-inline {
+    display: inline-flex;
+  }
+
+  /* Grid: one column until Columns or MinChildWidth says otherwise. */
+  .ib-grid {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    min-width: 0;
+  }
+
+  .ib-grid-item {
+    min-width: 0;
+  }
+
+  /* Container: centered, with side padding that grows with the screen. */
+  .ib-container {
+    width: 100%;
+    margin-inline: auto;
+    padding-inline: var(--ib-space-4);
+  }
+
+  @media (width >= 768px) {
+    .ib-container {
+      padding-inline: var(--ib-space-6);
+    }
+  }
+
+  .ib-container-sm { max-width: 40rem; }
+  .ib-container-md { max-width: 48rem; }
+  .ib-container-lg { max-width: 64rem; }
+  .ib-container-xl { max-width: 80rem; }
+
+  .ib-center {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .ib-center-inline {
+    display: inline-flex;
+  }
+
+  .ib-spacer {
+    flex: 1 1 auto;
+    align-self: stretch;
+  }
+
+  /* AspectRatio: media inside fills the box and is cropped to it. */
+  .ib-ratio {
+    position: relative;
+    aspect-ratio: var(--ib-ratio, 16 / 9);
+    overflow: hidden;
+  }
+
+  .ib-ratio > :is(img, video, iframe, picture, svg, canvas) {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    border: 0;
+    object-fit: cover;
+  }
+
+  /* Divider */
+  .ib-divider {
+    flex: none;
+    align-self: stretch;
+    margin: 0;
+    border: 0;
+    border-top: 1px solid var(--ib-color-border);
+  }
+
+  .ib-divider-dashed {
+    border-top-style: dashed;
+  }
+
+  .ib-divider-vertical {
+    width: 0;
+    min-height: 1em;
+    border-top: 0;
+    border-inline-start: 1px solid var(--ib-color-border);
+  }
+
+  .ib-divider-vertical.ib-divider-dashed {
+    border-inline-start-style: dashed;
+  }
+
+  .ib-divider-label {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    border-top: 0;
+    color: var(--ib-color-subtle);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-medium);
+    letter-spacing: var(--ib-tracking-wide);
+    text-transform: uppercase;
+  }
+
+  .ib-divider-label::before,
+  .ib-divider-label::after {
+    content: "";
+    flex: 1;
+    border-top: 1px solid var(--ib-color-border);
+  }
+
+  .ib-divider-label.ib-divider-dashed::before,
+  .ib-divider-label.ib-divider-dashed::after {
+    border-top-style: dashed;
+  }
+}
+
+/*
+ * Visibility by breakpoint (HiddenFrom / VisibleFrom on any styled component).
+ * !important inside a layer only beats normal declarations, so app CSS can still
+ * override it with its own !important.
+ */
+@layer izzy.utilities {
+  @media (width >= 640px) { .ib-hidden-from-sm { display: none !important; } }
+  @media (width >= 768px) { .ib-hidden-from-md { display: none !important; } }
+  @media (width >= 1024px) { .ib-hidden-from-lg { display: none !important; } }
+  @media (width >= 1280px) { .ib-hidden-from-xl { display: none !important; } }
+
+  @media (width < 640px) { .ib-visible-from-sm { display: none !important; } }
+  @media (width < 768px) { .ib-visible-from-md { display: none !important; } }
+  @media (width < 1024px) { .ib-visible-from-lg { display: none !important; } }
+  @media (width < 1280px) { .ib-visible-from-xl { display: none !important; } }
+}

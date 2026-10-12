@@ -1,0 +1,182 @@
+/* Alert, and the toasts built on it */
+@layer izzy.components {
+  .ib-alert {
+    --ib-accent: var(--ib-color-info);
+    --ib-on-accent: var(--ib-color-on-info);
+    --ib-accent-text: var(--ib-color-info-text);
+
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ib-space-3);
+    padding: var(--ib-space-3) var(--ib-space-4);
+    border: 1px solid transparent;
+    border-radius: var(--ib-radius-lg);
+    font-size: var(--ib-text-sm);
+    line-height: var(--ib-leading-snug);
+  }
+
+  .ib-alert-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
+  .ib-alert-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); }
+  .ib-alert-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); }
+  .ib-alert-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
+
+  .ib-alert-soft {
+    border-color: color-mix(in oklab, var(--ib-accent) 30%, transparent);
+    background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface));
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-alert-outline {
+    border-color: color-mix(in oklab, var(--ib-accent) 55%, transparent);
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-alert-solid {
+    background-color: var(--ib-accent);
+    color: var(--ib-on-accent);
+  }
+
+  /* The icon sits on the first line of text. */
+  .ib-alert-icon {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    margin-block: calc((1lh - 1.25rem) / 2);
+    color: var(--ib-accent-text);
+  }
+
+  .ib-alert-solid .ib-alert-icon {
+    color: inherit;
+  }
+
+  .ib-alert-body {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    min-width: 0;
+  }
+
+  .ib-alert-title {
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-alert-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-2);
+    margin-top: var(--ib-space-2);
+  }
+
+  .ib-alert-close {
+    flex: none;
+    margin: calc(var(--ib-space-1) * -1) calc(var(--ib-space-2) * -1) calc(var(--ib-space-1) * -1) 0;
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .ib-alert-solid .ib-alert-close:hover {
+    background-color: color-mix(in oklab, currentColor 15%, transparent);
+  }
+
+  .ib-alert-dismiss:focus-visible + .ib-alert-close {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Dismissed with no script: the checkbox is checked. */
+  .ib-alert:has(> .ib-alert-dismiss:checked) {
+    display: none;
+  }
+}
+
+/*
+ * Toasts: alerts stacked in a fixed region. The region lets clicks through; the toasts don't.
+ * They slide in, and fade out when closed (where the browser can animate display).
+ */
+@layer izzy.components {
+  .ib-toast-region {
+    position: fixed;
+    z-index: 60;
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    width: min(24rem, calc(100vw - 2 * var(--ib-space-4)));
+    margin: 0;
+    pointer-events: none;
+  }
+
+  .ib-toast-live {
+    display: flex;
+    flex-direction: inherit;
+    gap: inherit;
+  }
+
+  .ib-toast-top-start,
+  .ib-toast-top-center,
+  .ib-toast-top-end {
+    top: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px));
+    flex-direction: column-reverse;
+  }
+
+  .ib-toast-bottom-start,
+  .ib-toast-bottom-center,
+  .ib-toast-bottom-end {
+    bottom: calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+  }
+
+  .ib-toast-top-start,
+  .ib-toast-bottom-start {
+    inset-inline-start: calc(var(--ib-space-4) + env(safe-area-inset-left, 0px));
+  }
+
+  .ib-toast-top-end,
+  .ib-toast-bottom-end {
+    inset-inline-end: calc(var(--ib-space-4) + env(safe-area-inset-right, 0px));
+  }
+
+  .ib-toast-top-center,
+  .ib-toast-bottom-center {
+    left: 50%;
+    translate: -50% 0;
+  }
+
+  .ib-toast {
+    pointer-events: auto;
+    box-shadow: var(--ib-shadow-lg);
+    transition:
+      opacity var(--ib-duration-normal) var(--ib-ease),
+      translate var(--ib-duration-normal) var(--ib-ease),
+      display var(--ib-duration-normal) allow-discrete;
+
+    @starting-style {
+      opacity: 0;
+      translate: 0 0.5rem;
+    }
+  }
+
+  .ib-toast-top-start .ib-toast,
+  .ib-toast-top-center .ib-toast,
+  .ib-toast-top-end .ib-toast {
+    @starting-style {
+      translate: 0 -0.5rem;
+    }
+  }
+
+  .ib-toast.ib-alert:has(> .ib-alert-dismiss:checked) {
+    opacity: 0;
+  }
+
+  /* The outline look as a raised card: a neutral border, with the status in the icon. */
+  .ib-toast.ib-alert-outline {
+    border-color: var(--ib-color-border);
+    background-color: var(--ib-color-surface-raised);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-toast {
+      transition: none;
+    }
+  }
+}

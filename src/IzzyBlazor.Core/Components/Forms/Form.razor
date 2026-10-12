@@ -1,0 +1,113 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A styled EditForm. Works three ways:
+      - Static page, no JavaScript: a real POST, validated on the server, re-rendered with errors.
+      - Static page with JavaScript: Blazor's enhanced form handling (no full reload), native
+        browser validation before posting, and a loading state on the submit button.
+      - Interactive page: EditForm validation as usual.
+*@
+
+@* Pass Model or EditContext, never both: EditForm's EditContext setter stores the value it's given,
+   so passing null on every render replaced its EditContext each time, and a new EditContext
+   makes EditForm rebuild everything inside it (losing focus on interactive pages). *@
+@if (EditContext is not null)
+{
+    <EditForm EditContext="EditContext"
+              FormName="@FormName"
+              Enhance="Enhance"
+              OnValidSubmit="OnValidSubmit"
+              OnInvalidSubmit="OnInvalidSubmit"
+              OnSubmit="OnSubmit"
+              novalidate="@(NativeValidation ? null : "novalidate")"
+              @attributes="AdditionalAttributes"
+              class="@_class"
+              style="@_style">
+        @Body
+    </EditForm>
+}
+else
+{
+    <EditForm Model="Model"
+              FormName="@FormName"
+              Enhance="Enhance"
+              OnValidSubmit="OnValidSubmit"
+              OnInvalidSubmit="OnInvalidSubmit"
+              OnSubmit="OnSubmit"
+              novalidate="@(NativeValidation ? null : "novalidate")"
+              @attributes="AdditionalAttributes"
+              class="@_class"
+              style="@_style">
+        @Body
+    </EditForm>
+}
+
+@code {
+    /// <summary>The object the form edits. Set this or <see cref="EditContext"/>.</summary>
+    [Parameter] public object? Model { get; set; }
+
+    /// <summary>An explicit edit context. Set this or <see cref="Model"/>.</summary>
+    [Parameter] public EditContext? EditContext { get; set; }
+
+    /// <summary>
+    /// The form's name. Required on static pages, where it tells Blazor which form a POST belongs to;
+    /// pair it with <c>[SupplyParameterFromForm(FormName = "...")]</c> on the model property.
+    /// </summary>
+    [Parameter] public string? FormName { get; set; }
+
+    /// <summary>Uses Blazor's enhanced form handling on static pages (no full page reload). Defaults to true.</summary>
+    [Parameter] public bool Enhance { get; set; } = true;
+
+    /// <summary>Lets the browser check required fields, lengths and formats before posting. Defaults to true.</summary>
+    [Parameter] public bool NativeValidation { get; set; } = true;
+
+    /// <summary>Runs on the server after a submit that passes validation.</summary>
+    [Parameter] public EventCallback<EditContext> OnValidSubmit { get; set; }
+
+    /// <summary>Runs on the server after a submit that fails validation.</summary>
+    [Parameter] public EventCallback<EditContext> OnInvalidSubmit { get; set; }
+
+    /// <summary>Runs on every submit, instead of the valid and invalid callbacks. You validate yourself.</summary>
+    [Parameter] public EventCallback<EditContext> OnSubmit { get; set; }
+
+    /// <summary>Replaces the default DataAnnotations validator, for example with a FluentValidation one.</summary>
+    [Parameter] public RenderFragment? Validator { get; set; }
+
+    /// <summary>How labels sit next to fields. Defaults to stacked.</summary>
+    [Parameter] public FormLayout Layout { get; set; } = FormLayout.Vertical;
+
+    /// <summary>Space between fields, in spacing steps. Defaults to 5.</summary>
+    [Parameter] public Responsive<int> Gap { get; set; } = 5;
+
+    /// <summary>The fields and buttons.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    private RenderFragment Body => __builder =>
+    {
+        if (Validator is null)
+        {
+            <DataAnnotationsValidator />
+        }
+        else
+        {
+            @Validator
+        }
+
+        @ChildContent
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-form");
+        classes.Add("ib-form-horizontal", Layout == FormLayout.Horizontal);
+        ApplyResponsive(classes, styles, Gap, "ib-gap", "gap", StyleValues.Spacing);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

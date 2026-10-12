@@ -1,0 +1,1469 @@
+/*
+ * AppShell and its parts: AppHeader, AppSidebar, AppMain, AppAside, AppFooter.
+ *
+ * The shell is a grid with three columns (side, main, side) and three rows (header, body,
+ * footer). The side columns are "auto", so a part that is missing, hidden, or turned into a
+ * drawer takes no room, and the shell needs no class per combination: it reads the sidebar's
+ * side and height, and the bars' stickiness, from its children with :has().
+ *
+ * Every color and size is a custom property, so a theme can set the look once:
+ *   --ib-shell-{header|sidebar|main|aside|footer}-bg   each part's surface (default: surface)
+ *   --ib-shell-divider                                 the lines between parts (default: border)
+ * The color defaults resolve on each part, so a part with its own Scheme gets that scheme's
+ * surface and lines.
+ *   --ib-shell-header-h, --ib-shell-footer-h           room kept for sticky bars
+ */
+@layer izzy.components {
+  .ib-shell {
+    --ib-shell-header-h: 3.5rem;
+    --ib-shell-footer-h: 3.5rem;
+    /* Room the sticky bars take at the top and bottom of the window. */
+    --ib-shell-top: 0px;
+    --ib-shell-bottom: 0px;
+
+    display: grid;
+    min-height: 100dvh;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    grid-template-rows: auto 1fr auto;
+    grid-template-areas:
+      "header header header"
+      "sidebar main aside"
+      "footer footer footer";
+  }
+
+  .ib-shell:has(> .ib-shell-sidebar-end) {
+    grid-template-areas:
+      "header header header"
+      "aside main sidebar"
+      "footer footer footer";
+  }
+
+  .ib-shell:has(> .ib-shell-sidebar-full) {
+    grid-template-areas:
+      "sidebar header header"
+      "sidebar main aside"
+      "sidebar footer footer";
+  }
+
+  .ib-shell:has(> .ib-shell-sidebar-full.ib-shell-sidebar-end) {
+    grid-template-areas:
+      "header header sidebar"
+      "aside main sidebar"
+      "footer footer sidebar";
+  }
+
+  /* Safe-area insets keep bars clear of the notch and home indicator when the page uses
+     viewport-fit=cover; they are 0 otherwise. */
+  .ib-shell:has(> .ib-shell-header-sticky) {
+    --ib-shell-top: calc(var(--ib-shell-header-h) + env(safe-area-inset-top, 0px));
+  }
+
+  .ib-shell:has(> .ib-shell-footer-sticky) {
+    --ib-shell-bottom: calc(var(--ib-shell-footer-h) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Header */
+  .ib-shell-header {
+    grid-area: header;
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    min-height: calc(var(--ib-shell-header-h) + env(safe-area-inset-top, 0px));
+    padding: env(safe-area-inset-top, 0px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    background-color: var(--ib-shell-header-bg, var(--ib-color-surface));
+    color: var(--ib-shell-header-fg, var(--ib-color-on-surface));
+  }
+
+  .ib-shell-scroll-page > .ib-shell-header-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 20;
+  }
+
+  /*
+   * Sidebar: the outer box fills its grid area (so its color and line run the full height);
+   * the inner box is exactly the visible height between the sticky bars and stays in view, so
+   * Header sits at its top and Footer at its bottom, with the content scrolling between.
+   * Size containment keeps the inner box's height from stretching the page: the row's height
+   * comes from the main area, and the sidebar scrolls its own content.
+   */
+  .ib-shell-sidebar {
+    --ib-drawer-off: -100%;
+    grid-area: sidebar;
+    width: var(--ib-sidebar-w, 16rem);
+    min-height: 0;
+    contain: size;
+    border-inline-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    background-color: var(--ib-shell-sidebar-bg, var(--ib-color-surface));
+    color: var(--ib-shell-sidebar-fg, var(--ib-color-on-surface));
+  }
+
+  .ib-shell-sidebar-end {
+    --ib-drawer-off: 100%;
+    border-inline-end: 0;
+    border-inline-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  .ib-shell-sidebar:dir(rtl) { --ib-drawer-off: 100%; }
+  .ib-shell-sidebar-end:dir(rtl) { --ib-drawer-off: -100%; }
+
+  .ib-shell-sidebar-inner {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    --ib-sb-pad-x: var(--ib-space-3);
+    min-height: 0;
+    padding: var(--ib-space-4) var(--ib-sb-pad-x);
+  }
+
+  .ib-shell-scroll-page > .ib-shell-sidebar > .ib-shell-sidebar-inner {
+    position: sticky;
+    top: var(--ib-shell-top);
+    height: calc(100dvh - var(--ib-shell-top) - var(--ib-shell-bottom));
+    max-height: 100%;
+  }
+
+  /* A full-height sidebar has no bar above or below it. */
+  .ib-shell-scroll-page > .ib-shell-sidebar-full > .ib-shell-sidebar-inner {
+    top: 0;
+    height: 100dvh;
+  }
+
+  .ib-shell-sidebar-body {
+    display: flex;
+    flex: 1 1 auto;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    min-height: 0;
+    overflow-x: hidden;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ib-shell-sidebar-head,
+  .ib-shell-sidebar-foot {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-shell-sidebar-slot {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /*
+   * The pinned rows have no lines at rest. A line shows at the content's top or bottom edge
+   * only while content is scrolled out of view there, and only next to a pinned row. No script:
+   * background covers that scroll with the content ("local") hide lines fixed to the box
+   * ("scroll") until the content moves. Covers use the sidebar's color, so Bg just works;
+   * Dividers="false" hides the lines.
+   */
+  .ib-shell-sidebar-body {
+    --ib-sb-line-top: transparent;
+    --ib-sb-line-bottom: transparent;
+    margin-inline: calc(var(--ib-sb-pad-x) * -1);
+    padding-inline: var(--ib-sb-pad-x);
+    background:
+      linear-gradient(var(--ib-shell-sidebar-bg, var(--ib-color-surface)), var(--ib-shell-sidebar-bg, var(--ib-color-surface))) top / 100% 2px no-repeat local,
+      linear-gradient(var(--ib-shell-sidebar-bg, var(--ib-color-surface)), var(--ib-shell-sidebar-bg, var(--ib-color-surface))) bottom / 100% 2px no-repeat local,
+      linear-gradient(var(--ib-sb-line-top), var(--ib-sb-line-top)) top / 100% 1px no-repeat scroll,
+      linear-gradient(var(--ib-sb-line-bottom), var(--ib-sb-line-bottom)) bottom / 100% 1px no-repeat scroll;
+  }
+
+  .ib-shell-sidebar-head + .ib-shell-sidebar-body,
+  .ib-shell-collapse + .ib-shell-sidebar-body {
+    --ib-sb-line-top: var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  .ib-shell-sidebar-body:has(+ .ib-shell-sidebar-foot, + .ib-shell-collapse) {
+    --ib-sb-line-bottom: var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  .ib-shell-sidebar-head > .ib-shell-collapse,
+  .ib-shell-sidebar-foot > .ib-shell-collapse {
+    flex: none;
+  }
+
+  .ib-shell-sidebar-close {
+    display: none;
+    justify-content: flex-end;
+  }
+
+  /* Main */
+  .ib-shell-main {
+    grid-area: main;
+    min-width: 0;
+    background-color: var(--ib-shell-main-bg, var(--ib-color-surface));
+    color: var(--ib-shell-main-fg, var(--ib-color-on-surface));
+  }
+
+  .ib-shell-main:focus {
+    outline: none;
+  }
+
+  /* Aside: same outer and inner arrangement as the sidebar, on the opposite side. */
+  .ib-shell-aside {
+    grid-area: aside;
+    width: var(--ib-aside-w, 15rem);
+    min-height: 0;
+    border-inline-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    background-color: var(--ib-shell-aside-bg, var(--ib-color-surface));
+    color: var(--ib-shell-aside-fg, var(--ib-color-on-surface));
+  }
+
+  .ib-shell:has(> .ib-shell-sidebar-end) > .ib-shell-aside {
+    border-inline-start: 0;
+    border-inline-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  .ib-shell-aside-inner {
+    padding: var(--ib-space-4);
+    overflow-y: auto;
+  }
+
+  .ib-shell-scroll-page > .ib-shell-aside > .ib-shell-aside-inner {
+    position: sticky;
+    top: var(--ib-shell-top);
+    max-height: calc(100dvh - var(--ib-shell-top) - var(--ib-shell-bottom));
+  }
+
+  /* Footer */
+  .ib-shell-footer {
+    grid-area: footer;
+    padding: var(--ib-space-4);
+    padding-bottom: calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+    border-top: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    background-color: var(--ib-shell-footer-bg, var(--ib-color-surface));
+    color: var(--ib-shell-footer-fg, var(--ib-color-on-surface));
+  }
+
+  /* The sidebar keeps --ib-shell-footer-h of room for a sticky footer; set it if yours is taller. */
+  .ib-shell-scroll-page > .ib-shell-footer-sticky {
+    position: sticky;
+    bottom: 0;
+    z-index: 20;
+    display: flex;
+    align-items: center;
+    min-height: calc(var(--ib-shell-footer-h) + env(safe-area-inset-bottom, 0px));
+    padding-block: var(--ib-space-2) calc(var(--ib-space-2) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /*
+   * ScrollMode.Main: the shell fills the window and never scrolls; the main area scrolls on
+   * its own, and so do the sidebar and aside. The header and footer are always in view.
+   */
+  .ib-shell-scroll-main {
+    height: 100dvh;
+    grid-template-rows: auto minmax(0, 1fr) auto;
+  }
+
+  .ib-shell-scroll-main > .ib-shell-main {
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ib-shell-scroll-main > .ib-shell-sidebar > .ib-shell-sidebar-inner,
+  .ib-shell-scroll-main > .ib-shell-aside > .ib-shell-aside-inner {
+    height: 100%;
+  }
+
+  /* Drawer backdrop and the menu button */
+  .ib-shell-backdrop {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    background-color: var(--ib-color-backdrop);
+    touch-action: none;
+  }
+
+  .ib-shell:not(:has(> .ib-shell-sidebar)) .ib-shell-toggle {
+    display: none;
+  }
+
+  .ib-skip-link {
+    position: absolute;
+    top: var(--ib-space-2);
+    left: var(--ib-space-2);
+    z-index: 50;
+    padding: var(--ib-space-2) var(--ib-space-3);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-primary);
+    color: var(--ib-color-on-primary);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    translate: 0 -200%;
+  }
+
+  .ib-skip-link:focus {
+    translate: 0 0;
+  }
+
+  /*
+   * Below its breakpoint the sidebar is an off-canvas drawer: fixed, out of the grid (so its
+   * column collapses to nothing), opened by :target with no script or [data-sidebar-open]
+   * with it. One block per breakpoint.
+   */
+  @media (width < 640px) {
+    .ib-shell-sidebar-bp-sm {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      z-index: 40;
+      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      translate: var(--ib-drawer-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-end {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
+
+    .ib-shell-sidebar-bp-sm:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-sm {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-sm > .ib-shell-sidebar-inner {
+      position: static;
+      height: 100%;
+      max-height: none;
+      padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-sidebar-bp-sm .ib-shell-sidebar-close {
+      display: flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-sidebar-bp-sm:target),
+    html:has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-sm) {
+      overflow: hidden;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm:target) > .ib-shell-backdrop,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-sm) > .ib-shell-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width >= 640px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm) .ib-shell-toggle {
+      display: none;
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-shell-sidebar-bp-md {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      z-index: 40;
+      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      translate: var(--ib-drawer-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-end {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
+
+    .ib-shell-sidebar-bp-md:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-md {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-md > .ib-shell-sidebar-inner {
+      position: static;
+      height: 100%;
+      max-height: none;
+      padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-sidebar-bp-md .ib-shell-sidebar-close {
+      display: flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-sidebar-bp-md:target),
+    html:has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-md) {
+      overflow: hidden;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-md:target) > .ib-shell-backdrop,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-md) > .ib-shell-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width >= 768px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-md) .ib-shell-toggle {
+      display: none;
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-shell-sidebar-bp-lg {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      z-index: 40;
+      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      translate: var(--ib-drawer-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-end {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
+
+    .ib-shell-sidebar-bp-lg:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-lg {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-lg > .ib-shell-sidebar-inner {
+      position: static;
+      height: 100%;
+      max-height: none;
+      padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-sidebar-bp-lg .ib-shell-sidebar-close {
+      display: flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-sidebar-bp-lg:target),
+    html:has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-lg) {
+      overflow: hidden;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg:target) > .ib-shell-backdrop,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-lg) > .ib-shell-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width >= 1024px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg) .ib-shell-toggle {
+      display: none;
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-shell-sidebar-bp-xl {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-start: 0;
+      z-index: 40;
+      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      translate: var(--ib-drawer-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-end {
+      inset-inline-start: auto;
+      inset-inline-end: 0;
+    }
+
+    .ib-shell-sidebar-bp-xl:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-xl {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-xl > .ib-shell-sidebar-inner {
+      position: static;
+      height: 100%;
+      max-height: none;
+      padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-sidebar-bp-xl .ib-shell-sidebar-close {
+      display: flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-sidebar-bp-xl:target),
+    html:has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-xl) {
+      overflow: hidden;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl:target) > .ib-shell-backdrop,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-xl) > .ib-shell-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width >= 1280px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl) .ib-shell-toggle {
+      display: none;
+    }
+  }
+
+  /* The aside shows from its breakpoint up. */
+  @media (width < 640px) {
+    .ib-shell-aside-bp-sm {
+      display: none;
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-shell-aside-bp-md {
+      display: none;
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-shell-aside-bp-lg {
+      display: none;
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-shell-aside-bp-xl {
+      display: none;
+    }
+  }
+
+  /*
+   * Collapsible sidebar (an icon rail on wide screens). The state is a checkbox in the
+   * sidebar, so it works with no script: its label (the chevron, or SidebarToggle) flips it
+   * and :has(:checked) does the rest. Below the breakpoint the controls are hidden and the
+   * drawer is unchanged. The chevron shows only when there's no SidebarToggle to do the job
+   * (CollapseButton = null), or always (true), or never (false). Content you add yourself can opt in with .ib-collapsed-hide and
+   * .ib-collapsed-show.
+   */
+  .ib-shell-collapse,
+  .ib-shell-collapse-toggle,
+  .ib-collapsed-show {
+    display: none;
+  }
+
+  .ib-shell-collapse {
+    position: relative;
+    justify-content: flex-end;
+  }
+
+  .ib-shell-sidebar-end .ib-shell-collapse {
+    justify-content: flex-start;
+  }
+
+  .ib-shell-collapse-btn,
+  .ib-shell-collapse-toggle {
+    cursor: pointer;
+  }
+
+  /* The checkbox is the focusable control; its labels show the focus ring. */
+  .ib-shell-collapse-input:focus-visible + .ib-shell-collapse-btn,
+  .ib-shell:has(.ib-shell-collapse-nobutton > .ib-shell-collapse-input:focus-visible) .ib-shell-collapse-toggle,
+  .ib-shell:has(.ib-shell-collapse-auto > .ib-shell-collapse-input:focus-visible) .ib-shell-collapse-toggle {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  /* The chevron points the way the sidebar will move: toward its own edge, then back. */
+  .ib-shell-collapse-icon {
+    transition: rotate var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-shell-sidebar-end .ib-shell-collapse-icon,
+  .ib-shell-collapse-icon:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-shell-sidebar-end .ib-shell-collapse-icon:dir(rtl) {
+    scale: 1 1;
+  }
+
+  .ib-shell-collapse-input:checked + .ib-shell-collapse-btn .ib-shell-collapse-icon {
+    rotate: 180deg;
+  }
+
+  .ib-shell-sidebar-collapsible > .ib-shell-sidebar-inner {
+    overflow-x: hidden;
+  }
+
+  /*
+   * A collapsible sidebar keeps one icon column: nav icons sit on the rail's center line whether
+   * it's expanded or collapsed, so nothing shifts sideways as it collapses (only the end edge of
+   * each item moves), and on wide screens the menu button lines up with them (below).
+   * --ib-sb-icon-pad is the start padding that puts an 18px item icon on that line.
+   */
+  .ib-shell-sidebar-collapsible > .ib-shell-sidebar-inner {
+    --ib-sb-pad-x: var(--ib-space-2);
+    --ib-sb-icon-pad: max(0px, calc(var(--ib-sidebar-collapsed-w, 3.5rem) / 2 - var(--ib-space-2) - 0.5625rem));
+  }
+
+  .ib-shell-sidebar-collapsible .ib-nav-item,
+  .ib-shell-sidebar-collapsible .ib-nav-heading {
+    padding-inline-start: var(--ib-sb-icon-pad);
+  }
+
+  @media (width >= 640px) {
+    .ib-shell-sidebar-bp-sm .ib-shell-collapse {
+      display: flex;
+    }
+
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-collapsible {
+      transition: width var(--ib-duration-normal) var(--ib-ease);
+    }
+
+    /* No chevron: the row takes no room, and the checkbox stays focusable. */
+    .ib-shell-sidebar-bp-sm .ib-shell-collapse-nobutton,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-sm .ib-shell-collapse-auto {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-sm .ib-shell-collapse-nobutton > .ib-shell-collapse-btn,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-sm .ib-shell-collapse-auto > .ib-shell-collapse-btn {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm .ib-shell-collapse-input) .ib-shell-collapse-toggle {
+      display: inline-flex;
+    }
+
+    /* The menu button sits on the rail's icon column, when it's the header's first item above a
+       start-side sidebar: half the default rail width, less the header's padding and half the button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-collapsible:not(.ib-shell-sidebar-end, .ib-shell-sidebar-full)) > .ib-shell-header > .ib-shell-toggle:first-child + .ib-shell-collapse-toggle {
+      margin-inline-start: calc(3.5rem / 2 - var(--ib-space-4) - 1.125rem);
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) {
+      width: var(--ib-sidebar-collapsed-w, 3.5rem);
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner {
+      --ib-sb-pad-x: var(--ib-space-2);
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-collapse {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-foot {
+      flex-direction: column;
+    }
+
+    /* Header and Footer content stacks and centers in the rail. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item {
+      justify-content: center;
+      gap: 0;
+      padding-inline: 0;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-li {
+      anchor-scope: --ib-nav-tip;
+    }
+
+    /* The text stays for screen readers and becomes a tooltip on hover and focus. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-nav-text {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* An item with no icon shows its first letter. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:not(:has(> .ib-icon)) > .ib-nav-text {
+      position: static;
+      flex: none;
+      width: 1ch;
+      height: auto;
+      clip-path: none;
+      text-overflow: clip;
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      /* Hover tooltips only for real pointers: on touch screens :hover sticks after a tap. */
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-badge,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-chevron,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-sub,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-heading:first-child,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-divider + .ib-nav-heading {
+      display: none;
+    }
+
+    /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* A label turns into a line, so groups stay apart. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-heading {
+      height: 1px;
+      margin: var(--ib-space-2) var(--ib-space-1);
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--ib-color-border);
+      color: transparent;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-divider {
+      margin-inline: var(--ib-space-1);
+    }
+
+    /* A button whose label is all .ib-collapsed-hide becomes icon-only and centered. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-btn:has(> .ib-btn-label > .ib-collapsed-hide) {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-btn-label:not(:has(> :not(.ib-collapsed-hide))) {
+      position: absolute;
+    }
+
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
+      display: revert;
+    }
+  }
+
+  @media (width >= 768px) {
+    .ib-shell-sidebar-bp-md .ib-shell-collapse {
+      display: flex;
+    }
+
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-collapsible {
+      transition: width var(--ib-duration-normal) var(--ib-ease);
+    }
+
+    /* No chevron: the row takes no room, and the checkbox stays focusable. */
+    .ib-shell-sidebar-bp-md .ib-shell-collapse-nobutton,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-md .ib-shell-collapse-auto {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-md .ib-shell-collapse-nobutton > .ib-shell-collapse-btn,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-md .ib-shell-collapse-auto > .ib-shell-collapse-btn {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-md .ib-shell-collapse-input) .ib-shell-collapse-toggle {
+      display: inline-flex;
+    }
+
+    /* The menu button sits on the rail's icon column, when it's the header's first item above a
+       start-side sidebar: half the default rail width, less the header's padding and half the button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-collapsible:not(.ib-shell-sidebar-end, .ib-shell-sidebar-full)) > .ib-shell-header > .ib-shell-toggle:first-child + .ib-shell-collapse-toggle {
+      margin-inline-start: calc(3.5rem / 2 - var(--ib-space-4) - 1.125rem);
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) {
+      width: var(--ib-sidebar-collapsed-w, 3.5rem);
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner {
+      --ib-sb-pad-x: var(--ib-space-2);
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-collapse {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-foot {
+      flex-direction: column;
+    }
+
+    /* Header and Footer content stacks and centers in the rail. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item {
+      justify-content: center;
+      gap: 0;
+      padding-inline: 0;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-li {
+      anchor-scope: --ib-nav-tip;
+    }
+
+    /* The text stays for screen readers and becomes a tooltip on hover and focus. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-nav-text {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* An item with no icon shows its first letter. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:not(:has(> .ib-icon)) > .ib-nav-text {
+      position: static;
+      flex: none;
+      width: 1ch;
+      height: auto;
+      clip-path: none;
+      text-overflow: clip;
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      /* Hover tooltips only for real pointers: on touch screens :hover sticks after a tap. */
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-badge,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-chevron,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-sub,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-heading:first-child,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-divider + .ib-nav-heading {
+      display: none;
+    }
+
+    /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* A label turns into a line, so groups stay apart. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-heading {
+      height: 1px;
+      margin: var(--ib-space-2) var(--ib-space-1);
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--ib-color-border);
+      color: transparent;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-divider {
+      margin-inline: var(--ib-space-1);
+    }
+
+    /* A button whose label is all .ib-collapsed-hide becomes icon-only and centered. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-btn:has(> .ib-btn-label > .ib-collapsed-hide) {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-btn-label:not(:has(> :not(.ib-collapsed-hide))) {
+      position: absolute;
+    }
+
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
+      display: revert;
+    }
+  }
+
+  @media (width >= 1024px) {
+    .ib-shell-sidebar-bp-lg .ib-shell-collapse {
+      display: flex;
+    }
+
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-collapsible {
+      transition: width var(--ib-duration-normal) var(--ib-ease);
+    }
+
+    /* No chevron: the row takes no room, and the checkbox stays focusable. */
+    .ib-shell-sidebar-bp-lg .ib-shell-collapse-nobutton,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-lg .ib-shell-collapse-auto {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-lg .ib-shell-collapse-nobutton > .ib-shell-collapse-btn,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-lg .ib-shell-collapse-auto > .ib-shell-collapse-btn {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg .ib-shell-collapse-input) .ib-shell-collapse-toggle {
+      display: inline-flex;
+    }
+
+    /* The menu button sits on the rail's icon column, when it's the header's first item above a
+       start-side sidebar: half the default rail width, less the header's padding and half the button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-collapsible:not(.ib-shell-sidebar-end, .ib-shell-sidebar-full)) > .ib-shell-header > .ib-shell-toggle:first-child + .ib-shell-collapse-toggle {
+      margin-inline-start: calc(3.5rem / 2 - var(--ib-space-4) - 1.125rem);
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) {
+      width: var(--ib-sidebar-collapsed-w, 3.5rem);
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner {
+      --ib-sb-pad-x: var(--ib-space-2);
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-collapse {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-foot {
+      flex-direction: column;
+    }
+
+    /* Header and Footer content stacks and centers in the rail. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item {
+      justify-content: center;
+      gap: 0;
+      padding-inline: 0;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-li {
+      anchor-scope: --ib-nav-tip;
+    }
+
+    /* The text stays for screen readers and becomes a tooltip on hover and focus. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-nav-text {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* An item with no icon shows its first letter. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:not(:has(> .ib-icon)) > .ib-nav-text {
+      position: static;
+      flex: none;
+      width: 1ch;
+      height: auto;
+      clip-path: none;
+      text-overflow: clip;
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      /* Hover tooltips only for real pointers: on touch screens :hover sticks after a tap. */
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-badge,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-chevron,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-sub,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-heading:first-child,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-divider + .ib-nav-heading {
+      display: none;
+    }
+
+    /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* A label turns into a line, so groups stay apart. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-heading {
+      height: 1px;
+      margin: var(--ib-space-2) var(--ib-space-1);
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--ib-color-border);
+      color: transparent;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-divider {
+      margin-inline: var(--ib-space-1);
+    }
+
+    /* A button whose label is all .ib-collapsed-hide becomes icon-only and centered. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-btn:has(> .ib-btn-label > .ib-collapsed-hide) {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-btn-label:not(:has(> :not(.ib-collapsed-hide))) {
+      position: absolute;
+    }
+
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
+      display: revert;
+    }
+  }
+
+  @media (width >= 1280px) {
+    .ib-shell-sidebar-bp-xl .ib-shell-collapse {
+      display: flex;
+    }
+
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-collapsible {
+      transition: width var(--ib-duration-normal) var(--ib-ease);
+    }
+
+    /* No chevron: the row takes no room, and the checkbox stays focusable. */
+    .ib-shell-sidebar-bp-xl .ib-shell-collapse-nobutton,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-xl .ib-shell-collapse-auto {
+      display: contents;
+    }
+
+    .ib-shell-sidebar-bp-xl .ib-shell-collapse-nobutton > .ib-shell-collapse-btn,
+    .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-xl .ib-shell-collapse-auto > .ib-shell-collapse-btn {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl .ib-shell-collapse-input) .ib-shell-collapse-toggle {
+      display: inline-flex;
+    }
+
+    /* The menu button sits on the rail's icon column, when it's the header's first item above a
+       start-side sidebar: half the default rail width, less the header's padding and half the button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-collapsible:not(.ib-shell-sidebar-end, .ib-shell-sidebar-full)) > .ib-shell-header > .ib-shell-toggle:first-child + .ib-shell-collapse-toggle {
+      margin-inline-start: calc(3.5rem / 2 - var(--ib-space-4) - 1.125rem);
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) {
+      width: var(--ib-sidebar-collapsed-w, 3.5rem);
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner {
+      --ib-sb-pad-x: var(--ib-space-2);
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-collapse {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-head,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-foot {
+      flex-direction: column;
+    }
+
+    /* Header and Footer content stacks and centers in the rail. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      width: 100%;
+      overflow: hidden;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item {
+      justify-content: center;
+      gap: 0;
+      padding-inline: 0;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-li {
+      anchor-scope: --ib-nav-tip;
+    }
+
+    /* The text stays for screen readers and becomes a tooltip on hover and focus. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-nav-text {
+      position: fixed;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* An item with no icon shows its first letter. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:not(:has(> .ib-icon)) > .ib-nav-text {
+      position: static;
+      flex: none;
+      width: 1ch;
+      height: auto;
+      clip-path: none;
+      text-overflow: clip;
+    }
+
+    @supports (position-area: inline-end) {
+      .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible {
+        anchor-name: --ib-nav-tip;
+      }
+
+      .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        z-index: 50;
+        width: max-content;
+        max-width: 16rem;
+        height: auto;
+        margin-inline-start: var(--ib-space-2);
+        padding: var(--ib-space-1) var(--ib-space-2);
+        clip-path: none;
+        border-radius: var(--ib-radius-sm);
+        background-color: var(--ib-color-on-surface);
+        color: var(--ib-color-surface);
+        font-size: var(--ib-text-xs);
+        position-anchor: --ib-nav-tip;
+        position-area: inline-end;
+        position-try-fallbacks: flip-inline;
+        pointer-events: none;
+      }
+
+      .ib-shell-sidebar-end.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):focus-visible > .ib-nav-text {
+        margin-inline: 0 var(--ib-space-2);
+        position-area: inline-start;
+      }
+
+      /* Hover tooltips only for real pointers: on touch screens :hover sticks after a tap. */
+      @media (hover: hover) {
+        .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover {
+          anchor-name: --ib-nav-tip;
+        }
+
+        .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          z-index: 50;
+          width: max-content;
+          max-width: 16rem;
+          height: auto;
+          margin-inline-start: var(--ib-space-2);
+          padding: var(--ib-space-1) var(--ib-space-2);
+          clip-path: none;
+          border-radius: var(--ib-radius-sm);
+          background-color: var(--ib-color-on-surface);
+          color: var(--ib-color-surface);
+          font-size: var(--ib-text-xs);
+          position-anchor: --ib-nav-tip;
+          position-area: inline-end;
+          position-try-fallbacks: flip-inline;
+          pointer-events: none;
+        }
+
+        .ib-shell-sidebar-end.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item:has(> .ib-icon):hover > .ib-nav-text {
+          margin-inline: 0 var(--ib-space-2);
+          position-area: inline-start;
+        }
+      }
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item > .ib-badge,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-chevron,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-sub,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-heading:first-child,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-divider + .ib-nav-heading {
+      display: none;
+    }
+
+    /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+
+    /* A label turns into a line, so groups stay apart. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-heading {
+      height: 1px;
+      margin: var(--ib-space-2) var(--ib-space-1);
+      padding: 0;
+      overflow: hidden;
+      background-color: var(--ib-color-border);
+      color: transparent;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-divider {
+      margin-inline: var(--ib-space-1);
+    }
+
+    /* A button whose label is all .ib-collapsed-hide becomes icon-only and centered. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-btn:has(> .ib-btn-label > .ib-collapsed-hide) {
+      justify-content: center;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-btn-label:not(:has(> :not(.ib-collapsed-hide))) {
+      position: absolute;
+    }
+
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-collapsed-show {
+      display: revert;
+    }
+  }
+
+  /*
+   * A full-height sidebar beside an AppHeader: its Header row is the same height as the
+   * AppHeader and its line continues the AppHeader's line, so the two read as one bar.
+   * Wide screens only; the drawer keeps the normal layout.
+   */
+  @media (width >= 640px) {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
+      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm > .ib-shell-sidebar-inner > .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
+      padding-top: var(--ib-space-3);
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      justify-content: center;
+    }
+  }
+
+  @media (width >= 768px) {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
+      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md > .ib-shell-sidebar-inner > .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
+      padding-top: var(--ib-space-3);
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      justify-content: center;
+    }
+  }
+
+  @media (width >= 1024px) {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
+      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg > .ib-shell-sidebar-inner > .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
+      padding-top: var(--ib-space-3);
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      justify-content: center;
+    }
+  }
+
+  @media (width >= 1280px) {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
+      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl > .ib-shell-sidebar-inner > .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
+      padding-top: var(--ib-space-3);
+    }
+
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+      justify-content: center;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-shell-sidebar,
+    .ib-shell-collapse-icon {
+      transition: none !important;
+    }
+  }
+}

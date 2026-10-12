@@ -1,0 +1,266 @@
+@namespace IzzyBlazor
+@inherits AppShellPart
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+
+@*
+    The navigation column of an AppShell. From its breakpoint up it is a column beside the
+    content whose links stay in view while the page scrolls; below it, an off-canvas drawer
+    opened by SidebarToggle. The drawer works with JavaScript off (a link to the sidebar's id
+    and CSS :target); with JavaScript, <ib-shell> adds Escape, focus handling and no URL change.
+
+    Collapsible adds an icon rail on wide screens, in three layers like everything else:
+      - No script: a visually hidden checkbox, its visible label (the chevron, and
+        SidebarToggle on wide screens), and CSS :has(:checked).
+      - With script: the choice is saved in a cookie, which the server reads on the next
+        request, so the page arrives already collapsed with no flash.
+      - Interactive: @bind-Collapsed follows the checkbox and can set it from C#.
+
+    Layout inside: Header (pinned at the top), the content (scrolls), Footer (pinned at the
+    bottom). The chevron sits in the footer row by default, or the header row.
+*@
+
+@* "#ib-shell-closed" matches no element: it clears :target without scrolling to the top as "#" would. *@
+<a class="ib-shell-backdrop" href="#ib-shell-closed" tabindex="-1" aria-hidden="true"></a>
+<nav @attributes="AdditionalAttributes" id="@Id" aria-label="@Label" class="@_class" style="@_style">
+    <div class="ib-shell-sidebar-inner">
+        <div class="ib-shell-sidebar-close">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm" href="#ib-shell-closed" role="button" aria-label="@CloseLabel" data-ib-shell-close>
+                <Icon Role="IconRole.Close" />
+            </a>
+        </div>
+        @if (Header is not null)
+        {
+            <div class="ib-shell-sidebar-head">
+                <div class="ib-shell-sidebar-slot">@Header</div>
+                @if (ChevronAt(VerticalPosition.Top))
+                {
+                    @CollapseControl
+                }
+            </div>
+        }
+        else if (ChevronAt(VerticalPosition.Top))
+        {
+            @CollapseControl
+        }
+        <div class="ib-shell-sidebar-body">
+            @ChildContent
+        </div>
+        @if (Footer is not null)
+        {
+            <div class="ib-shell-sidebar-foot">
+                <div class="ib-shell-sidebar-slot">@Footer</div>
+                @if (ChevronAt(VerticalPosition.Bottom))
+                {
+                    @CollapseControl
+                }
+            </div>
+        }
+        else if (ChevronAt(VerticalPosition.Bottom))
+        {
+            @CollapseControl
+        }
+    </div>
+</nav>
+
+@code {
+    /// <summary>
+    /// Which side it's on. <see cref="SidebarPosition.Start"/> (the default) is the left in
+    /// left-to-right languages; the drawer slides in from the same side.
+    /// </summary>
+    [Parameter] public SidebarPosition Position { get; set; } = SidebarPosition.Start;
+
+    /// <summary>Runs the full height of the window, with the header and footer beside it instead of above and below.</summary>
+    [Parameter] public bool FullHeight { get; set; }
+
+    /// <summary>The width. Defaults to 16rem.</summary>
+    [Parameter] public Length Width { get; set; } = Length.Rem(16);
+
+    /// <summary>Below this width it becomes a drawer. Defaults to <see cref="Breakpoint.Md"/>.</summary>
+    [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.Md;
+
+    /// <summary>The navigation landmark's name for screen readers. Defaults to "Main".</summary>
+    [Parameter] public string Label { get; set; } = "Main";
+
+    /// <summary>The element id, which <see cref="SidebarToggle"/> links to. Defaults to <c>ib-sidebar</c>.</summary>
+    [Parameter] public string Id { get; set; } = "ib-sidebar";
+
+    /// <summary>
+    /// Lets people shrink it to an icon rail on wide screens, with a chevron at its top and
+    /// <see cref="SidebarToggle"/>. Works with JavaScript off; below the breakpoint it is the
+    /// usual drawer.
+    /// </summary>
+    [Parameter] public bool Collapsible { get; set; }
+
+    /// <summary>
+    /// Whether it is collapsed. The starting value when nothing is remembered; with
+    /// <c>@bind-Collapsed</c> on an interactive page, C# follows it and can set it.
+    /// </summary>
+    [Parameter] public bool Collapsed { get; set; }
+
+    /// <summary>Called when someone collapses or expands it (interactive pages).</summary>
+    [Parameter] public EventCallback<bool> CollapsedChanged { get; set; }
+
+    /// <summary>The width when collapsed. Defaults to 3.5rem, room for an icon.</summary>
+    [Parameter] public Length CollapsedWidth { get; set; } = Length.Rem(3.5);
+
+    /// <summary>
+    /// Remembers the choice in a cookie (written by the script, read by the server), so it
+    /// survives reloads and navigation. Defaults to true. The remembered value wins over
+    /// <see cref="Collapsed"/> when the page loads.
+    /// </summary>
+    [Parameter] public bool RememberState { get; set; } = true;
+
+    /// <summary>
+    /// The chevron at the top of the sidebar. By default (<c>null</c>) it shows only when the shell
+    /// has no <see cref="SidebarToggle"/>, which collapses the sidebar on wide screens itself.
+    /// <c>true</c> always shows it; <c>false</c> never does.
+    /// </summary>
+    [Parameter] public bool? CollapseButton { get; set; }
+
+    /// <summary>Where the chevron goes: <see cref="VerticalPosition.Bottom"/> (the default, in the footer row) or <see cref="VerticalPosition.Top"/>.</summary>
+    [Parameter] public VerticalPosition CollapseButtonPosition { get; set; } = VerticalPosition.Bottom;
+
+    /// <summary>
+    /// Pinned to the top of the sidebar, above the scrolling content: a brand or workspace
+    /// switcher. In the icon rail, mark text with <c>class="ib-collapsed-hide"</c>.
+    /// </summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>Pinned to the bottom of the sidebar, below the scrolling content: an account menu or settings.</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>The drawer's close button name. Defaults to "Close menu".</summary>
+    [Parameter] public string CloseLabel { get; set; } = "Close menu";
+
+    /// <summary>The collapse control's accessible name. Defaults to "Collapse sidebar".</summary>
+    [Parameter] public string CollapseLabel { get; set; } = "Collapse sidebar";
+
+
+    private string? _class;
+    private string? _style;
+    private bool _collapsed;
+    private bool _lastCollapsedParam;
+    private bool _initialized;
+    private bool? _remembered;
+    private PersistingComponentStateSubscription? _persisting;
+
+    private bool ChevronAt(VerticalPosition position) => Collapsible && CollapseButtonPosition == position;
+
+    private RenderFragment CollapseControl => __builder =>
+    {
+        <div class="@CollapseClass">
+            <input type="checkbox"
+                   id="@CollapseInputId"
+                   class="ib-shell-collapse-input ib-visually-hidden"
+                   aria-label="@CollapseLabel"
+                   aria-controls="@Id"
+                   checked="@_collapsed"
+                   data-ib-remember="@(RememberState ? CookieName : null)"
+                   data-ib-collapsed="@(_collapsed ? "1" : "0")"
+                   @onchange="OnCollapseChange" />
+            <label for="@CollapseInputId" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-shell-collapse-btn" aria-hidden="true" title="@CollapseLabel">
+                <Icon Role="IconRole.ChevronLeft" Class="ib-shell-collapse-icon" />
+            </label>
+        </div>
+    };
+
+    private string CollapseClass => CollapseButton switch
+    {
+        true => "ib-shell-collapse",
+        false => "ib-shell-collapse ib-shell-collapse-nobutton",
+        null => "ib-shell-collapse ib-shell-collapse-auto",
+    };
+
+    /// <summary>The checkbox's id, which <see cref="SidebarToggle"/> labels: <c>{Id}-collapse</c>.</summary>
+    internal string CollapseInputId => $"{Id}-collapse";
+
+    /// <summary>The cookie that remembers the state: <c>{Id}-collapsed</c>.</summary>
+    internal string CookieName => $"{Id}-collapsed";
+
+    /// <inheritdoc />
+    protected override string Area => "sidebar";
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        if (!Collapsible || !RememberState)
+        {
+            return;
+        }
+
+        // The cookie is there on the server's first render (read through IRequestCookies, which the
+        // IzzyBlazor package registers); an interactive render that follows a prerender gets the
+        // value handed over through persisted state.
+        var state = Services.GetService<PersistentComponentState>();
+        var key = $"ib-sidebar:{Id}";
+        if (state is not null && state.TryTakeFromJson<bool?>(key, out var handedOver) && handedOver is not null)
+        {
+            _remembered = handedOver;
+        }
+        // The reader first: without one (WebAssembly, or no AddIzzyBlazor) there's nothing to check.
+        else if (Services.GetService<IRequestCookies>() is { } cookies && !RendererInfo.IsInteractive && cookies.Get(CookieName) is { } cookie)
+        {
+            _remembered = cookie == "1" ? true : cookie == "0" ? false : null;
+        }
+
+        if (state is not null && _remembered is not null)
+        {
+            var value = _remembered;
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                state.PersistAsJson(key, value);
+                return Task.CompletedTask;
+            });
+        }
+
+        // A bound parent learns the remembered value once the page is interactive.
+        if (_remembered is { } remembered && remembered != Collapsed && RendererInfo.IsInteractive && CollapsedChanged.HasDelegate)
+        {
+            await CollapsedChanged.InvokeAsync(remembered);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        classes.Add($"ib-shell-sidebar-bp-{Breakpoint.Name()}");
+        classes.Add("ib-shell-sidebar-end", Position == SidebarPosition.End);
+        classes.Add("ib-shell-sidebar-full", FullHeight);
+        classes.Add("ib-shell-sidebar-collapsible", Collapsible);
+        styles.AddVar("sidebar-w", StyleValues.Length(Width));
+        if (Collapsible)
+        {
+            styles.AddVar("sidebar-collapsed-w", StyleValues.Length(CollapsedWidth));
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!_initialized)
+        {
+            _initialized = true;
+            _collapsed = _remembered ?? Collapsed;
+        }
+        else if (Collapsed != _lastCollapsedParam)
+        {
+            // Only a change from the parent counts, so a re-render doesn't undo the person's choice.
+            _collapsed = Collapsed;
+        }
+
+        _lastCollapsedParam = Collapsed;
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private async Task OnCollapseChange(ChangeEventArgs e)
+    {
+        _collapsed = e.Value is true || (e.Value is string s && bool.TryParse(s, out var b) && b);
+        await CollapsedChanged.InvokeAsync(_collapsed);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _persisting?.Dispose();
+}

@@ -1,0 +1,62 @@
+@namespace IzzyBlazor
+@inject NavigationManager Navigation
+
+@*
+    A collapsible group of nav items, built on <details>, so it opens and closes with no
+    JavaScript. It starts open when Open is set or the current page is under ActivePrefix;
+    with JavaScript, any group containing the current page also opens itself.
+*@
+
+<li class="ib-nav-li">
+    <details class="ib-nav-group" open="@IsOpen">
+        <summary class="ib-nav-item">
+            @if (Icon is { } icon)
+            {
+                <Icon Name="icon" />
+            }
+            <span class="ib-nav-text">@Label</span>
+            <Icon Role="IconRole.ChevronRight" Class="ib-nav-chevron" />
+        </summary>
+        <ul class="ib-nav ib-nav-vertical ib-nav-sub">
+            @ChildContent
+        </ul>
+    </details>
+</li>
+
+@code {
+    /// <summary>The group's heading.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>An icon before the heading.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Starts open.</summary>
+    [Parameter] public bool Open { get; set; }
+
+    /// <summary>Starts open when the current path is at or below this path, such as <c>/projects</c>.</summary>
+    [Parameter] public string? ActivePrefix { get; set; }
+
+    /// <summary>The items in the group.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool IsOpen
+    {
+        get
+        {
+            if (Open)
+            {
+                return true;
+            }
+
+            if (string.IsNullOrEmpty(ActivePrefix))
+            {
+                return false;
+            }
+
+            var current = new Uri(Navigation.Uri).AbsolutePath.TrimEnd('/');
+            var prefix = Navigation.ToAbsoluteUri(ActivePrefix).AbsolutePath.TrimEnd('/');
+            return current.Equals(prefix, StringComparison.OrdinalIgnoreCase)
+                   || current.StartsWith(prefix + "/", StringComparison.OrdinalIgnoreCase);
+        }
+    }
+}

@@ -1,0 +1,20 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@* A small heading that labels the items below it in a NavMenu. *@
+
+<li @attributes="AdditionalAttributes" class="@_class" style="@_style" role="presentation">@ChildContent</li>
+
+@code {
+    /// <summary>The heading text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-nav-heading");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

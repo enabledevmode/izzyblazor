@@ -1,0 +1,72 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A stack of AccordionItems. Each item is a native <details>, so items open and close with
+    JavaScript off. Exclusive gives every item the same name attribute, so the browser keeps
+    only one open at a time, also without script.
+
+    <Accordion Exclusive Size="ControlSize.Sm">
+        <AccordionItem Title="Shipping">...</AccordionItem>
+        <AccordionItem Title="Returns">...</AccordionItem>
+    </Accordion>
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <CascadingValue Value="_context">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>Keeps only one item open at a time. Opening one closes the others.</summary>
+    [Parameter] public bool Exclusive { get; set; }
+
+    /// <summary>How the items are drawn. Defaults to <see cref="AccordionVariant.Separated"/>.</summary>
+    [Parameter] public AccordionVariant Variant { get; set; } = AccordionVariant.Separated;
+
+    /// <summary>
+    /// Spacing and title size: <see cref="ControlSize.Sm"/> for sidebars and dense pages,
+    /// <see cref="ControlSize.Lg"/> for FAQ pages. Defaults to <see cref="ControlSize.Md"/>.
+    /// </summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>
+    /// Padding inside every item's content, in spacing steps. By default it lines up with the
+    /// titles; <c>0</c> lets content such as a table run edge to edge.
+    /// </summary>
+    [Parameter] public Responsive<int> ContentPadding { get; set; }
+
+    /// <summary>Space between the children of every item's content, in spacing steps.</summary>
+    [Parameter] public Responsive<int> ContentGap { get; set; }
+
+    /// <summary>
+    /// The shared <c>name</c> for exclusive items. Generated when not set; set it to keep
+    /// several accordions in one group.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The <see cref="AccordionItem"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _generatedName = IdGenerator.Next("ib-acc");
+    private AccordionContext _context = new(null, AccordionVariant.Separated);
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-accordion");
+        classes.Add($"ib-accordion-{Variant.Name()}");
+        classes.Add("ib-accordion-sm", Size == ControlSize.Sm);
+        classes.Add("ib-accordion-lg", Size == ControlSize.Lg);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _context = new AccordionContext(Exclusive ? Name ?? _generatedName : null, Variant, ContentPadding, ContentGap);
+        (_class, _style) = BuildRootAttributes();
+    }
+}

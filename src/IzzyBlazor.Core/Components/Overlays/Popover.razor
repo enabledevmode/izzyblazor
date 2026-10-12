@@ -1,0 +1,138 @@
+@namespace IzzyBlazor
+@inherits ToggleComponentBase
+
+@*
+    Floating, non-modal content next to its trigger: filters, a small form, an info card.
+    Same mechanism as Menu (the Popover API), with role="dialog".
+
+    <Popover Label="Filters" Title="Filter results">
+        ...
+    </Popover>
+*@
+
+<ib-popover class="@RootClass"
+            style="@($"anchor-name:{StyleValues.AnchorName(ElementId)}")"
+            data-placement="@Placement.Name()"
+            data-open="@(IsOpen ? "" : null)">
+    @if (Trigger is not null)
+    {
+        @Trigger(_triggerAttributes)
+    }
+    else
+    {
+        <Button Accent="Accent" Variant="Variant" Size="Size" StartIcon="StartIcon" @attributes="_triggerAttributes">@Label</Button>
+    }
+    <div @attributes="AdditionalAttributes"
+         id="@ElementId"
+         popover="@(Mode == PopoverMode.Manual ? "manual" : "auto")"
+         role="dialog"
+         aria-labelledby="@(Title is not null ? TitleId : TriggerId)"
+         class="@_class"
+         style="@_style"
+         @onibtoggle="HandleToggle">
+        @if (Title is not null || ShowClose)
+        {
+            <div class="ib-popover-header">
+                @if (Title is not null)
+                {
+                    <div class="ib-popover-title" id="@TitleId">@Title</div>
+                }
+                @if (ShowClose)
+                {
+                    <button type="button"
+                            class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-popover-close"
+                            popovertarget="@ElementId"
+                            popovertargetaction="hide"
+                            aria-label="Close">
+                        <Icon Role="IconRole.Close" />
+                    </button>
+                }
+            </div>
+        }
+        @ChildContent
+    </div>
+</ib-popover>
+
+@code {
+    /// <summary>The default trigger's text.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The default trigger's color. Defaults to <see cref="Accent.Neutral"/>.</summary>
+    [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
+
+    /// <summary>The default trigger's weight. Defaults to <see cref="ButtonVariant.Outline"/>.</summary>
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Outline;
+
+    /// <summary>The default trigger's size.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>An icon before the default trigger's text.</summary>
+    [Parameter] public IconData? StartIcon { get; set; }
+
+    /// <summary>
+    /// A custom trigger in place of the default button. Pass its context on with
+    /// <c>@attributes="context"</c>. It must be a <c>button</c>.
+    /// </summary>
+    [Parameter] public RenderFragment<IReadOnlyDictionary<string, object>>? Trigger { get; set; }
+
+    /// <summary>A heading at the top, which also names the popover for screen readers.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Shows a close button at the top. Always shown in <see cref="PopoverMode.Manual"/> unless set to false.</summary>
+    [Parameter] public bool? ShowCloseButton { get; set; }
+
+    /// <summary>How it closes. Defaults to <see cref="PopoverMode.Auto"/>: Escape, a click outside, or another popover opening.</summary>
+    [Parameter] public PopoverMode Mode { get; set; } = PopoverMode.Auto;
+
+    /// <summary>Where it opens. Defaults to <see cref="Placement.BottomStart"/>.</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
+
+    /// <summary>The content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private IReadOnlyDictionary<string, object> _triggerAttributes = new Dictionary<string, object>();
+    private string? _class;
+    private string? _style;
+
+    private string TriggerId => $"{ElementId}-trigger";
+
+    private string TitleId => $"{ElementId}-title";
+
+    private bool ShowClose => ShowCloseButton ?? Mode == PopoverMode.Manual;
+
+    /// <inheritdoc />
+    protected override string IdPrefix => "ib-popover";
+
+    private string RootClass => VisibilityClasses is { } visibility ? $"ib-pop-root {visibility}" : "ib-pop-root";
+
+    /// <inheritdoc />
+    protected override bool VisibilityOnRoot => false;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-pop");
+        classes.Add("ib-popover");
+        classes.Add($"ib-place-{Placement.Name()}");
+        styles.AddRaw($"position-anchor:{StyleValues.AnchorName(ElementId)}");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Trigger is null && string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Popover needs a Label for its button, or a Trigger.");
+        }
+
+        _triggerAttributes = new Dictionary<string, object>
+        {
+            ["id"] = TriggerId,
+            ["popovertarget"] = ElementId,
+            ["aria-haspopup"] = "dialog",
+            ["aria-controls"] = ElementId,
+        };
+        (_class, _style) = BuildRootAttributes();
+    }
+}

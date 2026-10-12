@@ -1,0 +1,65 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    Code: inline (a <code> in running text) or a Block (<pre><code>) that scrolls sideways.
+    A block's copy button needs script, so it only appears once <ib-code> is defined; with no
+    script the code is still there to select and copy by hand.
+*@
+
+@if (Block)
+{
+    <ib-code @attributes="AdditionalAttributes" class="@_class" style="@_style">
+        @if (Language is not null || Copyable)
+        {
+            <div class="ib-code-bar">
+                @if (Language is not null)
+                {
+                    <span class="ib-code-language">@Language</span>
+                }
+                @if (Copyable)
+                {
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only ib-code-copy" aria-label="@CopyLabel" title="@CopyLabel" data-copied-label="@CopiedLabel">
+                        <Icon Role="IconRole.Copy" Class="ib-code-copy-icon" />
+                        <Icon Role="IconRole.Copied" Class="ib-code-copied-icon" />
+                    </button>
+                }
+            </div>
+        }
+        <pre class="ib-code-pre" tabindex="0"><code>@ChildContent</code></pre>
+    </ib-code>
+}
+else
+{
+    <code @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</code>
+}
+
+@code {
+    /// <summary>The code. In a block, whitespace and line breaks are kept as written.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>A block of code on its own lines (<c>pre</c>), scrolling sideways when long.</summary>
+    [Parameter] public bool Block { get; set; }
+
+    /// <summary>A label above a block, such as "razor" or "bash".</summary>
+    [Parameter] public string? Language { get; set; }
+
+    /// <summary>Adds a copy button to a block (with JavaScript). Defaults to true.</summary>
+    [Parameter] public bool Copyable { get; set; } = true;
+
+    /// <summary>The copy button's name. Defaults to "Copy code".</summary>
+    [Parameter] public string CopyLabel { get; set; } = "Copy code";
+
+    /// <summary>Announced after copying. Defaults to "Copied".</summary>
+    [Parameter] public string CopiedLabel { get; set; } = "Copied";
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+        classes.Add(Block ? "ib-code-block" : "ib-code");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

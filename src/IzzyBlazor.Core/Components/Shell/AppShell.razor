@@ -1,0 +1,68 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    The page frame. Put the parts you need inside it, in any order; the shell arranges itself
+    from the parts that are present, with CSS alone, so it renders correctly on static pages:
+
+    <AppShell>
+        <AppHeader> <SidebarToggle /> <strong>My app</strong> </AppHeader>
+        <AppSidebar> <NavMenu>...</NavMenu> </AppSidebar>
+        <AppMain> @Body </AppMain>
+        <AppAside> On this page </AppAside>
+        <AppFooter> © My app </AppFooter>
+    </AppShell>
+
+    Each part owns its settings: colors, sticky header and footer, sidebar side, width,
+    breakpoint and full height. The shell owns what applies to the whole frame: what scrolls
+    and whether the parts are separated by lines.
+*@
+
+<ib-shell @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <a class="ib-skip-link" href="@($"#{MainId}")">Skip to content</a>
+    <CascadingValue Value="_context" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</ib-shell>
+
+@code {
+    /// <summary>The parts: <see cref="AppHeader"/>, <see cref="AppSidebar"/>, <see cref="AppMain"/>, <see cref="AppAside"/>, <see cref="AppFooter"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// What scrolls: the whole page (<see cref="ShellScroll.Page"/>, the default) or only the main
+    /// area inside a window-filling frame (<see cref="ShellScroll.Main"/>).
+    /// </summary>
+    [Parameter] public ShellScroll ScrollMode { get; set; } = ShellScroll.Page;
+
+    /// <summary>
+    /// Lines between the parts. Defaults to true; set false when the parts' colors separate them,
+    /// or for one flat surface.
+    /// </summary>
+    [Parameter] public bool Dividers { get; set; } = true;
+
+    /// <summary>The main area's id, which the skip link targets. Defaults to <c>ib-main</c>.</summary>
+    [Parameter] public string MainId { get; set; } = "ib-main";
+
+    private AppShellContext _context = null!;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-shell");
+        classes.Add(ScrollMode == ShellScroll.Main ? "ib-shell-scroll-main" : "ib-shell-scroll-page");
+        if (!Dividers)
+        {
+            styles.AddVar("shell-divider", "transparent");
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _context ??= new AppShellContext(MainId);
+        (_class, _style) = BuildRootAttributes();
+    }
+}

@@ -1,0 +1,206 @@
+/* Accordion, AccordionItem, Collapsible: all native <details> */
+@layer izzy.components {
+  .ib-disclosure > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .ib-disclosure > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .ib-disclosure > summary:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  /* Disabled items: no pointer, out of the tab order; the script also blocks the toggle. */
+  .ib-disclosure-disabled > summary {
+    pointer-events: none;
+    color: var(--ib-color-disabled);
+  }
+
+  /* Height animation with no script, where the browser supports it. */
+  @supports selector(::details-content) {
+    .ib-disclosure {
+      interpolate-size: allow-keywords;
+    }
+
+    .ib-disclosure::details-content {
+      block-size: 0;
+      overflow: clip;
+      transition:
+        block-size var(--ib-duration-normal) var(--ib-ease),
+        content-visibility var(--ib-duration-normal) allow-discrete;
+    }
+
+    .ib-disclosure[open]::details-content {
+      block-size: auto;
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      .ib-disclosure::details-content {
+        transition: none;
+      }
+    }
+  }
+
+  /*
+   * Accordion. Size sets the spacing as custom properties, so the title row and the
+   * content share one inline edge:
+   *   --ib-acc-px        side padding of the title and the content
+   *   --ib-acc-py        title row padding, top and bottom
+   *   --ib-acc-content-py content padding above and below (equal, so the content sits
+   *                      centered in its area the way the title sits in its row)
+   *   --ib-acc-content-gap space between the content's children
+   */
+  .ib-accordion {
+    --ib-acc-px: var(--ib-space-4);
+    --ib-acc-py: var(--ib-space-3);
+    --ib-acc-font: var(--ib-text-md);
+    --ib-acc-content-py: var(--ib-space-4);
+    --ib-acc-content-font: var(--ib-text-md);
+    --ib-acc-content-gap: var(--ib-space-3);
+
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-accordion-sm {
+    --ib-acc-px: var(--ib-space-3);
+    --ib-acc-py: var(--ib-space-2);
+    --ib-acc-font: var(--ib-text-sm);
+    --ib-acc-content-py: var(--ib-space-3);
+    --ib-acc-content-font: var(--ib-text-sm);
+    --ib-acc-content-gap: var(--ib-space-2);
+  }
+
+  .ib-accordion-lg {
+    --ib-acc-px: var(--ib-space-5);
+    --ib-acc-py: var(--ib-space-4);
+    --ib-acc-font: var(--ib-text-lg);
+    --ib-acc-content-py: var(--ib-space-5);
+    --ib-acc-content-gap: var(--ib-space-4);
+  }
+
+  .ib-accordion-flush {
+    --ib-acc-px: 0;
+  }
+
+  .ib-accordion-trigger {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    padding: var(--ib-acc-py) var(--ib-acc-px);
+    font-size: var(--ib-acc-font);
+    font-weight: var(--ib-weight-medium);
+    border-radius: inherit;
+    transition: background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-accordion-trigger:hover {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-accordion-trigger:focus-visible {
+    outline-offset: -2px;
+  }
+
+  .ib-accordion-title {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ib-accordion-chevron {
+    flex: none;
+    color: var(--ib-color-muted);
+    transition: rotate var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-accordion-item[open] > summary .ib-accordion-chevron {
+    rotate: 180deg;
+  }
+
+  /* The content is a column: children are spaced by the gap, so most content needs no wrapper. */
+  .ib-accordion-panel {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-acc-content-gap);
+    padding: var(--ib-acc-content-py) var(--ib-acc-px);
+    font-size: var(--ib-acc-content-font);
+  }
+
+  .ib-accordion-separated {
+    gap: var(--ib-space-2);
+  }
+
+  .ib-accordion-separated > .ib-accordion-item {
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface);
+  }
+
+  .ib-accordion-bordered {
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface);
+  }
+
+  .ib-accordion-bordered > .ib-accordion-item + .ib-accordion-item,
+  .ib-accordion-flush > .ib-accordion-item + .ib-accordion-item {
+    border-top: 1px solid var(--ib-color-border);
+  }
+
+  .ib-accordion-bordered > .ib-accordion-item:first-child > summary {
+    border-radius: var(--ib-radius-md) var(--ib-radius-md) 0 0;
+  }
+
+  .ib-accordion-bordered > .ib-accordion-item:last-child:not([open]) > summary {
+    border-radius: 0 0 var(--ib-radius-md) var(--ib-radius-md);
+  }
+
+  .ib-accordion-flush > .ib-accordion-item > .ib-accordion-trigger {
+    border-radius: 0;
+  }
+
+  .ib-accordion-flush > .ib-accordion-item > .ib-accordion-trigger:hover {
+    background-color: transparent;
+    color: var(--ib-color-primary-text);
+  }
+
+  /* Collapsible */
+  .ib-collapsible-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+    border-radius: var(--ib-radius-sm);
+    color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-collapsible-trigger:hover {
+    text-decoration: underline;
+    text-underline-offset: 0.2em;
+  }
+
+  .ib-collapsible-chevron {
+    transition: rotate var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-collapsible[open] > summary .ib-collapsible-chevron {
+    rotate: 90deg;
+  }
+
+  /* Right-to-left: mirror the chevron so it points left, then turn it down when open. */
+  .ib-collapsible-chevron:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-collapsible[open] > summary .ib-collapsible-chevron:dir(rtl) {
+    rotate: -90deg;
+  }
+
+  .ib-collapsible-panel {
+    padding-top: var(--ib-space-2);
+  }
+}

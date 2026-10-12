@@ -1,0 +1,56 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@* One step of a Breadcrumb: a link, or the current page when it has no Href. *@
+
+<li class="@LiClass">
+    @if (Href is not null && !Current)
+    {
+        <a @attributes="AdditionalAttributes" href="@Href" class="@_class" style="@_style">
+            @if (Icon is { } icon)
+            {
+                <Icon Name="icon" />
+            }
+            @ChildContent
+        </a>
+    }
+    else
+    {
+        <span @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-current="@(Current || Href is null ? "page" : null)">
+            @if (Icon is { } icon)
+            {
+                <Icon Name="icon" />
+            }
+            @ChildContent
+        </span>
+    }
+</li>
+
+@code {
+    /// <summary>Where it links. Leave it out for the current page.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>Marks this as the current page even though it has a link (it renders as text).</summary>
+    [Parameter] public bool Current { get; set; }
+
+    /// <summary>An icon before the text, such as a house for Home.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>The text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    private string LiClass => VisibilityClasses is { } visibility ? $"ib-breadcrumb-item {visibility}" : "ib-breadcrumb-item";
+
+    /// <inheritdoc />
+    protected override bool VisibilityOnRoot => false;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+        classes.Add(Href is not null && !Current ? "ib-breadcrumb-link" : "ib-breadcrumb-current");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

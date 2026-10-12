@@ -1,0 +1,233 @@
+@* Table: sorting and paging through the URL. Works with JavaScript off. *@
+
+<Stack Gap="8">
+
+    <Example Title="Sorting and paging in the URL" Note="Column headers and page numbers are links that set ?sort= and ?page=, so the table works with JavaScript off, survives a reload, and can be shared. Click a header again to reverse it. Numbers line up on the right." Code="@OrdersCode">
+        <Table Items="Orders" PageSize="10" InitialSort="-date" Caption="Orders" id="orders">
+            <PropertyColumn Property="o => o.Number" Title="Order" />
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
+            <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+                <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+            </TemplateColumn>
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+        </Table>
+    </Example>
+
+    <Example Title="Selection, row links and totals" Note="@SelectNote" Code="@SelectCode">
+        <form method="post" @onsubmit="Archive" @formname="archive" style="display:flex;flex-direction:column;gap:0.75rem">
+            <AntiforgeryToken />
+            <Table Items="Orders.Take(6)" Caption="Recent orders" QueryPrefix="s-" id="selectable"
+                   Selectable ItemKey="OrderKey" RowLabel="OrderLabel"
+                   @bind-SelectedKeys="_selectedKeys"
+                   RowHref="OrderHref">
+                <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
+                <PropertyColumn Property="o => o.Customer" />
+                <TemplateColumn Title="Status">
+                    <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                </TemplateColumn>
+                <PropertyColumn Property="o => o.Total" Format="C" FooterText="@RecentTotal" />
+            </Table>
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive selected</Button>
+                @if (_archived is not null)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="archived">Archived: @(_archived.Count == 0 ? "nothing selected" : string.Join(", ", _archived.Select(k => "#" + k)))</TextBlock>
+                }
+                @if (OpenOrder is not null)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="opened">Opened order #@OpenOrder</TextBlock>
+                }
+            </Row>
+        </form>
+    </Example>
+
+    <Example Title="Filtering" Note="@FilterNote" Code="@FilterCode">
+        <Stack Gap="3">
+            <FilterForm Label="Filter orders" id="order-filters">
+                <FilterSearch Placeholder="Search customers" />
+                <FilterSelect Name="status" Label="Status" Items="Statuses" />
+                <FilterCheckbox Name="large" Label="Over $300" />
+            </FilterForm>
+            <Table Items="FilteredOrders" PageSize="5" QueryPrefix="f-" Caption="Filtered orders" EmptyText="No orders match" id="filtered">
+                <PropertyColumn Property="o => o.Number" Title="Order" />
+                <PropertyColumn Property="o => o.Customer" Sortable />
+                <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+                    <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                </TemplateColumn>
+                <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+            </Table>
+        </Stack>
+    </Example>
+
+    <Example Title="Loading pages yourself" Note="ItemsProvider gets the requested sort and page; TableRequest.Apply() sorts and pages your query (EF Core translates it). On interactive pages the rows dim while a page loads (Loading sets it yourself). QueryPrefix gives this table its own keys, so it pages independently of the one above." Code="@ProviderCode">
+        <Table TItem="Product" ItemsProvider="LoadProducts" PageSize="5" QueryPrefix="p-" Caption="Products" Size="ControlSize.Sm" Striped id="products">
+            <PropertyColumn Property="p => p.Name" Sortable />
+            <PropertyColumn Property="p => p.Stock" Format="N0" Sortable />
+            <PropertyColumn Property="p => p.Price" Format="C" Sortable />
+        </Table>
+    </Example>
+
+    <Example Title="Scrolling and empty states" Note="MaxHeight scrolls the rows under a sticky header. Wide tables scroll sideways on small screens." Code="@ScrollCode">
+        <Stack Gap="4">
+            <Table Items="Orders.Take(20)" MaxHeight="16.Rem" Caption="Recent orders" QueryPrefix="r-">
+                <PropertyColumn Property="o => o.Number" Title="Order" />
+                <PropertyColumn Property="o => o.Customer" />
+                <PropertyColumn Property="o => o.Total" Format="C" />
+            </Table>
+            <Table Items="@(Array.Empty<Order>())" Caption="Refunds" EmptyText="No refunds yet" QueryPrefix="e-">
+                <PropertyColumn Property="o => o.Number" Title="Order" />
+                <PropertyColumn Property="o => o.Total" Format="C" />
+            </Table>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    public sealed record Order(string Number, string Customer, DateOnly Date, string Status, decimal Total);
+
+    public sealed record Product(string Name, int Stock, decimal Price);
+
+    private static readonly string[] Customers = ["Ada Lovelace", "Grace Hopper", "Alan Turing", "Katherine Johnson", "Linus Torvalds", "Margaret Hamilton", "Dennis Ritchie", "Barbara Liskov"];
+
+    private static readonly string[] Statuses = ["Paid", "Pending", "Refunded", "Failed"];
+
+    private static readonly IReadOnlyList<Order> Orders = Enumerable.Range(1, 57)
+        .Select(i => new Order($"#{1000 + i}", Customers[i * 7 % Customers.Length], new DateOnly(2026, 1, 1).AddDays(i * 5 % 280), Statuses[i * 3 % 7 % Statuses.Length], Math.Round(19.5m + i * 37.25m % 480m, 2)))
+        .ToList();
+
+    private static readonly IReadOnlyList<Product> Products = new[] { "Keyboard", "Mouse", "Monitor", "Webcam", "Headset", "Dock", "Cable", "Stand", "Lamp", "Chair", "Desk", "Mic" }
+        .Select((name, i) => new Product(name, i * 37 % 200, 9.99m + i * 23))
+        .ToList();
+
+    private async ValueTask<TableResult<Product>> LoadProducts(TableRequest<Product> request)
+    {
+        // A real app would query a database here: request.Apply(db.Products). On interactive
+        // pages a short delay stands in for one, so the loading state shows when paging (static
+        // pages wait for every table before responding, so they'd only get slower).
+        if (RendererInfo.IsInteractive)
+        {
+            await Task.Delay(500);
+        }
+
+        var query = Products.AsQueryable();
+        var page = request.Apply(query).ToList();
+        return new TableResult<Product>(page, query.Count());
+    }
+
+    [Inject] private NavigationManager Navigation { get; set; } = default!;
+
+    // Selection: posted as ?selected= form fields on static pages, bound on interactive ones.
+    [SupplyParameterFromForm(FormName = "archive", Name = "s-selected")] private string[]? PostedKeys { get; set; }
+    [SupplyParameterFromQuery(Name = "order")] private string? OpenOrder { get; set; }
+    private IReadOnlyCollection<string>? _selectedKeys;
+    private static string OrderKey(Order o) => o.Number.TrimStart('#');
+    private static string OrderLabel(Order o) => $"order {o.Number}";
+    private string OrderHref(Order o) => Navigation.GetUriWithQueryParameter("order", OrderKey(o));
+    private static string RecentTotal => Orders.Take(6).Sum(o => o.Total).ToString("C");
+    private IReadOnlyCollection<string>? _archived;
+
+    protected override void OnInitialized() => _selectedKeys = PostedKeys;
+
+    private void Archive() => _archived = (IReadOnlyCollection<string>?)PostedKeys ?? _selectedKeys ?? [];
+
+    private string SelectNote => "Selectable adds a checkbox per row that posts its ItemKey with the form, so Archive works with JavaScript off; with it, the header checkbox selects the page. RowHref makes the whole row a link while the checkboxes stay clickable. Columns take FooterText for a footer row. " +
+        (RendererInfo.IsInteractive ? "Here @bind-SelectedKeys follows the checkboxes in C#." : "Here the posted keys arrive through [SupplyParameterFromForm].");
+
+    [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
+
+    [SupplyParameterFromQuery(Name = "status")] private string? StatusFilter { get; set; }
+
+    [SupplyParameterFromQuery(Name = "large")] private bool Large { get; set; }
+
+    // The page filters its own data; the table sorts and pages whatever it's given.
+    private IEnumerable<Order> FilteredOrders => Orders
+        .Where(o => string.IsNullOrWhiteSpace(Search) || o.Customer.Contains(Search, StringComparison.OrdinalIgnoreCase))
+        .Where(o => string.IsNullOrEmpty(StatusFilter) || o.Status == StatusFilter)
+        .Where(o => !Large || o.Total > 300);
+
+    private string FilterNote => "FilterForm puts its values in the URL (?q=, ?status=, ?large=) and the page filters its own data with [SupplyParameterFromQuery]. " +
+        (RendererInfo.IsInteractive
+            ? "It applies as you type, through Blazor's navigation."
+            : "With JavaScript it applies as you type, without a reload; without it, press Enter or Apply. The table's sort is kept and paging starts over.");
+
+    private static Status StatusOf(string status) => status switch
+    {
+        "Paid" => Status.Success,
+        "Pending" => Status.Warning,
+        "Failed" => Status.Danger,
+        _ => Status.Neutral,
+    };
+
+    private const string OrdersCode =
+        """
+        <Table Items="orders" PageSize="10" InitialSort="-date" Caption="Orders">
+            <PropertyColumn Property="o => o.Number" Title="Order" />
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
+            <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+                <Badge>@context.Status</Badge>
+            </TemplateColumn>
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+        </Table>
+        """;
+
+    private const string SelectCode =
+        """
+        <form method="post" @onsubmit="Archive" @formname="archive">
+            <AntiforgeryToken />
+            <Table Items="orders" Selectable ItemKey="o => o.Id" @bind-SelectedKeys="selected"
+                   RowHref="o => $"orders/{o.Id}"" RowLabel="o => $"order {o.Number}"">
+                <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
+                <PropertyColumn Property="o => o.Total" Format="C" FooterText="@total.ToString("C")" />
+            </Table>
+            <Button Type="ButtonType.Submit">Archive selected</Button>
+        </form>
+
+        @code {
+            // Static pages: the checked rows post as "selected" (QueryPrefix + "selected").
+            [SupplyParameterFromForm(FormName = "archive", Name = "selected")] string[]? Selected { get; set; }
+        }
+        """;
+
+    private const string FilterCode =
+        """
+        <FilterForm>
+            <FilterSearch Placeholder="Search customers" />
+            <FilterSelect Name="status" Label="Status" Items="statuses" />
+            <FilterCheckbox Name="large" Label="Over $300" />
+        </FilterForm>
+
+        <Table Items="FilteredOrders" PageSize="5">...</Table>
+
+        @code {
+            [SupplyParameterFromQuery] public string? Q { get; set; }
+            [SupplyParameterFromQuery] public string? Status { get; set; }
+            [SupplyParameterFromQuery] public bool Large { get; set; }
+
+            IQueryable<Order> FilteredOrders => db.Orders
+                .Where(o => Q == null || o.Customer.Contains(Q))
+                .Where(o => Status == null || o.Status == Status)
+                .Where(o => !Large || o.Total > 300);
+        }
+        """;
+
+    private const string ProviderCode =
+        """
+        <Table TItem="Product" ItemsProvider="LoadProducts" PageSize="5" QueryPrefix="p-">...</Table>
+
+        async ValueTask<TableResult<Product>> LoadProducts(TableRequest<Product> request)
+        {
+            var query = db.Products.Where(p => p.Active);
+            var page = await request.Apply(query).ToListAsync();
+            return new(page, await query.CountAsync());
+        }
+        """;
+
+    private const string ScrollCode =
+        """
+        <Table Items="orders" MaxHeight="16.Rem">...</Table>
+        <Table Items="refunds" EmptyText="No refunds yet">...</Table>
+        """;
+}

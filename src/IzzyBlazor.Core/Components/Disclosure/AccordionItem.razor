@@ -1,0 +1,107 @@
+@namespace IzzyBlazor
+@inherits ToggleComponentBase
+
+@*
+    One section of an Accordion: a native <details> with the title in its <summary>.
+    The browser opens and closes it; on interactive pages @bind-Open follows along.
+*@
+
+<details @attributes="AdditionalAttributes"
+         id="@ElementId"
+         class="@_class"
+         style="@_style"
+         name="@Accordion?.Name"
+         open="@IsOpen"
+         @onibtoggle="HandleToggle">
+    <summary class="ib-accordion-trigger"
+             aria-disabled="@(Disabled ? "true" : null)"
+             tabindex="@(Disabled ? "-1" : null)">
+        @if (Icon is { } icon)
+        {
+            <Icon Name="icon" />
+        }
+        <span class="ib-accordion-title">
+            @if (Header is not null)
+            {
+                @Header
+            }
+            else
+            {
+                @Title
+            }
+        </span>
+        <Icon Role="IconRole.ChevronDown" Class="ib-accordion-chevron" />
+    </summary>
+    <div class="@_panelClass" style="@_panelStyle">
+        @ChildContent
+    </div>
+</details>
+
+@code {
+    /// <summary>The heading text. Use <see cref="Header"/> for richer content.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Heading content, in place of <see cref="Title"/>. Keep it to inline content: it sits in a <c>summary</c>.</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>An icon before the heading.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Stops the item from being opened or closed.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Padding inside the content, in spacing steps, in place of the accordion's. <c>0</c> lets
+    /// content such as a table or image run edge to edge.
+    /// </summary>
+    [Parameter] public Responsive<int> ContentPadding { get; set; }
+
+    /// <summary>Space between the content's children, in spacing steps, in place of the accordion's.</summary>
+    [Parameter] public Responsive<int> ContentGap { get; set; }
+
+    /// <summary>
+    /// The content. It is laid out as a column with a gap, so paragraphs, lists and buttons are
+    /// spaced without a wrapper.
+    /// </summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private AccordionContext? Accordion { get; set; }
+
+    private string? _class;
+    private string? _style;
+    private string? _panelClass;
+    private string? _panelStyle;
+
+    /// <inheritdoc />
+    protected override string IdPrefix => "ib-acc-item";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-accordion-item");
+        classes.Add("ib-disclosure");
+        classes.Add("ib-disclosure-disabled", Disabled);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        if (Title is null && Header is null)
+        {
+            throw new InvalidOperationException("AccordionItem needs a Title or a Header.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+
+        var padding = ContentPadding.IsEmpty ? Accordion?.ContentPadding ?? default : ContentPadding;
+        var gap = ContentGap.IsEmpty ? Accordion?.ContentGap ?? default : ContentGap;
+        var classes = new ClassBuilder().Add("ib-accordion-panel");
+        var styles = new StyleBuilder();
+        ApplyResponsive(classes, styles, padding, "ib-px", "px", StyleValues.Spacing);
+        ApplyResponsive(classes, styles, padding, "ib-py", "py", StyleValues.Spacing);
+        ApplyResponsive(classes, styles, gap, "ib-gap", "gap", StyleValues.Spacing);
+        _panelClass = classes.Build();
+        _panelStyle = styles.Build();
+    }
+}

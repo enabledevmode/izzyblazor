@@ -1,0 +1,42 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    The path to the current page. Plain links, so it needs no script.
+
+    <Breadcrumb>
+        <BreadcrumbItem Href="/">Home</BreadcrumbItem>
+        <BreadcrumbItem Href="/projects">Projects</BreadcrumbItem>
+        <BreadcrumbItem>Website</BreadcrumbItem>
+    </Breadcrumb>
+*@
+
+<nav @attributes="AdditionalAttributes" aria-label="@Label" class="@_class" style="@_style">
+    <ol class="ib-breadcrumb-list">
+        @ChildContent
+    </ol>
+</nav>
+
+@code {
+    /// <summary>The <see cref="BreadcrumbItem"/>s. The last one, with no link, is the current page.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>What goes between items. Defaults to <see cref="BreadcrumbSeparator.Chevron"/>.</summary>
+    [Parameter] public BreadcrumbSeparator Separator { get; set; } = BreadcrumbSeparator.Chevron;
+
+    /// <summary>The navigation landmark's name. Defaults to "Breadcrumb".</summary>
+    [Parameter] public string Label { get; set; } = "Breadcrumb";
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-breadcrumb");
+        classes.Add("ib-breadcrumb-slash", Separator == BreadcrumbSeparator.Slash);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

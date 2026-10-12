@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    The package server apps install. It adds the pieces that need the ASP.NET Core server (the
+    request's cookies) to IzzyBlazor.Core, which holds every component, the CSS and the JS and
+    also runs in WebAssembly.
+  -->
+  <PropertyGroup>
+    <PackageId>IzzyBlazor</PackageId>
+    <Description>Static-SSR-first Blazor components with a Chakra-style developer experience. Every component works without interactivity and gets better with it. Install this in server apps; WebAssembly (.Client) projects reference IzzyBlazor.Core.</Description>
+    <PackageTags>blazor;components;ssr;static-ssr;ui;design-system</PackageTags>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\IzzyBlazor.Core\IzzyBlazor.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="IzzyBlazor.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="$(RepoRoot)THIRD-PARTY-NOTICES.md" Pack="true" PackagePath="\" Visible="false" />
+  </ItemGroup>
+
+</Project>

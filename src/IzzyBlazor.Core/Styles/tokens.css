@@ -1,0 +1,211 @@
+/*
+ * Design tokens. A theme is a stylesheet that overrides these properties. Colors are
+ * light-dark(light, dark), so one override covers both schemes everywhere:
+ *   :root { --ib-color-primary: light-dark(#0f766e, #2dd4bf); }
+ *
+ * Dark mode follows the operating system unless the page sets
+ * data-theme="light" or data-theme="dark" on <html>.
+ */
+@layer izzy.tokens {
+  :root {
+    color-scheme: light dark;
+
+    /* Spacing scale: one step = 4px at the default 16px root size. */
+    --ib-space-0: 0;
+    --ib-space-1: 0.25rem;
+    --ib-space-2: 0.5rem;
+    --ib-space-3: 0.75rem;
+    --ib-space-4: 1rem;
+    --ib-space-5: 1.25rem;
+    --ib-space-6: 1.5rem;
+    --ib-space-7: 1.75rem;
+    --ib-space-8: 2rem;
+    --ib-space-9: 2.25rem;
+    --ib-space-10: 2.5rem;
+    --ib-space-11: 2.75rem;
+    --ib-space-12: 3rem;
+    --ib-space-13: 3.5rem;
+    --ib-space-14: 4rem;
+    --ib-space-15: 5rem;
+    --ib-space-16: 6rem;
+
+    /* Radius */
+    --ib-radius-none: 0;
+    --ib-radius-sm: 0.25rem;
+    --ib-radius-md: 0.375rem;
+    --ib-radius-lg: 0.5rem;
+    --ib-radius-xl: 0.75rem;
+    --ib-radius-full: 9999px;
+
+    /* Sizes, matching the breakpoints, plus a readable line length */
+    --ib-size-sm: 640px;
+    --ib-size-md: 768px;
+    --ib-size-lg: 1024px;
+    --ib-size-xl: 1280px;
+    --ib-size-prose: 68ch;
+
+    /* Type */
+    --ib-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ib-font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --ib-font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    --ib-text-xs: 0.75rem;
+    --ib-text-sm: 0.875rem;
+    --ib-text-md: 1rem;
+    --ib-text-lg: 1.125rem;
+    --ib-text-xl: 1.25rem;
+    --ib-text-2xl: 1.5rem;
+    --ib-text-3xl: 1.875rem;
+    --ib-text-4xl: 2.25rem;
+    --ib-text-5xl: 3rem;
+    --ib-text-6xl: 3.75rem;
+
+    --ib-leading-none: 1;
+    --ib-leading-tight: 1.25;
+    --ib-leading-snug: 1.375;
+    --ib-leading-normal: 1.5;
+    --ib-leading-relaxed: 1.625;
+    --ib-leading-loose: 2;
+
+    --ib-tracking-tighter: -0.05em;
+    --ib-tracking-tight: -0.025em;
+    --ib-tracking-normal: 0;
+    --ib-tracking-wide: 0.025em;
+    --ib-tracking-wider: 0.05em;
+    --ib-tracking-widest: 0.1em;
+
+    --ib-weight-light: 300;
+    --ib-weight-normal: 400;
+    --ib-weight-medium: 500;
+    --ib-weight-semibold: 600;
+    --ib-weight-bold: 700;
+    --ib-weight-extrabold: 800;
+
+    /* Motion */
+    --ib-duration-fast: 120ms;
+    --ib-duration-normal: 200ms;
+    --ib-ease: cubic-bezier(0.2, 0, 0, 1);
+
+    /* Color: light-dark(light, dark). The element's color-scheme picks the half, so the
+       schemes below only set color-scheme, and a theme overrides each color once. */
+    --ib-color-primary: light-dark(#4f46e5, #818cf8);
+    --ib-color-on-primary: light-dark(#ffffff, #0b0b1f);
+    --ib-color-success: light-dark(#15803d, #4ade80);
+    --ib-color-on-success: light-dark(#ffffff, #052e14);
+    --ib-color-warning: light-dark(#b45309, #fbbf24);
+    --ib-color-on-warning: light-dark(#ffffff, #2d1a02);
+    --ib-color-danger: light-dark(#dc2626, #f87171);
+    --ib-color-on-danger: light-dark(#ffffff, #2a0606);
+    --ib-color-info: light-dark(#0369a1, #38bdf8);
+    --ib-color-on-info: light-dark(#ffffff, #04202e);
+    --ib-color-neutral: light-dark(#64748b, #94a3b8);
+    --ib-color-on-neutral: light-dark(#ffffff, #0b1220);
+
+    --ib-color-surface: light-dark(#ffffff, #0f1115);
+    --ib-color-surface-container: light-dark(#f4f5f7, #181b21);
+    --ib-color-surface-container-high: light-dark(#e9ebef, #22262e);
+    /* Floating surfaces (dialogs, menus, popovers): in dark mode they are lighter than the
+       page, since shadows barely show on dark backgrounds. */
+    --ib-color-surface-raised: light-dark(#ffffff, #1c1f27);
+    --ib-color-raised-border: light-dark(transparent, rgb(255 255 255 / 0.08));
+    --ib-color-backdrop: light-dark(rgb(15 23 42 / 0.5), rgb(0 0 0 / 0.6));
+    --ib-color-on-surface: light-dark(#0f172a, #e6e8ec);
+    --ib-color-muted: light-dark(#5b6474, #9aa3b2);
+    --ib-color-subtle: light-dark(#68707f, #828b9b);
+    --ib-color-disabled: light-dark(#a3aab6, #565d6a);
+    --ib-color-border: light-dark(#d9dde4, #2e333d);
+    /* Control edges: about 2:1 against surface, darker than decorative borders so an
+       empty field reads as a box, without outweighing the labels. */
+    --ib-color-outline: light-dark(#aeb4bf, #474e5a);
+
+    /* Accents tuned for text on surfaces: at least 4.5:1 on surface and surface-container. */
+    --ib-color-primary-text: light-dark(#4338ca, #a5b4fc);
+    --ib-color-success-text: light-dark(#166534, #4ade80);
+    --ib-color-warning-text: light-dark(#92400e, #fbbf24);
+    --ib-color-danger-text: light-dark(#b91c1c, #f87171);
+    --ib-color-info-text: light-dark(#0369a1, #38bdf8);
+    --ib-color-focus: light-dark(#4f46e5, #818cf8);
+
+    --ib-shadow-none: none;
+    --ib-shadow-sm: 0 1px 2px light-dark(rgb(15 23 42 / 0.08), rgb(0 0 0 / 0.4));
+    --ib-shadow-md: 0 4px 12px light-dark(rgb(15 23 42 / 0.10), rgb(0 0 0 / 0.45));
+    --ib-shadow-lg: 0 12px 32px light-dark(rgb(15 23 42 / 0.14), rgb(0 0 0 / 0.5));
+  }
+
+  /*
+   * Color schemes. Every color above is light-dark(), so a scheme is just color-scheme: the page
+   * follows the system (light dark), or chooses with data-theme on <html>; any element can do the
+   * same, so part of a page can use the other scheme:
+   *   data-theme="dark|light" on any element, or the classes .ib-scheme-dark, .ib-scheme-light
+   *   .ib-scheme-inverse                the opposite of the page's scheme
+   * The scheme classes also set the text and background color (base.css).
+   */
+  [data-theme="dark"],
+  .ib-scheme-dark {
+    color-scheme: dark;
+  }
+
+  [data-theme="light"],
+  .ib-scheme-light {
+    color-scheme: light;
+  }
+
+  /* Inverse: the opposite of the page, whether the page chose or follows the system. */
+  :root[data-theme="light"] .ib-scheme-inverse {
+    color-scheme: dark;
+  }
+
+  :root[data-theme="dark"] .ib-scheme-inverse {
+    color-scheme: light;
+  }
+
+  @media (prefers-color-scheme: light) {
+    :root:not([data-theme="light"], [data-theme="dark"]) .ib-scheme-inverse {
+      color-scheme: dark;
+    }
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"], [data-theme="dark"]) .ib-scheme-inverse {
+      color-scheme: light;
+    }
+  }
+
+  /* Browsers without light-dark() (before 2024) get the light colors everywhere. */
+  @supports not (color: light-dark(#000, #fff)) {
+    :root {
+      --ib-color-primary: #4f46e5;
+      --ib-color-on-primary: #ffffff;
+      --ib-color-success: #15803d;
+      --ib-color-on-success: #ffffff;
+      --ib-color-warning: #b45309;
+      --ib-color-on-warning: #ffffff;
+      --ib-color-danger: #dc2626;
+      --ib-color-on-danger: #ffffff;
+      --ib-color-info: #0369a1;
+      --ib-color-on-info: #ffffff;
+      --ib-color-neutral: #64748b;
+      --ib-color-on-neutral: #ffffff;
+      --ib-color-surface: #ffffff;
+      --ib-color-surface-container: #f4f5f7;
+      --ib-color-surface-container-high: #e9ebef;
+      --ib-color-surface-raised: #ffffff;
+      --ib-color-raised-border: transparent;
+      --ib-color-backdrop: rgb(15 23 42 / 0.5);
+      --ib-color-on-surface: #0f172a;
+      --ib-color-muted: #5b6474;
+      --ib-color-subtle: #68707f;
+      --ib-color-disabled: #a3aab6;
+      --ib-color-border: #d9dde4;
+      --ib-color-outline: #aeb4bf;
+      --ib-color-primary-text: #4338ca;
+      --ib-color-success-text: #166534;
+      --ib-color-warning-text: #92400e;
+      --ib-color-danger-text: #b91c1c;
+      --ib-color-info-text: #0369a1;
+      --ib-color-focus: #4f46e5;
+      --ib-shadow-sm: 0 1px 2px rgb(15 23 42 / 0.08);
+      --ib-shadow-md: 0 4px 12px rgb(15 23 42 / 0.10);
+      --ib-shadow-lg: 0 12px 32px rgb(15 23 42 / 0.14);
+    }
+  }
+}

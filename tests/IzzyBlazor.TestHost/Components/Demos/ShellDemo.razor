@@ -1,0 +1,190 @@
+<Stack Gap="8">
+
+    <Example Title="AppShell" Note="A full page in a frame. Phone width on the left (drawer navigation), wide on the right (sidebar and aside). The frames are live: try the menu button." Code="@ShellCode">
+        <Stack Gap="4">
+            <Row Gap="4" Wrap Align="Align.Start">
+                <iframe class="host-frame host-frame-phone" src="preview/app-shell" title="AppShell at phone width"></iframe>
+                <iframe class="host-frame host-frame-wide" src="preview/app-shell" title="AppShell at desktop width"></iframe>
+            </Row>
+            <Row Gap="2">
+                <LinkButton Href="preview/app-shell" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Open full page</LinkButton>
+            </Row>
+        </Stack>
+    </Example>
+
+    <Example Title="Sidebar on the end side" Note="Position=&quot;SidebarPosition.End&quot; on AppSidebar puts the sidebar on the right (in left-to-right languages); on phones the drawer slides in from the right, and the aside moves to the left." Code="@EndCode">
+        <Row Gap="4" Wrap Align="Align.Start">
+            <iframe class="host-frame host-frame-phone" src="preview/app-shell?side=end" title="End-side AppShell at phone width"></iframe>
+            <iframe class="host-frame host-frame-wide" src="preview/app-shell?side=end" title="End-side AppShell at desktop width"></iframe>
+        </Row>
+    </Example>
+
+    <Example Title="Full-height sidebar" Note="FullHeight on AppSidebar runs it from the top of the window to the bottom, with the header and footer beside it. The brand moves into the sidebar's Header, which matches the AppHeader's height so the two read as one bar." Code="@FullCode">
+        <iframe class="host-frame" style="width:100%" src="preview/app-shell?full=on&amp;slots=on&amp;look=tinted&amp;lines=off" title="AppShell with a full-height sidebar"></iframe>
+    </Example>
+
+    <Example Title="Collapsible sidebar" Note="@CollapseNote" Code="@CollapseCode">
+        <Stack Gap="4">
+            <TextBlock As="span" Class="host-label">With SidebarToggle: the menu button collapses it</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?collapse=on" title="AppShell with a collapsible sidebar"></iframe>
+            <TextBlock As="span" Class="host-label">No SidebarToggle: the sidebar shows its own chevron</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?collapse=on&amp;toggle=off" title="AppShell with a collapsible sidebar and no menu button"></iframe>
+            <TextBlock As="span" Class="host-label">Header (a project switcher, since the brand is in AppHeader) and Footer; chevron at the bottom (the default)</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?collapse=on&amp;toggle=off&amp;slots=on" title="Collapsible sidebar with a header and footer"></iframe>
+            <TextBlock As="span" Class="host-label">CollapseButtonPosition="VerticalPosition.Top"</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?collapse=on&amp;toggle=off&amp;slots=on&amp;chevron=top" title="Collapsible sidebar with the chevron in the header row"></iframe>
+            <TextBlock As="span" Class="host-label">Interactive, with @@bind-Collapsed</TextBlock>
+            <iframe class="host-frame" style="width:100%;height:22rem" src="preview/app-shell-live" title="Interactive AppShell with a bound collapsible sidebar"></iframe>
+        </Stack>
+    </Example>
+
+    <Example Title="Scrolling" Note="Sticky header (the default) and footer keep their place while the page scrolls. ScrollMode.Main makes the shell fill the window and scrolls only the main area, like a desktop app." Code="@ScrollCode">
+        <Stack Gap="4">
+            <TextBlock As="span" Class="host-label">Sticky footer</TextBlock>
+            <iframe class="host-frame" style="width:100%;height:22rem" src="preview/app-shell?footer=on" title="AppShell with a sticky footer"></iframe>
+            <TextBlock As="span" Class="host-label">ScrollMode.Main</TextBlock>
+            <iframe class="host-frame" style="width:100%;height:22rem" src="preview/app-shell?scroll=main" title="AppShell where only the main area scrolls"></iframe>
+        </Stack>
+    </Example>
+
+    <Example Title="Colors and dividers" Note="Each part takes Bg (the sidebar and aside colors run the full height), and Dividers on AppShell turns the lines between parts on or off. Mix them: one color with lines, tinted chrome without lines, and so on." Code="@AreaCode">
+        <Stack Gap="4">
+            <TextBlock As="span" Class="host-label">Tinted chrome, no lines</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?look=tinted&amp;lines=off" title="AppShell with tinted chrome and no dividers"></iframe>
+            <TextBlock As="span" Class="host-label">Tinted chrome, with lines</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?look=tinted" title="AppShell with tinted chrome and dividers"></iframe>
+            <TextBlock As="span" Class="host-label">One surface, no lines</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?lines=off" title="AppShell with one surface and no dividers"></iframe>
+        </Stack>
+    </Example>
+
+    <Example Title="Color schemes" Note="Scheme on a part gives it its own color scheme: a dark sidebar or header in a light app. Everything inside follows, including menus opened from it. Inverse is the opposite of the page." Code="@SchemeCode">
+        <Stack Gap="4">
+            <TextBlock As="span" Class="host-label">Dark sidebar</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?full=on&amp;slots=on&amp;sb=dark&amp;collapse=on" title="AppShell with a dark sidebar"></iframe>
+            <TextBlock As="span" Class="host-label">Dark header</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?hd=dark" title="AppShell with a dark header"></iframe>
+        </Stack>
+    </Example>
+
+    <Example Title="This dev host" Note="The page around this demo uses AppShell and NavMenu too. Narrow the window to see its drawer." />
+
+    <Example Title="NavMenu" Note="Icons, badges, labels, dividers, and groups built on details, so they open and close with no JavaScript. The active item is worked out on the server." Code="@NavCode">
+        <Box MaxWidth="16.Rem">
+            <NavMenu>
+                <NavLabel>Workspace</NavLabel>
+                <NavItem Href="static/shell" Icon="Lucide.LayoutDashboard">This page (active)</NavItem>
+                <NavItem Href="static/forms" Icon="Lucide.Inbox" Badge="12" BadgeColor="Color.Primary">Forms</NavItem>
+                <NavGroup Label="Layout" Icon="Lucide.Columns2" Open>
+                    <NavItem Href="static/box">Box</NavItem>
+                    <NavItem Href="static/stack">Stack</NavItem>
+                </NavGroup>
+                <NavDivider />
+                <NavItem Href="static/icons" Icon="Lucide.Shapes">Icons</NavItem>
+            </NavMenu>
+        </Box>
+    </Example>
+
+    <Example Title="Horizontal NavMenu" Code="@HorizontalCode">
+        <NavMenu Orientation="Orientation.Horizontal">
+            <NavItem Href="static/shell">Overview</NavItem>
+            <NavItem Href="static/buttons">Buttons</NavItem>
+            <NavItem Href="static/forms" Badge="New" BadgeStatus="Status.Success">Forms</NavItem>
+        </NavMenu>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string CollapseNote =
+        "Collapsible turns the sidebar into an icon rail on wide screens. The menu button collapses it; with no SidebarToggle in the shell, a chevron appears in the sidebar instead (CollapseButton forces it on or off). " +
+        "With JavaScript off it's a checkbox and CSS; with JavaScript the choice is kept in a cookie the server reads, " +
+        "so reloads arrive collapsed; on interactive pages @bind-Collapsed follows it. Labels show as tooltips, and opening a group expands the sidebar.";
+
+    private const string CollapseCode =
+        """
+        <AppSidebar Collapsible>...</AppSidebar>
+
+        <AppSidebar Collapsible>
+            <Header>
+                <Row Gap="2"><Icon Name="Lucide.Zap" /><TextBlock As="span" Class="ib-collapsed-hide">Acme Inc.</TextBlock></Row>
+            </Header>
+            <ChildContent><NavMenu>...</NavMenu></ChildContent>
+            <Footer>
+                <NavMenu><NavItem Href="account" Icon="Lucide.CircleUser">Ada Lovelace</NavItem></NavMenu>
+            </Footer>
+        </AppSidebar>
+
+        <!-- Interactive pages: follow it and set it from C# -->
+        <AppSidebar Collapsible @bind-Collapsed="collapsed">...</AppSidebar>
+        """;
+
+    private const string SchemeCode =
+        """
+        <AppSidebar Scheme="Scheme.Dark">...</AppSidebar>
+        <AppHeader Scheme="Scheme.Inverse">...</AppHeader>
+        """;
+
+    private const string AreaCode =
+        """
+        <AppShell Dividers="false">
+            <AppHeader Bg="Color.SurfaceContainer">...</AppHeader>
+            <AppSidebar Bg="Color.SurfaceContainer">...</AppSidebar>
+            <AppMain>@Body</AppMain>
+            <AppAside Bg="Color.SurfaceContainer">...</AppAside>
+            <AppFooter Bg="Color.SurfaceContainer">...</AppFooter>
+        </AppShell>
+        """;
+
+    private const string FullCode =
+        """
+        <AppSidebar FullHeight Bg="Color.SurfaceContainer">
+            <Header>(your brand: the row matches AppHeader's height)</Header>
+            <ChildContent><NavMenu>...</NavMenu></ChildContent>
+        </AppSidebar>
+        """;
+
+    private const string ScrollCode =
+        """
+        <AppFooter Position="BarPosition.Sticky">...</AppFooter>
+
+        <AppShell ScrollMode="ShellScroll.Main">...</AppShell>
+        """;
+
+    private const string ShellCode =
+        """
+        <AppShell>
+            <AppHeader>
+                <SidebarToggle />
+                <strong>Acme</strong>
+            </AppHeader>
+            <AppSidebar>
+                <NavMenu>
+                    <NavItem Href="/" Icon="Lucide.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
+                    <NavItem Href="/inbox" Icon="Lucide.Inbox" Badge="4">Inbox</NavItem>
+                </NavMenu>
+            </AppSidebar>
+            <AppMain>@Body</AppMain>
+            <AppAside>On this page...</AppAside>
+            <AppFooter>© Acme</AppFooter>
+        </AppShell>
+        """;
+
+    private const string EndCode =
+        """<AppSidebar Position="SidebarPosition.End">...</AppSidebar>""";
+
+    private const string NavCode =
+        """
+        <NavMenu>
+            <NavLabel>Workspace</NavLabel>
+            <NavItem Href="/inbox" Icon="Lucide.Inbox" Badge="12">Inbox</NavItem>
+            <NavGroup Label="Layout" Icon="Lucide.Columns2" ActivePrefix="/layout">
+                <NavItem Href="/layout/box">Box</NavItem>
+            </NavGroup>
+            <NavDivider />
+        </NavMenu>
+        """;
+
+    private const string HorizontalCode =
+        """<NavMenu Orientation="Orientation.Horizontal">...</NavMenu>""";
+}

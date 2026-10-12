@@ -1,0 +1,92 @@
+@namespace IzzyBlazor
+@inherits FieldBase<string?>
+
+@*
+    A single-line text input with label, hint and errors.
+    <TextField @bind-Value="Model.Email" StartIcon="Lucide.Mail" />
+*@
+
+<FieldFrame Class="@WrapperClass("text")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-field-control class="@ControlClass">
+        @if (StartIcon is { } start)
+        {
+            <Icon Name="start" Class="ib-field-icon ib-field-icon-start" />
+        }
+        <input @attributes="ControlAttributes"
+               id="@FieldId"
+               class="ib-field-input"
+               type="@InputType"
+               name="@NameAttributeValue"
+               @bind="CurrentValueAsString"
+               placeholder="@Placeholder"
+               autocomplete="@AutoComplete"
+               required="@IsRequired"
+               maxlength="@(MaxLength ?? AnnotatedMaxLength)"
+               minlength="@(MinLength ?? AnnotatedMinLength)"
+               disabled="@Disabled"
+               readonly="@ReadOnly"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy" />
+        @if (ResolvedType == TextFieldType.Password && Reveal)
+        {
+            <button type="button" class="ib-field-reveal" data-ib-reveal hidden aria-label="Show password" aria-pressed="false">
+                <Icon Role="IconRole.Show" Class="ib-reveal-show" />
+                <Icon Role="IconRole.Hide" Class="ib-reveal-hide" />
+            </button>
+        }
+        else if (EndIcon is { } end)
+        {
+            <Icon Name="end" Class="ib-field-icon ib-field-icon-end" />
+        }
+    </ib-field-control>
+</FieldFrame>
+
+@code {
+    /// <summary>The kind of text. Defaults from the model: <c>[EmailAddress]</c>, <c>[Phone]</c>, <c>[Url]</c>, <c>[DataType(DataType.Password)]</c>; otherwise text.</summary>
+    [Parameter] public TextFieldType? Type { get; set; }
+
+    /// <summary>Example text shown when empty. Not a substitute for a label.</summary>
+    [Parameter] public string? Placeholder { get; set; }
+
+    /// <summary>The browser autofill hint, such as <c>email</c>, <c>name</c>, <c>new-password</c>.</summary>
+    [Parameter] public string? AutoComplete { get; set; }
+
+    /// <summary>Maximum length. Defaults to <c>[StringLength]</c> or <c>[MaxLength]</c>.</summary>
+    [Parameter] public int? MaxLength { get; set; }
+
+    /// <summary>Minimum length. Defaults to <c>[StringLength(MinimumLength)]</c> or <c>[MinLength]</c>.</summary>
+    [Parameter] public int? MinLength { get; set; }
+
+    /// <summary>An icon inside the field, before the text.</summary>
+    [Parameter] public IconData? StartIcon { get; set; }
+
+    /// <summary>An icon inside the field, after the text. Ignored for passwords with <see cref="Reveal"/>.</summary>
+    [Parameter] public IconData? EndIcon { get; set; }
+
+    /// <summary>For passwords: a button that shows or hides the text. Appears once scripts run. Defaults to true.</summary>
+    [Parameter] public bool Reveal { get; set; } = true;
+
+    private TextFieldType ResolvedType => Type
+        ?? (Attribute<System.ComponentModel.DataAnnotations.EmailAddressAttribute>() is not null ? TextFieldType.Email
+        : Attribute<System.ComponentModel.DataAnnotations.PhoneAttribute>() is not null ? TextFieldType.Tel
+        : Attribute<System.ComponentModel.DataAnnotations.UrlAttribute>() is not null ? TextFieldType.Url
+        : Attribute<System.ComponentModel.DataAnnotations.DataTypeAttribute>()?.DataType == System.ComponentModel.DataAnnotations.DataType.Password ? TextFieldType.Password
+        : TextFieldType.Text);
+
+    private string InputType => ResolvedType switch
+    {
+        TextFieldType.Email => "email",
+        TextFieldType.Password => "password",
+        TextFieldType.Search => "search",
+        TextFieldType.Tel => "tel",
+        TextFieldType.Url => "url",
+        _ => "text",
+    };
+
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control")
+        .Add("ib-has-start", StartIcon is not null)
+        .Add("ib-has-end", EndIcon is not null || (ResolvedType == TextFieldType.Password && Reveal))
+        .Build()!;
+}

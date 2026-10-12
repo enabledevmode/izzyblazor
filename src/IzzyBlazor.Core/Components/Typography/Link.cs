@@ -1,0 +1,88 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+
+namespace IzzyBlazor;
+
+/// <summary>How a <see cref="Link"/> is underlined.</summary>
+public enum LinkUnderline
+{
+    /// <summary>Always underlined (the default): clearest in running text.</summary>
+    Always,
+
+    /// <summary>Underlined on hover, for links whose color and place already say "link".</summary>
+    Hover,
+
+    /// <summary>Never underlined.</summary>
+    None,
+}
+
+/// <summary>
+/// A text link in the accent color. <see cref="External"/> opens it in a new tab, with an icon
+/// and a note for screen readers.
+/// </summary>
+/// <example>
+/// <code>
+/// Read the &lt;Link Href="/docs"&gt;docs&lt;/Link&gt;.
+/// &lt;Link Href="https://github.com/..." External&gt;GitHub&lt;/Link&gt;
+/// </code>
+/// </example>
+public class Link : IzzyComponentBase
+{
+    /// <summary>Where it goes.</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>Opens in a new tab (<c>target="_blank" rel="noopener noreferrer"</c>), with an icon after the text.</summary>
+    [Parameter] public bool External { get; set; }
+
+    /// <summary>When it's underlined. Defaults to <see cref="LinkUnderline.Always"/>.</summary>
+    [Parameter] public LinkUnderline Underline { get; set; } = LinkUnderline.Always;
+
+    /// <summary>Uses the surrounding text color instead of the accent, still underlined, for links in muted text or on colored backgrounds.</summary>
+    [Parameter] public bool Inherit { get; set; }
+
+    /// <summary>Read to screen readers after an external link's text. Defaults to "(opens in a new tab)".</summary>
+    [Parameter] public string NewTabLabel { get; set; } = "(opens in a new tab)";
+
+    /// <summary>The link text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-link");
+        classes.Add("ib-link-hover", Underline == LinkUnderline.Hover);
+        classes.Add("ib-link-plain", Underline == LinkUnderline.None);
+        classes.Add("ib-link-inherit", Inherit);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        var (cssClass, style) = BuildRootAttributes();
+        builder.OpenElement(0, "a");
+        builder.AddMultipleAttributes(1, AdditionalAttributes);
+        builder.AddAttribute(2, "href", Href);
+        builder.AddAttribute(3, "class", cssClass);
+        builder.AddAttribute(4, "style", style);
+        if (External)
+        {
+            builder.AddAttribute(5, "target", "_blank");
+            builder.AddAttribute(6, "rel", "noopener noreferrer");
+        }
+
+        builder.AddContent(7, ChildContent);
+        if (External)
+        {
+            builder.OpenComponent<Icon>(8);
+            builder.AddComponentParameter(9, nameof(Icon.Role), IconRole.ExternalLink);
+            builder.AddComponentParameter(10, nameof(Icon.Class), "ib-link-icon");
+            builder.CloseComponent();
+            builder.OpenElement(11, "span");
+            builder.AddAttribute(12, "class", "ib-visually-hidden");
+            builder.AddContent(13, $" {NewTabLabel}");
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    }
+}

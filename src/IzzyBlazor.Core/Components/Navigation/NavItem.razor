@@ -1,0 +1,150 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    One navigation link. The active state is worked out on the server from the current URL,
+    so it is right on static pages and after enhanced navigation.
+*@
+
+<li class="@LiClass">
+    <a @attributes="AdditionalAttributes"
+       class="@_class"
+       style="@_style"
+       href="@Href"
+       aria-current="@(_active ? (_exact ? "page" : "true") : null)">
+        @if (Icon is { } icon)
+        {
+            <Icon Name="icon" />
+        }
+        <span class="ib-nav-text">@ChildContent</span>
+        @if (Badge is not null)
+        {
+            <Badge Size="BadgeSize.Sm" Pill Status="BadgeStatus" Color="BadgeColor">@Badge</Badge>
+        }
+    </a>
+</li>
+
+@code {
+    /// <summary>The destination.</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>An icon before the text.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>
+    /// How the current URL must match <see cref="Href"/> to be active. <c>Prefix</c> (the default) also
+    /// matches pages below it; <c>All</c> matches only the exact page. A root link ("/") always needs an exact match.
+    /// </summary>
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+
+    /// <summary>A small count or label after the text, such as "3" or "New".</summary>
+    [Parameter] public string? Badge { get; set; }
+
+    /// <summary>What the badge means. Defaults to neutral.</summary>
+    [Parameter] public Status BadgeStatus { get; set; } = Status.Neutral;
+
+    /// <summary>A custom badge color, such as <c>Color.Primary</c> for an unread count.</summary>
+    [Parameter] public Color? BadgeColor { get; set; }
+
+    /// <summary>The link text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool _active;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _active = IsActive(Navigation.Uri);
+        _exact = IsExact(Navigation.Uri);
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    // HiddenFrom and VisibleFrom hide the whole list item, not just the link inside it.
+    private string LiClass => VisibilityClasses is { } visibility ? $"ib-nav-li {visibility}" : "ib-nav-li";
+
+    /// <inheritdoc />
+    protected override bool VisibilityOnRoot => false;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-nav-item");
+        classes.Add("ib-nav-item-active", _active);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        var active = IsActive(e.Location);
+        var exact = IsExact(e.Location);
+        if (active != _active || exact != _exact)
+        {
+            _active = active;
+            _exact = exact;
+            (_class, _style) = BuildRootAttributes();
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    // aria-current="page" only for the page itself; a section above it gets "true", so a
+    // screen reader hears one current page.
+    private bool _exact;
+
+    private bool IsExact(string currentUri) =>
+        SameSite(currentUri, out var target, out var current) && string.Equals(current, target, StringComparison.OrdinalIgnoreCase);
+
+    // Links to other sites are never current, even when their path matches.
+    private bool SameSite(string currentUri, out string target, out string current)
+    {
+        target = current = "";
+        if (string.IsNullOrEmpty(Href))
+        {
+            return false;
+        }
+
+        var targetUri = Navigation.ToAbsoluteUri(Href);
+        var currentUriParsed = new Uri(currentUri);
+        if (!string.Equals(targetUri.Authority, currentUriParsed.Authority, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        target = Path(targetUri);
+        current = Path(currentUriParsed);
+        return true;
+    }
+
+    /// <summary>Whether <paramref name="currentUri"/> matches this item's link.</summary>
+    internal bool IsActive(string currentUri)
+    {
+        if (!SameSite(currentUri, out var target, out var current))
+        {
+            return false;
+        }
+
+        if (string.Equals(current, target, StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return Match == NavLinkMatch.Prefix
+               && target != "/"
+               && current.StartsWith(target + "/", StringComparison.OrdinalIgnoreCase);
+    }
+
+    private static string Path(Uri uri)
+    {
+        var path = uri.AbsolutePath;
+        return path.Length > 1 ? path.TrimEnd('/') : path;
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

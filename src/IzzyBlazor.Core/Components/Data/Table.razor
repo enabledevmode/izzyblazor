@@ -1,0 +1,540 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    A data table that sorts and pages through the URL: column headers and page numbers are
+    links that set ?sort= and ?page=, so it works on static pages with no script, survives
+    reloads, and can be shared. On interactive pages the same links navigate without a reload
+    and the table follows the URL.
+
+    Give it Items (a list, or an IQueryable that EF Core translates) and it sorts and pages them,
+    or an ItemsProvider to load each page yourself.
+
+    Selectable adds a checkbox per row: it posts the row's ItemKey with the surrounding form, and
+    @bind-SelectedKeys follows it on interactive pages. RowHref makes each row a link. Columns
+    take FooterText or Footer for a footer row.
+
+    <Table Items="orders" PageSize="10" Caption="Orders">
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+        <TemplateColumn Title="Status"><Badge>@context.Status</Badge></TemplateColumn>
+    </Table>
+*@
+
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+        @ColumnsReadyNotifier
+    </CascadingValue>
+    <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? "Table")" tabindex="0" style="@ScrollStyle">
+        <table class="ib-table-grid" aria-busy="@(IsLoading ? "true" : null)">
+            @if (Caption is not null)
+            {
+                <caption class="ib-visually-hidden">@Caption</caption>
+            }
+            <thead>
+                <tr>
+                    @if (Selectable)
+                    {
+                        @* Select all (this page): script only; it checks the rows, which report their own changes. *@
+                        <th scope="col" class="ib-table-select-cell">
+                            <input type="checkbox" class="ib-table-select-all" aria-label="@SelectAllLabel" checked="@AllOnPageSelected" />
+                        </th>
+                    }
+                    @foreach (var column in _columns)
+                    {
+                        <th scope="col" class="@CellClass(column)" style="@WidthStyle(column)" aria-sort="@AriaSort(column)">
+                            @if (column.CanSort)
+                            {
+                                <a href="@SortHref(column)" class="ib-table-sort">
+                                    <span>@column.HeaderText</span>
+                                    <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
+                                </a>
+                            }
+                            else
+                            {
+                                @column.HeaderText
+                            }
+                        </th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @if (_items.Count == 0 && IsLoading)
+                {
+                    @for (var i = 0; i < SkeletonRows; i++)
+                    {
+                        <tr class="ib-table-skeleton-row" aria-hidden="true">
+                            @if (Selectable)
+                            {
+                                <td class="ib-table-select-cell"></td>
+                            }
+                            @foreach (var column in _columns)
+                            {
+                                <td class="@CellClass(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
+                            }
+                        </tr>
+                    }
+                }
+                else if (_items.Count == 0)
+                {
+                    <tr class="ib-table-empty">
+                        <td colspan="@Math.Max(1, _columns.Count + (Selectable ? 1 : 0))">
+                            @if (EmptyContent is not null)
+                            {
+                                @EmptyContent
+                            }
+                            else
+                            {
+                                @EmptyText
+                            }
+                        </td>
+                    </tr>
+                }
+                else
+                {
+                    @foreach (var item in _items)
+                    {
+                        var key = KeyOf(item);
+                        var href = RowHref?.Invoke(item);
+                        <tr class="@RowClasses(item, href)">
+                            @if (Selectable)
+                            {
+                                <td class="ib-table-select-cell">
+                                    <input type="checkbox" class="ib-table-select" name="@EffectiveSelectionName" value="@key"
+                                           aria-label="@($"{SelectRowLabel} {LabelOf(item)}")"
+                                           checked="@IsSelected(key)"
+                                           @onchange="e => OnSelectChanged(key, e)" />
+                                </td>
+                            }
+                            @{ var first = true; }
+                            @foreach (var column in _columns)
+                            {
+                                <td class="@CellClass(column)">
+                                    @if (first && href is not null)
+                                    {
+                                        @* One link per row, stretched over it; controls in the row stay clickable above it. *@
+                                        <a class="ib-table-row-link" href="@href"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
+                                    }
+                                    @column.Cell(item)
+                                </td>
+                                first = false;
+                            }
+                        </tr>
+                    }
+                }
+            </tbody>
+            @if (_columns.Any(c => c.HasFooter))
+            {
+                <tfoot>
+                    <tr>
+                        @if (Selectable)
+                        {
+                            <td class="ib-table-select-cell"></td>
+                        }
+                        @foreach (var column in _columns)
+                        {
+                            <td class="@CellClass(column)">@(column.HasFooter ? column.FooterCell : null)</td>
+                        }
+                    </tr>
+                </tfoot>
+            }
+        </table>
+    </div>
+    @if (PageSize is { } size && _total > 0)
+    {
+        <div class="ib-table-footer">
+            @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
+            <span class="ib-table-summary" role="status">@Summary(size)</span>
+            <Pagination Page="_page" TotalItems="_total" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
+        </div>
+    }
+</ib-table>
+
+@code {
+    /// <summary>The items. A list is sorted and paged in memory; an <c>IQueryable</c> (such as an EF Core query) is sorted and paged by the database.</summary>
+    [Parameter] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Loads one page of items yourself, in place of <see cref="Items"/>. Use <see cref="TableRequest{TItem}.Apply"/> on your query.</summary>
+    [Parameter] public Func<TableRequest<TItem>, ValueTask<TableResult<TItem>>>? ItemsProvider { get; set; }
+
+    /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/> and <see cref="TemplateColumn{TItem}"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Items per page. Leave it out to show every item.</summary>
+    [Parameter] public int? PageSize { get; set; }
+
+    /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending).</summary>
+    [Parameter] public string? InitialSort { get; set; }
+
+    /// <summary>
+    /// Prefix for this table's query-string keys, so several tables can share a page:
+    /// <c>QueryPrefix="orders-"</c> uses <c>?orders-sort=</c> and <c>?orders-page=</c>.
+    /// </summary>
+    [Parameter] public string QueryPrefix { get; set; } = "";
+
+    /// <summary>The table's name for screen readers (a visually hidden caption).</summary>
+    [Parameter] public string? Caption { get; set; }
+
+    /// <summary>Shown when there are no items. Defaults to <see cref="EmptyText"/>.</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>The text when there are no items. Defaults to "No items".</summary>
+    [Parameter] public string EmptyText { get; set; } = "No items";
+
+    /// <summary>A class for each row, such as one that highlights overdue orders.</summary>
+    [Parameter] public Func<TItem, string?>? RowClass { get; set; }
+
+    /// <summary>Alternating row backgrounds.</summary>
+    [Parameter] public bool Striped { get; set; }
+
+    /// <summary>Row height and text size. <see cref="ControlSize.Sm"/> for dense data. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>A height limit: the rows scroll and the header stays in view.</summary>
+    [Parameter] public Length? MaxHeight { get; set; }
+
+    /// <summary>
+    /// A unique, stable key for each item, such as its id. Selection posts and binds these keys.
+    /// Defaults to the item's string form.
+    /// </summary>
+    [Parameter] public Func<TItem, string>? ItemKey { get; set; }
+
+    /// <summary>
+    /// Adds a checkbox to each row. Inside a form, the checked rows post their <see cref="ItemKey"/>
+    /// under <see cref="SelectionName"/>; on interactive pages <c>@bind-SelectedKeys</c> follows them.
+    /// With script, a header checkbox selects every row on the page.
+    /// </summary>
+    [Parameter] public bool Selectable { get; set; }
+
+    /// <summary>The form field name the checked rows post under. Defaults to <c>"{QueryPrefix}selected"</c>.</summary>
+    [Parameter] public string? SelectionName { get; set; }
+
+    /// <summary>The keys of the selected rows (on any page). Read the posted ones with <c>[SupplyParameterFromForm]</c> on static pages.</summary>
+    [Parameter] public IReadOnlyCollection<string>? SelectedKeys { get; set; }
+
+    /// <summary>Raised when rows are selected or cleared on interactive pages.</summary>
+    [Parameter] public EventCallback<IReadOnlyCollection<string>> SelectedKeysChanged { get; set; }
+
+    /// <summary>
+    /// Makes each row a link, such as to the item's details page. The whole row is clickable;
+    /// links, buttons and checkboxes inside it still work on their own.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? RowHref { get; set; }
+
+    /// <summary>Names a row for screen readers, in its link and its checkbox. Defaults to <see cref="ItemKey"/>.</summary>
+    [Parameter] public Func<TItem, string>? RowLabel { get; set; }
+
+    /// <summary>Shows the table as loading: rows dim, or placeholder rows show while there are none. Set automatically while an <see cref="ItemsProvider"/> loads on interactive pages.</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>The header checkbox's name for screen readers. Defaults to "Select all rows".</summary>
+    [Parameter] public string SelectAllLabel { get; set; } = "Select all rows";
+
+    /// <summary>The start of each row checkbox's name for screen readers, before <see cref="RowLabel"/>. Defaults to "Select".</summary>
+    [Parameter] public string SelectRowLabel { get; set; } = "Select";
+
+    private readonly List<ColumnBase<TItem>> _columns = [];
+    private IReadOnlyList<TItem> _items = [];
+    private int _total;
+    private int _page = 1;
+    private string? _sortKey;
+    private bool _descending;
+    private bool _columnsReady;
+    private string? _class;
+    private string? _style;
+    private bool _providerLoading;
+    private HashSet<string> _selected = new(StringComparer.Ordinal);
+    private IReadOnlyCollection<string>? _paramKeys;
+    private IReadOnlyCollection<string>? _reportedKeys;
+
+    private bool IsLoading => Loading || _providerLoading;
+
+    private int SkeletonRows => Math.Clamp(PageSize ?? 5, 1, 10);
+
+    private string KeyOf(TItem item) => ItemKey?.Invoke(item) ?? item?.ToString() ?? "";
+
+    private string LabelOf(TItem item) => RowLabel?.Invoke(item) ?? KeyOf(item);
+
+    private string EffectiveSelectionName => SelectionName ?? $"{QueryPrefix}selected";
+
+    private bool IsSelected(string key) => _selected.Contains(key);
+
+    private bool AllOnPageSelected => _items.Count > 0 && _items.All(i => _selected.Contains(KeyOf(i)));
+
+    private string? RowClasses(TItem item, string? href)
+    {
+        var classes = string.Join(' ', new[] { RowClass?.Invoke(item), href is null ? null : "ib-table-row-linked" }.Where(c => !string.IsNullOrEmpty(c)));
+        return classes.Length > 0 ? classes : null;
+    }
+
+    private async Task OnSelectChanged(string key, ChangeEventArgs e)
+    {
+        var on = e.Value is true || (e.Value is string text && bool.TryParse(text, out var parsed) && parsed);
+        if (on ? !_selected.Add(key) : !_selected.Remove(key))
+        {
+            return;
+        }
+
+        var keys = _selected.ToArray();
+        _reportedKeys = keys;
+        await SelectedKeysChanged.InvokeAsync(keys);
+    }
+
+    // Rendered after the columns: its initialization runs once they have registered.
+    private RenderFragment ColumnsReadyNotifier => builder =>
+    {
+        builder.OpenComponent<TableColumnsReady>(0);
+        builder.AddComponentParameter(1, nameof(TableColumnsReady.Ready), (Func<Task>)ColumnsReadyAsync);
+        builder.CloseComponent();
+    };
+
+    private string SortQueryKey => $"{QueryPrefix}sort";
+
+    private string PageKey => $"{QueryPrefix}page";
+
+    private string? ScrollStyle => MaxHeight is { } height ? $"max-height:{StyleValues.Length(height)}" : null;
+
+    internal void AddColumn(ColumnBase<TItem> column)
+    {
+        if (!_columns.Contains(column))
+        {
+            _columns.Add(column);
+
+            // A column shown later (behind an @if) appears without waiting for another render.
+            if (_columnsReady)
+            {
+                StateHasChanged();
+            }
+        }
+    }
+
+    internal void ColumnChanged()
+    {
+        if (_columnsReady)
+        {
+            StateHasChanged();
+        }
+    }
+
+    internal void RemoveColumn(ColumnBase<TItem> column)
+    {
+        if (_columns.Remove(column))
+        {
+            StateHasChanged();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        (_class, _style) = BuildRootAttributes();
+
+        // Take the parent's keys when the parameter changes (a static post, or C# clearing the
+        // selection), but not the echo of a change this table just reported. Without a binding
+        // the parameter never changes, so the table keeps its own selection.
+        if (!ReferenceEquals(SelectedKeys, _paramKeys))
+        {
+            _paramKeys = SelectedKeys;
+            if (!ReferenceEquals(SelectedKeys, _reportedKeys))
+            {
+                _selected = new HashSet<string>(SelectedKeys ?? [], StringComparer.Ordinal);
+            }
+        }
+
+        if (_columnsReady)
+        {
+            await LoadAsync();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-table");
+        classes.Add("ib-table-striped", Striped);
+        classes.Add("ib-table-sm", Size == ControlSize.Sm);
+        classes.Add("ib-table-lg", Size == ControlSize.Lg);
+        classes.Add("ib-table-sticky", MaxHeight is not null);
+    }
+
+    private async Task ColumnsReadyAsync()
+    {
+        _columnsReady = true;
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    // Only this table's own sort or page changing calls for a reload here; anything else that
+    // changes the data (filters) re-renders the page, which reloads through the parameters.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
+    {
+        if (!_columnsReady || ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page))
+        {
+            return;
+        }
+
+        try
+        {
+            await LoadAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await DispatchExceptionAsync(ex);
+        }
+    });
+
+    private (string? Sort, string? Page) ReadQuery()
+    {
+        var query = QueryString.Of(Navigation.Uri);
+        return (query.TryGetValue(SortQueryKey, out var s) ? s.ToString() : null,
+                query.TryGetValue(PageKey, out var p) ? p.ToString() : null);
+    }
+
+    private sealed record LoadKey(string? Sort, string? Page, object? Items, object? Provider, int? PageSize);
+
+    private LoadKey? _loadedKey;
+    private int _loadVersion;
+
+    private async Task LoadAsync()
+    {
+        var (sortRaw, pageRaw) = ReadQuery();
+        // Always reload: the same list may have changed since the last render.
+        _loadedKey = new LoadKey(sortRaw, pageRaw, Items, ItemsProvider, PageSize);
+        var version = ++_loadVersion;
+
+        var sort = !string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
+        var descending = sort?.StartsWith('-') == true;
+        var sortKey = sort?.TrimStart('-');
+        var column = _columns.FirstOrDefault(c => c.CanSort && string.Equals(c.Key, sortKey, StringComparison.OrdinalIgnoreCase));
+        if (column is null)
+        {
+            sortKey = null;
+        }
+
+        // Keep (page - 1) * size inside int range, whatever is in the URL.
+        var maxPage = PageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
+        var page = int.TryParse(pageRaw, out var number) ? Math.Clamp(number, 1, maxPage) : 1;
+        var request = new TableRequest<TItem>(sortKey, descending, page, PageSize) { Column = column };
+
+        IReadOnlyList<TItem> items;
+        int total;
+        if (ItemsProvider is not null)
+        {
+            // Show the loading state while the provider works (on interactive pages it renders).
+            _providerLoading = true;
+            if (RendererInfo.IsInteractive)
+            {
+                StateHasChanged();
+            }
+
+            TableResult<TItem> result;
+            try
+            {
+                result = await ItemsProvider(request);
+            }
+            finally
+            {
+                if (version == _loadVersion)
+                {
+                    _providerLoading = false;
+                }
+            }
+
+            items = result.Items;
+            total = result.TotalItems;
+
+            // A page past the end shows the last page.
+            if (PageSize is { } size && items.Count == 0 && total > 0 && page > LastPage(total, size))
+            {
+                page = LastPage(total, size);
+                result = await ItemsProvider(request with { Page = page });
+                items = result.Items;
+                total = result.TotalItems;
+            }
+        }
+        else if (Items is not null)
+        {
+            var source = Items as IQueryable<TItem> ?? Items.AsQueryable();
+            var sorted = request.ApplySorting(source);
+            total = sorted.Count();
+            if (PageSize is { } size)
+            {
+                page = Math.Min(page, LastPage(total, size));
+                items = sorted.Skip((page - 1) * size).Take(size).ToList();
+            }
+            else
+            {
+                items = sorted.ToList();
+            }
+        }
+        else
+        {
+            items = [];
+            total = 0;
+        }
+
+        // A slower, older load must not overwrite a newer one.
+        if (version != _loadVersion)
+        {
+            return;
+        }
+
+        (_items, _total, _page, _sortKey, _descending) = (items, total, page, sortKey, descending);
+    }
+
+    private static int LastPage(int total, int size) => Math.Max(1, (int)Math.Ceiling(total / (double)size));
+
+    private string SortHref(ColumnBase<TItem> column)
+    {
+        var ascendingNow = string.Equals(column.Key, _sortKey, StringComparison.OrdinalIgnoreCase) && !_descending;
+        var next = ascendingNow ? $"-{column.Key}" : column.Key;
+        return Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [SortQueryKey] = next,
+            [PageKey] = null,
+        });
+    }
+
+    private bool IsSorted(ColumnBase<TItem> column) => string.Equals(column.Key, _sortKey, StringComparison.OrdinalIgnoreCase);
+
+    private string? AriaSort(ColumnBase<TItem> column) => !column.CanSort ? null : !IsSorted(column) ? "none" : _descending ? "descending" : "ascending";
+
+    private IconRole SortIcon(ColumnBase<TItem> column) =>
+        !IsSorted(column) ? IconRole.Sortable : _descending ? IconRole.SortDescending : IconRole.SortAscending;
+
+    private static string? CellClass(ColumnBase<TItem> column)
+    {
+        var align = column.EffectiveAlign switch
+        {
+            CellAlign.Center => "ib-cell-center",
+            CellAlign.End => "ib-cell-end",
+            _ => null,
+        };
+
+        var classes = string.Join(' ', new[] { align, column.Class }.Where(c => !string.IsNullOrEmpty(c)));
+        return classes.Length > 0 ? classes : null;
+    }
+
+    private static string? WidthStyle(ColumnBase<TItem> column) =>
+        column.Width is { } width ? $"width:{StyleValues.Length(width)}" : null;
+
+    private string Summary(int size)
+    {
+        var first = (_page - 1L) * size + 1;
+        var last = Math.Min((long)_page * size, _total);
+        return $"{first:N0}–{last:N0} of {_total:N0}";
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

@@ -1,0 +1,139 @@
+@namespace IzzyBlazor
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+
+@*
+    Where toasts appear. Put one in the layout. Toasts come from ToastService:
+      - No script: toasts from a static response (or carried over a redirect) are rendered here
+        and stay until closed; the close button is a checkbox and CSS, like Alert.
+      - With script: <ib-toasts> closes them after Duration (pausing while hovered or focused),
+        and adds toasts that ToastService sends from interactive pages, from the templates below.
+      - Interactive: ToastService.Show() adds a toast in the browser straight away.
+*@
+
+<ib-toasts @attributes="AdditionalAttributes"
+           class="@($"ib-toast-region ib-toast-{Placement.Name()}")"
+           role="region"
+           aria-label="@Label"
+           data-duration="@Duration">
+    @* One live region for every toast: those in a response (an enhanced post inserts them, so
+       they're announced) and those the script adds. *@
+    <div class="ib-toast-live" aria-live="polite">
+        @foreach (var toast in _rendered)
+        {
+            <Alert Status="toast.Status"
+                   Variant="Variant"
+                   Title="@toast.Title"
+                   Dismissible
+                   Announce="false"
+                   DismissLabel="@DismissLabel"
+                   Class="ib-toast"
+                   Actions="@ActionLink(toast.Action)"
+                   data-duration="@(toast.Duration ?? DefaultDuration(toast))">@toast.Message</Alert>
+        }
+    </div>
+    @foreach (var status in Enum.GetValues<Status>())
+    {
+        <template data-status="@status.ToString().ToLowerInvariant()">
+            <Alert Status="status" Variant="Variant" Title="title" Dismissible Announce="false" DismissLabel="@DismissLabel" Id="ib-toast-template" Class="ib-toast" Actions="ActionSlot"><span data-ib-toast-message></span></Alert>
+        </template>
+    }
+</ib-toasts>
+
+@code {
+    /// <summary>Where toasts stack. Defaults to <see cref="ToastPlacement.BottomEnd"/>.</summary>
+    [Parameter] public ToastPlacement Placement { get; set; } = ToastPlacement.BottomEnd;
+
+    /// <summary>Milliseconds before a toast closes itself (with JavaScript). Defaults to 5000; 0 keeps toasts open.</summary>
+    [Parameter] public int Duration { get; set; } = 5000;
+
+    /// <summary>How toasts are drawn. Defaults to <see cref="AlertVariant.Outline"/>, a raised card with a colored icon.</summary>
+    [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Outline;
+
+    /// <summary>The region's name for screen readers. Defaults to "Notifications".</summary>
+    [Parameter] public string Label { get; set; } = "Notifications";
+
+    /// <summary>The close buttons' accessible name. Defaults to "Dismiss".</summary>
+    [Parameter] public string DismissLabel { get; set; } = "Dismiss";
+
+    /// <summary>Extra attributes for the region element.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    private ToastService? _toasts;
+    private PersistingComponentStateSubscription? _persisting;
+    private IReadOnlyList<ToastMessage> _rendered = [];
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _toasts = Services.GetService<ToastService>();
+        var state = Services.GetService<PersistentComponentState>();
+
+        // An interactive region picks up the toasts its prerender showed, so they don't vanish
+        // when the circuit starts.
+        if (state is not null && state.TryTakeFromJson<List<ToastMessage>>("ib-toasts", out var carried) && carried is not null)
+        {
+            _rendered = carried;
+        }
+        else if (_toasts is not null && !RendererInfo.IsInteractive)
+        {
+            _rendered = _toasts.Pending.ToList();
+            _toasts.Changed += OnChanged;
+        }
+
+        if (state is not null)
+        {
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                state.PersistAsJson("ib-toasts", _rendered.ToList());
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    // Errors stay until closed: someone may need time to read or act on them. A toast with an
+    // action stays twice as long, so there's time to reach it.
+    private int? DefaultDuration(ToastMessage toast) =>
+        toast.Status == Status.Danger ? 0 : toast.Action is not null && Duration > 0 ? Duration * 2 : null;
+
+    // A static toast's action is always a link: there's no connection to run C# over.
+    private static RenderFragment? ActionLink(ToastAction? action) => action?.Href is not { } href ? null : builder =>
+    {
+        builder.OpenElement(0, "a");
+        builder.AddAttribute(1, "class", ActionClass);
+        builder.AddAttribute(2, "href", href);
+        builder.AddContent(3, action.Label);
+        builder.CloseElement();
+    };
+
+    // Filled in (or removed) by the script for toasts added from interactive pages.
+    private static readonly RenderFragment ActionSlot = builder =>
+    {
+        builder.OpenElement(0, "button");
+        builder.AddAttribute(1, "type", "button");
+        builder.AddAttribute(2, "class", ActionClass);
+        builder.AddAttribute(3, "data-ib-toast-action", "");
+        builder.CloseElement();
+    };
+
+    private const string ActionClass = "ib-btn ib-btn-primary ib-btn-outline ib-btn-sm ib-toast-action";
+
+    // During static rendering this runs on the renderer's own thread; InvokeAsync makes it safe from any other.
+    private void OnChanged() => _ = InvokeAsync(() =>
+    {
+        _rendered = _toasts!.Pending.ToList();
+        StateHasChanged();
+    });
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_toasts is not null)
+        {
+            _toasts.Changed -= OnChanged;
+        }
+
+        _persisting?.Dispose();
+    }
+}

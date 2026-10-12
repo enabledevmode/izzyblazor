@@ -1,0 +1,18 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    Development host for IzzyBlazor. Every demo is served in two modes:
+      /static/{demo}        static SSR (disable JavaScript in DevTools to test the no-JS case)
+      /interactive/{demo}   Interactive Server
+    Run with `npm run dev` from the repository root for hot reload of C#, Razor, CSS and TS.
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>IzzyBlazor.TestHost</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IzzyBlazor\IzzyBlazor.csproj" />
+  </ItemGroup>
+
+</Project>

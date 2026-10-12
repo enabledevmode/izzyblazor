@@ -1,0 +1,858 @@
+/*
+ * Form and fields. Controls share heights with buttons (ControlSize), use the text
+ * color tokens (label OnSurface, hint Subtle, error DangerText), and show invalid
+ * state from both server validation (.ib-field-invalid) and the browser
+ * (:user-invalid, only after the user has interacted).
+ */
+@layer izzy.components {
+  .ib-form {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-field {
+    --ib-field-h: 2.25rem;
+    --ib-field-px: var(--ib-space-3);
+    --ib-field-font: var(--ib-text-sm);
+    --ib-field-label-font: var(--ib-text-sm);
+    --ib-field-hint-font: var(--ib-text-xs);
+    --ib-field-border: var(--ib-color-outline);
+    --ib-field-bg: var(--ib-color-surface);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* Label, field text and hint scale together with ControlSize. */
+  .ib-field-sm {
+    --ib-field-h: 2rem;
+    --ib-field-px: var(--ib-space-2);
+    --ib-field-font: var(--ib-text-xs);
+    --ib-field-label-font: var(--ib-text-xs);
+  }
+
+  .ib-field-lg {
+    --ib-field-h: 2.75rem;
+    --ib-field-px: var(--ib-space-4);
+    --ib-field-font: var(--ib-text-md);
+    --ib-field-label-font: var(--ib-text-md);
+    --ib-field-hint-font: var(--ib-text-sm);
+  }
+
+  .ib-field-label {
+    padding: 0;
+    font-size: var(--ib-field-label-font);
+    font-weight: var(--ib-weight-medium);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-field-required {
+    color: var(--ib-color-danger-text);
+  }
+
+  .ib-field-hint {
+    margin: 0;
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-field-error {
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-danger-text);
+  }
+
+  .ib-field-error p {
+    display: flex;
+    align-items: center;
+    gap: 0.375em;
+    margin: 0;
+  }
+
+  /* The control box: input plus optional icons */
+  .ib-field-control {
+    position: relative;
+    display: flex;
+    align-items: center;
+  }
+
+  .ib-field-input {
+    width: 100%;
+    min-width: 0;
+    height: var(--ib-field-h);
+    padding: 0 var(--ib-field-px);
+    border: 1px solid var(--ib-field-border);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-field-bg);
+    color: var(--ib-color-on-surface);
+    font: inherit;
+    font-size: var(--ib-field-font);
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  textarea.ib-field-input {
+    height: auto;
+    padding-block: var(--ib-space-2);
+    line-height: var(--ib-leading-normal);
+    resize: vertical;
+  }
+
+  .ib-field-autogrow {
+    field-sizing: content;
+    min-height: calc(var(--ib-field-h) * 2);
+  }
+
+  /* Where it grows on its own, a resize handle would fix its height; elsewhere keep the handle. */
+  @supports (field-sizing: content) {
+    textarea.ib-field-autogrow {
+      resize: none;
+    }
+  }
+
+  /* Safari and iOS: drop native search and date styling so fields line up. */
+  input.ib-field-input {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+
+  input.ib-field-input[type="checkbox"],
+  input.ib-field-input[type="radio"] {
+    -webkit-appearance: auto;
+    appearance: auto;
+  }
+
+  .ib-field-input::-webkit-search-decoration {
+    -webkit-appearance: none;
+  }
+
+  .ib-field-input::-webkit-date-and-time-value {
+    text-align: start;
+  }
+
+  .ib-field-input::placeholder {
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-field-input:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
+  }
+
+  .ib-field-input:focus-visible {
+    outline: none;
+    border-color: var(--ib-color-focus);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-focus) 25%, transparent);
+  }
+
+  .ib-field-input:disabled {
+    color: var(--ib-color-disabled);
+    background-color: var(--ib-color-surface-container);
+    cursor: not-allowed;
+  }
+
+  .ib-field-input[readonly] {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  /* Invalid: from the server, or from the browser after interaction */
+  .ib-field-invalid .ib-field-input,
+  .ib-field-input:user-invalid {
+    border-color: var(--ib-color-danger);
+  }
+
+  .ib-field-invalid .ib-field-input:focus-visible,
+  .ib-field-input:user-invalid:focus-visible {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-danger) 25%, transparent);
+  }
+
+  /* Icons inside the control */
+  .ib-field-icon {
+    position: absolute;
+    color: var(--ib-color-subtle);
+    pointer-events: none;
+  }
+
+  .ib-field-icon-start { inset-inline-start: var(--ib-field-px); }
+  .ib-field-icon-end { inset-inline-end: var(--ib-field-px); }
+  .ib-has-start .ib-field-input { padding-inline-start: calc(var(--ib-field-px) + 1.5em); }
+  .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + 1.75em); }
+
+  select.ib-field-select {
+    appearance: none;
+    cursor: pointer;
+  }
+
+  select.ib-field-select ~ .ib-field-icon-end {
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  /*
+   * Customizable select (Chromium 135+): the open list is themed like a menu and options can
+   * hold markup (Select's ItemTemplate). Other browsers keep their own list, which on phones
+   * is the native picker people expect anyway.
+   */
+  @supports (appearance: base-select) {
+    select.ib-field-select,
+    select.ib-field-select::picker(select) {
+      appearance: base-select;
+    }
+
+    /* base-select sizes the field to its content by default; fields fill their column. */
+    select.ib-field-select {
+      display: flex;
+      align-items: center;
+      field-sizing: fixed;
+      inline-size: 100%;
+      margin: 0;
+    }
+
+    /* The field keeps its own chevron, turned while open. */
+    select.ib-field-select::picker-icon {
+      display: none;
+    }
+
+    select.ib-field-select:open ~ .ib-field-icon-end {
+      rotate: 180deg;
+    }
+
+    select.ib-field-select:has(> option[value=""]:checked) {
+      color: var(--ib-color-subtle);
+    }
+
+    select.ib-field-select::picker(select) {
+      box-sizing: border-box;
+      min-inline-size: anchor-size(inline);
+      max-block-size: min(20rem, 45dvh);
+      margin-block: 0.25rem;
+      padding: var(--ib-space-1);
+      border: 1px solid var(--ib-color-border);
+      border-radius: var(--ib-radius-lg);
+      background-color: var(--ib-color-surface-raised);
+      color: var(--ib-color-on-surface);
+      box-shadow: var(--ib-shadow-lg);
+      opacity: 0;
+      transition:
+        opacity var(--ib-duration-fast) var(--ib-ease),
+        overlay var(--ib-duration-fast) allow-discrete,
+        display var(--ib-duration-fast) allow-discrete;
+    }
+
+    select.ib-field-select:open::picker(select) {
+      opacity: 1;
+    }
+
+    @starting-style {
+      select.ib-field-select:open::picker(select) {
+        opacity: 0;
+      }
+    }
+
+    select.ib-field-select option {
+      display: flex;
+      align-items: center;
+      gap: var(--ib-space-2);
+      min-block-size: 2rem;
+      padding: var(--ib-space-1) var(--ib-space-2);
+      border-radius: var(--ib-radius-sm);
+      color: var(--ib-color-on-surface);
+      cursor: pointer;
+    }
+
+    select.ib-field-select option:hover,
+    select.ib-field-select option:focus-visible {
+      background-color: var(--ib-color-surface-container);
+      outline: none;
+    }
+
+    select.ib-field-select option:checked {
+      background-color: color-mix(in oklab, var(--ib-color-primary) 10%, transparent);
+      font-weight: 500;
+    }
+
+    select.ib-field-select option:checked:hover,
+    select.ib-field-select option:checked:focus-visible {
+      background-color: color-mix(in oklab, var(--ib-color-primary) 16%, transparent);
+    }
+
+    /* The check sits at the end, so templated options line up at the start. */
+    select.ib-field-select option::checkmark {
+      order: 1;
+      margin-inline-start: auto;
+      color: var(--ib-color-primary-text);
+    }
+
+    select.ib-field-select option:disabled {
+      color: var(--ib-color-disabled);
+      font-weight: 400;
+      cursor: default;
+    }
+
+    select.ib-field-select option:disabled:hover,
+    select.ib-field-select option:disabled:checked {
+      background-color: transparent;
+    }
+
+    /* The placeholder ("Choose a plan") is a prompt, not a choice. */
+    select.ib-field-select option[value=""] {
+      color: var(--ib-color-subtle);
+      font-weight: 400;
+    }
+
+    select.ib-field-select option[value=""]:checked {
+      background-color: transparent;
+    }
+
+    select.ib-field-select option[value=""]::checkmark {
+      visibility: hidden;
+    }
+
+    select.ib-field-select hr {
+      margin: var(--ib-space-1) calc(-1 * var(--ib-space-1));
+      border: 0;
+      border-block-start: 1px solid var(--ib-color-border);
+    }
+
+    select.ib-field-select optgroup legend {
+      padding: var(--ib-space-2) var(--ib-space-2) var(--ib-space-1);
+      color: var(--ib-color-subtle);
+      font-size: var(--ib-text-xs);
+      font-weight: 600;
+    }
+
+    /* ItemTemplate: the closed field shows a copy of the chosen option. */
+    .ib-select-button {
+      display: flex;
+      align-items: center;
+      min-inline-size: 0;
+      flex: 1;
+      overflow: hidden;
+    }
+
+    .ib-select-value {
+      display: flex;
+      align-items: center;
+      gap: var(--ib-space-2);
+      min-inline-size: 0;
+      overflow: hidden;
+      white-space: nowrap;
+      text-overflow: ellipsis;
+    }
+
+    .ib-select-value .ib-option-hint {
+      display: none;
+    }
+  }
+
+  /*
+   * Combobox. Without script (or where it can't upgrade) the select shows. Once <ib-combobox>
+   * is ready, the input shows and the select sits invisibly under it, still posting the value,
+   * taking focus from the label (passed on to the input) and anchoring validation messages.
+   */
+  .ib-combobox-input {
+    display: none;
+  }
+
+  .ib-combobox[data-ready] > .ib-combobox-input {
+    display: block;
+  }
+
+  .ib-combobox[data-ready] > .ib-combobox-select {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    pointer-events: none;
+  }
+
+  .ib-combobox:not([data-ready]) > .ib-combobox-list {
+    display: none;
+  }
+
+  /* The chevron: decoration over the select, a button once ready. */
+  .ib-combobox-toggle {
+    position: absolute;
+    inset-inline-end: calc(var(--ib-field-px) - 0.375rem);
+    display: inline-flex;
+    padding: 0.375rem;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: transparent;
+    color: var(--ib-color-subtle);
+    pointer-events: none;
+  }
+
+  .ib-combobox-toggle .ib-field-icon {
+    position: static;
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-combobox[data-ready] > .ib-combobox-toggle {
+    pointer-events: auto;
+    cursor: pointer;
+  }
+
+  .ib-combobox[data-ready] > .ib-combobox-toggle:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-combobox:has(> [aria-expanded="true"]) .ib-combobox-toggle .ib-field-icon {
+    rotate: 180deg;
+  }
+
+  .ib-combobox-toggle:disabled {
+    display: none;
+  }
+
+  .ib-combobox[data-ready]:has(> select:user-invalid) > .ib-combobox-input {
+    border-color: var(--ib-color-danger);
+  }
+
+  .ib-pop.ib-combobox-list {
+    min-inline-size: 10rem;
+    max-block-size: min(20rem, 45dvh);
+    overscroll-behavior: contain;
+  }
+
+  @supports (anchor-name: --a) {
+    .ib-pop.ib-combobox-list {
+      min-inline-size: anchor-size(inline);
+    }
+  }
+
+  .ib-combobox-option {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-block-size: 2rem;
+    padding: var(--ib-space-1) var(--ib-space-2);
+    border-radius: var(--ib-radius-sm);
+    cursor: pointer;
+  }
+
+  .ib-combobox-option[hidden] {
+    display: none;
+  }
+
+  .ib-combobox-option[data-active] {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-combobox-option[aria-selected="true"] {
+    background-color: color-mix(in oklab, var(--ib-color-primary) 10%, transparent);
+    font-weight: 500;
+  }
+
+  .ib-combobox-option[aria-selected="true"][data-active] {
+    background-color: color-mix(in oklab, var(--ib-color-primary) 16%, transparent);
+  }
+
+  .ib-combobox-option[aria-disabled="true"] {
+    color: var(--ib-color-disabled);
+    cursor: default;
+  }
+
+  .ib-combobox-empty {
+    display: none;
+    padding: var(--ib-space-2);
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-combobox-list[data-empty] > .ib-combobox-empty,
+  .ib-combobox-list[aria-busy="true"] > .ib-combobox-empty {
+    display: block;
+  }
+
+  /*
+   * MultiSelect: without script a native multi-line select; once ready, a box of chips and an
+   * input (the select sits invisibly under it, as for Combobox).
+   */
+  select.ib-multiselect-select {
+    height: auto;
+    padding-block: var(--ib-space-1);
+  }
+
+  .ib-multiselect-box {
+    display: none;
+  }
+
+  .ib-combobox[data-ready] > .ib-multiselect-box {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-1);
+    height: auto;
+    min-height: var(--ib-field-h);
+    padding-block: calc(var(--ib-space-1) - 1px);
+    padding-inline-start: var(--ib-space-1);
+    cursor: text;
+  }
+
+  .ib-combobox[data-ready] > .ib-multiselect-box:focus-within {
+    outline: none;
+    border-color: var(--ib-color-focus);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-focus) 25%, transparent);
+  }
+
+  .ib-combobox[data-ready]:has(> select:user-invalid) > .ib-multiselect-box {
+    border-color: var(--ib-color-danger);
+  }
+
+  .ib-multiselect-chips {
+    display: contents;
+  }
+
+  .ib-multiselect-box > .ib-multiselect-input {
+    display: block;
+    flex: 1 0 6ch;
+    min-width: 6ch;
+    height: calc(var(--ib-field-h) - var(--ib-space-2) - 2px);
+    padding: 0 var(--ib-space-1);
+    border: 0;
+    background: transparent;
+    color: inherit;
+    font: inherit;
+  }
+
+  .ib-multiselect-box > .ib-multiselect-input:focus {
+    outline: none;
+  }
+
+  .ib-multiselect:has(.ib-chip) .ib-multiselect-input::placeholder {
+    color: transparent;
+  }
+
+  /* A chip: the chosen option's text and a remove button. Also the base for Tag. */
+  .ib-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.125rem;
+    max-width: 100%;
+    min-height: 1.5rem;
+    padding-inline: var(--ib-space-2) 0.125rem;
+    border-radius: var(--ib-radius-sm);
+    background-color: var(--ib-color-surface-container-high);
+    color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-sm);
+    line-height: 1.2;
+  }
+
+  .ib-chip-text {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-chip-remove {
+    display: inline-grid;
+    place-items: center;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: transparent;
+    color: var(--ib-color-muted);
+    cursor: pointer;
+  }
+
+  .ib-chip-remove:hover {
+    background-color: color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-chip-remove svg {
+    width: 0.75rem;
+    height: 0.75rem;
+  }
+
+  /* Checkable options: a box that fills when chosen. */
+  .ib-multiselect-check {
+    flex: none;
+    display: inline-grid;
+    place-items: center;
+    width: 1rem;
+    height: 1rem;
+    border: 1.5px solid var(--ib-color-outline);
+    border-radius: 0.25rem;
+  }
+
+  .ib-multiselect-option[aria-selected="true"] {
+    background-color: transparent;
+    font-weight: 400;
+  }
+
+  .ib-multiselect-option[aria-selected="true"][data-active],
+  .ib-multiselect-option[data-active] {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-multiselect-option[aria-selected="true"] > .ib-multiselect-check {
+    border-color: var(--ib-color-primary);
+    background-color: var(--ib-color-primary);
+  }
+
+  /* The tick takes the on-primary color, so it reads in both schemes. */
+  .ib-multiselect-option[aria-selected="true"] > .ib-multiselect-check::after {
+    content: "";
+    width: 0.75rem;
+    height: 0.75rem;
+    background-color: var(--ib-color-on-primary);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
+  }
+
+  .ib-option-hint {
+    color: var(--ib-color-subtle);
+    font-size: 0.875em;
+    font-weight: 400;
+  }
+
+  .ib-option .ib-icon,
+  .ib-select-value .ib-icon,
+  .ib-combobox-option .ib-icon {
+    flex: none;
+    width: 1em;
+    height: 1em;
+  }
+
+  /* Password reveal (shown by script) */
+  .ib-field-reveal {
+    position: absolute;
+    inset-inline-end: calc(var(--ib-field-px) - 0.375rem);
+    display: inline-flex;
+    padding: 0.375rem;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: transparent;
+    color: var(--ib-color-muted);
+    cursor: pointer;
+  }
+
+  .ib-field-reveal[hidden] { display: none; }
+  .ib-field-reveal:hover { color: var(--ib-color-on-surface); }
+  .ib-field-reveal[aria-pressed="true"] .ib-reveal-show,
+  .ib-field-reveal[aria-pressed="false"] .ib-reveal-hide { display: none; }
+
+  .ib-field-count {
+    position: absolute;
+    inset-block-end: calc(-1 * var(--ib-space-5));
+    inset-inline-end: 0;
+    font-size: var(--ib-text-xs);
+    color: var(--ib-color-subtle);
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* With script, the live count comes from data-current (the server's text is kept for Blazor). */
+  .ib-field-count[data-current] {
+    font-size: 0;
+  }
+
+  .ib-field-count[data-current]::after {
+    content: attr(data-current) " / " attr(data-ib-count);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-field-textarea:has(.ib-field-count) {
+    padding-block-end: var(--ib-space-4);
+  }
+
+  /* Checkbox, radio and switch rows */
+  .ib-check {
+    display: inline-flex;
+    align-items: flex-start;
+    gap: var(--ib-space-2);
+    font-size: var(--ib-field-label-font, var(--ib-text-sm));
+    color: var(--ib-color-on-surface);
+    cursor: pointer;
+  }
+
+  .ib-check-input {
+    flex-shrink: 0;
+    width: 1.125rem;
+    height: 1.125rem;
+    margin: 0.125rem 0 0;
+    accent-color: var(--ib-color-primary);
+    cursor: pointer;
+  }
+
+  .ib-check-input:disabled + .ib-check-label {
+    color: var(--ib-color-disabled);
+  }
+
+  .ib-switch-input {
+    appearance: none;
+    flex-shrink: 0;
+    position: relative;
+    width: 2.25rem;
+    height: 1.25rem;
+    margin: 0;
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-surface-container-high);
+    box-shadow: inset 0 0 0 1px var(--ib-color-outline);
+    cursor: pointer;
+    transition: background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-switch-input::before {
+    content: "";
+    position: absolute;
+    inset-block-start: 0.125rem;
+    inset-inline-start: 0.125rem;
+    width: 1rem;
+    height: 1rem;
+    border-radius: 50%;
+    background-color: var(--ib-color-surface);
+    box-shadow: var(--ib-shadow-sm);
+    transition: translate var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-switch-input:checked {
+    background-color: var(--ib-color-primary);
+    box-shadow: none;
+  }
+
+  .ib-switch-input:checked::before {
+    translate: 1rem 0;
+  }
+
+  .ib-switch-input:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+
+  .ib-radio-options {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    margin-top: var(--ib-space-1);
+  }
+
+  .ib-radio-horizontal {
+    flex-direction: row;
+    flex-wrap: wrap;
+    column-gap: var(--ib-space-5);
+  }
+
+  .ib-field-invalid .ib-check-input {
+    outline: 1px solid var(--ib-color-danger);
+    outline-offset: 1px;
+  }
+
+  /* Fieldset */
+  .ib-fieldset {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .ib-fieldset-legend {
+    padding: 0;
+    font-size: var(--ib-text-md);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-fieldset-description {
+    margin: 0;
+    font-size: var(--ib-text-sm);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-fieldset-body {
+    display: flex;
+    flex-direction: column;
+    margin-top: var(--ib-space-3);
+  }
+
+  /* Error summary */
+  .ib-form-errors {
+    padding: var(--ib-space-3) var(--ib-space-4);
+    border: 1px solid color-mix(in oklab, var(--ib-color-danger) 40%, transparent);
+    border-radius: var(--ib-radius-md);
+    background-color: color-mix(in oklab, var(--ib-color-danger) 8%, transparent);
+    color: var(--ib-color-danger-text);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-form-errors-title {
+    display: flex;
+    align-items: center;
+    gap: 0.375em;
+    margin: 0;
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-form-errors ul {
+    margin: var(--ib-space-1) 0 0;
+    padding-inline-start: 1.75rem;
+  }
+
+  /* Horizontal layout: label column from sm up */
+  @media (width >= 640px) {
+    .ib-form-horizontal .ib-field:not(.ib-field-checkbox, .ib-field-switch, .ib-field-radio, .ib-field-checkboxes) {
+      display: grid;
+      grid-template-columns: 10rem 1fr;
+      column-gap: var(--ib-space-4);
+      align-items: center;
+    }
+
+    .ib-form-horizontal .ib-field > :not(.ib-field-label) {
+      grid-column: 2;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-switch-input::before {
+      transition: none;
+    }
+  }
+
+  /* Phones and tablets: field text is at least 16px, so iOS Safari doesn't zoom the page
+     when a field is focused. Labels keep their size. */
+  @media (pointer: coarse) {
+    .ib-field-input {
+      font-size: max(16px, var(--ib-field-font));
+    }
+  }
+}
+
+/* FilterForm: a row of compact filter controls that wraps on small screens. */
+@layer izzy.components {
+  .ib-filter-form {
+    display: block;
+  }
+
+  .ib-filter-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2) var(--ib-space-3);
+  }
+
+  .ib-filter-search {
+    flex: 1 1 14rem;
+    max-width: 24rem;
+  }
+
+  .ib-filter-select {
+    flex: 0 1 12rem;
+  }
+
+  .ib-filter-buttons {
+    display: flex;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-filter-search input[type="search"]::-webkit-search-cancel-button {
+    cursor: pointer;
+  }
+
+  /* With script, live filters apply themselves. */
+  ib-filter-form:defined[data-live] .ib-filter-apply {
+    display: none;
+  }
+}

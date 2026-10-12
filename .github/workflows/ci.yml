@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install asset tools
+        run: npm ci
+
+      - name: Build
+        run: dotnet build izzyblazor.sln --configuration Release
+
+      - name: Unit and render tests
+        run: dotnet test izzyblazor.sln --configuration Release --no-build --logger "trx;LogFileName=results.trx"
+
+      - name: Asset size budget
+        run: |
+          css=$(gzip -c src/IzzyBlazor.Core/wwwroot/izzyblazor.css | wc -c)
+          js=$(gzip -c src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js | wc -c)
+          echo "CSS gzip: $css bytes (budget 40960)"
+          echo "JS gzip:  $js bytes (budget 15360)"
+          test "$css" -le 40960 && test "$js" -le 15360
+
+      - name: Pack
+        # Both packages: IzzyBlazor (server apps) and IzzyBlazor.Core (any render mode).
+        run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: build-output
+          path: |
+            artifacts/*.nupkg
+            **/TestResults/*.trx

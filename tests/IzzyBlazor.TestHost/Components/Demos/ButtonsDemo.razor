@@ -1,0 +1,161 @@
+<Stack Gap="8">
+
+    <Example Title="Accents and variants" Note="Every accent in every variant, plus two custom colors. Hover each one in light and dark mode." Code="@MatrixCode">
+        <Stack Gap="3">
+            @foreach (var variant in Enum.GetValues<ButtonVariant>())
+            {
+                <Row Gap="2" Align="Align.Center" Wrap>
+                    <TextBlock As="span" Class="host-label">@variant</TextBlock>
+                    @foreach (var accent in Enum.GetValues<Accent>())
+                    {
+                        <Button Accent="accent" Variant="variant">@accent</Button>
+                    }
+                    <Button Color="@Teal" Variant="variant">Custom</Button>
+                    <Button Color="@Amber" Variant="variant">Custom</Button>
+                </Row>
+            }
+        </Stack>
+    </Example>
+
+    <Example Title="Custom colors" Note="Three accents cover actions: Primary for the main one, Neutral for the rest, Danger for destructive ones. For anything else, pass a Color: a theme token or a hex value. Text on it is picked for contrast, so the amber button gets dark text." Code="@CustomCode">
+        <Row Gap="2" Wrap>
+            <Button Color="@Teal" StartIcon="Lucide.Check">Approve</Button>
+            <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline">Reject</Button>
+            <Button Color="@Amber">Upgrade</Button>
+            <Button Color='Color.Token("success")' Variant="ButtonVariant.Soft">Theme token</Button>
+        </Row>
+    </Example>
+
+    <Example Title="Sizes" Note="ControlSize is shared with form fields, so a button and an input of the same size line up." Code="@SizesCode">
+        <Row Gap="2" Align="Align.Center" Wrap>
+            <Button Size="ControlSize.Sm">Small</Button>
+            <Button>Medium</Button>
+            <Button Size="ControlSize.Lg">Large</Button>
+            <IconButton Size="ControlSize.Sm" Icon="Lucide.Plus" Label="Add (small)" />
+            <IconButton Icon="Lucide.Plus" Label="Add" />
+            <IconButton Size="ControlSize.Lg" Icon="Lucide.Plus" Label="Add (large)" />
+        </Row>
+    </Example>
+
+    <Example Title="Icons" Code="@IconsCode">
+        <Row Gap="2" Wrap>
+            <Button StartIcon="Lucide.Plus">New project</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download">Download</Button>
+            <Button Variant="ButtonVariant.Soft" EndIcon="Lucide.ArrowRight">Continue</Button>
+            <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
+        </Row>
+    </Example>
+
+    <Example Title="Icon buttons" Note="Label is required: it becomes the accessible name and the tooltip." Code="@IconButtonsCode">
+        <Row Gap="1" Align="Align.Center">
+            <IconButton Icon="Lucide.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Lucide.Italic" Label="Italic" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Lucide.Underline" Label="Underline" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <Box Width="1.Px" MinHeight="1.5.Rem" Bg="Color.Border" MarginX="1" />
+            <IconButton Icon="Lucide.Link" Label="Insert link" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Lucide.Settings" Label="Settings" Variant="ButtonVariant.Soft" />
+            <IconButton Icon="Lucide.ExternalLink" Label="Lucide website (opens a link)" Href="https://lucide.dev" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" />
+        </Row>
+    </Example>
+
+    <Example Title="States" Note="Loading keeps the label readable and the button focusable, but blocks clicks. Disabled dims it." Code="@StatesCode">
+        <Row Gap="2" Wrap>
+            <Button Loading>Saving</Button>
+            <Button Loading Variant="ButtonVariant.Outline">Saving</Button>
+            <IconButton Icon="Lucide.RefreshCw" Label="Refresh" Loading Variant="ButtonVariant.Soft" />
+            <Button Disabled>Disabled</Button>
+            <Button Disabled Variant="ButtonVariant.Outline">Disabled</Button>
+        </Row>
+    </Example>
+
+    <Example Title="Links that look like buttons" Note="Use LinkButton for navigation. External opens a new tab and says so to screen readers." Code="@LinkCode">
+        <Row Gap="2" Wrap>
+            <LinkButton Href="static/stack" EndIcon="Lucide.ArrowRight">See Stack</LinkButton>
+            <LinkButton Href="https://lucide.dev/icons" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Lucide icons</LinkButton>
+            <LinkButton Href="static/box" Variant="ButtonVariant.Link">A link-style button</LinkButton>
+        </Row>
+    </Example>
+
+    <Example Title="Full width" Code="@FullCode">
+        <Stack Gap="2" MaxWidth="20.Rem">
+            <Button FullWidth StartIcon="Lucide.LogIn">Sign in</Button>
+            <Button FullWidth Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create an account</Button>
+        </Stack>
+    </Example>
+
+    <Example Title="Several submit buttons, no JavaScript" Note="Name and Value post with the form, so one handler knows which button was pressed. This form is a plain GET, so it works on a static page with scripts disabled." Code="@SubmitCode">
+        <form method="get">
+            <Stack Gap="3">
+                <Row Gap="2" Wrap>
+                    <Button Type="ButtonType.Submit" Name="action" Value="publish" StartIcon="Lucide.Send">Publish</Button>
+                    <Button Type="ButtonType.Submit" Name="action" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save draft</Button>
+                    <Button Type="ButtonType.Submit" Name="action" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger">Discard</Button>
+                </Row>
+                @if (Action is not null)
+                {
+                    <TextBlock Color="Color.SuccessText"><Icon Role="IconRole.Success" /> The server received action = "@Action".</TextBlock>
+                }
+            </Stack>
+        </form>
+    </Example>
+
+    <Example Title="C# click handlers" Note="On the interactive page, OnClick runs C#. On the static page it does nothing, by design.">
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Button OnClick="() => _count++" StartIcon="Lucide.Plus">Clicked @_count times</Button>
+            <Button Loading="_saving" OnClick="SaveAsync" Variant="ButtonVariant.Soft">@(_saving ? "Saving" : "Save (simulated)")</Button>
+        </Row>
+    </Example>
+
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "action")] public string? Action { get; set; }
+
+    private int _count;
+    private bool _saving;
+
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        await Task.Delay(1500);
+        _saving = false;
+    }
+
+    private const string MatrixCode =
+        """<Button Accent="Accent.Danger" Variant="ButtonVariant.Outline">Delete</Button>""";
+
+    private const string SizesCode =
+        """
+        <Button Size="ControlSize.Sm">Small</Button>
+        <IconButton Size="ControlSize.Lg" Icon="Lucide.Plus" Label="Add" />
+        """;
+
+    private const string IconsCode =
+        """
+        <Button StartIcon="Lucide.Plus">New project</Button>
+        <Button Variant="ButtonVariant.Soft" EndIcon="Lucide.ArrowRight">Continue</Button>
+        """;
+
+    private const string IconButtonsCode =
+        """<IconButton Icon="Lucide.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />""";
+
+    private const string StatesCode =
+        """
+        <Button Loading>Saving</Button>
+        <Button Disabled>Disabled</Button>
+        """;
+
+    private const string LinkCode =
+        """
+        <LinkButton Href="/courses/wizard" EndIcon="Lucide.ArrowRight">Start the project</LinkButton>
+        <LinkButton Href="https://lucide.dev/icons" External>Lucide icons</LinkButton>
+        """;
+
+    private const string FullCode = """<Button FullWidth StartIcon="Lucide.LogIn">Sign in</Button>""";
+
+    private const string SubmitCode =
+        """
+        <Button Type="ButtonType.Submit" Name="action" Value="publish">Publish</Button>
+        <Button Type="ButtonType.Submit" Name="action" Value="draft">Save draft</Button>
+        """;
+}

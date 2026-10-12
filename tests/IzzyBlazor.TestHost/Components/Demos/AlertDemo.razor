@@ -1,0 +1,162 @@
+@* Alert and Toast. Every example also works with JavaScript off. *@
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+<Stack Gap="8">
+
+    <Example Title="Status" Note="Info (the default), Success, Warning, Danger and Neutral, each with its own icon. Danger and Warning are announced right away (role=alert); the rest politely (role=status)." Code="@StatusCode">
+        <Stack Gap="3">
+            <Alert Title="Heads up">A new version is available.</Alert>
+            <Alert Status="Status.Success" Title="Saved">Your changes are live.</Alert>
+            <Alert Status="Status.Warning">Your trial ends in 3 days.</Alert>
+            <Alert Status="Status.Danger" Title="Couldn't save">The server didn't respond. Try again in a moment.</Alert>
+            <Alert Status="Status.Neutral" HideIcon>Maintenance is scheduled for Sunday.</Alert>
+        </Stack>
+    </Example>
+
+    <Example Title="Variants" Note="Soft (the default), Outline and Solid." Code="@VariantsCode">
+        <Stack Gap="3">
+            @foreach (var variant in Enum.GetValues<AlertVariant>())
+            {
+                <Alert Status="Status.Success" Variant="variant" Title="@variant.ToString()">Payment received.</Alert>
+            }
+        </Stack>
+    </Example>
+
+    <Example Title="Actions and dismissing" Note="@DismissNote" Code="@DismissCode">
+        <Stack Gap="3">
+            <Alert Status="Status.Warning" Title="Unverified email" Dismissible Id="verify-alert">
+                <ChildContent>Check your inbox for the link.</ChildContent>
+                <Actions>
+                    <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Resend email</Button>
+                </Actions>
+            </Alert>
+            <Alert Dismissible @bind-Dismissed="_dismissed" Id="bound-alert">This one is bound to C#.</Alert>
+            <Row Gap="2" Align="Align.Center">
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _dismissed = false" data-testid="restore">Show it again from C#</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Dismissed in C#: <strong data-testid="dismissed">@_dismissed</strong></TextBlock>
+            </Row>
+        </Stack>
+    </Example>
+
+    <Example Title="Toasts" Note="@ToastNote" Code="@ToastCode">
+        <Row Gap="2" Wrap>
+            <form method="post" @formname="toast-now" @onsubmit="ShowNow">
+                <AntiforgeryToken />
+                <Button Type="ButtonType.Submit" data-testid="toast-now">Save</Button>
+            </form>
+            <form method="post" @formname="toast-redirect" @onsubmit="ShowAndRedirect">
+                <AntiforgeryToken />
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-testid="toast-redirect">Save and redirect</Button>
+            </form>
+            <form method="post" @formname="toast-error" @onsubmit="ShowError">
+                <AntiforgeryToken />
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Danger" data-testid="toast-error">Fail</Button>
+            </form>
+        </Row>
+    </Example>
+
+    <Example Title="Toast with an action" Note="@ActionNote" Code="@ActionCode">
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <form method="post" @formname="toast-archive" @onsubmit="Archive">
+                <AntiforgeryToken />
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive" data-testid="toast-archive">Archive message</Button>
+            </form>
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Message: <strong data-testid="archive-state">@ArchiveState</strong></TextBlock>
+        </Row>
+    </Example>
+
+</Stack>
+
+@code {
+    private bool _dismissed;
+    private int _saves;
+
+    private string DismissNote => RendererInfo.IsInteractive
+        ? "Close the second alert, then bring it back from C#: @bind-Dismissed follows it."
+        : "The close button works with JavaScript off (a checkbox and CSS). On interactive pages @bind-Dismissed follows it.";
+
+    private string ToastNote => RendererInfo.IsInteractive
+        ? "ToastService.Show() adds the toast in the browser straight away. It closes itself after 5 seconds (paused while you hover or focus it)."
+        : "On this static page each button posts a form and the response shows the toast; 'Save and redirect' redirects first and the toast follows in a cookie. With JavaScript they close after 5 seconds; without it they stay until closed.";
+
+    private void ShowNow() => Toasts.Success($"Saved {++_saves} time(s).", "Saved");
+
+    private void ShowAndRedirect()
+    {
+        Toasts.Success("Saved, then redirected. The toast came along.", "Redirected");
+        Navigation.NavigateTo(Navigation.Uri, forceLoad: false);
+    }
+
+    private void ShowError() => Toasts.Error("The server didn't respond.", "Couldn't save");
+
+    [SupplyParameterFromQuery(Name = "restored")] private int? Restored { get; set; }
+
+    private bool _archived;
+    private bool _restoredByClick;
+
+    private string ArchiveState => _archived ? "archived" : _restoredByClick ? "restored by C#" : Restored == 1 ? "restored by the link" : "in the inbox";
+
+    // Static pages get the link; interactive pages run OnClick.
+    private void Archive()
+    {
+        _archived = true;
+        _restoredByClick = false;
+        Toasts.Info("Message archived.", action: new("Undo", Href: Navigation.GetUriWithQueryParameter("restored", 1))
+        {
+            OnClick = () =>
+            {
+                _archived = false;
+                _restoredByClick = true;
+                StateHasChanged();
+                return Task.CompletedTask;
+            },
+        });
+    }
+
+    private string ActionNote => RendererInfo.IsInteractive
+        ? "Undo runs C# over the connection and closes the toast. Toasts with an action stay twice as long."
+        : "On a static page the action is a link (here to ?restored=1), since there's no connection to run C# over. It works with JavaScript off.";
+
+    private const string ActionCode =
+        """
+        Toasts.Info("Message archived.", action: new("Undo", Href: "/inbox/restore/42")
+        {
+            OnClick = () => Restore(42),   // interactive pages; static pages use the Href
+        });
+        """;
+
+    private const string StatusCode =
+        """
+        <Alert Title="Heads up">A new version is available.</Alert>
+        <Alert Status="Status.Danger" Title="Couldn't save">...</Alert>
+        """;
+
+    private const string VariantsCode =
+        """
+        <Alert Status="Status.Success" Variant="AlertVariant.Solid">...</Alert>
+        """;
+
+    private const string DismissCode =
+        """
+        <Alert Status="Status.Warning" Title="Unverified email" Dismissible>
+            <ChildContent>Check your inbox for the link.</ChildContent>
+            <Actions><Button Size="ControlSize.Sm">Resend email</Button></Actions>
+        </Alert>
+
+        <Alert Dismissible @bind-Dismissed="dismissed">...</Alert>
+        """;
+
+    private const string ToastCode =
+        """
+        // Program.cs
+        builder.Services.AddIzzyBlazor();
+
+        // Layout
+        <ToastRegion />
+
+        // Anywhere you handle an action
+        @inject ToastService Toasts
+        Toasts.Success("Your changes are live.", "Saved");
+        """;
+}

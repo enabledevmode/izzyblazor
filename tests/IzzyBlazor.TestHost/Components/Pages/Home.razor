@@ -1,0 +1,44 @@
+@page "/"
+
+<PageTitle>IzzyBlazor dev host</PageTitle>
+
+<Stack Gap="6" MaxWidth="Length.Prose">
+    <h1 class="host-title">IzzyBlazor dev host</h1>
+
+    <p>
+        Every component demo is served twice. Use the switch in the header to move between them.
+    </p>
+
+    <Stack Gap="3" Padding="5" Bg="Color.SurfaceContainer" Radius="Radius.Md">
+        <Row Gap="3" Align="Align.Baseline"><code>/static/{demo}</code><span>Static SSR. No C# runs after the page is sent.</span></Row>
+        <Row Gap="3" Align="Align.Baseline"><code>/interactive/{demo}</code><span>Interactive Server. C# events work.</span></Row>
+    </Stack>
+
+    <Stack Gap="2">
+        <h2 class="host-subtitle">Testing the three modes</h2>
+        <ol class="host-list">
+            <li><strong>No JavaScript:</strong> open a static page, then in Chrome or Edge DevTools press Ctrl+Shift+P (Cmd+Shift+P on macOS), run "Disable JavaScript", and reload. The badge next to the title says "JavaScript off".</li>
+            <li><strong>Enhanced:</strong> the same static page with JavaScript on. Custom elements and enhanced navigation are active.</li>
+            <li><strong>Interactive:</strong> switch to Interactive in the header.</li>
+        </ol>
+    </Stack>
+
+    <Stack Gap="2">
+        <h2 class="host-subtitle">Also check</h2>
+        <ul class="host-list">
+            <li>Light, dark and system themes (header switch, or DevTools Rendering panel for the system setting).</li>
+            <li>Every breakpoint with the DevTools device toolbar: sm 640px, md 768px, lg 1024px, xl 1280px.</li>
+            <li>Keyboard only, and an axe DevTools scan, on anything interactive.</li>
+        </ul>
+    </Stack>
+
+    <Stack Gap="2">
+        <h2 class="host-subtitle">Components</h2>
+        <Row Gap="2" Wrap>
+            @foreach (var demo in DemoCatalog.All)
+            {
+                <a class="host-chip" href="static/@demo.Slug">@demo.Title</a>
+            }
+        </Row>
+    </Stack>
+</Stack>

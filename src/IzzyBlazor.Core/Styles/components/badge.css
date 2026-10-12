@@ -1,0 +1,71 @@
+/* Badge: shares the accent property pattern with buttons. */
+@layer izzy.components {
+  .ib-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.375em;
+    height: 1.375rem;
+    padding: 0 var(--ib-space-2);
+    border: 1px solid transparent;
+    border-radius: var(--ib-radius-sm);
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+    font-variant-numeric: tabular-nums;
+  }
+
+  /* Optical centering, as for button labels. */
+  .ib-badge-label {
+    text-box: trim-both cap alphabetic;
+  }
+
+  .ib-badge-sm {
+    height: 1.125rem;
+    padding: 0 var(--ib-space-1);
+    font-size: 0.6875rem;
+  }
+
+  .ib-badge-pill {
+    border-radius: var(--ib-radius-full);
+    min-width: 1.375rem;
+    justify-content: center;
+  }
+
+  .ib-badge-sm.ib-badge-pill {
+    min-width: 1.125rem;
+  }
+
+  .ib-badge-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); }
+  .ib-badge-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); }
+  .ib-badge-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
+  .ib-badge-info { --ib-accent: var(--ib-color-info); --ib-on-accent: var(--ib-color-on-info); --ib-accent-text: var(--ib-color-info-text); }
+  .ib-badge-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
+
+  .ib-badge-soft {
+    background-color: color-mix(in oklab, var(--ib-accent) 16%, transparent);
+    color: var(--ib-accent-text);
+  }
+
+  .ib-badge-solid {
+    background-color: var(--ib-accent);
+    color: var(--ib-on-accent);
+  }
+
+  .ib-badge-outline {
+    border-color: color-mix(in oklab, var(--ib-accent) 55%, transparent);
+    color: var(--ib-accent-text);
+  }
+
+  .ib-badge-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background-color: var(--ib-accent);
+  }
+
+  .ib-badge-solid .ib-badge-dot {
+    background-color: currentColor;
+  }
+}

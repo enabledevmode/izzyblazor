@@ -1,0 +1,47 @@
+@* Link and Code. *@
+
+<Stack Gap="8">
+
+    <Example Title="Link" Note="Underlined by default, which is clearest in running text. External opens a new tab, with an icon and a note for screen readers." Code="@LinkCode">
+        <Stack Gap="3">
+            <TextBlock>Read the <Link Href="static/links">getting started guide</Link> before you begin.</TextBlock>
+            <TextBlock>The source is on <Link Href="https://github.com/" External data-testid="external">GitHub</Link>.</TextBlock>
+            <TextBlock Color="Color.Muted" Size="TextSize.Sm">Muted text with an <Link Href="static/links" Inherit>inherited-color link</Link>.</TextBlock>
+            <Row Gap="4"><Link Href="static/links" Underline="LinkUnderline.Hover">Underline on hover</Link><Link Href="static/links" Underline="LinkUnderline.None">No underline</Link></Row>
+        </Stack>
+    </Example>
+
+    <Example Title="Code" Note="Inline code for names in text, and blocks that scroll sideways. A block's copy button appears only with JavaScript, since copying needs it." Code="@CodeCode">
+        <Stack Gap="4">
+            <TextBlock>Call <Code>AddIzzyBlazor()</Code> in <Code>Program.cs</Code>.</TextBlock>
+            <Code Block Language="bash" data-testid="code-block">@Install</Code>
+            <Code Block Language="razor">@Snippet</Code>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string Install = "dotnet add package IzzyBlazor";
+
+    private const string Snippet =
+        """
+        <Table Items="orders" PageSize="10">
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+        </Table>
+        """;
+
+    private const string LinkCode =
+        """
+        Read the <Link Href="/docs">guide</Link>.
+        <Link Href="https://github.com/..." External>GitHub</Link>
+        <Link Href="..." Inherit>...</Link>
+        """;
+
+    private const string CodeCode =
+        """
+        Call <Code>AddIzzyBlazor()</Code> in <Code>Program.cs</Code>.
+        <Code Block Language="bash">@install</Code>
+        """;
+}

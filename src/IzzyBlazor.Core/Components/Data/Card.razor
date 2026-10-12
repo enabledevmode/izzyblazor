@@ -1,0 +1,126 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+
+@*
+    A surface for one thing: media, a heading with actions, content, and a footer. With Href
+    the whole card is a link (the title's link stretches over it), while buttons in Actions
+    and Footer stay clickable. No script involved.
+
+    <Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
+        <Actions><IconButton ... /></Actions>
+        <ChildContent>...</ChildContent>
+        <Footer>...</Footer>
+    </Card>
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (Media is not null)
+    {
+        <div class="ib-card-media">@Media</div>
+    }
+    @if (HasHeader)
+    {
+        <div class="ib-card-header">
+            <div class="ib-card-heading">
+                @if (Header is not null)
+                {
+                    @Header
+                }
+                @if (Title is not null)
+                {
+                    @TitleElement
+                }
+                @if (Description is not null)
+                {
+                    <p class="ib-card-description">@Description</p>
+                }
+            </div>
+            @if (Actions is not null)
+            {
+                <div class="ib-card-actions">@Actions</div>
+            }
+        </div>
+    }
+    @if (ChildContent is not null)
+    {
+        <div class="ib-card-body">@ChildContent</div>
+    }
+    @if (Footer is not null)
+    {
+        <div class="ib-card-footer">@Footer</div>
+    }
+</div>
+
+@code {
+    /// <summary>The heading.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The heading level of <see cref="Title"/>, 1 to 6. Defaults to 3.</summary>
+    [Parameter] public int TitleLevel { get; set; } = 3;
+
+    /// <summary>A muted line under the title.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>Custom heading content, above <see cref="Title"/>, such as an avatar row.</summary>
+    [Parameter] public RenderFragment? Header { get; set; }
+
+    /// <summary>Buttons at the end of the heading row, such as a menu.</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>An image or video at the top, edge to edge.</summary>
+    [Parameter] public RenderFragment? Media { get; set; }
+
+    /// <summary>The main content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The bottom row, such as buttons or metadata.</summary>
+    [Parameter] public RenderFragment? Footer { get; set; }
+
+    /// <summary>Makes the whole card a link to this address, through its title. Needs a <see cref="Title"/>.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>How it's drawn. Defaults to <see cref="CardVariant.Outline"/>.</summary>
+    [Parameter] public CardVariant Variant { get; set; } = CardVariant.Outline;
+
+    /// <summary>Inner spacing and title size. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private string? _class;
+    private string? _style;
+
+    private bool HasHeader => Title is not null || Description is not null || Header is not null || Actions is not null;
+
+    private RenderFragment TitleElement => builder =>
+    {
+        builder.OpenElement(0, $"h{Math.Clamp(TitleLevel, 1, 6)}");
+        builder.AddAttribute(1, "class", "ib-card-title");
+        if (Href is not null)
+        {
+            builder.OpenElement(2, "a");
+            builder.AddAttribute(3, "href", Href);
+            builder.AddAttribute(4, "class", "ib-card-link");
+            builder.AddContent(5, Title);
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.AddContent(6, Title);
+        }
+
+        builder.CloseElement();
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-card");
+        classes.Add($"ib-card-{Variant.ToString().ToLowerInvariant()}");
+        classes.Add("ib-card-sm", Size == ControlSize.Sm);
+        classes.Add("ib-card-lg", Size == ControlSize.Lg);
+        classes.Add("ib-card-linked", Href is not null && Title is not null);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

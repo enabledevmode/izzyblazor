@@ -1,0 +1,167 @@
+@page "/preview/app-shell"
+@page "/preview/app-shell/{*Rest}"
+@layout BareLayout
+@inject NavigationManager Navigation
+
+@* A full-page AppShell, shown in an iframe on the AppShell demo page. Static SSR. *@
+
+<PageTitle>AppShell preview</PageTitle>
+
+<AppShell Dividers="@(Lines != "off")" ScrollMode="@(Scroll == "main" ? ShellScroll.Main : ShellScroll.Page)">
+    <AppHeader Bg="@Chrome" Scheme="@SchemeOf(HeaderScheme)">
+        @if (Toggle != "off")
+        {
+            <SidebarToggle />
+        }
+        @* With a full-height sidebar that has a Header, the brand lives there instead. *@
+        @if (!BrandInSidebar)
+        {
+            <Row Gap="2" Align="Align.Center">
+                <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
+            </Row>
+        }
+        <Box Grow />
+        <NavMenu Orientation="Orientation.Horizontal" VisibleFrom="Breakpoint.Lg">
+            <NavItem Href='@Link("docs")'>Docs</NavItem>
+            <NavItem Href='@Link("changelog")'>Changelog</NavItem>
+        </NavMenu>
+        <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    </AppHeader>
+
+    <AppSidebar Bg="@Chrome" Scheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
+                CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)"
+                Header="@(Slots == "on" ? (BrandInSidebar ? SidebarBrand : SidebarSwitcher) : null)" Footer="@(Slots == "on" ? SidebarFooter : null)">
+        <NavMenu>
+            <NavItem Href="@Link(null)" Icon="Lucide.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
+            <NavItem Href='@Link("inbox")' Icon="Lucide.Inbox" Badge="4" BadgeColor="Color.Primary">Inbox</NavItem>
+            <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="preview/app-shell/projects">
+                <NavItem Href='@Link("projects/website")'>Website</NavItem>
+                <NavItem Href='@Link("projects/course")'>Course app</NavItem>
+            </NavGroup>
+            <NavDivider />
+            <NavLabel>Account</NavLabel>
+            <NavItem Href='@Link("settings")' Icon="Lucide.Settings">Settings</NavItem>
+            <NavItem Href='@Link("billing")' Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
+            @* The header links, in the drawer on screens too narrow to show them in the header. *@
+            <NavDivider HiddenFrom="Breakpoint.Lg" />
+            <NavLabel HiddenFrom="Breakpoint.Lg">Site</NavLabel>
+            <NavItem Href='@Link("docs")' Icon="Lucide.BookOpen" HiddenFrom="Breakpoint.Lg">Docs</NavItem>
+            <NavItem Href='@Link("changelog")' Icon="Lucide.ScrollText" HiddenFrom="Breakpoint.Lg">Changelog</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="4" Padding="6">
+            <Heading Level="1" Size="TextSize.Xl3">@(Rest is null ? "Dashboard" : Rest)</Heading>
+            <TextBlock Color="Color.Muted" MaxWidth="Length.Prose">
+                Resize this frame. Below 768px the sidebar becomes a drawer: the menu button opens it,
+                and the backdrop, the close button or Escape closes it. It works with JavaScript off too,
+                using a plain link to the sidebar.
+            </TextBlock>
+            <Row Gap="4" Wrap>
+                @foreach (var i in Enumerable.Range(1, 6))
+                {
+                    <Box Padding="5" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow Basis="14.Rem" MinHeight="7.Rem">Card @i</Box>
+                }
+            </Row>
+        </Stack>
+    </AppMain>
+
+    <AppAside Bg="@Chrome">
+        <Stack Gap="2">
+            <TextBlock Size="TextSize.Xs" Weight="FontWeight.Semibold" Transform="TextTransform.Uppercase" Color="Color.Subtle" LetterSpacing="LetterSpacing.Wider">On this page</TextBlock>
+            <TextBlock Size="TextSize.Sm">Overview</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Recent activity</TextBlock>
+        </Stack>
+    </AppAside>
+
+    <AppFooter Bg="@Chrome" Position="@(StickyFooter == "on" ? BarPosition.Sticky : BarPosition.Static)">
+        <TextBlock Size="TextSize.Sm" Color="Color.Subtle">© Acme. Built with IzzyBlazor.</TextBlock>
+    </AppFooter>
+</AppShell>
+
+@code {
+    [Parameter] public string? Rest { get; set; }
+
+    [SupplyParameterFromQuery(Name = "side")] public string? Side { get; set; }
+
+    // ?full=on runs the sidebar the full height of the window.
+    [SupplyParameterFromQuery(Name = "full")] public string? Full { get; set; }
+
+    // ?footer=on makes the footer sticky; ?scroll=main scrolls only the main area.
+    [SupplyParameterFromQuery(Name = "footer")] public string? StickyFooter { get; set; }
+
+    [SupplyParameterFromQuery(Name = "scroll")] public string? Scroll { get; set; }
+
+    // ?collapse=on lets the sidebar shrink to an icon rail.
+    [SupplyParameterFromQuery(Name = "collapse")] public string? Collapse { get; set; }
+
+    // ?slots=on adds a sidebar Header (workspace) and Footer (account); ?chevron=top moves the chevron up.
+    [SupplyParameterFromQuery(Name = "slots")] public string? Slots { get; set; }
+
+    [SupplyParameterFromQuery(Name = "chevron")] public string? Chevron { get; set; }
+
+    // The preview's settings live in its query string (?full=on&look=tinted...), so its own links
+    // carry them along; otherwise the first click would drop back to the default layout.
+    private string Link(string? page) =>
+        "preview/app-shell" + (page is null ? "" : "/" + page) + new Uri(Navigation.Uri).Query;
+
+    private bool BrandInSidebar => Slots == "on" && Full == "on";
+
+    // Full-height sidebar: the brand, in the top-left corner of the app.
+    private static readonly RenderFragment SidebarBrand =
+        @<Row Gap="2" Align="Align.Center" Padding="1">
+            <Box Bg="Color.Primary" Radius="Radius.Md" Padding="1" Class="host-ws-mark"><Icon Name="Lucide.Zap" /></Box>
+            <Stack Gap="0" Class="ib-collapsed-hide">
+                <TextBlock As="span" Size="TextSize.Sm" Weight="FontWeight.Semibold">Acme Inc.</TextBlock>
+                <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">Pro plan</TextBlock>
+            </Stack>
+        </Row>;
+
+    // Under a full-width header the brand is already up there, so the sidebar shows context.
+    private static readonly RenderFragment SidebarSwitcher =
+        @<Menu Id="project-switch" Label="Switch project">
+            <Trigger>
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.FolderGit2" FullWidth Class="host-switcher" @attributes="context">
+                    <span class="ib-collapsed-hide">Website</span>
+                    <Icon Name="Lucide.ChevronsUpDown" Class="ib-collapsed-hide" Color="Color.Muted" />
+                </Button>
+            </Trigger>
+            <ChildContent>
+                <MenuItem Icon="Lucide.FolderGit2">Website</MenuItem>
+                <MenuItem Icon="Lucide.FolderGit2">Course app</MenuItem>
+                <MenuDivider />
+                <MenuItem Icon="Lucide.Plus">New project</MenuItem>
+            </ChildContent>
+        </Menu>;
+
+    private RenderFragment SidebarFooter =>
+        @<NavMenu aria-label="Account">
+            <NavItem Href='@Link("account")' Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
+        </NavMenu>;
+
+    // ?sb=dark|light|inverse and ?hd=... give the sidebar and header their own color scheme.
+    [SupplyParameterFromQuery(Name = "sb")] public string? SidebarScheme { get; set; }
+
+    [SupplyParameterFromQuery(Name = "hd")] public string? HeaderScheme { get; set; }
+
+    private static Scheme SchemeOf(string? value) => value switch
+    {
+        "dark" => Scheme.Dark,
+        "light" => Scheme.Light,
+        "inverse" => Scheme.Inverse,
+        _ => Scheme.Page,
+    };
+
+    // ?toggle=off leaves out the menu button, so a collapsible sidebar shows its own chevron.
+    [SupplyParameterFromQuery(Name = "toggle")] public string? Toggle { get; set; }
+
+    // ?lines=off hides the lines between areas.
+    [SupplyParameterFromQuery(Name = "lines")] public string? Lines { get; set; }
+
+    // ?look=tinted gives the chrome a tint so the content stands out.
+    [SupplyParameterFromQuery(Name = "look")] public string? Look { get; set; }
+
+    private Color? Chrome => Look == "tinted" ? Color.SurfaceContainer : null;
+}
