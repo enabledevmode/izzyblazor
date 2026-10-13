@@ -49,8 +49,8 @@
       .ib-scroll,
       :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar {
-      width: 12px;
-      height: 12px;
+      width: 8px;
+      height: 8px;
     }
 
     :where(
@@ -67,65 +67,13 @@
       .ib-scroll,
       :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-thumb {
-      border: 3px solid transparent;
+      border: 1px solid transparent;
       border-radius: 999px;
       background-color: var(--ib-color-scrollbar);
       background-clip: padding-box;
     }
 
-    /* A 6px thumb in a 12px gutter, 1px from the area's edge (the outer side of the bar). */
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    )::-webkit-scrollbar-thumb:vertical {
-      border-width: 3px 1px 3px 5px;
-    }
-
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    ):dir(rtl)::-webkit-scrollbar-thumb:vertical {
-      border-width: 3px 5px 3px 1px;
-    }
-
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    )::-webkit-scrollbar-thumb:horizontal {
-      border-width: 5px 3px 1px;
-    }
-
-    /* On the thumb itself: 8px and stronger. */
+    /* A 6px thumb, fully rounded, 1px from the area's edge; on the thumb itself, 8px and stronger. */
     :where(
       .ib-shell-sidebar-body,
       .ib-shell-aside-inner,
@@ -140,89 +88,8 @@
       .ib-scroll,
       :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-thumb:hover {
+      border-width: 0;
       background-color: var(--ib-color-scrollbar-hover);
-    }
-
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    )::-webkit-scrollbar-thumb:vertical:hover {
-      border-width: 2px 1px 2px 3px;
-    }
-
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    ):dir(rtl)::-webkit-scrollbar-thumb:vertical:hover {
-      border-width: 2px 3px 2px 1px;
-    }
-
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    )::-webkit-scrollbar-thumb:horizontal:hover {
-      border-width: 3px 2px 1px;
-    }
-
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    )::-webkit-scrollbar-track,
-    :where(
-      .ib-shell-sidebar-body,
-      .ib-shell-aside-inner,
-      .ib-shell-scroll-main > .ib-shell-main,
-      .ib-table-scroll,
-      .ib-nav-horizontal,
-      .ib-tabs-list,
-      .ib-pop,
-      .ib-dialog,
-      .ib-dialog-body,
-      .ib-code-pre,
-      .ib-scroll,
-      :root:is(.ib-scrollbars, :has(.ib-shell))
-    )::-webkit-scrollbar-corner {
-      background: transparent;
     }
 
     :where(
