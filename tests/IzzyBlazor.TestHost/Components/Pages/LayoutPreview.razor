@@ -1,0 +1,232 @@
+@page "/preview/layout/{Kind}"
+@layout BareLayout
+@using System.ComponentModel.DataAnnotations
+
+@*
+    One realistic screen per kind of content, in any shell variant, so the layering can be
+    judged against real content rather than placeholders: ?variant=tinted|inset|flat|canvas.
+    Kinds: settings (forms in sections), list (a full-width table), dashboard (stats and
+    panels), document (long-form reading).
+*@
+
+<PageTitle>@Title · Acme</PageTitle>
+
+<AppShell Variant="ShellVariantValue">
+    <AppHeader>
+        <SidebarToggle />
+        <Row Gap="2" Align="Align.Center">
+            <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
+            <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
+        </Row>
+        <Box Grow />
+        <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href="@Url("dashboard")" Icon="Lucide.LayoutDashboard">Overview</NavItem>
+            <NavItem Href="@Url("list")" Icon="Lucide.ListChecks" Badge="57">Rules</NavItem>
+            <NavItem Href="@Url("document")" Icon="Lucide.BookOpen">Guide</NavItem>
+            <NavDivider />
+            <NavLabel>Workspace</NavLabel>
+            <NavItem Href="@Url("settings")" Icon="Lucide.Settings">Settings</NavItem>
+            <NavItem Href="@Url("billing")" Icon="Lucide.CreditCard">Billing</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        @switch (Kind)
+        {
+            case "settings":
+                <Stack Gap="6" Padding="new() { Base = 4, Md = 8 }" MaxWidth="64.Rem">
+                    <Row Gap="3" Align="Align.End" Wrap>
+                        <Stack Gap="1" Grow>
+                            <TextBlock Size="TextSize.Xs" Weight="FontWeight.Semibold" Color="Color.Muted">WORKSPACE</TextBlock>
+                            <Heading Level="1" Size="TextSize.Xl2">Project settings</Heading>
+                        </Stack>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+                        <Button StartIcon="Lucide.Check">Save changes</Button>
+                    </Row>
+                    <Form Model="Settings" FormName="layout-settings" OnValidSubmit="() => { }">
+                        <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+                            <Card Title="Details" Description="How the project appears to your team.">
+                                <Stack Gap="4">
+                                    <TextField @bind-Value="Settings!.Name" />
+                                    <TextField @bind-Value="Settings!.Owner" />
+                                    <Select @bind-Value="Settings!.Region" Hint="Where decisions are stored." />
+                                </Stack>
+                            </Card>
+                            <Card Title="Notifications" Description="What we email you about.">
+                                <Stack Gap="4">
+                                    <Switch @bind-Value="Settings!.Digest" />
+                                    <Checkbox @bind-Value="Settings!.Mentions" />
+                                    <Checkbox @bind-Value="Settings!.Failures" />
+                                    <RadioGroup @bind-Value="Settings!.Visibility" Orientation="Orientation.Horizontal" />
+                                </Stack>
+                            </Card>
+                            <Card Title="Limits">
+                                <Stack Gap="4">
+                                    <Slider @bind-Value="Settings!.DailyLimit" Max="1000" Step="50" ShowValue />
+                                    <Slider @bind-Value="Settings!.Retries" Max="10" ShowValue />
+                                    <SegmentedControl @bind-Value="Settings!.Period" />
+                                </Stack>
+                            </Card>
+                            <Card Title="Danger zone" Description="Deleting removes every rule and its history.">
+                                <Row Gap="2">
+                                    <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Lucide.Trash">Delete project</Button>
+                                </Row>
+                            </Card>
+                        </Grid>
+                    </Form>
+                </Stack>
+                break;
+
+            case "list":
+                <Stack Gap="5" Padding="new() { Base = 4, Md = 8 }">
+                    <Row Gap="3" Align="Align.Center" Wrap>
+                        <Stack Gap="1" Grow>
+                            <Heading Level="1" Size="TextSize.Xl2">Rules</Heading>
+                            <TextBlock Color="Color.Muted" Size="TextSize.Sm">Every rule in this project, most recently changed first.</TextBlock>
+                        </Stack>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download">Export</Button>
+                        <Button StartIcon="Lucide.Plus">New rule</Button>
+                    </Row>
+                    <Table Items="Rules" PageSize="8" PageSizeOptions="SizeOptions" Caption="Rules" id="layout-rules">
+                        <PropertyColumn Property="r => r.Name" Sortable />
+                        <TemplateColumn Title="Status" SortBy="r => r.Status" SortKey="status" Sortable>
+                            <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                        </TemplateColumn>
+                        <PropertyColumn Property="r => r.Owner" Sortable />
+                        <PropertyColumn Property="r => r.Updated" Format="MMM d, yyyy" Sortable />
+                        <PropertyColumn Property="r => r.Hits" Title="Hits (7 days)" Format="N0" Sortable />
+                    </Table>
+                </Stack>
+                break;
+
+            case "document":
+                <Box Padding="new() { Base = 4, Md = 10 }">
+                    <Stack Gap="5" MaxWidth="Length.Prose">
+                        <Breadcrumb>
+                            <BreadcrumbItem Href="@Url("document")">Guide</BreadcrumbItem>
+                            <BreadcrumbItem>Writing rules</BreadcrumbItem>
+                        </Breadcrumb>
+                        <Heading Level="1" Size="TextSize.Xl2">Writing your first rule</Heading>
+                        <TextBlock Color="Color.Muted">A rule reads a decision's inputs and returns an outcome. Start small: one condition, one outcome, and a dry run before it goes live.</TextBlock>
+                        <Heading Level="2" Size="TextSize.Lg">Conditions</Heading>
+                        <TextBlock>Each condition compares an input to a value. Conditions in a group must all match; groups are tried in order, and the first group that matches decides the outcome. Keep groups short, and name them for what they catch, not how they work.</TextBlock>
+                        <Code Block Language="text">when amount > 500 and customer.age_days &lt; 30
+  then hold for review</Code>
+                        <Alert Title="Run it dry first">A dry run replays last week's decisions through the new rule and shows what would change, without changing anything.</Alert>
+                        <Heading Level="2" Size="TextSize.Lg">Outcomes</Heading>
+                        <TextBlock>An outcome is what the caller receives: approve, hold, or decline, with an optional reason. Reasons are shown to reviewers, so write them for a person: "New customer, large refund" beats "rule 14".</TextBlock>
+                        <TextBlock>When two rules disagree, the stricter outcome wins. You can see which rule decided in each decision's history.</TextBlock>
+                    </Stack>
+                </Box>
+                break;
+
+            default:
+                <Stack Gap="6" Padding="new() { Base = 4, Md = 8 }">
+                    <Row Gap="3" Align="Align.Center" Wrap>
+                        <Stack Gap="1" Grow>
+                            <Heading Level="1" Size="TextSize.Xl2">Overview</Heading>
+                            <TextBlock Color="Color.Muted" Size="TextSize.Sm">Decisions across all projects, last 30 days.</TextBlock>
+                        </Stack>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Lucide.ChevronDown">Last 30 days</Button>
+                    </Row>
+                    <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
+                        <Card><Stat Label="Decisions" Value="48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.Activity" /></Card>
+                        <Card><Stat Label="Held for review" Value="1,284" Change="3%" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Lucide.Hand" /></Card>
+                        <Card><Stat Label="Median latency" Value="18 ms" Change="2 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Lucide.Timer" /></Card>
+                        <Card><Stat Label="Rules live" Value="57" Change="+4" Trend="StatTrend.Up" Icon="Lucide.ListChecks" /></Card>
+                    </Grid>
+                    <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
+                        <Box Style="grid-column: span 2">
+                            <Card Title="Busiest rules" Description="By decisions, last 7 days.">
+                                <Stack Gap="4">
+                                    @foreach (var rule in Rules.OrderByDescending(r => r.Hits).Take(4))
+                                    {
+                                        <Stack Gap="1">
+                                            <Row Justify="Justify.Between"><TextBlock Size="TextSize.Sm">@rule.Name</TextBlock><TextBlock Size="TextSize.Sm" Color="Color.Muted" TabularNums>@rule.Hits.ToString("N0")</TextBlock></Row>
+                                            <Progress Value="rule.Hits" Max="MaxHits" Label="@rule.Name" />
+                                        </Stack>
+                                    }
+                                </Stack>
+                            </Card>
+                        </Box>
+                        <Card Title="Project" Variant="CardVariant.Filled">
+                            <DescriptionList>
+                                <DescriptionItem Term="Owner">Ada Lovelace</DescriptionItem>
+                                <DescriptionItem Term="Region">EU (Frankfurt)</DescriptionItem>
+                                <DescriptionItem Term="Plan"><Badge Status="Status.Info">Team</Badge></DescriptionItem>
+                            </DescriptionList>
+                        </Card>
+                    </Grid>
+                </Stack>
+                break;
+        }
+    </AppMain>
+</AppShell>
+
+@code {
+    [Parameter] public string Kind { get; set; } = "dashboard";
+
+    // ?variant=tinted|inset|flat|canvas
+    [SupplyParameterFromQuery(Name = "variant")] public string? VariantName { get; set; }
+
+    [SupplyParameterFromForm(FormName = "layout-settings")] public SettingsModel? Settings { get; set; }
+
+    protected override void OnInitialized() => Settings ??= new();
+
+    private ShellVariant ShellVariantValue => VariantName switch
+    {
+        "inset" => ShellVariant.Inset,
+        "flat" => ShellVariant.Flat,
+        "canvas" => ShellVariant.Canvas,
+        _ => ShellVariant.Tinted,
+    };
+
+    private string Url(string kind) => VariantName is null ? $"preview/layout/{kind}" : $"preview/layout/{kind}?variant={VariantName}";
+
+    private string Title => Kind switch { "settings" => "Settings", "list" => "Rules", "document" => "Guide", _ => "Overview" };
+
+    private static readonly int[] SizeOptions = [8, 20, 50];
+
+    public enum Region { [Display(Name = "EU (Frankfurt)")] Eu, [Display(Name = "US East")] UsEast, [Display(Name = "Asia Pacific")] Apac }
+    public enum Visibility { Private, Team, Public }
+    public enum Period { Day, Week, Month }
+
+    public sealed class SettingsModel
+    {
+        [Display(Name = "Project name")] public string? Name { get; set; } = "Rulebook console";
+        public string? Owner { get; set; } = "Ada Lovelace";
+        public Region Region { get; set; } = Region.Eu;
+        [Display(Name = "Weekly digest")] public bool Digest { get; set; } = true;
+        [Display(Name = "Mentions")] public bool Mentions { get; set; } = true;
+        [Display(Name = "Failed dry runs")] public bool Failures { get; set; }
+        public Visibility Visibility { get; set; } = Visibility.Team;
+        [Display(Name = "Daily limit")] public int DailyLimit { get; set; } = 600;
+        public int Retries { get; set; } = 3;
+        public Period Period { get; set; } = Period.Week;
+    }
+
+    private sealed record Rule(string Name, string Status, string Owner, DateOnly Updated, int Hits);
+
+    private static readonly string[] Owners = ["Ada Lovelace", "Grace Hopper", "Alan Turing", "Katherine Johnson"];
+    private static readonly string[] Statuses = ["Live", "Draft", "Paused", "Failing"];
+    private static readonly string[] Names = ["Hold large refunds", "Band new customers", "Score repeat buyers", "Flag mismatched country", "Limit gift cards", "Review high-risk BINs", "Fast-track trusted", "Velocity check"];
+
+    private static readonly IReadOnlyList<Rule> Rules = Enumerable.Range(1, 57)
+        .Select(i => new Rule($"{Names[i % Names.Length]}{(i >= Names.Length ? $" {i / Names.Length + 1}" : "")}", Statuses[i * 3 % 7 % Statuses.Length], Owners[i * 5 % Owners.Length], new DateOnly(2026, 10, 12).AddDays(-(i * 3 % 90)), 120 + i * 977 % 9000))
+        .ToList();
+
+    private static readonly double MaxHits = Rules.Max(r => r.Hits);
+
+    private static Status StatusOf(string status) => status switch
+    {
+        "Live" => Status.Success,
+        "Paused" => Status.Warning,
+        "Failing" => Status.Danger,
+        _ => Status.Neutral,
+    };
+}

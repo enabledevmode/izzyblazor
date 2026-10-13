@@ -8,16 +8,18 @@
             <p class="host-example-note">@Note</p>
         }
     </Stack>
-    @if (ChildContent is not null)
-    {
-        <div class="host-example-canvas">
-            @ChildContent
-        </div>
-    }
-    @if (Code is not null)
-    {
-        <pre class="host-example-code"><code>@Code</code></pre>
-    }
+    <div class="host-example-frame">
+        @if (ChildContent is not null)
+        {
+            <div class="host-example-canvas">
+                @ChildContent
+            </div>
+        }
+        @if (Code is not null)
+        {
+            <pre class="host-example-code"><code>@Code</code></pre>
+        }
+    </div>
 </section>
 
 @code {

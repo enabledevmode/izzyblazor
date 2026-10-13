@@ -11,9 +11,11 @@
         </Row>
     </Example>
 
-    <Example Title="Surfaces" Note="Background and text color tokens, radius and shadow." Code="@SurfacesCode">
+    <Example Title="Surfaces" Note="The surface ladder, on a Surface: the page tint, raised (menus, popovers, elevated cards: lighter in dark mode, where shadows don't show), then the three fills, each a clear step stronger. Then theme colors, radius and shadow." Code="@SurfacesCode">
         <Row Gap="4" Wrap>
-            <Box Padding="5" Bg="Color.Surface" Radius="Radius.Md" Shadow="Shadow.Sm" Width="Length.Rem(12)">Surface, shadow Sm</Box>
+            <Box Padding="5" Bg="Color.Background" Radius="Radius.Md" Width="Length.Rem(12)">Background</Box>
+            <Box Padding="5" Bg="Color.SurfaceRaised" Radius="Radius.Md" Shadow="Shadow.Sm" Class="host-raised" Width="Length.Rem(12)">SurfaceRaised, shadow Sm</Box>
+            <Box Padding="5" Bg="Color.SurfaceContainerLow" Radius="Radius.Md" Width="Length.Rem(12)">SurfaceContainerLow</Box>
             <Box Padding="5" Bg="Color.SurfaceContainer" Radius="Radius.Md" Width="Length.Rem(12)">SurfaceContainer</Box>
             <Box Padding="5" Bg="Color.SurfaceContainerHigh" Radius="Radius.Lg" Width="Length.Rem(12)">SurfaceContainerHigh</Box>
             <Box Padding="5" Bg="Color.Primary" Radius="Radius.Xl" Shadow="Shadow.Md" Width="Length.Rem(12)">Primary</Box>
@@ -27,7 +29,7 @@
             {
                 <Box Padding="4" Bg="bg" Radius="Radius.Md">@name</Box>
             }
-            <Box Padding="4" Bg="Color.Primary" Color="Color.Surface" Radius="Radius.Md">Explicit Color wins</Box>
+            <Box Padding="4" Bg="Color.PrimarySoft" Color="Color.PrimaryText" Radius="Radius.Md">Explicit Color wins</Box>
         </Row>
     </Example>
 
@@ -104,7 +106,8 @@
 
     private const string SurfacesCode =
         """
-        <Box Padding="5" Bg="Color.Surface" Radius="Radius.Md" Shadow="Shadow.Sm">...</Box>
+        <Box Padding="5" Bg="Color.SurfaceContainerLow" Radius="Radius.Md">...</Box>
+        <Box Padding="5" Bg="Color.SurfaceRaised" Radius="Radius.Md" Shadow="Shadow.Sm">...</Box>
         <Box Padding="5" Bg="Color.Primary" Radius="Radius.Xl">...</Box>
         """;
 
@@ -116,8 +119,9 @@
 
     private const string ContrastCode =
         """
-        <Box Bg="Color.Primary">White text in light mode, dark text in dark mode</Box>
+        <Box Bg="Color.Primary">Text uses OnPrimary</Box>
         <Box Bg="Color.Warning">...</Box>
+        <Box Bg="Color.PrimarySoft" Color="Color.PrimaryText">Explicit Color wins</Box>
         """;
 
     private const string SchemeCode =

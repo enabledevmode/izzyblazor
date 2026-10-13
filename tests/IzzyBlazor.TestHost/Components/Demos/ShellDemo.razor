@@ -12,6 +12,19 @@
         </Stack>
     </Example>
 
+    <Example Title="Variants" Note="Variant on AppShell sets how the parts are layered. Content is the brightest layer and the frame recedes into the page tint: Tinted (the default) tints the sidebar; Inset tints the whole frame and raises the main area as a panel. Flat is all surface with lines; Canvas tints the main area, for dashboards whose content is all cards. A part's own Bg still wins." Code="@VariantCode">
+        <Stack Gap="4">
+            <TextBlock As="span" Class="host-label">Tinted (default)</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell" title="AppShell, Tinted variant"></iframe>
+            <TextBlock As="span" Class="host-label">Inset</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?variant=inset" title="AppShell, Inset variant"></iframe>
+            <TextBlock As="span" Class="host-label">Flat</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?variant=flat" title="AppShell, Flat variant"></iframe>
+            <TextBlock As="span" Class="host-label">Canvas</TextBlock>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?variant=canvas" title="AppShell, Canvas variant"></iframe>
+        </Stack>
+    </Example>
+
     <Example Title="Sidebar on the end side" Note="Position=&quot;SidebarPosition.End&quot; on AppSidebar puts the sidebar on the right (in left-to-right languages); on phones the drawer slides in from the right, and the aside moves to the left." Code="@EndCode">
         <Row Gap="4" Wrap Align="Align.Start">
             <iframe class="host-frame host-frame-phone" src="preview/app-shell?side=end" title="End-side AppShell at phone width"></iframe>
@@ -61,7 +74,7 @@
             <TextBlock As="span" Class="host-label">Tinted chrome, with lines</TextBlock>
             <iframe class="host-frame" style="width:100%" src="preview/app-shell?look=tinted" title="AppShell with tinted chrome and dividers"></iframe>
             <TextBlock As="span" Class="host-label">One surface, no lines</TextBlock>
-            <iframe class="host-frame" style="width:100%" src="preview/app-shell?lines=off" title="AppShell with one surface and no dividers"></iframe>
+            <iframe class="host-frame" style="width:100%" src="preview/app-shell?variant=flat&amp;lines=off" title="AppShell with one surface and no dividers"></iframe>
         </Stack>
     </Example>
 
@@ -135,17 +148,25 @@
     private const string AreaCode =
         """
         <AppShell Dividers="false">
-            <AppHeader Bg="Color.SurfaceContainer">...</AppHeader>
-            <AppSidebar Bg="Color.SurfaceContainer">...</AppSidebar>
+            <AppHeader Bg="Color.Background">...</AppHeader>
+            <AppSidebar Bg="Color.Background">...</AppSidebar>
             <AppMain>@Body</AppMain>
-            <AppAside Bg="Color.SurfaceContainer">...</AppAside>
-            <AppFooter Bg="Color.SurfaceContainer">...</AppFooter>
+            <AppAside Bg="Color.Background">...</AppAside>
+            <AppFooter Bg="Color.Background">...</AppFooter>
         </AppShell>
+        """;
+
+    private const string VariantCode =
+        """
+        <AppShell>...</AppShell>                              @* Tinted: the sidebar takes the page tint *@
+        <AppShell Variant="ShellVariant.Inset">...</AppShell> @* the main area is a raised panel *@
+        <AppShell Variant="ShellVariant.Flat">...</AppShell>
+        <AppShell Variant="ShellVariant.Canvas">...</AppShell>
         """;
 
     private const string FullCode =
         """
-        <AppSidebar FullHeight Bg="Color.SurfaceContainer">
+        <AppSidebar FullHeight Bg="Color.Background">
             <Header>(your brand: the row matches AppHeader's height)</Header>
             <ChildContent><NavMenu>...</NavMenu></ChildContent>
         </AppSidebar>
