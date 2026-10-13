@@ -126,7 +126,7 @@ show a number keyboard. `Min` and `Max` default to the model's `[Range]`; `Step`
 whole numbers and to any value for decimal types (set `Step="0.01"` for cents). Values always use
 invariant formatting (`1.5`), as number inputs require, whatever the page's culture. With JavaScript,
 stepper buttons appear: hold one to repeat, and each end disables at `Min` or `Max`.
-`Steppers` places them: `StepperLayout.Stacked` at the end (the default), `Split` (a full-height
+`StepButtons` places them: `StepButtons.Stacked` at the end (the default), `Split` (a full-height
 button at each end, easier to tap) or `None`. The browser's own spin buttons are always hidden, and
 arrow keys step either way. It takes the same
 `StartIcon` and add-ons as `TextField`.
@@ -205,6 +205,13 @@ posts as unchecked and choosing it clears the dash. CSS shows it with no script;
 screen readers announce it as "mixed". Work it out from the other values, so it's right after a
 post too.
 
+**SegmentedControl.** One choice from a few (a view, an alignment, a billing period), as joined
+buttons. They're real radio buttons drawn as segments, so it posts like a `RadioGroup`, arrow keys
+move the choice, and it works with no script. It lists enum values automatically, or takes `Items`
+and `ItemText`. `ItemIcon` adds an icon per option and `IconOnly` shows only the icons (the text
+stays for screen readers and as a tooltip). `FullWidth` shares the width equally; `HideLabel` keeps
+the label for screen readers only, as in a toolbar.
+
 **CheckboxGroup and MultiSelect.** Pick several options, bound to a collection (an array,
 `List<T>` or `HashSet<T>`). Both post repeated form fields, which Blazor binds back to the collection,
 so they work on static pages with no script. Validate the count with `[MinLength]`/`[MaxLength]`.
@@ -277,6 +284,12 @@ without script too. Forms can't nest, so a dialog that has to sit inside a form 
 it then closes with the native `close` command instead. When a button in a dialog submits another
 form or follows a link, the script closes the dialog, so it doesn't stay open over an enhanced
 response.
+
+`Drawer` is a `Dialog` that slides in from an edge: the end side by default, or `Placement` `Start`,
+`Top` or `Bottom` (a sheet along the bottom suits phones). It opens and closes the same ways and
+traps focus the same way. `Size` sets a side drawer's width (`Sm` 20rem, `Md` 24rem, `Lg` 32rem,
+`Xl` 40rem, `Full`); top and bottom sheets are as tall as their content, up to 85% of the screen.
+Sides flip in right-to-left languages.
 
 `ConfirmButton` asks before acting: it opens a small alert dialog with a `Title` ("Delete this
 project?"), an optional `Message` or `Body`, Cancel (focused first) and a confirm button
@@ -355,6 +368,15 @@ kept), so the page reads it with `[SupplyParameterFromQuery]` and paging works w
 phones it shows only the neighbours and the ends. With `@bind-Page` on an interactive page, the pages
 become buttons that update C# without touching the URL.
 
+## Stepper
+
+Where someone is in a process, such as a checkout: `Stepper Current="2"` (counting from 1) around
+`Step`s with a `Label`, optional `Description` and `Icon`. Steps before `Current` show a check, and
+screen readers hear `CompletedLabel` ("(completed)") after their label; the current step has
+`aria-current="step"`. A `Step` with `Href` is a link, to go back to a finished step, say. It's a row
+from 640px up and a column on phones (`Orientation.Vertical` for a column everywhere); `Size` scales
+the markers. Nothing needs script: drive `Current` from the URL or the form post.
+
 ## Alerts and toasts
 
 `Alert` takes a `Status`, `Variant` (`Soft`, `Outline`, `Solid`), `Title`, `Actions` and
@@ -383,6 +405,14 @@ Toasts.Info("Message archived.", action: new("Undo", Href: $"/inbox/restore/{id}
 `Href` makes the action a link, which works everywhere. `OnClick` runs C# on interactive pages; a
 static page has no connection to run it over, so there the `Href` is used, and a toast with only
 `OnClick` throws when shown on a static page.
+
+## Tag
+
+A keyword, category or applied filter: larger than a `Badge`, with the same `Status`, `Color` and
+variants (`Soft`, `Solid`, `Outline`), and `Size` (20, 24 or 28px). `Label` is the text (or content),
+`StartIcon` an icon, and `Href` makes the text a link. To make it removable, give it `RemoveHref` (a
+link, such as the current URL without that filter, for static pages) and/or `OnRemove` (C#, used on
+interactive pages). The remove control is named "Remove {Label}" (`RemoveLabel`).
 
 ## Loading: Spinner, Progress, Skeleton
 

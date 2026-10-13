@@ -1,0 +1,100 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+
+@*
+    One choice from a few, as a row of joined buttons: real radio buttons in a fieldset, styled as
+    segments. Posts like a RadioGroup, arrow keys move between options, and it works with
+    JavaScript off. Options come from Items, or automatically from an enum.
+
+    <SegmentedControl @bind-Value="Model.View" HideLabel />
+    <SegmentedControl @bind-Value="Model.Align" ItemIcon="AlignIcon" IconOnly />
+*@
+
+<FieldFrame Class="@WrapperClass("segmented")" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <div class="@SegmentsClass">
+        @foreach (var (item, index) in Options.Select((o, i) => (o, i)))
+        {
+            var value = FormatValueAsString(item);
+            var id = $"{FieldId}-{index}";
+            var text = TextFor(item);
+            var icon = ItemIcon?.Invoke(item);
+            <label class="ib-segment" for="@id" title="@(IconOnly ? text : null)">
+                <input id="@id"
+                       class="ib-segment-input"
+                       type="radio"
+                       name="@NameAttributeValue"
+                       value="@value"
+                       checked="@(value == CurrentValueAsString)"
+                       @onchange="() => CurrentValue = item"
+                       required="@IsRequired"
+                       disabled="@Disabled"
+                       aria-invalid="@(Invalid ? "true" : null)" />
+                @if (icon is not null)
+                {
+                    <Icon Name="icon" />
+                }
+                <span class="@(IconOnly && icon is not null ? "ib-visually-hidden" : "ib-segment-label")">@text</span>
+            </label>
+        }
+    </div>
+</FieldFrame>
+
+@code {
+    /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
+    [Parameter] public IEnumerable<TValue>? Items { get; set; }
+
+    /// <summary>The text for each option. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
+    [Parameter] public Func<TValue, string>? ItemText { get; set; }
+
+    /// <summary>An icon for each option, before its text.</summary>
+    [Parameter] public Func<TValue, IconData?>? ItemIcon { get; set; }
+
+    /// <summary>Shows only the icons; the text stays for screen readers and as a tooltip.</summary>
+    [Parameter] public bool IconOnly { get; set; }
+
+    /// <summary>Fills the available width, the segments sharing it equally.</summary>
+    [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>Keeps the label for screen readers but doesn't show it, as in a toolbar.</summary>
+    [Parameter] public bool HideLabel { get; set; }
+
+    private string SegmentsClass => new ClassBuilder()
+        .Add("ib-segmented")
+        .Add("ib-segmented-full", FullWidth)
+        .Add("ib-segmented-icon-only", IconOnly)
+        .Build()!;
+
+    private IEnumerable<TValue> Options
+    {
+        get
+        {
+            if (Items is not null)
+            {
+                return Items;
+            }
+
+            var type = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+            return type.IsEnum ? Enum.GetValues(type).Cast<object>().Select(v => (TValue)v) : [];
+        }
+    }
+
+    private string TextFor(TValue item)
+    {
+        if (ItemText is not null)
+        {
+            return ItemText(item);
+        }
+
+        if (item is Enum e)
+        {
+            var member = e.GetType().GetMember(e.ToString()).FirstOrDefault();
+            var display = member?.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
+                .OfType<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault();
+            return display?.GetName() ?? e.ToString();
+        }
+
+        return item?.ToString() ?? "";
+    }
+}

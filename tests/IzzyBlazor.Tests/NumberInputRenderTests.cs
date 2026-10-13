@@ -93,13 +93,13 @@ public class NumberInputRenderTests : BunitContext
         Assert.Equal(new[] { "Increase", "Decrease" }, buttons.Select(b => b.GetAttribute("aria-label")).ToArray());
         Assert.All(buttons, b => Assert.Equal("-1", b.GetAttribute("tabindex")));
 
-        Assert.Empty(NumberFor(() => _model.Quantity, p => p.Add(f => f.Steppers, StepperLayout.None)).FindAll("[data-ib-steppers]"));
+        Assert.Empty(NumberFor(() => _model.Quantity, p => p.Add(f => f.StepButtons, StepButtons.None)).FindAll("[data-ib-steppers]"));
     }
 
     [Fact]
     public void Split_steppers_put_decrease_first_and_increase_last()
     {
-        var cut = NumberFor(() => _model.Quantity, p => p.Add(f => f.Steppers, StepperLayout.Split));
+        var cut = NumberFor(() => _model.Quantity, p => p.Add(f => f.StepButtons, StepButtons.Split));
         var steps = cut.FindAll("[data-ib-steppers] button").Select(b => b.GetAttribute("data-ib-step")).ToArray();
 
         Assert.Equal(new[] { "down", "up" }, steps);

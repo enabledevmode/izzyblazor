@@ -84,6 +84,12 @@ public enum DialogPlacement
 
     /// <summary>A full-height drawer on the end side.</summary>
     End,
+
+    /// <summary>A full-width sheet along the top edge, as tall as its content.</summary>
+    Top,
+
+    /// <summary>A full-width sheet along the bottom edge, as tall as its content. Suits phones.</summary>
+    Bottom,
 }
 
 /// <summary>CSS names for the overlay enums.</summary>

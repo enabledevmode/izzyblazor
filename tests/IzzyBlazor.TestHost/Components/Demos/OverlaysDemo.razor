@@ -136,7 +136,6 @@
         <Row Gap="3" Wrap>
             <DialogTrigger For="invite" StartIcon="Lucide.UserPlus">Invite people</DialogTrigger>
             <DialogTrigger For="confirm-delete" Accent="Accent.Danger" Variant="ButtonVariant.Outline">Delete project</DialogTrigger>
-            <DialogTrigger For="details-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.PanelRight">Open drawer</DialogTrigger>
             <LinkButton Href="@($"{_path}?dialog=confirm-delete")" Variant="ButtonVariant.Link">Open with a link (?dialog=)</LinkButton>
             @if (RendererInfo.IsInteractive)
             {
@@ -177,15 +176,45 @@
             </Footer>
         </Dialog>
 
-        <Dialog Id="details-drawer" Title="Project details" Placement="DialogPlacement.End">
-            <Stack Gap="4">
-                <TextBlock Color="Color.Muted">Drawers are dialogs placed on the start or end side. They flip in right-to-left languages.</TextBlock>
-                <Accordion Variant="AccordionVariant.Flush">
-                    <AccordionItem Title="Owner">Israel</AccordionItem>
-                    <AccordionItem Title="Visibility">Private</AccordionItem>
-                </Accordion>
+    </Example>
+
+    <Example Title="Drawer" Note="A dialog that slides in from an edge: the end side by default, the start side, or a sheet along the bottom (good on phones) or top. It behaves like Dialog, so it traps focus, closes on Escape and opens the same ways. Size sets a side drawer's width; sides flip in right-to-left languages." Code="@DrawerCode">
+        <Row Gap="3" Wrap>
+            <DialogTrigger For="details-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.PanelRight">End</DialogTrigger>
+            <DialogTrigger For="nav-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.PanelLeft">Start, small</DialogTrigger>
+            <DialogTrigger For="share-sheet" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.PanelBottom">Bottom sheet</DialogTrigger>
+        </Row>
+
+        <Drawer Id="details-drawer" Title="Project details" Size="DialogSize.Lg">
+            <ChildContent>
+                <DescriptionList Orientation="Orientation.Vertical" Divided>
+                    <DescriptionItem Term="Owner">Israel</DescriptionItem>
+                    <DescriptionItem Term="Visibility">Private</DescriptionItem>
+                    <DescriptionItem Term="Created">Oct 12, 2026</DescriptionItem>
+                </DescriptionList>
+            </ChildContent>
+            <Footer>
+                <DialogClose>Close</DialogClose>
+            </Footer>
+        </Drawer>
+
+        <Drawer Id="nav-drawer" Title="Navigate" Placement="DialogPlacement.Start" Size="DialogSize.Sm">
+            <nav aria-label="Drawer navigation"><NavMenu>
+                <NavItem Href="static/overlays" Icon="Lucide.House">Home</NavItem>
+                <NavItem Href="static/overlays" Icon="Lucide.FolderKanban">Projects</NavItem>
+                <NavItem Href="static/overlays" Icon="Lucide.Settings">Settings</NavItem>
+            </NavMenu></nav>
+        </Drawer>
+
+        <Drawer Id="share-sheet" Title="Share" Placement="DialogPlacement.Bottom">
+            <Stack Gap="3">
+                <TextBlock Color="Color.Muted" Size="TextSize.Sm">Anyone with the link can view this project.</TextBlock>
+                <Row Gap="2" Wrap>
+                    <Button StartIcon="Lucide.Link">Copy link</Button>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Mail">Email</Button>
+                </Row>
             </Stack>
-        </Dialog>
+        </Drawer>
     </Example>
 
     <Example Title="ConfirmButton" Note="@ConfirmNote" Code="@ConfirmCode">
@@ -228,6 +257,14 @@
 </Stack>
 
 @code {
+    private const string DrawerCode =
+        """
+        <DialogTrigger For="details">Details</DialogTrigger>
+        <Drawer Id="details" Title="Project details" Size="DialogSize.Lg">...</Drawer>
+
+        <Drawer Id="share" Title="Share" Placement="DialogPlacement.Bottom">...</Drawer>
+        """;
+
     private int _resets;
 
     private string ConfirmNote => RendererInfo.IsInteractive

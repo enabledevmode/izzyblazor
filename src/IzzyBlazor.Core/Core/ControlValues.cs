@@ -88,7 +88,7 @@ public enum ButtonType
 }
 
 /// <summary>Where a <see cref="NumberInput{TValue}"/> puts its increase and decrease buttons.</summary>
-public enum StepperLayout
+public enum StepButtons
 {
     /// <summary>Stacked at the end of the field (the default).</summary>
     Stacked,

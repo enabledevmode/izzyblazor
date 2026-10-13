@@ -37,23 +37,26 @@
     min-width: 1.125rem;
   }
 
-  .ib-badge-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); }
-  .ib-badge-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); }
-  .ib-badge-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
-  .ib-badge-info { --ib-accent: var(--ib-color-info); --ib-on-accent: var(--ib-color-on-info); --ib-accent-text: var(--ib-color-info-text); }
-  .ib-badge-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
+  .ib-badge-success, .ib-tag-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); }
+  .ib-badge-warning, .ib-tag-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); }
+  .ib-badge-danger, .ib-tag-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
+  .ib-badge-info, .ib-tag-info { --ib-accent: var(--ib-color-info); --ib-on-accent: var(--ib-color-on-info); --ib-accent-text: var(--ib-color-info-text); }
+  .ib-badge-neutral, .ib-tag-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
 
-  .ib-badge-soft {
+  .ib-badge-soft,
+  .ib-tag-soft {
     background-color: color-mix(in oklab, var(--ib-accent) 16%, transparent);
     color: var(--ib-accent-text);
   }
 
-  .ib-badge-solid {
+  .ib-badge-solid,
+  .ib-tag-solid {
     background-color: var(--ib-accent);
     color: var(--ib-on-accent);
   }
 
-  .ib-badge-outline {
+  .ib-badge-outline,
+  .ib-tag-outline {
     border-color: color-mix(in oklab, var(--ib-accent) 55%, transparent);
     color: var(--ib-accent-text);
   }
@@ -68,5 +71,115 @@
 
   .ib-badge-solid .ib-badge-dot {
     background-color: currentColor;
+  }
+}
+
+/* Tag: Badge's colors and variants, larger, optionally a link or removable. Heights leave an even
+   inside (20, 24, 28 less the border) for even icons and remove buttons. */
+@layer izzy.components {
+  .ib-tag {
+    --ib-tag-h: 1.5rem;
+    --ib-tag-px: var(--ib-space-2);
+    --ib-tag-icon: 0.875rem;
+    --ib-tag-x: 1.125rem;
+    --ib-tag-x-icon: 0.75rem;
+
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    max-width: 100%;
+    height: var(--ib-tag-h);
+    padding-inline: var(--ib-tag-px);
+    border: 1px solid transparent;
+    border-radius: var(--ib-radius-md);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    line-height: 1;
+    white-space: nowrap;
+    vertical-align: middle;
+  }
+
+  .ib-tag-sm {
+    --ib-tag-h: 1.25rem;
+    --ib-tag-px: 6px;
+    --ib-tag-icon: 0.75rem;
+    --ib-tag-x: 0.875rem;
+    --ib-tag-x-icon: 0.625rem;
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-tag-lg {
+    --ib-tag-h: 1.75rem;
+    --ib-tag-px: 0.625rem;
+    --ib-tag-icon: 1rem;
+    --ib-tag-x: 1.375rem;
+    --ib-tag-x-icon: 0.875rem;
+  }
+
+  .ib-tag-removable {
+    padding-inline-end: 2px;
+  }
+
+  .ib-tag > .ib-icon,
+  .ib-tag-link > .ib-icon {
+    flex: none;
+    width: var(--ib-tag-icon);
+    height: var(--ib-tag-icon);
+  }
+
+  .ib-tag-label {
+    text-box: trim-both cap alphabetic;
+  }
+
+  .ib-tag-link {
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
+    min-width: 0;
+    border-radius: calc(var(--ib-radius-md) - 2px);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ib-tag-link:hover .ib-tag-label {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  .ib-tag-link:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 3px;
+  }
+
+  .ib-tag-remove {
+    display: inline-grid;
+    flex: none;
+    place-items: center;
+    width: var(--ib-tag-x);
+    height: var(--ib-tag-x);
+    margin-inline-start: 2px;
+    padding: 0;
+    border: 0;
+    border-radius: calc(var(--ib-radius-md) - 2px);
+    background: transparent;
+    color: inherit;
+    opacity: 0.7;
+    cursor: pointer;
+  }
+
+  .ib-tag-remove:hover {
+    background-color: color-mix(in oklab, currentColor 15%, transparent);
+    opacity: 1;
+  }
+
+  .ib-tag-remove:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 1px;
+    opacity: 1;
+  }
+
+  .ib-tag-remove > .ib-icon {
+    width: var(--ib-tag-x-icon);
+    height: var(--ib-tag-x-icon);
   }
 }

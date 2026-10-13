@@ -415,8 +415,8 @@
   /* Side drawers */
   .ib-dialog-start,
   .ib-dialog-end {
-    --ib-dialog-w: 24rem;
-    width: min(var(--ib-dialog-w), calc(100% - 3rem));
+    --ib-drawer-w: 24rem;
+    width: min(var(--ib-drawer-w), calc(100% - 3rem));
     height: 100%;
     max-height: none;
     margin-block: 0;
@@ -444,6 +444,47 @@
 
   .ib-dialog-start[open]:not(:modal) { margin-inline-start: 0; margin-block: 0; }
   .ib-dialog-end[open]:not(:modal) { margin-inline-end: 0; margin-block: 0; }
+
+  /* A drawer's Size is its width. */
+  .ib-dialog-sm:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 20rem; }
+  .ib-dialog-lg:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 32rem; }
+  .ib-dialog-xl:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 40rem; }
+  .ib-dialog-full:is(.ib-dialog-start, .ib-dialog-end) { width: 100%; }
+
+  /* Top and bottom sheets: full width, as tall as the content up to 85% of the screen. */
+  .ib-dialog-top,
+  .ib-dialog-bottom {
+    width: 100%;
+    max-height: 85dvh;
+    margin-inline: 0;
+    scale: 1;
+  }
+
+  .ib-dialog-top {
+    margin-block: 0 auto;
+    border-radius: 0 0 var(--ib-radius-lg) var(--ib-radius-lg);
+    translate: 0 -100%;
+  }
+
+  .ib-dialog-bottom {
+    margin-block: auto 0;
+    border-radius: var(--ib-radius-lg) var(--ib-radius-lg) 0 0;
+    translate: 0 100%;
+  }
+
+  .ib-dialog-top[open],
+  .ib-dialog-bottom[open] {
+    translate: 0 0;
+    scale: 1;
+  }
+
+  @starting-style {
+    .ib-dialog-top[open] { translate: 0 -100%; }
+    .ib-dialog-bottom[open] { translate: 0 100%; }
+  }
+
+  .ib-dialog-top[open]:not(:modal) { margin-block: 0 auto; margin-inline: 0; }
+  .ib-dialog-bottom[open]:not(:modal) { margin-block: auto 0; margin-inline: 0; }
 
   .ib-dialog-header {
     display: flex;
@@ -508,6 +549,7 @@
 
   .ib-dialog-start .ib-dialog-footer,
   .ib-dialog-end .ib-dialog-footer,
+  .ib-dialog-bottom .ib-dialog-footer,
   .ib-dialog-full .ib-dialog-footer {
     border-radius: 0;
   }

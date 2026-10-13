@@ -7,7 +7,7 @@
     in the browser, and brings up a number keyboard on phones. With JavaScript, increase and
     decrease buttons appear (hold to repeat); the browser's own spin buttons are always hidden.
     <NumberInput @bind-Value="Model.Quantity" Min="1" Max="99" />
-    <NumberInput @bind-Value="Model.Guests" Steppers="StepperLayout.Split" />
+    <NumberInput @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
     <NumberInput @bind-Value="Model.Price" Step="0.01">
         <StartAddon>$</StartAddon>
     </NumberInput>
@@ -36,7 +36,7 @@
                    readonly="@ReadOnly"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
-            @if (Steppers == StepperLayout.Stacked)
+            @if (StepButtons == IzzyBlazor.StepButtons.Stacked)
             {
                 @* Revealed by the script, which does the stepping. Not tab stops: arrow keys step. *@
                 <span class="ib-field-steppers" data-ib-steppers hidden>
@@ -48,7 +48,7 @@
                     </button>
                 </span>
             }
-            else if (Steppers == StepperLayout.Split)
+            else if (StepButtons == IzzyBlazor.StepButtons.Split)
             {
                 <span class="ib-field-steppers ib-field-steppers-split" data-ib-steppers hidden>
                     <button type="button" class="ib-field-step ib-field-step-down" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@Locked">
@@ -93,7 +93,7 @@
     /// across both ends, or none. The browser's own spin buttons are always hidden; arrow keys step
     /// either way.
     /// </summary>
-    [Parameter] public StepperLayout Steppers { get; set; } = StepperLayout.Stacked;
+    [Parameter] public StepButtons StepButtons { get; set; } = IzzyBlazor.StepButtons.Stacked;
 
     /// <summary>The increase button's accessible name.</summary>
     [Parameter] public string IncreaseLabel { get; set; } = "Increase";
@@ -115,8 +115,8 @@
     private string ControlClass => new ClassBuilder()
         .Add("ib-field-control")
         .Add("ib-has-start", StartIcon is not null)
-        .Add("ib-has-steppers", Steppers == StepperLayout.Stacked)
-        .Add("ib-has-split-steppers", Steppers == StepperLayout.Split)
+        .Add("ib-has-steppers", StepButtons == IzzyBlazor.StepButtons.Stacked)
+        .Add("ib-has-split-steppers", StepButtons == IzzyBlazor.StepButtons.Split)
         .Build()!;
 
     private bool Locked => Disabled || ReadOnly;

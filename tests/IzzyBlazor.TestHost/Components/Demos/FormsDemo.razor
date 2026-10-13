@@ -150,13 +150,34 @@
                 <NumberInput @bind-Value="Numbers!.Discount" Step="5">
                     <EndAddon>%</EndAddon>
                 </NumberInput>
-                <NumberInput @bind-Value="Numbers!.Guests" Steppers="StepperLayout.Split" Hint="Split steppers: easier to tap." />
-                <NumberInput @bind-Value="Numbers!.Seats" Steppers="StepperLayout.None" Hint="No steppers: type a number, or use the arrow keys." />
+                <NumberInput @bind-Value="Numbers!.Guests" StepButtons="StepButtons.Split" Hint="Split steppers: easier to tap." />
+                <NumberInput @bind-Value="Numbers!.Seats" StepButtons="StepButtons.None" Hint="No steppers: type a number, or use the arrow keys." />
                 <Row Gap="2" Align="Align.Center">
                     <Button Type="ButtonType.Submit">Save</Button>
                     @if (_numbersSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Numbers!.Quantity × @(Numbers.Price?.ToString("0.00") ?? "no price"), @Numbers.Discount% off, @Numbers.Guests guests, @(Numbers.Seats?.ToString() ?? "no") seats</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
+    <Example Title="Segmented control" Note="One choice from a few, as joined buttons. They're real radio buttons, so the choice posts with the form and arrow keys move it, with JavaScript off. HideLabel keeps the label for screen readers only; IconOnly shows just the icons, with the text as a tooltip." Code="@SegmentsCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Segments" FormName="segments" OnValidSubmit="() => _segmentsSaved = true">
+                <SegmentedControl @bind-Value="Segments!.View" data-testid="segmented-view" />
+                <SegmentedControl @bind-Value="Segments!.Align" ItemIcon="AlignIcon" IconOnly />
+                <SegmentedControl @bind-Value="Segments!.Billing" FullWidth HideLabel />
+                <Row Gap="3" Wrap Align="Align.End">
+                    <SegmentedControl @bind-Value="Segments!.Small" Size="ControlSize.Sm" />
+                    <SegmentedControl @bind-Value="Segments!.Large" Size="ControlSize.Lg" />
+                </Row>
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    @if (_segmentsSaved)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Segments!.View, @Segments.Align, @Segments.Billing</TextBlock>
                     }
                 </Row>
             </Form>
@@ -278,6 +299,17 @@
     private bool _addonsSaved;
     [SupplyParameterFromForm(FormName = "numbers")] public NumbersModel? Numbers { get; set; }
     private bool _numbersSaved;
+    [SupplyParameterFromForm(FormName = "segments")] public SegmentsModel? Segments { get; set; }
+    private bool _segmentsSaved;
+
+    private static IconData? AlignIcon(TextAlignment align) => align switch
+    {
+        TextAlignment.Left => Lucide.TextAlignStart,
+        TextAlignment.Center => Lucide.TextAlignCenter,
+        TextAlignment.Right => Lucide.TextAlignEnd,
+        _ => Lucide.TextAlignJustify,
+    };
+
     [SupplyParameterFromForm(FormName = "sliders")] public SlidersModel? Sliders { get; set; }
     private bool _slidersSaved;
     [SupplyParameterFromForm(FormName = "checks")] public ChecksModel? Checks { get; set; }
@@ -381,6 +413,7 @@
         Addons ??= new();
         Numbers ??= new();
         Sliders ??= new();
+        Segments ??= new();
         Checks ??= new();
         Upload ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
@@ -517,6 +550,25 @@
         [Display(Name = "Disabled, checked")] public bool LockedOn { get; set; } = true;
     }
 
+    public enum CalendarView { Day, Week, Month, Year }
+
+    public enum TextAlignment { Left, Center, Right, Justify }
+
+    public enum Billing
+    {
+        Monthly,
+        [Display(Name = "Yearly (save 20%)")] Yearly,
+    }
+
+    public class SegmentsModel
+    {
+        public CalendarView View { get; set; } = CalendarView.Week;
+        [Display(Name = "Text alignment")] public TextAlignment Align { get; set; } = TextAlignment.Left;
+        public Billing Billing { get; set; } = Billing.Yearly;
+        public Digest Small { get; set; } = Digest.Daily;
+        public Digest Large { get; set; } = Digest.Daily;
+    }
+
     public class SlidersModel
     {
         public int Volume { get; set; } = 60;
@@ -633,8 +685,15 @@
         <NumberInput @bind-Value="Model.Price" Step="0.01">
             <StartAddon>$</StartAddon>
         </NumberInput>
-        <NumberInput @bind-Value="Model.Guests" Steppers="StepperLayout.Split" />
-        <NumberInput @bind-Value="Model.Seats" Steppers="StepperLayout.None" />
+        <NumberInput @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
+        <NumberInput @bind-Value="Model.Seats" StepButtons="StepButtons.None" />
+        """;
+
+    private const string SegmentsCode =
+        """
+        <SegmentedControl @bind-Value="Model.View" />
+        <SegmentedControl @bind-Value="Model.Align" ItemIcon="AlignIcon" IconOnly />
+        <SegmentedControl @bind-Value="Model.Billing" FullWidth HideLabel />
         """;
 
     private const string SlidersCode =

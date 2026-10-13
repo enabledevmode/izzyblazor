@@ -1488,3 +1488,124 @@
     display: none;
   }
 }
+
+/* SegmentedControl: radio buttons drawn as joined segments on a track. The track is the field's
+   height with 3px padding, so segments are an even 30px (26, 38) and their icons sit on whole
+   pixels. The radios cover their segments, invisible, so clicks and arrow keys are native. */
+@layer izzy.components {
+  /* As wide as its segments: the field's column would stretch it otherwise. */
+  .ib-segmented {
+    display: inline-flex;
+    align-self: flex-start;
+    gap: 2px;
+    max-width: 100%;
+    height: var(--ib-field-h);
+    margin-top: var(--ib-space-1);
+    padding: 3px;
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface-container);
+    box-shadow: inset 0 0 0 1px var(--ib-color-border);
+  }
+
+  .ib-segmented-full {
+    display: flex;
+    align-self: stretch;
+    width: 100%;
+  }
+
+  .ib-segmented-full > .ib-segment {
+    flex: 1 1 0;
+  }
+
+  .ib-segment {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    min-width: 0;
+    padding-inline: var(--ib-field-px);
+    border-radius: calc(var(--ib-radius-md) - 2px);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-field-font);
+    font-weight: var(--ib-weight-medium);
+    white-space: nowrap;
+    cursor: pointer;
+    user-select: none;
+    transition:
+      background-color var(--ib-duration-fast) var(--ib-ease),
+      color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-segment-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    opacity: 0;
+    appearance: none;
+    cursor: inherit;
+  }
+
+  .ib-segment-label {
+    text-box: trim-both cap alphabetic;
+  }
+
+  .ib-segment > .ib-icon {
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+  }
+
+  .ib-field-sm .ib-segment > .ib-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .ib-field-lg .ib-segment > .ib-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .ib-segmented-icon-only > .ib-segment {
+    flex: none;
+    width: calc(var(--ib-field-h) - 6px);
+    padding-inline: 0;
+  }
+
+  .ib-segment:hover:not(:has(.ib-segment-input:disabled)) {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-segment:has(.ib-segment-input:checked) {
+    background-color: var(--ib-color-segment);
+    color: var(--ib-color-on-surface);
+    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-segment-edge);
+  }
+
+  .ib-segment:has(.ib-segment-input:focus-visible) {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 1px;
+  }
+
+  .ib-segment:has(.ib-segment-input:disabled) {
+    color: var(--ib-color-disabled);
+    cursor: default;
+  }
+
+  .ib-field-invalid .ib-segmented {
+    box-shadow: inset 0 0 0 1px var(--ib-color-danger);
+  }
+
+  @media (forced-colors: active) {
+    .ib-segmented {
+      border: 1px solid CanvasText;
+    }
+
+    .ib-segment:has(.ib-segment-input:checked) {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+  }
+}

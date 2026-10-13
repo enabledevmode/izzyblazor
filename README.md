@@ -39,10 +39,11 @@ choose a different component for each.
 - **Typography:** TextBlock, Heading, Link, Code, Kbd, Icon (all of Lucide)
 - **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
-  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, FileUpload, Fieldset, FilterForm
-- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog, Accordion, Collapsible
-- **Navigation:** Tabs, Breadcrumb, Pagination
-- **Feedback:** Alert, Badge, Toast, Spinner, Progress, Skeleton, EmptyState
+  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, FileUpload, Fieldset,
+  FilterForm
+- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog, Drawer, Accordion, Collapsible
+- **Navigation:** Tabs, Stepper, Breadcrumb, Pagination
+- **Feedback:** Alert, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
 - **Data:** Card, Table, Stat, DescriptionList, Avatar, AvatarGroup
 
 Styling is typed and responsive, through props on the components, with no CSS to write and nothing
