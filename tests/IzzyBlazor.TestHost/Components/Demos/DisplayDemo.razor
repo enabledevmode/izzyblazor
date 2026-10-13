@@ -1,0 +1,125 @@
+@* Stat, DescriptionList, EmptyState and Kbd. No script involved. *@
+
+<Stack Gap="8">
+
+    <Example Title="Stat" Note="A label, the figure, and how it changed. Up is green and down is red unless ChangeStatus says otherwise, as for response times. The arrow is hidden from screen readers; TrendLabel is read in its place." Code="@StatCode">
+        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
+            <Card><Stat Label="Revenue" Value="$48,210" Change="12%" Trend="Trend.Up" Description="vs last month" Icon="Lucide.DollarSign" data-testid="stat-revenue" /></Card>
+            <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="Trend.Down" Description="vs last week" Icon="Lucide.Users" /></Card>
+            <Card><Stat Label="Response time" Value="182 ms" Change="24 ms" Trend="Trend.Down" ChangeStatus="Status.Success" Description="faster" Icon="Lucide.Timer" /></Card>
+            <Card><Stat Label="Uptime" Value="99.98%" Change="0%" Trend="Trend.Flat" Description="30 days" Icon="Lucide.Activity" /></Card>
+        </Grid>
+    </Example>
+
+    <Example Title="Stat sizes" Code="@StatSizesCode">
+        <Row Gap="10" Wrap Align="Align.End">
+            <Stat Size="ControlSize.Sm" Label="Orders" Value="128" Change="+8" Trend="Trend.Up" />
+            <Stat Label="Orders" Value="128" Change="+8" Trend="Trend.Up" />
+            <Stat Size="ControlSize.Lg" Label="Orders" Value="128" Change="+8" Trend="Trend.Up" />
+        </Row>
+    </Example>
+
+    <Example Title="DescriptionList" Note="Terms beside their details from 640px up, the term column as wide as the longest term; stacked on phones. Divided adds lines between items." Code="@ListCode">
+        <Box MaxWidth="40.Rem">
+            <Card Title="Invoice INV-1042">
+                <DescriptionList Divided data-testid="dl-invoice">
+                    <DescriptionItem Term="Status"><Badge Status="Status.Success" Dot>Paid</Badge></DescriptionItem>
+                    <DescriptionItem Term="Customer">Grace Hopper</DescriptionItem>
+                    <DescriptionItem Term="Email">grace@example.com</DescriptionItem>
+                    <DescriptionItem Term="Amount">$1,280.00</DescriptionItem>
+                    <DescriptionItem Term="Billing address">1 Navy Yard, Arlington, VA 22202</DescriptionItem>
+                </DescriptionList>
+            </Card>
+        </Box>
+    </Example>
+
+    <Example Title="Vertical, in columns" Note="Vertical puts each term above its detail; Columns flows the items into up to four columns from 640px up." Code="@ColumnsCode">
+        <DescriptionList Orientation="Orientation.Vertical" Columns="3">
+            <DescriptionItem Term="Plan">Pro, yearly</DescriptionItem>
+            <DescriptionItem Term="Seats">12 of 20</DescriptionItem>
+            <DescriptionItem Term="Renews">March 3, 2027</DescriptionItem>
+            <DescriptionItem Term="Region">US East</DescriptionItem>
+            <DescriptionItem Term="Created">Oct 12, 2026</DescriptionItem>
+            <DescriptionItem Term="Owner">Ada Lovelace</DescriptionItem>
+        </DescriptionList>
+    </Example>
+
+    <Example Title="EmptyState" Note="An icon, a title, why it's empty, and the action that fills it. Bordered draws a dashed outline for an empty area inside a page." Code="@EmptyCode">
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+            <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here, with their payment status." data-testid="empty-invoices">
+                <Actions>
+                    <LinkButton Href="static/display" StartIcon="Lucide.Plus">New invoice</LinkButton>
+                </Actions>
+            </EmptyState>
+            <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.SearchX" Title="No results for “quarterly”" Description="Try a different word, or clear the filters.">
+                <Actions>
+                    <LinkButton Href="static/display" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Clear filters</LinkButton>
+                </Actions>
+            </EmptyState>
+        </Grid>
+    </Example>
+
+    <Example Title="Kbd" Note="A key, or a combination with Keys. Sized in em, so it fits the text around it." Code="@KbdCode">
+        <Stack Gap="3">
+            <TextBlock>Press <Kbd>Esc</Kbd> to close the dialog.</TextBlock>
+            <TextBlock>Search with <Kbd Keys="Ctrl+K" data-testid="kbd-combo" />, or open the command list with <Kbd Keys="Ctrl+Shift+P" />.</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Zoom in with <Kbd Keys="Ctrl++" />.</TextBlock>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    private const string StatCode =
+        """
+        <Card>
+            <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="Trend.Up"
+                  Description="vs last month" Icon="Lucide.DollarSign" />
+        </Card>
+        <Card>
+            @* Down is good here *@
+            <Stat Label="Response time" Value="182 ms" Change="24 ms" Trend="Trend.Down"
+                  ChangeStatus="Status.Success" Description="faster" />
+        </Card>
+        """;
+
+    private const string StatSizesCode =
+        """
+        <Stat Size="ControlSize.Sm" Label="Orders" Value="128" Change="+8" Trend="Trend.Up" />
+        <Stat Size="ControlSize.Lg" Label="Orders" Value="128" Change="+8" Trend="Trend.Up" />
+        """;
+
+    private const string ListCode =
+        """
+        <DescriptionList Divided>
+            <DescriptionItem Term="Status"><Badge Status="Status.Success" Dot>Paid</Badge></DescriptionItem>
+            <DescriptionItem Term="Customer">Grace Hopper</DescriptionItem>
+            <DescriptionItem Term="Amount">$1,280.00</DescriptionItem>
+        </DescriptionList>
+        """;
+
+    private const string ColumnsCode =
+        """
+        <DescriptionList Orientation="Orientation.Vertical" Columns="3">
+            <DescriptionItem Term="Plan">Pro, yearly</DescriptionItem>
+            <DescriptionItem Term="Seats">12 of 20</DescriptionItem>
+            ...
+        </DescriptionList>
+        """;
+
+    private const string EmptyCode =
+        """
+        <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet"
+                    Description="Invoices you send appear here, with their payment status.">
+            <Actions>
+                <LinkButton Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</LinkButton>
+            </Actions>
+        </EmptyState>
+        """;
+
+    private const string KbdCode =
+        """
+        Press <Kbd>Esc</Kbd> to close the dialog.
+        Search with <Kbd Keys="Ctrl+K" />.
+        """;
+}

@@ -36,14 +36,14 @@ choose a different component for each.
 
 - **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio
 - **App structure:** AppShell (header, collapsible sidebar, aside, footer), NavMenu
-- **Typography:** TextBlock, Heading, Link, Code, Icon (all of Lucide)
+- **Typography:** TextBlock, Heading, Link, Code, Kbd, Icon (all of Lucide)
 - **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, FileUpload, Fieldset, FilterForm
 - **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog, Accordion, Collapsible
 - **Navigation:** Tabs, Breadcrumb, Pagination
-- **Feedback:** Alert, Badge, Toast, Spinner, Progress, Skeleton
-- **Data:** Card, Table, Avatar, AvatarGroup
+- **Feedback:** Alert, Badge, Toast, Spinner, Progress, Skeleton, EmptyState
+- **Data:** Card, Table, Stat, DescriptionList, Avatar, AvatarGroup
 
 Styling is typed and responsive, through props on the components, with no CSS to write and nothing
 computed at runtime. If you've used Chakra UI or Mantine, the layout props will feel familiar:

@@ -1,0 +1,64 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+
+@*
+    Terms and their details, such as an order's fields: a <dl>, each pair wrapped in a <div>.
+    Horizontal puts each term beside its detail from 640px up (the term column fits the longest
+    term), stacking them on phones; Vertical puts the term above, optionally in Columns. No script.
+
+    <DescriptionList Divided>
+        <DescriptionItem Term="Status"><Badge Status="Status.Success" Dot>Paid</Badge></DescriptionItem>
+        <DescriptionItem Term="Customer">Grace Hopper</DescriptionItem>
+    </DescriptionList>
+*@
+
+<dl @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @ChildContent
+</dl>
+
+@code {
+    /// <summary>The <see cref="DescriptionItem"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// <see cref="Orientation.Horizontal"/> (the default) puts each term beside its detail on
+    /// screens 640px and wider; <see cref="Orientation.Vertical"/> puts the term above.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>Lines between the items.</summary>
+    [Parameter] public bool Divided { get; set; }
+
+    /// <summary>
+    /// For a vertical list, how many columns the items flow into on screens 640px and wider
+    /// (1 to 4; defaults to 1). Phones always get one.
+    /// </summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
+    /// <summary>Text size and spacing. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-dl");
+        classes.Add(Orientation == Orientation.Horizontal ? "ib-dl-horizontal" : "ib-dl-vertical");
+        classes.Add("ib-dl-divided", Divided);
+        classes.Add("ib-dl-sm", Size == ControlSize.Sm);
+        classes.Add("ib-dl-lg", Size == ControlSize.Lg);
+        var columns = Math.Clamp(Columns, 1, 4);
+        if (Orientation == Orientation.Vertical && columns > 1)
+        {
+            classes.Add("ib-dl-columns");
+            styles.AddVar("dl-columns", columns.ToString(System.Globalization.CultureInfo.InvariantCulture));
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

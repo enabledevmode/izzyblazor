@@ -1,0 +1,123 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A key figure: a label, a large value, and optionally how it changed and a note. A <dl>, so the
+    label names the value for screen readers. The trend arrow is hidden from them; the change is
+    read with TrendLabel ("Up", "Down") in front of it. No script.
+
+    <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="Trend.Up" Description="vs last month" />
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <dl class="ib-stat-body">
+        <dt class="ib-stat-label">@Label</dt>
+        <dd class="ib-stat-value">
+            @if (ChildContent is not null)
+            {
+                @ChildContent
+            }
+            else
+            {
+                @Value
+            }
+        </dd>
+        @if (Change is not null || Description is not null)
+        {
+            <dd class="ib-stat-meta">
+                @if (Change is not null)
+                {
+                    <span class="@ChangeClass">
+                        @if (Trend != Trend.None)
+                        {
+                            <Icon Role="TrendIcon" Class="ib-stat-trend" />
+                            <span class="ib-visually-hidden">@(EffectiveTrendLabel + " ")</span>
+                        }
+                        @Change
+                    </span>
+                }
+                @if (Description is not null)
+                {
+                    <span class="ib-stat-description">@Description</span>
+                }
+            </dd>
+        }
+    </dl>
+    @if (Icon is { } icon)
+    {
+        <span class="ib-stat-icon" aria-hidden="true"><Icon Name="icon" /></span>
+    }
+</div>
+
+@code {
+    /// <summary>What the figure is, such as "Revenue".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The figure, such as "$48,210". Format it the way it should read.</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>Custom value content, such as a number with a unit in smaller text. Replaces <see cref="Value"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>How much it changed, such as "12%" or "+340".</summary>
+    [Parameter] public string? Change { get; set; }
+
+    /// <summary>Which way it moved: adds an arrow before <see cref="Change"/> and colors it.</summary>
+    [Parameter] public Trend Trend { get; set; }
+
+    /// <summary>
+    /// The change's color. By default up is <see cref="Status.Success"/>, down is
+    /// <see cref="Status.Danger"/> and flat is neutral; set it when down is good, such as for costs
+    /// or response times.
+    /// </summary>
+    [Parameter] public Status? ChangeStatus { get; set; }
+
+    /// <summary>Read before the change in place of the arrow. Defaults to "Up", "Down" or "No change".</summary>
+    [Parameter] public string? TrendLabel { get; set; }
+
+    /// <summary>A muted note after the change, such as "vs last month".</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>An icon in a tinted square at the end.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private string? _class;
+    private string? _style;
+
+    private IconRole TrendIcon => Trend switch
+    {
+        Trend.Up => IconRole.TrendUp,
+        Trend.Down => IconRole.TrendDown,
+        _ => IconRole.TrendFlat,
+    };
+
+    private string EffectiveTrendLabel => TrendLabel ?? Trend switch
+    {
+        Trend.Up => "Up",
+        Trend.Down => "Down",
+        _ => "No change",
+    };
+
+    private Status EffectiveChangeStatus => ChangeStatus ?? Trend switch
+    {
+        Trend.Up => Status.Success,
+        Trend.Down => Status.Danger,
+        _ => Status.Neutral,
+    };
+
+    private string ChangeClass => $"ib-stat-change ib-stat-change-{EffectiveChangeStatus.ToString().ToLowerInvariant()}";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-stat");
+        classes.Add("ib-stat-sm", Size == ControlSize.Sm);
+        classes.Add("ib-stat-lg", Size == ControlSize.Lg);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}
