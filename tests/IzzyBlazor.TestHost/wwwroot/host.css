@@ -11,7 +11,50 @@
   color: var(--ib-color-muted);
 }
 
+/* The header's theme-set pickers: small native selects. */
+/* The native arrow sits against the text and the edge, so the host draws its own chevron with
+   room on both sides. */
+.host-select-wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.host-select-wrap::after {
+  content: "";
+  position: absolute;
+  inset-inline-end: 0.625rem;
+  top: calc(50% - 0.4375rem);
+  width: 0.875rem;
+  height: 0.875rem;
+  background: var(--ib-color-muted);
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E") center / contain no-repeat;
+  pointer-events: none;
+}
+
+.host-select {
+  -webkit-appearance: none;
+  appearance: none;
+  height: 2rem;
+  padding: 0 2rem 0 0.75rem;
+  cursor: pointer;
+  border: 1px solid var(--ib-color-outline);
+  border-radius: var(--ib-radius-md);
+  background: var(--ib-color-surface);
+  color: var(--ib-color-on-surface);
+  font: inherit;
+  font-size: var(--ib-text-sm);
+}
+
+.host-select:focus-visible {
+  outline: 2px solid var(--ib-color-focus);
+  outline-offset: 2px;
+}
+
+/* Segments sit right of the header's spacer, so a fractional text width would push every control
+   after the spacer off whole pixels; their width is rounded up (where calc-size() is supported). */
 .host-segment {
+  width: calc-size(max-content, round(up, size, 1px));
   padding: 2px;
   border: 1px solid var(--ib-color-border);
   border-radius: var(--ib-radius-md);
@@ -50,6 +93,7 @@
 
 .host-title {
   margin: 0;
+  font-family: var(--ib-font-heading);
   font-size: var(--ib-text-3xl);
   line-height: round(nearest, calc(1em * var(--ib-leading-tight)), 1px);
 }
@@ -96,6 +140,7 @@
 
 .host-example-title {
   margin: 0;
+  font-family: var(--ib-font-heading);
   font-size: var(--ib-text-lg);
 }
 
@@ -105,27 +150,47 @@
   font-size: var(--ib-text-sm);
 }
 
+/* Each example sits on a card, the way an app's content sits on surfaces over the page: raised
+   things are lighter than what they sit on. The code is part of the card, recessed into it (a
+   container fill inside a surface), never a darker block on the page itself. */
+.host-example-frame {
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-surface);
+  overflow: hidden;
+}
+
 .host-example-canvas {
   padding: 1.25rem;
-  border: 1px solid var(--ib-color-border);
-  border-radius: var(--ib-radius-md);
   overflow-x: auto;
 }
 
 .host-example-code {
   margin: 0;
   padding: 0.75rem 1rem;
-  border-radius: var(--ib-radius-md);
   background: var(--ib-color-surface-container);
   font-family: var(--ib-font-mono);
   font-size: var(--ib-text-sm);
   overflow-x: auto;
 }
 
+.host-example-canvas + .host-example-code {
+  border-top: 1px solid var(--ib-color-border);
+}
+
 .host-tile {
   min-width: 2.5rem;
   min-height: 2.5rem;
   font-size: var(--ib-text-sm);
+}
+
+/* Raised boxes take the raised edge (transparent in light mode, a faint light line in dark). */
+.host-raised {
+  box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-raised-border);
+}
+
+.host-tile-plain {
+  border: 1px solid var(--ib-color-outline);
 }
 
 .host-outline {

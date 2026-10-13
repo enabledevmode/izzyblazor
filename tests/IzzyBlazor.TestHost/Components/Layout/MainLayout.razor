@@ -22,6 +22,12 @@
                 <a href="@_interactiveUrl" aria-current="@(_isStatic ? null : "page")">Interactive</a>
             </Row>
         }
+        <Row Inline Gap="2" Align="Align.Center" VisibleFrom="Breakpoint.Md" Class="host-sets">
+            <span class="host-select-wrap"><select class="host-select" data-host-preset aria-label="Named theme">
+                <option value="">Default</option><option value="ember">Ember</option><option value="classic">Classic</option><option value="editorial">Editorial</option>
+                <option value="harbor">Harbor</option><option value="grove">Grove</option><option value="studio">Studio</option><option value="crisp">Crisp</option>
+            </select></span>
+        </Row>
         <Row Inline Gap="1" Class="host-segment" aria-label="Theme" VisibleFrom="Breakpoint.Sm">
             <button type="button" data-host-theme="system" aria-pressed="true">System</button>
             <button type="button" data-host-theme="light" aria-pressed="false">Light</button>

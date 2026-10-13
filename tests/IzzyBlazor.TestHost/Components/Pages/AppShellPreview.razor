@@ -7,7 +7,7 @@
 
 <PageTitle>AppShell preview</PageTitle>
 
-<AppShell Dividers="@(Lines != "off")" ScrollMode="@(Scroll == "main" ? ShellScroll.Main : ShellScroll.Page)">
+<AppShell Variant="@ShellVariantValue" Dividers="@(Lines != "off")" ScrollMode="@(Scroll == "main" ? ShellScroll.Main : ShellScroll.Page)">
     @* Link is qualified below: this page's Link() method hides the component's name. *@
     @if (BannerOn == "on")
     {
@@ -70,7 +70,7 @@
             <Row Gap="4" Wrap>
                 @foreach (var i in Enumerable.Range(1, 6))
                 {
-                    <Box Padding="5" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow Basis="14.Rem" MinHeight="7.Rem">Card @i</Box>
+                    <Box Grow Basis="14.Rem"><Card Title="@($"Card {i}")">Content sits on surfaces over the page background.</Card></Box>
                 }
             </Row>
         </Stack>
@@ -177,5 +177,16 @@
     // ?look=tinted gives the chrome a tint so the content stands out.
     [SupplyParameterFromQuery(Name = "look")] public string? Look { get; set; }
 
-    private Color? Chrome => Look == "tinted" ? Color.SurfaceContainer : null;
+    private Color? Chrome => Look == "tinted" ? Color.Background : null;
+
+    // ?variant=inset|flat|canvas picks the shell's layering (Tinted by default).
+    [SupplyParameterFromQuery(Name = "variant")] public string? VariantName { get; set; }
+
+    private ShellVariant ShellVariantValue => VariantName switch
+    {
+        "inset" => ShellVariant.Inset,
+        "flat" => ShellVariant.Flat,
+        "canvas" => ShellVariant.Canvas,
+        _ => ShellVariant.Tinted,
+    };
 }

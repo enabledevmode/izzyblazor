@@ -13,11 +13,17 @@
             try {
                 var t = localStorage.getItem("ib-host-theme");
                 if (t === "light" || t === "dark") d.setAttribute("data-theme", t);
+                var p = localStorage.getItem("ib-host-preset");
+                if (p) d.setAttribute("data-ib-theme", p);
             } catch (e) { }
         })();
     </script>
     <link rel="icon" href="favicon.ico" sizes="48x48" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    @* The heading font. IzzyBlazor uses Bricolage Grotesque for headings when the app loads it. *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
     <link rel="stylesheet" href="@Assets["host.css"]" />
     <ImportMap />
