@@ -21,6 +21,14 @@ namespace IzzyBlazor;
 /// </remarks>
 public abstract class FieldBase<TValue> : InputBase<TValue>
 {
+    [Inject] private IServiceProvider IzzyServices { get; set; } = default!;
+
+    /// <summary>
+    /// The default text for labels and messages: the app's registered <see cref="IzzyText"/>, or
+    /// English. A component's own text parameters win over it.
+    /// </summary>
+    protected IzzyText TextDefaults => IzzyServices.GetService(typeof(IzzyText)) as IzzyText ?? IzzyText.English;
+
     private string? _generatedId;
     private MemberInfo? _member;
     private Expression? _memberSource;

@@ -39,7 +39,7 @@
                aria-describedby="@DescribedBy" />
         @if (ResolvedType == TextFieldType.Password && Reveal)
         {
-            <button type="button" class="ib-field-reveal" data-ib-reveal hidden aria-label="Show password" aria-pressed="false">
+            <button type="button" class="ib-field-reveal" data-ib-reveal hidden aria-label="@(ShowPasswordLabel ?? TextDefaults.ShowPassword)" aria-pressed="false">
                 <Icon Role="IconRole.Show" Class="ib-reveal-show" />
                 <Icon Role="IconRole.Hide" Class="ib-reveal-hide" />
             </button>
@@ -87,6 +87,9 @@
 
     /// <summary>For passwords: a button that shows or hides the text. Appears once scripts run. Defaults to true.</summary>
     [Parameter] public bool Reveal { get; set; } = true;
+
+    /// <summary>The reveal button's name; it's a toggle, pressed while the password shows. Defaults to "Show password".</summary>
+    [Parameter] public string? ShowPasswordLabel { get; set; }
 
     private TextFieldType ResolvedType => Type
         ?? (Attribute<System.ComponentModel.DataAnnotations.EmailAddressAttribute>() is not null ? TextFieldType.Email

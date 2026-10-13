@@ -96,9 +96,9 @@
 
     private string EffectiveTrendLabel => TrendLabel ?? Trend switch
     {
-        Trend.Up => "Up",
-        Trend.Down => "Down",
-        _ => "No change",
+        Trend.Up => TextDefaults.TrendUp,
+        Trend.Down => TextDefaults.TrendDown,
+        _ => TextDefaults.TrendFlat,
     };
 
     private Status EffectiveChangeStatus => ChangeStatus ?? Trend switch

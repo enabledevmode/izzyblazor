@@ -11,7 +11,7 @@
     </Breadcrumb>
 *@
 
-<nav @attributes="AdditionalAttributes" aria-label="@Label" class="@_class" style="@_style">
+<nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Breadcrumb)" class="@_class" style="@_style">
     <ol class="ib-breadcrumb-list">
         @ChildContent
     </ol>
@@ -25,7 +25,7 @@
     [Parameter] public BreadcrumbSeparator Separator { get; set; } = BreadcrumbSeparator.Chevron;
 
     /// <summary>The navigation landmark's name. Defaults to "Breadcrumb".</summary>
-    [Parameter] public string Label { get; set; } = "Breadcrumb";
+    [Parameter] public string? Label { get; set; }
 
     private string? _class;
     private string? _style;

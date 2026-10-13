@@ -19,7 +19,7 @@
 
 <FieldFrame Class="@_class" Id="@InputId" Label="@Label" Required="Required"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@TooLargeText" data-ib-wrong-type="@WrongTypeText" data-ib-interactive="@(IsInteractive ? "" : null)">
+    <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@(TooLargeText ?? TextDefaults.FileTooLarge)" data-ib-wrong-type="@(WrongTypeText ?? TextDefaults.FileWrongType)" data-ib-interactive="@(IsInteractive ? "" : null)">
         <Icon Name="Icon ?? Lucide.CloudUpload" Class="ib-file-icon" />
         <span class="ib-file-prompt">@(PromptText ?? (Multiple ? "Drag files here, or" : "Drag a file here, or"))</span>
         @if (IsInteractive)
@@ -78,13 +78,13 @@
     [Parameter] public int MaxFiles { get; set; } = 10;
 
     /// <summary>The message for a file over <see cref="MaxFileSize"/>: <c>{0}</c> is its name, <c>{1}</c> the limit.</summary>
-    [Parameter] public string TooLargeText { get; set; } = "{0} is larger than {1}.";
+    [Parameter] public string? TooLargeText { get; set; }
 
     /// <summary>
     /// The message for a chosen or dropped file that doesn't match <see cref="Accept"/>: <c>{0}</c> is
     /// its name. (The picker's "All files" option and drops both get past the type filter.)
     /// </summary>
-    [Parameter] public string WrongTypeText { get; set; } = "{0} isn't an accepted file type.";
+    [Parameter] public string? WrongTypeText { get; set; }
 
     /// <summary>The text in the zone, before the button. Defaults to "Drag a file here, or" ("files" with <see cref="Multiple"/>).</summary>
     [Parameter] public string? PromptText { get; set; }

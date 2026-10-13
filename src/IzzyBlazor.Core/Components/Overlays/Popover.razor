@@ -43,7 +43,7 @@
                             class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-popover-close"
                             popovertarget="@ElementId"
                             popovertargetaction="hide"
-                            aria-label="Close">
+                            aria-label="@(CloseLabel ?? TextDefaults.Close)">
                         <Icon Role="IconRole.Close" />
                     </button>
                 }
@@ -56,6 +56,9 @@
 @code {
     /// <summary>The default trigger's text.</summary>
     [Parameter] public string? Label { get; set; }
+
+    /// <summary>The close button's name. Defaults to "Close".</summary>
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>The default trigger's color. Defaults to <see cref="Accent.Neutral"/>.</summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Neutral;

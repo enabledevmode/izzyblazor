@@ -19,7 +19,7 @@
                 }
                 @if (Copyable)
                 {
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only ib-code-copy" aria-label="@CopyLabel" title="@CopyLabel" data-copied-label="@CopiedLabel">
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only ib-code-copy" aria-label="@(CopyLabel ?? TextDefaults.CopyCode)" title="@(CopyLabel ?? TextDefaults.CopyCode)" data-copied-label="@(CopiedLabel ?? TextDefaults.Copied)">
                         <Icon Role="IconRole.Copy" Class="ib-code-copy-icon" />
                         <Icon Role="IconRole.Copied" Class="ib-code-copied-icon" />
                     </button>
@@ -48,10 +48,10 @@ else
     [Parameter] public bool Copyable { get; set; } = true;
 
     /// <summary>The copy button's name. Defaults to "Copy code".</summary>
-    [Parameter] public string CopyLabel { get; set; } = "Copy code";
+    [Parameter] public string? CopyLabel { get; set; }
 
     /// <summary>Announced after copying. Defaults to "Copied".</summary>
-    [Parameter] public string CopiedLabel { get; set; } = "Copied";
+    [Parameter] public string? CopiedLabel { get; set; }
 
     private string? _class;
     private string? _style;

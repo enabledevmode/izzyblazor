@@ -64,7 +64,7 @@
                                 commandfor="@ElementId"
                                 command="close"
                                 class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-dialog-close"
-                                aria-label="@CloseLabel">
+                                aria-label="@(CloseLabel ?? TextDefaults.Close)">
                             <Icon Role="IconRole.Close" />
                         </button>
                     }
@@ -88,7 +88,7 @@
     [Parameter] public string? Title { get; set; }
 
     /// <summary>The close button's name. Defaults to "Close".</summary>
-    [Parameter] public string CloseLabel { get; set; } = "Close";
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>Heading content in place of <see cref="Title"/>.</summary>
     [Parameter] public RenderFragment? Header { get; set; }

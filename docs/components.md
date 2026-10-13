@@ -551,6 +551,29 @@ in the URL (`?q=ada&status=Paid`), read with `[SupplyParameterFromQuery]`.
 Fields: `FilterSearch` (`?q=`), `FilterSelect` (`Values` or an enum) and `FilterCheckbox`. List your
 own inputs' names in `Fields`.
 
+## Text and other languages
+
+Components name their buttons and announce states in English by default: "Close", "Loading",
+"Next page", "No matches". Each of these is a parameter on the component (`CloseLabel`,
+`LoadingLabel`, `EmptyText`...), and all of them can be set app-wide by registering an `IzzyText`:
+
+```csharp
+// One language: change the strings you need.
+builder.Services.AddSingleton(new IzzyText { Close = "Schließen", Loading = "Wird geladen" });
+
+// Several: subclass it and read your resources for the current UI culture.
+public sealed class AppText(IStringLocalizer<AppText> l) : IzzyText
+{
+    public override string Close { get => l["Close"]; set { } }
+    public override string NextPage { get => l["Next page"]; set { } }
+}
+builder.Services.AddSingleton<IzzyText, AppText>();
+```
+
+Properties are read on every render, so a per-request culture works. A component's own parameter
+wins over `IzzyText`. Strings with `{0}` (such as `MoreAvatars`, "{0} more") are format strings.
+Validation messages come from your model's DataAnnotations, not from here.
+
 ## Open state from C#
 
 Disclosures and overlays take `@bind-Open`. The browser always does the opening and closing; on

@@ -18,7 +18,7 @@ public class Spinner : IzzyComponentBase
     [Parameter] public Color? Color { get; set; }
 
     /// <summary>What screen readers hear. Defaults to "Loading".</summary>
-    [Parameter] public string Label { get; set; } = "Loading";
+    [Parameter] public string? Label { get; set; }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -46,7 +46,7 @@ public class Spinner : IzzyComponentBase
             "<circle class=\"ib-spinner-arc\" cx=\"12\" cy=\"12\" r=\"9.5\"/></svg>");
         builder.OpenElement(6, "span");
         builder.AddAttribute(7, "class", "ib-visually-hidden");
-        builder.AddContent(8, Label);
+        builder.AddContent(8, Label ?? TextDefaults.Loading);
         builder.CloseElement();
         builder.CloseElement();
     }

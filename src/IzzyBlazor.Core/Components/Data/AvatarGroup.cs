@@ -37,7 +37,9 @@ public class AvatarGroup : IzzyComponentBase
     /// <summary>
     /// The "+N" avatar's accessible name, with <c>{0}</c> for the number. Defaults to "{0} more".
     /// </summary>
-    [Parameter] public string MoreLabel { get; set; } = "{0} more";
+    [Parameter] public string? MoreLabel { get; set; }
+
+    internal string EffectiveMoreLabel => MoreLabel ?? TextDefaults.MoreAvatars;
 
     /// <summary>The avatars.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -104,7 +106,7 @@ internal sealed class AvatarGroupMore : ComponentBase
         builder.OpenElement(0, "span");
         builder.AddAttribute(1, "class", "ib-avatar ib-avatar-more" + size);
         builder.AddAttribute(2, "role", "img");
-        builder.AddAttribute(3, "aria-label", string.Format(System.Globalization.CultureInfo.CurrentCulture, Group.MoreLabel, hidden));
+        builder.AddAttribute(3, "aria-label", string.Format(System.Globalization.CultureInfo.CurrentCulture, Group.EffectiveMoreLabel, hidden));
         builder.OpenElement(4, "span");
         builder.AddAttribute(5, "class", "ib-avatar-fallback");
         builder.AddContent(6, $"+{hidden}");

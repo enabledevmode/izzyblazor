@@ -40,10 +40,10 @@
             {
                 @* Revealed by the script, which does the stepping. Not tab stops: arrow keys step. *@
                 <span class="ib-field-steppers" data-ib-steppers hidden>
-                    <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@IncreaseLabel" disabled="@Locked">
+                    <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@(IncreaseLabel ?? TextDefaults.Increase)" disabled="@Locked">
                         <Icon Role="IconRole.ChevronUp" />
                     </button>
-                    <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@Locked">
+                    <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@(DecreaseLabel ?? TextDefaults.Decrease)" disabled="@Locked">
                         <Icon Role="IconRole.ChevronDown" />
                     </button>
                 </span>
@@ -51,10 +51,10 @@
             else if (StepButtons == IzzyBlazor.StepButtons.Split)
             {
                 <span class="ib-field-steppers ib-field-steppers-split" data-ib-steppers hidden>
-                    <button type="button" class="ib-field-step ib-field-step-down" data-ib-step="down" tabindex="-1" aria-label="@DecreaseLabel" disabled="@Locked">
+                    <button type="button" class="ib-field-step ib-field-step-down" data-ib-step="down" tabindex="-1" aria-label="@(DecreaseLabel ?? TextDefaults.Decrease)" disabled="@Locked">
                         <Icon Role="IconRole.Minus" />
                     </button>
-                    <button type="button" class="ib-field-step ib-field-step-up" data-ib-step="up" tabindex="-1" aria-label="@IncreaseLabel" disabled="@Locked">
+                    <button type="button" class="ib-field-step ib-field-step-up" data-ib-step="up" tabindex="-1" aria-label="@(IncreaseLabel ?? TextDefaults.Increase)" disabled="@Locked">
                         <Icon Role="IconRole.Plus" />
                     </button>
                 </span>
@@ -96,10 +96,10 @@
     [Parameter] public StepButtons StepButtons { get; set; } = IzzyBlazor.StepButtons.Stacked;
 
     /// <summary>The increase button's accessible name.</summary>
-    [Parameter] public string IncreaseLabel { get; set; } = "Increase";
+    [Parameter] public string? IncreaseLabel { get; set; }
 
     /// <summary>The decrease button's accessible name.</summary>
-    [Parameter] public string DecreaseLabel { get; set; } = "Decrease";
+    [Parameter] public string? DecreaseLabel { get; set; }
 
     private static bool IsWholeNumber => NumberTypes.IsWholeNumber(typeof(TValue));
 

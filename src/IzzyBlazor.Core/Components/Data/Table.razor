@@ -43,7 +43,7 @@
                     {
                         @* Select all (this page): script only; it checks the rows, which report their own changes. *@
                         <th scope="col" class="ib-table-select-cell">
-                            <input type="checkbox" class="ib-table-select-all" aria-label="@SelectAllLabel" checked="@AllOnPageSelected" />
+                            <input type="checkbox" class="ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
                         </th>
                     }
                     @foreach (var column in _columns)
@@ -91,7 +91,7 @@
                             }
                             else
                             {
-                                @EmptyText
+                                @(EmptyText ?? TextDefaults.NoItems)
                             }
                         </td>
                     </tr>
@@ -107,7 +107,7 @@
                             {
                                 <td class="ib-table-select-cell">
                                     <input type="checkbox" class="ib-table-select" name="@EffectiveSelectionName" value="@key"
-                                           aria-label="@($"{SelectRowLabel} {LabelOf(item)}")"
+                                           aria-label="@($"{SelectRowLabel ?? TextDefaults.SelectRow} {LabelOf(item)}")"
                                            checked="@IsSelected(key)"
                                            @onchange="e => OnSelectChanged(key, e)" />
                                 </td>
@@ -185,7 +185,7 @@
     [Parameter] public RenderFragment? EmptyContent { get; set; }
 
     /// <summary>The text when there are no items. Defaults to "No items".</summary>
-    [Parameter] public string EmptyText { get; set; } = "No items";
+    [Parameter] public string? EmptyText { get; set; }
 
     /// <summary>A class for each row, such as one that highlights overdue orders.</summary>
     [Parameter] public Func<TItem, string?>? RowClass { get; set; }
@@ -234,10 +234,10 @@
     [Parameter] public bool Loading { get; set; }
 
     /// <summary>The header checkbox's name for screen readers. Defaults to "Select all rows".</summary>
-    [Parameter] public string SelectAllLabel { get; set; } = "Select all rows";
+    [Parameter] public string? SelectAllLabel { get; set; }
 
     /// <summary>The start of each row checkbox's name for screen readers, before <see cref="RowLabel"/>. Defaults to "Select".</summary>
-    [Parameter] public string SelectRowLabel { get; set; } = "Select";
+    [Parameter] public string? SelectRowLabel { get; set; }
 
     private readonly List<ColumnBase<TItem>> _columns = [];
     private IReadOnlyList<TItem> _items = [];

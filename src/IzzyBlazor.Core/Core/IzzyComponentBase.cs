@@ -41,6 +41,14 @@ public abstract partial class IzzyComponentBase : ComponentBase
     /// </summary>
     protected bool IsInteractive => RendererInfo.IsInteractive;
 
+    [Inject] private IServiceProvider IzzyServices { get; set; } = default!;
+
+    /// <summary>
+    /// The default text for labels and messages: the app's registered <see cref="IzzyText"/>, or
+    /// English. A component's own text parameters win over it.
+    /// </summary>
+    protected IzzyText TextDefaults => IzzyServices.GetService(typeof(IzzyText)) as IzzyText ?? IzzyText.English;
+
     /// <summary>
     /// Adds the component's own classes and custom properties. Called on every render.
     /// Overrides add their base class first, then call <c>base.BuildAttributes</c>.
