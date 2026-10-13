@@ -148,44 +148,103 @@ for scheme in ("light", "dark"):
     vb = f"{x0:.2f} {y0:.2f} {x1-x0:.2f} {y1-y0:.2f}"
     save(f"logo/izzyblazor-wordmark-{scheme}-small.svg", svg_doc(round(x1-x0), round(y1-y0), body, vb=vb))
 
-def icon_svg(variant):
-    if variant == "icon":        # large, with halo
-        body = f'<circle cx="32" cy="32" r="32" fill="{INK}"/>' + knob(32, 32, 18, halo=True, halo_op=0.3)
-    elif variant == "icon-small":  # 24-47 px
-        body = f'<circle cx="32" cy="32" r="32" fill="{INK}"/>' + knob(32, 32, 21, halo=False)
-    elif variant == "icon-tiny":   # 16-23 px
-        body = f'<circle cx="32" cy="32" r="32" fill="{INK}"/>' + knob(32, 32, 22, halo=False, core=False)
-    elif variant == "icon-mono-ink":
-        body = knob(32, 32, 27, "mono", mono=INK)
-    elif variant == "icon-mono-white":
-        body = knob(32, 32, 27, "mono", mono="#FFFFFF")
-    elif variant == "knob":       # no disc
-        body = knob(32, 32, 22, halo=True, halo_op=0.25)
-    return svg_doc(64, 64, body)
+# ---------- "ib" monogram ----------
+def ib_paths(track=-0.02, size=100):
+    di, xe, bi, _ = run("b700", "i", size, 0, 0, track)
+    db, _, bb, _ = run("b700", "b", size, xe, 0, track)
+    return di, db, (min(bi[0], bb[0]), min(bi[1], bb[1]), max(bi[2], bb[2]), max(bi[3], bb[3]))
 
-for v in ("icon", "icon-small", "icon-tiny", "icon-mono-ink", "icon-mono-white", "knob"):
-    p = save(f"logo/izzyblazor-{v}.svg", icon_svg(v))
-    png(p, f"logo/png/izzyblazor-{v}-512.png", width=512)
+def ib_group(cx, cy, box, i_fill, b_fill, i_class=""):
+    """Monogram centered at cx,cy, fitted into a square of side `box`."""
+    di, db, (x0, y0, x1, y1) = ib_paths()
+    k = min(box / (x1 - x0), box / (y1 - y0))
+    tx = cx - k * (x0 + x1) / 2; ty = cy - k * (y0 + y1) / 2
+    ic = f' class="{i_class}"' if i_class else ""
+    return (f'<g transform="translate({tx:.2f} {ty:.2f}) scale({k:.4f})">'
+            f'<path{ic} fill="{i_fill}" d="{di}"/><path fill="{b_fill}" d="{db}"/></g>')
+
+def monogram_svg(i_fill, b_fill=EMBER):
+    return svg_doc(64, 64, ib_group(32, 32, 64, i_fill, b_fill))
+
+def tile_svg(size, box_frac, glow=False, radius_frac=None, circle_bg=False, spread="71%"):
+    """Monogram on ink, optional soft ember radial glow behind it."""
+    c = size / 2
+    body = ""
+    if glow:
+        # inverse radial: clean ink behind the letters, ember rising toward the edges
+        body += (f'<defs><radialGradient id="g" cx="50%" cy="50%" r="{spread}">'
+                 f'<stop offset="0" stop-color="{EMBER}" stop-opacity="0"/>'
+                 f'<stop offset="0.6" stop-color="{EMBER}" stop-opacity="0"/>'
+                 f'<stop offset="0.85" stop-color="{EMBER}" stop-opacity="0.12"/>'
+                 f'<stop offset="1" stop-color="{EMBER}" stop-opacity="0.30"/></radialGradient></defs>')
+    if radius_frac is not None:
+        body += f'<rect width="{size}" height="{size}" rx="{size*radius_frac:.1f}" fill="{INK}"/>'
+    else:
+        body += f'<rect width="{size}" height="{size}" fill="{INK}"/>'
+    if glow:
+        rr = f' rx="{size*radius_frac:.1f}"' if radius_frac is not None else ""
+        body += f'<rect width="{size}" height="{size}"{rr} fill="url(#g)"/>'
+    body += ib_group(c, c, size * box_frac, PAPER, EMBER)
+    return svg_doc(size, size, body)
+
+# logo folder: monogram files (the glowing knob stays as the dot in the wordmark)
+for name, ifill in (("monogram-light", INK), ("monogram-dark", PAPER), ("monogram-fallback", STEEL)):
+    p = save(f"logo/izzyblazor-{name}.svg", monogram_svg(ifill))
+    png(p, f"logo/png/izzyblazor-{name}-512.png", width=512)
+for name, col in (("monogram-mono-ink", INK), ("monogram-mono-white", "#FFFFFF")):
+    p = save(f"logo/izzyblazor-{name}.svg", monogram_svg(col, col))
+    png(p, f"logo/png/izzyblazor-{name}-512.png", width=512)
+p = save("logo/izzyblazor-monogram-tile.svg", tile_svg(512, 0.56, glow=False, radius_frac=0.22))
+png(p, "logo/png/izzyblazor-monogram-tile-512.png", width=512)
+p = save("logo/izzyblazor-knob.svg", svg_doc(64, 64, knob(32, 32, 22, halo=True, halo_op=0.25)))
+png(p, "logo/png/izzyblazor-knob-512.png", width=512)
 
 # ============ 2. favicons / app icons ============
-fav = save("favicon/favicon.svg", icon_svg("icon-small"))
-tiny = os.path.join(OUT, "logo/izzyblazor-icon-tiny.svg")
-small = os.path.join(OUT, "logo/izzyblazor-icon-small.svg")
-big = os.path.join(OUT, "logo/izzyblazor-icon.svg")
+# ---------- pixel-snapped monogram for favicon sizes ----------
+# Bricolage Grotesque Bold units: i stem x 66..210 (144 wide), x-height 525, dot x 52..227 y 604..744,
+# b stem starts at x 66, b ends at x 600.
+SNAP = {  # size: (stem px, x-height px, gap stem-to-stem px, i stem x, baseline y, dot overhang px, dot h px, dot gap px)
+    16: (3, 11, 2, 0, 16, 0, 3, 2),
+    32: (6, 22, 3, 1, 31, 1, 6, 3),
+    48: (9, 33, 4, 1, 47, 1, 9, 5),
+}
+def snapped_ib(N, i_fill, b_fill, i_class=""):
+    stem, xh, gap, ix, base, oh, dh, dg = SNAP[N]
+    f = FONTS["b700"]; cm = f.tt.getBestCmap()
+    kx, ky = stem / 144.0, xh / 525.0
+    bx = ix + stem + gap
+    xs = min(1.0, (N - bx) / ((600 - 66) * kx))
+    c = f' class="{i_class}"' if i_class else ""
+    out = []
+    pen = SVGPathPen(f.gs)
+    f.gs["dotlessi"].draw(TransformPen(pen, (kx, 0, 0, -ky, ix - 66 * kx, base)))
+    out.append(f'<path{c} fill="{i_fill}" d="{pen.getCommands()}"/>')
+    dw = stem + 2 * oh; dy = base - xh - dg - dh
+    out.append(f'<rect{c} fill="{i_fill}" x="{ix - oh}" y="{dy}" width="{dw}" height="{dh}" rx="{(dh / 2 if dh >= 6 else 0.8):.2f}"/>')
+    pen = SVGPathPen(f.gs)
+    f.gs[cm[ord("b")]].draw(TransformPen(pen, (kx * xs, 0, 0, -ky, bx - 66 * kx * xs, base)))
+    out.append(f'<path fill="{b_fill}" d="{pen.getCommands()}"/>')
+    return "".join(out)
+
+# SVG favicon: drawn on the 16 px grid (stays on whole pixels at 32 px for high-DPI tabs)
+save("favicon/favicon.svg", f'''<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16">
+<style>.i{{fill:{INK}}}@media (prefers-color-scheme:dark){{.i{{fill:{PAPER}}}}}</style>
+{snapped_ib(16, INK, EMBER, "i")}
+</svg>
+''')
 ims = []
-for sz, src in ((16, tiny), (32, small), (48, big)):
-    p = png(src, f"favicon/favicon-{sz}.png", width=sz)
-    ims.append(Image.open(p).convert("RGBA"))
+for N in (16, 32, 48):
+    p = save(f"favicon/_f{N}.svg", svg_doc(N, N, snapped_ib(N, STEEL, EMBER)))
+    q = png(p, f"favicon/favicon-{N}.png", width=N)
+    os.remove(p)
+    ims.append(Image.open(q).convert("RGBA"))
 ims[2].save(os.path.join(OUT, "favicon/favicon.ico"), format="ICO", sizes=[(16, 16), (32, 32), (48, 48)], append_images=ims[:2])
 
-def square_icon(halo=True, scale=0.30):
-    r = 512 * scale
-    return svg_doc(512, 512, knob(256, 256, r, halo=halo, halo_op=0.3), bg=INK)
-sq = save("favicon/_square.svg", square_icon())
+sq = save("favicon/_square.svg", tile_svg(512, 0.56, glow=False))
 png(sq, "favicon/apple-touch-icon.png", width=180)
 png(sq, "favicon/icon-192.png", width=192)
 png(sq, "favicon/icon-512.png", width=512)
-mk = save("favicon/_maskable.svg", square_icon(scale=0.22))
+mk = save("favicon/_maskable.svg", tile_svg(512, 0.42, glow=False))
 png(mk, "favicon/icon-512-maskable.png", width=512)
 os.remove(sq); os.remove(mk)
 save("favicon/site.webmanifest", """{
@@ -208,10 +267,13 @@ save("favicon/head-snippet.html", """<link rel="icon" href="/favicon.ico" sizes=
 <meta name="theme-color" content="#14161A">
 """)
 
-av = save("github/_avatar.svg", square_icon(scale=0.27))
+# GitHub crops avatars to a circle: keep the letters inside the center
+av = save("github/_avatar.svg", tile_svg(500, 0.50, glow=False))
 png(av, "github/avatar-500.png", width=500)
 os.remove(av)
-png(big, "nuget/icon.png", width=128)
+nu = save("nuget/_icon.svg", tile_svg(128, 0.62, glow=False, radius_frac=0.2))
+png(nu, "nuget/icon.png", width=128)
+os.remove(nu)
 
 # ============ 3. banners ============
 def mode_badge(x, y, h, active="Live", dark=True):
