@@ -6,7 +6,7 @@
     label names the value for screen readers. The trend arrow is hidden from them; the change is
     read with TrendLabel ("Up", "Down") in front of it. No script.
 
-    <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="Trend.Up" Description="vs last month" />
+    <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" />
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
@@ -22,13 +22,13 @@
                 @Value
             }
         </dd>
-        @if (Change is not null || Description is not null)
+        @if (Change is not null || Trend != StatTrend.None || Description is not null)
         {
             <dd class="ib-stat-meta">
-                @if (Change is not null)
+                @if (Change is not null || Trend != StatTrend.None)
                 {
                     <span class="@ChangeClass">
-                        @if (Trend != Trend.None)
+                        @if (Trend != StatTrend.None)
                         {
                             <Icon Role="TrendIcon" Class="ib-stat-trend" />
                             <span class="ib-visually-hidden">@(EffectiveTrendLabel + " ")</span>
@@ -63,7 +63,7 @@
     [Parameter] public string? Change { get; set; }
 
     /// <summary>Which way it moved: adds an arrow before <see cref="Change"/> and colors it.</summary>
-    [Parameter] public Trend Trend { get; set; }
+    [Parameter] public StatTrend Trend { get; set; }
 
     /// <summary>
     /// The change's color. By default up is <see cref="Status.Success"/>, down is
@@ -89,22 +89,22 @@
 
     private IconRole TrendIcon => Trend switch
     {
-        Trend.Up => IconRole.TrendUp,
-        Trend.Down => IconRole.TrendDown,
+        StatTrend.Up => IconRole.TrendUp,
+        StatTrend.Down => IconRole.TrendDown,
         _ => IconRole.TrendFlat,
     };
 
     private string EffectiveTrendLabel => TrendLabel ?? Trend switch
     {
-        Trend.Up => TextDefaults.TrendUp,
-        Trend.Down => TextDefaults.TrendDown,
+        StatTrend.Up => TextDefaults.TrendUp,
+        StatTrend.Down => TextDefaults.TrendDown,
         _ => TextDefaults.TrendFlat,
     };
 
     private Status EffectiveChangeStatus => ChangeStatus ?? Trend switch
     {
-        Trend.Up => Status.Success,
-        Trend.Down => Status.Danger,
+        StatTrend.Up => Status.Success,
+        StatTrend.Down => Status.Danger,
         _ => Status.Neutral,
     };
 

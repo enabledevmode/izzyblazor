@@ -41,6 +41,19 @@ public class AvatarGroup : IzzyComponentBase
 
     internal string EffectiveMoreLabel => MoreLabel ?? TextDefaults.MoreAvatars;
 
+    /// <summary>The "+N" avatar's name. A translation with a stray brace falls back to English rather than throwing.</summary>
+    internal string MoreName(int hidden)
+    {
+        try
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, EffectiveMoreLabel, hidden);
+        }
+        catch (FormatException)
+        {
+            return string.Format(System.Globalization.CultureInfo.CurrentCulture, IzzyText.English.MoreAvatars, hidden);
+        }
+    }
+
     /// <summary>The avatars.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -106,7 +119,7 @@ internal sealed class AvatarGroupMore : ComponentBase
         builder.OpenElement(0, "span");
         builder.AddAttribute(1, "class", "ib-avatar ib-avatar-more" + size);
         builder.AddAttribute(2, "role", "img");
-        builder.AddAttribute(3, "aria-label", string.Format(System.Globalization.CultureInfo.CurrentCulture, Group.EffectiveMoreLabel, hidden));
+        builder.AddAttribute(3, "aria-label", Group.MoreName(hidden));
         builder.OpenElement(4, "span");
         builder.AddAttribute(5, "class", "ib-avatar-fallback");
         builder.AddContent(6, $"+{hidden}");

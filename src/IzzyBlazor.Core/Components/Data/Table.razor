@@ -43,7 +43,7 @@
                     {
                         @* Select all (this page): script only; it checks the rows, which report their own changes. *@
                         <th scope="col" class="ib-table-select-cell">
-                            <input type="checkbox" class="ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
+                            <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
                         </th>
                     }
                     @foreach (var column in _columns)
@@ -106,7 +106,7 @@
                             @if (Selectable)
                             {
                                 <td class="ib-table-select-cell">
-                                    <input type="checkbox" class="ib-table-select" name="@EffectiveSelectionName" value="@key"
+                                    <input type="checkbox" class="ib-check-input ib-table-select" name="@EffectiveSelectionName" value="@key"
                                            aria-label="@($"{SelectRowLabel ?? TextDefaults.SelectRow} {LabelOf(item)}")"
                                            checked="@IsSelected(key)"
                                            @onchange="e => OnSelectChanged(key, e)" />

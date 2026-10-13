@@ -1288,9 +1288,22 @@
     cursor: not-allowed;
   }
 
-  .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate) {
+  /* Disabled and checked: a solid disabled fill with a surface-colored mark, readable in both
+     modes. Also the server's indeterminate mark, so it looks disabled with JavaScript off. */
+  .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate, [type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared])) {
     border-color: transparent;
-    background-color: color-mix(in oklab, var(--ib-color-disabled) 45%, transparent);
+    background-color: var(--ib-color-disabled);
+  }
+
+  .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate, [type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared]))::before {
+    background-color: var(--ib-color-surface);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-check-input,
+    .ib-check-input::before {
+      transition: none;
+    }
   }
 
   .ib-check-input:disabled + .ib-check-label {
@@ -1445,7 +1458,7 @@
 
   /* Horizontal layout: label column from sm up */
   @media (width >= 640px) {
-    .ib-form-horizontal .ib-field:not(.ib-field-checkbox, .ib-field-switch, .ib-field-radio, .ib-field-checkboxes) {
+    .ib-form-horizontal .ib-field:not(.ib-field-checkbox, .ib-field-switch, .ib-field-radio, .ib-field-segmented, .ib-field-checkboxes) {
       display: grid;
       grid-template-columns: 10rem 1fr;
       column-gap: var(--ib-space-4);

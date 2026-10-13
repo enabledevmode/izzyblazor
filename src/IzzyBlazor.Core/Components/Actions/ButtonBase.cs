@@ -50,7 +50,7 @@ public abstract class ButtonBase : IzzyComponentBase
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>The <see cref="ButtonGroup"/> this button is in, whose settings are its defaults.</summary>
-    [CascadingParameter] public ButtonGroup? Group { get; set; }
+    [CascadingParameter] internal ButtonGroup? Group { get; set; }
 
     private bool _accentSet;
     private bool _variantSet;

@@ -349,4 +349,16 @@ public class OverlayRenderTests : BunitContext
         confirm.Click();
         Assert.Equal(1, confirmed);
     }
+
+    [Fact]
+    public void Popover_close_button_takes_its_label()
+    {
+        var close = Render<Popover>(p => p
+            .Add(x => x.Label, "Filters")
+            .Add(x => x.Title, "Filter results")
+            .Add(x => x.ShowCloseButton, true)
+            .Add(x => x.CloseLabel, "Done")).Find(".ib-popover-close");
+
+        Assert.Equal("Done", close.GetAttribute("aria-label"));
+    }
 }

@@ -27,7 +27,7 @@ public enum CellAlign
 }
 
 /// <summary>Which way a <see cref="Stat"/>'s figure moved.</summary>
-public enum Trend
+public enum StatTrend
 {
     /// <summary>No arrow (the default).</summary>
     None,

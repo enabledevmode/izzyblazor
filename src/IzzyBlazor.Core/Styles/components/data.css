@@ -222,8 +222,9 @@
    * Badges, sort links, checkboxes and other inline boxes in a cell sit at the top of the line
    * rather than its middle, which falls between pixels. That keeps every line, and so every row,
    * a whole number of pixels tall (a badge made rows 48.5px). The cell still centers its content.
+   * Text elements (code, small, sup) keep their baseline.
    */
-  .ib-table-grid :is(th, td) > * {
+  .ib-table-grid :is(th, td) > :is(.ib-badge, .ib-tag, .ib-table-sort, .ib-icon, .ib-btn, .ib-avatar, input) {
     vertical-align: top;
   }
 
@@ -321,14 +322,12 @@
     padding-inline-end: 0;
   }
 
+  /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset. */
   .ib-table-select,
   .ib-table-select-all {
-    display: block;
-    width: 1rem;
-    height: 1rem;
+    --ib-check-size: 1rem;
     margin: 0;
-    accent-color: var(--ib-color-primary);
-    cursor: pointer;
+    margin-block-start: 0;
   }
 
   /* Select-all only works with script. */

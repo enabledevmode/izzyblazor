@@ -167,9 +167,10 @@
     color: inherit;
   }
 
+  /* Even, like the 16px slot, so it centers on whole pixels. */
   .ib-menu-dot {
-    width: 0.4375rem;
-    height: 0.4375rem;
+    width: 0.375rem;
+    height: 0.375rem;
     border-radius: 50%;
     background-color: currentColor;
   }
@@ -577,6 +578,16 @@
       forced-color-adjust: none;
       background-color: Highlight;
       color: HighlightText;
+    }
+
+    /* The radio dot is a background: keep it in the text color. */
+    .ib-menu-dot {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+
+    .ib-menu-item:is(:hover, :focus-visible) .ib-menu-dot {
+      background-color: HighlightText;
     }
   }
 }

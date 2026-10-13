@@ -49,6 +49,9 @@ class PopoverRoot extends IzzyElement {
   #userAt = 0;
   // Opened by hovering: don't move focus into it.
   #hoverOpen = false;
+  // When focus last left the panel for nowhere (a click on a blank area), to tell a dismiss that
+  // took focus from inside the panel from one that didn't.
+  #focusLeftAt = 0;
   #hoverTimer = 0;
 
   private get panel(): HTMLElement | null {
@@ -96,6 +99,13 @@ class PopoverRoot extends IzzyElement {
     applyMenuRoles(this);
 
     panel.addEventListener("toggle", (event) => this.onToggle((event as Event & { newState?: string }).newState === "open"), { signal });
+    panel.addEventListener(
+      "focusout",
+      (event) => {
+        if (!(event as FocusEvent).relatedTarget) this.#focusLeftAt = Date.now();
+      },
+      { signal }
+    );
 
     if (this.isMenu) {
       panel.addEventListener("keydown", (event) => this.onMenuKey(event), { signal });
@@ -168,7 +178,8 @@ class PopoverRoot extends IzzyElement {
     if (open) {
       this.#stopTracking?.();
       this.#stopTracking = track(panel, this, this.dataset.placement ?? "bottom-start");
-      if (this.isMenu && !this.#hoverOpen) {
+      // A menu the user opened takes focus; one the server or C# opened (data-open) doesn't.
+      if (this.isMenu && !this.#hoverOpen && !fromSync) {
         const items = this.items();
         (this.#focusLast ? items[items.length - 1] : items[0])?.focus();
       } else if (!this.isMenu && !fromSync) {
@@ -186,7 +197,10 @@ class PopoverRoot extends IzzyElement {
     } else {
       this.#stopTracking?.();
       this.#stopTracking = null;
-      if (panel.contains(document.activeElement) || document.activeElement === document.body) {
+      // Back to the trigger if focus was in the panel: still inside (Escape, a choice), or just
+      // dropped to the page by the click that dismissed it.
+      const dropped = document.activeElement === document.body && Date.now() - this.#focusLeftAt < 300;
+      if (panel.contains(document.activeElement) || dropped) {
         this.trigger?.focus();
       }
     }
@@ -242,7 +256,10 @@ class PopoverRoot extends IzzyElement {
           // Open the submenu; its element focuses its first item.
           const sub = document.getElementById(current.getAttribute("popovertarget") ?? "");
           if (sub && !sub.matches(":popover-open")) sub.showPopover();
-          else (sub?.querySelector<HTMLElement>(ITEM))?.focus();
+          else
+            [...(sub?.querySelectorAll<HTMLElement>(ITEM) ?? [])]
+              .find((item) => !item.matches(":disabled, [aria-disabled='true']") && item.closest("[popover]") === sub)
+              ?.focus();
           event.preventDefault();
         } else if (!inward && this.parentPanel) {
           // Back to the item that opened this submenu.

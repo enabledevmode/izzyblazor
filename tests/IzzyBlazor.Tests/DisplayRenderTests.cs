@@ -62,7 +62,7 @@ public class DisplayRenderTests : BunitContext
             .Add(s => s.Label, "Revenue")
             .Add(s => s.Value, "$48,210")
             .Add(s => s.Change, "12%")
-            .Add(s => s.Trend, Trend.Up)
+            .Add(s => s.Trend, StatTrend.Up)
             .Add(s => s.Description, "vs last month")).Find(".ib-stat");
 
         Assert.Equal("Revenue", stat.QuerySelector("dl > dt")!.TextContent);
@@ -75,10 +75,10 @@ public class DisplayRenderTests : BunitContext
     }
 
     [Theory]
-    [InlineData(Trend.Down, null, "danger", "Down ")]
-    [InlineData(Trend.Down, Status.Success, "success", "Down ")]
-    [InlineData(Trend.Flat, null, "neutral", "No change ")]
-    public void Change_color_follows_the_trend_unless_set(Trend trend, Status? status, string color, string label)
+    [InlineData(StatTrend.Down, null, "danger", "Down ")]
+    [InlineData(StatTrend.Down, Status.Success, "success", "Down ")]
+    [InlineData(StatTrend.Flat, null, "neutral", "No change ")]
+    public void Change_color_follows_the_trend_unless_set(StatTrend trend, Status? status, string color, string label)
     {
         var change = Render<Stat>(p => p
             .Add(s => s.Label, "Response time")
@@ -117,5 +117,21 @@ public class DisplayRenderTests : BunitContext
         Assert.Equal("No invoices yet", empty.QuerySelector("h2.ib-empty-title")!.TextContent);
         Assert.Equal("Invoices you send appear here.", empty.QuerySelector(".ib-empty-description")!.TextContent);
         Assert.Equal("New invoice", empty.QuerySelector(".ib-empty-actions")!.TextContent);
+    }
+
+    [Fact]
+    public void Blank_keys_fall_back_to_the_content()
+    {
+        var kbd = Render<Kbd>(p => p.Add(k => k.Keys, " ").AddChildContent("Esc")).Find("kbd");
+        Assert.Equal("ib-kbd", kbd.ClassName);
+        Assert.Equal("Esc", kbd.TextContent);
+    }
+
+    [Fact]
+    public void Stat_shows_a_trend_without_change_text()
+    {
+        var change = Render<Stat>(p => p.Add(s => s.Label, "Orders").Add(s => s.Trend, StatTrend.Up)).Find(".ib-stat-change");
+        Assert.NotNull(change.QuerySelector("svg"));
+        Assert.Equal("Up ", change.QuerySelector(".ib-visually-hidden")!.TextContent);
     }
 }

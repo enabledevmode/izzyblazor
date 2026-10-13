@@ -59,10 +59,17 @@ public class Tag : IzzyComponentBase
     /// </summary>
     [Parameter] public string? RemoveHref { get; set; }
 
-    /// <summary>Adds a remove button that runs this on interactive pages.</summary>
+    /// <summary>
+    /// Adds a remove button that runs this on interactive pages. Static and prerendered pages need
+    /// <see cref="RemoveHref"/> to show a remove control.
+    /// </summary>
     [Parameter] public EventCallback OnRemove { get; set; }
 
-    /// <summary>The remove control's name, before the label: "Remove Blazor". Defaults to "Remove".</summary>
+    /// <summary>
+    /// The remove control's name, before the label: "Remove Blazor". Defaults to "Remove". With only
+    /// <see cref="ChildContent"/> and no <see cref="Label"/>, the name is just this, so give tags in a
+    /// list a <see cref="Label"/> too.
+    /// </summary>
     [Parameter] public string? RemoveLabel { get; set; }
 
     private bool RemoveButton => OnRemove.HasDelegate && RendererInfo.IsInteractive;
