@@ -582,14 +582,24 @@
     line-height: 1.25rem;
   }
 
+  /* The size is a control, so it's drawn as a small select (outlined, plain weight), not as
+     one more page number. */
   .ib-table-page-size-button {
     gap: var(--ib-space-1);
+    padding-inline: var(--ib-space-2) var(--ib-space-1);
+    font-weight: var(--ib-weight-normal);
     font-variant-numeric: tabular-nums;
+  }
+
+  /* One text size across the footer: the pages and the size match the 14px range and label. */
+  .ib-table-footer :is(.ib-pagination-item, .ib-table-page-size-button) {
+    --ib-btn-font: var(--ib-text-sm);
   }
 
   .ib-table-page-size-chevron {
     width: 0.875rem;
     height: 0.875rem;
+    color: var(--ib-color-muted);
   }
 
   .ib-table-summary {
