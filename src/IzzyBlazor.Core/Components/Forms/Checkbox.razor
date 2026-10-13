@@ -5,8 +5,11 @@
     A checkbox with its label beside it.
     <Checkbox @bind-Value="Model.AcceptTerms" Label="I agree to the terms" />
 
-    Posting: a checked box posts "true"; an unchecked box posts nothing, so the model keeps its
-    default (false). No hidden input is needed.
+    Posting: a hidden "false" follows the box, so an unchecked box posts "false" and a checked one
+    posts "true" then "false" (Blazor binds the first value). Without it an unchecked box posts
+    nothing, and when nothing else in the form is posted, Blazor doesn't bind the model at all:
+    the page recreates it and a box that defaults to true comes back checked. A disabled box
+    posts nothing, like any disabled field.
 
     Indeterminate shows a dash, for a "select all" box when only some are selected. It's display
     only: the box still posts true or nothing, and choosing it clears the dash.
@@ -43,6 +46,10 @@
             }
         </span>
     </label>
+    @if (!Disabled && !string.IsNullOrEmpty(NameAttributeValue))
+    {
+        <input type="hidden" name="@NameAttributeValue" value="false" />
+    }
 </FieldFrame>
 
 @code {

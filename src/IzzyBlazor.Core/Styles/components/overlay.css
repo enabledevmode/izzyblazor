@@ -206,6 +206,11 @@
   }
 
   /* Popover */
+  /* The panel itself takes focus when opened (so it's read by its title); its controls show the ring. */
+  .ib-pop.ib-popover:focus {
+    outline: none;
+  }
+
   .ib-pop.ib-popover {
     padding: var(--ib-space-4);
     font-size: var(--ib-text-md);

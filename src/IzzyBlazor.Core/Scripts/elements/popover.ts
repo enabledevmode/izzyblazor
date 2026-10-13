@@ -9,9 +9,32 @@ import { track } from "../position";
  *   - for menus: focus on open, arrow keys, Home and End, type-ahead, and closing after a choice.
  *   - for submenus (an <ib-popover> inside a menu): opening on hover and with the arrow key toward
  *     it, closing with the arrow key back; choosing an item closes the whole menu.
+ *   - for popovers (role="dialog"): focus moves into the panel when the user opens it.
+ *   - on close, focus goes back to the trigger if it was inside the panel.
+ *
+ * Menu roles promise arrow keys, so static pages render them as data-ib-role, data-ib-checked
+ * and data-ib-haspopup; applyMenuRoles turns them into ARIA here, before the keys are added.
+ * With JavaScript off the items stay plain links and buttons.
  */
 
 const ITEM = "[role='menuitem'], [role='menuitemcheckbox'], [role='menuitemradio']";
+const MENU_PANEL = "[popover]:is([role='menu'], [data-ib-role='menu'])";
+
+/** Turns the server's data-ib-* menu attributes into ARIA. Safe to run again. */
+function applyMenuRoles(root: Element): void {
+  root.querySelectorAll<HTMLElement>("[data-ib-role]").forEach((el) => {
+    el.setAttribute("role", el.dataset.ibRole!);
+  });
+  root.querySelectorAll<HTMLElement>("[data-ib-haspopup]").forEach((el) => {
+    el.setAttribute("aria-haspopup", el.dataset.ibHaspopup!);
+  });
+  root.querySelectorAll<HTMLElement>("[data-ib-checked]").forEach((el) => {
+    // aria-checked replaces the no-script stand-ins.
+    el.setAttribute("aria-checked", el.dataset.ibChecked!);
+    el.removeAttribute("aria-pressed");
+    if (el.getAttribute("aria-current") === "true") el.removeAttribute("aria-current");
+  });
+}
 class PopoverRoot extends IzzyElement {
   static observedAttributes = ["data-open"];
 
@@ -43,7 +66,7 @@ class PopoverRoot extends IzzyElement {
 
   /** The menu panel this submenu sits in, if it is one. */
   private get parentPanel(): HTMLElement | null {
-    return this.parentElement?.closest<HTMLElement>("[popover][role='menu']") ?? null;
+    return this.parentElement?.closest<HTMLElement>(MENU_PANEL) ?? null;
   }
 
   /** The outermost menu panel, which closes every submenu with it. */
@@ -52,7 +75,7 @@ class PopoverRoot extends IzzyElement {
     let up = this.parentPanel;
     while (up) {
       root = up;
-      up = up.parentElement?.closest<HTMLElement>("[popover][role='menu']") ?? null;
+      up = up.parentElement?.closest<HTMLElement>(MENU_PANEL) ?? null;
     }
     return root;
   }
@@ -69,6 +92,8 @@ class PopoverRoot extends IzzyElement {
     const panel = this.panel;
     // Without the Popover API the panel is ordinary content; there's nothing to enhance.
     if (!panel || typeof panel.showPopover !== "function") return;
+
+    applyMenuRoles(this);
 
     panel.addEventListener("toggle", (event) => this.onToggle((event as Event & { newState?: string }).newState === "open"), { signal });
 
@@ -133,7 +158,8 @@ class PopoverRoot extends IzzyElement {
   private onToggle(open: boolean): void {
     const panel = this.panel;
     if (!panel) return;
-    if (this.#syncTarget === open) {
+    const fromSync = this.#syncTarget === open;
+    if (fromSync) {
       this.#syncTarget = null;
     } else {
       this.#userState = open;
@@ -145,13 +171,22 @@ class PopoverRoot extends IzzyElement {
       if (this.isMenu && !this.#hoverOpen) {
         const items = this.items();
         (this.#focusLast ? items[items.length - 1] : items[0])?.focus();
+      } else if (!this.isMenu && !fromSync) {
+        // A popover opened by the user: focus its [autofocus] element, or the panel itself so it's
+        // read by its title and Tab moves through it. One opened by the server or C# leaves focus.
+        const target = panel.querySelector<HTMLElement>("[autofocus]");
+        if (target) target.focus();
+        else {
+          if (!panel.hasAttribute("tabindex")) panel.setAttribute("tabindex", "-1");
+          panel.focus();
+        }
       }
       this.#focusLast = false;
       this.#hoverOpen = false;
     } else {
       this.#stopTracking?.();
       this.#stopTracking = null;
-      if (this.isMenu && (panel.contains(document.activeElement) || document.activeElement === document.body)) {
+      if (panel.contains(document.activeElement) || document.activeElement === document.body) {
         this.trigger?.focus();
       }
     }

@@ -3,14 +3,24 @@
 
 @*
     A summary of every validation message in the form, announced to screen readers when it appears.
-    Place it at the top of a long form.
+    Place it at the top of a long form. After a submit that fails validation it takes focus, so
+    keyboard and screen reader users start from the list of problems:
+      - static pages: native autofocus on a full page load (works with JavaScript off), and the
+        script for an enhanced post, which patches the page so autofocus doesn't fire;
+      - interactive pages: focused from C# after the submit, but not as messages change while typing.
     <FormErrors />
 *@
 
 @if (Messages.Count > 0)
 {
-    <div class="ib-form-errors" role="alert">
-        <p class="ib-form-errors-title"><Icon Role="IconRole.Error" /> @Title</p>
+    <div @ref="_element"
+         class="ib-form-errors"
+         role="alert"
+         tabindex="-1"
+         aria-labelledby="@_titleId"
+         autofocus="@(!RendererInfo.IsInteractive)"
+         data-ib-autofocus="@(RendererInfo.IsInteractive ? null : "")">
+        <p class="ib-form-errors-title" id="@_titleId"><Icon Role="IconRole.Error" /> @Title</p>
         <ul>
             @foreach (var message in Messages)
             {
@@ -30,6 +40,9 @@
         EditContext is null ? [] : EditContext.GetValidationMessages().ToList();
 
     private EditContext? _subscribed;
+    private ElementReference _element;
+    private bool _focusAfterRender;
+    private readonly string _titleId = IdGenerator.Next("ib-form-errors");
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -39,15 +52,62 @@
             return;
         }
 
-        if (_subscribed is not null)
-        {
-            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
-        }
-
+        Unsubscribe();
         _subscribed = EditContext;
         if (_subscribed is not null)
         {
             _subscribed.OnValidationStateChanged += OnValidationStateChanged;
+            _subscribed.OnValidationRequested += OnValidationRequested;
+        }
+    }
+
+    // A submit validates the whole form: focus the summary if that leaves errors. Field edits
+    // change the messages too, but shouldn't pull focus away from the field being typed in.
+    // Validators handle the same event and may render before this runs, so wait until
+    // validation has finished, then render once more with the flag set.
+    private async void OnValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        if (!RendererInfo.IsInteractive)
+        {
+            return;
+        }
+
+        try
+        {
+            await Task.Yield();
+            await InvokeAsync(() =>
+            {
+                _focusAfterRender = true;
+                StateHasChanged();
+            });
+        }
+        catch (ObjectDisposedException)
+        {
+            // The form went away first.
+        }
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!_focusAfterRender)
+        {
+            return;
+        }
+
+        _focusAfterRender = false;
+        if (Messages.Count > 0 && RendererInfo.IsInteractive)
+        {
+            await _element.FocusAsync();
+        }
+    }
+
+    private void Unsubscribe()
+    {
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+            _subscribed.OnValidationRequested -= OnValidationRequested;
         }
     }
 
@@ -55,11 +115,5 @@
     private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => StateHasChanged();
 
     /// <inheritdoc />
-    public void Dispose()
-    {
-        if (_subscribed is not null)
-        {
-            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
-        }
-    }
+    public void Dispose() => Unsubscribe();
 }

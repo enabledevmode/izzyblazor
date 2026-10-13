@@ -36,7 +36,8 @@
     <div @attributes="AdditionalAttributes"
          id="@ElementId"
          popover="auto"
-         role="menu"
+         role="@(RendererInfo.IsInteractive ? "menu" : null)"
+         data-ib-role="@(RendererInfo.IsInteractive ? null : "menu")"
          aria-labelledby="@TriggerId"
          class="@_class"
          style="@_style"
@@ -113,8 +114,9 @@
         {
             ["id"] = TriggerId,
             ["popovertarget"] = ElementId,
-            ["aria-haspopup"] = "menu",
             ["aria-controls"] = ElementId,
+            // Menu semantics need the script; see MenuItem.
+            [RendererInfo.IsInteractive ? "aria-haspopup" : "data-ib-haspopup"] = "menu",
         };
         (_class, _style) = BuildRootAttributes();
     }

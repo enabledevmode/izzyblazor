@@ -1410,6 +1410,16 @@
     font-size: var(--ib-text-sm);
   }
 
+  /* It takes focus after a failed submit; show the ring only for keyboard users. */
+  .ib-form-errors:focus {
+    outline: none;
+  }
+
+  .ib-form-errors:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
   .ib-form-errors-title {
     display: flex;
     align-items: center;
