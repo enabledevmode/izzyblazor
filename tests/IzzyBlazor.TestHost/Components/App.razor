@@ -5,14 +5,13 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    @* Applied before first paint: the saved theme, and a class that says JavaScript is running. *@
+    @* Applied before first paint: the saved look and accent, and a class that says JavaScript is
+       running. The color scheme comes from IzzyTheme (the switch's cookie), below. *@
     <script>
         (function () {
             var d = document.documentElement;
             d.classList.add("js");
             try {
-                var t = localStorage.getItem("ib-host-theme");
-                if (t === "light" || t === "dark") d.setAttribute("data-theme", t);
                 var l = localStorage.getItem("ib-host-look");
                 if (l) d.setAttribute("data-ib-theme", l);
                 var c = localStorage.getItem("ib-host-color");
@@ -28,6 +27,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
     <link rel="stylesheet" href="@Assets["host.css"]" />
+    <IzzyTheme />
     <ImportMap />
     <HeadOutlet />
 </head>
