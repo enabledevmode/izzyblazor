@@ -73,8 +73,8 @@
   }
 
   .ib-breadcrumb .ib-icon {
-    width: 1em;
-    height: 1em;
+    width: round(nearest, 1em, 2px);
+    height: round(nearest, 1em, 2px);
   }
 
   /* Pagination: ghost buttons, the current page tinted. */

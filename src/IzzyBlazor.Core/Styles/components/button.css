@@ -66,8 +66,8 @@
   }
 
   .ib-btn-icon-only .ib-icon {
-    width: 1.25em;
-    height: 1.25em;
+    width: round(nearest, 1.25em, 2px);
+    height: round(nearest, 1.25em, 2px);
   }
 
   .ib-btn-full {

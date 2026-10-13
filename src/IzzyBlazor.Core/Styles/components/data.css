@@ -367,7 +367,7 @@
   /* The shimmer comes from .ib-skeleton (feedback.css); this sizes it for a cell. */
   .ib-table-skeleton {
     width: 70%;
-    height: 0.75em;
+    height: round(nearest, 0.75em, 1px);
   }
 
   .ib-cell-end > .ib-table-skeleton {
