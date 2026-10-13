@@ -23,9 +23,12 @@
             </Row>
         }
         <Row Inline Gap="2" Align="Align.Center" VisibleFrom="Breakpoint.Md" Class="host-sets">
-            <span class="host-select-wrap"><select class="host-select" data-host-preset aria-label="Named theme">
-                <option value="">Default</option><option value="ember">Ember</option><option value="classic">Classic</option><option value="editorial">Editorial</option>
-                <option value="harbor">Harbor</option><option value="grove">Grove</option><option value="studio">Studio</option><option value="crisp">Crisp</option>
+            <span class="host-select-wrap"><select class="host-select" data-host-set="look" aria-label="Look">
+                <option value="">Standard</option><option value="compact">Compact</option><option value="soft">Soft</option><option value="editorial">Editorial</option>
+            </select></span>
+            <span class="host-select-wrap"><select class="host-select" data-host-set="color" aria-label="Accent">
+                <option value="">Look's accent</option><option value="blue">Blue</option><option value="ink">Ink</option><option value="indigo">Indigo</option><option value="violet">Violet</option>
+                <option value="teal">Teal</option><option value="green">Green</option><option value="rose">Rose</option>
             </select></span>
         </Row>
         <Row Inline Gap="1" Class="host-segment" aria-label="Theme" VisibleFrom="Breakpoint.Sm">

@@ -30,34 +30,46 @@
 
   apply(stored());
 
-  // The named theme (data-ib-theme on <html>), chosen in the header's select and kept in
-  // localStorage under its own key (the light/dark choice is KEY). Default: no attribute.
-  var PRESET = "ib-host-preset";
+  // The look (data-ib-theme) and accent (data-ib-accent) on <html>, chosen in the header's
+  // selects and kept in localStorage (the light/dark choice is KEY). Default: no attribute.
+  var SETS = { look: "data-ib-theme", color: "data-ib-accent" };
 
-  // Older builds kept accent, gray and radius separately; drop them so they don't linger.
-  try { ["accent", "gray", "radius"].forEach(function (k) { localStorage.removeItem("ib-host-" + k); }); } catch (e) { }
+  // Older builds kept a named color theme, or accent, gray and radius; drop them.
+  try { ["preset", "accent", "gray", "radius"].forEach(function (k) { localStorage.removeItem("ib-host-" + k); }); } catch (e) { }
 
   function applySets() {
     var root = document.documentElement;
-    var v = null;
-    try { v = localStorage.getItem(PRESET); } catch (e) { }
-    if (v) root.setAttribute("data-ib-theme", v);
-    else root.removeAttribute("data-ib-theme");
-    ["accent", "gray", "radius"].forEach(function (k) { root.removeAttribute("data-ib-" + k); });
-    document.querySelectorAll("[data-host-preset]").forEach(function (s) { s.value = v || ""; });
+    Object.keys(SETS).forEach(function (k) {
+      var v = null;
+      try { v = localStorage.getItem("ib-host-" + k); } catch (e) { }
+      if (v) root.setAttribute(SETS[k], v);
+      else root.removeAttribute(SETS[k]);
+      document.querySelectorAll("[data-host-set='" + k + "']").forEach(function (s) { s.value = v || ""; });
+    });
+    ["gray", "radius"].forEach(function (k) { root.removeAttribute("data-ib-" + k); });
   }
 
   document.addEventListener("change", function (e) {
-    var select = e.target.closest && e.target.closest("[data-host-preset]");
+    var select = e.target.closest && e.target.closest("[data-host-set]");
     if (!select) return;
+    var key = "ib-host-" + select.getAttribute("data-host-set");
     try {
-      if (select.value) localStorage.setItem(PRESET, select.value);
-      else localStorage.removeItem(PRESET);
+      if (select.value) localStorage.setItem(key, select.value);
+      else localStorage.removeItem(key);
     } catch (err) { }
     applySets();
   });
 
   applySets();
+
+  // Another document of this site changed a choice: the page around a demo frame (the frame hears
+  // it here), or another tab. localStorage raises "storage" in every document but the one that
+  // wrote, so open frames follow the header without reloading.
+  window.addEventListener("storage", function (e) {
+    if (e.key && e.key.indexOf("ib-host-") !== 0) return;
+    apply(stored());
+    applySets();
+  });
 
   // Enhanced navigation can reset <html> attributes to the server's version.
   if (window.Blazor && Blazor.addEventListener) {
