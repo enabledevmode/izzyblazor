@@ -212,6 +212,18 @@
     border-bottom: 1px solid var(--ib-color-border);
     text-align: start;
     vertical-align: middle;
+    /* An even whole-pixel line (22px at the default size): rows stay whole, and checkboxes,
+       badges and sort icons center in the cell without landing on half pixels. */
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
+  }
+
+  /*
+   * Badges, sort links, checkboxes and other inline boxes in a cell sit at the top of the line
+   * rather than its middle, which falls between pixels. That keeps every line, and so every row,
+   * a whole number of pixels tall (a badge made rows 48.5px). The cell still centers its content.
+   */
+  .ib-table-grid :is(th, td) > * {
+    vertical-align: top;
   }
 
   .ib-table-grid tbody tr:last-child > td {
