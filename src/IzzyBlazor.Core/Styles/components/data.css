@@ -554,15 +554,17 @@
     margin-inline-start: auto;
   }
 
+  /* Paging, grouped at the end like AG Grid and MUI: rows per page, the range, the pages. The
+     start stays free for selection counts or bulk actions. */
   .ib-table-footer {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    justify-content: space-between;
+    justify-content: flex-end;
     gap: var(--ib-space-2) var(--ib-space-4);
   }
 
-  .ib-table-footer-start {
+  .ib-table-footer-info {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
