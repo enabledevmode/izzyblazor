@@ -18,3 +18,11 @@ indent_size = 4
 csharp_style_namespace_declarations = file_scoped:warning
 csharp_prefer_braces = true:warning
 dotnet_style_qualification_for_field = false:suggestion
+
+# Library code is in one public namespace, IzzyBlazor, whatever folder it sits in (see
+# CONTRIBUTING, "Namespaces"), so the folder-match checks are off there: IDE0130 for Visual Studio
+# and the compiler, CheckNamespace for Rider and ReSharper.
+[src/**/*.{cs,razor}]
+dotnet_style_namespace_match_folder = false
+dotnet_diagnostic.IDE0130.severity = none
+resharper_check_namespace_highlighting = none

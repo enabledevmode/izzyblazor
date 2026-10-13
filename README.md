@@ -36,7 +36,7 @@ choose a different component for each.
 
 - **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio
 - **App structure:** AppShell (header, collapsible sidebar, aside, footer), NavMenu
-- **Typography:** TextBlock, Heading, Link, Code, Kbd, Icon (all of Lucide)
+- **Typography:** TextBlock, Heading, Anchor, Code, Kbd, Icon (all of Lucide)
 - **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, FileUpload, Fieldset,

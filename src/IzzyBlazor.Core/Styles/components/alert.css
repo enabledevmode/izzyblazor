@@ -158,12 +158,12 @@
   }
 
   /* Links in the strip take its color: the status text color, or the text on a solid fill. */
-  .ib-banner .ib-link {
+  .ib-banner .ib-anchor {
     color: var(--ib-accent-text);
     font-weight: var(--ib-weight-medium);
   }
 
-  .ib-alert-solid.ib-banner .ib-link {
+  .ib-alert-solid.ib-banner .ib-anchor {
     color: inherit;
   }
 

@@ -59,8 +59,8 @@ The rest:
 `Size` and `Align` are responsive. Text components have no default margins; space them with a
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
-`Link` is underlined by default (`Underline` changes it). `Inherit` takes the text color, and
-`External` opens a new tab with an icon and a note for screen readers.
+`Anchor` is a text link, underlined by default (`Underline` changes it). `Inherit` takes the text color, and
+`External` opens a new tab with an icon and a note for screen readers. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
 
 `Code` is inline, or a `Block` that scrolls sideways with an optional `Language` label. Its copy
 button appears only when JavaScript runs.
@@ -472,7 +472,7 @@ warning. Use `Alert` for a message about part of a page.
 <AppShell>
     <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11">
         <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
-        <Actions><Link Href="/status">Details</Link></Actions>
+        <Actions><Anchor Href="/status">Details</Anchor></Actions>
     </Banner>
     <AppHeader>...</AppHeader>
     ...
