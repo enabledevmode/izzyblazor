@@ -130,6 +130,8 @@ public class MenuExtrasRenderTests : BunitContext
         Assert.Equal("menuitem", trigger.GetAttribute("data-ib-role"));
         Assert.Equal("menu", trigger.GetAttribute("data-ib-haspopup"));
         Assert.Equal(sub.Id, trigger.GetAttribute("popovertarget"));
+        // Clicking the item only opens it (hover may already have): it must not toggle it shut.
+        Assert.Equal("show", trigger.GetAttribute("popovertargetaction"));
         Assert.Equal("menu", sub.GetAttribute("data-ib-role"));
         Assert.Equal(trigger.Id, sub.GetAttribute("aria-labelledby"));
         Assert.Equal("end-start", cut.Find(".ib-menu-sub-root").GetAttribute("data-placement"));
