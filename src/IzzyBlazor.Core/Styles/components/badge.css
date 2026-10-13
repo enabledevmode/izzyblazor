@@ -59,8 +59,9 @@
   }
 
   .ib-badge-dot {
-    width: 0.4375rem;
-    height: 0.4375rem;
+    /* Even, like the badge's inside height, so it centers on whole pixels. */
+    width: 0.375rem;
+    height: 0.375rem;
     border-radius: 50%;
     background-color: var(--ib-accent);
   }

@@ -96,6 +96,10 @@ A component is done when:
 - on interactive pages, its state binds to C# (`@bind-...`) where it has any;
 - it's keyboard accessible, with correct ARIA, and readable in light and dark themes;
 - it works at phone width;
+- at 100% zoom its edges, icons and offsets land on whole pixels: small fixed graphics (icons,
+  dots, checkboxes) have whole, even sizes and sit at whole-pixel offsets in the box they're
+  centered in, and its heights don't add half pixels to the page. Use `round()` where a size comes
+  from rem or a percentage, and center even graphics in even spaces;
 - it has render tests, and the docs in `docs/components.md` cover it.
 
 ## Commits

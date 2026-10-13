@@ -239,6 +239,8 @@
   flex: none;
   width: 0.5rem;
   height: 0.5rem;
+  align-self: flex-start;
+  margin-block-start: round(down, (1lh - 0.5rem) / 2, 1px);
   border-radius: 50%;
   background: var(--dot);
 }

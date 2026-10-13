@@ -207,7 +207,9 @@
     inset-inline-end: 1px;
     display: flex;
     flex-direction: column;
-    width: 1.75rem;
+    /* 1px wider than the 28px column, so the buttons inside the border are an even 28px and
+       their icons sit on whole pixels. */
+    width: calc(1.75rem + 1px);
     border-inline-start: 1px solid var(--ib-field-border);
     border-start-end-radius: calc(var(--ib-radius-md) - 1px);
     border-end-end-radius: calc(var(--ib-radius-md) - 1px);
@@ -233,6 +235,19 @@
 
   .ib-field-step + .ib-field-step {
     border-top: 1px solid var(--ib-field-border);
+  }
+
+  /*
+   * Stacked: the field's inside height is even (34px), so after the 1px divider one pixel is
+   * left over. The bottom button takes it as padding, leaving both halves the same even height
+   * (16px) so the icons center on whole pixels. round() keeps halves whole for odd heights too.
+   */
+  .ib-field-steppers:not(.ib-field-steppers-split) > .ib-field-step:first-child {
+    flex: 0 0 round(down, (100% - 2px) / 2, 1px);
+  }
+
+  .ib-field-steppers:not(.ib-field-steppers-split) > .ib-field-step + .ib-field-step {
+    padding-block-end: 1px;
   }
 
   .ib-field-step .ib-icon {
@@ -274,7 +289,7 @@
   }
 
   .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input {
-    padding-inline-end: calc(1.75rem + var(--ib-field-px));
+    padding-inline-end: calc(1.75rem + 1px + var(--ib-field-px));
   }
 
   /* Split: a square button at each end, inside the border, and the number centered between. */
@@ -289,7 +304,8 @@
 
   .ib-field-steppers-split .ib-field-step {
     flex: none;
-    width: calc(var(--ib-field-h) - 2px);
+    /* One border plus an even square inside it, so the icon sits on whole pixels. */
+    width: calc(var(--ib-field-h) - 1px);
     pointer-events: auto;
   }
 
