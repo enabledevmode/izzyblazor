@@ -126,6 +126,7 @@
 
     private DialogContext _context = null!;
     private string? _lastQueryValue;
+    private bool _openedByQuery;
     private string? _class;
     private string? _style;
 
@@ -156,13 +157,28 @@
             if (value != _lastQueryValue)
             {
                 _lastQueryValue = value;
-                if (value == ElementId)
+                if (value == ElementId && !IsOpen)
                 {
                     IsOpen = true;
+                    _openedByQuery = true;
                 }
             }
         }
 
         (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        // Tell @bind-Open that the address opened it, so the page's state matches.
+        if (_openedByQuery)
+        {
+            _openedByQuery = false;
+            if (!Open)
+            {
+                await OpenChanged.InvokeAsync(true);
+            }
+        }
     }
 }

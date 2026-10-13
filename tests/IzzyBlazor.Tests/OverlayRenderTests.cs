@@ -189,6 +189,20 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
+    public void Dialog_opened_from_the_query_string_tells_its_binding()
+    {
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("/projects?dialog=confirm");
+        bool? reported = null;
+
+        Render<Dialog>(p => p
+            .Add(d => d.Id, "confirm")
+            .Add(d => d.Open, false)
+            .Add(d => d.OpenChanged, EventCallback.Factory.Create<bool>(this, v => reported = v)));
+
+        Assert.True(reported);
+    }
+
+    [Fact]
     public void Dialog_without_backdrop_close_waits_for_a_close_request()
     {
         var cut = Render<Dialog>(p => p.Add(d => d.Id, "d").Add(d => d.CloseOnBackdrop, false));
