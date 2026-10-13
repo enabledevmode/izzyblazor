@@ -69,6 +69,7 @@
   .ib-field-error p {
     display: flex;
     align-items: center;
+    gap: 0.375em;
     gap: round(nearest, 0.375em, 1px);
     margin: 0;
   }
@@ -243,6 +244,7 @@
    * (16px) so the icons center on whole pixels. round() keeps halves whole for odd heights too.
    */
   .ib-field-steppers:not(.ib-field-steppers-split) > .ib-field-step:first-child {
+    flex: 0 0 calc((100% - 2px) / 2);
     flex: 0 0 round(down, (100% - 2px) / 2, 1px);
   }
 
@@ -1124,7 +1126,9 @@
   .ib-select-value .ib-icon,
   .ib-combobox-option .ib-icon {
     flex: none;
+    width: 1em;
     width: round(nearest, 1em, 2px);
+    height: 1em;
     height: round(nearest, 1em, 2px);
   }
 
@@ -1218,6 +1222,7 @@
        on a whole pixel where round() is supported. */
     font: inherit;
     margin: calc((1lh - var(--ib-check-size)) / 2) 0 0;
+    margin-block-start: max(0px, calc((1lh - var(--ib-check-size)) / 2));
     margin-block-start: max(0px, round(nearest, (1lh - var(--ib-check-size)) / 2, 1px));
     border: 1px solid color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
     border-radius: calc(var(--ib-check-size) * 0.25);
@@ -1327,6 +1332,8 @@
     height: 1rem;
     border-radius: 50%;
     /* Off: white on the grey track in light schemes, light grey in dark ones. On: the on-primary color. */
+    /* Browsers without light-dark() keep the first line. */
+    background-color: var(--ib-color-surface);
     background-color: light-dark(var(--ib-color-surface), color-mix(in oklab, var(--ib-color-outline) 35%, var(--ib-color-on-surface)));
     box-shadow: var(--ib-shadow-sm);
     transition: translate var(--ib-duration-normal) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
@@ -1561,7 +1568,14 @@
     cursor: inherit;
   }
 
+  /* Long labels on a narrow screen end in an ellipsis rather than running into the next segment.
+     The padding keeps descenders inside the clip, since the line box is trimmed to the caps. */
   .ib-segment-label {
+    min-width: 0;
+    overflow: hidden;
+    padding-block: 0.25em;
+    margin-block: -0.25em;
+    text-overflow: ellipsis;
     text-box: trim-both cap alphabetic;
   }
 
@@ -1611,14 +1625,61 @@
     box-shadow: inset 0 0 0 1px var(--ib-color-danger);
   }
 
+  /* The chosen segment is filled with Highlight (not an outline), so the focus ring stays its own. */
   @media (forced-colors: active) {
     .ib-segmented {
       border: 1px solid CanvasText;
     }
 
     .ib-segment:has(.ib-segment-input:checked) {
-      outline: 2px solid Highlight;
-      outline-offset: -2px;
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+
+    .ib-segment:has(.ib-segment-input:disabled) {
+      color: GrayText;
+    }
+  }
+}
+
+/*
+ * Windows high contrast (forced colors) replaces backgrounds and drops box-shadows, which is how
+ * the switch, the highlighted option and the chosen-option checks are drawn. Give them system
+ * colors that survive.
+ */
+@layer izzy.components {
+  @media (forced-colors: active) {
+    /* The switch becomes the native checkbox, like Checkbox does. */
+    .ib-switch-input {
+      appearance: auto;
+      width: var(--ib-check-size, 1rem);
+      height: var(--ib-check-size, 1rem);
+      box-shadow: none;
+    }
+
+    .ib-switch-input::before {
+      display: none;
+    }
+
+    /* The highlighted option: the system's selection colors. */
+    .ib-combobox-option[data-active],
+    .ib-multiselect-option[data-active] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+
+    /* Checks drawn with a mask: paint them in the text color (HighlightText when highlighted). */
+    .ib-combobox-option[aria-selected="true"]::after,
+    .ib-multiselect-option[aria-selected="true"] > .ib-multiselect-check::after {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+
+    .ib-combobox-option[data-active][aria-selected="true"]::after,
+    .ib-multiselect-option[data-active][aria-selected="true"] > .ib-multiselect-check::after {
+      background-color: HighlightText;
     }
   }
 }

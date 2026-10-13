@@ -27,7 +27,9 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     /// The default text for labels and messages: the app's registered <see cref="IzzyText"/>, or
     /// English. A component's own text parameters win over it.
     /// </summary>
-    protected IzzyText TextDefaults => IzzyServices.GetService(typeof(IzzyText)) as IzzyText ?? IzzyText.English;
+    protected IzzyText TextDefaults => _textDefaults ??= IzzyText.From(IzzyServices);
+
+    private IzzyText? _textDefaults;
 
     private string? _generatedId;
     private MemberInfo? _member;
@@ -138,6 +140,13 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     /// <summary>Attributes other than <c>id</c>, for the native control.</summary>
     protected IEnumerable<KeyValuePair<string, object>>? ControlAttributes =>
         AdditionalAttributes?.Where(a => !string.Equals(a.Key, "id", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
+    /// A name for a group of radios: the field's form name, or its id where Blazor gives none
+    /// (WebAssembly pages don't generate field names). Radios need one to be a single group for
+    /// arrow keys and <c>required</c>.
+    /// </summary>
+    protected string GroupName => NameAttributeValue is { Length: > 0 } name ? name : FieldId;
 
     /// <summary>The wrapper's classes.</summary>
     protected string WrapperClass(string kind) => new ClassBuilder()

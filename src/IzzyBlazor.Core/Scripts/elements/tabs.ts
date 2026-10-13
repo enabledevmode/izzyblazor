@@ -44,14 +44,17 @@ class Tabs extends IzzyElement {
 
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
 
-    // Vertical tabs switch between a column and a row at 640px; keep aria-orientation in step.
-    if (this.classList.contains("ib-tabs-vertical")) {
-      const wide = matchMedia("(min-width: 640px)");
-      wide.addEventListener("change", () => this.sync(), { signal });
-    }
+    // Vertical tabs switch between a column and a row at 640px; keep aria-orientation in step
+    // (checked on each change, since C# can switch the orientation on interactive pages).
+    const wide = matchMedia("(min-width: 640px)");
+    wide.addEventListener("change", () => this.sync(), { signal });
 
+    // Re-apply roles when C# changes the selection or orientation (data-selected, class), adds or
+    // removes tabs, or disables one. sync() sets only role, aria-* and tabindex, which aren't watched.
     const observer = new MutationObserver(() => this.sync());
-    observer.observe(this, { attributes: true, attributeFilter: ["data-selected"] });
+    observer.observe(this, { attributes: true, attributeFilter: ["data-selected", "class"] });
+    const list = this.list;
+    if (list) observer.observe(list, { childList: true, subtree: true, attributes: true, attributeFilter: ["disabled"] });
     signal.addEventListener("abort", () => observer.disconnect());
   }
 

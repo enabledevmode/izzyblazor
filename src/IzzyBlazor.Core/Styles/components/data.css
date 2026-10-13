@@ -214,6 +214,7 @@
     vertical-align: middle;
     /* An even whole-pixel line (22px at the default size): rows stay whole, and checkboxes,
        badges and sort icons center in the cell without landing on half pixels. */
+    line-height: calc(1em * var(--ib-leading-normal));
     line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
   }
 
@@ -375,6 +376,7 @@
   /* The shimmer comes from .ib-skeleton (feedback.css); this sizes it for a cell. */
   .ib-table-skeleton {
     width: 70%;
+    height: 0.75em;
     height: round(nearest, 0.75em, 1px);
   }
 

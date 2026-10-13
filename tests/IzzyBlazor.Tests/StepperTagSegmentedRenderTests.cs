@@ -67,6 +67,22 @@ public class StepperTagSegmentedRenderTests : BunitContext
     }
 
     [Fact]
+    public void Hidden_steps_keep_their_place_but_arent_shown_or_numbered()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<Stepper>(p => p
+            .Add(s => s.Current, 2)
+            .AddChildContent<Step>(s => s.Add(x => x.Label, "Cart"))
+            .AddChildContent<Step>(s => s.Add(x => x.Label, "Shipping").Add(x => x.Hidden, true))
+            .AddChildContent<Step>(s => s.Add(x => x.Label, "Pay")));
+
+        var steps = cut.FindAll("li.ib-step");
+        Assert.Equal(2, steps.Count);
+        Assert.Equal("2", steps[1].QuerySelector(".ib-step-marker")!.TextContent.Trim());
+        Assert.Equal("step", steps[1].GetAttribute("aria-current"));
+    }
+
+    [Fact]
     public void Segmented_control_is_a_fieldset_of_radios()
     {
         var context = new EditContext(_model);
@@ -85,6 +101,21 @@ public class StepperTagSegmentedRenderTests : BunitContext
         Assert.Equal(2, radios.Count);
         Assert.True(radios[1].HasAttribute("checked"));
         Assert.Equal("Whole week", cut.FindAll(".ib-segment-label")[1].TextContent);
+    }
+
+    [Fact]
+    public void Radios_share_a_name_where_blazor_generates_none()
+    {
+        // WebAssembly pages: no field names, so radios would each be their own group.
+        var context = new EditContext(_model) { ShouldUseFieldIdentifiers = false };
+        var radios = Render<SegmentedControl<View>>(p => p
+            .AddCascadingValue(context)
+            .Add(s => s.Value, _model.View)
+            .Add(s => s.ValueExpression, () => _model.View)).FindAll("input[type=radio]");
+
+        var name = radios[0].GetAttribute("name");
+        Assert.False(string.IsNullOrEmpty(name));
+        Assert.All(radios, r => Assert.Equal(name, r.GetAttribute("name")));
     }
 
     [Fact]

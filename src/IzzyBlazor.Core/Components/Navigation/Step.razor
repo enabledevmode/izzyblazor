@@ -2,38 +2,43 @@
 @inherits IzzyComponentBase
 @implements IDisposable
 
-@* One step in a Stepper: a numbered marker (a check once done), its label and an optional description. *@
+@* One step in a Stepper: a numbered marker (a check once done), its label and an optional description.
+   For a step that only sometimes applies, set Hidden rather than wrapping it in @if: Blazor renders
+   a step added later after the others, which would number it out of order. *@
 
-<li @attributes="AdditionalAttributes" class="@StepClass" style="@_style" aria-current="@(State == StepState.Current ? "step" : null)">
-    <span class="ib-step-marker" aria-hidden="true">
-        @if (State == StepState.Complete)
-        {
-            <Icon Role="IconRole.Check" />
-        }
-        else if (Icon is { } icon)
-        {
-            <Icon Name="icon" />
-        }
-        else
-        {
-            @Number
-        }
-    </span>
-    <span class="ib-step-text">
-        @if (Href is not null)
-        {
-            <a class="ib-step-label" href="@Href">@Label@CompletedText</a>
-        }
-        else
-        {
-            <span class="ib-step-label">@Label@CompletedText</span>
-        }
-        @if (Description is not null)
-        {
-            <span class="ib-step-description">@Description</span>
-        }
-    </span>
-</li>
+@if (!Hidden)
+{
+    <li @attributes="AdditionalAttributes" class="@StepClass" style="@_style" aria-current="@(State == StepState.Current ? "step" : null)">
+        <span class="ib-step-marker" aria-hidden="true">
+            @if (State == StepState.Complete)
+            {
+                <Icon Role="IconRole.Check" />
+            }
+            else if (Icon is { } icon)
+            {
+                <Icon Name="icon" />
+            }
+            else
+            {
+                @Number
+            }
+        </span>
+        <span class="ib-step-text">
+            @if (Href is not null)
+            {
+                <a class="ib-step-label" href="@Href">@Label@CompletedText</a>
+            }
+            else
+            {
+                <span class="ib-step-label">@Label@CompletedText</span>
+            }
+            @if (Description is not null)
+            {
+                <span class="ib-step-description">@Description</span>
+            }
+        </span>
+    </li>
+}
 
 @code {
     /// <summary>The step's name, such as "Shipping".</summary>
@@ -44,6 +49,13 @@
 
     /// <summary>Makes the label a link, such as back to a finished step.</summary>
     [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// Leaves the step out (not rendered, not numbered) while keeping its place, for a step that
+    /// only sometimes applies. Use this rather than <c>@if</c>, which would number a step that
+    /// appears later out of order.
+    /// </summary>
+    [Parameter] public bool Hidden { get; set; }
 
     /// <summary>An icon in the marker in place of the number (until the step is done).</summary>
     [Parameter] public IconData? Icon { get; set; }

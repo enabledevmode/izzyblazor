@@ -58,4 +58,33 @@ public class ButtonGroupRenderTests : BunitContext
 
         Assert.Equal("ib-btn-group ib-btn-group-vertical ib-btn-group-full", group.ClassName);
     }
+
+    [Fact]
+    public void Buttons_in_a_dialog_dont_take_the_groups_style()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<ButtonGroup>(p => p
+            .Add(g => g.Accent, Accent.Neutral)
+            .Add(g => g.Variant, ButtonVariant.Ghost)
+            .Add(g => g.Size, ControlSize.Sm)
+            .Add(g => g.ChildContent, (RenderFragment)(b =>
+            {
+                b.OpenComponent<ConfirmButton>(0);
+                b.AddAttribute(1, nameof(ConfirmButton.Title), "Delete?");
+                b.AddAttribute(2, nameof(ConfirmButton.Accent), Accent.Danger);
+                b.AddAttribute(3, nameof(ConfirmButton.ChildContent), (RenderFragment)(c => c.AddContent(0, "Delete")));
+                b.CloseComponent();
+            })));
+
+        // The trigger is in the group: ghost and small, but its own accent.
+        var trigger = cut.Find(".ib-btn-group > button");
+        Assert.Contains("ib-btn-ghost", trigger.ClassName);
+        Assert.Contains("ib-btn-danger", trigger.ClassName);
+
+        // The dialog's buttons are not.
+        var inDialog = cut.FindAll("dialog .ib-dialog-footer .ib-btn, dialog footer .ib-btn");
+        Assert.NotEmpty(inDialog);
+        Assert.All(inDialog, b => Assert.DoesNotContain("ib-btn-ghost", b.ClassName));
+        Assert.All(inDialog, b => Assert.DoesNotContain("ib-btn-sm", b.ClassName));
+    }
 }

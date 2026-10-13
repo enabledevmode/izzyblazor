@@ -6,7 +6,10 @@ namespace IzzyBlazor;
 /// <summary>
 /// Checks an icon's markup before <see cref="Icon"/> writes it into the page unescaped. Only SVG
 /// drawing elements are allowed; anything that can run script or load something (script,
-/// foreignObject, use, image, a, animate, event handlers, href, javascript: values) is rejected.
+/// foreignObject, use, image, a, animate, event handlers, href, javascript: values, url() other
+/// than a same-document #id) is rejected. So are comments and CDATA, and text anywhere but inside
+/// title and desc: the browser parses the string as HTML, not XML, and reads those differently
+/// (an XML comment like &lt;!--&gt;...--&gt; ends early in HTML, letting markup after it through).
 /// Each distinct body is checked once, so the generated icon sets cost a lookup.
 /// </summary>
 internal static class IconMarkup
@@ -51,10 +54,12 @@ internal static class IconMarkup
             ConformanceLevel = ConformanceLevel.Fragment,
             DtdProcessing = DtdProcessing.Prohibit,
             XmlResolver = null,
-            IgnoreComments = true,
+            IgnoreComments = false,
             IgnoreWhitespace = true,
         };
 
+        // Open elements, to know where text is (only directly inside title and desc).
+        var open = new Stack<string>();
         try
         {
             using var reader = XmlReader.Create(new StringReader(body), settings);
@@ -67,6 +72,13 @@ internal static class IconMarkup
                         {
                             return $"<{reader.LocalName}> isn't allowed";
                         }
+
+                        if (open.TryPeek(out var parent) && IsTextElement(parent))
+                        {
+                            return $"<{reader.LocalName}> inside <{parent}> isn't allowed";
+                        }
+
+                        var empty = reader.IsEmptyElement;
 
                         if (reader.MoveToFirstAttribute())
                         {
@@ -87,16 +99,32 @@ internal static class IconMarkup
                                 {
                                     return "javascript: values aren't allowed";
                                 }
+
+                                if (HasExternalUrl(reader.Value))
+                                {
+                                    return "url() other than a #id isn't allowed";
+                                }
                             }
                             while (reader.MoveToNextAttribute());
 
                             reader.MoveToElement();
                         }
 
+                        if (!empty)
+                        {
+                            open.Push(reader.LocalName);
+                        }
+
                         break;
                     case XmlNodeType.Text:
-                    case XmlNodeType.CDATA:
+                        if (!open.TryPeek(out var holder) || !IsTextElement(holder))
+                        {
+                            return "text is only allowed inside <title> and <desc>";
+                        }
+
+                        break;
                     case XmlNodeType.EndElement:
+                        open.TryPop(out _);
                         break;
                     default:
                         return $"{reader.NodeType} nodes aren't allowed";
@@ -109,5 +137,25 @@ internal static class IconMarkup
         }
 
         return null;
+    }
+
+    private static bool IsTextElement(string name) =>
+        name.Equals("title", StringComparison.OrdinalIgnoreCase) || name.Equals("desc", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>True if the value has a url(...) that isn't a same-document #id reference.</summary>
+    private static bool HasExternalUrl(string value)
+    {
+        var at = 0;
+        while ((at = value.IndexOf("url(", at, StringComparison.OrdinalIgnoreCase)) >= 0)
+        {
+            at += 4;
+            var rest = value.AsSpan(at).TrimStart().TrimStart("'\"");
+            if (rest.IsEmpty || rest[0] != '#')
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

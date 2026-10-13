@@ -37,7 +37,7 @@
     /// <summary>The heading. Defaults to "Please fix the following".</summary>
     [Parameter] public string? Title { get; set; }
 
-    private IzzyText TextDefaults => Services.GetService(typeof(IzzyText)) as IzzyText ?? IzzyText.English;
+    private IzzyText TextDefaults => IzzyText.From(Services);
 
     private IReadOnlyList<string> Messages =>
         EditContext is null ? [] : EditContext.GetValidationMessages().ToList();

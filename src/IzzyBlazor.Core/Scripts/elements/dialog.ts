@@ -29,6 +29,8 @@ class DialogRoot extends IzzyElement {
     if (!dialog) return;
 
     this.#reported = dialog.open;
+    // Set up again after enhanced navigation (reconnect): drop the old observer first.
+    this.#observer?.disconnect();
     this.#observer = new MutationObserver(() => this.report());
     this.#observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
 
@@ -163,6 +165,8 @@ export function installDialogAutoClose(): void {
     if (!(form instanceof HTMLFormElement) || form.method === "dialog" || !submitter) return;
     const dialog = submitter.closest("dialog");
     if (!dialog?.open) return;
+    // Interactive dialogs: the submit is handled in C#, which decides whether to close.
+    if (dialog.closest("ib-dialog[data-ib-interactive]")) return;
     // A form inside the dialog (not one around it, as for a ConfirmButton) may come back with
     // validation errors; reopenAfterPost shows them.
     postedFrom = form.closest("dialog") === dialog && dialog.id ? dialog.id : null;
@@ -188,11 +192,15 @@ export function reopenAfterPost(): void {
   postedFrom = null;
   if (!id) return;
   const dialog = document.getElementById(id);
-  if (!(dialog instanceof HTMLDialogElement) || dialog.open || !dialog.querySelector(ERRORS)) return;
-  try {
-    dialog.showModal();
-  } catch {
-    dialog.setAttribute("open", "");
+  if (!(dialog instanceof HTMLDialogElement) || !dialog.querySelector(ERRORS)) return;
+  // The server may have rendered it open (a ?dialog=id address): that's non-modal, so make it modal.
+  if (!dialog.matches(":modal")) {
+    if (dialog.open) dialog.removeAttribute("open");
+    try {
+      dialog.showModal();
+    } catch {
+      dialog.setAttribute("open", "");
+    }
   }
   // Start at the first field with an error (a FormErrors summary in the dialog takes focus next).
   dialog.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();

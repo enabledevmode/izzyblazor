@@ -10,12 +10,12 @@ namespace IzzyBlazor;
 /// <code>
 /// builder.Services.AddSingleton(new IzzyText { Close = "Schließen", Loading = "Wird geladen" });
 /// </code>
-/// For several, subclass it and override the properties to read your resources for the current
-/// UI culture (they're read on every render, so a per-request culture works):
+/// For several, subclass it and override the getters to read your resources for the current UI
+/// culture (they're read on every render, so a per-request culture works):
 /// <code>
 /// public sealed class AppText(IStringLocalizer&lt;AppText&gt; l) : IzzyText
 /// {
-///     public override string Close { get =&gt; l["Close"]; set { } }
+///     public override string Close =&gt; l["Close"];
 /// }
 /// builder.Services.AddSingleton&lt;IzzyText, AppText&gt;();
 /// </code>
@@ -23,8 +23,16 @@ namespace IzzyBlazor;
 /// </remarks>
 public class IzzyText
 {
-    /// <summary>The built-in English text.</summary>
-    public static IzzyText English { get; } = new();
+    /// <summary>A new copy of the built-in English text, to start from or compare with.</summary>
+    public static IzzyText English => new();
+
+    // The fallback components use when the app registers none. Internal, so no app code can change
+    // it for everyone in the process.
+    private static readonly IzzyText Fallback = new();
+
+    /// <summary>The app's registered text, or English.</summary>
+    internal static IzzyText From(IServiceProvider services) =>
+        services.GetService(typeof(IzzyText)) as IzzyText ?? Fallback;
 
     // Shared
 

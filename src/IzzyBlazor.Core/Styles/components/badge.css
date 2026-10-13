@@ -3,6 +3,7 @@
   .ib-badge {
     display: inline-flex;
     align-items: center;
+    gap: 0.375em;
     gap: round(nearest, 0.375em, 1px);
     height: 1.375rem;
     padding: 0 var(--ib-space-2);

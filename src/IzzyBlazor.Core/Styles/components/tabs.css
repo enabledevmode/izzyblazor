@@ -70,7 +70,9 @@
   }
 
   .ib-tab .ib-icon {
+    width: 1.125em;
     width: round(nearest, 1.125em, 2px);
+    height: 1.125em;
     height: round(nearest, 1.125em, 2px);
   }
 
@@ -252,6 +254,18 @@
   @media (prefers-reduced-motion: reduce) {
     .ib-tab {
       transition: none;
+    }
+  }
+}
+
+/* High contrast: the selected tab's line, tint or fill is dropped in forced colors; mark it with the
+   system's selection colors instead. */
+@layer izzy.components {
+  @media (forced-colors: active) {
+    .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
     }
   }
 }

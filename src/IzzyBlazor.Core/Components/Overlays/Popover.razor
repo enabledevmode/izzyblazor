@@ -49,7 +49,10 @@
                 }
             </div>
         }
-        @ChildContent
+        @* Buttons in the panel don't take the style of a ButtonGroup around its trigger. *@
+        <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
     </div>
 </ib-popover>
 

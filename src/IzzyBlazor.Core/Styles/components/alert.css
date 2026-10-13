@@ -42,6 +42,7 @@
     flex: none;
     width: 1.25rem;
     height: 1.25rem;
+    margin-block: calc((1lh - 1.25rem) / 2);
     margin-block: round(nearest, (1lh - 1.25rem) / 2, 1px);
     color: var(--ib-accent-text);
   }
@@ -139,6 +140,7 @@
   .ib-toast-top-center,
   .ib-toast-bottom-center {
     left: 50%;
+    translate: -50% 0;
     translate: round(nearest, -50%, 1px) 0;
   }
 

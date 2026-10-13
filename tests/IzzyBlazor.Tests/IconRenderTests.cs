@@ -102,8 +102,21 @@ public class IconRenderTests : BunitContext
     [InlineData("<animate attributeName=\"href\" to=\"javascript:alert(1)\"/>")]
     [InlineData("<path d=\"M0 0\" style=\"fill:url(javascript:alert(1))\"/>")]
     [InlineData("<path d=\"M0 0\"")]
+    [InlineData("<!--><img src=x onerror=alert(1)>-->")]
+    [InlineData("<!---><img src=x onerror=alert(1)>-->")]
+    [InlineData("<title><g><![CDATA[><img src=x onerror=alert(1)>]]></g></title>")]
+    [InlineData("<g><![CDATA[x]]></g>")]
+    [InlineData("<g>loose text</g>")]
+    [InlineData("<path d=\"M0 0\" fill=\"url(https://example.com/a.svg#p)\"/>")]
     public void Unsafe_or_broken_icon_markup_is_rejected(string body) =>
         Assert.NotNull(IconMarkup.Find(body));
+
+    [Theory]
+    [InlineData("<title>Settings</title><path d=\"M0 0h24\"/>")]
+    [InlineData("<defs><linearGradient id=\"g\"><stop offset=\"0\"/></linearGradient></defs><path d=\"M0 0\" fill=\"url(#g)\"/>")]
+    [InlineData("<path d=\"M0 0\" fill=\"url( '#g' )\"/>")]
+    public void Plain_drawing_markup_is_allowed(string body) =>
+        Assert.Null(IconMarkup.Find(body));
 
     [Fact]
     public void Icon_with_unsafe_markup_throws_naming_the_icon()

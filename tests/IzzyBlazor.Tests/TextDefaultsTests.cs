@@ -10,7 +10,7 @@ public class TextDefaultsTests : BunitContext
 
     private sealed class Pirate : IzzyText
     {
-        public override string Loading { get => "Hoistin'"; set { } }
+        public override string Loading => "Hoistin'";
     }
 
     [Fact]
@@ -65,5 +65,15 @@ public class TextDefaultsTests : BunitContext
             .AddChildContent<Avatar>(a => a.Add(x => x.Name, "Alan Turing")));
 
         Assert.Contains("2 weitere", cut.Markup);
+    }
+
+    [Fact]
+    public void English_is_a_fresh_copy_so_changing_it_changes_nothing_shared()
+    {
+        IzzyText.English.Close = "Changed";
+        Static();
+
+        Assert.Equal("Close", IzzyText.English.Close);
+        Assert.Equal("Close", Render<Dialog>(p => p.Add(d => d.Title, "Hi")).Find(".ib-dialog-close").GetAttribute("aria-label"));
     }
 }

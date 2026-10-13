@@ -203,6 +203,35 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
+    public void Interactive_dialog_is_marked_so_the_script_leaves_its_submits_to_csharp()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        Assert.True(Render<Dialog>(p => p.Add(d => d.Id, "d")).Find("ib-dialog").HasAttribute("data-ib-interactive"));
+    }
+
+    [Fact]
+    public void Static_dialog_has_no_interactive_marker() =>
+        Assert.False(Render<Dialog>(p => p.Add(d => d.Id, "d")).Find("ib-dialog").HasAttribute("data-ib-interactive"));
+
+    [Fact]
+    public void Dialog_reopens_when_the_address_asks_for_it_again()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var nav = Services.GetRequiredService<BunitNavigationManager>();
+        nav.NavigateTo("/projects");
+        var opened = 0;
+        var cut = Render<Dialog>(p => p
+            .Add(d => d.Id, "confirm")
+            .Add(d => d.OpenChanged, EventCallback.Factory.Create<bool>(this, v => { if (v) opened++; })));
+        Assert.False(cut.Find("ib-dialog").HasAttribute("data-open"));
+
+        nav.NavigateTo("/projects?dialog=confirm");
+
+        cut.WaitForAssertion(() => Assert.True(cut.Find("ib-dialog").HasAttribute("data-open")));
+        Assert.Equal(1, opened);
+    }
+
+    [Fact]
     public void Dialog_without_backdrop_close_waits_for_a_close_request()
     {
         var cut = Render<Dialog>(p => p.Add(d => d.Id, "d").Add(d => d.CloseOnBackdrop, false));
