@@ -90,6 +90,21 @@ They share:
 On static pages buttons submit forms like plain HTML, including `Name`/`Value` to tell several submit
 buttons apart. `OnClick` runs C# on interactive pages.
 
+**ButtonGroup.** Related buttons joined into one control, with `role="group"` and a `Label` for
+screen readers. Its `Accent`, `Variant` and `Size` become the defaults for the buttons inside; a
+button's own setting wins, so one button can be `Danger` in a neutral group. `Attached="false"`
+spaces the buttons apart, `Orientation` stacks them, and `FullWidth` shares the width among them.
+A wrapper holding a button (a `Menu`'s trigger) joins the group too, but `Menu` sets its trigger's
+look itself, so give it the group's settings.
+
+```razor
+<ButtonGroup Label="Calendar view" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+    <Button>Day</Button>
+    <Button>Week</Button>
+    <Button>Month</Button>
+</ButtonGroup>
+```
+
 ## Forms
 
 `Form` wraps Blazor's `EditForm`, so one form works three ways: as a real POST on static pages (with
@@ -131,8 +146,8 @@ through a hidden input.
   bind the files on the page with `[SupplyParameterFromForm(FormName = "...")]`: `IFormFile` for one,
   `IFormFileCollection` for `Multiple`, named like the field.
 - **With JavaScript:** files can be dropped anywhere on the zone. Dropped files that don't match
-  `Accept` are refused (the picker filters by type, a drop doesn't), and a file over `MaxFileSize`
-  is flagged before the form posts. A form that isn't multipart logs a console warning.
+  `Accept` are refused, and a picked file of the wrong type (the picker's "All files" lets one
+  through) or over `MaxFileSize` is flagged before the form posts. A form that isn't multipart logs a console warning.
 - **Interactive pages:** `OnChange` receives the chosen files as `IBrowserFile`, up to `MaxFiles`
   (10 by default) and leaving out any over `MaxFileSize`. Read one with
   `OpenReadStream(maxAllowedSize)`: its default limit is 500 KB. Nothing posts.

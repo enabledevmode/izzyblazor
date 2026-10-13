@@ -166,4 +166,101 @@
   .ib-btn-loading[aria-disabled="true"] {
     opacity: 1;
   }
+
+  /*
+   * ButtonGroup. Items are buttons, or wrappers holding one (a Menu's trigger). Attached groups
+   * square the inner corners and overlap borders by a pixel; hovered and focused buttons come
+   * forward so their borders and rings aren't covered.
+   */
+  .ib-btn-group {
+    display: inline-flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-2);
+    vertical-align: middle;
+  }
+
+  .ib-btn-group-vertical {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .ib-btn-group-full {
+    display: flex;
+  }
+
+  .ib-btn-group-full > * {
+    flex: 1 1 0;
+  }
+
+  .ib-btn-group-full .ib-btn {
+    width: 100%;
+  }
+
+  .ib-btn-group-attached {
+    flex-wrap: nowrap;
+    gap: 0;
+  }
+
+  .ib-btn-group-attached .ib-btn {
+    position: relative;
+    border-radius: 0;
+  }
+
+  .ib-btn-group-attached .ib-btn:is(:hover, :focus-visible) {
+    z-index: 1;
+  }
+
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > * + * {
+    margin-inline-start: -1px;
+  }
+
+  .ib-btn-group-attached.ib-btn-group-vertical > * + * {
+    margin-block-start: -1px;
+  }
+
+  .ib-btn-group-attached > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+    border-start-start-radius: var(--ib-radius-md);
+  }
+
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn,
+  .ib-btn-group-attached.ib-btn-group-vertical > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached.ib-btn-group-vertical > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+    border-end-start-radius: var(--ib-radius-md);
+  }
+
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn,
+  .ib-btn-group-attached.ib-btn-group-vertical > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached.ib-btn-group-vertical > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+    border-start-end-radius: var(--ib-radius-md);
+  }
+
+  .ib-btn-group-attached > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+    border-end-end-radius: var(--ib-radius-md);
+  }
+
+  /* Filled buttons have no border to share, so a faint line divides them. */
+  .ib-btn-group-attached .ib-btn-solid {
+    --ib-btn-divider: color-mix(in oklab, var(--ib-on-accent) 30%, transparent);
+  }
+
+  .ib-btn-group-attached .ib-btn-soft {
+    --ib-btn-divider: color-mix(in oklab, var(--ib-accent) 30%, transparent);
+  }
+
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) :is(.ib-btn-solid, .ib-btn-soft) {
+    box-shadow: inset 1px 0 0 var(--ib-btn-divider);
+  }
+
+  .ib-btn-group-attached.ib-btn-group-vertical :is(.ib-btn-solid, .ib-btn-soft) {
+    box-shadow: inset 0 1px 0 var(--ib-btn-divider);
+  }
+
+  .ib-btn-group-attached > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
+  .ib-btn-group-attached > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+    box-shadow: none;
+  }
 }
