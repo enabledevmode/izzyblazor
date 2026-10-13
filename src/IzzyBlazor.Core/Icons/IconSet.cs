@@ -143,8 +143,8 @@ public class IconSet
 
     private readonly Func<IconRole, IconData> _resolve;
 
-    /// <summary>Creates an icon set from a role-to-icon mapping.</summary>
-    public IconSet(Func<IconRole, IconData> resolve) => _resolve = resolve;
+    /// <summary>Creates an icon set from a role-to-icon mapping. Internal until other sets are supported.</summary>
+    internal IconSet(Func<IconRole, IconData> resolve) => _resolve = resolve;
 
     /// <summary>The icon for a role.</summary>
     public IconData Get(IconRole role) => _resolve(role);

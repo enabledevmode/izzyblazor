@@ -169,8 +169,8 @@
             </Footer>
         </Dialog>
 
-        <Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm">
-            <Form Model="Rename" FormName="rename" OnValidSubmit="() => _renamed = Rename!.Name">
+        <Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm" @bind-Open="_renameOpen">
+            <Form Model="Rename" FormName="rename" OnValidSubmit="RenameSaved">
                 <TextField @bind-Value="Rename!.Name" Hint="3 to 40 characters." />
                 <Row Gap="2" Justify="Justify.End">
                     <DialogClose>Cancel</DialogClose>
@@ -284,6 +284,14 @@
 
     [SupplyParameterFromForm(FormName = "rename")] public RenameModel? Rename { get; set; }
     private string? _renamed;
+    private bool _renameOpen;
+
+    // On interactive pages the dialog stays open after a submit until C# closes it.
+    private void RenameSaved()
+    {
+        _renamed = Rename!.Name;
+        _renameOpen = false;
+    }
 
     public class RenameModel
     {

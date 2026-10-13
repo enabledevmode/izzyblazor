@@ -37,8 +37,12 @@ internal static class LinkMatch
             return (true, true);
         }
 
+        // The app's root (/, or the base path such as /app) only ever matches exactly; otherwise it
+        // would be current on every page.
+        var root = Path(new Uri(navigation.BaseUri));
         var below = match == NavLinkMatch.Prefix
                     && targetPath != "/"
+                    && !string.Equals(targetPath, root, StringComparison.OrdinalIgnoreCase)
                     && currentPath.StartsWith(targetPath + "/", StringComparison.OrdinalIgnoreCase);
         return (below, false);
     }

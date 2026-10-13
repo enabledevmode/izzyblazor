@@ -79,7 +79,7 @@
 
   /* Badges and other inline boxes sit at the top of the line, not its middle, so a detail with
      a badge is as tall as one with text (as in table cells). */
-  .ib-dl-detail > * {
+  .ib-dl-detail > :is(.ib-badge, .ib-tag, .ib-table-sort, .ib-icon, .ib-btn, .ib-avatar, input) {
     vertical-align: top;
   }
 

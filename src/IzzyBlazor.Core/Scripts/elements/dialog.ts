@@ -29,8 +29,10 @@ class DialogRoot extends IzzyElement {
     if (!dialog) return;
 
     this.#reported = dialog.open;
-    // Set up again after enhanced navigation (reconnect): drop the old observer first.
+    // Set up again after enhanced navigation (reconnect): drop the old observer first, and forget
+    // the user's last open or close: the new page's markup is the current state.
     this.#observer?.disconnect();
+    this.#userState = null;
     this.#observer = new MutationObserver(() => this.report());
     this.#observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
 

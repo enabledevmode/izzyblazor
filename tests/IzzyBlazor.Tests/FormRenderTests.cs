@@ -224,6 +224,19 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
+    public void FormErrors_doesnt_take_focus_while_a_field_is_edited()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<FormErrors>(p => p.AddCascadingValue(_context));
+
+        // A field edit validates that field (and may show messages) but isn't a submit.
+        cut.InvokeAsync(() => _context.NotifyFieldChanged(_context.Field(nameof(Model.Name))));
+        cut.Render();
+
+        JSInterop.VerifyNotInvoke("Blazor._internal.domWrapper.focus");
+    }
+
+    [Fact]
     public void Indeterminate_checkbox_is_marked_for_css_and_script()
     {
         var input = Render<Checkbox>(p => p

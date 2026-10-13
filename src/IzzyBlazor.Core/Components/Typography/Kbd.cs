@@ -21,7 +21,8 @@ public class Kbd : IzzyComponentBase
 
     /// <summary>
     /// A combination, keys joined with "+", such as "Ctrl+K" or "Ctrl+Shift+P". Spaces around the
-    /// "+" are ignored, and "Ctrl++" is Ctrl and the plus key. Each key gets its own box.
+    /// "+" are ignored, and a "+" at the end is the plus key ("Ctrl++"). Each key gets its own box.
+    /// Empty or blank falls back to <see cref="ChildContent"/>.
     /// </summary>
     [Parameter] public string? Keys { get; set; }
 
@@ -29,7 +30,7 @@ public class Kbd : IzzyComponentBase
     [Parameter] public string Separator { get; set; } = "+";
 
     /// <summary>Splits a combination such as "Ctrl+Shift+P" or "Ctrl++" into its keys.</summary>
-    public static IReadOnlyList<string> SplitKeys(string? keys)
+    internal static IReadOnlyList<string> SplitKeys(string? keys)
     {
         var result = new List<string>();
         if (string.IsNullOrWhiteSpace(keys))
@@ -89,7 +90,7 @@ public class Kbd : IzzyComponentBase
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
-        classes.Add(Keys is null ? "ib-kbd" : "ib-kbd-combo");
+        classes.Add(string.IsNullOrWhiteSpace(Keys) ? "ib-kbd" : "ib-kbd-combo");
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -99,7 +100,7 @@ public class Kbd : IzzyComponentBase
         builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "class", cssClass);
         builder.AddAttribute(3, "style", style);
-        if (Keys is null)
+        if (string.IsNullOrWhiteSpace(Keys))
         {
             builder.AddContent(4, ChildContent);
         }

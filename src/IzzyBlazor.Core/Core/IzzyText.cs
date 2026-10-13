@@ -74,6 +74,12 @@ public class IzzyText
     /// <summary>A password field's reveal button (a toggle, pressed while the password shows).</summary>
     public virtual string ShowPassword { get; set; } = "Show password";
 
+    /// <summary>FileUpload's zone, before its button, for one file.</summary>
+    public virtual string DropFile { get; set; } = "Drag a file here, or";
+
+    /// <summary>FileUpload's zone, before its button, with Multiple.</summary>
+    public virtual string DropFiles { get; set; } = "Drag files here, or";
+
     /// <summary>FileUpload, a file over the size limit: {0} is its name, {1} the limit.</summary>
     public virtual string FileTooLarge { get; set; } = "{0} is larger than {1}.";
 

@@ -299,7 +299,9 @@ without script too. Forms can't nest, so a dialog that has to sit inside a form 
 it then closes with the native `close` command instead. When a button in a dialog submits another
 form or follows a link, the script closes the dialog, so it doesn't stay open over an enhanced
 response. A form inside the dialog is different when the response comes back with validation errors: the
-script reopens the dialog and focuses the first field with an error. With JavaScript off, a dialog
+script reopens the dialog and focuses the first field with an error. On interactive pages the
+script leaves the dialog open after a submit; close it from your submit handler (with
+`@bind-Open`) when the save succeeds. With JavaScript off, a dialog
 opened with `?dialog=id` posts to the same address, so the server renders it open again.
 
 `Drawer` is a `Dialog` that slides in from an edge: the end side by default, or `Placement` `Start`,
