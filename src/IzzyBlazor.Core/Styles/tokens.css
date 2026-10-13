@@ -103,9 +103,10 @@
     --ib-color-surface: light-dark(#ffffff, #0f1115);
     --ib-color-surface-container: light-dark(#f4f5f7, #181b21);
     --ib-color-surface-container-high: light-dark(#e9ebef, #22262e);
-    /* Floating surfaces (dialogs, menus, popovers): in dark mode they are lighter than the
-       page, since shadows barely show on dark backgrounds. */
-    --ib-color-surface-raised: light-dark(#ffffff, #1c1f27);
+    /* Floating surfaces (dialogs, menus, popovers): in dark mode one small step lighter than the
+       page (below the container gray, same hue), since shadows barely show on dark backgrounds;
+       the border does most of the separating. */
+    --ib-color-surface-raised: light-dark(#ffffff, #15181d);
     --ib-color-raised-border: light-dark(transparent, rgb(255 255 255 / 0.08));
     /* The chosen segment in a segmented control or segmented tabs: white on the gray track in light
        mode, a clear step lighter than the track in dark mode, with an outline-colored edge. */
