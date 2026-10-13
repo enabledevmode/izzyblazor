@@ -5,7 +5,8 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * (its button chooses files, which post with the form); this adds:
  * - dropping files on the zone, highlighted while dragging over it; files that don't match the
  *   input's accept attribute are refused (the picker filters by type, a drop doesn't)
- * - flagging files over data-ib-max-size before the form posts (setCustomValidity)
+ * - flagging chosen files of the wrong type, or over data-ib-max-size, before the form posts
+ *   (setCustomValidity)
  * - a console warning when the form would post only file names (no multipart enctype)
  */
 class FileUpload extends IzzyElement {
@@ -62,13 +63,20 @@ class FileUpload extends IzzyElement {
       { signal }
     );
 
-    // Files over the size limit keep the input invalid until a smaller choice replaces them.
+    // A chosen file of the wrong type (the picker's "All files" allows any) or over the size limit
+    // keeps the input invalid until a new choice replaces it.
     const check = () => {
+      const files = Array.from(input.files ?? []);
+      const wrong = files.find((file) => !accepts(input.accept, file));
       const max = Number(this.dataset.ibMaxSize);
-      const big = max > 0 ? Array.from(input.files ?? []).find((file) => file.size > max) : undefined;
-      const message = (this.dataset.ibTooLarge ?? "{0} is larger than {1}.").replace("{0}", big?.name ?? "").replace("{1}", formatSize(max));
-      input.setCustomValidity(big ? message : "");
-      return big;
+      const big = max > 0 ? files.find((file) => file.size > max) : undefined;
+      const message = wrong
+        ? (this.dataset.ibWrongType ?? "{0} isn't an accepted file type.").replace("{0}", wrong.name)
+        : big
+          ? (this.dataset.ibTooLarge ?? "{0} is larger than {1}.").replace("{0}", big.name).replace("{1}", formatSize(max))
+          : "";
+      input.setCustomValidity(message);
+      return message !== "";
     };
     input.addEventListener("change", () => check() && input.reportValidity(), { signal });
     // A reset empties the input without a change event.

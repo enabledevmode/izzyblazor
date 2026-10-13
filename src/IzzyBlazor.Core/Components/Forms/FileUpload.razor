@@ -81,8 +81,8 @@
     [Parameter] public string TooLargeText { get; set; } = "{0} is larger than {1}.";
 
     /// <summary>
-    /// The message for a dropped file that doesn't match <see cref="Accept"/>: <c>{0}</c> is its name.
-    /// (The picker filters by type itself; a drop doesn't.)
+    /// The message for a chosen or dropped file that doesn't match <see cref="Accept"/>: <c>{0}</c> is
+    /// its name. (The picker's "All files" option and drops both get past the type filter.)
     /// </summary>
     [Parameter] public string WrongTypeText { get; set; } = "{0} isn't an accepted file type.";
 
