@@ -78,4 +78,40 @@ public class IconRenderTests : BunitContext
             Assert.False(string.IsNullOrEmpty(IconSet.Current.Get(role).Body), $"{role} has no icon");
         }
     }
+
+    [Fact]
+    public void Every_lucide_icon_passes_the_markup_check()
+    {
+        var icons = typeof(Lucide).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Where(p => p.PropertyType == typeof(IconData))
+            .Select(p => (IconData)p.GetValue(null)!)
+            .ToList();
+
+        Assert.True(icons.Count > 1000);
+        Assert.All(icons, icon => Assert.Null(IconMarkup.Find(icon.Body)));
+    }
+
+    [Theory]
+    [InlineData("<script>alert(1)</script>")]
+    [InlineData("<path d=\"M0 0\" onclick=\"alert(1)\"/>")]
+    [InlineData("<foreignObject><div>hi</div></foreignObject>")]
+    [InlineData("<use href=\"#x\"/>")]
+    [InlineData("<use xmlns:xlink=\"http://www.w3.org/1999/xlink\" xlink:href=\"#x\"/>")]
+    [InlineData("<image href=\"https://example.com/a.png\"/>")]
+    [InlineData("<a href=\"javascript:alert(1)\"><path d=\"M0 0\"/></a>")]
+    [InlineData("<animate attributeName=\"href\" to=\"javascript:alert(1)\"/>")]
+    [InlineData("<path d=\"M0 0\" style=\"fill:url(javascript:alert(1))\"/>")]
+    [InlineData("<path d=\"M0 0\"")]
+    public void Unsafe_or_broken_icon_markup_is_rejected(string body) =>
+        Assert.NotNull(IconMarkup.Find(body));
+
+    [Fact]
+    public void Icon_with_unsafe_markup_throws_naming_the_icon()
+    {
+        var bad = new IconData("0 0 24 24", "<script>alert(1)</script>", IconStyle.Fill, Name: "evil");
+
+        var error = Assert.Throws<InvalidOperationException>(() => Render<Icon>(p => p.Add(i => i.Name, bad)));
+        Assert.Contains("\"evil\"", error.Message);
+        Assert.Contains("<script>", error.Message);
+    }
 }

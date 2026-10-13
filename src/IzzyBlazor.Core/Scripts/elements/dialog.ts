@@ -146,6 +146,10 @@ export function installCommandFallback(): void {
   });
 }
 
+/** The dialog whose own form was just posted, to reopen if the response shows errors. */
+let postedFrom: string | null = null;
+const ERRORS = ".ib-field-invalid, .ib-form-errors, [aria-invalid='true']";
+
 /**
  * Closes a dialog when a button in it submits a form other than its own close form (a
  * ConfirmButton's confirm, say), or a link in it navigates. With enhanced navigation or an
@@ -158,7 +162,11 @@ export function installDialogAutoClose(): void {
     const submitter = (event as SubmitEvent).submitter;
     if (!(form instanceof HTMLFormElement) || form.method === "dialog" || !submitter) return;
     const dialog = submitter.closest("dialog");
-    if (dialog?.open) queueMicrotask(() => dialog.close());
+    if (!dialog?.open) return;
+    // A form inside the dialog (not one around it, as for a ConfirmButton) may come back with
+    // validation errors; reopenAfterPost shows them.
+    postedFrom = form.closest("dialog") === dialog && dialog.id ? dialog.id : null;
+    queueMicrotask(() => dialog.close());
   });
 
   document.addEventListener("click", (event) => {
@@ -168,4 +176,24 @@ export function installDialogAutoClose(): void {
     const dialog = link.closest("dialog");
     if (dialog) queueMicrotask(() => dialog.close());
   });
+}
+
+/**
+ * After an enhanced form post: if the form came from a dialog and the response shows validation
+ * errors in it, reopen the dialog so they're seen. Without script, a dialog opened by ?dialog=id
+ * posts to the same address, so the server renders it open again anyway.
+ */
+export function reopenAfterPost(): void {
+  const id = postedFrom;
+  postedFrom = null;
+  if (!id) return;
+  const dialog = document.getElementById(id);
+  if (!(dialog instanceof HTMLDialogElement) || dialog.open || !dialog.querySelector(ERRORS)) return;
+  try {
+    dialog.showModal();
+  } catch {
+    dialog.setAttribute("open", "");
+  }
+  // Start at the first field with an error (a FormErrors summary in the dialog takes focus next).
+  dialog.querySelector<HTMLElement>("[aria-invalid='true']")?.focus();
 }

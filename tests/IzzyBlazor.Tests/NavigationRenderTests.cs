@@ -113,6 +113,25 @@ public class NavigationRenderTests : BunitContext
     }
 
     [Fact]
+    public void Interactive_tab_change_updates_the_url_through_blazor()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        GoTo("/settings?tab=profile&page=2");
+        var nav = Services.GetRequiredService<BunitNavigationManager>();
+        var cut = Render<Tabs>(p => p
+            .Add(t => t.QueryKey, "tab")
+            .Add(t => t.ChildContent, ThreeTabs()));
+
+        // The script leaves the URL to Blazor here, so Navigation.Uri stays in step.
+        Assert.Null(cut.Find("ib-tabs").GetAttribute("data-query-key"));
+
+        cut.FindAll("input.ib-tab-input")[2].Change(true);
+
+        Assert.EndsWith("/settings?tab=security&page=2", nav.Uri);
+        Assert.True(nav.History.First().Options.ReplaceHistoryEntry);
+    }
+
+    [Fact]
     public void Change_event_reports_the_tab_and_parent_can_select()
     {
         string? reported = null;

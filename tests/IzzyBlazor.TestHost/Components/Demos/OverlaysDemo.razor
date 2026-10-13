@@ -136,6 +136,11 @@
         <Row Gap="3" Wrap>
             <DialogTrigger For="invite" StartIcon="Lucide.UserPlus">Invite people</DialogTrigger>
             <DialogTrigger For="confirm-delete" Accent="Accent.Danger" Variant="ButtonVariant.Outline">Delete project</DialogTrigger>
+            <DialogTrigger For="rename" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.Pencil">Rename</DialogTrigger>
+            @if (_renamed is not null)
+            {
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" data-testid="renamed">Renamed to @_renamed</TextBlock>
+            }
             <LinkButton Href="@($"{_path}?dialog=confirm-delete")" Variant="ButtonVariant.Link">Open with a link (?dialog=)</LinkButton>
             @if (RendererInfo.IsInteractive)
             {
@@ -162,6 +167,16 @@
                 <DialogClose>Cancel</DialogClose>
                 <Button Type="ButtonType.Submit" Form="invite-form" StartIcon="Lucide.Mail">Send invite</Button>
             </Footer>
+        </Dialog>
+
+        <Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm">
+            <Form Model="Rename" FormName="rename" OnValidSubmit="() => _renamed = Rename!.Name">
+                <TextField @bind-Value="Rename!.Name" Hint="3 to 40 characters." />
+                <Row Gap="2" Justify="Justify.End">
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Type="ButtonType.Submit">Rename</Button>
+                </Row>
+            </Form>
         </Dialog>
 
         <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm" CloseOnBackdrop="false" @bind-Open="_confirmOpen">
@@ -267,6 +282,17 @@
 
     private int _resets;
 
+    [SupplyParameterFromForm(FormName = "rename")] public RenameModel? Rename { get; set; }
+    private string? _renamed;
+
+    public class RenameModel
+    {
+        [System.ComponentModel.DataAnnotations.Required(ErrorMessage = "Enter a name.")]
+        [System.ComponentModel.DataAnnotations.StringLength(40, MinimumLength = 3, ErrorMessage = "Use 3 to 40 characters.")]
+        [System.ComponentModel.DataAnnotations.Display(Name = "Project name")]
+        public string? Name { get; set; } = "Website";
+    }
+
     private string ConfirmNote => RendererInfo.IsInteractive
         ? "Archive and Delete submit the form they're in once confirmed; Reset runs C# with OnConfirm. Cancel is focused first."
         : "The buttons sit inside a form; confirming submits it with action=archive or action=delete. Works with JavaScript off. Cancel is focused first.";
@@ -320,6 +346,7 @@
 
     protected override void OnParametersSet()
     {
+        Rename ??= new();
         var uri = new Uri(Navigation.Uri);
         _path = uri.AbsolutePath;
         var query = QueryHelpers.ParseQuery(uri.Query);
