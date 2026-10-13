@@ -42,7 +42,10 @@ public class IzzyText
     /// <summary>A dismiss button. Alert, toasts.</summary>
     public virtual string Dismiss { get; set; } = "Dismiss";
 
-    /// <summary>Cancel in ConfirmButton's dialog.</summary>
+    /// <summary>The confirm button in DialogService.ConfirmAsync.</summary>
+    public virtual string Ok { get; set; } = "OK";
+
+    /// <summary>Cancel in ConfirmButton's dialog and DialogService.ConfirmAsync.</summary>
     public virtual string Cancel { get; set; } = "Cancel";
 
     /// <summary>Announced while busy. Button Loading, Spinner.</summary>

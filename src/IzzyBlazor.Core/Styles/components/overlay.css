@@ -591,3 +591,25 @@
     }
   }
 }
+
+/* DialogActions: a footer for content shown by DialogService, drawn like Dialog's Footer. It sits
+   last in the body, reaches its edges (the body's padding is 24px at the sides, 20px below), and
+   stays in view when the body scrolls. */
+@layer izzy.components {
+  .ib-dialog-actions {
+    position: sticky;
+    bottom: calc(-1 * var(--ib-space-5));
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: var(--ib-space-2);
+    margin: var(--ib-space-5) calc(-1 * var(--ib-space-6)) calc(-1 * var(--ib-space-5));
+    padding: var(--ib-space-4) var(--ib-space-6);
+    border-top: 1px solid var(--ib-color-border);
+    background-color: color-mix(in oklab, var(--ib-color-surface-raised), var(--ib-color-on-surface) 4%);
+  }
+
+  .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) .ib-dialog-actions {
+    border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
+  }
+}

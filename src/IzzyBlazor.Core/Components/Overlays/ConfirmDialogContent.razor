@@ -1,0 +1,22 @@
+@namespace IzzyBlazor
+@inject IServiceProvider Services
+
+@* DialogService.ConfirmAsync's content: the message, and Cancel (focused first) and confirm buttons. *@
+
+<p class="ib-confirm-message">@Message</p>
+<DialogActions>
+    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => Dialog?.Cancel()" autofocus>@(Options.CancelText ?? Text.Cancel)</Button>
+    <Button Accent="Options.Accent" OnClick="() => Dialog?.Close(true)">@(Options.ConfirmText ?? Text.Ok)</Button>
+</DialogActions>
+
+@code {
+    [CascadingParameter] public DialogInstance? Dialog { get; set; }
+
+    /// <summary>The question.</summary>
+    [Parameter] public string? Message { get; set; }
+
+    /// <summary>The buttons' text and color.</summary>
+    [Parameter] public ConfirmOptions Options { get; set; } = new();
+
+    private IzzyText Text => IzzyText.From(Services);
+}

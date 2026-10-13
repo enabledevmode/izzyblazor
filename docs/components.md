@@ -310,6 +310,27 @@ traps focus the same way. `Size` sets a side drawer's width (`Sm` 20rem, `Md` 24
 `Xl` 40rem, `Full`); top and bottom sheets are as tall as their content, up to 85% of the screen.
 Sides flip in right-to-left languages.
 
+**Dialogs from code (interactive pages).** `DialogService` opens a component in a dialog and awaits
+how it ends, for flows like "edit this, then refresh":
+
+```razor
+@inject DialogService Dialogs
+
+var result = await Dialogs.OpenAsync<EditSite>("Edit site", new() { ["Site"] = site });
+if (!result.Cancelled) await ReloadAsync();
+
+if (await Dialogs.ConfirmAsync("Ada loses access.", "Remove member?",
+        new() { ConfirmText = "Remove", Accent = Accent.Danger })) { ... }
+```
+
+The component gets a cascading `DialogInstance` to close with data (`Dialog.Close(site)`) or cancel;
+Escape, the backdrop and the close button cancel too (`result.Cancelled`). Put its buttons in
+`DialogActions`, last, for a footer row. `DialogOptions` set the size, placement (a drawer or sheet)
+and closing behavior. It needs one `<DialogHost />` on the interactive page or in an interactive
+layout (`@rendermode` on the host where the layout is static). Static pages can't open anything from
+code, so calling it there throws; use `Dialog` with `DialogTrigger` or a `?dialog=` link, or
+`ConfirmButton`, which work with JavaScript off.
+
 `ConfirmButton` asks before acting: it opens a small alert dialog with a `Title` ("Delete this
 project?"), an optional `Message` or `Body`, Cancel (focused first) and a confirm button
 (`ConfirmText`, in the trigger's `Accent`). It takes the usual button look (`Accent`, `Variant`,

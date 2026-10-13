@@ -193,6 +193,18 @@
 
     </Example>
 
+    <Example Title="Dialogs from code" Note="@ServiceNote" Code="@ServiceCode">
+        <DialogHost />
+        @if (RendererInfo.IsInteractive)
+        {
+            <Row Gap="3" Wrap Align="Align.Center">
+                <Button StartIcon="Lucide.Pencil" OnClick="EditFromCode">Edit name</Button>
+                <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" OnClick="ConfirmFromCode">Remove member</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" data-testid="service-result">@_serviceResult</TextBlock>
+            </Row>
+        }
+    </Example>
+
     <Example Title="Drawer" Note="A dialog that slides in from an edge: the end side by default, the start side, or a sheet along the bottom (good on phones) or top. It behaves like Dialog, so it traps focus, closes on Escape and opens the same ways. Size sets a side drawer's width; sides flip in right-to-left languages." Code="@DrawerCode">
         <Row Gap="3" Wrap>
             <DialogTrigger For="details-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Lucide.PanelRight">End</DialogTrigger>
@@ -281,6 +293,47 @@
         """;
 
     private int _resets;
+
+    [Inject] private DialogService Dialogs { get; set; } = default!;
+    private string _projectName = "Website";
+    private string? _serviceResult;
+
+    private async Task EditFromCode()
+    {
+        var result = await Dialogs.OpenAsync<EditNameDialog>("Edit name", new() { ["Name"] = _projectName }, new() { Size = DialogSize.Sm });
+        if (!result.Cancelled && result.DataAs<string>() is { } name)
+        {
+            _projectName = name;
+        }
+
+        _serviceResult = result.Cancelled ? "Edit cancelled" : $"Name: {_projectName}";
+    }
+
+    private async Task ConfirmFromCode()
+    {
+        var yes = await Dialogs.ConfirmAsync("Ada Lovelace loses access to this project.", "Remove member?", new() { ConfirmText = "Remove", Accent = Accent.Danger });
+        _serviceResult = yes ? "Removed" : "Kept";
+    }
+
+    private string ServiceNote => RendererInfo.IsInteractive
+        ? "DialogService opens a component in a dialog from code and awaits how it ends; ConfirmAsync asks yes or no. The content gets a DialogInstance to close with data or cancel; Escape, the backdrop and the close button cancel. Needs a DialogHost on the interactive page or layout."
+        : "DialogService opens dialogs from code on interactive pages; see the interactive version of this page. Static pages can't open anything from code, so they use Dialog with DialogTrigger or a ?dialog= link, or ConfirmButton.";
+
+    private const string ServiceCode =
+        """
+        @inject DialogService Dialogs
+
+        var result = await Dialogs.OpenAsync<EditNameDialog>("Edit name", new() { ["Name"] = name });
+        if (!result.Cancelled) name = result.DataAs<string>()!;
+
+        if (await Dialogs.ConfirmAsync("Ada loses access.", "Remove member?",
+                new() { ConfirmText = "Remove", Accent = Accent.Danger })) { ... }
+
+        @* In the dialog's component *@
+        [CascadingParameter] public DialogInstance Dialog { get; set; }
+        Dialog.Close(newName);   // or Dialog.Cancel()
+        <DialogActions>...buttons...</DialogActions>
+        """;
 
     [SupplyParameterFromForm(FormName = "rename")] public RenameModel? Rename { get; set; }
     private string? _renamed;

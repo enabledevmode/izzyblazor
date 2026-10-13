@@ -1,0 +1,71 @@
+@namespace IzzyBlazor
+@implements IDisposable
+@inject IServiceProvider Services
+
+@*
+    Where DialogService shows its dialogs. Put one on an interactive page or in an interactive layout:
+    <DialogHost />  (with @rendermode where the layout is static). Each dialog is a Dialog, so focus
+    is trapped, Escape and the backdrop cancel it, and focus returns to where it was.
+*@
+
+@if (_service is not null)
+{
+    @foreach (var entry in _service.Open)
+    {
+        <Dialog @key="entry.Instance.Id"
+                Id="@entry.Instance.Id"
+                Title="@entry.Title"
+                Size="entry.Options.Size"
+                Placement="entry.Options.Placement"
+                CloseOnBackdrop="entry.Options.CloseOnBackdrop"
+                ShowCloseButton="entry.Options.ShowCloseButton"
+                QueryKey="@null"
+                Open="entry.IsOpen"
+                OpenChanged="open => OnOpenChanged(entry, open)">
+            <CascadingValue Value="entry.Instance" IsFixed="true">
+                <DynamicComponent Type="entry.Component" Parameters="entry.Parameters" />
+            </CascadingValue>
+        </Dialog>
+    }
+}
+
+@code {
+    private DialogService? _service;
+    private bool _registered;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _service = Services.GetService(typeof(DialogService)) as DialogService
+            ?? throw new InvalidOperationException("DialogHost needs DialogService: call AddIzzyBlazorCore() (or AddIzzyBlazor() on the server).");
+
+        // A static render can't show dialogs, so only an interactive host counts.
+        if (RendererInfo.IsInteractive)
+        {
+            _service.AddHost();
+            _service.Changed += OnChanged;
+            _registered = true;
+        }
+    }
+
+    private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    // Escape, the backdrop or the close button: the dialog is cancelled.
+    private void OnOpenChanged(DialogEntry entry, bool open)
+    {
+        if (!open)
+        {
+            entry.Instance.Cancel();
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_registered && _service is not null)
+        {
+            _service.Changed -= OnChanged;
+            _service.RemoveHost();
+        }
+    }
+}
