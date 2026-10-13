@@ -74,58 +74,19 @@
   text-decoration: none;
 }
 
-/*
- * The Off · Static · Live mode badge (brand/badges). Brand colors, on the host only: ink, paper,
- * amber for Static, ember for Live. Whole pixels: 12px text on a 12px line, 4px padding, 3px track.
- */
-.host-mode {
-  display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  border: 1px solid light-dark(#d6d3cc, #33373f);
-  border-radius: 999px;
-  background: light-dark(#ffffff, #1b1e23);
-  font-family: var(--ib-font-mono);
-  font-size: 12px;
+/* Shown only while scripts aren't running. */
+.host-nojs {
+  padding: 2px 8px;
+  border-radius: var(--ib-radius-full);
+  background: var(--ib-color-warning);
+  color: var(--ib-color-on-warning);
+  font-size: var(--ib-text-xs);
   font-weight: 600;
-  line-height: 12px;
-  white-space: nowrap;
+  line-height: 16px;
 }
 
-.host-mode > span {
-  padding: 4px 10px;
-  border-radius: 999px;
-  color: light-dark(#6b717b, #8a8f98);
-}
-
-.host-mode[data-mode="static"] .host-mode-static {
-  background: #ffb020;
-  color: #14161a;
-}
-
-.host-mode[data-mode="live"] .host-mode-live {
-  background: #f26a1b;
-  color: #14161a;
-}
-
-/* No script running: a static page is really Off. */
-:root:not(.js) .host-mode[data-mode="static"] .host-mode-static {
-  background: none;
-  color: light-dark(#6b717b, #8a8f98);
-}
-
-:root:not(.js) .host-mode[data-mode="static"] .host-mode-off {
-  background: light-dark(#14161a, #f5f4f1);
-  color: light-dark(#f5f4f1, #14161a);
-}
-
-@media (forced-colors: active) {
-  .host-mode[data-mode="static"] .host-mode-static,
-  .host-mode[data-mode="live"] .host-mode-live,
-  :root:not(.js) .host-mode[data-mode="static"] .host-mode-off {
-    background: Highlight;
-    color: HighlightText;
-  }
+.js .host-nojs {
+  display: none;
 }
 
 .host-example {

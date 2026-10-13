@@ -32,8 +32,8 @@ Open the host (http://localhost:5180 by default) and pick a component. Use the h
 between **Static** and **Interactive**, and between light and dark themes.
 
 To test with JavaScript off: open a static page, press Ctrl+Shift+P (Cmd+Shift+P on macOS) in Chrome
-or Edge DevTools, run **Disable JavaScript**, and reload. The mode badge next to the page title lights
-**Off** (Static with script, **Live** on interactive pages).
+or Edge DevTools, run **Disable JavaScript**, and reload. A "JavaScript off" note appears next to the page
+title.
 
 Other commands:
 

@@ -1,18 +1,6 @@
 @*
-    The brand's Off · Static · Live badge: how this page is rendering, so it's always obvious which
-    mode you're testing. The server lights Static or Live; CSS lights Off instead of Static when
-    scripts aren't running (App.razor adds .js to <html> before the first paint).
+    The header's switcher shows Static or Interactive; the one mode it can't show is JavaScript
+    being off. This note appears only then (App.razor adds .js to <html> before the first paint).
 *@
 
-<span class="host-mode" data-mode="@(RendererInfo.IsInteractive ? "live" : "static")" role="img"
-      aria-label="@Description" title="@Description">
-    <span class="host-mode-off" aria-hidden="true">Off</span>
-    <span class="host-mode-static" aria-hidden="true">Static</span>
-    <span class="host-mode-live" aria-hidden="true">Live</span>
-</span>
-
-@code {
-    private string Description => RendererInfo.IsInteractive
-        ? $"Live: interactive ({RendererInfo.Name})"
-        : "Static: rendered on the server (Off when JavaScript is off)";
-}
+<span class="host-nojs">JavaScript off</span>
