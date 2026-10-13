@@ -94,6 +94,34 @@
         </Box>
     </Example>
 
+    <Example Title="Checkboxes and radios" Note="Drawn with the field colors, so they match fields and switches in every browser and in dark mode, and sized by ControlSize. Indeterminate shows a dash: here the server works out Select all from the three boxes, so it's right after a post with JavaScript off, and live on the interactive page. It's display only; choosing the box clears it." Code="@ChecksCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Checks" FormName="checks" OnValidSubmit="() => { }">
+                <Stack Gap="2">
+                    <Checkbox Value="AllNotify" ValueChanged="SetAllNotify" ValueExpression="() => Checks!.AllNotify" Indeterminate="SomeNotify" Label="Notify me about everything" />
+                    <Box PaddingStart="6">
+                        <Stack Gap="2">
+                            <Checkbox @bind-Value="Checks!.Comments" />
+                            <Checkbox @bind-Value="Checks!.Mentions" />
+                            <Checkbox @bind-Value="Checks!.Releases" />
+                        </Stack>
+                    </Box>
+                </Stack>
+                <RadioGroup @bind-Value="Checks!.Digest" Orientation="Orientation.Horizontal" />
+                <Row Gap="5" Wrap>
+                    <Checkbox @bind-Value="Checks!.Small" Size="ControlSize.Sm" />
+                    <Checkbox @bind-Value="Checks!.Medium" />
+                    <Checkbox @bind-Value="Checks!.Large" Size="ControlSize.Lg" />
+                </Row>
+                <Row Gap="5" Wrap>
+                    <Checkbox @bind-Value="Checks!.Locked" Disabled />
+                    <Checkbox @bind-Value="Checks!.LockedOn" Disabled />
+                </Row>
+                <Button Type="ButtonType.Submit">Save</Button>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="Groups and sizes" Note="Fieldset groups related fields. ControlSize matches the button sizes, so fields and buttons line up." Code="@GroupsCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Address" FormName="address" OnValidSubmit="() => { }">
@@ -252,6 +280,14 @@
     private bool _numbersSaved;
     [SupplyParameterFromForm(FormName = "sliders")] public SlidersModel? Sliders { get; set; }
     private bool _slidersSaved;
+    [SupplyParameterFromForm(FormName = "checks")] public ChecksModel? Checks { get; set; }
+
+    private bool AllNotify => Checks!.Comments && Checks.Mentions && Checks.Releases;
+    private bool SomeNotify => !AllNotify && (Checks!.Comments || Checks.Mentions || Checks.Releases);
+
+    // "Select all": on static pages it posts like any box, and the three below decide it; on
+    // interactive pages choosing it sets all three.
+    private void SetAllNotify(bool value) => Checks!.Comments = Checks.Mentions = Checks.Releases = value;
     [SupplyParameterFromForm(FormName = "upload")] public UploadModel? Upload { get; set; }
     [SupplyParameterFromForm(FormName = "upload")] public IFormFile? Avatar { get; set; }
     [SupplyParameterFromForm(FormName = "upload")] public IFormFileCollection? Attachments { get; set; }
@@ -345,6 +381,7 @@
         Addons ??= new();
         Numbers ??= new();
         Sliders ??= new();
+        Checks ??= new();
         Upload ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
@@ -457,6 +494,27 @@
     public class UploadModel
     {
         public string? Note { get; set; }
+    }
+
+    public enum Digest
+    {
+        Daily,
+        Weekly,
+        Never,
+    }
+
+    public class ChecksModel
+    {
+        public bool AllNotify { get; set; }
+        public bool Comments { get; set; } = true;
+        public bool Mentions { get; set; }
+        public bool Releases { get; set; }
+        [Display(Name = "Email digest")] public Digest Digest { get; set; } = Digest.Weekly;
+        public bool Small { get; set; } = true;
+        [Display(Name = "Medium")] public bool Medium { get; set; } = true;
+        public bool Large { get; set; } = true;
+        [Display(Name = "Disabled")] public bool Locked { get; set; }
+        [Display(Name = "Disabled, checked")] public bool LockedOn { get; set; } = true;
     }
 
     public class SlidersModel
@@ -597,6 +655,19 @@
             // Static pages: bound from the post, named like the fields.
             [SupplyParameterFromForm(FormName = "upload")] public IFormFile? Avatar { get; set; }
             [SupplyParameterFromForm(FormName = "upload")] public IFormFileCollection? Attachments { get; set; }
+        }
+        """;
+
+    private const string ChecksCode =
+        """
+        <Checkbox Value="All" ValueChanged="SetAll" ValueExpression="() => Model.All"
+                  Indeterminate="Some" Label="Notify me about everything" />
+        <Checkbox @bind-Value="Model.Comments" />
+        <Checkbox @bind-Value="Model.Mentions" />
+
+        @code {
+            bool All => Model.Comments && Model.Mentions;
+            bool Some => !All && (Model.Comments || Model.Mentions);
         }
         """;
 

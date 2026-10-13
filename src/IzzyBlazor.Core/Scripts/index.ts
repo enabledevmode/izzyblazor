@@ -26,9 +26,11 @@ import { installSubmitFeedback } from "./forms";
 import { installSelects, syncSelects } from "./select";
 import { openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
+import { installIndeterminate, syncIndeterminate } from "./checkbox";
 
 installSubmitFeedback();
 installSelects();
+installIndeterminate();
 
 // ToastService calls this through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {
@@ -79,6 +81,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     resetShellScroll();
     syncTabs();
     syncSelects();
+    syncIndeterminate();
     reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table");
   });
 }
