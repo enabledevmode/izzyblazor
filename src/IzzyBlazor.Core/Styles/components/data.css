@@ -39,7 +39,7 @@
   }
 
   .ib-card-filled {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-surface-container-low);
   }
 
   /* Sections share the padding; the space between them is the gap. */
@@ -79,6 +79,7 @@
   }
 
   .ib-card-title {
+    font-family: var(--ib-font-heading);
     margin: 0;
     font-size: var(--ib-card-title);
     font-weight: var(--ib-weight-semibold);
@@ -188,10 +189,12 @@
     --ib-table-font: var(--ib-text-md);
   }
 
+  /* A bordered table is a surface, like a card: it stays white on a tinted page. */
   .ib-table-scroll {
     overflow: auto;
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface);
   }
 
   .ib-table-scroll:focus-visible {
@@ -209,7 +212,8 @@
 
   .ib-table-grid :is(th, td) {
     padding: var(--ib-table-py) var(--ib-table-px);
-    border-bottom: 1px solid var(--ib-color-border);
+    /* Row lines are a step lighter than the table's own edges and the header line. */
+    border-bottom: 1px solid var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
     text-align: start;
     vertical-align: middle;
     /* An even whole-pixel line (22px at the default size): rows stay whole, and checkboxes,
@@ -241,13 +245,18 @@
     border-inline-start: 1px solid var(--ib-color-border);
   }
 
+  /* Borderless, it takes the color of whatever it sits in (a card, a panel). */
   .ib-table-borderless .ib-table-scroll {
     border: 0;
     border-radius: 0;
+    background-color: transparent;
   }
 
+  /* The header is a whisper of fill with a full-strength line under it: structure without a
+     heavy gray bar. */
   .ib-table-grid th {
-    background-color: var(--ib-color-surface-container);
+    border-bottom-color: var(--ib-color-border);
+    background-color: color-mix(in oklab, var(--ib-color-surface-container-low) 50%, var(--ib-color-surface));
     color: var(--ib-color-muted);
     font-weight: var(--ib-weight-semibold);
     white-space: nowrap;
@@ -321,7 +330,7 @@
   }
 
   .ib-table-filter-button[data-active] {
-    background-color: color-mix(in oklab, var(--ib-color-primary) 14%, transparent);
+    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
   }
 
@@ -365,7 +374,7 @@
   /* Filter row: a small field under each filterable header, on the header's surface. */
   .ib-table-grid .ib-table-filter-row > td {
     padding-block: var(--ib-space-2);
-    background-color: var(--ib-color-surface-container);
+    background-color: color-mix(in oklab, var(--ib-color-surface-container-low) 50%, var(--ib-color-surface));
   }
 
   .ib-table-filter {
@@ -482,7 +491,7 @@
   .ib-table-grid tfoot td {
     border-top: 1px solid var(--ib-color-border);
     border-bottom: 0;
-    background-color: var(--ib-color-surface-container);
+    background-color: color-mix(in oklab, var(--ib-color-surface-container-low) 50%, var(--ib-color-surface));
     font-weight: var(--ib-weight-semibold);
   }
 
@@ -505,9 +514,18 @@
     visibility: hidden;
   }
 
+  /* A selected row: a faint accent tint, and an accent edge at its start. */
   .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
   .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td {
-    background-color: color-mix(in oklab, var(--ib-color-primary) 9%, transparent);
+    background-color: var(--ib-color-selected);
+  }
+
+  .ib-table-grid tbody tr:has(.ib-table-select:checked) > td:first-child {
+    box-shadow: inset 2px 0 0 var(--ib-color-primary);
+  }
+
+  .ib-table-grid:dir(rtl) tbody tr:has(.ib-table-select:checked) > td:first-child {
+    box-shadow: inset -2px 0 0 var(--ib-color-primary);
   }
 
   /* Linked rows: one link per row, stretched over it; controls inside stay above it. */

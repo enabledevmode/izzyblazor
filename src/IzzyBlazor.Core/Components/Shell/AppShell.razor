@@ -36,6 +36,13 @@
     [Parameter] public ShellScroll ScrollMode { get; set; } = ShellScroll.Page;
 
     /// <summary>
+    /// How the parts are layered: <see cref="ShellVariant.Tinted"/> (the default) tints the
+    /// sidebar, <see cref="ShellVariant.Inset"/> raises the main area as a panel in a tinted frame,
+    /// <see cref="ShellVariant.Flat"/> is all surface, <see cref="ShellVariant.Canvas"/> tints the main area.
+    /// </summary>
+    [Parameter] public ShellVariant Variant { get; set; } = ShellVariant.Tinted;
+
+    /// <summary>
     /// Lines between the parts. Defaults to true; set false when the parts' colors separate them,
     /// or for one flat surface.
     /// </summary>
@@ -53,6 +60,13 @@
     {
         classes.Add("ib-shell");
         classes.Add(ScrollMode == ShellScroll.Main ? "ib-shell-scroll-main" : "ib-shell-scroll-page");
+        classes.Add(Variant switch
+        {
+            ShellVariant.Inset => "ib-shell-inset",
+            ShellVariant.Flat => "ib-shell-flat",
+            ShellVariant.Canvas => "ib-shell-canvas",
+            _ => "ib-shell-tinted",
+        });
         if (!Dividers)
         {
             styles.AddVar("shell-divider", "transparent");

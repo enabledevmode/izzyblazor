@@ -4,6 +4,7 @@
     --ib-accent: var(--ib-color-info);
     --ib-on-accent: var(--ib-color-on-info);
     --ib-accent-text: var(--ib-color-info-text);
+    --ib-accent-soft: var(--ib-color-info-soft);
 
     display: flex;
     align-items: flex-start;
@@ -15,14 +16,14 @@
     line-height: var(--ib-leading-snug);
   }
 
-  .ib-alert-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
-  .ib-alert-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); }
-  .ib-alert-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); }
-  .ib-alert-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
+  .ib-alert-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-surface-container-high); }
+  .ib-alert-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); --ib-accent-soft: var(--ib-color-success-soft); }
+  .ib-alert-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); --ib-accent-soft: var(--ib-color-warning-soft); }
+  .ib-alert-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); --ib-accent-soft: var(--ib-color-danger-soft); }
 
   .ib-alert-soft {
     border-color: color-mix(in oklab, var(--ib-accent) 30%, transparent);
-    background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-color-surface));
+    background-color: var(--ib-accent-soft, color-mix(in oklab, var(--ib-accent) 16%, var(--ib-color-surface)));
     color: var(--ib-color-on-surface);
   }
 

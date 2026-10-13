@@ -214,7 +214,7 @@
     width: var(--ib-stat-icon);
     height: var(--ib-stat-icon);
     border-radius: var(--ib-radius-lg);
-    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
   }
 
@@ -280,6 +280,7 @@
   }
 
   .ib-empty-title {
+    font-family: var(--ib-font-heading);
     margin: 0;
     font-size: var(--ib-empty-title);
     font-weight: var(--ib-weight-semibold);

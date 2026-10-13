@@ -156,9 +156,11 @@
     color: var(--ib-color-on-surface);
   }
 
+  /* The page is the background (warm off-white in the default theme); cards, tables and fields
+     are surfaces on it. */
   body {
     margin: 0;
-    background-color: var(--ib-color-surface);
+    background-color: var(--ib-color-background);
     color: var(--ib-color-on-surface);
     font-family: var(--ib-font-sans);
     font-size: var(--ib-text-md);

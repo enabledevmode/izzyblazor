@@ -115,7 +115,7 @@
   }
 
   .ib-tabs-soft > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
-    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
   }
 

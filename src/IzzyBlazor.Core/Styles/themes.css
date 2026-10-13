@@ -1,0 +1,187 @@
+/*
+ * Themes: an accent, a gray and a radius, chosen with attributes. Put them on <html> (in
+ * App.razor) for the whole app, or on any element for part of a page; set accent and gray on the
+ * same element.
+ *
+ *   <html lang="en" data-ib-theme="ember">                         a named theme
+ *   <html lang="en" data-ib-accent="blue" data-ib-gray="stone">    or your own combination
+ *   <html lang="en" data-ib-theme="ember" data-ib-radius="lg">     or a named theme, adjusted
+ *
+ * Named themes (data-ib-theme) are presets of the sets below:
+ *   ember      Ember on Stone, Bricolage headings     classic    Blue on Slate
+ *   editorial  Ink on Stone, large radius, serif heads harbor     Teal on Slate
+ *   grove      Green on Stone                          studio     Violet on Neutral, large radius
+ *   crisp      Indigo on Neutral, small radius
+ * An explicit data-ib-accent, -gray or -radius beats the theme's (its selector is written twice,
+ * which doubles its weight).
+ *
+ *
+ * Accents: ink (the default), blue, indigo, violet, teal, green, rose, ember.
+ * Grays: stone (the default, warm), slate (cool), neutral (no tint).
+ * Radius: sm, md (the default), lg.
+ *
+ * Every color is light-dark(), hand-tuned so text holds 4.5:1 on its fill and on each gray, in
+ * both schemes. Fonts are tokens too: set --ib-font-sans and --ib-font-heading in your own CSS.
+ */
+@layer izzy.tokens {
+  /* Grays. With no accent named, the Ink accent follows the gray's text and fills (below). */
+  [data-ib-theme="ember"],
+  [data-ib-theme="editorial"],
+  [data-ib-theme="grove"],
+  [data-ib-gray][data-ib-gray="stone"] {
+    --ib-color-background: light-dark(#f7f6f3, #151618);
+    --ib-color-surface: light-dark(#ffffff, #1d1f22);
+    --ib-color-surface-container-low: light-dark(#f3f2ee, #26282b);
+    --ib-color-surface-container: light-dark(#eae8e2, #2b2d31);
+    --ib-color-surface-container-high: light-dark(#e0ddd5, #323438);
+    --ib-color-surface-raised: light-dark(#ffffff, #25272b);
+    --ib-color-on-surface: light-dark(#1b1d1f, #ecebe6);
+    --ib-color-muted: light-dark(#5b6168, #a3a7ad);
+    --ib-color-subtle: light-dark(#646970, #92969c);
+    --ib-color-disabled: light-dark(#8a8f95, #6d7176);
+    --ib-color-border: light-dark(#dedbd3, #383b40);
+    --ib-color-outline: light-dark(#bdb9b0, #56595f);
+  }
+
+  [data-ib-theme="classic"],
+  [data-ib-theme="harbor"],
+  [data-ib-gray][data-ib-gray="slate"] {
+    --ib-color-background: light-dark(#f5f7fa, #0f1218);
+    --ib-color-surface: light-dark(#ffffff, #161a21);
+    --ib-color-surface-container-low: light-dark(#f1f4f8, #20242c);
+    --ib-color-surface-container: light-dark(#e7ebf1, #242932);
+    --ib-color-surface-container-high: light-dark(#dce2ea, #29313a);
+    --ib-color-surface-raised: light-dark(#ffffff, #1e232c);
+    --ib-color-on-surface: light-dark(#0f172a, #e7ebf0);
+    --ib-color-muted: light-dark(#526072, #9aa4b2);
+    --ib-color-subtle: light-dark(#5a6779, #8892a0);
+    --ib-color-disabled: light-dark(#8794a6, #5f6978);
+    --ib-color-border: light-dark(#d9e0e9, #313844);
+    --ib-color-outline: light-dark(#b2bccb, #4d5664);
+  }
+
+  [data-ib-theme="studio"],
+  [data-ib-theme="crisp"],
+  [data-ib-gray][data-ib-gray="neutral"] {
+    --ib-color-background: light-dark(#f6f6f7, #141416);
+    --ib-color-surface: light-dark(#ffffff, #1b1b1e);
+    --ib-color-surface-container-low: light-dark(#f3f3f5, #252528);
+    --ib-color-surface-container: light-dark(#e9e9ec, #2a2a2d);
+    --ib-color-surface-container-high: light-dark(#dfdfe3, #313135);
+    --ib-color-surface-raised: light-dark(#ffffff, #232327);
+    --ib-color-on-surface: light-dark(#18181b, #ececee);
+    --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
+    --ib-color-subtle: light-dark(#66666d, #929299);
+    --ib-color-disabled: light-dark(#8c8c93, #6c6c73);
+    --ib-color-border: light-dark(#dcdce0, #38383d);
+    --ib-color-outline: light-dark(#b8b8bf, #525258);
+  }
+
+  /* A gray with no accent named gets the Ink accent, drawn from that gray. */
+  [data-ib-gray]:not([data-ib-accent], [data-ib-theme]) {
+    --ib-color-primary: var(--ib-color-on-surface);
+    --ib-color-on-primary: var(--ib-color-surface);
+    --ib-color-primary-text: var(--ib-color-on-surface);
+    --ib-color-primary-soft: var(--ib-color-surface-container-high);
+  }
+
+  /* Accents: fill, text on it, the accent as text, and its soft tint (16% of the fill on white). */
+  [data-ib-theme="editorial"],
+  [data-ib-accent][data-ib-accent="ink"] {
+    --ib-color-primary: var(--ib-color-on-surface);
+    --ib-color-on-primary: var(--ib-color-surface);
+    --ib-color-primary-text: var(--ib-color-on-surface);
+    --ib-color-primary-soft: var(--ib-color-surface-container-high);
+  }
+
+  [data-ib-theme="classic"],
+  [data-ib-accent][data-ib-accent="blue"] {
+    --ib-color-primary: light-dark(#1f4fd1, #3d6ae8);
+    --ib-color-on-primary: #ffffff;
+    --ib-color-primary-text: light-dark(#1a3fa6, #a9bdff);
+    --ib-color-primary-soft: light-dark(#dbe3f8, #1e2a4a);
+  }
+
+  [data-ib-theme="crisp"],
+  [data-ib-accent][data-ib-accent="indigo"] {
+    --ib-color-primary: light-dark(#4f46e5, #5b55e9);
+    --ib-color-on-primary: #ffffff;
+    --ib-color-primary-text: light-dark(#4338ca, #b8bbff);
+    --ib-color-primary-soft: light-dark(#e3e1fb, #23234b);
+  }
+
+  [data-ib-theme="studio"],
+  [data-ib-accent][data-ib-accent="violet"] {
+    --ib-color-primary: light-dark(#6d28d9, #7a4be0);
+    --ib-color-on-primary: #ffffff;
+    --ib-color-primary-text: light-dark(#5b21b6, #cdb8ff);
+    --ib-color-primary-soft: light-dark(#e8ddf9, #2a1f45);
+  }
+
+  [data-ib-theme="harbor"],
+  [data-ib-accent][data-ib-accent="teal"] {
+    --ib-color-primary: light-dark(#0f766e, #11807a);
+    --ib-color-on-primary: #ffffff;
+    --ib-color-primary-text: light-dark(#115e59, #7fd6cb);
+    --ib-color-primary-soft: light-dark(#d9e9e8, #12302e);
+  }
+
+  [data-ib-theme="grove"],
+  [data-ib-accent][data-ib-accent="green"] {
+    --ib-color-primary: light-dark(#1d7a3e, #1f8345);
+    --ib-color-on-primary: #ffffff;
+    --ib-color-primary-text: light-dark(#1d6b3a, #8fdcaa);
+    --ib-color-primary-soft: light-dark(#dbeae0, #16301f);
+  }
+
+  [data-ib-accent][data-ib-accent="rose"] {
+    --ib-color-primary: light-dark(#be1857, #cc2a63);
+    --ib-color-on-primary: #ffffff;
+    --ib-color-primary-text: light-dark(#9f1239, #ffa8c5);
+    --ib-color-primary-soft: light-dark(#f5dae4, #3a1626);
+  }
+
+  /* Ember: in dark mode the fill is the brand's own #f26a1b, which carries ink text. */
+  [data-ib-theme="ember"],
+  [data-ib-accent][data-ib-accent="ember"] {
+    --ib-color-primary: light-dark(#c2410c, #f26a1b);
+    --ib-color-on-primary: light-dark(#ffffff, #151618);
+    --ib-color-primary-text: light-dark(#9a3412, #ffb37d);
+    --ib-color-primary-soft: light-dark(#f5e1d8, #3a2213);
+  }
+
+  /* Radius: the whole scale shifts, so controls, cards and dialogs keep their proportions. */
+  [data-ib-theme="crisp"],
+  [data-ib-radius][data-ib-radius="sm"] {
+    --ib-radius-sm: 0.125rem;
+    --ib-radius-md: 0.25rem;
+    --ib-radius-lg: 0.5rem;
+    --ib-radius-xl: 0.625rem;
+  }
+
+  [data-ib-theme="ember"],
+  [data-ib-theme="classic"],
+  [data-ib-theme="harbor"],
+  [data-ib-theme="grove"],
+  [data-ib-radius][data-ib-radius="md"] {
+    --ib-radius-sm: 0.25rem;
+    --ib-radius-md: 0.375rem;
+    --ib-radius-lg: 0.625rem;
+    --ib-radius-xl: 0.75rem;
+  }
+
+  [data-ib-theme="editorial"],
+  [data-ib-theme="studio"],
+  [data-ib-radius][data-ib-radius="lg"] {
+    --ib-radius-sm: 0.375rem;
+    --ib-radius-md: 0.5rem;
+    --ib-radius-lg: 0.875rem;
+    --ib-radius-xl: 1rem;
+  }
+
+  /* Named themes' fonts: the heading font where it isn't the default. Load the font yourself (see
+     docs/styling.md); the fallbacks keep the look without it. */
+  [data-ib-theme="editorial"] {
+    --ib-font-heading: Newsreader, Georgia, "Times New Roman", serif;
+  }
+}

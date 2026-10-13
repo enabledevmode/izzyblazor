@@ -70,7 +70,69 @@ For anything else, pass a `Color`: `<Button Color='Color.Of("#0f766e")'>` or
 `Color='Color.Token("brand")'`. Text on it is picked for contrast: the token's `on-` partner, or black
 or white for a hex color.
 
-## Tokens and themes
+## Themes
+
+The default theme is **Ink on Stone**: a monochrome accent (ink buttons, focus and controls) on warm
+grays, with white cards, tables and fields on an off-white page. Pick a named theme, or your own
+accent, gray and corner radius, with attributes on `<html>` in `App.razor`:
+
+```html
+<html lang="en" data-ib-theme="ember">                          <!-- a named theme -->
+<html lang="en" data-ib-accent="blue" data-ib-gray="stone">     <!-- your own combination -->
+<html lang="en" data-ib-theme="classic" data-ib-radius="lg">    <!-- a named theme, adjusted -->
+```
+
+Named themes are presets of the sets below; an explicit `data-ib-accent`, `data-ib-gray` or
+`data-ib-radius` beats the theme's.
+
+| `data-ib-theme` | Accent | Gray | Radius | Headings |
+| --- | --- | --- | --- | --- |
+| `ember` | Ember | Stone | md | Bricolage Grotesque |
+| `classic` | Blue | Slate | md | |
+| `editorial` | Ink | Stone | lg | Newsreader (serif) |
+| `harbor` | Teal | Slate | md | |
+| `grove` | Green | Stone | md | |
+| `studio` | Violet | Neutral | lg | |
+| `crisp` | Indigo | Neutral | sm | |
+
+| Attribute | Values |
+| --- | --- |
+| `data-ib-accent` | `ink` (default), `blue`, `indigo`, `violet`, `teal`, `green`, `rose`, `ember` |
+| `data-ib-gray` | `stone` (default, warm), `slate` (cool), `neutral` (no tint) |
+| `data-ib-radius` | `sm`, `md` (default), `lg` |
+
+Every accent is tuned by hand in light and dark: text holds 4.5:1 on its fill and on every gray. The
+attributes work on any element too, for part of a page; set accent and gray on the same element.
+They're plain CSS, so they work in every render mode with no script.
+
+**Fonts.** Body text uses the system font (`--ib-font-sans`). Headings, card and dialog titles use
+`--ib-font-heading`, which is Bricolage Grotesque when your app loads it, else the body font. To use
+it, add the font to your `<head>` (or self-host it; it's under the SIL Open Font License):
+
+```html
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&display=swap" />
+```
+
+Or set your own: `:root { --ib-font-sans: "IBM Plex Sans", system-ui, sans-serif; --ib-font-heading: Newsreader, Georgia, serif; }`.
+
+**The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
+tables, fields, bars and menus are `--ib-color-surface`. For a white page, set
+`--ib-color-background` to the surface color.
+
+Raised things are lighter than what they sit on; recessed things are darker:
+
+| Layer | Token | Use |
+|---|---|---|
+| Page | `background` | The page behind everything |
+| Raised | `surface` (with a `border`) | Cards, panels, tables, bars, menus: anything that sits on the page |
+| Recessed | `surface-container-low` | Large quiet fills inside a surface: a filled card, a panel |
+| | `surface-container` | Small fills that must show: table heads, code, wells, tracks |
+| | `surface-container-high` | Selected and pressed fills, chips |
+
+A container fill placed directly on the page reads as a hole, not a card; put a surface between
+them. (In dark mode the page is the darkest layer and fills step lighter, so the same rule holds.)
+
+## Tokens
 
 Everything the components draw (colors, spacing, radius, fonts, shadows, motion) comes from CSS
 custom properties prefixed `--ib-`. A theme is a stylesheet that sets new values. The tokens live in
@@ -94,7 +156,7 @@ of the page with their own `Scheme`:
   --ib-color-primary: light-dark(#0f766e, #2dd4bf);
   --ib-color-on-primary: light-dark(#ffffff, #042f2e);
   --ib-color-primary-text: light-dark(#115e59, #5eead4);   /* readable text on surfaces */
-  --ib-color-focus: light-dark(#0f766e, #2dd4bf);
+  --ib-color-primary-soft: light-dark(#d9e9e8, #12302e);   /* soft buttons, current page, chips */
 }
 ```
 
