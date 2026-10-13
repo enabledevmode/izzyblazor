@@ -1,13 +1,13 @@
-@* Link and Code. *@
+@* Anchor and Code. *@
 
 <Stack Gap="8">
 
-    <Example Title="Link" Note="Underlined by default, which is clearest in running text. External opens a new tab, with an icon and a note for screen readers." Code="@LinkCode">
+    <Example Title="Anchor" Note="Underlined by default, which is clearest in running text. External opens a new tab, with an icon and a note for screen readers." Code="@AnchorCode">
         <Stack Gap="3">
-            <TextBlock>Read the <Link Href="static/links">getting started guide</Link> before you begin.</TextBlock>
-            <TextBlock>The source is on <Link Href="https://github.com/" External data-testid="external">GitHub</Link>.</TextBlock>
-            <TextBlock Color="Color.Muted" Size="TextSize.Sm">Muted text with an <Link Href="static/links" Inherit>inherited-color link</Link>.</TextBlock>
-            <Row Gap="4"><Link Href="static/links" Underline="LinkUnderline.Hover">Underline on hover</Link><Link Href="static/links" Underline="LinkUnderline.None">No underline</Link></Row>
+            <TextBlock>Read the <Anchor Href="static/anchor">getting started guide</Anchor> before you begin.</TextBlock>
+            <TextBlock>The source is on <Anchor Href="https://github.com/" External data-testid="external">GitHub</Anchor>.</TextBlock>
+            <TextBlock Color="Color.Muted" Size="TextSize.Sm">Muted text with an <Anchor Href="static/anchor" Inherit>inherited-color link</Anchor>.</TextBlock>
+            <Row Gap="4"><Anchor Href="static/anchor" Underline="AnchorUnderline.Hover">Underline on hover</Anchor><Anchor Href="static/anchor" Underline="AnchorUnderline.None">No underline</Anchor></Row>
         </Stack>
     </Example>
 
@@ -32,11 +32,11 @@
         </Table>
         """;
 
-    private const string LinkCode =
+    private const string AnchorCode =
         """
-        Read the <Link Href="/docs">guide</Link>.
-        <Link Href="https://github.com/..." External>GitHub</Link>
-        <Link Href="..." Inherit>...</Link>
+        Read the <Anchor Href="/docs">guide</Anchor>.
+        <Anchor Href="https://github.com/..." External>GitHub</Anchor>
+        <Anchor Href="..." Inherit>...</Anchor>
         """;
 
     private const string CodeCode =

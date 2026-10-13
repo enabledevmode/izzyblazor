@@ -1,0 +1,116 @@
+@using System.ComponentModel.DataAnnotations
+
+@* IzzyTheme: one brand color, the whole accent derived from it. The page's own <head> gets the
+   IzzyTheme through HeadContent, so everything here (and the header and sidebar) takes the color. *@
+
+@if (Palette is not null)
+{
+    <HeadContent><IzzyTheme Primary="@Chosen" /></HeadContent>
+}
+
+<Stack Gap="8">
+    <Example Title="Your brand color" Note="Pick a color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, each pair checked for 4.5:1. A light color gets dark text; a dark one is lifted in dark mode." Code="@ThemeCode">
+        <Stack Gap="5">
+            <form method="get" class="host-brand-form">
+                <label class="host-label" for="brand-color">Primary</label>
+                <input id="brand-color" type="color" name="primary" value="@Chosen" onchange="this.form.requestSubmit()" />
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Apply</Button>
+                @foreach (var (name, hex) in Presets)
+                {
+                    <a class="host-swatch" href="@($"?primary={Uri.EscapeDataString(hex)}")" style="--swatch: @hex" title="@name @hex"><span class="ib-visually-hidden">@name</span></a>
+                }
+                <a href="?" class="host-label">Reset</a>
+            </form>
+
+            @if (Palette is { } p)
+            {
+                <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+                    @foreach (var (mode, fill, on, text, soft) in new[] { ("Light", p.Fill, p.OnFill, p.Text, p.Soft), ("Dark", p.DarkFill, p.DarkOnFill, p.DarkText, p.DarkSoft) })
+                    {
+                        <Stack Gap="2">
+                            <TextBlock As="span" Class="host-label">@mode</TextBlock>
+                            <Row Gap="2" Wrap>
+                                <code class="host-chip" style="background:@fill;color:@on">fill @fill</code>
+                                <code class="host-chip" style="background:@soft;color:@text">text @text on soft @soft</code>
+                            </Row>
+                        </Stack>
+                    }
+                </Grid>
+            }
+
+            <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
+                <Box Scheme="Scheme.Light" Padding="5" Radius="Radius.Lg">@Sample("brand-light")</Box>
+                <Box Scheme="Scheme.Dark" Padding="5" Radius="Radius.Lg">@Sample("brand-dark")</Box>
+            </Grid>
+        </Stack>
+    </Example>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "primary")] public string? Primary { get; set; }
+
+    private AccentPalette? Palette;
+    private string Chosen => Palette is null ? "#2563eb" : Primary!.Trim();
+
+    protected override void OnParametersSet()
+    {
+        try
+        {
+            Palette = string.IsNullOrWhiteSpace(Primary) ? null : AccentPalette.From(Primary);
+        }
+        catch (ArgumentException)
+        {
+            Palette = null;
+        }
+    }
+
+    private static readonly (string Name, string Hex)[] Presets =
+    [
+        ("Green", "#0a7d5a"), ("Purple", "#7c3aed"), ("Red", "#e11d48"), ("Navy", "#1e3a8a"),
+        ("Sky", "#0ea5e9"), ("Yellow", "#facc15"), ("Orange", "#ff6a00"), ("Black", "#000000"),
+    ];
+
+    public enum Plan { Starter, Team, Enterprise }
+
+    public sealed class SampleModel
+    {
+        [Display(Name = "Email me updates")] public bool Updates { get; set; } = true;
+        [Display(Name = "Remember this device")] public bool Remember { get; set; } = true;
+        public int Volume { get; set; } = 60;
+        public Plan Plan { get; set; } = Plan.Team;
+    }
+
+    private readonly Dictionary<string, SampleModel> _models = new() { ["brand-light"] = new(), ["brand-dark"] = new() };
+
+    private RenderFragment Sample(string name) =>
+        @<Stack Gap="4">
+            <Row Gap="2" Wrap>
+                <Button>Save</Button>
+                <Button Variant="ButtonVariant.Soft">Soft</Button>
+                <Button Variant="ButtonVariant.Outline">Outline</Button>
+                <Button Variant="ButtonVariant.Ghost">Ghost</Button>
+            </Row>
+            <Tabs Label="@($"Sample tabs {name}")">
+                <Tab Label="Overview">Text with a <Anchor Href="static/brand">link in the accent</Anchor>.</Tab>
+                <Tab Label="Activity" Badge="3">Activity.</Tab>
+            </Tabs>
+            <Form Model="_models[name]" FormName="@name" OnValidSubmit="() => { }">
+                <Switch @bind-Value="_models[name].Updates" />
+                <Checkbox @bind-Value="_models[name].Remember" />
+                <RadioGroup @bind-Value="_models[name].Plan" Orientation="Orientation.Horizontal" />
+                <Slider @bind-Value="_models[name].Volume" ShowValue />
+            </Form>
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Badge Color="Color.Primary">Primary</Badge>
+                <Badge Color="Color.Primary" Variant="BadgeVariant.Solid">Solid</Badge>
+                <Pagination PageCount="5" Page="2" Size="ControlSize.Sm" Label="@($"Sample pages {name}")" />
+            </Row>
+            <Progress Value="64" Label="Upload" />
+        </Stack>;
+
+    private const string ThemeCode =
+        """
+        @* App.razor, in <head> *@
+        <IzzyTheme Primary="#0a7d5a" />
+        """;
+}
