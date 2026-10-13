@@ -562,11 +562,9 @@ own inputs' names in `Fields`.
 ## Scrollbars
 
 IzzyBlazor's scrolling areas (the sidebar, tables, menus, dialogs, code blocks and so on) have thin,
-theme-colored scrollbars with no arrow buttons. The thumb shows while the pointer is over the area or
-focus is inside it, and its space stays reserved, so nothing shifts when it appears. To keep it
-visible, add `ib-scrollbars-always` to `<html>` (everywhere) or to one container, or set
-`--ib-color-scrollbar-idle: var(--ib-color-scrollbar)`. `--ib-color-scrollbar` and
-`--ib-color-scrollbar-hover` set the colors. High-contrast mode always shows them, in system colors.
+theme-colored scrollbars with no arrow buttons, a little stronger while the pointer is on the
+thumb. `--ib-color-scrollbar` and `--ib-color-scrollbar-hover` set the colors; high-contrast mode
+uses system colors.
 The page's scrollbar gets the same look when the page uses `AppShell`; on other
 pages add `ib-scrollbars` to `<html>`. For a scroll region of your own (a chat log, a long list in a
 card), add `ib-scroll` to the element that scrolls.
