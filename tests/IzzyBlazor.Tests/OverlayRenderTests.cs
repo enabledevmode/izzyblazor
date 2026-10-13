@@ -34,11 +34,14 @@ public class OverlayRenderTests : BunitContext
 
         var trigger = cut.Find("button");
         Assert.Equal("actions", trigger.GetAttribute("popovertarget"));
-        Assert.Equal("menu", trigger.GetAttribute("aria-haspopup"));
+        // Static pages: menu semantics wait for the script, which adds the arrow keys.
+        Assert.Null(trigger.GetAttribute("aria-haspopup"));
+        Assert.Equal("menu", trigger.GetAttribute("data-ib-haspopup"));
 
         var panel = cut.Find("[popover]");
         Assert.Equal("auto", panel.GetAttribute("popover"));
-        Assert.Equal("menu", panel.GetAttribute("role"));
+        Assert.Null(panel.GetAttribute("role"));
+        Assert.Equal("menu", panel.GetAttribute("data-ib-role"));
         Assert.Equal("actions-trigger", panel.GetAttribute("aria-labelledby"));
         Assert.Equal("ib-pop ib-menu ib-place-bottom-end", panel.ClassName);
         Assert.StartsWith("position-anchor:--actions", panel.GetAttribute("style"));
@@ -60,7 +63,7 @@ public class OverlayRenderTests : BunitContext
                     (nameof(MenuItem.Accent), Accent.Danger)));
             })));
 
-        var items = cut.FindAll("[role=menuitem]");
+        var items = cut.FindAll("[data-ib-role=menuitem]");
         Assert.Equal("A", items[0].TagName);
         Assert.Equal("/settings", items[0].GetAttribute("href"));
 

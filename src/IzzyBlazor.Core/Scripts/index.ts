@@ -27,6 +27,7 @@ import { installSelects, syncSelects } from "./select";
 import { openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
 import { installIndeterminate, syncIndeterminate } from "./checkbox";
+import { focusMarked } from "./focus";
 
 installSubmitFeedback();
 installSelects();
@@ -82,7 +83,8 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncTabs();
     syncSelects();
     syncIndeterminate();
-    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table");
+    focusMarked();
+    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover");
   });
 }
 

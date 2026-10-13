@@ -21,8 +21,10 @@
     <button type="button"
             id="@TriggerId"
             class="ib-menu-item ib-menu-sub-trigger"
-            role="menuitem"
-            aria-haspopup="menu"
+            role="@(RendererInfo.IsInteractive ? "menuitem" : null)"
+            data-ib-role="@(RendererInfo.IsInteractive ? null : "menuitem")"
+            aria-haspopup="@(RendererInfo.IsInteractive ? "menu" : null)"
+            data-ib-haspopup="@(RendererInfo.IsInteractive ? null : "menu")"
             aria-controls="@_id"
             popovertarget="@_id"
             disabled="@Disabled">
@@ -36,7 +38,8 @@
     <div @attributes="AdditionalAttributes"
          id="@_id"
          popover="auto"
-         role="menu"
+         role="@(RendererInfo.IsInteractive ? "menu" : null)"
+         data-ib-role="@(RendererInfo.IsInteractive ? null : "menu")"
          aria-labelledby="@TriggerId"
          class="@_class"
          style="@_style">

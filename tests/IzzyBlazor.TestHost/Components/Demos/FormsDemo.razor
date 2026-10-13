@@ -87,7 +87,7 @@
                     <Button Type="ButtonType.Submit">Save</Button>
                     @if (_choicesSaved)
                     {
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="choices-saved">Saved: @(Choices!.Toppings.Count == 0 ? "no toppings" : string.Join(", ", Choices.Toppings)); @(Choices.Skills.Length == 0 ? "no skills" : string.Join(", ", Choices.Skills))</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="choices-saved">Saved: @(Choices!.Toppings is not { Count: > 0 } ? "no toppings" : string.Join(", ", Choices.Toppings)); @(Choices.Skills is not { Length: > 0 } ? "no skills" : string.Join(", ", Choices.Skills))</TextBlock>
                     }
                 </Row>
             </Form>

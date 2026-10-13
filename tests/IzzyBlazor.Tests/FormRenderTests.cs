@@ -172,6 +172,58 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
+    public void Checkbox_posts_false_after_the_box_unless_disabled()
+    {
+        var inputs = Render<Checkbox>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.ValueExpression, () => _model.Accept)).FindAll("input");
+
+        // The box comes first, so a checked box posts "true" before the hidden "false".
+        Assert.Equal(2, inputs.Count);
+        Assert.Equal("checkbox", inputs[0].GetAttribute("type"));
+        Assert.Equal("hidden", inputs[1].GetAttribute("type"));
+        Assert.Equal("false", inputs[1].GetAttribute("value"));
+        Assert.Equal(inputs[0].GetAttribute("name"), inputs[1].GetAttribute("name"));
+
+        var disabled = Render<Checkbox>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.ValueExpression, () => _model.Accept)
+            .Add(c => c.Disabled, true)).FindAll("input");
+        Assert.Single(disabled);
+    }
+
+    [Fact]
+    public void FormErrors_takes_focus_on_a_static_page_after_a_failed_submit()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<FormErrors>(p => p.AddCascadingValue(_context));
+        Assert.Empty(cut.FindAll(".ib-form-errors"));
+
+        cut.InvokeAsync(() => _context.Validate());
+
+        var summary = cut.Find(".ib-form-errors");
+        Assert.Equal("-1", summary.GetAttribute("tabindex"));
+        Assert.True(summary.HasAttribute("autofocus"));
+        Assert.True(summary.HasAttribute("data-ib-autofocus"));
+        Assert.Equal(summary.QuerySelector(".ib-form-errors-title")!.Id, summary.GetAttribute("aria-labelledby"));
+        Assert.NotEmpty(summary.QuerySelectorAll("li"));
+    }
+
+    [Fact]
+    public void FormErrors_on_an_interactive_page_is_focused_from_csharp_after_a_submit()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<FormErrors>(p => p.AddCascadingValue(_context));
+        cut.InvokeAsync(() => _context.Validate());
+
+        var summary = cut.Find(".ib-form-errors");
+        Assert.False(summary.HasAttribute("autofocus"));
+        Assert.False(summary.HasAttribute("data-ib-autofocus"));
+        Assert.Equal("-1", summary.GetAttribute("tabindex"));
+        cut.WaitForAssertion(() => JSInterop.VerifyFocusAsyncInvoke());
+    }
+
+    [Fact]
     public void Indeterminate_checkbox_is_marked_for_css_and_script()
     {
         var input = Render<Checkbox>(p => p

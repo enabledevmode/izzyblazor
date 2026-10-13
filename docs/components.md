@@ -223,6 +223,21 @@ Both types are inferred from `@bind-Value` and `Items`; for an enum, pass
   becomes a field of chips you can type in to filter: choosing toggles an option and the list stays
   open, Backspace removes the last chip, and each chip has a remove button.
 
+**What a static form post binds.** Blazor sets every model field that isn't in the post to its
+type's default: `false`, `0`, and `null` for strings and collections, not the property's initial
+value. And when nothing of a model is posted, it doesn't bind the model at all, so `Model ??= new()`
+recreates it with its initial values. In practice:
+
+- `Checkbox` and `Switch` post a hidden `false` after the box, so an unchecked box always binds
+  `false`, even when it's the only field in the form.
+- An empty `CheckboxGroup` or `MultiSelect` posts nothing, so its collection binds as `null`. The
+  components show that as nothing chosen; in your own code use `?.` or `?? []`. If the form has
+  nothing else to post, the model is recreated and a default selection comes back. So set default
+  selections when the page first loads, not in the property initializer.
+- Disabled fields aren't posted, so they bind their defaults too. For a text field that should
+  post but not change, use `ReadOnly`; otherwise keep the value out of the form and set it on the
+  server.
+
 ## App layout
 
 `AppShell` holds parts, each with its own settings:
@@ -304,7 +319,12 @@ project?"), an optional `Message` or `Body`, Cancel (focused first) and a confir
 
 The backdrop doesn't close it; Escape and Cancel do.
 
-Menu items are links, form posts or C# actions. The script adds menu arrow keys and type-ahead,
+Menu items are links, form posts or C# actions. Menu roles (`menu`, `menuitem`) promise arrow keys,
+so they come with the script: with JavaScript off the items are plain links and buttons, a checked
+one marked pressed or current. A `Popover` opened by the user takes focus (its `[autofocus]`
+element, or the panel), and closing returns focus to the trigger.
+
+The script adds menu arrow keys and type-ahead,
 top-layer tooltips, and fallbacks for browsers missing anchor positioning or `commandfor`. Custom
 triggers take the wiring attributes as context:
 `<Trigger><IconButton ... @attributes="context" /></Trigger>`.

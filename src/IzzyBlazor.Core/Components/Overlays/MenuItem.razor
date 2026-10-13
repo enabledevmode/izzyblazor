@@ -11,13 +11,21 @@
     Checkable: @bind-Checked makes it a checkbox item (menuitemcheckbox). Inside a MenuRadioGroup
     it's one of a set (menuitemradio), identified by Value. On static pages the action still
     comes from Href or a form post, and the server decides what's checked.
+
+    Menu roles promise arrow keys, which need the script. So static pages render them as data-ib-*
+    attributes, and <ib-popover> turns them into roles when it adds the keys; with JavaScript off,
+    items are plain links and buttons, a checked one marked aria-pressed (buttons) or aria-current
+    (links). Interactive pages always have the script, so they render the roles directly.
 *@
 
 @if (ResolvedHref is { } href)
 {
     <a @attributes="AdditionalAttributes"
-       role="@Role"
-       aria-checked="@AriaChecked"
+       role="@(Live ? Role : null)"
+       data-ib-role="@(Live ? null : Role)"
+       aria-checked="@(Live ? AriaChecked : null)"
+       data-ib-checked="@(Live ? null : AriaChecked)"
+       aria-current="@(!Live && IsCheckable && IsChecked ? "true" : null)"
        class="@_class"
        style="@_style"
        href="@(Disabled ? null : href)"
@@ -31,8 +39,11 @@ else
     var closes = !submit && Menu is not null;
     <button @attributes="AdditionalAttributes"
             type="@(submit ? "submit" : "button")"
-            role="@Role"
-            aria-checked="@AriaChecked"
+            role="@(Live ? Role : null)"
+            data-ib-role="@(Live ? null : Role)"
+            aria-checked="@(Live ? AriaChecked : null)"
+            data-ib-checked="@(Live ? null : AriaChecked)"
+            aria-pressed="@(!Live && IsCheckable ? AriaChecked : null)"
             class="@_class"
             style="@_style"
             disabled="@Disabled"
@@ -107,6 +118,8 @@ else
     private bool IsChecked => IsRadio ? RadioGroup!.IsSelected(Value) : Checked == true;
 
     private string Role => IsRadio ? "menuitemradio" : Checked is not null ? "menuitemcheckbox" : "menuitem";
+
+    private bool Live => RendererInfo.IsInteractive;
 
     private string? AriaChecked => IsCheckable ? (IsChecked ? "true" : "false") : null;
 
