@@ -4,7 +4,9 @@
 @layer izzy.base {
   /*
    * Thin, theme-colored scrollbars in the library's own scrolling areas, instead of the platform's
-   * (on Windows: gray, with arrow buttons, the same in dark mode). Pages keep their own.
+   * (on Windows: gray, with arrow buttons, the same in dark mode). Also any element with .ib-scroll
+   * (an app's own scroll region), and the page itself when it uses AppShell or <html> has
+   * .ib-scrollbars; other pages keep the platform's.
    *
    * By default the thumb shows while the pointer is over the area or focus is inside it, and the
    * space stays reserved so nothing shifts. .ib-scrollbars-always (on <html> or any container) or
@@ -28,7 +30,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     ) {
       scrollbar-width: thin;
       scrollbar-color: var(--ib-color-scrollbar-idle) transparent;
@@ -44,7 +48,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     ):is(:hover, :focus-within) {
       scrollbar-color: var(--ib-color-scrollbar) transparent;
     }
@@ -61,7 +67,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar {
       width: 10px;
       height: 10px;
@@ -77,7 +85,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-thumb {
       border: 3px solid transparent;
       border-radius: 999px;
@@ -95,7 +105,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     ):is(:hover, :focus-within)::-webkit-scrollbar-thumb {
       background-color: var(--ib-color-scrollbar);
     }
@@ -111,7 +123,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-thumb:hover {
       border-width: 2px;
       background-color: var(--ib-color-scrollbar-hover);
@@ -127,7 +141,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-track,
     :where(
       .ib-shell-sidebar-body,
@@ -139,7 +155,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-corner {
       background: transparent;
     }
@@ -154,7 +172,9 @@
       .ib-pop,
       .ib-dialog,
       .ib-dialog-body,
-      .ib-code-pre
+      .ib-code-pre,
+      .ib-scroll,
+      :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-button {
       display: none;
     }

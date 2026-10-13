@@ -567,7 +567,9 @@ focus is inside it, and its space stays reserved, so nothing shifts when it appe
 visible, add `ib-scrollbars-always` to `<html>` (everywhere) or to one container, or set
 `--ib-color-scrollbar-idle: var(--ib-color-scrollbar)`. `--ib-color-scrollbar` and
 `--ib-color-scrollbar-hover` set the colors. High-contrast mode always shows them, in system colors.
-The page's own scrollbar is left to the app.
+The page's scrollbar gets the same look when the page uses `AppShell`; on other
+pages add `ib-scrollbars` to `<html>`. For a scroll region of your own (a chat log, a long list in a
+card), add `ib-scroll` to the element that scrolls.
 
 ## Text and other languages
 
