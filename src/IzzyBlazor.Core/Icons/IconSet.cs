@@ -92,6 +92,9 @@ public enum IconRole
 
     /// <summary>A figure didn't change.</summary>
     TrendFlat,
+
+    /// <summary>Filter a column or list.</summary>
+    Filter,
 }
 
 /// <summary>
@@ -132,6 +135,7 @@ public class IconSet
         IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
         IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
         IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
+        IconRole.Filter => IzzyBlazor.Lucide.Funnel,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 

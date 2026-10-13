@@ -17,9 +17,24 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>
     /// The name of this column in the URL's sort parameter (<c>?sort=total</c>, or
-    /// <c>?sort=-total</c> for descending). Defaults to the property name in lower case.
+    /// <c>?sort=-total</c> for descending) and its filter (<c>?f-total=</c>). Defaults to the
+    /// property name in lower case.
     /// </summary>
     [Parameter] public string? SortKey { get; set; }
+
+    /// <summary>
+    /// Adds a filter under this column's header: a text box for text (matching anywhere, ignoring
+    /// case) and numbers (matching exactly), a date input for dates (matching the day), a select
+    /// for enums and booleans. A
+    /// <see cref="TemplateColumn{TItem}"/> filters by its <c>FilterBy</c> text.
+    /// </summary>
+    [Parameter] public bool Filterable { get; set; }
+
+    /// <summary>
+    /// For an enum filter: choose several values from a menu of checkboxes, and keep the items
+    /// that have any of them. The URL repeats the key (<c>?f-status=Paid&amp;f-status=Pending</c>).
+    /// </summary>
+    [Parameter] public bool FilterMultiple { get; set; }
 
     /// <summary>How the cells line up. Defaults to the end for numbers and the start otherwise.</summary>
     [Parameter] public CellAlign? Align { get; set; }
@@ -47,6 +62,20 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     internal string? Key => SortKey ?? DefaultSortKey;
 
     internal bool CanSort => Sortable && Key is not null && HasSortExpression;
+
+    internal bool CanFilter => Filterable && Key is not null && FilterKind != ColumnFilterKind.None;
+
+    /// <summary>What kind of filter the column offers.</summary>
+    internal virtual ColumnFilterKind FilterKind => ColumnFilterKind.None;
+
+    /// <summary>The options of a select filter: value and text.</summary>
+    internal virtual IReadOnlyList<(string Value, string Text)> FilterChoices(IzzyText text) => [];
+
+    /// <summary>Keeps the items that match the filter value.</summary>
+    internal virtual IQueryable<TItem> ApplyFilter(IQueryable<TItem> source, string value) => source;
+
+    /// <summary>Why <see cref="Filterable"/> can't work on this column, or null when it can.</summary>
+    protected virtual string? FilterProblem => null;
 
     internal CellAlign EffectiveAlign => Align ?? DefaultAlign;
 
@@ -80,12 +109,31 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     }
 
     /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!Filterable)
+        {
+            return;
+        }
+
+        if (FilterProblem is { } problem)
+        {
+            throw new InvalidOperationException(problem);
+        }
+
+        if (Key is null)
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column needs a {nameof(SortKey)} to name its filter.");
+        }
+    }
+
+    /// <inheritdoc />
     protected override bool ShouldRender() => false;
 
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, Class, FooterText, Footer is not null);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -168,7 +216,29 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
 
             _path = members.Count > 0 ? string.Join('.', members) : null;
         }
+
+        base.OnParametersSet();
     }
+
+    /// <inheritdoc />
+    internal override ColumnFilterKind FilterKind => ColumnFilter.KindOf(typeof(TValue));
+
+    /// <inheritdoc />
+    protected override string? FilterProblem => FilterKind == ColumnFilterKind.None
+        ? $"The \"{HeaderText}\" column can't filter {typeof(TValue).Name} values: Filterable works with text, numbers, dates, enums and booleans. Use a TemplateColumn with FilterBy for anything else."
+        : null;
+
+    /// <inheritdoc />
+    internal override IReadOnlyList<(string Value, string Text)> FilterChoices(IzzyText text) => ColumnFilter.Choices(typeof(TValue), text);
+
+    /// <inheritdoc />
+    internal override IQueryable<TItem> ApplyFilter(IQueryable<TItem> source, string value) => FilterKind switch
+    {
+        ColumnFilterKind.Text => ColumnFilter.Contains(source, Property, value),
+        ColumnFilterKind.Date => ColumnFilter.OnDay(source, Property, value),
+        ColumnFilterKind.Choice when FilterMultiple => ColumnFilter.AnyOf(source, Property, ColumnFilter.SplitValues(value)),
+        _ => ColumnFilter.EqualTo(source, Property, value),
+    };
 
     internal override IQueryable<TItem> ApplySort(IQueryable<TItem> source, bool descending) =>
         descending ? source.OrderByDescending(Property) : source.OrderBy(Property);
@@ -215,8 +285,27 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
     /// <summary>What to sort by when <see cref="ColumnBase{TItem}.Sortable"/>. Needs a <see cref="ColumnBase{TItem}.SortKey"/>.</summary>
     [Parameter] public Expression<Func<TItem, object?>>? SortBy { get; set; }
 
+    /// <summary>
+    /// The text to filter by when <see cref="ColumnBase{TItem}.Filterable"/>, such as
+    /// <c>o =&gt; o.Customer.Name</c>. It matches anywhere, ignoring case. Needs a
+    /// <see cref="ColumnBase{TItem}.SortKey"/>.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, string?>>? FilterBy { get; set; }
+
     /// <inheritdoc />
     protected override bool HasSortExpression => SortBy is not null;
+
+    /// <inheritdoc />
+    internal override ColumnFilterKind FilterKind => FilterBy is null ? ColumnFilterKind.None : ColumnFilterKind.Text;
+
+    /// <inheritdoc />
+    protected override string? FilterProblem => FilterBy is null
+        ? $"The \"{HeaderText}\" column needs {nameof(FilterBy)} to be Filterable."
+        : null;
+
+    /// <inheritdoc />
+    internal override IQueryable<TItem> ApplyFilter(IQueryable<TItem> source, string value) =>
+        FilterBy is null ? source : ColumnFilter.Contains(source, FilterBy, value);
 
     internal override IQueryable<TItem> ApplySort(IQueryable<TItem> source, bool descending) =>
         SortBy is null ? source : descending ? source.OrderByDescending(SortBy) : source.OrderBy(SortBy);
@@ -233,18 +322,53 @@ public sealed record TableRequest<TItem>(string? SortKey, bool Descending, int P
 {
     internal ColumnBase<TItem>? Column { get; init; }
 
+    internal IReadOnlyList<ColumnBase<TItem>> FilterColumns { get; init; } = [];
+
+    /// <summary>The filter values, by column key (<c>"customer"</c> → <c>"ada"</c>). Empty when nothing is filtered.</summary>
+    public IReadOnlyDictionary<string, string> Filters { get; init; } = new Dictionary<string, string>();
+
+    /// <summary>Keeps the items that match the requested filters, using each column's own expression (EF Core translates it).</summary>
+    public IQueryable<TItem> ApplyFiltering(IQueryable<TItem> source)
+    {
+        foreach (var column in FilterColumns)
+        {
+            if (column.Key is { } key && Filters.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
+            {
+                source = column.ApplyFilter(source, value.Trim());
+            }
+        }
+
+        return source;
+    }
+
     /// <summary>Items to skip for this page.</summary>
     public int Skip => PageSize is { } size ? (Page - 1) * size : 0;
 
     /// <summary>Applies the requested sort to a query, using the column's own expression (EF Core translates it).</summary>
     public IQueryable<TItem> ApplySorting(IQueryable<TItem> source) => Column is null ? source : Column.ApplySort(source, Descending);
 
-    /// <summary>Applies the requested sort and page to a query.</summary>
+    /// <summary>
+    /// Applies the requested filters, sort and page to a query. Count the total with
+    /// <see cref="ApplyFiltering"/>, so it counts what the filters keep.
+    /// </summary>
     public IQueryable<TItem> Apply(IQueryable<TItem> source)
     {
-        var sorted = ApplySorting(source);
+        var sorted = ApplySorting(ApplyFiltering(source));
         return PageSize is { } size ? sorted.Skip(Skip).Take(size) : sorted;
     }
+}
+
+/// <summary>Where a <see cref="Table{TItem}"/> puts its column filters.</summary>
+public enum FilterPlacement
+{
+    /// <summary>
+    /// A filter button in each filterable column's header, opening the filter in a popover; the
+    /// active filters show as removable tags above the table. The default.
+    /// </summary>
+    Header,
+
+    /// <summary>A row of filter fields under the headers, always in view: for tables people filter constantly.</summary>
+    Row,
 }
 
 /// <summary>What an <c>ItemsProvider</c> returns: one page of items and the total count.</summary>

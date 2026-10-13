@@ -14,18 +14,38 @@
         </Table>
     </Example>
 
+    <Example Title="Column filters" Note="@ColumnFilterNote" Code="@ColumnFilterCode">
+        <Table Items="Orders" PageSize="5" InitialSort="-date" Caption="Filtered orders" QueryPrefix="cf-" id="filter-table">
+            <PropertyColumn Property="o => o.Number" Title="Order" Filterable />
+            <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+            <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable Filterable />
+            <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" FilterBy="o => o.Status" Sortable Filterable>
+                <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+            </TemplateColumn>
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable />
+        </Table>
+    </Example>
+
+    <Example Title="Filtering by several values" Note="FilterMultiple on an enum column: a menu of checkboxes that stays open while you tick, keeping the rows with any chosen value. The URL repeats the key (?t-f-priority=High&amp;t-f-priority=Urgent). With JavaScript off each choice is a link." Code="@MultipleCode">
+        <Table Items="Tickets" Caption="Tickets" QueryPrefix="t-" id="tickets">
+            <PropertyColumn Property="t => t.Title" Filterable />
+            <PropertyColumn Property="t => t.Priority" Sortable Filterable FilterMultiple />
+            <PropertyColumn Property="t => t.Open" Title="Open" Filterable />
+        </Table>
+    </Example>
+
     <Example Title="Sorting and paging in the component" Note="@StateNote" Code="@StateCode">
         <Stack Gap="3">
             <Table Items="Orders" PageSize="5" InitialSort="-date" Caption="Orders in state" QueryPrefix="st-" id="state-table"
-                   @bind-Sort="_sort" @bind-Page="_statePage">
+                   @bind-Sort="_sort" @bind-Page="_statePage" @bind-Filters="_filters" FilterPlacement="FilterPlacement.Row">
                 <PropertyColumn Property="o => o.Number" Title="Order" />
-                <PropertyColumn Property="o => o.Customer" Sortable />
+                <PropertyColumn Property="o => o.Customer" Sortable Filterable />
                 <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
                 <PropertyColumn Property="o => o.Total" Format="C" Sortable />
             </Table>
             <Row Gap="2" Align="Align.Center" Wrap>
                 <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="ResetState" data-testid="state-reset">Reset from C#</Button>
-                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Sort: <strong data-testid="state-sort">@(_sort ?? "(initial)")</strong> · Page: <strong data-testid="state-page">@_statePage</strong></TextBlock>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Sort: <strong data-testid="state-sort">@(_sort ?? "(initial)")</strong> · Page: <strong data-testid="state-page">@_statePage</strong> · Filters: <strong data-testid="state-filters">@(_filters is { Count: > 0 } f ? string.Join(", ", f.Select(kv => $"{kv.Key}={kv.Value}")) : "none")</strong></TextBlock>
             </Row>
         </Stack>
     </Example>
@@ -84,6 +104,21 @@
         </Table>
     </Example>
 
+    <Example Title="Lines" Note="RowLines (on by default), ColumnLines (off by default) and Bordered, the border around the table (on by default; off for a table inside a card)." Code="@LinesCode">
+        <Stack Gap="4">
+            <Table Items="Orders.Take(4)" Caption="Column lines" QueryPrefix="l1-" ColumnLines Size="ControlSize.Sm">
+                <PropertyColumn Property="o => o.Number" Title="Order" />
+                <PropertyColumn Property="o => o.Customer" />
+                <PropertyColumn Property="o => o.Total" Format="C" />
+            </Table>
+            <Table Items="Orders.Take(4)" Caption="No row lines, no border" QueryPrefix="l2-" RowLines="false" Bordered="false" Striped Size="ControlSize.Sm">
+                <PropertyColumn Property="o => o.Number" Title="Order" />
+                <PropertyColumn Property="o => o.Customer" />
+                <PropertyColumn Property="o => o.Total" Format="C" />
+            </Table>
+        </Stack>
+    </Example>
+
     <Example Title="Scrolling and empty states" Note="MaxHeight scrolls the rows under a sticky header. Wide tables scroll sideways on small screens." Code="@ScrollCode">
         <Stack Gap="4">
             <Table Items="Orders.Take(20)" MaxHeight="16.Rem" Caption="Recent orders" QueryPrefix="r-">
@@ -104,6 +139,31 @@
     public sealed record Order(string Number, string Customer, DateOnly Date, string Status, decimal Total);
 
     public sealed record Product(string Name, int Stock, decimal Price);
+
+    public enum Priority { Low, Normal, High, Urgent }
+
+    public sealed record Ticket(string Title, Priority Priority, bool Open);
+
+    private static readonly Ticket[] Tickets =
+    [
+        new("Login page times out", Priority.Urgent, true),
+        new("Typo on pricing page", Priority.Low, true),
+        new("Export to CSV drops dates", Priority.High, true),
+        new("Dark mode contrast in menus", Priority.Normal, false),
+        new("Invoice totals off by a cent", Priority.High, false),
+        new("Slow search on large accounts", Priority.Normal, true),
+        new("Password reset email delayed", Priority.Urgent, false),
+        new("Avatar upload fails on Safari", Priority.Normal, true),
+    ];
+
+    private const string MultipleCode =
+        """
+        <Table Items="tickets">
+            <PropertyColumn Property="t => t.Title" Filterable />
+            <PropertyColumn Property="t => t.Priority" Filterable FilterMultiple />
+            <PropertyColumn Property="t => t.Open" Filterable />
+        </Table>
+        """;
 
     private static readonly string[] Customers = ["Ada Lovelace", "Grace Hopper", "Alan Turing", "Katherine Johnson", "Linus Torvalds", "Margaret Hamilton", "Dennis Ritchie", "Barbara Liskov"];
 
@@ -179,22 +239,40 @@
     private string? _sort;
     private int _statePage = 1;
 
-    private void ResetState() => (_sort, _statePage) = (null, 1);
+    private IReadOnlyDictionary<string, string>? _filters;
+
+    private void ResetState() => (_sort, _statePage, _filters) = (null, 1, null);
+
+    private string ColumnFilterNote => RendererInfo.IsInteractive
+        ? "Filterable adds a filter button to the header (tinted while filtered), which opens the filter; active filters show as tags above the table. The filters go in the URL (?cf-f-customer=ada) and apply as you type; a new filter starts at page 1. Text matches anywhere, ignoring case; numbers match exactly; a date matches that day."
+        : "Filterable adds a filter button to the header (tinted while filtered), which opens the filter in a popover, natively; active filters show as tags above the table. The filters go in the URL (?cf-f-customer=ada). With script they apply as you type; with JavaScript off press Enter or Apply. Text matches anywhere, ignoring case; numbers match exactly; a date matches that day.";
+
+    private const string ColumnFilterCode =
+        """
+        <Table Items="orders" PageSize="5">
+            <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+            <TemplateColumn Title="Status" SortKey="status" FilterBy="o => o.Status" Filterable>
+                <Badge>@context.Status</Badge>
+            </TemplateColumn>
+            <PropertyColumn Property="o => o.Total" Format="C" Filterable />
+        </Table>
+        """;
 
     private string StateNote => RendererInfo.IsInteractive
-        ? "@bind-Sort and @bind-Page keep the sort and page in the component: headers and page numbers are buttons, the URL stays as it is, and the page isn't rendered again on the server."
+        ? "@bind-Sort, @bind-Page and @bind-Filters keep the sort, page and filters in the component (this one uses FilterPlacement.Row, a row of fields under the headers): headers and page numbers are buttons, the URL stays as it is, and the page isn't rendered again on the server."
         : "On interactive pages, @bind-Sort and @bind-Page keep the sort and page in the component instead of the URL. On this static page there's no component state to keep, so it uses links like the table above.";
 
     private const string StateCode =
         """
-        <Table Items="orders" PageSize="5" @bind-Sort="sort" @bind-Page="page">
+        <Table Items="orders" PageSize="5" @bind-Sort="sort" @bind-Page="page" @bind-Filters="filters">
             <PropertyColumn Property="o => o.Customer" Sortable />
             ...
         </Table>
 
         @code {
             private string? sort;     // "customer", "-date"...; null for InitialSort
-            private int page = 1;     // set it back to 1 when your filters change
+            private int page = 1;     // set it back to 1 when your own filters change
+            private IReadOnlyDictionary<string, string>? filters;   // "customer" -> "ada"
         }
         """;
 
@@ -258,9 +336,15 @@
         async ValueTask<TableResult<Product>> LoadProducts(TableRequest<Product> request)
         {
             var query = db.Products.Where(p => p.Active);
-            var page = await request.Apply(query).ToListAsync();
-            return new(page, await query.CountAsync());
+            var page = await request.Apply(query).ToListAsync();   // filters, sorts, pages
+            return new(page, await request.ApplyFiltering(query).CountAsync());
         }
+        """;
+
+    private const string LinesCode =
+        """
+        <Table Items="orders" ColumnLines>...</Table>
+        <Table Items="orders" RowLines="false" Bordered="false" Striped>...</Table>
         """;
 
     private const string ScrollCode =

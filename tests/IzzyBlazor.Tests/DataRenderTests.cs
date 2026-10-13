@@ -44,6 +44,25 @@ public class DataRenderTests : BunitContext
         cut.FindAll("tbody tr").Select(r => r.Children[index].TextContent).ToArray();
 
     [Fact]
+    public void Line_settings_add_their_classes()
+    {
+        var plain = RenderTable().Find("ib-table");
+        Assert.DoesNotContain("ib-table-no-row-lines", plain.ClassName);
+        Assert.DoesNotContain("ib-table-column-lines", plain.ClassName);
+        Assert.DoesNotContain("ib-table-borderless", plain.ClassName);
+
+        var lined = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.RowLines, false)
+            .Add(t => t.ColumnLines, true)
+            .Add(t => t.Bordered, false)
+            .Add(t => t.ChildContent, Columns)).Find("ib-table");
+        Assert.Contains("ib-table-no-row-lines", lined.ClassName);
+        Assert.Contains("ib-table-column-lines", lined.ClassName);
+        Assert.Contains("ib-table-borderless", lined.ClassName);
+    }
+
+    [Fact]
     public void Columns_take_titles_alignment_and_formats_from_the_property()
     {
         var cut = RenderTable();
