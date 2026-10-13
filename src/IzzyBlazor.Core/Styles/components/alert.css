@@ -93,6 +93,114 @@
 }
 
 /*
+ * Banner: a full-width strip for app-wide messages. It takes the alert's status and variant
+ * classes for its colors (--ib-accent and friends) and has its own shape: no radius, one line
+ * under it. The line box is a whole 20px, and the icon and close button are trimmed to it, so
+ * every part sits on the same line at whole pixels.
+ */
+@layer izzy.components {
+  /* Defaults with no weight, so the status and variant classes win wherever they are. */
+  :where(.ib-banner) {
+    --ib-accent: var(--ib-color-info);
+    --ib-on-accent: var(--ib-color-on-info);
+    --ib-accent-text: var(--ib-color-info-text);
+
+    border-color: transparent;
+  }
+
+  .ib-banner {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--ib-space-3);
+    padding: var(--ib-space-2) var(--ib-space-4);
+    border-style: solid;
+    border-width: 0 0 1px;
+    font-size: var(--ib-text-sm);
+    line-height: 1.25rem;
+  }
+
+  .ib-banner-icon {
+    flex: none;
+    width: 1.25rem;
+    height: 1.25rem;
+    color: var(--ib-accent-text);
+  }
+
+  .ib-alert-solid > .ib-banner-icon {
+    color: inherit;
+  }
+
+  .ib-banner-body {
+    display: flex;
+    flex: 1;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--ib-space-1) var(--ib-space-3);
+    min-width: 0;
+  }
+
+  .ib-banner-title {
+    margin-inline-end: var(--ib-space-1);
+    font-weight: var(--ib-weight-semibold);
+  }
+
+  .ib-banner-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-start;
+    gap: var(--ib-space-2);
+  }
+
+  /* Buttons in the actions keep their size but take only the line's height in the strip. */
+  .ib-banner-actions > .ib-btn {
+    margin-block: calc((1.25rem - var(--ib-btn-h)) / 2);
+  }
+
+  /* Links in the strip take its color: the status text color, or the text on a solid fill. */
+  .ib-banner .ib-link {
+    color: var(--ib-accent-text);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-alert-solid.ib-banner .ib-link {
+    color: inherit;
+  }
+
+  .ib-banner-close {
+    flex: none;
+    margin-block: calc((1.25rem - var(--ib-btn-h)) / 2);
+    margin-inline-end: calc(var(--ib-space-2) * -1);
+    color: inherit;
+    cursor: pointer;
+  }
+
+  .ib-alert-solid > .ib-banner-close:hover {
+    background-color: color-mix(in oklab, currentColor 15%, transparent);
+  }
+
+  .ib-banner-dismiss:focus-visible + .ib-banner-close {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: -2px;
+  }
+
+  .ib-banner:has(> .ib-banner-dismiss:checked) {
+    display: none;
+  }
+
+  /* In an AppShell it takes the row above the header, across every column. */
+  .ib-shell > .ib-banner {
+    grid-area: banner;
+  }
+
+  /* Position="Sticky": stays at the top of the window, above a sticky header. */
+  .ib-banner-sticky {
+    position: sticky;
+    top: 0;
+    z-index: 21;
+  }
+}
+
+/*
  * Toasts: alerts stacked in a fixed region. The region lets clicks through; the toasts don't.
  * They slide in, and fade out when closed (where the browser can animate display).
  */

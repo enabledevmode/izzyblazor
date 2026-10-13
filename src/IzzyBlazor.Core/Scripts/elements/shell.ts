@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { writeCookie } from "../cookies";
 
 /**
  * <ib-shell> upgrades AppShell's mobile drawer. Without it the drawer still works through
@@ -169,11 +170,7 @@ class Shell extends IzzyElement {
 /** Writes a collapsible sidebar's state to its cookie, which the server reads on the next request. */
 function remember(input: HTMLInputElement, collapsed: boolean): void {
   const name = input.dataset.ibRemember;
-  if (!name) return;
-  // "/app/" wouldn't be sent for "/app", so drop the trailing slash (but keep a bare "/").
-  const path = new URL(document.baseURI).pathname.replace(/(.)\/$/, "$1");
-  const secure = location.protocol === "https:" ? "; secure" : "";
-  document.cookie = `${encodeURIComponent(name)}=${collapsed ? 1 : 0}; path=${path}; max-age=31536000; samesite=lax${secure}`;
+  if (name) writeCookie(name, collapsed ? "1" : "0");
 }
 
 defineElement("ib-shell", Shell);

@@ -25,7 +25,7 @@ public static class DemoCatalog
         new("paging", "Breadcrumb, Pagination", "Navigation", typeof(PagingDemo)),
         new("stepper", "Stepper", "Navigation", typeof(StepperDemo)),
         new("badge", "Badge and Tag", "Feedback", typeof(BadgeDemo)),
-        new("alerts", "Alert and Toast", "Feedback", typeof(AlertDemo)),
+        new("alerts", "Alert, Banner and Toast", "Feedback", typeof(AlertDemo)),
         new("loading", "Spinner, Progress, Skeleton", "Feedback", typeof(LoadingDemo)),
         new("avatar", "Avatar", "Data display", typeof(AvatarDemo)),
         new("card", "Card", "Data display", typeof(CardDemo)),

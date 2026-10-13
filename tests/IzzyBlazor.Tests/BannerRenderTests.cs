@@ -1,0 +1,144 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace IzzyBlazor.Tests;
+
+public class BannerRenderTests : BunitContext
+{
+    // Services must be registered before anything starts the renderer, SetRendererInfo included.
+    private void UseCookie(string? header)
+    {
+        var http = new DefaultHttpContext();
+        if (header is not null)
+        {
+            http.Request.Headers.Cookie = header;
+        }
+
+        Services.AddSingleton<IHttpContextAccessor>(new FixedHttpContextAccessor { HttpContext = http });
+        Services.AddScoped<IRequestCookies, HttpRequestCookies>();
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+    }
+
+    [Fact]
+    public void Banner_is_a_labelled_region_with_status_colors()
+    {
+        UseCookie(null);
+        var banner = Render<Banner>(p => p
+            .Add(b => b.Status, Status.Warning)
+            .Add(b => b.Title, "Heads up")
+            .AddChildContent("Maintenance tonight.")).Find("ib-banner");
+
+        Assert.Equal("region", banner.GetAttribute("role"));
+        Assert.Equal("Announcement", banner.GetAttribute("aria-label"));
+        Assert.Contains("ib-banner", banner.ClassName);
+        Assert.Contains("ib-alert-warning", banner.ClassName);
+        Assert.Contains("ib-alert-soft", banner.ClassName);
+        Assert.Equal("Heads up", banner.QuerySelector(".ib-banner-title")!.TextContent);
+        Assert.Contains("Warning: ", banner.QuerySelector(".ib-visually-hidden")!.TextContent);
+        // Not announced by default: it's there when the page loads.
+        Assert.Null(banner.QuerySelector(".ib-banner-body")!.GetAttribute("role"));
+        Assert.NotNull(banner.QuerySelector(".ib-banner-icon"));
+    }
+
+    [Theory]
+    [InlineData(Status.Info, "status")]
+    [InlineData(Status.Danger, "alert")]
+    public void Announce_sets_a_live_role_on_the_message(Status status, string role)
+    {
+        UseCookie(null);
+        var body = Render<Banner>(p => p.Add(b => b.Status, status).Add(b => b.Announce, true).AddChildContent("Offline"))
+            .Find(".ib-banner-body");
+
+        Assert.Equal(role, body.GetAttribute("role"));
+    }
+
+    [Theory]
+    [InlineData(BarPosition.Static, false)]
+    [InlineData(BarPosition.Sticky, true)]
+    public void Position_sticky_adds_the_sticky_class(BarPosition position, bool sticky)
+    {
+        UseCookie(null);
+        var banner = Render<Banner>(p => p.Add(b => b.Position, position)).Find("ib-banner");
+
+        Assert.Equal(sticky, banner.ClassList.Contains("ib-banner-sticky"));
+    }
+
+    [Fact]
+    public void Color_overrides_the_status_color()
+    {
+        UseCookie(null);
+        var banner = Render<Banner>(p => p.Add(b => b.Color, Color.Primary).Add(b => b.Variant, AlertVariant.Solid))
+            .Find("ib-banner");
+
+        Assert.Contains("ib-alert-solid", banner.ClassName);
+        Assert.Contains("--ib-accent:var(--ib-color-primary)", banner.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void Dismissible_banner_works_without_script_and_reports_to_csharp()
+    {
+        UseCookie(null);
+        bool? reported = null;
+        var cut = Render<Banner>(p => p
+            .Add(b => b.Id, "b1")
+            .Add(b => b.Dismissible, true)
+            .Add(b => b.DismissedChanged, (bool d) => reported = d)
+            .AddChildContent("Hi"));
+
+        var input = cut.Find("input.ib-banner-dismiss");
+        Assert.Equal("b1-dismiss", input.Id);
+        Assert.Null(input.GetAttribute("data-ib-remember"));
+        Assert.Equal("b1-dismiss", cut.Find("label.ib-banner-close").GetAttribute("for"));
+
+        input.Change(true);
+        Assert.True(reported);
+        Assert.Empty(cut.FindAll("ib-banner"));
+    }
+
+    [Fact]
+    public void RememberKey_names_the_cookie_the_element_writes()
+    {
+        UseCookie(null);
+        var input = Render<Banner>(p => p.Add(b => b.Dismissible, true).Add(b => b.RememberKey, "trial-ends"))
+            .Find("input.ib-banner-dismiss");
+
+        Assert.Equal("ib-banner-trial-ends", input.GetAttribute("data-ib-remember"));
+    }
+
+    [Theory]
+    [InlineData("ib-banner-trial-ends=1", false)]
+    [InlineData("ib-banner-trial-ends=0", true)]
+    [InlineData("ib-banner-old-key=1", true)]
+    [InlineData(null, true)]
+    public void A_remembered_dismissal_leaves_the_banner_out(string? cookie, bool shown)
+    {
+        UseCookie(cookie);
+        var cut = Render<Banner>(p => p.Add(b => b.Dismissible, true).Add(b => b.RememberKey, "trial-ends").AddChildContent("Trial"));
+
+        Assert.Equal(shown, cut.FindAll("ib-banner").Count == 1);
+    }
+
+    [Fact]
+    public void Remembered_banner_can_be_shown_again_from_csharp()
+    {
+        UseCookie("ib-banner-k=1");
+        var cut = Render<Banner>(p => p.Add(b => b.Dismissible, true).Add(b => b.RememberKey, "k"));
+        Assert.Empty(cut.FindAll("ib-banner"));
+
+        cut.Render(p => p.Add(b => b.Dismissed, true));
+        cut.Render(p => p.Add(b => b.Dismissed, false));
+
+        Assert.Single(cut.FindAll("ib-banner"));
+    }
+
+    [Theory]
+    [InlineData("has space")]
+    [InlineData("semi;colon")]
+    [InlineData("")]
+    public void RememberKey_must_be_cookie_safe(string key)
+    {
+        UseCookie(null);
+        Assert.ThrowsAny<ArgumentException>(() => Render<Banner>(p => p.Add(b => b.RememberKey, key)));
+    }
+}

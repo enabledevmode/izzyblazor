@@ -47,6 +47,13 @@
         </Stack>
     </Example>
 
+    <Example Title="Banner" Note="A Banner placed inside AppShell takes a row of its own above the header, across the full width, even with a full-height sidebar. By default it scrolls away with the page and the sticky header stays; Position=&quot;BarPosition.Sticky&quot; (the second frame) keeps it above the header." Code="@BannerCode">
+        <Stack Gap="4">
+            <iframe class="host-frame" style="width:100%;height:22rem" src="preview/app-shell?banner=on" title="AppShell with a banner"></iframe>
+            <iframe class="host-frame" style="width:100%;height:22rem" src="preview/app-shell?banner=on&amp;bannersticky=on&amp;full=on&amp;slots=on&amp;look=tinted" title="AppShell with a sticky banner and a full-height sidebar"></iframe>
+        </Stack>
+    </Example>
+
     <Example Title="Colors and dividers" Note="Each part takes Bg (the sidebar and aside colors run the full height), and Dividers on AppShell turns the lines between parts on or off. Mix them: one color with lines, tinted chrome without lines, and so on." Code="@AreaCode">
         <Stack Gap="4">
             <TextBlock As="span" Class="host-label">Tinted chrome, no lines</TextBlock>
@@ -142,6 +149,18 @@
             <Header>(your brand: the row matches AppHeader's height)</Header>
             <ChildContent><NavMenu>...</NavMenu></ChildContent>
         </AppSidebar>
+        """;
+
+    private const string BannerCode =
+        """
+        <AppShell>
+            <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-sunday"
+                    Position="BarPosition.Sticky">
+                Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
+            </Banner>
+            <AppHeader>...</AppHeader>
+            ...
+        </AppShell>
         """;
 
     private const string ScrollCode =
