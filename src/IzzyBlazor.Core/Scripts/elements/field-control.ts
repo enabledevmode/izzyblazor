@@ -21,8 +21,8 @@ class FieldControl extends IzzyElement {
         () => {
           const show = input.type === "password";
           input.type = show ? "text" : "password";
+          // A toggle button keeps its name; aria-pressed says whether the password is shown.
           reveal.setAttribute("aria-pressed", String(show));
-          reveal.setAttribute("aria-label", show ? "Hide password" : "Show password");
           input.focus();
         },
         { signal }

@@ -14,7 +14,7 @@
     </Stepper>
 *@
 
-<ol @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-label="@Label">
+<ol @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-label="@(Label ?? TextDefaults.Progress)">
     @* Not fixed: steps have only simple parameters, so this is what re-renders them when Current
        changes on an interactive page. *@
     <CascadingValue Value="_context">
@@ -39,10 +39,12 @@
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
 
     /// <summary>The list's accessible name. Defaults to "Progress".</summary>
-    [Parameter] public string Label { get; set; } = "Progress";
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>Read after a finished step's label, in place of its check mark. Defaults to "(completed)".</summary>
-    [Parameter] public string CompletedLabel { get; set; } = "(completed)";
+    [Parameter] public string? CompletedLabel { get; set; }
+
+    internal string EffectiveCompletedLabel => CompletedLabel ?? TextDefaults.Completed;
 
     /// <summary>The marker and text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;

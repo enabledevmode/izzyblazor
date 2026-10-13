@@ -20,7 +20,7 @@
 *@
 
 <ib-filter-form class="@_class" style="@_style" data-live="@(Live ? "" : null)">
-    <form @attributes="AdditionalAttributes" method="get" action="@ActionPath" role="search" aria-label="@Label" class="ib-filter-row">
+    <form @attributes="AdditionalAttributes" method="get" action="@ActionPath" role="search" aria-label="@(Label ?? TextDefaults.Filters)" class="ib-filter-row">
         @foreach (var (key, value) in Kept())
         {
             <input type="hidden" name="@key" value="@value" />
@@ -29,10 +29,10 @@
             @ChildContent
         </CascadingValue>
         <div class="ib-filter-buttons">
-            <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-filter-apply">@ApplyText</button>
+            <button type="submit" class="ib-btn ib-btn-neutral ib-btn-outline ib-filter-apply">@(ApplyText ?? TextDefaults.Apply)</button>
             @if (HasValues)
             {
-                <a href="@ClearHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-filter-clear">@ClearText</a>
+                <a href="@ClearHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-filter-clear">@(ClearText ?? TextDefaults.Clear)</a>
             }
         </div>
     </form>
@@ -49,13 +49,13 @@
     [Parameter] public IReadOnlyList<string>? Fields { get; set; }
 
     /// <summary>The search landmark's name. Defaults to "Filters".</summary>
-    [Parameter] public string Label { get; set; } = "Filters";
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>The submit button's text, shown when JavaScript is off or <see cref="Live"/> is false. Defaults to "Apply".</summary>
-    [Parameter] public string ApplyText { get; set; } = "Apply";
+    [Parameter] public string? ApplyText { get; set; }
 
     /// <summary>The text of the link that removes every filter. Defaults to "Clear".</summary>
-    [Parameter] public string ClearText { get; set; } = "Clear";
+    [Parameter] public string? ClearText { get; set; }
 
     private readonly FilterFormContext _context = new();
     private string? _class;

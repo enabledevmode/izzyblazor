@@ -15,7 +15,7 @@
 <ib-toasts @attributes="AdditionalAttributes"
            class="@($"ib-toast-region ib-toast-{Placement.Name()}")"
            role="region"
-           aria-label="@Label"
+           aria-label="@(Label ?? TextDefaults.Notifications)"
            data-duration="@Duration">
     @* One live region for every toast: those in a response (an enhanced post inserts them, so
        they're announced) and those the script adds. *@
@@ -27,7 +27,7 @@
                    Title="@toast.Title"
                    Dismissible
                    Announce="false"
-                   DismissLabel="@DismissLabel"
+                   DismissLabel="@(DismissLabel ?? TextDefaults.Dismiss)"
                    Class="ib-toast"
                    Actions="@ActionLink(toast.Action)"
                    data-duration="@(toast.Duration ?? DefaultDuration(toast))">@toast.Message</Alert>
@@ -36,7 +36,7 @@
     @foreach (var status in Enum.GetValues<Status>())
     {
         <template data-status="@status.ToString().ToLowerInvariant()">
-            <Alert Status="status" Variant="Variant" Title="title" Dismissible Announce="false" DismissLabel="@DismissLabel" Id="ib-toast-template" Class="ib-toast" Actions="ActionSlot"><span data-ib-toast-message></span></Alert>
+            <Alert Status="status" Variant="Variant" Title="title" Dismissible Announce="false" DismissLabel="@(DismissLabel ?? TextDefaults.Dismiss)" Id="ib-toast-template" Class="ib-toast" Actions="ActionSlot"><span data-ib-toast-message></span></Alert>
         </template>
     }
 </ib-toasts>
@@ -52,10 +52,12 @@
     [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Outline;
 
     /// <summary>The region's name for screen readers. Defaults to "Notifications".</summary>
-    [Parameter] public string Label { get; set; } = "Notifications";
+    [Parameter] public string? Label { get; set; }
+
+    private IzzyText TextDefaults => Services.GetService<IzzyText>() ?? IzzyText.English;
 
     /// <summary>The close buttons' accessible name. Defaults to "Dismiss".</summary>
-    [Parameter] public string DismissLabel { get; set; } = "Dismiss";
+    [Parameter] public string? DismissLabel { get; set; }
 
     /// <summary>Extra attributes for the region element.</summary>
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }

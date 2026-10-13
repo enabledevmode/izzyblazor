@@ -41,7 +41,7 @@ public abstract class ButtonBase : IzzyComponentBase
     [Parameter] public bool Loading { get; set; }
 
     /// <summary>Read to screen readers while <see cref="Loading"/>. Defaults to "Loading".</summary>
-    [Parameter] public string LoadingLabel { get; set; } = "Loading";
+    [Parameter] public string? LoadingLabel { get; set; }
 
     /// <summary>Disables the button.</summary>
     [Parameter] public bool Disabled { get; set; }
@@ -102,7 +102,7 @@ public abstract class ButtonBase : IzzyComponentBase
             builder.AddContent(0, IconFragment(IconSet.Current.Get(IconRole.Loading), spin: true));
             builder.OpenElement(6, "span");
             builder.AddAttribute(7, "class", "ib-visually-hidden");
-            builder.AddContent(8, LoadingLabel);
+            builder.AddContent(8, LoadingLabel ?? TextDefaults.Loading);
             builder.CloseElement();
         }
         else if (StartIcon is { } start)

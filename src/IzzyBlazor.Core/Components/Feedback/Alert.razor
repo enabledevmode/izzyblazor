@@ -43,9 +43,9 @@
             <input type="checkbox"
                    id="@($"{ElementId}-dismiss")"
                    class="ib-alert-dismiss ib-visually-hidden"
-                   aria-label="@DismissLabel"
+                   aria-label="@(DismissLabel ?? TextDefaults.Dismiss)"
                    @onchange="OnDismiss" />
-            <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-hidden="true" title="@DismissLabel">
+            <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
                 <Icon Role="IconRole.Close" />
             </label>
         }
@@ -98,7 +98,7 @@
     [Parameter] public string? StatusLabel { get; set; }
 
     /// <summary>The close button's accessible name. Defaults to "Dismiss".</summary>
-    [Parameter] public string DismissLabel { get; set; } = "Dismiss";
+    [Parameter] public string? DismissLabel { get; set; }
 
     /// <summary>The element id. Generated when not set.</summary>
     [Parameter] public string? Id { get; set; }

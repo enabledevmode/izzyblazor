@@ -41,7 +41,7 @@ public class Link : IzzyComponentBase
     [Parameter] public bool Inherit { get; set; }
 
     /// <summary>Read to screen readers after an external link's text. Defaults to "(opens in a new tab)".</summary>
-    [Parameter] public string NewTabLabel { get; set; } = "(opens in a new tab)";
+    [Parameter] public string? NewTabLabel { get; set; }
 
     /// <summary>The link text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -79,7 +79,7 @@ public class Link : IzzyComponentBase
             builder.CloseComponent();
             builder.OpenElement(11, "span");
             builder.AddAttribute(12, "class", "ib-visually-hidden");
-            builder.AddContent(13, $" {NewTabLabel}");
+            builder.AddContent(13, $" {NewTabLabel ?? TextDefaults.OpensInNewTab}");
             builder.CloseElement();
         }
 

@@ -7,7 +7,7 @@ internal sealed class StepperContext(Stepper owner)
 
     public int Current => owner.Current;
 
-    public string CompletedLabel => owner.CompletedLabel;
+    public string CompletedLabel => owner.EffectiveCompletedLabel;
 
     /// <summary>The step's position, counting from 1, in the order the steps were first rendered.</summary>
     public int NumberOf(Step step)

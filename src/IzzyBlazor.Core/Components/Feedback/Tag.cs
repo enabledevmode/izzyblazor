@@ -63,11 +63,11 @@ public class Tag : IzzyComponentBase
     [Parameter] public EventCallback OnRemove { get; set; }
 
     /// <summary>The remove control's name, before the label: "Remove Blazor". Defaults to "Remove".</summary>
-    [Parameter] public string RemoveLabel { get; set; } = "Remove";
+    [Parameter] public string? RemoveLabel { get; set; }
 
     private bool RemoveButton => OnRemove.HasDelegate && RendererInfo.IsInteractive;
 
-    private string RemoveName => string.IsNullOrWhiteSpace(Label) ? RemoveLabel : $"{RemoveLabel} {Label}";
+    private string RemoveName => string.IsNullOrWhiteSpace(Label) ? RemoveLabel ?? TextDefaults.Remove : $"{RemoveLabel ?? TextDefaults.Remove} {Label}";
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

@@ -59,7 +59,7 @@
                disabled="@Disabled"
                readonly="@ReadOnly"
                @attributes="SearchAttributes" />
-        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@ToggleLabel" disabled="@Disabled">
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@Disabled">
             <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
         </button>
         <div id="@ListId"
@@ -89,7 +89,7 @@
                     }
                 </div>
             }
-            <div class="ib-combobox-empty" role="status">@(_searching ? SearchingText : EmptyText)</div>
+            <div class="ib-combobox-empty" role="status">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
     </ib-combobox>
 </FieldFrame>
@@ -125,13 +125,13 @@
     [Parameter] public string? Placeholder { get; set; }
 
     /// <summary>Shown when nothing matches.</summary>
-    [Parameter] public string EmptyText { get; set; } = "No matches";
+    [Parameter] public string? EmptyText { get; set; }
 
     /// <summary>Shown while <see cref="Search"/> runs.</summary>
-    [Parameter] public string SearchingText { get; set; } = "Searching…";
+    [Parameter] public string? SearchingText { get; set; }
 
     /// <summary>The accessible name of the button that opens the list.</summary>
-    [Parameter] public string ToggleLabel { get; set; } = "Show options";
+    [Parameter] public string? ToggleLabel { get; set; }
 
     private string InputId => FieldId + "-input";
     private string ListId => FieldId + "-list";

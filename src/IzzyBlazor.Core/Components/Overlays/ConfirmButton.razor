@@ -54,7 +54,7 @@
         }
     </ChildContent>
     <Footer>
-        <DialogClose autofocus>@CancelText</DialogClose>
+        <DialogClose autofocus>@(CancelText ?? TextDefaults.Cancel)</DialogClose>
         @if (Href is not null)
         {
             <LinkButton Href="@Href" Accent="Accent" Color="Color">@ResolvedConfirmText</LinkButton>
@@ -89,7 +89,7 @@
     [Parameter] public string? ConfirmText { get; set; }
 
     /// <summary>The cancel button's text. Defaults to "Cancel".</summary>
-    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string? CancelText { get; set; }
 
     /// <summary>Posted as <c>Name=Value</c> with the form when confirmed, so one handler can tell which action it was.</summary>
     [Parameter] public string? Name { get; set; }

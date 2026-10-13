@@ -23,7 +23,7 @@
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-combobox class="ib-field-control ib-has-end ib-combobox ib-multiselect"
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
-                 data-remove-label="@RemoveLabel">
+                 data-remove-label="@(RemoveLabel ?? TextDefaults.Remove)">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
                 class="ib-field-input ib-combobox-select ib-multiselect-select"
@@ -60,7 +60,7 @@
                    disabled="@Disabled"
                    readonly="@ReadOnly" />
         </div>
-        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@ToggleLabel" disabled="@Disabled">
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@Disabled">
             <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
         </button>
         <div id="@ListId"
@@ -90,7 +90,7 @@
                     }
                 </div>
             }
-            <div class="ib-combobox-empty" role="status">@EmptyText</div>
+            <div class="ib-combobox-empty" role="status">@(EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
     </ib-combobox>
 </FieldFrame>
@@ -109,13 +109,13 @@
     [Parameter] public string? Placeholder { get; set; }
 
     /// <summary>Shown when nothing matches.</summary>
-    [Parameter] public string EmptyText { get; set; } = "No matches";
+    [Parameter] public string? EmptyText { get; set; }
 
     /// <summary>The accessible name of the button that opens the list.</summary>
-    [Parameter] public string ToggleLabel { get; set; } = "Show options";
+    [Parameter] public string? ToggleLabel { get; set; }
 
     /// <summary>The start of each chip's remove button name for screen readers, before the option's text. Defaults to "Remove".</summary>
-    [Parameter] public string RemoveLabel { get; set; } = "Remove";
+    [Parameter] public string? RemoveLabel { get; set; }
 
     private string InputId => FieldId + "-input";
     private string ListId => FieldId + "-list";

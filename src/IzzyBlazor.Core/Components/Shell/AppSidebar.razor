@@ -23,10 +23,10 @@
 
 @* "#ib-shell-closed" matches no element: it clears :target without scrolling to the top as "#" would. *@
 <a class="ib-shell-backdrop" href="#ib-shell-closed" tabindex="-1" aria-hidden="true"></a>
-<nav @attributes="AdditionalAttributes" id="@Id" aria-label="@Label" class="@_class" style="@_style">
+<nav @attributes="AdditionalAttributes" id="@Id" aria-label="@(Label ?? TextDefaults.MainNavigation)" class="@_class" style="@_style">
     <div class="ib-shell-sidebar-inner">
         <div class="ib-shell-sidebar-close">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm" href="#ib-shell-closed" role="button" aria-label="@CloseLabel" data-ib-shell-close>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm" href="#ib-shell-closed" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
                 <Icon Role="IconRole.Close" />
             </a>
         </div>
@@ -81,7 +81,7 @@
     [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.Md;
 
     /// <summary>The navigation landmark's name for screen readers. Defaults to "Main".</summary>
-    [Parameter] public string Label { get; set; } = "Main";
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>The element id, which <see cref="SidebarToggle"/> links to. Defaults to <c>ib-sidebar</c>.</summary>
     [Parameter] public string Id { get; set; } = "ib-sidebar";
@@ -132,10 +132,10 @@
     [Parameter] public RenderFragment? Footer { get; set; }
 
     /// <summary>The drawer's close button name. Defaults to "Close menu".</summary>
-    [Parameter] public string CloseLabel { get; set; } = "Close menu";
+    [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>The collapse control's accessible name. Defaults to "Collapse sidebar".</summary>
-    [Parameter] public string CollapseLabel { get; set; } = "Collapse sidebar";
+    [Parameter] public string? CollapseLabel { get; set; }
 
 
     private string? _class;
@@ -154,13 +154,13 @@
             <input type="checkbox"
                    id="@CollapseInputId"
                    class="ib-shell-collapse-input ib-visually-hidden"
-                   aria-label="@CollapseLabel"
+                   aria-label="@(CollapseLabel ?? TextDefaults.CollapseSidebar)"
                    aria-controls="@Id"
                    checked="@_collapsed"
                    data-ib-remember="@(RememberState ? CookieName : null)"
                    data-ib-collapsed="@(_collapsed ? "1" : "0")"
                    @onchange="OnCollapseChange" />
-            <label for="@CollapseInputId" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-shell-collapse-btn" aria-hidden="true" title="@CollapseLabel">
+            <label for="@CollapseInputId" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-shell-collapse-btn" aria-hidden="true" title="@(CollapseLabel ?? TextDefaults.CollapseSidebar)">
                 <Icon Role="IconRole.ChevronLeft" Class="ib-shell-collapse-icon" />
             </label>
         </div>

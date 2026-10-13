@@ -14,9 +14,9 @@
     <Pagination @bind-Page="page" PageCount="12" />     interactive, no URL
 *@
 
-<nav @attributes="AdditionalAttributes" aria-label="@Label" class="@_class" style="@_style">
+<nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Pagination)" class="@_class" style="@_style">
     <ul class="ib-pagination-list">
-        <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel, IconRole.ChevronLeft, "ib-pagination-prev")</li>
+        <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel ?? TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
         @foreach (var item in Items())
         {
             if (item == 0)
@@ -28,11 +28,11 @@
                 @if (UseButtons)
                 {
                     @* A button, so focus stays on it after it becomes the current page. *@
-                    <li><button type="button" class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@item</button></li>
+                    <li><button type="button" class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@item</button></li>
                 }
                 else
                 {
-                    <li><span class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@item</span></li>
+                    <li><span class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@item</span></li>
                 }
             }
             else
@@ -40,7 +40,7 @@
                 <li class="@(Math.Abs(item - _page) > 1 ? "ib-pagination-far" : null)">@PageLink(item)</li>
             }
         }
-        <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel, IconRole.ChevronRight, "ib-pagination-next")</li>
+        <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel ?? TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
     </ul>
 </nav>
 
@@ -76,16 +76,16 @@
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
     /// <summary>The navigation landmark's name. Defaults to "Pagination".</summary>
-    [Parameter] public string Label { get; set; } = "Pagination";
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>The previous button's name. Defaults to "Previous page".</summary>
-    [Parameter] public string PreviousLabel { get; set; } = "Previous page";
+    [Parameter] public string? PreviousLabel { get; set; }
 
     /// <summary>The next button's name. Defaults to "Next page".</summary>
-    [Parameter] public string NextLabel { get; set; } = "Next page";
+    [Parameter] public string? NextLabel { get; set; }
 
     /// <summary>Read before each page number by screen readers. Defaults to "Page".</summary>
-    [Parameter] public string PageLabel { get; set; } = "Page";
+    [Parameter] public string? PageLabel { get; set; }
 
     private int _page = 1;
     private int _count = 1;
@@ -166,11 +166,11 @@
     {
         if (UseButtons)
         {
-            <button type="button" class="@ItemClass("")" @onclick="() => PageChanged.InvokeAsync(number)"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@(number)</button>
+            <button type="button" class="@ItemClass("")" @onclick="() => PageChanged.InvokeAsync(number)"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@(number)</button>
         }
         else
         {
-            <a href="@Href(number)" class="@ItemClass("")"><span class="ib-visually-hidden">@(PageLabel + " ")</span>@(number)</a>
+            <a href="@Href(number)" class="@ItemClass("")"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@(number)</a>
         }
     };
 
