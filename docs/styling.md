@@ -72,8 +72,7 @@ or white for a hex color.
 
 ## Themes
 
-The default theme is **Ink on Stone**: a monochrome accent (ink buttons, focus and controls) on warm
-grays, with white cards, tables and fields on an off-white page. Pick a named theme, or your own
+The default theme is **Blue on neutral grays**, with white cards, tables and fields on a near-white page. Pick a named theme, or your own
 accent, gray and corner radius, with attributes on `<html>` in `App.razor`:
 
 ```html
@@ -87,18 +86,18 @@ Named themes are presets of the sets below; an explicit `data-ib-accent`, `data-
 
 | `data-ib-theme` | Accent | Gray | Radius | Headings |
 | --- | --- | --- | --- | --- |
-| `ember` | Ember | Stone | md | Bricolage Grotesque |
+| `ember` | Ember | Neutral | md | Bricolage Grotesque, bold |
 | `classic` | Blue | Slate | md | |
 | `editorial` | Ink | Stone | lg | Newsreader (serif) |
 | `harbor` | Teal | Slate | md | |
-| `grove` | Green | Stone | md | |
+| `grove` | Green | Neutral | md | |
 | `studio` | Violet | Neutral | lg | |
 | `crisp` | Indigo | Neutral | sm | |
 
 | Attribute | Values |
 | --- | --- |
-| `data-ib-accent` | `ink` (default), `blue`, `indigo`, `violet`, `teal`, `green`, `rose`, `ember` |
-| `data-ib-gray` | `stone` (default, warm), `slate` (cool), `neutral` (no tint) |
+| `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose`, `ember` |
+| `data-ib-gray` | `neutral` (default), `stone` (warm paper; pairs with serif headings), `slate` (cool) |
 | `data-ib-radius` | `sm`, `md` (default), `lg` |
 
 Every accent is tuned by hand in light and dark: text holds 4.5:1 on its fill and on every gray. The
@@ -106,14 +105,15 @@ attributes work on any element too, for part of a page; set accent and gray on t
 They're plain CSS, so they work in every render mode with no script.
 
 **Fonts.** Body text uses the system font (`--ib-font-sans`). Headings, card and dialog titles use
-`--ib-font-heading`, which is Bricolage Grotesque when your app loads it, else the body font. To use
-it, add the font to your `<head>` (or self-host it; it's under the SIL Open Font License):
+`--ib-font-heading` at `--ib-weight-heading`: by default the body font, semibold. The `ember` theme
+uses Bricolage Grotesque and `editorial` uses Newsreader; load the font in your `<head>` (or
+self-host it; both are under the SIL Open Font License):
 
 ```html
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
 ```
 
-Or set your own: `:root { --ib-font-sans: "IBM Plex Sans", system-ui, sans-serif; --ib-font-heading: Newsreader, Georgia, serif; }`.
+Or set your own: `:root { --ib-font-sans: "IBM Plex Sans", system-ui, sans-serif; --ib-font-heading: Newsreader, Georgia, serif; --ib-weight-heading: 500; }`.
 
 **The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
 tables, fields, bars and menus are `--ib-color-surface`. For a white page, set

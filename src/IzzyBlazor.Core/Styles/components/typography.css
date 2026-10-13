@@ -8,10 +8,10 @@
     margin: 0;
   }
 
-  /* Headings use the heading font (Bricolage Grotesque when the app loads it). */
+  /* Headings: the heading font and weight (the body sans, semibold, unless a theme sets them). */
   .ib-heading {
     font-family: var(--ib-font-heading);
-    font-weight: var(--ib-weight-bold);
+    font-weight: var(--ib-weight-heading, var(--ib-weight-semibold));
     line-height: var(--ib-leading-tight);
     text-wrap: balance;
   }

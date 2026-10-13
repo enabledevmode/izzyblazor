@@ -84,7 +84,7 @@ public readonly partial struct Color : IEquatable<Color>
     /// <summary>Text and icons on <see cref="Neutral"/>.</summary>
     public static Color OnNeutral { get; } = Token("on-neutral");
 
-    /// <summary>The page, behind the surfaces: a warm off-white in the default theme.</summary>
+    /// <summary>The page, behind the surfaces: a near-white in the default theme.</summary>
     public static Color Background { get; } = Token("background");
 
     /// <summary>Cards, tables, fields and bars: white in light mode.</summary>
