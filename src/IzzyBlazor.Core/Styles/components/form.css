@@ -1160,17 +1160,142 @@
     cursor: pointer;
   }
 
+  /*
+   * Checkboxes and radios, drawn with the field tokens so they match fields and switches in every
+   * browser and scheme. The check, dash and dot are masks in the on-primary color. Indeterminate
+   * shows from :indeterminate (set by the script) or, with no script, data-indeterminate until
+   * the box is checked. Sizes follow ControlSize.
+   */
+  /*
+   * Whole-pixel geometry, so edges don't split across pixels at 1x: the box is 16, 18 or 20px,
+   * and the radio dot has the same parity as the box's inside (box minus its 1px borders), so it
+   * centers on whole pixels. The box's offset from the label's first line is rounded too.
+   */
+  .ib-check {
+    --ib-check-size: 1.125rem;
+    --ib-check-dot: 0.5rem;
+  }
+
+  .ib-field-sm .ib-check,
+  .ib-filter-form .ib-check {
+    --ib-check-size: 1rem;
+    --ib-check-dot: 0.375rem;
+  }
+
+  .ib-field-lg .ib-check {
+    --ib-check-size: 1.25rem;
+    --ib-check-dot: 0.625rem;
+  }
+
   .ib-check-input {
+    appearance: none;
+    position: relative;
+    display: grid;
+    place-content: center;
     flex-shrink: 0;
-    width: 1.125rem;
-    height: 1.125rem;
-    margin: 0.125rem 0 0;
-    accent-color: var(--ib-color-primary);
+    width: var(--ib-check-size);
+    height: var(--ib-check-size);
+    /* Centers the box on the label's first line (1lh is the label's line height, inherited),
+       on a whole pixel where round() is supported. */
+    font: inherit;
+    margin: calc((1lh - var(--ib-check-size)) / 2) 0 0;
+    margin-block-start: max(0px, round(nearest, (1lh - var(--ib-check-size)) / 2, 1px));
+    border: 1px solid color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
+    border-radius: calc(var(--ib-check-size) * 0.25);
+    background-color: var(--ib-color-surface);
     cursor: pointer;
+    transition: background-color var(--ib-duration-fast) var(--ib-ease), border-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-check-input[type="radio"] {
+    border-radius: 50%;
+  }
+
+  .ib-check-input::before {
+    content: "";
+    width: calc(var(--ib-check-size) - 2px);
+    height: calc(var(--ib-check-size) - 2px);
+    background-color: var(--ib-color-on-primary);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M3.5 8.5l3 3 6-7'/%3E%3C/svg%3E") center / contain no-repeat;
+    scale: 0;
+    transition: scale var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-check-input[type="radio"]::before {
+    width: var(--ib-check-dot);
+    height: var(--ib-check-dot);
+    border-radius: 50%;
+    background-color: var(--ib-color-primary);
+    mask: none;
+  }
+
+  /* A chosen radio is a thin ring and a dot in the primary color on the field background. */
+  .ib-check-input[type="radio"]:checked {
+    background-color: var(--ib-color-surface);
+  }
+
+  /* Outranks the general disabled rule below, which fills the box. */
+  .ib-check .ib-check-input[type="radio"]:disabled:checked {
+    border-color: color-mix(in oklab, var(--ib-color-disabled) 60%, transparent);
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-check .ib-check-input[type="radio"]:disabled:checked::before {
+    background-color: var(--ib-color-disabled);
+  }
+
+  .ib-check-input:hover:not(:disabled) {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 40%, var(--ib-color-on-surface));
+  }
+
+  .ib-check-input:checked,
+  .ib-check-input[type="checkbox"]:indeterminate,
+  .ib-check-input[type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared], :checked) {
+    border-color: var(--ib-color-primary);
+    background-color: var(--ib-color-primary);
+  }
+
+  .ib-check-input:checked::before,
+  .ib-check-input[type="checkbox"]:indeterminate::before,
+  .ib-check-input[type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared], :checked)::before {
+    scale: 1;
+  }
+
+  .ib-check-input[type="checkbox"]:indeterminate::before,
+  .ib-check-input[type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared], :checked)::before {
+    mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16' fill='none' stroke='black' stroke-width='2.25' stroke-linecap='round'%3E%3Cpath d='M4 8h8'/%3E%3C/svg%3E");
+  }
+
+  .ib-check-input:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-check-input:disabled {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 60%, transparent);
+    background-color: var(--ib-color-surface-container);
+    cursor: not-allowed;
+  }
+
+  .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate) {
+    border-color: transparent;
+    background-color: color-mix(in oklab, var(--ib-color-disabled) 45%, transparent);
   }
 
   .ib-check-input:disabled + .ib-check-label {
     color: var(--ib-color-disabled);
+    cursor: not-allowed;
+  }
+
+  /* Windows high contrast: the browser's own boxes, which follow the system colors. */
+  @media (forced-colors: active) {
+    .ib-check-input {
+      appearance: auto;
+    }
+
+    .ib-check-input::before {
+      display: none;
+    }
   }
 
   .ib-switch-input {
@@ -1195,9 +1320,10 @@
     width: 1rem;
     height: 1rem;
     border-radius: 50%;
-    background-color: var(--ib-color-surface);
+    /* Off: white on the grey track in light schemes, light grey in dark ones. On: the on-primary color. */
+    background-color: light-dark(var(--ib-color-surface), color-mix(in oklab, var(--ib-color-outline) 35%, var(--ib-color-on-surface)));
     box-shadow: var(--ib-shadow-sm);
-    transition: translate var(--ib-duration-normal) var(--ib-ease);
+    transition: translate var(--ib-duration-normal) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
   }
 
   .ib-switch-input:checked {
@@ -1207,6 +1333,16 @@
 
   .ib-switch-input:checked::before {
     translate: 1rem 0;
+    background-color: var(--ib-color-on-primary);
+  }
+
+  .ib-switch-input:checked:dir(rtl)::before {
+    translate: -1rem 0;
+  }
+
+  .ib-switch-input:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
   }
 
   .ib-switch-input:disabled {
@@ -1227,9 +1363,9 @@
     column-gap: var(--ib-space-5);
   }
 
-  .ib-field-invalid .ib-check-input {
-    outline: 1px solid var(--ib-color-danger);
-    outline-offset: 1px;
+  .ib-field-invalid .ib-check-input:not(:checked),
+  .ib-check-input:user-invalid {
+    border-color: var(--ib-color-danger);
   }
 
   /* Fieldset */

@@ -197,6 +197,14 @@ the closed field hides. Other browsers, including iOS Safari, keep their own lis
   for the first list, and as the user types on interactive pages (debounced, and cancelled when
   superseded).
 
+**Checkbox, RadioGroup and Switch.** Checkboxes and radios are drawn with the field colors, so
+they match fields and switches in every browser and in dark mode, and they follow `Size`. In
+Windows high-contrast mode they fall back to the browser's own boxes. `Checkbox Indeterminate`
+shows a dash, for a "select all" box when only some items are selected. It's display only: the box
+posts as unchecked and choosing it clears the dash. CSS shows it with no script; with script,
+screen readers announce it as "mixed". Work it out from the other values, so it's right after a
+post too.
+
 **CheckboxGroup and MultiSelect.** Pick several options, bound to a collection (an array,
 `List<T>` or `HashSet<T>`). Both post repeated form fields, which Blazor binds back to the collection,
 so they work on static pages with no script. Validate the count with `[MinLength]`/`[MaxLength]`.

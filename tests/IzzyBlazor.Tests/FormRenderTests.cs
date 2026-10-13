@@ -172,6 +172,26 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
+    public void Indeterminate_checkbox_is_marked_for_css_and_script()
+    {
+        var input = Render<Checkbox>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.ValueExpression, () => _model.Accept)
+            .Add(c => c.Indeterminate, true)).Find("input");
+
+        Assert.True(input.HasAttribute("data-indeterminate"));
+        Assert.False(input.HasAttribute("checked"));
+        Assert.Equal("ib-check-input", input.ClassName);
+    }
+
+    [Fact]
+    public void Plain_checkbox_and_switch_have_no_indeterminate_mark()
+    {
+        Assert.False(Render<Checkbox>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept)).Find("input").HasAttribute("data-indeterminate"));
+        Assert.False(Render<Switch>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept).Add(c => c.Indeterminate, true)).Find("input").HasAttribute("data-indeterminate"));
+    }
+
+    [Fact]
     public void Switch_has_the_switch_role()
     {
         var cut = Render<Switch>(p => p

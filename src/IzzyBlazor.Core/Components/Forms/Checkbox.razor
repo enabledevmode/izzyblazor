@@ -7,6 +7,9 @@
 
     Posting: a checked box posts "true"; an unchecked box posts nothing, so the model keeps its
     default (false). No hidden input is needed.
+
+    Indeterminate shows a dash, for a "select all" box when only some are selected. It's display
+    only: the box still posts true or nothing, and choosing it clears the dash.
 *@
 
 <FieldFrame Class="@WrapperClass(AsSwitch ? "switch" : "checkbox")" Id="@FieldId" LabelInControl
@@ -17,6 +20,7 @@
                class="@(AsSwitch ? "ib-switch-input" : "ib-check-input")"
                type="checkbox"
                role="@(AsSwitch ? "switch" : null)"
+               data-indeterminate="@(Indeterminate && !AsSwitch ? "" : null)"
                name="@NameAttributeValue"
                value="true"
                @bind="CurrentValue"
@@ -44,6 +48,13 @@
 @code {
     /// <summary>Rich label content, such as text with a link. Overrides <c>Label</c>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Shows the box as partly selected (a dash), such as a "select all" box when only some items
+    /// are. Display only: it posts as unchecked, and choosing the box clears it. With script, screen
+    /// readers announce it as "mixed". Ignored by <see cref="Switch"/>.
+    /// </summary>
+    [Parameter] public bool Indeterminate { get; set; }
 
     /// <summary>Renders as a switch. Use <see cref="Switch"/> instead of setting this.</summary>
     protected virtual bool AsSwitch => false;
