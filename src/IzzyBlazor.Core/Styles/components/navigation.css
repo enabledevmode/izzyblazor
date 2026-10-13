@@ -90,6 +90,12 @@
     list-style: none;
   }
 
+  /* Each item is a flex box, so the button sets its height: as inline content the prev/next
+     buttons sat on the item's text baseline, a pixel taller than the rest (29px at Compact). */
+  .ib-pagination-list > li {
+    display: flex;
+  }
+
   /* Page numbers are plain; the current one is tinted and heavier, so it leads. */
   /* Wider numbers ("12", "128") round up to a whole pixel, so every page after them, and anything
      laid out beside the pager, stays on the pixel grid (where calc-size() is supported). */
@@ -102,12 +108,12 @@
   }
 
   .ib-pagination-sm .ib-pagination-item {
-    --ib-btn-h: 2rem;
+    --ib-btn-h: var(--ib-control-h-sm);
     --ib-btn-font: var(--ib-text-xs);
   }
 
   .ib-pagination-lg .ib-pagination-item {
-    --ib-btn-h: 2.75rem;
+    --ib-btn-h: var(--ib-control-h-lg);
     --ib-btn-font: var(--ib-text-md);
   }
 

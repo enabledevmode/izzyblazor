@@ -36,7 +36,7 @@
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
-    min-height: 2.25rem;
+    min-height: var(--ib-control-h-md);
     padding: var(--ib-space-1) var(--ib-space-3);
     border-radius: var(--ib-radius-md);
     color: var(--ib-color-muted);

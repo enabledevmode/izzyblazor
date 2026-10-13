@@ -70,47 +70,49 @@ For anything else, pass a `Color`: `<Button Color='Color.Of("#0f766e")'>` or
 `Color='Color.Token("brand")'`. Text on it is picked for contrast: the token's `on-` partner, or black
 or white for a hex color.
 
-## Themes
+## Looks and colors
 
-The default theme is **Blue on neutral grays**, with white cards, tables and fields on a near-white page. Pick a named theme, or your own
-accent, gray and corner radius, with attributes on `<html>` in `App.razor`:
+The default is the **Standard** look in **Blue on neutral grays**: white cards, tables and fields on
+a near-white page. Choose a look for density, shape and type, and an accent and gray for color,
+with attributes on `<html>` in `App.razor`:
 
 ```html
-<html lang="en" data-ib-theme="ember">                          <!-- a named theme -->
-<html lang="en" data-ib-accent="blue" data-ib-gray="stone">     <!-- your own combination -->
-<html lang="en" data-ib-theme="classic" data-ib-radius="lg">    <!-- a named theme, adjusted -->
+<html lang="en" data-ib-theme="compact">                        <!-- a look -->
+<html lang="en" data-ib-theme="compact" data-ib-accent="teal">  <!-- a look in your accent -->
+<html lang="en" data-ib-accent="violet" data-ib-gray="slate">   <!-- the default look, recolored -->
 ```
 
-Named themes are presets of the sets below; an explicit `data-ib-accent`, `data-ib-gray` or
-`data-ib-radius` beats the theme's.
+| `data-ib-theme` | For | Controls | Shape | Type | Accent | Gray |
+| --- | --- | --- | --- | --- | --- | --- |
+| `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | System font | Blue | Neutral |
+| `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | System font | Indigo | Slate |
+| `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | System font | Teal | Neutral |
+| `editorial` | Docs, publishing, knowledge bases | 36px | Large radius | IBM Plex Sans, Newsreader headings | Ink | Stone |
 
-| `data-ib-theme` | Accent | Gray | Radius | Headings |
-| --- | --- | --- | --- | --- |
-| `ember` | Ember | Neutral | md | Bricolage Grotesque, bold |
-| `classic` | Blue | Slate | md | |
-| `editorial` | Ink | Stone | lg | Newsreader (serif) |
-| `harbor` | Teal | Slate | md | |
-| `grove` | Green | Neutral | md | |
-| `studio` | Violet | Neutral | lg | |
-| `crisp` | Indigo | Neutral | sm | |
+A look's accent, gray and radius are only its defaults: an explicit `data-ib-accent`,
+`data-ib-gray` or `data-ib-radius` beats them.
 
 | Attribute | Values |
 | --- | --- |
-| `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose`, `ember` |
+| `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose` |
 | `data-ib-gray` | `neutral` (default), `stone` (warm paper; pairs with serif headings), `slate` (cool) |
 | `data-ib-radius` | `sm`, `md` (default), `lg` |
+
+Density is a handful of tokens, so you can set your own: `--ib-control-h-sm`, `--ib-control-h-md`,
+`--ib-control-h-lg` (buttons, fields, tabs, pagination, nav items and menu rows),
+`--ib-table-cell-py` and `--ib-card-padding`. Keep them whole pixels.
 
 Every accent is tuned by hand in light and dark: text holds 4.5:1 on its fill and on every gray. The
 attributes work on any element too, for part of a page; set accent and gray on the same element.
 They're plain CSS, so they work in every render mode with no script.
 
 **Fonts.** Body text uses the system font (`--ib-font-sans`). Headings, card and dialog titles use
-`--ib-font-heading` at `--ib-weight-heading`: by default the body font, semibold. The `ember` theme
-uses Bricolage Grotesque and `editorial` uses Newsreader; load the font in your `<head>` (or
-self-host it; both are under the SIL Open Font License):
+`--ib-font-heading` at `--ib-weight-heading`: by default the body font, semibold. The `editorial`
+look uses IBM Plex Sans and Newsreader; load them in your `<head>` (or self-host them; both are
+under the SIL Open Font License):
 
 ```html
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..700&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
 ```
 
 Or set your own: `:root { --ib-font-sans: "IBM Plex Sans", system-ui, sans-serif; --ib-font-heading: Newsreader, Georgia, serif; --ib-weight-heading: 500; }`.

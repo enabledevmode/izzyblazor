@@ -1,7 +1,7 @@
 /* Card and Table */
 @layer izzy.components {
   .ib-card {
-    --ib-card-p: var(--ib-space-5);
+    --ib-card-p: var(--ib-card-padding);
     --ib-card-gap: var(--ib-space-4);
     --ib-card-title: var(--ib-text-lg);
 
@@ -168,7 +168,7 @@
  */
 @layer izzy.components {
   .ib-table {
-    --ib-table-py: var(--ib-space-3);
+    --ib-table-py: var(--ib-table-cell-py);
     --ib-table-px: var(--ib-space-4);
     --ib-table-font: var(--ib-text-sm);
     --ib-table-stripe: color-mix(in oklab, var(--ib-color-surface-container) 50%, transparent);
