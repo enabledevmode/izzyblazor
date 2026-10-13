@@ -9,8 +9,12 @@
 @*
     A data table that sorts and pages through the URL: column headers and page numbers are
     links that set ?sort= and ?page=, so it works on static pages with no script, survives
-    reloads, and can be shared. On interactive pages the same links navigate without a reload
-    and the table follows the URL.
+    reloads, and can be shared. On interactive pages the links are ordinary navigations (with
+    enhanced navigation the server renders the page again) and the table follows the URL.
+
+    Bind Sort or Page (@bind-Sort, @bind-Page) on an interactive page to keep them in the
+    component instead: headers and page numbers become buttons, the URL doesn't change, and the
+    table sorts and pages in place, like a client-side grid. It starts from the URL's values.
 
     Give it Items (a list, or an IQueryable that EF Core translates) and it sorts and pages them,
     or an ItemsProvider to load each page yourself.
@@ -49,7 +53,14 @@
                     @foreach (var column in _columns)
                     {
                         <th scope="col" class="@CellClass(column)" style="@WidthStyle(column)" aria-sort="@AriaSort(column)">
-                            @if (column.CanSort)
+                            @if (column.CanSort && UseState)
+                            {
+                                <button type="button" class="ib-table-sort" @onclick="() => OnSortClickAsync(column)">
+                                    <span>@column.HeaderText</span>
+                                    <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
+                                </button>
+                            }
+                            else if (column.CanSort)
                             {
                                 <a href="@SortHref(column)" class="ib-table-sort">
                                     <span>@column.HeaderText</span>
@@ -151,7 +162,14 @@
         <div class="ib-table-footer">
             @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
             <span class="ib-table-summary" role="status">@Summary(size)</span>
-            <Pagination Page="_page" TotalItems="_total" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
+            @if (UseState)
+            {
+                <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total" PageSize="size" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
+            }
+            else
+            {
+                <Pagination Page="_page" TotalItems="_total" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
+            }
         </div>
     }
 </ib-table>
@@ -171,6 +189,25 @@
 
     /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending).</summary>
     [Parameter] public string? InitialSort { get; set; }
+
+    /// <summary>
+    /// The sort, such as <c>"name"</c> or <c>"-date"</c> (descending); null for
+    /// <see cref="InitialSort"/>. Binding it (<c>@bind-Sort</c>) on an interactive page keeps sort
+    /// and page in the component instead of the URL.
+    /// </summary>
+    [Parameter] public string? Sort { get; set; }
+
+    /// <summary>Raised when a header is chosen, on interactive pages.</summary>
+    [Parameter] public EventCallback<string?> SortChanged { get; set; }
+
+    /// <summary>
+    /// The page, from 1. Binding it (<c>@bind-Page</c>) on an interactive page keeps sort and page
+    /// in the component instead of the URL. Set it back to 1 when your filters change.
+    /// </summary>
+    [Parameter] public int? Page { get; set; }
+
+    /// <summary>Raised when a page is chosen (and with 1 when the sort changes), on interactive pages.</summary>
+    [Parameter] public EventCallback<int> PageChanged { get; set; }
 
     /// <summary>
     /// Prefix for this table's query-string keys, so several tables can share a page:
@@ -254,6 +291,15 @@
     private IReadOnlyCollection<string>? _reportedKeys;
 
     private bool IsLoading => Loading || _providerLoading;
+
+    // Sort and page live in the component (not the URL) on interactive pages that bind them.
+    private bool UseState => RendererInfo.IsInteractive && (SortChanged.HasDelegate || PageChanged.HasDelegate);
+
+    private bool _stateReady;
+    private string? _stateSort;
+    private int _statePage = 1;
+    private string? _lastSortParam;
+    private int? _lastPageParam;
 
     private int SkeletonRows => Math.Clamp(PageSize ?? 5, 1, 10);
 
@@ -350,11 +396,82 @@
             }
         }
 
+        SyncState();
+
         if (_columnsReady)
         {
             await LoadAsync();
         }
     }
+
+    // Takes the parent's Sort and Page when they change (C# setting them, or the echo of a click),
+    // starting from the URL so a link to ?sort=&page= still opens on that view.
+    private void SyncState()
+    {
+        if (!UseState)
+        {
+            return;
+        }
+
+        if (!_stateReady)
+        {
+            var (sortRaw, pageRaw) = ReadQuery();
+            _stateSort = Sort ?? (string.IsNullOrEmpty(sortRaw) ? null : sortRaw);
+            _statePage = Page ?? (int.TryParse(pageRaw, out var number) ? number : 1);
+            (_lastSortParam, _lastPageParam, _stateReady) = (Sort, Page, true);
+            return;
+        }
+
+        if (!string.Equals(Sort, _lastSortParam, StringComparison.Ordinal))
+        {
+            _lastSortParam = Sort;
+            _stateSort = Sort;
+        }
+
+        if (Page != _lastPageParam)
+        {
+            _lastPageParam = Page;
+            _statePage = Page ?? 1;
+        }
+    }
+
+    private async Task OnSortClickAsync(ColumnBase<TItem> column)
+    {
+        var next = NextSort(column);
+        var pageWas = _statePage;
+        (_stateSort, _statePage) = (next, 1);
+        await SortChanged.InvokeAsync(next);
+        if (pageWas != 1)
+        {
+            await PageChanged.InvokeAsync(1);
+        }
+
+        await ReloadIfStaleAsync();
+    }
+
+    private async Task OnPageClickAsync(int page)
+    {
+        _statePage = page;
+        await PageChanged.InvokeAsync(page);
+        await ReloadIfStaleAsync();
+    }
+
+    // A bound parent re-renders the table, which loads; otherwise load here.
+    private async Task ReloadIfStaleAsync()
+    {
+        var (sortRaw, pageRaw) = CurrentState();
+        if (_loadedKey is { } loaded && loaded.Sort == sortRaw && loaded.Page == pageRaw)
+        {
+            return;
+        }
+
+        await LoadAsync();
+        StateHasChanged();
+    }
+
+    // Where sort and page come from: the component's state, or the URL.
+    private (string? Sort, string? Page) CurrentState() =>
+        UseState ? (_stateSort, _statePage.ToString(System.Globalization.CultureInfo.InvariantCulture)) : ReadQuery();
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -377,7 +494,7 @@
     // changes the data (filters) re-renders the page, which reloads through the parameters.
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
     {
-        if (!_columnsReady || ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page))
+        if (!_columnsReady || UseState || ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page))
         {
             return;
         }
@@ -407,7 +524,7 @@
 
     private async Task LoadAsync()
     {
-        var (sortRaw, pageRaw) = ReadQuery();
+        var (sortRaw, pageRaw) = CurrentState();
         // Always reload: the same list may have changed since the last render.
         _loadedKey = new LoadKey(sortRaw, pageRaw, Items, ItemsProvider, PageSize);
         var version = ++_loadVersion;
@@ -490,20 +607,29 @@
         }
 
         (_items, _total, _page, _sortKey, _descending) = (items, total, page, sortKey, descending);
+
+        // A page past the end showed the last one; keep that, so the next click counts from it.
+        if (UseState)
+        {
+            _statePage = page;
+        }
     }
 
     private static int LastPage(int total, int size) => Math.Max(1, (int)Math.Ceiling(total / (double)size));
 
-    private string SortHref(ColumnBase<TItem> column)
+    // Ascending first; a second click on the sorted column turns it descending.
+    private string? NextSort(ColumnBase<TItem> column)
     {
         var ascendingNow = string.Equals(column.Key, _sortKey, StringComparison.OrdinalIgnoreCase) && !_descending;
-        var next = ascendingNow ? $"-{column.Key}" : column.Key;
-        return Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        return ascendingNow ? $"-{column.Key}" : column.Key;
+    }
+
+    private string SortHref(ColumnBase<TItem> column) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
         {
-            [SortQueryKey] = next,
+            [SortQueryKey] = NextSort(column),
             [PageKey] = null,
         });
-    }
 
     private bool IsSorted(ColumnBase<TItem> column) => string.Equals(column.Key, _sortKey, StringComparison.OrdinalIgnoreCase);
 

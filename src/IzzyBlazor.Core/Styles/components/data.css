@@ -280,6 +280,15 @@
     text-decoration: none;
   }
 
+  /* On interactive pages with bound Sort or Page the headers are buttons, drawn like the links. */
+  button.ib-table-sort {
+    border: 0;
+    background: none;
+    font: inherit;
+    line-height: inherit;
+    cursor: pointer;
+  }
+
   .ib-cell-end > .ib-table-sort {
     flex-direction: row-reverse;
   }

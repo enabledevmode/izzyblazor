@@ -14,6 +14,22 @@
         </Table>
     </Example>
 
+    <Example Title="Sorting and paging in the component" Note="@StateNote" Code="@StateCode">
+        <Stack Gap="3">
+            <Table Items="Orders" PageSize="5" InitialSort="-date" Caption="Orders in state" QueryPrefix="st-" id="state-table"
+                   @bind-Sort="_sort" @bind-Page="_statePage">
+                <PropertyColumn Property="o => o.Number" Title="Order" />
+                <PropertyColumn Property="o => o.Customer" Sortable />
+                <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
+                <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+            </Table>
+            <Row Gap="2" Align="Align.Center" Wrap>
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="ResetState" data-testid="state-reset">Reset from C#</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Sort: <strong data-testid="state-sort">@(_sort ?? "(initial)")</strong> · Page: <strong data-testid="state-page">@_statePage</strong></TextBlock>
+            </Row>
+        </Stack>
+    </Example>
+
     <Example Title="Selection, row links and totals" Note="@SelectNote" Code="@SelectCode">
         <form method="post" @onsubmit="Archive" @formname="archive" style="display:flex;flex-direction:column;gap:0.75rem">
             <AntiforgeryToken />
@@ -159,6 +175,28 @@
         "Failed" => Status.Danger,
         _ => Status.Neutral,
     };
+
+    private string? _sort;
+    private int _statePage = 1;
+
+    private void ResetState() => (_sort, _statePage) = (null, 1);
+
+    private string StateNote => RendererInfo.IsInteractive
+        ? "@bind-Sort and @bind-Page keep the sort and page in the component: headers and page numbers are buttons, the URL stays as it is, and the page isn't rendered again on the server."
+        : "On interactive pages, @bind-Sort and @bind-Page keep the sort and page in the component instead of the URL. On this static page there's no component state to keep, so it uses links like the table above.";
+
+    private const string StateCode =
+        """
+        <Table Items="orders" PageSize="5" @bind-Sort="sort" @bind-Page="page">
+            <PropertyColumn Property="o => o.Customer" Sortable />
+            ...
+        </Table>
+
+        @code {
+            private string? sort;     // "customer", "-date"...; null for InitialSort
+            private int page = 1;     // set it back to 1 when your filters change
+        }
+        """;
 
     private const string OrdersCode =
         """
