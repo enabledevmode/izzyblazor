@@ -48,6 +48,46 @@
         </form>
     </Example>
 
+    <Example Title="Checkable items and submenus" Note="MenuRadioGroup with QueryKey makes each option a link that sets ?sort=, and the checked one comes from the URL, so it works with JavaScript off. A checkbox item takes @@bind-Checked on interactive pages; on static pages its action is a link or form post, as with Compact here. MenuSub opens a submenu: click with no script; with it, hover or the right arrow, and the left arrow or Escape to go back. Choosing an item closes the whole menu." Code="@CheckableCode">
+        <Row Gap="3" Wrap Align="Align.Center">
+            <Menu Label="View" StartIcon="Lucide.SlidersHorizontal" Id="view-menu">
+                <MenuRadioGroup Label="Sort by" QueryKey="sort">
+                    <MenuItem Value="name">Name</MenuItem>
+                    <MenuItem Value="date">Date modified</MenuItem>
+                    <MenuItem Value="size">Size</MenuItem>
+                </MenuRadioGroup>
+                <MenuDivider />
+                <MenuItem Checked="Compact" Href="@CompactHref">Compact rows</MenuItem>
+                @if (RendererInfo.IsInteractive)
+                {
+                    <MenuItem @bind-Checked="_showDone">Show completed</MenuItem>
+                }
+            </Menu>
+
+            <Menu Label="Actions" Id="actions-menu">
+                <MenuItem Icon="Lucide.Pencil">Rename</MenuItem>
+                <MenuSub Label="Move to" Icon="Lucide.FolderInput">
+                    <MenuItem Icon="Lucide.Inbox">Inbox</MenuItem>
+                    <MenuItem Icon="Lucide.Archive">Archive</MenuItem>
+                    <MenuSub Label="Projects" Icon="Lucide.Folder">
+                        <MenuItem>Website</MenuItem>
+                        <MenuItem>Course app</MenuItem>
+                    </MenuSub>
+                </MenuSub>
+                <MenuSub Label="Share" Icon="Lucide.Share2">
+                    <MenuItem Icon="Lucide.Link">Copy link</MenuItem>
+                    <MenuItem Icon="Lucide.Mail">Email</MenuItem>
+                </MenuSub>
+                <MenuDivider />
+                <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+            </Menu>
+
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">
+                Sorted by <strong>@(Sort ?? "default")</strong>@(Compact ? ", compact rows" : "")@(RendererInfo.IsInteractive ? (_showDone ? ", showing completed" : ", hiding completed") : "")
+            </TextBlock>
+        </Row>
+    </Example>
+
     <Example Title="Placement" Note="CSS anchor positioning places each panel and flips it when there is no room. Older browsers get the same result from a small script." Code="@PlacementCode">
         <Row Gap="2" Wrap>
             @foreach (var placement in Enum.GetValues<Placement>())
@@ -204,6 +244,34 @@
         </form>
 
         <ConfirmButton Title="Reset the counter?" OnConfirm="Reset">Reset</ConfirmButton>   @* interactive *@
+        """;
+
+    private bool _showDone = true;
+
+    // Read from the URL as the page renders, so it follows link navigation on interactive pages too.
+    private Dictionary<string, Microsoft.Extensions.Primitives.StringValues> Query => QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query);
+    private string? Sort => Query.TryGetValue("sort", out var sort) ? sort.ToString() : null;
+    private bool Compact => Query.TryGetValue("compact", out var compact) && compact == "1";
+    private string CompactHref => Navigation.GetUriWithQueryParameter("compact", Compact ? null : "1");
+
+    private const string CheckableCode =
+        """
+        <Menu Label="View">
+            <MenuRadioGroup Label="Sort by" QueryKey="sort">      @* links: ?sort=name *@
+                <MenuItem Value="name">Name</MenuItem>
+                <MenuItem Value="date">Date modified</MenuItem>
+            </MenuRadioGroup>
+            <MenuDivider />
+            <MenuItem Checked="Compact" Href="@CompactHref">Compact rows</MenuItem>
+            <MenuItem @bind-Checked="showDone">Show completed</MenuItem>   @* interactive *@
+        </Menu>
+
+        <Menu Label="Actions">
+            <MenuSub Label="Move to" Icon="Lucide.FolderInput">
+                <MenuItem>Inbox</MenuItem>
+                <MenuItem>Archive</MenuItem>
+            </MenuSub>
+        </Menu>
         """;
 
     private string _path = "";

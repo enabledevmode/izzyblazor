@@ -45,7 +45,8 @@ export function place(floating: HTMLElement, anchor: Element, placement: string)
     left = align === "start" ? startEdge : align === "end" ? endEdge : a.left + (a.width - f.width) / 2;
   } else {
     left = side === "right" ? a.right + GAP : a.left - GAP - f.width;
-    top = a.top + (a.height - f.height) / 2;
+    // "end-start" (submenus): the top lines up with the anchor's, less the panel's padding.
+    top = align === "start" ? a.top - parseFloat(getComputedStyle(floating).paddingTop || "0") - 1 : a.top + (a.height - f.height) / 2;
   }
 
   floating.style.left = `${clamp(left, EDGE, viewW - f.width - EDGE)}px`;

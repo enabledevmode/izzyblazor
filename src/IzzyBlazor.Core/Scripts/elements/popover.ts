@@ -7,7 +7,11 @@ import { track } from "../position";
  *   - placement in browsers without CSS anchor positioning,
  *   - data-open: the server or C# (@bind-Open) can open and close the panel,
  *   - for menus: focus on open, arrow keys, Home and End, type-ahead, and closing after a choice.
+ *   - for submenus (an <ib-popover> inside a menu): opening on hover and with the arrow key toward
+ *     it, closing with the arrow key back; choosing an item closes the whole menu.
  */
+
+const ITEM = "[role='menuitem'], [role='menuitemcheckbox'], [role='menuitemradio']";
 class PopoverRoot extends IzzyElement {
   static observedAttributes = ["data-open"];
 
@@ -20,6 +24,9 @@ class PopoverRoot extends IzzyElement {
   // The user's latest open or close, so a render that was already on its way can't undo it.
   #userState: boolean | null = null;
   #userAt = 0;
+  // Opened by hovering: don't move focus into it.
+  #hoverOpen = false;
+  #hoverTimer = 0;
 
   private get panel(): HTMLElement | null {
     return this.querySelector<HTMLElement>(":scope > [popover]");
@@ -34,10 +41,26 @@ class PopoverRoot extends IzzyElement {
     return this.panel?.getAttribute("role") === "menu";
   }
 
+  /** The menu panel this submenu sits in, if it is one. */
+  private get parentPanel(): HTMLElement | null {
+    return this.parentElement?.closest<HTMLElement>("[popover][role='menu']") ?? null;
+  }
+
+  /** The outermost menu panel, which closes every submenu with it. */
+  private get rootPanel(): HTMLElement | null {
+    let root = this.panel;
+    let up = this.parentPanel;
+    while (up) {
+      root = up;
+      up = up.parentElement?.closest<HTMLElement>("[popover][role='menu']") ?? null;
+    }
+    return root;
+  }
+
   private items(): HTMLElement[] {
     const panel = this.panel;
     if (!panel) return [];
-    return [...panel.querySelectorAll<HTMLElement>("[role='menuitem']")].filter(
+    return [...panel.querySelectorAll<HTMLElement>(ITEM)].filter(
       (item) => !item.matches(":disabled, [aria-disabled='true']") && item.closest("[popover]") === panel
     );
   }
@@ -51,15 +74,21 @@ class PopoverRoot extends IzzyElement {
 
     if (this.isMenu) {
       panel.addEventListener("keydown", (event) => this.onMenuKey(event), { signal });
-      this.trigger?.addEventListener("keydown", (event) => this.onTriggerKey(event), { signal });
-      // Links and submit buttons don't close the menu by themselves.
+      // A submenu's trigger is an item of the menu around it, which handles its keys.
+      if (!this.parentPanel) {
+        this.trigger?.addEventListener("keydown", (event) => this.onTriggerKey(event), { signal });
+      } else {
+        this.setupHover(panel, signal);
+      }
+      // Links and submit buttons don't close the menu by themselves; choosing one in a submenu
+      // closes the whole menu.
       panel.addEventListener(
         "click",
         (event) => {
-          const item = (event.target as Element).closest<HTMLElement>("[role='menuitem']");
-          if (item && this.items().includes(item) && panel.matches(":popover-open")) {
-            panel.hidePopover();
-          }
+          const item = (event.target as Element).closest<HTMLElement>(ITEM);
+          if (!item || !this.items().includes(item) || item.hasAttribute("aria-haspopup")) return;
+          const root = this.rootPanel;
+          if (root?.matches(":popover-open")) root.hidePopover();
         },
         { signal }
       );
@@ -113,11 +142,12 @@ class PopoverRoot extends IzzyElement {
     if (open) {
       this.#stopTracking?.();
       this.#stopTracking = track(panel, this, this.dataset.placement ?? "bottom-start");
-      if (this.isMenu) {
+      if (this.isMenu && !this.#hoverOpen) {
         const items = this.items();
         (this.#focusLast ? items[items.length - 1] : items[0])?.focus();
       }
       this.#focusLast = false;
+      this.#hoverOpen = false;
     } else {
       this.#stopTracking?.();
       this.#stopTracking = null;
@@ -144,6 +174,8 @@ class PopoverRoot extends IzzyElement {
   }
 
   private onMenuKey(event: KeyboardEvent): void {
+    // Keys in a submenu belong to the submenu's own element.
+    if ((event.target as Element).closest("[popover]") !== this.panel) return;
     const items = this.items();
     if (items.length === 0) return;
     const index = items.indexOf(document.activeElement as HTMLElement);
@@ -164,8 +196,26 @@ class PopoverRoot extends IzzyElement {
         next = items[items.length - 1];
         break;
       case "Tab":
-        this.panel?.hidePopover();
+        this.rootPanel?.hidePopover();
         return;
+      case "ArrowRight":
+      case "ArrowLeft": {
+        const rtl = getComputedStyle(this).direction === "rtl";
+        const inward = (event.key === "ArrowRight") !== rtl;
+        const current = items[index];
+        if (inward && current?.hasAttribute("aria-haspopup")) {
+          // Open the submenu; its element focuses its first item.
+          const sub = document.getElementById(current.getAttribute("popovertarget") ?? "");
+          if (sub && !sub.matches(":popover-open")) sub.showPopover();
+          else (sub?.querySelector<HTMLElement>(ITEM))?.focus();
+          event.preventDefault();
+        } else if (!inward && this.parentPanel) {
+          // Back to the item that opened this submenu.
+          event.preventDefault();
+          this.panel?.hidePopover();
+        }
+        return;
+      }
       default:
         if (event.key.length === 1 && !event.ctrlKey && !event.metaKey && !event.altKey && event.key !== " ") {
           next = this.typeAhead(items, index, event.key);
@@ -176,6 +226,39 @@ class PopoverRoot extends IzzyElement {
       event.preventDefault();
       next.focus();
     }
+  }
+
+  /** Submenus open while the pointer rests on their item, and close soon after it leaves. */
+  private setupHover(panel: HTMLElement, signal: AbortSignal): void {
+    const trigger = this.trigger;
+    if (!trigger) return;
+    const open = () => {
+      clearTimeout(this.#hoverTimer);
+      if (trigger.matches(":disabled") || panel.matches(":popover-open")) return;
+      this.#hoverTimer = window.setTimeout(() => {
+        this.#hoverOpen = true;
+        try {
+          panel.showPopover();
+        } catch {
+          this.#hoverOpen = false;
+        }
+      }, 120);
+    };
+    const close = () => {
+      clearTimeout(this.#hoverTimer);
+      this.#hoverTimer = window.setTimeout(() => {
+        // Keep it open while focus is inside, such as after an arrow key.
+        if (panel.matches(":popover-open") && !panel.contains(document.activeElement)) panel.hidePopover();
+      }, 300);
+    };
+    const mouse = (handler: () => void) => (event: PointerEvent) => {
+      if (event.pointerType === "mouse") handler();
+    };
+    trigger.addEventListener("pointerenter", mouse(open), { signal });
+    trigger.addEventListener("pointerleave", mouse(close), { signal });
+    panel.addEventListener("pointerenter", mouse(() => clearTimeout(this.#hoverTimer)), { signal });
+    panel.addEventListener("pointerleave", mouse(close), { signal });
+    signal.addEventListener("abort", () => clearTimeout(this.#hoverTimer));
   }
 
   /** Moves to the next item whose text starts with what was typed in the last half second. */

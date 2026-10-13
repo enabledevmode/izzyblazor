@@ -7,29 +7,36 @@
       - Href: a link.
       - Type="ButtonType.Submit": posts the surrounding form (or Form="id"), optionally to FormAction.
       - OnClick: runs C# on interactive pages; the item closes the menu natively.
+
+    Checkable: @bind-Checked makes it a checkbox item (menuitemcheckbox). Inside a MenuRadioGroup
+    it's one of a set (menuitemradio), identified by Value. On static pages the action still
+    comes from Href or a form post, and the server decides what's checked.
 *@
 
-@if (Href is not null)
+@if (ResolvedHref is { } href)
 {
     <a @attributes="AdditionalAttributes"
-       role="menuitem"
+       role="@Role"
+       aria-checked="@AriaChecked"
        class="@_class"
        style="@_style"
-       href="@(Disabled ? null : Href)"
+       href="@(Disabled ? null : href)"
        aria-disabled="@(Disabled ? "true" : null)">
         @Content
     </a>
 }
 else
 {
-    var closes = Type == ButtonType.Button && Menu is not null;
+    var submit = Type == ButtonType.Submit || RadioGroup?.Name is not null;
+    var closes = !submit && Menu is not null;
     <button @attributes="AdditionalAttributes"
-            type="@(Type == ButtonType.Submit ? "submit" : "button")"
-            role="menuitem"
+            type="@(submit ? "submit" : "button")"
+            role="@Role"
+            aria-checked="@AriaChecked"
             class="@_class"
             style="@_style"
             disabled="@Disabled"
-            name="@Name"
+            name="@(RadioGroup?.Name ?? Name)"
             value="@Value"
             formaction="@FormAction"
             form="@Form"
@@ -47,10 +54,19 @@ else
     /// <summary>For button items: <see cref="ButtonType.Submit"/> posts a form. Defaults to <see cref="ButtonType.Button"/>.</summary>
     [Parameter] public ButtonType Type { get; set; } = ButtonType.Button;
 
+    /// <summary>
+    /// Makes this a checkbox item that shows a check when true, with <c>@bind-Checked</c> on
+    /// interactive pages. Null (the default) is an ordinary item.
+    /// </summary>
+    [Parameter] public bool? Checked { get; set; }
+
+    /// <summary>Runs with the new state when a checkbox item is chosen on an interactive page.</summary>
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+
     /// <summary>Posted as <c>Name=Value</c> when a submit item is chosen.</summary>
     [Parameter] public string? Name { get; set; }
 
-    /// <summary>The value posted with <see cref="Name"/>.</summary>
+    /// <summary>The value posted with <see cref="Name"/>; in a <see cref="MenuRadioGroup"/>, the option this item picks.</summary>
     [Parameter] public string? Value { get; set; }
 
     /// <summary>Submits to this URL instead of the form's own action.</summary>
@@ -82,6 +98,21 @@ else
 
     [CascadingParameter] private MenuContext? Menu { get; set; }
 
+    [CascadingParameter] private MenuRadioGroup? RadioGroup { get; set; }
+
+    private bool IsRadio => RadioGroup is not null;
+
+    private bool IsCheckable => IsRadio || Checked is not null;
+
+    private bool IsChecked => IsRadio ? RadioGroup!.IsSelected(Value) : Checked == true;
+
+    private string Role => IsRadio ? "menuitemradio" : Checked is not null ? "menuitemcheckbox" : "menuitem";
+
+    private string? AriaChecked => IsCheckable ? (IsChecked ? "true" : "false") : null;
+
+    // In a radio group with a QueryKey, each option links to the page with that value set.
+    private string? ResolvedHref => Href ?? (IsRadio && Value is not null ? RadioGroup!.HrefFor(Value) : null);
+
     private string? _class;
     private string? _style;
 
@@ -90,15 +121,53 @@ else
     {
         classes.Add("ib-menu-item");
         classes.Add($"ib-menu-item-{Accent.ToString().ToLowerInvariant()}", Accent != Accent.Neutral);
+        classes.Add("ib-menu-item-checkable", IsCheckable);
     }
 
     /// <inheritdoc />
     protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
 
-    private Task HandleClick(MouseEventArgs e) =>
-        Disabled || !OnClick.HasDelegate ? Task.CompletedTask : OnClick.InvokeAsync(e);
+    private async Task HandleClick(MouseEventArgs e)
+    {
+        if (Disabled)
+        {
+            return;
+        }
+
+        if (Checked is not null && CheckedChanged.HasDelegate)
+        {
+            await CheckedChanged.InvokeAsync(!Checked.Value);
+        }
+
+        if (IsRadio && Value is not null)
+        {
+            await RadioGroup!.SelectAsync(Value);
+        }
+
+        if (OnClick.HasDelegate)
+        {
+            await OnClick.InvokeAsync(e);
+        }
+    }
 
     private RenderFragment Content => @<text>
+        @if (IsCheckable)
+        {
+            @* Always there for checkable items, so labels line up whether checked or not. *@
+            <span class="ib-menu-check" aria-hidden="true">
+                @if (IsChecked)
+                {
+                    @if (IsRadio)
+                    {
+                        <span class="ib-menu-dot"></span>
+                    }
+                    else
+                    {
+                        <Icon Role="IconRole.Check" />
+                    }
+                }
+            </span>
+        }
         @if (Icon is { } icon)
         {
             <Icon Name="icon" />

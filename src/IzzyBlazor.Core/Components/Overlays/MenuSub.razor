@@ -1,0 +1,86 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A submenu: an item that opens a second menu beside it. It's a nested popover, so clicking the
+    item opens it with no script. With script it also opens on hover and with the arrow key
+    toward it (Right in left-to-right pages), and Left or Escape closes it. Choosing an item in it
+    closes the whole menu.
+
+    <Menu Label="Actions">
+        <MenuSub Label="Move to" Icon="Lucide.FolderInput">
+            <MenuItem>Inbox</MenuItem>
+            <MenuItem>Archive</MenuItem>
+        </MenuSub>
+    </Menu>
+*@
+
+<ib-popover class="ib-pop-root ib-menu-sub-root"
+            style="@($"anchor-name:{StyleValues.AnchorName(_id)}")"
+            data-placement="end-start">
+    <button type="button"
+            id="@TriggerId"
+            class="ib-menu-item ib-menu-sub-trigger"
+            role="menuitem"
+            aria-haspopup="menu"
+            aria-controls="@_id"
+            popovertarget="@_id"
+            disabled="@Disabled">
+        @if (Icon is { } icon)
+        {
+            <Icon Name="icon" />
+        }
+        <span class="ib-menu-label">@Label</span>
+        <Icon Role="IconRole.ChevronRight" Class="ib-menu-sub-chevron" />
+    </button>
+    <div @attributes="AdditionalAttributes"
+         id="@_id"
+         popover="auto"
+         role="menu"
+         aria-labelledby="@TriggerId"
+         class="@_class"
+         style="@_style">
+        @ChildContent
+    </div>
+</ib-popover>
+
+@code {
+    /// <summary>The item's text.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>An icon before the text.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Shows the item but stops the submenu from opening.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>The submenu's <see cref="MenuItem"/>s, groups and dividers.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _id = IdGenerator.Next("ib-menu-sub");
+    private string? _class;
+    private string? _style;
+
+    private string TriggerId => $"{_id}-trigger";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-pop");
+        classes.Add("ib-menu");
+        classes.Add("ib-menu-sub");
+        classes.Add("ib-place-end-start");
+        styles.AddRaw($"position-anchor:{StyleValues.AnchorName(_id)}");
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException($"{nameof(MenuSub)} needs a {nameof(Label)}.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+}
