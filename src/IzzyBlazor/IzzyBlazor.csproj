@@ -7,7 +7,7 @@
   -->
   <PropertyGroup>
     <PackageId>IzzyBlazor</PackageId>
-    <Description>Static-SSR-first Blazor components with a Chakra-style developer experience. Every component works without interactivity and gets better with it. Install this in server apps; WebAssembly (.Client) projects reference IzzyBlazor.Core.</Description>
+    <Description>Blazor components. No circuit required. Components that work on static SSR pages, even with JavaScript off, and bind to C# on interactive ones. Install this in server apps; WebAssembly (.Client) projects reference IzzyBlazor.Core.</Description>
     <PackageTags>blazor;components;ssr;static-ssr;ui;design-system</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <RepoRoot>$([MSBuild]::NormalizeDirectory('$(MSBuildThisFileDirectory)', '..', '..'))</RepoRoot>
