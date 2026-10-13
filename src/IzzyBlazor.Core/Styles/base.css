@@ -49,8 +49,8 @@
       .ib-scroll,
       :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar {
-      width: 10px;
-      height: 10px;
+      width: 12px;
+      height: 12px;
     }
 
     :where(
@@ -73,7 +73,7 @@
       background-clip: padding-box;
     }
 
-    /* On the thumb itself: a little wider and stronger. */
+    /* A 6px thumb in a 12px gutter; on the thumb itself, 8px and stronger. */
     :where(
       .ib-shell-sidebar-body,
       .ib-shell-aside-inner,
