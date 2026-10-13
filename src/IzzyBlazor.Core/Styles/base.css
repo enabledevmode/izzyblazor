@@ -5,119 +5,167 @@
   /*
    * Thin, theme-colored scrollbars in the library's own scrolling areas, instead of the platform's
    * (on Windows: gray, with arrow buttons, the same in dark mode). Pages keep their own.
-   * Chromium and Safari get ::-webkit-scrollbar, the only way to drop the arrow buttons there (and
-   * ignored once the standard properties are set); Firefox gets the standard properties.
+   *
+   * By default the thumb shows while the pointer is over the area or focus is inside it, and the
+   * space stays reserved so nothing shifts. .ib-scrollbars-always (on <html> or any container) or
+   * --ib-color-scrollbar-idle keeps it visible.
+   *
+   * Chromium and Safari get ::-webkit-scrollbar, the only way to drop Windows' arrow buttons there
+   * (it's ignored once the standard properties are set); Firefox gets the standard properties.
    */
+  .ib-scrollbars-always {
+    --ib-color-scrollbar-idle: var(--ib-color-scrollbar);
+  }
+
   @supports not selector(::-webkit-scrollbar) {
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
     ) {
       scrollbar-width: thin;
+      scrollbar-color: var(--ib-color-scrollbar-idle) transparent;
+    }
+
+    :where(
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
+    ):is(:hover, :focus-within) {
       scrollbar-color: var(--ib-color-scrollbar) transparent;
     }
   }
 
   @supports selector(::-webkit-scrollbar) {
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
     )::-webkit-scrollbar {
       width: 10px;
       height: 10px;
     }
 
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
     )::-webkit-scrollbar-thumb {
       border: 3px solid transparent;
       border-radius: 999px;
-      background-color: var(--ib-color-scrollbar);
+      background-color: var(--ib-color-scrollbar-idle);
       background-clip: padding-box;
     }
 
-    /* A little wider and stronger while the pointer is over the area. */
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
-    ):hover::-webkit-scrollbar-thumb {
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
+    ):is(:hover, :focus-within)::-webkit-scrollbar-thumb {
+      background-color: var(--ib-color-scrollbar);
+    }
+
+    /* On the thumb itself: a little wider and stronger. */
+    :where(
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
+    )::-webkit-scrollbar-thumb:hover {
       border-width: 2px;
       background-color: var(--ib-color-scrollbar-hover);
     }
 
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
     )::-webkit-scrollbar-track,
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
     )::-webkit-scrollbar-corner {
       background: transparent;
     }
 
     :where(
-    .ib-shell-sidebar-body,
-    .ib-shell-aside-inner,
-    .ib-shell-scroll-main > .ib-shell-main,
-    .ib-table-scroll,
-    .ib-nav-horizontal,
-    .ib-tabs-list,
-    .ib-pop,
-    .ib-dialog,
-    .ib-dialog-body,
-    .ib-code-pre
+      .ib-shell-sidebar-body,
+      .ib-shell-aside-inner,
+      .ib-shell-scroll-main > .ib-shell-main,
+      .ib-table-scroll,
+      .ib-nav-horizontal,
+      .ib-tabs-list,
+      .ib-pop,
+      .ib-dialog,
+      .ib-dialog-body,
+      .ib-code-pre
     )::-webkit-scrollbar-button {
       display: none;
+    }
+  }
+
+  /* High contrast: always visible, in the system's colors. */
+  @media (forced-colors: active) {
+    :root {
+      --ib-color-scrollbar-idle: CanvasText;
+      --ib-color-scrollbar: CanvasText;
+      --ib-color-scrollbar-hover: Highlight;
     }
   }
 
