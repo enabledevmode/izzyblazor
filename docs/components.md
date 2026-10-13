@@ -124,6 +124,32 @@ readers: `"{0}%"`, `"${0}"`. On interactive pages the bound value updates on rel
 it while dragging, at one round trip per move. A read-only slider is disabled and posts its value
 through a hidden input.
 
+**FileUpload.** A drop zone around a real file input, named by `Name`.
+
+- **No JavaScript:** the input's button chooses files and they post with the form. Set `Multipart`
+  on the `Form` (it sets `enctype="multipart/form-data"`; without it only file names post), and
+  bind the files on the page with `[SupplyParameterFromForm(FormName = "...")]`: `IFormFile` for one,
+  `IFormFileCollection` for `Multiple`, named like the field.
+- **With JavaScript:** files can be dropped anywhere on the zone. Dropped files that don't match
+  `Accept` are refused (the picker filters by type, a drop doesn't), and a file over `MaxFileSize`
+  is flagged before the form posts. A form that isn't multipart logs a console warning.
+- **Interactive pages:** `OnChange` receives the chosen files as `IBrowserFile`, to read with
+  `OpenReadStream`. Nothing posts.
+
+`Accept` filters the picker (`"image/*"`, `".pdf"`), but always check types and sizes on the server,
+and raise the server's request size limit to match `MaxFileSize`. `Errors` shows server-side
+messages under the zone.
+
+```razor
+<Form Model="Model" FormName="profile" Multipart OnValidSubmit="SaveAsync">
+    <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "profile")] public IFormFile? Avatar { get; set; }
+}
+```
+
 **Add-ons.** `TextField` and `NumberInput` take `StartAddon` and `EndAddon`: content attached to the control, outside its
 border, at the field's height. Use them for short text (`https://`, `kg`), a `Button` (a submit button
 posts the form, so it works with JavaScript off), or another field, such as a currency `Select`, whose

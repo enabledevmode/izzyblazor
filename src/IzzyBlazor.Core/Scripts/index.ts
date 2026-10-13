@@ -11,6 +11,7 @@ import { reconnect, type IzzyEventDefinition } from "./izzy-element";
 
 // Elements register themselves on import. Add new ones here as they are built.
 import "./elements/field-control";
+import "./elements/file-upload";
 import { resetShellScroll } from "./elements/shell";
 import "./elements/popover";
 import "./elements/tooltip";

@@ -1,4 +1,5 @@
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Http
 
 <Stack Gap="8">
 
@@ -157,6 +158,23 @@
         </Box>
     </Example>
 
+    <Example Title="File upload" Note="A drop zone around a real file input. With JavaScript off, the button chooses files and they post with the form (Multipart on the Form); the page binds them as IFormFile. With JavaScript, files can be dropped on the zone, and a file over MaxFileSize is flagged before posting. On interactive pages, OnChange gets IBrowserFile streams instead." Code="@UploadCode">
+        <Box MaxWidth="32.Rem">
+            <Form Model="Upload" FormName="upload" Multipart OnValidSubmit="UploadedAsync">
+                <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" AcceptText="PNG or JPG, up to 2 MB" OnChange="files => ShowChosen(files)" />
+                <FileUpload Name="Attachments" Label="Attachments" Multiple Hint="Several files at once." OnChange="files => ShowChosen(files)" />
+                <TextField @bind-Value="Upload!.Note" />
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit" StartIcon="Lucide.Upload">Upload</Button>
+                    @if (_uploaded is not null)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_uploaded</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="Add-ons" Note="StartAddon and EndAddon attach text, a button or another field to the control, outside its border. A nested field keeps its label for screen readers only. Add-on text isn't part of the field's accessible name, so put units that matter in the label too. Everything here posts with the form, JavaScript or not." Code="@AddonsCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Addons" FormName="addons" OnValidSubmit="() => _addonsSaved = true">
@@ -234,6 +252,35 @@
     private bool _numbersSaved;
     [SupplyParameterFromForm(FormName = "sliders")] public SlidersModel? Sliders { get; set; }
     private bool _slidersSaved;
+    [SupplyParameterFromForm(FormName = "upload")] public UploadModel? Upload { get; set; }
+    [SupplyParameterFromForm(FormName = "upload")] public IFormFile? Avatar { get; set; }
+    [SupplyParameterFromForm(FormName = "upload")] public IFormFileCollection? Attachments { get; set; }
+    private string? _uploaded;
+    private readonly List<string> _chosen = [];
+
+    // Interactive pages: the files arrive as IBrowserFile when chosen.
+    private void ShowChosen(IReadOnlyList<IBrowserFile> files)
+    {
+        _chosen.Clear();
+        _chosen.AddRange(files.Select(f => $"{f.Name} ({f.Size:N0} bytes)"));
+        _uploaded = "Chosen: " + string.Join(", ", _chosen);
+    }
+
+    // Static pages: the files arrive with the form post.
+    private Task UploadedAsync()
+    {
+        if (RendererInfo.IsInteractive)
+        {
+            _uploaded = _chosen.Count == 0 ? "Nothing chosen." : "Received: " + string.Join(", ", _chosen);
+            return Task.CompletedTask;
+        }
+
+        var files = new List<IFormFile>();
+        if (Avatar is { Length: > 0 }) files.Add(Avatar);
+        if (Attachments is not null) files.AddRange(Attachments.Where(f => f.Length > 0));
+        _uploaded = files.Count == 0 ? "No files posted." : "Received: " + string.Join(", ", files.Select(f => $"{f.FileName} ({f.Length:N0} bytes)"));
+        return Task.CompletedTask;
+    }
     private bool _choicesSaved;
 
     private static readonly string[] Skills =
@@ -298,6 +345,7 @@
         Addons ??= new();
         Numbers ??= new();
         Sliders ??= new();
+        Upload ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
 
@@ -404,6 +452,11 @@
         [Range(0, 100)] public double Discount { get; set; } = 10;
         [Range(1, 12)] public int Guests { get; set; } = 2;
         [Display(Name = "Seats")] public int? Seats { get; set; }
+    }
+
+    public class UploadModel
+    {
+        public string? Note { get; set; }
     }
 
     public class SlidersModel
@@ -531,6 +584,20 @@
         <Slider @bind-Value="Model.Volume" ShowValue />
         <Slider @bind-Value="Model.Discount" Step="5" ShowValue ValueFormat="{0}%" />   @* [Range(0, 50)] *@
         <Slider @bind-Value="Model.Opacity" Min="0" Max="1" Step="0.05" Live />          @* updates while dragging *@
+        """;
+
+    private const string UploadCode =
+        """
+        <Form Model="Model" FormName="upload" Multipart OnValidSubmit="SaveAsync">
+            <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" />
+            <FileUpload Name="Attachments" Label="Attachments" Multiple />
+        </Form>
+
+        @code {
+            // Static pages: bound from the post, named like the fields.
+            [SupplyParameterFromForm(FormName = "upload")] public IFormFile? Avatar { get; set; }
+            [SupplyParameterFromForm(FormName = "upload")] public IFormFileCollection? Attachments { get; set; }
+        }
         """;
 
     private const string AddonsCode =

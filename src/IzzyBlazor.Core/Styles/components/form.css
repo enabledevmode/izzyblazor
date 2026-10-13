@@ -453,6 +453,102 @@
   }
 
   /*
+   * FileUpload: a dashed drop zone around a real file input. The input's own button picks files
+   * (and shows what was chosen) with no script; the script adds dropping on the whole zone.
+   */
+  .ib-file-zone {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ib-space-2);
+    padding: var(--ib-space-6) var(--ib-space-4);
+    border: 1px dashed color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface);
+    text-align: center;
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-file-zone[data-dragging] {
+    border-style: solid;
+    border-color: var(--ib-color-primary);
+    background-color: color-mix(in oklab, var(--ib-color-primary) 8%, var(--ib-color-surface));
+  }
+
+  .ib-file-zone:focus-within {
+    border-color: var(--ib-color-focus);
+  }
+
+  .ib-file-icon {
+    width: 1.75rem;
+    height: 1.75rem;
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-file-zone[data-dragging] .ib-file-icon {
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-file-prompt {
+    font-size: var(--ib-text-sm);
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-file-accept {
+    font-size: var(--ib-text-xs);
+    color: var(--ib-color-subtle);
+  }
+
+  /* The native input, kept: its button opens the picker and its text names the chosen files. */
+  .ib-file-input {
+    max-width: 100%;
+    font: inherit;
+    font-size: var(--ib-text-sm);
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-file-input::file-selector-button {
+    height: 2rem;
+    margin-inline-end: var(--ib-space-3);
+    padding: 0 var(--ib-space-3);
+    border: 1px solid var(--ib-color-outline);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+    font: inherit;
+    font-weight: var(--ib-weight-medium);
+    cursor: pointer;
+    transition: background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-file-input:hover:not(:disabled)::file-selector-button {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-file-input:focus-visible {
+    outline: none;
+  }
+
+  .ib-file-input:focus-visible::file-selector-button {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-file-input:disabled::file-selector-button {
+    color: var(--ib-color-disabled);
+    cursor: not-allowed;
+  }
+
+  .ib-field-disabled .ib-file-zone {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-field-invalid .ib-file-zone,
+  .ib-file-zone:has(.ib-file-input:user-invalid) {
+    border-color: var(--ib-color-danger);
+  }
+
+  /*
    * Add-ons: text, buttons or another field attached to the control, sharing its height and
    * border. Neighbors overlap by one pixel so the seam is a single line; the focused part
    * comes forward so its ring isn't covered.

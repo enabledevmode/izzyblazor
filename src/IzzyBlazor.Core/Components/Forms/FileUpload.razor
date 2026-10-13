@@ -1,0 +1,172 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@using Microsoft.AspNetCore.Components.Forms
+
+@*
+    A file picker in a drop zone, around a real file input:
+      - Static page, no JavaScript: choose with the button; the files post with the form. Bind them
+        on the page with [SupplyParameterFromForm(FormName = "...")] IFormFile? (or
+        IFormFileCollection), named like the field, and set Multipart on the Form.
+      - With JavaScript: files can also be dropped on the zone; dropped files that don't match
+        Accept are refused, and files over MaxFileSize are flagged before posting.
+      - Interactive page: OnChange gets the chosen files as IBrowserFile, to read as streams.
+
+    <Form Model="Model" FormName="profile" Multipart>
+        <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" />
+    </Form>
+    @code { [SupplyParameterFromForm(FormName = "profile")] public IFormFile? Avatar { get; set; } }
+*@
+
+<FieldFrame Class="@_class" Id="@InputId" Label="@Label" Required="Required"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@TooLargeText" data-ib-wrong-type="@WrongTypeText">
+        <Icon Name="Icon ?? Lucide.CloudUpload" Class="ib-file-icon" />
+        <span class="ib-file-prompt">@(PromptText ?? (Multiple ? "Drag files here, or" : "Drag a file here, or"))</span>
+        @if (IsInteractive)
+        {
+            <InputFile @attributes="InputAttributes" OnChange="ChangedAsync" />
+        }
+        else
+        {
+            <input @attributes="InputAttributes" type="file" />
+        }
+        @if (!string.IsNullOrEmpty(AcceptText))
+        {
+            <span class="ib-file-accept">@AcceptText</span>
+        }
+    </ib-file-upload>
+</FieldFrame>
+
+@code {
+    private string? _class;
+    private string? _generatedId;
+
+    /// <summary>
+    /// The form field name the files post under. On static pages, name the page property the same
+    /// (or use <c>[SupplyParameterFromForm(Name = "...")]</c>).
+    /// </summary>
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+
+    /// <summary>The visible label.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>Help text under the zone.</summary>
+    [Parameter] public string? Hint { get; set; }
+
+    /// <summary>Whether a file must be chosen before the form posts.</summary>
+    [Parameter] public bool Required { get; set; }
+
+    /// <summary>Disables the picker.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// The file types to offer, as the <c>accept</c> attribute: <c>"image/*"</c>, <c>".pdf,.docx"</c>.
+    /// A hint for the picker only; check types on the server too.
+    /// </summary>
+    [Parameter] public string? Accept { get; set; }
+
+    /// <summary>Allows choosing several files.</summary>
+    [Parameter] public bool Multiple { get; set; }
+
+    /// <summary>
+    /// The largest file allowed, in bytes. With JavaScript, larger files are flagged before the form
+    /// posts. Always check on the server too, and set the server's request size limit to match.
+    /// </summary>
+    [Parameter] public long? MaxFileSize { get; set; }
+
+    /// <summary>On interactive pages, the most files <see cref="OnChange"/> receives. Defaults to 10.</summary>
+    [Parameter] public int MaxFiles { get; set; } = 10;
+
+    /// <summary>The message for a file over <see cref="MaxFileSize"/>: <c>{0}</c> is its name, <c>{1}</c> the limit.</summary>
+    [Parameter] public string TooLargeText { get; set; } = "{0} is larger than {1}.";
+
+    /// <summary>
+    /// The message for a dropped file that doesn't match <see cref="Accept"/>: <c>{0}</c> is its name.
+    /// (The picker filters by type itself; a drop doesn't.)
+    /// </summary>
+    [Parameter] public string WrongTypeText { get; set; } = "{0} isn't an accepted file type.";
+
+    /// <summary>The text in the zone, before the button. Defaults to "Drag a file here, or" ("files" with <see cref="Multiple"/>).</summary>
+    [Parameter] public string? PromptText { get; set; }
+
+    /// <summary>Small text under the button, such as "PNG or JPG, up to 2 MB".</summary>
+    [Parameter] public string? AcceptText { get; set; }
+
+    /// <summary>The zone's icon. Defaults to a cloud with an arrow.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Validation messages to show under the zone, such as from server checks.</summary>
+    [Parameter] public IReadOnlyList<string>? Errors { get; set; }
+
+    /// <summary>On interactive pages, runs with the chosen files.</summary>
+    [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> OnChange { get; set; }
+
+    private string InputId =>
+        AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s && s.Length > 0
+            ? s
+            : _generatedId ??= IdGenerator.Next("ib-file");
+
+    private string HintId => InputId + "-hint";
+
+    private string ErrorId => InputId + "-error";
+
+    private string? DescribedBy
+    {
+        get
+        {
+            var ids = new List<string>(2);
+            if (!string.IsNullOrWhiteSpace(Hint)) ids.Add(HintId);
+            if (Errors is { Count: > 0 }) ids.Add(ErrorId);
+            return ids.Count == 0 ? null : string.Join(' ', ids);
+        }
+    }
+
+    private Dictionary<string, object> InputAttributes
+    {
+        get
+        {
+            var attributes = new Dictionary<string, object>();
+            if (AdditionalAttributes is not null)
+            {
+                foreach (var (key, value) in AdditionalAttributes)
+                {
+                    if (!string.Equals(key, "id", StringComparison.OrdinalIgnoreCase)) attributes[key] = value;
+                }
+            }
+
+            attributes["id"] = InputId;
+            attributes["class"] = "ib-file-input";
+            attributes["name"] = Name;
+            if (Accept is not null) attributes["accept"] = Accept;
+            if (Multiple) attributes["multiple"] = true;
+            if (Required) attributes["required"] = true;
+            if (Disabled) attributes["disabled"] = true;
+            if (Errors is { Count: > 0 }) attributes["aria-invalid"] = "true";
+            if (DescribedBy is { } describedBy) attributes["aria-describedby"] = describedBy;
+            return attributes;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Name))
+        {
+            throw new InvalidOperationException("FileUpload needs a Name: the form field its files post under.");
+        }
+
+        (_class, _) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-field");
+        classes.Add("ib-field-file");
+        classes.Add("ib-field-invalid", Errors is { Count: > 0 });
+        classes.Add("ib-field-disabled", Disabled);
+    }
+
+    private Task ChangedAsync(InputFileChangeEventArgs args) =>
+        OnChange.InvokeAsync(args.FileCount == 0 ? Array.Empty<IBrowserFile>() : args.GetMultipleFiles(Math.Max(1, MaxFiles)));
+}

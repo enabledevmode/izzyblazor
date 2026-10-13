@@ -21,6 +21,7 @@
               OnInvalidSubmit="OnInvalidSubmit"
               OnSubmit="OnSubmit"
               novalidate="@(NativeValidation ? null : "novalidate")"
+              enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
               class="@_class"
               style="@_style">
@@ -36,6 +37,7 @@ else
               OnInvalidSubmit="OnInvalidSubmit"
               OnSubmit="OnSubmit"
               novalidate="@(NativeValidation ? null : "novalidate")"
+              enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
               class="@_class"
               style="@_style">
@@ -55,6 +57,12 @@ else
     /// pair it with <c>[SupplyParameterFromForm(FormName = "...")]</c> on the model property.
     /// </summary>
     [Parameter] public string? FormName { get; set; }
+
+    /// <summary>
+    /// Posts as <c>multipart/form-data</c>, which a <see cref="FileUpload"/> needs to send its files on
+    /// static pages. Without it, a post sends only the file names.
+    /// </summary>
+    [Parameter] public bool Multipart { get; set; }
 
     /// <summary>Uses Blazor's enhanced form handling on static pages (no full page reload). Defaults to true.</summary>
     [Parameter] public bool Enhance { get; set; } = true;
