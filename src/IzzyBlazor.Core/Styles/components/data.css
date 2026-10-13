@@ -28,8 +28,10 @@
     --ib-card-title: var(--ib-text-xl);
   }
 
+  /* A hairline border and a whisper of shadow: the card lifts off a tinted page without a heavy edge. */
   .ib-card-outline {
     border-color: var(--ib-color-border);
+    box-shadow: var(--ib-shadow-xs);
   }
 
   .ib-card-elevated {
@@ -195,6 +197,7 @@
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
     background-color: var(--ib-color-surface);
+    box-shadow: var(--ib-shadow-xs);
   }
 
   .ib-table-scroll:focus-visible {
@@ -246,18 +249,23 @@
   }
 
   /* Borderless, it takes the color of whatever it sits in (a card, a panel). */
+  .ib-table-borderless {
+    --ib-table-bg: transparent;
+  }
+
   .ib-table-borderless .ib-table-scroll {
     border: 0;
     border-radius: 0;
     background-color: transparent;
+    box-shadow: none;
   }
 
-  /* The header is a whisper of fill with a full-strength line under it: structure without a
-     heavy gray bar. */
+  /* The header has no tint: bolder text in the body color over a full-strength line carries it.
+     It is painted the table's own color, so a sticky header covers the rows scrolling under it. */
   .ib-table-grid th {
     border-bottom-color: var(--ib-color-border);
-    background-color: color-mix(in oklab, var(--ib-color-surface-container-low) 50%, var(--ib-color-surface));
-    color: var(--ib-color-muted);
+    background-color: var(--ib-table-bg, var(--ib-color-surface));
+    color: var(--ib-color-on-surface);
     font-weight: var(--ib-weight-semibold);
     white-space: nowrap;
   }
@@ -374,7 +382,7 @@
   /* Filter row: a small field under each filterable header, on the header's surface. */
   .ib-table-grid .ib-table-filter-row > td {
     padding-block: var(--ib-space-2);
-    background-color: color-mix(in oklab, var(--ib-color-surface-container-low) 50%, var(--ib-color-surface));
+    background-color: var(--ib-table-bg, var(--ib-color-surface));
   }
 
   .ib-table-filter {
@@ -491,7 +499,7 @@
   .ib-table-grid tfoot td {
     border-top: 1px solid var(--ib-color-border);
     border-bottom: 0;
-    background-color: color-mix(in oklab, var(--ib-color-surface-container-low) 50%, var(--ib-color-surface));
+    background-color: transparent;
     font-weight: var(--ib-weight-semibold);
   }
 

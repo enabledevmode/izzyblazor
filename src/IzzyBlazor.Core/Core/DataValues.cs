@@ -3,13 +3,16 @@ namespace IzzyBlazor;
 /// <summary>How a <see cref="Card"/> is drawn.</summary>
 public enum CardVariant
 {
-    /// <summary>A border on the page surface (the default).</summary>
+    /// <summary>A white surface with a border (the default). Works on white and on a tinted page.</summary>
     Outline,
 
     /// <summary>A raised surface with a shadow.</summary>
     Elevated,
 
-    /// <summary>A tinted surface with no border.</summary>
+    /// <summary>
+    /// A quiet fill with no border, for a card inside a white surface (a panel, a dialog, another
+    /// card). On a tinted page it nearly disappears; use Outline there.
+    /// </summary>
     Filled,
 }
 

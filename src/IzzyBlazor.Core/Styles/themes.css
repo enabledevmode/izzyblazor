@@ -8,26 +8,26 @@
  *   <html lang="en" data-ib-theme="ember" data-ib-radius="lg">     or a named theme, adjusted
  *
  * Named themes (data-ib-theme) are presets of the sets below:
- *   ember      Ember on Stone, Bricolage headings     classic    Blue on Slate
+ *   ember      Ember, Bricolage headings              classic    Blue on Slate
  *   editorial  Ink on Stone, large radius, serif heads harbor     Teal on Slate
- *   grove      Green on Stone                          studio     Violet on Neutral, large radius
+ *   grove      Green                                   studio     Violet on Neutral, large radius
  *   crisp      Indigo on Neutral, small radius
  * An explicit data-ib-accent, -gray or -radius beats the theme's (its selector is written twice,
  * which doubles its weight).
  *
  *
- * Accents: ink (the default), blue, indigo, violet, teal, green, rose, ember.
- * Grays: stone (the default, warm), slate (cool), neutral (no tint).
+ * Accents: blue (the default), ink, indigo, violet, teal, green, rose, ember.
+ * Grays: neutral (the default, in tokens.css), stone (warm), slate (cool).
  * Radius: sm, md (the default), lg.
  *
  * Every color is light-dark(), hand-tuned so text holds 4.5:1 on its fill and on each gray, in
  * both schemes. Fonts are tokens too: set --ib-font-sans and --ib-font-heading in your own CSS.
  */
 @layer izzy.tokens {
-  /* Grays. With no accent named, the Ink accent follows the gray's text and fills (below). */
-  [data-ib-theme="ember"],
+  /* Grays. */
+  /* Stone: warm paper. It reads as intentional beside a serif (Editorial); with a plain sans it
+     reads as dated, so the sans themes use the default grays. */
   [data-ib-theme="editorial"],
-  [data-ib-theme="grove"],
   [data-ib-gray][data-ib-gray="stone"] {
     --ib-color-background: light-dark(#f7f6f3, #151618);
     --ib-color-surface: light-dark(#ffffff, #1d1f22);
@@ -46,7 +46,7 @@
   [data-ib-theme="classic"],
   [data-ib-theme="harbor"],
   [data-ib-gray][data-ib-gray="slate"] {
-    --ib-color-background: light-dark(#f5f7fa, #0f1218);
+    --ib-color-background: light-dark(#f8fafc, #0f1218);
     --ib-color-surface: light-dark(#ffffff, #161a21);
     --ib-color-surface-container-low: light-dark(#f1f4f8, #20242c);
     --ib-color-surface-container: light-dark(#e7ebf1, #242932);
@@ -63,7 +63,7 @@
   [data-ib-theme="studio"],
   [data-ib-theme="crisp"],
   [data-ib-gray][data-ib-gray="neutral"] {
-    --ib-color-background: light-dark(#f6f6f7, #141416);
+    --ib-color-background: light-dark(#fafafa, #141416);
     --ib-color-surface: light-dark(#ffffff, #1b1b1e);
     --ib-color-surface-container-low: light-dark(#f3f3f5, #252528);
     --ib-color-surface-container: light-dark(#e9e9ec, #2a2a2d);
@@ -77,29 +77,24 @@
     --ib-color-outline: light-dark(#b8b8bf, #525258);
   }
 
-  /* A gray with no accent named gets the Ink accent, drawn from that gray. */
-  [data-ib-gray]:not([data-ib-accent], [data-ib-theme]) {
-    --ib-color-primary: var(--ib-color-on-surface);
-    --ib-color-on-primary: var(--ib-color-surface);
-    --ib-color-primary-text: var(--ib-color-on-surface);
-    --ib-color-primary-soft: var(--ib-color-surface-container-high);
-  }
-
   /* Accents: fill, text on it, the accent as text, and its soft tint (16% of the fill on white). */
+  /* Ink: monochrome. The fill is the gray set's text color, and the soft tint is that ink thinly
+     laid over whatever is below (10% light, 12% dark; hover is 6%), so it never takes the gray's
+     warm or cool cast. */
   [data-ib-theme="editorial"],
   [data-ib-accent][data-ib-accent="ink"] {
     --ib-color-primary: var(--ib-color-on-surface);
     --ib-color-on-primary: var(--ib-color-surface);
     --ib-color-primary-text: var(--ib-color-on-surface);
-    --ib-color-primary-soft: var(--ib-color-surface-container-high);
+    --ib-color-primary-soft: light-dark(color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent), color-mix(in oklab, var(--ib-color-on-surface) 12%, transparent));
   }
 
   [data-ib-theme="classic"],
   [data-ib-accent][data-ib-accent="blue"] {
-    --ib-color-primary: light-dark(#1f4fd1, #3d6ae8);
+    --ib-color-primary: light-dark(#2563eb, #3d6ae8);
     --ib-color-on-primary: #ffffff;
-    --ib-color-primary-text: light-dark(#1a3fa6, #a9bdff);
-    --ib-color-primary-soft: light-dark(#dbe3f8, #1e2a4a);
+    --ib-color-primary-text: light-dark(#1d4ed8, #a9bdff);
+    --ib-color-primary-soft: light-dark(#dbe6fd, #1e2a4a);
   }
 
   [data-ib-theme="crisp"],
@@ -183,5 +178,10 @@
      docs/styling.md); the fallbacks keep the look without it. */
   [data-ib-theme="editorial"] {
     --ib-font-heading: Newsreader, Georgia, "Times New Roman", serif;
+  }
+
+  [data-ib-theme="ember"] {
+    --ib-font-heading: "Bricolage Grotesque", var(--ib-font-sans);
+    --ib-weight-heading: var(--ib-weight-bold);
   }
 }
