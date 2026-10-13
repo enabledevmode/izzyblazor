@@ -576,7 +576,7 @@
   .ib-table-page-size {
     display: inline-flex;
     align-items: center;
-    gap: var(--ib-space-1);
+    gap: var(--ib-space-2);
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
     line-height: 1.25rem;
@@ -585,8 +585,11 @@
   /* The size is a control, so it's drawn as a small select (outlined, plain weight), not as
      one more page number. */
   .ib-table-page-size-button {
-    gap: var(--ib-space-1);
-    padding-inline: var(--ib-space-2) var(--ib-space-1);
+    justify-content: space-between;
+    gap: var(--ib-space-2);
+    /* A fixed width (room for "100"), so its border lands on whole pixels whatever the number. */
+    width: 4.5rem;
+    padding-inline: var(--ib-space-3) var(--ib-space-2);
     font-weight: var(--ib-weight-normal);
     font-variant-numeric: tabular-nums;
   }
@@ -602,7 +605,10 @@
     color: var(--ib-color-muted);
   }
 
+  /* The range sits between the size select and the pages; its text width is rarely whole, so it's
+     rounded up, keeping the select's border on whole pixels (where calc-size() is supported). */
   .ib-table-summary {
+    width: calc-size(max-content, round(up, size, 1px));
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
     line-height: 1.25rem;

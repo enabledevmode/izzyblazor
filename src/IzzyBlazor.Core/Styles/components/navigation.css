@@ -91,7 +91,10 @@
   }
 
   /* Page numbers are plain; the current one is tinted and heavier, so it leads. */
+  /* Wider numbers ("12", "128") round up to a whole pixel, so every page after them, and anything
+     laid out beside the pager, stays on the pixel grid (where calc-size() is supported). */
   .ib-pagination-item {
+    width: calc-size(max-content, round(up, size, 1px));
     min-width: var(--ib-btn-h);
     padding-inline: var(--ib-space-2);
     font-weight: var(--ib-weight-normal);
