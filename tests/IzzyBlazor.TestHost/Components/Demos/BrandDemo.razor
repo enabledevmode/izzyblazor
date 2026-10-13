@@ -1,4 +1,5 @@
 @using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
 
 @* IzzyTheme: one brand color, the whole accent derived from it. The page's own <head> gets the
    IzzyTheme through HeadContent, so everything here (and the header and sidebar) takes the color. *@
@@ -17,9 +18,9 @@
                 <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Apply</Button>
                 @foreach (var (name, hex) in Presets)
                 {
-                    <a class="host-swatch" href="@($"?primary={Uri.EscapeDataString(hex)}")" style="--swatch: @hex" title="@name @hex"><span class="ib-visually-hidden">@name</span></a>
+                    <a class="host-swatch" href="@Navigation.GetUriWithQueryParameter("primary", hex)" style="--swatch: @hex" title="@name @hex"><span class="ib-visually-hidden">@name</span></a>
                 }
-                <a href="?" class="host-label">Reset</a>
+                <a href="@Navigation.GetUriWithQueryParameter("primary", (string?)null)" class="host-label">Reset</a>
             </form>
 
             @if (Palette is { } p)
