@@ -1,0 +1,61 @@
+/*
+ * ColorSchemeSwitch: SegmentedControl's look (form.css), with links for options. The chosen one
+ * carries aria-current; the script moves it when the user switches.
+ */
+@layer izzy.components {
+  .ib-scheme-switch {
+    --ib-field-h: var(--ib-control-h-md);
+    --ib-field-px: var(--ib-space-3);
+    --ib-field-font: var(--ib-text-sm);
+
+    /* Not SegmentedControl's top alignment: in a header or toolbar it centers like the buttons. */
+    align-self: center;
+    margin-top: 0;
+    vertical-align: middle;
+  }
+
+  .ib-scheme-switch-sm {
+    --ib-field-h: var(--ib-control-h-sm);
+    --ib-field-px: var(--ib-space-2);
+    --ib-field-font: var(--ib-text-xs);
+  }
+
+  .ib-scheme-switch-lg {
+    --ib-field-h: var(--ib-control-h-lg);
+    --ib-field-px: var(--ib-space-4);
+    --ib-field-font: var(--ib-text-md);
+  }
+
+  .ib-scheme-switch > .ib-segment {
+    text-decoration: none;
+  }
+
+  .ib-scheme-switch-sm > .ib-segment > .ib-icon {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
+  .ib-scheme-switch-lg > .ib-segment > .ib-icon {
+    width: 1.125rem;
+    height: 1.125rem;
+  }
+
+  .ib-scheme-switch > .ib-segment[aria-current="true"] {
+    background-color: var(--ib-color-segment);
+    color: var(--ib-color-on-surface);
+    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-segment-edge);
+  }
+
+  .ib-scheme-switch > .ib-segment:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 1px;
+  }
+
+  @media (forced-colors: active) {
+    .ib-scheme-switch > .ib-segment[aria-current="true"] {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+  }
+}

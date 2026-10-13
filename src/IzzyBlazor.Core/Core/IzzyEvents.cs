@@ -19,8 +19,19 @@ public sealed class IzzyToggleEventArgs : EventArgs
     public bool Open { get; set; }
 }
 
+/// <summary>
+/// Data for the <c>ibscheme</c> event, which IzzyBlazor's script raises when a ColorSchemeSwitch
+/// changes the page's color scheme, so <c>@bind-Value</c> follows on interactive pages.
+/// </summary>
+public sealed class IzzySchemeEventArgs : EventArgs
+{
+    /// <summary>The new scheme: <c>system</c>, <c>light</c> or <c>dark</c>.</summary>
+    public string? Scheme { get; set; }
+}
+
 /// <summary>Registers IzzyBlazor's custom events with the Razor compiler.</summary>
 [EventHandler("onibtoggle", typeof(IzzyToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onibscheme", typeof(IzzySchemeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers
 {
 }

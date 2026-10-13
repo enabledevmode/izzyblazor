@@ -190,4 +190,18 @@ public class IzzyText
 
     /// <summary>After a link that opens a new tab.</summary>
     public virtual string OpensInNewTab { get; set; } = "(opens in a new tab)";
+
+    // Theming
+
+    /// <summary>ColorSchemeSwitch's name.</summary>
+    public virtual string ColorScheme { get; set; } = "Color scheme";
+
+    /// <summary>ColorSchemeSwitch: follow the device.</summary>
+    public virtual string SchemeSystem { get; set; } = "System";
+
+    /// <summary>ColorSchemeSwitch: light.</summary>
+    public virtual string SchemeLight { get; set; } = "Light";
+
+    /// <summary>ColorSchemeSwitch: dark.</summary>
+    public virtual string SchemeDark { get; set; } = "Dark";
 }

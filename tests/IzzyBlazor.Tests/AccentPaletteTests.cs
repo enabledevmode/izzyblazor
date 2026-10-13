@@ -99,7 +99,7 @@ public class IzzyThemeRenderTests : BunitContext
     {
         var style = Render<IzzyTheme>(p => p.Add(t => t.Primary, "#0a7d5a")).Find("style");
 
-        Assert.Equal("#0a7d5a", style.GetAttribute("data-ib-theme-primary"));
+        Assert.True(style.HasAttribute("data-ib-theme-style"));
         Assert.StartsWith("@layer izzy.tokens { :root:root:root { --ib-color-primary: light-dark(#0a7d5a,", style.TextContent);
         Assert.Null(style.GetAttribute("nonce"));
     }
@@ -111,12 +111,38 @@ public class IzzyThemeRenderTests : BunitContext
             .Add(t => t.Look, ThemeLook.Compact)
             .Add(t => t.Accent, ThemeAccent.Teal)
             .Add(t => t.Gray, ThemeGray.Stone)
-            .Add(t => t.Radius, ThemeRadius.Lg));
+            .Add(t => t.Radius, ThemeRadius.Lg)
+            .Add(t => t.Density, ThemeDensity.Comfortable));
 
         var metas = cut.FindAll("meta").Select(m => $"{m.GetAttribute("name")}={m.GetAttribute("content")}");
-        Assert.Equal(["ib-theme=compact", "ib-accent=teal", "ib-gray=stone", "ib-radius=lg"], metas);
+        Assert.Equal(["ib-theme=compact", "ib-accent=teal", "ib-gray=stone", "ib-radius=lg", "ib-density=comfortable"], metas);
         Assert.Empty(cut.FindAll("style"));
     }
+
+    [Fact]
+    public void Fonts_and_heading_weight_go_in_the_style_block()
+    {
+        var css = Render<IzzyTheme>(p => p
+            .Add(t => t.Font, " Inter, system-ui, sans-serif ")
+            .Add(t => t.HeadingFont, "\"Source Serif 4\", Georgia, serif")
+            .Add(t => t.HeadingWeight, 700)).Find("style").TextContent;
+
+        Assert.Equal(
+            "@layer izzy.tokens { :root:root:root { --ib-font-sans: Inter, system-ui, sans-serif; --ib-font-heading: \"Source Serif 4\", Georgia, serif; --ib-weight-heading: 700; } }",
+            css);
+    }
+
+    [Theory]
+    [InlineData("Inter; color: red")]
+    [InlineData("Inter } body { color: red")]
+    [InlineData("</style><script>")]
+    [InlineData("Inter /* x */")]
+    public void Rejects_a_font_that_is_not_a_font_family_list(string font) =>
+        Assert.Throws<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.Font, font)));
+
+    [Fact]
+    public void Rejects_a_heading_weight_outside_100_to_900() =>
+        Assert.Throws<ArgumentOutOfRangeException>(() => Render<IzzyTheme>(p => p.Add(t => t.HeadingWeight, 950)));
 
     [Fact]
     public void Renders_nothing_when_nothing_is_set() => Assert.Empty(Render<IzzyTheme>().Markup.Trim());

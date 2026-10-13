@@ -204,33 +204,40 @@
    *   .ib-scheme-inverse                the opposite of the page's scheme
    * The scheme classes also set the text and background color (base.css).
    */
+  /* The page's scheme can also come from IzzyTheme, as <meta name="ib-scheme" content="dark"> in
+     <head> (the user's choice from a ColorSchemeSwitch, read from its cookie on the server). Each
+     rule below has a twin for it. */
   [data-theme="dark"],
+  :root:where(:has(> head > meta[name="ib-scheme"][content="dark"])),
   .ib-scheme-dark {
     color-scheme: dark;
   }
 
   [data-theme="light"],
+  :root:where(:has(> head > meta[name="ib-scheme"][content="light"])),
   .ib-scheme-light {
     color-scheme: light;
   }
 
   /* Inverse: the opposite of the page, whether the page chose or follows the system. */
-  :root[data-theme="light"] .ib-scheme-inverse {
+  :root[data-theme="light"] .ib-scheme-inverse,
+  :root:has(> head > meta[name="ib-scheme"][content="light"]):not([data-theme="dark"]) .ib-scheme-inverse {
     color-scheme: dark;
   }
 
-  :root[data-theme="dark"] .ib-scheme-inverse {
+  :root[data-theme="dark"] .ib-scheme-inverse,
+  :root:has(> head > meta[name="ib-scheme"][content="dark"]):not([data-theme="light"]) .ib-scheme-inverse {
     color-scheme: light;
   }
 
   @media (prefers-color-scheme: light) {
-    :root:not([data-theme="light"], [data-theme="dark"]) .ib-scheme-inverse {
+    :root:not([data-theme="light"], [data-theme="dark"], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-inverse {
       color-scheme: dark;
     }
   }
 
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"], [data-theme="dark"]) .ib-scheme-inverse {
+    :root:not([data-theme="light"], [data-theme="dark"], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-inverse {
       color-scheme: light;
     }
   }
