@@ -25,3 +25,19 @@ public enum CellAlign
     /// <summary>The end (right in left-to-right languages). The default for numbers.</summary>
     End,
 }
+
+/// <summary>Which way a <see cref="Stat"/>'s figure moved.</summary>
+public enum Trend
+{
+    /// <summary>No arrow (the default).</summary>
+    None,
+
+    /// <summary>Went up. Shown in the success color unless the stat's <c>ChangeStatus</c> says otherwise.</summary>
+    Up,
+
+    /// <summary>Went down. Shown in the danger color unless the stat's <c>ChangeStatus</c> says otherwise.</summary>
+    Down,
+
+    /// <summary>Stayed the same.</summary>
+    Flat,
+}

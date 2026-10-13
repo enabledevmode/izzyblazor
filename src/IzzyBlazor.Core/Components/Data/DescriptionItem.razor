@@ -1,0 +1,39 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@* One term and its detail in a DescriptionList: <div><dt/><dd/></div>. *@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <dt class="ib-dl-term">
+        @if (TermContent is not null)
+        {
+            @TermContent
+        }
+        else
+        {
+            @Term
+        }
+    </dt>
+    <dd class="ib-dl-detail">@ChildContent</dd>
+</div>
+
+@code {
+    /// <summary>The term, such as "Status".</summary>
+    [Parameter] public string? Term { get; set; }
+
+    /// <summary>Custom term content, such as text with an icon or a tooltip. Replaces <see cref="Term"/>.</summary>
+    [Parameter] public RenderFragment? TermContent { get; set; }
+
+    /// <summary>The detail.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+        classes.Add("ib-dl-item");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

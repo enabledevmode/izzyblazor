@@ -1,0 +1,303 @@
+/* Kbd, DescriptionList, Stat and EmptyState. Line heights are rounded to whole (mostly even)
+   pixels so icons and text below them stay on the pixel grid. */
+@layer izzy.components {
+  /* ---- Kbd ---- */
+  .ib-kbd {
+    display: inline-block;
+    min-width: calc(round(nearest, 1.5em, 2px) + 2px);
+    padding-inline: round(nearest, 0.375em, 1px);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-sm);
+    box-shadow: inset 0 -1px 0 var(--ib-color-border);
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-on-surface);
+    font-family: var(--ib-font-mono);
+    font-size: 0.75em;
+    font-weight: var(--ib-weight-medium);
+    line-height: 1.5;
+    line-height: round(nearest, 1.5em, 2px);
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  /* A combination: the outer kbd only groups the keys. */
+  .ib-kbd-combo {
+    display: inline-flex;
+    align-items: baseline;
+    gap: round(nearest, 0.25em, 1px);
+    font: inherit;
+    white-space: nowrap;
+  }
+
+  .ib-kbd-separator {
+    color: var(--ib-color-muted);
+    font-size: 0.875em;
+  }
+
+  /* ---- DescriptionList ---- */
+  .ib-dl {
+    --ib-dl-gap-y: var(--ib-space-4);
+
+    display: grid;
+    gap: var(--ib-dl-gap-y) var(--ib-space-6);
+    margin: 0;
+    font-size: var(--ib-text-sm);
+    line-height: var(--ib-leading-normal);
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
+  }
+
+  .ib-dl-sm {
+    --ib-dl-gap-y: var(--ib-space-3);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-dl-lg {
+    --ib-dl-gap-y: var(--ib-space-5);
+    font-size: var(--ib-text-md);
+  }
+
+  .ib-dl-item {
+    display: grid;
+    gap: var(--ib-space-1);
+    min-width: 0;
+  }
+
+  .ib-dl-term {
+    color: var(--ib-color-muted);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-dl-detail {
+    min-width: 0;
+    margin: 0;
+    color: var(--ib-color-on-surface);
+    overflow-wrap: anywhere;
+  }
+
+  /* Badges and other inline boxes sit at the top of the line, not its middle, so a detail with
+     a badge is as tall as one with text (as in table cells). */
+  .ib-dl-detail > * {
+    vertical-align: top;
+  }
+
+  /* Divided: a line between items, the gap split around it. */
+  .ib-dl-divided {
+    row-gap: 0;
+  }
+
+  .ib-dl-divided > .ib-dl-item {
+    padding-block: calc(var(--ib-dl-gap-y) / 2);
+    border-top: 1px solid var(--ib-color-border);
+  }
+
+  .ib-dl-divided > .ib-dl-item:first-child {
+    padding-top: 0;
+    border-top: 0;
+  }
+
+  .ib-dl-divided > .ib-dl-item:last-child {
+    padding-bottom: 0;
+  }
+
+  @media (min-width: 640px) {
+    /* The term column fits the longest term, up to 40%; every item shares it through subgrid. */
+    .ib-dl-horizontal {
+      grid-template-columns: fit-content(40%) minmax(0, 1fr);
+    }
+
+    .ib-dl-horizontal > .ib-dl-item {
+      grid-column: 1 / -1;
+      grid-template-columns: subgrid;
+      align-items: baseline;
+      gap: normal;
+    }
+
+    .ib-dl-columns {
+      grid-template-columns: repeat(var(--ib-dl-columns), minmax(0, 1fr));
+    }
+  }
+
+  /* ---- Stat ---- */
+  .ib-stat {
+    --ib-stat-value: var(--ib-text-2xl);
+    --ib-stat-text: var(--ib-text-sm);
+    --ib-stat-icon: 2.5rem;
+    --ib-stat-glyph: 1.25rem;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--ib-space-4);
+    min-width: 0;
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-stat-sm {
+    --ib-stat-value: var(--ib-text-xl);
+    --ib-stat-text: var(--ib-text-xs);
+    --ib-stat-icon: 2rem;
+    --ib-stat-glyph: 1rem;
+  }
+
+  .ib-stat-lg {
+    --ib-stat-value: var(--ib-text-3xl);
+    --ib-stat-text: var(--ib-text-md);
+    --ib-stat-icon: 3rem;
+    --ib-stat-glyph: 1.5rem;
+  }
+
+  .ib-stat-body {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    min-width: 0;
+    margin: 0;
+    font-size: var(--ib-stat-text);
+    line-height: var(--ib-leading-normal);
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
+  }
+
+  .ib-stat-body > dd {
+    margin: 0;
+  }
+
+  .ib-stat-label {
+    color: var(--ib-color-muted);
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-stat-value {
+    font-size: var(--ib-stat-value);
+    font-weight: var(--ib-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    letter-spacing: var(--ib-tracking-tight);
+    line-height: var(--ib-leading-tight);
+    line-height: round(nearest, calc(1em * var(--ib-leading-tight)), 2px);
+  }
+
+  .ib-stat-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    column-gap: var(--ib-space-2);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-stat-change {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-weight: var(--ib-weight-medium);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-stat-change-neutral { color: var(--ib-color-on-surface); }
+  .ib-stat-change-info { color: var(--ib-color-info-text); }
+  .ib-stat-change-success { color: var(--ib-color-success-text); }
+  .ib-stat-change-warning { color: var(--ib-color-warning-text); }
+  .ib-stat-change-danger { color: var(--ib-color-danger-text); }
+
+  .ib-stat-trend {
+    width: round(nearest, 1em, 2px);
+    height: round(nearest, 1em, 2px);
+  }
+
+  .ib-stat-icon {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--ib-stat-icon);
+    height: var(--ib-stat-icon);
+    border-radius: var(--ib-radius-lg);
+    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-stat-icon > .ib-icon {
+    width: var(--ib-stat-glyph);
+    height: var(--ib-stat-glyph);
+  }
+
+  /* ---- EmptyState ---- */
+  .ib-empty {
+    --ib-empty-icon: 3rem;
+    --ib-empty-glyph: 1.5rem;
+    --ib-empty-title: var(--ib-text-lg);
+    --ib-empty-text: var(--ib-text-sm);
+
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: var(--ib-space-10) var(--ib-space-6);
+    color: var(--ib-color-on-surface);
+    text-align: center;
+  }
+
+  .ib-empty-sm {
+    --ib-empty-icon: 2.5rem;
+    --ib-empty-glyph: 1.25rem;
+    --ib-empty-title: var(--ib-text-md);
+    --ib-empty-text: var(--ib-text-xs);
+
+    padding: var(--ib-space-6) var(--ib-space-4);
+  }
+
+  .ib-empty-lg {
+    --ib-empty-icon: 4rem;
+    --ib-empty-glyph: 2rem;
+    --ib-empty-title: var(--ib-text-xl);
+    --ib-empty-text: var(--ib-text-md);
+
+    padding: var(--ib-space-16) var(--ib-space-8);
+  }
+
+  .ib-empty-bordered {
+    border: 1px dashed var(--ib-color-outline);
+    border-radius: var(--ib-radius-xl);
+  }
+
+  .ib-empty-icon {
+    display: grid;
+    place-items: center;
+    width: var(--ib-empty-icon);
+    height: var(--ib-empty-icon);
+    margin-bottom: var(--ib-space-4);
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-surface-container);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-empty-icon > .ib-icon {
+    width: var(--ib-empty-glyph);
+    height: var(--ib-empty-glyph);
+  }
+
+  .ib-empty-title {
+    margin: 0;
+    font-size: var(--ib-empty-title);
+    font-weight: var(--ib-weight-semibold);
+    line-height: var(--ib-leading-snug);
+    line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px);
+  }
+
+  .ib-empty-description {
+    max-width: 28rem;
+    margin: var(--ib-space-1) 0 0;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-empty-text);
+    line-height: var(--ib-leading-normal);
+    line-height: round(nearest, calc(1em * var(--ib-leading-normal)), 1px);
+  }
+
+  .ib-empty-body {
+    margin-top: var(--ib-space-4);
+  }
+
+  .ib-empty-actions {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--ib-space-2);
+    margin-top: var(--ib-space-5);
+  }
+}

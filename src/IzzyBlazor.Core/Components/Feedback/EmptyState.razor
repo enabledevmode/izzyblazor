@@ -1,0 +1,84 @@
+@namespace IzzyBlazor
+@inherits StyledComponentBase
+
+@*
+    What to show when there's nothing yet: no results, an empty inbox, a first-run screen. An
+    icon, a title, a line of explanation and the action that fills it. Centered; no script.
+
+    <EmptyState Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here.">
+        <Actions><LinkButton Href="/invoices/new">New invoice</LinkButton></Actions>
+    </EmptyState>
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (Icon is { } icon)
+    {
+        <div class="ib-empty-icon" aria-hidden="true"><Icon Name="icon" /></div>
+    }
+    @if (Title is not null)
+    {
+        @TitleElement
+    }
+    @if (Description is not null)
+    {
+        <p class="ib-empty-description">@Description</p>
+    }
+    @if (ChildContent is not null)
+    {
+        <div class="ib-empty-body">@ChildContent</div>
+    }
+    @if (Actions is not null)
+    {
+        <div class="ib-empty-actions">@Actions</div>
+    }
+</div>
+
+@code {
+    /// <summary>An icon above the title, in a tinted circle.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>The heading, such as "No results".</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The heading level of <see cref="Title"/>, 1 to 6. Defaults to 3.</summary>
+    [Parameter] public int TitleLevel { get; set; } = 3;
+
+    /// <summary>A muted line under the title saying why it's empty or what to do.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>Anything else, below the description, such as a list of suggestions.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Buttons or links that fill it, such as "New invoice" or "Clear filters".</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>A dashed border around it, for an empty area inside a page.</summary>
+    [Parameter] public bool Bordered { get; set; }
+
+    /// <summary>Icon, text size and spacing. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private string? _class;
+    private string? _style;
+
+    private RenderFragment TitleElement => builder =>
+    {
+        builder.OpenElement(0, $"h{Math.Clamp(TitleLevel, 1, 6)}");
+        builder.AddAttribute(1, "class", "ib-empty-title");
+        builder.AddContent(2, Title);
+        builder.CloseElement();
+    };
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-empty");
+        classes.Add("ib-empty-bordered", Bordered);
+        classes.Add("ib-empty-sm", Size == ControlSize.Sm);
+        classes.Add("ib-empty-lg", Size == ControlSize.Lg);
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

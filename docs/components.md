@@ -425,6 +425,36 @@ directly inside the group, since `Max` hides the extras by counting its children
 `Filled`. `Href` makes the whole card a link through its title (one link for screen readers), while
 buttons in it stay clickable.
 
+## Stat
+
+A key figure: `Label`, `Value` (or content), and optionally `Change` with a `Trend` (`Up`, `Down`,
+`Flat`) and a muted `Description` such as "vs last month". It's a `<dl>`, so the label names the
+value for screen readers. Up is shown in the success color and down in danger; set `ChangeStatus`
+when down is good, such as for costs or response times. The arrow is hidden from screen readers and
+`TrendLabel` ("Up", "Down", "No change") is read in its place. `Icon` adds a tinted square at the
+end; `Size` scales the text. Put stats in a `Grid`, in `Card`s or not.
+
+## DescriptionList
+
+Terms and their details, such as an order's fields: `DescriptionItem Term="Status"` (or
+`TermContent`) with the detail as content, rendered as a `<dl>` with each pair in a `<div>`.
+`Orientation.Horizontal` (the default) puts terms beside details from 640px up, the term column as
+wide as the longest term (up to 40%); phones get them stacked. `Orientation.Vertical` puts each term
+above its detail, and `Columns` (1 to 4) flows the items into columns from 640px up. `Divided` adds
+lines between items; `Size` sets the text size and spacing.
+
+## EmptyState
+
+What to show when there's nothing yet: `Icon` (in a tinted circle), `Title` (`TitleLevel`, default
+3), `Description`, any content, and `Actions` such as a "New invoice" button or "Clear filters".
+`Bordered` draws a dashed outline for an empty area inside a page; `Size` scales it.
+
+## Kbd
+
+A key, `<Kbd>Esc</Kbd>`, or a combination, `<Kbd Keys="Ctrl+K" />`: nested `<kbd>` elements, one
+box per key, joined by `Separator` ("+"). Spaces around "+" are ignored, and "Ctrl++" is Ctrl and the
+plus key. Sized in em, so it fits the text around it.
+
 ## Table
 
 Sorts and pages through the URL: headers and page numbers are links that set `?sort=` (`-total` for

@@ -83,6 +83,15 @@ public enum IconRole
 
     /// <summary>Column sortable, not sorted.</summary>
     Sortable,
+
+    /// <summary>A figure went up.</summary>
+    TrendUp,
+
+    /// <summary>A figure went down.</summary>
+    TrendDown,
+
+    /// <summary>A figure didn't change.</summary>
+    TrendFlat,
 }
 
 /// <summary>
@@ -120,6 +129,9 @@ public class IconSet
         IconRole.SortAscending => IzzyBlazor.Lucide.ArrowUp,
         IconRole.SortDescending => IzzyBlazor.Lucide.ArrowDown,
         IconRole.Sortable => IzzyBlazor.Lucide.ArrowUpDown,
+        IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
+        IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
+        IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
