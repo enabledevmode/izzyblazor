@@ -101,7 +101,7 @@ public class Icon : IzzyComponentBase
         builder.AddMultipleAttributes(12, AdditionalAttributes);
         builder.AddAttribute(13, "class", cssClass);
         builder.AddAttribute(14, "style", style);
-        builder.AddMarkupContent(15, _icon.Body);
+        builder.AddMarkupContent(15, IconMarkup.Verify(_icon.Body, _icon.Name));
         builder.CloseElement();
     }
 }
