@@ -11,13 +11,14 @@ public static class DemoCatalog
 {
     public static IReadOnlyList<Demo> All { get; } =
     [
+        new("brand", "Brand color", "Theming", typeof(BrandDemo)),
         new("shell", "AppShell and NavMenu", "Layout", typeof(ShellDemo)),
         new("layouts", "Page layouts", "Layout", typeof(LayoutsDemo)),
         new("box", "Box", "Layout", typeof(BoxDemo)),
         new("stack", "Stack, Row, Column", "Layout", typeof(StackDemo)),
         new("grid", "Grid, Container and more", "Layout", typeof(GridDemo)),
         new("typography", "Text and Heading", "Typography", typeof(TypographyDemo)),
-        new("links", "Link and Code", "Typography", typeof(LinkDemo)),
+        new("anchor", "Anchor and Code", "Typography", typeof(AnchorDemo)),
         new("buttons", "Button, LinkButton, IconButton", "Actions", typeof(ButtonsDemo)),
         new("forms", "Form and fields", "Forms", typeof(FormsDemo)),
         new("disclosure", "Accordion, Collapsible", "Disclosure", typeof(DisclosureDemo)),

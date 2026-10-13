@@ -178,6 +178,36 @@
   border-top: 1px solid var(--ib-color-border);
 }
 
+.host-brand-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ib-space-2);
+}
+
+.host-brand-form input[type="color"] {
+  width: 2.5rem;
+  height: 2rem;
+  padding: 0;
+  border: 1px solid var(--ib-color-outline);
+  border-radius: var(--ib-radius-md);
+  background: none;
+}
+
+.host-swatch {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: var(--ib-radius-full);
+  background: var(--swatch);
+  box-shadow: inset 0 0 0 1px rgb(0 0 0 / 0.15);
+}
+
+.host-chip {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--ib-radius-sm);
+  font-size: var(--ib-text-xs);
+}
+
 .host-tile {
   min-width: 2.5rem;
   min-height: 2.5rem;

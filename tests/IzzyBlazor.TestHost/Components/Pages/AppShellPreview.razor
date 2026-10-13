@@ -8,12 +8,11 @@
 <PageTitle>AppShell preview</PageTitle>
 
 <AppShell Variant="@ShellVariantValue" Dividers="@(Lines != "off")" ScrollMode="@(Scroll == "main" ? ShellScroll.Main : ShellScroll.Page)">
-    @* Link is qualified below: this page's Link() method hides the component's name. *@
     @if (BannerOn == "on")
     {
         <Banner Status="Status.Warning" Dismissible Position="@(BannerSticky == "on" ? BarPosition.Sticky : BarPosition.Static)">
             <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
-            <Actions><IzzyBlazor.Link Href='@Link("changelog")'>Details</IzzyBlazor.Link></Actions>
+            <Actions><Anchor Href='@Link("changelog")'>Details</Anchor></Actions>
         </Banner>
     }
     <AppHeader Bg="@Chrome" Scheme="@SchemeOf(HeaderScheme)">
