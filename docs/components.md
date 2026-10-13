@@ -580,7 +580,21 @@ plus key. Sized in em, so it fits the text around it.
 
 Sorts and pages through the URL: headers and page numbers are links that set `?sort=` (`-total` for
 descending) and `?page=`. So tables work with no script, survive reloads and can be shared. On
-interactive pages the same links navigate without a reload, and the table follows.
+interactive pages the links are ordinary navigations and the table follows the URL. With enhanced
+navigation that's no full reload, but the server renders the page again; only an app with a
+client-side router (full interactivity) stays in the browser.
+
+**State in the component.** To sort and page in place on an interactive page, like a client-side
+grid, bind `Sort` or `Page`:
+
+```razor
+<Table Items="orders" PageSize="50" @bind-Sort="sort" @bind-Page="page">...</Table>
+```
+
+Headers and page numbers become buttons and the URL doesn't change. The table starts from the URL's
+`?sort=` and `?page=` if they're there, and a new sort goes back to page 1. Set `page = 1` yourself
+when your filters change. Static pages, and the prerender before the page is interactive, still
+use the links.
 
 - `PropertyColumn` takes its title from the property (or `[Display(Name)]`), right-aligns numbers and
   formats values (`Format="C"`).
