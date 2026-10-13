@@ -18,7 +18,16 @@ enhanced navigation and form handling, and on Interactive Server, WebAssembly an
    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
    ```
 
-3. Add `@using IzzyBlazor` to `_Imports.razor`.
+   Optionally, set the look and your brand color in the same `<head>` (see
+   [Styling](styling.md#looks-and-colors)):
+
+   ```razor
+   <IzzyTheme Look="ThemeLook.Standard" Primary="#0a7d5a" />
+   ```
+
+3. Add `@using IzzyBlazor` to `_Imports.razor`. Prefer this to a `global using`: it brings the
+   components into `.razor` files only, so names such as `Table` and `Column` don't meet EF Core's
+   `[Table]` and `[Column]` attributes in your entity classes.
 
 4. Register the services in `Program.cs`, and put `<ToastRegion />` in your layout if you use toasts:
 
@@ -31,6 +40,13 @@ enhanced navigation and form handling, and on Interactive Server, WebAssembly an
 
 The JavaScript loads itself: Blazor picks up `IzzyBlazor.Core.lib.module.js` as a JS initializer, so
 there's no script tag to add.
+
+## Name clashes
+
+IzzyBlazor's components have plain names (`Button`, `Card`, `Table`). If a file also sees a type of
+yours with the same name, such as your own `Status` enum, the compiler reports an ambiguous
+reference; qualify one of them (`IzzyBlazor.Status.Success`) or add an alias in `_Imports.razor`
+(`@using Status = IzzyBlazor.Status`).
 
 ## Packages
 

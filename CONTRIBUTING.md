@@ -48,7 +48,8 @@ scale factor of 2, in light and dark.
 
 ## Adding a component
 
-1. **The class.** Add it under `src/IzzyBlazor.Core/Components/<Group>/`, inheriting
+1. **The class.** Add it under `src/IzzyBlazor.Core/Components/<Group>/`, in the `IzzyBlazor`
+   namespace (`@namespace IzzyBlazor` or `namespace IzzyBlazor;`, not one per folder), inheriting
    `StyledComponentBase` (layout and surfaces) or `IzzyComponentBase` (everything else). Override
    `BuildAttributes`: add the base class first, call `base.BuildAttributes`, then apply component
    parameters with `ApplyResponsive`. Use `Responsive<T>` for any parameter that should vary by
@@ -62,6 +63,22 @@ scale factor of 2, in light and dark.
    renders.
 4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
 5. **Tests** in `tests/IzzyBlazor.Tests/`.
+
+### Namespaces
+
+The public API is one namespace, `IzzyBlazor`, so `@using IzzyBlazor` in `_Imports.razor` brings in
+every component, enum and value type. Folders organize the source, not the API: a type keeps its
+namespace when its file moves, and users never need to know which package (`IzzyBlazor` or
+`IzzyBlazor.Core`) it ships in. Both library projects have the root namespace `IzzyBlazor`
+(`IzzyBlazor.Core` sets `RootNamespace`), and `.editorconfig` turns off the IDE's
+namespace-matches-folder check for `src/`.
+
+- Library types: `IzzyBlazor`.
+- A sub-namespace only for opt-in extras that shouldn't be in scope by default, such as
+  `IzzyBlazor.Units` (`14.Rem`).
+- Service registration (`AddIzzyBlazor`, `AddIzzyBlazorCore`):
+  `Microsoft.Extensions.DependencyInjection`, as .NET libraries do.
+- Tests and the dev host follow their folders (`IzzyBlazor.Tests`, `IzzyBlazor.TestHost.*`).
 
 ### Naming parameters
 

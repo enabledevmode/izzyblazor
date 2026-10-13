@@ -3,8 +3,8 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
-/// <summary>How a <see cref="Link"/> is underlined.</summary>
-public enum LinkUnderline
+/// <summary>How a <see cref="Anchor"/> is underlined.</summary>
+public enum AnchorUnderline
 {
     /// <summary>Always underlined (the default): clearest in running text.</summary>
     Always,
@@ -22,11 +22,11 @@ public enum LinkUnderline
 /// </summary>
 /// <example>
 /// <code>
-/// Read the &lt;Link Href="/docs"&gt;docs&lt;/Link&gt;.
-/// &lt;Link Href="https://github.com/..." External&gt;GitHub&lt;/Link&gt;
+/// Read the &lt;Anchor Href="/docs"&gt;docs&lt;/Anchor&gt;.
+/// &lt;Anchor Href="https://github.com/..." External&gt;GitHub&lt;/Anchor&gt;
 /// </code>
 /// </example>
-public class Link : IzzyComponentBase
+public class Anchor : IzzyComponentBase
 {
     /// <summary>Where it goes.</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
@@ -34,8 +34,8 @@ public class Link : IzzyComponentBase
     /// <summary>Opens in a new tab (<c>target="_blank" rel="noopener noreferrer"</c>), with an icon after the text.</summary>
     [Parameter] public bool External { get; set; }
 
-    /// <summary>When it's underlined. Defaults to <see cref="LinkUnderline.Always"/>.</summary>
-    [Parameter] public LinkUnderline Underline { get; set; } = LinkUnderline.Always;
+    /// <summary>When it's underlined. Defaults to <see cref="AnchorUnderline.Always"/>.</summary>
+    [Parameter] public AnchorUnderline Underline { get; set; } = AnchorUnderline.Always;
 
     /// <summary>Uses the surrounding text color instead of the accent, still underlined, for links in muted text or on colored backgrounds.</summary>
     [Parameter] public bool Inherit { get; set; }
@@ -49,10 +49,10 @@ public class Link : IzzyComponentBase
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
-        classes.Add("ib-link");
-        classes.Add("ib-link-hover", Underline == LinkUnderline.Hover);
-        classes.Add("ib-link-plain", Underline == LinkUnderline.None);
-        classes.Add("ib-link-inherit", Inherit);
+        classes.Add("ib-anchor");
+        classes.Add("ib-anchor-hover", Underline == AnchorUnderline.Hover);
+        classes.Add("ib-anchor-plain", Underline == AnchorUnderline.None);
+        classes.Add("ib-anchor-inherit", Inherit);
     }
 
     /// <inheritdoc />
@@ -75,7 +75,7 @@ public class Link : IzzyComponentBase
         {
             builder.OpenComponent<Icon>(8);
             builder.AddComponentParameter(9, nameof(Icon.Role), IconRole.ExternalLink);
-            builder.AddComponentParameter(10, nameof(Icon.Class), "ib-link-icon");
+            builder.AddComponentParameter(10, nameof(Icon.Class), "ib-anchor-icon");
             builder.CloseComponent();
             builder.OpenElement(11, "span");
             builder.AddAttribute(12, "class", "ib-visually-hidden");

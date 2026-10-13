@@ -88,9 +88,9 @@
   }
 }
 
-/* Link and Code */
+/* Anchor and Code */
 @layer izzy.components {
-  .ib-link {
+  .ib-anchor {
     border-radius: var(--ib-radius-sm);
     color: var(--ib-color-primary-text);
     text-decoration: underline;
@@ -99,30 +99,30 @@
     transition: color var(--ib-duration-fast) var(--ib-ease), text-decoration-color var(--ib-duration-fast) var(--ib-ease);
   }
 
-  .ib-link:hover {
+  .ib-anchor:hover {
     text-decoration-color: currentColor;
     text-decoration-thickness: 2px;
   }
 
-  .ib-link-hover,
-  .ib-link-plain {
+  .ib-anchor-hover,
+  .ib-anchor-plain {
     text-decoration: none;
   }
 
-  .ib-link-hover:hover {
+  .ib-anchor-hover:hover {
     text-decoration: underline;
   }
 
-  .ib-link-inherit {
+  .ib-anchor-inherit {
     color: inherit;
   }
 
-  .ib-link:focus-visible {
+  .ib-anchor:focus-visible {
     outline: 2px solid var(--ib-color-focus);
     outline-offset: 2px;
   }
 
-  .ib-link-icon {
+  .ib-anchor-icon {
     width: 0.85em;
     width: round(nearest, 0.85em, 2px);
     height: 0.85em;
