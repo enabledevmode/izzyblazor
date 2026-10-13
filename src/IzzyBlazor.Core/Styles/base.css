@@ -2,6 +2,41 @@
  * Light page defaults. Layered, so any app CSS overrides them.
  */
 @layer izzy.base {
+  /*
+   * Thin, theme-colored scrollbars in the library's own scrolling areas, instead of the platform's
+   * (on Windows: gray, with arrow buttons, the same in dark mode). Pages keep their own.
+   */
+  :where(
+    .ib-shell-sidebar-body,
+    .ib-shell-aside-inner,
+    .ib-shell-scroll-main > .ib-shell-main,
+    .ib-table-scroll,
+    .ib-nav-horizontal,
+    .ib-tabs-list,
+    .ib-pop,
+    .ib-dialog,
+    .ib-dialog-body,
+    .ib-code-pre
+  ) {
+    scrollbar-width: thin;
+    scrollbar-color: var(--ib-color-scrollbar) transparent;
+  }
+
+  :where(
+    .ib-shell-sidebar-body,
+    .ib-shell-aside-inner,
+    .ib-shell-scroll-main > .ib-shell-main,
+    .ib-table-scroll,
+    .ib-nav-horizontal,
+    .ib-tabs-list,
+    .ib-pop,
+    .ib-dialog,
+    .ib-dialog-body,
+    .ib-code-pre
+  ):hover {
+    scrollbar-color: var(--ib-color-scrollbar-hover) transparent;
+  }
+
   *,
   *::before,
   *::after {

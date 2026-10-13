@@ -111,6 +111,9 @@
        mode, a clear step lighter than the track in dark mode, with an outline-colored edge. */
     --ib-color-segment: light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 14%, var(--ib-color-surface-container)));
     --ib-color-segment-edge: var(--ib-color-outline);
+    /* Scrollbar thumbs in IzzyBlazor's scrolling areas (the track stays transparent). */
+    --ib-color-scrollbar: color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent);
+    --ib-color-scrollbar-hover: color-mix(in oklab, var(--ib-color-on-surface) 42%, transparent);
     --ib-color-backdrop: light-dark(rgb(15 23 42 / 0.5), rgb(0 0 0 / 0.6));
     --ib-color-on-surface: light-dark(#0f172a, #e6e8ec);
     --ib-color-muted: light-dark(#5b6474, #9aa3b2);
