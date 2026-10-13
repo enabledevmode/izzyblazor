@@ -261,7 +261,7 @@
 
     private string StateNote => RendererInfo.IsInteractive
         ? "@bind-Sort, @bind-Page and @bind-Filters keep the sort, page and filters in the component (this one uses FilterPlacement.Row, a row of fields under the headers): headers and page numbers are buttons, the URL stays as it is, and the page isn't rendered again on the server."
-        : "On interactive pages, @bind-Sort and @bind-Page keep the sort and page in the component instead of the URL. On this static page there's no component state to keep, so it uses links like the table above.";
+        : "On interactive pages, @bind-Sort, @bind-Page, @bind-Filters and @bind-PageSize keep the sort, page, filters and page size in the component instead of the URL. On this static page there's no component state to keep, so it uses the URL like the tables above.";
 
     private const string StateCode =
         """
