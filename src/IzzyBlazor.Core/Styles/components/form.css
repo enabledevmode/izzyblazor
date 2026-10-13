@@ -157,13 +157,16 @@
     background-color: var(--ib-color-surface-container);
   }
 
-  /* Invalid: from the server, or from the browser after interaction */
-  .ib-field-invalid .ib-field-input,
+  /* Invalid: from the server, or from the browser after interaction. Scoped to the field's own
+     control, so a field nested in an add-on keeps its own state. */
+  .ib-field-invalid > .ib-field-control > .ib-field-input,
+  .ib-field-invalid > .ib-field-group > .ib-field-control > .ib-field-input,
   .ib-field-input:user-invalid {
     border-color: var(--ib-color-danger);
   }
 
-  .ib-field-invalid .ib-field-input:focus-visible,
+  .ib-field-invalid > .ib-field-control > .ib-field-input:focus-visible,
+  .ib-field-invalid > .ib-field-group > .ib-field-control > .ib-field-input:focus-visible,
   .ib-field-input:user-invalid:focus-visible {
     box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-danger) 25%, transparent);
   }
@@ -184,9 +187,12 @@
    * NumberInput. The browser's own spin buttons are hidden; the script reveals IzzyBlazor's
    * stepper buttons, stacked at the end or split across both ends.
    */
-  .ib-field-number {
+  /* textfield, not none: it's what makes Firefox hide its spin buttons (and outranks the
+     appearance: none on input.ib-field-input). */
+  input.ib-field-number {
     font-variant-numeric: tabular-nums;
     -moz-appearance: textfield;
+    appearance: textfield;
   }
 
   .ib-field-number::-webkit-inner-spin-button,
@@ -416,12 +422,13 @@
     outline: none;
   }
 
+  /* A solid ring, the focus color, with a gap in the surface color: visible on the track and off it. */
   .ib-slider-input:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ib-color-focus) 30%, transparent);
+    box-shadow: 0 0 0 2px var(--ib-color-surface), 0 0 0 4px var(--ib-color-focus);
   }
 
   .ib-slider-input:focus-visible::-moz-range-thumb {
-    box-shadow: 0 0 0 4px color-mix(in oklab, var(--ib-color-focus) 30%, transparent);
+    box-shadow: 0 0 0 2px var(--ib-color-surface), 0 0 0 4px var(--ib-color-focus);
   }
 
   .ib-slider-input:disabled {
@@ -635,7 +642,8 @@
     gap: 0;
   }
 
-  .ib-field-addon > .ib-field > .ib-field-label {
+  /* A nested field's label, hint and errors stay linked for screen readers but aren't shown. */
+  .ib-field-addon > .ib-field > :is(.ib-field-label, .ib-field-hint, .ib-field-error) {
     position: absolute;
     width: 1px;
     height: 1px;

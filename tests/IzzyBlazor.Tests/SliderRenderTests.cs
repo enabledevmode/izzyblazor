@@ -18,6 +18,11 @@ public class SliderRenderTests : BunitContext
 
         public int? Unset { get; set; }
 
+        [Range(1, 10)]
+        public int? Rating { get; set; }
+
+        public float Light { get; set; } = 0.1f;
+
         public DateTime When { get; set; }
     }
 
@@ -102,6 +107,24 @@ public class SliderRenderTests : BunitContext
 
         Assert.Equal("50", cut.Find("output").TextContent);
         Assert.Equal("--ib-slider-fill: 50", cut.Find("ib-field-control").GetAttribute("style"));
+    }
+
+    [Fact]
+    public void Empty_value_snaps_to_the_step_like_the_browser()
+    {
+        var cut = SliderFor(() => _model.Rating, p => p.Add(f => f.ShowValue, true));
+
+        Assert.Equal("6", cut.Find("output").TextContent);
+        Assert.Equal("6", cut.Find("input").GetAttribute("aria-valuetext"));
+    }
+
+    [Fact]
+    public void Float_values_read_without_binary_noise()
+    {
+        var cut = SliderFor(() => _model.Light, p => p.Add(f => f.Min, 0).Add(f => f.Max, 1).Add(f => f.Step, 0.1).Add(f => f.ShowValue, true));
+
+        Assert.Equal("0.1", cut.Find("output").TextContent);
+        Assert.Equal("0.1", cut.Find("input").GetAttribute("value"));
     }
 
     [Fact]

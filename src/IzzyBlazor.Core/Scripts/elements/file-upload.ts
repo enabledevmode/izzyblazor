@@ -13,8 +13,9 @@ class FileUpload extends IzzyElement {
     const input = this.querySelector<HTMLInputElement>("input[type=file]");
     if (!input) return;
 
+    // Interactive pages stream files over Blazor, so only a form that posts them needs multipart.
     const form = input.form;
-    if (form && form.enctype !== "multipart/form-data" && !form.dataset.ibFileWarned) {
+    if (form && !this.hasAttribute("data-ib-interactive") && form.enctype !== "multipart/form-data" && !form.dataset.ibFileWarned) {
       form.dataset.ibFileWarned = "";
       console.warn(`IzzyBlazor: the form around FileUpload "${input.name}" isn't multipart, so it posts only file names. Add Multipart to the Form.`);
     }
@@ -61,26 +62,30 @@ class FileUpload extends IzzyElement {
       { signal }
     );
 
-    // A refused drop says why next to the input, briefly, without clearing an earlier choice.
+    // Files over the size limit keep the input invalid until a smaller choice replaces them.
+    const check = () => {
+      const max = Number(this.dataset.ibMaxSize);
+      const big = max > 0 ? Array.from(input.files ?? []).find((file) => file.size > max) : undefined;
+      const message = (this.dataset.ibTooLarge ?? "{0} is larger than {1}.").replace("{0}", big?.name ?? "").replace("{1}", formatSize(max));
+      input.setCustomValidity(big ? message : "");
+      return big;
+    };
+    input.addEventListener("change", () => check() && input.reportValidity(), { signal });
+    // A reset empties the input without a change event.
+    form?.addEventListener("reset", () => setTimeout(check, 0), { signal });
+    check();
+
+    // A refused drop says why next to the input, briefly, without clearing an earlier choice;
+    // then the size check decides validity again.
+    let refusal = 0;
     const refuse = (file: File) => {
       const message = (this.dataset.ibWrongType ?? "{0} isn't an accepted file type.").replace("{0}", file.name);
       input.setCustomValidity(message);
       input.reportValidity();
-      setTimeout(() => {
-        if (input.validationMessage === message) input.setCustomValidity("");
-      }, 3000);
+      clearTimeout(refusal);
+      refusal = window.setTimeout(check, 3000);
     };
-
-    const max = Number(this.dataset.ibMaxSize);
-    if (max > 0) {
-      const message = this.dataset.ibTooLarge ?? "{0} is larger than {1}.";
-      const check = () => {
-        const big = Array.from(input.files ?? []).find((file) => file.size > max);
-        input.setCustomValidity(big ? message.replace("{0}", big.name).replace("{1}", formatSize(max)) : "");
-        if (big) input.reportValidity();
-      };
-      input.addEventListener("change", check, { signal });
-    }
+    signal.addEventListener("abort", () => clearTimeout(refusal));
   }
 }
 

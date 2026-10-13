@@ -15,7 +15,7 @@
 
 <FieldFrame Class="@WrapperClass("number")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <FieldAddons Start="StartAddon" End="EndAddon">
+    <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
         <ib-field-control class="@ControlClass">
             @if (StartIcon is { } start)
             {
@@ -144,7 +144,7 @@
     /// <inheritdoc />
     protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
     {
-        if (BindConverter.TryConvertTo<TValue>(value, System.Globalization.CultureInfo.InvariantCulture, out result))
+        if (NumberTypes.TryParse(value, out result))
         {
             validationErrorMessage = null;
             return true;

@@ -71,6 +71,9 @@ function setupSlider(control: HTMLElement, input: HTMLInputElement, signal: Abor
   };
   input.addEventListener("input", update, { signal });
   input.addEventListener("change", update, { signal });
+  // The browser may hold a different value than the server rendered: one it snapped to the step,
+  // or one it restored on reload.
+  update();
 
   // When Blazor re-renders the value, the server's text and fill are current again.
   if (output) {
@@ -87,10 +90,14 @@ function setupSteppers(input: HTMLInputElement, steppers: HTMLElement, signal: A
   if (!up || !down) return;
   steppers.hidden = false;
 
-  // Disabled and read-only come from the server; the min and max ends are tracked here.
-  const locked = up.disabled;
+  // Disabled and read-only come from the server (and can change on interactive pages); the min
+  // and max ends are tracked here.
+  const locked = () => input.disabled || input.readOnly;
   const sync = () => {
-    if (locked) return;
+    if (locked()) {
+      up.disabled = down.disabled = true;
+      return;
+    }
     const value = input.valueAsNumber;
     const min = input.min === "" ? NaN : Number(input.min);
     const max = input.max === "" ? NaN : Number(input.max);
@@ -112,8 +119,11 @@ function setupSteppers(input: HTMLInputElement, steppers: HTMLElement, signal: A
         input.stepDown();
       }
     } catch {
-      // step="any" has no step size: move by 1.
-      const next = (Number.isNaN(input.valueAsNumber) ? 0 : input.valueAsNumber) + (direction === "up" ? 1 : -1);
+      // step="any" has no step size: move by 1, keeping the value's decimals exact
+      // (0.14 + 1 is 1.1400000000000001 in floating point).
+      const current = Number.isNaN(input.valueAsNumber) ? 0 : input.valueAsNumber;
+      const decimals = (input.value.split(".")[1] ?? "").replace(/e.*$/i, "").length;
+      const next = Number((current + (direction === "up" ? 1 : -1)).toFixed(Math.min(decimals, 20)));
       const min = input.min === "" ? -Infinity : Number(input.min);
       const max = input.max === "" ? Infinity : Number(input.max);
       input.value = String(Math.min(max, Math.max(min, next)));
@@ -158,6 +168,16 @@ function setupSteppers(input: HTMLInputElement, steppers: HTMLElement, signal: A
     for (const type of ["pointerup", "pointerleave", "pointercancel"]) {
       button.addEventListener(type, stop, { signal });
     }
+    // Screen readers, voice control and switch access send a click with no pointer events.
+    button.addEventListener(
+      "click",
+      (event) => {
+        if (event.detail !== 0 || button.disabled) return;
+        step(direction);
+        input.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      { signal }
+    );
   }
   signal.addEventListener("abort", stop);
 

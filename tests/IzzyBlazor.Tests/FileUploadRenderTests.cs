@@ -88,6 +88,39 @@ public class FileUploadRenderTests : BunitContext
     }
 
     [Fact]
+    public void Interactive_OnChange_trims_to_MaxFiles_and_leaves_out_oversized_files()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        IReadOnlyList<Microsoft.AspNetCore.Components.Forms.IBrowserFile>? received = null;
+
+        var cut = Render<FileUpload>(p => p
+            .Add(f => f.Name, "Files")
+            .Add(f => f.Multiple, true)
+            .Add(f => f.MaxFiles, 3)
+            .Add(f => f.MaxFileSize, 10L)
+            .Add(f => f.OnChange, files => received = files));
+
+        var big = InputFileContent.CreateFromText(new string('x', 50), "big.txt");
+        var small = Enumerable.Range(1, 12).Select(i => InputFileContent.CreateFromText("hi", $"f{i}.txt"));
+        cut.FindComponent<Microsoft.AspNetCore.Components.Forms.InputFile>().UploadFiles([big, .. small]);
+
+        Assert.NotNull(received);
+        Assert.Equal(new[] { "f1.txt", "f2.txt", "f3.txt" }, received!.Select(f => f.Name).ToArray());
+    }
+
+    [Fact]
+    public void Interactive_zone_skips_the_multipart_warning()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+
+        Assert.True(Render<FileUpload>(p => p.Add(f => f.Name, "A")).Find("ib-file-upload").HasAttribute("data-ib-interactive"));
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        Assert.False(Render<FileUpload>(p => p.Add(f => f.Name, "A")).Find("ib-file-upload").HasAttribute("data-ib-interactive"));
+    }
+
+    [Fact]
     public void Requires_a_name()
     {
         Assert.ThrowsAny<InvalidOperationException>(() => Render<FileUpload>());

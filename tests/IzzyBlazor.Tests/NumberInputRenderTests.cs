@@ -123,6 +123,28 @@ public class NumberInputRenderTests : BunitContext
         Assert.Equal("$", cut.Find(".ib-field-group > .ib-field-addon-start").TextContent);
     }
 
+    [Theory]
+    [InlineData("1E-05", 0.00001)]
+    [InlineData("1e3", 1000)]
+    [InlineData("-2.5", -2.5)]
+    public void Parses_invariant_numbers_with_exponents(string text, double expected)
+    {
+        Assert.True(NumberTypes.TryParse<double>(text, out var value));
+        Assert.Equal(expected, value);
+    }
+
+    [Fact]
+    public void Parsing_rejects_junk_and_allows_empty_only_for_nullable()
+    {
+        Assert.False(NumberTypes.TryParse<int>("1.5", out _));
+        Assert.False(NumberTypes.TryParse<decimal>("abc", out _));
+        Assert.False(NumberTypes.TryParse<int>("", out _));
+        Assert.True(NumberTypes.TryParse<int?>("", out var empty));
+        Assert.Null(empty);
+        Assert.True(NumberTypes.TryParse<decimal?>("12.50", out var price));
+        Assert.Equal(12.50m, price);
+    }
+
     [Fact]
     public void Rejects_non_number_types()
     {
