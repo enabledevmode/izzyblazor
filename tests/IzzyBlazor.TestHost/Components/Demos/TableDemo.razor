@@ -2,8 +2,8 @@
 
 <Stack Gap="8">
 
-    <Example Title="Sorting and paging in the URL" Note="Column headers and page numbers are links that set ?sort= and ?page=, so the table works with JavaScript off, survives a reload, and can be shared. Click a header again to reverse it. Numbers line up on the right." Code="@OrdersCode">
-        <Table Items="Orders" PageSize="10" InitialSort="-date" Caption="Orders" id="orders">
+    <Example Title="Sorting and paging in the URL" Note="Column headers and page numbers are links that set ?sort= and ?page=, so the table works with JavaScript off, survives a reload, and can be shared. Click a header again to reverse it. Numbers line up on the right. Rows per page (PageSizeOptions) is a menu of links too (?size=25), keeping the first row you were looking at in view." Code="@OrdersCode">
+        <Table Items="Orders" PageSize="10" PageSizeOptions="@(new[] { 5, 10, 25 })" InitialSort="-date" Caption="Orders" id="orders">
             <PropertyColumn Property="o => o.Number" Title="Order" />
             <PropertyColumn Property="o => o.Customer" Sortable />
             <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
@@ -36,8 +36,8 @@
 
     <Example Title="Sorting and paging in the component" Note="@StateNote" Code="@StateCode">
         <Stack Gap="3">
-            <Table Items="Orders" PageSize="5" InitialSort="-date" Caption="Orders in state" QueryPrefix="st-" id="state-table"
-                   @bind-Sort="_sort" @bind-Page="_statePage" @bind-Filters="_filters" FilterPlacement="FilterPlacement.Row">
+            <Table Items="Orders" InitialSort="-date" Caption="Orders in state" QueryPrefix="st-" id="state-table"
+                   @bind-Sort="_sort" @bind-Page="_statePage" @bind-Filters="_filters" @bind-PageSize="_pageSize" PageSizeOptions="@(new[] { 5, 10 })" FilterPlacement="FilterPlacement.Row">
                 <PropertyColumn Property="o => o.Number" Title="Order" />
                 <PropertyColumn Property="o => o.Customer" Sortable Filterable />
                 <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
@@ -45,7 +45,7 @@
             </Table>
             <Row Gap="2" Align="Align.Center" Wrap>
                 <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="ResetState" data-testid="state-reset">Reset from C#</Button>
-                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Sort: <strong data-testid="state-sort">@(_sort ?? "(initial)")</strong> · Page: <strong data-testid="state-page">@_statePage</strong> · Filters: <strong data-testid="state-filters">@(_filters is { Count: > 0 } f ? string.Join(", ", f.Select(kv => $"{kv.Key}={kv.Value}")) : "none")</strong></TextBlock>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Size: <strong data-testid="state-size">@_pageSize</strong> · Sort: <strong data-testid="state-sort">@(_sort ?? "(initial)")</strong> · Page: <strong data-testid="state-page">@_statePage</strong> · Filters: <strong data-testid="state-filters">@(_filters is { Count: > 0 } f ? string.Join(", ", f.Select(kv => $"{kv.Key}={kv.Value}")) : "none")</strong></TextBlock>
             </Row>
         </Stack>
     </Example>
@@ -240,8 +240,9 @@
     private int _statePage = 1;
 
     private IReadOnlyDictionary<string, string>? _filters;
+    private int? _pageSize = 5;
 
-    private void ResetState() => (_sort, _statePage, _filters) = (null, 1, null);
+    private void ResetState() => (_sort, _statePage, _filters, _pageSize) = (null, 1, null, 5);
 
     private string ColumnFilterNote => RendererInfo.IsInteractive
         ? "Filterable adds a filter button to the header (tinted while filtered), which opens the filter; active filters show as tags above the table. The filters go in the URL (?cf-f-customer=ada) and apply as you type; a new filter starts at page 1. Text matches anywhere, ignoring case; numbers match exactly; a date matches that day."

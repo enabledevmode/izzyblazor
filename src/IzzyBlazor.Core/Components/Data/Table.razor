@@ -222,11 +222,37 @@
             }
         </div>
     }
-    @if (PageSize is { } size && _total > 0)
+    @if (EffectivePageSize is { } size && _total > 0)
     {
         <div class="ib-table-footer">
-            @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
-            <span class="ib-table-summary" role="status">@Summary(size)</span>
+            <div class="ib-table-footer-start">
+                @if (PageSizeOptions is { Count: > 0 } options)
+                {
+                    @* Rows per page: an option menu, so it works with no script (each size a link). *@
+                    <span class="ib-table-page-size">
+                        <span class="ib-table-page-size-label" aria-hidden="true">@TextDefaults.RowsPerPage</span>
+                        <Menu Placement="Placement.TopStart">
+                            <Trigger>
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-table-page-size-button" aria-label="@($"{TextDefaults.RowsPerPage}: {size}")" @attributes="context">
+                                    @size
+                                    <Icon Role="IconRole.ChevronDown" Class="ib-table-page-size-chevron" />
+                                </button>
+                            </Trigger>
+                            <ChildContent>
+                                @foreach (var option in options)
+                                {
+                                    var choice = option;
+                                    <MenuItem Checked="choice == size"
+                                              Href="@(UseState ? null : PageSizeHref(choice))"
+                                              CheckedChanged="@(UseState ? EventCallback.Factory.Create<bool>(this, () => OnPageSizeAsync(choice)) : default)">@choice</MenuItem>
+                                }
+                            </ChildContent>
+                        </Menu>
+                    </span>
+                }
+                @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
+                <span class="ib-table-summary" role="status">@Summary(size)</span>
+            </div>
             @if (UseState)
             {
                 <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total" PageSize="size" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
@@ -251,6 +277,19 @@
 
     /// <summary>Items per page. Leave it out to show every item.</summary>
     [Parameter] public int? PageSize { get; set; }
+
+    /// <summary>
+    /// Sizes to choose from in a "Rows per page" menu in the footer, such as
+    /// <c>new[] { 10, 25, 50 }</c>. The URL carries the choice (<c>?size=25</c>); only these sizes
+    /// are accepted from it. <see cref="PageSize"/> is the default (the first option when not set).
+    /// </summary>
+    [Parameter] public IReadOnlyList<int>? PageSizeOptions { get; set; }
+
+    /// <summary>
+    /// Raised when a page size is chosen on an interactive page. Binding it
+    /// (<c>@bind-PageSize</c>) keeps the size, with sort, page and filters, in the component.
+    /// </summary>
+    [Parameter] public EventCallback<int?> PageSizeChanged { get; set; }
 
     /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending).</summary>
     [Parameter] public string? InitialSort { get; set; }
@@ -384,7 +423,7 @@
     private bool IsLoading => Loading || _providerLoading;
 
     // Sort and page live in the component (not the URL) on interactive pages that bind them.
-    private bool UseState => RendererInfo.IsInteractive && (SortChanged.HasDelegate || PageChanged.HasDelegate || FiltersChanged.HasDelegate);
+    private bool UseState => RendererInfo.IsInteractive && (SortChanged.HasDelegate || PageChanged.HasDelegate || FiltersChanged.HasDelegate || PageSizeChanged.HasDelegate);
 
     private IReadOnlyDictionary<string, string> _stateFilters = new Dictionary<string, string>();
     private IReadOnlyDictionary<string, string>? _lastFiltersParam;
@@ -718,7 +757,50 @@
     private string? _lastSortParam;
     private int? _lastPageParam;
 
-    private int SkeletonRows => Math.Clamp(PageSize ?? 5, 1, 10);
+    private int SkeletonRows => Math.Clamp(EffectivePageSize ?? 5, 1, 10);
+
+    private string SizeKey => $"{QueryPrefix}size";
+
+    private int? _statePageSize;
+    private int? _lastPageSizeParam;
+
+    // The size when none has been chosen: PageSize, else the first option.
+    private int? DefaultPageSize => PageSize ?? (PageSizeOptions is { Count: > 0 } o ? o[0] : null);
+
+    // A ?size= from the URL, if it's one of the options.
+    private int? ReadSizeQuery() =>
+        PageSizeOptions is { Count: > 0 } options
+        && QueryString.Of(Navigation.Uri).TryGetValue(SizeKey, out var raw)
+        && int.TryParse(raw.ToString(), out var size) && options.Contains(size) ? size : null;
+
+    private int? EffectivePageSize => UseState ? _statePageSize ?? DefaultPageSize : ReadSizeQuery() ?? DefaultPageSize;
+
+    // The page that holds the first row on view now, at another size.
+    private int PageAt(int newSize) => EffectivePageSize is { } current ? (_page - 1) * current / newSize + 1 : 1;
+
+    private string PageSizeHref(int size)
+    {
+        var page = PageAt(size);
+        return Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [SizeKey] = size == DefaultPageSize ? null : size,
+            [PageKey] = page == 1 ? null : page,
+        });
+    }
+
+    private async Task OnPageSizeAsync(int size)
+    {
+        var page = PageAt(size);
+        var pageWas = _statePage;
+        (_statePageSize, _statePage) = (size, page);
+        await PageSizeChanged.InvokeAsync(size);
+        if (page != pageWas)
+        {
+            await PageChanged.InvokeAsync(page);
+        }
+
+        await ReloadIfStaleAsync();
+    }
 
     private string KeyOf(TItem item) => ItemKey?.Invoke(item) ?? item?.ToString() ?? "";
 
@@ -836,8 +918,16 @@
             _stateSort = Sort ?? (string.IsNullOrEmpty(sortRaw) ? null : sortRaw);
             _statePage = Page ?? (int.TryParse(pageRaw, out var number) ? number : 1);
             _stateFilters = Filters ?? new Dictionary<string, string>();
-            (_lastSortParam, _lastPageParam, _lastFiltersParam, _stateReady) = (Sort, Page, Filters, true);
+            // A bound PageSize is the current size; otherwise it's the default, and the URL may pick another.
+            _statePageSize = PageSizeChanged.HasDelegate ? PageSize : ReadSizeQuery();
+            (_lastSortParam, _lastPageParam, _lastFiltersParam, _lastPageSizeParam, _stateReady) = (Sort, Page, Filters, PageSize, true);
             return;
+        }
+
+        if (PageSize != _lastPageSizeParam)
+        {
+            _lastPageSizeParam = PageSize;
+            _statePageSize = PageSize;
         }
 
         if (!ReferenceEquals(Filters, _lastFiltersParam))
@@ -884,7 +974,7 @@
     private async Task ReloadIfStaleAsync()
     {
         var (sortRaw, pageRaw) = CurrentState();
-        if (_loadedKey is { } loaded && loaded.Sort == sortRaw && loaded.Page == pageRaw && loaded.Filters == Signature(CurrentFilters()))
+        if (_loadedKey is { } loaded && loaded.Sort == sortRaw && loaded.Page == pageRaw && loaded.Filters == Signature(CurrentFilters()) && loaded.PageSize == EffectivePageSize)
         {
             return;
         }
@@ -929,7 +1019,7 @@
     // changes the data (filters) re-renders the page, which reloads through the parameters.
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
     {
-        if (!_columnsReady || UseState || (ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page) && Signature(ReadFilters()) == _loadedKey?.Filters))
+        if (!_columnsReady || UseState || (ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page) && Signature(ReadFilters()) == _loadedKey?.Filters && EffectivePageSize == _loadedKey?.PageSize))
         {
             return;
         }
@@ -961,8 +1051,9 @@
     {
         var (sortRaw, pageRaw) = CurrentState();
         var filters = CurrentFilters();
+        var pageSize = EffectivePageSize;
         // Always reload: the same list may have changed since the last render.
-        _loadedKey = new LoadKey(sortRaw, pageRaw, Signature(filters), Items, ItemsProvider, PageSize);
+        _loadedKey = new LoadKey(sortRaw, pageRaw, Signature(filters), Items, ItemsProvider, pageSize);
         var version = ++_loadVersion;
 
         var sort = !string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
@@ -975,9 +1066,9 @@
         }
 
         // Keep (page - 1) * size inside int range, whatever is in the URL.
-        var maxPage = PageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
+        var maxPage = pageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
         var page = int.TryParse(pageRaw, out var number) ? Math.Clamp(number, 1, maxPage) : 1;
-        var request = new TableRequest<TItem>(sortKey, descending, page, PageSize)
+        var request = new TableRequest<TItem>(sortKey, descending, page, pageSize)
         {
             Column = column,
             Filters = filters,
@@ -1012,7 +1103,7 @@
             total = result.TotalItems;
 
             // A page past the end shows the last page.
-            if (PageSize is { } size && items.Count == 0 && total > 0 && page > LastPage(total, size))
+            if (pageSize is { } size && items.Count == 0 && total > 0 && page > LastPage(total, size))
             {
                 page = LastPage(total, size);
                 result = await ItemsProvider(request with { Page = page });
@@ -1025,7 +1116,7 @@
             var source = Items as IQueryable<TItem> ?? Items.AsQueryable();
             var sorted = request.ApplySorting(request.ApplyFiltering(source));
             total = sorted.Count();
-            if (PageSize is { } size)
+            if (pageSize is { } size)
             {
                 page = Math.Min(page, LastPage(total, size));
                 items = sorted.Skip((page - 1) * size).Take(size).ToList();

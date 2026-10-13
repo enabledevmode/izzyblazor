@@ -562,9 +562,38 @@
     gap: var(--ib-space-2) var(--ib-space-4);
   }
 
+  .ib-table-footer-start {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2) var(--ib-space-4);
+  }
+
+  /* Rows per page: a label and a small ghost button opening the sizes. */
+  /* The footer's text lines are a whole 20px, centered in the 32px row of small buttons. */
+  .ib-table-page-size {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    line-height: 1.25rem;
+  }
+
+  .ib-table-page-size-button {
+    gap: var(--ib-space-1);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .ib-table-page-size-chevron {
+    width: 0.875rem;
+    height: 0.875rem;
+  }
+
   .ib-table-summary {
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
+    line-height: 1.25rem;
     font-variant-numeric: tabular-nums;
   }
 }

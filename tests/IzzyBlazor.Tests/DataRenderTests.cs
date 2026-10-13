@@ -43,6 +43,26 @@ public class DataRenderTests : BunitContext
     private static string[] Column(IRenderedComponent<Table<Row>> cut, int index) =>
         cut.FindAll("tbody tr").Select(r => r.Children[index].TextContent).ToArray();
 
+    [Theory]
+    [InlineData("/orders", 2)]
+    [InlineData("/orders?size=3", 3)]
+    [InlineData("/orders?size=1000", 2)]
+    public void Page_size_comes_from_the_url_when_its_an_option(string url, int shown)
+    {
+        GoTo(url);
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.PageSize, 2)
+            .Add(t => t.PageSizeOptions, new[] { 2, 3 })
+            .Add(t => t.ChildContent, Columns));
+
+        Assert.Equal(shown, cut.FindAll("tbody tr").Count);
+        var items = cut.FindAll(".ib-table-page-size a.ib-menu-item");
+        Assert.Equal(new[] { "2", "3" }, items.Select(i => i.TextContent.Trim()));
+        Assert.Equal("http://localhost/orders", items[0].GetAttribute("href"));
+        Assert.Equal("http://localhost/orders?size=3", items[1].GetAttribute("href"));
+    }
+
     [Fact]
     public void Line_settings_add_their_classes()
     {
