@@ -1,8 +1,11 @@
-# IzzyBlazor
+<h1 align="center">
+  <picture>
+    <source media="(prefers-color-scheme: dark)" srcset="brand/github/readme-banner-dark.svg">
+    <img alt="IzzyBlazor: Blazor components. No circuit required." src="brand/github/readme-banner-light.svg" width="640">
+  </picture>
+</h1>
 
-**Blazor components. No circuit required.**
-
-Works in static SSR. No SignalR or WebAssembly needed.
+<p align="center">Works in static SSR. No SignalR or WebAssembly needed.</p>
 
 IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static server rendering
 first. Every component renders complete, working HTML on the server, even with JavaScript off, gets
