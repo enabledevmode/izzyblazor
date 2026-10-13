@@ -8,6 +8,14 @@
 <PageTitle>AppShell preview</PageTitle>
 
 <AppShell Dividers="@(Lines != "off")" ScrollMode="@(Scroll == "main" ? ShellScroll.Main : ShellScroll.Page)">
+    @* Link is qualified below: this page's Link() method hides the component's name. *@
+    @if (BannerOn == "on")
+    {
+        <Banner Status="Status.Warning" Dismissible Position="@(BannerSticky == "on" ? BarPosition.Sticky : BarPosition.Static)">
+            <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
+            <Actions><IzzyBlazor.Link Href='@Link("changelog")'>Details</IzzyBlazor.Link></Actions>
+        </Banner>
+    }
     <AppHeader Bg="@Chrome" Scheme="@SchemeOf(HeaderScheme)">
         @if (Toggle != "off")
         {
@@ -101,6 +109,12 @@
     [SupplyParameterFromQuery(Name = "slots")] public string? Slots { get; set; }
 
     [SupplyParameterFromQuery(Name = "chevron")] public string? Chevron { get; set; }
+
+    // ?banner=on puts a Banner in the shell, in its own row above the header.
+    [SupplyParameterFromQuery(Name = "banner")] public string? BannerOn { get; set; }
+
+    // ?bannersticky=on keeps it at the top while the page scrolls.
+    [SupplyParameterFromQuery(Name = "bannersticky")] public string? BannerSticky { get; set; }
 
     // The preview's settings live in its query string (?full=on&look=tinted...), so its own links
     // carry them along; otherwise the first click would drop back to the default layout.

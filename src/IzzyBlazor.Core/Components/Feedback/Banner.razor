@@ -1,0 +1,251 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+
+@*
+    A full-width strip for a message about the whole app or site: planned maintenance, a trial
+    that is ending, a license warning. Put it at the top of the page, or inside an AppShell, where
+    it takes a row of its own above the header. For a message about part of a page, use Alert.
+
+    Dismissible adds a close button that works with no script: a visually hidden checkbox and its
+    label, with CSS :has(:checked) hiding the banner. RememberKey keeps it dismissed: <ib-banner>
+    writes a cookie when it is closed, and the server reads the cookie and leaves the banner out
+    of later pages, static or interactive, until the key changes. Where the server can't read
+    cookies (WebAssembly), the element hides a remembered banner as soon as it connects.
+
+    Position="BarPosition.Sticky" keeps it at the top while the page scrolls. In an AppShell the
+    sticky header and sidebar then sit below it: CSS assumes one line (37px), and <ib-banner>
+    measures it when the message wraps.
+*@
+
+@if (!_dismissed)
+{
+    <ib-banner @attributes="AdditionalAttributes" id="@ElementId" class="@_class" style="@_style"
+               role="region" aria-label="@(Label ?? TextDefaults.Announcement)">
+        @if (!HideIcon)
+        {
+            <Icon Name="@(Icon ?? Alert.DefaultIcon(Status))" Class="ib-banner-icon" />
+        }
+        <div class="ib-banner-body" role="@(Announce ? (IsUrgent ? "alert" : "status") : null)">
+            <span class="ib-banner-text">
+                @if (ResolvedStatusLabel is { } statusLabel)
+                {
+                    <span class="ib-visually-hidden">@(statusLabel + ": ")</span>
+                }
+                @if (Title is not null)
+                {
+                    <strong class="ib-banner-title">@Title</strong>
+                }
+                @ChildContent
+            </span>
+            @if (Actions is not null)
+            {
+                <span class="ib-banner-actions">@Actions</span>
+            }
+        </div>
+        @if (Dismissible)
+        {
+            <input type="checkbox"
+                   id="@($"{ElementId}-dismiss")"
+                   class="ib-banner-dismiss ib-visually-hidden"
+                   aria-label="@(DismissLabel ?? TextDefaults.Dismiss)"
+                   data-ib-remember="@(RememberKey is null ? null : CookieName)"
+                   @onchange="OnDismiss" />
+            <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-banner-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
+                <Icon Role="IconRole.Close" />
+            </label>
+        }
+    </ib-banner>
+}
+
+@code {
+    /// <summary>What the message means; sets the color and icon. Defaults to <see cref="IzzyBlazor.Status.Info"/>.</summary>
+    [Parameter] public Status Status { get; set; } = Status.Info;
+
+    /// <summary>
+    /// A color in place of the status's own, such as <c>Color.Primary</c> for a product
+    /// announcement. The status still sets the icon and what screen readers hear.
+    /// </summary>
+    [Parameter] public Color? Color { get; set; }
+
+    /// <summary>How it's drawn. Defaults to <see cref="AlertVariant.Soft"/>.</summary>
+    [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Soft;
+
+    /// <summary>
+    /// Whether it stays at the top of the window while the page scrolls
+    /// (<see cref="BarPosition.Sticky"/>) or scrolls away with it. Defaults to
+    /// <see cref="BarPosition.Static"/>.
+    /// </summary>
+    [Parameter] public BarPosition Position { get; set; } = BarPosition.Static;
+
+    /// <summary>A short bold lead-in before the message, on the same line.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The message. Keep it to a line or two.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>A link or small button after the message, such as "Renew".</summary>
+    [Parameter] public RenderFragment? Actions { get; set; }
+
+    /// <summary>An icon in place of the status's own.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>Leaves out the icon.</summary>
+    [Parameter] public bool HideIcon { get; set; }
+
+    /// <summary>Adds a close button. Works with JavaScript off.</summary>
+    [Parameter] public bool Dismissible { get; set; }
+
+    /// <summary>
+    /// Keeps a dismissed banner dismissed on later pages and visits, in a cookie named
+    /// <c>ib-banner-{key}</c>. Change the key (<c>"maintenance-2026-11"</c>) to show a new
+    /// message to everyone again. Letters, digits, <c>-</c>, <c>_</c> and <c>.</c> only.
+    /// Needs <see cref="Dismissible"/>.
+    /// </summary>
+    [Parameter] public string? RememberKey { get; set; }
+
+    /// <summary>Whether it has been dismissed. Use <c>@bind-Dismissed</c> on interactive pages.</summary>
+    [Parameter] public bool Dismissed { get; set; }
+
+    /// <summary>Called when someone dismisses it (interactive pages), and when a remembered dismissal is found.</summary>
+    [Parameter] public EventCallback<bool> DismissedChanged { get; set; }
+
+    /// <summary>
+    /// Whether screen readers announce the message when it appears (<c>role="alert"</c> for
+    /// danger and warning, <c>role="status"</c> otherwise). Off by default: a banner is usually
+    /// there when the page loads, and screen readers find it as a labelled region. Turn it on
+    /// for a banner you show in response to something, such as a lost connection.
+    /// </summary>
+    [Parameter] public bool Announce { get; set; }
+
+    /// <summary>
+    /// What kind of message it is, read to screen readers before it. Defaults to "Info",
+    /// "Success", "Warning" or "Error" by <see cref="Status"/>, and nothing for Neutral. Set it
+    /// to translate, or to "" to leave it out.
+    /// </summary>
+    [Parameter] public string? StatusLabel { get; set; }
+
+    /// <summary>The region's accessible name. Defaults to "Announcement".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The close button's accessible name. Defaults to "Dismiss".</summary>
+    [Parameter] public string? DismissLabel { get; set; }
+
+    /// <summary>The element id. Generated when not set.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    private string? _generatedId;
+    private bool _dismissed;
+    private bool _remembered;
+    private bool? _lastDismissedParam;
+    private string? _class;
+    private string? _style;
+    private PersistingComponentStateSubscription? _persisting;
+
+    private string ElementId => Id ?? (_generatedId ??= IdGenerator.Next("ib-banner"));
+
+    internal string CookieName => $"ib-banner-{RememberKey}";
+
+    private string? ResolvedStatusLabel => StatusLabel is { } label
+        ? (label.Length > 0 ? label : null)
+        : Status switch
+        {
+            Status.Info => "Info",
+            Status.Success => "Success",
+            Status.Warning => "Warning",
+            Status.Danger => "Error",
+            _ => null,
+        };
+
+    private bool IsUrgent => Status is Status.Danger or Status.Warning;
+
+    internal static bool IsValidKey(string key) =>
+        key.Length > 0 && key.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.');
+
+    /// <inheritdoc />
+    protected override async Task OnInitializedAsync()
+    {
+        if (RememberKey is null)
+        {
+            return;
+        }
+
+        if (!IsValidKey(RememberKey))
+        {
+            throw new ArgumentException(
+                $"Banner RememberKey \"{RememberKey}\" can only contain letters, digits, '-', '_' and '.'.",
+                nameof(RememberKey));
+        }
+
+        // The cookie is there on the server's first render (read through IRequestCookies, which the
+        // IzzyBlazor package registers); an interactive render that follows a prerender gets the
+        // answer handed over through persisted state.
+        var state = Services.GetService<PersistentComponentState>();
+        var key = $"ib-banner:{RememberKey}";
+        if (state is not null && state.TryTakeFromJson<bool>(key, out var handedOver) && handedOver)
+        {
+            _remembered = true;
+        }
+        else if (Services.GetService<IRequestCookies>() is { } cookies && !RendererInfo.IsInteractive && cookies.Get(CookieName) == "1")
+        {
+            _remembered = true;
+        }
+
+        if (state is not null && _remembered)
+        {
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                state.PersistAsJson(key, true);
+                return Task.CompletedTask;
+            });
+        }
+
+        // A bound parent learns about the remembered dismissal once the page is interactive.
+        if (_remembered && !Dismissed && RendererInfo.IsInteractive && DismissedChanged.HasDelegate)
+        {
+            await DismissedChanged.InvokeAsync(true);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        // The alert's status and variant classes supply the colors; the banner adds its own shape.
+        classes.Add("ib-banner");
+        classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
+        classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
+        classes.Add("ib-banner-sticky", Position == BarPosition.Sticky);
+        if (Color is { } color)
+        {
+            ColorOverride.Apply(styles, color);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (_lastDismissedParam != Dismissed)
+        {
+            _lastDismissedParam = Dismissed;
+            // A remembered dismissal wins on the first render; after that, setting Dismissed
+            // from C# hides or shows it again.
+            _dismissed = Dismissed || (_remembered && !_rememberApplied);
+            _rememberApplied = true;
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private bool _rememberApplied;
+
+    private Task OnDismiss(ChangeEventArgs e)
+    {
+        _dismissed = true;
+        return DismissedChanged.InvokeAsync(true);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _persisting?.Dispose();
+}

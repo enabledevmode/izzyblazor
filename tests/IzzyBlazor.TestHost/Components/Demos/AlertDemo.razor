@@ -39,6 +39,33 @@
         </Stack>
     </Example>
 
+    <Example Title="Banner" Note="A full-width strip for messages about the whole app: put it at the top of the page, or inside AppShell (it takes the row above the header). Same statuses and variants as Alert, plus Color for a brand message. It's a labelled region; it isn't announced unless you set Announce." Code="@BannerCode">
+        <Stack Gap="3">
+            <Banner Title="New:">Dashboards can now be shared with a link.</Banner>
+            <Banner Status="Status.Warning" Dismissible>
+                <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
+                <Actions><Link Href="#">Details</Link></Actions>
+            </Banner>
+            <Banner Status="Status.Danger" Variant="AlertVariant.Solid">Your license has expired. Some features are turned off.</Banner>
+            <Banner Color="Color.Primary" Variant="AlertVariant.Solid" Icon="Lucide.Sparkles" Dismissible>
+                <ChildContent>Try the new editor.</ChildContent>
+                <Actions><Link Href="#">Turn it on</Link></Actions>
+            </Banner>
+        </Stack>
+    </Example>
+
+    <Example Title="Banner that stays dismissed" Note="@RememberNote" Code="@RememberCode">
+        <Stack Gap="3">
+            <Banner Status="Status.Info" Dismissible RememberKey="@RememberKey" @bind-Dismissed="_bannerDismissed" data-testid="remembered-banner">
+                Close me, then reload or open another page: I stay closed until the key changes.
+            </Banner>
+            <Row Gap="2" Align="Align.Center">
+                <Link Href="@NextKeyHref" data-testid="next-key">Use a new key</Link>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Key: <Kbd>@RememberKey</Kbd> · Dismissed in C#: <strong data-testid="banner-dismissed">@_bannerDismissed</strong></TextBlock>
+            </Row>
+        </Stack>
+    </Example>
+
     <Example Title="Toasts" Note="@ToastNote" Code="@ToastCode">
         <Row Gap="2" Wrap>
             <form method="post" @formname="toast-now" @onsubmit="ShowNow">
@@ -70,6 +97,34 @@
 
 @code {
     private bool _dismissed;
+    private bool _bannerDismissed;
+
+    // ?banner=2 and so on: a new key shows the banner again, as a changed message would.
+    [SupplyParameterFromQuery(Name = "banner")] private int? BannerVersion { get; set; }
+
+    private string RememberKey => $"demo-{BannerVersion ?? 1}";
+
+    private string NextKeyHref => Navigation.GetUriWithQueryParameter("banner", (BannerVersion ?? 1) + 1);
+
+    private string RememberNote => RendererInfo.IsInteractive
+        ? "RememberKey stores the dismissal in a cookie. The server leaves the banner out of later pages, and @bind-Dismissed hears about it."
+        : "RememberKey stores the dismissal in a cookie, which the server reads: later pages, static or interactive, leave the banner out. With JavaScript off the close button still works on this page, but nothing is remembered.";
+
+    private const string BannerCode =
+        """
+        <Banner Status="Status.Warning" Dismissible>
+            <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
+            <Actions><Link Href="/status">Details</Link></Actions>
+        </Banner>
+
+        <Banner Color="Color.Primary" Variant="AlertVariant.Solid" Icon="Lucide.Sparkles">Try the new editor.</Banner>
+        """;
+
+    private const string RememberCode =
+        """
+        @* Closed once, it stays closed until the key changes. *@
+        <Banner Dismissible RememberKey="maintenance-2026-11">...</Banner>
+        """;
     private int _saves;
 
     private string DismissNote => RendererInfo.IsInteractive

@@ -15,6 +15,7 @@ modes (see [Contributing](../CONTRIBUTING.md)).
 - [Tabs](#tabs)
 - [Breadcrumb and Pagination](#breadcrumb-and-pagination)
 - [Alerts and toasts](#alerts-and-toasts)
+- [Banner](#banner)
 - [Loading: Spinner, Progress, Skeleton](#loading-spinner-progress-skeleton)
 - [Avatar](#avatar)
 - [Card](#card)
@@ -458,6 +459,43 @@ Toasts.Info("Message archived.", action: new("Undo", Href: $"/inbox/restore/{id}
 `Href` makes the action a link, which works everywhere. `OnClick` runs C# on interactive pages; a
 static page has no connection to run it over, so there the `Href` is used, and a toast with only
 `OnClick` throws when shown on a static page.
+
+## Banner
+
+A full-width strip for a message about the whole app: maintenance, a trial that's ending, a license
+warning. Use `Alert` for a message about part of a page.
+
+```razor
+<AppShell>
+    <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11">
+        <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
+        <Actions><Link Href="/status">Details</Link></Actions>
+    </Banner>
+    <AppHeader>...</AppHeader>
+    ...
+</AppShell>
+```
+
+- **Where it goes:** at the top of the page, or inside `AppShell`, where it takes a row of its own
+  above the header across every column (a full-height sidebar starts below it). By default it
+  scrolls away with the page and a sticky header stays; `Position="BarPosition.Sticky"` keeps it at
+  the top, with the sticky header and sidebar below it. The shell makes room for one line (37px)
+  with no script; with script it measures the banner when the message wraps.
+- **Look:** `Status` (Info by default) and `Variant` (`Soft` by default, `Outline`, `Solid`), as on
+  Alert. `Color` replaces the status's color, for a brand message such as `Color.Primary`; the status
+  still sets the icon and what screen readers hear. `Icon` and `HideIcon` change the icon, `Title`
+  adds a bold lead-in, and `Actions` holds a link or small button after the message.
+- **Dismissing:** `Dismissible` adds a close button that works with JavaScript off, with
+  `@bind-Dismissed` on interactive pages.
+- **Staying dismissed:** with `RememberKey`, closing it writes a cookie (`ib-banner-{key}`, for a
+  year). The server reads it and leaves the banner out of later pages, static or interactive; change
+  the key to show a new message to everyone. Reading the cookie needs `AddIzzyBlazor()` on the
+  server. In WebAssembly the banner renders, and the script closes it as soon as it appears. With
+  JavaScript off the close button works, but nothing is remembered. Keys are letters, digits, `-`,
+  `_` and `.`.
+- **Accessibility:** it's a region named "Announcement" (`Label`), so screen reader users can find
+  it. It isn't announced on its own, since it's there when the page loads; set `Announce` for a
+  banner you show in response to something, such as a lost connection.
 
 ## Tag
 

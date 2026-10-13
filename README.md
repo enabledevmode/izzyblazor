@@ -43,7 +43,7 @@ choose a different component for each.
   FilterForm
 - **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
 - **Navigation:** Tabs, Stepper, Breadcrumb, Pagination
-- **Feedback:** Alert, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
+- **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
 - **Data:** Card, Table, Stat, DescriptionList, Avatar, AvatarGroup
 
 Styling is typed and responsive, through props on the components, with no CSS to write and nothing

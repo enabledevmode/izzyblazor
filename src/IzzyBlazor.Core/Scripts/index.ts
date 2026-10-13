@@ -21,6 +21,7 @@ import "./elements/filter-form";
 import "./elements/code";
 import "./elements/combobox";
 import "./elements/table";
+import "./elements/banner";
 import { installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
 import { installSubmitFeedback } from "./forms";
 import { installSelects, syncSelects } from "./select";
@@ -85,7 +86,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncIndeterminate();
     reopenAfterPost();
     focusMarked();
-    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover, ib-dialog");
+    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover, ib-dialog, ib-banner");
   });
 }
 

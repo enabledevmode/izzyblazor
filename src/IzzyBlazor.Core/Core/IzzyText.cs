@@ -42,6 +42,9 @@ public class IzzyText
     /// <summary>A dismiss button. Alert, toasts.</summary>
     public virtual string Dismiss { get; set; } = "Dismiss";
 
+    /// <summary>A Banner's region name.</summary>
+    public virtual string Announcement { get; set; } = "Announcement";
+
     /// <summary>The confirm button in DialogService.ConfirmAsync.</summary>
     public virtual string Ok { get; set; } = "OK";
 
