@@ -49,16 +49,42 @@ public abstract class ButtonBase : IzzyComponentBase
     /// <summary>The label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
+    /// <summary>The <see cref="ButtonGroup"/> this button is in, whose settings are its defaults.</summary>
+    [CascadingParameter] public ButtonGroup? Group { get; set; }
+
+    private bool _accentSet;
+    private bool _variantSet;
+    private bool _sizeSet;
+
+    /// <summary>The accent in effect: this button's, else its group's, else Primary.</summary>
+    protected Accent EffectiveAccent => !_accentSet && Group?.Accent is { } accent ? accent : Accent;
+
+    /// <summary>The variant in effect: this button's, else its group's, else Solid.</summary>
+    protected ButtonVariant EffectiveVariant => !_variantSet && Group?.Variant is { } variant ? variant : Variant;
+
+    /// <summary>The size in effect: this button's, else its group's, else Md.</summary>
+    protected ControlSize EffectiveSize => !_sizeSet && Group?.Size is { } size ? size : Size;
+
     /// <summary>Whether the content is a single icon with no visible text.</summary>
     protected virtual bool IconOnly => false;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // A group's settings apply only where the button doesn't set its own, so note which it sets.
+        _accentSet = parameters.TryGetValue<Accent>(nameof(Accent), out _);
+        _variantSet = parameters.TryGetValue<ButtonVariant>(nameof(Variant), out _);
+        _sizeSet = parameters.TryGetValue<ControlSize>(nameof(Size), out _);
+        return base.SetParametersAsync(parameters);
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-btn");
-        classes.Add($"ib-btn-{Kebab(Accent.ToString())}");
-        classes.Add($"ib-btn-{Kebab(Variant.ToString())}");
-        classes.Add($"ib-btn-{Kebab(Size.ToString())}", Size != ControlSize.Md);
+        classes.Add($"ib-btn-{Kebab(EffectiveAccent.ToString())}");
+        classes.Add($"ib-btn-{Kebab(EffectiveVariant.ToString())}");
+        classes.Add($"ib-btn-{Kebab(EffectiveSize.ToString())}", EffectiveSize != ControlSize.Md);
         classes.Add("ib-btn-icon-only", IconOnly);
         classes.Add("ib-btn-full", FullWidth);
         classes.Add("ib-btn-loading", Loading);

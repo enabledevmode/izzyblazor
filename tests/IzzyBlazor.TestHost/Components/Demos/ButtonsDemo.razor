@@ -58,6 +58,58 @@
         </Row>
     </Example>
 
+    <Example Title="Button groups" Note="ButtonGroup joins related buttons into one control and names the group for screen readers. Its Accent, Variant and Size become the buttons' defaults; a button's own setting wins. Attached=&quot;false&quot; spaces them apart instead; Orientation stacks them." Code="@GroupsCode">
+        <Stack Gap="4">
+            <Row Gap="4" Align="Align.Center" Wrap>
+                <ButtonGroup Label="Calendar view" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+                    <Button>Day</Button>
+                    <Button>Week</Button>
+                    <Button>Month</Button>
+                </ButtonGroup>
+                <ButtonGroup Label="Text alignment" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+                    <IconButton Icon="Lucide.TextAlignStart" Label="Align start" />
+                    <IconButton Icon="Lucide.TextAlignCenter" Label="Center" />
+                    <IconButton Icon="Lucide.TextAlignEnd" Label="Align end" />
+                </ButtonGroup>
+                <ButtonGroup Label="Save options">
+                    <Button StartIcon="Lucide.Save">Save</Button>
+                    <IconButton Icon="Lucide.ChevronDown" Label="More save options" />
+                </ButtonGroup>
+            </Row>
+            <Row Gap="4" Align="Align.Center" Wrap>
+                <ButtonGroup Label="Pages" Variant="ButtonVariant.Soft" Size="ControlSize.Sm">
+                    <IconButton Icon="Lucide.ChevronLeft" Label="Previous page" />
+                    <Button>1</Button>
+                    <Button>2</Button>
+                    <Button>3</Button>
+                    <IconButton Icon="Lucide.ChevronRight" Label="Next page" />
+                </ButtonGroup>
+                <ButtonGroup Label="Clipboard" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Attached="false">
+                    <Button StartIcon="Lucide.Scissors">Cut</Button>
+                    <Button StartIcon="Lucide.Copy">Copy</Button>
+                    <Button StartIcon="Lucide.ClipboardPaste">Paste</Button>
+                </ButtonGroup>
+            </Row>
+            <Row Gap="4" Align="Align.Start" Wrap>
+                <ButtonGroup Label="Zoom" Orientation="Orientation.Vertical" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+                    <IconButton Icon="Lucide.ZoomIn" Label="Zoom in" />
+                    <IconButton Icon="Lucide.ZoomOut" Label="Zoom out" />
+                </ButtonGroup>
+                <ButtonGroup Label="Review" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">
+                    <Button>Approve</Button>
+                    <Button>Request changes</Button>
+                    <Button Accent="Accent.Danger">Reject</Button>
+                </ButtonGroup>
+            </Row>
+            <Box MaxWidth="24.Rem">
+                <ButtonGroup Label="Plan" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" FullWidth>
+                    <Button>Monthly</Button>
+                    <Button>Yearly</Button>
+                </ButtonGroup>
+            </Box>
+        </Stack>
+    </Example>
+
     <Example Title="States" Note="Loading keeps the label readable and the button focusable, but blocks clicks. Disabled dims it." Code="@StatesCode">
         <Row Gap="2" Wrap>
             <Button Loading>Saving</Button>
@@ -138,6 +190,23 @@
 
     private const string IconButtonsCode =
         """<IconButton Icon="Lucide.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />""";
+
+    private const string GroupsCode =
+        """
+        <ButtonGroup Label="Calendar view" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+            <Button>Day</Button>
+            <Button>Week</Button>
+            <Button>Month</Button>
+        </ButtonGroup>
+
+        <ButtonGroup Label="Save options">
+            <Button StartIcon="Lucide.Save">Save</Button>
+            <IconButton Icon="Lucide.ChevronDown" Label="More save options" />
+        </ButtonGroup>
+
+        <ButtonGroup Label="Clipboard" Variant="ButtonVariant.Ghost" Attached="false">...</ButtonGroup>
+        <ButtonGroup Label="Zoom" Orientation="Orientation.Vertical">...</ButtonGroup>
+        """;
 
     private const string StatesCode =
         """

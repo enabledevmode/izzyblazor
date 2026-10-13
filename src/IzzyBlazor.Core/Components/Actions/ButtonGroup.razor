@@ -1,0 +1,58 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    Related buttons in a row, joined into one control by default. Accent, Variant and Size here
+    become the defaults for the buttons inside; a button's own setting wins.
+    <ButtonGroup Label="Text alignment" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+        <IconButton Icon="Lucide.TextAlignStart" Label="Align left" />
+        <IconButton Icon="Lucide.TextAlignCenter" Label="Center" />
+    </ButtonGroup>
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@Label">
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    private string? _class;
+    private string? _style;
+
+    /// <summary>What the buttons have in common, for screen readers: "Text alignment".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The buttons' accent, unless a button sets its own.</summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>The buttons' variant, unless a button sets its own.</summary>
+    [Parameter] public ButtonVariant? Variant { get; set; }
+
+    /// <summary>The buttons' size, unless a button sets its own.</summary>
+    [Parameter] public ControlSize? Size { get; set; }
+
+    /// <summary>Joins the buttons into one control with shared borders (the default). False spaces them apart.</summary>
+    [Parameter] public bool Attached { get; set; } = true;
+
+    /// <summary>Lays the buttons out in a row (the default) or a column.</summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>Stretches the group to its container's width, sharing it among the buttons.</summary>
+    [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>The buttons.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-btn-group");
+        classes.Add("ib-btn-group-attached", Attached);
+        classes.Add("ib-btn-group-vertical", Orientation == Orientation.Vertical);
+        classes.Add("ib-btn-group-full", FullWidth);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}
