@@ -4,8 +4,8 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// Turns a <see cref="Color"/> passed to a button or badge into the three custom properties
-/// their styles read: the fill (<c>--ib-accent</c>), text on the fill (<c>--ib-on-accent</c>)
-/// and text for the quieter variants (<c>--ib-accent-text</c>).
+/// their styles read: the fill (<c>--ib-accent</c>), text on the fill (<c>--ib-on-accent</c>),
+/// text for the quieter variants (<c>--ib-accent-text</c>) and their tint (<c>--ib-accent-soft</c>).
 /// </summary>
 internal static class ColorOverride
 {
@@ -23,6 +23,10 @@ internal static class ColorOverride
         styles.AddVar("accent", color.Css);
         styles.AddVar("on-accent", TextOn(color));
         styles.AddVar("accent-text", TextTint(color));
+
+        // Set even when it's the default mix, so a soft tint inherited from around the element
+        // (an alert's, a badge's) never shows through.
+        styles.AddVar("accent-soft", $"color-mix(in oklab, {color.Css} 16%, var(--ib-color-surface))");
     }
 
     /// <summary>

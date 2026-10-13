@@ -78,9 +78,9 @@
   }
 
   /* Accents */
-  .ib-btn-primary { --ib-accent: var(--ib-color-primary); --ib-on-accent: var(--ib-color-on-primary); --ib-accent-text: var(--ib-color-primary-text); }
-  .ib-btn-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
-  .ib-btn-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
+  .ib-btn-primary { --ib-accent: var(--ib-color-primary); --ib-on-accent: var(--ib-color-on-primary); --ib-accent-text: var(--ib-color-primary-text); --ib-accent-soft: var(--ib-color-primary-soft); }
+  .ib-btn-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); --ib-accent-soft: var(--ib-color-danger-soft); }
+  .ib-btn-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-surface-container-high); }
 
   /* Variants */
   .ib-btn-solid {
@@ -97,22 +97,29 @@
   }
 
   .ib-btn-soft {
-    background-color: color-mix(in oklab, var(--ib-accent) 14%, transparent);
+    background-color: var(--ib-accent-soft, color-mix(in oklab, var(--ib-accent) 16%, var(--ib-color-surface)));
     color: var(--ib-accent-text);
   }
 
   .ib-btn-soft:hover {
-    background-color: color-mix(in oklab, var(--ib-accent) 22%, transparent);
+    background-color: color-mix(in oklab, var(--ib-accent) 10%, var(--ib-accent-soft, var(--ib-color-surface)));
   }
 
   .ib-btn-soft:active {
-    background-color: color-mix(in oklab, var(--ib-accent) 30%, transparent);
+    background-color: color-mix(in oklab, var(--ib-accent) 20%, var(--ib-accent-soft, var(--ib-color-surface)));
   }
 
   .ib-btn-outline {
     background-color: transparent;
-    border-color: color-mix(in oklab, var(--ib-accent) 55%, transparent);
+    /* A light tint of the accent, mixed toward the surface (not made transparent), so the edge
+       is the same on any background and an Ink button doesn't get a heavy dark-gray frame. */
+    border-color: color-mix(in oklab, var(--ib-accent) 40%, var(--ib-color-surface));
     color: var(--ib-accent-text);
+  }
+
+  /* A neutral outline button is the plain secondary button: the control edge and the text color. */
+  .ib-btn-neutral.ib-btn-outline {
+    border-color: var(--ib-color-outline);
   }
 
   .ib-btn-outline:hover {

@@ -251,7 +251,10 @@ recreates it with its initial values. In practice:
 
 Every part takes `Bg` and `Scheme`, and the sidebar and aside colors run the full height. `AppShell`
 itself sets `ScrollMode` (`Page`, or `Main` for a window-filling frame where only the content
-scrolls) and `Dividers`. The shell arranges itself from the parts present with CSS alone (`:has()`),
+scrolls), `Dividers`, and `Variant`, how the parts are layered. Content is the brightest layer and
+the frame recedes into the page tint: `Tinted` (the default) tints the sidebar, `Inset` tints the
+whole frame and raises the main area as a rounded panel, `Flat` is all surface with lines, and
+`Canvas` tints the main area for dashboards whose content is all cards. A part's `Bg` still wins. The shell arranges itself from the parts present with CSS alone (`:has()`),
 so it renders in one pass on static pages.
 
 **The drawer.** Below its breakpoint the sidebar becomes a drawer opened by `SidebarToggle`. It works

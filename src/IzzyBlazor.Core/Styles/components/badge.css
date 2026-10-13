@@ -38,15 +38,15 @@
     min-width: 1.125rem;
   }
 
-  .ib-badge-success, .ib-tag-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); }
-  .ib-badge-warning, .ib-tag-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); }
-  .ib-badge-danger, .ib-tag-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); }
-  .ib-badge-info, .ib-tag-info { --ib-accent: var(--ib-color-info); --ib-on-accent: var(--ib-color-on-info); --ib-accent-text: var(--ib-color-info-text); }
-  .ib-badge-neutral, .ib-tag-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); }
+  .ib-badge-success, .ib-tag-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); --ib-accent-soft: var(--ib-color-success-soft); }
+  .ib-badge-warning, .ib-tag-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); --ib-accent-soft: var(--ib-color-warning-soft); }
+  .ib-badge-danger, .ib-tag-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); --ib-accent-soft: var(--ib-color-danger-soft); }
+  .ib-badge-info, .ib-tag-info { --ib-accent: var(--ib-color-info); --ib-on-accent: var(--ib-color-on-info); --ib-accent-text: var(--ib-color-info-text); --ib-accent-soft: var(--ib-color-info-soft); }
+  .ib-badge-neutral, .ib-tag-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-surface-container-high); }
 
   .ib-badge-soft,
   .ib-tag-soft {
-    background-color: color-mix(in oklab, var(--ib-accent) 16%, transparent);
+    background-color: var(--ib-accent-soft, color-mix(in oklab, var(--ib-accent) 16%, var(--ib-color-surface)));
     color: var(--ib-accent-text);
   }
 

@@ -59,7 +59,7 @@
 
   .ib-nav-item-active,
   .ib-nav-item-active:hover {
-    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
   }
 

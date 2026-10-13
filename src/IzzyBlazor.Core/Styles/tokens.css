@@ -29,11 +29,12 @@
     --ib-space-15: 5rem;
     --ib-space-16: 6rem;
 
-    /* Radius */
+    /* Radius: sm for small parts (chips, checkboxes), md for controls, lg for cards and dialogs,
+       xl for large panels. data-ib-radius="sm|lg" shifts the whole scale (themes.css). */
     --ib-radius-none: 0;
     --ib-radius-sm: 0.25rem;
     --ib-radius-md: 0.375rem;
-    --ib-radius-lg: 0.5rem;
+    --ib-radius-lg: 0.625rem;
     --ib-radius-xl: 0.75rem;
     --ib-radius-full: 9999px;
 
@@ -48,6 +49,9 @@
     --ib-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ib-font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
     --ib-font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+    /* Headings and dialog titles. Bricolage Grotesque is used when the app loads it (IzzyTheme's
+       HeadingFont, or your own @font-face); otherwise the body font. */
+    --ib-font-heading: "Bricolage Grotesque", var(--ib-font-sans);
     --ib-text-xs: 0.75rem;
     --ib-text-sm: 0.875rem;
     --ib-text-md: 1rem;
@@ -86,63 +90,99 @@
     --ib-ease: cubic-bezier(0.2, 0, 0, 1);
 
     /* Color: light-dark(light, dark). The element's color-scheme picks the half, so the
-       schemes below only set color-scheme, and a theme overrides each color once. */
-    --ib-color-primary: light-dark(#4f46e5, #818cf8);
-    --ib-color-on-primary: light-dark(#ffffff, #0b0b1f);
-    --ib-color-success: light-dark(#15803d, #4ade80);
-    --ib-color-on-success: light-dark(#ffffff, #052e14);
-    --ib-color-warning: light-dark(#b45309, #fbbf24);
-    --ib-color-on-warning: light-dark(#ffffff, #2d1a02);
-    --ib-color-danger: light-dark(#dc2626, #f87171);
-    --ib-color-on-danger: light-dark(#ffffff, #2a0606);
-    --ib-color-info: light-dark(#0369a1, #38bdf8);
-    --ib-color-on-info: light-dark(#ffffff, #04202e);
-    --ib-color-neutral: light-dark(#64748b, #94a3b8);
-    --ib-color-on-neutral: light-dark(#ffffff, #0b1220);
+       schemes below only set color-scheme, and a theme overrides each color once.
 
-    --ib-color-surface: light-dark(#ffffff, #0f1115);
-    --ib-color-surface-container: light-dark(#f4f5f7, #181b21);
-    --ib-color-surface-container-high: light-dark(#e9ebef, #22262e);
-    /* Floating surfaces (dialogs, menus, popovers): in dark mode one small step lighter than the
-       page (below the container gray, same hue), since shadows barely show on dark backgrounds;
-       the border does most of the separating. */
-    --ib-color-surface-raised: light-dark(#ffffff, #15181d);
+       The default theme is Ink on Stone: a monochrome accent (ink buttons, knob and focus) on warm
+       grays drawn from the brand's paper and ink. Other accents, grays and radii are sets in
+       themes.css, chosen with data-ib-accent, data-ib-gray and data-ib-radius (or IzzyTheme). */
+
+    /* Accent ("primary"): the fill, text on it, the accent as text, and a soft tint (16% of the
+       fill on white) for soft buttons, the current page, chips and selected things. */
+    --ib-color-primary: light-dark(#1b1d1f, #ecebe6);
+    --ib-color-on-primary: light-dark(#ffffff, #1d1f22);
+    --ib-color-primary-text: light-dark(#1b1d1f, #ecebe6);
+    --ib-color-primary-soft: light-dark(#e0ddd5, #323438);
+
+    /* Status: calm, deep fills that carry white text (4.75:1 or better), text tuned for 4.5:1 on
+       every surface, and soft tints at the same strength as the accent's. */
+    --ib-color-success: light-dark(#1d7a3e, #1f8345);
+    --ib-color-on-success: #ffffff;
+    --ib-color-success-text: light-dark(#1d6b3a, #7fd49b);
+    --ib-color-success-soft: light-dark(#dbe7df, #16301f);
+    --ib-color-warning: light-dark(#a8580c, #a8580c);
+    --ib-color-on-warning: #ffffff;
+    --ib-color-warning-text: light-dark(#8a3d08, #f0b27a);
+    --ib-color-warning-soft: light-dark(#f3e6d9, #3a2615);
+    --ib-color-danger: light-dark(#b3261e, #c8423a);
+    --ib-color-on-danger: #ffffff;
+    --ib-color-danger-text: light-dark(#a3221b, #ff9d94);
+    --ib-color-danger-soft: light-dark(#f3dcdb, #3b1a18);
+    --ib-color-info: light-dark(#1f4fd1, #3d6ae8);
+    --ib-color-on-info: #ffffff;
+    --ib-color-info-text: light-dark(#1a3fa6, #a9bdff);
+    --ib-color-info-soft: light-dark(#dbe3f8, #1e2a4a);
+    --ib-color-neutral: light-dark(#5b6168, #62666d);
+    --ib-color-on-neutral: #ffffff;
+
+    /* Grays (Stone). The page is a warm off-white; cards, tables, fields and bars are white
+       surfaces on it. Containers are quiet fills (table heads, code), a step darker than the page
+       so they show on it and on a card; the high container is the stronger fill (tracks, chips,
+       skeletons). */
+    --ib-color-background: light-dark(#f7f6f3, #151618);
+    --ib-color-surface: light-dark(#ffffff, #1d1f22);
+    /* Low: large quiet fills (a filled card). Container: small fills that must show (header cells,
+       code, wells, tracks). High: selected and pressed fills. */
+    --ib-color-surface-container-low: light-dark(#f3f2ee, #26282b);
+    --ib-color-surface-container: light-dark(#eae8e2, #2b2d31);
+    --ib-color-surface-container-high: light-dark(#e0ddd5, #323438);
+    /* Floating surfaces (dialogs, menus, popovers): a step lighter than cards in dark mode, since
+       shadows barely show there; the border does most of the separating. */
+    --ib-color-surface-raised: light-dark(#ffffff, #25272b);
     --ib-color-raised-border: light-dark(transparent, rgb(255 255 255 / 0.08));
+    --ib-color-on-surface: light-dark(#1b1d1f, #ecebe6);
+    --ib-color-muted: light-dark(#5b6168, #a3a7ad);
+    --ib-color-subtle: light-dark(#646970, #92969c);
+    --ib-color-disabled: light-dark(#8a8f95, #6d7176);
+    --ib-color-border: light-dark(#dedbd3, #383b40);
+    /* Control edges: about 2:1 against the surface, darker than decorative borders so an empty
+       field reads as a box, without outweighing the labels. */
+    --ib-color-outline: light-dark(#bdb9b0, #56595f);
+
+    --ib-color-backdrop: light-dark(rgb(27 29 31 / 0.38), rgb(0 0 0 / 0.6));
+
+    /* Shadows only lift floating surfaces; controls and cards use borders. */
+    --ib-shadow-none: none;
+    --ib-shadow-sm: 0 1px 2px light-dark(rgb(20 20 19 / 0.08), rgb(0 0 0 / 0.4));
+    --ib-shadow-md: 0 4px 12px light-dark(rgb(20 20 19 / 0.10), rgb(0 0 0 / 0.45));
+    --ib-shadow-lg: 0 12px 32px light-dark(rgb(20 20 19 / 0.14), rgb(0 0 0 / 0.5));
+  }
+
+  /*
+   * Tokens made from other tokens. A custom property is resolved where it's declared, so these are
+   * declared again on every element that changes an accent or gray (themes.css): focus, halos and
+   * hover washes then follow the theme of the part of the page they're in.
+   */
+  :root,
+  [data-ib-theme],
+  [data-ib-accent],
+  [data-ib-gray] {
+    --ib-color-focus: var(--ib-color-primary);
     /* The chosen segment in a segmented control or segmented tabs: white on the gray track in light
        mode, a clear step lighter than the track in dark mode, with an outline-colored edge. */
     --ib-color-segment: light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 14%, var(--ib-color-surface-container)));
     --ib-color-segment-edge: var(--ib-color-outline);
-
     /* State layers: hover and pressed are a wash of the text color over whatever surface is
        underneath, so they darken in light mode and lighten in dark mode, on the page, a card or a
        menu alike. Selection is shown by a mark (a check), not a fill. */
     --ib-state-hover: color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent);
     --ib-state-pressed: color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent);
+    /* The soft glow around a focused field and a held knob: the accent, faint. */
+    --ib-color-halo: light-dark(color-mix(in oklab, var(--ib-color-focus) 22%, transparent), color-mix(in oklab, var(--ib-color-focus) 35%, transparent));
+    /* A selected row: the accent, very faint, with an accent edge (data.css). */
+    --ib-color-selected: light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent));
     /* Scrollbar thumbs in IzzyBlazor's scrolling areas (the track stays transparent). */
     --ib-color-scrollbar: color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent);
     --ib-color-scrollbar-hover: color-mix(in oklab, var(--ib-color-on-surface) 42%, transparent);
-    --ib-color-backdrop: light-dark(rgb(15 23 42 / 0.5), rgb(0 0 0 / 0.6));
-    --ib-color-on-surface: light-dark(#0f172a, #e6e8ec);
-    --ib-color-muted: light-dark(#5b6474, #9aa3b2);
-    --ib-color-subtle: light-dark(#68707f, #828b9b);
-    --ib-color-disabled: light-dark(#a3aab6, #565d6a);
-    --ib-color-border: light-dark(#d9dde4, #2e333d);
-    /* Control edges: about 2:1 against surface, darker than decorative borders so an
-       empty field reads as a box, without outweighing the labels. */
-    --ib-color-outline: light-dark(#aeb4bf, #474e5a);
-
-    /* Accents tuned for text on surfaces: at least 4.5:1 on surface and surface-container. */
-    --ib-color-primary-text: light-dark(#4338ca, #a5b4fc);
-    --ib-color-success-text: light-dark(#166534, #4ade80);
-    --ib-color-warning-text: light-dark(#92400e, #fbbf24);
-    --ib-color-danger-text: light-dark(#b91c1c, #f87171);
-    --ib-color-info-text: light-dark(#0369a1, #38bdf8);
-    --ib-color-focus: light-dark(#4f46e5, #818cf8);
-
-    --ib-shadow-none: none;
-    --ib-shadow-sm: 0 1px 2px light-dark(rgb(15 23 42 / 0.08), rgb(0 0 0 / 0.4));
-    --ib-shadow-md: 0 4px 12px light-dark(rgb(15 23 42 / 0.10), rgb(0 0 0 / 0.45));
-    --ib-shadow-lg: 0 12px 32px light-dark(rgb(15 23 42 / 0.14), rgb(0 0 0 / 0.5));
   }
 
   /*
@@ -187,40 +227,43 @@
   /* Browsers without light-dark() (before 2024) get the light colors everywhere. */
   @supports not (color: light-dark(#000, #fff)) {
     :root {
-      --ib-color-primary: #4f46e5;
+      --ib-color-primary: #1b1d1f;
       --ib-color-on-primary: #ffffff;
-      --ib-color-success: #15803d;
-      --ib-color-on-success: #ffffff;
-      --ib-color-warning: #b45309;
-      --ib-color-on-warning: #ffffff;
-      --ib-color-danger: #dc2626;
-      --ib-color-on-danger: #ffffff;
-      --ib-color-info: #0369a1;
-      --ib-color-on-info: #ffffff;
-      --ib-color-neutral: #64748b;
-      --ib-color-on-neutral: #ffffff;
+      --ib-color-primary-text: #1b1d1f;
+      --ib-color-primary-soft: #e0ddd5;
+      --ib-color-success: #1d7a3e;
+      --ib-color-success-text: #1d6b3a;
+      --ib-color-success-soft: #dbe7df;
+      --ib-color-warning: #a8580c;
+      --ib-color-warning-text: #8a3d08;
+      --ib-color-warning-soft: #f3e6d9;
+      --ib-color-danger: #b3261e;
+      --ib-color-danger-text: #a3221b;
+      --ib-color-danger-soft: #f3dcdb;
+      --ib-color-info: #1f4fd1;
+      --ib-color-info-text: #1a3fa6;
+      --ib-color-info-soft: #dbe3f8;
+      --ib-color-neutral: #5b6168;
+      --ib-color-background: #f7f6f3;
       --ib-color-surface: #ffffff;
-      --ib-color-surface-container: #f4f5f7;
-      --ib-color-surface-container-high: #e9ebef;
+      --ib-color-surface-container-low: #f3f2ee;
+      --ib-color-surface-container: #eae8e2;
+      --ib-color-surface-container-high: #e0ddd5;
       --ib-color-surface-raised: #ffffff;
       --ib-color-raised-border: transparent;
       --ib-color-segment: #ffffff;
-      --ib-color-backdrop: rgb(15 23 42 / 0.5);
-      --ib-color-on-surface: #0f172a;
-      --ib-color-muted: #5b6474;
-      --ib-color-subtle: #68707f;
-      --ib-color-disabled: #a3aab6;
-      --ib-color-border: #d9dde4;
-      --ib-color-outline: #aeb4bf;
-      --ib-color-primary-text: #4338ca;
-      --ib-color-success-text: #166534;
-      --ib-color-warning-text: #92400e;
-      --ib-color-danger-text: #b91c1c;
-      --ib-color-info-text: #0369a1;
-      --ib-color-focus: #4f46e5;
-      --ib-shadow-sm: 0 1px 2px rgb(15 23 42 / 0.08);
-      --ib-shadow-md: 0 4px 12px rgb(15 23 42 / 0.10);
-      --ib-shadow-lg: 0 12px 32px rgb(15 23 42 / 0.14);
+      --ib-color-on-surface: #1b1d1f;
+      --ib-color-muted: #5b6168;
+      --ib-color-subtle: #646970;
+      --ib-color-disabled: #8a8f95;
+      --ib-color-border: #dedbd3;
+      --ib-color-outline: #bdb9b0;
+      --ib-color-halo: rgb(27 29 31 / 0.22);
+      --ib-color-selected: rgb(27 29 31 / 0.05);
+      --ib-color-backdrop: rgb(27 29 31 / 0.38);
+      --ib-shadow-sm: 0 1px 2px rgb(20 20 19 / 0.08);
+      --ib-shadow-md: 0 4px 12px rgb(20 20 19 / 0.10);
+      --ib-shadow-lg: 0 12px 32px rgb(20 20 19 / 0.14);
     }
   }
 }

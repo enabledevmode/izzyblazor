@@ -135,7 +135,7 @@ public class ShellRenderTests : BunitContext
         Assert.NotNull(nav.QuerySelector(".ib-shell-sidebar-inner [data-ib-shell-close]"));
         Assert.NotNull(cut.Find(".ib-shell-backdrop"));
         Assert.Equal("ib-main", cut.Find("main").Id);
-        Assert.Equal("ib-shell ib-shell-scroll-page", cut.Find("ib-shell").ClassName);
+        Assert.Equal("ib-shell ib-shell-scroll-page ib-shell-tinted", cut.Find("ib-shell").ClassName);
     }
 
     [Fact]
@@ -171,8 +171,20 @@ public class ShellRenderTests : BunitContext
     {
         var shell = Render<AppShell>(p => p.Add(s => s.ScrollMode, ShellScroll.Main).Add(s => s.Dividers, false)).Find("ib-shell");
 
-        Assert.Equal("ib-shell ib-shell-scroll-main", shell.ClassName);
+        Assert.Equal("ib-shell ib-shell-scroll-main ib-shell-tinted", shell.ClassName);
         Assert.Equal("--ib-shell-divider:transparent;", shell.GetAttribute("style"));
+    }
+
+    [Theory]
+    [InlineData(ShellVariant.Tinted, "ib-shell-tinted")]
+    [InlineData(ShellVariant.Inset, "ib-shell-inset")]
+    [InlineData(ShellVariant.Flat, "ib-shell-flat")]
+    [InlineData(ShellVariant.Canvas, "ib-shell-canvas")]
+    public void AppShell_variant_sets_its_class(ShellVariant variant, string expected)
+    {
+        var shell = Render<AppShell>(p => p.Add(s => s.Variant, variant)).Find("ib-shell");
+
+        Assert.Equal($"ib-shell ib-shell-scroll-page {expected}", shell.ClassName);
     }
 
     [Fact]

@@ -145,7 +145,7 @@
   .ib-field-input:focus-visible {
     outline: none;
     border-color: var(--ib-color-focus);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-focus) 25%, transparent);
+    box-shadow: 0 0 0 3px var(--ib-color-halo);
   }
 
   .ib-field-input:disabled {
@@ -359,9 +359,15 @@
    * --ib-slider-fill (0 to 100), which the server sets and the script keeps current while dragging.
    * Firefox draws the fill itself (::-moz-range-progress).
    */
+  /*
+   * The knob: the thumb is a ring in the accent around a lit core, from the wordmark's dot, with a
+   * soft halo while it's held or hovered. Thumb minus track is even at every size, so the track
+   * centers on whole pixels.
+   */
   .ib-slider {
-    --ib-slider-track: 0.375rem;
-    --ib-slider-thumb: 1.125rem;
+    --ib-slider-track: 0.25rem;
+    --ib-slider-thumb: 1.25rem;
+    --ib-slider-core: 0.375rem;
     --ib-slider-accent: var(--ib-color-primary);
     /* The fill ends at the thumb's center, which travels the track minus one thumb width. */
     --ib-slider-stop: calc(var(--ib-slider-thumb) / 2 + (100% - var(--ib-slider-thumb)) * var(--ib-slider-fill, 0) / 100);
@@ -372,12 +378,14 @@
 
   .ib-field-sm .ib-slider {
     --ib-slider-track: 0.25rem;
-    --ib-slider-thumb: 0.875rem;
+    --ib-slider-thumb: 1rem;
+    --ib-slider-core: 0.25rem;
   }
 
   .ib-field-lg .ib-slider {
-    --ib-slider-track: 0.5rem;
-    --ib-slider-thumb: 1.375rem;
+    --ib-slider-track: 0.375rem;
+    --ib-slider-thumb: 1.5rem;
+    --ib-slider-core: 0.5rem;
   }
 
   .ib-slider-input {
@@ -416,11 +424,11 @@
   .ib-slider-input::-webkit-slider-thumb {
     width: var(--ib-slider-thumb);
     height: var(--ib-slider-thumb);
+    box-sizing: border-box;
     margin-top: calc((var(--ib-slider-track) - var(--ib-slider-thumb)) / 2);
     border: 2px solid var(--ib-slider-accent);
     border-radius: 50%;
-    background: var(--ib-color-surface);
-    box-shadow: var(--ib-shadow-sm);
+    background: radial-gradient(circle, var(--ib-slider-accent) calc(var(--ib-slider-core) / 2 - 0.25px), var(--ib-color-surface) calc(var(--ib-slider-core) / 2 + 0.5px));
     -webkit-appearance: none;
     appearance: none;
     transition: box-shadow var(--ib-duration-fast) var(--ib-ease);
@@ -432,8 +440,17 @@
     box-sizing: border-box;
     border: 2px solid var(--ib-slider-accent);
     border-radius: 50%;
-    background: var(--ib-color-surface);
-    box-shadow: var(--ib-shadow-sm);
+    background: radial-gradient(circle, var(--ib-slider-accent) calc(var(--ib-slider-core) / 2 - 0.25px), var(--ib-color-surface) calc(var(--ib-slider-core) / 2 + 0.5px));
+    transition: box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  /* Held or hovered: the halo. */
+  .ib-slider-input:is(:hover, :active):not(:disabled)::-webkit-slider-thumb {
+    box-shadow: 0 0 0 0.25rem var(--ib-color-halo);
+  }
+
+  .ib-slider-input:is(:hover, :active):not(:disabled)::-moz-range-thumb {
+    box-shadow: 0 0 0 0.25rem var(--ib-color-halo);
   }
 
   .ib-slider-input:focus-visible {
@@ -1005,7 +1022,7 @@
   .ib-combobox[data-ready] > .ib-multiselect-box:focus-within {
     outline: none;
     border-color: var(--ib-color-focus);
-    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-focus) 25%, transparent);
+    box-shadow: 0 0 0 3px var(--ib-color-halo);
   }
 
   .ib-combobox[data-ready]:has(> select:user-invalid) > .ib-multiselect-box {
@@ -1252,8 +1269,16 @@
     mask: none;
   }
 
-  /* A chosen radio fills with primary around a small on-primary dot: a solid edge that stays
-     crisp at 1x, the way Windows draws it. */
+  /* A chosen radio is the knob: an accent ring (the border thickened by an inset ring, so the box
+     doesn't move) around a lit accent core, on the surface. */
+  .ib-check-input[type="radio"]:checked {
+    background-color: var(--ib-color-surface);
+    box-shadow: inset 0 0 0 1px var(--ib-color-primary);
+  }
+
+  .ib-check-input[type="radio"]:checked::before {
+    background-color: var(--ib-color-primary);
+  }
 
   .ib-check-input:hover:not(:disabled) {
     border-color: color-mix(in oklab, var(--ib-color-outline) 40%, var(--ib-color-on-surface));
@@ -1336,20 +1361,34 @@
     transition: background-color var(--ib-duration-fast) var(--ib-ease);
   }
 
-  .ib-switch-input::before {
+  /*
+   * The knob: a 16px disc with a 6px core, both whole pixels inside the 20px track. Off, the disc
+   * is the surface with an outline edge and a grey core; on, it's the on-accent color with the core
+   * lit in the accent. No shadow.
+   */
+  .ib-switch-input::before,
+  .ib-switch-input::after {
     content: "";
     position: absolute;
+    border-radius: 50%;
+    transition: translate var(--ib-duration-normal) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-switch-input::before {
     inset-block-start: 0.125rem;
     inset-inline-start: 0.125rem;
     width: 1rem;
     height: 1rem;
-    border-radius: 50%;
-    /* Off: white on the grey track in light schemes, light grey in dark ones. On: the on-primary color. */
-    /* Browsers without light-dark() keep the first line. */
     background-color: var(--ib-color-surface);
-    background-color: light-dark(var(--ib-color-surface), color-mix(in oklab, var(--ib-color-outline) 35%, var(--ib-color-on-surface)));
-    box-shadow: var(--ib-shadow-sm);
-    transition: translate var(--ib-duration-normal) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
+    box-shadow: inset 0 0 0 1px var(--ib-color-outline);
+  }
+
+  .ib-switch-input::after {
+    inset-block-start: 0.4375rem;
+    inset-inline-start: 0.4375rem;
+    width: 0.375rem;
+    height: 0.375rem;
+    background-color: var(--ib-color-outline);
   }
 
   .ib-switch-input:checked {
@@ -1358,11 +1397,21 @@
   }
 
   .ib-switch-input:checked::before {
-    translate: 1rem 0;
     background-color: var(--ib-color-on-primary);
+    box-shadow: none;
   }
 
-  .ib-switch-input:checked:dir(rtl)::before {
+  .ib-switch-input:checked::after {
+    background-color: var(--ib-color-primary);
+  }
+
+  .ib-switch-input:checked::before,
+  .ib-switch-input:checked::after {
+    translate: 1rem 0;
+  }
+
+  .ib-switch-input:checked:dir(rtl)::before,
+  .ib-switch-input:checked:dir(rtl)::after {
     translate: -1rem 0;
   }
 
@@ -1471,7 +1520,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ib-switch-input::before {
+    .ib-switch-input::before,
+    .ib-switch-input::after {
       transition: none;
     }
   }
@@ -1671,7 +1721,8 @@
       box-shadow: none;
     }
 
-    .ib-switch-input::before {
+    .ib-switch-input::before,
+    .ib-switch-input::after {
       display: none;
     }
 

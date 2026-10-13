@@ -113,7 +113,7 @@
 
   .ib-pagination-current,
   .ib-pagination-current:hover {
-    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
     font-weight: var(--ib-weight-semibold);
     cursor: default;
@@ -219,7 +219,7 @@
 
   .ib-step-current .ib-step-marker {
     border-color: var(--ib-color-primary);
-    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, var(--ib-color-surface));
+    background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
   }
 

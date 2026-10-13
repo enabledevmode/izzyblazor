@@ -225,6 +225,7 @@
   }
 
   .ib-popover-title {
+    font-family: var(--ib-font-heading);
     flex: 1;
     font-weight: var(--ib-weight-semibold);
   }
@@ -499,6 +500,7 @@
   }
 
   .ib-dialog-title {
+    font-family: var(--ib-font-heading);
     flex: 1;
     min-width: 0;
     margin: 0;

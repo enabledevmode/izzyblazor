@@ -150,3 +150,33 @@ public enum ShellScroll
     /// </summary>
     Main,
 }
+
+/// <summary>
+/// How an <see cref="AppShell"/> layers its parts. Content is the brightest layer by default and
+/// the frame recedes into the page tint (<c>--ib-color-background</c>). A part's own <c>Bg</c>
+/// always wins.
+/// </summary>
+public enum ShellVariant
+{
+    /// <summary>
+    /// The sidebar takes the page tint; header, main, aside and footer are surfaces (the default).
+    /// The content stands out and the navigation recedes, like Linear, Notion or VS Code.
+    /// </summary>
+    Tinted,
+
+    /// <summary>
+    /// The whole frame takes the page tint and the main area is a raised panel inset from the
+    /// window edge, with rounded corners. The frame has no lines; the panel has an edge.
+    /// </summary>
+    Inset,
+
+    /// <summary>Every part is a surface; lines alone separate them.</summary>
+    Flat,
+
+    /// <summary>
+    /// The main area takes the page tint and the frame is surfaces: for dashboards whose content
+    /// is all cards. Put content in <see cref="Card"/>s; fills placed straight on the tint read
+    /// as holes.
+    /// </summary>
+    Canvas,
+}

@@ -7,7 +7,9 @@
  * side and height, and the bars' stickiness, from its children with :has().
  *
  * Every color and size is a custom property, so a theme can set the look once:
- *   --ib-shell-{header|sidebar|main|aside|footer}-bg   each part's surface (default: surface)
+ *   --ib-shell-{header|sidebar|main|aside|footer}-bg   each part's color (default: from the
+ *                                                      shell's Variant: surface, or the page
+ *                                                      tint for the parts it tints)
  *   --ib-shell-divider                                 the lines between parts (default: border)
  * The color defaults resolve on each part, so a part with its own Scheme gets that scheme's
  * surface and lines.
@@ -89,7 +91,8 @@
     min-height: calc(var(--ib-shell-header-h) + env(safe-area-inset-top, 0px));
     padding: env(safe-area-inset-top, 0px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
     border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    background-color: var(--ib-shell-header-bg, var(--ib-color-surface));
+    --ib-shell-tone: var(--ib-color-surface);
+    background-color: var(--ib-shell-header-bg, var(--ib-shell-tone));
     color: var(--ib-shell-header-fg, var(--ib-color-on-surface));
   }
 
@@ -113,7 +116,8 @@
     min-height: 0;
     contain: size;
     border-inline-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    background-color: var(--ib-shell-sidebar-bg, var(--ib-color-surface));
+    --ib-shell-tone: var(--ib-color-surface);
+    background-color: var(--ib-shell-sidebar-bg, var(--ib-shell-tone));
     color: var(--ib-shell-sidebar-fg, var(--ib-color-on-surface));
   }
 
@@ -185,8 +189,8 @@
     margin-inline: calc(var(--ib-sb-pad-x) * -1);
     padding-inline: var(--ib-sb-pad-x);
     background:
-      linear-gradient(var(--ib-shell-sidebar-bg, var(--ib-color-surface)), var(--ib-shell-sidebar-bg, var(--ib-color-surface))) top / 100% 2px no-repeat local,
-      linear-gradient(var(--ib-shell-sidebar-bg, var(--ib-color-surface)), var(--ib-shell-sidebar-bg, var(--ib-color-surface))) bottom / 100% 2px no-repeat local,
+      linear-gradient(var(--ib-shell-sidebar-bg, var(--ib-shell-tone)), var(--ib-shell-sidebar-bg, var(--ib-shell-tone))) top / 100% 2px no-repeat local,
+      linear-gradient(var(--ib-shell-sidebar-bg, var(--ib-shell-tone)), var(--ib-shell-sidebar-bg, var(--ib-shell-tone))) bottom / 100% 2px no-repeat local,
       linear-gradient(var(--ib-sb-line-top), var(--ib-sb-line-top)) top / 100% 1px no-repeat scroll,
       linear-gradient(var(--ib-sb-line-bottom), var(--ib-sb-line-bottom)) bottom / 100% 1px no-repeat scroll;
   }
@@ -214,7 +218,8 @@
   .ib-shell-main {
     grid-area: main;
     min-width: 0;
-    background-color: var(--ib-shell-main-bg, var(--ib-color-surface));
+    --ib-shell-tone: var(--ib-color-surface);
+    background-color: var(--ib-shell-main-bg, var(--ib-shell-tone));
     color: var(--ib-shell-main-fg, var(--ib-color-on-surface));
   }
 
@@ -228,7 +233,8 @@
     width: var(--ib-aside-w, 15rem);
     min-height: 0;
     border-inline-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    background-color: var(--ib-shell-aside-bg, var(--ib-color-surface));
+    --ib-shell-tone: var(--ib-color-surface);
+    background-color: var(--ib-shell-aside-bg, var(--ib-shell-tone));
     color: var(--ib-shell-aside-fg, var(--ib-color-on-surface));
   }
 
@@ -254,7 +260,8 @@
     padding: var(--ib-space-4);
     padding-bottom: calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
     border-top: 1px solid var(--ib-shell-divider, var(--ib-color-border));
-    background-color: var(--ib-shell-footer-bg, var(--ib-color-surface));
+    --ib-shell-tone: var(--ib-color-surface);
+    background-color: var(--ib-shell-footer-bg, var(--ib-shell-tone));
     color: var(--ib-shell-footer-fg, var(--ib-color-on-surface));
   }
 
@@ -267,6 +274,39 @@
     align-items: center;
     min-height: calc(var(--ib-shell-footer-h) + env(safe-area-inset-bottom, 0px));
     padding-block: var(--ib-space-2) calc(var(--ib-space-2) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /*
+   * Variants: which parts take the page tint. Content is the brightest layer and the frame
+   * recedes (Tinted, Inset), unless the content is all cards (Canvas). The tone is set on each
+   * part, so it resolves there: a part with its own Scheme or gray set gets its own tint.
+   */
+  .ib-shell-tinted > .ib-shell-sidebar,
+  .ib-shell-canvas > .ib-shell-main,
+  .ib-shell-inset > :is(.ib-shell-header, .ib-shell-sidebar, .ib-shell-aside, .ib-shell-footer) {
+    --ib-shell-tone: var(--ib-color-background);
+  }
+
+  /* Inset: the frame is one tinted field with no lines; the main area is a raised panel with
+     an edge, a gap to the window and rounded corners. */
+  .ib-shell-inset {
+    --ib-shell-inset-gap: var(--ib-space-2);
+    background-color: var(--ib-color-background);
+  }
+
+  .ib-shell-inset > :is(.ib-shell-header, .ib-shell-sidebar, .ib-shell-aside, .ib-shell-footer) {
+    border-color: transparent;
+  }
+
+  .ib-shell-inset > .ib-shell-main {
+    margin: 0 var(--ib-shell-inset-gap) var(--ib-shell-inset-gap);
+    border: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    border-radius: var(--ib-radius-lg);
+  }
+
+  /* With no footer below it, a page-scrolling panel ends a gap above the window's bottom edge. */
+  .ib-shell-inset:has(> .ib-shell-footer) > .ib-shell-main {
+    margin-bottom: 0;
   }
 
   /*
