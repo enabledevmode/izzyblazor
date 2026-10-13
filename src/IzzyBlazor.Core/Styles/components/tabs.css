@@ -109,7 +109,7 @@
 
   /* Soft: the selected tab gets a tinted background. */
   .ib-tabs-soft > .ib-tabs-list > .ib-tab:not(.ib-tab-disabled):hover {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-state-hover);
   }
 
   .ib-tabs-soft > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {

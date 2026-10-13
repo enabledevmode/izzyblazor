@@ -48,7 +48,7 @@
   }
 
   .ib-nav-item:hover {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-state-hover);
     color: var(--ib-color-on-surface);
   }
 
