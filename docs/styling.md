@@ -73,30 +73,68 @@ or white for a hex color.
 ## Looks and colors
 
 The default is the **Standard** look in **Blue on neutral grays**: white cards, tables and fields on
-a near-white page. Choose a look for density, shape and type, and an accent and gray for color,
-with attributes on `<html>` in `App.razor`:
+a near-white page. Declare and customize the theme in one place, `IzzyTheme` in `App.razor`'s `<head>`: a look for
+density, shape and type, then an accent, gray and radius over the look's defaults, or your own
+brand color.
 
-```html
-<html lang="en" data-ib-theme="compact">                        <!-- a look -->
-<html lang="en" data-ib-theme="compact" data-ib-accent="teal">  <!-- a look in your accent -->
-<html lang="en" data-ib-accent="violet" data-ib-gray="slate">   <!-- the default look, recolored -->
+```razor
+@* App.razor, in <head>, for example: *@
+<IzzyTheme Look="ThemeLook.Compact" />                           @* a look *@
+<IzzyTheme Look="ThemeLook.Compact" Accent="ThemeAccent.Teal" /> @* a look in another accent *@
+<IzzyTheme Look="ThemeLook.Soft" Primary="#0a7d5a" />            @* a look in your brand color *@
 ```
 
-| `data-ib-theme` | For | Controls | Shape | Type | Accent | Gray |
+| `Look` (`data-ib-theme`) | For | Controls | Shape | Type | Accent | Gray |
 | --- | --- | --- | --- | --- | --- | --- |
 | `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | System font | Blue | Neutral |
 | `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | System font | Indigo | Slate |
 | `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | System font | Teal | Neutral |
 | `editorial` | Docs, publishing, knowledge bases | 36px | Large radius | IBM Plex Sans, Newsreader headings | Ink | Stone |
 
-A look's accent, gray and radius are only its defaults: an explicit `data-ib-accent`,
-`data-ib-gray` or `data-ib-radius` beats them.
+A look's accent, gray and radius are only its defaults: `Accent`, `Gray` and `Radius` beat them,
+and `Primary` beats `Accent`.
 
-| Attribute | Values |
+`IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for `Primary`), so
+it's in place on first paint, needs no script and works in every render mode. The same choices
+work as attributes, on `<html>` or on any element to restyle part of a page:
+
+```html
+<html lang="en" data-ib-theme="compact" data-ib-accent="teal">
+<section data-ib-accent="rose">...</section>
+```
+
+| `IzzyTheme` / attribute | Values |
 | --- | --- |
-| `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose` |
-| `data-ib-gray` | `neutral` (default), `stone` (warm paper; pairs with serif headings), `slate` (cool) |
-| `data-ib-radius` | `sm`, `md` (default), `lg` |
+| `Accent` / `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose` |
+| `Gray` / `data-ib-gray` | `neutral` (default), `stone` (warm paper; pairs with serif headings), `slate` (cool) |
+| `Radius` / `data-ib-radius` | `sm`, `md` (default), `lg` |
+
+**Your brand color.** `Primary` makes it the accent:
+
+```razor
+<IzzyTheme Primary="#0a7d5a" />
+```
+
+From that one color IzzyBlazor derives the fill, the text on it, the accent as text and its soft
+tint, in light and dark (`AccentPalette.From`), and checks each pair: text on the fill holds 4.5:1
+(white or near-black, whichever reads better), the accent as text holds 4.5:1 on the surface, the
+gray fills and its tint, and in dark mode a dark brand color is lifted until it shows. The fill is
+your color as given unless no text can reach 4.5:1 on it; then only its lightness moves. Focus
+rings, the field halo, selected rows, switches, sliders and radios follow. The server renders it as
+a small `<style>` block, so it's there on first paint with no script; pass `Nonce` for a strict
+Content-Security-Policy. It beats a look's accent; `data-ib-accent` on an element inside the page
+still recolors that part.
+
+To tune the shades yourself, set the four tokens instead:
+
+```css
+:root {
+  --ib-color-primary:      light-dark(#0a7d5a, #0a7d5a);  /* the fill */
+  --ib-color-on-primary:   light-dark(#ffffff, #ffffff);  /* text on the fill */
+  --ib-color-primary-text: light-dark(#00714e, #6ccba4);  /* the accent as text */
+  --ib-color-primary-soft: light-dark(#dceae3, #202f2b);  /* the soft tint */
+}
+```
 
 Density is a handful of tokens, so you can set your own: `--ib-control-h-sm`, `--ib-control-h-md`,
 `--ib-control-h-lg` (buttons, fields, tabs, pagination, nav items and menu rows),

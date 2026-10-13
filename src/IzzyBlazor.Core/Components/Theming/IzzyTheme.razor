@@ -1,0 +1,85 @@
+@namespace IzzyBlazor
+
+@*
+    The app's theme in one place. Put it in App.razor's <head>:
+
+    <IzzyTheme Look="ThemeLook.Compact" Primary="#0a7d5a" />
+
+    Look sets density, shape and type; Accent, Gray and Radius override the look's defaults; Primary
+    is your own brand color and beats Accent. Everything is server-rendered (meta tags the theme CSS
+    matches, and a small <style> block for Primary), so it's in place on first paint, needs no
+    script and works in every render mode. The same choices can be made with data-ib-* attributes
+    on <html> instead; an attribute on an element inside the page still restyles that part.
+*@
+
+@if (Look is { } look)
+{
+    <meta name="ib-theme" content="@Name(look)" />
+}
+@if (Accent is { } accent)
+{
+    <meta name="ib-accent" content="@Name(accent)" />
+}
+@if (Gray is { } gray)
+{
+    <meta name="ib-gray" content="@Name(gray)" />
+}
+@if (Radius is { } radius)
+{
+    <meta name="ib-radius" content="@Name(radius)" />
+}
+@if (_css is not null)
+{
+    <style nonce="@Nonce" data-ib-theme-primary="@Primary">@((MarkupString)_css)</style>
+}
+
+@code {
+    /// <summary>The look: density, shape and type, and default accent and gray. Unset: Standard.</summary>
+    [Parameter] public ThemeLook? Look { get; set; }
+
+    /// <summary>A built-in accent, over the look's. <see cref="Primary"/> beats it.</summary>
+    [Parameter] public ThemeAccent? Accent { get; set; }
+
+    /// <summary>The gray set, over the look's.</summary>
+    [Parameter] public ThemeGray? Gray { get; set; }
+
+    /// <summary>The radius scale, over the look's.</summary>
+    [Parameter] public ThemeRadius? Radius { get; set; }
+
+    /// <summary>
+    /// Your brand color as hex (<c>#rgb</c> or <c>#rrggbb</c>). The fill, the text on it, the accent
+    /// as text and the soft tint are derived from it in light and dark, each pair at AA
+    /// (see <see cref="AccentPalette"/>).
+    /// </summary>
+    [Parameter] public string? Primary { get; set; }
+
+    /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one.</summary>
+    [Parameter] public string? Nonce { get; set; }
+
+    private string? _primary;
+    private string? _css;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (_primary == Primary)
+        {
+            return;
+        }
+
+        _primary = Primary;
+        if (string.IsNullOrWhiteSpace(Primary))
+        {
+            _css = null;
+            return;
+        }
+
+        var palette = AccentPalette.From(Primary);
+
+        // In the tokens layer like the library's own colors, and written as :root:root:root so it
+        // beats a look's or an accent's colors on <html> whatever order the stylesheets load in.
+        _css = "@layer izzy.tokens { :root:root:root { " + palette.ToCss() + " } }";
+    }
+
+    private static string Name<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+}
