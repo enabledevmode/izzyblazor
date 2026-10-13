@@ -1,0 +1,318 @@
+"""Build IzzyBlazor brand assets: outlined SVGs, PNG exports, ICO."""
+import io, os, sys
+import uharfbuzz as hb
+import resvg_py
+from fontTools.ttLib import TTFont
+from fontTools.pens.svgPathPen import SVGPathPen
+from fontTools.pens.transformPen import TransformPen
+from fontTools.pens.boundsPen import BoundsPen
+from PIL import Image
+
+OUT = sys.argv[1] if len(sys.argv) > 1 else "out/izzyblazor-brand"
+FD = "node_modules/@fontsource"
+
+INK, PAPER, EMBER, AMBER = "#14161A", "#F5F4F1", "#F26A1B", "#FFB020"
+STEEL, GREY_L, GREY_D, TRACK = "#8A8F98", "#5A6069", "#A9AEB6", "#2C3038"
+
+class Font:
+    def __init__(self, path):
+        tt = TTFont(path)
+        tt.flavor = None
+        buf = io.BytesIO(); tt.save(buf)
+        self.data = buf.getvalue()
+        self.tt = TTFont(io.BytesIO(self.data))
+        self.gs = self.tt.getGlyphSet()
+        self.upm = self.tt["head"].unitsPerEm
+        self.hbfont = hb.Font(hb.Face(hb.Blob(self.data)))
+
+    def shape(self, text):
+        b = hb.Buffer(); b.add_str(text); b.guess_segment_properties()
+        hb.shape(self.hbfont, b, {"kern": True, "liga": True})
+        return [(self.tt.getGlyphName(i.codepoint), p.x_advance, p.x_offset, p.y_offset)
+                for i, p in zip(b.glyph_infos, b.glyph_positions)]
+
+FONTS = {
+    "b700": Font(f"{FD}/bricolage-grotesque/files/bricolage-grotesque-latin-700-normal.woff"),
+    "b500": Font(f"{FD}/bricolage-grotesque/files/bricolage-grotesque-latin-500-normal.woff"),
+    "m600": Font(f"{FD}/jetbrains-mono/files/jetbrains-mono-latin-600-normal.woff"),
+}
+
+class Bounds:
+    def __init__(self): self.b = None
+    def add(self, b):
+        if b is None: return
+        if self.b is None: self.b = list(b); return
+        self.b = [min(self.b[0], b[0]), min(self.b[1], b[1]), max(self.b[2], b[2]), max(self.b[3], b[3])]
+
+def run(fontkey, text, size, x, base, tracking_em=0.0, extra=None):
+    """Outline text. Returns (path d, end x, bounds, per-glyph x list). Pixel coords, y down."""
+    f = FONTS[fontkey]; s = size / f.upm
+    pen = SVGPathPen(f.gs); bounds = Bounds(); xs = []
+    for i, (name, adv, xo, yo) in enumerate(f.shape(text)):
+        gx = x + xo * s; xs.append((name, gx))
+        tr = (s, 0, 0, -s, gx, base - yo * s)
+        f.gs[name].draw(TransformPen(pen, tr))
+        bp = BoundsPen(f.gs); f.gs[name].draw(TransformPen(bp, tr)); bounds.add(bp.bounds)
+        x += adv * s + tracking_em * size
+        if extra and i in extra: x += extra[i] * size
+    return pen.getCommands(), x, bounds.b, xs
+
+def text(fontkey, s, size, x, base, fill, tracking_em=0.0, anchor="start", opacity=None):
+    d, end, b, _ = run(fontkey, s, size, 0, 0, tracking_em)
+    w = end - tracking_em * size
+    if anchor == "middle": x -= w / 2
+    elif anchor == "end": x -= w
+    op = f' fill-opacity="{opacity}"' if opacity else ""
+    return f'<path transform="translate({x:.2f} {base:.2f})" fill="{fill}"{op} d="{d}"/>', w
+
+# ---------- knob ----------
+def knob(cx, cy, r, mode="color", halo=True, core=True, halo_op=0.25, mono=INK):
+    """r = body radius."""
+    if mode == "mono":
+        out_r = r; ring_r = out_r * 22 / 27; sw = out_r * 10 / 27; core_r = out_r * 8 / 27
+        return (f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{ring_r:.2f}" fill="none" stroke="{mono}" stroke-width="{sw:.2f}"/>'
+                f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{core_r:.2f}" fill="{mono}"/>')
+    s = ""
+    if halo: s += f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r*31/22:.2f}" fill="{EMBER}" fill-opacity="{halo_op}"/>'
+    s += f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r:.2f}" fill="{EMBER}"/>'
+    if core: s += f'<circle cx="{cx:.2f}" cy="{cy:.2f}" r="{r*9/22:.2f}" fill="{AMBER}"/>'
+    return s
+
+# ---------- wordmark ----------
+SCHEMES = {
+    "light": dict(izzy=INK, blazor=GREY_L, halo_op=0.22, mode="color"),
+    "dark": dict(izzy=PAPER, blazor=GREY_D, halo_op=0.32, mode="color"),
+    "mono-ink": dict(izzy=INK, blazor=INK, mode="mono", mono=INK),
+    "mono-white": dict(izzy="#FFFFFF", blazor="#FFFFFF", mode="mono", mono="#FFFFFF"),
+}
+
+def wordmark(size, scheme="light", halo=True, core=True):
+    """Wordmark at font size `size`, origin at left baseline. Returns (svg, bounds)."""
+    sc = SCHEMES[scheme]; tr = -0.018
+    d1, x1, b1, xs = run("b700", "ızzy", size, 0, 0, tr)
+    d2, x2, b2, _ = run("b500", "blazor", size, x1, 0, tr)
+    f = FONTS["b700"]; s = size / f.upm
+    iname, ix = xs[0]
+    bp = BoundsPen(f.gs); f.gs[iname].draw(bp)
+    gx0, _, gx1, _ = bp.bounds
+    cx = ix + (gx0 + gx1) / 2 * s
+    xh = f.tt["OS/2"].sxHeight
+    body_r = 0.112 * size
+    cy = -(xh * s + 0.075 * size + body_r)
+    kn = knob(cx, cy, body_r, sc["mode"], halo, core, sc.get("halo_op", 0.25), sc.get("mono", INK))
+    svg = f'<path fill="{sc["izzy"]}" d="{d1}"/><path fill="{sc["blazor"]}" d="{d2}"/>{kn}'
+    B = Bounds(); B.add(b1); B.add(b2)
+    kr = body_r * 31 / 22 if (halo and sc["mode"] == "color") else body_r
+    B.add((cx - kr, cy - kr, cx + kr, cy + kr))
+    return svg, B.b
+
+def svg_doc(w, h, body, bg=None, vb=None):
+    vb = vb or f"0 0 {w} {h}"
+    bgr = f'<rect width="100%" height="100%" fill="{bg}"/>' if bg else ""
+    return f'<svg xmlns="http://www.w3.org/2000/svg" width="{w}" height="{h}" viewBox="{vb}">{bgr}{body}</svg>\n'
+
+def save(path, content):
+    p = os.path.join(OUT, path); os.makedirs(os.path.dirname(p), exist_ok=True)
+    with open(p, "w") as fh: fh.write(content)
+    return p
+
+def png(svg_path, out_path, width=None, height=None):
+    kw = {"svg_path": os.path.abspath(svg_path)}
+    if width: kw["width"] = width
+    if height: kw["height"] = height
+    data = bytes(resvg_py.svg_to_bytes(**kw))
+    p = os.path.join(OUT, out_path); os.makedirs(os.path.dirname(p), exist_ok=True)
+    with open(p, "wb") as fh: fh.write(data)
+    return p
+
+def placed_wordmark(size, x, base, scheme, anchor="start", halo=True, core=True):
+    body, b = wordmark(size, scheme, halo, core)
+    w = b[2] - b[0]
+    if anchor == "middle": x -= w / 2 + b[0]
+    else: x -= b[0]
+    return f'<g transform="translate({x:.2f} {base:.2f})">{body}</g>', b, w
+
+# ============ 1. logo ============
+for scheme in SCHEMES:
+    body, b = wordmark(200, scheme)
+    pad = 0
+    x0, y0, x1, y1 = b
+    vb = f"{x0-pad:.2f} {y0-pad:.2f} {x1-x0+2*pad:.2f} {y1-y0+2*pad:.2f}"
+    w, h = round(x1 - x0), round(y1 - y0)
+    p = save(f"logo/izzyblazor-wordmark-{scheme}.svg", svg_doc(w, h, body, vb=vb))
+    png(p, f"logo/png/izzyblazor-wordmark-{scheme}.png", width=w * 4)
+# small-size wordmark (no halo) for headers
+for scheme in ("light", "dark"):
+    body, b = wordmark(200, scheme, halo=False)
+    x0, y0, x1, y1 = b
+    vb = f"{x0:.2f} {y0:.2f} {x1-x0:.2f} {y1-y0:.2f}"
+    save(f"logo/izzyblazor-wordmark-{scheme}-small.svg", svg_doc(round(x1-x0), round(y1-y0), body, vb=vb))
+
+def icon_svg(variant):
+    if variant == "icon":        # large, with halo
+        body = f'<circle cx="32" cy="32" r="32" fill="{INK}"/>' + knob(32, 32, 18, halo=True, halo_op=0.3)
+    elif variant == "icon-small":  # 24-47 px
+        body = f'<circle cx="32" cy="32" r="32" fill="{INK}"/>' + knob(32, 32, 21, halo=False)
+    elif variant == "icon-tiny":   # 16-23 px
+        body = f'<circle cx="32" cy="32" r="32" fill="{INK}"/>' + knob(32, 32, 22, halo=False, core=False)
+    elif variant == "icon-mono-ink":
+        body = knob(32, 32, 27, "mono", mono=INK)
+    elif variant == "icon-mono-white":
+        body = knob(32, 32, 27, "mono", mono="#FFFFFF")
+    elif variant == "knob":       # no disc
+        body = knob(32, 32, 22, halo=True, halo_op=0.25)
+    return svg_doc(64, 64, body)
+
+for v in ("icon", "icon-small", "icon-tiny", "icon-mono-ink", "icon-mono-white", "knob"):
+    p = save(f"logo/izzyblazor-{v}.svg", icon_svg(v))
+    png(p, f"logo/png/izzyblazor-{v}-512.png", width=512)
+
+# ============ 2. favicons / app icons ============
+fav = save("favicon/favicon.svg", icon_svg("icon-small"))
+tiny = os.path.join(OUT, "logo/izzyblazor-icon-tiny.svg")
+small = os.path.join(OUT, "logo/izzyblazor-icon-small.svg")
+big = os.path.join(OUT, "logo/izzyblazor-icon.svg")
+ims = []
+for sz, src in ((16, tiny), (32, small), (48, big)):
+    p = png(src, f"favicon/favicon-{sz}.png", width=sz)
+    ims.append(Image.open(p).convert("RGBA"))
+ims[2].save(os.path.join(OUT, "favicon/favicon.ico"), format="ICO", sizes=[(16, 16), (32, 32), (48, 48)], append_images=ims[:2])
+
+def square_icon(halo=True, scale=0.30):
+    r = 512 * scale
+    return svg_doc(512, 512, knob(256, 256, r, halo=halo, halo_op=0.3), bg=INK)
+sq = save("favicon/_square.svg", square_icon())
+png(sq, "favicon/apple-touch-icon.png", width=180)
+png(sq, "favicon/icon-192.png", width=192)
+png(sq, "favicon/icon-512.png", width=512)
+mk = save("favicon/_maskable.svg", square_icon(scale=0.22))
+png(mk, "favicon/icon-512-maskable.png", width=512)
+os.remove(sq); os.remove(mk)
+save("favicon/site.webmanifest", """{
+  "name": "IzzyBlazor",
+  "short_name": "IzzyBlazor",
+  "icons": [
+    { "src": "/icon-192.png", "sizes": "192x192", "type": "image/png" },
+    { "src": "/icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "/icon-512-maskable.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "theme_color": "#14161A",
+  "background_color": "#14161A",
+  "display": "standalone"
+}
+""")
+save("favicon/head-snippet.html", """<link rel="icon" href="/favicon.ico" sizes="48x48">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
+<meta name="theme-color" content="#14161A">
+""")
+
+av = save("github/_avatar.svg", square_icon(scale=0.27))
+png(av, "github/avatar-500.png", width=500)
+os.remove(av)
+png(big, "nuget/icon.png", width=128)
+
+# ============ 3. banners ============
+def mode_badge(x, y, h, active="Live", dark=True):
+    labels = ["Off", "Static", "Live"]
+    fs = h * 0.42; padx = h * 0.42; gap = h * 0.08; inset = h * 0.12
+    widths = [text("m600", l, fs, 0, 0, "#000")[1] + 2 * padx for l in labels]
+    total = sum(widths) + gap * 2 + inset * 2
+    bg, border, idle = ("#1E2126", "#3A3F48", STEEL) if dark else ("#FFFFFF", "#D6D3CC", "#6B717B")
+    s = f'<rect x="{x:.2f}" y="{y:.2f}" width="{total:.2f}" height="{h:.2f}" rx="{h/2:.2f}" fill="{bg}" stroke="{border}" stroke-width="{h*0.03:.2f}"/>'
+    cx = x + inset
+    for l, w in zip(labels, widths):
+        fill = idle
+        if l == active:
+            col = {"Off": PAPER if dark else INK, "Static": AMBER, "Live": EMBER}[l]
+            s += f'<rect x="{cx:.2f}" y="{y+inset:.2f}" width="{w:.2f}" height="{h-2*inset:.2f}" rx="{(h-2*inset)/2:.2f}" fill="{col}"/>'
+            fill = PAPER if (l == "Off" and not dark) else INK
+        s += text("m600", l, fs, cx + w / 2, y + h / 2 + fs * 0.36, fill, anchor="middle")[0]
+        cx += w + gap
+    return s, total
+
+def glow(cx, cy, r):
+    s = ""
+    for k, op in ((2.6, 0.05), (2.0, 0.07), (1.5, 0.10), (31/22, 0.22)):
+        s += f'<circle cx="{cx}" cy="{cy}" r="{r*k:.1f}" fill="{EMBER}" fill-opacity="{op}"/>'
+    s += f'<circle cx="{cx}" cy="{cy}" r="{r}" fill="{EMBER}"/><circle cx="{cx}" cy="{cy}" r="{r*9/22:.1f}" fill="{AMBER}"/>'
+    return s
+
+def card(w, h, wm_size, tag_size, sub_size, badge_h, left, path, glow_r=None, show_badge=True, show_sub=True):
+    body = ""
+    if glow_r:
+        body += f'<g>{glow(w - glow_r * 0.7, h * 0.5, glow_r)}</g>'
+    wm, b, ww = placed_wordmark(wm_size, left, 0, "dark")
+    wm_h = -b[1]
+    top = (h - (wm_h + tag_size * 1.6 + (sub_size * 1.7 if show_sub else 0) + (badge_h * 1.6 if show_badge else 0))) / 2
+    base = top + wm_h
+    wm, b, ww = placed_wordmark(wm_size, left, base, "dark")
+    body += wm
+    y = base + b[3] + tag_size * 1.5
+    body += text("b700", "Blazor components. No circuit required.", tag_size, left, y, PAPER, -0.015)[0]
+    if show_sub:
+        y += sub_size * 1.7
+        body += text("b500", "Works in static SSR. No SignalR or WebAssembly needed.", sub_size, left, y, GREY_D)[0]
+    if show_badge:
+        y += badge_h * 0.9
+        bs, _ = mode_badge(left, y, badge_h, "Live")
+        body += bs
+    p = save(path, svg_doc(w, h, body, bg=INK))
+    return p
+
+p = card(1280, 640, 132, 40, 25, 46, 96, "github/social-preview.svg", glow_r=120)
+png(p, "github/social-preview.png", width=1280)
+p = card(1200, 630, 124, 38, 24, 44, 90, "social/og-image.svg", glow_r=115)
+png(p, "social/og-image.png", width=1200)
+p = card(1500, 500, 120, 36, 23, 0, 110, "social/banner-1500x500.svg", glow_r=110, show_badge=False)
+png(p, "social/banner-1500x500.png", width=1500)
+
+def readme_banner(scheme):
+    w, h = 1280, 300
+    wm, b, ww = placed_wordmark(116, w / 2, 0, scheme, "middle")
+    tag_size = 32
+    block = -b[1] + b[3] + tag_size * 1.9
+    base = (h - block) / 2 - b[1]
+    wm, b, ww = placed_wordmark(116, w / 2, base, scheme, "middle")
+    fill = INK if scheme == "light" else PAPER
+    t = text("b500", "Blazor components. No circuit required.", tag_size, w / 2, base + b[3] + tag_size * 1.7, GREY_L if scheme == "light" else GREY_D, anchor="middle")[0]
+    return svg_doc(w, h, wm + t)
+for sc in ("light", "dark"):
+    p = save(f"github/readme-banner-{sc}.svg", readme_banner(sc))
+    png(p, f"github/readme-banner-{sc}.png", width=1280)
+
+# hero 1600x800 (export 2x)
+def hero():
+    w, h = 1600, 800; left = 120; body = glow(w - 160, h / 2, 140)
+    wm, b, _ = placed_wordmark(145, left, 0, "dark")
+    base = 300
+    wm, b, _ = placed_wordmark(145, left, base, "dark")
+    body += wm
+    y = base + b[3] + 88
+    body += text("b700", "Blazor components.", 64, left, y, PAPER, -0.02)[0]
+    y += 76
+    body += text("b700", "No circuit required.", 64, left, y, EMBER, -0.02)[0]
+    y += 60
+    body += text("b500", "Works in static SSR. No SignalR or WebAssembly needed.", 28, left, y, GREY_D)[0]
+    y += 50
+    cmd = "dotnet add package IzzyBlazor"
+    cw = text("m600", cmd, 22, 0, 0, "#000")[1]
+    body += f'<rect x="{left}" y="{y}" width="{cw+56:.1f}" height="56" rx="12" fill="#1E2126" stroke="#3A3F48" stroke-width="1.5"/>'
+    body += text("m600", "$", 22, left + 24, y + 36, STEEL)[0]
+    body += text("m600", cmd, 22, left + 46, y + 36, PAPER)[0]
+    bs, _ = mode_badge(left + cw + 56 + 24, y + 4, 48, "Live")
+    body += bs
+    return svg_doc(w, h, body, bg=INK)
+p = save("hero/hero-dark.svg", hero())
+png(p, "hero/hero-dark.png", width=3200)
+
+# mode badges
+for mode in ("Off", "Static", "Live"):
+    for dk in (True, False):
+        bs, tw = mode_badge(2, 2, 40, mode, dk)
+        nm = f"badges/mode-{mode.lower()}-{'dark' if dk else 'light'}.svg"
+        p = save(nm, svg_doc(round(tw + 4), 44, bs))
+        png(p, nm.replace(".svg", ".png").replace("badges/", "badges/png/"), height=88)
+
+print("done")
