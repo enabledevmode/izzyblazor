@@ -584,17 +584,49 @@ interactive pages the links are ordinary navigations and the table follows the U
 navigation that's no full reload, but the server renders the page again; only an app with a
 client-side router (full interactivity) stays in the browser.
 
-**State in the component.** To sort and page in place on an interactive page, like a client-side
-grid, bind `Sort` or `Page`:
+**Column filters.** `Filterable` on a column adds a filter. Where it goes is `FilterPlacement`:
+
+- **`Header` (the default):** a funnel button in the column's header, tinted while the column is
+  filtered. It opens the filter in a popover (a menu of values for enums and booleans), and the
+  active filters show as removable tags above the table, with Clear. Popovers open natively, so
+  this works with JavaScript off: Enter or Apply in the popover submits.
+- **`Row`:** a row of fields under the headers, always in view, for tables people filter
+  constantly. With JavaScript off, Enter or the Apply button below the table submits.
+
+What each column gets:
+
+- **Text** (a `string` property) matches anywhere, ignoring case. **Numbers** match exactly. **Enums
+  and booleans** get a select with an "All" option.
+- **Dates** (`DateOnly`, `DateTime`, `DateTimeOffset`) get a date input and match that day:
+  `?f-date=2026-10-13`. A `DateTime` keeps the day's range, so a database index still helps; a
+  `DateTimeOffset` matches the day on its own clock. Date ranges belong to a future data grid.
+- **Several values:** `FilterMultiple` on an enum column makes its menu checkboxes that stay open
+  while you tick (in the row, behind a field showing "All", the value or "2 selected"). It keeps
+  the items with any chosen value (`IN (...)` in SQL). The URL repeats the key
+  (`?f-status=Paid&f-status=Pending`); with JavaScript off each item is a link, so the page
+  reloads per tick. Bound, `Filters` holds them joined: `"Paid,Pending"`. `MenuItem` has the same
+  `KeepOpen` for your own menus.
+- A `TemplateColumn` filters by `FilterBy` (text), and needs a `SortKey` to name its filter.
+- Other types throw; use a `TemplateColumn` with `FilterBy`, or a `FilterForm`.
+- Filters go in the URL as `?f-{key}=` (`?f-customer=ada`), with the table's `QueryPrefix`. With no
+  script they submit a GET form; with script they apply as you type. A new filter starts at page 1.
+- The filters are expressions on the column's property, so an EF Core `IQueryable` filters in the
+  database. An `ItemsProvider` gets them as `request.Filters`; `request.Apply(query)` filters,
+  sorts and pages, and `request.ApplyFiltering(query)` is what to count.
+- A filterable table can sit inside a form (a selection form): the filters never post with it.
+
+**State in the component.** To sort, page and filter in place on an interactive page, like a
+client-side grid, bind `Sort`, `Page` or `Filters`:
 
 ```razor
-<Table Items="orders" PageSize="50" @bind-Sort="sort" @bind-Page="page">...</Table>
+<Table Items="orders" PageSize="50" @bind-Sort="sort" @bind-Page="page" @bind-Filters="filters">...</Table>
 ```
 
-Headers and page numbers become buttons and the URL doesn't change. The table starts from the URL's
-`?sort=` and `?page=` if they're there, and a new sort goes back to page 1. Set `page = 1` yourself
-when your filters change. Static pages, and the prerender before the page is interactive, still
-use the links.
+Headers and page numbers become buttons, filters apply after a pause in typing, and the URL doesn't
+change. The table starts from the URL's `?sort=`, `?page=` and filters if they're there, and a new
+sort or filter goes back to page 1. `Filters` is a dictionary of column key to value. Set
+`page = 1` yourself when your own filters change. Static pages, and the prerender before the page
+is interactive, still use the URL.
 
 - `PropertyColumn` takes its title from the property (or `[Display(Name)]`), right-aligns numbers and
   formats values (`Format="C"`).
@@ -603,6 +635,8 @@ use the links.
   `ItemsProvider` that loads each page (`request.Apply(query)`).
 - Also: `PageSize`, `InitialSort`, `QueryPrefix` for several tables on a page, `MaxHeight` for a
   sticky header, `Striped`, `Size`, `RowClass`, `EmptyText`.
+- Lines: `RowLines` (on by default), `ColumnLines` (off by default) and `Bordered`, the border
+  around the table (on by default; turn it off for a table inside a card).
 
 **Selection.** `Selectable` adds a checkbox to each row, valued with the row's `ItemKey`.
 
@@ -622,9 +656,10 @@ automatically while an `ItemsProvider` loads on interactive pages.
 
 ## Filtering
 
-Tables don't filter themselves (built-in column filters belong to a future data grid); the page
-filters the data it passes in. `FilterForm` makes that easy: a search-and-filter bar whose values go
-in the URL (`?q=ada&status=Paid`), read with `[SupplyParameterFromQuery]`.
+For a filter per column, use the Table's `Filterable` columns (above). For a search box or filters
+that aren't columns, the page filters the data it passes in, and `FilterForm` makes that easy: a
+search-and-filter bar whose values go in the URL (`?q=ada&status=Paid`), read with
+`[SupplyParameterFromQuery]`.
 
 - **No JavaScript:** a GET form that keeps the rest of the query string (the table's sort) and
   starts over at page 1.

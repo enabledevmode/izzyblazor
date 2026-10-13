@@ -42,6 +42,21 @@ public class IzzyText
     /// <summary>A dismiss button. Alert, toasts.</summary>
     public virtual string Dismiss { get; set; } = "Dismiss";
 
+    /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
+    public virtual string FilterColumn { get; set; } = "Filter {0}";
+
+    /// <summary>The first option of a Table filter select, meaning no filter.</summary>
+    public virtual string All { get; set; } = "All";
+
+    /// <summary>A Table filter menu with several values chosen: "2 selected".</summary>
+    public virtual string FilterSelected { get; set; } = "{0} selected";
+
+    /// <summary>A Table filter option for true.</summary>
+    public virtual string Yes { get; set; } = "Yes";
+
+    /// <summary>A Table filter option for false.</summary>
+    public virtual string No { get; set; } = "No";
+
     /// <summary>A Banner's region name.</summary>
     public virtual string Announcement { get; set; } = "Announcement";
 

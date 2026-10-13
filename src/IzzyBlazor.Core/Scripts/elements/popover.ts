@@ -121,7 +121,7 @@ class PopoverRoot extends IzzyElement {
         "click",
         (event) => {
           const item = (event.target as Element).closest<HTMLElement>(ITEM);
-          if (!item || !this.items().includes(item) || item.hasAttribute("aria-haspopup")) return;
+          if (!item || !this.items().includes(item) || item.hasAttribute("aria-haspopup") || item.hasAttribute("data-ib-keep-open")) return;
           const root = this.rootPanel;
           if (root?.matches(":popover-open")) root.hidePopover();
         },
@@ -161,6 +161,9 @@ class PopoverRoot extends IzzyElement {
         // Not connected yet, or another modal is open; the next change will retry.
       }
     } else if (!want && open) {
+      // A panel only the user opens (a Table filter) stays open through renders and enhanced
+      // navigations that don't mention it, such as the one its own live filter just made.
+      if (panel.hasAttribute("data-ib-user-controlled")) return;
       panel.hidePopover();
     }
   }

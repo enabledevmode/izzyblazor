@@ -12,8 +12,12 @@
     reloads, and can be shared. On interactive pages the links are ordinary navigations (with
     enhanced navigation the server renders the page again) and the table follows the URL.
 
-    Bind Sort or Page (@bind-Sort, @bind-Page) on an interactive page to keep them in the
-    component instead: headers and page numbers become buttons, the URL doesn't change, and the
+    Filterable columns add a filter row under the headers. Filters go in the URL too
+    (?f-customer=ada): with no script the boxes submit a GET form when you press Enter; with
+    script they apply as you type.
+
+    Bind Sort, Page or Filters (@bind-Sort, @bind-Page, @bind-Filters) on an interactive page to
+    keep them in the component instead: headers and page numbers become buttons, the URL doesn't change, and the
     table sorts and pages in place, like a client-side grid. It starts from the URL's values.
 
     Give it Items (a list, or an IQueryable that EF Core translates) and it sorts and pages them,
@@ -30,11 +34,36 @@
     </Table>
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)">
     <CascadingValue Value="this" IsFixed="true">
         @ChildContent
         @ColumnsReadyNotifier
     </CascadingValue>
+    @if (HasFilters && FilterPlacement == FilterPlacement.Header)
+    {
+        var active = CurrentFilters();
+        @* The active filters, which the header hides in its popovers: a removable tag each. Always
+           rendered (hidden while empty): if it came and went, enhanced navigation's DOM merge would
+           turn the table's scroll box into it and rebuild the table, closing the filter popover
+           someone is typing in. *@
+        <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(active.Count == 0)">
+            @foreach (var column in _columns.Where(c => c.CanFilter && active.ContainsKey(c.Key!)))
+            {
+                var summary = FilterSummary(column, active[column.Key!]);
+                <Tag Label="@($"{column.HeaderText}: {summary}")" Size="ControlSize.Sm"
+                     RemoveHref="@(UseState ? null : FilterValuesHref(column, []))"
+                     OnRemove="@(UseState ? EventCallback.Factory.Create(this, () => OnFilterValuesAsync(column, [])) : default)" />
+            }
+            @if (active.Count > 0 && UseState)
+            {
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" @onclick="ClearFiltersAsync">@TextDefaults.Clear</button>
+            }
+            else if (active.Count > 0)
+            {
+                <a href="@ClearFiltersHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm">@TextDefaults.Clear</a>
+            }
+        </div>
+    }
     <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? "Table")" tabindex="0" style="@ScrollStyle">
         <table class="ib-table-grid" aria-busy="@(IsLoading ? "true" : null)">
             @if (Caption is not null)
@@ -50,30 +79,44 @@
                             <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
                         </th>
                     }
+                    @{ var headerFilters = HasFilters && FilterPlacement == FilterPlacement.Header ? CurrentFilters() : null; }
                     @foreach (var column in _columns)
                     {
                         <th scope="col" class="@CellClass(column)" style="@WidthStyle(column)" aria-sort="@AriaSort(column)">
-                            @if (column.CanSort && UseState)
+                            @if (headerFilters is not null && column.CanFilter)
                             {
-                                <button type="button" class="ib-table-sort" @onclick="() => OnSortClickAsync(column)">
-                                    <span>@column.HeaderText</span>
-                                    <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
-                                </button>
-                            }
-                            else if (column.CanSort)
-                            {
-                                <a href="@SortHref(column)" class="ib-table-sort">
-                                    <span>@column.HeaderText</span>
-                                    <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
-                                </a>
+                                @* The title (or sort control) and a filter button that opens the filter. *@
+                                <div class="ib-table-head">
+                                    @HeaderTitle(column)
+                                    @HeaderFilter(column, headerFilters.GetValueOrDefault(column.Key!) ?? "")
+                                </div>
                             }
                             else
                             {
-                                @column.HeaderText
+                                @HeaderTitle(column)
                             }
                         </th>
                     }
                 </tr>
+                @if (HasFilters && FilterPlacement == FilterPlacement.Row)
+                {
+                    var filters = CurrentFilters();
+                    <tr class="ib-table-filter-row">
+                        @if (Selectable)
+                        {
+                            <td class="ib-table-select-cell"></td>
+                        }
+                        @foreach (var column in _columns)
+                        {
+                            <td class="@CellClass(column)">
+                                @if (column.CanFilter)
+                                {
+                                    @FilterControl(column, filters.GetValueOrDefault(column.Key!) ?? "")
+                                }
+                            </td>
+                        }
+                    </tr>
+                }
             </thead>
             <tbody>
                 @if (_items.Count == 0 && IsLoading)
@@ -157,6 +200,28 @@
             }
         </table>
     </div>
+    @if (HasFilters && !UseState)
+    {
+        @* The filters' GET form. Its fields join it through form="", not by nesting, so a table
+           inside another form (a selection form) still works: if the browser drops this nested
+           form, the filters belong to no form and never post with the outer one. *@
+        <form id="@FilterFormId" method="get" action="@ActionPath" class="ib-table-filter-form"></form>
+        <div class="ib-table-filter-actions">
+            @foreach (var (key, value) in KeptQuery())
+            {
+                <input type="hidden" name="@key" value="@value" form="@FilterFormId" />
+            }
+            @if (FilterPlacement == FilterPlacement.Row)
+            {
+                @* Without script, Enter in a filter submits through this button; selects need it. *@
+                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm">@TextDefaults.Apply</button>
+                @if (CurrentFilters().Count > 0)
+                {
+                    <a href="@ClearFiltersHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm">@TextDefaults.Clear</a>
+                }
+            }
+        </div>
+    }
     @if (PageSize is { } size && _total > 0)
     {
         <div class="ib-table-footer">
@@ -206,8 +271,25 @@
     /// </summary>
     [Parameter] public int? Page { get; set; }
 
-    /// <summary>Raised when a page is chosen (and with 1 when the sort changes), on interactive pages.</summary>
+    /// <summary>Raised when a page is chosen (and with 1 when the sort or filters change), on interactive pages.</summary>
     [Parameter] public EventCallback<int> PageChanged { get; set; }
+
+    /// <summary>
+    /// Where the column filters go: a filter button in each header that opens the filter
+    /// (<see cref="FilterPlacement.Header"/>, the default, with the active filters as removable
+    /// tags above the table), or a row of fields under the headers (<see cref="FilterPlacement.Row"/>).
+    /// </summary>
+    [Parameter] public FilterPlacement FilterPlacement { get; set; } = FilterPlacement.Header;
+
+    /// <summary>
+    /// The filter values of <see cref="ColumnBase{TItem}.Filterable"/> columns, by column key
+    /// (<c>"customer"</c> → <c>"ada"</c>). Binding it (<c>@bind-Filters</c>) on an interactive page
+    /// keeps filters, sort and page in the component instead of the URL.
+    /// </summary>
+    [Parameter] public IReadOnlyDictionary<string, string>? Filters { get; set; }
+
+    /// <summary>Raised when a filter changes, on interactive pages (typing waits for a pause).</summary>
+    [Parameter] public EventCallback<IReadOnlyDictionary<string, string>> FiltersChanged { get; set; }
 
     /// <summary>
     /// Prefix for this table's query-string keys, so several tables can share a page:
@@ -229,6 +311,15 @@
 
     /// <summary>Alternating row backgrounds.</summary>
     [Parameter] public bool Striped { get; set; }
+
+    /// <summary>A line between rows. Defaults to true; the line under the header always shows.</summary>
+    [Parameter] public bool RowLines { get; set; } = true;
+
+    /// <summary>A line between columns. Defaults to false.</summary>
+    [Parameter] public bool ColumnLines { get; set; }
+
+    /// <summary>A rounded border around the table. Defaults to true; false for a table that sits inside a card or panel.</summary>
+    [Parameter] public bool Bordered { get; set; } = true;
 
     /// <summary>Row height and text size. <see cref="ControlSize.Sm"/> for dense data. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
@@ -293,7 +384,333 @@
     private bool IsLoading => Loading || _providerLoading;
 
     // Sort and page live in the component (not the URL) on interactive pages that bind them.
-    private bool UseState => RendererInfo.IsInteractive && (SortChanged.HasDelegate || PageChanged.HasDelegate);
+    private bool UseState => RendererInfo.IsInteractive && (SortChanged.HasDelegate || PageChanged.HasDelegate || FiltersChanged.HasDelegate);
+
+    private IReadOnlyDictionary<string, string> _stateFilters = new Dictionary<string, string>();
+    private IReadOnlyDictionary<string, string>? _lastFiltersParam;
+    private CancellationTokenSource? _filterDelay;
+    private string? _filterFormId;
+
+    private bool HasFilters => _columns.Any(c => c.CanFilter);
+
+    private string FilterFormId => _filterFormId ??= IdGenerator.Next("ib-table-filters");
+
+    private string FilterQueryKey(ColumnBase<TItem> column) => $"{QueryPrefix}f-{column.Key}";
+
+    // GET replaces the query string with the form's fields, so the action is just the path.
+    private string ActionPath => new Uri(Navigation.Uri).AbsolutePath;
+
+    // Filter values from the URL, for the filterable columns.
+    private Dictionary<string, string> ReadFilters()
+    {
+        var query = QueryString.Of(Navigation.Uri);
+        var filters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+        foreach (var column in _columns.Where(c => c.CanFilter))
+        {
+            if (query.TryGetValue(FilterQueryKey(column), out var value) && value.ToString() is { Length: > 0 } text && !string.IsNullOrWhiteSpace(text))
+            {
+                filters[column.Key!] = text;
+            }
+        }
+
+        return filters;
+    }
+
+    private IReadOnlyDictionary<string, string> CurrentFilters() => UseState ? _stateFilters : ReadFilters();
+
+    private static string Signature(IReadOnlyDictionary<string, string> filters) =>
+        string.Join('&', filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)).OrderBy(f => f.Key, StringComparer.Ordinal).Select(f => $"{f.Key}={f.Value}"));
+
+    // The rest of the URL, carried through the filters' GET form: everything but this table's
+    // filters and page (a new filter starts at page 1).
+    private IEnumerable<(string Key, string Value)> KeptQuery()
+    {
+        var own = _columns.Where(c => c.CanFilter).Select(FilterQueryKey).Append(PageKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        return QueryString.Of(Navigation.Uri)
+            .Where(q => !own.Contains(q.Key))
+            .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
+    }
+
+    private string ClearFiltersHref => Navigation.GetUriWithQueryParameters(
+        _columns.Where(c => c.CanFilter).Select(FilterQueryKey).Append(PageKey).Distinct().ToDictionary(k => k, _ => (object?)null));
+
+    // The header's title: a sort control (a button when state is in the component, a link
+    // otherwise) or plain text.
+    private RenderFragment HeaderTitle(ColumnBase<TItem> column) => __builder =>
+    {
+        if (column.CanSort && UseState)
+        {
+            <button type="button" class="ib-table-sort" @onclick="() => OnSortClickAsync(column)">
+                <span>@column.HeaderText</span>
+                <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
+            </button>
+        }
+        else if (column.CanSort)
+        {
+            <a href="@SortHref(column)" class="ib-table-sort">
+                <span>@column.HeaderText</span>
+                <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
+            </a>
+        }
+        else
+        {
+            @column.HeaderText
+        }
+    };
+
+    private string FilterLabel(ColumnBase<TItem> column) =>
+        string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterColumn, column.HeaderText);
+
+    // What a filter is set to, in words: the text typed, the choice's name, or "2 selected".
+    private string FilterSummary(ColumnBase<TItem> column, string current)
+    {
+        if (column.FilterKind != ColumnFilterKind.Choice)
+        {
+            return current;
+        }
+
+        var chosen = ColumnFilter.SplitValues(current);
+        var choices = column.FilterChoices(TextDefaults);
+        return chosen.Count switch
+        {
+            0 => TextDefaults.All,
+            1 => choices.FirstOrDefault(c => string.Equals(c.Value, chosen[0], StringComparison.OrdinalIgnoreCase)).Text ?? chosen[0],
+            _ => string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterSelected, chosen.Count),
+        };
+    }
+
+    // FilterPlacement.Header: a funnel button, marked when the column is filtered, that opens the
+    // filter. Choices open a menu (checkbox items for FilterMultiple); text, numbers and dates a
+    // popover with the field. Both popovers open with no script.
+    private RenderFragment HeaderFilter(ColumnBase<TItem> column, string current) => __builder =>
+    {
+        var label = FilterLabel(column);
+        var name = current.Length > 0 ? $"{label}: {FilterSummary(column, current)}" : label;
+        var placement = column.EffectiveAlign == CellAlign.End ? Placement.BottomEnd : Placement.BottomStart;
+        if (column.FilterKind == ColumnFilterKind.Choice)
+        {
+            <Menu Placement="placement" data-ib-user-controlled>
+                <Trigger>
+                    <button type="button" class="ib-table-filter-button" data-active="@(current.Length > 0 ? "" : null)" aria-label="@name" title="@name" @attributes="context">
+                        <Icon Role="IconRole.Filter" />
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    @FilterMenuItems(column, current)
+                </ChildContent>
+            </Menu>
+        }
+        else
+        {
+            <Popover Placement="placement" data-ib-user-controlled>
+                <Trigger>
+                    <button type="button" class="ib-table-filter-button" data-active="@(current.Length > 0 ? "" : null)" aria-label="@name" title="@name" @attributes="context">
+                        <Icon Role="IconRole.Filter" />
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    <div class="ib-table-filter-panel">
+                        @FilterInput(column, current, label, autofocus: true)
+                        @if (!UseState)
+                        {
+                            @* With script the field applies as you type; without, Enter or Apply submits. *@
+                            <div class="ib-table-filter-panel-actions">
+                                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm">@TextDefaults.Apply</button>
+                            </div>
+                        }
+                    </div>
+                </ChildContent>
+            </Popover>
+        }
+    };
+
+    // FilterPlacement.Row: a field per column. Several values: a field-like button opening the menu.
+    private RenderFragment FilterControl(ColumnBase<TItem> column, string current) => __builder =>
+    {
+        var label = FilterLabel(column);
+        if (column.FilterKind == ColumnFilterKind.Choice && column.FilterMultiple)
+        {
+            var summary = FilterSummary(column, current);
+            <div class="ib-field ib-field-sm ib-table-filter ib-table-filter-multiple">
+                <Menu Size="ControlSize.Sm" Placement="Placement.BottomStart" data-ib-user-controlled>
+                    <Trigger>
+                        <button type="button" class="ib-field-input ib-table-filter-trigger" aria-label="@($"{label}: {summary}")" @attributes="context">
+                            <span class="ib-table-filter-summary">@summary</span>
+                            <Icon Role="IconRole.ChevronDown" Class="ib-table-filter-chevron" />
+                        </button>
+                    </Trigger>
+                    <ChildContent>
+                        @FilterMenuItems(column, current)
+                    </ChildContent>
+                </Menu>
+            </div>
+        }
+        else
+        {
+            @FilterInput(column, current, label)
+        }
+    };
+
+    // The menu of a choice filter: "All", then the values. FilterMultiple: checkbox items that
+    // toggle and keep the menu open. Otherwise choosing one sets it and closes the menu. Static
+    // pages: each item links to the URL with the new values. Bound: the items change state.
+    private RenderFragment FilterMenuItems(ColumnBase<TItem> column, string current) => __builder =>
+    {
+        var chosen = ColumnFilter.SplitValues(current);
+        <MenuItem Href="@(UseState ? null : FilterValuesHref(column, []))"
+                  OnClick="@(UseState ? EventCallback.Factory.Create<MouseEventArgs>(this, () => OnFilterValuesAsync(column, [])) : default)">@TextDefaults.All</MenuItem>
+        <MenuDivider />
+        foreach (var (value, text) in column.FilterChoices(TextDefaults))
+        {
+            var on = chosen.Contains(value, StringComparer.OrdinalIgnoreCase);
+            IReadOnlyList<string> next = !column.FilterMultiple
+                ? new[] { value }
+                : on ? chosen.Where(v => !string.Equals(v, value, StringComparison.OrdinalIgnoreCase)).ToList() : chosen.Append(value).ToList();
+            <MenuItem Checked="on" KeepOpen="column.FilterMultiple"
+                      Href="@(UseState ? null : FilterValuesHref(column, next))"
+                      CheckedChanged="@(UseState ? EventCallback.Factory.Create<bool>(this, () => OnFilterValuesAsync(column, next)) : default)">@text</MenuItem>
+        }
+    };
+
+    // A single field: a select for a choice, a date input, or a text box (numbers get a numeric
+    // keyboard). Static pages join it to the GET form; bound pages handle its events.
+    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string label, bool autofocus = false) => __builder =>
+    {
+        if (column.FilterKind == ColumnFilterKind.Choice)
+        {
+            <div class="ib-field ib-field-sm ib-table-filter">
+                <div class="ib-field-control ib-has-end">
+                    @if (UseState)
+                    {
+                        <select class="ib-field-input ib-field-select" aria-label="@label" autofocus="@autofocus" value="@current" @onchange="e => OnFilterAsync(column, e, wait: false)">
+                            @FilterOptions(column, current)
+                        </select>
+                    }
+                    else
+                    {
+                        <select class="ib-field-input ib-field-select" aria-label="@label" autofocus="@autofocus" value="@current" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter>
+                            @FilterOptions(column, current)
+                        </select>
+                    }
+                    <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+                </div>
+            </div>
+        }
+        else if (column.FilterKind == ColumnFilterKind.Date)
+        {
+            @* A date input sends yyyy-MM-dd whatever the person's locale shows; it applies when a
+               whole date is chosen, so there's no pause to wait for. *@
+            var day = ColumnFilter.TryParseDay(current, out var parsed) ? parsed.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
+            <div class="ib-field ib-field-sm ib-table-filter ib-table-filter-date">
+                <div class="ib-field-control">
+                    @if (UseState)
+                    {
+                        <input type="date" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@day" @onchange="e => OnFilterAsync(column, e, wait: false)" />
+                    }
+                    else
+                    {
+                        <input type="date" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@day" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
+                    }
+                </div>
+            </div>
+        }
+        else
+        {
+            var mode = column.FilterKind == ColumnFilterKind.Number ? "decimal" : null;
+            <div class="ib-field ib-field-sm ib-table-filter">
+                <div class="ib-field-control">
+                    @if (UseState)
+                    {
+                        <input type="search" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
+                               @oninput="e => OnFilterAsync(column, e, wait: true)" />
+                    }
+                    else
+                    {
+                        <input type="search" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
+                               name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
+                    }
+                </div>
+            </div>
+        }
+    };
+
+    private RenderFragment FilterOptions(ColumnBase<TItem> column, string current) => __builder =>
+    {
+        <option value="" selected="@(current.Length == 0)">@TextDefaults.All</option>
+        foreach (var (value, text) in column.FilterChoices(TextDefaults))
+        {
+            <option value="@value" selected="@string.Equals(value, current, StringComparison.OrdinalIgnoreCase)">@text</option>
+        }
+    };
+
+    // The URL with a multi-value filter set to these values (repeated keys), from page 1.
+    private string FilterValuesHref(ColumnBase<TItem> column, IReadOnlyList<string> values) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        {
+            [FilterQueryKey(column)] = values.Count == 0 ? null : values.ToArray(),
+            [PageKey] = null,
+        });
+
+    private async Task ClearFiltersAsync()
+    {
+        _filterDelay?.Cancel();
+        _stateFilters = new Dictionary<string, string>();
+        var pageWas = _statePage;
+        _statePage = 1;
+        await FiltersChanged.InvokeAsync(_stateFilters);
+        if (pageWas != 1)
+        {
+            await PageChanged.InvokeAsync(1);
+        }
+
+        await ReloadIfStaleAsync();
+    }
+
+    private Task OnFilterValuesAsync(ColumnBase<TItem> column, IReadOnlyList<string> values) =>
+        OnFilterAsync(column, new ChangeEventArgs { Value = string.Join(',', values) }, wait: false);
+
+    // Typing waits for a pause before filtering; a select applies at once.
+    private async Task OnFilterAsync(ColumnBase<TItem> column, ChangeEventArgs e, bool wait)
+    {
+        var value = e.Value?.ToString() ?? "";
+        var next = new Dictionary<string, string>(_stateFilters, StringComparer.OrdinalIgnoreCase);
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            next.Remove(column.Key!);
+        }
+        else
+        {
+            next[column.Key!] = value;
+        }
+
+        _stateFilters = next;
+        _filterDelay?.Cancel();
+        if (wait)
+        {
+            var delay = _filterDelay = new CancellationTokenSource();
+            try
+            {
+                await Task.Delay(FilterDelay, delay.Token);
+            }
+            catch (TaskCanceledException)
+            {
+                return;
+            }
+        }
+
+        var pageWas = _statePage;
+        _statePage = 1;
+        await FiltersChanged.InvokeAsync(_stateFilters);
+        if (pageWas != 1)
+        {
+            await PageChanged.InvokeAsync(1);
+        }
+
+        await ReloadIfStaleAsync();
+    }
+
+    /// <summary>How long typing in a filter waits for a pause. Internal so tests can shorten it.</summary>
+    internal TimeSpan FilterDelay { get; set; } = TimeSpan.FromMilliseconds(300);
 
     private bool _stateReady;
     private string? _stateSort;
@@ -418,8 +835,15 @@
             var (sortRaw, pageRaw) = ReadQuery();
             _stateSort = Sort ?? (string.IsNullOrEmpty(sortRaw) ? null : sortRaw);
             _statePage = Page ?? (int.TryParse(pageRaw, out var number) ? number : 1);
-            (_lastSortParam, _lastPageParam, _stateReady) = (Sort, Page, true);
+            _stateFilters = Filters ?? new Dictionary<string, string>();
+            (_lastSortParam, _lastPageParam, _lastFiltersParam, _stateReady) = (Sort, Page, Filters, true);
             return;
+        }
+
+        if (!ReferenceEquals(Filters, _lastFiltersParam))
+        {
+            _lastFiltersParam = Filters;
+            _stateFilters = Filters ?? new Dictionary<string, string>();
         }
 
         if (!string.Equals(Sort, _lastSortParam, StringComparison.Ordinal))
@@ -460,7 +884,7 @@
     private async Task ReloadIfStaleAsync()
     {
         var (sortRaw, pageRaw) = CurrentState();
-        if (_loadedKey is { } loaded && loaded.Sort == sortRaw && loaded.Page == pageRaw)
+        if (_loadedKey is { } loaded && loaded.Sort == sortRaw && loaded.Page == pageRaw && loaded.Filters == Signature(CurrentFilters()))
         {
             return;
         }
@@ -478,6 +902,9 @@
     {
         classes.Add("ib-table");
         classes.Add("ib-table-striped", Striped);
+        classes.Add("ib-table-no-row-lines", !RowLines);
+        classes.Add("ib-table-column-lines", ColumnLines);
+        classes.Add("ib-table-borderless", !Bordered);
         classes.Add("ib-table-sm", Size == ControlSize.Sm);
         classes.Add("ib-table-lg", Size == ControlSize.Lg);
         classes.Add("ib-table-sticky", MaxHeight is not null);
@@ -486,6 +913,14 @@
     private async Task ColumnsReadyAsync()
     {
         _columnsReady = true;
+
+        // Filters kept in the component start from the URL too, once the columns that name them
+        // have registered.
+        if (UseState && Filters is null && _stateFilters.Count == 0)
+        {
+            _stateFilters = ReadFilters();
+        }
+
         await LoadAsync();
         StateHasChanged();
     }
@@ -494,7 +929,7 @@
     // changes the data (filters) re-renders the page, which reloads through the parameters.
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
     {
-        if (!_columnsReady || UseState || ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page))
+        if (!_columnsReady || UseState || (ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page) && Signature(ReadFilters()) == _loadedKey?.Filters))
         {
             return;
         }
@@ -517,7 +952,7 @@
                 query.TryGetValue(PageKey, out var p) ? p.ToString() : null);
     }
 
-    private sealed record LoadKey(string? Sort, string? Page, object? Items, object? Provider, int? PageSize);
+    private sealed record LoadKey(string? Sort, string? Page, string Filters, object? Items, object? Provider, int? PageSize);
 
     private LoadKey? _loadedKey;
     private int _loadVersion;
@@ -525,8 +960,9 @@
     private async Task LoadAsync()
     {
         var (sortRaw, pageRaw) = CurrentState();
+        var filters = CurrentFilters();
         // Always reload: the same list may have changed since the last render.
-        _loadedKey = new LoadKey(sortRaw, pageRaw, Items, ItemsProvider, PageSize);
+        _loadedKey = new LoadKey(sortRaw, pageRaw, Signature(filters), Items, ItemsProvider, PageSize);
         var version = ++_loadVersion;
 
         var sort = !string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
@@ -541,7 +977,12 @@
         // Keep (page - 1) * size inside int range, whatever is in the URL.
         var maxPage = PageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
         var page = int.TryParse(pageRaw, out var number) ? Math.Clamp(number, 1, maxPage) : 1;
-        var request = new TableRequest<TItem>(sortKey, descending, page, PageSize) { Column = column };
+        var request = new TableRequest<TItem>(sortKey, descending, page, PageSize)
+        {
+            Column = column,
+            Filters = filters,
+            FilterColumns = _columns.Where(c => c.CanFilter).ToList(),
+        };
 
         IReadOnlyList<TItem> items;
         int total;
@@ -582,7 +1023,7 @@
         else if (Items is not null)
         {
             var source = Items as IQueryable<TItem> ?? Items.AsQueryable();
-            var sorted = request.ApplySorting(source);
+            var sorted = request.ApplySorting(request.ApplyFiltering(source));
             total = sorted.Count();
             if (PageSize is { } size)
             {
@@ -662,5 +1103,9 @@
     }
 
     /// <inheritdoc />
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        _filterDelay?.Cancel();
+    }
 }

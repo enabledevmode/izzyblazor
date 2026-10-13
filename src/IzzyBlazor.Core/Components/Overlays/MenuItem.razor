@@ -29,6 +29,7 @@
        class="@_class"
        style="@_style"
        href="@(Disabled ? null : href)"
+       data-ib-keep-open="@(KeepOpen ? "" : null)"
        aria-disabled="@(Disabled ? "true" : null)">
         @Content
     </a>
@@ -36,7 +37,7 @@
 else
 {
     var submit = Type == ButtonType.Submit || RadioGroup?.Name is not null;
-    var closes = !submit && Menu is not null;
+    var closes = !submit && Menu is not null && !KeepOpen;
     <button @attributes="AdditionalAttributes"
             type="@(submit ? "submit" : "button")"
             role="@(Live ? Role : null)"
@@ -53,6 +54,7 @@ else
             form="@Form"
             popovertarget="@(closes ? Menu!.Id : null)"
             popovertargetaction="@(closes ? "hide" : null)"
+            data-ib-keep-open="@(KeepOpen ? "" : null)"
             @onclick="HandleClick">
         @Content
     </button>
@@ -97,6 +99,12 @@ else
     /// <see cref="Accent.Danger"/> for destructive items.
     /// </summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
+
+    /// <summary>
+    /// Leaves the menu open when the item is chosen, so several checkbox items can be ticked in a
+    /// row. A link item still navigates (with JavaScript off the page reloads and the menu closes).
+    /// </summary>
+    [Parameter] public bool KeepOpen { get; set; }
 
     /// <summary>Shows the item but stops it from being chosen.</summary>
     [Parameter] public bool Disabled { get; set; }
