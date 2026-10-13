@@ -104,14 +104,14 @@
   .ib-skeleton-text {
     display: flex;
     flex-direction: column;
-    gap: 0.5em;
+    gap: round(nearest, 0.5em, 1px);
     width: 100%;
   }
 
   /* One line of text, its height matching the type around it. */
   .ib-skeleton-line {
-    height: 0.75em;
-    margin-block: 0.125em;
+    height: round(nearest, 0.75em, 1px);
+    margin-block: round(nearest, 0.125em, 1px);
   }
 
   .ib-skeleton-line:last-child:not(:first-child) {

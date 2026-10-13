@@ -70,8 +70,8 @@
   }
 
   .ib-tab .ib-icon {
-    width: 1.125em;
-    height: 1.125em;
+    width: round(nearest, 1.125em, 2px);
+    height: round(nearest, 1.125em, 2px);
   }
 
   /* Focus: on the radio with no script, on the tab itself with script. */

@@ -74,8 +74,8 @@
     position: absolute;
     inset-block-end: 0;
     inset-inline-end: 0;
-    width: max(0.5rem, calc(var(--ib-avatar-size) * 0.28));
-    height: max(0.5rem, calc(var(--ib-avatar-size) * 0.28));
+    width: max(0.5rem, round(nearest, var(--ib-avatar-size) * 0.28, 2px));
+    height: max(0.5rem, round(nearest, var(--ib-avatar-size) * 0.28, 2px));
     border-radius: var(--ib-radius-full);
     box-shadow: 0 0 0 2px var(--ib-avatar-ring, var(--ib-color-surface));
     background: var(--ib-color-muted);
