@@ -85,7 +85,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncIndeterminate();
     reopenAfterPost();
     focusMarked();
-    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover");
+    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover, ib-dialog");
   });
 }
 

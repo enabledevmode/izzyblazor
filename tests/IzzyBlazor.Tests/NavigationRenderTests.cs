@@ -113,22 +113,24 @@ public class NavigationRenderTests : BunitContext
     }
 
     [Fact]
-    public void Interactive_tab_change_updates_the_url_through_blazor()
+    public void Interactive_tab_follows_the_address_without_navigating_itself()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        GoTo("/settings?tab=profile&page=2");
+        GoTo("/settings?tab=profile");
         var nav = Services.GetRequiredService<BunitNavigationManager>();
+        var historyBefore = nav.History.Count;
         var cut = Render<Tabs>(p => p
             .Add(t => t.QueryKey, "tab")
             .Add(t => t.ChildContent, ThreeTabs()));
 
-        // The script leaves the URL to Blazor here, so Navigation.Uri stays in step.
-        Assert.Null(cut.Find("ib-tabs").GetAttribute("data-query-key"));
+        // A click: the script writes the URL; no navigation (which would reload an island page).
+        Assert.Equal("tab", cut.Find("ib-tabs").GetAttribute("data-query-key"));
+        cut.FindAll("input.ib-tab-input")[1].Change(true);
+        Assert.Equal(historyBefore, nav.History.Count);
 
-        cut.FindAll("input.ib-tab-input")[2].Change(true);
-
-        Assert.EndsWith("/settings?tab=security&page=2", nav.Uri);
-        Assert.True(nav.History.First().Options.ReplaceHistoryEntry);
+        // A link to ?tab=security on the same page selects it.
+        nav.NavigateTo("/settings?tab=security");
+        cut.WaitForAssertion(() => Assert.Equal("security", cut.Find("ib-tabs").GetAttribute("data-selected")));
     }
 
     [Fact]

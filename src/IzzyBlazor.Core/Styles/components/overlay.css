@@ -298,14 +298,13 @@
   .ib-tooltip-bottom-start,
   .ib-tooltip-bottom-end { top: 100%; margin-top: var(--ib-tooltip-gap); }
   .ib-tooltip-top,
-  .ib-tooltip-bottom { left: 50%; translate: round(nearest, -50%, 1px) 0; }
+  .ib-tooltip-bottom { left: 50%; translate: -50% 0; translate: round(nearest, -50%, 1px) 0; }
   .ib-tooltip-top-start,
   .ib-tooltip-bottom-start { inset-inline-start: 0; }
   .ib-tooltip-top-end,
   .ib-tooltip-bottom-end { inset-inline-end: 0; }
-  .ib-tooltip-start { inset-inline-end: 100%; top: 50%; translate: 0 round(nearest, -50%, 1px); margin-inline-end: var(--ib-tooltip-gap); }
-  .ib-tooltip-end { inset-inline-start: 100%; top: 50%; translate: 0 round(nearest, -50%, 1px); margin-inline-start: var(--ib-tooltip-gap); }
-
+  .ib-tooltip-start { inset-inline-end: 100%; top: 50%; translate: 0 -50%; translate: 0 round(nearest, -50%, 1px); margin-inline-end: var(--ib-tooltip-gap); }
+  .ib-tooltip-end { inset-inline-start: 100%; top: 50%; translate: 0 -50%; translate: 0 round(nearest, -50%, 1px); margin-inline-start: var(--ib-tooltip-gap); }
   /* Tooltip upgraded by the script to the top layer */
   .ib-tooltip[popover] {
     position: fixed;
@@ -565,6 +564,19 @@
     .ib-dialog::backdrop,
     .ib-tooltip {
       transition: none;
+    }
+  }
+}
+
+/* High contrast: the highlighted menu item uses the system's selection colors (its wash and the
+   focus ring's box-shadow are dropped in forced colors). */
+@layer izzy.components {
+  @media (forced-colors: active) {
+    .ib-menu-item:is(:hover, :focus-visible),
+    .ib-menu-sub-root:has(> [popover]:popover-open) > .ib-menu-sub-trigger {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
     }
   }
 }

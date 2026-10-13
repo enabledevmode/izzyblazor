@@ -7,19 +7,21 @@
 @layer izzy.components {
   .ib-icon {
     display: inline-block;
+    width: 1em;
     width: round(nearest, 1em, 2px);
+    height: 1em;
     height: round(nearest, 1em, 2px);
     flex-shrink: 0;
+    vertical-align: -0.125em;
     vertical-align: round(nearest, -0.125em, 1px);
   }
 
-  .ib-icon-xs { width: round(nearest, 0.75em, 2px); height: round(nearest, 0.75em, 2px); }
-  .ib-icon-sm { width: round(nearest, 0.875em, 2px); height: round(nearest, 0.875em, 2px); }
-  .ib-icon-lg { width: round(nearest, 1.25em, 2px); height: round(nearest, 1.25em, 2px); vertical-align: round(nearest, -0.25em, 1px); }
-  .ib-icon-xl { width: round(nearest, 1.5em, 2px); height: round(nearest, 1.5em, 2px); vertical-align: round(nearest, -0.3em, 1px); }
-  .ib-icon-xl2 { width: round(nearest, 2em, 2px); height: round(nearest, 2em, 2px); vertical-align: round(nearest, -0.5em, 1px); }
-  .ib-icon-xl3 { width: round(nearest, 3em, 2px); height: round(nearest, 3em, 2px); vertical-align: round(nearest, -1em, 1px); }
-
+  .ib-icon-xs { width: 0.75em; width: round(nearest, 0.75em, 2px); height: 0.75em; height: round(nearest, 0.75em, 2px); }
+  .ib-icon-sm { width: 0.875em; width: round(nearest, 0.875em, 2px); height: 0.875em; height: round(nearest, 0.875em, 2px); }
+  .ib-icon-lg { width: 1.25em; width: round(nearest, 1.25em, 2px); height: 1.25em; height: round(nearest, 1.25em, 2px); vertical-align: -0.25em; vertical-align: round(nearest, -0.25em, 1px); }
+  .ib-icon-xl { width: 1.5em; width: round(nearest, 1.5em, 2px); height: 1.5em; height: round(nearest, 1.5em, 2px); vertical-align: -0.3em; vertical-align: round(nearest, -0.3em, 1px); }
+  .ib-icon-xl2 { width: 2em; width: round(nearest, 2em, 2px); height: 2em; height: round(nearest, 2em, 2px); vertical-align: -0.5em; vertical-align: round(nearest, -0.5em, 1px); }
+  .ib-icon-xl3 { width: 3em; width: round(nearest, 3em, 2px); height: 3em; height: round(nearest, 3em, 2px); vertical-align: -1em; vertical-align: round(nearest, -1em, 1px); }
   /* One turn a second; set --ib-spin-duration to change it. Slower with reduced motion,
      but never stopped, since the spin is what says "still working". */
   .ib-icon-spin {

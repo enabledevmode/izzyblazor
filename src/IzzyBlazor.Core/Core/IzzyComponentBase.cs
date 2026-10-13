@@ -47,7 +47,9 @@ public abstract partial class IzzyComponentBase : ComponentBase
     /// The default text for labels and messages: the app's registered <see cref="IzzyText"/>, or
     /// English. A component's own text parameters win over it.
     /// </summary>
-    protected IzzyText TextDefaults => IzzyServices.GetService(typeof(IzzyText)) as IzzyText ?? IzzyText.English;
+    protected IzzyText TextDefaults => _textDefaults ??= IzzyText.From(IzzyServices);
+
+    private IzzyText? _textDefaults;
 
     /// <summary>
     /// Adds the component's own classes and custom properties. Called on every render.

@@ -63,7 +63,7 @@ else
          class="@_class"
          style="@_style"
          data-selected="@SelectedValue"
-         data-query-key="@(RendererInfo.IsInteractive ? null : QueryKey)">
+         data-query-key="@QueryKey">
     <div class="ib-tabs-list" role="radiogroup" aria-label="@Label" aria-orientation="@(Orientation == Orientation.Vertical ? "vertical" : null)">
         @foreach (var tab in _context.Items)
         {
@@ -148,12 +148,27 @@ else
         Navigation.LocationChanged += OnLocationChanged;
     }
 
-    // Link tabs mark the current page; follow navigation on interactive pages.
+    // Link tabs mark the current page, and a QueryKey tab follows the address (a link to
+    // ?tab=billing on the same page); follow navigation on interactive pages.
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
         if (_context.Links.Count > 0)
         {
             InvokeAsync(StateHasChanged);
+            return;
+        }
+
+        if (QueryKey is not null
+            && QueryString.Of(e.Location).TryGetValue(QueryKey, out var values)
+            && values.ToString() is { Length: > 0 } value
+            && value != _selected)
+        {
+            InvokeAsync(async () =>
+            {
+                _selected = value;
+                StateHasChanged();
+                await SelectedChanged.InvokeAsync(value);
+            });
         }
     }
 
@@ -233,14 +248,10 @@ else
 
     private Task SelectAsync(string value)
     {
+        // The script writes ?{QueryKey}= with history.replaceState, on interactive pages too: going
+        // through NavigationManager would reload the page on each click where there's no
+        // interactive router. The cost: Navigation.Uri doesn't see the tab until the next navigation.
         _selected = value;
-        // On interactive pages the URL changes through Blazor, so Navigation.Uri (and every link
-        // built from it) keeps the tab. Static pages have the script write it instead.
-        if (QueryKey is not null && RendererInfo.IsInteractive && FromQuery() != value)
-        {
-            Navigation.NavigateTo(Navigation.GetUriWithQueryParameter(QueryKey, value), replace: true);
-        }
-
         return SelectedChanged.InvokeAsync(value);
     }
 }

@@ -54,7 +54,7 @@
     /// <summary>The region's name for screen readers. Defaults to "Notifications".</summary>
     [Parameter] public string? Label { get; set; }
 
-    private IzzyText TextDefaults => Services.GetService<IzzyText>() ?? IzzyText.English;
+    private IzzyText TextDefaults => IzzyText.From(Services);
 
     /// <summary>The close buttons' accessible name. Defaults to "Dismiss".</summary>
     [Parameter] public string? DismissLabel { get; set; }

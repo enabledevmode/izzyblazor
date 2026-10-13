@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits ToggleComponentBase
+@implements IDisposable
 @inject NavigationManager Navigation
 
 @*
@@ -29,6 +30,7 @@
 *@
 
 <ib-dialog data-open="@(IsOpen ? "" : null)"
+           data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
            data-close-on-backdrop="@(CloseOnBackdrop ? "" : null)">
     <dialog @attributes="AdditionalAttributes"
             id="@ElementId"
@@ -46,6 +48,8 @@
             <form method="dialog" id="@($"{ElementId}-close")" hidden></form>
         }
         <CascadingValue Value="_context" IsFixed="true">
+        @* Buttons in the dialog don't take the style of a ButtonGroup around its trigger. *@
+        <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
             @if (Title is not null || Header is not null || ShowCloseButton)
             {
                 <header class="ib-dialog-header">
@@ -79,6 +83,7 @@
                     @Footer
                 </footer>
             }
+        </CascadingValue>
         </CascadingValue>
     </dialog>
 </ib-dialog>
@@ -167,6 +172,42 @@
 
         (_class, _style) = BuildRootAttributes();
     }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // On interactive pages the address can change without new parameters (a ?dialog= link
+        // clicked again after the dialog was closed); follow it.
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    private void OnLocationChanged(object? sender, Microsoft.AspNetCore.Components.Routing.LocationChangedEventArgs e)
+    {
+        if (QueryKey is null)
+        {
+            return;
+        }
+
+        var value = QueryString.Of(e.Location).TryGetValue(QueryKey, out var values) ? values.ToString() : null;
+        _lastQueryValue = value;
+        if (value != ElementId || IsOpen)
+        {
+            return;
+        }
+
+        IsOpen = true;
+        _ = InvokeAsync(async () =>
+        {
+            StateHasChanged();
+            if (!Open)
+            {
+                await OpenChanged.InvokeAsync(true);
+            }
+        });
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()

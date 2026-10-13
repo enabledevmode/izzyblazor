@@ -6,13 +6,28 @@
  */
 const SELECTOR = "input[type=checkbox][data-indeterminate]";
 
+// Boxes this script made indeterminate, so they can be reset when the server stops marking them
+// (the property isn't an attribute: Blazor's diff and enhanced navigation never touch it).
+const marked = new Set<HTMLInputElement>();
+
 function apply(input: HTMLInputElement): void {
   if (input.hasAttribute("data-indeterminate-cleared")) return;
   input.indeterminate = !input.checked;
+  if (input.indeterminate) marked.add(input);
 }
 
-/** Applies indeterminate to every marked checkbox in the document. Safe to call any time. */
+function reset(input: HTMLInputElement): void {
+  input.indeterminate = false;
+  input.removeAttribute("data-indeterminate-cleared");
+  marked.delete(input);
+}
+
+/** Applies indeterminate to marked boxes and resets boxes no longer marked. Safe to call any time. */
 export function syncIndeterminate(): void {
+  for (const input of [...marked]) {
+    if (!input.isConnected) marked.delete(input);
+    else if (!input.matches(SELECTOR)) reset(input);
+  }
   document.querySelectorAll<HTMLInputElement>(SELECTOR).forEach(apply);
 }
 
@@ -32,9 +47,14 @@ export function installIndeterminate(): void {
   new MutationObserver((records) => {
     for (const record of records) {
       const target = record.target as Element;
-      if (record.type === "attributes" && target instanceof HTMLInputElement && target.matches(SELECTOR)) {
-        target.removeAttribute("data-indeterminate-cleared");
-        apply(target);
+      if (record.type === "attributes" && target instanceof HTMLInputElement) {
+        if (target.matches(SELECTOR)) {
+          target.removeAttribute("data-indeterminate-cleared");
+          apply(target);
+        } else if (target.type === "checkbox") {
+          // C# or an enhanced post turned Indeterminate off.
+          reset(target);
+        }
       }
       for (const node of record.addedNodes) {
         if (node instanceof Element) {

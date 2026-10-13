@@ -397,7 +397,7 @@ Where someone is in a process, such as a checkout: `Stepper Current="2"` (counti
 screen readers hear `CompletedLabel` ("(completed)") after their label; the current step has
 `aria-current="step"`. A `Step` with `Href` is a link, to go back to a finished step, say. It's a row
 from 640px up and a column on phones (`Orientation.Vertical` for a column everywhere); `Size` scales
-the markers. Nothing needs script: drive `Current` from the URL or the form post.
+the markers. Nothing needs script: drive `Current` from the URL or the form post. For a step that only sometimes applies, set `Hidden` rather than wrapping it in `@if`: a step Blazor adds later would otherwise be numbered after the rest.
 
 ## Alerts and toasts
 
@@ -567,7 +567,7 @@ thumb. `--ib-color-scrollbar` and `--ib-color-scrollbar-hover` set the colors; h
 uses system colors.
 The page's scrollbar gets the same look when the page uses `AppShell`; on other
 pages add `ib-scrollbars` to `<html>`. For a scroll region of your own (a chat log, a long list in a
-card), add `ib-scroll` to the element that scrolls.
+card), add `ib-scroll` to the element that scrolls. On macOS these stay visible rather than auto-hiding as the system's do.
 
 ## Text and other languages
 
@@ -582,8 +582,8 @@ builder.Services.AddSingleton(new IzzyText { Close = "Schließen", Loading = "Wi
 // Several: subclass it and read your resources for the current UI culture.
 public sealed class AppText(IStringLocalizer<AppText> l) : IzzyText
 {
-    public override string Close { get => l["Close"]; set { } }
-    public override string NextPage { get => l["Next page"]; set { } }
+    public override string Close => l["Close"];
+    public override string NextPage => l["Next page"];
 }
 builder.Services.AddSingleton<IzzyText, AppText>();
 ```

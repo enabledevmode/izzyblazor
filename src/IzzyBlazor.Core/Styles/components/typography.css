@@ -109,13 +109,18 @@
   }
 
   .ib-link-icon {
+    width: 0.85em;
     width: round(nearest, 0.85em, 2px);
+    height: 0.85em;
     height: round(nearest, 0.85em, 2px);
+    margin-inline-start: 0.15em;
     margin-inline-start: round(nearest, 0.15em, 1px);
+    vertical-align: -0.05em;
     vertical-align: round(nearest, -0.05em, 1px);
   }
 
   .ib-code {
+    padding: 0.125em 0.375em;
     padding: round(nearest, 0.125em, 1px) round(nearest, 0.375em, 1px);
     border-radius: var(--ib-radius-sm);
     background-color: var(--ib-color-surface-container);

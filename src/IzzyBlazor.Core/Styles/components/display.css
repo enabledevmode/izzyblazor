@@ -4,7 +4,9 @@
   /* ---- Kbd ---- */
   .ib-kbd {
     display: inline-block;
+    min-width: calc(1.5em + 2px);
     min-width: calc(round(nearest, 1.5em, 2px) + 2px);
+    padding-inline: 0.375em;
     padding-inline: round(nearest, 0.375em, 1px);
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-sm);
@@ -24,6 +26,7 @@
   .ib-kbd-combo {
     display: inline-flex;
     align-items: baseline;
+    gap: 0.25em;
     gap: round(nearest, 0.25em, 1px);
     font: inherit;
     white-space: nowrap;
@@ -198,7 +201,9 @@
   .ib-stat-change-danger { color: var(--ib-color-danger-text); }
 
   .ib-stat-trend {
+    width: 1em;
     width: round(nearest, 1em, 2px);
+    height: 1em;
     height: round(nearest, 1em, 2px);
   }
 

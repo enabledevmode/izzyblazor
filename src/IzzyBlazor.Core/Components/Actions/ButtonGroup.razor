@@ -11,7 +11,8 @@
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@Label">
-    <CascadingValue Value="this" IsFixed="true">
+    @* Not fixed: when the group's settings change, buttons inside other components follow. *@
+    <CascadingValue Value="this">
         @ChildContent
     </CascadingValue>
 </div>
@@ -19,6 +20,13 @@
 @code {
     private string? _class;
     private string? _style;
+
+    /// <summary>
+    /// A group with no settings. Dialogs and popovers cascade it around their content, so the
+    /// buttons in them (a ConfirmButton's Cancel, say) don't take the style of a group around the
+    /// trigger.
+    /// </summary>
+    internal static readonly ButtonGroup Reset = new();
 
     /// <summary>What the buttons have in common, for screen readers: "Text alignment".</summary>
     [Parameter] public string? Label { get; set; }
