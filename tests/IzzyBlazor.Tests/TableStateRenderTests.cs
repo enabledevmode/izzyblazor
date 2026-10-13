@@ -106,6 +106,30 @@ public class TableStateRenderTests : BunitContext
     }
 
     [Fact]
+    public void Bound_page_size_changes_in_place_and_keeps_the_first_row_in_view()
+    {
+        var rows = Enumerable.Range(1, 30).Select(i => new Row($"r{i:00}", i)).ToArray();
+        var sizes = new List<int?>();
+        var pages = new List<int>();
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, rows)
+            .Add(t => t.PageSizeOptions, new[] { 5, 10, 25 })
+            .Add(t => t.PageSizeChanged, (int? s) => sizes.Add(s))
+            .Add(t => t.PageChanged, (int page) => pages.Add(page))
+            .Add(t => t.ChildContent, Columns));
+
+        Assert.Equal(5, Names(cut).Length);   // the first option is the default
+        PageButton(cut, 3).Click();            // rows 11-15
+        cut.FindAll(".ib-table-page-size button.ib-menu-item").First(b => b.TextContent.Trim() == "10").Click();
+
+        Assert.Equal("r11", Names(cut)[0]);    // page 2 at 10 per page
+        Assert.Equal(10, Names(cut).Length);
+        Assert.Equal(new int?[] { 10 }, sizes);
+        Assert.Equal(new[] { 3, 2 }, pages);
+        Assert.Equal("Rows per page: 10", cut.Find(".ib-table-page-size-button").GetAttribute("aria-label"));
+    }
+
+    [Fact]
     public void Unbound_table_on_an_interactive_page_still_uses_links()
     {
         var cut = Render<Table<Row>>(p => p

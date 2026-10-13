@@ -42,6 +42,9 @@ public class IzzyText
     /// <summary>A dismiss button. Alert, toasts.</summary>
     public virtual string Dismiss { get; set; } = "Dismiss";
 
+    /// <summary>Table's page size menu: "Rows per page".</summary>
+    public virtual string RowsPerPage { get; set; } = "Rows per page";
+
     /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
     public virtual string FilterColumn { get; set; } = "Filter {0}";
 

@@ -635,6 +635,10 @@ is interactive, still use the URL.
   `ItemsProvider` that loads each page (`request.Apply(query)`).
 - Also: `PageSize`, `InitialSort`, `QueryPrefix` for several tables on a page, `MaxHeight` for a
   sticky header, `Striped`, `Size`, `RowClass`, `EmptyText`.
+- Page size: `PageSizeOptions="new[] { 10, 25, 50 }"` adds a "Rows per page" menu to the footer.
+  Each size is a link (`?size=25`, only listed sizes are accepted from the URL), so it works with
+  no script, and the new page is the one holding the first row you were looking at.
+  `@bind-PageSize` (an `int?`) keeps it in the component on interactive pages.
 - Lines: `RowLines` (on by default), `ColumnLines` (off by default) and `Bordered`, the border
   around the table (on by default; turn it off for a table inside a card).
 
