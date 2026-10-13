@@ -1,10 +1,12 @@
 # IzzyBlazor
 
-Blazor components that work on static pages.
+**Blazor components. No circuit required.**
 
-IzzyBlazor is a component library with a Chakra-style developer experience, built for Blazor's
-static server rendering first. Every component renders complete, working HTML on the server: no
-SignalR circuit, no WebAssembly download, and nothing that waits for JavaScript to appear.
+Works in static SSR. No SignalR or WebAssembly needed.
+
+IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static server rendering
+first. Every component renders complete, working HTML on the server, even with JavaScript off, gets
+better when scripts run, and binds to C# on interactive pages.
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/showcase-dark.png">
@@ -22,6 +24,7 @@ SignalR circuit, no WebAssembly download, and nothing that waits for JavaScript 
 | **Table** | Sort and page through links in the URL | Same, without full reloads | Navigates through Blazor |
 | **Tabs** | Radio buttons and CSS switch panels | Proper ARIA tabs, roving focus | `@bind-Selected` |
 | **Combobox** | A native select that posts with the form | Type to filter, keyboard navigation | Server-side search as you type |
+| **FileUpload** | The file input posts with the form (`IFormFile`) | Drop files anywhere on the zone; type and size checked first | `OnChange` streams `IBrowserFile`s |
 
 The same component works on a static page, an enhanced one, or an interactive island, and you don't
 choose a different component for each.
@@ -30,13 +33,17 @@ choose a different component for each.
 
 - **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio
 - **App structure:** AppShell (header, collapsible sidebar, aside, footer), NavMenu
-- **Typography and actions:** TextBlock, Heading, Link, Code, Icon (all of Lucide), Button, LinkButton, IconButton
-- **Forms:** Form, TextField, TextArea, Select, Combobox, Checkbox, Switch, RadioGroup, Fieldset, FilterForm
-- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog, ConfirmButton, Accordion, Collapsible
-- **Navigation and feedback:** Tabs, Breadcrumb, Pagination, Alert, Badge, Toast, Spinner, Progress, Skeleton
-- **Data:** Card, Table, Avatar
+- **Typography:** TextBlock, Heading, Link, Code, Icon (all of Lucide)
+- **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
+- **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
+  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, FileUpload, Fieldset, FilterForm
+- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog, Accordion, Collapsible
+- **Navigation:** Tabs, Breadcrumb, Pagination
+- **Feedback:** Alert, Badge, Toast, Spinner, Progress, Skeleton
+- **Data:** Card, Table, Avatar, AvatarGroup
 
-Styling is typed and responsive, with no CSS to write and nothing computed at runtime:
+Styling is typed and responsive, through props on the components, with no CSS to write and nothing
+computed at runtime. If you've used Chakra UI or Mantine, the layout props will feel familiar:
 
 ```razor
 <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4">
@@ -45,13 +52,19 @@ Styling is typed and responsive, with no CSS to write and nothing computed at ru
 </Stack>
 ```
 
-Light and dark themes are built in, and a single part of the page (a dark sidebar, say) can use its own scheme.
+Light and dark themes are built in, and a single part of the page (a dark sidebar, say) can use its
+own scheme.
 
 ## Getting started
+
+IzzyBlazor isn't on NuGet yet. Until it is, reference `src/IzzyBlazor/IzzyBlazor.csproj` from your
+server project. Once it's published:
 
 ```bash
 dotnet add package IzzyBlazor --prerelease
 ```
+
+Then add the stylesheet and the namespace, and register the services:
 
 ```razor
 @* App.razor *@
@@ -66,8 +79,8 @@ dotnet add package IzzyBlazor --prerelease
 builder.Services.AddIzzyBlazor();
 ```
 
-The JavaScript loads itself. For WebAssembly and Auto render modes, see
-[Getting started](docs/getting-started.md#webassembly-and-auto-render-modes).
+The JavaScript loads itself. For toasts, add `<ToastRegion />` to your layout. For WebAssembly and
+Auto render modes, see [Getting started](docs/getting-started.md#webassembly-and-auto-render-modes).
 
 ## Documentation
 
