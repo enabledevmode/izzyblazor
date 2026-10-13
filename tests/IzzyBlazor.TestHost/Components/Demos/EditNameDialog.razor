@@ -1,0 +1,29 @@
+@* Shown by DialogService in the overlays demo: edits a name and closes with it. *@
+
+<form @onsubmit="Save">
+    <Stack Gap="3">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Shown with DialogService.OpenAsync; closes with the new name.</TextBlock>
+        <div class="ib-field">
+            <label class="ib-field-label" for="edit-name">Project name</label>
+            <ib-field-control class="ib-field-control">
+                <input id="edit-name" class="ib-field-input" @bind="_name" @bind:event="oninput" autofocus />
+            </ib-field-control>
+        </div>
+    </Stack>
+    <DialogActions>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => Dialog!.Cancel()">Cancel</Button>
+        <Button Type="ButtonType.Submit" Disabled="string.IsNullOrWhiteSpace(_name)">Save</Button>
+    </DialogActions>
+</form>
+
+@code {
+    [CascadingParameter] public DialogInstance? Dialog { get; set; }
+
+    [Parameter] public string? Name { get; set; }
+
+    private string? _name;
+
+    protected override void OnInitialized() => _name = Name;
+
+    private void Save() => Dialog!.Close(_name?.Trim());
+}

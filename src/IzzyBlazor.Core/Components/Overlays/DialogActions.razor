@@ -1,0 +1,24 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    A footer row of buttons for content shown by DialogService (which has no Footer slot): put it
+    last in the component. It spans the dialog like Dialog's Footer and stays in view when the body
+    scrolls.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</div>
+
+@code {
+    /// <summary>The buttons: usually Cancel, then the main action.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-dialog-actions");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

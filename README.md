@@ -41,7 +41,7 @@ choose a different component for each.
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, FileUpload, Fieldset,
   FilterForm
-- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog, Drawer, Accordion, Collapsible
+- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
 - **Navigation:** Tabs, Stepper, Breadcrumb, Pagination
 - **Feedback:** Alert, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
 - **Data:** Card, Table, Stat, DescriptionList, Avatar, AvatarGroup
