@@ -79,7 +79,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     resetShellScroll();
     syncTabs();
     syncSelects();
-    reconnect("ib-field-control, ib-tooltip, ib-combobox, ib-table");
+    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table");
   });
 }
 

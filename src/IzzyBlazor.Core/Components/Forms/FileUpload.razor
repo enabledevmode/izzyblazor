@@ -19,7 +19,7 @@
 
 <FieldFrame Class="@_class" Id="@InputId" Label="@Label" Required="Required"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@TooLargeText" data-ib-wrong-type="@WrongTypeText">
+    <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@TooLargeText" data-ib-wrong-type="@WrongTypeText" data-ib-interactive="@(IsInteractive ? "" : null)">
         <Icon Name="Icon ?? Lucide.CloudUpload" Class="ib-file-icon" />
         <span class="ib-file-prompt">@(PromptText ?? (Multiple ? "Drag files here, or" : "Drag a file here, or"))</span>
         @if (IsInteractive)
@@ -74,7 +74,7 @@
     /// </summary>
     [Parameter] public long? MaxFileSize { get; set; }
 
-    /// <summary>On interactive pages, the most files <see cref="OnChange"/> receives. Defaults to 10.</summary>
+    /// <summary>On interactive pages, the most files <see cref="OnChange"/> receives; extra ones are left out. Defaults to 10.</summary>
     [Parameter] public int MaxFiles { get; set; } = 10;
 
     /// <summary>The message for a file over <see cref="MaxFileSize"/>: <c>{0}</c> is its name, <c>{1}</c> the limit.</summary>
@@ -98,7 +98,10 @@
     /// <summary>Validation messages to show under the zone, such as from server checks.</summary>
     [Parameter] public IReadOnlyList<string>? Errors { get; set; }
 
-    /// <summary>On interactive pages, runs with the chosen files.</summary>
+    /// <summary>
+    /// On interactive pages, runs with the chosen files, leaving out any over <see cref="MaxFileSize"/>
+    /// (the zone flags those). Read one with <c>OpenReadStream(MaxFileSize)</c>: its default limit is 500 KB.
+    /// </summary>
     [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> OnChange { get; set; }
 
     private string InputId =>
@@ -167,6 +170,15 @@
         classes.Add("ib-field-disabled", Disabled);
     }
 
-    private Task ChangedAsync(InputFileChangeEventArgs args) =>
-        OnChange.InvokeAsync(args.FileCount == 0 ? Array.Empty<IBrowserFile>() : args.GetMultipleFiles(Math.Max(1, MaxFiles)));
+    private Task ChangedAsync(InputFileChangeEventArgs args)
+    {
+        // GetMultipleFiles throws when given fewer than were chosen, so take them all, then trim.
+        IReadOnlyList<IBrowserFile> files = args.FileCount == 0
+            ? []
+            : args.GetMultipleFiles(args.FileCount)
+                .Where(file => MaxFileSize is not { } max || file.Size <= max)
+                .Take(Math.Max(1, MaxFiles))
+                .ToList();
+        return OnChange.InvokeAsync(files);
+    }
 }

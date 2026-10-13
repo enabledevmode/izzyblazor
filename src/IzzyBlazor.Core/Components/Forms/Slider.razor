@@ -76,8 +76,17 @@
 
     private double? Number => ToDouble(CurrentValue);
 
-    // A range input always has a value: an empty one sits at the midpoint, as the browser shows it.
-    private double Shown => Number ?? ResolvedMin + (ResolvedMax - ResolvedMin) / 2;
+    // A range input always has a value: an empty one sits at the midpoint, snapped to the step
+    // (halves round up), as the browser places it.
+    private double Shown => Number ?? Snap(ResolvedMin + (ResolvedMax - ResolvedMin) / 2);
+
+    private double Snap(double value)
+    {
+        var step = Step is > 0 ? Step.Value : 1;
+        var snapped = ResolvedMin + Math.Floor((value - ResolvedMin) / step + 0.5) * step;
+        snapped = Math.Round(snapped, 10);
+        return snapped > ResolvedMax ? snapped - step : snapped;
+    }
 
     private string ValueText => ValueFormat.Replace("{0}", Format(Shown), StringComparison.Ordinal);
 
@@ -131,7 +140,7 @@
     /// <inheritdoc />
     protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
     {
-        if (BindConverter.TryConvertTo<TValue>(value, System.Globalization.CultureInfo.InvariantCulture, out result))
+        if (NumberTypes.TryParse(value, out result))
         {
             validationErrorMessage = null;
             return true;

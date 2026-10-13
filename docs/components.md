@@ -133,8 +133,9 @@ through a hidden input.
 - **With JavaScript:** files can be dropped anywhere on the zone. Dropped files that don't match
   `Accept` are refused (the picker filters by type, a drop doesn't), and a file over `MaxFileSize`
   is flagged before the form posts. A form that isn't multipart logs a console warning.
-- **Interactive pages:** `OnChange` receives the chosen files as `IBrowserFile`, to read with
-  `OpenReadStream`. Nothing posts.
+- **Interactive pages:** `OnChange` receives the chosen files as `IBrowserFile`, up to `MaxFiles`
+  (10 by default) and leaving out any over `MaxFileSize`. Read one with
+  `OpenReadStream(maxAllowedSize)`: its default limit is 500 KB. Nothing posts.
 
 `Accept` filters the picker (`"image/*"`, `".pdf"`), but always check types and sizes on the server,
 and raise the server's request size limit to match `MaxFileSize`. `Errors` shows server-side
