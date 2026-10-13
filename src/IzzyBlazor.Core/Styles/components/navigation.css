@@ -90,9 +90,11 @@
     list-style: none;
   }
 
+  /* Page numbers are plain; the current one is tinted and heavier, so it leads. */
   .ib-pagination-item {
     min-width: var(--ib-btn-h);
     padding-inline: var(--ib-space-2);
+    font-weight: var(--ib-weight-normal);
     font-variant-numeric: tabular-nums;
   }
 
@@ -110,6 +112,7 @@
   .ib-pagination-current:hover {
     background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
     color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-semibold);
     cursor: default;
   }
 
