@@ -245,17 +245,13 @@
     text-align: center;
   }
 
+  /* A state layer over the cell's own background, so it shows on striped rows too. */
   .ib-table-grid tbody tr:hover > td {
-    background-color: color-mix(in oklab, var(--ib-color-surface-container) 60%, transparent);
+    background-image: linear-gradient(var(--ib-state-hover), var(--ib-state-hover));
   }
 
   .ib-table-striped .ib-table-grid tbody tr:nth-child(even) > td {
     background-color: var(--ib-table-stripe);
-  }
-
-  /* Hover still shows on striped rows. */
-  .ib-table-striped .ib-table-grid tbody tr:hover > td {
-    background-color: var(--ib-color-surface-container);
   }
 
   .ib-table-sticky .ib-table-grid thead th {

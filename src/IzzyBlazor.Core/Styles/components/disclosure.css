@@ -99,7 +99,7 @@
   }
 
   .ib-accordion-trigger:hover {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-state-hover);
   }
 
   .ib-accordion-trigger:focus-visible {

@@ -112,7 +112,7 @@
 
   .ib-menu-item:hover,
   .ib-menu-item:focus-visible {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-state-hover);
     outline: none;
   }
 
@@ -189,7 +189,7 @@
   }
 
   .ib-menu-sub-root:has(> [popover]:popover-open) > .ib-menu-sub-trigger {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-state-hover);
   }
 
   .ib-menu-heading {

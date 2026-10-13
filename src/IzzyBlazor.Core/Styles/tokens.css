@@ -112,6 +112,12 @@
        mode, a clear step lighter than the track in dark mode, with an outline-colored edge. */
     --ib-color-segment: light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 14%, var(--ib-color-surface-container)));
     --ib-color-segment-edge: var(--ib-color-outline);
+
+    /* State layers: hover and pressed are a wash of the text color over whatever surface is
+       underneath, so they darken in light mode and lighten in dark mode, on the page, a card or a
+       menu alike. Selection is shown by a mark (a check), not a fill. */
+    --ib-state-hover: color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent);
+    --ib-state-pressed: color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent);
     /* Scrollbar thumbs in IzzyBlazor's scrolling areas (the track stays transparent). */
     --ib-color-scrollbar: color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent);
     --ib-color-scrollbar-hover: color-mix(in oklab, var(--ib-color-on-surface) 42%, transparent);
