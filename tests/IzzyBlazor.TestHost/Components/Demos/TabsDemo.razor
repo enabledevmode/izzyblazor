@@ -38,6 +38,49 @@
         </Stack>
     </Example>
 
+    <Example Title="Vertical" Note="Orientation.Vertical puts the tabs in a column beside the panels from 640px up; Up and Down arrows move between them. On phones the tabs stay a scrolling row above the panels, so the content keeps its width." Code="@VerticalCode">
+        <Stack Gap="10">
+            <Tabs Orientation="Orientation.Vertical" Label="Project settings" Id="tabs-vertical">
+                <Tab Label="General" Icon="Lucide.Settings">
+                    <Stack Gap="2">
+                        <TextBlock Weight="FontWeight.Medium">General</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Name, description and visibility.</TextBlock>
+                    </Stack>
+                </Tab>
+                <Tab Label="Members" Icon="Lucide.Users" Badge="4">
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Four people have access.</TextBlock>
+                </Tab>
+                <Tab Label="Integrations" Icon="Lucide.Plug">
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Connected services.</TextBlock>
+                </Tab>
+                <Tab Label="Danger zone" Icon="Lucide.TriangleAlert">
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Transfer or delete the project.</TextBlock>
+                </Tab>
+            </Tabs>
+            <Tabs Orientation="Orientation.Vertical" Variant="TabsVariant.Soft" Label="Help topics" Id="tabs-vertical-soft">
+                <Tab Label="Getting started">Install the package and add the stylesheet.</Tab>
+                <Tab Label="Billing">Plans, invoices and refunds.</Tab>
+                <Tab Label="Accounts">Sign-in, two-factor and recovery.</Tab>
+            </Tabs>
+        </Stack>
+    </Example>
+
+    <Example Title="Tabs as links" Note="TabLink makes each tab a link to its own page, for sections split across routes. The Tabs renders a nav of real links with no panels and no script, and the tab for the current page is marked (aria-current) from the URL on the server. These link to other demo pages; this page's tab is selected." Code="@LinksCode">
+        <Stack Gap="6">
+            <Tabs Label="Demo pages">
+                <TabLink Href="@($"{Mode}/tabs")" Label="Tabs" Icon="Lucide.PanelTop" />
+                <TabLink Href="@($"{Mode}/buttons")" Label="Buttons" Icon="Lucide.MousePointerClick" />
+                <TabLink Href="@($"{Mode}/forms")" Label="Forms" Icon="Lucide.TextCursorInput" />
+                <TabLink Href="@($"{Mode}/billing")" Label="Billing" Disabled />
+            </Tabs>
+            <Tabs Label="Demo pages" Variant="TabsVariant.Segmented">
+                <TabLink Href="@($"{Mode}/tabs")" Label="Tabs" />
+                <TabLink Href="@($"{Mode}/buttons")" Label="Buttons" />
+                <TabLink Href="@($"{Mode}/forms")" Label="Forms" />
+            </Tabs>
+        </Stack>
+    </Example>
+
     <Example Title="In the URL" Note="QueryKey keeps the selected tab in the query string: a link to ?tab=billing opens Billing, and with JavaScript switching tabs updates the address so it can be shared." Code="@UrlCode">
         <Stack Gap="3">
             <Tabs QueryKey="tab" Label="Account" Id="account-tabs">
@@ -81,6 +124,27 @@
 </Stack>
 
 @code {
+    // "static" or "interactive", so the link tabs stay in the current mode.
+    private string Mode => Navigation.ToBaseRelativePath(Navigation.Uri).Split('/', '?')[0];
+
+    private const string VerticalCode =
+        """
+        <Tabs Orientation="Orientation.Vertical" Label="Project settings">
+            <Tab Label="General" Icon="Lucide.Settings">...</Tab>
+            <Tab Label="Members" Icon="Lucide.Users" Badge="4">...</Tab>
+            <Tab Label="Integrations" Icon="Lucide.Plug">...</Tab>
+        </Tabs>
+        """;
+
+    private const string LinksCode =
+        """
+        <Tabs Label="Settings">
+            <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
+            <TabLink Href="settings/billing" Label="Billing" />
+            <TabLink Href="settings/security" Label="Security" />
+        </Tabs>
+        """;
+
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
     private string? _plan;

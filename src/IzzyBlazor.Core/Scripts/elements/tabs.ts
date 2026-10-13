@@ -18,6 +18,12 @@ class Tabs extends IzzyElement {
     return [...this.querySelectorAll<HTMLLabelElement>(":scope > .ib-tabs-list > .ib-tab")];
   }
 
+  /** Whether the list is laid out as a column (vertical tabs, from 640px up). */
+  private get isColumn(): boolean {
+    const list = this.list;
+    return !!list && getComputedStyle(list).flexDirection === "column";
+  }
+
   private radio(tab: Element): HTMLInputElement | null {
     return tab.querySelector<HTMLInputElement>(":scope > .ib-tab-input");
   }
@@ -38,6 +44,12 @@ class Tabs extends IzzyElement {
 
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
 
+    // Vertical tabs switch between a column and a row at 640px; keep aria-orientation in step.
+    if (this.classList.contains("ib-tabs-vertical")) {
+      const wide = matchMedia("(min-width: 640px)");
+      wide.addEventListener("change", () => this.sync(), { signal });
+    }
+
     const observer = new MutationObserver(() => this.sync());
     observer.observe(this, { attributes: true, attributeFilter: ["data-selected"] });
     signal.addEventListener("abort", () => observer.disconnect());
@@ -48,6 +60,9 @@ class Tabs extends IzzyElement {
     const list = this.list;
     if (!list) return;
     list.setAttribute("role", "tablist");
+    // Vertical tabs are a row on phones, so the orientation follows the layout.
+    if (this.isColumn) list.setAttribute("aria-orientation", "vertical");
+    else list.removeAttribute("aria-orientation");
 
     const tabs = this.tabs;
     let focusable: HTMLElement | null = null;
@@ -89,12 +104,21 @@ class Tabs extends IzzyElement {
     const rtl = getComputedStyle(this).direction === "rtl";
     let next: HTMLLabelElement | undefined;
 
+    // In a row, Left and Right move between tabs (mirrored in right-to-left pages); in a column
+    // (vertical tabs), Up and Down.
+    const column = this.isColumn;
+    const step = (forward: boolean) => enabled[(index + (forward ? 1 : -1) + enabled.length) % enabled.length];
+
     switch (event.key) {
       case "ArrowRight":
-        next = enabled[(index + (rtl ? -1 : 1) + enabled.length) % enabled.length];
-        break;
       case "ArrowLeft":
-        next = enabled[(index + (rtl ? 1 : -1) + enabled.length) % enabled.length];
+        if (column) return;
+        next = step((event.key === "ArrowRight") !== rtl);
+        break;
+      case "ArrowDown":
+      case "ArrowUp":
+        if (!column) return;
+        next = step(event.key === "ArrowDown");
         break;
       case "Home":
         next = enabled[0];

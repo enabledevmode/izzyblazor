@@ -297,6 +297,21 @@ proper ARIA tabs (roving focus, Home/End).
 - `QueryKey="tab"` keeps the tab in the URL (`?tab=billing` opens Billing).
 - `@bind-Selected` follows it on interactive pages.
 - `Variant` (`Line`, `Soft`, `Segmented`), `Size` and `FullWidth`; each `Tab` takes a `Label`, `Icon`, `Badge` and `Disabled`.
+- `Orientation="Orientation.Vertical"` puts the tabs in a column beside the panels from 640px up,
+  and Up and Down arrows move between them. On phones they stay a scrolling row above the panels.
+
+**Tabs as links.** For sections split across routes (`/settings/profile`, `/settings/billing`), use
+`TabLink` children instead of `Tab`. The `Tabs` then renders a `<nav>` of real links with no panels
+and no script, and the tab for the current page gets `aria-current` from the URL on the server
+(`Match` works as on `NavItem`). Variants, sizes, `FullWidth` and `Orientation` apply the same way.
+A `Tabs` holds either `Tab`s or `TabLink`s, not both.
+
+```razor
+<Tabs Label="Settings">
+    <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
+    <TabLink Href="settings/billing" Label="Billing" />
+</Tabs>
+```
 
 ## Breadcrumb and Pagination
 

@@ -1,5 +1,7 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 
 @*
@@ -15,15 +17,54 @@
         <Tab Label="Profile" Icon="Lucide.User">...</Tab>
         <Tab Label="Billing" Badge="2">...</Tab>
     </Tabs>
+
+    Orientation="Orientation.Vertical" puts the tabs in a column beside the panels from 640px up
+    (a scrolling row above them on phones). With TabLink children instead of Tab, it renders a
+    nav of links to separate pages; see TabLink.
 *@
 
+@if (_context.Links.Count > 0)
+{
+    if (_context.Items.Count > 0)
+    {
+        throw new InvalidOperationException("A Tabs holds either Tab (panels on this page) or TabLink (links to other pages), not both.");
+    }
+
+    <nav @attributes="AdditionalAttributes"
+         id="@Id"
+         class="@_class"
+         style="@_style"
+         aria-label="@Label">
+        <div class="ib-tabs-list">
+            @foreach (var link in _context.Links)
+            {
+                @if (link.Disabled)
+                {
+                    <span class="ib-tab ib-tab-disabled" aria-disabled="true">@TabContent(link.Icon, link.Label, link.Badge)</span>
+                }
+                else
+                {
+                    <a @attributes="link.AdditionalAttributes"
+                       class="ib-tab"
+                       href="@link.Href"
+                       aria-current="@LinkMatch.AriaCurrent(LinkMatch.Of(Navigation, link.Href, Navigation.Uri, link.Match))">@TabContent(link.Icon, link.Label, link.Badge)</a>
+                }
+            }
+        </div>
+        <CascadingValue Value="_context" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
+    </nav>
+}
+else
+{
 <ib-tabs @attributes="AdditionalAttributes"
          id="@RootId"
          class="@_class"
          style="@_style"
          data-selected="@SelectedValue"
          data-query-key="@QueryKey">
-    <div class="ib-tabs-list" role="radiogroup" aria-label="@Label">
+    <div class="ib-tabs-list" role="radiogroup" aria-label="@Label" aria-orientation="@(Orientation == Orientation.Vertical ? "vertical" : null)">
         @foreach (var tab in _context.Items)
         {
             var selected = _context.IsSelected(tab);
@@ -38,15 +79,7 @@
                        disabled="@tab.Disabled"
                        aria-controls="@_context.PanelId(tab)"
                        @onchange="() => SelectAsync(key)" />
-                @if (tab.Icon is { } icon)
-                {
-                    <Icon Name="icon" />
-                }
-                <span class="ib-tab-text">@tab.Label</span>
-                @if (tab.Badge is not null)
-                {
-                    <Badge Size="BadgeSize.Sm" Pill>@tab.Badge</Badge>
-                }
+                @TabContent(tab.Icon, tab.Label, tab.Badge)
             </label>
         }
     </div>
@@ -54,6 +87,7 @@
         @ChildContent
     </CascadingValue>
 </ib-tabs>
+}
 
 @code {
     /// <summary>The selected tab's <see cref="Tab.Value"/>. Defaults to the first tab that isn't disabled.</summary>
@@ -77,8 +111,14 @@
     /// <summary>Tab height and text size, shared with buttons and fields. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
-    /// <summary>Stretches the tabs to share the full width.</summary>
+    /// <summary>Stretches the tabs to share the full width (or, vertical, the list's width).</summary>
     [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>
+    /// A row above the panels (the default), or a column beside them from 640px up. Vertical tabs
+    /// stay a scrolling row on phones, where a column would crowd the content.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
 
     /// <summary>The element id; tab and panel ids build on it. Generated when not set.</summary>
     [Parameter] public string? Id { get; set; }
@@ -102,7 +142,36 @@
         ?? _context.Items.Where(t => !t.Disabled).Select(_context.KeyOf).FirstOrDefault();
 
     /// <inheritdoc />
-    protected override void OnInitialized() => _context = new TabsContext(this);
+    protected override void OnInitialized()
+    {
+        _context = new TabsContext(this);
+        Navigation.LocationChanged += OnLocationChanged;
+    }
+
+    // Link tabs mark the current page; follow navigation on interactive pages.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (_context.Links.Count > 0)
+        {
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+
+    private RenderFragment TabContent(IconData? icon, string label, string? badge) => __builder =>
+    {
+        if (icon is { } shown)
+        {
+            <Icon Name="shown" />
+        }
+        <span class="ib-tab-text">@label</span>
+        if (badge is not null)
+        {
+            <Badge Size="BadgeSize.Sm" Pill>@badge</Badge>
+        }
+    };
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
@@ -140,9 +209,16 @@
         classes.Add("ib-tabs-sm", Size == ControlSize.Sm);
         classes.Add("ib-tabs-lg", Size == ControlSize.Lg);
         classes.Add("ib-tabs-fitted", FullWidth);
+        classes.Add("ib-tabs-vertical", Orientation == Orientation.Vertical);
+        classes.Add("ib-tabs-nav", _context.Links.Count > 0);
     }
 
-    internal void TabsChanged() => StateHasChanged();
+    internal void TabsChanged()
+    {
+        // Link tabs register after the first render and change the root's classes (ib-tabs-nav).
+        (_class, _style) = BuildRootAttributes();
+        StateHasChanged();
+    }
 
     private string? FromQuery()
     {
