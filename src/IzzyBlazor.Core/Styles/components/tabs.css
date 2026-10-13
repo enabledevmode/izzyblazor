@@ -136,8 +136,8 @@
   }
 
   .ib-tabs-segmented > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
-    background-color: var(--ib-color-surface-raised);
-    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-raised-border);
+    background-color: var(--ib-color-segment);
+    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-segment-edge);
     color: var(--ib-color-on-surface);
   }
 

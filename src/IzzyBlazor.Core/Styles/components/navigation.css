@@ -130,3 +130,163 @@
     }
   }
 }
+
+/* Stepper: a column on phones, a row from 640px up (unless Vertical). Marker sizes leave an even
+   inside (the 2px border taken off) for an even icon, and the label's line is centered on the
+   marker by whole pixels. */
+@layer izzy.components {
+  .ib-steps {
+    --ib-step-size: 2rem;
+    --ib-step-icon: 1rem;
+
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ib-text-sm);
+    line-height: var(--ib-leading-normal);
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
+  }
+
+  .ib-steps-sm {
+    --ib-step-size: 1.5rem;
+    --ib-step-icon: 0.875rem;
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-steps-lg {
+    --ib-step-size: 2.5rem;
+    --ib-step-icon: 1.25rem;
+    font-size: var(--ib-text-md);
+  }
+
+  .ib-step {
+    position: relative;
+    display: flex;
+    gap: var(--ib-space-3);
+    min-width: 0;
+    padding-bottom: var(--ib-space-6);
+  }
+
+  .ib-step:last-child {
+    padding-bottom: 0;
+  }
+
+  /* The line to the next step: down the marker's middle in a column. */
+  .ib-step:not(:last-child)::after {
+    content: "";
+    position: absolute;
+    inset-inline-start: calc(var(--ib-step-size) / 2 - 1px);
+    top: calc(var(--ib-step-size) + var(--ib-space-1));
+    bottom: var(--ib-space-1);
+    width: 2px;
+    border-radius: 1px;
+    background-color: var(--ib-color-border);
+  }
+
+  .ib-step-complete:not(:last-child)::after {
+    background-color: var(--ib-color-primary);
+  }
+
+  .ib-step-marker {
+    display: grid;
+    flex: none;
+    place-items: center;
+    width: var(--ib-step-size);
+    height: var(--ib-step-size);
+    border: 2px solid var(--ib-color-outline);
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-muted);
+    font-weight: var(--ib-weight-semibold);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .ib-step-marker > .ib-icon {
+    width: var(--ib-step-icon);
+    height: var(--ib-step-icon);
+  }
+
+  .ib-step-current .ib-step-marker {
+    border-color: var(--ib-color-primary);
+    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, var(--ib-color-surface));
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-step-complete .ib-step-marker {
+    border-color: var(--ib-color-primary);
+    background-color: var(--ib-color-primary);
+    color: var(--ib-color-on-primary);
+  }
+
+  .ib-step-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+    padding-top: calc((var(--ib-step-size) - 1lh) / 2);
+  }
+
+  .ib-step-label {
+    color: var(--ib-color-on-surface);
+    font-weight: var(--ib-weight-medium);
+    text-decoration: none;
+  }
+
+  .ib-step-upcoming .ib-step-label {
+    color: var(--ib-color-muted);
+  }
+
+  a.ib-step-label:hover {
+    text-decoration: underline;
+    text-underline-offset: 2px;
+  }
+
+  a.ib-step-label:focus-visible {
+    border-radius: var(--ib-radius-sm);
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-step-description {
+    color: var(--ib-color-muted);
+  }
+
+  @media (min-width: 640px) {
+    .ib-steps-horizontal {
+      flex-direction: row;
+      gap: var(--ib-space-3);
+    }
+
+    .ib-steps-horizontal > .ib-step {
+      flex: 1 1 0;
+      padding-bottom: 0;
+    }
+
+    .ib-steps-horizontal > .ib-step:last-child {
+      flex: 0 1 auto;
+    }
+
+    /* In a row, the line fills the space after the text, level with the marker's middle. */
+    .ib-steps-horizontal > .ib-step:not(:last-child)::after {
+      position: static;
+      flex: 1 1 var(--ib-space-6);
+      min-width: var(--ib-space-6);
+      width: auto;
+      height: 2px;
+      margin-top: calc(var(--ib-step-size) / 2 - 1px);
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-step-complete .ib-step-marker,
+    .ib-step-current .ib-step-marker {
+      border-color: Highlight;
+    }
+
+    .ib-step-complete:not(:last-child)::after {
+      background-color: Highlight;
+    }
+  }
+}

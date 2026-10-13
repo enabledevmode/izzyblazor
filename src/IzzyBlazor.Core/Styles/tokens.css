@@ -107,6 +107,10 @@
        page, since shadows barely show on dark backgrounds. */
     --ib-color-surface-raised: light-dark(#ffffff, #1c1f27);
     --ib-color-raised-border: light-dark(transparent, rgb(255 255 255 / 0.08));
+    /* The chosen segment in a segmented control or segmented tabs: white on the gray track in light
+       mode, a clear step lighter than the track in dark mode, with an outline-colored edge. */
+    --ib-color-segment: light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 14%, var(--ib-color-surface-container)));
+    --ib-color-segment-edge: var(--ib-color-outline);
     --ib-color-backdrop: light-dark(rgb(15 23 42 / 0.5), rgb(0 0 0 / 0.6));
     --ib-color-on-surface: light-dark(#0f172a, #e6e8ec);
     --ib-color-muted: light-dark(#5b6474, #9aa3b2);
@@ -190,6 +194,7 @@
       --ib-color-surface-container-high: #e9ebef;
       --ib-color-surface-raised: #ffffff;
       --ib-color-raised-border: transparent;
+      --ib-color-segment: #ffffff;
       --ib-color-backdrop: rgb(15 23 42 / 0.5);
       --ib-color-on-surface: #0f172a;
       --ib-color-muted: #5b6474;

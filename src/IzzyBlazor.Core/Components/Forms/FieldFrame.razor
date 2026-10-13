@@ -10,7 +10,7 @@
     <fieldset class="@Class" aria-describedby="@DescribedBy">
         @if (!string.IsNullOrEmpty(Label))
         {
-            <legend class="ib-field-label">@Label@RequiredMark</legend>
+            <legend class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")">@Label@RequiredMark</legend>
         }
         @ChildContent
         @Footer
@@ -21,7 +21,7 @@ else
     <div class="@Class">
         @if (!string.IsNullOrEmpty(Label) && !LabelInControl)
         {
-            <label class="ib-field-label" for="@Id" id="@LabelId">@Label@RequiredMark</label>
+            <label class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")" for="@Id" id="@LabelId">@Label@RequiredMark</label>
         }
         @ChildContent
         @Footer
@@ -40,6 +40,9 @@ else
 
     /// <summary>The label text.</summary>
     [Parameter] public string? Label { get; set; }
+
+    /// <summary>Keeps the label for screen readers but doesn't show it.</summary>
+    [Parameter] public bool HideLabel { get; set; }
 
     /// <summary>Whether to show the required marker.</summary>
     [Parameter] public bool Required { get; set; }

@@ -1,0 +1,68 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+
+@*
+    Where someone is in a process, such as a checkout or a setup wizard: an ordered list of steps,
+    those before Current marked done, Current marked with aria-current="step". Steps with an Href
+    are links (to go back to a finished step, say). Horizontal from 640px up, a column on phones.
+    No script.
+
+    <Stepper Current="2">
+        <Step Label="Account" Href="/signup/account" />
+        <Step Label="Profile" Description="Name and photo" />
+        <Step Label="Done" />
+    </Stepper>
+*@
+
+<ol @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-label="@Label">
+    @* Not fixed: steps have only simple parameters, so this is what re-renders them when Current
+       changes on an interactive page. *@
+    <CascadingValue Value="_context">
+        @ChildContent
+    </CascadingValue>
+</ol>
+
+@code {
+    /// <summary>The <see cref="Step"/>s, in order.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// The current step, counting from 1. Steps before it show as done. Past the last step, every
+    /// step is done; 0 means none has started.
+    /// </summary>
+    [Parameter] public int Current { get; set; } = 1;
+
+    /// <summary>
+    /// A row from 640px up (the default) or always a column. Phones always get a column, since a row
+    /// of steps doesn't fit.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
+
+    /// <summary>The list's accessible name. Defaults to "Progress".</summary>
+    [Parameter] public string Label { get; set; } = "Progress";
+
+    /// <summary>Read after a finished step's label, in place of its check mark. Defaults to "(completed)".</summary>
+    [Parameter] public string CompletedLabel { get; set; } = "(completed)";
+
+    /// <summary>The marker and text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private StepperContext _context = null!;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _context = new StepperContext(this);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-steps");
+        classes.Add("ib-steps-horizontal", Orientation == Orientation.Horizontal);
+        classes.Add("ib-steps-sm", Size == ControlSize.Sm);
+        classes.Add("ib-steps-lg", Size == ControlSize.Lg);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

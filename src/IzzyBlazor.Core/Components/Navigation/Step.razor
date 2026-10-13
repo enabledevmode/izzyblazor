@@ -1,0 +1,104 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+
+@* One step in a Stepper: a numbered marker (a check once done), its label and an optional description. *@
+
+<li @attributes="AdditionalAttributes" class="@StepClass" style="@_style" aria-current="@(State == StepState.Current ? "step" : null)">
+    <span class="ib-step-marker" aria-hidden="true">
+        @if (State == StepState.Complete)
+        {
+            <Icon Role="IconRole.Check" />
+        }
+        else if (Icon is { } icon)
+        {
+            <Icon Name="icon" />
+        }
+        else
+        {
+            @Number
+        }
+    </span>
+    <span class="ib-step-text">
+        @if (Href is not null)
+        {
+            <a class="ib-step-label" href="@Href">@Label@CompletedText</a>
+        }
+        else
+        {
+            <span class="ib-step-label">@Label@CompletedText</span>
+        }
+        @if (Description is not null)
+        {
+            <span class="ib-step-description">@Description</span>
+        }
+    </span>
+</li>
+
+@code {
+    /// <summary>The step's name, such as "Shipping".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>A muted line under the label.</summary>
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>Makes the label a link, such as back to a finished step.</summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>An icon in the marker in place of the number (until the step is done).</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    [CascadingParameter] internal StepperContext? Context { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    private int Number => Context?.NumberOf(this) ?? 0;
+
+    private StepState State
+    {
+        get
+        {
+            if (Context is null)
+            {
+                return StepState.Upcoming;
+            }
+
+            var number = Number;
+            return number < Context.Current ? StepState.Complete
+                : number == Context.Current ? StepState.Current
+                : StepState.Upcoming;
+        }
+    }
+
+    private string StepClass => $"{_class} ib-step-{State.ToString().ToLowerInvariant()}";
+
+    private RenderFragment? CompletedText => State == StepState.Complete && Context is not null
+        ? builder =>
+        {
+            builder.OpenElement(0, "span");
+            builder.AddAttribute(1, "class", "ib-visually-hidden");
+            builder.AddContent(2, " " + Context.CompletedLabel);
+            builder.CloseElement();
+        }
+        : null;
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Context?.Register(this);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-step");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.Unregister(this);
+
+    private enum StepState
+    {
+        Complete,
+        Current,
+        Upcoming,
+    }
+}
