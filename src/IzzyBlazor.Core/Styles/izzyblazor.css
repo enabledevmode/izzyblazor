@@ -33,5 +33,6 @@
 @import "./components/navigation.css";
 @import "./components/data.css";
 @import "./components/display.css";
+@import "./components/theming.css";
 @import "./components/snap.css";
 @import "./_generated/style-props.css";

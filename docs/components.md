@@ -676,6 +676,22 @@ search-and-filter bar whose values go in the URL (`?q=ada&status=Paid`), read wi
 Fields: `FilterSearch` (`?q=`), `FilterSelect` (`Values` or an enum) and `FilterCheckbox`. List your
 own inputs' names in `Fields`.
 
+## ColorSchemeSwitch
+
+Lets the user pick System, Light or Dark: three segments with icons and labels, or `IconOnly` (the
+names stay for screen readers and as tooltips), in `Size` small, medium or large.
+
+```razor
+<ColorSchemeSwitch />
+<ColorSchemeSwitch IconOnly Size="ControlSize.Sm" />
+<ColorSchemeSwitch @bind-Value="scheme" />   @* interactive pages *@
+```
+
+The choice is kept in the `ib-scheme` cookie. Put `IzzyTheme` in `<head>` so the server applies it
+before the first paint. With JavaScript the switch is instant and other open tabs follow; with it
+off, each option is a link to `/_izzy/scheme`, which `app.MapIzzyBlazor()` adds: it saves the
+cookie and redirects back to the page.
+
 ## Scrollbars
 
 IzzyBlazor's scrolling areas (the sidebar, tables, menus, dialogs, code blocks and so on) have thin,

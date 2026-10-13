@@ -38,6 +38,13 @@ enhanced navigation and form handling, and on Interactive Server, WebAssembly an
    This enables toasts, toasts that survive a redirect, and AppSidebar's remembered collapsed state.
    Other components need no registration.
 
+5. Map IzzyBlazor's endpoints after your components, for `ColorSchemeSwitch` with JavaScript off:
+
+   ```csharp
+   app.MapRazorComponents<App>();
+   app.MapIzzyBlazor();
+   ```
+
 The JavaScript loads itself: Blazor picks up `IzzyBlazor.Core.lib.module.js` as a JS initializer, so
 there's no script tag to add.
 

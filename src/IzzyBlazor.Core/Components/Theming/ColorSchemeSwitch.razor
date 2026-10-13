@@ -1,0 +1,133 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject NavigationManager Navigation
+@inject IServiceProvider Services
+
+@*
+    Lets the user pick light, dark or system. The choice is kept in the ib-scheme cookie, which
+    IzzyTheme reads on the server, so every page arrives in the chosen scheme with no flash.
+
+    <ColorSchemeSwitch />                         System, Light, Dark with icons and labels
+    <ColorSchemeSwitch IconOnly />                icons, with the names for screen readers
+    <ColorSchemeSwitch @bind-Value="scheme" />    interactive pages: follow it from C#
+
+    Each option is a link to the endpoint app.MapIzzyBlazor() adds, which sets the cookie and comes
+    back to this page, so it works with JavaScript off. With JavaScript the switch is instant: the
+    script sets the cookie and the page's scheme without a request, and tells other tabs.
+*@
+
+<ib-scheme-switch @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group"
+                  aria-label="@(Label ?? TextDefaults.ColorScheme)" @onibscheme="OnSchemeAsync">
+    @foreach (var (scheme, icon, label) in Options)
+    {
+        <a class="ib-segment" href="@Href(scheme)" data-ib-scheme="@ColorSchemes.Name(scheme)"
+           aria-current="@(scheme == _current ? "true" : null)" title="@(IconOnly ? label : null)">
+            <Icon Name="icon" />
+            @if (IconOnly)
+            {
+                <span class="ib-visually-hidden">@label</span>
+            }
+            else
+            {
+                <span class="ib-segment-label">@label</span>
+            }
+        </a>
+    }
+</ib-scheme-switch>
+
+@code {
+    /// <summary>
+    /// The chosen scheme. Leave it unset to show the user's choice from the cookie; bind it on
+    /// interactive pages to follow changes from C#.
+    /// </summary>
+    [Parameter] public ColorScheme? Value { get; set; }
+
+    /// <summary>Raised on interactive pages when the user picks a scheme.</summary>
+    [Parameter] public EventCallback<ColorScheme> ValueChanged { get; set; }
+
+    /// <summary>Icons only, with the names for screen readers and as tooltips.</summary>
+    [Parameter] public bool IconOnly { get; set; }
+
+    /// <summary>Height and text size. Defaults to medium.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>The group's accessible name. Defaults to "Color scheme".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    private const string StateKey = "ib-scheme";
+
+    private string? _class;
+    private string? _style;
+    private ColorScheme _current;
+    private ColorScheme? _remembered;
+    private PersistingComponentStateSubscription? _persisting;
+
+    private IEnumerable<(ColorScheme Scheme, IconData Icon, string Label)> Options =>
+    [
+        (ColorScheme.System, Lucide.Monitor, TextDefaults.SchemeSystem),
+        (ColorScheme.Light, Lucide.Sun, TextDefaults.SchemeLight),
+        (ColorScheme.Dark, Lucide.Moon, TextDefaults.SchemeDark),
+    ];
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        // The cookie is there on the server's first render; an interactive render after a prerender
+        // gets it handed over through persisted state.
+        var state = Services.GetService<PersistentComponentState>();
+        if (state is not null && state.TryTakeFromJson<ColorScheme>(StateKey, out var handedOver))
+        {
+            _remembered = handedOver;
+        }
+        else if (!RendererInfo.IsInteractive)
+        {
+            _remembered = ColorSchemes.Parse(Services.GetService<IRequestCookies>()?.Get(ColorSchemes.CookieName));
+        }
+
+        if (state is not null && _remembered is { } remembered)
+        {
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                state.PersistAsJson(StateKey, remembered);
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        _current = Value ?? _remembered ?? ColorScheme.System;
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-segmented ib-scheme-switch");
+        classes.Add($"ib-scheme-switch-{Size.ToString().ToLowerInvariant()}");
+        classes.Add("ib-segmented-icon-only", IconOnly);
+    }
+
+    // The no-script route: the endpoint sets the cookie and redirects back to this page.
+    private string Href(ColorScheme scheme) =>
+        $"_izzy/scheme?value={ColorSchemes.Name(scheme)}&return={Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri))}";
+
+    // The script already changed the page and the cookie; keep the component (and a binding) in step.
+    private async Task OnSchemeAsync(IzzySchemeEventArgs e)
+    {
+        if (ColorSchemes.Parse(e.Scheme) is not { } scheme || scheme == _current)
+        {
+            return;
+        }
+
+        _remembered = scheme;
+        _current = scheme;
+        await ValueChanged.InvokeAsync(scheme);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _persisting?.Dispose();
+}

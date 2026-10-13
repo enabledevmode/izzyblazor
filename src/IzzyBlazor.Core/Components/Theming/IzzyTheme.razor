@@ -1,15 +1,18 @@
 @namespace IzzyBlazor
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
 
 @*
     The app's theme in one place. Put it in App.razor's <head>:
 
-    <IzzyTheme Look="ThemeLook.Compact" Primary="#0a7d5a" />
+    <IzzyTheme Look="ThemeLook.Compact" Primary="#0a7d5a" Font="Inter, sans-serif" />
 
-    Look sets density, shape and type; Accent, Gray and Radius override the look's defaults; Primary
-    is your own brand color and beats Accent. Everything is server-rendered (meta tags the theme CSS
-    matches, and a small <style> block for Primary), so it's in place on first paint, needs no
-    script and works in every render mode. The same choices can be made with data-ib-* attributes
-    on <html> instead; an attribute on an element inside the page still restyles that part.
+    Look sets density, shape and type; Accent, Gray, Radius, Density and the fonts override its
+    defaults; Primary is your own brand color and beats Accent; Scheme is the default light or dark.
+    Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block for
+    Primary and the fonts), so it's in place on first paint, needs no script and works in every
+    render mode. For one exact value, set its CSS variable in your own stylesheet instead (see
+    docs/styling.md, "Customizing").
 *@
 
 @if (Look is { } look)
@@ -28,9 +31,17 @@
 {
     <meta name="ib-radius" content="@Name(radius)" />
 }
+@if (Density is { } density)
+{
+    <meta name="ib-density" content="@Name(density)" />
+}
+@if (_scheme is ColorScheme.Light or ColorScheme.Dark)
+{
+    <meta name="ib-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
+}
 @if (_css is not null)
 {
-    <style nonce="@Nonce" data-ib-theme-primary="@Primary">@((MarkupString)_css)</style>
+    <style nonce="@Nonce" data-ib-theme-style>@((MarkupString)_css)</style>
 }
 
 @code {
@@ -53,33 +64,88 @@
     /// </summary>
     [Parameter] public string? Primary { get; set; }
 
+    /// <summary>Control heights, table rows and card padding, over the look's.</summary>
+    [Parameter] public ThemeDensity? Density { get; set; }
+
+    /// <summary>
+    /// The body font, as a CSS font-family list (<c>"Inter, system-ui, sans-serif"</c>). Load the
+    /// font yourself; end the list with a generic family so text shows while it loads.
+    /// </summary>
+    [Parameter] public string? Font { get; set; }
+
+    /// <summary>
+    /// The font for headings, card and dialog titles, as a CSS font-family list. Unset: the look's
+    /// (the body font, or Newsreader in Editorial).
+    /// </summary>
+    [Parameter] public string? HeadingFont { get; set; }
+
+    /// <summary>The headings' weight, 100 to 900. Unset: semibold (600).</summary>
+    [Parameter] public int? HeadingWeight { get; set; }
+
+    /// <summary>
+    /// The color scheme until the user picks one with a <see cref="ColorSchemeSwitch"/> (their
+    /// choice, kept in the <c>ib-scheme</c> cookie, wins). Unset: follow the device.
+    /// </summary>
+    [Parameter] public ColorScheme? Scheme { get; set; }
+
     /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one.</summary>
     [Parameter] public string? Nonce { get; set; }
 
-    private string? _primary;
     private string? _css;
+    private ColorScheme? _scheme;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (_primary == Primary)
+        // The user's choice from a ColorSchemeSwitch, read on the server (the IzzyBlazor package
+        // registers IRequestCookies), else the app's default.
+        _scheme = ColorSchemes.Parse(Services.GetService<IRequestCookies>()?.Get(ColorSchemes.CookieName)) ?? Scheme;
+
+        var declarations = new List<string>();
+        if (!string.IsNullOrWhiteSpace(Primary))
         {
-            return;
+            declarations.Add(AccentPalette.From(Primary).ToCss());
         }
 
-        _primary = Primary;
-        if (string.IsNullOrWhiteSpace(Primary))
+        if (!string.IsNullOrWhiteSpace(Font))
         {
-            _css = null;
-            return;
+            declarations.Add($"--ib-font-sans: {FontList(Font, nameof(Font))};");
         }
 
-        var palette = AccentPalette.From(Primary);
+        if (!string.IsNullOrWhiteSpace(HeadingFont))
+        {
+            declarations.Add($"--ib-font-heading: {FontList(HeadingFont, nameof(HeadingFont))};");
+        }
 
-        // In the tokens layer like the library's own colors, and written as :root:root:root so it
-        // beats a look's or an accent's colors on <html> whatever order the stylesheets load in.
-        _css = "@layer izzy.tokens { :root:root:root { " + palette.ToCss() + " } }";
+        if (HeadingWeight is { } weight)
+        {
+            if (weight is < 100 or > 900)
+            {
+                throw new ArgumentOutOfRangeException(nameof(HeadingWeight), weight, "HeadingWeight is a CSS font weight, 100 to 900.");
+            }
+
+            declarations.Add(string.Create(System.Globalization.CultureInfo.InvariantCulture, $"--ib-weight-heading: {weight};"));
+        }
+
+        // In the tokens layer like the library's own values, and written as :root:root:root so it
+        // beats a look's or an accent's values on <html> whatever order the stylesheets load in.
+        _css = declarations.Count == 0
+            ? null
+            : "@layer izzy.tokens { :root:root:root { " + string.Join(" ", declarations) + " } }";
     }
 
     private static string Name<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+
+    // A font-family list goes into a style block as is, so it may not close the declaration,
+    // the rule or the element.
+    private static string FontList(string value, string parameter)
+    {
+        var list = value.Trim();
+        if (list.IndexOfAny([';', '{', '}', '<', '>', '\\']) >= 0 || list.Contains("/*", StringComparison.Ordinal))
+        {
+            throw new ArgumentException($"{parameter} is a CSS font-family list, such as \"Inter, system-ui, sans-serif\".", parameter);
+        }
+
+        return list;
+    }
 }

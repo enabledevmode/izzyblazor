@@ -136,10 +136,6 @@ To tune the shades yourself, set the four tokens instead:
 }
 ```
 
-Density is a handful of tokens, so you can set your own: `--ib-control-h-sm`, `--ib-control-h-md`,
-`--ib-control-h-lg` (buttons, fields, tabs, pagination, nav items and menu rows),
-`--ib-table-cell-py` and `--ib-card-padding`. Keep them whole pixels.
-
 Every accent is tuned by hand in light and dark: text holds 4.5:1 on its fill and on every gray. The
 attributes work on any element too, for part of a page; set accent and gray on the same element.
 They're plain CSS, so they work in every render mode with no script.
@@ -153,7 +149,7 @@ under the SIL Open Font License):
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
 ```
 
-Or set your own: `:root { --ib-font-sans: "IBM Plex Sans", system-ui, sans-serif; --ib-font-heading: Newsreader, Georgia, serif; --ib-weight-heading: 500; }`.
+Or set your own with `IzzyTheme`'s `Font`, `HeadingFont` and `HeadingWeight` (below).
 
 **The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
 tables, fields, bars and menus are `--ib-color-surface`. For a white page, set
@@ -171,6 +167,56 @@ Raised things are lighter than what they sit on; recessed things are darker:
 
 A container fill placed directly on the page reads as a hole, not a card; put a surface between
 them. (In dark mode the page is the darkest layer and fills step lighter, so the same rule holds.)
+
+## Customizing
+
+Two levels. `IzzyTheme` takes the choices that move many values together and keeps them right
+(contrast, light and dark pairs, whole pixels). CSS variables take single, exact values.
+
+```razor
+<IzzyTheme Look="ThemeLook.Soft" Density="ThemeDensity.Compact" Primary="#0a7d5a"
+           Font="Inter, system-ui, sans-serif" HeadingWeight="700" Scheme="ColorScheme.Light" />
+```
+
+| `IzzyTheme` | Sets | Values |
+| --- | --- | --- |
+| `Look` | Density, shape, type and default colors together | `Standard`, `Compact`, `Soft`, `Editorial` |
+| `Primary` | Your brand color: fill, text on it, accent text and soft tint, light and dark, each at AA | Hex |
+| `Accent` | A built-in accent instead | `Blue`, `Ink`, `Indigo`, `Violet`, `Teal`, `Green`, `Rose` |
+| `Gray` | Page, surfaces, fills, borders and text | `Neutral`, `Slate`, `Stone` |
+| `Radius` | Controls, cards and dialogs, in proportion | `Sm`, `Md`, `Lg` |
+| `Density` | Control heights, table rows and card padding | `Compact` (32px), `Standard` (36px), `Comfortable` (40px) |
+| `Font`, `HeadingFont` | Body and heading font families (load the fonts yourself) | CSS font-family lists |
+| `HeadingWeight` | Headings' weight | 100 to 900 |
+| `Scheme` | Light or dark until the user picks one with a `ColorSchemeSwitch` | `System`, `Light`, `Dark` |
+
+Each of `Accent`, `Gray`, `Radius`, `Density` and the fonts beats the look's own; leave them unset to
+take the look's. The same choices work as `data-ib-theme`, `data-ib-accent`, `data-ib-gray`,
+`data-ib-radius` and `data-ib-density` attributes, on `<html>` or on part of a page.
+
+For one exact value, set its variable in your own stylesheet. IzzyBlazor's CSS sits in cascade
+layers, so a plain rule wins:
+
+```css
+:root {
+  --ib-color-focus: #7c3aed;     /* the focus ring and field halo */
+  --ib-card-padding: 1.5rem;
+  --ib-radius-lg: 0.5rem;        /* cards only, not the whole scale */
+}
+```
+
+| Group | Variables |
+| --- | --- |
+| Colors | `--ib-color-background`, `-surface`, `-surface-raised`, `-surface-container-low`, `-surface-container`, `-surface-container-high`, `-border`, `-outline`, `-on-surface`, `-muted`, `-subtle`, `-focus`; the accent's four (`-primary`, `-on-primary`, `-primary-text`, `-primary-soft`); status (`-success`, `-warning`, `-danger`, `-info`, each with `-text` and `-soft`) |
+| Shape | `--ib-radius-sm`, `-md`, `-lg`, `-xl` |
+| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-*` |
+| Type | `--ib-font-sans`, `--ib-font-heading`, `--ib-font-mono`, `--ib-weight-heading`, the size scale `--ib-text-*` |
+| Depth | `--ib-shadow-xs` (under cards), `-sm`, `-md`, `-lg` |
+| Motion | `--ib-duration-fast`, `--ib-duration-normal`, `--ib-ease` |
+
+Colors are `light-dark(light, dark)` pairs, so one declaration covers both schemes; keep text at
+4.5:1 on what it sits on. Keep sizes whole pixels. Status colors are tuned for contrast against
+every gray, so change them as a set.
 
 ## Tokens
 
@@ -207,8 +253,11 @@ change them together so contrast holds.
 Your own colors work the same way: define `--ib-color-brand` (and `--ib-color-on-brand`) with
 `light-dark()`, then use `Color.Token("brand")`.
 
-Dark mode follows the system unless `<html data-theme="light|dark">` is set. Browsers without
-`light-dark()` (before 2024) get the light colors everywhere.
+Dark mode follows the system unless the page chooses: `IzzyTheme`'s `Scheme` sets the app's default
+(`ColorScheme.Light`, `Dark` or `System`), a `ColorSchemeSwitch` lets the user choose (kept in the
+`ib-scheme` cookie, which `IzzyTheme` reads on the server, so pages arrive in the chosen scheme with
+no flash), and `<html data-theme="light|dark">` still works. Browsers without `light-dark()` (before
+2024) get the light colors everywhere.
 
 ## A color scheme for part of a page
 

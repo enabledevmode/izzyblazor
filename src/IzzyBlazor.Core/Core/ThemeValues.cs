@@ -69,3 +69,52 @@ public enum ThemeRadius
     /// <summary>Large.</summary>
     Lg,
 }
+
+/// <summary>
+/// How much room controls and content take: control heights, table rows and card padding together.
+/// </summary>
+public enum ThemeDensity
+{
+    /// <summary>More on screen: 32px controls, tight table rows.</summary>
+    Compact,
+
+    /// <summary>The default: 36px controls.</summary>
+    Standard,
+
+    /// <summary>Roomier: 40px controls, generous rows and padding.</summary>
+    Comfortable,
+}
+
+/// <summary>Light, dark, or whatever the device prefers.</summary>
+public enum ColorScheme
+{
+    /// <summary>Follow the device's setting (the default).</summary>
+    System,
+
+    /// <summary>Always light.</summary>
+    Light,
+
+    /// <summary>Always dark.</summary>
+    Dark,
+}
+
+/// <summary>The color scheme cookie (<c>ib-scheme</c>) that ColorSchemeSwitch writes and IzzyTheme reads.</summary>
+internal static class ColorSchemes
+{
+    public const string CookieName = "ib-scheme";
+
+    public static string Name(ColorScheme scheme) => scheme switch
+    {
+        ColorScheme.Light => "light",
+        ColorScheme.Dark => "dark",
+        _ => "system",
+    };
+
+    public static ColorScheme? Parse(string? value) => value switch
+    {
+        "light" => ColorScheme.Light,
+        "dark" => ColorScheme.Dark,
+        "system" => ColorScheme.System,
+        _ => null,
+    };
+}

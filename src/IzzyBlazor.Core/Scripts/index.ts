@@ -18,6 +18,7 @@ import "./elements/tooltip";
 import { syncTabs } from "./elements/tabs";
 import { showToast } from "./elements/toasts";
 import "./elements/filter-form";
+import { applySavedScheme } from "./elements/scheme-switch";
 import "./elements/code";
 import "./elements/combobox";
 import "./elements/table";
@@ -58,6 +59,11 @@ export const izzyEvents: IzzyEventDefinition[] = [
       return { id: detail?.id ?? null, open: !!detail?.open };
     },
   },
+  {
+    // ColorSchemeSwitch reports the user's choice for @bind-Value.
+    name: "ibscheme",
+    createEventArgs: (event) => ({ scheme: (event as CustomEvent<{ scheme: string }>).detail?.scheme ?? null }),
+  },
 ];
 
 interface BlazorLike {
@@ -86,6 +92,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncIndeterminate();
     reopenAfterPost();
     focusMarked();
+    applySavedScheme();
     reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover, ib-dialog, ib-banner");
   });
 }

@@ -14,16 +14,17 @@
  *   soft       consumer and portals: 40px controls, roomy, large radius, gentle shadows;
  *              Teal on Neutral
  *   editorial  reading and docs: serif headings, large radius; Ink on Stone
- * An explicit data-ib-accent, -gray or -radius beats the look's (its selector is written twice,
- * which doubles its weight).
+ * An explicit data-ib-accent, -gray, -radius or -density beats the look's (its selector is written
+ * twice, which doubles its weight).
  *
  * <IzzyTheme> sets the same choices from <head> with meta tags (<meta name="ib-theme"
- * content="compact">, ib-accent, ib-gray, ib-radius), matched through :root:has(); each selector
+ * content="compact">, ib-accent, ib-gray, ib-radius, ib-density), matched through :root:has(); each selector
  * below has a meta twin with the same weight as its attribute.
  *
  * Accents: blue (the default), ink, indigo, violet, teal, green, rose.
  * Grays: neutral (the default, in tokens.css), stone (warm), slate (cool).
  * Radius: sm, md (the default), lg.
+ * Density: compact, standard (the default), comfortable.
  *
  * Every color is light-dark(), hand-tuned so text holds 4.5:1 on its fill and on each gray, in
  * both schemes. Fonts are tokens too: set --ib-font-sans and --ib-font-heading in your own CSS.
@@ -189,9 +190,15 @@
     --ib-radius-xl: 1rem;
   }
 
-  /* Density and depth. Standard is tokens.css's defaults; heights stay whole pixels. */
+  /* Density: control heights (buttons, fields, tabs, pagination, nav items, menu rows), table cell
+     padding and card padding, together. Standard is tokens.css's defaults; heights stay whole
+     pixels. A look sets its density; data-ib-density or IzzyTheme's Density beats it. */
   [data-ib-theme="standard"],
-  :root:where(:has(> head > meta[name="ib-theme"][content="standard"])) {
+  :root:where(:has(> head > meta[name="ib-theme"][content="standard"])),
+  [data-ib-theme="editorial"],
+  :root:where(:has(> head > meta[name="ib-theme"][content="editorial"])),
+  [data-ib-density][data-ib-density="standard"],
+  :root:root:where(:has(> head > meta[name="ib-density"][content="standard"])) {
     --ib-control-h-sm: 2rem;
     --ib-control-h-md: 2.25rem;
     --ib-control-h-lg: 2.75rem;
@@ -199,25 +206,37 @@
     --ib-card-padding: var(--ib-space-5);
   }
 
-  /* Compact: more rows on screen. Borders do the separating, so the hairline shadow goes. */
   [data-ib-theme="compact"],
-  :root:where(:has(> head > meta[name="ib-theme"][content="compact"])) {
+  :root:where(:has(> head > meta[name="ib-theme"][content="compact"])),
+  [data-ib-density][data-ib-density="compact"],
+  :root:root:where(:has(> head > meta[name="ib-density"][content="compact"])) {
     --ib-control-h-sm: 1.75rem;
     --ib-control-h-md: 2rem;
     --ib-control-h-lg: 2.5rem;
     --ib-table-cell-py: 0.375rem;
     --ib-card-padding: var(--ib-space-4);
-    --ib-shadow-xs: none;
   }
 
-  /* Soft: roomier, with a gentler lift under cards. */
   [data-ib-theme="soft"],
-  :root:where(:has(> head > meta[name="ib-theme"][content="soft"])) {
+  :root:where(:has(> head > meta[name="ib-theme"][content="soft"])),
+  [data-ib-density][data-ib-density="comfortable"],
+  :root:root:where(:has(> head > meta[name="ib-density"][content="comfortable"])) {
     --ib-control-h-sm: 2.25rem;
     --ib-control-h-md: 2.5rem;
     --ib-control-h-lg: 3rem;
     --ib-table-cell-py: 0.875rem;
     --ib-card-padding: var(--ib-space-6);
+  }
+
+  /* Depth. Compact: borders do the separating, so the hairline shadow under cards goes. Soft: a
+     gentler, two-layer lift. */
+  [data-ib-theme="compact"],
+  :root:where(:has(> head > meta[name="ib-theme"][content="compact"])) {
+    --ib-shadow-xs: none;
+  }
+
+  [data-ib-theme="soft"],
+  :root:where(:has(> head > meta[name="ib-theme"][content="soft"])) {
     --ib-shadow-xs: 0 1px 3px light-dark(rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.35)), 0 1px 2px light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.25));
   }
 
