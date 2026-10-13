@@ -98,7 +98,7 @@
     align-items: center;
     gap: var(--ib-space-2);
     width: 100%;
-    min-height: 2rem;
+    min-height: var(--ib-control-h-sm);
     padding: var(--ib-space-1) var(--ib-space-2);
     border: 0;
     border-radius: var(--ib-radius-sm);

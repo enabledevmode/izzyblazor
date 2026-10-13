@@ -9,7 +9,7 @@
  */
 @layer izzy.components {
   .ib-tabs {
-    --ib-tab-h: 2.25rem;
+    --ib-tab-h: var(--ib-control-h-md);
     --ib-tab-px: var(--ib-space-3);
     --ib-tab-font: var(--ib-text-sm);
 
@@ -18,13 +18,13 @@
   }
 
   .ib-tabs-sm {
-    --ib-tab-h: 2rem;
+    --ib-tab-h: var(--ib-control-h-sm);
     --ib-tab-px: var(--ib-space-2);
     --ib-tab-font: var(--ib-text-xs);
   }
 
   .ib-tabs-lg {
-    --ib-tab-h: 2.75rem;
+    --ib-tab-h: var(--ib-control-h-lg);
     --ib-tab-px: var(--ib-space-4);
     --ib-tab-font: var(--ib-text-md);
   }

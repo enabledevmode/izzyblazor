@@ -15,6 +15,18 @@
     line-height: var(--ib-leading-tight);
     text-wrap: balance;
   }
+
+  /* A heading with a badge or tag: as inline content, the 22px badge centered on the text made
+     the line half a pixel taller (24.5px), moving everything below off the pixel grid. As a flex
+     row the heading keeps its own line height, rounded to an even pixel so the badge (an even
+     height) centers on a whole pixel. */
+  .ib-heading:has(> :is(.ib-badge, .ib-tag)) {
+    line-height: round(up, calc(1em * var(--ib-leading-tight)), 2px);
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
 }
 
 @layer izzy.utilities {

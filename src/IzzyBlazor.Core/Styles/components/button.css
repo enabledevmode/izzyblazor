@@ -7,7 +7,7 @@
  */
 @layer izzy.components {
   .ib-btn {
-    --ib-btn-h: 2.25rem;
+    --ib-btn-h: var(--ib-control-h-md);
     --ib-btn-px: var(--ib-space-4);
     --ib-btn-font: var(--ib-text-sm);
 
@@ -49,13 +49,13 @@
 
   /* Sizes (shared heights with form fields via ControlSize) */
   .ib-btn-sm {
-    --ib-btn-h: 2rem;
+    --ib-btn-h: var(--ib-control-h-sm);
     --ib-btn-px: var(--ib-space-3);
     --ib-btn-font: var(--ib-text-xs);
   }
 
   .ib-btn-lg {
-    --ib-btn-h: 2.75rem;
+    --ib-btn-h: var(--ib-control-h-lg);
     --ib-btn-px: var(--ib-space-5);
     --ib-btn-font: var(--ib-text-md);
   }

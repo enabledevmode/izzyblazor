@@ -11,7 +11,7 @@
   }
 
   .ib-field {
-    --ib-field-h: 2.25rem;
+    --ib-field-h: var(--ib-control-h-md);
     --ib-field-px: var(--ib-space-3);
     --ib-field-font: var(--ib-text-sm);
     --ib-field-label-font: var(--ib-text-sm);
@@ -30,14 +30,14 @@
 
   /* Label, field text and hint scale together with ControlSize. */
   .ib-field-sm {
-    --ib-field-h: 2rem;
+    --ib-field-h: var(--ib-control-h-sm);
     --ib-field-px: var(--ib-space-2);
     --ib-field-font: var(--ib-text-xs);
     --ib-field-label-font: var(--ib-text-xs);
   }
 
   .ib-field-lg {
-    --ib-field-h: 2.75rem;
+    --ib-field-h: var(--ib-control-h-lg);
     --ib-field-px: var(--ib-space-4);
     --ib-field-font: var(--ib-text-md);
     --ib-field-label-font: var(--ib-text-md);
@@ -782,7 +782,7 @@
       display: flex;
       align-items: center;
       gap: var(--ib-space-2);
-      min-block-size: 2rem;
+      min-block-size: var(--ib-control-h-sm);
       padding: var(--ib-space-1) var(--ib-space-2);
       border-radius: var(--ib-radius-sm);
       color: var(--ib-color-on-surface);
@@ -948,7 +948,7 @@
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
-    min-block-size: 2rem;
+    min-block-size: var(--ib-control-h-sm);
     padding: var(--ib-space-1) var(--ib-space-2);
     border-radius: var(--ib-radius-sm);
     cursor: pointer;
