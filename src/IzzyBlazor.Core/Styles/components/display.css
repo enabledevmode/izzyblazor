@@ -225,9 +225,11 @@
     --ib-empty-title: var(--ib-text-lg);
     --ib-empty-text: var(--ib-text-sm);
 
+    /* Centered both ways, so it sits in the middle of a taller panel or a stretched grid cell. */
     display: flex;
     flex-direction: column;
     align-items: center;
+    justify-content: center;
     padding: var(--ib-space-10) var(--ib-space-6);
     color: var(--ib-color-on-surface);
     text-align: center;
