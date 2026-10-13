@@ -288,6 +288,33 @@ top-layer tooltips, and fallbacks for browsers missing anchor positioning or `co
 triggers take the wiring attributes as context:
 `<Trigger><IconButton ... @attributes="context" /></Trigger>`.
 
+**Checkable menu items.** `Checked` makes a `MenuItem` a checkbox item that shows a check, with
+`@bind-Checked` on interactive pages. On static pages its action is still a link or a form post (a
+link that toggles `?compact=1`, say), and the server decides what's checked. For pick-one options,
+put `MenuItem`s with a `Value` in a `MenuRadioGroup`:
+
+- `QueryKey="sort"`: each option is a link that sets `?sort=value`, keeping the rest of the URL, and
+  the checked one comes from the URL. Works with JavaScript off.
+- `Name="sort"`: each option is a submit button that posts `sort=value` with its form.
+- `@bind-Value`: choosing updates C# on interactive pages.
+
+**Submenus.** `MenuSub` is an item that opens a second menu beside it, as a nested popover: clicking
+it opens it with no script. With script it also opens on hover and with the arrow key toward it,
+and the arrow key back or Escape returns to its item. Choosing any item closes the whole menu.
+
+```razor
+<Menu Label="View">
+    <MenuRadioGroup Label="Sort by" QueryKey="sort">
+        <MenuItem Value="name">Name</MenuItem>
+        <MenuItem Value="date">Date modified</MenuItem>
+    </MenuRadioGroup>
+    <MenuDivider />
+    <MenuSub Label="Move to" Icon="Lucide.FolderInput">
+        <MenuItem>Inbox</MenuItem>
+    </MenuSub>
+</Menu>
+```
+
 ## Tabs
 
 Each tab is a label around a radio button, and CSS shows its panel. With JavaScript off, tabs switch

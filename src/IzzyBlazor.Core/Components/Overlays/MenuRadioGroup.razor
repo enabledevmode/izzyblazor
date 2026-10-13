@@ -1,0 +1,95 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    A set of menu options where one is chosen (menuitemradio), each a MenuItem with a Value.
+    How choosing works, so it works on static pages too:
+      - QueryKey: each option is a link that sets ?key=value, and the chosen one comes from the URL.
+      - Name: each option is a submit button posting Name=Value with the form it's in.
+      - @bind-Value: on interactive pages, choosing updates C#.
+
+    <Menu Label="Sort">
+        <MenuRadioGroup Label="Sort by" QueryKey="sort" Value="@Sort">
+            <MenuItem Value="name">Name</MenuItem>
+            <MenuItem Value="date">Date</MenuItem>
+        </MenuRadioGroup>
+    </Menu>
+*@
+
+<div @attributes="AdditionalAttributes" role="group" aria-labelledby="@(Label is null ? null : _labelId)" class="@_class" style="@_style">
+    @if (Label is not null)
+    {
+        <div class="ib-menu-heading" id="@_labelId">@Label</div>
+    }
+    <CascadingValue Value="this" IsFixed="true">
+        @ChildContent
+    </CascadingValue>
+</div>
+
+@code {
+    /// <summary>The section heading, which also names the group for screen readers.</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The chosen option's value. With <see cref="QueryKey"/> and no value set, it's read from the URL.</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>Runs with the chosen value on interactive pages.</summary>
+    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+
+    /// <summary>
+    /// Makes each option a link that sets this query-string key, keeping the rest of the URL:
+    /// <c>?sort=name</c>. The page reads it with <c>[SupplyParameterFromQuery]</c>.
+    /// </summary>
+    [Parameter] public string? QueryKey { get; set; }
+
+    /// <summary>Makes each option a submit button that posts <c>Name=Value</c> with its form.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The <see cref="MenuItem"/>s, each with a <see cref="MenuItem.Value"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly string _labelId = IdGenerator.Next("ib-menu-group");
+    private string? _class;
+    private string? _style;
+
+    /// <summary>The chosen value: the bound one, else the URL's.</summary>
+    private string? Current =>
+        Value ?? (QueryKey is not null && QueryString.Of(Navigation.Uri).TryGetValue(QueryKey, out var fromUrl) ? fromUrl.ToString() : null);
+
+    internal bool IsSelected(string? value) => value is not null && string.Equals(value, Current, StringComparison.Ordinal);
+
+    internal string? HrefFor(string value) =>
+        QueryKey is null ? null : Navigation.GetUriWithQueryParameter(QueryKey, value);
+
+    internal async Task SelectAsync(string value)
+    {
+        if (ValueChanged.HasDelegate)
+        {
+            await ValueChanged.InvokeAsync(value);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-menu-group");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    // The chosen option can come from the URL; follow it on interactive pages.
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
+    {
+        if (QueryKey is not null && Value is null)
+        {
+            InvokeAsync(StateHasChanged);
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}

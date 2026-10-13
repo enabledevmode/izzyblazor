@@ -79,6 +79,17 @@
     .ib-place-top-end { position-area: block-start span-inline-start; margin-block-end: var(--ib-pop-gap); }
     .ib-place-start { position-area: center inline-start; margin-inline-end: var(--ib-pop-gap); }
     .ib-place-end { position-area: center inline-end; margin-inline-start: var(--ib-pop-gap); }
+
+    /* Submenus: beside their item, top edges lined up (less the panel's padding and border). */
+    .ib-place-end-start {
+      position-area: inline-end span-block-end;
+      margin-inline-start: 0.125rem;
+      margin-block-start: calc(-1 * var(--ib-space-1) - 1px);
+    }
+
+    .ib-pop.ib-menu-sub {
+      min-width: 10rem;
+    }
   }
 
   /* Menu */
@@ -139,6 +150,46 @@
   .ib-menu-item-primary .ib-icon,
   .ib-menu-item-danger .ib-icon {
     color: inherit;
+  }
+
+  /* Checkable items: a fixed slot for the check or dot, so labels line up. */
+  .ib-menu-check {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-menu-item .ib-menu-check .ib-icon {
+    color: inherit;
+  }
+
+  .ib-menu-dot {
+    width: 0.4375rem;
+    height: 0.4375rem;
+    border-radius: 50%;
+    background-color: currentColor;
+  }
+
+  /* Submenus: the item shows a chevron, and stays highlighted while its submenu is open. */
+  .ib-menu-sub-root {
+    display: flex;
+  }
+
+  .ib-menu-item .ib-menu-sub-chevron {
+    margin-inline-start: auto;
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-menu-item .ib-menu-sub-chevron:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-menu-sub-root:has(> [popover]:popover-open) > .ib-menu-sub-trigger {
+    background-color: var(--ib-color-surface-container);
   }
 
   .ib-menu-heading {
