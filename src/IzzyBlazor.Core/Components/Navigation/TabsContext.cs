@@ -4,8 +4,12 @@ namespace IzzyBlazor;
 internal sealed class TabsContext(Tabs owner)
 {
     private readonly List<Tab> _tabs = [];
+    private readonly List<TabLink> _links = [];
 
     public IReadOnlyList<Tab> Items => _tabs;
+
+    /// <summary>Link tabs, which turn the Tabs into a nav of links.</summary>
+    public IReadOnlyList<TabLink> Links => _links;
 
     public string RootId => owner.RootId;
 
@@ -62,6 +66,23 @@ internal sealed class TabsContext(Tabs owner)
     public void Unregister(Tab tab)
     {
         if (_tabs.Remove(tab))
+        {
+            owner.TabsChanged();
+        }
+    }
+
+    public void RegisterLink(TabLink link)
+    {
+        if (!_links.Contains(link))
+        {
+            _links.Add(link);
+            owner.TabsChanged();
+        }
+    }
+
+    public void UnregisterLink(TabLink link)
+    {
+        if (_links.Remove(link))
         {
             owner.TabsChanged();
         }

@@ -1,0 +1,77 @@
+@namespace IzzyBlazor
+@using Microsoft.AspNetCore.Components.Routing
+@implements IDisposable
+
+@*
+    A tab that's a link to its own page, for sections split across routes (/settings/profile,
+    /settings/billing). A Tabs holding TabLinks renders a nav of real links: no script, no panels,
+    and the tab for the current page is marked from the URL on the server. Don't mix TabLinks
+    with Tabs that have panels.
+
+    <Tabs Label="Settings">
+        <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
+        <TabLink Href="settings/billing" Label="Billing" Badge="2" />
+    </Tabs>
+*@
+
+@code {
+    /// <summary>The page the tab links to.</summary>
+    [Parameter, EditorRequired] public string Href { get; set; } = "";
+
+    /// <summary>The tab's text.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>An icon before the label.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>A small count or label after the text, such as "3".</summary>
+    [Parameter] public string? Badge { get; set; }
+
+    /// <summary>Shows the tab but not as a link.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// How the current URL must match <see cref="Href"/> for the tab to be selected. <c>Prefix</c>
+    /// (the default) also selects it on pages below it.
+    /// </summary>
+    [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
+
+    /// <summary>Extra attributes for the link, such as <c>data-enhance-nav</c>.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
+    [CascadingParameter] internal TabsContext? Context { get; set; }
+
+    private (string, string, IconData?, string?, bool, NavLinkMatch)? _shown;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException($"{nameof(TabLink)} needs a {nameof(Label)}.");
+        }
+
+        if (Context is null)
+        {
+            throw new InvalidOperationException($"{nameof(TabLink)} goes inside a {nameof(Tabs)}.");
+        }
+
+        Context.RegisterLink(this);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        // Tabs renders the link, so tell it when what it shows has changed.
+        var shown = (Href, Label, Icon, Badge, Disabled, Match);
+        if (_shown is { } previous && previous != shown)
+        {
+            Context?.Changed();
+        }
+
+        _shown = shown;
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => Context?.UnregisterLink(this);
+}

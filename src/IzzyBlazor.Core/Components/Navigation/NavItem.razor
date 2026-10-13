@@ -97,53 +97,10 @@
     // screen reader hears one current page.
     private bool _exact;
 
-    private bool IsExact(string currentUri) =>
-        SameSite(currentUri, out var target, out var current) && string.Equals(current, target, StringComparison.OrdinalIgnoreCase);
-
-    // Links to other sites are never current, even when their path matches.
-    private bool SameSite(string currentUri, out string target, out string current)
-    {
-        target = current = "";
-        if (string.IsNullOrEmpty(Href))
-        {
-            return false;
-        }
-
-        var targetUri = Navigation.ToAbsoluteUri(Href);
-        var currentUriParsed = new Uri(currentUri);
-        if (!string.Equals(targetUri.Authority, currentUriParsed.Authority, StringComparison.OrdinalIgnoreCase))
-        {
-            return false;
-        }
-
-        target = Path(targetUri);
-        current = Path(currentUriParsed);
-        return true;
-    }
+    private bool IsExact(string currentUri) => LinkMatch.Of(Navigation, Href, currentUri, Match).Exact;
 
     /// <summary>Whether <paramref name="currentUri"/> matches this item's link.</summary>
-    internal bool IsActive(string currentUri)
-    {
-        if (!SameSite(currentUri, out var target, out var current))
-        {
-            return false;
-        }
-
-        if (string.Equals(current, target, StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        return Match == NavLinkMatch.Prefix
-               && target != "/"
-               && current.StartsWith(target + "/", StringComparison.OrdinalIgnoreCase);
-    }
-
-    private static string Path(Uri uri)
-    {
-        var path = uri.AbsolutePath;
-        return path.Length > 1 ? path.TrimEnd('/') : path;
-    }
+    internal bool IsActive(string currentUri) => LinkMatch.Of(Navigation, Href, currentUri, Match).Active;
 
     /// <inheritdoc />
     public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
