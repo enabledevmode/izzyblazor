@@ -86,13 +86,25 @@ public sealed class DialogInstance
 /// </example>
 public sealed class DialogService
 {
+    // Callers may be off the renderer's dispatcher (a timer, a hub callback), so the list is
+    // changed under a lock and the host renders from a snapshot.
     private readonly List<DialogEntry> _open = [];
+    private readonly Lock _gate = new();
     private int _hosts;
     private int _next;
 
     internal event Action? Changed;
 
-    internal IReadOnlyList<DialogEntry> Open => _open;
+    internal IReadOnlyList<DialogEntry> Open
+    {
+        get
+        {
+            lock (_gate)
+            {
+                return _open.ToArray();
+            }
+        }
+    }
 
     /// <summary>Opens <typeparamref name="TComponent"/> in a dialog and waits until it closes.</summary>
     /// <param name="title">The dialog's heading, which also names it for screen readers.</param>
@@ -106,15 +118,19 @@ public sealed class DialogService
     public Task<DialogResult> OpenAsync(Type component, string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(component);
-        if (_hosts == 0)
+        if (Volatile.Read(ref _hosts) == 0)
         {
             throw new InvalidOperationException(
                 "DialogService needs a <DialogHost /> on an interactive page or in an interactive layout. " +
                 "Static pages can't open dialogs from code; use <Dialog> with <DialogTrigger> or a ?dialog= link there.");
         }
 
-        var entry = new DialogEntry(new DialogInstance(this, $"ib-dialog-svc-{++_next}"), component, title, parameters, options ?? new DialogOptions());
-        _open.Add(entry);
+        var entry = new DialogEntry(new DialogInstance(this, $"ib-dialog-svc-{Interlocked.Increment(ref _next)}"), component, title, parameters, options ?? new DialogOptions());
+        lock (_gate)
+        {
+            _open.Add(entry);
+        }
+
         Changed?.Invoke();
         return entry.Result.Task;
     }
@@ -133,7 +149,13 @@ public sealed class DialogService
     /// <summary>Closes the most recently opened dialog with this data.</summary>
     public void Close(object? data = null)
     {
-        if (_open.LastOrDefault(e => e.IsOpen) is { } top)
+        DialogEntry? top;
+        lock (_gate)
+        {
+            top = _open.LastOrDefault(e => e.IsOpen);
+        }
+
+        if (top is not null)
         {
             Complete(top.Instance.Id, DialogResult.Ok(data));
         }
@@ -141,7 +163,12 @@ public sealed class DialogService
 
     internal void Complete(string id, DialogResult result)
     {
-        var entry = _open.Find(e => e.Instance.Id == id);
+        DialogEntry? entry;
+        lock (_gate)
+        {
+            entry = _open.Find(e => e.Instance.Id == id);
+        }
+
         if (entry is null || !entry.Result.TrySetResult(result))
         {
             return;
@@ -157,23 +184,31 @@ public sealed class DialogService
     private async Task RemoveLaterAsync(DialogEntry entry)
     {
         await Task.Delay(400);
-        _open.Remove(entry);
+        lock (_gate)
+        {
+            _open.Remove(entry);
+        }
+
         Changed?.Invoke();
     }
 
-    internal void AddHost() => _hosts++;
+    internal void AddHost() => Interlocked.Increment(ref _hosts);
 
     internal void RemoveHost()
     {
-        _hosts--;
-        if (_hosts == 0)
+        if (Interlocked.Decrement(ref _hosts) == 0)
         {
-            foreach (var entry in _open)
+            DialogEntry[] closing;
+            lock (_gate)
+            {
+                closing = [.. _open];
+                _open.Clear();
+            }
+
+            foreach (var entry in closing)
             {
                 entry.Result.TrySetResult(DialogResult.Cancel());
             }
-
-            _open.Clear();
         }
     }
 }
