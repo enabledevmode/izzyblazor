@@ -67,9 +67,45 @@
         </Stack>
     </Example>
 
+    <Example Title="Timeline" Note="A commit log, an order's history or a changelog. Each item has a marker on a rail, a title (a link with Href), a time and any content. Icon and Status change the marker; Current marks where things stand, with aria-current." Code="@TimelineCode">
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="8">
+            <Timeline>
+                <TimelineItem Title="Add a full-bleed Section" Href="#" Time="2 hours ago" DateTime="2026-10-13T20:00Z" Current>
+                    <Row Gap="3" Align="Align.Center" Wrap>
+                        <Code>93c85d4</Code>
+                        <Anchor Href="#">Watch from here</Anchor>
+                        <Anchor Href="#">Code at this step</Anchor>
+                    </Row>
+                </TimelineItem>
+                <TimelineItem Title="List and Prose" Href="#" Time="Yesterday" DateTime="2026-10-12">
+                    <Code>010d08e</Code>
+                </TimelineItem>
+                <TimelineItem Title="Syntax highlighting" Href="#" Time="Oct 10" DateTime="2026-10-10">
+                    <Code>933584a</Code>
+                </TimelineItem>
+            </Timeline>
+            <Timeline>
+                <TimelineItem Title="Delivered" Time="Oct 13, 2:14 PM" Icon="Lucide.PackageCheck" Status="Status.Success">Left at the front door.</TimelineItem>
+                <TimelineItem Title="Out for delivery" Time="Oct 13, 8:02 AM" Icon="Lucide.Truck" />
+                <TimelineItem Title="Delayed in transit" Time="Oct 12" Icon="Lucide.TriangleAlert" Status="Status.Warning">Weather at the regional hub.</TimelineItem>
+                <TimelineItem Title="Order placed" Time="Oct 10" Icon="Lucide.ShoppingCart" />
+            </Timeline>
+        </Grid>
+    </Example>
+
 </Stack>
 
 @code {
+    private const string TimelineCode =
+        """
+        <Timeline>
+            <TimelineItem Title="Add a full-bleed Section" Href="..." Time="2 hours ago" DateTime="2026-10-13T20:00Z" Current>
+                <Code>93c85d4</Code> <Anchor Href="...">Watch from here</Anchor>
+            </TimelineItem>
+            <TimelineItem Title="Delivered" Icon="Lucide.PackageCheck" Status="Status.Success">Left at the front door.</TimelineItem>
+        </Timeline>
+        """;
+
     private const string StatCode =
         """
         <Card>
