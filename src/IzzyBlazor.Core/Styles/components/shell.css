@@ -418,7 +418,9 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
+         narrower than the sidebar, and at most 360px on wider screens. */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -444,8 +446,22 @@
       padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
     }
 
+    /* The drawer's top bar: the close button, at the header's height, with the header's line. */
     .ib-shell-sidebar-bp-sm .ib-shell-sidebar-close {
       display: flex;
+      align-items: center;
+      flex: none;
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
+    .ib-shell-sidebar-bp-sm .ib-nav-item {
+      min-height: 2.75rem;
+      font-size: var(--ib-text-md);
     }
 
     html:has(.ib-shell > .ib-shell-sidebar-bp-sm:target),
@@ -471,7 +487,9 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
+         narrower than the sidebar, and at most 360px on wider screens. */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -497,8 +515,22 @@
       padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
     }
 
+    /* The drawer's top bar: the close button, at the header's height, with the header's line. */
     .ib-shell-sidebar-bp-md .ib-shell-sidebar-close {
       display: flex;
+      align-items: center;
+      flex: none;
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
+    .ib-shell-sidebar-bp-md .ib-nav-item {
+      min-height: 2.75rem;
+      font-size: var(--ib-text-md);
     }
 
     html:has(.ib-shell > .ib-shell-sidebar-bp-md:target),
@@ -524,7 +556,9 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
+         narrower than the sidebar, and at most 360px on wider screens. */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -550,8 +584,22 @@
       padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
     }
 
+    /* The drawer's top bar: the close button, at the header's height, with the header's line. */
     .ib-shell-sidebar-bp-lg .ib-shell-sidebar-close {
       display: flex;
+      align-items: center;
+      flex: none;
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
+    .ib-shell-sidebar-bp-lg .ib-nav-item {
+      min-height: 2.75rem;
+      font-size: var(--ib-text-md);
     }
 
     html:has(.ib-shell > .ib-shell-sidebar-bp-lg:target),
@@ -577,7 +625,9 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      width: min(var(--ib-sidebar-w, 16rem), 85vw);
+      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
+         narrower than the sidebar, and at most 360px on wider screens. */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -603,8 +653,22 @@
       padding-block: calc(var(--ib-space-4) + env(safe-area-inset-top, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
     }
 
+    /* The drawer's top bar: the close button, at the header's height, with the header's line. */
     .ib-shell-sidebar-bp-xl .ib-shell-sidebar-close {
       display: flex;
+      align-items: center;
+      flex: none;
+      min-height: var(--ib-shell-header-h);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
+    .ib-shell-sidebar-bp-xl .ib-nav-item {
+      min-height: 2.75rem;
+      font-size: var(--ib-text-md);
     }
 
     html:has(.ib-shell > .ib-shell-sidebar-bp-xl:target),

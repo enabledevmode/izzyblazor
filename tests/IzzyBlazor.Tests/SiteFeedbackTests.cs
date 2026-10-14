@@ -75,6 +75,53 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
+    public void List_renders_bullets_numbers_and_icons()
+    {
+        var bullets = Render<List>(p => p.AddChildContent<ListItem>(i => i.AddChildContent("One"))).Find("ul");
+        Assert.Equal("ib-list ib-gap", bullets.ClassName);
+        Assert.Equal("--ib-gap:var(--ib-space-2);", bullets.GetAttribute("style"));
+        Assert.Null(bullets.GetAttribute("role"));
+        Assert.Equal("ib-list-item", bullets.QuerySelector("li")!.ClassName);
+
+        var numbers = Render<List>(p => p.Add(l => l.Ordered, true)).Find("ol");
+        Assert.Contains("ib-list-ordered", numbers.ClassList);
+
+        var checks = Render<List>(p => p
+            .Add(l => l.Icon, Lucide.Check)
+            .Add(l => l.IconColor, Color.SuccessText)
+            .AddChildContent<ListItem>(i => i.AddChildContent("Works with JavaScript off")));
+        var ul = checks.Find("ul");
+        Assert.Equal("list", ul.GetAttribute("role"));
+        Assert.Contains("ib-list-icons", ul.ClassList);
+        var li = checks.Find("li");
+        Assert.Contains("ib-list-item-icon", li.ClassList);
+        Assert.NotNull(li.QuerySelector("svg.ib-list-icon"));
+        Assert.Equal("Works with JavaScript off", li.QuerySelector(".ib-list-content")!.TextContent);
+    }
+
+    [Fact]
+    public void An_item_icon_overrides_the_list_icon()
+    {
+        var cut = Render<List>(p => p
+            .Add(l => l.Plain, true)
+            .AddChildContent<ListItem>(i => i.Add(x => x.Icon, Lucide.X).AddChildContent("No")));
+
+        Assert.Equal("list", cut.Find("ul").GetAttribute("role"));
+        Assert.NotNull(cut.Find("li svg.ib-list-icon"));
+    }
+
+    [Fact]
+    public void Prose_wraps_html_at_a_size()
+    {
+        var md = Render<Prose>(p => p.AddChildContent("<h2>Title</h2><p>Text</p>")).Find("div");
+        Assert.Equal("ib-prose", md.ClassName);
+        Assert.Equal("Title", md.QuerySelector("h2")!.TextContent);
+
+        var lg = Render<Prose>(p => p.Add(x => x.Size, ProseSize.Lg).Add(x => x.As, "article")).Find("article");
+        Assert.Equal("ib-prose ib-prose-lg", lg.ClassName);
+    }
+
+    [Fact]
     public void Heading_with_MinSize_is_fluid()
     {
         var h1 = Render<Heading>(p => p
