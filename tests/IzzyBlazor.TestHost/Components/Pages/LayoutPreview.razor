@@ -11,6 +11,125 @@
 
 <PageTitle>@Title · Acme</PageTitle>
 
+@if (Kind == "marketing")
+{
+    @* A content/marketing site: no sidebar, a wider column (72rem) for the header, the sections and the
+       footer, a hero, a card grid, a check list, full-bleed bands and a footer of link columns. *@
+    <AppShell Variant="ShellVariantValue" ContentWidth="Length.Rem(72)">
+        <AppHeader>
+            <Row Gap="2" Align="Align.Center">
+                <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
+            </Row>
+            <Box Grow />
+            <NavMenu Orientation="Orientation.Horizontal" aria-label="Site" VisibleFrom="Breakpoint.Md">
+                <NavItem Href="@Url("marketing")">Projects</NavItem>
+                <NavItem Href="@Url("reading")">Articles</NavItem>
+                <NavItem Href="@Url("document")">Guides</NavItem>
+            </NavMenu>
+            <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Brands.YouTube" Label="YouTube" Href="https://youtube.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        </AppHeader>
+        <AppMain>
+            <Section Spacing="SectionSpacing.Lg">
+                <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="10" Align="Align.Center">
+                    <Stack Gap="5">
+                        <Row><Badge Status="Status.Info">New series</Badge></Row>
+                        <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl4" LetterSpacing="LetterSpacing.Tight">Build real apps, one commit at a time</Heading>
+                        <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every episode ships a working feature. Watch the change, read the diff, and run the code at that exact step.</TextBlock>
+                        <Row Gap="3" Wrap>
+                            <LinkButton Href="@Url("marketing")" StartIcon="Lucide.Play" Size="ControlSize.Lg">Watch the series</LinkButton>
+                            <LinkButton Href="@Url("marketing")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</LinkButton>
+                        </Row>
+                    </Stack>
+                    <VideoEmbed YouTubeId="aqz-KE-bpKQ" Title="Series trailer" />
+                </Grid>
+            </Section>
+
+            <Section Bg="Color.SurfaceContainerLow">
+                <Stack Gap="6">
+                    <Stack Gap="2">
+                        <Heading Level="2" Size="TextSize.Xl3">Projects</Heading>
+                        <TextBlock Color="Color.Muted">Each one is a public repo with a commit per episode.</TextBlock>
+                    </Stack>
+                    <Grid MinChildWidth="Length.Rem(18)" Gap="4">
+                        @foreach (var (title, text, icon, tag) in Projects)
+                        {
+                            <Card Title="@title" Description="@text" Href="@Url("marketing")">
+                                <Media>
+                                    <AspectRatio Ratio="16 / 9.0" Bg="Color.PrimarySoft" Class="host-media"><Icon Name="icon" Color="Color.PrimaryText" Size="IconSize.Xl" /></AspectRatio>
+                                </Media>
+                                <ChildContent><Row Gap="2"><Badge>@tag</Badge></Row></ChildContent>
+                            </Card>
+                        }
+                    </Grid>
+                </Stack>
+            </Section>
+
+            <Section>
+                <Grid Columns="new() { Base = 1, Md = 2 }" Gap="10">
+                    <Stack Gap="3">
+                        <Heading Level="2" Size="TextSize.Xl3">What every episode gives you</Heading>
+                        <TextBlock Color="Color.Muted">No skipped steps. If it's on screen, it's in the repo.</TextBlock>
+                    </Stack>
+                    <List Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="3">
+                        <ListItem>The commit, linked from the video at the moment it lands</ListItem>
+                        <ListItem>The code at that step, ready to clone and run</ListItem>
+                        <ListItem>Notes on why, not just what</ListItem>
+                        <ListItem>Works with JavaScript off, like the apps we build</ListItem>
+                    </List>
+                </Grid>
+            </Section>
+
+            <Section Bg="Color.Primary" Spacing="SectionSpacing.Md">
+                <Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Align="Align.Center">
+                    <Stack Gap="2">
+                        <Heading Level="2" Size="TextSize.Xl2">Get each new episode by email</Heading>
+                        <TextBlock>One email per episode. Unsubscribe any time.</TextBlock>
+                    </Stack>
+                    <Form Model="Newsletter" FormName="layout-newsletter" OnValidSubmit="() => _subscribed = true">
+                        <TextField @bind-Value="Newsletter!.Email" Type="TextFieldType.Email" Placeholder="you@example.com" HideLabel>
+                            <EndAddon><Button Type="ButtonType.Submit" Accent="Accent.Neutral">Subscribe</Button></EndAddon>
+                        </TextField>
+                    </Form>
+                </Grid>
+            </Section>
+        </AppMain>
+        <AppFooter>
+            <Stack Gap="8" PaddingY="6">
+                <Grid Columns="new() { Base = 2, Md = 4 }" Gap="6">
+                    <Stack Gap="2">
+                        <Row Gap="2" Align="Align.Center">
+                            <Icon Name="Lucide.Zap" Color="Color.PrimaryText" />
+                            <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
+                        </Row>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Apps built in the open.</TextBlock>
+                    </Stack>
+                    @foreach (var (heading, links) in FooterLinks)
+                    {
+                        <Stack Gap="3">
+                            <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold">@heading</TextBlock>
+                            <List Plain Gap="2">
+                                @foreach (var link in links)
+                                {
+                                    <ListItem><TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@Url("marketing")" Underline="AnchorUnderline.Hover" Inherit>@link</Anchor></TextBlock></ListItem>
+                                }
+                            </List>
+                        </Stack>
+                    }
+                </Grid>
+                <Row Gap="4" Align="Align.Center" Wrap>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Grow>© 2026 Acme Labs</TextBlock>
+                    <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                    <IconButton Icon="Brands.YouTube" Label="YouTube" Href="https://youtube.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                    <IconButton Icon="Brands.Bluesky" Label="Bluesky" Href="https://bsky.app" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+                </Row>
+            </Stack>
+        </AppFooter>
+    </AppShell>
+    return;
+}
+
 @if (Kind == "reading")
 {
     @* A reading site: no sidebar; ContentWidth lines the header, the article and the footer up on
@@ -264,7 +383,22 @@
 
     private string Url(string kind) => VariantName is null ? $"preview/layout/{kind}" : $"preview/layout/{kind}?variant={VariantName}";
 
-    private string Title => Kind switch { "settings" => "Settings", "list" => "Rules", "document" => "Guide", "reading" => "Journal", _ => "Overview" };
+    private string Title => Kind switch { "settings" => "Settings", "list" => "Rules", "document" => "Guide", "reading" => "Journal", "marketing" => "Acme Labs", _ => "Overview" };
+
+    private static readonly (string Title, string Text, IconData Icon, string Tag)[] Projects =
+    [
+        ("Rulebook console", "A rules engine admin, from empty repo to deployed.", Lucide.ListChecks, "Blazor"),
+        ("Invoice kit", "Billing with PDFs, email and a customer portal.", Lucide.Receipt, "Blazor"),
+        ("Field notes", "An offline-first notes app with sync.", Lucide.NotebookPen, "WebAssembly"),
+        ("Status page", "Uptime checks and an incident timeline.", Lucide.Activity, "Static SSR"),
+    ];
+
+    private static readonly (string Heading, string[] Links)[] FooterLinks =
+    [
+        ("Projects", ["Rulebook console", "Invoice kit", "Field notes"]),
+        ("Learn", ["Articles", "Guides", "Changelog"]),
+        ("About", ["The channel", "Sponsors", "Contact"]),
+    ];
 
     private static readonly int[] SizeOptions = [8, 20, 50];
 
