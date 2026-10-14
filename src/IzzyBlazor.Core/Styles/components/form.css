@@ -32,8 +32,8 @@
   .ib-field-sm {
     --ib-field-h: var(--ib-control-h-sm);
     --ib-field-px: var(--ib-space-2);
-    --ib-field-font: var(--ib-text-xs);
-    --ib-field-label-font: var(--ib-text-xs);
+    --ib-field-font: var(--ib-control-font-sm);
+    --ib-field-label-font: var(--ib-control-font-sm);
   }
 
   .ib-field-lg {
@@ -49,6 +49,12 @@
     font-size: var(--ib-field-label-font);
     font-weight: var(--ib-weight-medium);
     color: var(--ib-color-on-surface);
+  }
+
+  /* 13px text at the normal leading is a 19.5px line; round it up so small fields stay on whole
+     pixels. */
+  .ib-field-sm :is(.ib-field-label, .ib-check) {
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
   }
 
   .ib-field-required {
@@ -138,7 +144,8 @@
     color: var(--ib-color-subtle);
   }
 
-  .ib-field-input:hover:not(:disabled) {
+  /* Hover only on a resting field: focus and invalid keep their own border under the mouse. */
+  .ib-field-input:hover:not(:disabled, :focus-visible, :focus-within, :user-invalid) {
     border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
   }
 
@@ -202,19 +209,25 @@
     margin: 0;
   }
 
+  /*
+   * Stacked: two small chevrons floating inside the field's end, no dividers; each gets a soft
+   * rounded fill on hover. The column is inset 2px from the field's edges, so its height is the
+   * field's (even) height less 4px and each half is a whole, even number of pixels (16px at the
+   * medium size).
+   * A chevron only fills the middle half of its icon box, so the icon is the half's height plus
+   * 2px (18px at the medium size, an even overhang of 1px each side) and the visible mark is
+   * about 9px wide. Even sizes all round, so it centers on whole pixels.
+   */
   .ib-field-steppers {
+    --ib-step-inset: 0.125rem;
+    --ib-step-w: 1.5rem;
+    --ib-step-icon: calc((var(--ib-field-h) - 4px) / 2 + 2px);
     position: absolute;
-    inset-block: 1px;
-    inset-inline-end: 1px;
+    inset-block: var(--ib-step-inset);
+    inset-inline-end: var(--ib-step-inset);
     display: flex;
     flex-direction: column;
-    /* 1px wider than the 28px column, so the buttons inside the border are an even 28px and
-       their icons sit on whole pixels. */
-    width: calc(1.75rem + 1px);
-    border-inline-start: 1px solid var(--ib-field-border);
-    border-start-end-radius: calc(var(--ib-radius-md) - 1px);
-    border-end-end-radius: calc(var(--ib-radius-md) - 1px);
-    overflow: hidden;
+    width: var(--ib-step-w);
   }
 
   .ib-field-steppers[hidden] {
@@ -230,31 +243,17 @@
     padding: 0;
     border: 0;
     background: none;
-    color: var(--ib-color-subtle);
+    color: var(--ib-color-muted);
     cursor: pointer;
   }
 
-  .ib-field-step + .ib-field-step {
-    border-top: 1px solid var(--ib-field-border);
-  }
-
-  /*
-   * Stacked: the field's inside height is even (34px), so after the 1px divider one pixel is
-   * left over. The bottom button takes it as padding, leaving both halves the same even height
-   * (16px) so the icons center on whole pixels. round() keeps halves whole for odd heights too.
-   */
-  .ib-field-steppers:not(.ib-field-steppers-split) > .ib-field-step:first-child {
-    flex: 0 0 calc((100% - 2px) / 2);
-    flex: 0 0 round(down, (100% - 2px) / 2, 1px);
-  }
-
-  .ib-field-steppers:not(.ib-field-steppers-split) > .ib-field-step + .ib-field-step {
-    padding-block-end: 1px;
+  .ib-field-steppers:not(.ib-field-steppers-split) > .ib-field-step {
+    border-radius: var(--ib-radius-sm);
   }
 
   .ib-field-step .ib-icon {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: var(--ib-step-icon);
+    height: var(--ib-step-icon);
   }
 
   .ib-field-step:hover:not(:disabled) {
@@ -291,11 +290,12 @@
   }
 
   .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input {
-    padding-inline-end: calc(1.75rem + 1px + var(--ib-field-px));
+    padding-inline-end: calc(1.5rem + 0.125rem + var(--ib-space-2));
   }
 
   /* Split: a square button at each end, inside the border, and the number centered between. */
   .ib-field-steppers-split {
+    inset-block: 1px;
     inset-inline: 1px;
     width: auto;
     flex-direction: row;
@@ -327,9 +327,14 @@
     border-end-end-radius: calc(var(--ib-radius-md) - 1px);
   }
 
+  /* The plus and minus are straight lines through the icon's middle. At 16px, the icon's 2-unit
+     stroke is 1.33px centered on a pixel boundary, so it smears across two rows. A 3-unit stroke
+     is exactly 2px, filling two whole rows (and columns) on either side of the middle: crisp, and
+     as heavy as the stacked chevrons look. */
   .ib-field-steppers-split .ib-field-step .ib-icon {
     width: 1rem;
     height: 1rem;
+    stroke-width: 3;
   }
 
   .ib-has-split-steppers:has(> [data-ib-steppers]:not([hidden])) .ib-field-input {
@@ -346,11 +351,6 @@
   }
 
   .ib-field-group:has(> .ib-field-addon-end) .ib-field-step-up {
-    border-radius: 0;
-  }
-
-  /* The field next to an end add-on loses its rounded end; so do its steppers. */
-  .ib-field-group:has(> .ib-field-addon-end) .ib-field-steppers {
     border-radius: 0;
   }
 
@@ -618,6 +618,9 @@
     color: var(--ib-color-subtle);
     font-size: var(--ib-field-font);
     white-space: nowrap;
+    /* Text widths are rarely whole: rounded up, so the seam with the input and the field's far
+       edge stay on whole pixels (where calc-size() is supported). */
+    width: calc-size(max-content, round(up, size, 1px));
   }
 
   .ib-field-addon-start {
@@ -688,8 +691,13 @@
     white-space: nowrap;
   }
 
+  /* A button or nested field grows to fill the add-on, whose width is rounded up to whole pixels. */
+  .ib-field-addon > :is(.ib-btn, .ib-field) {
+    flex: 1 0 auto;
+  }
+
   .ib-field-addon > .ib-field .ib-field-input {
-    width: auto;
+    width: 100%;
     border-radius: inherit;
     background-color: var(--ib-color-surface-container);
   }
@@ -1200,6 +1208,13 @@
     cursor: pointer;
   }
 
+  /* A label's text width is rarely whole, so whatever sits after a check row (the next option in
+     a horizontal group, the next field in a row) would land between pixels and its circle or box
+     would blur. Rounded up; fit-content still lets a long label wrap (where calc-size() works). */
+  .ib-check {
+    width: calc-size(fit-content, round(up, size, 1px));
+  }
+
   /*
    * Checkboxes and radios, drawn with the field tokens so they match fields and switches in every
    * browser and scheme. The check, dash and dot are masks in the on-primary color. Indeterminate
@@ -1213,18 +1228,18 @@
    */
   .ib-check {
     --ib-check-size: 1.125rem;
-    --ib-check-dot: 0.5rem;
+    --ib-check-dot: 0.375rem;
   }
 
   .ib-field-sm .ib-check,
   .ib-filter-form .ib-check {
     --ib-check-size: 1rem;
-    --ib-check-dot: 0.5rem;
+    --ib-check-dot: 0.375rem;
   }
 
   .ib-field-lg .ib-check {
     --ib-check-size: 1.25rem;
-    --ib-check-dot: 0.625rem;
+    --ib-check-dot: 0.5rem;
   }
 
   .ib-check-input {
@@ -1269,18 +1284,12 @@
     mask: none;
   }
 
-  /* A chosen radio is the knob: an accent ring (the border thickened by an inset ring, so the box
-     doesn't move) around a lit accent core, on the surface. */
-  .ib-check-input[type="radio"]:checked {
-    background-color: var(--ib-color-surface);
-    box-shadow: inset 0 0 0 1px var(--ib-color-primary);
-  }
+  /* A chosen radio is filled with the accent like a checked checkbox, with a small dot in the
+     on-accent color: one solid shape, crisp at 16-20px (a ring around a dot is two thin curves and
+     looks jagged). The fill and dot come from the shared :checked rules below. */
 
-  .ib-check-input[type="radio"]:checked::before {
-    background-color: var(--ib-color-primary);
-  }
-
-  .ib-check-input:hover:not(:disabled) {
+  /* Unchosen boxes only: a chosen one keeps its accent edge on hover. */
+  .ib-check-input:hover:not(:disabled, :checked, :indeterminate, [data-indeterminate]:not([data-indeterminate-cleared])) {
     border-color: color-mix(in oklab, var(--ib-color-outline) 40%, var(--ib-color-on-surface));
   }
 
@@ -1581,13 +1590,15 @@
     display: inline-flex;
     align-self: flex-start;
     gap: 2px;
+    /* Rounded up, so a control after it in a row stays on whole pixels (where calc-size() works). */
+    width: calc-size(fit-content, round(up, size, 1px));
     max-width: 100%;
     height: var(--ib-field-h);
     margin-top: var(--ib-space-1);
     padding: 3px;
     border-radius: var(--ib-radius-md);
-    background-color: var(--ib-color-surface-container);
-    box-shadow: inset 0 0 0 1px var(--ib-color-border);
+    /* The field border, so it reads as one control beside inputs and selects. */
+    box-shadow: inset 0 0 0 1px var(--ib-field-border, var(--ib-color-outline));
   }
 
   .ib-segmented-full {
@@ -1671,7 +1682,7 @@
   .ib-segment:has(.ib-segment-input:checked) {
     background-color: var(--ib-color-segment);
     color: var(--ib-color-on-surface);
-    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-segment-edge);
+    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge);
   }
 
   .ib-segment:has(.ib-segment-input:focus-visible) {

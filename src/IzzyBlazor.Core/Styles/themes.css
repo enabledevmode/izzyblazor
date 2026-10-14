@@ -164,8 +164,10 @@
   :root:root:where(:has(> head > meta[name="ib-radius"][content="sm"])) {
     --ib-radius-sm: 0.125rem;
     --ib-radius-md: 0.25rem;
-    --ib-radius-lg: 0.5rem;
-    --ib-radius-xl: 0.625rem;
+    /* Cards (xl) and popovers and dialogs (lg) tighten as much as controls do: a 10px card corner
+       around 16px of padding reads soft on a dense page. */
+    --ib-radius-lg: 0.375rem;
+    --ib-radius-xl: 0.5rem;
   }
 
   [data-ib-theme="standard"],
