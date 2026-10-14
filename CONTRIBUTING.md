@@ -125,3 +125,22 @@ A component is done when:
 
 One logical change per commit, with messages in the form `Area: what changed`, for example
 `Combobox: keep focus in the input after a click`.
+
+## Releasing
+
+Pushing a version tag publishes both packages. Set `<Version>` in `Directory.Build.props`, commit it
+to main, then tag that commit with the same version:
+
+```
+git tag v0.1.0-alpha.1
+git push origin v0.1.0-alpha.1
+```
+
+The Release workflow (`.github/workflows/release.yml`) checks that the tag is on main and matches
+`<Version>`, builds, tests, packs, and pushes `IzzyBlazor.Core` then `IzzyBlazor` (with their
+symbol packages) to nuget.org, then creates a GitHub release with the packages attached (marked as a
+pre-release for versions like `-alpha.1`). It uses nuget.org trusted publishing: no API key is
+stored; `NuGet/login` exchanges the job's GitHub token for a key that lasts an hour. It runs in the
+`release` environment, and needs the `NUGET_USER` secret (the nuget.org username of the policy's
+creator). A failed run can be rerun: packages already on nuget.org are skipped. A published version
+can't be replaced, only unlisted, so a fix needs a new version.
