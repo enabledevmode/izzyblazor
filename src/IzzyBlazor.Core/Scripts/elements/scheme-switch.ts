@@ -5,8 +5,8 @@ import { readCookie, writeCookie } from "../cookies";
  * <ib-scheme-switch> makes ColorSchemeSwitch instant. With no script each option is a link to the
  * endpoint that sets the ib-scheme cookie and comes back; with it, a click sets the cookie here,
  * puts the scheme on the page at once (data-theme on <html>, and IzzyTheme's meta if there is
- * one), moves the switch's aria-current, tells other tabs and frames, and raises `ibscheme` so
- * @bind-Value follows on interactive pages.
+ * one), moves the switch's mark, closes its menu, tells other tabs and frames, and raises
+ * `ibscheme` so @bind-Value follows on interactive pages.
  */
 type Scheme = "system" | "light" | "dark";
 
@@ -17,9 +17,21 @@ function parse(value: string | null | undefined): Scheme | null {
   return value === "system" || value === "light" || value === "dark" ? value : null;
 }
 
+// Segments mark the choice with aria-current; menu items with aria-checked (data-ib-checked before
+// the menu's script runs). The toggle has nothing to mark: CSS shows the right button.
 function mark(root: ParentNode, scheme: Scheme): void {
   for (const option of root.querySelectorAll<HTMLElement>("a[data-ib-scheme]")) {
-    if (option.dataset.ibScheme === scheme) option.setAttribute("aria-current", "true");
+    const on = option.dataset.ibScheme === scheme;
+    if (option.classList.contains("ib-segment")) {
+      if (on) option.setAttribute("aria-current", "true");
+      else option.removeAttribute("aria-current");
+      continue;
+    }
+
+    if (!option.classList.contains("ib-menu-item")) continue;
+    if (option.hasAttribute("data-ib-checked")) option.setAttribute("data-ib-checked", String(on));
+    if (option.hasAttribute("aria-checked")) option.setAttribute("aria-checked", String(on));
+    else if (on) option.setAttribute("aria-current", "true");
     else option.removeAttribute("aria-current");
   }
 }
@@ -65,6 +77,16 @@ class SchemeSwitch extends IzzyElement {
         event.preventDefault();
         writeCookie(COOKIE, scheme);
         apply(scheme);
+        // A menu closes as it would after following the link.
+        option.closest<HTMLElement>("[popover]")?.hidePopover();
+        // Keep keyboard focus on the switch: the toggle's clicked button is now hidden (focus
+        // moves to the one shown in its place), and a closed menu hands it back to its trigger.
+        if (document.activeElement === option && !option.checkVisibility()) {
+          const visible = [...this.querySelectorAll<HTMLElement>("a[data-ib-scheme], button")].find(
+            (el) => el !== option && el.checkVisibility()
+          );
+          visible?.focus();
+        }
         channel?.postMessage(scheme);
         this.dispatchEvent(new CustomEvent("ibscheme", { bubbles: true, detail: { scheme } }));
       },

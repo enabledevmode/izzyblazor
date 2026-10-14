@@ -85,6 +85,19 @@ public enum ThemeDensity
     Comfortable,
 }
 
+/// <summary>How a <see cref="ColorSchemeSwitch"/> looks.</summary>
+public enum ColorSchemeSwitchVariant
+{
+    /// <summary>An icon button (sun or moon) that opens a menu: System, Light, Dark. The default.</summary>
+    Menu,
+
+    /// <summary>One icon button that flips between light and dark.</summary>
+    Toggle,
+
+    /// <summary>System, Light and Dark side by side, for a settings page.</summary>
+    Segmented,
+}
+
 /// <summary>Light, dark, or whatever the device prefers.</summary>
 public enum ColorScheme
 {
