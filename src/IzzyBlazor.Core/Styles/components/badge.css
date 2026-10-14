@@ -1,6 +1,9 @@
 /* Badge: shares the accent property pattern with buttons. */
 @layer izzy.components {
   .ib-badge {
+    /* Inline: keeps its natural width when it's a flex or grid item (a Column stretches its
+       items), still following the container's alignment. No effect in running text. */
+    width: fit-content;
     display: inline-flex;
     align-items: center;
     gap: 0.375em;
@@ -88,6 +91,7 @@
     display: inline-flex;
     align-items: center;
     gap: 4px;
+    width: fit-content;
     max-width: 100%;
     height: var(--ib-tag-h);
     padding-inline: var(--ib-tag-px);
