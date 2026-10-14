@@ -205,6 +205,15 @@ public class IzzyText
     /// <summary>ColorSchemeSwitch: dark.</summary>
     public virtual string SchemeDark { get; set; } = "Dark";
 
+    /// <summary>ColorPicker's hex text box, after the field's label: "Brand color, hex".</summary>
+    public virtual string ColorHex { get; set; } = "hex";
+
+    /// <summary>ColorPicker's row of preset swatches.</summary>
+    public virtual string ColorPresets { get; set; } = "Preset colors";
+
+    /// <summary>ColorPicker's message for a value that isn't a hex color. {0} is the field's label.</summary>
+    public virtual string ColorInvalid { get; set; } = "The {0} field must be a color like #2563eb.";
+
     /// <summary>ColorSchemeSwitch's toggle, on a light page.</summary>
     public virtual string SchemeToDark { get; set; } = "Switch to dark mode";
 

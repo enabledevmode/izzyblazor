@@ -1758,3 +1758,154 @@
     }
   }
 }
+
+/*
+ * ColorPicker. With no script the native color input fills the field box as one swatch bar;
+ * with script (<ib-color-picker> defined) the swatch shrinks to a square at the start and the
+ * hex box and preset swatches appear. The swatch is inset 3px, so it's the field's height less
+ * 8px, an even square, with corners that follow the field's.
+ */
+@layer izzy.components {
+  .ib-color-picker {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-color-box {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    height: var(--ib-field-h);
+    padding: 3px;
+    border: 1px solid var(--ib-field-border);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-field-bg);
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-color-box:hover:not(:focus-within, :has(:disabled)) {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
+  }
+
+  .ib-color-box:focus-within {
+    border-color: var(--ib-color-focus);
+    box-shadow: 0 0 0 3px var(--ib-color-halo);
+  }
+
+  .ib-field-invalid .ib-color-box {
+    border-color: var(--ib-color-danger);
+  }
+
+  /* Disabled and read-only, like the other fields. */
+  .ib-color-box:has(.ib-color-input:disabled) {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-color-input {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    border-radius: max(2px, calc(var(--ib-radius-md) - 3px));
+    background: none;
+    cursor: pointer;
+    appearance: none;
+  }
+
+  .ib-color-input:focus {
+    outline: none;
+  }
+
+  .ib-color-input:disabled {
+    cursor: not-allowed;
+  }
+
+  .ib-color-input::-webkit-color-swatch-wrapper {
+    padding: 0;
+  }
+
+  .ib-color-input::-webkit-color-swatch {
+    border: 0;
+    border-radius: max(2px, calc(var(--ib-radius-md) - 3px));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ib-color-on-surface) 15%, transparent);
+  }
+
+  .ib-color-input::-moz-color-swatch {
+    border: 0;
+    border-radius: max(2px, calc(var(--ib-radius-md) - 3px));
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ib-color-on-surface) 15%, transparent);
+  }
+
+  .ib-color-hex,
+  .ib-color-presets {
+    display: none;
+  }
+
+  ib-color-picker:defined .ib-color-input {
+    flex: none;
+    width: calc(var(--ib-field-h) - 8px);
+  }
+
+  ib-color-picker:defined .ib-color-hex {
+    display: block;
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0 var(--ib-space-1);
+    border: 0;
+    background: none;
+    color: var(--ib-color-on-surface);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-field-font);
+    text-transform: lowercase;
+    outline: none;
+  }
+
+  .ib-color-hex:disabled {
+    color: var(--ib-color-disabled);
+  }
+
+  ib-color-picker:defined .ib-color-presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-2);
+  }
+
+  /* Swatches a little smaller than the field, round, with a hairline so white shows on white. */
+  .ib-color-preset {
+    --ib-preset-size: calc(var(--ib-field-h) - 12px);
+    width: var(--ib-preset-size);
+    height: var(--ib-preset-size);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-preset);
+    box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ib-color-on-surface) 15%, transparent);
+    cursor: pointer;
+  }
+
+  .ib-color-preset[aria-pressed="true"] {
+    outline: 2px solid var(--ib-color-on-surface);
+    outline-offset: 2px;
+  }
+
+  .ib-color-preset:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
+  .ib-color-preset:disabled {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+
+  @media (forced-colors: active) {
+    .ib-color-preset,
+    .ib-color-input::-webkit-color-swatch {
+      forced-color-adjust: none;
+    }
+  }
+}

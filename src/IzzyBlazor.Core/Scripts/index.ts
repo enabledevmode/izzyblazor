@@ -20,6 +20,7 @@ import { showToast } from "./elements/toasts";
 import "./elements/filter-form";
 import { applySavedScheme } from "./elements/scheme-switch";
 import "./elements/code";
+import "./elements/color-picker";
 import "./elements/combobox";
 import "./elements/table";
 import "./elements/banner";
