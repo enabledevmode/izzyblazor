@@ -18,6 +18,18 @@
         </Row>
     </Example>
 
+    @if (RendererInfo.IsInteractive)
+    {
+        <Example Title="Bound from C#" Note="@BoundNote">
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" @bind-Value="_scheme" id="bound-scheme" />
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _scheme = ColorScheme.Dark" id="set-dark">Dark from C#</Button>
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _scheme = ColorScheme.System" id="set-system">System from C#</Button>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" id="bound-value">Value: @_scheme</TextBlock>
+            </Row>
+        </Example>
+    }
+
     <Example Title="Your brand color" Note="Pick a color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, each pair checked for 4.5:1. A light color gets dark text; a dark one is lifted in dark mode." Code="@ThemeCode">
         <Stack Gap="5">
             @* The library's ColorPicker in a plain GET form: its name posts ?primary=#hex. *@
@@ -62,6 +74,10 @@
     private string Chosen => Palette is null ? "#2563eb" : Primary!.Trim();
 
     private string? _pick;
+
+    private ColorScheme _scheme;
+
+    private const string BoundNote = "On interactive pages @bind-Value follows the user's choice, and setting the value from C# applies it to the page, the cookie and other tabs.";
 
     private static IEnumerable<string> PresetHexes => Presets.Select(p => p.Hex);
 
