@@ -79,7 +79,7 @@
   /* Focus: on the radio with no script, on the tab itself with script. */
   .ib-tab:has(> .ib-tab-input:focus-visible),
   .ib-tab:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
 
@@ -111,7 +111,7 @@
 
   /* Soft: the selected tab gets a tinted background. */
   .ib-tabs-soft > .ib-tabs-list > .ib-tab:not(.ib-tab-disabled):hover {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   .ib-tabs-soft > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
@@ -140,8 +140,8 @@
   }
 
   .ib-tabs-segmented > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
-    background-color: var(--ib-color-segment);
-    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge);
+    background-color: var(--ib-color-segment, var(--ib-color-surface-container-high));
+    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge, transparent);
     color: var(--ib-color-on-surface);
   }
 
@@ -215,7 +215,7 @@
   }
 
   .ib-tab-panel:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
     border-radius: var(--ib-radius-sm);
   }

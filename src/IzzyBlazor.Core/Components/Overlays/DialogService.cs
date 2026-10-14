@@ -31,6 +31,16 @@ public sealed class DialogOptions
 
     /// <summary>Shows the close button in the header. Defaults to true.</summary>
     public bool ShowCloseButton { get; init; } = true;
+
+    /// <summary>
+    /// The dialog's color scheme. Dialogs from code are shown by the <see cref="DialogHost"/>, not
+    /// where they were opened, so a part of the page with its own scheme passes it here to match.
+    /// Defaults to <see cref="ColorScheme.Auto"/>: the page's.
+    /// </summary>
+    public ColorScheme ColorScheme { get; init; } = ColorScheme.Auto;
+
+    /// <summary>The dialog's density, to match a part of the page with its own. Unset: the page's.</summary>
+    public ThemeDensity? Density { get; init; }
 }
 
 /// <summary>How <see cref="DialogService.ConfirmAsync"/> asks.</summary>
@@ -90,7 +100,7 @@ public sealed class DialogService
     // changed under a lock and the host renders from a snapshot.
     private readonly List<DialogEntry> _open = [];
     private readonly Lock _gate = new();
-    private int _hosts;
+    private readonly List<object> _hosts = [];
     private int _next;
 
     internal event Action? Changed;
@@ -118,7 +128,13 @@ public sealed class DialogService
     public Task<DialogResult> OpenAsync(Type component, string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(component);
-        if (Volatile.Read(ref _hosts) == 0)
+        bool hosted;
+        lock (_gate)
+        {
+            hosted = _hosts.Count > 0;
+        }
+
+        if (!hosted)
         {
             throw new InvalidOperationException(
                 "DialogService needs a <DialogHost /> on an interactive page or in an interactive layout. " +
@@ -192,24 +208,46 @@ public sealed class DialogService
         Changed?.Invoke();
     }
 
-    internal void AddHost() => Interlocked.Increment(ref _hosts);
-
-    internal void RemoveHost()
+    // Only the most recent host shows the dialogs, so a second host (another layout, or the next
+    // page's layout arriving before the last one is disposed) never shows them twice.
+    internal void AddHost(object host)
     {
-        if (Interlocked.Decrement(ref _hosts) == 0)
+        lock (_gate)
         {
-            DialogEntry[] closing;
-            lock (_gate)
+            _hosts.Add(host);
+        }
+
+        Changed?.Invoke();
+    }
+
+    internal bool IsActiveHost(object host)
+    {
+        lock (_gate)
+        {
+            return _hosts.Count > 0 && ReferenceEquals(_hosts[^1], host);
+        }
+    }
+
+    internal void RemoveHost(object host)
+    {
+        DialogEntry[] closing = [];
+        lock (_gate)
+        {
+            _hosts.Remove(host);
+            if (_hosts.Count == 0)
             {
                 closing = [.. _open];
                 _open.Clear();
             }
-
-            foreach (var entry in closing)
-            {
-                entry.Result.TrySetResult(DialogResult.Cancel());
-            }
         }
+
+        foreach (var entry in closing)
+        {
+            entry.Result.TrySetResult(DialogResult.Cancel());
+        }
+
+        // The host before it, if any, takes over.
+        Changed?.Invoke();
     }
 }
 

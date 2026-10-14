@@ -3,7 +3,7 @@
 @inject IServiceProvider Services
 
 @*
-    The app's theme in one place. Put it in App.razor's <head>:
+    The theme in one place. For the app, put it in App.razor's <head>:
 
     <IzzyTheme Preset="ThemePreset.Compact" Primary="#0a7d5a" BodyFont="Inter, sans-serif" />
 
@@ -11,37 +11,57 @@
     defaults; Primary is your own brand color and beats Accent; ColorScheme is the default light or dark.
     Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block for
     Primary and the fonts), so it's in place on first paint, needs no script and works in every
-    render mode. For one exact value, set its CSS variable in your own stylesheet instead (see
-    docs/styling.md, "Customizing").
+    render mode.
+
+    With content, it themes that part of the page instead, in a div: Accent or Primary, Gray,
+    Radius, Density, Preset (shape, density and type only) and ColorScheme; what it doesn't set
+    comes from around it. Fonts and HeadingWeight are app-wide only. For one exact value, use CSS:
+    its variable in your stylesheet, or Style and Class on a nested IzzyTheme (docs/styling.md).
 *@
 
-@if (Preset is { } preset)
+@if (ChildContent is null)
 {
-    <meta name="ib-preset" content="@Name(preset)" />
+    @if (Preset is { } preset)
+    {
+        <meta name="ib-preset" content="@Name(preset)" />
+    }
+    @if (Accent is { } accent)
+    {
+        <meta name="ib-accent" content="@Name(accent)" />
+    }
+    @if (Gray is { } gray)
+    {
+        <meta name="ib-gray" content="@Name(gray)" />
+    }
+    @if (Radius is { } radius)
+    {
+        <meta name="ib-radius" content="@Name(radius)" />
+    }
+    @if (Density is { } density)
+    {
+        <meta name="ib-density" content="@Name(density)" />
+    }
+    @if (_scheme is IzzyBlazor.ColorScheme.Light or IzzyBlazor.ColorScheme.Dark)
+    {
+        <meta name="ib-color-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
+    }
+    @if (_css is not null)
+    {
+        <style nonce="@Nonce" data-ib-theme-style>@((MarkupString)_css)</style>
+    }
 }
-@if (Accent is { } accent)
+else
 {
-    <meta name="ib-accent" content="@Name(accent)" />
-}
-@if (Gray is { } gray)
-{
-    <meta name="ib-gray" content="@Name(gray)" />
-}
-@if (Radius is { } radius)
-{
-    <meta name="ib-radius" content="@Name(radius)" />
-}
-@if (Density is { } density)
-{
-    <meta name="ib-density" content="@Name(density)" />
-}
-@if (_scheme is IzzyBlazor.ColorScheme.Light or IzzyBlazor.ColorScheme.Dark)
-{
-    <meta name="ib-color-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
-}
-@if (_css is not null)
-{
-    <style nonce="@Nonce" data-ib-theme-style>@((MarkupString)_css)</style>
+    <div @attributes="AdditionalAttributes"
+         class="@_partClass"
+         style="@_partStyle"
+         data-ib-preset="@NameOrNull(Preset)"
+         data-ib-accent="@NameOrNull(Accent)"
+         data-ib-gray="@NameOrNull(Gray)"
+         data-ib-radius="@NameOrNull(Radius)"
+         data-ib-density="@NameOrNull(Density)">
+        @ChildContent
+    </div>
 }
 
 @code {
@@ -101,12 +121,39 @@
     /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one.</summary>
     [Parameter] public string? Nonce { get; set; }
 
+    /// <summary>The part of the page to theme. Unset: the theme is the app's (put it in <c>&lt;head&gt;</c>).</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Classes for the part's div, such as one that sets CSS variables in your stylesheet.</summary>
+    [Parameter] public string? Class { get; set; }
+
+    /// <summary>Inline style for the part's div, such as <c>"--ib-card-padding: 1rem"</c>.</summary>
+    [Parameter] public string? Style { get; set; }
+
+    /// <summary>Other attributes for the part's div.</summary>
+    [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
+
     private string? _css;
     private IzzyBlazor.ColorScheme? _scheme;
+    private string? _partClass;
+    private string? _partStyle;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (ChildContent is not null)
+        {
+            SetPart();
+            return;
+        }
+
+        // Unknown attributes are mistakes on the app's theme (it renders only meta tags).
+        if (AdditionalAttributes is { Count: > 0 } || Class is not null || Style is not null)
+        {
+            var name = AdditionalAttributes?.Keys.FirstOrDefault() ?? (Class is not null ? nameof(Class) : nameof(Style));
+            throw new ArgumentException($"The app's IzzyTheme has no \"{name}\": Class, Style and other attributes are for a nested IzzyTheme (one with content).", name);
+        }
+
         if (ColorScheme == IzzyBlazor.ColorScheme.Inverse)
         {
             throw new ArgumentException("The app's ColorScheme is Auto, Light or Dark; Inverse is for part of a page.", nameof(ColorScheme));
@@ -154,7 +201,39 @@
             : "@layer izzy.tokens { :root:root:root { " + string.Join(" ", declarations) + " } }";
     }
 
+    // Part of a page: the same choices as attributes on the div, and a brand color as inline
+    // variables. The colors derived from them (focus, halo, hover) follow, as they're worked out
+    // where they're used.
+    private void SetPart()
+    {
+        foreach (var (value, name) in new[] { (BodyFont, nameof(BodyFont)), (HeadingFont, nameof(HeadingFont)), (MonoFont, nameof(MonoFont)) })
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                throw new ArgumentException($"{name} is app-wide: set it on the IzzyTheme in <head>.", name);
+            }
+        }
+
+        if (HeadingWeight is not null)
+        {
+            throw new ArgumentException("HeadingWeight is app-wide: set it on the IzzyTheme in <head>.", nameof(HeadingWeight));
+        }
+
+        var classes = new ClassBuilder().Add("ib-theme").Add(ColorScheme?.ClassName()).Add(Class);
+        var styles = new StyleBuilder();
+        if (!string.IsNullOrWhiteSpace(Primary))
+        {
+            styles.AddRaw(AccentPalette.From(Primary).ToCss());
+        }
+
+        styles.AddRaw(Style);
+        _partClass = classes.Build();
+        _partStyle = styles.Build();
+    }
+
     private static string Name<T>(T value) where T : struct, Enum => value.ToString().ToLowerInvariant();
+
+    private static string? NameOrNull<T>(T? value) where T : struct, Enum => value is { } v ? Name(v) : null;
 
     // A font-family list goes into a style block as is, so it may not close the declaration,
     // the rule or the element.

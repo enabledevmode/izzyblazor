@@ -171,19 +171,20 @@
   }
 
   /*
-   * Tokens made from other tokens. A custom property is resolved where it's declared, so these are
-   * declared again on every element that changes an accent or gray (themes.css): focus, halos and
-   * hover washes then follow the theme of the part of the page they're in.
+   * Tokens made from other tokens (focus, halo, selected rows, hover and pressed washes, the chosen
+   * segment, scrollbar thumbs) are not declared here: a custom property is resolved where it's
+   * declared, so a value fixed on :root would ignore a color overridden on part of the page. Each
+   * use writes the calculation as its fallback instead, var(--ib-color-halo, <calculation>), so it
+   * follows the colors where it's used, and setting the token itself still replaces it:
+   *   --ib-color-focus          the focus ring and field halo (default: the primary color)
+   *   --ib-color-halo           the glow around a focused field (the focus color, faint)
+   *   --ib-color-selected       a selected row's fill (the primary color, very faint)
+   *   --ib-state-hover          hover wash (the text color at 6%; a selection is shown by a mark)
+   *   --ib-state-pressed        pressed wash (the text color at 10%)
+   *   --ib-color-segment        the chosen segment (surface-container-high), --ib-color-segment-edge its edge
+   *   --ib-color-scrollbar      scrollbar thumb (the text color at 26%), --ib-color-scrollbar-hover (42%)
    */
-  :root,
-  [data-ib-preset],
-  [data-ib-accent],
-  [data-ib-gray] {
-    --ib-color-focus: var(--ib-color-primary);
-    /* The chosen segment in a segmented control or segmented tabs: the selected fill on a clear,
-       outlined track (not a raised chip on a gray tray, which reads as a surface on a surface). */
-    --ib-color-segment: var(--ib-color-surface-container-high);
-    --ib-color-segment-edge: transparent;
+  :root {
     /* Syntax colors for Code: each at least 4.5:1 on the code block's surface-container, in light
        and dark, for every gray set. */
     --ib-code-comment: light-dark(#5f6670, #9198a1);
@@ -195,18 +196,6 @@
     --ib-code-tag: light-dark(#116329, #7ee787);
     --ib-code-attr: light-dark(#0b5cad, #9ecbff);
     --ib-code-meta: light-dark(#a3216c, #f7a1d0);
-    /* State layers: hover and pressed are a wash of the text color over whatever surface is
-       underneath, so they darken in light mode and lighten in dark mode, on the page, a card or a
-       menu alike. Selection is shown by a mark (a check), not a fill. */
-    --ib-state-hover: color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent);
-    --ib-state-pressed: color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent);
-    /* The soft glow around a focused field and a held knob: the accent, faint. */
-    --ib-color-halo: light-dark(color-mix(in oklab, var(--ib-color-focus) 22%, transparent), color-mix(in oklab, var(--ib-color-focus) 35%, transparent));
-    /* A selected row: the accent, very faint, with an accent edge (data.css). */
-    --ib-color-selected: light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent));
-    /* Scrollbar thumbs in IzzyBlazor's scrolling areas (the track stays transparent). */
-    --ib-color-scrollbar: color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent);
-    --ib-color-scrollbar-hover: color-mix(in oklab, var(--ib-color-on-surface) 42%, transparent);
   }
 
   /*

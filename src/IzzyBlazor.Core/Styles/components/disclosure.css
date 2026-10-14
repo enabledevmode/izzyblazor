@@ -10,7 +10,7 @@
   }
 
   .ib-disclosure > summary:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -99,7 +99,7 @@
   }
 
   .ib-accordion-trigger:hover {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   .ib-accordion-trigger:focus-visible {

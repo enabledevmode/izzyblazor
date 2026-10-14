@@ -544,8 +544,10 @@ if (await Dialogs.ConfirmAsync("Ada loses access.", "Remove member?",
 The component gets a cascading `DialogInstance` to close with data (`Dialog.Close(site)`) or cancel;
 Escape, the backdrop and the close button cancel too (`result.Canceled`). Put its buttons in
 `DialogActions`, last, for a footer row. `DialogOptions` set the size, placement (a drawer or sheet)
-and closing behavior. It needs one `<DialogHost />` on the interactive page or in an interactive
-layout (`@rendermode` on the host where the layout is static). Static pages can't open anything from
+and closing behavior, and the `ColorScheme` and `Density`: the host shows the dialog, not the part of
+the page that opened it, so a dark or compact part passes its own. It needs a `<DialogHost />` on the
+interactive page or in an interactive layout (`@rendermode` on the host where the layout is static);
+with more than one, the newest shows the dialogs. Static pages can't open anything from
 code, so calling it there throws; use `Dialog` with `DialogTrigger` or a `?dialog=` link, or
 `ConfirmButton`, which work with JavaScript off.
 

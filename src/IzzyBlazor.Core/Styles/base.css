@@ -29,7 +29,7 @@
       :root:is(.ib-scrollbars, :has(.ib-shell))
     ) {
       scrollbar-width: thin;
-      scrollbar-color: var(--ib-color-scrollbar) transparent;
+      scrollbar-color: var(--ib-color-scrollbar, color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent)) transparent;
     }
 
     /* scrollbar-color is inherited: keep the page's from reaching the app's own scroll areas. */
@@ -70,7 +70,7 @@
     )::-webkit-scrollbar-thumb {
       border: 1px solid transparent;
       border-radius: 999px;
-      background-color: var(--ib-color-scrollbar);
+      background-color: var(--ib-color-scrollbar, color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent));
       background-clip: padding-box;
     }
 
@@ -88,7 +88,7 @@
       :root:is(.ib-scrollbars, :has(.ib-shell))
     )::-webkit-scrollbar-thumb:hover {
       border-width: 0;
-      background-color: var(--ib-color-scrollbar-hover);
+      background-color: var(--ib-color-scrollbar-hover, color-mix(in oklab, var(--ib-color-on-surface) 42%, transparent));
     }
 
     :where(
@@ -183,7 +183,7 @@
   }
 
   :focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 

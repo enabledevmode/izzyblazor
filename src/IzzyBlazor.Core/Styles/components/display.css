@@ -396,7 +396,7 @@
   }
 
   .ib-video-poster:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
     border-radius: inherit;
   }
