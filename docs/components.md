@@ -352,6 +352,9 @@ recreates it with its initial values. In practice:
 `AppShell` holds parts, each with its own settings:
 
 - `AppHeader` (`Position`: sticky by default; `ContentWidth`)
+- `AppBrand`, the name in the header (`Label`, `Href`, `Icon` or `Logo`, `HideLabel` for a logo that
+  spells the name). It stays on one line: on a narrow screen the name ends in an ellipsis instead of
+  wrapping.
 - `AppSidebar` (`Position` start or end, `DrawerPosition`, `FullHeight`, `Width`, `Breakpoint`)
 - `AppMain` (`ContentWidth`)
 - `AppAside` (`Width`, `Breakpoint`)

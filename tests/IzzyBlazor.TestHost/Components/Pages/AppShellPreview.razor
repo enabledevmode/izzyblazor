@@ -23,10 +23,7 @@
         @* With a full-height sidebar that has a Header, the brand lives there instead. *@
         @if (!BrandInSidebar)
         {
-            <Row Gap="2" Align="Align.Center">
-                <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
-                <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
-            </Row>
+            <AppBrand Href="preview/app-shell" Icon="Lucide.Zap" Label="Acme" />
         }
         <Box Grow />
         @* Header links; below Lg they move into the sidebar (the drawer on phones), so there is one menu. *@

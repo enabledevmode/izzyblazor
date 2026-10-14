@@ -17,10 +17,7 @@
        footer, a hero, a card grid, a check list, full-bleed bands and a footer of link columns. *@
     <AppShell Variant="ShellVariantValue" ContentWidth="Length.Rem(72)">
         <AppHeader>
-            <Row Gap="2" Align="Align.Center">
-                <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
-                <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
-            </Row>
+            <AppBrand Href="@Url(Kind)" Icon="Lucide.Zap" Label="Acme Labs" />
             <Box Grow />
             <HeaderNav Label="Site">
                 <ChildContent>
@@ -145,10 +142,7 @@
        one centered column, while the bars and their lines stay full width. *@
     <AppShell Variant="ShellVariantValue" ContentWidth="Length.Rem(42)">
         <AppHeader>
-            <Row Gap="2" Align="Align.Center">
-                <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
-                <TextBlock As="span" Weight="FontWeight.Bold">Acme Journal</TextBlock>
-            </Row>
+            <AppBrand Href="@Url(Kind)" Icon="Lucide.Zap" Label="Acme Journal" />
             <Box Grow />
             <HeaderNav Label="Sections" Breakpoint="Breakpoint.Sm">
                 <ChildContent>
@@ -211,10 +205,7 @@
 <AppShell Variant="ShellVariantValue">
     <AppHeader>
         <SidebarToggle />
-        <Row Gap="2" Align="Align.Center">
-            <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
-            <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
-        </Row>
+        <AppBrand Href="@Url(Kind)" Icon="Lucide.Zap" Label="Acme" />
         <Box Grow />
         @if (Kind == "document")
         {
