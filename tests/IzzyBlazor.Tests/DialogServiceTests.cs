@@ -37,6 +37,34 @@ public class DialogServiceTests : BunitContext
     }
 
     [Fact]
+    public async Task Opening_from_other_threads_while_the_host_reads_the_list_is_safe()
+    {
+        // Dialogs opened off the dispatcher (a timer, a hub callback) while the host renders.
+        var service = new DialogService();
+        service.AddHost();
+        var opening = Enumerable.Range(0, 8).Select(n => Task.Run(() =>
+        {
+            for (var i = 0; i < 200; i++)
+            {
+                _ = service.OpenAsync(typeof(Content), "Hi");
+            }
+        })).ToArray();
+
+        var all = Task.WhenAll(opening);
+        while (!all.IsCompleted)
+        {
+            foreach (var entry in service.Open)
+            {
+                Assert.NotNull(entry.Instance);
+            }
+        }
+
+        await Task.WhenAll(opening);
+        Assert.Equal(1600, service.Open.Count);
+        Assert.Equal(1600, service.Open.Select(e => e.Instance.Id).Distinct().Count());
+    }
+
+    [Fact]
     public async Task Opens_a_component_and_returns_what_it_closes_with()
     {
         var service = Setup();
