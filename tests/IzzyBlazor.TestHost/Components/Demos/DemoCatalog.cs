@@ -17,7 +17,7 @@ public static class DemoCatalog
         new("box", "Box", "Layout", typeof(BoxDemo)),
         new("stack", "Stack, Row, Column", "Layout", typeof(StackDemo)),
         new("grid", "Grid, Container and more", "Layout", typeof(GridDemo)),
-        new("typography", "Text and Heading", "Typography", typeof(TypographyDemo)),
+        new("typography", "Text, Heading, List and Prose", "Typography", typeof(TypographyDemo)),
         new("anchor", "Anchor and Code", "Typography", typeof(AnchorDemo)),
         new("buttons", "Button, LinkButton, IconButton", "Actions", typeof(ButtonsDemo)),
         new("forms", "Form and fields", "Forms", typeof(FormsDemo)),
@@ -32,7 +32,7 @@ public static class DemoCatalog
         new("avatar", "Avatar", "Data display", typeof(AvatarDemo)),
         new("card", "Card", "Data display", typeof(CardDemo)),
         new("table", "Table", "Data display", typeof(TableDemo)),
-        new("display", "Stat, DescriptionList, EmptyState, Kbd", "Data display", typeof(DisplayDemo)),
+        new("display", "Stat, DescriptionList, Timeline, EmptyState, Kbd", "Data display", typeof(DisplayDemo)),
         new("icons", "Icon", "Media", typeof(IconsDemo)),
     ];
 
