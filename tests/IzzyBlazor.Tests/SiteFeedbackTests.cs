@@ -122,6 +122,43 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
+    public void Timeline_items_have_a_marker_title_time_and_content()
+    {
+        var cut = Render<Timeline>(p => p.AddChildContent<TimelineItem>(i => i
+            .Add(x => x.Title, "Add Section")
+            .Add(x => x.Href, "/commits/93c85d4")
+            .Add(x => x.Time, "Oct 13")
+            .Add(x => x.DateTime, "2026-10-13")
+            .Add(x => x.Current, true)
+            .AddChildContent("93c85d4")));
+
+        Assert.Equal("ib-timeline", cut.Find("ol").ClassName);
+        var li = cut.Find("li");
+        Assert.Equal("ib-timeline-item ib-timeline-current", li.ClassName);
+        Assert.Equal("true", li.GetAttribute("aria-current"));
+        Assert.Equal("true", li.QuerySelector(".ib-timeline-marker")!.GetAttribute("aria-hidden"));
+        Assert.Equal("/commits/93c85d4", li.QuerySelector("a.ib-timeline-title")!.GetAttribute("href"));
+        Assert.Equal("2026-10-13", li.QuerySelector("time.ib-timeline-time")!.GetAttribute("datetime"));
+        Assert.Equal("93c85d4", li.QuerySelector(".ib-timeline-content")!.TextContent);
+    }
+
+    [Fact]
+    public void Timeline_icon_and_status_change_the_marker()
+    {
+        var li = Render<TimelineItem>(p => p
+            .Add(x => x.Title, "Delivered")
+            .Add(x => x.Time, "Today")
+            .Add(x => x.Icon, Lucide.PackageCheck)
+            .Add(x => x.Status, Status.Success)).Find("li");
+
+        Assert.Equal("ib-timeline-item ib-timeline-has-icon ib-timeline-success", li.ClassName);
+        Assert.NotNull(li.QuerySelector(".ib-timeline-marker svg"));
+        Assert.Equal("span", li.QuerySelector(".ib-timeline-title")!.LocalName);
+        Assert.Equal("span", li.QuerySelector(".ib-timeline-time")!.LocalName);
+        Assert.Null(li.GetAttribute("aria-current"));
+    }
+
+    [Fact]
     public void Heading_with_MinSize_is_fluid()
     {
         var h1 = Render<Heading>(p => p
