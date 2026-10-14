@@ -267,6 +267,29 @@
     color: var(--ib-shell-footer-fg, var(--ib-color-on-surface));
   }
 
+  /*
+   * ContentWidth: the header, main area and footer center their content at --ib-shell-content-w
+   * by widening their side padding to half the leftover width, never less than the page gutter
+   * (or the safe area). The bars, backgrounds and lines stay full width, and the header's
+   * children stay in its row. Percentages in padding are of the part's grid area, so a sidebar
+   * narrows the main column, and the content centers in what's left. --ib-shell-measure-offset
+   * is what sits between the grid area and the padding (Inset's gap and the panel's border), so
+   * the content still lines up with the bars. Rounded down, so content edges land on whole
+   * pixels (where round() is supported).
+   */
+  .ib-shell-measured > :is(.ib-shell-header, .ib-shell-main, .ib-shell-footer),
+  :is(.ib-shell-header, .ib-shell-main, .ib-shell-footer).ib-shell-part-measured {
+    --ib-shell-measure-pad: calc((100% - var(--ib-shell-content-w)) / 2 - var(--ib-shell-measure-offset, 0px));
+    padding-inline-start: max(var(--ib-space-4), env(safe-area-inset-left, 0px), var(--ib-shell-measure-pad));
+    padding-inline-start: max(var(--ib-space-4), env(safe-area-inset-left, 0px), round(down, var(--ib-shell-measure-pad), 1px));
+    padding-inline-end: max(var(--ib-space-4), env(safe-area-inset-right, 0px), var(--ib-shell-measure-pad));
+    padding-inline-end: max(var(--ib-space-4), env(safe-area-inset-right, 0px), round(down, var(--ib-shell-measure-pad), 1px));
+  }
+
+  .ib-shell-inset > .ib-shell-main {
+    --ib-shell-measure-offset: calc(var(--ib-shell-inset-gap) + 1px);
+  }
+
   /* The sidebar keeps --ib-shell-footer-h of room for a sticky footer; set it if yours is taller. */
   .ib-shell-scroll-page > .ib-shell-footer-sticky {
     position: sticky;
