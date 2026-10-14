@@ -340,10 +340,20 @@
     display: none;
   }
 
+  /* The line under them is inset like NavDivider, so it matches the sidebar's own dividers. */
   .ib-shell-sidebar-links {
+    position: relative;
     margin-block-end: var(--ib-space-2);
     padding-block-end: var(--ib-space-2);
-    border-block-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  .ib-shell-sidebar-links::after {
+    content: "";
+    position: absolute;
+    inset-inline: var(--ib-space-3);
+    inset-block-end: 0;
+    height: 1px;
+    background-color: var(--ib-shell-divider, var(--ib-color-border));
   }
 
   @media (width >= 640px) {
