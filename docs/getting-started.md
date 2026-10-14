@@ -29,14 +29,20 @@ enhanced navigation and form handling, and on Interactive Server, WebAssembly an
    components into `.razor` files only, so names such as `Table` and `Column` don't meet EF Core's
    `[Table]` and `[Column]` attributes in your entity classes.
 
-4. Register the services in `Program.cs`, and put `<ToastRegion />` in your layout if you use toasts:
+4. Register the services in `Program.cs`:
 
    ```csharp
    builder.Services.AddIzzyBlazor();
    ```
 
-   This enables toasts, toasts that survive a redirect, and AppSidebar's remembered collapsed state.
-   Other components need no registration.
+   This adds `ToastService` and `DialogService`, carries toasts over a redirect, and lets the server
+   read IzzyBlazor's cookies (through `IRequestCookies`): AppSidebar's collapsed state, a dismissed
+   `Banner` with a `RememberKey`, and the scheme chosen with `ColorSchemeSwitch`, which `IzzyTheme`
+   applies. Other components need no registration.
+
+   If you use toasts, put `<ToastRegion />` in your layout. If you open dialogs from code with
+   `DialogService`, put one `<DialogHost />` on the interactive page or layout (see
+   [Overlays](components.md#overlays)).
 
 5. Map IzzyBlazor's endpoints after your components, for `ColorSchemeSwitch` with JavaScript off:
 
@@ -55,6 +61,12 @@ yours with the same name, such as your own `Status` enum, the compiler reports a
 reference; qualify one of them (`IzzyBlazor.Status.Success`) or add an alias in `_Imports.razor`
 (`@using Status = IzzyBlazor.Status`).
 
+## Other languages
+
+Components label their buttons and announce states in English. To change that app-wide, register an
+`IzzyText` with your strings, or a subclass that reads your resources (see
+[Text and other languages](components.md#text-and-other-languages)).
+
 ## Packages
 
 IzzyBlazor ships as two packages:
@@ -72,7 +84,8 @@ which can't reference the server framework. Reference `IzzyBlazor.Core` there an
 and `AddIzzyBlazor()`.
 
 In the browser, toasts are added straight away (there's no redirect to carry them over), and
-AppSidebar's remembered state arrives from the prerender through persisted state.
+AppSidebar's remembered state and ColorSchemeSwitch's choice arrive from the prerender through
+persisted state.
 
 ## Forms on static pages
 

@@ -14,8 +14,9 @@ Closed sets are enums with IntelliSense, so mistakes fail at compile time:
 
 ## Spacing
 
-Spacing is an `int` step from the scale: `Padding="4"`, from 0 to 16, where one step is 4px. Margins
-go from -16 to 16.
+Spacing is an `int` step from the scale: `Padding="4"`, from 0 to 16. Steps 0 to 12 go up 4px at a
+time (0 to 48px); 13 to 16 are 56, 64, 80 and 96px. The steps are the `--ib-space-*` tokens. Margins
+go from -16 to 16, where a negative step pulls the element outward.
 
 - `PaddingX` and `PaddingY` override one axis.
 - `PaddingTop`, `PaddingBottom`, `PaddingStart` and `PaddingEnd` override one side. Start and End
@@ -24,9 +25,9 @@ go from -16 to 16.
 
 A side beats its axis, which beats the all-sides value, at every breakpoint.
 
-Layout and surface components (Box, Stack, Grid, Card, the App layout parts and the typography
-components) take these props. Controls such as fields and buttons don't: space them with the layout
-around them (`Stack Gap`, `Row Gap`).
+`Box` and the components built on it (Stack, Row, Grid, Section, Card, the typography components and
+the like) take these props. The App layout parts take `Bg` and `Scheme` only, and controls such as
+fields and buttons take none: space them with the layout around them (`Stack Gap`, `Row Gap`).
 
 ## Responsive values
 
@@ -48,6 +49,11 @@ gap, spacing, columns, sizes, alignment, visibility) take a breakpoint map; on/o
 `Shrink`, `Wrap`, `Inline`, `Stretch` and the rest) are plain booleans, so they can be written bare:
 `<Box Grow>`, `<Row Wrap>`. Razor only allows the bare form for plain booleans.
 
+Text can be fluid instead of stepped: `MinSize` on `TextBlock` and `Heading` makes the text
+`MinSize` on a 360px screen, growing smoothly to `Size` at 1280px
+(`<Heading Size="TextSize.Xl5" MinSize="TextSize.Xl3">`). See
+[Typography](components.md#typography-links-and-code).
+
 ## Text color
 
 Text uses `Color.OnSurface` by default.
@@ -67,7 +73,7 @@ Actions get three colors: `Accent.Primary`, `Neutral` and `Danger`. Emphasis com
 Feedback (badges, alerts and toasts) uses `Status`: `Neutral`, `Info`, `Success`, `Warning`, `Danger`.
 
 For anything else, pass a `Color`: `<Button Color='Color.Of("#0f766e")'>` or
-`Color='Color.Token("brand")'`. Text on it is picked for contrast: the token's `on-` partner, or black
+`Color='Color.Token("brand")'`. Text on it is picked for contrast: the token's `on-` partner, or near-black
 or white for a hex color.
 
 ## Looks and colors
@@ -94,7 +100,8 @@ brand color.
 A look's accent, gray and radius are only its defaults: `Accent`, `Gray` and `Radius` beat them,
 and `Primary` beats `Accent`.
 
-`IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for `Primary`), so
+`IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for `Primary`, the
+fonts and `HeadingWeight`), so
 it's in place on first paint, needs no script and works in every render mode. The same choices
 work as attributes, on `<html>` or on any element to restyle part of a page:
 
@@ -108,6 +115,7 @@ work as attributes, on `<html>` or on any element to restyle part of a page:
 | `Accent` / `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose` |
 | `Gray` / `data-ib-gray` | `neutral` (default), `stone` (warm paper; pairs with serif headings), `slate` (cool) |
 | `Radius` / `data-ib-radius` | `sm`, `md` (default), `lg` |
+| `Density` / `data-ib-density` | `compact` (32px), `standard` (36px, default), `comfortable` (40px) |
 
 **Your brand color.** `Primary` makes it the accent:
 
@@ -149,10 +157,12 @@ under the SIL Open Font License):
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
 ```
 
-Or set your own with `IzzyTheme`'s `Font`, `HeadingFont`, `MonoFont` and `HeadingWeight` (below).
+Code, `Kbd` and the color picker's hex box use `--ib-font-mono`, the system's monospace font. Set
+your own with `IzzyTheme`'s `Font`, `HeadingFont`, `MonoFont` and `HeadingWeight` (below).
 
 **The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
-tables, fields, bars and menus are `--ib-color-surface`. For a white page, set
+tables, fields and bars are `--ib-color-surface`. Menus, popovers, dialogs and toasts float on
+`--ib-color-surface-raised`, a step lighter than cards in dark mode. For a white page, set
 `--ib-color-background` to the surface color.
 
 Raised things are lighter than what they sit on; recessed things are darker:
@@ -160,13 +170,17 @@ Raised things are lighter than what they sit on; recessed things are darker:
 | Layer | Token | Use |
 |---|---|---|
 | Page | `background` | The page behind everything |
-| Raised | `surface` (with a `border`) | Cards, panels, tables, bars, menus: anything that sits on the page |
+| Raised | `surface` (with a `border`) | Cards, panels, tables, bars: anything that sits on the page |
+| Floating | `surface-raised` | Menus, popovers, dialogs, toasts |
 | Recessed | `surface-container-low` | Large quiet fills inside a surface: a filled card, a panel |
 | | `surface-container` | Small fills that must show: table heads, code, wells, tracks |
 | | `surface-container-high` | Selected and pressed fills, chips |
 
 A container fill placed directly on the page reads as a hole, not a card; put a surface between
 them. (In dark mode the page is the darkest layer and fills step lighter, so the same rule holds.)
+
+`AppShell`'s `Variant` decides which parts of the frame take the page tint: `Tinted` (the default,
+the sidebar), `Inset`, `Flat` or `Canvas`. See [App layout](components.md#app-layout).
 
 ## Customizing
 
@@ -207,12 +221,14 @@ layers, so a plain rule wins:
 
 | Group | Variables |
 | --- | --- |
-| Colors | `--ib-color-background`, `-surface`, `-surface-raised`, `-surface-container-low`, `-surface-container`, `-surface-container-high`, `-border`, `-outline`, `-on-surface`, `-muted`, `-subtle`, `-focus`; the accent's four (`-primary`, `-on-primary`, `-primary-text`, `-primary-soft`); status (`-success`, `-warning`, `-danger`, `-info`, each with `-text` and `-soft`) |
+| Colors | `--ib-color-background`, `-surface`, `-surface-raised`, `-surface-container-low`, `-surface-container`, `-surface-container-high`, `-border`, `-outline`, `-on-surface`, `-muted`, `-subtle`, `-disabled`, `-focus`; the accent's four (`-primary`, `-on-primary`, `-primary-text`, `-primary-soft`); status (`-success`, `-warning`, `-danger`, `-info`, each with `-text` and `-soft`) |
 | Shape | `--ib-radius-sm`, `-md`, `-lg`, `-xl` |
 | Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-*` |
 | Type | `--ib-font-sans`, `--ib-font-heading`, `--ib-font-mono`, `--ib-weight-heading`, the size scale `--ib-text-*` |
 | Depth | `--ib-shadow-xs` (under cards), `-sm`, `-md`, `-lg` |
 | Motion | `--ib-duration-fast`, `--ib-duration-normal`, `--ib-ease` |
+| Code | `--ib-code-comment`, `-keyword`, `-string`, `-number`, `-type`, `-function`, `-tag`, `-attr`, `-meta` (syntax colors, each at least 4.5:1 on the code block) |
+| Scrollbars | `--ib-color-scrollbar`, `--ib-color-scrollbar-hover` (the thumb; see [Scrollbars](components.md#scrollbars)) |
 
 Colors are `light-dark(light, dark)` pairs, so one declaration covers both schemes; keep text at
 4.5:1 on what it sits on. Keep sizes whole pixels. Status colors are tuned for contrast against
@@ -254,14 +270,15 @@ Your own colors work the same way: define `--ib-color-brand` (and `--ib-color-on
 `light-dark()`, then use `Color.Token("brand")`.
 
 Dark mode follows the system unless the page chooses: `IzzyTheme`'s `Scheme` sets the app's default
-(`ColorScheme.Light`, `Dark` or `System`), a `ColorSchemeSwitch` lets the user choose (kept in the
-`ib-scheme` cookie, which `IzzyTheme` reads on the server, so pages arrive in the chosen scheme with
-no flash), and `<html data-theme="light|dark">` still works. Browsers without `light-dark()` (before
+(`ColorScheme.Light`, `Dark` or `System`), a [`ColorSchemeSwitch`](components.md#colorschemeswitch)
+lets the user choose (kept in the `ib-scheme` cookie, which `IzzyTheme` reads on the server with
+`AddIzzyBlazor()`, so pages arrive in the chosen scheme with no flash), and `<html data-theme="light|dark">` still works. Browsers without `light-dark()` (before
 2024) get the light colors everywhere.
 
 ## A color scheme for part of a page
 
-`Scheme` on `Box` and on the App layout parts gives that part its own scheme:
+`Scheme` on `Box` (and everything built on it, such as `Stack` and `Card`) and on the App layout
+parts gives that part its own scheme:
 
 - `Scheme.Dark` for a dark sidebar or header in a light app,
 - `Scheme.Light`,
@@ -270,8 +287,8 @@ no flash), and `<html data-theme="light|dark">` still works. Browsers without `l
 
 Every token switches inside it, so text, links, buttons, badges, fields, focus rings and menus opened
 from it keep their contrast. `Bg` still applies on top (`Bg="Color.SurfaceContainer"` is the scheme's
-container shade). Outside components, `data-theme="dark|light"` or the `ib-scheme-*` classes do the
-same on any element.
+container shade). Outside components, `data-theme="dark|light"` or the `ib-scheme-dark`, `ib-scheme-light` and
+`ib-scheme-inverse` classes do the same on any element.
 
 ## Escape hatches
 
@@ -295,4 +312,5 @@ Each value becomes a modifier class plus a custom property:
 ```
 
 All CSS sits in cascade layers (`izzy.tokens`, `izzy.base`, `izzy.components`, `izzy.utilities`), so
-your own CSS always wins without needing more specific selectors.
+your own CSS always wins without needing more specific selectors. Style props are in
+`izzy.utilities`, so they beat a component's own styles.

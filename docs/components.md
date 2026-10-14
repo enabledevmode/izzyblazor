@@ -14,13 +14,25 @@ modes (see [Contributing](../CONTRIBUTING.md)).
 - [Overlays](#overlays)
 - [Tabs](#tabs)
 - [Breadcrumb and Pagination](#breadcrumb-and-pagination)
+- [Stepper](#stepper)
 - [Alerts and toasts](#alerts-and-toasts)
 - [Banner](#banner)
+- [Badge](#badge)
+- [Tag](#tag)
 - [Loading: Spinner, Progress, Skeleton](#loading-spinner-progress-skeleton)
 - [Avatar](#avatar)
 - [Card](#card)
+- [Stat](#stat)
+- [DescriptionList](#descriptionlist)
+- [EmptyState](#emptystate)
+- [Image and VideoEmbed](#image-and-videoembed)
+- [Timeline](#timeline)
+- [Kbd](#kbd)
 - [Table](#table)
 - [Filtering](#filtering)
+- [ColorSchemeSwitch](#colorschemeswitch)
+- [Scrollbars](#scrollbars)
+- [Text and other languages](#text-and-other-languages)
 - [Open state from C#](#open-state-from-c)
 
 ## Layout
@@ -83,7 +95,7 @@ have sanitized.
 `External` opens a new tab with an icon and a note for screen readers. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
 
 `Code` is inline, or a `Block` that scrolls sideways with an optional `Language` label. Its copy
-button appears only when JavaScript runs.
+button appears only when JavaScript runs (`Copyable="false"` leaves it out).
 
 **Syntax highlighting.** When the `Language` is one the built-in highlighter knows, the code is colored
 on the server, so it works with JavaScript off and never flashes plain first. It knows C# (`csharp`,
@@ -106,6 +118,8 @@ static pages, and it follows the text color (`currentColor`) and size (`em`).
 - All 1,877 Lucide icons are bundled as a typed `Lucide` class with IntelliSense. Browse them at
   https://lucide.dev/icons or on the dev host's Icon page.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
+- `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
+  thins or thickens a stroked icon, and `Spin` rotates it.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
 - Lucide has no brand logos, so a small `Brands` class carries some from Simple Icons (CC0): `GitHub`,
@@ -131,17 +145,21 @@ public static class MyIcons
 ## Buttons
 
 - `Button` is a native `button`.
-- `LinkButton` is an `a`, for navigation.
+- `LinkButton` is an `a`, for navigation. `External` opens a new tab.
 - `IconButton` shows only an icon. Its required `Label` becomes the accessible name and tooltip.
+  With `Href` it's a link.
 
 They share:
 
-- `Accent` (`Primary`, `Neutral`, `Danger`) and `Variant` (`Solid`, `Soft`, `Outline`, `Ghost`, `Link`),
+- `Accent` (`Primary` by default, `Neutral`, `Danger`) and `Variant` (`Solid` by default, `Soft`,
+  `Outline`, `Ghost`, `Link`), or a custom `Color` in place of the accent,
 - `Size` (`ControlSize`, shared with form fields),
-- `StartIcon`/`EndIcon`, `Loading`, `Disabled` and `FullWidth`.
+- `StartIcon`/`EndIcon`, `Loading` (with `LoadingLabel`), `Disabled` and `FullWidth`.
 
-On static pages buttons submit forms like plain HTML, including `Name`/`Value` to tell several submit
-buttons apart. `OnClick` runs C# on interactive pages.
+A `Button`'s `Type` is `ButtonType.Button` by default, which does nothing by itself; set
+`Type="ButtonType.Submit"` to submit a form. On static pages a submit button posts like plain HTML,
+including `Name`/`Value` to tell several submit buttons apart, and `Form` and `FormAction` work as
+the native attributes do. `OnClick` runs C# on interactive pages.
 
 **ButtonGroup.** Related buttons joined into one control, with `role="group"` and a `Label` for
 screen readers. Its `Accent`, `Variant` and `Size` become the defaults for the buttons inside; a
@@ -165,14 +183,35 @@ JavaScript off), with enhanced handling when scripts run, and with live validati
 pages. Pair it with `[SupplyParameterFromForm(FormName = "...")]` on the model property; see
 [Getting started](getting-started.md#forms-on-static-pages).
 
-Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `ColorPicker`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
+Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `ColorPicker`, `Select`, `Combobox`,
+`Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup`, `MultiSelect`):
 
 - take their label, required marker, input type and length limits from the model's DataAnnotations,
 - wire up `aria-describedby` and `aria-invalid`,
 - show their own errors.
 
-`HideLabel` keeps a field's label for screen readers but doesn't show it, as in a one-field newsletter
-form or a toolbar. (Checkboxes and switches show their label beside the box.)
+Every field also takes `Hint` (help text under it, linked for screen readers), `Required`,
+`Disabled`, `ReadOnly` and `Size`. `HideLabel` keeps a field's label for screen readers but doesn't
+show it, as in a one-field newsletter form or a toolbar. (Checkboxes and switches show their label
+beside the box.)
+
+On the `Form`, `Layout="FormLayout.Horizontal"` puts labels in a column to the left of the fields
+from 640px up, and `Gap` spaces the fields (5 by default). `NativeValidation` (on by default) lets the
+browser check required fields and lengths before posting, `Enhance` (on by default) uses Blazor's
+enhanced form handling, and `Validator` replaces the DataAnnotations validator.
+
+- `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
+- `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
+  following"). After a failed submit it takes focus, with JavaScript off too, so keyboard and screen
+  reader users start from the list of problems.
+- `FieldError For="() => Model.Email"` shows one property's messages, for your own inputs.
+  IzzyBlazor fields show their own.
+
+**TextField and TextArea.** `TextField`'s `Type` (`Text`, `Email`, `Password`, `Search`, `Tel`, `Url`)
+comes from `[EmailAddress]`, `[Phone]`, `[Url]` or `[DataType(DataType.Password)]` when not set. It
+takes `StartIcon`, `EndIcon` and `AutoComplete`; a password field gets a show/hide button once
+scripts run (`Reveal`, on by default). `TextArea` shows 4 `Rows` by default; `AutoGrow` grows it
+with the text where the browser supports `field-sizing`, and `ShowCount` shows "n / max" under it.
 
 `Select` and `RadioGroup` list enum values automatically, using `[Display(Name)]`.
 
@@ -341,7 +380,7 @@ each take their own `ContentWidth` to override it, for a wider header over a nar
 
 With a sidebar, the main area centers in its own column but the header spans the window, so set
 `ContentWidth` on `AppMain` alone. The main area puts its content in a centered column, and a
-`Section` inside it spans the whole main area (see below).
+`Section` inside it spans the whole main area (see [Layout](#layout)).
 
 **The drawer.** Below its breakpoint the sidebar becomes a drawer opened by `SidebarToggle`. It works
 with JavaScript off (a link to the sidebar and CSS `:target`); with JavaScript it also closes on
@@ -403,8 +442,26 @@ there. Its row then matches `AppHeader`'s height, with a line that continues the
   sidebar, and `Header`/`Footer` content stacks and centers. Mark text with the `ib-collapsed-hide`
   class (or `ib-collapsed-show` for rail-only content).
 
-**Navigation.** `NavMenu` items work out their active state on the server. `NavGroup` is built on
-`details` and opens for its `ActivePrefix` or when it holds the current page.
+**Navigation.** `NavMenu` is a list of links, vertical by default (`Orientation.Horizontal` for a
+header). `NavItem`s work out their active state on the server: `Match` is `Prefix` by default, so
+pages below the link count too (`NavLinkMatch.All` for an exact match; a root link always needs
+one). An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeColor`). `NavLabel` is a small
+heading and `NavDivider` a line. `NavGroup` is a collapsible group with a `Label` and `Icon`, built
+on `details`: it starts open with `Open` or when the current page is under its `ActivePrefix`, and
+with JavaScript any group holding the current page opens itself.
+
+```razor
+<NavMenu>
+    <NavLabel>Workspace</NavLabel>
+    <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Home</NavItem>
+    <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="/projects">
+        <NavItem Href="/projects/active">Active</NavItem>
+    </NavGroup>
+</NavMenu>
+```
+
+`SidebarToggle` opens the sidebar whose id is its `For` (`ib-sidebar` by default, the sidebar's
+default `Id`), so a page with two sidebars gives each its own `Id` and toggle.
 
 ## Disclosure
 
@@ -412,10 +469,27 @@ there. Its row then matches `AppHeader`'s height, with a line that continues the
 `details`, so they open and close with JavaScript off. `Exclusive` uses the shared `name` attribute to
 keep one item open, and heights animate with no script where the browser supports it.
 
+- `Accordion`: `Variant` (`Separated` cards by default, `Bordered` one box, `Flush` lines only),
+  `Size` (`Lg` for FAQ pages), and `ContentPadding`/`ContentGap` for every item's content (`0`
+  padding lets a table run edge to edge). `Name` groups several accordions as one exclusive set.
+- `AccordionItem`: `Title` (or `Header` for inline markup), `Icon`, `Disabled`, `Open`, and its own
+  `ContentPadding`/`ContentGap`.
+- `Collapsible`: a `Label` after a chevron, or your own `Trigger` content.
+
 ## Overlays
 
 `Menu`, `Popover` and `Tooltip` use the Popover API and CSS anchor positioning. They open, close on
-Escape and click-outside, and sit next to their trigger with no script.
+Escape and click-outside, and sit next to their trigger with no script. `Placement` puts them
+below, above or beside the trigger (`BottomStart` by default, `Top` for tooltips).
+
+- `Menu` and `Popover` render a button from `Label`, `StartIcon`, `Accent` (`Neutral`), `Variant`
+  (`Outline`) and `Size`, or take your own `Trigger`.
+- `Popover` is non-modal content with `role="dialog"`, such as filters or a small form. `Title` adds
+  a heading; `Mode="PopoverMode.Manual"` keeps it open until its trigger or close button closes it
+  (`ShowCloseButton`).
+- `Tooltip` wraps its trigger and shows `Text` (or `Content`) on hover and keyboard focus, after
+  `Delay` (300ms). With JavaScript off it's pure CSS. Keep essential content out of tooltips: touch
+  screens can't hover.
 
 `Dialog` is a native modal `dialog`, opened by `DialogTrigger`, by a link with `?dialog=id` (rendered
 open on the server), or from C#. Close buttons submit a `method="dialog"` form, so closing works
@@ -427,6 +501,21 @@ script reopens the dialog and focuses the first field with an error. On interact
 script leaves the dialog open after a submit; close it from your submit handler (with
 `@bind-Open`) when the save succeeds. With JavaScript off, a dialog
 opened with `?dialog=id` posts to the same address, so the server renders it open again.
+
+A `Dialog` has a `Title` (or `Header`), content and a `Footer`; `DialogClose` is a button that
+closes it. `Size` is `Sm` (24rem), `Md` (32rem, the default), `Lg`, `Xl` or `Full`.
+`CloseOnBackdrop` and `ShowCloseButton` are on by default. `QueryKey` changes the `?dialog=` key.
+
+```razor
+<DialogTrigger For="confirm-delete" Accent="Accent.Danger">Delete</DialogTrigger>
+<Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm">
+    <ChildContent>This can't be undone.</ChildContent>
+    <Footer>
+        <DialogClose>Cancel</DialogClose>
+        <Button Type="ButtonType.Submit" Form="delete-form" Accent="Accent.Danger">Delete</Button>
+    </Footer>
+</Dialog>
+```
 
 `Drawer` is a `Dialog` that slides in from an edge: the end side by default, or `Placement` `Start`,
 `Top` or `Bottom` (a sheet along the bottom suits phones). It opens and closes the same ways and
@@ -468,7 +557,10 @@ project?"), an optional `Message` or `Body`, Cancel (focused first) and a confir
 
 The backdrop doesn't close it; Escape and Cancel do.
 
-Menu items are links, form posts or C# actions. Menu roles (`menu`, `menuitem`) promise arrow keys,
+Menu items are links (`Href`), form posts (`Type="ButtonType.Submit"`, with `FormAction`, `Name`
+and `Value`) or C# actions (`OnClick`). An item takes an `Icon`, a `Shortcut` shown at the end,
+`Accent.Danger` for a destructive action, and `Disabled`. `MenuGroup` gives a few items a heading
+and `MenuDivider` draws a line. Menu roles (`menu`, `menuitem`) promise arrow keys,
 so they come with the script: with JavaScript off the items are plain links and buttons, a checked
 one marked pressed or current. A `Popover` opened by the user takes focus (its `[autofocus]`
 element, or the panel), and closing returns focus to the trigger.
@@ -511,7 +603,8 @@ Each tab is a label around a radio button, and CSS shows its panel. With JavaScr
 instantly, arrow keys work, and form input in other panels is kept. With JavaScript the list becomes
 proper ARIA tabs (roving focus, Home/End).
 
-- `QueryKey="tab"` keeps the tab in the URL (`?tab=billing` opens Billing).
+- `QueryKey="tab"` keeps the tab in the URL (`?tab=billing` opens Billing). A tab's `Value` defaults
+  to its label in lower case with dashes (`billing-history`).
 - `@bind-Selected` follows it on interactive pages.
 - `Variant` (`Line`, `Soft`, `Segmented`), `Size` and `FullWidth`; each `Tab` takes a `Label`, `Icon`, `Badge` and `Disabled`.
 - `Orientation="Orientation.Vertical"` puts the tabs in a column beside the panels from 640px up,
@@ -532,9 +625,15 @@ A `Tabs` holds either `Tab`s or `TabLink`s, not both.
 
 ## Breadcrumb and Pagination
 
-Plain links. `Pagination` reads and writes `?page=` (page 1 leaves it out, and other parameters are
-kept), so the page reads it with `[SupplyParameterFromQuery]` and paging works with no script. On
-phones it shows only the neighbours and the ends. With `@bind-Page` on an interactive page, the pages
+Plain links, so neither needs script. `Breadcrumb` holds `BreadcrumbItem`s; the last one, with no
+`Href`, is the current page. `Separator` is `Chevron` (the default, mirrored in right-to-left
+languages) or `Slash`.
+
+`Pagination` takes `PageCount`, or `TotalItems` with `PageSize` (20 by default). It reads and writes
+`?page=` (`QueryKey`; page 1 leaves it out, and other parameters are kept), so the page reads it with
+`[SupplyParameterFromQuery]` and paging works with no script. `Siblings` and `Boundaries` (1 each)
+set how many numbers show around the current page and at the ends. On phones it shows only the
+neighbours and the ends. With `@bind-Page` on an interactive page, the pages
 become buttons that update C# without touching the URL.
 
 ## Stepper
@@ -548,11 +647,16 @@ the markers. Nothing needs script: drive `Current` from the URL or the form post
 
 ## Alerts and toasts
 
-`Alert` takes a `Status`, `Variant` (`Soft`, `Outline`, `Solid`), `Title`, `Actions` and
-`Dismissible`: a close button that works with JavaScript off, with `@bind-Dismissed` on interactive
-pages. Danger and warning alerts are announced right away.
+`Alert` takes a `Status` (`Info` by default), `Variant` (`Soft` by default, `Outline`, `Solid`),
+`Title`, `Actions`, `Icon` or `HideIcon`, and `Dismissible`: a close button that works with
+JavaScript off, with `@bind-Dismissed` on interactive pages. Danger and warning alerts are
+`role="alert"`, announced right away; the rest are `role="status"`. The status is read before the
+message (`StatusLabel`), since the icon and color carry it only visually.
 
-Toasts come from `ToastService` (`Toasts.Success("Saved")`) in any render mode:
+Toasts appear in a `<ToastRegion />`, placed once in the layout: `Placement` (`BottomEnd` by
+default, or `TopStart`, `TopCenter`, `TopEnd`, `BottomStart`, `BottomCenter`), `Duration` (5000ms)
+and `Variant` (`Outline`). They come from `ToastService` (`Toasts.Success("Saved")`, also `Info`,
+`Warning`, `Error` and `Show`) in any render mode:
 
 - **A static form post** renders them in the response.
 - **A redirect** carries them to the next page in a short-lived cookie.
@@ -620,6 +724,19 @@ warning. Use `Alert` for a message about part of a page.
   it. It isn't announced on its own, since it's there when the page loads; set `Announce` for a
   banner you show in response to something, such as a lost connection.
 
+## Badge
+
+A small label for a status, category or count: `Status` (`Neutral` by default, `Info`, `Success`,
+`Warning`, `Danger`) or a custom `Color`, `Variant` (`Soft` by default, `Solid`, `Outline`) and `Size`
+(`Sm` for counts in navigation, `Md`). `Pill` rounds the ends, for counts; `Dot` adds a colored dot
+before the text, for statuses; `StartIcon` adds an icon.
+
+```razor
+<Badge Status="Status.Success">Published</Badge>
+<Badge Status="Status.Danger" Variant="BadgeVariant.Solid" Pill>3</Badge>
+<Badge Status="Status.Warning" Dot>Pending review</Badge>
+```
+
 ## Tag
 
 A keyword, category or applied filter: larger than a `Badge`, with the same `Status`, `Color` and
@@ -665,9 +782,17 @@ directly inside the group, since `Max` hides the extras by counting its children
 
 ## Card
 
-`Title`, `Description`, `Actions`, `Media`, content and `Footer`, in `Outline`, `Elevated` or
-`Filled`. `Href` makes the whole card a link through its title (one link for screen readers), while
-buttons in it stay clickable.
+`Title` (`TitleLevel` 3 by default), `Description`, `Header`, `Actions`, `Media`, content and
+`Footer`, in `Outline` (the default), `Elevated` or `Filled`. `Size` sets the inner spacing and
+title size. `Href` makes the whole card a link through its title (one link for screen readers, so
+it needs a `Title`), while buttons in it stay clickable.
+
+```razor
+<Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
+    <Actions><IconButton Icon="Lucide.Ellipsis" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
+    <ChildContent>...</ChildContent>
+</Card>
+```
 
 ## Stat
 
@@ -677,6 +802,10 @@ value for screen readers. Up is shown in the success color and down in danger; s
 when down is good, such as for costs or response times. The arrow is hidden from screen readers and
 `TrendLabel` ("Up", "Down", "No change") is read in its place. `Icon` adds a tinted square at the
 end; `Size` scales the text. Put stats in a `Grid`, in `Card`s or not.
+
+```razor
+<Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" />
+```
 
 ## DescriptionList
 
@@ -737,11 +866,22 @@ plus key. Sized in em, so it fits the text around it.
 
 ## Table
 
-Sorts and pages through the URL: headers and page numbers are links that set `?sort=` (`-total` for
-descending) and `?page=`. So tables work with no script, survive reloads and can be shared. On
-interactive pages the links are ordinary navigations and the table follows the URL. With enhanced
-navigation that's no full reload, but the server renders the page again; only an app with a
-client-side router (full interactivity) stays in the browser.
+Sorts and pages through the URL: headers of `Sortable` columns and page numbers are links that set
+`?sort=` (`-total` for descending) and `?page=`. So tables work with no script, survive reloads and
+can be shared. On interactive pages the links are ordinary navigations and the table follows the
+URL. With enhanced navigation that's no full reload, but the server renders the page again; only an
+app with a client-side router (full interactivity) stays in the browser.
+
+```razor
+<Table Items="orders" PageSize="10" Caption="Orders">
+    <PropertyColumn Property="o => o.Customer" Sortable />
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    <TemplateColumn Title="Status"><Badge>@context.Status</Badge></TemplateColumn>
+</Table>
+```
+
+A column's key in the URL is its `SortKey`, the property name in lower case by default. `Caption`
+names the table for screen readers (visually hidden).
 
 **Column filters.** `Filterable` on a column adds a filter. Where it goes is `FilterPlacement`:
 
@@ -789,11 +929,13 @@ is interactive, still use the URL.
 
 - `PropertyColumn` takes its title from the property (or `[Display(Name)]`), right-aligns numbers and
   formats values (`Format="C"`).
-- `TemplateColumn` shows anything and sorts with `SortBy`.
+- `TemplateColumn` shows anything and sorts with `SortBy` (with a `SortKey`).
+- Every column takes `Title`, `Align`, `Width` and `Class`.
 - Pass `Items` (a list, or an EF Core `IQueryable`, sorted and paged by the database) or an
   `ItemsProvider` that loads each page (`request.Apply(query)`).
 - Also: `PageSize`, `InitialSort`, `QueryPrefix` for several tables on a page, `MaxHeight` for a
-  sticky header, `Striped`, `Size`, `RowClass`, `EmptyText`.
+  sticky header, `Striped`, `Size`, `RowClass`, `EmptyText` (or `EmptyContent`). Without a
+  `PageSize` or `PageSizeOptions` every item shows on one page.
 - Page size: `PageSizeOptions="new[] { 10, 25, 50 }"` adds a "Rows per page" menu to the footer.
   Each size is a link (`?size=25`, only listed sizes are accepted from the URL), so it works with
   no script, and the new page is the one holding the first row you were looking at.
@@ -804,7 +946,7 @@ is interactive, still use the URL.
 **Selection.** `Selectable` adds a checkbox to each row, valued with the row's `ItemKey`.
 
 - **No JavaScript:** inside a form, the checked rows post their keys under `SelectionName`
-  (`"selected"` by default); read them with `[SupplyParameterFromForm]`. Checked rows are tinted.
+  (`"selected"` by default, after any `QueryPrefix`); read them with `[SupplyParameterFromForm]`. Checked rows are tinted.
 - **With JavaScript:** a header checkbox selects every row on the page, and shows when only some are.
 - **Interactive pages:** `@bind-SelectedKeys` follows the checkboxes.
 
@@ -829,8 +971,17 @@ search-and-filter bar whose values go in the URL (`?q=ada&status=Paid`), read wi
 - **With JavaScript:** it applies as you type and on every change, without a reload, keeping focus.
 - **Interactive pages:** it navigates through Blazor.
 
-Fields: `FilterSearch` (`?q=`), `FilterSelect` (`Values` or an enum) and `FilterCheckbox`. List your
-own inputs' names in `Fields`.
+Fields: `FilterSearch` (`?q=`), `FilterSelect` (`Items`, or an enum with `EnumType`, with an "All"
+option first) and `FilterCheckbox` (`name=true` when checked). Each takes a `Name` (its query key)
+and a `Label`, kept for screen readers but not shown. List your own inputs' names in `Fields`.
+`Live="false"` keeps an Apply button instead of applying as you type.
+
+```razor
+<FilterForm>
+    <FilterSearch Placeholder="Search customers" />
+    <FilterSelect Name="status" Label="Status" EnumType="typeof(OrderStatus)" />
+</FilterForm>
+```
 
 ## ColorSchemeSwitch
 
@@ -849,10 +1000,12 @@ Lets the user pick System, Light or Dark. Three looks:
 ```
 
 The icon is worked out in CSS from the page's actual scheme, so it's right even when the device
-decides. `Size` matches the buttons around it.
+decides. `Size` matches the buttons around it. `@bind-Value` is a `ColorScheme` (`System`, `Light`,
+`Dark`).
 
 The choice is kept in the `ib-scheme` cookie. Put `IzzyTheme` in `<head>` so the server applies it
-before the first paint. With JavaScript the switch is instant and other open tabs follow; with it
+before the first paint. (`IzzyTheme` also declares the app's look, accent, fonts and default
+`Scheme`; see [Styling](styling.md).) With JavaScript the switch is instant and other open tabs follow; with it
 off, each option is a link to `/_izzy/scheme`, which `app.MapIzzyBlazor()` adds: it saves the
 cookie and redirects back to the page.
 
@@ -891,6 +1044,7 @@ Validation messages come from your model's DataAnnotations, not from here.
 
 ## Open state from C#
 
-Disclosures and overlays take `@bind-Open`. The browser always does the opening and closing; on
+`AccordionItem`, `Collapsible`, `Menu`, `Popover`, `Dialog` and `Drawer` take `Open` (the starting
+state) and `@bind-Open`. The browser always does the opening and closing; on
 interactive pages an `ibtoggle` event reports changes back, and setting `Open` from C# opens or closes
 the element.

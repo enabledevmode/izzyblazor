@@ -13,15 +13,15 @@ All text is outlined, so the SVGs need no fonts installed.
 | `logo/` | `izzyblazor-monogram-tile.svg` | Monogram on a plain ink tile, for avatars and app icons. |
 | `logo/` | `izzyblazor-monogram-mono-{ink,white}.svg`, `izzyblazor-knob.svg` | One-color monogram, and the glowing knob on its own (the dot from the wordmark). |
 | `logo/png/` | PNG exports of the above | For tools that don't take SVG. |
-| `favicon/` | `favicon.ico`, `favicon.svg`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `icon-512-maskable.png`, `site.webmanifest`, `head-snippet.html` | Drop into `wwwroot/` and paste the snippet into `<head>`. In `favicon.svg` the i switches between ink and paper with the browser's light or dark theme. |
+| `favicon/` | `favicon.ico`, `favicon.svg`, `favicon-{16,32,48}.png`, `apple-touch-icon.png`, `icon-192.png`, `icon-512.png`, `icon-512-maskable.png`, `site.webmanifest`, `head-snippet.html` | Drop into `wwwroot/` and paste the snippet into `<head>`. In `favicon.svg` the i switches between ink and paper with the browser's light or dark theme. |
 | `github/` | `avatar-500.png` | GitHub org or repo avatar. The letters stay inside the circle GitHub crops to. |
-| `github/` | `social-preview.png` (1280×640) | Repo Settings → Social preview. |
+| `github/` | `social-preview.{svg,png}` (1280×640) | Repo Settings → Social preview. |
 | `github/` | `readme-banner-{light,dark}.{svg,png}` | Top of the README (see snippet below). Transparent background. |
-| `social/` | `og-image.png` (1200×630) | Open Graph / X card image for the docs site. |
-| `social/` | `banner-1500x500.png` | X and LinkedIn header. |
+| `social/` | `og-image.{svg,png}` (1200×630) | Open Graph / X card image for the docs site. |
+| `social/` | `banner-1500x500.{svg,png}` | X and LinkedIn header. |
 | `hero/` | `hero-dark.{svg,png}` (1600×800, PNG at 2x) | Docs landing page, video intros, slides. |
 | `nuget/` | `icon.png` (128×128) | `<PackageIcon>` in the .csproj. |
-| `badges/` | `mode-{off,static,live}-{light,dark}.{svg,png}` | The Off · Static · Live mode badge for demos and thumbnails. |
+| `badges/` | `mode-{off,static,live}-{light,dark}.svg`, PNGs in `png/` | The Off · Static · Live mode badge for demos and thumbnails. |
 
 ## README header
 

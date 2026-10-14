@@ -4,7 +4,7 @@ IzzyBlazor bundles the following third-party material.
 
 ## Lucide
 
-Icons from Lucide (https://lucide.dev), via the `lucide-static` package, generated into the `IzzyBlazor.Lucide` class.
+Icons from Lucide (https://lucide.dev), via the `lucide-static` package (1.55.0), generated into the `IzzyBlazor.Lucide` class.
 
 ```
 ISC License
@@ -55,6 +55,6 @@ SOFTWARE.
 
 ## Simple Icons
 
-Brand logos in the `IzzyBlazor.Brands` class are from Simple Icons (https://simpleicons.org),
+Brand logos in the `IzzyBlazor.Brands` class are from Simple Icons (https://simpleicons.org) 16.35.0,
 released under CC0 1.0 Universal (public domain). The logos themselves are trademarks of their
 owners; their use is subject to each brand's guidelines.
