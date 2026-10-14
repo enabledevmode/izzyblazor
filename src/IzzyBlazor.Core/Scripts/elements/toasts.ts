@@ -192,6 +192,11 @@ class Toasts extends IzzyElement {
     this.#timers.set(toast, { remaining: duration, started: Date.now(), handle: this.#paused ? 0 : this.start(toast, duration) });
   }
 
+  // What a keyboard user lands on: the close button once <ib-dismiss> runs, else the checkbox.
+  private dismissControl(toast: HTMLElement): HTMLElement | null {
+    return toast.querySelector<HTMLElement>(":scope > ib-dismiss > button") ?? this.dismissInput(toast);
+  }
+
   private dismissInput(toast: HTMLElement): HTMLInputElement | null {
     return toast.querySelector<HTMLInputElement>("input.ib-alert-dismiss");
   }
@@ -235,7 +240,7 @@ class Toasts extends IzzyElement {
     if (toast.contains(document.activeElement)) {
       const next = [...this.querySelectorAll<HTMLElement>(".ib-toast")]
         .filter((t) => t !== toast && !t.closest("template") && this.dismissInput(t)?.checked === false)
-        .map((t) => this.dismissInput(t))
+        .map((t) => this.dismissControl(t))
         .find(Boolean);
       const target = next ?? (this.#returnFocus?.isConnected ? this.#returnFocus : null);
       if (target) target.focus();

@@ -26,6 +26,7 @@ import "./elements/header-nav";
 import "./elements/combobox";
 import "./elements/table";
 import "./elements/banner";
+import "./elements/dismiss";
 import { installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
 import { installSubmitFeedback } from "./forms";
 import { installSelects, syncSelects } from "./select";

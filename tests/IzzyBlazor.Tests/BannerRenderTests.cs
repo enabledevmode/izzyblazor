@@ -90,6 +90,7 @@ public class BannerRenderTests : BunitContext
         Assert.Equal("b1-dismiss", input.Id);
         Assert.Null(input.GetAttribute("data-ib-remember"));
         Assert.Equal("b1-dismiss", cut.Find("label.ib-banner-close").GetAttribute("for"));
+        Assert.Equal("Dismiss", cut.Find("ib-dismiss > button.ib-banner-close").GetAttribute("aria-label"));
 
         input.Change(true);
         Assert.True(reported);

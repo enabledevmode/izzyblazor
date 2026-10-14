@@ -649,7 +649,8 @@ the markers. Nothing needs script: drive `Current` from the URL or the form post
 
 `Alert` takes a `Status` (`Info` by default), `Variant` (`Soft` by default, `Outline`, `Solid`),
 `Title`, `Actions`, `Icon` or `HideIcon`, and `Dismissible`: a close button that works with
-JavaScript off, with `@bind-Dismissed` on interactive pages. Danger and warning alerts are
+JavaScript off, with `@bind-Dismissed` on interactive pages. With JavaScript it is a real button,
+and closing moves focus to the next control on the page. Danger and warning alerts are
 `role="alert"`, announced right away; the rest are `role="status"`. The status is read before the
 message (`StatusLabel`), since the icon and color carry it only visually.
 
@@ -713,7 +714,8 @@ warning. Use `Alert` for a message about part of a page.
   still sets the icon and what screen readers hear. `Icon` and `HideIcon` change the icon, `Title`
   adds a bold lead-in, and `Actions` holds a link or small button after the message.
 - **Dismissing:** `Dismissible` adds a close button that works with JavaScript off, with
-  `@bind-Dismissed` on interactive pages.
+  `@bind-Dismissed` on interactive pages. With JavaScript it is a real button, and closing moves
+  focus to the next control on the page.
 - **Staying dismissed:** with `RememberKey`, closing it writes a cookie (`ib-banner-{key}`, for a
   year). The server reads it and leaves the banner out of later pages, static or interactive; change
   the key to show a new message to everyone. Reading the cookie needs `AddIzzyBlazor()` on the
