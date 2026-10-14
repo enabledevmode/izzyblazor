@@ -41,6 +41,22 @@ public class SiteFeedbackTests : BunitContext
         Assert.ThrowsAny<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.MonoFont, "x; } body { color: red")));
     }
 
+    [Theory]
+    [InlineData("'Inter")]
+    [InlineData("\"Inter', sans-serif")]
+    [InlineData("Inter,\nsans-serif")]
+    public void IzzyTheme_rejects_a_font_list_with_an_open_string(string font)
+    {
+        Assert.ThrowsAny<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.Font, font)));
+    }
+
+    [Fact]
+    public void IzzyTheme_accepts_quoted_names_holding_the_other_quote()
+    {
+        var style = Render<IzzyTheme>(p => p.Add(t => t.Font, "\"Ada's Sans\", 'Inter', sans-serif")).Find("style");
+        Assert.Contains("--ib-font-sans: \"Ada's Sans\", 'Inter', sans-serif;", style.TextContent);
+    }
+
     [Fact]
     public void Fluid_text_size_runs_from_min_at_360px_to_size_at_1280px()
     {
@@ -274,6 +290,14 @@ public class SiteFeedbackTests : BunitContext
         Assert.Equal("site-nav", close.GetAttribute("popovertarget"));
         Assert.Equal("hide", close.GetAttribute("popovertargetaction"));
         Assert.Equal("Footer", cut.Find(".ib-header-nav-foot").TextContent);
+    }
+
+    [Fact]
+    public void HeaderNav_is_named_Site_by_default_so_it_differs_from_the_sidebar()
+    {
+        var cut = Render<HeaderNav>(p => p.Add(n => n.Id, "site-nav"));
+
+        Assert.All(cut.FindAll("nav"), n => Assert.Equal("Site", n.GetAttribute("aria-label")));
     }
 
     [Fact]

@@ -151,12 +151,34 @@
     // the rule or the element.
     private static string FontList(string value, string parameter)
     {
+        // No way out of the declaration or the style element, and no open string: an unclosed
+        // quote (or a newline, which ends a CSS string) would swallow every declaration after it.
         var list = value.Trim();
-        if (list.IndexOfAny([';', '{', '}', '<', '>', '\\']) >= 0 || list.Contains("/*", StringComparison.Ordinal))
+        if (list.IndexOfAny([';', '{', '}', '<', '>', '\\']) >= 0 || list.Contains("/*", StringComparison.Ordinal)
+            || list.Any(char.IsControl) || !QuotesClose(list))
         {
             throw new ArgumentException($"{parameter} is a CSS font-family list, such as \"Inter, system-ui, sans-serif\".", parameter);
         }
 
         return list;
+    }
+
+    // Every quoted family name ends with the quote it started with.
+    private static bool QuotesClose(string list)
+    {
+        char? open = null;
+        foreach (var c in list)
+        {
+            if (open is null && c is '\'' or '"')
+            {
+                open = c;
+            }
+            else if (c == open)
+            {
+                open = null;
+            }
+        }
+
+        return open is null;
     }
 }
