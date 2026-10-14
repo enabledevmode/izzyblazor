@@ -22,11 +22,20 @@
                 <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
             </Row>
             <Box Grow />
-            <NavMenu Orientation="Orientation.Horizontal" aria-label="Site" VisibleFrom="Breakpoint.Md">
-                <NavItem Href="@Url("marketing")">Projects</NavItem>
-                <NavItem Href="@Url("reading")">Articles</NavItem>
-                <NavItem Href="@Url("document")">Guides</NavItem>
-            </NavMenu>
+            <HeaderNav Label="Site">
+                <ChildContent>
+                    <NavItem Href="@Url("marketing")">Projects</NavItem>
+                    <NavItem Href="@Url("reading")">Articles</NavItem>
+                    <NavItem Href="@Url("document")">Guides</NavItem>
+                </ChildContent>
+                <PanelHeader>
+                    <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                    <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
+                </PanelHeader>
+                <PanelFooter>
+                    <LinkButton Href="@Url("marketing")" StartIcon="Lucide.Play" FullWidth>Watch the series</LinkButton>
+                </PanelFooter>
+            </HeaderNav>
             <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
             <IconButton Icon="Brands.YouTube" Label="YouTube" Href="https://youtube.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         </AppHeader>
@@ -141,10 +150,16 @@
                 <TextBlock As="span" Weight="FontWeight.Bold">Acme Journal</TextBlock>
             </Row>
             <Box Grow />
-            <NavMenu Orientation="Orientation.Horizontal" aria-label="Sections" VisibleFrom="Breakpoint.Sm">
-                <NavItem Href="@Url("reading")">Articles</NavItem>
-                <NavItem Href="@Url("document")">Guides</NavItem>
-            </NavMenu>
+            <HeaderNav Label="Sections" Breakpoint="Breakpoint.Sm">
+                <ChildContent>
+                    <NavItem Href="@Url("reading")">Articles</NavItem>
+                    <NavItem Href="@Url("document")">Guides</NavItem>
+                </ChildContent>
+                <PanelHeader>
+                    <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                    <TextBlock As="span" Weight="FontWeight.Bold">Acme Journal</TextBlock>
+                </PanelHeader>
+            </HeaderNav>
             <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         </AppHeader>
         <AppMain>

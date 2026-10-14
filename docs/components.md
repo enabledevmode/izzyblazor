@@ -347,6 +347,31 @@ With a sidebar, the main area centers in its own column but the header spans the
 with JavaScript off (a link to the sidebar and CSS `:target`); with JavaScript it also closes on
 Escape, backdrop click and navigation.
 
+**Header links on phones.** A site with no sidebar puts its links in `HeaderNav`. From its
+`Breakpoint` up (`Md` by default) they are a row in the header; below it they fold into a menu
+button that opens the same links as a sheet from the top of the screen, with 44px rows. The sheet's
+top bar matches the header, so its close button sits where the menu button was. `PanelHeader` adds
+the site name to that bar and `PanelFooter` adds content below the links (social links, a call to
+action). The menu button moves to the end of the header on phones (`MenuButtonAtEnd="false"` keeps
+it in place).
+
+```razor
+<AppHeader>
+    <strong>Acme</strong>
+    <Box Grow />
+    <HeaderNav Label="Site">
+        <NavItem Href="/projects">Projects</NavItem>
+        <NavItem Href="/articles">Articles</NavItem>
+    </HeaderNav>
+    <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com/acme" Variant="ButtonVariant.Ghost" />
+</AppHeader>
+```
+
+The sheet is a native popover, so it opens, closes on Escape and closes on a click outside with
+JavaScript off. With JavaScript it also takes focus, and closes after a link is followed (enhanced
+navigation keeps the page) or when the screen grows past the breakpoint. The items render twice
+(row and sheet), so keep them to links.
+
 **Sidebar header and footer.** `AppSidebar` takes `Header` and `Footer`, pinned to its top and bottom
 (a workspace switcher, an account menu), with the content scrolling between them. They have no lines
 at rest; a line shows next to one only while content is scrolled out of view there (CSS only).
