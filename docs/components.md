@@ -842,9 +842,14 @@ play button, which is a link to the video on YouTube. With script, clicking swap
 `youtube-nocookie.com`, in place. `Label` names the player and the button. The poster defaults to
 YouTube's thumbnail; set `Poster` to your own image to load nothing from YouTube before play.
 
+For a video that isn't out yet, leave out `YouTubeId`: the box keeps its place with your `Poster`
+(dimmed, if set) and "Coming soon" in the middle (`EmptyText`, or `EmptyContent` for your own markup),
+and nothing loads from YouTube. Add the id when it's published.
+
 ```razor
 <Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" Caption="The console" />
 <VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form" />
+<VideoEmbed Label="Deploying to Azure" Poster="/posters/deploy.jpg" EmptyText="Out Friday" />
 ```
 
 ## Timeline

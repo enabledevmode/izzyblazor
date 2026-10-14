@@ -232,6 +232,9 @@ public class IzzyText
     /// <summary>VideoEmbed's play button, with {0} for the video's title.</summary>
     public virtual string PlayVideo { get; set; } = "Play video: {0}";
 
+    /// <summary>VideoEmbed with no video yet.</summary>
+    public virtual string VideoComingSoon { get; set; } = "Coming soon";
+
     /// <summary>ColorPicker's hex text box, after the field's label: "Brand color, hex".</summary>
     public virtual string ColorHex { get; set; } = "hex";
 

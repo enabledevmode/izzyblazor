@@ -420,6 +420,40 @@
     display: none;
   }
 
+  /* No video yet: a quiet box (not the player's black), the poster dimmed behind a centered note. */
+  .ib-video-upcoming {
+    background-color: var(--ib-color-surface-container);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-video-upcoming > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    opacity: 0.35;
+  }
+
+  .ib-video-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ib-space-2);
+    padding: var(--ib-space-4);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    line-height: 1.25rem;
+    text-align: center;
+  }
+
+  .ib-video-upcoming:has(> img) > .ib-video-empty {
+    color: var(--ib-color-on-surface);
+  }
+
   /* Whole-pixel height, as for AspectRatio: a spacer sized from its own width, rounded down. */
   @supports (height: round(down, 1px, 1px)) {
     .ib-video {

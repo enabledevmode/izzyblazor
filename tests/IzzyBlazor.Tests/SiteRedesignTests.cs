@@ -72,4 +72,32 @@ public class SiteRedesignTests : BunitContext
         Assert.Equal("true", root.QuerySelector(".ib-shell-brand-logo")!.GetAttribute("aria-hidden"));
         Assert.Equal("Acme", root.QuerySelector(".ib-visually-hidden")!.TextContent);
     }
+
+    [Fact]
+    public void VideoEmbed_without_an_id_is_coming_soon()
+    {
+        var cut = Render<VideoEmbed>(p => p.Add(v => v.Label, "Building a form"));
+
+        Assert.Empty(cut.FindAll("ib-video"));
+        Assert.Empty(cut.FindAll("a"));
+        var box = cut.Find(".ib-video");
+        Assert.Contains("ib-video-upcoming", box.ClassName);
+        Assert.Equal("group", box.GetAttribute("role"));
+        Assert.Equal("Building a form", box.GetAttribute("aria-label"));
+        Assert.Null(box.QuerySelector("img"));
+        Assert.Contains("Coming soon", box.QuerySelector(".ib-video-empty")!.TextContent);
+    }
+
+    [Fact]
+    public void VideoEmbed_coming_soon_takes_a_poster_and_its_own_content()
+    {
+        var box = Render<VideoEmbed>(p => p
+            .Add(v => v.Label, "Building a form")
+            .Add(v => v.Poster, "/posters/forms.jpg")
+            .Add(v => v.EmptyContent, "<strong>Out Friday</strong>")).Find(".ib-video");
+
+        Assert.Equal("/posters/forms.jpg", box.QuerySelector("img")!.GetAttribute("src"));
+        Assert.Equal("Out Friday", box.QuerySelector(".ib-video-empty strong")!.TextContent);
+        Assert.DoesNotContain("Coming soon", box.TextContent);
+    }
 }
