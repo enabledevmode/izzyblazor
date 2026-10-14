@@ -36,6 +36,9 @@
     --ib-control-h-sm: 2rem;
     --ib-control-h-md: 2.25rem;
     --ib-control-h-lg: 2.75rem;
+    /* Text in small controls: 13px, between xs and sm. 12px reads cramped in a 32px control;
+       medium and large controls use --ib-text-sm and --ib-text-md. */
+    --ib-control-font-sm: 0.8125rem;
     --ib-table-cell-py: var(--ib-space-3);
     --ib-card-padding: var(--ib-space-5);
 
@@ -178,10 +181,10 @@
   [data-ib-accent],
   [data-ib-gray] {
     --ib-color-focus: var(--ib-color-primary);
-    /* The chosen segment in a segmented control or segmented tabs: white on the gray track in light
-       mode, a clear step lighter than the track in dark mode, with an outline-colored edge. */
-    --ib-color-segment: light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 14%, var(--ib-color-surface-container)));
-    --ib-color-segment-edge: var(--ib-color-outline);
+    /* The chosen segment in a segmented control or segmented tabs: the selected fill on a clear,
+       outlined track (not a raised chip on a gray tray, which reads as a surface on a surface). */
+    --ib-color-segment: var(--ib-color-surface-container-high);
+    --ib-color-segment-edge: transparent;
     /* State layers: hover and pressed are a wash of the text color over whatever surface is
        underneath, so they darken in light mode and lighten in dark mode, on the page, a card or a
        menu alike. Selection is shown by a mark (a check), not a fill. */
@@ -269,7 +272,7 @@
       --ib-color-surface-container-high: #dfdfe3;
       --ib-color-surface-raised: #ffffff;
       --ib-color-raised-border: transparent;
-      --ib-color-segment: #ffffff;
+      --ib-color-segment: #dfdfe3;
       --ib-color-on-surface: #18181b;
       --ib-color-muted: #5f5f66;
       --ib-color-subtle: #66666d;

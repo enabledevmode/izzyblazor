@@ -89,7 +89,9 @@
     align-items: center;
     gap: var(--ib-space-3);
     min-height: calc(var(--ib-shell-header-h) + env(safe-area-inset-top, 0px));
-    padding: env(safe-area-inset-top, 0px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
+    /* 1px at the top balances the divider at the bottom: the content box stays even (54px), so
+       even-height controls center on whole pixels, the same distance from the top and the line. */
+    padding: calc(env(safe-area-inset-top, 0px) + 1px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
     border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     --ib-shell-tone: var(--ib-color-surface);
     background-color: var(--ib-shell-header-bg, var(--ib-shell-tone));
@@ -1450,7 +1452,7 @@
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
       min-height: var(--ib-shell-header-h);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
-      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     }
 
@@ -1468,7 +1470,7 @@
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
       min-height: var(--ib-shell-header-h);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
-      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     }
 
@@ -1486,7 +1488,7 @@
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
       min-height: var(--ib-shell-header-h);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
-      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     }
 
@@ -1504,7 +1506,7 @@
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
       min-height: var(--ib-shell-header-h);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
-      padding: var(--ib-space-1) var(--ib-sb-pad-x);
+      padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     }
 

@@ -201,7 +201,7 @@ layers, so a plain rule wins:
 :root {
   --ib-color-focus: #7c3aed;     /* the focus ring and field halo */
   --ib-card-padding: 1.5rem;
-  --ib-radius-lg: 0.5rem;        /* cards only, not the whole scale */
+  --ib-radius-xl: 0.5rem;        /* cards and other large panels, not the whole scale */
 }
 ```
 
@@ -209,7 +209,7 @@ layers, so a plain rule wins:
 | --- | --- |
 | Colors | `--ib-color-background`, `-surface`, `-surface-raised`, `-surface-container-low`, `-surface-container`, `-surface-container-high`, `-border`, `-outline`, `-on-surface`, `-muted`, `-subtle`, `-focus`; the accent's four (`-primary`, `-on-primary`, `-primary-text`, `-primary-soft`); status (`-success`, `-warning`, `-danger`, `-info`, each with `-text` and `-soft`) |
 | Shape | `--ib-radius-sm`, `-md`, `-lg`, `-xl` |
-| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-*` |
+| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-*` |
 | Type | `--ib-font-sans`, `--ib-font-heading`, `--ib-font-mono`, `--ib-weight-heading`, the size scale `--ib-text-*` |
 | Depth | `--ib-shadow-xs` (under cards), `-sm`, `-md`, `-lg` |
 | Motion | `--ib-duration-fast`, `--ib-duration-normal`, `--ib-ease` |

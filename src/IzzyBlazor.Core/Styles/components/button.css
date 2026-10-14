@@ -51,7 +51,7 @@
   .ib-btn-sm {
     --ib-btn-h: var(--ib-control-h-sm);
     --ib-btn-px: var(--ib-space-3);
-    --ib-btn-font: var(--ib-text-xs);
+    --ib-btn-font: var(--ib-control-font-sm);
   }
 
   .ib-btn-lg {
