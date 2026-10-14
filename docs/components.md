@@ -678,14 +678,22 @@ own inputs' names in `Fields`.
 
 ## ColorSchemeSwitch
 
-Lets the user pick System, Light or Dark: three segments with icons and labels, or `IconOnly` (the
-names stay for screen readers and as tooltips), in `Size` small, medium or large.
+Lets the user pick System, Light or Dark. Three looks:
+
+- `Menu` (the default): a ghost icon button showing the page's scheme (sun or moon), opening a menu
+  of System, Light and Dark with the current one checked. For headers.
+- `Toggle`: one icon button that flips between light and dark (no System).
+- `Segmented`: all three side by side, with labels or `IconOnly`, for a settings page.
 
 ```razor
 <ColorSchemeSwitch />
-<ColorSchemeSwitch IconOnly Size="ControlSize.Sm" />
+<ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
+<ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" IconOnly />
 <ColorSchemeSwitch @bind-Value="scheme" />   @* interactive pages *@
 ```
+
+The icon is worked out in CSS from the page's actual scheme, so it's right even when the device
+decides. `Size` matches the buttons around it.
 
 The choice is kept in the `ib-scheme` cookie. Put `IzzyTheme` in `<head>` so the server applies it
 before the first paint. With JavaScript the switch is instant and other open tabs follow; with it

@@ -204,4 +204,10 @@ public class IzzyText
 
     /// <summary>ColorSchemeSwitch: dark.</summary>
     public virtual string SchemeDark { get; set; } = "Dark";
+
+    /// <summary>ColorSchemeSwitch's toggle, on a light page.</summary>
+    public virtual string SchemeToDark { get; set; } = "Switch to dark mode";
+
+    /// <summary>ColorSchemeSwitch's toggle, on a dark page.</summary>
+    public virtual string SchemeToLight { get; set; } = "Switch to light mode";
 }

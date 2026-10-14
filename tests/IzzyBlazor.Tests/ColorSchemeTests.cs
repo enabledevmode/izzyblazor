@@ -22,49 +22,77 @@ public class ColorSchemeRenderTests : BunitContext
     }
 
     [Fact]
-    public void Switch_is_a_group_of_links_to_the_scheme_endpoint()
+    public void Default_is_an_icon_button_with_a_menu_of_links_to_the_scheme_endpoint()
     {
         UseCookie(null);
         Services.GetRequiredService<NavigationManager>().NavigateTo("static/brand?primary=%230af");
         var cut = Render<ColorSchemeSwitch>();
 
+        Assert.Contains("ib-scheme-switch-menu", cut.Find("ib-scheme-switch").ClassName);
+        var trigger = cut.Find("button[popovertarget]");
+        Assert.Equal("Color scheme", trigger.GetAttribute("aria-label"));
+        Assert.Contains("ib-btn-ghost", trigger.ClassName);
+        Assert.NotNull(trigger.QuerySelector(".ib-scheme-if-light"));
+        Assert.NotNull(trigger.QuerySelector(".ib-scheme-if-dark"));
+
+        var items = cut.FindAll("[popover] a.ib-menu-item");
+        Assert.Equal(["system", "light", "dark"], items.Select(a => a.GetAttribute("data-ib-scheme")));
+        Assert.Equal("_izzy/scheme?value=dark&return=static%2Fbrand%3Fprimary%3D%25230af", items[2].GetAttribute("href"));
+        Assert.Equal(["System", "Light", "Dark"], items.Select(a => a.QuerySelector(".ib-menu-label")!.TextContent));
+
+        // Static: radio roles wait for the script; no choice saved, so System is checked.
+        Assert.Equal("menuitemradio", items[0].GetAttribute("data-ib-role"));
+        Assert.Equal(["true", "false", "false"], items.Select(a => a.GetAttribute("data-ib-checked")));
+        Assert.Equal("true", items[0].GetAttribute("aria-current"));
+        Assert.All(items, a => Assert.NotNull(a.QuerySelector(".ib-scheme-check")));
+    }
+
+    [Fact]
+    public void Menu_checks_the_saved_choice_and_a_bound_value_wins()
+    {
+        UseCookie("ib-scheme=dark");
+        var saved = Render<ColorSchemeSwitch>().FindAll("a.ib-menu-item");
+        Assert.Equal(["false", "false", "true"], saved.Select(a => a.GetAttribute("data-ib-checked")));
+
+        var bound = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Light)).FindAll("a.ib-menu-item");
+        Assert.Equal(["false", "true", "false"], bound.Select(a => a.GetAttribute("data-ib-checked")));
+    }
+
+    [Fact]
+    public void Toggle_is_two_links_and_css_shows_the_one_away_from_the_page_scheme()
+    {
+        UseCookie(null);
+        var links = Render<ColorSchemeSwitch>(p => p.Add(s => s.Variant, ColorSchemeSwitchVariant.Toggle)).FindAll("a");
+
+        Assert.Equal(2, links.Count);
+        Assert.Equal("dark", links[0].GetAttribute("data-ib-scheme"));
+        Assert.Contains("ib-scheme-if-light", links[0].ClassName);
+        Assert.Equal("Switch to dark mode", links[0].GetAttribute("aria-label"));
+        Assert.Equal("light", links[1].GetAttribute("data-ib-scheme"));
+        Assert.Contains("ib-scheme-if-dark", links[1].ClassName);
+        Assert.Equal("Switch to light mode", links[1].GetAttribute("aria-label"));
+    }
+
+    [Fact]
+    public void Segmented_is_a_group_with_the_choice_marked()
+    {
+        UseCookie("ib-scheme=dark");
+        var cut = Render<ColorSchemeSwitch>(p => p
+            .Add(s => s.Variant, ColorSchemeSwitchVariant.Segmented)
+            .Add(s => s.IconOnly, true)
+            .Add(s => s.Size, ControlSize.Sm));
+
         var root = cut.Find("ib-scheme-switch");
         Assert.Equal("group", root.GetAttribute("role"));
         Assert.Equal("Color scheme", root.GetAttribute("aria-label"));
         Assert.Contains("ib-segmented", root.ClassName);
+        Assert.Contains("ib-segmented-icon-only", root.ClassName);
+        Assert.Contains("ib-scheme-switch-sm", root.ClassName);
 
-        var links = cut.FindAll("a.ib-segment");
-        Assert.Equal(["system", "light", "dark"], links.Select(a => a.GetAttribute("data-ib-scheme")));
-        Assert.Equal("_izzy/scheme?value=dark&return=static%2Fbrand%3Fprimary%3D%25230af", links[2].GetAttribute("href"));
-        Assert.Equal(["System", "Light", "Dark"], links.Select(a => a.TextContent.Trim()));
-
-        // No choice saved: System is current.
-        Assert.Equal("true", links[0].GetAttribute("aria-current"));
-        Assert.Null(links[2].GetAttribute("aria-current"));
-    }
-
-    [Fact]
-    public void Switch_shows_the_saved_choice_and_a_bound_value_wins()
-    {
-        UseCookie("ib-scheme=dark");
-        var saved = Render<ColorSchemeSwitch>().FindAll("a.ib-segment");
-        Assert.Equal("true", saved[2].GetAttribute("aria-current"));
-
-        var bound = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Light)).FindAll("a.ib-segment");
-        Assert.Equal("true", bound[1].GetAttribute("aria-current"));
-    }
-
-    [Fact]
-    public void Icon_only_keeps_the_names_for_screen_readers_and_tooltips()
-    {
-        UseCookie(null);
-        var cut = Render<ColorSchemeSwitch>(p => p.Add(s => s.IconOnly, true).Add(s => s.Size, ControlSize.Sm));
-
-        Assert.Contains("ib-segmented-icon-only", cut.Find("ib-scheme-switch").ClassName);
-        Assert.Contains("ib-scheme-switch-sm", cut.Find("ib-scheme-switch").ClassName);
-        var light = cut.FindAll("a.ib-segment")[1];
-        Assert.Equal("Light", light.GetAttribute("title"));
-        Assert.Equal("Light", light.QuerySelector(".ib-visually-hidden")!.TextContent);
+        var segments = cut.FindAll("a.ib-segment");
+        Assert.Equal("true", segments[2].GetAttribute("aria-current"));
+        Assert.Equal("Light", segments[1].GetAttribute("title"));
+        Assert.Equal("Light", segments[1].QuerySelector(".ib-visually-hidden")!.TextContent);
     }
 
     [Theory]

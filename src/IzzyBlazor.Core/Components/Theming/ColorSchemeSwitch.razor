@@ -9,35 +9,90 @@
     Lets the user pick light, dark or system. The choice is kept in the ib-scheme cookie, which
     IzzyTheme reads on the server, so every page arrives in the chosen scheme with no flash.
 
-    <ColorSchemeSwitch />                         System, Light, Dark with icons and labels
-    <ColorSchemeSwitch IconOnly />                icons, with the names for screen readers
-    <ColorSchemeSwitch @bind-Value="scheme" />    interactive pages: follow it from C#
+    <ColorSchemeSwitch />                                         an icon button with a menu (default)
+    <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />     one icon button: light <-> dark
+    <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" />  System, Light, Dark side by side
+    <ColorSchemeSwitch @bind-Value="scheme" />                    interactive pages: follow it from C#
 
-    Each option is a link to the endpoint app.MapIzzyBlazor() adds, which sets the cookie and comes
-    back to this page, so it works with JavaScript off. With JavaScript the switch is instant: the
-    script sets the cookie and the page's scheme without a request, and tells other tabs.
+    The icon shows the page's scheme as it is (sun or moon), worked out in CSS, so it's right even
+    when the device decides. Every option is a link to the endpoint app.MapIzzyBlazor() adds, which
+    sets the cookie and comes back, so it works with JavaScript off. With JavaScript the switch is
+    instant: the script sets the cookie and the page's scheme without a request, moves the check,
+    and tells other tabs.
 *@
 
-<ib-scheme-switch @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group"
-                  aria-label="@(Label ?? TextDefaults.ColorScheme)" @onibscheme="OnSchemeAsync">
-    @foreach (var (scheme, icon, label) in Options)
+<ib-scheme-switch @attributes="AdditionalAttributes" class="@_class" style="@_style"
+                  role="@(Variant == ColorSchemeSwitchVariant.Segmented ? "group" : null)"
+                  aria-label="@(Variant == ColorSchemeSwitchVariant.Segmented ? GroupLabel : null)"
+                  @onibscheme="OnSchemeAsync">
+    @switch (Variant)
     {
-        <a class="ib-segment" href="@Href(scheme)" data-ib-scheme="@ColorSchemes.Name(scheme)"
-           aria-current="@(scheme == _current ? "true" : null)" title="@(IconOnly ? label : null)">
-            <Icon Name="icon" />
-            @if (IconOnly)
+        case ColorSchemeSwitchVariant.Toggle:
+            @* Two links; CSS shows the one that leads away from the page's scheme. *@
+            <a class="@ButtonClass ib-scheme-if-light" href="@Href(ColorScheme.Dark)" data-ib-scheme="dark"
+               aria-label="@TextDefaults.SchemeToDark" title="@TextDefaults.SchemeToDark">
+                <Icon Name="Lucide.Moon" />
+            </a>
+            <a class="@ButtonClass ib-scheme-if-dark" href="@Href(ColorScheme.Light)" data-ib-scheme="light"
+               aria-label="@TextDefaults.SchemeToLight" title="@TextDefaults.SchemeToLight">
+                <Icon Name="Lucide.Sun" />
+            </a>
+            break;
+
+        case ColorSchemeSwitchVariant.Segmented:
+            @foreach (var (scheme, icon, label) in Options)
             {
-                <span class="ib-visually-hidden">@label</span>
+                <a class="ib-segment" href="@Href(scheme)" data-ib-scheme="@ColorSchemes.Name(scheme)"
+                   aria-current="@(scheme == _current ? "true" : null)" title="@(IconOnly ? label : null)">
+                    <Icon Name="icon" />
+                    @if (IconOnly)
+                    {
+                        <span class="ib-visually-hidden">@label</span>
+                    }
+                    else
+                    {
+                        <span class="ib-segment-label">@label</span>
+                    }
+                </a>
             }
-            else
-            {
-                <span class="ib-segment-label">@label</span>
-            }
-        </a>
+            break;
+
+        default:
+            <Menu Placement="Placement.BottomEnd">
+                <Trigger>
+                    <button type="button" class="@ButtonClass" aria-label="@GroupLabel" title="@GroupLabel" @attributes="context">
+                        <Icon Name="Lucide.Sun" Class="ib-scheme-if-light" />
+                        <Icon Name="Lucide.Moon" Class="ib-scheme-if-dark" />
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    @foreach (var (scheme, icon, label) in Options)
+                    {
+                        var on = scheme == _current ? "true" : "false";
+                        @* Radio items with a dot on every one; CSS shows the checked one's, so the
+                           script moves the choice by changing attributes only. *@
+                        <a class="ib-menu-item ib-menu-item-checkable" href="@Href(scheme)" data-ib-scheme="@ColorSchemes.Name(scheme)"
+                           role="@(Live ? "menuitemradio" : null)" data-ib-role="@(Live ? null : "menuitemradio")"
+                           aria-checked="@(Live ? on : null)" data-ib-checked="@(Live ? null : on)"
+                           aria-current="@(!Live && scheme == _current ? "true" : null)">
+                            <span class="ib-menu-check" aria-hidden="true"><span class="ib-menu-dot ib-scheme-check"></span></span>
+                            <Icon Name="icon" />
+                            <span class="ib-menu-label">@label</span>
+                        </a>
+                    }
+                </ChildContent>
+            </Menu>
+            break;
     }
 </ib-scheme-switch>
 
 @code {
+    /// <summary>
+    /// How it looks: <see cref="ColorSchemeSwitchVariant.Menu"/> (an icon button with a menu, the
+    /// default), <see cref="ColorSchemeSwitchVariant.Toggle"/> or <see cref="ColorSchemeSwitchVariant.Segmented"/>.
+    /// </summary>
+    [Parameter] public ColorSchemeSwitchVariant Variant { get; set; } = ColorSchemeSwitchVariant.Menu;
+
     /// <summary>
     /// The chosen scheme. Leave it unset to show the user's choice from the cookie; bind it on
     /// interactive pages to follow changes from C#.
@@ -47,13 +102,13 @@
     /// <summary>Raised on interactive pages when the user picks a scheme.</summary>
     [Parameter] public EventCallback<ColorScheme> ValueChanged { get; set; }
 
-    /// <summary>Icons only, with the names for screen readers and as tooltips.</summary>
+    /// <summary>Segmented only: icons without the labels (the names stay for screen readers and as tooltips).</summary>
     [Parameter] public bool IconOnly { get; set; }
 
-    /// <summary>Height and text size. Defaults to medium.</summary>
+    /// <summary>Height. Defaults to medium, the size of a header's icon buttons.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
-    /// <summary>The group's accessible name. Defaults to "Color scheme".</summary>
+    /// <summary>The button's or group's accessible name. Defaults to "Color scheme".</summary>
     [Parameter] public string? Label { get; set; }
 
     private const string StateKey = "ib-scheme";
@@ -63,6 +118,17 @@
     private ColorScheme _current;
     private ColorScheme? _remembered;
     private PersistingComponentStateSubscription? _persisting;
+
+    private bool Live => RendererInfo.IsInteractive;
+
+    private string GroupLabel => Label ?? TextDefaults.ColorScheme;
+
+    private string ButtonClass => Size switch
+    {
+        ControlSize.Sm => "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm",
+        ControlSize.Lg => "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-lg",
+        _ => "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only",
+    };
 
     private IEnumerable<(ColorScheme Scheme, IconData Icon, string Label)> Options =>
     [
@@ -106,9 +172,14 @@
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
-        classes.Add("ib-segmented ib-scheme-switch");
-        classes.Add($"ib-scheme-switch-{Size.ToString().ToLowerInvariant()}");
-        classes.Add("ib-segmented-icon-only", IconOnly);
+        classes.Add("ib-scheme-switch");
+        classes.Add($"ib-scheme-switch-{Variant.ToString().ToLowerInvariant()}");
+        if (Variant == ColorSchemeSwitchVariant.Segmented)
+        {
+            classes.Add("ib-segmented");
+            classes.Add($"ib-scheme-switch-{Size.ToString().ToLowerInvariant()}");
+            classes.Add("ib-segmented-icon-only", IconOnly);
+        }
     }
 
     // The no-script route: the endpoint sets the cookie and redirects back to this page.

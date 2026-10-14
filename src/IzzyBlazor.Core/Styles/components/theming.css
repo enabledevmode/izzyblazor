@@ -1,9 +1,52 @@
 /*
- * ColorSchemeSwitch: SegmentedControl's look (form.css), with links for options. The chosen one
- * carries aria-current; the script moves it when the user switches.
+ * ColorSchemeSwitch. Menu and Toggle are ghost icon buttons; Segmented is SegmentedControl's look
+ * (form.css) with links for options. The icons follow the page's scheme as it is, worked out here
+ * from data-theme, IzzyTheme's meta and the device's preference, so they're right with no script.
  */
 @layer izzy.components {
-  .ib-scheme-switch {
+  .ib-scheme-switch-menu,
+  .ib-scheme-switch-toggle {
+    display: inline-flex;
+    align-self: center;
+    vertical-align: middle;
+  }
+
+  /* Light page: show the .ib-scheme-if-light parts (the sun in the menu button, the "to dark" toggle). */
+  .ib-scheme-switch .ib-scheme-if-dark {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .ib-scheme-switch .ib-scheme-if-light,
+  :root:not([data-theme]):has(> head > meta[name="ib-scheme"][content="dark"]) .ib-scheme-switch .ib-scheme-if-light {
+    display: none;
+  }
+
+  :root[data-theme="dark"] .ib-scheme-switch .ib-scheme-if-dark,
+  :root:not([data-theme]):has(> head > meta[name="ib-scheme"][content="dark"]) .ib-scheme-switch .ib-scheme-if-dark {
+    display: inline-flex;
+  }
+
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-switch .ib-scheme-if-light {
+      display: none;
+    }
+
+    :root:not([data-theme], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-switch .ib-scheme-if-dark {
+      display: inline-flex;
+    }
+  }
+
+  /* Menu: every item has a dot; only the chosen one's shows, so the script moves the choice by
+     changing attributes (aria-checked with script; data-ib-checked or aria-current without). */
+  .ib-scheme-switch .ib-menu-item .ib-scheme-check {
+    visibility: hidden;
+  }
+
+  .ib-scheme-switch .ib-menu-item:is([aria-checked="true"], :not([aria-checked])[data-ib-checked="true"], :not([aria-checked])[aria-current="true"]) .ib-scheme-check {
+    visibility: visible;
+  }
+
+  .ib-scheme-switch-segmented {
     --ib-field-h: var(--ib-control-h-md);
     --ib-field-px: var(--ib-space-3);
     --ib-field-font: var(--ib-text-sm);
@@ -17,7 +60,7 @@
   .ib-scheme-switch-sm {
     --ib-field-h: var(--ib-control-h-sm);
     --ib-field-px: var(--ib-space-2);
-    --ib-field-font: var(--ib-text-xs);
+    --ib-field-font: var(--ib-control-font-sm);
   }
 
   .ib-scheme-switch-lg {
@@ -43,7 +86,7 @@
   .ib-scheme-switch > .ib-segment[aria-current="true"] {
     background-color: var(--ib-color-segment);
     color: var(--ib-color-on-surface);
-    box-shadow: var(--ib-shadow-sm), inset 0 0 0 1px var(--ib-color-segment-edge);
+    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge);
   }
 
   .ib-scheme-switch > .ib-segment:focus-visible {
