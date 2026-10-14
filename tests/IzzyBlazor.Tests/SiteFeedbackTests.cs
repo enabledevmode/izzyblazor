@@ -255,6 +255,19 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
+    public void Fluid_text_with_breakpoint_sizes_grows_to_the_widest_one()
+    {
+        var h1 = Render<Heading>(p => p
+            .Add(h => h.Level, 1)
+            .Add(h => h.Size, new Responsive<TextSize> { Md = TextSize.Xl5 })
+            .Add(h => h.MinSize, TextSize.Xl3)
+            .AddChildContent("Hi")).Find("h1");
+
+        Assert.Contains("var(--ib-text-5xl))", h1.GetAttribute("style"));
+        Assert.DoesNotContain("--ib-text-xs", h1.GetAttribute("style"));
+    }
+
+    [Fact]
     public void HeaderNav_renders_a_row_and_a_sheet_opened_by_a_native_popover_button()
     {
         var cut = Render<HeaderNav>(p => p
