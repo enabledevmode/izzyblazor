@@ -12,7 +12,7 @@ public sealed record AppShellContext(string MainId, Length? ContentWidth = null)
 /// Carries a <see cref="HeaderNav"/>'s links to the shell's <see cref="AppSidebar"/>, which shows
 /// them at its top below the HeaderNav's breakpoint, so a phone has one menu, not two.
 /// </summary>
-public sealed class ShellHeaderLinks
+internal sealed class ShellHeaderLinks
 {
     /// <summary>The links, or null when the shell has no <see cref="HeaderNav"/>.</summary>
     public RenderFragment? Links { get; private set; }

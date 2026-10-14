@@ -9,7 +9,7 @@ All text is outlined, so the SVGs need no fonts installed.
 | `logo/` | `izzyblazor-wordmark-{light,dark,mono-ink,mono-white}.svg` | Main logo. `light` goes on light backgrounds, `dark` on dark ones. Mono for print, embossing, single-color contexts. |
 | `logo/` | `izzyblazor-wordmark-{light,dark}-small.svg` | Wordmark without the halo, for site headers and anything under about 48 px tall. |
 | `logo/` | `izzyblazor-monogram-{light,dark}.svg` | The "ib" monogram: ink or paper i, ember b, transparent. Light for light backgrounds, dark for dark. |
-| `logo/` | `izzyblazor-monogram-fallback.svg` | Steel-grey i, for places that can't switch with the theme (the .ico, Safari). |
+| `logo/` | `izzyblazor-monogram-fallback.svg` | Steel-gray i, for places that can't switch with the theme (the .ico, Safari). |
 | `logo/` | `izzyblazor-monogram-tile.svg` | Monogram on a plain ink tile, for avatars and app icons. |
 | `logo/` | `izzyblazor-monogram-mono-{ink,white}.svg`, `izzyblazor-knob.svg` | One-color monogram, and the glowing knob on its own (the dot from the wordmark). |
 | `logo/png/` | PNG exports of the above | For tools that don't take SVG. |
@@ -62,7 +62,7 @@ All text is outlined, so the SVGs need no fonts installed.
 | Ember | `#F26A1B` | The knob, the monogram b, accents |
 | Amber | `#FFB020` | Knob core, highlights |
 | Steel | `#8A8F98` | Muted UI, fallback monogram i |
-| Grey (light) / Grey (dark) | `#5A6069` / `#A9AEB6` | "blazor" in the wordmark, secondary text |
+| Gray (light) / Gray (dark) | `#5A6069` / `#A9AEB6` | "blazor" in the wordmark, secondary text |
 | Ember text | `#B8440A` | Orange links and small type on light backgrounds |
 
 Fonts: Bricolage Grotesque (display), JetBrains Mono (code). Both are SIL Open Font License.

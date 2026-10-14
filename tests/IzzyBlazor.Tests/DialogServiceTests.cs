@@ -80,7 +80,7 @@ public class DialogServiceTests : BunitContext
         host.Find("dialog .save").Click();
         var result = await task;
 
-        Assert.False(result.Cancelled);
+        Assert.False(result.Canceled);
         Assert.Equal("saved", result.DataAs<string>());
         // Closed first (so the browser returns focus), removed shortly after.
         host.WaitForAssertion(() => Assert.False(host.Find("ib-dialog").HasAttribute("data-open")));
@@ -88,7 +88,7 @@ public class DialogServiceTests : BunitContext
     }
 
     [Fact]
-    public async Task Cancel_comes_back_as_cancelled()
+    public async Task Cancel_comes_back_as_canceled()
     {
         var service = Setup();
         var host = Render<DialogHost>();
@@ -97,7 +97,7 @@ public class DialogServiceTests : BunitContext
 
         host.WaitForElement("dialog .cancel").Click();
 
-        Assert.True((await task).Cancelled);
+        Assert.True((await task).Canceled);
     }
 
     [Theory]

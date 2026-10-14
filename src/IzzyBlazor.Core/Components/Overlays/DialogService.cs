@@ -3,14 +3,14 @@ using Microsoft.AspNetCore.Components;
 namespace IzzyBlazor;
 
 /// <summary>How a dialog opened by <see cref="DialogService"/> ended.</summary>
-/// <param name="Cancelled">True when it was cancelled: Escape, the backdrop, the close button, or <see cref="DialogInstance.Cancel"/>.</param>
+/// <param name="Canceled">True when it was canceled: Escape, the backdrop, the close button, or <see cref="DialogInstance.Cancel"/>.</param>
 /// <param name="Data">What the dialog closed with, from <see cref="DialogInstance.Close"/> or <see cref="DialogService.Close"/>.</param>
-public sealed record DialogResult(bool Cancelled, object? Data)
+public sealed record DialogResult(bool Canceled, object? Data)
 {
     /// <summary>A result with data.</summary>
     public static DialogResult Ok(object? data = null) => new(false, data);
 
-    /// <summary>A cancelled result.</summary>
+    /// <summary>A canceled result.</summary>
     public static DialogResult Cancel() => new(true, null);
 
     /// <summary>The data as <typeparamref name="T"/>, or the default if it's missing or another type.</summary>
@@ -66,7 +66,7 @@ public sealed class DialogInstance
     /// <summary>Closes the dialog; the caller's <c>OpenAsync</c> returns this data.</summary>
     public void Close(object? data = null) => _service.Complete(Id, DialogResult.Ok(data));
 
-    /// <summary>Closes the dialog as cancelled.</summary>
+    /// <summary>Closes the dialog as canceled.</summary>
     public void Cancel() => _service.Complete(Id, DialogResult.Cancel());
 }
 
@@ -79,7 +79,7 @@ public sealed class DialogInstance
 /// <example>
 /// <code>
 /// var result = await Dialogs.OpenAsync&lt;EditSite&gt;("Edit site", new() { ["Site"] = site });
-/// if (!result.Cancelled) await Reload();
+/// if (!result.Canceled) await Reload();
 ///
 /// if (await Dialogs.ConfirmAsync("Remove this member?", "Remove", new() { Accent = Accent.Danger })) ...
 /// </code>
@@ -143,7 +143,7 @@ public sealed class DialogService
             title,
             new Dictionary<string, object?> { [nameof(ConfirmDialogContent.Message)] = message, [nameof(ConfirmDialogContent.Options)] = options ?? new ConfirmOptions() },
             new DialogOptions { Size = DialogSize.Sm, CloseOnBackdrop = false, ShowCloseButton = false });
-        return !result.Cancelled && result.Data is true;
+        return !result.Canceled && result.Data is true;
     }
 
     /// <summary>Closes the most recently opened dialog with this data.</summary>

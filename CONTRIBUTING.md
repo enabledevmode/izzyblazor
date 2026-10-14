@@ -94,7 +94,7 @@ Use the same name for the same idea everywhere:
 | `...Text` suffix | Visible text | `EmptyText`, `ApplyText`, `ClearText` |
 | `Icon` | One fixed icon slot | `NavItem Icon`, `Tab Icon` |
 | `StartIcon`, `EndIcon` | An icon beside text that could go on either side | `Button`, `TextField`, `Badge` |
-| `Accent` | Action color: `Primary`, `Neutral`, `Danger` | Button, MenuItem |
+| `Accent` | Action color: `Primary`, `Neutral`, `Danger`. On `IzzyTheme` alone it is the theme's accent palette (`ThemeAccent`: Blue, Ink…) that `Primary` controls are drawn in | Button, MenuItem; `IzzyTheme Accent` |
 | `Status` | Feedback meaning: `Info`, `Success`, `Warning`, `Danger`, `Neutral` | Alert, Badge, Toast |
 | `Items`, `ItemText`, `ItemTemplate` | A list of choices | Select, RadioGroup, Combobox, FilterSelect |
 | `For` | The id of the element a control acts on | `DialogTrigger For`, `SidebarToggle For` |

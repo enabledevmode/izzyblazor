@@ -64,7 +64,7 @@ The rest:
 - `Center` centers both ways.
 - `Spacer` pushes the rest of a row to the end.
 - `AspectRatio` keeps media at a shape (16:9 by default).
-- `Divider` draws a line: plain, dashed, labelled ("or") or vertical.
+- `Divider` draws a line: plain, dashed, labeled ("or") or vertical.
 
 ## Typography, links and code
 
@@ -303,7 +303,7 @@ the closed field hides. Other browsers, including iOS Safari, keep their own lis
   choose. The hidden select keeps posting the value, so `@bind`, required validation and labels work
   unchanged.
 - **Options:** give it `Items` (or an enum), or `Search` for long lists. `Search` is called with `""`
-  for the first list, and as the user types on interactive pages (debounced, and cancelled when
+  for the first list, and as the user types on interactive pages (debounced, and canceled when
   superseded).
 
 **Checkbox, RadioGroup and Switch.** Checkboxes and radios are drawn with the field colors, so
@@ -530,14 +530,14 @@ how it ends, for flows like "edit this, then refresh":
 @inject DialogService Dialogs
 
 var result = await Dialogs.OpenAsync<EditSite>("Edit site", new() { ["Site"] = site });
-if (!result.Cancelled) await ReloadAsync();
+if (!result.Canceled) await ReloadAsync();
 
 if (await Dialogs.ConfirmAsync("Ada loses access.", "Remove member?",
         new() { ConfirmText = "Remove", Accent = Accent.Danger })) { ... }
 ```
 
 The component gets a cascading `DialogInstance` to close with data (`Dialog.Close(site)`) or cancel;
-Escape, the backdrop and the close button cancel too (`result.Cancelled`). Put its buttons in
+Escape, the backdrop and the close button cancel too (`result.Canceled`). Put its buttons in
 `DialogActions`, last, for a footer row. `DialogOptions` set the size, placement (a drawer or sheet)
 and closing behavior. It needs one `<DialogHost />` on the interactive page or in an interactive
 layout (`@rendermode` on the host where the layout is static). Static pages can't open anything from
@@ -633,7 +633,7 @@ languages) or `Slash`.
 `?page=` (`QueryKey`; page 1 leaves it out, and other parameters are kept), so the page reads it with
 `[SupplyParameterFromQuery]` and paging works with no script. `Siblings` and `Boundaries` (1 each)
 set how many numbers show around the current page and at the ends. On phones it shows only the
-neighbours and the ends. With `@bind-Page` on an interactive page, the pages
+neighbors and the ends. With `@bind-Page` on an interactive page, the pages
 become buttons that update C# without touching the URL.
 
 ## Stepper
@@ -832,12 +832,12 @@ takes the style props, such as `Radius`.
 
 `VideoEmbed` shows a YouTube video without loading YouTube until someone plays it: a poster with a
 play button, which is a link to the video on YouTube. With script, clicking swaps in the player from
-`youtube-nocookie.com`, in place. `Title` names the player and the button. The poster defaults to
+`youtube-nocookie.com`, in place. `Label` names the player and the button. The poster defaults to
 YouTube's thumbnail; set `Poster` to your own image to load nothing from YouTube before play.
 
 ```razor
 <Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" Caption="The console" />
-<VideoEmbed YouTubeId="dQw4w9WgXcQ" Title="Building a form" />
+<VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form" />
 ```
 
 ## Timeline

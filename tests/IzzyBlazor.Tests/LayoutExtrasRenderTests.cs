@@ -80,9 +80,9 @@ public class LayoutExtrasRenderTests : BunitContext
         Assert.Equal("separator", vertical.GetAttribute("role"));
         Assert.Equal("vertical", vertical.GetAttribute("aria-orientation"));
 
-        var labelled = Render<Divider>(p => p.Add(d => d.Label, "or")).Find(".ib-divider");
-        Assert.Equal("or", labelled.TextContent);
-        Assert.Contains("ib-divider-label", labelled.ClassName);
+        var labeled = Render<Divider>(p => p.Add(d => d.Label, "or")).Find(".ib-divider");
+        Assert.Equal("or", labeled.TextContent);
+        Assert.Contains("ib-divider-label", labeled.ClassName);
     }
 
     [Fact]

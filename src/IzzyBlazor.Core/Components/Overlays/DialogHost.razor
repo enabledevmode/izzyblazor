@@ -50,7 +50,7 @@
 
     private void OnChanged() => InvokeAsync(StateHasChanged);
 
-    // Escape, the backdrop or the close button: the dialog is cancelled.
+    // Escape, the backdrop or the close button: the dialog is canceled.
     private void OnOpenChanged(DialogEntry entry, bool open)
     {
         if (!open)
