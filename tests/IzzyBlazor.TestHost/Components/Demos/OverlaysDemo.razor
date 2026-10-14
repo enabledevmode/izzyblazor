@@ -301,12 +301,12 @@
     private async Task EditFromCode()
     {
         var result = await Dialogs.OpenAsync<EditNameDialog>("Edit name", new() { ["Name"] = _projectName }, new() { Size = DialogSize.Sm });
-        if (!result.Cancelled && result.DataAs<string>() is { } name)
+        if (!result.Canceled && result.DataAs<string>() is { } name)
         {
             _projectName = name;
         }
 
-        _serviceResult = result.Cancelled ? "Edit cancelled" : $"Name: {_projectName}";
+        _serviceResult = result.Canceled ? "Edit canceled" : $"Name: {_projectName}";
     }
 
     private async Task ConfirmFromCode()
@@ -324,7 +324,7 @@
         @inject DialogService Dialogs
 
         var result = await Dialogs.OpenAsync<EditNameDialog>("Edit name", new() { ["Name"] = name });
-        if (!result.Cancelled) name = result.DataAs<string>()!;
+        if (!result.Canceled) name = result.DataAs<string>()!;
 
         if (await Dialogs.ConfirmAsync("Ada loses access.", "Remove member?",
                 new() { ConfirmText = "Remove", Accent = Accent.Danger })) { ... }

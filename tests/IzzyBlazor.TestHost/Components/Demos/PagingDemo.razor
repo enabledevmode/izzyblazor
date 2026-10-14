@@ -18,7 +18,7 @@
         </Stack>
     </Example>
 
-    <Example Title="Pagination in the URL" Note="Each page is a link that sets ?page= in the address, so paging works with JavaScript off, survives a reload and can be shared. The page reads it with [SupplyParameterFromQuery]. On phones only the neighbours and the ends are shown." Code="@UrlCode">
+    <Example Title="Pagination in the URL" Note="Each page is a link that sets ?page= in the address, so paging works with JavaScript off, survives a reload and can be shared. The page reads it with [SupplyParameterFromQuery]. On phones only the neighbors and the ends are shown." Code="@UrlCode">
         <Stack Gap="4">
             <TextBlock data-testid="items">Showing items @((CurrentPage - 1) * 10 + 1)–@(Math.Min(CurrentPage * 10, Total)) of @Total</TextBlock>
             <Pagination TotalItems="Total" PageSize="10" id="url-pager" />

@@ -137,7 +137,7 @@
     text-align: center;
   }
 
-  /* Phones: keep the neighbours of the current page and the ends; drop the rest. */
+  /* Phones: keep the neighbors of the current page and the ends; drop the rest. */
   @media (width < 640px) {
     .ib-pagination-far:not(:first-child, :nth-child(2), :last-child, :nth-last-child(2)) {
       display: none;

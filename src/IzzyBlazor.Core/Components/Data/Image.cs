@@ -115,14 +115,14 @@ public class Image : StyledComponentBase
 /// to the video on YouTube. With script, clicking swaps in the player (from youtube-nocookie.com)
 /// in place, so pages don't load YouTube's player, and its cookies, until someone wants it.
 /// </summary>
-/// <example><code>&lt;VideoEmbed YouTubeId="dQw4w9WgXcQ" Title="Building a form in IzzyBlazor" /&gt;</code></example>
+/// <example><code>&lt;VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form in IzzyBlazor" /&gt;</code></example>
 public partial class VideoEmbed : StyledComponentBase
 {
     /// <summary>The video's id, the 11 characters after <c>v=</c> in its URL.</summary>
     [Parameter, EditorRequired] public string YouTubeId { get; set; } = "";
 
-    /// <summary>The video's title: the player's accessible name and the play button's.</summary>
-    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    /// <summary>The video's name, usually its title: the player's accessible name and the play button's.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
 
     /// <summary>The poster image. Defaults to YouTube's own thumbnail; set your own to load nothing from YouTube before play.</summary>
     [Parameter] public string? Poster { get; set; }
@@ -159,12 +159,12 @@ public partial class VideoEmbed : StyledComponentBase
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var (cssClass, style) = BuildRootAttributes();
-        var label = string.Format(CultureInfo.CurrentCulture, PlayLabel ?? IzzyText.From(Services).PlayVideo, Title);
+        var label = string.Format(CultureInfo.CurrentCulture, PlayLabel ?? IzzyText.From(Services).PlayVideo, Label);
         builder.OpenElement(0, "ib-video");
         builder.AddMultipleAttributes(1, AdditionalAttributes);
         builder.AddAttribute(2, "class", cssClass);
         builder.AddAttribute(3, "style", style);
-        builder.AddAttribute(4, "data-title", Title);
+        builder.AddAttribute(4, "data-title", Label);
 
         builder.OpenElement(5, "a");
         builder.AddAttribute(6, "class", "ib-video-poster");

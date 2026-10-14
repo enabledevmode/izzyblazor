@@ -16,7 +16,7 @@ public class IconRenderTests : BunitContext
     }
 
     [Fact]
-    public void Labelled_icon_is_an_image_with_a_name()
+    public void Labeled_icon_is_an_image_with_a_name()
     {
         var svg = Render<Icon>(p => p
             .Add(i => i.Name, Lucide.CircleCheck)

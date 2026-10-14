@@ -224,7 +224,7 @@ public class SiteFeedbackTests : BunitContext
     [Fact]
     public void VideoEmbed_is_a_link_to_the_video_until_played()
     {
-        var host = Render<VideoEmbed>(p => p.Add(v => v.YouTubeId, "dQw4w9WgXcQ").Add(v => v.Title, "Forms")).Find("ib-video");
+        var host = Render<VideoEmbed>(p => p.Add(v => v.YouTubeId, "dQw4w9WgXcQ").Add(v => v.Label, "Forms")).Find("ib-video");
 
         var link = host.QuerySelector("a.ib-video-poster")!;
         Assert.Equal("https://www.youtube.com/watch?v=dQw4w9WgXcQ", link.GetAttribute("href"));
@@ -238,7 +238,7 @@ public class SiteFeedbackTests : BunitContext
     [Fact]
     public void VideoEmbed_rejects_anything_but_a_video_id()
     {
-        Assert.ThrowsAny<ArgumentException>(() => Render<VideoEmbed>(p => p.Add(v => v.YouTubeId, "x\" onload=\"alert(1)").Add(v => v.Title, "X")));
+        Assert.ThrowsAny<ArgumentException>(() => Render<VideoEmbed>(p => p.Add(v => v.YouTubeId, "x\" onload=\"alert(1)").Add(v => v.Label, "X")));
     }
 
     [Fact]
@@ -287,7 +287,7 @@ public class SiteFeedbackTests : BunitContext
         Assert.Contains("ib-header-nav-bp-sm", root.ClassName);
         Assert.Contains("ib-header-nav-end", root.ClassName);
 
-        // The same links twice: the row and the sheet, each its own labelled nav.
+        // The same links twice: the row and the sheet, each its own labeled nav.
         var navs = cut.FindAll("nav");
         Assert.Equal(2, navs.Count);
         Assert.All(navs, n => Assert.Equal("Site", n.GetAttribute("aria-label")));

@@ -1372,7 +1372,7 @@
 
   /*
    * The knob: a 16px disc with a 6px core, both whole pixels inside the 20px track. Off, the disc
-   * is the surface with an outline edge and a grey core; on, it's the on-accent color with the core
+   * is the surface with an outline edge and a gray core; on, it's the on-accent color with the core
    * lit in the accent. No shadow.
    */
   .ib-switch-input::before,

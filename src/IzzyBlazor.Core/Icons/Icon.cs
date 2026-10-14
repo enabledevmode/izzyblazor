@@ -73,7 +73,7 @@ public class Icon : IzzyComponentBase
     {
         var (cssClass, style) = BuildRootAttributes();
         var stroked = _icon.Style == IconStyle.Stroke;
-        var labelled = !string.IsNullOrWhiteSpace(Label);
+        var labeled = !string.IsNullOrWhiteSpace(Label);
 
         builder.OpenElement(0, "svg");
         builder.AddAttribute(1, "xmlns", "http://www.w3.org/2000/svg");
@@ -87,7 +87,7 @@ public class Icon : IzzyComponentBase
             builder.AddAttribute(7, "stroke-linejoin", "round");
         }
 
-        if (labelled)
+        if (labeled)
         {
             builder.AddAttribute(8, "role", "img");
             builder.AddAttribute(9, "aria-label", Label);
