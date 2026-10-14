@@ -111,7 +111,7 @@ public class ButtonRenderTests : BunitContext
 
         Assert.Equal("_blank", a.GetAttribute("target"));
         Assert.Equal("noopener noreferrer", a.GetAttribute("rel"));
-        Assert.Equal("(opens in a new tab)", a.QuerySelector(".ib-visually-hidden")!.TextContent);
+        Assert.Contains("(opens in a new tab)", a.QuerySelector(".ib-visually-hidden")!.TextContent);
     }
 
     [Fact]

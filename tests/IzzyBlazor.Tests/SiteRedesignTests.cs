@@ -4,6 +4,47 @@ namespace IzzyBlazor.Tests;
 public class SiteRedesignTests : BunitContext
 {
     [Fact]
+    public void External_anchor_can_hide_its_icon_and_still_says_so()
+    {
+        var a = Render<Anchor>(p => p
+            .Add(l => l.Href, "https://example.com")
+            .Add(l => l.External, true)
+            .Add(l => l.HideExternalIcon, true)
+            .AddChildContent("Lesson 1")).Find("a");
+
+        Assert.Equal("_blank", a.GetAttribute("target"));
+        Assert.Null(a.QuerySelector("svg"));
+        Assert.Contains("(opens in a new tab)", a.QuerySelector(".ib-visually-hidden")!.TextContent);
+    }
+
+    [Fact]
+    public void External_LinkButton_can_hide_its_icon_and_still_says_so()
+    {
+        var a = Render<LinkButton>(p => p
+            .Add(b => b.Href, "https://example.com")
+            .Add(b => b.External, true)
+            .Add(b => b.HideExternalIcon, true)
+            .AddChildContent("Watch")).Find("a");
+
+        Assert.Equal("_blank", a.GetAttribute("target"));
+        Assert.Null(a.QuerySelector("svg"));
+        Assert.Contains("(opens in a new tab)", a.QuerySelector(".ib-visually-hidden")!.TextContent);
+    }
+
+    [Fact]
+    public void External_LinkButton_with_an_end_icon_still_says_it_opens_a_new_tab()
+    {
+        var a = Render<LinkButton>(p => p
+            .Add(b => b.Href, "https://example.com")
+            .Add(b => b.External, true)
+            .Add(b => b.EndIcon, Lucide.ArrowRight)
+            .Add(b => b.NewTabLabel, "(new tab)")
+            .AddChildContent("Docs")).Find("a");
+
+        Assert.Contains("(new tab)", a.QuerySelector(".ib-visually-hidden")!.TextContent);
+    }
+
+    [Fact]
     public void AppBrand_links_home_with_an_icon_and_a_one_line_name()
     {
         var a = Render<AppBrand>(p => p

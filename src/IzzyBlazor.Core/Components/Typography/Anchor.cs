@@ -34,6 +34,12 @@ public class Anchor : IzzyComponentBase
     /// <summary>Opens in a new tab (<c>target="_blank" rel="noopener noreferrer"</c>), with an icon after the text.</summary>
     [Parameter] public bool External { get; set; }
 
+    /// <summary>
+    /// Leaves out an external link's icon, for repeated links where it would be noise (a list of
+    /// lessons, say). Screen readers still hear <see cref="NewTabLabel"/>.
+    /// </summary>
+    [Parameter] public bool HideExternalIcon { get; set; }
+
     /// <summary>When it's underlined. Defaults to <see cref="AnchorUnderline.Always"/>.</summary>
     [Parameter] public AnchorUnderline Underline { get; set; } = AnchorUnderline.Always;
 
@@ -73,10 +79,14 @@ public class Anchor : IzzyComponentBase
         builder.AddContent(7, ChildContent);
         if (External)
         {
-            builder.OpenComponent<Icon>(8);
-            builder.AddComponentParameter(9, nameof(Icon.Role), IconRole.ExternalLink);
-            builder.AddComponentParameter(10, nameof(Icon.Class), "ib-anchor-icon");
-            builder.CloseComponent();
+            if (!HideExternalIcon)
+            {
+                builder.OpenComponent<Icon>(8);
+                builder.AddComponentParameter(9, nameof(Icon.Role), IconRole.ExternalLink);
+                builder.AddComponentParameter(10, nameof(Icon.Class), "ib-anchor-icon");
+                builder.CloseComponent();
+            }
+
             builder.OpenElement(11, "span");
             builder.AddAttribute(12, "class", "ib-visually-hidden");
             builder.AddContent(13, $" {NewTabLabel ?? TextDefaults.OpensInNewTab}");
