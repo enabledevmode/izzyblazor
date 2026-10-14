@@ -55,7 +55,8 @@ public abstract class TextBase : Box
     /// <summary>
     /// Makes the size fluid: the text is <see cref="MinSize"/> on a 360px screen and grows smoothly
     /// to <see cref="Size"/> at 1280px and up, as for a hero heading:
-    /// <c>&lt;Heading Size="TextSize.Xl5" MinSize="TextSize.Xl3"&gt;</c>. Replaces per-breakpoint sizes.
+    /// <c>&lt;Heading Size="TextSize.Xl5" MinSize="TextSize.Xl3"&gt;</c>. Replaces per-breakpoint sizes:
+    /// with them, it grows to the size for the widest breakpoint given.
     /// </summary>
     [Parameter] public TextSize? MinSize { get; set; }
 
@@ -69,7 +70,8 @@ public abstract class TextBase : Box
         if (MinSize is { } min && !EffectiveSize.IsEmpty)
         {
             classes.Add("ib-fs");
-            styles.AddVar("fs", StyleValues.FluidTextSize(min, EffectiveSize.Base));
+            // The size at 1280px and up: the widest breakpoint's (Base alone when that's all there is).
+            styles.AddVar("fs", StyleValues.FluidTextSize(min, EffectiveSize.Entries.Last().Value));
         }
         else
         {
