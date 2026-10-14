@@ -640,6 +640,24 @@ What to show when there's nothing yet: `Icon` (in a tinted circle), `Title` (`Ti
 3), `Description`, any content, and `Actions` such as a "New invoice" button or "Clear filters".
 `Bordered` draws a dashed outline for an empty area inside a page; `Size` scales it.
 
+## Timeline
+
+A vertical list of events, such as a commit log, an order's history or a changelog: an `ol` of
+`TimelineItem`s, each with a marker on a rail, a `Title` (a link with `Href`), a `Time` (a `time`
+element when `DateTime` is given) and any content under it, such as a commit link or actions.
+`Icon` puts an icon in the marker, `Status` colors it, and `Current` marks where things stand now:
+the marker lights in the accent and the item gets `aria-current`. Markers and the rail sit on whole
+pixels; markers take `--ib-timeline-bg` (the surface by default) so the rail passes behind them.
+
+```razor
+<Timeline>
+    <TimelineItem Title="Add Section" Time="Oct 13" DateTime="2026-10-13" Current>
+        <Anchor Href="https://github.com/...">93c85d4</Anchor>
+    </TimelineItem>
+    <TimelineItem Title="List and Prose" Time="Oct 13" Status="Status.Success" />
+</Timeline>
+```
+
 ## Kbd
 
 A key, `<Kbd>Esc</Kbd>`, or a combination, `<Kbd Keys="Ctrl+K" />`: nested `<kbd>` elements, one
