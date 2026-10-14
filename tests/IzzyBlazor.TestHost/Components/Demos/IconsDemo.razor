@@ -47,6 +47,18 @@
         </Row>
     </Example>
 
+    <Example Title="Brand logos" Note="Lucide has none, so Brands carries a few from Simple Icons (CC0): solid shapes in the text color. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
+        <Row Gap="5" Align="Align.Center" Wrap>
+            @foreach (var (name, icon) in BrandIcons)
+            {
+                <Stack Gap="1" Align="Align.Center">
+                    <Icon Name="icon" Size="IconSize.Xl" />
+                    <TextBlock Size="TextSize.Xs" Color="Color.Muted">@name</TextBlock>
+                </Stack>
+            }
+        </Row>
+    </Example>
+
     <Example Title="Browse Lucide" Note="@($"All {AllIcons.Count} icons. The search is a plain GET form, so it works on static pages with JavaScript off.")">
         <Stack Gap="4">
             <form method="get" class="host-search">
@@ -74,6 +86,19 @@
 </Stack>
 
 @code {
+    private static readonly (string Name, IconData Icon)[] BrandIcons =
+    [
+        ("GitHub", Brands.GitHub), ("GitLab", Brands.GitLab), ("YouTube", Brands.YouTube), ("X", Brands.X),
+        ("Bluesky", Brands.Bluesky), ("Mastodon", Brands.Mastodon), ("Discord", Brands.Discord), ("Reddit", Brands.Reddit),
+        ("Instagram", Brands.Instagram), ("Facebook", Brands.Facebook), ("NuGet", Brands.NuGet), ("Npm", Brands.Npm), ("DotNet", Brands.DotNet),
+    ];
+
+    private const string BrandsCode =
+        """
+        <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com/..." />
+        <Icon Name="Brands.YouTube" Label="YouTube" />
+        """;
+
     private const int MaxShown = 120;
 
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
