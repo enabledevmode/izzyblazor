@@ -108,6 +108,25 @@ static pages, and it follows the text color (`currentColor`) and size (`em`).
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
+- Lucide has no brand logos, so a small `Brands` class carries some from Simple Icons (CC0): `GitHub`,
+  `GitLab`, `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`,
+  `NuGet`, `Npm` and `DotNet`. They're solid shapes in the text color, like any icon. The logos are
+  their owners' trademarks; follow each brand's guidelines. (LinkedIn asked Simple Icons to remove
+  its logo, so it isn't included.)
+
+**Your own icon.** An icon is an `IconData`: a view box, SVG drawing elements, and whether it's
+drawn with fill or stroke. For any other logo, copy its path from https://simpleicons.org (or your
+designer's SVG) into a static property and use it like the rest:
+
+```csharp
+public static class MyIcons
+{
+    public static IconData Acme => new("0 0 24 24", "<path d=\"M12 2 2 22h20z\"/>", IconStyle.Fill);
+}
+```
+
+`<Icon Name="MyIcons.Acme" Label="Acme" />`. Only SVG drawing elements are allowed in the body
+(paths, shapes, groups), so an icon can't carry script.
 
 ## Buttons
 
@@ -639,6 +658,24 @@ lines between items; `Size` sets the text size and spacing.
 What to show when there's nothing yet: `Icon` (in a tinted circle), `Title` (`TitleLevel`, default
 3), `Description`, any content, and `Actions` such as a "New invoice" button or "Clear filters".
 `Bordered` draws a dashed outline for an empty area inside a page; `Size` scales it.
+
+## Image and VideoEmbed
+
+`Image` loads lazily (`Lazy`, on by default; turn it off for the first image on a page) and keeps
+its space while loading: give `IntrinsicWidth` and `IntrinsicHeight` (the file's own size), or a
+`Ratio` such as `16 / 9.0`, which the image fills (`Fit` `Cover`, the default) or fits inside
+(`Contain`). `Alt` is required; use `""` for a decorative image. `Caption` wraps it in a `figure`. It
+takes the style props, such as `Radius`.
+
+`VideoEmbed` shows a YouTube video without loading YouTube until someone plays it: a poster with a
+play button, which is a link to the video on YouTube. With script, clicking swaps in the player from
+`youtube-nocookie.com`, in place. `Title` names the player and the button. The poster defaults to
+YouTube's thumbnail; set `Poster` to your own image to load nothing from YouTube before play.
+
+```razor
+<Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" Caption="The console" />
+<VideoEmbed YouTubeId="dQw4w9WgXcQ" Title="Building a form" />
+```
 
 ## Timeline
 

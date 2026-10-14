@@ -159,6 +159,72 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
+    public void Brand_icons_are_filled_shapes_in_the_text_color()
+    {
+        var svg = Render<Icon>(p => p.Add(i => i.Name, Brands.GitHub).Add(i => i.Label, "GitHub")).Find("svg");
+
+        Assert.Equal("currentColor", svg.GetAttribute("fill"));
+        Assert.Null(svg.GetAttribute("stroke"));
+        Assert.Equal("GitHub", svg.GetAttribute("aria-label"));
+        Assert.Single(svg.QuerySelectorAll("path"));
+    }
+
+    [Fact]
+    public void Image_loads_lazily_and_keeps_its_space()
+    {
+        var img = Render<Image>(p => p
+            .Add(i => i.Src, "/a.png")
+            .Add(i => i.Alt, "The rules list")
+            .Add(i => i.IntrinsicWidth, 1200)
+            .Add(i => i.IntrinsicHeight, 675)).Find("img");
+
+        Assert.Equal("lazy", img.GetAttribute("loading"));
+        Assert.Equal("async", img.GetAttribute("decoding"));
+        Assert.Equal("1200", img.GetAttribute("width"));
+        Assert.Equal("675", img.GetAttribute("height"));
+        Assert.Equal("ib-image", img.ClassName);
+    }
+
+    [Fact]
+    public void Image_ratio_fit_and_caption()
+    {
+        var cut = Render<Image>(p => p
+            .Add(i => i.Src, "/a.png")
+            .Add(i => i.Alt, "")
+            .Add(i => i.Ratio, 16 / 9.0)
+            .Add(i => i.Fit, ImageFit.Contain)
+            .Add(i => i.Lazy, false)
+            .Add(i => i.Caption, "The console"));
+
+        var img = cut.Find("figure.ib-figure > img");
+        Assert.Equal("ib-image ib-image-ratio ib-image-contain", img.ClassName);
+        Assert.Equal("--ib-ratio:1.7778;", img.GetAttribute("style"));
+        Assert.Null(img.GetAttribute("loading"));
+        Assert.Equal("", img.GetAttribute("alt"));
+        Assert.Equal("The console", cut.Find("figcaption").TextContent);
+    }
+
+    [Fact]
+    public void VideoEmbed_is_a_link_to_the_video_until_played()
+    {
+        var host = Render<VideoEmbed>(p => p.Add(v => v.YouTubeId, "dQw4w9WgXcQ").Add(v => v.Title, "Forms")).Find("ib-video");
+
+        var link = host.QuerySelector("a.ib-video-poster")!;
+        Assert.Equal("https://www.youtube.com/watch?v=dQw4w9WgXcQ", link.GetAttribute("href"));
+        Assert.Equal("https://www.youtube-nocookie.com/embed/dQw4w9WgXcQ?autoplay=1", link.GetAttribute("data-ib-video-src"));
+        Assert.Equal("Play video: Forms", link.GetAttribute("aria-label"));
+        Assert.Equal("https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg", link.QuerySelector("img")!.GetAttribute("src"));
+        Assert.Empty(host.QuerySelector(".ib-video-frame")!.Children);
+        Assert.Empty(host.QuerySelectorAll("iframe"));
+    }
+
+    [Fact]
+    public void VideoEmbed_rejects_anything_but_a_video_id()
+    {
+        Assert.ThrowsAny<ArgumentException>(() => Render<VideoEmbed>(p => p.Add(v => v.YouTubeId, "x\" onload=\"alert(1)").Add(v => v.Title, "X")));
+    }
+
+    [Fact]
     public void Heading_with_MinSize_is_fluid()
     {
         var h1 = Render<Heading>(p => p
