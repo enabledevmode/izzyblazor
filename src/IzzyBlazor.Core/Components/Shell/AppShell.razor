@@ -21,7 +21,9 @@
 <ib-shell @attributes="AdditionalAttributes" class="@_class" style="@_style">
     <a class="ib-skip-link" href="@($"#{MainId}")">Skip to content</a>
     <CascadingValue Value="_context">
-        @ChildContent
+        <CascadingValue Value="_headerLinks" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
     </CascadingValue>
 </ib-shell>
 
@@ -60,6 +62,7 @@
     [Parameter] public string MainId { get; set; } = "ib-main";
 
     private AppShellContext _context = null!;
+    private readonly ShellHeaderLinks _headerLinks = new();
     private string? _class;
     private string? _style;
 

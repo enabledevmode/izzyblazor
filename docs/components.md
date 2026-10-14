@@ -345,7 +345,9 @@ With a sidebar, the main area centers in its own column but the header spans the
 
 **The drawer.** Below its breakpoint the sidebar becomes a drawer opened by `SidebarToggle`. It works
 with JavaScript off (a link to the sidebar and CSS `:target`); with JavaScript it also closes on
-Escape, backdrop click and navigation.
+Escape, backdrop click and navigation. On phones (below 480px) it takes the full width, with its close
+button where the menu button was; on wider screens it is the sidebar's width or 360px, whichever is
+wider.
 
 **Header links on phones.** A site with no sidebar puts its links in `HeaderNav`. From its
 `Breakpoint` up (`Md` by default) they are a row in the header; below it they fold into a menu
@@ -371,6 +373,10 @@ The sheet is a native popover, so it opens, closes on Escape and closes on a cli
 JavaScript off. With JavaScript it also takes focus, and closes after a link is followed (enhanced
 navigation keeps the page) or when the screen grows past the breakpoint. The items render twice
 (row and sheet), so keep them to links.
+
+With an `AppSidebar` in the shell there is one menu, not two: HeaderNav's button and sheet stay
+hidden, and below its breakpoint its links show at the top of the sidebar, above a line (in the
+drawer on phones, or in the sidebar column if HeaderNav's breakpoint is the wider one).
 
 **Sidebar header and footer.** `AppSidebar` takes `Header` and `Footer`, pinned to its top and bottom
 (a workspace switcher, an account menu), with the content scrolling between them. They have no lines

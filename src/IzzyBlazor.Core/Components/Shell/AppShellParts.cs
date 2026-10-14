@@ -8,6 +8,29 @@ namespace IzzyBlazor;
 /// <param name="ContentWidth">The shell's <see cref="AppShell.ContentWidth"/>, if set.</param>
 public sealed record AppShellContext(string MainId, Length? ContentWidth = null);
 
+/// <summary>
+/// Carries a <see cref="HeaderNav"/>'s links to the shell's <see cref="AppSidebar"/>, which shows
+/// them at its top below the HeaderNav's breakpoint, so a phone has one menu, not two.
+/// </summary>
+public sealed class ShellHeaderLinks
+{
+    /// <summary>The links, or null when the shell has no <see cref="HeaderNav"/>.</summary>
+    public RenderFragment? Links { get; private set; }
+
+    /// <summary>Below this width the links show in the sidebar.</summary>
+    public Breakpoint Breakpoint { get; private set; } = Breakpoint.Md;
+
+    /// <summary>Raised when the links change, so the sidebar renders them.</summary>
+    public event Action? Changed;
+
+    internal void Set(RenderFragment? links, Breakpoint breakpoint)
+    {
+        Links = links;
+        Breakpoint = breakpoint;
+        Changed?.Invoke();
+    }
+}
+
 /// <summary>Shared plumbing for the parts of an <see cref="AppShell"/>.</summary>
 public abstract class AppShellPart : IzzyComponentBase
 {

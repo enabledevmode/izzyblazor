@@ -418,9 +418,8 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
-         narrower than the sidebar, and at most 360px on wider screens. */
-      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
+      /* The sidebar's width or 360px, whichever is wider; the full width on phones (below). */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), 100%);
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -487,9 +486,8 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
-         narrower than the sidebar, and at most 360px on wider screens. */
-      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
+      /* The sidebar's width or 360px, whichever is wider; the full width on phones (below). */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), 100%);
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -556,9 +554,8 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
-         narrower than the sidebar, and at most 360px on wider screens. */
-      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
+      /* The sidebar's width or 360px, whichever is wider; the full width on phones (below). */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), 100%);
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -625,9 +622,8 @@
       inset-block: 0;
       inset-inline-start: 0;
       z-index: 40;
-      /* Nearly full width on a phone, leaving a strip of page to tap to close (56px); never
-         narrower than the sidebar, and at most 360px on wider screens. */
-      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), calc(100vw - 3.5rem));
+      /* The sidebar's width or 360px, whichever is wider; the full width on phones (below). */
+      width: min(max(var(--ib-sidebar-w, 16rem), 22.5rem), 100%);
       translate: var(--ib-drawer-off) 0;
       visibility: hidden;
       box-shadow: var(--ib-shadow-lg);
@@ -1632,6 +1628,29 @@
     .ib-shell-sidebar,
     .ib-shell-collapse-icon {
       transition: none !important;
+    }
+  }
+}
+
+/*
+ * On a phone the drawer takes the full width, like HeaderNav's sheet: its top bar has the close
+ * button where the menu button was, and Escape closes it. Every breakpoint's sidebar is a drawer here.
+ */
+@layer izzy.components {
+  @media (width < 30rem) {
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl) {
+      width: 100%;
+    }
+
+    /* The close button lands where the menu button was: at the header's padding, on the drawer's side. */
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl) .ib-shell-sidebar-close {
+      justify-content: flex-start;
+      padding-inline: max(var(--ib-space-4), env(safe-area-inset-left, 0px));
+    }
+
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl).ib-shell-sidebar-end .ib-shell-sidebar-close {
+      justify-content: flex-end;
+      padding-inline: max(var(--ib-space-4), env(safe-area-inset-right, 0px));
     }
   }
 }

@@ -330,3 +330,43 @@
     }
   }
 }
+
+/*
+ * HeaderNav in a shell with a sidebar: one menu on phones. The HeaderNav's button and sheet stay
+ * hidden, and below its breakpoint AppSidebar shows its links at the top, above a line.
+ */
+@layer izzy.components {
+  .ib-shell:has(> .ib-shell-sidebar) ib-header-nav > :is(.ib-header-nav-toggle, .ib-header-nav-panel) {
+    display: none;
+  }
+
+  .ib-shell-sidebar-links {
+    margin-block-end: var(--ib-space-2);
+    padding-block-end: var(--ib-space-2);
+    border-block-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  @media (width >= 640px) {
+    .ib-shell-sidebar-links-bp-sm {
+      display: none;
+    }
+  }
+
+  @media (width >= 768px) {
+    .ib-shell-sidebar-links-bp-md {
+      display: none;
+    }
+  }
+
+  @media (width >= 1024px) {
+    .ib-shell-sidebar-links-bp-lg {
+      display: none;
+    }
+  }
+
+  @media (width >= 1280px) {
+    .ib-shell-sidebar-links-bp-xl {
+      display: none;
+    }
+  }
+}

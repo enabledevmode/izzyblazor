@@ -26,7 +26,7 @@
 <nav @attributes="AdditionalAttributes" id="@Id" aria-label="@(Label ?? TextDefaults.MainNavigation)" class="@_class" style="@_style">
     <div class="ib-shell-sidebar-inner">
         <div class="ib-shell-sidebar-close">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm" href="#ib-shell-closed" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="#ib-shell-closed" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
                 <Icon Role="IconRole.Close" />
             </a>
         </div>
@@ -45,6 +45,13 @@
             @CollapseControl
         }
         <div class="ib-shell-sidebar-body">
+            @if (HeaderLinks?.Links is { } links)
+            {
+                @* A HeaderNav's links, shown here below its breakpoint (see HeaderNav). *@
+                <ul class="@($"ib-nav ib-nav-vertical ib-shell-sidebar-links ib-shell-sidebar-links-bp-{HeaderLinks.Breakpoint.Name()}")">
+                    @links
+                </ul>
+            }
             @ChildContent
         </div>
         @if (Footer is not null)
@@ -145,6 +152,12 @@
     private bool _initialized;
     private bool? _remembered;
     private PersistingComponentStateSubscription? _persisting;
+
+    [CascadingParameter] private ShellHeaderLinks? HeaderLinks { get; set; }
+
+    private ShellHeaderLinks? _subscribed;
+
+    private void OnHeaderLinksChanged() => _ = InvokeAsync(StateHasChanged);
 
     private bool ChevronAt(VerticalPosition position) => Collapsible && CollapseButtonPosition == position;
 
@@ -253,6 +266,20 @@
 
         _lastCollapsedParam = Collapsed;
         (_class, _style) = BuildRootAttributes();
+
+        if (!ReferenceEquals(_subscribed, HeaderLinks))
+        {
+            if (_subscribed is not null)
+            {
+                _subscribed.Changed -= OnHeaderLinksChanged;
+            }
+
+            _subscribed = HeaderLinks;
+            if (_subscribed is not null)
+            {
+                _subscribed.Changed += OnHeaderLinksChanged;
+            }
+        }
     }
 
     private async Task OnCollapseChange(ChangeEventArgs e)
@@ -262,5 +289,12 @@
     }
 
     /// <inheritdoc />
-    public void Dispose() => _persisting?.Dispose();
+    public void Dispose()
+    {
+        _persisting?.Dispose();
+        if (_subscribed is not null)
+        {
+            _subscribed.Changed -= OnHeaderLinksChanged;
+        }
+    }
 }
