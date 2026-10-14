@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace IzzyBlazor.Tests;
@@ -235,5 +236,43 @@ public class SiteFeedbackTests : BunitContext
 
         Assert.Contains("ib-fs", h1.ClassList);
         Assert.Contains("--ib-fs:clamp(var(--ib-text-3xl), 1.4348rem + 1.9565vw, var(--ib-text-5xl));", h1.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void HeaderNav_renders_a_row_and_a_sheet_opened_by_a_native_popover_button()
+    {
+        var cut = Render<HeaderNav>(p => p
+            .Add(n => n.Label, "Site")
+            .Add(n => n.Id, "site-nav")
+            .Add(n => n.Breakpoint, Breakpoint.Sm)
+            .Add(n => n.ChildContent, (RenderFragment)(b =>
+            {
+                b.OpenComponent<NavItem>(0);
+                b.AddAttribute(1, nameof(NavItem.Href), "/articles");
+                b.AddAttribute(2, nameof(NavItem.ChildContent), (RenderFragment)(t => t.AddContent(0, "Articles")));
+                b.CloseComponent();
+            }))
+            .Add(n => n.PanelFooter, (RenderFragment)(b => b.AddContent(0, "Footer"))));
+
+        var root = cut.Find("ib-header-nav");
+        Assert.Contains("ib-header-nav-bp-sm", root.ClassName);
+        Assert.Contains("ib-header-nav-end", root.ClassName);
+
+        // The same links twice: the row and the sheet, each its own labelled nav.
+        var navs = cut.FindAll("nav");
+        Assert.Equal(2, navs.Count);
+        Assert.All(navs, n => Assert.Equal("Site", n.GetAttribute("aria-label")));
+        Assert.Equal(2, cut.FindAll("a[href='/articles']").Count);
+
+        // The button opens the sheet with no script; the close button hides it.
+        var panel = cut.Find(".ib-header-nav-panel");
+        Assert.Equal("site-nav", panel.Id);
+        Assert.True(panel.HasAttribute("popover"));
+        Assert.Equal("site-nav", cut.Find(".ib-header-nav-toggle").GetAttribute("popovertarget"));
+        Assert.Equal("Open menu", cut.Find(".ib-header-nav-toggle").GetAttribute("aria-label"));
+        var close = cut.Find(".ib-header-nav-close");
+        Assert.Equal("site-nav", close.GetAttribute("popovertarget"));
+        Assert.Equal("hide", close.GetAttribute("popovertargetaction"));
+        Assert.Equal("Footer", cut.Find(".ib-header-nav-foot").TextContent);
     }
 }

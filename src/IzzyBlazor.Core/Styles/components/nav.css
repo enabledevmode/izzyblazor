@@ -142,3 +142,191 @@
     }
   }
 }
+
+/*
+ * HeaderNav: a row of links in the header from its breakpoint up; below it a menu button that opens
+ * the same links as a sheet from the top of the screen (a native popover). The element is
+ * display: contents, so the row and the button are the header's own flex items.
+ */
+@layer izzy.components {
+  ib-header-nav {
+    display: contents;
+  }
+
+  .ib-header-nav-bar {
+    display: flex;
+    min-width: 0;
+  }
+
+  /* Phones look for the menu button at the end of the bar. */
+  .ib-header-nav-end > .ib-header-nav-toggle {
+    order: 1;
+  }
+
+  .ib-header-nav-panel {
+    position: fixed;
+    inset: 0 0 auto;
+    box-sizing: border-box;
+    width: 100%;
+    max-width: none;
+    height: auto;
+    max-height: 100dvh;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    border: 0;
+    border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    background-color: var(--ib-shell-header-bg, var(--ib-shell-tone, var(--ib-color-surface)));
+    color: var(--ib-shell-header-fg, var(--ib-color-on-surface));
+    box-shadow: var(--ib-shadow-lg);
+    transition:
+      opacity var(--ib-duration-normal) var(--ib-ease),
+      translate var(--ib-duration-normal) var(--ib-ease),
+      overlay var(--ib-duration-normal) allow-discrete,
+      display var(--ib-duration-normal) allow-discrete;
+  }
+
+  .ib-header-nav-panel:popover-open {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-header-nav-panel::backdrop {
+    background-color: var(--ib-color-backdrop);
+  }
+
+  /* Slide and fade only where popovers exist: without the Popover API the panel must stay visible. */
+  @supports selector(:popover-open) {
+    .ib-header-nav-panel {
+      opacity: 0;
+      translate: 0 -0.5rem;
+    }
+
+    .ib-header-nav-panel:popover-open {
+      opacity: 1;
+      translate: 0 0;
+    }
+
+    @starting-style {
+      .ib-header-nav-panel:popover-open {
+        opacity: 0;
+        translate: 0 -0.5rem;
+      }
+    }
+  }
+
+  html:has(.ib-header-nav-panel:popover-open) {
+    overflow: hidden;
+  }
+
+  /* The top bar matches the header (height, padding, line), so the close button lands exactly
+     where the menu button was. */
+  .ib-header-nav-top {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    flex: none;
+    box-sizing: border-box;
+    min-height: calc(var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px));
+    padding: calc(env(safe-area-inset-top, 0px) + 1px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
+    border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  .ib-header-nav-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-width: 0;
+  }
+
+  .ib-header-nav-close {
+    margin-inline-start: auto;
+  }
+
+  /* Link text lines up with the header's content edge (16px): 4px here plus the item's 12px. */
+  .ib-header-nav-body {
+    padding: var(--ib-space-2) max(var(--ib-space-1), calc(env(safe-area-inset-right, 0px) - var(--ib-space-3))) var(--ib-space-2) max(var(--ib-space-1), calc(env(safe-area-inset-left, 0px) - var(--ib-space-3)));
+  }
+
+  .ib-header-nav-body:last-child {
+    padding-bottom: calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+  }
+
+  /* Phone-sized rows: 44px targets and 16px text, as in the sidebar drawer. */
+  .ib-header-nav-body .ib-nav-item {
+    min-height: 2.75rem;
+    font-size: var(--ib-text-md);
+  }
+
+  .ib-header-nav-foot {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+    padding: var(--ib-space-3) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px)) max(var(--ib-space-4), env(safe-area-inset-left, 0px));
+    border-top: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  @media (width >= 640px) {
+    .ib-header-nav-bp-sm > .ib-header-nav-toggle,
+    .ib-header-nav-bp-sm > .ib-header-nav-panel,
+    .ib-header-nav-bp-sm > .ib-header-nav-panel::backdrop {
+      display: none;
+    }
+  }
+
+  @media (width < 640px) {
+    .ib-header-nav-bp-sm > .ib-header-nav-bar {
+      display: none;
+    }
+  }
+
+  @media (width >= 768px) {
+    .ib-header-nav-bp-md > .ib-header-nav-toggle,
+    .ib-header-nav-bp-md > .ib-header-nav-panel,
+    .ib-header-nav-bp-md > .ib-header-nav-panel::backdrop {
+      display: none;
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-header-nav-bp-md > .ib-header-nav-bar {
+      display: none;
+    }
+  }
+
+  @media (width >= 1024px) {
+    .ib-header-nav-bp-lg > .ib-header-nav-toggle,
+    .ib-header-nav-bp-lg > .ib-header-nav-panel,
+    .ib-header-nav-bp-lg > .ib-header-nav-panel::backdrop {
+      display: none;
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-header-nav-bp-lg > .ib-header-nav-bar {
+      display: none;
+    }
+  }
+
+  @media (width >= 1280px) {
+    .ib-header-nav-bp-xl > .ib-header-nav-toggle,
+    .ib-header-nav-bp-xl > .ib-header-nav-panel,
+    .ib-header-nav-bp-xl > .ib-header-nav-panel::backdrop {
+      display: none;
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-header-nav-bp-xl > .ib-header-nav-bar {
+      display: none;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-header-nav-panel {
+      transition: none;
+    }
+  }
+}

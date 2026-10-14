@@ -22,6 +22,7 @@ import { applySavedScheme } from "./elements/scheme-switch";
 import "./elements/code";
 import "./elements/color-picker";
 import "./elements/video";
+import "./elements/header-nav";
 import "./elements/combobox";
 import "./elements/table";
 import "./elements/banner";
