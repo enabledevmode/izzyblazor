@@ -154,7 +154,7 @@ public class ShellRenderTests : BunitContext
     [Fact]
     public void DrawerPosition_follows_Position_unless_set()
     {
-        string Classes(SidebarPosition position, SidebarPosition? drawer) => Render<AppSidebar>(p => p
+        string? Classes(SidebarPosition position, SidebarPosition? drawer) => Render<AppSidebar>(p => p
             .Add(s => s.Position, position)
             .Add(s => s.DrawerPosition, drawer)).Find("nav").ClassName;
 
