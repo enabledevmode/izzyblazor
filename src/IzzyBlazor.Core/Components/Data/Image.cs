@@ -118,8 +118,12 @@ public class Image : StyledComponentBase
 /// <example><code>&lt;VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form in IzzyBlazor" /&gt;</code></example>
 public partial class VideoEmbed : StyledComponentBase
 {
-    /// <summary>The video's id, the 11 characters after <c>v=</c> in its URL.</summary>
-    [Parameter, EditorRequired] public string YouTubeId { get; set; } = "";
+    /// <summary>
+    /// The video's id, the 11 characters after <c>v=</c> in its URL. Unset for a video that isn't
+    /// out yet: the box keeps its place with <see cref="Poster"/> (if set) and
+    /// <see cref="EmptyContent"/> or <see cref="EmptyText"/>, and nothing to play.
+    /// </summary>
+    [Parameter] public string? YouTubeId { get; set; }
 
     /// <summary>The video's name, usually its title: the player's accessible name and the play button's.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
@@ -133,6 +137,14 @@ public partial class VideoEmbed : StyledComponentBase
     /// <summary>The play button's name, with {0} for the title. Defaults to "Play video: {0}".</summary>
     [Parameter] public string? PlayLabel { get; set; }
 
+    /// <summary>Shown over the poster while there's no <see cref="YouTubeId"/>, in place of <see cref="EmptyText"/>.</summary>
+    [Parameter] public RenderFragment? EmptyContent { get; set; }
+
+    /// <summary>Shown while there's no <see cref="YouTubeId"/>. Defaults to "Coming soon".</summary>
+    [Parameter] public string? EmptyText { get; set; }
+
+    private bool Upcoming => string.IsNullOrWhiteSpace(YouTubeId);
+
     [Inject] private IServiceProvider Services { get; set; } = default!;
 
     [GeneratedRegex("^[A-Za-z0-9_-]{11}$")]
@@ -141,7 +153,7 @@ public partial class VideoEmbed : StyledComponentBase
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (!IdPattern().IsMatch(YouTubeId))
+        if (!Upcoming && !IdPattern().IsMatch(YouTubeId!))
         {
             throw new ArgumentException($"\"{YouTubeId}\" isn't a YouTube video id (11 letters, digits, - or _).", nameof(YouTubeId));
         }
@@ -151,6 +163,7 @@ public partial class VideoEmbed : StyledComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-video");
+        classes.Add("ib-video-upcoming", Upcoming);
         base.BuildAttributes(classes, styles);
         styles.AddVar("ratio", Ratio.ToString("0.####", CultureInfo.InvariantCulture));
     }
@@ -159,6 +172,12 @@ public partial class VideoEmbed : StyledComponentBase
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var (cssClass, style) = BuildRootAttributes();
+        if (Upcoming)
+        {
+            BuildUpcoming(builder, cssClass, style);
+            return;
+        }
+
         var label = string.Format(CultureInfo.CurrentCulture, PlayLabel ?? IzzyText.From(Services).PlayVideo, Label);
         builder.OpenElement(0, "ib-video");
         builder.AddMultipleAttributes(1, AdditionalAttributes);
@@ -188,6 +207,46 @@ public partial class VideoEmbed : StyledComponentBase
 
         builder.OpenElement(20, "div");
         builder.AddAttribute(21, "class", "ib-video-frame");
+        builder.CloseElement();
+        builder.CloseElement();
+    }
+
+    // No video yet: the same box, a group named by the title, the poster if there is one, and a
+    // note in the middle. Nothing loads from YouTube.
+    private void BuildUpcoming(RenderTreeBuilder builder, string? cssClass, string? style)
+    {
+        builder.OpenElement(30, "div");
+        builder.AddMultipleAttributes(31, AdditionalAttributes);
+        builder.AddAttribute(32, "class", cssClass);
+        builder.AddAttribute(33, "style", style);
+        builder.AddAttribute(34, "role", "group");
+        builder.AddAttribute(35, "aria-label", Label);
+        if (Poster is not null)
+        {
+            builder.OpenElement(36, "img");
+            builder.AddAttribute(37, "src", Poster);
+            builder.AddAttribute(38, "alt", "");
+            builder.AddAttribute(39, "loading", "lazy");
+            builder.AddAttribute(40, "decoding", "async");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(41, "div");
+        builder.AddAttribute(42, "class", "ib-video-empty");
+        if (EmptyContent is not null)
+        {
+            builder.AddContent(43, EmptyContent);
+        }
+        else
+        {
+            builder.OpenComponent<Icon>(44);
+            builder.AddComponentParameter(45, nameof(Icon.Role), (IconRole?)IconRole.Clock);
+            builder.CloseComponent();
+            builder.OpenElement(46, "span");
+            builder.AddContent(47, EmptyText ?? IzzyText.From(Services).VideoComingSoon);
+            builder.CloseElement();
+        }
+
         builder.CloseElement();
         builder.CloseElement();
     }
