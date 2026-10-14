@@ -34,6 +34,19 @@
 
   applySets();
 
+  // Chrome treats a click on a select as keyboard-style focus, so the header pickers would show a
+  // focus ring after every click. Mark pointer use; a key press clears it (host.css).
+  document.addEventListener("pointerdown", function (e) {
+    var select = e.target.closest && e.target.closest(".host-select");
+    if (select) select.setAttribute("data-pointer", "");
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.target.classList && e.target.classList.contains("host-select")) e.target.removeAttribute("data-pointer");
+  });
+  document.addEventListener("focusout", function (e) {
+    if (e.target.classList && e.target.classList.contains("host-select")) e.target.removeAttribute("data-pointer");
+  });
+
   // Another document of this site changed a choice: the page around a demo frame (the frame hears
   // it here), or another tab. localStorage raises "storage" in every document but the one that
   // wrote, so open frames follow the header without reloading.

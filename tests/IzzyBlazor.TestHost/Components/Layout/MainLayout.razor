@@ -17,10 +17,10 @@
         <Box Grow />
         @if (_counterpart is not null)
         {
-            <Row Inline Gap="1" Class="host-segment" aria-label="Render mode">
-                <a href="@_staticUrl" aria-current="@(_isStatic ? "page" : null)">Static</a>
-                <a href="@_interactiveUrl" aria-current="@(_isStatic ? null : "page")">Interactive</a>
-            </Row>
+            <Tabs Label="Render mode" Variant="TabsVariant.Segmented" Class="host-mode">
+                <TabLink Href="@_staticUrl" Label="Static" />
+                <TabLink Href="@_interactiveUrl" Label="Interactive" />
+            </Tabs>
         }
         <Row Inline Gap="2" Align="Align.Center" VisibleFrom="Breakpoint.Md" Class="host-sets">
             <span class="host-select-wrap"><select class="host-select" data-host-set="look" aria-label="Look">
@@ -31,7 +31,7 @@
                 <option value="teal">Teal</option><option value="green">Green</option><option value="rose">Rose</option>
             </select></span>
         </Row>
-        <ColorSchemeSwitch Size="ControlSize.Sm" VisibleFrom="Breakpoint.Sm" />
+        <ColorSchemeSwitch VisibleFrom="Breakpoint.Sm" />
     </AppHeader>
 
     <AppSidebar>
