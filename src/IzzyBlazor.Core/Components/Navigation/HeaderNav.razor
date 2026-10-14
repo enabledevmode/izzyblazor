@@ -71,7 +71,7 @@
     /// <summary>Below this width the links fold into the menu button. Defaults to <see cref="Breakpoint.Md"/>.</summary>
     [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.Md;
 
-    /// <summary>The navigation landmark's name for screen readers. Defaults to "Main".</summary>
+    /// <summary>The navigation landmark's name for screen readers. Defaults to "Site", so it differs from the sidebar's "Main".</summary>
     [Parameter] public string? Label { get; set; }
 
     /// <summary>The menu button's name. Defaults to "Open menu".</summary>
@@ -95,7 +95,7 @@
     /// <summary>The sheet's id. Generated when not set.</summary>
     [Parameter] public string? Id { get; set; }
 
-    private string NavLabel => Label ?? TextDefaults.MainNavigation;
+    private string NavLabel => Label ?? TextDefaults.SiteNavigation;
     private string PanelId => Id ?? (_generatedId ??= IdGenerator.Next("ib-header-nav"));
     private string? _generatedId;
     private string? _class;
