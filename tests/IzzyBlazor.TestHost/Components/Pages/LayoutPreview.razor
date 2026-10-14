@@ -11,6 +11,53 @@
 
 <PageTitle>@Title · Acme</PageTitle>
 
+@if (Kind == "reading")
+{
+    @* A reading site: no sidebar; ContentWidth lines the header, the article and the footer up on
+       one centered column, while the bars and their lines stay full width. *@
+    <AppShell Variant="ShellVariantValue" ContentWidth="Length.Rem(42)">
+        <AppHeader>
+            <Row Gap="2" Align="Align.Center">
+                <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                <TextBlock As="span" Weight="FontWeight.Bold">Acme Journal</TextBlock>
+            </Row>
+            <Box Grow />
+            <NavMenu Orientation="Orientation.Horizontal" aria-label="Sections" VisibleFrom="Breakpoint.Sm">
+                <NavItem Href="@Url("reading")">Articles</NavItem>
+                <NavItem Href="@Url("document")">Guides</NavItem>
+            </NavMenu>
+            <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        </AppHeader>
+        <AppMain>
+            <Stack Gap="5" PaddingY="new() { Base = 8, Md = 12 }">
+                <TextBlock Size="TextSize.Xs" Weight="FontWeight.Semibold" Color="Color.Muted">ENGINEERING</TextBlock>
+                <Heading Level="1" Size="TextSize.Xl3">How we review a rule before it goes live</Heading>
+                <Row Gap="3" Align="Align.Center">
+                    <Avatar Name="Grace Hopper" Size="AvatarSize.Sm" />
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Grace Hopper · Oct 9, 2026 · 6 min read</TextBlock>
+                </Row>
+                <TextBlock>Every rule we ship decides real money. A wrong condition can hold a thousand honest refunds before anyone notices, so no rule goes live on one person's say-so. Here is the review we run, and why each step is there.</TextBlock>
+                <Heading Level="2" Size="TextSize.Xl">Start with a dry run</Heading>
+                <TextBlock>A dry run replays last week's decisions through the new rule and lists what would have changed. Reviewers read that list before they read the rule: the outcomes are what customers feel, and they are easier to judge than the conditions that produce them.</TextBlock>
+                <Code Block Language="text">dry-run "Hold large refunds" --since 7d
+  412 decisions changed: 398 approve → hold, 14 hold → approve</Code>
+                <Heading Level="2" Size="TextSize.Xl">Read it out loud</Heading>
+                <TextBlock>Then the author reads the rule aloud as a sentence. "When the amount is over 500 and the customer is newer than 30 days, hold for review" is a rule anyone in the room can argue with. If the sentence needs an "except", the rule needs another group.</TextBlock>
+                <Alert Title="One reviewer is not enough">Rules that change more than 1% of last week's outcomes need two approvals, one of them from the team that handles the held cases.</Alert>
+                <TextBlock>Finally, the rule goes live in shadow mode for a day, deciding alongside the old rules without its outcomes being used. Only then does it take over.</TextBlock>
+            </Stack>
+        </AppMain>
+        <AppFooter>
+            <Row Gap="4" Align="Align.Center" Wrap>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Grow>© 2026 Acme</TextBlock>
+                <TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@Url("reading")">RSS</Anchor></TextBlock>
+                <TextBlock As="span" Size="TextSize.Sm"><Anchor Href="@Url("reading")">Privacy</Anchor></TextBlock>
+            </Row>
+        </AppFooter>
+    </AppShell>
+    return;
+}
+
 <AppShell Variant="ShellVariantValue">
     <AppHeader>
         <SidebarToggle />
@@ -188,7 +235,7 @@
 
     private string Url(string kind) => VariantName is null ? $"preview/layout/{kind}" : $"preview/layout/{kind}?variant={VariantName}";
 
-    private string Title => Kind switch { "settings" => "Settings", "list" => "Rules", "document" => "Guide", _ => "Overview" };
+    private string Title => Kind switch { "settings" => "Settings", "list" => "Rules", "document" => "Guide", "reading" => "Journal", _ => "Overview" };
 
     private static readonly int[] SizeOptions = [8, 20, 50];
 

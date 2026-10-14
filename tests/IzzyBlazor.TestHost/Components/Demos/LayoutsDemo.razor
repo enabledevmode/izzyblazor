@@ -44,6 +44,9 @@
         new("document", "Document: long-form reading",
             "Text reads best on the brightest surface with nothing competing; the navigation recedes.",
             [("tinted", "recommended: the default"), ("inset", "alternative: the page as a raised sheet")]),
+        new("reading", "Reading site: one centered column",
+            "No sidebar. AppShell's ContentWidth centers the header, the article and the footer on one column, so their edges line up, while the bars and their lines stay full width.",
+            [("flat", "recommended: one white page"), ("inset", "alternative: the article as a raised sheet")]),
     ];
 
     private static string Label(string variant) => char.ToUpperInvariant(variant[0]) + variant[1..];
