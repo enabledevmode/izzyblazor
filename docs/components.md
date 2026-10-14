@@ -885,8 +885,8 @@ names the table for screen readers (visually hidden).
 
 **Column filters.** `Filterable` on a column adds a filter. Where it goes is `FilterPlacement`:
 
-- **`Header` (the default):** a funnel button in the column's header, tinted while the column is
-  filtered. It opens the filter in a popover (a menu of values for enums and booleans), and the
+- **`Header` (the default):** a funnel button right after the column's title and sort icon,
+  tinted while the column is filtered (end-aligned columns, such as numbers, mirror the group). It opens the filter in a popover (a menu of values for enums and booleans), and the
   active filters show as removable tags above the table, with Clear. Popovers open natively, so
   this works with JavaScript off: Enter or Apply in the popover submits.
 - **`Row`:** a row of fields under the headers, always in view, for tables people filter
