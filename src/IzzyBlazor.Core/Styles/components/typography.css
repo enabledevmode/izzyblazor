@@ -152,6 +152,8 @@
     background-color: var(--ib-color-surface-container);
   }
 
+  /* The label and copy button float over the code: a long first line scrolls under them, so they
+     sit on the block's own color, with a short fade where the text meets them. */
   .ib-code-bar {
     position: absolute;
     top: var(--ib-space-2);
@@ -159,6 +161,10 @@
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
+    padding-inline-start: var(--ib-space-2);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface-container);
+    box-shadow: calc(-1 * var(--ib-space-3)) 0 var(--ib-space-2) calc(-1 * var(--ib-space-1)) var(--ib-color-surface-container);
   }
 
   .ib-code-language {
@@ -186,6 +192,17 @@
     outline-offset: -2px;
     border-radius: inherit;
   }
+
+  /* Syntax colors (Code with a Language the highlighter knows). */
+  .ib-tok-comment { color: var(--ib-code-comment); }
+  .ib-tok-keyword { color: var(--ib-code-keyword); }
+  .ib-tok-string { color: var(--ib-code-string); }
+  .ib-tok-number { color: var(--ib-code-number); }
+  .ib-tok-type { color: var(--ib-code-type); }
+  .ib-tok-function { color: var(--ib-code-function); }
+  .ib-tok-tag { color: var(--ib-code-tag); }
+  .ib-tok-attr { color: var(--ib-code-attr); }
+  .ib-tok-meta { color: var(--ib-code-meta); }
 
   /* The copy button needs script: hidden until <ib-code> is defined. The icons are scoped to the
      button so these rules outrank the general .ib-icon display, which comes later. */

@@ -1,10 +1,18 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
+@using System.Net
+@using Microsoft.AspNetCore.Components.RenderTree
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
 
 @*
     Code: inline (a <code> in running text) or a Block (<pre><code>) that scrolls sideways.
     A block's copy button needs script, so it only appears once <ib-code> is defined; with no
     script the code is still there to select and copy by hand.
+
+    With a Language the highlighter knows (C#, Razor, HTML, CSS, JavaScript/TypeScript, JSON,
+    shell), the code is colored on the server: spans with ib-tok-* classes, so it works with no
+    script and never flashes plain first.
 *@
 
 @if (Block)
@@ -26,12 +34,12 @@
                 }
             </div>
         }
-        <pre class="ib-code-pre" tabindex="0"><code>@ChildContent</code></pre>
+        <pre class="ib-code-pre" tabindex="0"><code>@Content</code></pre>
     </ib-code>
 }
 else
 {
-    <code @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</code>
+    <code @attributes="AdditionalAttributes" class="@_class" style="@_style">@Content</code>
 }
 
 @code {
@@ -41,8 +49,17 @@ else
     /// <summary>A block of code on its own lines (<c>pre</c>), scrolling sideways when long.</summary>
     [Parameter] public bool Block { get; set; }
 
-    /// <summary>A label above a block, such as "razor" or "bash".</summary>
+    /// <summary>
+    /// The language, such as "razor", "csharp", "css" or "bash": shown above a block, and used to
+    /// color the code when the highlighter knows it (see <see cref="IzzyCodeHighlighter.Languages"/>).
+    /// </summary>
     [Parameter] public string? Language { get; set; }
+
+    /// <summary>
+    /// Colors the code by <see cref="Language"/>. Defaults to true. The code must be plain text
+    /// (or a string expression); content with markup in it is shown as written.
+    /// </summary>
+    [Parameter] public bool Highlight { get; set; } = true;
 
     /// <summary>Adds a copy button to a block (with JavaScript). Defaults to true.</summary>
     [Parameter] public bool Copyable { get; set; } = true;
@@ -55,11 +72,101 @@ else
 
     private string? _class;
     private string? _style;
+    private IReadOnlyList<CodeToken>? _tokens;
+    private string? _source;
+    private string? _sourceLanguage;
+
+    private RenderFragment? Content => _tokens is null ? ChildContent : RenderTokens;
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
         classes.Add(Block ? "ib-code-block" : "ib-code");
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        _tokens = null;
+        if (!Highlight || Language is null || ChildContent is null || ReadText(ChildContent) is not { } text)
+        {
+            return;
+        }
+
+        // Re-highlight only when the code or language changes.
+        if (text == _source && Language == _sourceLanguage && _lastTokens is not null)
+        {
+            _tokens = _lastTokens;
+            return;
+        }
+
+        var highlighter = Services.GetService<ICodeHighlighter>() ?? IzzyCodeHighlighter.Instance;
+        _source = text;
+        _sourceLanguage = Language;
+        _lastTokens = highlighter.TryHighlight(text, Language, out var tokens) ? tokens : null;
+        _tokens = _lastTokens;
+    }
+
+    private IReadOnlyList<CodeToken>? _lastTokens;
+
+    private void RenderTokens(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        foreach (var token in _tokens!)
+        {
+            if (token.Kind == CodeTokenKind.Text)
+            {
+                builder.AddContent(0, token.Text);
+                continue;
+            }
+
+            builder.OpenElement(1, "span");
+            builder.AddAttribute(2, "class", ClassOf(token.Kind));
+            builder.AddContent(3, token.Text);
+            builder.CloseElement();
+        }
+    }
+
+    private static string ClassOf(CodeTokenKind kind) => kind switch
+    {
+        CodeTokenKind.Comment => "ib-tok-comment",
+        CodeTokenKind.Keyword => "ib-tok-keyword",
+        CodeTokenKind.String => "ib-tok-string",
+        CodeTokenKind.Number => "ib-tok-number",
+        CodeTokenKind.Type => "ib-tok-type",
+        CodeTokenKind.Function => "ib-tok-function",
+        CodeTokenKind.Tag => "ib-tok-tag",
+        CodeTokenKind.Attribute => "ib-tok-attr",
+        CodeTokenKind.Meta => "ib-tok-meta",
+        _ => "ib-tok",
+    };
+
+    /// <summary>
+    /// The code as plain text, when the content is only text: literal text, encoded text such as
+    /// "&amp;lt;" (decoded), or string expressions. Null when it holds elements or components.
+    /// </summary>
+    private static string? ReadText(RenderFragment fragment)
+    {
+#pragma warning disable BL0006 // Reading render frames: the content is rendered here only to read its text.
+        using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
+        fragment(builder);
+        var frames = builder.GetFrames();
+        var text = new System.Text.StringBuilder();
+        for (var i = 0; i < frames.Count; i++)
+        {
+            ref var frame = ref frames.Array[i];
+            switch (frame.FrameType)
+            {
+                case RenderTreeFrameType.Text:
+                    text.Append(frame.TextContent);
+                    break;
+                case RenderTreeFrameType.Markup when !frame.MarkupContent.Contains('<'):
+                    text.Append(WebUtility.HtmlDecode(frame.MarkupContent));
+                    break;
+                default:
+                    return null;
+            }
+        }
+#pragma warning restore BL0006
+
+        return text.ToString();
+    }
 }

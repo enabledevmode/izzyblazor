@@ -185,6 +185,17 @@
        outlined track (not a raised chip on a gray tray, which reads as a surface on a surface). */
     --ib-color-segment: var(--ib-color-surface-container-high);
     --ib-color-segment-edge: transparent;
+    /* Syntax colors for Code: each at least 4.5:1 on the code block's surface-container, in light
+       and dark, for every gray set. */
+    --ib-code-comment: light-dark(#5f6670, #9198a1);
+    --ib-code-keyword: light-dark(#b8202a, #ff8a80);
+    --ib-code-string: light-dark(#0a3d75, #a5d6ff);
+    --ib-code-number: light-dark(#0550ae, #79c0ff);
+    --ib-code-type: light-dark(#8a3d08, #f0b27a);
+    --ib-code-function: light-dark(#6f42c1, #d2a8ff);
+    --ib-code-tag: light-dark(#116329, #7ee787);
+    --ib-code-attr: light-dark(#0b5cad, #9ecbff);
+    --ib-code-meta: light-dark(#a3216c, #f7a1d0);
     /* State layers: hover and pressed are a wash of the text color over whatever surface is
        underneath, so they darken in light mode and lighten in dark mode, on the page, a card or a
        menu alike. Selection is shown by a mark (a check), not a fill. */
@@ -273,6 +284,15 @@
       --ib-color-surface-raised: #ffffff;
       --ib-color-raised-border: transparent;
       --ib-color-segment: #dfdfe3;
+      --ib-code-comment: #5f6670;
+      --ib-code-keyword: #b8202a;
+      --ib-code-string: #0a3d75;
+      --ib-code-number: #0550ae;
+      --ib-code-type: #8a3d08;
+      --ib-code-function: #6f42c1;
+      --ib-code-tag: #116329;
+      --ib-code-attr: #0b5cad;
+      --ib-code-meta: #a3216c;
       --ib-color-on-surface: #18181b;
       --ib-color-muted: #5f5f66;
       --ib-color-subtle: #66666d;

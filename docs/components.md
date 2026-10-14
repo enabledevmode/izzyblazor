@@ -65,6 +65,19 @@ Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in
 `Code` is inline, or a `Block` that scrolls sideways with an optional `Language` label. Its copy
 button appears only when JavaScript runs.
 
+**Syntax highlighting.** When the `Language` is one the built-in highlighter knows, the code is colored
+on the server, so it works with JavaScript off and never flashes plain first. It knows C# (`csharp`,
+`cs`), Razor (`razor`), HTML and XML (`html`, `xml`, `svg`), CSS (`css`), JavaScript and TypeScript (`js`,
+`ts`), JSON (`json`) and shell (`bash`, `sh`, `powershell`, `console`). Any other name, such as `text`,
+stays plain, and `Highlight="false"` turns it off. The code must be plain text or a string expression
+(`@snippet`); content containing markup is shown as written. The colors are `--ib-code-*` tokens, each
+at least 4.5:1 on the block in light and dark.
+
+The built-in highlighter is a set of small lexers, not full parsers: it colors keywords, strings,
+comments, numbers, types, calls, tags and attributes, and rare constructs may stay plain. To use another
+highlighter (for more languages), implement `ICodeHighlighter` and register it as a service;
+`Code` uses it in place of the built-in one.
+
 ## Icons
 
 `<Icon Name="Lucide.House" />` renders inline SVG on the server. There's no icon font, it works on
