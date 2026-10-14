@@ -78,6 +78,14 @@
     /// </summary>
     [Parameter] public SidebarPosition Position { get; set; } = SidebarPosition.Start;
 
+    /// <summary>
+    /// Below <see cref="Breakpoint"/>, the side the drawer slides in from, and the side of the
+    /// header its menu button moves to. Defaults to <see cref="Position"/>. Set
+    /// <see cref="SidebarPosition.End"/> to keep a sidebar on the left on wide screens but open it
+    /// from the right on phones, with the menu button on the right, where content sites put it.
+    /// </summary>
+    [Parameter] public SidebarPosition? DrawerPosition { get; set; }
+
     /// <summary>Runs the full height of the window, with the header and footer beside it instead of above and below.</summary>
     [Parameter] public bool FullHeight { get; set; }
 
@@ -241,6 +249,7 @@
         base.BuildAttributes(classes, styles);
         classes.Add($"ib-shell-sidebar-bp-{Breakpoint.Name()}");
         classes.Add("ib-shell-sidebar-end", Position == SidebarPosition.End);
+        classes.Add("ib-shell-drawer-end", (DrawerPosition ?? Position) == SidebarPosition.End);
         classes.Add("ib-shell-sidebar-full", FullHeight);
         classes.Add("ib-shell-sidebar-collapsible", Collapsible);
         styles.AddVar("sidebar-w", StyleValues.Length(Width));
