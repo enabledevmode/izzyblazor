@@ -210,17 +210,26 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void FormErrors_on_an_interactive_page_is_focused_from_csharp_after_a_submit()
+    public async Task FormErrors_on_an_interactive_page_is_focused_from_csharp_after_a_submit()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         var cut = Render<FormErrors>(p => p.AddCascadingValue(_context));
-        cut.InvokeAsync(() => _context.Validate());
+        await cut.InvokeAsync(() => _context.Validate());
 
         var summary = cut.Find(".ib-form-errors");
         Assert.False(summary.HasAttribute("autofocus"));
         Assert.False(summary.HasAttribute("data-ib-autofocus"));
         Assert.Equal("-1", summary.GetAttribute("tabindex"));
-        cut.WaitForAssertion(() => JSInterop.VerifyFocusAsyncInvoke());
+
+        // FocusAsync runs in OnAfterRenderAsync, after the render that a render-driven wait would
+        // check on, so poll for it instead (that wait failed now and then when it lost the race).
+        var deadline = DateTime.UtcNow.AddSeconds(5);
+        while (!JSInterop.Invocations.Any(i => i.Identifier == "Blazor._internal.domWrapper.focus") && DateTime.UtcNow < deadline)
+        {
+            await Task.Delay(10);
+        }
+
+        JSInterop.VerifyFocusAsyncInvoke();
     }
 
     [Fact]
