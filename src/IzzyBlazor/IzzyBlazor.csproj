@@ -7,6 +7,7 @@
   -->
   <PropertyGroup>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>IzzyBlazor</PackageId>
     <Description>Blazor components. No circuit required. Components that work on static SSR pages, even with JavaScript off, and bind to C# on interactive ones. Install this in server apps; WebAssembly (.Client) projects reference IzzyBlazor.Core.</Description>
     <PackageTags>blazor;components;ssr;static-ssr;ui;design-system</PackageTags>
@@ -29,6 +30,7 @@
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\brand\nuget\icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(RepoRoot)docs\nuget-readme.md" Pack="true" PackagePath="\README.md" Visible="false" />
   </ItemGroup>
 
 </Project>
