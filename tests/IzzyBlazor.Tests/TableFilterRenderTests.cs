@@ -330,6 +330,24 @@ public class TableFilterRenderTests : BunitContext
     }
 
     [Fact]
+    public void Header_filter_button_follows_the_title_in_one_group()
+    {
+        var cut = RenderHeader("/orders");
+
+        // Title (or sort control) first, then the funnel; CSS mirrors the group for end-aligned
+        // columns (Qty here), so the markup order is the same for every column.
+        foreach (var head in cut.FindAll("th .ib-table-head"))
+        {
+            var children = head.Children;
+            Assert.Equal(2, children.Length);
+            Assert.NotNull(children[0].QuerySelector(".ib-table-title") ?? (children[0].ClassList.Contains("ib-table-title") ? children[0] : null));
+            Assert.Contains("ib-table-filter-button", children[1].QuerySelector(".ib-table-filter-button")?.ClassName ?? children[1].ClassName);
+        }
+
+        Assert.Contains("ib-cell-end", cut.FindAll("th")[1].ClassName);
+    }
+
+    [Fact]
     public void Header_placement_marks_filtered_columns_and_lists_them_as_tags()
     {
         var cut = RenderHeader("/orders?f-name=ad&f-status=No&sort=name");

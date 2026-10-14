@@ -295,19 +295,35 @@
   }
 
   /*
-   * Header filters (the default): the title and a funnel button share the header. The button is
-   * a whole 22px, the header's line height, so it doesn't make the row taller; it's tinted
-   * while the column is filtered.
+   * Header filters (the default): the funnel button follows the title (and its sort icon), so
+   * the two read as one group. End-aligned columns mirror the group, funnel first, against the
+   * end edge; centered columns center it. The button is a whole 22px, the header's line height,
+   * so it doesn't make the row taller; it's tinted while the column is filtered.
    */
   .ib-table-head {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--ib-space-1);
+    justify-content: flex-start;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-table-head > :first-child {
+    min-width: 0;
+  }
+
+  /* The title's width rounds up to a whole pixel, so the sort icon and funnel after it (or
+     before it, mirrored) land on whole pixels. */
+  .ib-table-title {
+    min-width: 0;
+    width: calc-size(fit-content, round(up, size, 1px));
   }
 
   .ib-cell-end > .ib-table-head {
     flex-direction: row-reverse;
+  }
+
+  .ib-cell-center > .ib-table-head {
+    justify-content: center;
   }
 
   .ib-table-filter-button {
@@ -467,7 +483,8 @@
     cursor: pointer;
   }
 
-  .ib-cell-end > .ib-table-sort {
+  .ib-cell-end > .ib-table-sort,
+  .ib-cell-end > .ib-table-head > .ib-table-sort {
     flex-direction: row-reverse;
   }
 

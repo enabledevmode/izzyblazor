@@ -480,20 +480,20 @@
         if (column.CanSort && UseState)
         {
             <button type="button" class="ib-table-sort" @onclick="() => OnSortClickAsync(column)">
-                <span>@column.HeaderText</span>
+                <span class="ib-table-title">@column.HeaderText</span>
                 <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
             </button>
         }
         else if (column.CanSort)
         {
             <a href="@SortHref(column)" class="ib-table-sort">
-                <span>@column.HeaderText</span>
+                <span class="ib-table-title">@column.HeaderText</span>
                 <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
             </a>
         }
         else
         {
-            @column.HeaderText
+            <span class="ib-table-title">@column.HeaderText</span>
         }
     };
 
