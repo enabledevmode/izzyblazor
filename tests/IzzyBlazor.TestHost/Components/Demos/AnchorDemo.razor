@@ -19,6 +19,15 @@
         </Stack>
     </Example>
 
+    <Example Title="Syntax highlighting" Note="A Language the built-in highlighter knows colors the code on the server, so it works with JavaScript off: C#, Razor, HTML and XML, CSS, JavaScript and TypeScript, JSON, and shell. Register your own ICodeHighlighter for other languages; Highlight=&quot;false&quot; turns it off." Code="@HighlightCode">
+        <Stack Gap="4">
+            <Code Block Language="csharp">@CSharpSample</Code>
+            <Code Block Language="css">@CssSample</Code>
+            <Code Block Language="json">@JsonSample</Code>
+            <Code Block Language="ts">@TsSample</Code>
+        </Stack>
+    </Example>
+
 </Stack>
 
 @code {
@@ -37,6 +46,53 @@
         Read the <Anchor Href="/docs">guide</Anchor>.
         <Anchor Href="https://github.com/..." External>GitHub</Anchor>
         <Anchor Href="..." Inherit>...</Anchor>
+        """;
+
+    private const string CSharpSample =
+        """
+        builder.Services.AddIzzyBlazor();
+
+        // Static pages need nothing else; interactive ones just work.
+        app.MapIzzyBlazor();
+
+        public sealed record Order(string Customer, decimal Total)
+        {
+            public bool IsLarge => Total > 500m;
+        }
+        """;
+
+    private const string CssSample =
+        """
+        /* One exact value, after the theme. */
+        :root {
+          --ib-color-focus: #7c3aed;
+          --ib-radius-xl: 0.5rem;
+        }
+
+        @media (width >= 640px) {
+          .settings-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        }
+        """;
+
+    private const string JsonSample =
+        """
+        { "IzzyBlazor": { "Look": "compact", "Accent": "indigo", "Dense": true, "Retries": 3 } }
+        """;
+
+    private const string TsSample =
+        """
+        // Listen for the scheme switch on any page.
+        document.addEventListener("ibscheme", (event: Event) => {
+          const { scheme } = (event as CustomEvent<{ scheme: string }>).detail;
+          console.log(`Scheme is now ${scheme}`);
+        });
+        """;
+
+    private const string HighlightCode =
+        """
+        <Code Block Language="csharp">@source</Code>
+        <Code Block Language="css">@styles</Code>
+        <Code Block Language="text" Highlight="false">@plain</Code>
         """;
 
     private const string CodeCode =

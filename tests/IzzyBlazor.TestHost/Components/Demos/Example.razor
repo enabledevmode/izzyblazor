@@ -17,7 +17,18 @@
         }
         @if (Code is not null)
         {
-            <pre class="host-example-code"><code>@Code</code></pre>
+            @* Colored with the library's highlighter, the same spans Code renders. *@
+            <pre class="host-example-code"><code>@foreach (var token in Tokens)
+            {
+                if (token.Kind == CodeTokenKind.Text)
+                {
+                    <text>@token.Text</text>
+                }
+                else
+                {
+                    <span class="ib-tok-@(token.Kind == CodeTokenKind.Attribute ? "attr" : token.Kind.ToString().ToLowerInvariant())">@token.Text</span>
+                }
+            }</code></pre>
         }
     </div>
 </section>
@@ -27,4 +38,10 @@
     [Parameter] public string? Note { get; set; }
     [Parameter] public string? Code { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The code's language for coloring. Defaults to razor.</summary>
+    [Parameter] public string CodeLanguage { get; set; } = "razor";
+
+    private IEnumerable<CodeToken> Tokens =>
+        IzzyCodeHighlighter.Instance.TryHighlight(Code!, CodeLanguage, out var tokens) ? tokens : [new CodeToken(CodeTokenKind.Text, Code!)];
 }
