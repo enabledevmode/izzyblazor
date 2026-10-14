@@ -149,7 +149,7 @@ under the SIL Open Font License):
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
 ```
 
-Or set your own with `IzzyTheme`'s `Font`, `HeadingFont` and `HeadingWeight` (below).
+Or set your own with `IzzyTheme`'s `Font`, `HeadingFont`, `MonoFont` and `HeadingWeight` (below).
 
 **The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
 tables, fields, bars and menus are `--ib-color-surface`. For a white page, set
@@ -186,7 +186,7 @@ Two levels. `IzzyTheme` takes the choices that move many values together and kee
 | `Gray` | Page, surfaces, fills, borders and text | `Neutral`, `Slate`, `Stone` |
 | `Radius` | Controls, cards and dialogs, in proportion | `Sm`, `Md`, `Lg` |
 | `Density` | Control heights, table rows and card padding | `Compact` (32px), `Standard` (36px), `Comfortable` (40px) |
-| `Font`, `HeadingFont` | Body and heading font families (load the fonts yourself) | CSS font-family lists |
+| `Font`, `HeadingFont`, `MonoFont` | Body, heading and code font families (load the fonts yourself) | CSS font-family lists |
 | `HeadingWeight` | Headings' weight | 100 to 900 |
 | `Scheme` | Light or dark until the user picks one with a `ColorSchemeSwitch` | `System`, `Light`, `Dark` |
 

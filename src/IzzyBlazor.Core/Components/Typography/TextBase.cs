@@ -52,6 +52,13 @@ public abstract class TextBase : Box
     /// <summary>Equal-width digits, so numbers line up in columns and do not jitter when they change.</summary>
     [Parameter] public bool TabularNums { get; set; }
 
+    /// <summary>
+    /// Makes the size fluid: the text is <see cref="MinSize"/> on a 360px screen and grows smoothly
+    /// to <see cref="Size"/> at 1280px and up, as for a hero heading:
+    /// <c>&lt;Heading Size="TextSize.Xl5" MinSize="TextSize.Xl3"&gt;</c>. Replaces per-breakpoint sizes.
+    /// </summary>
+    [Parameter] public TextSize? MinSize { get; set; }
+
     /// <summary>The size to render: <see cref="Size"/>, or a component default when it is not set.</summary>
     protected virtual Responsive<TextSize> EffectiveSize => Size;
 
@@ -59,7 +66,16 @@ public abstract class TextBase : Box
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        ApplyResponsive(classes, styles, EffectiveSize, "ib-fs", "fs", StyleValues.TextSize);
+        if (MinSize is { } min && !EffectiveSize.IsEmpty)
+        {
+            classes.Add("ib-fs");
+            styles.AddVar("fs", StyleValues.FluidTextSize(min, EffectiveSize.Base));
+        }
+        else
+        {
+            ApplyResponsive(classes, styles, EffectiveSize, "ib-fs", "fs", StyleValues.TextSize);
+        }
+
         ApplyResponsive(classes, styles, Align, "ib-ta", "ta", StyleValues.TextAlign);
 
         if (Weight is { } weight) classes.Add($"ib-fw-{Kebab(weight)}");
