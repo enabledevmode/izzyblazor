@@ -33,9 +33,12 @@
 }
 
 .host-select {
+  /* Right of the header's spacer: a fractional text width would push the controls after it off
+     whole pixels, so the width is rounded up (where calc-size() is supported). */
+  width: calc-size(max-content, round(up, size, 1px));
   -webkit-appearance: none;
   appearance: none;
-  height: 2rem;
+  height: var(--ib-control-h-md);
   padding: 0 2rem 0 0.75rem;
   cursor: pointer;
   border: 1px solid var(--ib-color-outline);
@@ -46,37 +49,85 @@
   font-size: var(--ib-text-sm);
 }
 
-.host-select:focus-visible {
+/* Toolbar pickers act like buttons: a ring for keyboard focus only, and none while the list is
+   open (the list is the indicator). Chrome counts a click on a select as focus-visible, so host.js
+   marks pointer use with data-pointer. */
+.host-select:focus-visible:not([data-pointer]) {
   outline: 2px solid var(--ib-color-focus);
   outline-offset: 2px;
 }
 
-/* Segments sit right of the header's spacer, so a fractional text width would push every control
-   after the spacer off whole pixels; their width is rounded up (where calc-size() is supported). */
-.host-segment {
+/* Overrides the library's base focus ring too. */
+.host-select[data-pointer]:focus-visible {
+  outline: none;
+}
+
+/* Separate rule: a browser without :open drops only this one. */
+.host-select:open {
+  background-color: var(--ib-color-surface-container);
+  outline: none;
+}
+
+/* The open list themed like the library's Select (Chromium 135+; others keep the native list). */
+@supports (appearance: base-select) {
+  .host-select,
+  .host-select::picker(select) {
+    appearance: base-select;
+  }
+
+  .host-select {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .host-select::picker-icon {
+    display: none;
+  }
+
+  .host-select::picker(select) {
+    box-sizing: border-box;
+    min-inline-size: anchor-size(inline);
+    margin-block: 0.25rem;
+    padding: var(--ib-space-1);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface-raised);
+    color: var(--ib-color-on-surface);
+    box-shadow: var(--ib-shadow-lg);
+  }
+
+  .host-select option {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-block-size: var(--ib-control-h-sm);
+    padding: var(--ib-space-1) var(--ib-space-2);
+    border-radius: var(--ib-radius-sm);
+    cursor: pointer;
+  }
+
+  .host-select option:hover,
+  .host-select option:focus-visible {
+    background-color: var(--ib-state-hover);
+    outline: none;
+  }
+
+  .host-select option:checked {
+    font-weight: 500;
+  }
+
+  .host-select option::checkmark {
+    order: 1;
+    margin-inline-start: auto;
+    color: var(--ib-color-primary-text);
+  }
+}
+
+/* The render-mode tabs sit right of the header's spacer, so a fractional text width would push
+   every control after the spacer off whole pixels; their width is rounded up (where calc-size() is
+   supported). */
+.host-mode {
   width: calc-size(max-content, round(up, size, 1px));
-  padding: 2px;
-  border: 1px solid var(--ib-color-border);
-  border-radius: var(--ib-radius-md);
-}
-
-.host-segment > a,
-.host-segment > button {
-  font: inherit;
-  font-size: var(--ib-text-sm);
-  padding: 0.25rem 0.625rem;
-  border: 0;
-  border-radius: calc(var(--ib-radius-md) - 2px);
-  background: transparent;
-  color: var(--ib-color-muted);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.host-segment > [aria-current="page"],
-.host-segment > [aria-pressed="true"] {
-  background: var(--ib-color-surface-container-high);
-  color: var(--ib-color-on-surface);
 }
 
 .host-label {

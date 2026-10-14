@@ -10,6 +10,14 @@
 }
 
 <Stack Gap="8">
+    <Example Title="Color scheme switch" Note="Menu (the default): an icon button showing the page's scheme, with System, Light and Dark. Toggle: one button that flips light and dark. Segmented: all three side by side, for a settings page. The choice is a cookie IzzyTheme reads, so pages arrive in it; with JavaScript off each option is a link through app.MapIzzyBlazor()." Code="@SwitchCode">
+        <Row Gap="6" Align="Align.Center" Wrap>
+            <Stack Gap="2"><TextBlock As="span" Class="host-label">Menu</TextBlock><ColorSchemeSwitch /></Stack>
+            <Stack Gap="2"><TextBlock As="span" Class="host-label">Toggle</TextBlock><ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" /></Stack>
+            <Stack Gap="2"><TextBlock As="span" Class="host-label">Segmented</TextBlock><ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" /></Stack>
+        </Row>
+    </Example>
+
     <Example Title="Your brand color" Note="Pick a color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, each pair checked for 4.5:1. A light color gets dark text; a dark one is lifted in dark mode." Code="@ThemeCode">
         <Stack Gap="5">
             <form method="get" class="host-brand-form">
@@ -108,6 +116,13 @@
             </Row>
             <Progress Value="64" Label="Upload" />
         </Stack>;
+
+    private const string SwitchCode =
+        """
+        <ColorSchemeSwitch />
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Toggle" />
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" IconOnly />
+        """;
 
     private const string ThemeCode =
         """
