@@ -7,7 +7,7 @@
     <RadioGroup @bind-Value="Model.Contact" Orientation="Orientation.Horizontal" />
 *@
 
-<FieldFrame Class="@WrapperClass("radio")" Label="@ResolvedLabel" Required="IsRequired" Group
+<FieldFrame Class="@WrapperClass("radio")" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <div class="@OptionsClass">
         @foreach (var (item, index) in Options.Select((o, i) => (o, i)))

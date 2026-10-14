@@ -38,6 +38,12 @@ public abstract class FieldBase<TValue> : InputBase<TValue>
     /// <summary>The visible label. Defaults to the model property's <c>[Display(Name)]</c>, or its name.</summary>
     [Parameter] public string? Label { get; set; }
 
+    /// <summary>
+    /// Keeps the label for screen readers but doesn't show it, as in a toolbar or a one-field
+    /// newsletter form. Checkboxes and switches show their label beside the box, so this doesn't apply.
+    /// </summary>
+    [Parameter] public bool HideLabel { get; set; }
+
     /// <summary>Help text shown under the field and linked to it for screen readers.</summary>
     [Parameter] public string? Hint { get; set; }
 

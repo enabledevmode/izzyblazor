@@ -6,7 +6,7 @@
     <TextArea @bind-Value="Model.Message" Rows="5" AutoGrow ShowCount />
 *@
 
-<FieldFrame Class="@WrapperClass("textarea")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("textarea")" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="ib-field-control">
         <textarea @attributes="ControlAttributes"

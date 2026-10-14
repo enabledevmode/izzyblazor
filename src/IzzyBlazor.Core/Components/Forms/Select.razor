@@ -15,7 +15,7 @@
     <Select @bind-Value="Model.Plan" ItemTemplate="plan => @<span>@plan <small class="ib-option-hint">@Prices[plan]</small></span>" />
 *@
 
-<FieldFrame Class="@WrapperClass("select")" Id="@FieldId" Label="@ResolvedLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("select")" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="ib-field-control ib-has-end">
         <select @attributes="ControlAttributes"

@@ -57,9 +57,6 @@
     /// <summary>Fills the available width, the segments sharing it equally.</summary>
     [Parameter] public bool FullWidth { get; set; }
 
-    /// <summary>Keeps the label for screen readers but doesn't show it, as in a toolbar.</summary>
-    [Parameter] public bool HideLabel { get; set; }
-
     private string SegmentsClass => new ClassBuilder()
         .Add("ib-segmented")
         .Add("ib-segmented-full", FullWidth)

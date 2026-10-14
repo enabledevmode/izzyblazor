@@ -56,7 +56,9 @@ The rest:
 - `Transform`, `Decoration`, `Italic`,
 - `Wrap` (including `TextWrap.Balance` and `Pretty`), `Truncate`, `LineClamp`, `TabularNums`.
 
-`Size` and `Align` are responsive. Text components have no default margins; space them with a
+`Size` and `Align` are responsive. `MinSize` makes the size fluid instead: the text is `MinSize` on a
+360px screen and grows smoothly to `Size` at 1280px, as for a hero heading
+(`<Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3">`). Text components have no default margins; space them with a
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
 `Anchor` is a text link, underlined by default (`Underline` changes it). `Inherit` takes the text color, and
@@ -131,6 +133,9 @@ Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `ColorPicker`, `Select
 - take their label, required marker, input type and length limits from the model's DataAnnotations,
 - wire up `aria-describedby` and `aria-invalid`,
 - show their own errors.
+
+`HideLabel` keeps a field's label for screen readers but doesn't show it, as in a one-field newsletter
+form or a toolbar. (Checkboxes and switches show their label beside the box.)
 
 `Select` and `RadioGroup` list enum values automatically, using `[Display(Name)]`.
 

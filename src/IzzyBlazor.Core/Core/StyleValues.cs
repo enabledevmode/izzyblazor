@@ -79,6 +79,41 @@ public static partial class StyleValues
         _ => throw new ArgumentOutOfRangeException(nameof(shadow)),
     };
 
+    /// <summary>
+    /// A font size that grows from <paramref name="min"/> on a 360px screen to <paramref name="max"/>
+    /// at 1280px: <c>clamp(min, intercept + slope·vw, max)</c>, the ends being the size tokens.
+    /// </summary>
+    public static string FluidTextSize(TextSize min, TextSize max)
+    {
+        if (min > max)
+        {
+            (min, max) = (max, min);
+        }
+
+        // Interpolate between 22.5rem (360px) and 80rem (1280px) of viewport, using the tokens'
+        // default sizes; clamp() holds the ends to the tokens themselves.
+        var low = Rem(min);
+        var high = Rem(max);
+        var slope = (high - low) / (80 - 22.5);
+        var intercept = low - slope * 22.5;
+        var css = System.FormattableString.Invariant($"clamp({TextSize(min)}, {intercept:0.####}rem + {slope * 100:0.####}vw, {TextSize(max)})");
+        return css;
+
+        static double Rem(TextSize size) => size switch
+        {
+            IzzyBlazor.TextSize.Xs => 0.75,
+            IzzyBlazor.TextSize.Sm => 0.875,
+            IzzyBlazor.TextSize.Md => 1,
+            IzzyBlazor.TextSize.Lg => 1.125,
+            IzzyBlazor.TextSize.Xl => 1.25,
+            IzzyBlazor.TextSize.Xl2 => 1.5,
+            IzzyBlazor.TextSize.Xl3 => 1.875,
+            IzzyBlazor.TextSize.Xl4 => 2.25,
+            IzzyBlazor.TextSize.Xl5 => 3,
+            _ => 3.75,
+        };
+    }
+
     /// <summary>CSS <c>font-size</c> from a token.</summary>
     public static string TextSize(TextSize size) => size switch
     {

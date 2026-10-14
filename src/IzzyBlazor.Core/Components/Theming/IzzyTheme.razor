@@ -79,6 +79,12 @@
     /// </summary>
     [Parameter] public string? HeadingFont { get; set; }
 
+    /// <summary>
+    /// The font for code, Kbd and the color picker's hex box, as a CSS font-family list, such as
+    /// <c>"'JetBrains Mono', ui-monospace, monospace"</c>. Unset: the system's monospace font.
+    /// </summary>
+    [Parameter] public string? MonoFont { get; set; }
+
     /// <summary>The headings' weight, 100 to 900. Unset: semibold (600).</summary>
     [Parameter] public int? HeadingWeight { get; set; }
 
@@ -115,6 +121,11 @@
         if (!string.IsNullOrWhiteSpace(HeadingFont))
         {
             declarations.Add($"--ib-font-heading: {FontList(HeadingFont, nameof(HeadingFont))};");
+        }
+
+        if (!string.IsNullOrWhiteSpace(MonoFont))
+        {
+            declarations.Add($"--ib-font-mono: {FontList(MonoFont, nameof(MonoFont))};");
         }
 
         if (HeadingWeight is { } weight)

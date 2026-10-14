@@ -15,7 +15,7 @@
     repeated values to the collection, so it works on static pages with no script.
 *@
 
-<FieldFrame Class="@WrapperClass("checkboxes")" Label="@ResolvedLabel" Required="IsRequired" Group
+<FieldFrame Class="@WrapperClass("checkboxes")" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <div class="@OptionsClass">
         @foreach (var (item, index) in ChoiceOptions.Of(Items).Select((o, i) => (o, i)))
