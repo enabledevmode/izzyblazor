@@ -35,7 +35,7 @@ choose a different component for each.
 ## What's included
 
 - **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio, Section
-- **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), NavMenu,
+- **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
   HeaderNav
 - **Typography:** TextBlock, Heading, Anchor, Code (with syntax highlighting), Kbd, List, Prose, Icon
   (all of Lucide, plus brand logos)

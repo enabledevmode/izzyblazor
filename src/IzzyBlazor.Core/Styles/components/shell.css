@@ -98,6 +98,44 @@
     color: var(--ib-shell-header-fg, var(--ib-color-on-surface));
   }
 
+  /* AppBrand: one line. It may shrink (a Grow spacer gives up its room first), and then the name
+     ends in an ellipsis; the icon or logo never shrinks. */
+  .ib-shell-brand {
+    display: inline-flex;
+    flex: 0 1 auto;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-width: 0;
+    border-radius: var(--ib-radius-sm);
+    color: inherit;
+    font-weight: var(--ib-weight-bold);
+    white-space: nowrap;
+    text-decoration: none;
+  }
+
+  .ib-shell-brand > :not(.ib-shell-brand-label) {
+    flex: none;
+  }
+
+  .ib-shell-brand-icon {
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-shell-brand-logo {
+    display: inline-flex;
+  }
+
+  .ib-shell-brand-label {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  a.ib-shell-brand:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: 2px;
+  }
+
   .ib-shell-scroll-page > .ib-shell-header-sticky {
     position: sticky;
     top: var(--ib-shell-banner-top);
