@@ -10,7 +10,8 @@
     it takes a row of its own above the header. For a message about part of a page, use Alert.
 
     Dismissible adds a close button that works with no script: a visually hidden checkbox and its
-    label, with CSS :has(:checked) hiding the banner. RememberKey keeps it dismissed: <ib-banner>
+    label, with CSS :has(:checked) hiding the banner. With the script it is a real button
+    (<ib-dismiss>), and focus moves to the next control when the banner closes. RememberKey keeps it dismissed: <ib-banner>
     writes a cookie when it is closed, and the server reads the cookie and leaves the banner out
     of later pages, static or interactive, until the key changes. Where the server can't read
     cookies (WebAssembly), the element hides a remembered banner as soon as it connects.
@@ -56,6 +57,12 @@
             <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-banner-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
                 <Icon Role="IconRole.Close" />
             </label>
+            @* With the script: a real button in place of the checkbox (CSS swaps them on :defined). *@
+            <ib-dismiss>
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-banner-close" aria-label="@(DismissLabel ?? TextDefaults.Dismiss)" title="@(DismissLabel ?? TextDefaults.Dismiss)">
+                    <Icon Role="IconRole.Close" />
+                </button>
+            </ib-dismiss>
         }
     </ib-banner>
 }

@@ -82,9 +82,24 @@
     background-color: color-mix(in oklab, currentColor 15%, transparent);
   }
 
-  .ib-alert-dismiss:focus-visible + .ib-alert-close {
+  .ib-alert-dismiss:focus-visible + .ib-alert-close,
+  button.ib-alert-close:focus-visible {
     outline: 2px solid var(--ib-color-focus);
     outline-offset: 2px;
+  }
+
+  /*
+   * Close buttons with the script: <ib-dismiss> wraps a real button, shown only once the element
+   * is defined; the checkbox and its label (the no-script close) are hidden then. The wrapper
+   * takes no box, so the button lays out like the label it replaces.
+   */
+  ib-dismiss {
+    display: contents;
+  }
+
+  ib-dismiss:not(:defined),
+  :is(.ib-alert, .ib-banner):has(> ib-dismiss:defined) > :is(input.ib-alert-dismiss, input.ib-banner-dismiss, label.ib-alert-close, label.ib-banner-close) {
+    display: none;
   }
 
   /* Dismissed with no script: the checkbox is checked. */
@@ -175,11 +190,13 @@
     cursor: pointer;
   }
 
-  .ib-alert-solid > .ib-banner-close:hover {
+  .ib-alert-solid > .ib-banner-close:hover,
+  .ib-alert-solid > ib-dismiss > .ib-banner-close:hover {
     background-color: color-mix(in oklab, currentColor 15%, transparent);
   }
 
-  .ib-banner-dismiss:focus-visible + .ib-banner-close {
+  .ib-banner-dismiss:focus-visible + .ib-banner-close,
+  button.ib-banner-close:focus-visible {
     outline: 2px solid var(--ib-color-focus);
     outline-offset: -2px;
   }

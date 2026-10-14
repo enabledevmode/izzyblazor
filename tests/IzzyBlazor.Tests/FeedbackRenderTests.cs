@@ -58,6 +58,11 @@ public class FeedbackRenderTests : BunitContext
         Assert.Equal("Dismiss", input.GetAttribute("aria-label"));
         Assert.Equal("a1-dismiss", cut.Find("label.ib-alert-close").GetAttribute("for"));
 
+        // With the script, a real button takes the checkbox's place (CSS swaps them on :defined).
+        var button = cut.Find("ib-dismiss > button.ib-alert-close");
+        Assert.Equal("button", button.GetAttribute("type"));
+        Assert.Equal("Dismiss", button.GetAttribute("aria-label"));
+
         input.Change(true);
         Assert.True(reported);
         Assert.Empty(cut.FindAll(".ib-alert"));

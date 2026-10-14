@@ -5,7 +5,8 @@
     A message on the page: an icon, an optional title, the message and optional actions.
 
     Dismissible adds a close button that works with no script: a visually hidden checkbox and
-    its label, with CSS :has(:checked) hiding the alert. On interactive pages @bind-Dismissed
+    its label, with CSS :has(:checked) hiding the alert. With the script it is a real button
+    (<ib-dismiss>), and focus moves to the next control when the alert closes. On interactive pages @bind-Dismissed
     follows it, and setting Dismissed from C# hides or shows it again.
 
     Danger and Warning alerts are role="alert", so screen readers announce them when they
@@ -48,6 +49,12 @@
             <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
                 <Icon Role="IconRole.Close" />
             </label>
+            @* With the script: a real button in place of the checkbox (CSS swaps them on :defined). *@
+            <ib-dismiss>
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-label="@(DismissLabel ?? TextDefaults.Dismiss)" title="@(DismissLabel ?? TextDefaults.Dismiss)">
+                    <Icon Role="IconRole.Close" />
+                </button>
+            </ib-dismiss>
         }
     </div>
 }
