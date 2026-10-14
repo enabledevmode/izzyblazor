@@ -67,6 +67,18 @@ The rest:
 (`<Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3">`). Text components have no default margins; space them with a
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
+`List` is a bulleted list of `ListItem`s; `Ordered` numbers it, `Plain` drops the bullets and indent,
+and `Icon` puts an icon in place of each bullet (`<List Icon="Lucide.Check" IconColor="Color.SuccessText">`
+for a check list; an item's own `Icon` wins). `Gap` spaces the items (8px by default). Lists without
+bullets keep `role="list"`, which Safari drops otherwise.
+
+`Prose` styles plain HTML inside it, such as Markdown output or a CMS field
+(`<Prose>@((MarkupString)html)</Prose>`): headings, paragraphs, links, lists, quotes, inline code and
+code blocks, tables, images, rules and `kbd`, in the library's type, with spacing on the rem scale and
+whole-pixel line heights. `Size` is `Sm`, `Md` (default) or `Lg`. Its rules weigh no more than a class,
+so library components inside keep their own look and your classes win. Only render HTML you trust or
+have sanitized.
+
 `Anchor` is a text link, underlined by default (`Underline` changes it). `Inherit` takes the text color, and
 `External` opens a new tab with an icon and a note for screen readers. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
 
