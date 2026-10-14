@@ -47,12 +47,13 @@ public static class IzzyBlazorEndpointRouteBuilderExtensions
     /// <summary>
     /// Where to go back to: a path relative to the app's base (as the switch sends it), put after
     /// the base path, so it can't leave the site. A value starting with a slash or holding a
-    /// backslash (which could make <c>//host</c> or <c>/\host</c>) goes to the home page instead.
+    /// backslash (which could make <c>//host</c> or <c>/\host</c>) goes to the home page instead,
+    /// as does one holding a control character, which <c>LocalRedirect</c> would refuse with an error.
     /// </summary>
     internal static string ReturnUrl(PathString pathBase, string? relative)
     {
         var home = pathBase.Value + "/";
-        return string.IsNullOrEmpty(relative) || relative[0] == '/' || relative.Contains('\\')
+        return string.IsNullOrEmpty(relative) || relative[0] == '/' || relative.Contains('\\') || relative.Any(char.IsControl)
             ? home
             : home + relative;
     }
