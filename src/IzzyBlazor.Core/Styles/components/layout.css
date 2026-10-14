@@ -73,6 +73,31 @@
     object-fit: cover;
   }
 
+  /*
+   * Whole-pixel height: aspect-ratio alone gives a fractional height when the box sits in a
+   * fractional-width column, which pushes everything below it between pixels. Where round() is
+   * supported, a spacer sized from the box's own width (rounded down) sets the height instead,
+   * and in-flow children share its grid cell, so content taller than the ratio still grows it.
+   */
+  @supports (height: round(down, 1px, 1px)) {
+    .ib-ratio {
+      display: grid;
+      container-type: inline-size;
+      aspect-ratio: auto;
+    }
+
+    .ib-ratio::before {
+      content: "";
+      display: block;
+      height: round(down, 100cqi / (var(--ib-ratio, 16 / 9)), 1px);
+    }
+
+    .ib-ratio::before,
+    .ib-ratio > * {
+      grid-area: 1 / 1;
+    }
+  }
+
   /* Divider */
   .ib-divider {
     flex: none;
