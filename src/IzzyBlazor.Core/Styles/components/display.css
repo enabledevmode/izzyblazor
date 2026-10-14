@@ -416,4 +416,18 @@
   ib-video[data-playing] > .ib-video-poster {
     display: none;
   }
+
+  /* Whole-pixel height, as for AspectRatio: a spacer sized from its own width, rounded down. */
+  @supports (height: round(down, 1px, 1px)) {
+    .ib-video {
+      container-type: inline-size;
+      aspect-ratio: auto;
+    }
+
+    .ib-video::before {
+      content: "";
+      display: block;
+      height: round(down, 100cqi / (var(--ib-ratio, 16 / 9)), 1px);
+    }
+  }
 }
