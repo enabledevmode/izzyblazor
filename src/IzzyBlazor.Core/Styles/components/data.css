@@ -674,7 +674,8 @@
     inset-block: calc(var(--ib-timeline-line) / 2) calc(var(--ib-timeline-line) / -2);
     inset-inline-start: calc(0.75rem - 1px);
     width: 2px;
-    background-color: var(--ib-color-border);
+    /* A step stronger than a divider, so the line holds up between markers in dark mode. */
+    background-color: var(--ib-color-outline);
   }
 
   .ib-timeline-marker {
@@ -685,7 +686,8 @@
     width: 0.75rem;
     height: 0.75rem;
     margin-block-start: calc((var(--ib-timeline-line) - 0.75rem) / 2);
-    border: 2px solid var(--ib-timeline-accent, var(--ib-color-outline));
+    /* Neutral markers use the checkbox edge: clearer than the rail they sit on. */
+    border: 2px solid var(--ib-timeline-accent, color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface)));
     border-radius: var(--ib-radius-full);
     background-color: var(--ib-timeline-bg, var(--ib-color-surface));
   }
