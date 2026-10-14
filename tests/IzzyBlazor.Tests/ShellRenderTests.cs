@@ -186,9 +186,19 @@ public class ShellRenderTests : BunitContext
         Assert.Equal("ib-shell-header ib-shell-header-sticky ib-shell-part-measured", header.ClassName);
         Assert.Equal("--ib-shell-content-w:64rem;", header.GetAttribute("style"));
 
-        var main = Render<AppMain>(p => p.Add(m => m.ContentWidth, Length.Prose)).Find("main");
-        Assert.Equal("ib-shell-main ib-shell-part-measured", main.ClassName);
+        var main = Render<AppMain>(p => p.Add(m => m.ContentWidth, Length.Prose).AddChildContent("<p>Hi</p>")).Find("main");
+        Assert.Equal("ib-shell-main ib-shell-main-measured", main.ClassName);
         Assert.Equal("--ib-shell-content-w:var(--ib-size-prose);", main.GetAttribute("style"));
+        Assert.Equal("Hi", main.QuerySelector(":scope > .ib-shell-main-column > p")!.TextContent);
+
+        // The shell's width reaches the main area too: its content goes in the column.
+        var measuredShell = Render<AppShell>(p => p
+            .Add(s => s.ContentWidth, Length.Rem(42))
+            .Add(s => s.ChildContent, Parts((typeof(AppMain), [], "Body"))));
+        Assert.NotNull(measuredShell.Find("main.ib-shell-main-measured > .ib-shell-main-column"));
+
+        var plain = Render<AppMain>(p => p.AddChildContent("<p>Hi</p>")).Find("main");
+        Assert.Empty(plain.QuerySelectorAll(".ib-shell-main-column"));
 
         var footer = Render<AppFooter>().Find("footer");
         Assert.Equal("ib-shell-footer", footer.ClassName);
