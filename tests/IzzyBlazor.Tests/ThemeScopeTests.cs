@@ -12,7 +12,7 @@ public class ThemeScopeTests : BunitContext
             .Add(t => t.Density, ThemeDensity.Compact)
             .Add(t => t.Radius, ThemeRadius.Sm)
             .Add(t => t.Preset, ThemePreset.Editorial)
-            .Add(t => t.Accent, ThemeAccent.Rose)
+            .Add(t => t.Brand, "rose")
             .Add(t => t.ColorScheme, ColorScheme.Dark)
             .AddChildContent("<p>Report</p>")).Find("div");
 
@@ -20,7 +20,7 @@ public class ThemeScopeTests : BunitContext
         Assert.Equal("compact", part.GetAttribute("data-ib-density"));
         Assert.Equal("sm", part.GetAttribute("data-ib-radius"));
         Assert.Equal("editorial", part.GetAttribute("data-ib-preset"));
-        Assert.Equal("rose", part.GetAttribute("data-ib-accent"));
+        Assert.Equal("rose", part.GetAttribute("data-ib-brand"));
         Assert.Null(part.GetAttribute("data-ib-gray"));
         Assert.Equal("Report", part.QuerySelector("p")!.TextContent);
     }
@@ -29,7 +29,7 @@ public class ThemeScopeTests : BunitContext
     public void A_nested_brand_color_is_inline_and_takes_style_and_class()
     {
         var part = Render<IzzyTheme>(p => p
-            .Add(t => t.Primary, "#be123c")
+            .Add(t => t.Brand, "#be123c")
             .Add(t => t.Style, "--ib-card-padding: 1rem")
             .Add(t => t.Class, "report-band")
             .AddUnmatched("id", "report")
@@ -99,11 +99,34 @@ public class ThemeScopeTests : BunitContext
     {
         var css = File.ReadAllText(Path.Combine(StylesDir(), "themes.css"));
         Assert.DoesNotMatch(new Regex(@"^\s*\[data-ib-(accent|gray|radius|density)\]\[data-ib-\1=""", RegexOptions.Multiline), css);
-        Assert.Matches(new Regex(@"\[data-ib-accent\]\[data-ib-accent\]\[data-ib-accent\]\[data-ib-accent=""rose""\]"), css);
-        Assert.Matches(new Regex(@":root:root:root:where\(:has\(> head > meta\[name=""ib-accent""\]\[content=""rose""\]\)\)"), css);
+        Assert.Matches(new Regex(@"\[data-ib-brand\]\[data-ib-brand\]\[data-ib-brand\]\[data-ib-brand=""rose""\]"), css);
+        Assert.Matches(new Regex(@":root:root:root:where\(:has\(> head > meta\[name=""ib-brand""\]\[content=""rose""\]\)\)"), css);
         // A preset's colors only on <html>; its shape anywhere.
         Assert.Matches(new Regex(@":root\[data-ib-preset=""compact""\],\s*\n\s*:root:where\(:has\(> head > meta\[name=""ib-preset""\]\[content=""compact""\]\)\),\s*\n\s*\[data-ib-gray\]"), css.Replace("\r", ""));
         Assert.Matches(new Regex(@"\[data-ib-preset\]\[data-ib-preset=""compact""\],\s*\n\s*:root:where\(:has\(> head > meta\[name=""ib-preset""\]\[content=""compact""\]\)\),\s*\n\s*\[data-ib-radius\]"), css.Replace("\r", ""));
+    }
+
+    [Theory]
+    [InlineData(ThemeRadius.None, "none")]
+    [InlineData(ThemeRadius.Full, "full")]
+    public void Radius_none_and_full_render_as_meta_tags_and_attributes(ThemeRadius radius, string name)
+    {
+        Assert.Equal(name, Render<IzzyTheme>(p => p.Add(t => t.Radius, radius)).Find("meta[name='ib-radius']").GetAttribute("content"));
+        Assert.Equal(name, Render<IzzyTheme>(p => p.Add(t => t.Radius, radius).AddChildContent("x")).Find("div").GetAttribute("data-ib-radius"));
+    }
+
+    // Full makes controls pills without touching panels: controls read --ib-radius-control first.
+    [Fact]
+    public void Full_radius_rounds_controls_and_caps_panels()
+    {
+        var themes = File.ReadAllText(Path.Combine(StylesDir(), "themes.css")).Replace("\r", "");
+        var full = Regex.Match(themes, @"\[data-ib-radius=""full""\],[^{]*\{(?<body>[^}]*)\}").Groups["body"].Value;
+        Assert.Contains("--ib-radius-control: 9999px;", full);
+        Assert.Contains("--ib-radius-xl: 1rem;", full);
+
+        var button = File.ReadAllText(Path.Combine(StylesDir(), "components", "button.css"));
+        Assert.Contains("border-radius: var(--ib-radius-control, var(--ib-radius-md));", button);
+        Assert.DoesNotContain("var(--ib-radius-md));\n", button.Replace("var(--ib-radius-control, var(--ib-radius-md));", ""));
     }
 
     private static string StylesDir()

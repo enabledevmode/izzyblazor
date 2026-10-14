@@ -22,7 +22,7 @@ enhanced navigation and form handling, and on Interactive Server, WebAssembly an
    [Styling](styling.md#presets-and-colors)):
 
    ```razor
-   <IzzyTheme Preset="ThemePreset.Standard" Primary="#0a7d5a" />
+   <IzzyTheme Preset="ThemePreset.Standard" Brand="#0a7d5a" />
    ```
 
 3. Add `@using IzzyBlazor` to `_Imports.razor`. Prefer this to a `global using`: it brings the

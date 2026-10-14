@@ -41,6 +41,12 @@ public sealed class DialogOptions
 
     /// <summary>The dialog's density, to match a part of the page with its own. Unset: the page's.</summary>
     public ThemeDensity? Density { get; init; }
+
+    /// <summary>
+    /// The dialog's brand color, to match a part of the page with its own: a built-in name or a hex
+    /// color, as <see cref="IzzyTheme.Brand"/> takes. Unset: the page's.
+    /// </summary>
+    public string? Brand { get; init; }
 }
 
 /// <summary>How <see cref="DialogService.ConfirmAsync"/> asks.</summary>

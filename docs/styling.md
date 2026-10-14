@@ -79,59 +79,53 @@ or white for a hex color.
 ## Presets and colors
 
 The default is the **Standard** preset in **Blue on neutral grays**: white cards, tables and fields on
-a near-white page. Declare and customize the theme in one place, `IzzyTheme` in `App.razor`'s `<head>`: a preset for
-density, shape and type, then an accent, gray and radius over the preset's defaults, or your own
-brand color.
+a near-white page. Declare the theme in one place, `IzzyTheme` in `App.razor`'s `<head>`: a preset as
+the starting set of defaults, then your brand color, grays, radius and density over it.
 
 ```razor
 @* App.razor, in <head>, for example: *@
-<IzzyTheme Preset="ThemePreset.Compact" />                           @* a preset *@
-<IzzyTheme Preset="ThemePreset.Compact" Accent="ThemeAccent.Teal" /> @* a preset in another accent *@
-<IzzyTheme Preset="ThemePreset.Soft" Primary="#0a7d5a" />            @* a preset in your brand color *@
+<IzzyTheme Preset="ThemePreset.Compact" />                    @* a preset *@
+<IzzyTheme Preset="ThemePreset.Compact" Brand="teal" />       @* a preset in a built-in brand color *@
+<IzzyTheme Preset="ThemePreset.Soft" Brand="#0a7d5a" />       @* a preset in your brand color *@
+<IzzyTheme Brand="#0a7d5a" Gray="#f4efe6" />                  @* your brand color on your own grays *@
 ```
 
-| `Preset` (`data-ib-preset`) | For | Controls | Shape | Type | Accent | Gray |
+| `Preset` (`data-ib-preset`) | For | Controls | Shape | Type | Brand | Gray |
 | --- | --- | --- | --- | --- | --- | --- |
 | `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | System font | Blue | Neutral |
 | `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | System font | Indigo | Slate |
 | `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | System font | Teal | Neutral |
 | `editorial` | Docs, publishing, knowledge bases | 36px | Large radius | IBM Plex Sans, Newsreader headings | Ink | Stone |
 
-A preset's accent, gray and radius are only its defaults: `Accent`, `Gray` and `Radius` beat them,
-and `Primary` beats `Accent`.
+A preset's brand color, gray and radius are only its defaults: `Brand`, `Gray` and `Radius` beat them.
 
-`IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for `Primary`, the
-fonts and `HeadingWeight`), so
-it's in place on first paint, needs no script and works in every render mode. The same choices
-work as attributes, on `<html>` or on any element to restyle part of a page:
+`IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for hex colors, the
+fonts and `HeadingWeight`), so it's in place on first paint, needs no script and works in every
+render mode. The built-in choices also work as attributes, on `<html>` or on any element for part of
+a page (see [Theming part of a page](#theming-part-of-a-page)):
 
 ```html
-<html lang="en" data-ib-preset="compact" data-ib-accent="teal">
-<section data-ib-accent="rose">...</section>
+<html lang="en" data-ib-preset="compact" data-ib-brand="teal">
+<section data-ib-brand="rose">...</section>
 ```
 
-| `IzzyTheme` / attribute | Values |
-| --- | --- |
-| `Accent` / `data-ib-accent` | `blue` (default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose` |
-| `Gray` / `data-ib-gray` | `neutral` (default), `stone` (warm paper; pairs with serif headings), `slate` (cool) |
-| `Radius` / `data-ib-radius` | `sm`, `md` (default), `lg` |
-| `Density` / `data-ib-density` | `compact` (32px), `standard` (36px, default), `comfortable` (40px) |
-
-**Your brand color.** `Primary` makes it the accent:
+**Your brand color.** `Brand` takes a hex color, which becomes the primary accent: `Accent.Primary`
+buttons, links, focus rings, the field halo, selected rows, switches, sliders and radios.
 
 ```razor
-<IzzyTheme Primary="#0a7d5a" />
+<IzzyTheme Brand="#0a7d5a" />
 ```
 
 From that one color IzzyBlazor derives the fill, the text on it, the accent as text and its soft
-tint, in light and dark (`AccentPalette.From`), and checks each pair: text on the fill holds 4.5:1
+tint, in light and dark (`BrandPalette.From`), and checks each pair: text on the fill holds 4.5:1
 (white or near-black, whichever reads better), the accent as text holds 4.5:1 on the surface, the
 gray fills and its tint, and in dark mode a dark brand color is lifted until it shows. The fill is
-your color as given unless no text can reach 4.5:1 on it; then only its lightness moves. Focus
-rings, the field halo, selected rows, switches, sliders and radios follow. The server renders it as
-a small `<style>` block, so it's there on first paint with no script; pass `Nonce` for a strict
-Content-Security-Policy. It beats a preset's accent; `data-ib-accent` on an element inside the page
-still recolors that part.
+your color as given unless no text can reach 4.5:1 on it; then only its lightness moves. The server
+renders it as a small `<style>` block, so it's there on first paint with no script; pass `Nonce` for
+a strict Content-Security-Policy.
+
+Or name a built-in one, each tuned by hand so text holds 4.5:1 on its fill and on every gray: `blue`
+(the default), `ink` (monochrome), `indigo`, `violet`, `teal`, `green`, `rose`.
 
 To tune the shades yourself, set the four tokens instead:
 
@@ -144,9 +138,21 @@ To tune the shades yourself, set the four tokens instead:
 }
 ```
 
-Every accent is tuned by hand in light and dark: text holds 4.5:1 on its fill and on every gray. The
-attributes work on any element too, for part of a page; set accent and gray on the same element.
-They're plain CSS, so they work in every render mode with no script.
+**Your grays.** `Gray` takes a built-in set, `neutral` (the default), `slate` (cool) or `stone` (warm
+paper, which pairs with serif headings), or a hex color for your light page background:
+
+```razor
+<IzzyTheme Gray="#f4efe6" />
+```
+
+The page is that color, as given (kept light enough for text to read). The rest of the ladder is
+derived from it (`GrayPalette.From`): surfaces just above it, the container fills, borders and the
+outline stepping down by the same amounts as the built-in sets, in its hue; body, muted, subtle and
+disabled text, each checked for contrast (muted and subtle hold 4.5:1 on the page, the surface and
+the container fill); and the dark scheme in the same hue. A hex gray is app-wide only.
+
+`Brand` and `Gray` are strings because a custom color makes them open sets: anything other than a
+known name or a hex color is refused, with a message listing the names.
 
 **Fonts.** Body text uses the system font (`--ib-font-body`). Headings, card and dialog titles use
 `--ib-font-heading` at `--ib-weight-heading`: by default the body font, semibold. The `editorial`
@@ -159,6 +165,11 @@ under the SIL Open Font License):
 
 Code, `Kbd` and the color picker's hex box use `--ib-font-mono`, the system's monospace font. Set
 your own with `IzzyTheme`'s `BodyFont`, `HeadingFont`, `MonoFont` and `HeadingWeight` (below).
+
+**Radius.** `Radius` shifts the whole scale, so controls, cards and dialogs keep their proportions:
+`None` (square), `Sm`, `Md` (the default), `Lg`, or `Full`, which makes controls pills (buttons,
+fields, segmented controls, tags and badges; a joined button group rounds only its outer ends) while
+cards, popovers and dialogs take the large scale.
 
 **The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
 tables, fields and bars are `--ib-color-surface`. Menus, popovers, dialogs and toasts float on
@@ -180,7 +191,8 @@ A container fill placed directly on the page reads as a hole, not a card; put a 
 them. (In dark mode the page is the darkest layer and fills step lighter, so the same rule holds.)
 
 `AppShell`'s `Variant` decides which parts of the frame take the page tint: `Tinted` (the default,
-the sidebar), `Inset`, `Flat` or `Canvas`. See [App layout](components.md#app-layout).
+the sidebar), `Inset`, `Flat` (every part on the surface) or `Canvas`. See
+[App layout](components.md#app-layout).
 
 ## Customizing
 
@@ -188,25 +200,23 @@ Two levels. `IzzyTheme` takes the choices that move many values together and kee
 (contrast, light and dark pairs, whole pixels). CSS variables take single, exact values.
 
 ```razor
-<IzzyTheme Preset="ThemePreset.Soft" Density="ThemeDensity.Compact" Primary="#0a7d5a"
+<IzzyTheme Preset="ThemePreset.Soft" Density="ThemeDensity.Compact" Brand="#0a7d5a" Gray="stone"
            BodyFont="Inter, system-ui, sans-serif" HeadingWeight="700" ColorScheme="ColorScheme.Light" />
 ```
 
-| `IzzyTheme` | Sets | Values |
+| `IzzyTheme` / attribute | Sets | Values |
 | --- | --- | --- |
-| `Preset` | Density, shape, type and default colors together | `Standard`, `Compact`, `Soft`, `Editorial` |
-| `Primary` | Your brand color: fill, text on it, accent text and soft tint, light and dark, each at AA | Hex |
-| `Accent` | A built-in accent instead | `Blue`, `Ink`, `Indigo`, `Violet`, `Teal`, `Green`, `Rose` |
-| `Gray` | Page, surfaces, fills, borders and text | `Neutral`, `Slate`, `Stone` |
-| `Radius` | Controls, cards and dialogs, in proportion | `Sm`, `Md`, `Lg` |
-| `Density` | Control heights, table rows and card padding | `Compact` (32px), `Standard` (36px), `Comfortable` (40px) |
-| `BodyFont`, `HeadingFont`, `MonoFont` | Body, heading and code font families (load the fonts yourself) | CSS font-family lists |
-| `HeadingWeight` | Headings' weight | 100 to 900 |
-| `Scheme` | Light or dark until the user picks one with a `ColorSchemeSwitch` | `System`, `Light`, `Dark` |
+| `Preset` / `data-ib-preset` | Density, shape, type and default colors together | `Standard`, `Compact`, `Soft`, `Editorial` |
+| `Brand` / `data-ib-brand` | The brand color: fill, text on it, accent text and soft tint, light and dark, each at AA | Hex, or `blue`, `ink`, `indigo`, `violet`, `teal`, `green`, `rose` |
+| `Gray` / `data-ib-gray` | Page, surfaces, fills, borders and text | Hex (app-wide), or `neutral`, `slate`, `stone` |
+| `Radius` / `data-ib-radius` | Controls, cards and dialogs, in proportion | `None`, `Sm`, `Md`, `Lg`, `Full` |
+| `Density` / `data-ib-density` | Control heights, table rows and card padding | `Compact` (32px), `Standard` (36px), `Comfortable` (40px) |
+| `BodyFont`, `HeadingFont`, `MonoFont` | Body, heading and code font families (load the fonts yourself); app-wide | CSS font-family lists |
+| `HeadingWeight` | Headings' weight; app-wide | 100 to 900 |
+| `ColorScheme` / `data-ib-color-scheme` | Light or dark until the user picks one with a `ColorSchemeSwitch` | `Auto`, `Light`, `Dark` (and `Inverse` for part of a page) |
 
-Each of `Accent`, `Gray`, `Radius`, `Density` and the fonts beats the preset's own; leave them unset to
-take the preset's. The same choices work as `data-ib-preset`, `data-ib-accent`, `data-ib-gray`,
-`data-ib-radius` and `data-ib-density` attributes, on `<html>` or on part of a page.
+Each of `Brand`, `Gray`, `Radius`, `Density` and the fonts beats the preset's own; leave them unset to
+take the preset's. Attributes take lowercase values (`data-ib-radius="full"`).
 
 For one exact value, set its variable in your own stylesheet. IzzyBlazor's CSS sits in cascade
 layers, so a plain rule wins:
@@ -297,15 +307,15 @@ way Ant Design's nested `ConfigProvider` and Radix's nested `Theme` do, and what
 from the theme around it:
 
 ```razor
-<IzzyTheme Density="ThemeDensity.Compact" Primary="#be123c" Style="--ib-card-padding: 1rem">
+<IzzyTheme Density="ThemeDensity.Compact" Brand="#be123c" Style="--ib-card-padding: 1rem">
     <Table ... />
 </IzzyTheme>
 ```
 
-It takes `Accent` or `Primary`, `Gray`, `Radius`, `Density`, `Preset` and `ColorScheme`, and renders
-a `div` (with `Class`, `Style` and other attributes). On part of a page a preset changes density,
-shape and type only; its accent and gray apply to the whole app alone. Fonts and `HeadingWeight` are
-app-wide: set them on the `IzzyTheme` in `<head>`.
+It takes `Brand` (a name or hex), a built-in `Gray`, `Radius`, `Density`, `Preset` and `ColorScheme`,
+and renders a `div` (with `Class`, `Style` and other attributes). On part of a page a preset changes
+density, shape and type only; its brand color and gray apply to the whole app alone. Fonts,
+`HeadingWeight` and a hex `Gray` are app-wide: set them on the `IzzyTheme` in `<head>`.
 
 `IzzyTheme` takes only the choices it keeps consistent. A single exact value is CSS: put it in
 `Style`, or in a class (`Class="report-band"`) with the value in your stylesheet.
@@ -317,14 +327,14 @@ Each of those has its own token too (`--ib-color-focus`, `--ib-color-halo`, `--i
 `--ib-state-hover`, `--ib-state-pressed`, `--ib-color-segment`, `--ib-color-scrollbar`) if you want
 to set it outright.
 
-The same choices work as attributes in plain HTML: `data-ib-accent`, `data-ib-gray`, `data-ib-radius`,
+The same choices work as attributes in plain HTML: `data-ib-brand`, `data-ib-gray`, `data-ib-radius`,
 `data-ib-density` and `data-ib-preset` on any element. The more specific choice always wins: an
-attribute beats `IzzyTheme`'s app setting, and an accent or density beats a preset's.
+attribute beats `IzzyTheme`'s app setting, and a brand color or density beats a preset's.
 
 Menus, popovers, tooltips and declared `Dialog`s stay where they're written in the page (the top
 layer only moves them on screen), so they take on the part's theme. Dialogs opened from code with
-`DialogService` are shown by the `DialogHost`, so pass `DialogOptions.ColorScheme` and `Density` to
-match the part that opened them.
+`DialogService` are shown by the `DialogHost`, so pass `DialogOptions.ColorScheme`, `Brand` and
+`Density` to match the part that opened them.
 
 ## Escape hatches
 

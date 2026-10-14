@@ -93,7 +93,7 @@
     height: var(--ib-field-h);
     padding: 0 var(--ib-field-px);
     border: 1px solid var(--ib-field-border);
-    border-radius: var(--ib-radius-md);
+    border-radius: var(--ib-radius-control, var(--ib-radius-md));
     background-color: var(--ib-field-bg);
     color: var(--ib-color-on-surface);
     font: inherit;
@@ -317,14 +317,14 @@
 
   .ib-field-step-down {
     border-inline-end: 1px solid var(--ib-field-border);
-    border-start-start-radius: calc(var(--ib-radius-md) - 1px);
-    border-end-start-radius: calc(var(--ib-radius-md) - 1px);
+    border-start-start-radius: calc(var(--ib-radius-control, var(--ib-radius-md)) - 1px);
+    border-end-start-radius: calc(var(--ib-radius-control, var(--ib-radius-md)) - 1px);
   }
 
   .ib-field-step-up {
     border-inline-start: 1px solid var(--ib-field-border);
-    border-start-end-radius: calc(var(--ib-radius-md) - 1px);
-    border-end-end-radius: calc(var(--ib-radius-md) - 1px);
+    border-start-end-radius: calc(var(--ib-radius-control, var(--ib-radius-md)) - 1px);
+    border-end-end-radius: calc(var(--ib-radius-control, var(--ib-radius-md)) - 1px);
   }
 
   /* The plus and minus are straight lines through the icon's middle. At 16px, the icon's 2-unit
@@ -554,7 +554,7 @@
     margin-inline-end: var(--ib-space-3);
     padding: 0 var(--ib-space-3);
     border: 1px solid var(--ib-color-outline);
-    border-radius: var(--ib-radius-md);
+    border-radius: var(--ib-radius-control, var(--ib-radius-md));
     background-color: var(--ib-color-surface);
     color: var(--ib-color-on-surface);
     font: inherit;
@@ -625,14 +625,14 @@
 
   .ib-field-addon-start {
     margin-inline-end: -1px;
-    border-start-start-radius: var(--ib-radius-md);
-    border-end-start-radius: var(--ib-radius-md);
+    border-start-start-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-end-start-radius: var(--ib-radius-control, var(--ib-radius-md));
   }
 
   .ib-field-addon-end {
     margin-inline-start: -1px;
-    border-start-end-radius: var(--ib-radius-md);
-    border-end-end-radius: var(--ib-radius-md);
+    border-start-end-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-end-end-radius: var(--ib-radius-control, var(--ib-radius-md));
   }
 
   .ib-field-group:has(> .ib-field-addon-start) > .ib-field-control .ib-field-input {
@@ -703,13 +703,13 @@
   }
 
   .ib-field-addon-start > .ib-field .ib-field-input {
-    border-start-start-radius: var(--ib-radius-md);
-    border-end-start-radius: var(--ib-radius-md);
+    border-start-start-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-end-start-radius: var(--ib-radius-control, var(--ib-radius-md));
   }
 
   .ib-field-addon-end > .ib-field .ib-field-input {
-    border-start-end-radius: var(--ib-radius-md);
-    border-end-end-radius: var(--ib-radius-md);
+    border-start-end-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-end-end-radius: var(--ib-radius-control, var(--ib-radius-md));
   }
 
   .ib-field-disabled .ib-field-addon {
@@ -1619,7 +1619,7 @@
     gap: 6px;
     min-width: 0;
     padding-inline: var(--ib-field-px);
-    border-radius: calc(var(--ib-radius-md) - 2px);
+    border-radius: calc(var(--ib-radius-control, var(--ib-radius-md)) - 2px);
     color: var(--ib-color-muted);
     font-size: var(--ib-field-font);
     font-weight: var(--ib-weight-medium);
@@ -1779,7 +1779,7 @@
     height: var(--ib-field-h);
     padding: 3px;
     border: 1px solid var(--ib-field-border);
-    border-radius: var(--ib-radius-md);
+    border-radius: var(--ib-radius-control, var(--ib-radius-md));
     background-color: var(--ib-field-bg);
     transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
@@ -1809,7 +1809,7 @@
     margin: 0;
     padding: 0;
     border: 0;
-    border-radius: max(2px, calc(var(--ib-radius-md) - 3px));
+    border-radius: max(2px, calc(var(--ib-radius-control, var(--ib-radius-md)) - 3px));
     background: none;
     cursor: pointer;
     appearance: none;
@@ -1829,13 +1829,13 @@
 
   .ib-color-input::-webkit-color-swatch {
     border: 0;
-    border-radius: max(2px, calc(var(--ib-radius-md) - 3px));
+    border-radius: max(2px, calc(var(--ib-radius-control, var(--ib-radius-md)) - 3px));
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ib-color-on-surface) 15%, transparent);
   }
 
   .ib-color-input::-moz-color-swatch {
     border: 0;
-    border-radius: max(2px, calc(var(--ib-radius-md) - 3px));
+    border-radius: max(2px, calc(var(--ib-radius-control, var(--ib-radius-md)) - 3px));
     box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ib-color-on-surface) 15%, transparent);
   }
 

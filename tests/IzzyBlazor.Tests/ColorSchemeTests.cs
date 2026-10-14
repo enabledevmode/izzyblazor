@@ -25,7 +25,7 @@ public class ColorSchemeRenderTests : BunitContext
     public void Default_is_an_icon_button_with_a_menu_of_links_to_the_scheme_endpoint()
     {
         UseCookie(null);
-        Services.GetRequiredService<NavigationManager>().NavigateTo("static/brand?primary=%230af");
+        Services.GetRequiredService<NavigationManager>().NavigateTo("static/brand?brand=%230af");
         var cut = Render<ColorSchemeSwitch>();
 
         Assert.Contains("ib-scheme-switch-menu", cut.Find("ib-scheme-switch").ClassName);
@@ -37,7 +37,7 @@ public class ColorSchemeRenderTests : BunitContext
 
         var items = cut.FindAll("[popover] a.ib-menu-item");
         Assert.Equal(["system", "light", "dark"], items.Select(a => a.GetAttribute("data-ib-scheme")));
-        Assert.Equal("_izzy/scheme?value=dark&return=static%2Fbrand%3Fprimary%3D%25230af", items[2].GetAttribute("href"));
+        Assert.Equal("_izzy/scheme?value=dark&return=static%2Fbrand%3Fbrand%3D%25230af", items[2].GetAttribute("href"));
         Assert.Equal(["System", "Light", "Dark"], items.Select(a => a.QuerySelector(".ib-menu-label")!.TextContent));
 
         // Static: radio roles wait for the script; no choice saved, so System is checked.
