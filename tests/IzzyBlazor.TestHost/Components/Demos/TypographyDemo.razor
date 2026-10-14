@@ -103,9 +103,71 @@
         </Row>
     </Example>
 
+    <Example Title="Lists" Note="Bullets, numbers, or an icon per item (a check list). Icons sit on the first line of text, and lists without bullets keep their list role for screen readers." Code="@ListsCode">
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="6">
+            <List>
+                <ListItem>Static pages, no SignalR</ListItem>
+                <ListItem>Interactive Server and WebAssembly</ListItem>
+                <ListItem>One set of components for both</ListItem>
+            </List>
+            <List Ordered>
+                <ListItem>Add the package</ListItem>
+                <ListItem>Put IzzyTheme in the head</ListItem>
+                <ListItem>Map the endpoints</ListItem>
+            </List>
+            <List Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="3">
+                <ListItem>Works with JavaScript off</ListItem>
+                <ListItem>Gets better with it</ListItem>
+                <ListItem Icon="Lucide.X" IconColor="Color.DangerText">No circuit required</ListItem>
+            </List>
+        </Grid>
+    </Example>
+
+    <Example Title="Prose" Note="Plain HTML, such as Markdown output, styled in the library's type: headings, links, lists, quotes, code, tables and rules. Size is Sm, Md or Lg." Code="@ProseHtmlCode">
+        <Prose MaxWidth="Length.Prose">@((MarkupString)SampleHtml)</Prose>
+    </Example>
+
 </Stack>
 
 @code {
+    private const string SampleHtml =
+        """
+        <h2>Getting started</h2>
+        <p>IzzyBlazor renders on the server, so pages work before any script loads. Read the <a href="#">install guide</a>, then add the package:</p>
+        <pre><code>dotnet add package IzzyBlazor</code></pre>
+        <h3>What you get</h3>
+        <ul>
+          <li>Forms that post with <strong>JavaScript off</strong></li>
+          <li>Tables with sorting, paging and filters in the URL</li>
+          <li>Dialogs, menus and toasts, using <code>popover</code> and <code>dialog</code></li>
+        </ul>
+        <blockquote>The best component is the one that still works when everything else fails.</blockquote>
+        <table>
+          <thead><tr><th>Mode</th><th>Script</th><th>Circuit</th></tr></thead>
+          <tbody><tr><td>Static</td><td>Optional</td><td>No</td></tr><tr><td>Server</td><td>Yes</td><td>Yes</td></tr></tbody>
+        </table>
+        <hr>
+        <p>Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to search.</p>
+        """;
+
+    private const string ListsCode =
+        """
+        <List>
+            <ListItem>Static pages, no SignalR</ListItem>
+        </List>
+        <List Ordered>...</List>
+        <List Icon="Lucide.Check" IconColor="Color.SuccessText" Gap="3">
+            <ListItem>Works with JavaScript off</ListItem>
+            <ListItem Icon="Lucide.X" IconColor="Color.DangerText">No circuit required</ListItem>
+        </List>
+        """;
+
+    private const string ProseHtmlCode =
+        """
+        <Prose>@((MarkupString)html)</Prose>
+        <Prose Size="ProseSize.Lg" As="article">...</Prose>
+        """;
+
     private const string HeadingsCode =
         """
         <Heading Level="1">Heading level 1</Heading>
