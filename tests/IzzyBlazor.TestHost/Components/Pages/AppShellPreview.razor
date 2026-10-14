@@ -29,10 +29,11 @@
             </Row>
         }
         <Box Grow />
-        <NavMenu Orientation="Orientation.Horizontal" VisibleFrom="Breakpoint.Lg">
+        @* Header links; below Lg they move into the sidebar (the drawer on phones), so there is one menu. *@
+        <HeaderNav Label="Site" Breakpoint="Breakpoint.Lg">
             <NavItem Href='@Link("docs")'>Docs</NavItem>
             <NavItem Href='@Link("changelog")'>Changelog</NavItem>
-        </NavMenu>
+        </HeaderNav>
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
     </AppHeader>
 
@@ -50,11 +51,6 @@
             <NavLabel>Account</NavLabel>
             <NavItem Href='@Link("settings")' Icon="Lucide.Settings">Settings</NavItem>
             <NavItem Href='@Link("billing")' Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
-            @* The header links, in the drawer on screens too narrow to show them in the header. *@
-            <NavDivider HiddenFrom="Breakpoint.Lg" />
-            <NavLabel HiddenFrom="Breakpoint.Lg">Site</NavLabel>
-            <NavItem Href='@Link("docs")' Icon="Lucide.BookOpen" HiddenFrom="Breakpoint.Lg">Docs</NavItem>
-            <NavItem Href='@Link("changelog")' Icon="Lucide.ScrollText" HiddenFrom="Breakpoint.Lg">Changelog</NavItem>
         </NavMenu>
     </AppSidebar>
 
