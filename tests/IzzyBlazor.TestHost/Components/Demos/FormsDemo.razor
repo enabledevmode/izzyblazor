@@ -265,7 +265,7 @@
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: https://@Addons!.Website, @Addons.Price @Addons.Currency, @Addons.Weight kg, invite to @Addons.Invite</TextBlock>
                 }
                 <Row Gap="2" Align="Align.End">
-                    <TextField @bind-Value="Addons!.Small" Size="ControlSize.Sm" Placeholder="Search" Class="host-grow">
+                    <TextField @bind-Value="Addons!.Small" Size="ControlSize.Sm" Placeholder="Search" HideLabel Class="host-grow">
                         <EndAddon><Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Go</Button></EndAddon>
                     </TextField>
                     <TextField @bind-Value="Addons!.Large" Size="ControlSize.Lg" Placeholder="Search" Class="host-grow">
@@ -637,7 +637,7 @@
         public Currency Currency { get; set; }
         [Display(Name = "Weight (kg)")] public string? Weight { get; set; }
         [Display(Name = "Invite a teammate")] public string? Invite { get; set; }
-        [Display(Name = "Small")] public string? Small { get; set; }
+        [Display(Name = "Search")] public string? Small { get; set; }
         [Display(Name = "Handle")] public string? Large { get; set; }
     }
 
