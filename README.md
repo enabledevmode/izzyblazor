@@ -16,7 +16,7 @@ better when scripts run, and binds to C# on interactive pages.
   <img alt="An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table with status badges." src="docs/images/showcase-light.png">
 </picture>
 
-> **Status:** pre-release (`0.1.0-dev`), not yet on NuGet. The API will change before 0.1.
+> **Status:** preview (`0.1.0-alpha`). The API will change before 0.1.
 
 ## Every component works three ways
 
@@ -34,17 +34,21 @@ choose a different component for each.
 
 ## What's included
 
-- **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio
-- **App structure:** AppShell (header, collapsible sidebar, aside, footer), NavMenu
-- **Typography:** TextBlock, Heading, Anchor, Code, Kbd, Icon (all of Lucide)
+- **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio, Section
+- **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), NavMenu,
+  HeaderNav
+- **Typography:** TextBlock, Heading, Anchor, Code (with syntax highlighting), Kbd, List, Prose, Icon
+  (all of Lucide, plus brand logos)
 - **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
-  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, FileUpload, Fieldset,
-  FilterForm
+  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
+  Fieldset, FilterForm
 - **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
 - **Navigation:** Tabs, Stepper, Breadcrumb, Pagination
 - **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
-- **Data:** Card, Table, Stat, DescriptionList, Avatar, AvatarGroup
+- **Data and media:** Card, Table, Stat, DescriptionList, Timeline, Avatar, AvatarGroup, Image,
+  VideoEmbed
+- **Theming:** IzzyTheme (looks, accent, brand color, fonts), ColorSchemeSwitch
 
 Styling is typed and responsive, through props on the components, with no CSS to write and nothing
 computed at runtime. If you've used Chakra UI or Mantine, the layout props will feel familiar:
@@ -61,8 +65,7 @@ own scheme.
 
 ## Getting started
 
-IzzyBlazor isn't on NuGet yet. Until it is, reference `src/IzzyBlazor/IzzyBlazor.csproj` from your
-server project. Once it's published:
+Install the package in your server project:
 
 ```bash
 dotnet add package IzzyBlazor --prerelease
@@ -95,5 +98,6 @@ Auto render modes, see [Getting started](docs/getting-started.md#webassembly-and
 
 ## License
 
-MIT. Bundled Lucide icons are ISC licensed; see [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
+MIT. Bundled Lucide icons are ISC licensed and the brand logos come from Simple Icons (CC0); see
+[THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

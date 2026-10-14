@@ -6,10 +6,24 @@
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
-    <Version>0.1.0-dev</Version>
+    <Version>0.1.0-alpha.1</Version>
     <Authors>Israel Dryer</Authors>
     <Copyright>Copyright (c) Israel Dryer</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageProjectUrl>https://github.com/enabledevmode/izzyblazor</PackageProjectUrl>
     <RepositoryUrl>https://github.com/enabledevmode/izzyblazor</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <PackageReleaseNotes>First preview. The API will change before 0.1.</PackageReleaseNotes>
+
+    <!-- Debugging into the source: Source Link (built into the SDK) and symbol packages. -->
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+  </PropertyGroup>
+
+  <!-- Deterministic paths in packages built by CI. -->
+  <PropertyGroup Condition="'$(GITHUB_ACTIONS)' == 'true'">
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
   </PropertyGroup>
 </Project>

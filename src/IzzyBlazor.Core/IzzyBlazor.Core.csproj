@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <PackageIcon>icon.png</PackageIcon>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageId>IzzyBlazor.Core</PackageId>
     <RootNamespace>IzzyBlazor</RootNamespace>
     <Description>IzzyBlazor's components, CSS and JavaScript, for any render mode including WebAssembly. Server apps install IzzyBlazor, which includes this and adds the server-only pieces.</Description>
@@ -71,6 +72,7 @@
 
   <ItemGroup>
     <None Include="$(MSBuildThisFileDirectory)..\..\brand\nuget\icon.png" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="$(RepoRoot)docs\nuget-readme.md" Pack="true" PackagePath="\README.md" Visible="false" />
   </ItemGroup>
 
 </Project>
