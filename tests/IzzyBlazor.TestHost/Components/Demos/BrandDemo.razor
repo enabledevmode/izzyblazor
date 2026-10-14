@@ -20,15 +20,15 @@
 
     <Example Title="Your brand color" Note="Pick a color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, each pair checked for 4.5:1. A light color gets dark text; a dark one is lifted in dark mode." Code="@ThemeCode">
         <Stack Gap="5">
+            @* The library's ColorPicker in a plain GET form: its name posts ?primary=#hex. *@
             <form method="get" class="host-brand-form">
-                <label class="host-label" for="brand-color">Primary</label>
-                <input id="brand-color" type="color" name="primary" value="@Chosen" onchange="this.form.requestSubmit()" />
-                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Apply</Button>
-                @foreach (var (name, hex) in Presets)
-                {
-                    <a class="host-swatch" href="@Navigation.GetUriWithQueryParameter("primary", hex)" style="--swatch: @hex" title="@name @hex"><span class="ib-visually-hidden">@name</span></a>
-                }
-                <a href="@Navigation.GetUriWithQueryParameter("primary", (string?)null)" class="host-label">Reset</a>
+                <Box Width="Length.Rem(20)" MaxWidth="Length.Full">
+                    <ColorPicker @bind-Value="_pick" name="primary" Label="Primary" Presets="PresetHexes" Size="ControlSize.Sm" />
+                </Box>
+                <Row Gap="3" Align="Align.Center">
+                    <Button Type="ButtonType.Submit" Size="ControlSize.Sm">Apply</Button>
+                    <a href="@Navigation.GetUriWithQueryParameter("primary", (string?)null)" class="host-label">Reset</a>
+                </Row>
             </form>
 
             @if (Palette is { } p)
@@ -61,6 +61,10 @@
     private AccentPalette? Palette;
     private string Chosen => Palette is null ? "#2563eb" : Primary!.Trim();
 
+    private string? _pick;
+
+    private static IEnumerable<string> PresetHexes => Presets.Select(p => p.Hex);
+
     protected override void OnParametersSet()
     {
         try
@@ -71,6 +75,8 @@
         {
             Palette = null;
         }
+
+        _pick = Chosen;
     }
 
     private static readonly (string Name, string Hex)[] Presets =
