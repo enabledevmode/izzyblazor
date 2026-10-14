@@ -64,7 +64,7 @@
             }
         </div>
     }
-    <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? "Table")" tabindex="0" style="@ScrollStyle">
+    <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle">
         <table class="ib-table-grid" aria-busy="@(IsLoading ? "true" : null)">
             @if (Caption is not null)
             {
@@ -255,11 +255,11 @@
             </div>
             @if (UseState)
             {
-                <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total" PageSize="size" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
+                <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total" PageSize="size" Size="ControlSize.Sm" Label="@PagesLabel" />
             }
             else
             {
-                <Pagination Page="_page" TotalItems="_total" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@($"{Caption ?? "Table"} pages")" />
+                <Pagination Page="_page" TotalItems="_total" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@PagesLabel" />
             }
         </div>
     }
@@ -1190,8 +1190,11 @@
     {
         var first = (_page - 1L) * size + 1;
         var last = Math.Min((long)_page * size, _total);
-        return $"{first:N0}–{last:N0} of {_total:N0}";
+        return string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TableRange, first, last, _total);
     }
+
+    private string PagesLabel =>
+        string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TablePages, Caption ?? TextDefaults.TableName);
 
     /// <inheritdoc />
     public void Dispose()

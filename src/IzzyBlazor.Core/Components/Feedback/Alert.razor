@@ -92,8 +92,8 @@
 
     /// <summary>
     /// What kind of message it is, read to screen readers before it (the icon and color carry it
-    /// visually). Defaults to "Info", "Success", "Warning" or "Error" by <see cref="Status"/>, and
-    /// nothing for Neutral. Set it to translate, or to "" to leave it out.
+    /// visually). Defaults to "Info", "Success", "Warning" or "Error" by <see cref="Status"/> (from
+    /// <see cref="IzzyText"/>), and nothing for Neutral. Set it to "" to leave it out.
     /// </summary>
     [Parameter] public string? StatusLabel { get; set; }
 
@@ -115,10 +115,10 @@
         ? (label.Length > 0 ? label : null)
         : Status switch
         {
-            Status.Info => "Info",
-            Status.Success => "Success",
-            Status.Warning => "Warning",
-            Status.Danger => "Error",
+            Status.Info => TextDefaults.StatusInfo,
+            Status.Success => TextDefaults.StatusSuccess,
+            Status.Warning => TextDefaults.StatusWarning,
+            Status.Danger => TextDefaults.StatusError,
             _ => null,
         };
 

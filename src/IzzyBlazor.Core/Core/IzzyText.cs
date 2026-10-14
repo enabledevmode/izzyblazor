@@ -130,6 +130,27 @@ public class IzzyText
     /// <summary>Table's row checkboxes, before the row's name.</summary>
     public virtual string SelectRow { get; set; } = "Select";
 
+    /// <summary>Table's scroll region name when it has no Caption.</summary>
+    public virtual string TableName { get; set; } = "Table";
+
+    /// <summary>Table's pagination name: {0} is the caption (or <see cref="TableName"/>).</summary>
+    public virtual string TablePages { get; set; } = "{0} pages";
+
+    /// <summary>Table's row range under the rows: {0} first, {1} last, {2} total ("1–10 of 42").</summary>
+    public virtual string TableRange { get; set; } = "{0:N0}–{1:N0} of {2:N0}";
+
+    /// <summary>Alert's and Banner's status, read before the message (Info).</summary>
+    public virtual string StatusInfo { get; set; } = "Info";
+
+    /// <summary>Alert's and Banner's status, read before the message (Success).</summary>
+    public virtual string StatusSuccess { get; set; } = "Success";
+
+    /// <summary>Alert's and Banner's status, read before the message (Warning).</summary>
+    public virtual string StatusWarning { get; set; } = "Warning";
+
+    /// <summary>Alert's and Banner's status, read before the message (Danger).</summary>
+    public virtual string StatusError { get; set; } = "Error";
+
     /// <summary>AvatarGroup's "+N" avatar: {0} is how many more.</summary>
     public virtual string MoreAvatars { get; set; } = "{0} more";
 
