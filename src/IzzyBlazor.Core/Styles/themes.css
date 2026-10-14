@@ -1,25 +1,30 @@
 /*
- * Looks, accents, grays and radius, chosen with attributes. Put them on <html> (in App.razor) for
- * the whole app, or on any element for part of a page.
+ * Presets, accents, grays, radius and density, chosen with attributes or with IzzyTheme's meta tags.
  *
- *   <html lang="en" data-ib-preset="compact">                       a look
- *   <html lang="en" data-ib-preset="compact" data-ib-accent="teal"> a look in your accent
- *   <html lang="en" data-ib-accent="violet" data-ib-gray="slate">  the default look, recolored
+ *   <html lang="en" data-ib-preset="compact">                         a preset
+ *   <html lang="en" data-ib-preset="compact" data-ib-accent="teal">   a preset in another accent
+ *   <section data-ib-density="compact" data-ib-accent="rose">         part of a page
  *
- * Looks (data-ib-preset) set density, shape and type, plus a default accent and gray that suit
- * the products likely to use them:
+ * Presets (data-ib-preset) are a starting set of defaults: density, shape and type, plus a default
+ * accent and gray that suit the products likely to use them:
  *   standard   the default: 36px controls, medium radius, hairline shadows; Blue on Neutral
  *   compact    dense data and admin: 32px controls, tight rows, small radius, borders only;
  *              Indigo on Slate
  *   soft       consumer and portals: 40px controls, roomy, large radius, gentle shadows;
  *              Teal on Neutral
  *   editorial  reading and docs: serif headings, large radius; Ink on Stone
- * An explicit data-ib-accent, -gray, -radius or -density beats the look's (its selector is written
- * twice, which doubles its weight).
+ * A preset's accent and gray apply only to the whole page (on <html>, or IzzyTheme's meta tag). On
+ * part of a page a preset changes density, shape and type only; colors change there only when
+ * asked for (data-ib-accent, data-ib-gray).
  *
  * <IzzyTheme> sets the same choices from <head> with meta tags (<meta name="ib-preset"
- * content="compact">, ib-accent, ib-gray, ib-radius, ib-density), matched through :root:has(); each selector
- * below has a meta twin with the same weight as its attribute.
+ * content="compact">, ib-accent, ib-gray, ib-radius, ib-density), matched through :root:has().
+ * Weights, weakest first, so the more specific choice always wins and file order never decides:
+ *   1  a preset's meta tag                 :root:where(:has(meta))                  0,1,0
+ *   2  a preset attribute                  [data-ib-preset][data-ib-preset="x"]     0,2,0
+ *   3  a specific meta tag, IzzyTheme's    :root:root:root:where(:has(meta))        0,3,0
+ *      style block (brand color, fonts)
+ *   4  a specific attribute                [data-ib-x][data-ib-x][data-ib-x][...]   0,4,0
  *
  * Accents: blue (the default), ink, indigo, violet, teal, green, rose.
  * Grays: neutral (the default, in tokens.css), stone (warm), slate (cool).
@@ -27,16 +32,16 @@
  * Density: compact, standard (the default), comfortable.
  *
  * Every color is light-dark(), hand-tuned so text holds 4.5:1 on its fill and on each gray, in
- * both schemes. Fonts are tokens too: set --ib-font-body and --ib-font-heading in your own CSS.
+ * both schemes.
  */
 @layer izzy.tokens {
   /* Grays. */
   /* Stone: warm paper. It reads as intentional beside a serif (Editorial); with a plain sans it
      reads as dated, so the sans themes use the default grays. */
-  [data-ib-preset="editorial"],
+  :root[data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
-  [data-ib-gray][data-ib-gray="stone"],
-  :root:root:where(:has(> head > meta[name="ib-gray"][content="stone"])) {
+  [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="stone"],
+  :root:root:root:where(:has(> head > meta[name="ib-gray"][content="stone"])) {
     --ib-color-background: light-dark(#f7f6f3, #151618);
     --ib-color-surface: light-dark(#ffffff, #1d1f22);
     --ib-color-surface-container-low: light-dark(#f3f2ee, #26282b);
@@ -51,10 +56,10 @@
     --ib-color-outline: light-dark(#bdb9b0, #56595f);
   }
 
-  [data-ib-preset="compact"],
+  :root[data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
-  [data-ib-gray][data-ib-gray="slate"],
-  :root:root:where(:has(> head > meta[name="ib-gray"][content="slate"])) {
+  [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="slate"],
+  :root:root:root:where(:has(> head > meta[name="ib-gray"][content="slate"])) {
     --ib-color-background: light-dark(#f8fafc, #0f1218);
     --ib-color-surface: light-dark(#ffffff, #161a21);
     --ib-color-surface-container-low: light-dark(#f1f4f8, #20242c);
@@ -69,12 +74,12 @@
     --ib-color-outline: light-dark(#b2bccb, #4d5664);
   }
 
-  [data-ib-preset="standard"],
+  :root[data-ib-preset="standard"],
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
-  [data-ib-preset="soft"],
+  :root[data-ib-preset="soft"],
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
-  [data-ib-gray][data-ib-gray="neutral"],
-  :root:root:where(:has(> head > meta[name="ib-gray"][content="neutral"])) {
+  [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="neutral"],
+  :root:root:root:where(:has(> head > meta[name="ib-gray"][content="neutral"])) {
     --ib-color-background: light-dark(#fafafa, #141416);
     --ib-color-surface: light-dark(#ffffff, #1b1b1e);
     --ib-color-surface-container-low: light-dark(#f3f3f5, #252528);
@@ -93,64 +98,64 @@
   /* Ink: monochrome. The fill is the gray set's text color, and the soft tint is that ink thinly
      laid over whatever is below (10% light, 12% dark; hover is 6%), so it never takes the gray's
      warm or cool cast. */
-  [data-ib-preset="editorial"],
+  :root[data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
-  [data-ib-accent][data-ib-accent="ink"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="ink"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="ink"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="ink"])) {
     --ib-color-primary: var(--ib-color-on-surface);
     --ib-color-on-primary: var(--ib-color-surface);
     --ib-color-primary-text: var(--ib-color-on-surface);
     --ib-color-primary-soft: light-dark(color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent), color-mix(in oklab, var(--ib-color-on-surface) 12%, transparent));
   }
 
-  [data-ib-preset="standard"],
+  :root[data-ib-preset="standard"],
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
-  [data-ib-accent][data-ib-accent="blue"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="blue"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="blue"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="blue"])) {
     --ib-color-primary: light-dark(#2563eb, #3d6ae8);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#1d4ed8, #a9bdff);
     --ib-color-primary-soft: light-dark(#dbe6fd, #1e2a4a);
   }
 
-  [data-ib-preset="compact"],
+  :root[data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
-  [data-ib-accent][data-ib-accent="indigo"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="indigo"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="indigo"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="indigo"])) {
     --ib-color-primary: light-dark(#4f46e5, #5b55e9);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#4338ca, #b8bbff);
     --ib-color-primary-soft: light-dark(#e3e1fb, #23234b);
   }
 
-  [data-ib-accent][data-ib-accent="violet"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="violet"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="violet"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="violet"])) {
     --ib-color-primary: light-dark(#6d28d9, #7a4be0);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#5b21b6, #cdb8ff);
     --ib-color-primary-soft: light-dark(#e8ddf9, #2a1f45);
   }
 
-  [data-ib-preset="soft"],
+  :root[data-ib-preset="soft"],
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
-  [data-ib-accent][data-ib-accent="teal"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="teal"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="teal"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="teal"])) {
     --ib-color-primary: light-dark(#0f766e, #11807a);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#115e59, #7fd6cb);
     --ib-color-primary-soft: light-dark(#d9e9e8, #12302e);
   }
 
-  [data-ib-accent][data-ib-accent="green"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="green"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="green"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="green"])) {
     --ib-color-primary: light-dark(#1d7a3e, #1f8345);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#1d6b3a, #8fdcaa);
     --ib-color-primary-soft: light-dark(#dbeae0, #16301f);
   }
 
-  [data-ib-accent][data-ib-accent="rose"],
-  :root:root:where(:has(> head > meta[name="ib-accent"][content="rose"])) {
+  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="rose"],
+  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="rose"])) {
     --ib-color-primary: light-dark(#be1857, #cc2a63);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#9f1239, #ffa8c5);
@@ -158,10 +163,10 @@
   }
 
   /* Radius: the whole scale shifts, so controls, cards and dialogs keep their proportions. */
-  [data-ib-preset="compact"],
+  [data-ib-preset][data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
-  [data-ib-radius][data-ib-radius="sm"],
-  :root:root:where(:has(> head > meta[name="ib-radius"][content="sm"])) {
+  [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="sm"],
+  :root:root:root:where(:has(> head > meta[name="ib-radius"][content="sm"])) {
     --ib-radius-sm: 0.125rem;
     --ib-radius-md: 0.25rem;
     /* Cards (xl) and popovers and dialogs (lg) tighten as much as controls do: a 10px card corner
@@ -170,22 +175,22 @@
     --ib-radius-xl: 0.5rem;
   }
 
-  [data-ib-preset="standard"],
+  [data-ib-preset][data-ib-preset="standard"],
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
-  [data-ib-radius][data-ib-radius="md"],
-  :root:root:where(:has(> head > meta[name="ib-radius"][content="md"])) {
+  [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="md"],
+  :root:root:root:where(:has(> head > meta[name="ib-radius"][content="md"])) {
     --ib-radius-sm: 0.25rem;
     --ib-radius-md: 0.375rem;
     --ib-radius-lg: 0.625rem;
     --ib-radius-xl: 0.75rem;
   }
 
-  [data-ib-preset="editorial"],
+  [data-ib-preset][data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
-  [data-ib-preset="soft"],
+  [data-ib-preset][data-ib-preset="soft"],
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
-  [data-ib-radius][data-ib-radius="lg"],
-  :root:root:where(:has(> head > meta[name="ib-radius"][content="lg"])) {
+  [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="lg"],
+  :root:root:root:where(:has(> head > meta[name="ib-radius"][content="lg"])) {
     --ib-radius-sm: 0.375rem;
     --ib-radius-md: 0.5rem;
     --ib-radius-lg: 0.875rem;
@@ -195,12 +200,12 @@
   /* Density: control heights (buttons, fields, tabs, pagination, nav items, menu rows), table cell
      padding and card padding, together. Standard is tokens.css's defaults; heights stay whole
      pixels. A look sets its density; data-ib-density or IzzyTheme's Density beats it. */
-  [data-ib-preset="standard"],
+  [data-ib-preset][data-ib-preset="standard"],
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
-  [data-ib-preset="editorial"],
+  [data-ib-preset][data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
-  [data-ib-density][data-ib-density="standard"],
-  :root:root:where(:has(> head > meta[name="ib-density"][content="standard"])) {
+  [data-ib-density][data-ib-density][data-ib-density][data-ib-density="standard"],
+  :root:root:root:where(:has(> head > meta[name="ib-density"][content="standard"])) {
     --ib-control-h-sm: 2rem;
     --ib-control-h-md: 2.25rem;
     --ib-control-h-lg: 2.75rem;
@@ -208,10 +213,10 @@
     --ib-card-padding: var(--ib-space-5);
   }
 
-  [data-ib-preset="compact"],
+  [data-ib-preset][data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
-  [data-ib-density][data-ib-density="compact"],
-  :root:root:where(:has(> head > meta[name="ib-density"][content="compact"])) {
+  [data-ib-density][data-ib-density][data-ib-density][data-ib-density="compact"],
+  :root:root:root:where(:has(> head > meta[name="ib-density"][content="compact"])) {
     --ib-control-h-sm: 1.75rem;
     --ib-control-h-md: 2rem;
     --ib-control-h-lg: 2.5rem;
@@ -219,10 +224,10 @@
     --ib-card-padding: var(--ib-space-4);
   }
 
-  [data-ib-preset="soft"],
+  [data-ib-preset][data-ib-preset="soft"],
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
-  [data-ib-density][data-ib-density="comfortable"],
-  :root:root:where(:has(> head > meta[name="ib-density"][content="comfortable"])) {
+  [data-ib-density][data-ib-density][data-ib-density][data-ib-density="comfortable"],
+  :root:root:root:where(:has(> head > meta[name="ib-density"][content="comfortable"])) {
     --ib-control-h-sm: 2.25rem;
     --ib-control-h-md: 2.5rem;
     --ib-control-h-lg: 3rem;
@@ -232,19 +237,19 @@
 
   /* Depth. Compact: borders do the separating, so the hairline shadow under cards goes. Soft: a
      gentler, two-layer lift. */
-  [data-ib-preset="compact"],
+  [data-ib-preset][data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])) {
     --ib-shadow-xs: none;
   }
 
-  [data-ib-preset="soft"],
+  [data-ib-preset][data-ib-preset="soft"],
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])) {
     --ib-shadow-xs: 0 1px 3px light-dark(rgb(0 0 0 / 0.06), rgb(0 0 0 / 0.35)), 0 1px 2px light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.25));
   }
 
   /* Editorial: Newsreader headings over IBM Plex Sans. Load the fonts yourself (see
      docs/styling.md); the fallbacks keep the look without them. */
-  [data-ib-preset="editorial"],
+  [data-ib-preset][data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])) {
     --ib-font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ib-font-heading: Newsreader, Georgia, "Times New Roman", serif;

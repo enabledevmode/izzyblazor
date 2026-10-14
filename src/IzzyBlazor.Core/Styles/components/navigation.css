@@ -63,7 +63,7 @@
   }
 
   .ib-breadcrumb-link:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -259,7 +259,7 @@
 
   a.ib-step-label:focus-visible {
     border-radius: var(--ib-radius-sm);
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 

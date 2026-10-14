@@ -84,7 +84,7 @@
 
   .ib-alert-dismiss:focus-visible + .ib-alert-close,
   button.ib-alert-close:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -197,7 +197,7 @@
 
   .ib-banner-dismiss:focus-visible + .ib-banner-close,
   button.ib-banner-close:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
 

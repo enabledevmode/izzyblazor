@@ -55,12 +55,12 @@
   }
 
   .ib-nav-item:hover {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
     color: var(--ib-color-on-surface);
   }
 
   .ib-nav-item:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
 

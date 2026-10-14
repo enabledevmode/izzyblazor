@@ -132,7 +132,7 @@
   }
 
   a.ib-shell-brand:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -783,7 +783,7 @@
   .ib-shell-collapse-input:focus-visible + .ib-shell-collapse-btn,
   .ib-shell:has(.ib-shell-collapse-nobutton > .ib-shell-collapse-input:focus-visible) .ib-shell-collapse-toggle,
   .ib-shell:has(.ib-shell-collapse-auto > .ib-shell-collapse-input:focus-visible) .ib-shell-collapse-toggle {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 

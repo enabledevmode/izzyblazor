@@ -8,7 +8,7 @@
     is trapped, Escape and the backdrop cancel it, and focus returns to where it was.
 *@
 
-@if (_service is not null)
+@if (_service is not null && _service.IsActiveHost(this))
 {
     @foreach (var entry in _service.Open)
     {
@@ -21,7 +21,9 @@
                 ShowCloseButton="entry.Options.ShowCloseButton"
                 QueryKey="@null"
                 Open="entry.IsOpen"
-                OpenChanged="open => OnOpenChanged(entry, open)">
+                OpenChanged="open => OnOpenChanged(entry, open)"
+                Class="@entry.Options.ColorScheme.ClassName()"
+                data-ib-density="@(entry.Options.Density?.ToString().ToLowerInvariant())">
             <CascadingValue Value="entry.Instance" IsFixed="true">
                 <DynamicComponent Type="entry.Component" Parameters="entry.Parameters" />
             </CascadingValue>
@@ -42,8 +44,8 @@
         // A static render can't show dialogs, so only an interactive host counts.
         if (RendererInfo.IsInteractive)
         {
-            _service.AddHost();
             _service.Changed += OnChanged;
+            _service.AddHost(this);
             _registered = true;
         }
     }
@@ -65,7 +67,7 @@
         if (_registered && _service is not null)
         {
             _service.Changed -= OnChanged;
-            _service.RemoveHost();
+            _service.RemoveHost(this);
         }
     }
 }

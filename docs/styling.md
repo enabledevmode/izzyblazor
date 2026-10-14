@@ -290,6 +290,42 @@ from it keep their contrast. `Bg` still applies on top (`Bg="Color.SurfaceContai
 container shade). Outside components, `data-ib-color-scheme="dark|light|inverse"` does the same on
 any element.
 
+## Theming part of a page
+
+For more than a scheme, wrap the part in an `IzzyTheme`. With content it themes what's inside, the
+way Ant Design's nested `ConfigProvider` and Radix's nested `Theme` do, and what it doesn't set comes
+from the theme around it:
+
+```razor
+<IzzyTheme Density="ThemeDensity.Compact" Primary="#be123c" Style="--ib-card-padding: 1rem">
+    <Table ... />
+</IzzyTheme>
+```
+
+It takes `Accent` or `Primary`, `Gray`, `Radius`, `Density`, `Preset` and `ColorScheme`, and renders
+a `div` (with `Class`, `Style` and other attributes). On part of a page a preset changes density,
+shape and type only; its accent and gray apply to the whole app alone. Fonts and `HeadingWeight` are
+app-wide: set them on the `IzzyTheme` in `<head>`.
+
+`IzzyTheme` takes only the choices it keeps consistent. A single exact value is CSS: put it in
+`Style`, or in a class (`Class="report-band"`) with the value in your stylesheet.
+
+Everything inside follows the part's colors, including the colors made from them: the focus ring,
+the field halo, selected rows, hover and pressed washes, the chosen segment and scrollbar thumbs are
+worked out where they're used. So does a plain CSS override (`section { --ib-color-primary: … }`).
+Each of those has its own token too (`--ib-color-focus`, `--ib-color-halo`, `--ib-color-selected`,
+`--ib-state-hover`, `--ib-state-pressed`, `--ib-color-segment`, `--ib-color-scrollbar`) if you want
+to set it outright.
+
+The same choices work as attributes in plain HTML: `data-ib-accent`, `data-ib-gray`, `data-ib-radius`,
+`data-ib-density` and `data-ib-preset` on any element. The more specific choice always wins: an
+attribute beats `IzzyTheme`'s app setting, and an accent or density beats a preset's.
+
+Menus, popovers, tooltips and declared `Dialog`s stay where they're written in the page (the top
+layer only moves them on screen), so they take on the part's theme. Dialogs opened from code with
+`DialogService` are shown by the `DialogHost`, so pass `DialogOptions.ColorScheme` and `Density` to
+match the part that opened them.
+
 ## Escape hatches
 
 - `Color.Token("brand-500")` for your own theme tokens, and `Color.Of("#ff6600")` for a literal color.

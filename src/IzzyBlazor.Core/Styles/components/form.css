@@ -151,8 +151,8 @@
 
   .ib-field-input:focus-visible {
     outline: none;
-    border-color: var(--ib-color-focus);
-    box-shadow: 0 0 0 3px var(--ib-color-halo);
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-field-input:disabled {
@@ -257,13 +257,13 @@
   }
 
   .ib-field-step:hover:not(:disabled) {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
     color: var(--ib-color-on-surface);
   }
 
   /* Pressed: set by the script while held (it cancels the pointer's default, so :active may not apply). */
   .ib-field-step:is(:active, [data-pressed]):not(:disabled) {
-    background-color: var(--ib-state-pressed);
+    background-color: var(--ib-state-pressed, color-mix(in oklab, var(--ib-color-on-surface) 10%, transparent));
     color: var(--ib-color-primary-text);
   }
 
@@ -446,11 +446,11 @@
 
   /* Held or hovered: the halo. */
   .ib-slider-input:is(:hover, :active):not(:disabled)::-webkit-slider-thumb {
-    box-shadow: 0 0 0 0.25rem var(--ib-color-halo);
+    box-shadow: 0 0 0 0.25rem var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-slider-input:is(:hover, :active):not(:disabled)::-moz-range-thumb {
-    box-shadow: 0 0 0 0.25rem var(--ib-color-halo);
+    box-shadow: 0 0 0 0.25rem var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-slider-input:focus-visible {
@@ -459,11 +459,11 @@
 
   /* A solid ring, the focus color, with a gap in the surface color: visible on the track and off it. */
   .ib-slider-input:focus-visible::-webkit-slider-thumb {
-    box-shadow: 0 0 0 2px var(--ib-color-surface), 0 0 0 4px var(--ib-color-focus);
+    box-shadow: 0 0 0 2px var(--ib-color-surface), 0 0 0 4px var(--ib-color-focus, var(--ib-color-primary));
   }
 
   .ib-slider-input:focus-visible::-moz-range-thumb {
-    box-shadow: 0 0 0 2px var(--ib-color-surface), 0 0 0 4px var(--ib-color-focus);
+    box-shadow: 0 0 0 2px var(--ib-color-surface), 0 0 0 4px var(--ib-color-focus, var(--ib-color-primary));
   }
 
   .ib-slider-input:disabled {
@@ -518,7 +518,7 @@
   }
 
   .ib-file-zone:focus-within {
-    border-color: var(--ib-color-focus);
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
   }
 
   .ib-file-icon {
@@ -564,7 +564,7 @@
   }
 
   .ib-file-input:hover:not(:disabled)::file-selector-button {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   .ib-file-input:focus-visible {
@@ -572,7 +572,7 @@
   }
 
   .ib-file-input:focus-visible::file-selector-button {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -800,7 +800,7 @@
     /* Only the highlighted option is filled; the chosen one has a check and medium weight. */
     select.ib-field-select option:hover,
     select.ib-field-select option:focus-visible {
-      background-color: var(--ib-state-hover);
+      background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
       outline: none;
     }
 
@@ -968,7 +968,7 @@
 
   /* Only the highlighted option is filled; the chosen one has a check and medium weight. */
   .ib-combobox-option[data-active] {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   .ib-combobox-option[aria-selected="true"] {
@@ -1029,8 +1029,8 @@
 
   .ib-combobox[data-ready] > .ib-multiselect-box:focus-within {
     outline: none;
-    border-color: var(--ib-color-focus);
-    box-shadow: 0 0 0 3px var(--ib-color-halo);
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-combobox[data-ready]:has(> select:user-invalid) > .ib-multiselect-box {
@@ -1124,7 +1124,7 @@
 
   .ib-multiselect-option[aria-selected="true"][data-active],
   .ib-multiselect-option[data-active] {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   .ib-multiselect-option[aria-selected="true"] > .ib-multiselect-check {
@@ -1312,7 +1312,7 @@
   }
 
   .ib-check-input:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -1425,7 +1425,7 @@
   }
 
   .ib-switch-input:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -1497,7 +1497,7 @@
   }
 
   .ib-form-errors:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -1680,13 +1680,13 @@
   }
 
   .ib-segment:has(.ib-segment-input:checked) {
-    background-color: var(--ib-color-segment);
+    background-color: var(--ib-color-segment, var(--ib-color-surface-container-high));
     color: var(--ib-color-on-surface);
-    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge);
+    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge, transparent);
   }
 
   .ib-segment:has(.ib-segment-input:focus-visible) {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 1px;
   }
 
@@ -1789,8 +1789,8 @@
   }
 
   .ib-color-box:focus-within {
-    border-color: var(--ib-color-focus);
-    box-shadow: 0 0 0 3px var(--ib-color-halo);
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-field-invalid .ib-color-box {
@@ -1893,7 +1893,7 @@
   }
 
   .ib-color-preset:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 

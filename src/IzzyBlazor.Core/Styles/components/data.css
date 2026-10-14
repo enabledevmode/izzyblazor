@@ -135,7 +135,7 @@
   }
 
   .ib-card-linked:has(.ib-card-link:focus-visible) {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -201,7 +201,7 @@
   }
 
   .ib-table-scroll:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 2px;
   }
 
@@ -280,7 +280,7 @@
 
   /* A state layer over the cell's own background, so it shows on striped rows too. */
   .ib-table-grid tbody tr:hover > td {
-    background-image: linear-gradient(var(--ib-state-hover), var(--ib-state-hover));
+    background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
   .ib-table-striped .ib-table-grid tbody tr:nth-child(even) > td {
@@ -349,7 +349,7 @@
   }
 
   .ib-table-filter-button:hover {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
     color: var(--ib-color-on-surface);
   }
 
@@ -363,7 +363,7 @@
   }
 
   .ib-table-filter-button:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 0;
   }
 
@@ -493,7 +493,7 @@
   }
 
   .ib-table-sort:focus-visible {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: 0;
   }
 
@@ -542,7 +542,7 @@
   /* A selected row: a faint accent tint, and an accent edge at its start. */
   .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
   .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td {
-    background-color: var(--ib-color-selected);
+    background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
   }
 
   .ib-table-grid tbody tr:has(.ib-table-select:checked) > td:first-child {
@@ -570,7 +570,7 @@
   }
 
   .ib-table-grid tbody tr:has(> td > .ib-table-row-link:focus-visible) {
-    outline: 2px solid var(--ib-color-focus);
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
 
@@ -738,13 +738,13 @@
   .ib-timeline-current > .ib-timeline-marker {
     border-color: var(--ib-color-primary);
     background-color: var(--ib-color-primary);
-    box-shadow: inset 0 0 0 2px var(--ib-timeline-bg, var(--ib-color-surface)), 0 0 0 3px var(--ib-color-halo);
+    box-shadow: inset 0 0 0 2px var(--ib-timeline-bg, var(--ib-color-surface)), 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-timeline-current.ib-timeline-has-icon > .ib-timeline-marker {
     background-color: var(--ib-color-primary-soft);
     color: var(--ib-color-primary-text);
-    box-shadow: 0 0 0 3px var(--ib-color-halo);
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
   .ib-timeline-body {

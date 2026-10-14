@@ -112,12 +112,12 @@
 
   .ib-menu-item:hover,
   .ib-menu-item:focus-visible {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
     outline: none;
   }
 
   .ib-menu-item:focus-visible {
-    box-shadow: inset 0 0 0 2px var(--ib-color-focus);
+    box-shadow: inset 0 0 0 2px var(--ib-color-focus, var(--ib-color-primary));
   }
 
   .ib-menu-item:disabled,
@@ -190,7 +190,7 @@
   }
 
   .ib-menu-sub-root:has(> [popover]:popover-open) > .ib-menu-sub-trigger {
-    background-color: var(--ib-state-hover);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   .ib-menu-heading {

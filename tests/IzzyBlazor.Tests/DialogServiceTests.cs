@@ -41,7 +41,7 @@ public class DialogServiceTests : BunitContext
     {
         // Dialogs opened off the dispatcher (a timer, a hub callback) while the host renders.
         var service = new DialogService();
-        service.AddHost();
+        service.AddHost(new object());
         var opening = Enumerable.Range(0, 8).Select(n => Task.Run(() =>
         {
             for (var i = 0; i < 200; i++)
@@ -130,5 +130,33 @@ public class DialogServiceTests : BunitContext
         // It throws straight away, before any dialog exists.
         var error = Assert.Throws<InvalidOperationException>(() => { _ = service.OpenAsync<Content>("Edit"); });
         Assert.Contains("DialogHost", error.Message);
+    }
+
+    [Fact]
+    public async Task Two_hosts_show_a_dialog_once()
+    {
+        var service = Setup();
+        var first = Render<DialogHost>();
+        var second = Render<DialogHost>();
+        await second.InvokeAsync(() => { _ = service.OpenAsync<Content>("Edit", new() { ["Greeting"] = "Hello" }); });
+
+        second.WaitForAssertion(() => Assert.Single(second.FindAll("dialog .greeting")));
+        Assert.Empty(first.FindAll("dialog"));
+
+        // When the newer host goes, the one before takes over.
+        await second.InvokeAsync(second.Instance.Dispose);
+        first.WaitForAssertion(() => Assert.Single(first.FindAll("dialog .greeting")));
+    }
+
+    [Fact]
+    public async Task A_dialog_can_take_the_color_scheme_and_density_of_where_it_was_opened()
+    {
+        var service = Setup();
+        var host = Render<DialogHost>();
+        await host.InvokeAsync(() => { _ = service.OpenAsync<Content>("Edit", null, new DialogOptions { ColorScheme = ColorScheme.Dark, Density = ThemeDensity.Compact }); });
+
+        var dialog = host.WaitForElement("dialog");
+        Assert.Contains("ib-scheme-dark", dialog.ClassName);
+        Assert.Equal("compact", dialog.GetAttribute("data-ib-density"));
     }
 }
