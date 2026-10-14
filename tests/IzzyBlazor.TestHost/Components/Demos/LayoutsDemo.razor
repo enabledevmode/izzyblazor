@@ -47,6 +47,9 @@
         new("reading", "Reading site: one centered column",
             "No sidebar. AppShell's ContentWidth centers the header, the article and the footer on one column, so their edges line up, while the bars and their lines stay full width.",
             [("flat", "recommended: one white page"), ("inset", "alternative: the article as a raised sheet")]),
+        new("marketing", "Content site: hero, cards, bands",
+            "No sidebar, a wider column (72rem). Sections stack down the page: a hero with a video, a tinted band of project cards, a check list, and an accent band for the newsletter, each full bleed with its content on the column. The footer holds link columns.",
+            [("flat", "recommended: sections carry the color"), ("inset", "alternative: the page as one raised sheet")]),
     ];
 
     private static string Label(string variant) => char.ToUpperInvariant(variant[0]) + variant[1..];

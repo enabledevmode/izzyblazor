@@ -379,3 +379,9 @@
   font-size: 0.625rem;
   font-weight: 600;
 }
+
+/* Placeholder media for the content-site screen: an icon centered in a tinted 16:9 box. */
+.host-media {
+  display: grid;
+  place-items: center;
+}
