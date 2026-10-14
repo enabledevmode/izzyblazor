@@ -24,6 +24,7 @@
 <ib-scheme-switch @attributes="AdditionalAttributes" class="@_class" style="@_style"
                   role="@(Variant == ColorSchemeSwitchVariant.Segmented ? "group" : null)"
                   aria-label="@(Variant == ColorSchemeSwitchVariant.Segmented ? GroupLabel : null)"
+                  data-ib-value="@(Live && Value is { } bound ? ColorSchemes.Name(bound) : null)"
                   @onibscheme="OnSchemeAsync">
     @switch (Variant)
     {
@@ -94,8 +95,9 @@
     [Parameter] public ColorSchemeSwitchVariant Variant { get; set; } = ColorSchemeSwitchVariant.Menu;
 
     /// <summary>
-    /// The chosen scheme. Leave it unset to show the user's choice from the cookie; bind it on
-    /// interactive pages to follow changes from C#.
+    /// The chosen scheme. Leave it unset to show the user's choice from the cookie. Bind it on
+    /// interactive pages to follow the user's choice; setting it from C# there applies that scheme
+    /// to the page, the cookie and other tabs, as a click would.
     /// </summary>
     [Parameter] public ColorScheme? Value { get; set; }
 
@@ -187,9 +189,11 @@
         $"_izzy/scheme?value={ColorSchemes.Name(scheme)}&return={Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri))}";
 
     // The script already changed the page and the cookie; keep the component (and a binding) in step.
+    // Compared with the bound Value, not _current: an interactive render that wasn't prerendered
+    // can't read the cookie, so _current may say System while the page is dark.
     private async Task OnSchemeAsync(IzzySchemeEventArgs e)
     {
-        if (ColorSchemes.Parse(e.Scheme) is not { } scheme || scheme == _current)
+        if (ColorSchemes.Parse(e.Scheme) is not { } scheme || (Value is { } bound && scheme == bound))
         {
             return;
         }

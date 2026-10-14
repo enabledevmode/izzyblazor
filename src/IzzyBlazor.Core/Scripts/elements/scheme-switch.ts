@@ -6,7 +6,8 @@ import { readCookie, writeCookie } from "../cookies";
  * endpoint that sets the ib-scheme cookie and comes back; with it, a click sets the cookie here,
  * puts the scheme on the page at once (data-theme on <html>, and IzzyTheme's meta if there is
  * one), moves the switch's mark, closes its menu, tells other tabs and frames, and raises
- * `ibscheme` so @bind-Value follows on interactive pages.
+ * `ibscheme` so @bind-Value follows on interactive pages. The other way round, a Value set from
+ * C# arrives as data-ib-value, and the switch applies it as if it had been clicked.
  */
 type Scheme = "system" | "light" | "dark";
 
@@ -60,10 +61,30 @@ export function applySavedScheme(): void {
   if (saved) apply(saved);
 }
 
+/** Saves a choice and puts it on this page and the others. */
+function choose(scheme: Scheme): void {
+  writeCookie(COOKIE, scheme);
+  apply(scheme);
+  channel?.postMessage(scheme);
+}
+
 class SchemeSwitch extends IzzyElement {
+  #observer: MutationObserver | null = null;
+
   protected setup(signal: AbortSignal): void {
     const saved = parse(readCookie(COOKIE));
     if (saved) mark(this, saved);
+
+    // A bound Value changed from C# (interactive pages render it as data-ib-value). The first
+    // value is what the page started with, so only changes apply; one that already matches the
+    // saved choice (a click coming back through the binding) does nothing.
+    this.#observer?.disconnect();
+    this.#observer = new MutationObserver(() => {
+      const scheme = parse(this.dataset.ibValue);
+      if (scheme && scheme !== (parse(readCookie(COOKIE)) ?? "system")) choose(scheme);
+    });
+    this.#observer.observe(this, { attributes: true, attributeFilter: ["data-ib-value"] });
+    signal.addEventListener("abort", () => this.#observer?.disconnect(), { once: true });
 
     this.addEventListener(
       "click",
@@ -88,7 +109,7 @@ class SchemeSwitch extends IzzyElement {
           visible?.focus();
         }
         channel?.postMessage(scheme);
-        this.dispatchEvent(new CustomEvent("ibscheme", { bubbles: true, detail: { scheme } }));
+        this.emit("ibscheme", { scheme });
       },
       { signal }
     );
