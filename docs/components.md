@@ -92,7 +92,8 @@ so library components inside keep their own look and your classes win. Only rend
 have sanitized.
 
 `Anchor` is a text link, underlined by default (`Underline` changes it). `Inherit` takes the text color, and
-`External` opens a new tab with an icon and a note for screen readers. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
+`External` opens a new tab with an icon and a note for screen readers; `HideExternalIcon` drops the
+icon (for repeated links such as a list of lessons) and keeps the note. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
 
 `Code` is inline, or a `Block` that scrolls sideways with an optional `Language` label. Its copy
 button appears only when JavaScript runs (`Copyable="false"` leaves it out).
@@ -145,7 +146,8 @@ public static class MyIcons
 ## Buttons
 
 - `Button` is a native `button`.
-- `LinkButton` is an `a`, for navigation. `External` opens a new tab.
+- `LinkButton` is an `a`, for navigation. `External` opens a new tab, with an icon unless
+  `HideExternalIcon` or an `EndIcon` is set; screen readers always hear `NewTabLabel`.
 - `IconButton` shows only an icon. Its required `Label` becomes the accessible name and tooltip.
   With `Href` it's a link.
 

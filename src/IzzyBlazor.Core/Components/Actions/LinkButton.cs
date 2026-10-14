@@ -21,6 +21,15 @@ public class LinkButton : ButtonBase
     /// <summary>Opens in a new tab with <c>rel="noopener noreferrer"</c> and shows an external-link icon.</summary>
     [Parameter] public bool External { get; set; }
 
+    /// <summary>
+    /// Leaves out an external link's icon, for repeated links where it would be noise. Screen
+    /// readers still hear <see cref="NewTabLabel"/>.
+    /// </summary>
+    [Parameter] public bool HideExternalIcon { get; set; }
+
+    /// <summary>Read to screen readers after an external link's text. Defaults to "(opens in a new tab)".</summary>
+    [Parameter] public string? NewTabLabel { get; set; }
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -57,15 +66,19 @@ public class LinkButton : ButtonBase
         RenderContent(builder);
         builder.CloseRegion();
 
-        if (External && EndIcon is null)
+        if (External)
         {
-            builder.OpenComponent<Icon>(11);
-            builder.AddComponentParameter(12, nameof(Icon.Role), (IconRole?)IconRole.ExternalLink);
-            builder.AddComponentParameter(13, nameof(Icon.Size), IconSize.Sm);
-            builder.CloseComponent();
+            if (EndIcon is null && !HideExternalIcon)
+            {
+                builder.OpenComponent<Icon>(11);
+                builder.AddComponentParameter(12, nameof(Icon.Role), (IconRole?)IconRole.ExternalLink);
+                builder.AddComponentParameter(13, nameof(Icon.Size), IconSize.Sm);
+                builder.CloseComponent();
+            }
+
             builder.OpenElement(14, "span");
             builder.AddAttribute(15, "class", "ib-visually-hidden");
-            builder.AddContent(16, "(opens in a new tab)");
+            builder.AddContent(16, $" {NewTabLabel ?? TextDefaults.OpensInNewTab}");
             builder.CloseElement();
         }
 
