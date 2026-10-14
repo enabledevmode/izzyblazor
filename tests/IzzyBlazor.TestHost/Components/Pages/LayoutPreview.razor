@@ -46,6 +46,22 @@
                 <Alert Title="One reviewer is not enough">Rules that change more than 1% of last week's outcomes need two approvals, one of them from the team that handles the held cases.</Alert>
                 <TextBlock>Finally, the rule goes live in shadow mode for a day, deciding alongside the old rules without its outcomes being used. Only then does it take over.</TextBlock>
             </Stack>
+            @* A full-bleed band: the background spans the main area, the content stays on the column. *@
+            <Section Bg="Color.SurfaceContainerLow">
+                <Stack Gap="3">
+                    <Heading Level="2" Size="TextSize.Xl">Get the next article by email</Heading>
+                    <TextBlock Color="Color.Muted">One email when something new is up. No tracking, unsubscribe any time.</TextBlock>
+                    <Form Model="Newsletter" FormName="layout-newsletter" OnValidSubmit="() => _subscribed = true">
+                        <TextField @bind-Value="Newsletter!.Email" Type="TextFieldType.Email" Placeholder="you@example.com" HideLabel>
+                            <EndAddon><Button Type="ButtonType.Submit">Subscribe</Button></EndAddon>
+                        </TextField>
+                    </Form>
+                    @if (_subscribed)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Thanks, @Newsletter!.Email is on the list.</TextBlock>
+                    }
+                </Stack>
+            </Section>
         </AppMain>
         <AppFooter>
             <Row Gap="4" Align="Align.Center" Wrap>
@@ -223,7 +239,20 @@
 
     [SupplyParameterFromForm(FormName = "layout-settings")] public SettingsModel? Settings { get; set; }
 
-    protected override void OnInitialized() => Settings ??= new();
+    [SupplyParameterFromForm(FormName = "layout-newsletter")] public NewsletterModel? Newsletter { get; set; }
+
+    private bool _subscribed;
+
+    protected override void OnInitialized()
+    {
+        Settings ??= new();
+        Newsletter ??= new();
+    }
+
+    public sealed class NewsletterModel
+    {
+        [Required, EmailAddress, Display(Name = "Email")] public string? Email { get; set; }
+    }
 
     private ShellVariant ShellVariantValue => VariantName switch
     {
