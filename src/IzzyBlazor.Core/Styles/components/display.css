@@ -3,6 +3,9 @@
 @layer izzy.components {
   /* ---- Kbd ---- */
   .ib-kbd {
+    /* Inline: keeps its natural width when it's a flex or grid item (a Column stretches its
+       items), still following the container's alignment. No effect in running text. */
+    width: fit-content;
     display: inline-block;
     min-width: calc(1.5em + 2px);
     min-width: calc(round(nearest, 1.5em, 2px) + 2px);

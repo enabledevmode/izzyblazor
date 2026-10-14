@@ -91,6 +91,9 @@
 /* Anchor and Code */
 @layer izzy.components {
   .ib-anchor {
+    /* Inline: keeps its natural width when it's a flex or grid item (a Column stretches its
+       items), still following the container's alignment. No effect in running text. */
+    width: fit-content;
     border-radius: var(--ib-radius-sm);
     color: var(--ib-color-primary-text);
     text-decoration: underline;
@@ -134,6 +137,10 @@
   }
 
   .ib-code {
+    /* Inline: keeps its natural width when it's a flex or grid item (a Column stretches its
+       items), still following the container's alignment. No effect in running text. */
+    width: fit-content;
+    max-width: 100%;
     padding: 0.125em 0.375em;
     padding: round(nearest, 0.125em, 1px) round(nearest, 0.375em, 1px);
     border-radius: var(--ib-radius-sm);
