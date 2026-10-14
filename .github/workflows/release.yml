@@ -17,7 +17,7 @@ jobs:
       contents: write   # the GitHub release
       id-token: write   # the OIDC token NuGet/login exchanges
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           fetch-depth: 0
 
@@ -29,14 +29,16 @@ jobs:
           test "v$version" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME doesn't match <Version>$version</Version>."; exit 1; }
           echo "VERSION=$version" >> "$GITHUB_ENV"
 
-      - uses: actions/setup-dotnet@v4
+      - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
-      - uses: actions/setup-node@v4
+      # No dependency cache in this job: it can publish, so it shouldn't restore files another
+      # run saved.
+      - uses: actions/setup-node@v7
         with:
           node-version: 22
-          cache: npm
+          package-manager-cache: false
 
       - name: Install asset tools
         run: npm ci
