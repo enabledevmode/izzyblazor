@@ -48,6 +48,14 @@
     /// </summary>
     [Parameter] public bool Dividers { get; set; } = true;
 
+    /// <summary>
+    /// Centers the content of the header, main area and footer at this width, such as
+    /// <c>Length.Rem(48)</c> for a reading site, so their edges line up; the bars and their lines
+    /// stay full width. Each part's own <c>ContentWidth</c> overrides it (a wider header over a
+    /// narrow article, say). Unset by default: content fills the parts.
+    /// </summary>
+    [Parameter] public Length? ContentWidth { get; set; }
+
     /// <summary>The main area's id, which the skip link targets. Defaults to <c>ib-main</c>.</summary>
     [Parameter] public string MainId { get; set; } = "ib-main";
 
@@ -70,6 +78,12 @@
         if (!Dividers)
         {
             styles.AddVar("shell-divider", "transparent");
+        }
+
+        if (ContentWidth is { } width)
+        {
+            classes.Add("ib-shell-measured");
+            styles.AddVar("shell-content-w", StyleValues.Length(width));
         }
     }
 

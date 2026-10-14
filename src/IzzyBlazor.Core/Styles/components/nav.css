@@ -28,6 +28,13 @@
     white-space: nowrap;
   }
 
+  /* In a row each link starts after the previous one's text, rarely a whole width: rounded up, so
+     the active fill and every link after it land on whole pixels (where calc-size() works). */
+  .ib-nav-horizontal > .ib-nav-li {
+    flex: none;
+    width: calc-size(max-content, round(up, size, 1px));
+  }
+
   .ib-nav-li {
     min-width: 0;
   }

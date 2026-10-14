@@ -243,11 +243,11 @@ recreates it with its initial values. In practice:
 
 `AppShell` holds parts, each with its own settings:
 
-- `AppHeader` (`Position`: sticky by default)
+- `AppHeader` (`Position`: sticky by default; `ContentWidth`)
 - `AppSidebar` (`Position` start or end, `FullHeight`, `Width`, `Breakpoint`)
-- `AppMain`
+- `AppMain` (`ContentWidth`)
 - `AppAside` (`Width`, `Breakpoint`)
-- `AppFooter` (`Position`)
+- `AppFooter` (`Position`, `ContentWidth`)
 
 Every part takes `Bg` and `Scheme`, and the sidebar and aside colors run the full height. `AppShell`
 itself sets `ScrollMode` (`Page`, or `Main` for a window-filling frame where only the content
@@ -256,6 +256,23 @@ the frame recedes into the page tint: `Tinted` (the default) tints the sidebar, 
 whole frame and raises the main area as a rounded panel, `Flat` is all surface with lines, and
 `Canvas` tints the main area for dashboards whose content is all cards. A part's `Bg` still wins. The shell arranges itself from the parts present with CSS alone (`:has()`),
 so it renders in one pass on static pages.
+
+**Content width.** A reading site keeps its header, text and footer on one centered column.
+`ContentWidth` on `AppShell` (such as `Length.Rem(42)`) centers the content of the header, main area
+and footer at that width by widening their side padding, never below the page gutter, so the edges
+line up while the bars, backgrounds and lines stay full width. `AppHeader`, `AppMain` and `AppFooter`
+each take their own `ContentWidth` to override it, for a wider header over a narrow article:
+
+```razor
+<AppShell ContentWidth="Length.Prose">
+    <AppHeader ContentWidth="Length.Rem(64)">...</AppHeader>
+    <AppMain>@Body</AppMain>
+</AppShell>
+```
+
+With a sidebar, the main area centers in its own column but the header spans the window, so set
+`ContentWidth` on `AppMain` alone. Everything in a measured main area is inside the column; a
+full-bleed image needs its own negative margins.
 
 **The drawer.** Below its breakpoint the sidebar becomes a drawer opened by `SidebarToggle`. It works
 with JavaScript off (a link to the sidebar and CSS `:target`); with JavaScript it also closes on

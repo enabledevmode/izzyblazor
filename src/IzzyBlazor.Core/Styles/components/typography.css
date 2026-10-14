@@ -187,9 +187,10 @@
     border-radius: inherit;
   }
 
-  /* The copy button needs script: hidden until <ib-code> is defined. */
+  /* The copy button needs script: hidden until <ib-code> is defined. The icons are scoped to the
+     button so these rules outrank the general .ib-icon display, which comes later. */
   .ib-code-bar > .ib-code-copy,
-  .ib-code-copied-icon,
+  .ib-code-copy .ib-code-copied-icon,
   .ib-code-copy[data-copied] .ib-code-copy-icon {
     display: none;
   }

@@ -32,6 +32,19 @@ public abstract class AppShellPart : IzzyComponentBase
     /// <summary>The part's name in custom properties: <c>header</c>, <c>sidebar</c>...</summary>
     protected abstract string Area { get; }
 
+    /// <summary>
+    /// Centers the part's content at <paramref name="width"/> (overriding the shell's
+    /// <see cref="AppShell.ContentWidth"/>) by widening its side padding.
+    /// </summary>
+    protected static void AddContentWidth(ClassBuilder classes, StyleBuilder styles, Length? width)
+    {
+        if (width is { } w)
+        {
+            classes.Add("ib-shell-part-measured");
+            styles.AddVar("shell-content-w", StyleValues.Length(w));
+        }
+    }
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
@@ -58,6 +71,12 @@ public class AppHeader : AppShellPart
     /// <summary>Whether it stays at the top while the page scrolls. Defaults to <see cref="BarPosition.Sticky"/>.</summary>
     [Parameter] public BarPosition Position { get; set; } = BarPosition.Sticky;
 
+    /// <summary>
+    /// The width the header's content is centered at, such as <c>Length.Rem(64)</c>; the bar itself
+    /// stays full width. Overrides the shell's <see cref="AppShell.ContentWidth"/>.
+    /// </summary>
+    [Parameter] public Length? ContentWidth { get; set; }
+
     /// <inheritdoc />
     protected override string Area => "header";
 
@@ -66,6 +85,7 @@ public class AppHeader : AppShellPart
     {
         base.BuildAttributes(classes, styles);
         classes.Add("ib-shell-header-sticky", Position == BarPosition.Sticky);
+        AddContentWidth(classes, styles, ContentWidth);
     }
 
     /// <inheritdoc />
@@ -87,8 +107,21 @@ public class AppMain : AppShellPart
     /// <summary>The element id. Defaults to the shell's <see cref="AppShell.MainId"/>.</summary>
     [Parameter] public string? Id { get; set; }
 
+    /// <summary>
+    /// The width the content is centered at, such as <c>Length.Prose</c>, with at least the
+    /// page gutter at the sides. Overrides the shell's <see cref="AppShell.ContentWidth"/>.
+    /// </summary>
+    [Parameter] public Length? ContentWidth { get; set; }
+
     /// <inheritdoc />
     protected override string Area => "main";
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        AddContentWidth(classes, styles, ContentWidth);
+    }
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
@@ -150,6 +183,12 @@ public class AppFooter : AppShellPart
     /// <summary>Whether it stays at the bottom while the page scrolls. Defaults to <see cref="BarPosition.Static"/>.</summary>
     [Parameter] public BarPosition Position { get; set; } = BarPosition.Static;
 
+    /// <summary>
+    /// The width the footer's content is centered at; the bar itself stays full width. Overrides
+    /// the shell's <see cref="AppShell.ContentWidth"/>.
+    /// </summary>
+    [Parameter] public Length? ContentWidth { get; set; }
+
     /// <inheritdoc />
     protected override string Area => "footer";
 
@@ -158,6 +197,7 @@ public class AppFooter : AppShellPart
     {
         base.BuildAttributes(classes, styles);
         classes.Add("ib-shell-footer-sticky", Position == BarPosition.Sticky);
+        AddContentWidth(classes, styles, ContentWidth);
     }
 
     /// <inheritdoc />

@@ -175,6 +175,26 @@ public class ShellRenderTests : BunitContext
         Assert.Equal("--ib-shell-divider:transparent;", shell.GetAttribute("style"));
     }
 
+    [Fact]
+    public void ContentWidth_on_the_shell_and_on_parts()
+    {
+        var shell = Render<AppShell>(p => p.Add(s => s.ContentWidth, Length.Rem(42))).Find("ib-shell");
+        Assert.Equal("ib-shell ib-shell-scroll-page ib-shell-tinted ib-shell-measured", shell.ClassName);
+        Assert.Equal("--ib-shell-content-w:42rem;", shell.GetAttribute("style"));
+
+        var header = Render<AppHeader>(p => p.Add(h => h.ContentWidth, Length.Rem(64))).Find("header");
+        Assert.Equal("ib-shell-header ib-shell-header-sticky ib-shell-part-measured", header.ClassName);
+        Assert.Equal("--ib-shell-content-w:64rem;", header.GetAttribute("style"));
+
+        var main = Render<AppMain>(p => p.Add(m => m.ContentWidth, Length.Prose)).Find("main");
+        Assert.Equal("ib-shell-main ib-shell-part-measured", main.ClassName);
+        Assert.Equal("--ib-shell-content-w:var(--ib-size-prose);", main.GetAttribute("style"));
+
+        var footer = Render<AppFooter>().Find("footer");
+        Assert.Equal("ib-shell-footer", footer.ClassName);
+        Assert.Null(footer.GetAttribute("style"));
+    }
+
     [Theory]
     [InlineData(ShellVariant.Tinted, "ib-shell-tinted")]
     [InlineData(ShellVariant.Inset, "ib-shell-inset")]
