@@ -15,7 +15,7 @@
             <Actions><Anchor Href='@Link("changelog")'>Details</Anchor></Actions>
         </Banner>
     }
-    <AppHeader Bg="@Chrome" Scheme="@SchemeOf(HeaderScheme)">
+    <AppHeader Bg="@Chrome" ColorScheme="@SchemeOf(HeaderScheme)">
         @if (Toggle != "off")
         {
             <SidebarToggle />
@@ -34,12 +34,12 @@
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
     </AppHeader>
 
-    <AppSidebar Bg="@Chrome" Scheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" DrawerPosition="@(Drawer == "end" ? SidebarPosition.End : null)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
+    <AppSidebar Bg="@Chrome" ColorScheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" DrawerPosition="@(Drawer == "end" ? SidebarPosition.End : null)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
                 CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)"
                 Header="@(Slots == "on" ? (BrandInSidebar ? SidebarBrand : SidebarSwitcher) : null)" Footer="@(Slots == "on" ? SidebarFooter : null)">
         <NavMenu>
             <NavItem Href="@Link(null)" Icon="Lucide.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
-            <NavItem Href='@Link("inbox")' Icon="Lucide.Inbox" Badge="4" BadgeColor="Color.Primary">Inbox</NavItem>
+            <NavItem Href='@Link("inbox")' Icon="Lucide.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>
             <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="preview/app-shell/projects">
                 <NavItem Href='@Link("projects/website")'>Website</NavItem>
                 <NavItem Href='@Link("projects/course")'>Course app</NavItem>
@@ -155,12 +155,12 @@
 
     [SupplyParameterFromQuery(Name = "hd")] public string? HeaderScheme { get; set; }
 
-    private static Scheme SchemeOf(string? value) => value switch
+    private static ColorScheme SchemeOf(string? value) => value switch
     {
-        "dark" => Scheme.Dark,
-        "light" => Scheme.Light,
-        "inverse" => Scheme.Inverse,
-        _ => Scheme.Page,
+        "dark" => ColorScheme.Dark,
+        "light" => ColorScheme.Light,
+        "inverse" => ColorScheme.Inverse,
+        _ => ColorScheme.Auto,
     };
 
     // ?toggle=off leaves out the menu button, so a collapsible sidebar shows its own chevron.

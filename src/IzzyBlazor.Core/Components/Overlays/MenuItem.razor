@@ -96,7 +96,8 @@ else
 
     /// <summary>
     /// The text color. <see cref="Accent.Neutral"/> (the default) is plain; use
-    /// <see cref="Accent.Danger"/> for destructive items.
+    /// <see cref="Accent.Danger"/> for destructive items. A custom color is used as text, mixed
+    /// toward the text color so it stays readable.
     /// </summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
 
@@ -141,7 +142,11 @@ else
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-menu-item");
-        classes.Add($"ib-menu-item-{Accent.ToString().ToLowerInvariant()}", Accent != Accent.Neutral);
+        classes.Add($"ib-menu-item-{Accent.Role}", Accent.Role is not null && Accent != Accent.Neutral);
+        if (Accent.Custom is { } custom)
+        {
+            styles.AddRaw($"color:{ColorOverride.TextTint(custom)}");
+        }
         classes.Add("ib-menu-item-checkable", IsCheckable);
     }
 

@@ -20,11 +20,11 @@ namespace IzzyBlazor;
 public abstract class StyledComponentBase : IzzyComponentBase
 {
     /// <summary>
-    /// The color scheme inside: <see cref="IzzyBlazor.Scheme.Dark"/> for a dark band on a light
-    /// page, <see cref="IzzyBlazor.Scheme.Inverse"/> for the opposite of the page. It also sets
+    /// The color scheme inside: <see cref="IzzyBlazor.ColorScheme.Dark"/> for a dark band on a light
+    /// page, <see cref="IzzyBlazor.ColorScheme.Inverse"/> for the opposite of the page. It also sets
     /// the surface background and text color, which <see cref="Bg"/> and <see cref="Color"/> override.
     /// </summary>
-    [Parameter] public Scheme Scheme { get; set; } = Scheme.Page;
+    [Parameter] public ColorScheme ColorScheme { get; set; } = ColorScheme.Auto;
 
     /// <summary>Padding on all sides, in spacing steps (0 to 16; one step = 4px).</summary>
     [Parameter] public Responsive<int> Padding { get; set; }
@@ -105,7 +105,7 @@ public abstract class StyledComponentBase : IzzyComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        if (Scheme.ClassName() is { } scheme)
+        if (ColorScheme.ClassName() is { } scheme)
         {
             classes.Add(scheme);
         }

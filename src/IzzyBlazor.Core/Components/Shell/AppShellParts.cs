@@ -41,11 +41,11 @@ public abstract class AppShellPart : IzzyComponentBase
     [Parameter] public Color? Bg { get; set; }
 
     /// <summary>
-    /// The color scheme of this part: <see cref="IzzyBlazor.Scheme.Dark"/> for a dark sidebar or
-    /// header in a light app, <see cref="IzzyBlazor.Scheme.Inverse"/> for the opposite of the page.
+    /// The color scheme of this part: <see cref="IzzyBlazor.ColorScheme.Dark"/> for a dark sidebar or
+    /// header in a light app, <see cref="IzzyBlazor.ColorScheme.Inverse"/> for the opposite of the page.
     /// Everything inside, including its menus, follows it. Defaults to the page's scheme.
     /// </summary>
-    [Parameter] public Scheme Scheme { get; set; } = Scheme.Page;
+    [Parameter] public ColorScheme ColorScheme { get; set; } = ColorScheme.Auto;
 
     /// <summary>The content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -73,7 +73,7 @@ public abstract class AppShellPart : IzzyComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add($"ib-shell-{Area}");
-        if (Scheme.ClassName() is { } scheme)
+        if (ColorScheme.ClassName() is { } scheme)
         {
             classes.Add(scheme);
         }

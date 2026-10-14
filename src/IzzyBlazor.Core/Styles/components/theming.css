@@ -1,7 +1,7 @@
 /*
  * ColorSchemeSwitch. Menu and Toggle are ghost icon buttons; Segmented is SegmentedControl's look
  * (form.css) with links for options. The icons follow the page's scheme as it is, worked out here
- * from data-theme, IzzyTheme's meta and the device's preference, so they're right with no script.
+ * from data-ib-color-scheme, IzzyTheme's meta and the device's preference, so they're right with no script.
  */
 @layer izzy.components {
   .ib-scheme-switch-menu,
@@ -16,22 +16,22 @@
     display: none;
   }
 
-  :root[data-theme="dark"] .ib-scheme-switch .ib-scheme-if-light,
-  :root:not([data-theme]):has(> head > meta[name="ib-scheme"][content="dark"]) .ib-scheme-switch .ib-scheme-if-light {
+  :root[data-ib-color-scheme="dark"] .ib-scheme-switch .ib-scheme-if-light,
+  :root:not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"]) .ib-scheme-switch .ib-scheme-if-light {
     display: none;
   }
 
-  :root[data-theme="dark"] .ib-scheme-switch .ib-scheme-if-dark,
-  :root:not([data-theme]):has(> head > meta[name="ib-scheme"][content="dark"]) .ib-scheme-switch .ib-scheme-if-dark {
+  :root[data-ib-color-scheme="dark"] .ib-scheme-switch .ib-scheme-if-dark,
+  :root:not([data-ib-color-scheme]):has(> head > meta[name="ib-color-scheme"][content="dark"]) .ib-scheme-switch .ib-scheme-if-dark {
     display: inline-flex;
   }
 
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-switch .ib-scheme-if-light {
+    :root:not([data-ib-color-scheme], :has(> head > meta[name="ib-color-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-switch .ib-scheme-if-light {
       display: none;
     }
 
-    :root:not([data-theme], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-switch .ib-scheme-if-dark {
+    :root:not([data-ib-color-scheme], :has(> head > meta[name="ib-color-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-switch .ib-scheme-if-dark {
       display: inline-flex;
     }
   }

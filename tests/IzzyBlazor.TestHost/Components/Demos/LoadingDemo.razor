@@ -18,8 +18,8 @@
     <Example Title="Progress" Note="@ProgressNote" Code="@ProgressCode">
         <Stack Gap="5" MaxWidth="28.Rem">
             <Progress Value="_upload" Label="Uploading" ShowValue data-testid="progress-upload" />
-            <Progress Value="3" Max="5" Label="Files" ValueText="3 of 5 files" Color="Color.Success" />
-            <Progress Value="80" Size="ControlSize.Sm" Color="Color.Warning" aria-label="Storage used" />
+            <Progress Value="3" Max="5" Label="Files" ValueText="3 of 5 files" Accent="Accent.From(Color.Success)" />
+            <Progress Value="80" Size="ControlSize.Sm" Accent="Accent.From(Color.Warning)" aria-label="Storage used" />
             <Progress Label="Preparing export" Size="ControlSize.Lg" data-testid="progress-indeterminate" />
             @if (RendererInfo.IsInteractive)
             {
@@ -69,7 +69,7 @@
     private const string ProgressCode =
         """
         <Progress Value="_upload" Label="Uploading" ShowValue />
-        <Progress Value="3" Max="5" Label="Files" ValueText="3 of 5 files" Color="Color.Success" />
+        <Progress Value="3" Max="5" Label="Files" ValueText="3 of 5 files" Accent="Accent.From(Color.Success)" />
         <Progress Label="Preparing export" />   @* indeterminate *@
         """;
 

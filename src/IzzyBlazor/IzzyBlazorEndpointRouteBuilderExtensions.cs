@@ -28,7 +28,7 @@ public static class IzzyBlazorEndpointRouteBuilderExtensions
 
     internal static IResult SetScheme(HttpContext context, string? value, string? returnPath)
     {
-        var scheme = ColorSchemes.Parse(value) ?? ColorScheme.System;
+        var scheme = ColorSchemes.Parse(value) ?? ColorScheme.Auto;
 
         // The same cookie the script writes: the app's base path, a year, readable by script.
         context.Response.Cookies.Append(ColorSchemes.CookieName, ColorSchemes.Name(scheme), new CookieOptions

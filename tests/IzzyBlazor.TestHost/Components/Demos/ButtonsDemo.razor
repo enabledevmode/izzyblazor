@@ -6,12 +6,12 @@
             {
                 <Row Gap="2" Align="Align.Center" Wrap>
                     <TextBlock As="span" Class="host-label">@variant</TextBlock>
-                    @foreach (var accent in Enum.GetValues<Accent>())
+                    @foreach (var accent in new[] { Accent.Primary, Accent.Neutral, Accent.Danger })
                     {
                         <Button Accent="accent" Variant="variant">@accent</Button>
                     }
-                    <Button Color="@Teal" Variant="variant">Custom</Button>
-                    <Button Color="@Amber" Variant="variant">Custom</Button>
+                    <Button Accent="@Teal" Variant="variant">Custom</Button>
+                    <Button Accent="@Amber" Variant="variant">Custom</Button>
                 </Row>
             }
         </Stack>
@@ -19,10 +19,10 @@
 
     <Example Title="Custom colors" Note="Three accents cover actions: Primary for the main one, Neutral for the rest, Danger for destructive ones. For anything else, pass a Color: a theme token or a hex value. Text on it is picked for contrast, so the amber button gets dark text." Code="@CustomCode">
         <Row Gap="2" Wrap>
-            <Button Color="@Teal" StartIcon="Lucide.Check">Approve</Button>
+            <Button Accent="@Teal" StartIcon="Lucide.Check">Approve</Button>
             <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline">Reject</Button>
-            <Button Color="@Amber">Upgrade</Button>
-            <Button Color='Color.Token("success")' Variant="ButtonVariant.Soft">Theme token</Button>
+            <Button Accent="@Amber">Upgrade</Button>
+            <Button Accent='Accent.Token("success")' Variant="ButtonVariant.Soft">Theme token</Button>
         </Row>
     </Example>
 

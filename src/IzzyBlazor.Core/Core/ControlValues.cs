@@ -1,20 +1,72 @@
 namespace IzzyBlazor;
 
 /// <summary>
-/// The color of an action: buttons, icon buttons, menu items. Emphasis comes from the
-/// variant (solid, soft, outline, ghost, link), not from more colors. For anything else,
-/// such as a brand color for one button, pass a <see cref="Color"/> instead.
+/// The color of a control: buttons, badges, tags, banners, progress bars and menu items.
+/// <see cref="Primary"/>, <see cref="Neutral"/> and <see cref="Danger"/> are the roles; emphasis
+/// comes from the variant (solid, soft, outline, ghost, link), not from more colors. For one
+/// control in another color, use <see cref="Of"/> (any CSS color) or <see cref="Token"/> (a theme
+/// token); text on it is chosen for contrast.
 /// </summary>
-public enum Accent
+/// <example>
+/// <code>
+/// &lt;Button Accent="Accent.Danger"&gt;Delete&lt;/Button&gt;
+/// &lt;Button Accent='Accent.Of("#0d9488")'&gt;Custom&lt;/Button&gt;
+/// &lt;Badge Accent='Accent.Token("brand")'&gt;New&lt;/Badge&gt;
+/// </code>
+/// </example>
+public sealed class Accent : IEquatable<Accent>
 {
+    private Accent(string? role, Color? custom)
+    {
+        Role = role;
+        Custom = custom;
+    }
+
     /// <summary>The brand color, for the main action.</summary>
-    Primary,
+    public static Accent Primary { get; } = new("primary", null);
 
     /// <summary>A quiet, gray action.</summary>
-    Neutral,
+    public static Accent Neutral { get; } = new("neutral", null);
 
     /// <summary>A destructive action, such as Delete.</summary>
-    Danger,
+    public static Accent Danger { get; } = new("danger", null);
+
+    /// <summary>Any CSS color, such as <c>"#0d9488"</c>. Text on it is black or white, whichever reads better.</summary>
+    public static Accent Of(string css) => new(null, Color.Of(css));
+
+    /// <summary>A theme token, such as <c>"brand"</c> for <c>--ib-color-brand</c>; text on it uses <c>--ib-color-on-brand</c> when the theme defines it.</summary>
+    public static Accent Token(string name) => new(null, Color.Token(name));
+
+    /// <summary>A <see cref="IzzyBlazor.Color"/> as an accent, such as <c>Color.Success</c>.</summary>
+    public static Accent From(Color color) => new(null, color);
+
+    /// <summary>The role's name (<c>primary</c>, <c>neutral</c>, <c>danger</c>), or null for a custom color.</summary>
+    internal string? Role { get; }
+
+    /// <summary>The custom color, or null for a role.</summary>
+    internal Color? Custom { get; }
+
+    /// <summary>The color to paint with: the role's token, or the custom color.</summary>
+    internal Color ToColor() => Custom ?? Color.Token(Role!);
+
+    /// <inheritdoc />
+    public bool Equals(Accent? other) =>
+        other is not null && Role == other.Role && Custom?.Css == other.Custom?.Css;
+
+    /// <inheritdoc />
+    public override bool Equals(object? obj) => Equals(obj as Accent);
+
+    /// <inheritdoc />
+    public override int GetHashCode() => HashCode.Combine(Role, Custom?.Css);
+
+    /// <summary>Whether two accents are the same role or color.</summary>
+    public static bool operator ==(Accent? left, Accent? right) => left is null ? right is null : left.Equals(right);
+
+    /// <summary>Whether two accents differ.</summary>
+    public static bool operator !=(Accent? left, Accent? right) => !(left == right);
+
+    /// <inheritdoc />
+    public override string ToString() => Role ?? Custom!.Value.Css;
 }
 
 /// <summary>

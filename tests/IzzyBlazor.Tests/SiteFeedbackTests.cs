@@ -47,14 +47,14 @@ public class SiteFeedbackTests : BunitContext
     [InlineData("Inter,\nsans-serif")]
     public void IzzyTheme_rejects_a_font_list_with_an_open_string(string font)
     {
-        Assert.ThrowsAny<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.Font, font)));
+        Assert.ThrowsAny<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.BodyFont, font)));
     }
 
     [Fact]
     public void IzzyTheme_accepts_quoted_names_holding_the_other_quote()
     {
-        var style = Render<IzzyTheme>(p => p.Add(t => t.Font, "\"Ada's Sans\", 'Inter', sans-serif")).Find("style");
-        Assert.Contains("--ib-font-sans: \"Ada's Sans\", 'Inter', sans-serif;", style.TextContent);
+        var style = Render<IzzyTheme>(p => p.Add(t => t.BodyFont, "\"Ada's Sans\", 'Inter', sans-serif")).Find("style");
+        Assert.Contains("--ib-font-body: \"Ada's Sans\", 'Inter', sans-serif;", style.TextContent);
     }
 
     [Fact]

@@ -4,7 +4,7 @@
  *   :root { --ib-color-primary: light-dark(#0f766e, #2dd4bf); }
  *
  * Dark mode follows the operating system unless the page sets
- * data-theme="light" or data-theme="dark" on <html>.
+ * data-ib-color-scheme="light" or data-ib-color-scheme="dark" on <html>.
  */
 @layer izzy.tokens {
   :root {
@@ -57,12 +57,11 @@
     --ib-size-prose: 68ch;
 
     /* Type */
-    --ib-font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    --ib-font-serif: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif;
+    --ib-font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ib-font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
     /* Headings, card and dialog titles: the body sans by default; a theme can give them their own
        face and weight. */
-    --ib-font-heading: var(--ib-font-sans);
+    --ib-font-heading: var(--ib-font-body);
     --ib-weight-heading: var(--ib-weight-semibold);
     --ib-text-xs: 0.75rem;
     --ib-text-sm: 0.875rem;
@@ -177,7 +176,7 @@
    * hover washes then follow the theme of the part of the page they're in.
    */
   :root,
-  [data-ib-theme],
+  [data-ib-preset],
   [data-ib-accent],
   [data-ib-gray] {
     --ib-color-focus: var(--ib-color-primary);
@@ -212,46 +211,47 @@
 
   /*
    * Color schemes. Every color above is light-dark(), so a scheme is just color-scheme: the page
-   * follows the system (light dark), or chooses with data-theme on <html>; any element can do the
-   * same, so part of a page can use the other scheme:
-   *   data-theme="dark|light" on any element, or the classes .ib-scheme-dark, .ib-scheme-light
-   *   .ib-scheme-inverse                the opposite of the page's scheme
-   * The scheme classes also set the text and background color (base.css).
+   * follows the system (light dark), or chooses with data-ib-color-scheme on <html>; any element can
+   * do the same, so part of a page can use the other scheme:
+   *   data-ib-color-scheme="dark|light"   that scheme
+   *   data-ib-color-scheme="inverse"      the opposite of the page's scheme
+   * Components render the internal classes .ib-scheme-dark, -light and -inverse for the same thing.
+   * A part with its own scheme also sets the text and background color (base.css).
    */
-  /* The page's scheme can also come from IzzyTheme, as <meta name="ib-scheme" content="dark"> in
+  /* The page's scheme can also come from IzzyTheme, as <meta name="ib-color-scheme" content="dark"> in
      <head> (the user's choice from a ColorSchemeSwitch, read from its cookie on the server). Each
      rule below has a twin for it. */
-  [data-theme="dark"],
-  :root:where(:has(> head > meta[name="ib-scheme"][content="dark"])),
+  [data-ib-color-scheme="dark"],
+  :root:where(:has(> head > meta[name="ib-color-scheme"][content="dark"])),
   .ib-scheme-dark {
     color-scheme: dark;
   }
 
-  [data-theme="light"],
-  :root:where(:has(> head > meta[name="ib-scheme"][content="light"])),
+  [data-ib-color-scheme="light"],
+  :root:where(:has(> head > meta[name="ib-color-scheme"][content="light"])),
   .ib-scheme-light {
     color-scheme: light;
   }
 
   /* Inverse: the opposite of the page, whether the page chose or follows the system. */
-  :root[data-theme="light"] .ib-scheme-inverse,
-  :root:has(> head > meta[name="ib-scheme"][content="light"]):not([data-theme="dark"]) .ib-scheme-inverse {
+  :root[data-ib-color-scheme="light"] :is(.ib-scheme-inverse, [data-ib-color-scheme="inverse"]),
+  :root:has(> head > meta[name="ib-color-scheme"][content="light"]):not([data-ib-color-scheme="dark"]) :is(.ib-scheme-inverse, [data-ib-color-scheme="inverse"]) {
     color-scheme: dark;
   }
 
-  :root[data-theme="dark"] .ib-scheme-inverse,
-  :root:has(> head > meta[name="ib-scheme"][content="dark"]):not([data-theme="light"]) .ib-scheme-inverse {
+  :root[data-ib-color-scheme="dark"] :is(.ib-scheme-inverse, [data-ib-color-scheme="inverse"]),
+  :root:has(> head > meta[name="ib-color-scheme"][content="dark"]):not([data-ib-color-scheme="light"]) :is(.ib-scheme-inverse, [data-ib-color-scheme="inverse"]) {
     color-scheme: light;
   }
 
   @media (prefers-color-scheme: light) {
-    :root:not([data-theme="light"], [data-theme="dark"], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-inverse {
+    :root:not([data-ib-color-scheme="light"], [data-ib-color-scheme="dark"], :has(> head > meta[name="ib-color-scheme"]:is([content="light"], [content="dark"]))) :is(.ib-scheme-inverse, [data-ib-color-scheme="inverse"]) {
       color-scheme: dark;
     }
   }
 
   @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"], [data-theme="dark"], :has(> head > meta[name="ib-scheme"]:is([content="light"], [content="dark"]))) .ib-scheme-inverse {
+    :root:not([data-ib-color-scheme="light"], [data-ib-color-scheme="dark"], :has(> head > meta[name="ib-color-scheme"]:is([content="light"], [content="dark"]))) :is(.ib-scheme-inverse, [data-ib-color-scheme="inverse"]) {
       color-scheme: light;
     }
   }

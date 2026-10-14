@@ -5,19 +5,19 @@
 @*
     The app's theme in one place. Put it in App.razor's <head>:
 
-    <IzzyTheme Look="ThemeLook.Compact" Primary="#0a7d5a" Font="Inter, sans-serif" />
+    <IzzyTheme Preset="ThemePreset.Compact" Primary="#0a7d5a" BodyFont="Inter, sans-serif" />
 
-    Look sets density, shape and type; Accent, Gray, Radius, Density and the fonts override its
-    defaults; Primary is your own brand color and beats Accent; Scheme is the default light or dark.
+    Preset sets density, shape and type; Accent, Gray, Radius, Density and the fonts override its
+    defaults; Primary is your own brand color and beats Accent; ColorScheme is the default light or dark.
     Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block for
     Primary and the fonts), so it's in place on first paint, needs no script and works in every
     render mode. For one exact value, set its CSS variable in your own stylesheet instead (see
     docs/styling.md, "Customizing").
 *@
 
-@if (Look is { } look)
+@if (Preset is { } preset)
 {
-    <meta name="ib-theme" content="@Name(look)" />
+    <meta name="ib-preset" content="@Name(preset)" />
 }
 @if (Accent is { } accent)
 {
@@ -35,9 +35,9 @@
 {
     <meta name="ib-density" content="@Name(density)" />
 }
-@if (_scheme is ColorScheme.Light or ColorScheme.Dark)
+@if (_scheme is IzzyBlazor.ColorScheme.Light or IzzyBlazor.ColorScheme.Dark)
 {
-    <meta name="ib-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
+    <meta name="ib-color-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
 }
 @if (_css is not null)
 {
@@ -45,16 +45,19 @@
 }
 
 @code {
-    /// <summary>The look: density, shape and type, and default accent and gray. Unset: Standard.</summary>
-    [Parameter] public ThemeLook? Look { get; set; }
+    /// <summary>
+    /// The starting set of defaults: density, shape and type, and a default accent and gray, which
+    /// the other settings override. Unset: Standard.
+    /// </summary>
+    [Parameter] public ThemePreset? Preset { get; set; }
 
-    /// <summary>A built-in accent, over the look's. <see cref="Primary"/> beats it.</summary>
+    /// <summary>A built-in accent, over the preset's. <see cref="Primary"/> beats it.</summary>
     [Parameter] public ThemeAccent? Accent { get; set; }
 
-    /// <summary>The gray set, over the look's.</summary>
+    /// <summary>The gray set, over the preset's.</summary>
     [Parameter] public ThemeGray? Gray { get; set; }
 
-    /// <summary>The radius scale, over the look's.</summary>
+    /// <summary>The radius scale, over the preset's.</summary>
     [Parameter] public ThemeRadius? Radius { get; set; }
 
     /// <summary>
@@ -64,17 +67,17 @@
     /// </summary>
     [Parameter] public string? Primary { get; set; }
 
-    /// <summary>Control heights, table rows and card padding, over the look's.</summary>
+    /// <summary>Control heights, table rows and card padding, over the preset's.</summary>
     [Parameter] public ThemeDensity? Density { get; set; }
 
     /// <summary>
     /// The body font, as a CSS font-family list (<c>"Inter, system-ui, sans-serif"</c>). Load the
     /// font yourself; end the list with a generic family so text shows while it loads.
     /// </summary>
-    [Parameter] public string? Font { get; set; }
+    [Parameter] public string? BodyFont { get; set; }
 
     /// <summary>
-    /// The font for headings, card and dialog titles, as a CSS font-family list. Unset: the look's
+    /// The font for headings, card and dialog titles, as a CSS font-family list. Unset: the preset's
     /// (the body font, or Newsreader in Editorial).
     /// </summary>
     [Parameter] public string? HeadingFont { get; set; }
@@ -90,22 +93,28 @@
 
     /// <summary>
     /// The color scheme until the user picks one with a <see cref="ColorSchemeSwitch"/> (their
-    /// choice, kept in the <c>ib-scheme</c> cookie, wins). Unset: follow the device.
+    /// choice, kept in the <c>ib-scheme</c> cookie, wins). Unset or <see cref="ColorScheme.Auto"/>:
+    /// follow the device. <see cref="ColorScheme.Inverse"/> is for part of a page only.
     /// </summary>
-    [Parameter] public ColorScheme? Scheme { get; set; }
+    [Parameter] public ColorScheme? ColorScheme { get; set; }
 
     /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one.</summary>
     [Parameter] public string? Nonce { get; set; }
 
     private string? _css;
-    private ColorScheme? _scheme;
+    private IzzyBlazor.ColorScheme? _scheme;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (ColorScheme == IzzyBlazor.ColorScheme.Inverse)
+        {
+            throw new ArgumentException("The app's ColorScheme is Auto, Light or Dark; Inverse is for part of a page.", nameof(ColorScheme));
+        }
+
         // The user's choice from a ColorSchemeSwitch, read on the server (the IzzyBlazor package
         // registers IRequestCookies), else the app's default.
-        _scheme = ColorSchemes.Parse(Services.GetService<IRequestCookies>()?.Get(ColorSchemes.CookieName)) ?? Scheme;
+        _scheme = ColorSchemes.Parse(Services.GetService<IRequestCookies>()?.Get(ColorSchemes.CookieName)) ?? ColorScheme;
 
         var declarations = new List<string>();
         if (!string.IsNullOrWhiteSpace(Primary))
@@ -113,9 +122,9 @@
             declarations.Add(AccentPalette.From(Primary).ToCss());
         }
 
-        if (!string.IsNullOrWhiteSpace(Font))
+        if (!string.IsNullOrWhiteSpace(BodyFont))
         {
-            declarations.Add($"--ib-font-sans: {FontList(Font, nameof(Font))};");
+            declarations.Add($"--ib-font-body: {FontList(BodyFont, nameof(BodyFont))};");
         }
 
         if (!string.IsNullOrWhiteSpace(HeadingFont))
@@ -139,7 +148,7 @@
         }
 
         // In the tokens layer like the library's own values, and written as :root:root:root so it
-        // beats a look's or an accent's values on <html> whatever order the stylesheets load in.
+        // beats a preset's or an accent's values on <html> whatever order the stylesheets load in.
         _css = declarations.Count == 0
             ? null
             : "@layer izzy.tokens { :root:root:root { " + string.Join(" ", declarations) + " } }";

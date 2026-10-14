@@ -5,15 +5,15 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    @* Applied before first paint: the saved look and accent, and a class that says JavaScript is
+    @* Applied before first paint: the saved preset and accent, and a class that says JavaScript is
        running. The color scheme comes from IzzyTheme (the switch's cookie), below. *@
     <script>
         (function () {
             var d = document.documentElement;
             d.classList.add("js");
             try {
-                var l = localStorage.getItem("ib-host-look");
-                if (l) d.setAttribute("data-ib-theme", l);
+                var l = localStorage.getItem("ib-host-preset");
+                if (l) d.setAttribute("data-ib-preset", l);
                 var c = localStorage.getItem("ib-host-color");
                 if (c) d.setAttribute("data-ib-accent", c);
             } catch (e) { }
@@ -21,7 +21,7 @@
     </script>
     <link rel="icon" href="favicon.ico" sizes="48x48" />
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-    @* The Editorial look's fonts (IBM Plex Sans, Newsreader). *@
+    @* The Editorial preset's fonts (IBM Plex Sans, Newsreader). *@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />

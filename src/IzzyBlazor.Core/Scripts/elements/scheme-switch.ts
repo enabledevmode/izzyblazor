@@ -4,7 +4,7 @@ import { readCookie, writeCookie } from "../cookies";
 /**
  * <ib-scheme-switch> makes ColorSchemeSwitch instant. With no script each option is a link to the
  * endpoint that sets the ib-scheme cookie and comes back; with it, a click sets the cookie here,
- * puts the scheme on the page at once (data-theme on <html>, and IzzyTheme's meta if there is
+ * puts the scheme on the page at once (data-ib-color-scheme on <html>, and IzzyTheme's meta if there is
  * one), moves the switch's mark, closes its menu, tells other tabs and frames, and raises
  * `ibscheme` so @bind-Value follows on interactive pages. The other way round, a Value set from
  * C# arrives as data-ib-value, and the switch applies it as if it had been clicked.
@@ -40,11 +40,11 @@ function mark(root: ParentNode, scheme: Scheme): void {
 /** Puts a scheme on the page and on every switch in it. */
 function apply(scheme: Scheme): void {
   const root = document.documentElement;
-  if (scheme === "system") root.removeAttribute("data-theme");
-  else root.setAttribute("data-theme", scheme);
+  if (scheme === "system") root.removeAttribute("data-ib-color-scheme");
+  else root.setAttribute("data-ib-color-scheme", scheme);
 
   // IzzyTheme's meta carries the server's idea of the scheme; keep it from disagreeing.
-  const meta = document.head.querySelector<HTMLMetaElement>('meta[name="ib-scheme"]');
+  const meta = document.head.querySelector<HTMLMetaElement>('meta[name="ib-color-scheme"]');
   if (meta && scheme === "system") meta.remove();
   else if (meta) meta.content = scheme;
 

@@ -18,11 +18,11 @@ enhanced navigation and form handling, and on Interactive Server, WebAssembly an
    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
    ```
 
-   Optionally, set the look and your brand color in the same `<head>` (see
-   [Styling](styling.md#looks-and-colors)):
+   Optionally, set the preset and your brand color in the same `<head>` (see
+   [Styling](styling.md#presets-and-colors)):
 
    ```razor
-   <IzzyTheme Look="ThemeLook.Standard" Primary="#0a7d5a" />
+   <IzzyTheme Preset="ThemePreset.Standard" Primary="#0a7d5a" />
    ```
 
 3. Add `@using IzzyBlazor` to `_Imports.razor`. Prefer this to a `global using`: it brings the

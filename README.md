@@ -48,7 +48,7 @@ choose a different component for each.
 - **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
 - **Data and media:** Card, Table, Stat, DescriptionList, Timeline, Avatar, AvatarGroup, Image,
   VideoEmbed
-- **Theming:** IzzyTheme (looks, accent, brand color, fonts), ColorSchemeSwitch
+- **Theming:** IzzyTheme (presets, accent, brand color, fonts), ColorSchemeSwitch
 
 Styling is typed and responsive, through props on the components, with no CSS to write and nothing
 computed at runtime. If you've used Chakra UI or Mantine, the layout props will feel familiar:

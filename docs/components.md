@@ -362,7 +362,7 @@ recreates it with its initial values. In practice:
 - `AppAside` (`Width`, `Breakpoint`)
 - `AppFooter` (`Position`, `ContentWidth`)
 
-Every part takes `Bg` and `Scheme`, and the sidebar and aside colors run the full height. `AppShell`
+Every part takes `Bg` and `ColorScheme`, and the sidebar and aside colors run the full height. `AppShell`
 itself sets `ScrollMode` (`Page`, or `Main` for a window-filling frame where only the content
 scrolls), `Dividers`, and `Variant`, how the parts are layered. Content is the brightest layer and
 the frame recedes into the page tint: `Tinted` (the default) tints the sidebar, `Inset` tints the
@@ -450,7 +450,7 @@ there. Its row then matches `AppHeader`'s height, with a line that continues the
 **Navigation.** `NavMenu` is a list of links, vertical by default (`Orientation.Horizontal` for a
 header). `NavItem`s work out their active state on the server: `Match` is `Prefix` by default, so
 pages below the link count too (`NavLinkMatch.All` for an exact match; a root link always needs
-one). An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeColor`). `NavLabel` is a small
+one). An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeAccent`). `NavLabel` is a small
 heading and `NavDivider` a line. `NavGroup` is a collapsible group with a `Label` and `Icon`, built
 on `details`: it starts open with `Open` or when the current page is under its `ActivePrefix`, and
 with JavaScript any group holding the current page opens itself.
@@ -1020,8 +1020,8 @@ decides. `Size` matches the buttons around it. `@bind-Value` is a `ColorScheme` 
 `Dark`).
 
 The choice is kept in the `ib-scheme` cookie. Put `IzzyTheme` in `<head>` so the server applies it
-before the first paint. (`IzzyTheme` also declares the app's look, accent, fonts and default
-`Scheme`; see [Styling](styling.md).) With JavaScript the switch is instant and other open tabs follow; with it
+before the first paint. (`IzzyTheme` also declares the app's preset, accent, fonts and default
+`ColorScheme`; see [Styling](styling.md).) With JavaScript the switch is instant and other open tabs follow; with it
 off, each option is a link to `/_izzy/scheme`, which `app.MapIzzyBlazor()` adds: it saves the
 cookie and redirects back to the page.
 

@@ -35,9 +35,9 @@
 
     <Example Title="Color scheme" Note="Scheme gives part of a page the other color scheme. Everything inside follows it: text, links, buttons, badges, fields. Dark stays dark; Inverse is the opposite of the page, so switch the theme in the header to see it flip." Code="@SchemeCode">
         <Row Gap="4" Wrap>
-            @foreach (var scheme in new[] { Scheme.Dark, Scheme.Inverse, Scheme.Light })
+            @foreach (var scheme in new[] { ColorScheme.Dark, ColorScheme.Inverse, ColorScheme.Light })
             {
-                <Box Scheme="scheme" Padding="5" Radius="Radius.Lg" Grow Basis="16.Rem" data-testid="@($"scheme-{scheme}")">
+                <Box ColorScheme="scheme" Padding="5" Radius="Radius.Lg" Grow Basis="16.Rem" data-testid="@($"scheme-{scheme}")">
                     <Stack Gap="3">
                         <TextBlock Weight="FontWeight.Semibold">Scheme.@scheme</TextBlock>
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Muted text and a <a href="static/box">link</a>.</TextBlock>
@@ -126,8 +126,8 @@
 
     private const string SchemeCode =
         """
-        <Box Scheme="Scheme.Dark" Padding="5">...</Box>
-        <Box Scheme="Scheme.Inverse" Padding="5">...</Box>
+        <Box ColorScheme="ColorScheme.Dark" Padding="5">...</Box>
+        <Box ColorScheme="ColorScheme.Inverse" Padding="5">...</Box>
         """;
 
     private const string ResponsiveCode =

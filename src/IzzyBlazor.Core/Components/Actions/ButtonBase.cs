@@ -11,16 +11,11 @@ public abstract class ButtonBase : IzzyComponentBase
 {
     /// <summary>
     /// Primary (the default) for the main action, Neutral for everything else, Danger for
-    /// destructive actions. Emphasis comes from <see cref="Variant"/>.
+    /// destructive actions, or a custom color (<c>Accent.Of("#0d9488")</c>,
+    /// <c>Accent.Token("brand")</c>); text on a custom color is chosen for contrast. Emphasis
+    /// comes from <see cref="Variant"/>.
     /// </summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Primary;
-
-    /// <summary>
-    /// A custom color in place of <see cref="Accent"/>, such as <c>Color.Token("brand-teal")</c>
-    /// or <c>Color.Of("#0d9488")</c>. Text on it is chosen for contrast: the token's <c>on-</c>
-    /// partner, or black or white for a hex color.
-    /// </summary>
-    [Parameter] public Color? Color { get; set; }
 
     /// <summary>Visual weight. Defaults to <see cref="ButtonVariant.Solid"/>.</summary>
     [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Solid;
@@ -82,13 +77,15 @@ public abstract class ButtonBase : IzzyComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-btn");
-        classes.Add($"ib-btn-{Kebab(EffectiveAccent.ToString())}");
+        // A custom color paints over the primary accent's custom properties.
+        var accent = EffectiveAccent;
+        classes.Add($"ib-btn-{accent.Role ?? "primary"}");
         classes.Add($"ib-btn-{Kebab(EffectiveVariant.ToString())}");
         classes.Add($"ib-btn-{Kebab(EffectiveSize.ToString())}", EffectiveSize != ControlSize.Md);
         classes.Add("ib-btn-icon-only", IconOnly);
         classes.Add("ib-btn-full", FullWidth);
         classes.Add("ib-btn-loading", Loading);
-        if (Color is { } custom)
+        if (accent.Custom is { } custom)
         {
             ColorOverride.Apply(styles, custom);
         }
