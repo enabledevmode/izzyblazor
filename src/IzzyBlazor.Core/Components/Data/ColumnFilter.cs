@@ -144,10 +144,12 @@ internal static class ColumnFilter
         }
         else if (t == typeof(DateTime))
         {
+            // [day, day + 1): on the last representable day there is no next day, so it's open-ended.
             var start = day.ToDateTime(TimeOnly.MinValue);
-            test = Expression.AndAlso(
-                Expression.GreaterThanOrEqual(body, Expression.Convert(Capture(start), type)),
-                Expression.LessThan(body, Expression.Convert(Capture(start.AddDays(1)), type)));
+            var onOrAfter = Expression.GreaterThanOrEqual(body, Expression.Convert(Capture(start), type));
+            test = day == DateOnly.MaxValue
+                ? onOrAfter
+                : Expression.AndAlso(onOrAfter, Expression.LessThan(body, Expression.Convert(Capture(start.AddDays(1)), type)));
         }
         else
         {

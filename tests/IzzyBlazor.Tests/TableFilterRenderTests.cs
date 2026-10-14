@@ -147,6 +147,28 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(expected.Length > 0 || value.StartsWith("2026", StringComparison.Ordinal) ? value : "", input.GetAttribute("value") ?? "");
     }
 
+    [Theory]
+    [InlineData("when")]
+    [InlineData("maybe")]
+    [InlineData("stamp")]
+    public void Date_filter_on_the_last_representable_day_does_not_throw(string key)
+    {
+        // DateTime filters keep [day, day + 1); 9999-12-31 has no next day.
+        Nav.NavigateTo($"/orders?f-{key}=9999-12-31");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+            .Add(t => t.Items, Rows.Append(new("Last", 1, Paid.Yes, true, new DateTime(9999, 12, 31, 12, 0, 0))).ToArray())
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, Col<string>(r => r.Name));
+                b.AddContent(1, Col<DateTime>(r => r.When));
+                b.AddContent(3, Col<DateTime?>(r => r.Maybe));
+                b.AddContent(4, Col<DateTimeOffset>(r => r.Stamp));
+            }));
+
+        Assert.Equal(new[] { "Last" }, Names(cut));
+    }
+
     [Fact]
     public void Template_column_filters_by_its_FilterBy_text()
     {
