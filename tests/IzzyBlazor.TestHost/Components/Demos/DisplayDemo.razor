@@ -67,6 +67,14 @@
         </Stack>
     </Example>
 
+    <Example Title="Image and VideoEmbed" Note="Image loads lazily and keeps its space: a Ratio gives it a shape it fills (Cover) or fits (Contain). VideoEmbed is a poster that links to the video on YouTube; with JavaScript, clicking plays it in place from youtube-nocookie.com, so YouTube loads only when wanted." Code="@MediaCode">
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
+            <Image Src="img/avatar-1.jpg" Alt="A portrait, cropped to 16:9" Ratio="16 / 9.0" Radius="Radius.Lg" Caption="Ratio 16:9, Cover" />
+            <Image Src="img/avatar-2.jpg" Alt="A portrait, fitted into 16:9" Ratio="16 / 9.0" Fit="ImageFit.Contain" Radius="Radius.Lg" Bg="Color.SurfaceContainer" Caption="Ratio 16:9, Contain" />
+            <VideoEmbed YouTubeId="aqz-KE-bpKQ" Title="Big Buck Bunny" />
+        </Grid>
+    </Example>
+
     <Example Title="Timeline" Note="A commit log, an order's history or a changelog. Each item has a marker on a rail, a title (a link with Href), a time and any content. Icon and Status change the marker; Current marks where things stand, with aria-current." Code="@TimelineCode">
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="8">
             <Timeline>
@@ -96,6 +104,13 @@
 </Stack>
 
 @code {
+    private const string MediaCode =
+        """
+        <Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" Caption="..." />
+        <Image Src="..." Alt="..." Ratio="1" Fit="ImageFit.Contain" />
+        <VideoEmbed YouTubeId="aqz-KE-bpKQ" Title="Big Buck Bunny" />
+        """;
+
     private const string TimelineCode =
         """
         <Timeline>

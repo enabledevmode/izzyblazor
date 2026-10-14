@@ -32,7 +32,7 @@ public static class DemoCatalog
         new("avatar", "Avatar", "Data display", typeof(AvatarDemo)),
         new("card", "Card", "Data display", typeof(CardDemo)),
         new("table", "Table", "Data display", typeof(TableDemo)),
-        new("display", "Stat, DescriptionList, Timeline, EmptyState, Kbd", "Data display", typeof(DisplayDemo)),
+        new("display", "Stat, DescriptionList, Timeline, Image, Kbd and more", "Data display", typeof(DisplayDemo)),
         new("icons", "Icon", "Media", typeof(IconsDemo)),
     ];
 
