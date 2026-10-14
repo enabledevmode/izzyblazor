@@ -1,5 +1,5 @@
 /**
- * IzzyBlazor's JavaScript initializer. Bundled to wwwroot/IzzyBlazor.lib.module.js,
+ * IzzyBlazor's JavaScript initializer. Bundled to wwwroot/IzzyBlazor.Core.lib.module.js,
  * which Blazor loads automatically for any app that references the package; apps
  * add no script tags.
  *

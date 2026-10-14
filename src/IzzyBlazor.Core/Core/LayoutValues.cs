@@ -63,16 +63,16 @@ public enum Radius
     /// <summary>Square corners.</summary>
     None,
 
-    /// <summary>4px. Small parts: checkboxes, menu items, tooltips.</summary>
+    /// <summary>4px by default (the look sets it). Small parts: checkboxes, menu items, tooltips.</summary>
     Sm,
 
-    /// <summary>6px. Controls: buttons, inputs, nav items.</summary>
+    /// <summary>6px by default (the look sets it). Controls: buttons, inputs, nav items.</summary>
     Md,
 
-    /// <summary>8px. Surfaces: cards, menus, dialogs.</summary>
+    /// <summary>10px by default (the look sets it). Popovers, menus and dialogs.</summary>
     Lg,
 
-    /// <summary>12px. Large panels and hero cards.</summary>
+    /// <summary>12px by default (the look sets it). Cards and large panels.</summary>
     Xl,
 
     /// <summary>Fully rounded (pills and circles).</summary>

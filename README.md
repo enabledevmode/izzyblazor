@@ -16,7 +16,7 @@ better when scripts run, and binds to C# on interactive pages.
   <img alt="An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table with status badges." src="docs/images/showcase-light.png">
 </picture>
 
-> **Status:** preview (`0.1.0-alpha`). The API will change before 0.1.
+> **Status:** preview (`0.1.0-alpha.1`). The API will change before 0.1.
 
 ## Every component works three ways
 
@@ -71,10 +71,10 @@ Install the package in your server project:
 dotnet add package IzzyBlazor --prerelease
 ```
 
-Then add the stylesheet and the namespace, and register the services:
+Then add the stylesheet and the namespace, register the services and map the endpoints:
 
 ```razor
-@* App.razor *@
+@* App.razor, in <head> *@
 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
 
 @* _Imports.razor *@
@@ -84,6 +84,8 @@ Then add the stylesheet and the namespace, and register the services:
 ```csharp
 // Program.cs
 builder.Services.AddIzzyBlazor();
+// after app.MapRazorComponents<App>():
+app.MapIzzyBlazor();
 ```
 
 The JavaScript loads itself. For toasts, add `<ToastRegion />` to your layout. For WebAssembly and

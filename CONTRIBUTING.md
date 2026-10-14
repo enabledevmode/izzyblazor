@@ -9,7 +9,7 @@ src/IzzyBlazor.Core/         the components, CSS and JS; runs in any render mode
   Styles/                    tokens, base and component CSS (bundled by esbuild)
   Scripts/                   custom elements in TypeScript (bundled by esbuild)
 src/IzzyBlazor/              server-only pieces: cookie-backed toast carrier and request cookies (IzzyBlazor package)
-tests/IzzyBlazor.TestHost/   dev host: every demo at /static/{demo} and /interactive/{demo}
+tests/IzzyBlazor.TestHost/   dev host: every demo at /static/{demo} and /interactive/{demo}, previews at /preview/...
 tests/IzzyBlazor.Tests/      xUnit and bUnit tests
 build/                       asset build and dev scripts
 docs/                        documentation and README images
@@ -24,7 +24,7 @@ behind an interface defined in Core. Core's build fails if server types creep in
 Requirements: .NET 10 SDK and Node 20 or newer.
 
 ```bash
-npm ci        # once: installs esbuild and the Lucide source icons
+npm ci        # once: installs esbuild and the Lucide source icons (lucide-static)
 npm run dev   # asset watcher + dotnet watch on the dev host
 ```
 
@@ -44,7 +44,9 @@ npm run build             # assets only, minified
 ```
 
 The README screenshots come from the dev host's `/preview/showcase` page, at 1280×860 with a device
-scale factor of 2, in light and dark.
+scale factor of 2, in light and dark. The other full-page previews are `/preview/app-shell`,
+`/preview/app-shell-live` (interactive) and `/preview/layout/{kind}` (realistic screens such as
+`settings`, `list` and `dashboard`).
 
 ## Adding a component
 
