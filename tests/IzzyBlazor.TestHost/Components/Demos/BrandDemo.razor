@@ -24,7 +24,7 @@
             <Row Gap="3" Align="Align.Center" Wrap>
                 <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented" @bind-Value="_scheme" id="bound-scheme" />
                 <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _scheme = ColorScheme.Dark" id="set-dark">Dark from C#</Button>
-                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _scheme = ColorScheme.System" id="set-system">System from C#</Button>
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => _scheme = ColorScheme.Auto" id="set-system">System from C#</Button>
                 <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" id="bound-value">Value: @_scheme</TextBlock>
             </Row>
         </Example>
@@ -60,8 +60,8 @@
             }
 
             <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
-                <Box Scheme="Scheme.Light" Padding="5" Radius="Radius.Lg">@Sample("brand-light")</Box>
-                <Box Scheme="Scheme.Dark" Padding="5" Radius="Radius.Lg">@Sample("brand-dark")</Box>
+                <Box ColorScheme="ColorScheme.Light" Padding="5" Radius="Radius.Lg">@Sample("brand-light")</Box>
+                <Box ColorScheme="ColorScheme.Dark" Padding="5" Radius="Radius.Lg">@Sample("brand-dark")</Box>
             </Grid>
         </Stack>
     </Example>
@@ -132,8 +132,8 @@
                 <Slider @bind-Value="_models[name].Volume" ShowValue />
             </Form>
             <Row Gap="3" Align="Align.Center" Wrap>
-                <Badge Color="Color.Primary">Primary</Badge>
-                <Badge Color="Color.Primary" Variant="BadgeVariant.Solid">Solid</Badge>
+                <Badge Accent="Accent.Primary">Primary</Badge>
+                <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid">Solid</Badge>
                 <Pagination PageCount="5" Page="2" Size="ControlSize.Sm" Label="@($"Sample pages {name}")" />
             </Row>
             <Progress Value="64" Label="Upload" />

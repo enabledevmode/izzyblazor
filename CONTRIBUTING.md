@@ -94,8 +94,10 @@ Use the same name for the same idea everywhere:
 | `...Text` suffix | Visible text | `EmptyText`, `ApplyText`, `ClearText` |
 | `Icon` | One fixed icon slot | `NavItem Icon`, `Tab Icon` |
 | `StartIcon`, `EndIcon` | An icon beside text that could go on either side | `Button`, `TextField`, `Badge` |
-| `Accent` | Action color: `Primary`, `Neutral`, `Danger`. On `IzzyTheme` alone it is the theme's accent palette (`ThemeAccent`: Blue, Ink…) that `Primary` controls are drawn in | Button, MenuItem; `IzzyTheme Accent` |
-| `Status` | Feedback meaning: `Info`, `Success`, `Warning`, `Danger`, `Neutral` | Alert, Badge, Toast |
+| `Accent` | A control's color: the roles `Primary`, `Neutral`, `Danger`, or a custom `Accent.Of(css)` / `Accent.Token(name)`. On feedback it replaces the status's color | Button, MenuItem, Progress; `Badge Accent`, `Banner Accent` |
+| `Status` | Feedback meaning: `Info`, `Success`, `Warning`, `Danger`, `Neutral`; also sets icons and what screen readers hear | Alert, Badge, Toast |
+| `Color`, `Bg` | Text (or stroke) color and background, as in CSS. Never a control's fill: that's `Accent` | Box, TextBlock, Icon, Spinner; `Avatar Bg` |
+| `ColorScheme` | `Auto`, `Light`, `Dark`, `Inverse` (parts only) | AppSidebar, Box, `IzzyTheme ColorScheme` |
 | `Items`, `ItemText`, `ItemTemplate` | A list of choices | Select, RadioGroup, Combobox, FilterSelect |
 | `For` | The id of the element a control acts on | `DialogTrigger For`, `SidebarToggle For` |
 | `FullWidth` | Fill the available width | Button, Tabs |

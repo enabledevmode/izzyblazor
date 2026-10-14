@@ -22,7 +22,7 @@
         <span class="ib-nav-text">@ChildContent</span>
         @if (Badge is not null)
         {
-            <Badge Size="BadgeSize.Sm" Pill Status="BadgeStatus" Color="BadgeColor">@Badge</Badge>
+            <Badge Size="BadgeSize.Sm" Pill Status="BadgeStatus" Accent="BadgeAccent">@Badge</Badge>
         }
     </a>
 </li>
@@ -46,8 +46,8 @@
     /// <summary>What the badge means. Defaults to neutral.</summary>
     [Parameter] public Status BadgeStatus { get; set; } = Status.Neutral;
 
-    /// <summary>A custom badge color, such as <c>Color.Primary</c> for an unread count.</summary>
-    [Parameter] public Color? BadgeColor { get; set; }
+    /// <summary>A badge color in place of the status's, such as <c>Accent.Primary</c> for an unread count.</summary>
+    [Parameter] public Accent? BadgeAccent { get; set; }
 
     /// <summary>The link text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

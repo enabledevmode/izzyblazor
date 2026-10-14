@@ -1,13 +1,13 @@
-// Host-only helpers: the look and accent selects. Uses event delegation on the document, so it
+// Host-only helpers: the preset and accent selects. Uses event delegation on the document, so it
 // keeps working after Blazor's enhanced navigation swaps page content. Light and dark is the
 // library's ColorSchemeSwitch (its cookie, read by IzzyTheme), not this.
 (function () {
-  // The look (data-ib-theme) and accent (data-ib-accent) on <html>, chosen in the header's
+  // The preset (data-ib-preset) and accent (data-ib-accent) on <html>, chosen in the header's
   // selects and kept in localStorage. Default: no attribute.
-  var SETS = { look: "data-ib-theme", color: "data-ib-accent" };
+  var SETS = { preset: "data-ib-preset", color: "data-ib-accent" };
 
-  // Older builds kept a named color theme, or accent, gray and radius; drop them.
-  try { ["preset", "accent", "gray", "radius", "theme"].forEach(function (k) { localStorage.removeItem("ib-host-" + k); }); } catch (e) { }
+  // Older builds kept a look, a named color theme, or accent, gray and radius; drop them.
+  try { ["look", "accent", "gray", "radius", "theme"].forEach(function (k) { localStorage.removeItem("ib-host-" + k); }); } catch (e) { }
 
   function applySets() {
     var root = document.documentElement;

@@ -72,10 +72,11 @@
     [Parameter] public Status Status { get; set; } = Status.Info;
 
     /// <summary>
-    /// A color in place of the status's own, such as <c>Color.Primary</c> for a product
-    /// announcement. The status still sets the icon and what screen readers hear.
+    /// A color in place of the status's own, such as <c>Accent.Primary</c> for a product
+    /// announcement, or <c>Accent.Of("#0d9488")</c>. The status still sets the icon and what
+    /// screen readers hear.
     /// </summary>
-    [Parameter] public Color? Color { get; set; }
+    [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>How it's drawn. Defaults to <see cref="AlertVariant.Soft"/>.</summary>
     [Parameter] public AlertVariant Variant { get; set; } = AlertVariant.Soft;
@@ -224,9 +225,9 @@
         classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-banner-sticky", Position == BarPosition.Sticky);
-        if (Color is { } color)
+        if (Accent is { } accent)
         {
-            ColorOverride.Apply(styles, color);
+            ColorOverride.Apply(styles, accent.ToColor());
         }
     }
 

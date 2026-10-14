@@ -134,7 +134,7 @@
 
     private IEnumerable<(ColorScheme Scheme, IconData Icon, string Label)> Options =>
     [
-        (ColorScheme.System, Lucide.Monitor, TextDefaults.SchemeSystem),
+        (ColorScheme.Auto, Lucide.Monitor, TextDefaults.SchemeSystem),
         (ColorScheme.Light, Lucide.Sun, TextDefaults.SchemeLight),
         (ColorScheme.Dark, Lucide.Moon, TextDefaults.SchemeDark),
     ];
@@ -167,7 +167,7 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _current = Value ?? _remembered ?? ColorScheme.System;
+        _current = Value ?? _remembered ?? ColorScheme.Auto;
         (_class, _style) = BuildRootAttributes();
     }
 

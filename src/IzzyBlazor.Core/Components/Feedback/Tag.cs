@@ -38,8 +38,8 @@ public class Tag : IzzyComponentBase
     /// <summary>The color's meaning. Defaults to <see cref="IzzyBlazor.Status.Neutral"/>.</summary>
     [Parameter] public Status Status { get; set; } = Status.Neutral;
 
-    /// <summary>A custom color in place of <see cref="Status"/>, such as <c>Color.Primary</c>.</summary>
-    [Parameter] public Color? Color { get; set; }
+    /// <summary>A color in place of <see cref="Status"/>'s, such as <c>Accent.Primary</c> or <c>Accent.Of("#0d9488")</c>.</summary>
+    [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>Visual weight. Defaults to <see cref="TagVariant.Soft"/>.</summary>
     [Parameter] public TagVariant Variant { get; set; } = TagVariant.Soft;
@@ -85,9 +85,9 @@ public class Tag : IzzyComponentBase
         classes.Add("ib-tag-sm", Size == ControlSize.Sm);
         classes.Add("ib-tag-lg", Size == ControlSize.Lg);
         classes.Add("ib-tag-removable", RemoveButton || RemoveHref is not null);
-        if (Color is { } custom)
+        if (Accent is { } accent)
         {
-            ColorOverride.Apply(styles, custom);
+            ColorOverride.Apply(styles, accent.ToColor());
         }
     }
 

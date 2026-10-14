@@ -62,8 +62,11 @@ public class Avatar : IzzyComponentBase, IDisposable
     /// <summary>Rounded corners in place of a circle, for teams, companies and projects.</summary>
     [Parameter] public bool Square { get; set; }
 
-    /// <summary>The color behind the initials. Defaults to a soft color picked from <see cref="Name"/>.</summary>
-    [Parameter] public Color? Color { get; set; }
+    /// <summary>
+    /// The background behind the initials, such as <c>Color.Primary</c>; the initials take its
+    /// contrast color. Defaults to a soft color picked from <see cref="Name"/>.
+    /// </summary>
+    [Parameter] public Color? Bg { get; set; }
 
     /// <summary>A dot in the corner, such as <see cref="IzzyBlazor.Status.Success"/> for online. Give it a <see cref="StatusLabel"/>.</summary>
     [Parameter] public Status? Status { get; set; }
@@ -142,7 +145,7 @@ public class Avatar : IzzyComponentBase, IDisposable
         classes.Add("ib-avatar");
         classes.Add($"ib-avatar-{ResolvedSize.ToString().ToLowerInvariant()}", ResolvedSize != AvatarSize.Md);
         classes.Add("ib-avatar-square", Square);
-        if (Color is { } color)
+        if (Bg is { } color)
         {
             classes.Add("ib-avatar-colored");
             ColorOverride.Apply(styles, color);

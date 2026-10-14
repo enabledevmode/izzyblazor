@@ -65,10 +65,10 @@ public class BannerRenderTests : BunitContext
     }
 
     [Fact]
-    public void Color_overrides_the_status_color()
+    public void Accent_overrides_the_status_color()
     {
         UseCookie(null);
-        var banner = Render<Banner>(p => p.Add(b => b.Color, Color.Primary).Add(b => b.Variant, AlertVariant.Solid))
+        var banner = Render<Banner>(p => p.Add(b => b.Accent, Accent.Primary).Add(b => b.Variant, AlertVariant.Solid))
             .Find("ib-banner");
 
         Assert.Contains("ib-alert-solid", banner.ClassName);

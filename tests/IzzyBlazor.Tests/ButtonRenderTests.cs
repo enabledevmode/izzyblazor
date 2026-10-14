@@ -159,26 +159,43 @@ public class ButtonRenderTests : BunitContext
     [Fact]
     public void Custom_hex_color_picks_readable_text()
     {
-        var amber = Render<Button>(p => p.Add(b => b.Color, Color.Of("#fbbf24")).AddChildContent("Upgrade")).Find("button");
+        var amber = Render<Button>(p => p.Add(b => b.Accent, Accent.Of("#fbbf24")).AddChildContent("Upgrade")).Find("button");
         Assert.Contains("--ib-accent:#fbbf24;", amber.GetAttribute("style"));
         Assert.Contains("--ib-on-accent:#0f172a;", amber.GetAttribute("style"));
 
-        var teal = Render<Button>(p => p.Add(b => b.Color, Color.Of("#0f766e")).AddChildContent("Approve")).Find("button");
+        var teal = Render<Button>(p => p.Add(b => b.Accent, Accent.Of("#0f766e")).AddChildContent("Approve")).Find("button");
         Assert.Contains("--ib-on-accent:#ffffff;", teal.GetAttribute("style"));
     }
 
     [Fact]
     public void Custom_token_color_uses_its_pairs()
     {
-        var style = Render<Button>(p => p.Add(b => b.Color, Color.Token("brand")).AddChildContent("Go")).Find("button").GetAttribute("style");
+        var style = Render<Button>(p => p.Add(b => b.Accent, Accent.Token("brand")).AddChildContent("Go")).Find("button").GetAttribute("style");
 
         Assert.Contains("--ib-accent:var(--ib-color-brand);", style);
         Assert.Contains("--ib-on-accent:var(--ib-color-on-brand);", style);
     }
 
     [Fact]
-    public void Actions_have_three_accents()
+    public void Actions_have_three_accent_roles()
     {
-        Assert.Equal([Accent.Primary, Accent.Neutral, Accent.Danger], Enum.GetValues<Accent>());
+        Assert.Equal(["primary", "neutral", "danger"], new[] { Accent.Primary, Accent.Neutral, Accent.Danger }.Select(a => a.ToString()));
+        Assert.Equal(Accent.Of("#0f766e"), Accent.Of("#0f766e"));
+        Assert.NotEqual(Accent.Primary, Accent.Token("primary"));
+    }
+
+    [Fact]
+    public void A_custom_accent_paints_over_the_primary_role()
+    {
+        var button = Render<Button>(p => p.Add(b => b.Accent, Accent.Of("#0f766e")).AddChildContent("Go")).Find("button");
+
+        Assert.Contains("ib-btn-primary", button.ClassName);
+        Assert.Contains("--ib-accent:#0f766e;", button.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void Accent_rejects_css_that_escapes_the_declaration()
+    {
+        Assert.Throws<FormatException>(() => Accent.Of("red; } body { color: red"));
     }
 }

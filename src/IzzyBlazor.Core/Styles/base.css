@@ -151,7 +151,8 @@
   /* Part of a page in the other color scheme: its own text and surface colors. */
   .ib-scheme-light,
   .ib-scheme-dark,
-  .ib-scheme-inverse {
+  .ib-scheme-inverse,
+  :not(:root)[data-ib-color-scheme] {
     background-color: var(--ib-color-surface);
     color: var(--ib-color-on-surface);
   }
@@ -162,7 +163,7 @@
     margin: 0;
     background-color: var(--ib-color-background);
     color: var(--ib-color-on-surface);
-    font-family: var(--ib-font-sans);
+    font-family: var(--ib-font-body);
     font-size: var(--ib-text-md);
     line-height: var(--ib-leading-normal);
     -webkit-font-smoothing: antialiased;

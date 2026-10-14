@@ -59,13 +59,13 @@ public enum FontWeight
 /// <summary>Font family tokens.</summary>
 public enum FontFamily
 {
-    /// <summary>The theme's sans-serif stack (the default).</summary>
-    Sans,
+    /// <summary>The body font (the default), <c>--ib-font-body</c>.</summary>
+    Body,
 
-    /// <summary>The theme's serif stack.</summary>
-    Serif,
+    /// <summary>The heading font, <c>--ib-font-heading</c>: the body font unless the theme sets one (Newsreader in Editorial).</summary>
+    Heading,
 
-    /// <summary>The theme's monospace stack, for code and figures.</summary>
+    /// <summary>The monospace font, for code and figures, <c>--ib-font-mono</c>.</summary>
     Mono,
 }
 

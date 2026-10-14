@@ -37,8 +37,8 @@
   .ib-fw-bold { font-weight: var(--ib-weight-bold); }
   .ib-fw-extrabold { font-weight: var(--ib-weight-extrabold); }
 
-  .ib-ff-sans { font-family: var(--ib-font-sans); }
-  .ib-ff-serif { font-family: var(--ib-font-serif); }
+  .ib-ff-body { font-family: var(--ib-font-body); }
+  .ib-ff-heading { font-family: var(--ib-font-heading); }
   .ib-ff-mono { font-family: var(--ib-font-mono); }
 
   .ib-lh-none { line-height: var(--ib-leading-none); }

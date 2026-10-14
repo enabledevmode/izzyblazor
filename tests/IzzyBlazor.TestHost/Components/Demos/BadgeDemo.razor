@@ -12,7 +12,7 @@
                     {
                         <Badge Status="status" Variant="variant">@status</Badge>
                     }
-                    <Badge Color="Color.Primary" Variant="variant">Primary (Color)</Badge>
+                    <Badge Accent="Accent.Primary" Variant="variant">Primary (Color)</Badge>
                 </Row>
             }
         </Stack>
@@ -24,16 +24,16 @@
             <Badge Status="Status.Warning" Dot>In review</Badge>
             <Badge Status="Status.Neutral" Dot>Draft</Badge>
             <Badge Status="Status.Danger" Variant="BadgeVariant.Solid" Pill>3</Badge>
-            <Badge Color="Color.Primary" Variant="BadgeVariant.Solid" Pill Size="BadgeSize.Sm">12</Badge>
+            <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill Size="BadgeSize.Sm">12</Badge>
             <Badge Status="Status.Info" StartIcon="Lucide.Sparkles">New</Badge>
         </Row>
     </Example>
 
     <Example Title="Inside text and buttons" Code="@InlineCode">
         <Stack Gap="3">
-            <Heading Level="3" Size="TextSize.Lg">Release notes <Badge Color="Color.Primary">v0.1</Badge></Heading>
+            <Heading Level="3" Size="TextSize.Lg">Release notes <Badge Accent="Accent.Primary">v0.1</Badge></Heading>
             <Row Gap="2">
-                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Inbox">Inbox <Badge Color="Color.Primary" Variant="BadgeVariant.Solid" Pill Size="BadgeSize.Sm">4</Badge></Button>
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Inbox">Inbox <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill Size="BadgeSize.Sm">4</Badge></Button>
             </Row>
         </Stack>
     </Example>
@@ -51,7 +51,7 @@
             }
             <Row Gap="2" Wrap Align="Align.Center">
                 <Tag Label="Blazor" Href="static/badge" StartIcon="Lucide.Hash" />
-                <Tag Label="Brand" Color="Color.Primary" Variant="TagVariant.Solid" />
+                <Tag Label="Brand" Accent="Accent.Primary" Variant="TagVariant.Solid" />
                 <Tag Label="Small" Size="ControlSize.Sm" />
                 <Tag Label="Medium" />
                 <Tag Label="Large" Size="ControlSize.Lg" />
@@ -100,7 +100,7 @@
     private const string TagCode =
         """
         <Tag Label="Blazor" Href="/topics/blazor" StartIcon="Lucide.Hash" />
-        <Tag Label="Brand" Color="Color.Primary" Variant="TagVariant.Solid" />
+        <Tag Label="Brand" Accent="Accent.Primary" Variant="TagVariant.Solid" />
         """;
 
     private const string RemoveCode =
@@ -118,5 +118,5 @@
         """;
 
     private const string InlineCode =
-        """<Heading Level="3">Release notes <Badge Color="Color.Primary">v0.1</Badge></Heading>""";
+        """<Heading Level="3">Release notes <Badge Accent="Accent.Primary">v0.1</Badge></Heading>""";
 }

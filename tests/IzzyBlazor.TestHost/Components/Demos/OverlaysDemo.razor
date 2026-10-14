@@ -48,7 +48,7 @@
         </form>
     </Example>
 
-    <Example Title="Checkable items and submenus" Note="MenuRadioGroup with QueryKey makes each option a link that sets ?sort=, and the checked one comes from the URL, so it works with JavaScript off. A checkbox item takes @@bind-Checked on interactive pages; on static pages its action is a link or form post, as with Compact here. MenuSub opens a submenu: click with no script; with it, hover or the right arrow, and the left arrow or Escape to go back. Choosing an item closes the whole menu." Code="@CheckableCode">
+    <Example Title="Checkable items and submenus" Note="@CheckableNote" Code="@CheckableCode">
         <Row Gap="3" Wrap Align="Align.Center">
             <Menu Label="View" StartIcon="Lucide.SlidersHorizontal" Id="view-menu">
                 <MenuRadioGroup Label="Sort by" QueryKey="sort">
@@ -284,6 +284,9 @@
 </Stack>
 
 @code {
+    // In a C# string: some Razor compilers reject an escaped @@ inside component attribute text.
+    private const string CheckableNote = "MenuRadioGroup with QueryKey makes each option a link that sets ?sort=, and the checked one comes from the URL, so it works with JavaScript off. A checkbox item takes @bind-Checked on interactive pages; on static pages its action is a link or form post, as with Compact here. MenuSub opens a submenu: click with no script; with it, hover or the right arrow, and the left arrow or Escape to go back. Choosing an item closes the whole menu.";
+
     private const string DrawerCode =
         """
         <DialogTrigger For="details">Details</DialogTrigger>

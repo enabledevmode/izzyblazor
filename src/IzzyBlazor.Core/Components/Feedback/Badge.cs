@@ -43,10 +43,10 @@ public class Badge : IzzyComponentBase
     [Parameter] public Status Status { get; set; } = Status.Neutral;
 
     /// <summary>
-    /// A custom color in place of <see cref="Status"/>, such as <c>Color.Primary</c> for a
-    /// brand-colored count, or <c>Color.Token("brand-teal")</c>.
+    /// A color in place of <see cref="Status"/>'s, such as <c>Accent.Primary</c> for a
+    /// brand-colored count, <c>Accent.Of("#0d9488")</c> or <c>Accent.Token("brand")</c>.
     /// </summary>
-    [Parameter] public Color? Color { get; set; }
+    [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>Visual weight. Defaults to <see cref="BadgeVariant.Soft"/>.</summary>
     [Parameter] public BadgeVariant Variant { get; set; } = BadgeVariant.Soft;
@@ -74,9 +74,9 @@ public class Badge : IzzyComponentBase
         classes.Add($"ib-badge-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-badge-sm", Size == BadgeSize.Sm);
         classes.Add("ib-badge-pill", Pill);
-        if (Color is { } custom)
+        if (Accent is { } accent)
         {
-            ColorOverride.Apply(styles, custom);
+            ColorOverride.Apply(styles, accent.ToColor());
         }
     }
 

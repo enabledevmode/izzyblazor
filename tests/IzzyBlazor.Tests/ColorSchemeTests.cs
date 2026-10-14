@@ -69,7 +69,7 @@ public class ColorSchemeRenderTests : BunitContext
         var live = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Dark));
         Assert.Equal("dark", live.Find("ib-scheme-switch").GetAttribute("data-ib-value"));
 
-        live.Render(p => p.Add(s => s.Value, ColorScheme.System));
+        live.Render(p => p.Add(s => s.Value, ColorScheme.Auto));
         Assert.Equal("system", live.Find("ib-scheme-switch").GetAttribute("data-ib-value"));
 
         var unbound = Render<ColorSchemeSwitch>();
@@ -88,7 +88,7 @@ public class ColorSchemeRenderTests : BunitContext
 
         cut.Find("ib-scheme-switch").TriggerEvent("onibscheme", new IzzySchemeEventArgs { Scheme = "system" });
 
-        Assert.Equal(ColorScheme.System, picked);
+        Assert.Equal(ColorScheme.Auto, picked);
     }
 
     [Fact]
@@ -136,9 +136,9 @@ public class ColorSchemeRenderTests : BunitContext
     public void Theme_renders_the_saved_scheme_else_its_default(string? cookie, ColorScheme? fallback, string? expected)
     {
         UseCookie(cookie);
-        var cut = Render<IzzyTheme>(p => p.Add(t => t.Scheme, fallback));
+        var cut = Render<IzzyTheme>(p => p.Add(t => t.ColorScheme, fallback));
 
-        var meta = cut.FindAll("meta[name='ib-scheme']");
+        var meta = cut.FindAll("meta[name='ib-color-scheme']");
         if (expected is null)
         {
             Assert.Empty(meta);

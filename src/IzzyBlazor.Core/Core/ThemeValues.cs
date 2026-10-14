@@ -2,9 +2,9 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// A look: density, shape and type, with a default accent and gray suited to the products likely
-/// to use it. Set it with <see cref="IzzyTheme"/> or <c>data-ib-theme</c> on <c>&lt;html&gt;</c>.
+/// to use it. Set it with <see cref="IzzyTheme"/> or <c>data-ib-preset</c> on <c>&lt;html&gt;</c>.
 /// </summary>
-public enum ThemeLook
+public enum ThemePreset
 {
     /// <summary>The default: 36px controls, medium radius, hairline shadows; Blue on Neutral.</summary>
     Standard,
@@ -98,36 +98,25 @@ public enum ColorSchemeSwitchVariant
     Segmented,
 }
 
-/// <summary>Light, dark, or whatever the device prefers.</summary>
-public enum ColorScheme
-{
-    /// <summary>Follow the device's setting (the default).</summary>
-    System,
-
-    /// <summary>Always light.</summary>
-    Light,
-
-    /// <summary>Always dark.</summary>
-    Dark,
-}
-
 /// <summary>The color scheme cookie (<c>ib-scheme</c>) that ColorSchemeSwitch writes and IzzyTheme reads.</summary>
 internal static class ColorSchemes
 {
     public const string CookieName = "ib-scheme";
 
+    // On the wire (cookie, endpoint, script) Auto is "system", the word the switch shows.
     public static string Name(ColorScheme scheme) => scheme switch
     {
         ColorScheme.Light => "light",
         ColorScheme.Dark => "dark",
-        _ => "system",
+        ColorScheme.Auto => "system",
+        _ => throw new ArgumentOutOfRangeException(nameof(scheme), scheme, "The app's color scheme is Auto, Light or Dark; Inverse is for part of a page."),
     };
 
     public static ColorScheme? Parse(string? value) => value switch
     {
         "light" => ColorScheme.Light,
         "dark" => ColorScheme.Dark,
-        "system" => ColorScheme.System,
+        "system" => ColorScheme.Auto,
         _ => null,
     };
 }

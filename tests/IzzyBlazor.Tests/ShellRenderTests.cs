@@ -304,15 +304,15 @@ public class ShellRenderTests : BunitContext
     }
 
     [Theory]
-    [InlineData(Scheme.Page, null)]
-    [InlineData(Scheme.Light, "ib-scheme-light")]
-    [InlineData(Scheme.Dark, "ib-scheme-dark")]
-    [InlineData(Scheme.Inverse, "ib-scheme-inverse")]
-    public void Parts_and_boxes_take_a_color_scheme(Scheme scheme, string? expected)
+    [InlineData(ColorScheme.Auto, null)]
+    [InlineData(ColorScheme.Light, "ib-scheme-light")]
+    [InlineData(ColorScheme.Dark, "ib-scheme-dark")]
+    [InlineData(ColorScheme.Inverse, "ib-scheme-inverse")]
+    public void Parts_and_boxes_take_a_color_scheme(ColorScheme scheme, string? expected)
     {
-        var sidebar = Render<AppSidebar>(p => p.Add(s => s.Scheme, scheme)).Find("nav");
-        var header = Render<AppHeader>(p => p.Add(h => h.Scheme, scheme)).Find("header");
-        var box = Render<Box>(p => p.Add(b => b.Scheme, scheme)).Find("div");
+        var sidebar = Render<AppSidebar>(p => p.Add(s => s.ColorScheme, scheme)).Find("nav");
+        var header = Render<AppHeader>(p => p.Add(h => h.ColorScheme, scheme)).Find("header");
+        var box = Render<Box>(p => p.Add(b => b.ColorScheme, scheme)).Find("div");
 
         foreach (var element in new[] { sidebar, header, box })
         {

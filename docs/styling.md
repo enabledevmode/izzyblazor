@@ -26,7 +26,7 @@ go from -16 to 16, where a negative step pulls the element outward.
 A side beats its axis, which beats the all-sides value, at every breakpoint.
 
 `Box` and the components built on it (Stack, Row, Grid, Section, Card, the typography components and
-the like) take these props. The App layout parts take `Bg` and `Scheme` only, and controls such as
+the like) take these props. The App layout parts take `Bg` and `ColorScheme` only, and controls such as
 fields and buttons take none: space them with the layout around them (`Stack Gap`, `Row Gap`).
 
 ## Responsive values
@@ -72,32 +72,32 @@ Actions get three colors: `Accent.Primary`, `Neutral` and `Danger`. Emphasis com
 
 Feedback (badges, alerts and toasts) uses `Status`: `Neutral`, `Info`, `Success`, `Warning`, `Danger`.
 
-For anything else, pass a `Color`: `<Button Color='Color.Of("#0f766e")'>` or
+For anything else, pass a `Color`: `<Button Accent='Accent.Of("#0f766e")'>` or
 `Color='Color.Token("brand")'`. Text on it is picked for contrast: the token's `on-` partner, or near-black
 or white for a hex color.
 
-## Looks and colors
+## Presets and colors
 
-The default is the **Standard** look in **Blue on neutral grays**: white cards, tables and fields on
-a near-white page. Declare and customize the theme in one place, `IzzyTheme` in `App.razor`'s `<head>`: a look for
-density, shape and type, then an accent, gray and radius over the look's defaults, or your own
+The default is the **Standard** preset in **Blue on neutral grays**: white cards, tables and fields on
+a near-white page. Declare and customize the theme in one place, `IzzyTheme` in `App.razor`'s `<head>`: a preset for
+density, shape and type, then an accent, gray and radius over the preset's defaults, or your own
 brand color.
 
 ```razor
 @* App.razor, in <head>, for example: *@
-<IzzyTheme Look="ThemeLook.Compact" />                           @* a look *@
-<IzzyTheme Look="ThemeLook.Compact" Accent="ThemeAccent.Teal" /> @* a look in another accent *@
-<IzzyTheme Look="ThemeLook.Soft" Primary="#0a7d5a" />            @* a look in your brand color *@
+<IzzyTheme Preset="ThemePreset.Compact" />                           @* a preset *@
+<IzzyTheme Preset="ThemePreset.Compact" Accent="ThemeAccent.Teal" /> @* a preset in another accent *@
+<IzzyTheme Preset="ThemePreset.Soft" Primary="#0a7d5a" />            @* a preset in your brand color *@
 ```
 
-| `Look` (`data-ib-theme`) | For | Controls | Shape | Type | Accent | Gray |
+| `Preset` (`data-ib-preset`) | For | Controls | Shape | Type | Accent | Gray |
 | --- | --- | --- | --- | --- | --- | --- |
 | `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | System font | Blue | Neutral |
 | `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | System font | Indigo | Slate |
 | `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | System font | Teal | Neutral |
 | `editorial` | Docs, publishing, knowledge bases | 36px | Large radius | IBM Plex Sans, Newsreader headings | Ink | Stone |
 
-A look's accent, gray and radius are only its defaults: `Accent`, `Gray` and `Radius` beat them,
+A preset's accent, gray and radius are only its defaults: `Accent`, `Gray` and `Radius` beat them,
 and `Primary` beats `Accent`.
 
 `IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for `Primary`, the
@@ -106,7 +106,7 @@ it's in place on first paint, needs no script and works in every render mode. Th
 work as attributes, on `<html>` or on any element to restyle part of a page:
 
 ```html
-<html lang="en" data-ib-theme="compact" data-ib-accent="teal">
+<html lang="en" data-ib-preset="compact" data-ib-accent="teal">
 <section data-ib-accent="rose">...</section>
 ```
 
@@ -130,7 +130,7 @@ gray fills and its tint, and in dark mode a dark brand color is lifted until it 
 your color as given unless no text can reach 4.5:1 on it; then only its lightness moves. Focus
 rings, the field halo, selected rows, switches, sliders and radios follow. The server renders it as
 a small `<style>` block, so it's there on first paint with no script; pass `Nonce` for a strict
-Content-Security-Policy. It beats a look's accent; `data-ib-accent` on an element inside the page
+Content-Security-Policy. It beats a preset's accent; `data-ib-accent` on an element inside the page
 still recolors that part.
 
 To tune the shades yourself, set the four tokens instead:
@@ -148,9 +148,9 @@ Every accent is tuned by hand in light and dark: text holds 4.5:1 on its fill an
 attributes work on any element too, for part of a page; set accent and gray on the same element.
 They're plain CSS, so they work in every render mode with no script.
 
-**Fonts.** Body text uses the system font (`--ib-font-sans`). Headings, card and dialog titles use
+**Fonts.** Body text uses the system font (`--ib-font-body`). Headings, card and dialog titles use
 `--ib-font-heading` at `--ib-weight-heading`: by default the body font, semibold. The `editorial`
-look uses IBM Plex Sans and Newsreader; load them in your `<head>` (or self-host them; both are
+preset uses IBM Plex Sans and Newsreader; load them in your `<head>` (or self-host them; both are
 under the SIL Open Font License):
 
 ```html
@@ -158,7 +158,7 @@ under the SIL Open Font License):
 ```
 
 Code, `Kbd` and the color picker's hex box use `--ib-font-mono`, the system's monospace font. Set
-your own with `IzzyTheme`'s `Font`, `HeadingFont`, `MonoFont` and `HeadingWeight` (below).
+your own with `IzzyTheme`'s `BodyFont`, `HeadingFont`, `MonoFont` and `HeadingWeight` (below).
 
 **The page and its surfaces.** The page is `--ib-color-background` (`Color.Background`); cards,
 tables, fields and bars are `--ib-color-surface`. Menus, popovers, dialogs and toasts float on
@@ -188,24 +188,24 @@ Two levels. `IzzyTheme` takes the choices that move many values together and kee
 (contrast, light and dark pairs, whole pixels). CSS variables take single, exact values.
 
 ```razor
-<IzzyTheme Look="ThemeLook.Soft" Density="ThemeDensity.Compact" Primary="#0a7d5a"
-           Font="Inter, system-ui, sans-serif" HeadingWeight="700" Scheme="ColorScheme.Light" />
+<IzzyTheme Preset="ThemePreset.Soft" Density="ThemeDensity.Compact" Primary="#0a7d5a"
+           BodyFont="Inter, system-ui, sans-serif" HeadingWeight="700" ColorScheme="ColorScheme.Light" />
 ```
 
 | `IzzyTheme` | Sets | Values |
 | --- | --- | --- |
-| `Look` | Density, shape, type and default colors together | `Standard`, `Compact`, `Soft`, `Editorial` |
+| `Preset` | Density, shape, type and default colors together | `Standard`, `Compact`, `Soft`, `Editorial` |
 | `Primary` | Your brand color: fill, text on it, accent text and soft tint, light and dark, each at AA | Hex |
 | `Accent` | A built-in accent instead | `Blue`, `Ink`, `Indigo`, `Violet`, `Teal`, `Green`, `Rose` |
 | `Gray` | Page, surfaces, fills, borders and text | `Neutral`, `Slate`, `Stone` |
 | `Radius` | Controls, cards and dialogs, in proportion | `Sm`, `Md`, `Lg` |
 | `Density` | Control heights, table rows and card padding | `Compact` (32px), `Standard` (36px), `Comfortable` (40px) |
-| `Font`, `HeadingFont`, `MonoFont` | Body, heading and code font families (load the fonts yourself) | CSS font-family lists |
+| `BodyFont`, `HeadingFont`, `MonoFont` | Body, heading and code font families (load the fonts yourself) | CSS font-family lists |
 | `HeadingWeight` | Headings' weight | 100 to 900 |
 | `Scheme` | Light or dark until the user picks one with a `ColorSchemeSwitch` | `System`, `Light`, `Dark` |
 
-Each of `Accent`, `Gray`, `Radius`, `Density` and the fonts beats the look's own; leave them unset to
-take the look's. The same choices work as `data-ib-theme`, `data-ib-accent`, `data-ib-gray`,
+Each of `Accent`, `Gray`, `Radius`, `Density` and the fonts beats the preset's own; leave them unset to
+take the preset's. The same choices work as `data-ib-preset`, `data-ib-accent`, `data-ib-gray`,
 `data-ib-radius` and `data-ib-density` attributes, on `<html>` or on part of a page.
 
 For one exact value, set its variable in your own stylesheet. IzzyBlazor's CSS sits in cascade
@@ -224,7 +224,7 @@ layers, so a plain rule wins:
 | Colors | `--ib-color-background`, `-surface`, `-surface-raised`, `-surface-container-low`, `-surface-container`, `-surface-container-high`, `-border`, `-outline`, `-on-surface`, `-muted`, `-subtle`, `-disabled`, `-focus`; the accent's four (`-primary`, `-on-primary`, `-primary-text`, `-primary-soft`); status (`-success`, `-warning`, `-danger`, `-info`, each with `-text` and `-soft`) |
 | Shape | `--ib-radius-sm`, `-md`, `-lg`, `-xl` |
 | Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-*` |
-| Type | `--ib-font-sans`, `--ib-font-heading`, `--ib-font-mono`, `--ib-weight-heading`, the size scale `--ib-text-*` |
+| Type | `--ib-font-body`, `--ib-font-heading`, `--ib-font-mono`, `--ib-weight-heading`, the size scale `--ib-text-*` |
 | Depth | `--ib-shadow-xs` (under cards), `-sm`, `-md`, `-lg` |
 | Motion | `--ib-duration-fast`, `--ib-duration-normal`, `--ib-ease` |
 | Code | `--ib-code-comment`, `-keyword`, `-string`, `-number`, `-type`, `-function`, `-tag`, `-attr`, `-meta` (syntax colors, each at least 4.5:1 on the code block) |
@@ -244,14 +244,14 @@ Most tokens have a single value. Override them on `:root`:
 
 ```css
 :root {
-  --ib-font-sans: "Inter", system-ui, sans-serif;
+  --ib-font-body: "Inter", system-ui, sans-serif;
   --ib-radius-md: 0.5rem;
 }
 ```
 
 Colors hold both schemes in one value with CSS `light-dark(light, dark)`, and each element's
-`color-scheme` picks the half. So one override covers light mode, dark mode, `data-theme`, and parts
-of the page with their own `Scheme`:
+`color-scheme` picks the half. So one override covers light mode, dark mode, `data-ib-color-scheme`, and parts
+of the page with their own `ColorScheme`:
 
 ```css
 :root {
@@ -269,26 +269,26 @@ change them together so contrast holds.
 Your own colors work the same way: define `--ib-color-brand` (and `--ib-color-on-brand`) with
 `light-dark()`, then use `Color.Token("brand")`.
 
-Dark mode follows the system unless the page chooses: `IzzyTheme`'s `Scheme` sets the app's default
+Dark mode follows the system unless the page chooses: `IzzyTheme`'s `ColorScheme` sets the app's default
 (`ColorScheme.Light`, `Dark` or `System`), a [`ColorSchemeSwitch`](components.md#colorschemeswitch)
 lets the user choose (kept in the `ib-scheme` cookie, which `IzzyTheme` reads on the server with
-`AddIzzyBlazor()`, so pages arrive in the chosen scheme with no flash), and `<html data-theme="light|dark">` still works. Browsers without `light-dark()` (before
+`AddIzzyBlazor()`, so pages arrive in the chosen scheme with no flash), and `<html data-ib-color-scheme="light|dark">` still works. Browsers without `light-dark()` (before
 2024) get the light colors everywhere.
 
 ## A color scheme for part of a page
 
-`Scheme` on `Box` (and everything built on it, such as `Stack` and `Card`) and on the App layout
+`ColorScheme` on `Box` (and everything built on it, such as `Stack` and `Card`) and on the App layout
 parts gives that part its own scheme:
 
-- `Scheme.Dark` for a dark sidebar or header in a light app,
-- `Scheme.Light`,
-- `Scheme.Inverse` for the opposite of the page, worked out in CSS, including when the page follows
+- `ColorScheme.Dark` for a dark sidebar or header in a light app,
+- `ColorScheme.Light`,
+- `ColorScheme.Inverse` for the opposite of the page, worked out in CSS, including when the page follows
   the system.
 
 Every token switches inside it, so text, links, buttons, badges, fields, focus rings and menus opened
 from it keep their contrast. `Bg` still applies on top (`Bg="Color.SurfaceContainer"` is the scheme's
-container shade). Outside components, `data-theme="dark|light"` or the `ib-scheme-dark`, `ib-scheme-light` and
-`ib-scheme-inverse` classes do the same on any element.
+container shade). Outside components, `data-ib-color-scheme="dark|light|inverse"` does the same on
+any element.
 
 ## Escape hatches
 

@@ -7,7 +7,7 @@
     static pages; on interactive pages, update Value from C#.
 
     <Progress Value="40" Label="Uploading" ShowValue />
-    <Progress Value="3" Max="5" ValueText="3 of 5 files" Color="Color.Success" />
+    <Progress Value="3" Max="5" ValueText="3 of 5 files" Accent="Accent.From(Color.Success)" />
     <Progress Label="Preparing export" />                       (indeterminate)
 *@
 
@@ -57,8 +57,11 @@
     /// <summary>Text for the value in place of a percentage, such as "3 of 5 files". Shown, and read by screen readers.</summary>
     [Parameter] public string? ValueText { get; set; }
 
-    /// <summary>The bar's color. Defaults to the primary color.</summary>
-    [Parameter] public Color? Color { get; set; }
+    /// <summary>
+    /// The bar's color, such as <c>Accent.Danger</c>, <c>Accent.From(Color.Success)</c> or
+    /// <c>Accent.Of("#0d9488")</c>. Defaults to the primary color.
+    /// </summary>
+    [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>Thickness. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
@@ -80,9 +83,9 @@
         classes.Add("ib-progress-sm", Size == ControlSize.Sm);
         classes.Add("ib-progress-lg", Size == ControlSize.Lg);
         classes.Add("ib-progress-indeterminate", Value is null);
-        if (Color is { } color)
+        if (Accent is { } accent)
         {
-            styles.AddVar("progress-color", StyleValues.Color(color));
+            styles.AddVar("progress-color", StyleValues.Color(accent.ToColor()));
         }
     }
 
