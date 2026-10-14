@@ -138,3 +138,45 @@
   @media (width < 1024px) { .ib-visible-from-lg { display: none !important; } }
   @media (width < 1280px) { .ib-visible-from-xl { display: none !important; } }
 }
+
+/*
+ * Section: a band of a page. Full bleed inside a measured main area (see shell.css): it spans the
+ * container (--ib-bleed-width), pulls back by the column's offset and gutter (--ib-bleed-pad),
+ * and pads its content by the same amount, so the content stays on the column. Elsewhere the
+ * variables are unset and it's an ordinary block.
+ */
+@layer izzy.components {
+  .ib-section {
+    display: block;
+  }
+
+  .ib-section-sm {
+    padding-block: var(--ib-space-8);
+  }
+
+  .ib-section-md {
+    padding-block: var(--ib-space-12);
+  }
+
+  .ib-section-lg {
+    padding-block: var(--ib-space-14);
+  }
+
+  @media (width >= 768px) {
+    .ib-section-md {
+      padding-block: var(--ib-space-14);
+    }
+
+    .ib-section-lg {
+      padding-block: var(--ib-space-16);
+    }
+  }
+
+  .ib-section-bleed {
+    box-sizing: border-box;
+    width: var(--ib-bleed-width, auto);
+    max-width: none;
+    margin-inline-start: calc(-1 * var(--ib-bleed-pad, 0px));
+    padding-inline: var(--ib-bleed-pad, 0px);
+  }
+}

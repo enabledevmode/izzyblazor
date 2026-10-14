@@ -43,6 +43,12 @@ all four take the [style props](styling.md).
 The rest:
 
 - `Container` centers content at a readable width (`Sm` to `Xl`, or `Full`).
+- `Section` is a band of a page (a hero, a feature row, a newsletter sign-up): a `section` with
+  vertical padding (`Spacing` `Sm`, `Md` by default, `Lg`, or `None`) and any style prop, such as
+  `Bg`. Inside a main area with a `ContentWidth` it spans the whole main area (full bleed) while its
+  content stays on the column; `FullBleed="false"` keeps it on the column. It measures the main area
+  with CSS alone, so it works with no script; put it at the page's top level or in containers
+  without side padding of their own.
 - `Center` centers both ways.
 - `Spacer` pushes the rest of a row to the end.
 - `AspectRatio` keeps media at a shape (16:9 by default).
@@ -303,8 +309,8 @@ each take their own `ContentWidth` to override it, for a wider header over a nar
 ```
 
 With a sidebar, the main area centers in its own column but the header spans the window, so set
-`ContentWidth` on `AppMain` alone. Everything in a measured main area is inside the column; a
-full-bleed image needs its own negative margins.
+`ContentWidth` on `AppMain` alone. The main area puts its content in a centered column, and a
+`Section` inside it spans the whole main area (see below).
 
 **The drawer.** Below its breakpoint the sidebar becomes a drawer opened by `SidebarToggle`. It works
 with JavaScript off (a link to the sidebar and CSS `:target`); with JavaScript it also closes on

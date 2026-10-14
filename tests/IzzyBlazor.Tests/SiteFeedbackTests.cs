@@ -52,6 +52,29 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
+    public void Section_is_a_full_bleed_band_by_default()
+    {
+        var section = Render<Section>(p => p.Add(s => s.Bg, Color.SurfaceContainerLow).AddChildContent("Hi")).Find("section");
+
+        Assert.Equal("ib-section ib-bg ib-fg ib-section-md ib-section-bleed", section.ClassName);
+        Assert.Equal("Hi", section.TextContent);
+    }
+
+    [Fact]
+    public void Section_spacing_element_and_bleed_can_change()
+    {
+        var div = Render<Section>(p => p
+            .Add(s => s.As, "div")
+            .Add(s => s.Spacing, SectionSpacing.Lg)
+            .Add(s => s.FullBleed, false)).Find("div");
+
+        Assert.Equal("ib-section ib-section-lg", div.ClassName);
+
+        var none = Render<Section>(p => p.Add(s => s.Spacing, SectionSpacing.None)).Find("section");
+        Assert.Equal("ib-section ib-section-bleed", none.ClassName);
+    }
+
+    [Fact]
     public void Heading_with_MinSize_is_fluid()
     {
         var h1 = Render<Heading>(p => p

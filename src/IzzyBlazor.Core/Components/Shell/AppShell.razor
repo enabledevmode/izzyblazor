@@ -20,7 +20,7 @@
 
 <ib-shell @attributes="AdditionalAttributes" class="@_class" style="@_style">
     <a class="ib-skip-link" href="@($"#{MainId}")">Skip to content</a>
-    <CascadingValue Value="_context" IsFixed="true">
+    <CascadingValue Value="_context">
         @ChildContent
     </CascadingValue>
 </ib-shell>
@@ -90,7 +90,10 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _context ??= new AppShellContext(MainId);
+        if (_context is null || _context.MainId != MainId || !Nullable.Equals(_context.ContentWidth, ContentWidth))
+        {
+            _context = new AppShellContext(MainId, ContentWidth);
+        }
         (_class, _style) = BuildRootAttributes();
     }
 }

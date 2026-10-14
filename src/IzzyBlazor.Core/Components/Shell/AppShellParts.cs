@@ -5,7 +5,8 @@ namespace IzzyBlazor;
 
 /// <summary>What an <see cref="AppShell"/> shares with its parts.</summary>
 /// <param name="MainId">The main area's id, which the skip link targets.</param>
-public sealed record AppShellContext(string MainId);
+/// <param name="ContentWidth">The shell's <see cref="AppShell.ContentWidth"/>, if set.</param>
+public sealed record AppShellContext(string MainId, Length? ContentWidth = null);
 
 /// <summary>Shared plumbing for the parts of an <see cref="AppShell"/>.</summary>
 public abstract class AppShellPart : IzzyComponentBase
@@ -110,17 +111,27 @@ public class AppMain : AppShellPart
     /// <summary>
     /// The width the content is centered at, such as <c>Length.Prose</c>, with at least the
     /// page gutter at the sides. Overrides the shell's <see cref="AppShell.ContentWidth"/>.
+    /// A <see cref="Section"/> inside still spans the whole main area.
     /// </summary>
     [Parameter] public Length? ContentWidth { get; set; }
 
     /// <inheritdoc />
     protected override string Area => "main";
 
+    // The content goes in a centered column (a div inside main), so main itself stays full width
+    // and full-bleed sections can measure it as a container.
+    private bool Measured => ContentWidth is not null || Shell?.ContentWidth is not null;
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        AddContentWidth(classes, styles, ContentWidth);
+        if (ContentWidth is { } width)
+        {
+            styles.AddVar("shell-content-w", StyleValues.Length(width));
+        }
+
+        classes.Add("ib-shell-main-measured", Measured);
     }
 
     /// <inheritdoc />
@@ -133,7 +144,18 @@ public class AppMain : AppShellPart
         builder.AddMultipleAttributes(3, AdditionalAttributes);
         builder.AddAttribute(4, "class", cssClass);
         builder.AddAttribute(5, "style", style);
-        builder.AddContent(6, ChildContent);
+        if (Measured)
+        {
+            builder.OpenElement(6, "div");
+            builder.AddAttribute(7, "class", "ib-shell-main-column");
+            builder.AddContent(8, ChildContent);
+            builder.CloseElement();
+        }
+        else
+        {
+            builder.AddContent(9, ChildContent);
+        }
+
         builder.CloseElement();
     }
 }
