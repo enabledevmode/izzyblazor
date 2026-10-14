@@ -4,12 +4,13 @@
 
 @*
     A small but realistic screen built only from IzzyBlazor components, for the README
-    screenshots. Static SSR: sorting, paging and filtering all go through the URL.
+    screenshots (1280×860 at 2x, light and dark). Static SSR: sorting, paging, filtering and row
+    selection all go through the URL and the form.
 *@
 
 <PageTitle>Orders · Acme</PageTitle>
 
-<AppShell Dividers="true">
+<AppShell>
     <AppHeader>
         <SidebarToggle />
         <Row Gap="2" Align="Align.Center">
@@ -17,39 +18,69 @@
             <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
         </Row>
         <Box Grow />
-        <NavMenu Orientation="Orientation.Horizontal" VisibleFrom="Breakpoint.Lg">
+        <HeaderNav Label="Site" Breakpoint="Breakpoint.Lg">
             <NavItem Href="preview/showcase/docs">Docs</NavItem>
+            <NavItem Href="preview/showcase/changelog">Changelog</NavItem>
             <NavItem Href="preview/showcase/support">Support</NavItem>
-        </NavMenu>
+        </HeaderNav>
+        <ColorSchemeSwitch />
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
-        <Menu Label="Izzy" Placement="Placement.BottomEnd" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">
-            <MenuItem Href="preview/showcase/profile" Icon="Lucide.User">Profile</MenuItem>
-            <MenuItem Href="preview/showcase/settings" Icon="Lucide.Settings">Settings</MenuItem>
-            <MenuDivider />
-            <MenuItem Href="preview/showcase" Icon="Lucide.LogOut">Sign out</MenuItem>
+        <Menu Label="Account" Placement="Placement.BottomEnd">
+            <Trigger>
+                <IconButton Icon="Lucide.CircleUser" Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
+            </Trigger>
+            <ChildContent>
+                <MenuItem Href="preview/showcase/profile" Icon="Lucide.User">Profile</MenuItem>
+                <MenuItem Href="preview/showcase/settings" Icon="Lucide.Settings">Settings</MenuItem>
+                <MenuDivider />
+                <MenuItem Href="preview/showcase" Icon="Lucide.LogOut">Sign out</MenuItem>
+            </ChildContent>
         </Menu>
     </AppHeader>
 
-    <AppSidebar Collapsible="true">
-        <NavMenu>
-            <NavItem Href="preview/showcase/home" Icon="Lucide.LayoutDashboard">Overview</NavItem>
-            <NavItem Href="preview/showcase" Icon="Lucide.ShoppingCart" Match="NavLinkMatch.All" Badge="12" BadgeColor="Color.Primary">Orders</NavItem>
-            <NavItem Href="preview/showcase/customers" Icon="Lucide.Users">Customers</NavItem>
-            <NavGroup Label="Catalog" Icon="Lucide.Package" ActivePrefix="preview/showcase/catalog">
-                <NavItem Href="preview/showcase/catalog/products">Products</NavItem>
-                <NavItem Href="preview/showcase/catalog/collections">Collections</NavItem>
-            </NavGroup>
-            <NavItem Href="preview/showcase/reports" Icon="Lucide.ChartColumn">Reports</NavItem>
-            <NavDivider />
-            <NavLabel>Workspace</NavLabel>
-            <NavItem Href="preview/showcase/team" Icon="Lucide.UsersRound">Team</NavItem>
-            <NavItem Href="preview/showcase/billing" Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
-        </NavMenu>
+    <AppSidebar Collapsible>
+        <Header>
+            <Menu Label="Switch store">
+                <Trigger>
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Store" FullWidth Class="host-switcher" @attributes="context">
+                        <span class="ib-collapsed-hide">Acme Outdoors</span>
+                        <Icon Name="Lucide.ChevronsUpDown" Class="ib-collapsed-hide" Color="Color.Muted" />
+                    </Button>
+                </Trigger>
+                <ChildContent>
+                    <MenuItem Icon="Lucide.Store">Acme Outdoors</MenuItem>
+                    <MenuItem Icon="Lucide.Store">Acme Home</MenuItem>
+                    <MenuDivider />
+                    <MenuItem Icon="Lucide.Plus">New store</MenuItem>
+                </ChildContent>
+            </Menu>
+        </Header>
+        <ChildContent>
+            <NavMenu>
+                <NavItem Href="preview/showcase/home" Icon="Lucide.LayoutDashboard">Overview</NavItem>
+                <NavItem Href="preview/showcase" Icon="Lucide.ShoppingCart" Match="NavLinkMatch.All" Badge="12" BadgeColor="Color.Primary">Orders</NavItem>
+                <NavItem Href="preview/showcase/customers" Icon="Lucide.Users">Customers</NavItem>
+                <NavGroup Label="Catalog" Icon="Lucide.Package" ActivePrefix="preview/showcase/catalog">
+                    <NavItem Href="preview/showcase/catalog/products">Products</NavItem>
+                    <NavItem Href="preview/showcase/catalog/collections">Collections</NavItem>
+                </NavGroup>
+                <NavItem Href="preview/showcase/reports" Icon="Lucide.ChartColumn">Reports</NavItem>
+                <NavDivider />
+                <NavLabel>Workspace</NavLabel>
+                <NavItem Href="preview/showcase/team" Icon="Lucide.UsersRound">Team</NavItem>
+                <NavItem Href="preview/showcase/billing" Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
+            </NavMenu>
+        </ChildContent>
+        <Footer>
+            <NavMenu aria-label="Account">
+                <NavItem Href="preview/showcase/profile" Icon="Lucide.CircleUser">Izzy Dryer</NavItem>
+            </NavMenu>
+        </Footer>
     </AppSidebar>
 
     <AppMain>
         <Stack Gap="6" Padding="new() { Base = 4, Md = 8 }">
-            <Row Gap="3" Align="Align.Center" Wrap>
+            <Row Gap="3" Align="Align.End" Wrap>
                 <Stack Gap="1" Grow>
                     <Heading Level="1" Size="TextSize.Xl2">Orders</Heading>
                     <TextBlock Color="Color.Muted" Size="TextSize.Sm">Every order across your stores, newest first.</TextBlock>
@@ -59,31 +90,22 @@
             </Row>
 
             <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4">
-                @foreach (var (label, value, change, up) in Stats)
-                {
-                    <Card>
-                        <Stack Gap="1">
-                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@label</TextBlock>
-                            <Row Gap="2" Align="Align.Center">
-                                <TextBlock Size="TextSize.Xl2" Weight="FontWeight.Semibold" TabularNums="true">@value</TextBlock>
-                                <Badge Status="@(up ? Status.Success : Status.Danger)">@change</Badge>
-                            </Row>
-                        </Stack>
-                    </Card>
-                }
+                <Card><Stat Label="Revenue" Value="$18,420" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.DollarSign" /></Card>
+                <Card><Stat Label="Orders" Value="57" Change="8%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.ShoppingCart" /></Card>
+                <Card><Stat Label="Refund rate" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Up" ChangeStatus="Status.Danger" Description="vs last month" Icon="Lucide.RotateCcw" /></Card>
             </Grid>
 
             <Stack Gap="3">
                 <FilterForm Label="Filter orders" id="showcase-filters">
                     <FilterSearch Placeholder="Search customers" />
-                    <FilterSelect Name="status" Label="Status" Items="Statuses" />
                     <FilterCheckbox Name="large" Label="Over $300" />
                 </FilterForm>
-                <Table Items="Filtered" PageSize="8" InitialSort="-date" Caption="Orders" EmptyText="No orders match" id="showcase-orders">
+                <Table Items="Filtered" PageSize="8" PageSizeOptions="@(new[] { 8, 16, 32 })" InitialSort="-date" Caption="Orders" EmptyText="No orders match"
+                       Selectable ItemKey="o => o.Number" RowLabel="o => o.Number" id="showcase-orders">
                     <PropertyColumn Property="o => o.Number" Title="Order" />
                     <PropertyColumn Property="o => o.Customer" Sortable />
                     <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
-                    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+                    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" FilterBy="o => o.Status" Sortable Filterable FilterMultiple>
                         <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
                     </TemplateColumn>
                     <PropertyColumn Property="o => o.Total" Format="C" Sortable />
@@ -97,7 +119,6 @@
     [Parameter] public string? Rest { get; set; }
 
     [SupplyParameterFromQuery(Name = "q")] public string? Search { get; set; }
-    [SupplyParameterFromQuery(Name = "status")] public string? StatusFilter { get; set; }
     [SupplyParameterFromQuery(Name = "large")] public bool Large { get; set; }
 
     private sealed record Order(string Number, string Customer, DateOnly Date, string Status, decimal Total);
@@ -109,16 +130,8 @@
         .Select(i => new Order($"#{1000 + i}", Customers[i * 7 % Customers.Length], new DateOnly(2026, 1, 1).AddDays(i * 5 % 280), Statuses[i * 3 % 7 % Statuses.Length], Math.Round(19.5m + i * 37.25m % 480m, 2)))
         .ToList();
 
-    private static readonly (string Label, string Value, string Change, bool Up)[] Stats =
-    [
-        ("Revenue", "$18,420", "+12%", true),
-        ("Orders", "57", "+8%", true),
-        ("Refund rate", "2.1%", "+0.4%", false),
-    ];
-
     private IEnumerable<Order> Filtered => Orders
         .Where(o => string.IsNullOrWhiteSpace(Search) || o.Customer.Contains(Search, StringComparison.OrdinalIgnoreCase))
-        .Where(o => string.IsNullOrEmpty(StatusFilter) || o.Status == StatusFilter)
         .Where(o => !Large || o.Total > 300);
 
     private static Status StatusOf(string status) => status switch
