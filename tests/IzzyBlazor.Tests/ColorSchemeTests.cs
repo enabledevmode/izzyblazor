@@ -59,6 +59,39 @@ public class ColorSchemeRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_bound_value_reaches_the_script_only_on_interactive_pages()
+    {
+        UseCookie(null);
+        var staticSwitch = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Dark));
+        Assert.False(staticSwitch.Find("ib-scheme-switch").HasAttribute("data-ib-value"));
+
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var live = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Dark));
+        Assert.Equal("dark", live.Find("ib-scheme-switch").GetAttribute("data-ib-value"));
+
+        live.Render(p => p.Add(s => s.Value, ColorScheme.System));
+        Assert.Equal("system", live.Find("ib-scheme-switch").GetAttribute("data-ib-value"));
+
+        var unbound = Render<ColorSchemeSwitch>();
+        Assert.False(unbound.Find("ib-scheme-switch").HasAttribute("data-ib-value"));
+    }
+
+    [Fact]
+    public void A_pick_matching_a_stale_current_scheme_still_raises_ValueChanged()
+    {
+        // Interactive with no prerender: the cookie can't be read, so the switch thinks System
+        // while the page is dark. Picking System must still reach the app.
+        UseCookie("ib-scheme=dark");
+        SetRendererInfo(new RendererInfo("WebAssembly", isInteractive: true));
+        ColorScheme? picked = null;
+        var cut = Render<ColorSchemeSwitch>(p => p.Add(s => s.ValueChanged, (ColorScheme v) => picked = v));
+
+        cut.Find("ib-scheme-switch").TriggerEvent("onibscheme", new IzzySchemeEventArgs { Scheme = "system" });
+
+        Assert.Equal(ColorScheme.System, picked);
+    }
+
+    [Fact]
     public void Toggle_is_two_links_and_css_shows_the_one_away_from_the_page_scheme()
     {
         UseCookie(null);
@@ -128,8 +161,24 @@ public class ColorSchemeEndpointTests
     [InlineData("", "/\\evil.example", "/")]
     [InlineData("", "a\\b", "/")]
     [InlineData("/app", "/elsewhere", "/app/")]
+    [InlineData("", "\t/evil.com", "/")]
+    [InlineData("", "docs\0", "/")]
+    [InlineData("", "a\nb", "/")]
     public void Return_url_stays_on_the_site(string pathBase, string? relative, string expected) =>
         Assert.Equal(expected, IzzyBlazorEndpointRouteBuilderExtensions.ReturnUrl(new PathString(pathBase), relative));
+
+    [Fact]
+    public async Task Scheme_endpoint_sends_a_control_character_return_home_instead_of_failing()
+    {
+        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection().AddLogging().BuildServiceProvider();
+        var context = new DefaultHttpContext { RequestServices = services };
+
+        var result = IzzyBlazorEndpointRouteBuilderExtensions.SetScheme(context, "dark", "\t/evil.com");
+        await result.ExecuteAsync(context);
+
+        Assert.Equal(302, context.Response.StatusCode);
+        Assert.Equal("/", context.Response.Headers.Location.ToString());
+    }
 
     [Fact]
     public void Scheme_endpoint_saves_the_cookie_and_goes_back()
