@@ -34,6 +34,27 @@ public class TextDefaultsTests : BunitContext
     }
 
     [Fact]
+    public void Status_words_and_table_text_come_from_IzzyText()
+    {
+        Services.AddSingleton(new IzzyText { StatusWarning = "Achtung", TableName = "Tabelle", TablePages = "{0}: Seiten", TableRange = "{0}–{1} von {2}" });
+        Static();
+
+        Assert.Equal("Achtung: ", Render<Alert>(p => p.Add(a => a.Status, Status.Warning).AddChildContent("x")).Find(".ib-visually-hidden").TextContent);
+        Assert.Equal("Achtung: ", Render<Banner>(p => p.Add(b => b.Status, Status.Warning).AddChildContent("x")).Find(".ib-visually-hidden").TextContent);
+
+        var table = Render<Table<int>>(p => p.Add(t => t.Items, Enumerable.Range(1, 30)).Add(t => t.PageSize, 10)
+            .Add(t => t.ChildContent, (RenderFragment)(b =>
+            {
+                b.OpenComponent<PropertyColumn<int, int>>(0);
+                b.AddAttribute(1, "Property", (System.Linq.Expressions.Expression<Func<int, int>>)(i => i));
+                b.CloseComponent();
+            })));
+        Assert.Equal("Tabelle", table.Find(".ib-table-scroll").GetAttribute("aria-label"));
+        Assert.Equal("1–10 von 30", table.Find(".ib-table-summary").TextContent);
+        Assert.Equal("Tabelle: Seiten", table.Find("nav").GetAttribute("aria-label"));
+    }
+
+    [Fact]
     public void A_subclass_can_supply_text_from_code()
     {
         Services.AddSingleton<IzzyText, Pirate>();
