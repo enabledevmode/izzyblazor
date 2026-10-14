@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
+@implements IDisposable
 
 @*
     A site's links in an AppHeader: a row of links on wide screens and, below Breakpoint, a menu
@@ -20,6 +21,9 @@
     dismiss and Escape come from the browser). With script, <ib-header-nav> also closes it when a
     link is followed (enhanced navigation keeps the page) or the screen grows past the breakpoint,
     and moves focus into it.
+
+    Inside an AppShell with an AppSidebar, the menu button and sheet stay hidden: below the
+    breakpoint the links show at the top of the sidebar (its drawer on phones), so there is one menu.
 *@
 
 <ib-header-nav @attributes="AdditionalAttributes" class="@_class" style="@_style">
@@ -105,6 +109,15 @@
         classes.Add("ib-header-nav-end", MenuButtonAtEnd);
     }
 
+    [CascadingParameter] private ShellHeaderLinks? ShellLinks { get; set; }
+
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        ShellLinks?.Set(ChildContent, Breakpoint);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => ShellLinks?.Set(null, Breakpoint);
 }

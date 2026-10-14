@@ -275,4 +275,51 @@ public class SiteFeedbackTests : BunitContext
         Assert.Equal("hide", close.GetAttribute("popovertargetaction"));
         Assert.Equal("Footer", cut.Find(".ib-header-nav-foot").TextContent);
     }
+
+    [Fact]
+    public void HeaderNav_in_a_shell_with_a_sidebar_puts_its_links_at_the_top_of_the_sidebar()
+    {
+        RenderFragment link = b =>
+        {
+            b.OpenComponent<NavItem>(0);
+            b.AddAttribute(1, nameof(NavItem.Href), "/blog");
+            b.AddAttribute(2, nameof(NavItem.ChildContent), (RenderFragment)(t => t.AddContent(0, "Blog")));
+            b.CloseComponent();
+        };
+
+        // The header comes first, as in a real layout: the sidebar has rendered before HeaderNav does.
+        var cut = Render<AppShell>(p => p.Add(s => s.ChildContent, (RenderFragment)(b =>
+        {
+            b.OpenComponent<AppHeader>(0);
+            b.AddAttribute(1, nameof(AppHeader.ChildContent), (RenderFragment)(h =>
+            {
+                h.OpenComponent<HeaderNav>(0);
+                h.AddAttribute(1, nameof(HeaderNav.Breakpoint), Breakpoint.Lg);
+                h.AddAttribute(2, nameof(HeaderNav.ChildContent), link);
+                h.CloseComponent();
+            }));
+            b.CloseComponent();
+            b.OpenComponent<AppSidebar>(2);
+            b.AddAttribute(3, nameof(AppSidebar.ChildContent), (RenderFragment)(n => n.AddContent(0, "Sidebar links")));
+            b.CloseComponent();
+        })));
+
+        var links = cut.Find(".ib-shell-sidebar-body > .ib-shell-sidebar-links");
+        Assert.Contains("ib-shell-sidebar-links-bp-lg", links.ClassName);
+        Assert.NotNull(links.QuerySelector("a[href='/blog']"));
+        // Above the sidebar's own content.
+        Assert.Equal("Sidebar links", links.NextSibling?.TextContent.Trim());
+    }
+
+    [Fact]
+    public void AppSidebar_without_a_HeaderNav_has_no_header_links()
+    {
+        var cut = Render<AppShell>(p => p.Add(s => s.ChildContent, (RenderFragment)(b =>
+        {
+            b.OpenComponent<AppSidebar>(0);
+            b.CloseComponent();
+        })));
+
+        Assert.Empty(cut.FindAll(".ib-shell-sidebar-links"));
+    }
 }

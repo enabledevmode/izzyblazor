@@ -216,6 +216,16 @@
             <TextBlock As="span" Weight="FontWeight.Bold">Acme</TextBlock>
         </Row>
         <Box Grow />
+        @if (Kind == "document")
+        {
+            @* A docs site: site links in the header as well as the sidebar. On phones they move to the
+               top of the drawer, so there is one menu. *@
+            <HeaderNav Label="Site">
+                <NavItem Href="@Url("document")">Docs</NavItem>
+                <NavItem Href="@Url("reading")">Blog</NavItem>
+                <NavItem Href="@Url("marketing")">Videos</NavItem>
+            </HeaderNav>
+        }
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         <Avatar Name="Ada Lovelace" />
     </AppHeader>
