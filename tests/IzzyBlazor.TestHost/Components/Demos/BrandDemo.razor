@@ -6,7 +6,7 @@
 
 @if (Palette is not null)
 {
-    <HeadContent><IzzyTheme Primary="@Chosen" /></HeadContent>
+    <HeadContent><IzzyTheme Brand="@Chosen" /></HeadContent>
 }
 
 <Stack Gap="8">
@@ -32,14 +32,14 @@
 
     <Example Title="Your brand color" Note="Pick a color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, each pair checked for 4.5:1. A light color gets dark text; a dark one is lifted in dark mode." Code="@ThemeCode">
         <Stack Gap="5">
-            @* The library's ColorPicker in a plain GET form: its name posts ?primary=#hex. *@
+            @* The library's ColorPicker in a plain GET form: its name posts ?brand=#hex. *@
             <form method="get" class="host-brand-form">
                 <Box Width="Length.Rem(20)" MaxWidth="Length.Full">
-                    <ColorPicker @bind-Value="_pick" name="primary" Label="Primary" Presets="PresetHexes" Size="ControlSize.Sm" />
+                    <ColorPicker @bind-Value="_pick" name="brand" Label="Brand" Presets="PresetHexes" Size="ControlSize.Sm" />
                 </Box>
                 <Row Gap="3" Align="Align.Center">
                     <Button Type="ButtonType.Submit" Size="ControlSize.Sm">Apply</Button>
-                    <a href="@Navigation.GetUriWithQueryParameter("primary", (string?)null)" class="host-label">Reset</a>
+                    <a href="@Navigation.GetUriWithQueryParameter("brand", (string?)null)" class="host-label">Reset</a>
                 </Row>
             </form>
 
@@ -68,10 +68,10 @@
 </Stack>
 
 @code {
-    [SupplyParameterFromQuery(Name = "primary")] public string? Primary { get; set; }
+    [SupplyParameterFromQuery(Name = "brand")] public string? Brand { get; set; }
 
-    private AccentPalette? Palette;
-    private string Chosen => Palette is null ? "#2563eb" : Primary!.Trim();
+    private BrandPalette? Palette;
+    private string Chosen => Palette is null ? "#2563eb" : Brand!.Trim();
 
     private string? _pick;
 
@@ -85,7 +85,7 @@
     {
         try
         {
-            Palette = string.IsNullOrWhiteSpace(Primary) ? null : AccentPalette.From(Primary);
+            Palette = string.IsNullOrWhiteSpace(Brand) ? null : BrandPalette.From(Brand);
         }
         catch (ArgumentException)
         {
@@ -149,6 +149,6 @@
     private const string ThemeCode =
         """
         @* App.razor, in <head> *@
-        <IzzyTheme Primary="#0a7d5a" />
+        <IzzyTheme Brand="#0a7d5a" />
         """;
 }

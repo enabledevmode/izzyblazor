@@ -5,7 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    @* Applied before first paint: the saved preset and accent, and a class that says JavaScript is
+    @* Applied before first paint: the saved preset and brand, and a class that says JavaScript is
        running. The color scheme comes from IzzyTheme (the switch's cookie), below. *@
     <script>
         (function () {
@@ -14,8 +14,8 @@
             try {
                 var l = localStorage.getItem("ib-host-preset");
                 if (l) d.setAttribute("data-ib-preset", l);
-                var c = localStorage.getItem("ib-host-color");
-                if (c) d.setAttribute("data-ib-accent", c);
+                var c = localStorage.getItem("ib-host-brand");
+                if (c) d.setAttribute("data-ib-brand", c);
             } catch (e) { }
         })();
     </script>

@@ -23,6 +23,8 @@
                 Open="entry.IsOpen"
                 OpenChanged="open => OnOpenChanged(entry, open)"
                 Class="@entry.Options.ColorScheme.ClassName()"
+                Style="@BrandStyle(entry.Options)"
+                data-ib-brand="@BrandName(entry.Options)"
                 data-ib-density="@(entry.Options.Density?.ToString().ToLowerInvariant())">
             <CascadingValue Value="entry.Instance" IsFixed="true">
                 <DynamicComponent Type="entry.Component" Parameters="entry.Parameters" />
@@ -51,6 +53,14 @@
     }
 
     private void OnChanged() => InvokeAsync(StateHasChanged);
+
+    private static string? BrandName(DialogOptions options) =>
+        string.IsNullOrWhiteSpace(options.Brand) ? null : ThemeColors.Parse(options.Brand, ThemeColors.Brands, nameof(DialogOptions.Brand)).Name;
+
+    private static string? BrandStyle(DialogOptions options) =>
+        string.IsNullOrWhiteSpace(options.Brand) || ThemeColors.Parse(options.Brand, ThemeColors.Brands, nameof(DialogOptions.Brand)).Hex is not { } hex
+            ? null
+            : BrandPalette.From(hex).ToCss();
 
     // Escape, the backdrop or the close button: the dialog is canceled.
     private void OnOpenChanged(DialogEntry entry, bool open)

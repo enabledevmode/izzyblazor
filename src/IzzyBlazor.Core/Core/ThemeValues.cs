@@ -19,47 +19,42 @@ public enum ThemePreset
     Editorial,
 }
 
-/// <summary>A built-in accent, hand-tuned in light and dark. For your own color, use <see cref="IzzyTheme.Primary"/>.</summary>
-public enum ThemeAccent
+/// <summary>
+/// The values <see cref="IzzyTheme.Brand"/> and <see cref="IzzyTheme.Gray"/> take: a built-in name
+/// or a hex color.
+/// </summary>
+internal static class ThemeColors
 {
-    /// <summary>The default accent.</summary>
-    Blue,
+    /// <summary>The built-in brand colors, hand-tuned in light and dark: blue (the default), ink (monochrome), indigo, violet, teal, green, rose.</summary>
+    public static readonly string[] Brands = ["blue", "ink", "indigo", "violet", "teal", "green", "rose"];
 
-    /// <summary>Monochrome: the gray set's text color.</summary>
-    Ink,
+    /// <summary>The built-in gray sets: neutral (the default), slate (cool), stone (warm paper).</summary>
+    public static readonly string[] Grays = ["neutral", "slate", "stone"];
 
-    /// <summary>Indigo.</summary>
-    Indigo,
+    /// <summary>A built-in name (lowercase) or a normalized hex color; anything else throws, listing what's allowed.</summary>
+    public static (string? Name, string? Hex) Parse(string value, string[] names, string parameter)
+    {
+        var text = value.Trim();
+        if (names.Contains(text.ToLowerInvariant()))
+        {
+            return (text.ToLowerInvariant(), null);
+        }
 
-    /// <summary>Violet.</summary>
-    Violet,
+        if (text.StartsWith('#') && ColorValues.NormalizeHex(text) is { } hex)
+        {
+            return (null, hex);
+        }
 
-    /// <summary>Teal.</summary>
-    Teal,
-
-    /// <summary>Green.</summary>
-    Green,
-
-    /// <summary>Rose.</summary>
-    Rose,
-}
-
-/// <summary>The gray set: page, surfaces, fills, borders and text.</summary>
-public enum ThemeGray
-{
-    /// <summary>No tint (the default).</summary>
-    Neutral,
-
-    /// <summary>Cool.</summary>
-    Slate,
-
-    /// <summary>Warm paper; pairs with serif headings.</summary>
-    Stone,
+        throw new ArgumentException($"{parameter} is a hex color such as #0a7d5a, or one of: {string.Join(", ", names)}. Got \"{value}\".", parameter);
+    }
 }
 
 /// <summary>The radius scale: controls, cards and dialogs shift together.</summary>
 public enum ThemeRadius
 {
+    /// <summary>Square corners everywhere.</summary>
+    None,
+
     /// <summary>Small.</summary>
     Sm,
 
@@ -68,6 +63,12 @@ public enum ThemeRadius
 
     /// <summary>Large.</summary>
     Lg,
+
+    /// <summary>
+    /// Pill-shaped controls: buttons, fields, segmented controls, tags and badges. Cards, popovers
+    /// and dialogs take the large scale; joined button groups round only their outer ends.
+    /// </summary>
+    Full,
 }
 
 /// <summary>

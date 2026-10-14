@@ -159,4 +159,21 @@ public class DialogServiceTests : BunitContext
         Assert.Contains("ib-scheme-dark", dialog.ClassName);
         Assert.Equal("compact", dialog.GetAttribute("data-ib-density"));
     }
+
+    [Fact]
+    public async Task A_dialog_can_take_the_brand_of_where_it_was_opened()
+    {
+        var service = Setup();
+        var host = Render<DialogHost>();
+        await host.InvokeAsync(() =>
+        {
+            _ = service.OpenAsync<Content>("Named", null, new DialogOptions { Brand = "rose" });
+            _ = service.OpenAsync<Content>("Hex", null, new DialogOptions { Brand = "#be123c" });
+        });
+
+        host.WaitForAssertion(() => Assert.Equal(2, host.FindAll("dialog").Count));
+        var dialogs = host.FindAll("dialog");
+        Assert.Equal("rose", dialogs[0].GetAttribute("data-ib-brand"));
+        Assert.Contains("--ib-color-primary: light-dark(#be123c", dialogs[1].GetAttribute("style"));
+    }
 }

@@ -2,7 +2,7 @@ using System.Globalization;
 
 namespace IzzyBlazor.Tests;
 
-public class AccentPaletteTests
+public class BrandPaletteTests
 {
     // Brand colors chosen to stress the derivation: mid blue, dark green, light yellow, navy, a
     // light orange, mid gray, red, violet, black, white, light blue, lime.
@@ -16,7 +16,7 @@ public class AccentPaletteTests
     [MemberData(nameof(Brands))]
     public void Every_pair_meets_AA(string brand)
     {
-        var p = AccentPalette.From(brand);
+        var p = BrandPalette.From(brand);
 
         Assert.True(Ratio(p.OnFill, p.Fill) >= 4.5, $"text on fill {Ratio(p.OnFill, p.Fill):0.00}");
         Assert.True(Ratio(p.Text, "#ffffff") >= 4.5, "accent text on the surface");
@@ -32,7 +32,7 @@ public class AccentPaletteTests
     [Fact]
     public void A_fill_that_carries_text_is_kept_as_given()
     {
-        var p = AccentPalette.From("#2563eb");
+        var p = BrandPalette.From("#2563eb");
 
         Assert.Equal("#2563eb", p.Fill);
         Assert.Equal("#ffffff", p.OnFill);
@@ -42,7 +42,7 @@ public class AccentPaletteTests
     [Fact]
     public void A_light_fill_gets_dark_text_and_a_darker_accent_text()
     {
-        var p = AccentPalette.From("#facc15");
+        var p = BrandPalette.From("#facc15");
 
         Assert.Equal("#facc15", p.Fill);
         Assert.Equal("#111111", p.OnFill);
@@ -52,7 +52,7 @@ public class AccentPaletteTests
     [Fact]
     public void A_dark_brand_is_lifted_in_dark_mode()
     {
-        var p = AccentPalette.From("#1e3a8a");
+        var p = BrandPalette.From("#1e3a8a");
 
         Assert.Equal("#1e3a8a", p.Fill);
         Assert.NotEqual("#1e3a8a", p.DarkFill);
@@ -62,7 +62,7 @@ public class AccentPaletteTests
     [Fact]
     public void Css_is_the_four_primary_tokens_as_light_dark_pairs()
     {
-        var css = AccentPalette.From("#2563eb").ToCss();
+        var css = BrandPalette.From("#2563eb").ToCss();
 
         Assert.StartsWith("--ib-color-primary: light-dark(#2563eb, #2563eb);", css);
         Assert.Contains("--ib-color-on-primary: light-dark(#ffffff, #ffffff);", css);
@@ -76,7 +76,7 @@ public class AccentPaletteTests
     [InlineData("2563eb")]
     [InlineData("")]
     public void Rejects_values_that_are_not_hex(string value) =>
-        Assert.Throws<ArgumentException>(() => AccentPalette.From(value));
+        Assert.Throws<ArgumentException>(() => BrandPalette.From(value));
 
     private static double Ratio(string a, string b)
     {
@@ -97,7 +97,7 @@ public class IzzyThemeRenderTests : BunitContext
     [Fact]
     public void Renders_the_primary_tokens_in_the_tokens_layer()
     {
-        var style = Render<IzzyTheme>(p => p.Add(t => t.Primary, "#0a7d5a")).Find("style");
+        var style = Render<IzzyTheme>(p => p.Add(t => t.Brand, "#0a7d5a")).Find("style");
 
         Assert.True(style.HasAttribute("data-ib-theme-style"));
         Assert.StartsWith("@layer izzy.tokens { :root:root:root { --ib-color-primary: light-dark(#0a7d5a,", style.TextContent);
@@ -109,13 +109,13 @@ public class IzzyThemeRenderTests : BunitContext
     {
         var cut = Render<IzzyTheme>(p => p
             .Add(t => t.Preset, ThemePreset.Compact)
-            .Add(t => t.Accent, ThemeAccent.Teal)
-            .Add(t => t.Gray, ThemeGray.Stone)
+            .Add(t => t.Brand, "teal")
+            .Add(t => t.Gray, "stone")
             .Add(t => t.Radius, ThemeRadius.Lg)
             .Add(t => t.Density, ThemeDensity.Comfortable));
 
         var metas = cut.FindAll("meta").Select(m => $"{m.GetAttribute("name")}={m.GetAttribute("content")}");
-        Assert.Equal(["ib-preset=compact", "ib-accent=teal", "ib-gray=stone", "ib-radius=lg", "ib-density=comfortable"], metas);
+        Assert.Equal(["ib-preset=compact", "ib-brand=teal", "ib-gray=stone", "ib-radius=lg", "ib-density=comfortable"], metas);
         Assert.Empty(cut.FindAll("style"));
     }
 
@@ -150,7 +150,7 @@ public class IzzyThemeRenderTests : BunitContext
     [Fact]
     public void Passes_a_nonce_and_renders_nothing_without_a_color()
     {
-        Assert.Equal("abc", Render<IzzyTheme>(p => p.Add(t => t.Primary, "#0af").Add(t => t.Nonce, "abc")).Find("style").GetAttribute("nonce"));
-        Assert.Empty(Render<IzzyTheme>(p => p.Add(t => t.Primary, "")).FindAll("style"));
+        Assert.Equal("abc", Render<IzzyTheme>(p => p.Add(t => t.Brand, "#0af").Add(t => t.Nonce, "abc")).Find("style").GetAttribute("nonce"));
+        Assert.Empty(Render<IzzyTheme>(p => p.Add(t => t.Brand, "")).FindAll("style"));
     }
 }

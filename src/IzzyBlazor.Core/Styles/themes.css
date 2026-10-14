@@ -2,8 +2,8 @@
  * Presets, accents, grays, radius and density, chosen with attributes or with IzzyTheme's meta tags.
  *
  *   <html lang="en" data-ib-preset="compact">                         a preset
- *   <html lang="en" data-ib-preset="compact" data-ib-accent="teal">   a preset in another accent
- *   <section data-ib-density="compact" data-ib-accent="rose">         part of a page
+ *   <html lang="en" data-ib-preset="compact" data-ib-brand="teal">   a preset in another accent
+ *   <section data-ib-density="compact" data-ib-brand="rose">         part of a page
  *
  * Presets (data-ib-preset) are a starting set of defaults: density, shape and type, plus a default
  * accent and gray that suit the products likely to use them:
@@ -15,10 +15,10 @@
  *   editorial  reading and docs: serif headings, large radius; Ink on Stone
  * A preset's accent and gray apply only to the whole page (on <html>, or IzzyTheme's meta tag). On
  * part of a page a preset changes density, shape and type only; colors change there only when
- * asked for (data-ib-accent, data-ib-gray).
+ * asked for (data-ib-brand, data-ib-gray).
  *
  * <IzzyTheme> sets the same choices from <head> with meta tags (<meta name="ib-preset"
- * content="compact">, ib-accent, ib-gray, ib-radius, ib-density), matched through :root:has().
+ * content="compact">, ib-brand, ib-gray, ib-radius, ib-density), matched through :root:has().
  * Weights, weakest first, so the more specific choice always wins and file order never decides:
  *   1  a preset's meta tag                 :root:where(:has(meta))                  0,1,0
  *   2  a preset attribute                  [data-ib-preset][data-ib-preset="x"]     0,2,0
@@ -28,7 +28,7 @@
  *
  * Accents: blue (the default), ink, indigo, violet, teal, green, rose.
  * Grays: neutral (the default, in tokens.css), stone (warm), slate (cool).
- * Radius: sm, md (the default), lg.
+ * Radius: none, sm, md (the default), lg, full (pill-shaped controls).
  * Density: compact, standard (the default), comfortable.
  *
  * Every color is light-dark(), hand-tuned so text holds 4.5:1 on its fill and on each gray, in
@@ -100,8 +100,8 @@
      warm or cool cast. */
   :root[data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="ink"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="ink"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="ink"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="ink"])) {
     --ib-color-primary: var(--ib-color-on-surface);
     --ib-color-on-primary: var(--ib-color-surface);
     --ib-color-primary-text: var(--ib-color-on-surface);
@@ -110,8 +110,8 @@
 
   :root[data-ib-preset="standard"],
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="blue"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="blue"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="blue"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="blue"])) {
     --ib-color-primary: light-dark(#2563eb, #3d6ae8);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#1d4ed8, #a9bdff);
@@ -120,16 +120,16 @@
 
   :root[data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="indigo"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="indigo"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="indigo"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="indigo"])) {
     --ib-color-primary: light-dark(#4f46e5, #5b55e9);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#4338ca, #b8bbff);
     --ib-color-primary-soft: light-dark(#e3e1fb, #23234b);
   }
 
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="violet"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="violet"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="violet"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="violet"])) {
     --ib-color-primary: light-dark(#6d28d9, #7a4be0);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#5b21b6, #cdb8ff);
@@ -138,24 +138,24 @@
 
   :root[data-ib-preset="soft"],
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="teal"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="teal"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="teal"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="teal"])) {
     --ib-color-primary: light-dark(#0f766e, #11807a);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#115e59, #7fd6cb);
     --ib-color-primary-soft: light-dark(#d9e9e8, #12302e);
   }
 
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="green"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="green"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="green"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="green"])) {
     --ib-color-primary: light-dark(#1d7a3e, #1f8345);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#1d6b3a, #8fdcaa);
     --ib-color-primary-soft: light-dark(#dbeae0, #16301f);
   }
 
-  [data-ib-accent][data-ib-accent][data-ib-accent][data-ib-accent="rose"],
-  :root:root:root:where(:has(> head > meta[name="ib-accent"][content="rose"])) {
+  [data-ib-brand][data-ib-brand][data-ib-brand][data-ib-brand="rose"],
+  :root:root:root:where(:has(> head > meta[name="ib-brand"][content="rose"])) {
     --ib-color-primary: light-dark(#be1857, #cc2a63);
     --ib-color-on-primary: #ffffff;
     --ib-color-primary-text: light-dark(#9f1239, #ffa8c5);
@@ -167,6 +167,8 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
   [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="sm"],
   :root:root:root:where(:has(> head > meta[name="ib-radius"][content="sm"])) {
+    --ib-radius-control: initial;
+    --ib-radius-control-sm: initial;
     --ib-radius-sm: 0.125rem;
     --ib-radius-md: 0.25rem;
     /* Cards (xl) and popovers and dialogs (lg) tighten as much as controls do: a 10px card corner
@@ -179,6 +181,8 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
   [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="md"],
   :root:root:root:where(:has(> head > meta[name="ib-radius"][content="md"])) {
+    --ib-radius-control: initial;
+    --ib-radius-control-sm: initial;
     --ib-radius-sm: 0.25rem;
     --ib-radius-md: 0.375rem;
     --ib-radius-lg: 0.625rem;
@@ -191,6 +195,30 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
   [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="lg"],
   :root:root:root:where(:has(> head > meta[name="ib-radius"][content="lg"])) {
+    --ib-radius-control: initial;
+    --ib-radius-control-sm: initial;
+    --ib-radius-sm: 0.375rem;
+    --ib-radius-md: 0.5rem;
+    --ib-radius-lg: 0.875rem;
+    --ib-radius-xl: 1rem;
+  }
+
+  /* None: square corners everywhere. Full: controls (buttons, fields, segmented controls, tags,
+     badges) are pills; cards, popovers and dialogs take the large scale. */
+  [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="none"],
+  :root:root:root:where(:has(> head > meta[name="ib-radius"][content="none"])) {
+    --ib-radius-control: initial;
+    --ib-radius-control-sm: initial;
+    --ib-radius-sm: 0px;
+    --ib-radius-md: 0px;
+    --ib-radius-lg: 0px;
+    --ib-radius-xl: 0px;
+  }
+
+  [data-ib-radius][data-ib-radius][data-ib-radius][data-ib-radius="full"],
+  :root:root:root:where(:has(> head > meta[name="ib-radius"][content="full"])) {
+    --ib-radius-control: 9999px;
+    --ib-radius-control-sm: 9999px;
     --ib-radius-sm: 0.375rem;
     --ib-radius-md: 0.5rem;
     --ib-radius-lg: 0.875rem;

@@ -105,7 +105,7 @@
 
        The default theme is Blue on neutral grays: the accent people expect from a component
        library, so the brand color is the app's to add. Other accents, grays and radii are sets in
-       themes.css, chosen with data-ib-accent, data-ib-gray and data-ib-radius (or IzzyTheme). */
+       themes.css, chosen with data-ib-brand, data-ib-gray and data-ib-radius (or IzzyTheme). */
 
     /* Accent ("primary"): the fill, text on it, the accent as text, and a soft tint (16% of the
        fill on white) for soft buttons, the current page, chips and selected things. */

@@ -5,17 +5,17 @@
 @*
     The theme in one place. For the app, put it in App.razor's <head>:
 
-    <IzzyTheme Preset="ThemePreset.Compact" Primary="#0a7d5a" BodyFont="Inter, sans-serif" />
+    <IzzyTheme Preset="ThemePreset.Compact" Brand="#0a7d5a" BodyFont="Inter, sans-serif" />
 
-    Preset sets density, shape and type; Accent, Gray, Radius, Density and the fonts override its
-    defaults; Primary is your own brand color and beats Accent; ColorScheme is the default light or dark.
-    Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block for
-    Primary and the fonts), so it's in place on first paint, needs no script and works in every
-    render mode.
+    Preset sets density, shape and type; Brand, Gray, Radius, Density and the fonts override its
+    defaults; ColorScheme is the default light or dark. Brand and Gray take a built-in name or a hex
+    color. Everything is server-rendered (meta tags the theme CSS matches, and a small <style> block
+    for hex colors and the fonts), so it's in place on first paint, needs no script and works in
+    every render mode.
 
-    With content, it themes that part of the page instead, in a div: Accent or Primary, Gray,
+    With content, it themes that part of the page instead, in a div: Brand, a built-in Gray,
     Radius, Density, Preset (shape, density and type only) and ColorScheme; what it doesn't set
-    comes from around it. Fonts and HeadingWeight are app-wide only. For one exact value, use CSS:
+    comes from around it. Fonts, HeadingWeight and a hex Gray are app-wide only. For one exact value, use CSS:
     its variable in your stylesheet, or Style and Class on a nested IzzyTheme (docs/styling.md).
 *@
 
@@ -25,13 +25,13 @@
     {
         <meta name="ib-preset" content="@Name(preset)" />
     }
-    @if (Accent is { } accent)
+    @if (_brand.Name is { } brand)
     {
-        <meta name="ib-accent" content="@Name(accent)" />
+        <meta name="ib-brand" content="@brand" />
     }
-    @if (Gray is { } gray)
+    @if (_gray.Name is { } gray)
     {
-        <meta name="ib-gray" content="@Name(gray)" />
+        <meta name="ib-gray" content="@gray" />
     }
     @if (Radius is { } radius)
     {
@@ -56,8 +56,8 @@ else
          class="@_partClass"
          style="@_partStyle"
          data-ib-preset="@NameOrNull(Preset)"
-         data-ib-accent="@NameOrNull(Accent)"
-         data-ib-gray="@NameOrNull(Gray)"
+         data-ib-brand="@_brand.Name"
+         data-ib-gray="@_gray.Name"
          data-ib-radius="@NameOrNull(Radius)"
          data-ib-density="@NameOrNull(Density)">
         @ChildContent
@@ -71,21 +71,25 @@ else
     /// </summary>
     [Parameter] public ThemePreset? Preset { get; set; }
 
-    /// <summary>A built-in accent, over the preset's. <see cref="Primary"/> beats it.</summary>
-    [Parameter] public ThemeAccent? Accent { get; set; }
+    /// <summary>
+    /// The brand color, over the preset's: a hex color (<c>"#0a7d5a"</c>), from which the fill, the text
+    /// on it, the accent as text and the soft tint are derived in light and dark, each pair at AA
+    /// (see <see cref="BrandPalette"/>); or a built-in, hand-tuned one: <c>blue</c> (the default),
+    /// <c>ink</c> (monochrome), <c>indigo</c>, <c>violet</c>, <c>teal</c>, <c>green</c>, <c>rose</c>.
+    /// <see cref="Accent.Primary"/> controls are painted with it.
+    /// </summary>
+    [Parameter] public string? Brand { get; set; }
 
-    /// <summary>The gray set, over the preset's.</summary>
-    [Parameter] public ThemeGray? Gray { get; set; }
+    /// <summary>
+    /// The grays (page, surfaces, fills, borders and text), over the preset's: a built-in set,
+    /// <c>neutral</c> (the default), <c>slate</c> (cool) or <c>stone</c> (warm paper); or a hex color
+    /// for your light page background (<c>"#f4efe6"</c>), from which the rest is derived with contrast
+    /// checked (see <see cref="GrayPalette"/>). A hex gray is app-wide only.
+    /// </summary>
+    [Parameter] public string? Gray { get; set; }
 
     /// <summary>The radius scale, over the preset's.</summary>
     [Parameter] public ThemeRadius? Radius { get; set; }
-
-    /// <summary>
-    /// Your brand color as hex (<c>#rgb</c> or <c>#rrggbb</c>). The fill, the text on it, the accent
-    /// as text and the soft tint are derived from it in light and dark, each pair at AA
-    /// (see <see cref="AccentPalette"/>).
-    /// </summary>
-    [Parameter] public string? Primary { get; set; }
 
     /// <summary>Control heights, table rows and card padding, over the preset's.</summary>
     [Parameter] public ThemeDensity? Density { get; set; }
@@ -137,10 +141,14 @@ else
     private IzzyBlazor.ColorScheme? _scheme;
     private string? _partClass;
     private string? _partStyle;
+    private (string? Name, string? Hex) _brand;
+    private (string? Name, string? Hex) _gray;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        _brand = string.IsNullOrWhiteSpace(Brand) ? default : ThemeColors.Parse(Brand, ThemeColors.Brands, nameof(Brand));
+        _gray = string.IsNullOrWhiteSpace(Gray) ? default : ThemeColors.Parse(Gray, ThemeColors.Grays, nameof(Gray));
         if (ChildContent is not null)
         {
             SetPart();
@@ -164,9 +172,14 @@ else
         _scheme = ColorSchemes.Parse(Services.GetService<IRequestCookies>()?.Get(ColorSchemes.CookieName)) ?? ColorScheme;
 
         var declarations = new List<string>();
-        if (!string.IsNullOrWhiteSpace(Primary))
+        if (_brand.Hex is { } brandHex)
         {
-            declarations.Add(AccentPalette.From(Primary).ToCss());
+            declarations.Add(BrandPalette.From(brandHex).ToCss());
+        }
+
+        if (_gray.Hex is { } grayHex)
+        {
+            declarations.Add(GrayPalette.From(grayHex).ToCss());
         }
 
         if (!string.IsNullOrWhiteSpace(BodyFont))
@@ -219,11 +232,16 @@ else
             throw new ArgumentException("HeadingWeight is app-wide: set it on the IzzyTheme in <head>.", nameof(HeadingWeight));
         }
 
+        if (_gray.Hex is not null)
+        {
+            throw new ArgumentException("A hex Gray is app-wide: set it on the IzzyTheme in <head>. Part of a page takes a built-in gray (neutral, slate, stone).", nameof(Gray));
+        }
+
         var classes = new ClassBuilder().Add("ib-theme").Add(ColorScheme?.ClassName()).Add(Class);
         var styles = new StyleBuilder();
-        if (!string.IsNullOrWhiteSpace(Primary))
+        if (_brand.Hex is { } brandHex)
         {
-            styles.AddRaw(AccentPalette.From(Primary).ToCss());
+            styles.AddRaw(BrandPalette.From(brandHex).ToCss());
         }
 
         styles.AddRaw(Style);
