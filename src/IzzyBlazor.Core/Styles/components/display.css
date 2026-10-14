@@ -309,3 +309,111 @@
     margin-top: var(--ib-space-5);
   }
 }
+
+/* Image: never wider than its box; a Ratio gives it a shape it fills (cover) or fits (contain). */
+@layer izzy.components {
+  .ib-image {
+    display: block;
+    max-width: 100%;
+    height: auto;
+  }
+
+  .ib-image-ratio {
+    width: 100%;
+    aspect-ratio: var(--ib-ratio);
+    object-fit: cover;
+  }
+
+  .ib-image-contain {
+    object-fit: contain;
+  }
+
+  .ib-figure {
+    margin: 0;
+  }
+
+  .ib-figure-caption {
+    margin-block-start: var(--ib-space-2);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    line-height: 1.25rem;
+  }
+}
+
+/*
+ * VideoEmbed: a poster with a play button, a link to the video. With script, <ib-video> puts the
+ * player in .ib-video-frame on click and sets data-playing, which hides the poster.
+ */
+@layer izzy.components {
+  .ib-video {
+    position: relative;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: var(--ib-ratio, 16 / 9);
+    border-radius: var(--ib-radius-lg);
+    background-color: #000;
+  }
+
+  .ib-video-poster {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: #fff;
+  }
+
+  .ib-video-poster > img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .ib-video-play {
+    position: relative;
+    display: grid;
+    place-items: center;
+    width: 4.25rem;
+    height: 3rem;
+    border-radius: 0.75rem;
+    background-color: rgb(0 0 0 / 0.7);
+    transition: background-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-video-play > .ib-icon {
+    width: 1.5rem;
+    height: 1.5rem;
+    fill: currentColor;
+  }
+
+  .ib-video-poster:hover > .ib-video-play,
+  .ib-video-poster:focus-visible > .ib-video-play {
+    background-color: #e00;
+  }
+
+  .ib-video-poster:focus-visible {
+    outline: 2px solid var(--ib-color-focus);
+    outline-offset: -2px;
+    border-radius: inherit;
+  }
+
+  .ib-video-frame {
+    position: absolute;
+    inset: 0;
+  }
+
+  .ib-video-frame:empty {
+    display: none;
+  }
+
+  .ib-video-frame > iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+  }
+
+  ib-video[data-playing] > .ib-video-poster {
+    display: none;
+  }
+}

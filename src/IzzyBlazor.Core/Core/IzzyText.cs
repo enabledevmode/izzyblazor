@@ -205,6 +205,9 @@ public class IzzyText
     /// <summary>ColorSchemeSwitch: dark.</summary>
     public virtual string SchemeDark { get; set; } = "Dark";
 
+    /// <summary>VideoEmbed's play button, with {0} for the video's title.</summary>
+    public virtual string PlayVideo { get; set; } = "Play video: {0}";
+
     /// <summary>ColorPicker's hex text box, after the field's label: "Brand color, hex".</summary>
     public virtual string ColorHex { get; set; } = "hex";
 

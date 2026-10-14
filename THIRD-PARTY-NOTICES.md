@@ -52,3 +52,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 ```
+
+## Simple Icons
+
+Brand logos in the `IzzyBlazor.Brands` class are from Simple Icons (https://simpleicons.org),
+released under CC0 1.0 Universal (public domain). The logos themselves are trademarks of their
+owners; their use is subject to each brand's guidelines.
