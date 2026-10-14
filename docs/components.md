@@ -892,6 +892,10 @@ names the table for screen readers (visually hidden).
 - **`Row`:** a row of fields under the headers, always in view, for tables people filter
   constantly. With JavaScript off, Enter or the Apply button below the table submits.
 
+A table inside another form (a `Selectable` table in a selection form, say) still filters with
+JavaScript on. With it off, browsers ignore a form nested in a form, so typed filters (text,
+numbers, dates) can't submit there; the enum and boolean menus are links and still work.
+
 What each column gets:
 
 - **Text** (a `string` property) matches anywhere, ignoring case. **Numbers** match exactly. **Enums
