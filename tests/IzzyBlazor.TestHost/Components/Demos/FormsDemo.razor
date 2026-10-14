@@ -207,6 +207,27 @@
         </Box>
     </Example>
 
+    <Example Title="Color picker" Note="A native color input underneath: it posts with the form and opens the browser's picker with JavaScript off, where the swatch fills the field (Chrome and Edge offer the presets in a menu first). With JavaScript the swatch moves to the start and opens the picker directly, a hex box appears for typing or pasting, and the presets show as swatches. The value is kept as #rrggbb." Code="@ColorsCode">
+        <Box MaxWidth="Length.Rem(24)">
+            <Form Model="Colors" FormName="colors" OnValidSubmit="() => _colorsSaved = true">
+                <ColorPicker @bind-Value="Colors!.Brand" Presets="BrandPresets" Hint="Used for buttons, links and focus." />
+                <ColorPicker @bind-Value="Colors!.Highlight" ShowHex="false" />
+                <Row Gap="3">
+                    <ColorPicker @bind-Value="Colors!.Small" Size="ControlSize.Sm" Class="host-grow" />
+                    <ColorPicker @bind-Value="Colors!.Large" Size="ControlSize.Lg" Class="host-grow" />
+                </Row>
+                <ColorPicker @bind-Value="Colors!.Locked" Disabled />
+                <Row Gap="2" Align="Align.Center">
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    @if (_colorsSaved)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: brand @Colors!.Brand, highlight @Colors.Highlight</TextBlock>
+                    }
+                </Row>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="File upload" Note="A drop zone around a real file input. With JavaScript off, the button chooses files and they post with the form (Multipart on the Form); the page binds them as IFormFile. With JavaScript, files can be dropped on the zone, and a file over MaxFileSize is flagged before posting. On interactive pages, OnChange gets IBrowserFile streams instead." Code="@UploadCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Upload" FormName="upload" Multipart OnValidSubmit="UploadedAsync">
@@ -413,6 +434,7 @@
         Addons ??= new();
         Numbers ??= new();
         Sliders ??= new();
+        Colors ??= new();
         Segments ??= new();
         Checks ??= new();
         Upload ??= new();
@@ -567,6 +589,28 @@
         public Billing Billing { get; set; } = Billing.Yearly;
         public Digest Small { get; set; } = Digest.Daily;
         public Digest Large { get; set; } = Digest.Daily;
+    }
+
+    [SupplyParameterFromForm(FormName = "colors")] public ColorsModel? Colors { get; set; }
+
+    private bool _colorsSaved;
+
+    private static readonly string[] BrandPresets = ["#2563eb", "#4f46e5", "#7c3aed", "#0f766e", "#15803d", "#be123c", "#ea580c", "#18181b"];
+
+    private const string ColorsCode =
+        """
+        <ColorPicker @bind-Value="Model.Brand" Presets="@(["#2563eb", "#4f46e5", "#0f766e"])" Hint="..." />
+        <ColorPicker @bind-Value="Model.Highlight" ShowHex="false" />
+        <ColorPicker @bind-Value="Model.Locked" Disabled />
+        """;
+
+    public class ColorsModel
+    {
+        [Display(Name = "Brand color")] public string? Brand { get; set; } = "#2563eb";
+        public string? Highlight { get; set; } = "#fde68a";
+        public string? Small { get; set; } = "#0f766e";
+        public string? Large { get; set; } = "#be123c";
+        [Display(Name = "Locked")] public string? Locked { get; set; } = "#64748b";
     }
 
     public class SlidersModel
