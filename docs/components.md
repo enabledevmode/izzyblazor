@@ -126,7 +126,7 @@ JavaScript off), with enhanced handling when scripts run, and with live validati
 pages. Pair it with `[SupplyParameterFromForm(FormName = "...")]` on the model property; see
 [Getting started](getting-started.md#forms-on-static-pages).
 
-Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
+Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `ColorPicker`, `Select`, `Combobox`, `Checkbox`, `Switch`, `RadioGroup`):
 
 - take their label, required marker, input type and length limits from the model's DataAnnotations,
 - wire up `aria-describedby` and `aria-invalid`,
@@ -152,6 +152,20 @@ follows as you drag. `ValueFormat` sets how the value reads, both shown and anno
 readers: `"{0}%"`, `"${0}"`. On interactive pages the bound value updates on release; `Live` updates
 it while dragging, at one round trip per move. A read-only slider is disabled and posts its value
 through a hidden input.
+
+**ColorPicker.** A color field bound to a hex string, which it keeps as `#rrggbb` in lowercase
+(`#ABC` and `abc` are read as `#aabbcc`). Underneath is a native color input, so it posts with the form
+and works with no script: the swatch fills the field and opens the browser's picker. With JavaScript
+the swatch moves to the start and a hex box appears beside it for typing or pasting (`ShowHex`, on by
+default). `Presets` lists colors offered as swatches under the field, and clicking the swatch in the field
+opens the picker directly; without script, Chrome and Edge offer the presets in a menu before their
+picker instead. A color input always has a value, so an empty field shows and posts
+black (`#000000`). Outside a `Form`, give it a `name` to post with a plain form. A read-only picker is
+disabled and posts its value through a hidden input.
+
+```razor
+<ColorPicker @bind-Value="Model.Brand" Presets="@(["#2563eb", "#0f766e", "#be123c"])" />
+```
 
 **FileUpload.** A drop zone around a real file input, named by `Name`.
 
