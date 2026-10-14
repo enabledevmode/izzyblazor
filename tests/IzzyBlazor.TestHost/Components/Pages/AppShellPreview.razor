@@ -36,7 +36,7 @@
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
     </AppHeader>
 
-    <AppSidebar Bg="@Chrome" Scheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
+    <AppSidebar Bg="@Chrome" Scheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" DrawerPosition="@(Drawer == "end" ? SidebarPosition.End : null)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
                 CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)"
                 Header="@(Slots == "on" ? (BrandInSidebar ? SidebarBrand : SidebarSwitcher) : null)" Footer="@(Slots == "on" ? SidebarFooter : null)">
         <NavMenu>
@@ -92,6 +92,9 @@
     [Parameter] public string? Rest { get; set; }
 
     [SupplyParameterFromQuery(Name = "side")] public string? Side { get; set; }
+
+    // ?drawer=end opens the drawer from the end side (with the menu button there) on small screens only.
+    [SupplyParameterFromQuery(Name = "drawer")] public string? Drawer { get; set; }
 
     // ?full=on runs the sidebar the full height of the window.
     [SupplyParameterFromQuery(Name = "full")] public string? Full { get; set; }

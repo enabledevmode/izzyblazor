@@ -313,7 +313,7 @@ recreates it with its initial values. In practice:
 `AppShell` holds parts, each with its own settings:
 
 - `AppHeader` (`Position`: sticky by default; `ContentWidth`)
-- `AppSidebar` (`Position` start or end, `FullHeight`, `Width`, `Breakpoint`)
+- `AppSidebar` (`Position` start or end, `DrawerPosition`, `FullHeight`, `Width`, `Breakpoint`)
 - `AppMain` (`ContentWidth`)
 - `AppAside` (`Width`, `Breakpoint`)
 - `AppFooter` (`Position`, `ContentWidth`)
@@ -347,7 +347,10 @@ With a sidebar, the main area centers in its own column but the header spans the
 with JavaScript off (a link to the sidebar and CSS `:target`); with JavaScript it also closes on
 Escape, backdrop click and navigation. On phones (below 480px) it takes the full width, with its close
 button where the menu button was; on wider screens it is the sidebar's width or 360px, whichever is
-wider.
+wider. `DrawerPosition` sets the drawer's side on its own: it follows `Position` unless set, so
+`DrawerPosition="SidebarPosition.End"` keeps a sidebar on the left on wide screens but opens it from
+the right on small ones, and moves `SidebarToggle` to the end of the header there, where content
+sites put the menu button.
 
 **Header links on phones.** A site with no sidebar puts its links in `HeaderNav`. From its
 `Breakpoint` up (`Md` by default) they are a row in the header; below it they fold into a menu

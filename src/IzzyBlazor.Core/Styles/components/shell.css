@@ -124,13 +124,17 @@
   }
 
   .ib-shell-sidebar-end {
-    --ib-drawer-off: 100%;
     border-inline-end: 0;
     border-inline-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
   }
 
+  /* The drawer's side (DrawerPosition, which follows Position unless set) decides where it slides from. */
+  .ib-shell-drawer-end {
+    --ib-drawer-off: 100%;
+  }
+
   .ib-shell-sidebar:dir(rtl) { --ib-drawer-off: 100%; }
-  .ib-shell-sidebar-end:dir(rtl) { --ib-drawer-off: -100%; }
+  .ib-shell-drawer-end:dir(rtl) { --ib-drawer-off: -100%; }
 
   .ib-shell-sidebar-inner {
     display: flex;
@@ -426,7 +430,7 @@
       transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
     }
 
-    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-end {
+    .ib-shell-sidebar-bp-sm.ib-shell-drawer-end {
       inset-inline-start: auto;
       inset-inline-end: 0;
     }
@@ -494,7 +498,7 @@
       transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
     }
 
-    .ib-shell-sidebar-bp-md.ib-shell-sidebar-end {
+    .ib-shell-sidebar-bp-md.ib-shell-drawer-end {
       inset-inline-start: auto;
       inset-inline-end: 0;
     }
@@ -562,7 +566,7 @@
       transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
     }
 
-    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-end {
+    .ib-shell-sidebar-bp-lg.ib-shell-drawer-end {
       inset-inline-start: auto;
       inset-inline-end: 0;
     }
@@ -630,7 +634,7 @@
       transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
     }
 
-    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-end {
+    .ib-shell-sidebar-bp-xl.ib-shell-drawer-end {
       inset-inline-start: auto;
       inset-inline-end: 0;
     }
@@ -1638,8 +1642,10 @@
  */
 @layer izzy.components {
   @media (width < 30rem) {
+    /* No side line: there is nothing beside it, and the line would push its content 1px off the header's. */
     :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl) {
       width: 100%;
+      border-inline-width: 0;
     }
 
     /* The close button lands where the menu button was: at the header's padding, on the drawer's side. */
@@ -1648,9 +1654,39 @@
       padding-inline: max(var(--ib-space-4), env(safe-area-inset-left, 0px));
     }
 
-    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl).ib-shell-sidebar-end .ib-shell-sidebar-close {
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl).ib-shell-drawer-end .ib-shell-sidebar-close {
       justify-content: flex-end;
       padding-inline: max(var(--ib-space-4), env(safe-area-inset-right, 0px));
+    }
+  }
+}
+
+/*
+ * A drawer on the end side puts its menu button at the end of the header, so the drawer opens on
+ * the button's side and its close button lands where the button was.
+ */
+@layer izzy.components {
+  @media (width < 640px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+      order: 1;
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+      order: 1;
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+      order: 1;
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+      order: 1;
     }
   }
 }

@@ -32,6 +32,13 @@
         </Row>
     </Example>
 
+    <Example Title="Drawer on the end side on phones" Note="DrawerPosition sets the side on small screens only (below the sidebar's Breakpoint) and follows Position unless set. Here the sidebar stays on the left on wide screens, but on phones the menu button moves to the end of the header and the drawer opens from the right, with its close button where the menu button was." Code="@DrawerEndCode">
+        <Row Gap="4" Wrap Align="Align.Start">
+            <iframe class="host-frame host-frame-phone" src="preview/app-shell?drawer=end" title="Drawer from the end at phone width"></iframe>
+            <iframe class="host-frame host-frame-wide" src="preview/app-shell?drawer=end" title="Start sidebar at desktop width"></iframe>
+        </Row>
+    </Example>
+
     <Example Title="Full-height sidebar" Note="FullHeight on AppSidebar runs it from the top of the window to the bottom, with the header and footer beside it. The brand moves into the sidebar's Header, which matches the AppHeader's height so the two read as one bar." Code="@FullCode">
         <iframe class="host-frame" style="width:100%" src="preview/app-shell?full=on&amp;slots=on&amp;look=tinted&amp;lines=off" title="AppShell with a full-height sidebar"></iframe>
     </Example>
@@ -229,6 +236,9 @@
 
     private const string EndCode =
         """<AppSidebar Position="SidebarPosition.End">...</AppSidebar>""";
+
+    private const string DrawerEndCode =
+        """<AppSidebar DrawerPosition="SidebarPosition.End">...</AppSidebar>""";
 
     private const string NavCode =
         """

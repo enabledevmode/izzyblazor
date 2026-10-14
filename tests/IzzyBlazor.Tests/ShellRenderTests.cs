@@ -147,8 +147,20 @@ public class ShellRenderTests : BunitContext
             .Add(s => s.Width, Length.Rem(18))
             .Add(s => s.Breakpoint, Breakpoint.Lg)).Find("nav");
 
-        Assert.Equal("ib-shell-sidebar ib-shell-sidebar-bp-lg ib-shell-sidebar-end ib-shell-sidebar-full", nav.ClassName);
+        Assert.Equal("ib-shell-sidebar ib-shell-sidebar-bp-lg ib-shell-sidebar-end ib-shell-drawer-end ib-shell-sidebar-full", nav.ClassName);
         Assert.Equal("--ib-sidebar-w:18rem;", nav.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void DrawerPosition_follows_Position_unless_set()
+    {
+        string Classes(SidebarPosition position, SidebarPosition? drawer) => Render<AppSidebar>(p => p
+            .Add(s => s.Position, position)
+            .Add(s => s.DrawerPosition, drawer)).Find("nav").ClassName;
+
+        Assert.Equal("ib-shell-sidebar ib-shell-sidebar-bp-md", Classes(SidebarPosition.Start, null));
+        Assert.Equal("ib-shell-sidebar ib-shell-sidebar-bp-md ib-shell-drawer-end", Classes(SidebarPosition.Start, SidebarPosition.End));
+        Assert.Equal("ib-shell-sidebar ib-shell-sidebar-bp-md ib-shell-sidebar-end", Classes(SidebarPosition.End, SidebarPosition.Start));
     }
 
     [Fact]
