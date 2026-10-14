@@ -171,6 +171,9 @@ public class IzzyText
     /// <summary>The sidebar navigation's name.</summary>
     public virtual string MainNavigation { get; set; } = "Main";
 
+    /// <summary>HeaderNav's name: different from the sidebar's, since both can be on screen.</summary>
+    public virtual string SiteNavigation { get; set; } = "Site";
+
     /// <summary>The button that opens the sidebar drawer on phones.</summary>
     public virtual string OpenMenu { get; set; } = "Open menu";
 
