@@ -144,10 +144,14 @@ git tag v0.1.0-alpha.1
 git push origin v0.1.0-alpha.1
 ```
 
+For release notes, add `docs/releases/v<version>.md` in the same commit: it heads the GitHub
+release's notes, above the generated list of commits. List every rename, since Razor takes an old
+parameter name silently.
+
 The Release workflow (`.github/workflows/release.yml`) checks that the tag is on main and matches
-`<Version>`, builds, tests, packs, and pushes `IzzyBlazor.Core` then `IzzyBlazor` (with their
-symbol packages) to nuget.org, then creates a GitHub release with the packages attached (marked as a
-pre-release for versions like `-alpha.1`). It uses nuget.org trusted publishing: no API key is
+`<Version>`, builds, tests, checks the asset budgets and packs with read-only access; a second job
+pushes `IzzyBlazor.Core` then `IzzyBlazor` (with their symbol packages) to nuget.org, then creates
+a GitHub release with the packages attached (marked as a pre-release for versions like `-alpha.1`). It uses nuget.org trusted publishing: no API key is
 stored; `NuGet/login` exchanges the job's GitHub token for a key that lasts an hour. It runs in the
 `release` environment, and needs the `NUGET_USER` secret (the nuget.org username of the policy's
 creator). A failed run can be rerun: packages already on nuget.org are skipped. A published version

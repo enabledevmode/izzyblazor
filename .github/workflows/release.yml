@@ -69,12 +69,18 @@ jobs:
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
 
+      - name: Release notes
+        # docs/releases/<tag>.md, when there is one, heads the GitHub release's notes.
+        run: |
+          if [ -f "docs/releases/$GITHUB_REF_NAME.md" ]; then cp "docs/releases/$GITHUB_REF_NAME.md" artifacts/release-notes.md; fi
+
       - uses: actions/upload-artifact@v7
         with:
           name: packages
           path: |
             artifacts/*.nupkg
             artifacts/*.snupkg
+            artifacts/release-notes.md
           if-no-files-found: error
 
   publish:
@@ -120,5 +126,7 @@ jobs:
         run: |
           prerelease=""
           case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
+          notes=()
+          if [ -f artifacts/release-notes.md ]; then notes=(--notes-file artifacts/release-notes.md); fi
           gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg \
-            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes $prerelease
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes "${notes[@]}" $prerelease
