@@ -12,7 +12,7 @@ namespace IzzyBlazor;
 /// <code>
 /// &lt;Skeleton Lines="3" /&gt;
 /// &lt;Skeleton Circle Width="Length.Rem(3)" /&gt;
-/// &lt;Skeleton Height="Length.Rem(10)" /&gt;
+/// &lt;Skeleton Height="Length.Rem(10)" /&gt;   @* a block, such as an image or a card *@
 /// &lt;Skeleton Loaded="_order is not null" Lines="2"&gt;@_order.Summary&lt;/Skeleton&gt;
 /// </code>
 /// </example>
@@ -20,9 +20,6 @@ public class Skeleton : StyledComponentBase
 {
     /// <summary>Lines of text to stand in for. The last of several is shorter. Defaults to 1.</summary>
     [Parameter] public int Lines { get; set; } = 1;
-
-    /// <summary>A block of this height instead of text lines, such as an image or a card.</summary>
-    [Parameter] public Length? Height { get; set; }
 
     /// <summary>A circle, such as an avatar. Its size is <c>Width</c> (2.5rem by default).</summary>
     [Parameter] public bool Circle { get; set; }
@@ -33,17 +30,13 @@ public class Skeleton : StyledComponentBase
     /// <summary>The real content, shown once <see cref="Loaded"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    private string BaseClass => Circle ? "ib-skeleton ib-skeleton-circle" : Height is not null ? "ib-skeleton ib-skeleton-block" : "ib-skeleton-text";
+    private string BaseClass => Circle ? "ib-skeleton ib-skeleton-circle" : !Height.IsEmpty ? "ib-skeleton ib-skeleton-block" : "ib-skeleton-text";
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add(BaseClass);
         base.BuildAttributes(classes, styles);
-        if (Height is { } height && !Circle)
-        {
-            styles.AddVar("skeleton-h", StyleValues.Length(height));
-        }
     }
 
     /// <inheritdoc />
@@ -61,7 +54,7 @@ public class Skeleton : StyledComponentBase
         builder.AddAttribute(3, "class", cls);
         builder.AddAttribute(4, "style", style);
         builder.AddAttribute(5, "aria-hidden", "true");
-        if (!Circle && Height is null)
+        if (!Circle && Height.IsEmpty)
         {
             for (var i = 0; i < Math.Max(1, Lines); i++)
             {

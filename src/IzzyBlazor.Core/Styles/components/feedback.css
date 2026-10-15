@@ -123,7 +123,8 @@
 
   .ib-skeleton-block {
     width: 100%;
-    height: var(--ib-skeleton-h, 6rem);
+    /* A Height (the style prop) sets the block's height; 6rem without one. */
+    height: 6rem;
     border-radius: var(--ib-radius-md);
   }
 

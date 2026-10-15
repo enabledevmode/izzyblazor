@@ -42,7 +42,8 @@ public readonly partial struct Color : IEquatable<Color>
     {
         null => null,
         _ when Surfaces.Contains(TokenName) => OnSurface,
-        "primary-soft" => PrimaryText,
+        "primary-soft" or "success-soft" or "warning-soft" or "danger-soft" or "info-soft" => Token(TokenName[..^"-soft".Length] + "-text"),
+        "focus" => OnPrimary,
         _ when TokenName.StartsWith("on-", StringComparison.Ordinal) || TokenName.EndsWith("-text", StringComparison.Ordinal)
                || TokenName is "muted" or "subtle" or "disabled" or "border" => null,
         _ => Token("on-" + TokenName),
@@ -131,6 +132,24 @@ public readonly partial struct Color : IEquatable<Color>
 
     /// <summary>The accent's soft tint: soft buttons, the current page, chips. Text on it: <see cref="PrimaryText"/>.</summary>
     public static Color PrimarySoft { get; } = Token("primary-soft");
+
+    /// <summary><see cref="Success"/>'s soft tint, behind a success message. Text on it: <see cref="SuccessText"/>.</summary>
+    public static Color SuccessSoft { get; } = Token("success-soft");
+
+    /// <summary><see cref="Warning"/>'s soft tint. Text on it: <see cref="WarningText"/>.</summary>
+    public static Color WarningSoft { get; } = Token("warning-soft");
+
+    /// <summary><see cref="Danger"/>'s soft tint. Text on it: <see cref="DangerText"/>.</summary>
+    public static Color DangerSoft { get; } = Token("danger-soft");
+
+    /// <summary><see cref="Info"/>'s soft tint. Text on it: <see cref="InfoText"/>.</summary>
+    public static Color InfoSoft { get; } = Token("info-soft");
+
+    /// <summary>
+    /// The focus ring and field halo color: <c>--ib-color-focus</c>, the primary color unless the
+    /// theme sets it.
+    /// </summary>
+    public static Color Focus { get; } = new("var(--ib-color-focus, var(--ib-color-primary))", "focus");
 
     /// <summary>Borders and dividers. Decorative: too light to be the only edge of a control.</summary>
     public static Color Border { get; } = Token("border");

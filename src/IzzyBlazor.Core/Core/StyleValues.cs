@@ -69,6 +69,14 @@ public static partial class StyleValues
         _ => throw new ArgumentOutOfRangeException(nameof(radius)),
     };
 
+    /// <summary>A border width in whole pixels, 0 to 16.</summary>
+    public static string BorderWidth(int pixels) => pixels is >= 0 and <= 16
+        ? pixels.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px"
+        : throw new ArgumentOutOfRangeException(nameof(pixels), pixels, "A border is 0 to 16 pixels wide.");
+
+    /// <summary>CSS <c>overflow</c>.</summary>
+    public static string Overflow(Overflow overflow) => overflow.ToString().ToLowerInvariant();
+
     /// <summary>CSS <c>box-shadow</c> from a token.</summary>
     public static string Shadow(Shadow shadow) => shadow switch
     {
