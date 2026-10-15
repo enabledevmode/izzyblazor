@@ -123,7 +123,9 @@ static pages, and it follows the text color (`currentColor`) and size (`em`).
   icons it uses.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
-  thins or thickens a stroked icon, and `Spin` rotates it.
+  thins or thickens a stroked icon, and `Spin` rotates it. Inside a control (a button, field, tab,
+  pagination or nav item), an icon follows the control's size instead: 16, 20 or 24px for small,
+  medium and large, with a heavier stroke at 16px. A `Size` still wins.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
 - `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,

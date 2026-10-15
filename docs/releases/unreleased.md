@@ -70,6 +70,13 @@ https://tabler.io/icons.
   component, through six new roles: `SchemeLight`, `SchemeDark`, `SchemeSystem`, `Person`, `Play`
   and `Upload`.
 - The menu icon (`IconRole.Menu`) is Tabler's three-line `Menu2`, matching the old one.
+- **Icons in controls are sized by the control.** Buttons, icon buttons, fields, segmented controls,
+  tabs, pagination and nav items use 16, 20 or 24px icons for small, medium and large, about 1.4
+  times the label, instead of the label's own size (14px in a medium button). Line icons drawn on a
+  24px grid look soft when shrunk to the text on a standard-density screen; these sizes stay crisp.
+  Menu rows are small controls (16px). Icons at 16px or less, in small controls and tags, draw their
+  stroke at 2.5 units so it isn't faint; an icon given its own `StrokeWidth` keeps it, and a `Size`
+  still wins over the control's. The sizes are `--ib-control-icon-sm`, `-md` and `-lg`.
 
 ## New
 

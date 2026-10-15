@@ -3,6 +3,10 @@
  * with currentColor, so it follows text color and dark mode. Sizes round to an even
  * whole pixel (1.25em of 14px text would be 17.5px), so strokes stay sharp and an icon
  * centers on whole pixels in the even-height controls around it.
+ *
+ * Controls set --ib-icon-size for the icons inside them (16, 20 or 24px by ControlSize), and
+ * small ones set --ib-icon-stroke. The stroke applies only to icons at the default 2 units, so
+ * an icon given its own StrokeWidth keeps it. A size class still wins over the control's size.
  */
 @layer izzy.components {
   .ib-icon {
@@ -14,6 +18,18 @@
     flex-shrink: 0;
     vertical-align: -0.125em;
     vertical-align: round(nearest, -0.125em, 1px);
+  }
+
+  /* var() can't fall back to the plain 1em above, so only browsers with round() use it. */
+  @supports (width: round(nearest, 1em, 2px)) {
+    .ib-icon {
+      width: var(--ib-icon-size, round(nearest, 1em, 2px));
+      height: var(--ib-icon-size, round(nearest, 1em, 2px));
+    }
+  }
+
+  .ib-icon[stroke-width="2"] {
+    stroke-width: var(--ib-icon-stroke, 2);
   }
 
   .ib-icon-xs { width: 0.75em; width: round(nearest, 0.75em, 2px); height: 0.75em; height: round(nearest, 0.75em, 2px); }

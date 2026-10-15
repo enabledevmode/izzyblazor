@@ -10,6 +10,7 @@
     --ib-btn-h: var(--ib-control-h-md);
     --ib-btn-pad: var(--ib-space-4);
     --ib-btn-font: var(--ib-text-sm);
+    --ib-icon-size: var(--ib-control-icon-md);
 
     display: inline-flex;
     align-items: center;
@@ -52,24 +53,20 @@
     --ib-btn-h: var(--ib-control-h-sm);
     --ib-btn-pad: var(--ib-space-3);
     --ib-btn-font: var(--ib-control-font-sm);
+    --ib-icon-size: var(--ib-control-icon-sm);
+    --ib-icon-stroke: var(--ib-control-icon-stroke-sm);
   }
 
   .ib-btn-lg {
     --ib-btn-h: var(--ib-control-h-lg);
     --ib-btn-pad: var(--ib-space-5);
     --ib-btn-font: var(--ib-text-md);
+    --ib-icon-size: var(--ib-control-icon-lg);
   }
 
   .ib-btn-icon-only {
     width: var(--ib-btn-h);
     padding: 0;
-  }
-
-  .ib-btn-icon-only .ib-icon {
-    width: 1.25em;
-    width: round(nearest, 1.25em, 2px);
-    height: 1.25em;
-    height: round(nearest, 1.25em, 2px);
   }
 
   .ib-btn-full {
