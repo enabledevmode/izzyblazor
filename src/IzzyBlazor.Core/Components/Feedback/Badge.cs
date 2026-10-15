@@ -34,7 +34,7 @@ public enum BadgeSize
 /// &lt;Badge Status="Status.Success"&gt;Published&lt;/Badge&gt;
 /// &lt;Badge Status="Status.Danger" Variant="BadgeVariant.Solid" Pill&gt;3&lt;/Badge&gt;
 /// &lt;Badge Status="Status.Warning" Dot&gt;Pending review&lt;/Badge&gt;
-/// &lt;Badge Color="Color.Primary" Variant="BadgeVariant.Solid" Pill&gt;12&lt;/Badge&gt;
+/// &lt;Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill&gt;12&lt;/Badge&gt;
 /// </code>
 /// </example>
 public class Badge : IzzyComponentBase

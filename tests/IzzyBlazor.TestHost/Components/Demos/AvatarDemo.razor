@@ -11,9 +11,28 @@
             <Avatar Name="Linus" />
             <Avatar Name="Broken Image" Src="img/missing.jpg" data-testid="avatar-broken" />
             <Avatar />
-            <Avatar Name="Acme Corp" Square Accent="Accent.Primary" />
+            <Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" />
             <Avatar Name="Design team" Square Icon="Lucide.Palette" Initials="" />
         </Row>
+    </Example>
+
+    <Example Title="Colors and variants" Note="Soft (the default) tints the background and colors the initials; Solid fills it, with initials picked for contrast. Accent sets the color, as on Badge and Tag; without one it comes from Name." Code="@VariantsCode">
+        <Stack Gap="3" data-testid="avatar-variants">
+            @foreach (var variant in Enum.GetValues<AvatarVariant>())
+            {
+                <Row Gap="3" Align="Align.Center" Wrap>
+                    <TextBlock As="span" Class="host-label">@variant</TextBlock>
+                    <Avatar Name="Ada Lovelace" Variant="variant" />
+                    <Avatar Name="Katherine Johnson" Variant="variant" />
+                    <Avatar Name="Linus" Variant="variant" />
+                    <Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="variant" />
+                    <Avatar Name="Ops" Square Accent="Accent.Neutral" Variant="variant" />
+                    <Avatar Name="Incidents" Square Accent="Accent.Danger" Variant="variant" />
+                    <Avatar Name="Teal" Square Accent='Accent.Of("#0f766e")' Variant="variant" />
+                    <Avatar Name="Amber" Square Accent='Accent.Of("#fbbf24")' Variant="variant" />
+                </Row>
+            }
+        </Stack>
     </Example>
 
     <Example Title="Sizes and status" Code="@SizesCode">
@@ -109,7 +128,15 @@
         <Avatar Name="Grace Hopper" Src="img/grace.jpg" />
         <Avatar Name="Ada Lovelace" />
         <Avatar />
+        <Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" />
+        """;
+
+    // Single-quoted attributes, so the color string can use double quotes.
+    private const string VariantsCode =
+        """
+        <Avatar Name="Ada Lovelace" Variant="AvatarVariant.Solid" />
         <Avatar Name="Acme Corp" Square Accent="Accent.Primary" />
+        <Avatar Name="Teal" Square Accent='Accent.Of("#0f766e")' Variant="AvatarVariant.Solid" />
         """;
 
     private const string SizesCode =
