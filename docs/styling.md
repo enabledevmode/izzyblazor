@@ -259,16 +259,37 @@ layers, so a plain rule wins:
 }
 ```
 
-| Group | Variables |
+Every token, by group:
+
+| Group | Tokens |
 | --- | --- |
-| Colors | `--ib-color-background`, `-surface`, `-surface-raised`, `-surface-container-low`, `-surface-container`, `-surface-container-high`, `-border`, `-outline`, `-on-surface`, `-muted`, `-subtle`, `-disabled`, `-focus`; the accent's four (`-primary`, `-on-primary`, `-primary-text`, `-primary-soft`); status (`-success`, `-warning`, `-danger`, `-info`, each with `-text` and `-soft`) |
-| Shape | `--ib-radius-sm`, `-md`, `-lg`, `-xl` |
-| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-*` |
-| Type | `--ib-font-body`, `--ib-font-heading`, `--ib-font-mono`, `--ib-weight-heading`, the size scale `--ib-text-*` |
-| Depth | `--ib-shadow-xs` (under cards), `-sm`, `-md`, `-lg` |
+| Page and surfaces | `--ib-color-background`, `-surface`, `-surface-raised`, `-raised-border` (a floating surface's edge in dark mode), `-surface-container-low`, `-surface-container`, `-surface-container-high` |
+| Text and lines | `--ib-color-on-surface`, `-muted`, `-subtle`, `-disabled`, `-border`, `-outline`, `-backdrop` (behind dialogs) |
+| Brand | `--ib-color-primary`, `-on-primary`, `-primary-text`, `-primary-soft` |
+| Status | `--ib-color-success`, `-warning`, `-danger`, `-info`, `-neutral`, each with `-on-` (text on it); the first four with `-text` and `-soft` |
+| Made from other colors | `--ib-color-focus` (focus ring and halo; primary), `--ib-color-halo`, `--ib-color-selected` (a selected row), `--ib-state-hover` and `--ib-state-pressed` (washes of the text color), `--ib-color-segment` and `-segment-edge` (the chosen segment), `--ib-color-scrollbar` and `-scrollbar-hover`. Unset by default: each is worked out where it's used, so it follows colors set on part of the page; set it to replace the calculation |
+| Shape | `--ib-radius-none`, `-sm`, `-md`, `-lg`, `-xl`, `-full`; `--ib-radius-control` (buttons, fields, segmented controls, tags; unset: `-md`) and `--ib-radius-control-sm` (badges; unset: `-sm`) |
+| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
+| Sizes | `--ib-size-sm`, `-md`, `-lg`, `-xl` (640 to 1280px), `--ib-size-prose` (a readable line) |
+| Type | `--ib-font-body`, `-heading`, `-mono`; `--ib-text-xs` to `-6xl`; `--ib-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`, `-extrabold`, `-heading`; `--ib-leading-none`, `-tight`, `-snug`, `-normal`, `-relaxed`, `-loose`; `--ib-tracking-tighter` to `-widest` |
+| Depth | `--ib-shadow-none`, `-xs` (under cards), `-sm`, `-md`, `-lg` |
 | Motion | `--ib-duration-fast`, `--ib-duration-normal`, `--ib-ease` |
 | Code | `--ib-code-comment`, `-keyword`, `-string`, `-number`, `-type`, `-function`, `-tag`, `-attr`, `-meta` (syntax colors, each at least 4.5:1 on the code block) |
-| Scrollbars | `--ib-color-scrollbar`, `--ib-color-scrollbar-hover` (the thumb; see [Scrollbars](components.md#scrollbars)) |
+
+**Component variables.** A few components have their own variables for the things people tune
+most. Like the tokens, each works on `:root` for the whole app or on any element for part of it.
+Anything not listed here, including class names (`.ib-*`), is internal and may change; to style
+your own way, add a class with `Class`.
+
+| Component | Variables |
+| --- | --- |
+| Button, LinkButton, IconButton | `--ib-btn-px` (side padding, every size), `--ib-btn-radius`; heights are `--ib-control-h-*` |
+| Fields | `--ib-field-radius`; heights are `--ib-control-h-*` |
+| Card | `--ib-card-padding` |
+| Table | `--ib-table-cell-py`, `--ib-table-cell-px` (medium size) |
+| AppShell | `--ib-shell-{header,sidebar,main,aside,footer}-bg` and `-fg` (each part's colors), `--ib-shell-divider` (the lines between parts), `--ib-sidebar-w`, `--ib-aside-w`, `--ib-shell-header-h` and `--ib-shell-footer-h` (room kept for sticky bars), `--ib-banner-h` (a sticky banner's height) |
+| AvatarGroup | `--ib-avatar-ring` (the ring between avatars; the page color by default) |
+| Timeline | `--ib-timeline-bg` (behind the markers; the surface by default) |
 
 Colors are `light-dark(light, dark)` pairs, so one declaration covers both schemes; keep text at
 4.5:1 on what it sits on. Keep sizes whole pixels. Status colors are tuned for contrast against
@@ -310,10 +331,10 @@ Your own colors work the same way: define `--ib-color-brand` (and `--ib-color-on
 `light-dark()`, then use `Color.Token("brand")`.
 
 Dark mode follows the system unless the page chooses: `IzzyTheme`'s `ColorScheme` sets the app's default
-(`ColorScheme.Light`, `Dark` or `System`), a [`ColorSchemeSwitch`](components.md#colorschemeswitch)
+(`ColorScheme.Light`, `Dark` or `Auto`), a [`ColorSchemeSwitch`](components.md#colorschemeswitch)
 lets the user choose (kept in the `ib-scheme` cookie, which `IzzyTheme` reads on the server with
-`AddIzzyBlazor()`, so pages arrive in the chosen scheme with no flash), and `<html data-ib-color-scheme="light|dark">` still works. Browsers without `light-dark()` (before
-2024) get the light colors everywhere.
+`AddIzzyBlazor()`, so pages arrive in the chosen scheme with no flash), and
+`<html data-ib-color-scheme="light|dark">` works in plain HTML.
 
 ## A color scheme for part of a page
 

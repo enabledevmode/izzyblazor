@@ -125,8 +125,42 @@ public class ThemeScopeTests : BunitContext
         Assert.Contains("--ib-radius-xl: 1rem;", full);
 
         var button = File.ReadAllText(Path.Combine(StylesDir(), "components", "button.css"));
-        Assert.Contains("border-radius: var(--ib-radius-control, var(--ib-radius-md));", button);
-        Assert.DoesNotContain("var(--ib-radius-md));\n", button.Replace("var(--ib-radius-control, var(--ib-radius-md));", ""));
+        Assert.Contains("border-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));", button);
+        // Every medium radius in the button styles goes through the control radius.
+        Assert.Equal(
+            Regex.Matches(button, @"var\(--ib-radius-md\)").Count,
+            Regex.Matches(button, @"var\(--ib-radius-control, var\(--ib-radius-md\)\)").Count);
+    }
+
+    // Public component variables work on :root or any element, so the components only read them
+    // (with their default as the fallback) and never declare them on their own class.
+    [Theory]
+    [InlineData("btn-px")]
+    [InlineData("btn-radius")]
+    [InlineData("field-radius")]
+    [InlineData("table-cell-px")]
+    [InlineData("table-cell-py")]
+    [InlineData("card-padding")]
+    [InlineData("shell-header-h")]
+    [InlineData("shell-footer-h")]
+    [InlineData("shell-divider")]
+    [InlineData("sidebar-w")]
+    [InlineData("aside-w")]
+    [InlineData("avatar-ring")]
+    [InlineData("timeline-bg")]
+    [InlineData("radius-control")]
+    public void Public_component_variables_are_read_never_declared_by_components(string name)
+    {
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(StylesDir(), "components"), "*.css"))
+        {
+            Assert.DoesNotMatch(new Regex(@"^\s*--ib-" + Regex.Escape(name) + @"\s*:", RegexOptions.Multiline), File.ReadAllText(file));
+        }
+    }
+
+    [Fact]
+    public void There_is_no_fallback_for_browsers_without_light_dark()
+    {
+        Assert.DoesNotContain("@supports not (color: light-dark", File.ReadAllText(Path.Combine(StylesDir(), "tokens.css")));
     }
 
     private static string StylesDir()
