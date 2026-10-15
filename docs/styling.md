@@ -88,7 +88,9 @@ color is its `Accent` (below). Text uses `Color.OnSurface` by default.
 
 ## Actions and status colors
 
-Controls take an `Accent`: the roles `Accent.Primary` (your brand color), `Neutral` and `Danger`.
+An `Accent` is a color set, not one color: the fill, the text on it, a soft tint and the color as
+text, which a component uses together. `Bg` is only a background. Controls (and Avatar) take an
+`Accent`: the roles `Accent.Primary` (your brand color), `Neutral` and `Danger`.
 Emphasis comes from the variant (`Solid`, `Soft`, `Outline`, `Ghost`, `Link`), not from more hues: a
 solid control is filled with its accent; outline, ghost and link controls use it for text and border.
 

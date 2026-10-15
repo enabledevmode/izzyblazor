@@ -73,12 +73,13 @@ public class AvatarRenderTests : BunitContext
     }
 
     [Fact]
-    public void Bg_fills_the_fallback_through_the_accent_properties()
+    public void Accent_fills_the_fallback_and_sets_its_text()
     {
-        var avatar = Render<Avatar>(p => p.Add(a => a.Name, "Acme").Add(a => a.Bg, Color.Primary)).Find(".ib-avatar");
+        var avatar = Render<Avatar>(p => p.Add(a => a.Name, "Acme").Add(a => a.Accent, Accent.Primary)).Find(".ib-avatar");
 
         Assert.Contains("ib-avatar-colored", avatar.ClassName);
         Assert.Contains("--ib-accent:var(--ib-color-primary)", avatar.GetAttribute("style"));
+        Assert.Contains("--ib-on-accent:var(--ib-color-on-primary)", avatar.GetAttribute("style"));
     }
 
     [Fact]
