@@ -52,7 +52,7 @@ public abstract class ButtonBase : IzzyComponentBase
     private bool _sizeSet;
 
     /// <summary>The accent in effect: this button's, else its group's, else Primary.</summary>
-    protected Accent EffectiveAccent => !_accentSet && Group?.Accent is { } accent ? accent : Accent;
+    protected Accent EffectiveAccent => !_accentSet && Group?.Accent is { } accent ? accent : Accent ?? Accent.Primary;
 
     /// <summary>The variant in effect: this button's, else its group's, else Solid.</summary>
     protected ButtonVariant EffectiveVariant => !_variantSet && Group?.Variant is { } variant ? variant : Variant;

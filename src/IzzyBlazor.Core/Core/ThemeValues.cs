@@ -1,7 +1,7 @@
 namespace IzzyBlazor;
 
 /// <summary>
-/// A look: density, shape and type, with a default accent and gray suited to the products likely
+/// A preset: density, shape and type, with a default brand color and gray suited to the products likely
 /// to use it. Set it with <see cref="IzzyTheme"/> or <c>data-ib-preset</c> on <c>&lt;html&gt;</c>.
 /// </summary>
 public enum ThemePreset

@@ -142,10 +142,13 @@ else
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-menu-item");
-        classes.Add($"ib-menu-item-{Accent.Role}", Accent.Role is not null && Accent != Accent.Neutral);
-        if (Accent.Custom is { } custom)
+        var accent = Accent ?? Accent.Neutral;
+        classes.Add($"ib-menu-item-{accent.Role}", accent.Role is not null && accent != Accent.Neutral);
+        if (accent.Custom is { } custom)
         {
-            styles.AddRaw($"color:{ColorOverride.TextTint(custom)}");
+            // A class and a variable, not an inline color, so the disabled style still wins.
+            classes.Add("ib-menu-item-custom");
+            styles.AddVar("menu-item-color", ColorOverride.TextTint(custom));
         }
         classes.Add("ib-menu-item-checkable", IsCheckable);
     }

@@ -134,22 +134,26 @@ public sealed class DialogService
     public Task<DialogResult> OpenAsync(Type component, string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(component);
-        bool hosted;
-        lock (_gate)
+        options ??= new DialogOptions();
+
+        // Checked here, so a bad value fails the caller rather than the host's render.
+        if (!string.IsNullOrWhiteSpace(options.Brand))
         {
-            hosted = _hosts.Count > 0;
+            ThemeColors.Parse(options.Brand, ThemeColors.Brands, nameof(DialogOptions.Brand));
         }
 
-        if (!hosted)
-        {
-            throw new InvalidOperationException(
-                "DialogService needs a <DialogHost /> on an interactive page or in an interactive layout. " +
-                "Static pages can't open dialogs from code; use <Dialog> with <DialogTrigger> or a ?dialog= link there.");
-        }
+        var entry = new DialogEntry(new DialogInstance(this, $"ib-dialog-svc-{Interlocked.Increment(ref _next)}"), component, title, parameters, options);
 
-        var entry = new DialogEntry(new DialogInstance(this, $"ib-dialog-svc-{Interlocked.Increment(ref _next)}"), component, title, parameters, options ?? new DialogOptions());
+        // One lock for the check and the add, so a host leaving in between can't strand the dialog.
         lock (_gate)
         {
+            if (_hosts.Count == 0)
+            {
+                throw new InvalidOperationException(
+                    "DialogService needs a <DialogHost /> on an interactive page or in an interactive layout. " +
+                    "Static pages can't open dialogs from code; use <Dialog> with <DialogTrigger> or a ?dialog= link there.");
+            }
+
             _open.Add(entry);
         }
 

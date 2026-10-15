@@ -21,7 +21,7 @@ public class Skeleton : StyledComponentBase
     /// <summary>Lines of text to stand in for. The last of several is shorter. Defaults to 1.</summary>
     [Parameter] public int Lines { get; set; } = 1;
 
-    /// <summary>A circle, such as an avatar. Its size is <c>Width</c> (2.5rem by default).</summary>
+    /// <summary>A circle, such as an avatar. Its size is <c>Width</c> or <c>Height</c> (2.5rem by default).</summary>
     [Parameter] public bool Circle { get; set; }
 
     /// <summary>When true, shows <see cref="ChildContent"/> in place of the placeholder.</summary>
@@ -36,6 +36,8 @@ public class Skeleton : StyledComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add(BaseClass);
+        // A circle sized by Height alone takes its width from the height (aspect-ratio).
+        classes.Add("ib-skeleton-circle-h", Circle && !Height.IsEmpty && Width.IsEmpty);
         base.BuildAttributes(classes, styles);
     }
 

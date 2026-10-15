@@ -32,7 +32,7 @@
     /* Radius: sm for small parts (chips, checkboxes), md for controls, lg for cards and dialogs,
        xl for large panels. data-ib-radius="sm|lg" shifts the whole scale (themes.css). */
     /* Density: control heights (buttons, fields, tabs, pages, nav items, menu rows) at each
-       ControlSize, table cell padding and card padding. Looks change these; keep them whole pixels. */
+       ControlSize, table cell padding and card padding. Presets change these; keep them whole pixels. */
     --ib-control-h-sm: 2rem;
     --ib-control-h-md: 2.25rem;
     --ib-control-h-lg: 2.75rem;
@@ -209,14 +209,14 @@
    */
   /* The page's scheme can also come from IzzyTheme, as <meta name="ib-color-scheme" content="dark"> in
      <head> (the user's choice from a ColorSchemeSwitch, read from its cookie on the server). Each
-     rule below has a twin for it. */
-  [data-ib-color-scheme="dark"],
+     rule below has a twin for it; the attribute is written twice so it beats the meta tag on <html>. */
+  [data-ib-color-scheme][data-ib-color-scheme="dark"],
   :root:where(:has(> head > meta[name="ib-color-scheme"][content="dark"])),
   .ib-scheme-dark {
     color-scheme: dark;
   }
 
-  [data-ib-color-scheme="light"],
+  [data-ib-color-scheme][data-ib-color-scheme="light"],
   :root:where(:has(> head > meta[name="ib-color-scheme"][content="light"])),
   .ib-scheme-light {
     color-scheme: light;

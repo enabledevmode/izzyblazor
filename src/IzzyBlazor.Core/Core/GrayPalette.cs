@@ -10,7 +10,10 @@ namespace IzzyBlazor;
 /// <remarks>
 /// The color is the light page background, as given (its lightness is kept between 0.90 and 0.99
 /// in OKLab, so text on it stays readable). The rest of the ladder steps down from it by the same
-/// amounts as the built-in sets, in its hue with a little more color for the darker fills. Muted
+/// amounts as the built-in sets, in its hue with a little more color for the darker fills, but no
+/// fill gets darker than the built-in sets' same fill: a darker page gets a shallower ladder (and a
+/// page darker than their container fill is lifted), so brand, status and code colors keep their
+/// contrast on every fill. Muted
 /// and subtle text hold 4.5:1 on the page, the surface and the container fill, body text 7:1 on the
 /// strongest fill. Dark mode uses the built-in dark lightness in the same hue, with half the color.
 /// <see cref="IzzyTheme"/> renders it as the twelve <c>--ib-color-*</c> gray tokens.
@@ -19,6 +22,16 @@ public sealed class GrayPalette
 {
     // Tokens in the order they're written, with their light and dark colors.
     private readonly (string Token, string Light, string Dark)[] _colors;
+
+    // The darkest of the built-in sets' (neutral, slate, stone) light container and
+    // container-high fills: the ones fixed colors are checked on.
+    private static readonly double[] Floors =
+    [
+        Darkest("#e9e9ec", "#e7ebf1", "#eae8e2"),
+        Darkest("#dfdfe3", "#dce2ea", "#e0ddd5"),
+    ];
+
+    private static double Darkest(params string[] hexes) => hexes.Min(h => Rgb.Parse(h).Luminance());
 
     private GrayPalette((string, string, string)[] colors) => _colors = colors;
 
@@ -39,12 +52,29 @@ public sealed class GrayPalette
         var page = Math.Clamp(l0, 0.90, 0.99);
         Rgb Tint(double l, double factor, double cap = 0.05) => Snap(FromLch(l, Math.Min(c * factor, cap), hue));
 
+        // Each fill stays at least as light as the built-in sets' same fill, so the colors that
+        // don't change with the grays (brand and status text, code) keep their contrast on them: a
+        // darker page gets a shallower ladder, and a page darker than their container fill is lifted.
+        while (Tint(page, 1).Luminance() < Floors[0] && page < 0.99)
+        {
+            page += 0.005;
+        }
+
+        var depth = 1.0;
+        while (depth > 0 && (Tint(page - 0.050 * depth, 1.1).Luminance() < Floors[0]
+            || Tint(page - 0.080 * depth, 1.2).Luminance() < Floors[1]))
+        {
+            depth -= 0.05;
+        }
+
+        depth = Math.Max(depth, 0);
+
         var light = new Dictionary<string, Rgb>
         {
             ["background"] = page == l0 ? Snap(input) : Tint(page, 1),
-            ["surface-container-low"] = Tint(page - 0.020, 1.0),
-            ["surface-container"] = Tint(page - 0.050, 1.1),
-            ["surface-container-high"] = Tint(page - 0.080, 1.2),
+            ["surface-container-low"] = Tint(page - 0.020 * depth, 1.0),
+            ["surface-container"] = Tint(page - 0.050 * depth, 1.1),
+            ["surface-container-high"] = Tint(page - 0.080 * depth, 1.2),
             ["border"] = Tint(page - 0.089, 1.2),
         };
 

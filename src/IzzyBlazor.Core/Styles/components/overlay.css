@@ -146,9 +146,11 @@
 
   .ib-menu-item-primary { color: var(--ib-color-primary-text); }
   .ib-menu-item-danger { color: var(--ib-color-danger-text); }
+  .ib-menu-item-custom { color: var(--ib-menu-item-color); }
 
   .ib-menu-item-primary .ib-icon,
-  .ib-menu-item-danger .ib-icon {
+  .ib-menu-item-danger .ib-icon,
+  .ib-menu-item-custom .ib-icon {
     color: inherit;
   }
 

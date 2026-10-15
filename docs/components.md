@@ -154,7 +154,7 @@ public static class MyIcons
 They share:
 
 - `Accent` (`Primary` by default, `Neutral`, `Danger`) and `Variant` (`Solid` by default, `Soft`,
-  `Outline`, `Ghost`, `Link`), or a custom `Color` in place of the accent,
+  `Outline`, `Ghost`, `Link`); `Accent.Of("#0f766e")` or `Accent.Token("success")` for a custom color,
 - `Size` (`ControlSize`, shared with form fields),
 - `StartIcon`/`EndIcon`, `Loading` (with `LoadingLabel`), `Disabled` and `FullWidth`.
 
@@ -717,7 +717,7 @@ warning. Use `Alert` for a message about part of a page.
   the top, with the sticky header and sidebar below it. The shell makes room for one line (37px)
   with no script; with script it measures the banner when the message wraps.
 - **Look:** `Status` (Info by default) and `Variant` (`Soft` by default, `Outline`, `Solid`), as on
-  Alert. `Color` replaces the status's color, for a brand message such as `Color.Primary`; the status
+  Alert. `Accent` replaces the status's color, for a brand message such as `Accent.Primary`; the status
   still sets the icon and what screen readers hear. `Icon` and `HideIcon` change the icon, `Title`
   adds a bold lead-in, and `Actions` holds a link or small button after the message.
 - **Dismissing:** `Dismissible` adds a close button that works with JavaScript off, with
@@ -736,7 +736,7 @@ warning. Use `Alert` for a message about part of a page.
 ## Badge
 
 A small label for a status, category or count: `Status` (`Neutral` by default, `Info`, `Success`,
-`Warning`, `Danger`) or a custom `Color`, `Variant` (`Soft` by default, `Solid`, `Outline`) and `Size`
+`Warning`, `Danger`) or an `Accent` in its place, `Variant` (`Soft` by default, `Solid`, `Outline`) and `Size`
 (`Sm` for counts in navigation, `Md`). `Pill` rounds the ends, for counts; `Dot` adds a colored dot
 before the text, for statuses; `StartIcon` adds an icon.
 
@@ -748,7 +748,7 @@ before the text, for statuses; `StartIcon` adds an icon.
 
 ## Tag
 
-A keyword, category or applied filter: larger than a `Badge`, with the same `Status`, `Color` and
+A keyword, category or applied filter: larger than a `Badge`, with the same `Status`, `Accent` and
 variants (`Soft`, `Solid`, `Outline`), and `Size` (20, 24 or 28px). `Label` is the text (or content),
 `StartIcon` an icon, and `Href` makes the text a link. To make it removable, give it `RemoveHref` (a
 link, such as the current URL without that filter, for static pages) and/or `OnRemove` (C#, used on
@@ -764,7 +764,7 @@ rather than stop, since the motion is what says "still working".
 - **`Progress`** is a bar with an optional `Label` above it (its accessible name). Set `Value` (0 to
   `Max`, 100 by default) and it reports the value to screen readers; `ShowValue` shows the
   percentage and `ValueText` replaces it ("3 of 5 files"). Leave `Value` out for an indeterminate bar
-  that sweeps. `Color` and `Size` (thickness) are optional. On interactive pages, change `Value`
+  that sweeps. `Accent` and `Size` (thickness) are optional. On interactive pages, change `Value`
   from C#.
 - **`Skeleton`** stands in for content still loading: `Lines` of text (the last of several is
   shorter), a block with `Height`, or a `Circle` (2.5rem, or `Width`). It takes the style props, and

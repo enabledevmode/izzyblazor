@@ -24,7 +24,7 @@ internal static class ColorMath
                 hex = string.Concat(hex.Select(c => new string(c, 2)));
             }
 
-            if (hex.Length != 6 || !int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var v))
+            if (hex.Length != 6 || !hex.All(char.IsAsciiHexDigit) || !int.TryParse(hex, NumberStyles.HexNumber, CultureInfo.InvariantCulture, out var v))
             {
                 return false;
             }
