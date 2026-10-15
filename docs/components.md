@@ -80,7 +80,7 @@ The rest:
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
 `List` is a bulleted list of `ListItem`s; `Ordered` numbers it, `Plain` drops the bullets and indent,
-and `Icon` puts an icon in place of each bullet (`<List Icon="Tabler.Check" IconColor="Color.SuccessText">`
+and `Icon` puts an icon in place of each bullet (`<List Icon="Hugeicons.Tick02" IconColor="Color.SuccessText">`
 for a check list; an item's own `Icon` wins). `Gap` spaces the items (8px by default). Lists without
 bullets keep `role="list"`, which Safari drops otherwise.
 
@@ -113,29 +113,31 @@ highlighter (for more languages), implement `ICodeHighlighter` and register it a
 
 ## Icons
 
-`<Icon Name="Tabler.Home" />` renders inline SVG on the server. There's no icon font, it works on
+`<Icon Name="Hugeicons.Home01" />` renders inline SVG on the server. There's no icon font, it works on
 static pages, and it follows the text color (`currentColor`) and size (`em`).
 
-- All of Tabler Icons is bundled as two typed classes with IntelliSense: `Tabler` (5,184 outline
-  icons) and `TablerFilled` (1,054 solid versions of some of them, for a selected or active state,
-  such as `TablerFilled.Star` for a starred item). Browse them at https://tabler.io/icons or on the
-  dev host's Icon page. Every icon is its own property, so a trimmed WebAssembly app keeps only the
-  icons it uses.
+- The free Hugeicons set (Stroke Rounded, 6,025 icons) is bundled as one typed class with
+  IntelliSense: `Hugeicons`. Names follow Hugeicons' own, numbered where it has several takes on an
+  idea (`Hugeicons.Delete02`, `Hugeicons.ArrowRight01`); IntelliSense lists other names for each,
+  such as Trash for `Delete02`. Browse them at https://hugeicons.com/icons (Stroke Rounded, Free) or
+  on the dev host's Icon page. Every icon is its own property, so nothing is created for icons a page
+  doesn't use. There are no filled icons in the free set.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
   thins or thickens a stroked icon, and `Spin` rotates it. Inside a control (a button, field, tab,
   pagination or nav item), an icon follows the control's size instead: 16, 20 or 24px for small,
-  medium and large, with a heavier stroke at 16px. A `Size` still wins.
+  medium and large. A `Size` still wins. Hugeicons' 1.5-unit stroke draws 1, 1.25 and 1.5px lines at
+  those sizes; set `--ib-icon-stroke` on any element to change it for the icons inside.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
 - `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,
   `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`, `NuGet`, `Npm`
-  and `DotNet`. They're outlines like the rest of the set: Tabler's, with NuGet and .NET drawn for
-  IzzyBlazor to match. Tabler has hundreds more as `Tabler.Brand*` (`Tabler.BrandLinkedin`,
-  `Tabler.BrandTwitch`). The logos are their owners' trademarks; follow each brand's guidelines.
+  and `DotNet`. They're outlines like the rest of the set: Hugeicons', with NuGet and .NET drawn for
+  IzzyBlazor to match. Hugeicons has more, such as `Hugeicons.Linkedin01` and `Hugeicons.Twitch`. The
+  logos are their owners' trademarks; follow each brand's guidelines.
 
 **Your own icon.** An icon is an `IconData`: a view box, SVG drawing elements, and whether it's
-drawn with fill or stroke. For a logo Tabler doesn't have, copy its path from https://simpleicons.org
+drawn with fill or stroke. For a logo Hugeicons doesn't have, copy its path from https://simpleicons.org
 (solid) or your designer's SVG into a static property and use it like the rest:
 
 ```csharp
@@ -463,8 +465,8 @@ with JavaScript any group holding the current page opens itself.
 ```razor
 <NavMenu>
     <NavLabel>Workspace</NavLabel>
-    <NavItem Href="/" Icon="Tabler.Home" Match="NavLinkMatch.All">Home</NavItem>
-    <NavGroup Label="Projects" Icon="Tabler.Folder" ActivePrefix="/projects">
+    <NavItem Href="/" Icon="Hugeicons.Home01" Match="NavLinkMatch.All">Home</NavItem>
+    <NavGroup Label="Projects" Icon="Hugeicons.Folder01" ActivePrefix="/projects">
         <NavItem Href="/projects/active">Active</NavItem>
     </NavGroup>
 </NavMenu>
@@ -603,7 +605,7 @@ and the arrow key back or Escape returns to its item. Choosing any item closes t
         <MenuItem Value="date">Date modified</MenuItem>
     </MenuRadioGroup>
     <MenuDivider />
-    <MenuSub Label="Move to" Icon="Tabler.FolderSymlink">
+    <MenuSub Label="Move to" Icon="Hugeicons.FolderExport">
         <MenuItem>Inbox</MenuItem>
     </MenuSub>
 </Menu>
@@ -630,7 +632,7 @@ A `Tabs` holds either `Tab`s or `TabLink`s, not both.
 
 ```razor
 <Tabs Label="Settings">
-    <TabLink Href="settings/profile" Label="Profile" Icon="Tabler.User" />
+    <TabLink Href="settings/profile" Label="Profile" Icon="Hugeicons.User" />
     <TabLink Href="settings/billing" Label="Billing" />
 </Tabs>
 ```
@@ -805,7 +807,7 @@ it needs a `Title`), while buttons in it stay clickable.
 
 ```razor
 <Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
-    <Actions><IconButton Icon="Tabler.Dots" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
+    <Actions><IconButton Icon="Hugeicons.MoreHorizontal" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
     <ChildContent>...</ChildContent>
 </Card>
 ```

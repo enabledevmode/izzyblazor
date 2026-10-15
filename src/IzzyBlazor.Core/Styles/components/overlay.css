@@ -94,9 +94,8 @@
 
   /* Menu */
   .ib-menu-item {
-    /* A menu row is a small control: 16px icons with the heavier stroke. */
+    /* A menu row is a small control: 16px icons. */
     --ib-icon-size: var(--ib-control-icon-sm);
-    --ib-icon-stroke: var(--ib-control-icon-stroke-sm);
 
     display: flex;
     align-items: center;

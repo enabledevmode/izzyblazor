@@ -23,7 +23,7 @@
         @* With a full-height sidebar that has a Header, the brand lives there instead. *@
         @if (!BrandInSidebar)
         {
-            <AppBrand Href="preview/app-shell" Icon="Tabler.Bolt" Label="Acme" />
+            <AppBrand Href="preview/app-shell" Icon="Hugeicons.Flash" Label="Acme" />
         }
         <Box Grow />
         @* Header links; below Lg they move into the sidebar (the drawer on phones), so there is one menu. *@
@@ -31,23 +31,23 @@
             <NavItem Href='@Link("docs")'>Docs</NavItem>
             <NavItem Href='@Link("changelog")'>Changelog</NavItem>
         </HeaderNav>
-        <IconButton Icon="Tabler.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Hugeicons.Notification01" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
     </AppHeader>
 
     <AppSidebar Bg="@Chrome" ColorScheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" DrawerPosition="@(Drawer == "end" ? SidebarPosition.End : null)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
                 CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)"
                 Header="@(Slots == "on" ? (BrandInSidebar ? SidebarBrand : SidebarSwitcher) : null)" Footer="@(Slots == "on" ? SidebarFooter : null)">
         <NavMenu>
-            <NavItem Href="@Link(null)" Icon="Tabler.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
-            <NavItem Href='@Link("inbox")' Icon="Tabler.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>
-            <NavGroup Label="Projects" Icon="Tabler.Folder" ActivePrefix="preview/app-shell/projects">
+            <NavItem Href="@Link(null)" Icon="Hugeicons.DashboardSquare01" Match="NavLinkMatch.All">Dashboard</NavItem>
+            <NavItem Href='@Link("inbox")' Icon="Hugeicons.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>
+            <NavGroup Label="Projects" Icon="Hugeicons.Folder01" ActivePrefix="preview/app-shell/projects">
                 <NavItem Href='@Link("projects/website")'>Website</NavItem>
                 <NavItem Href='@Link("projects/course")'>Course app</NavItem>
             </NavGroup>
             <NavDivider />
             <NavLabel>Account</NavLabel>
-            <NavItem Href='@Link("settings")' Icon="Tabler.Settings">Settings</NavItem>
-            <NavItem Href='@Link("billing")' Icon="Tabler.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
+            <NavItem Href='@Link("settings")' Icon="Hugeicons.Settings01">Settings</NavItem>
+            <NavItem Href='@Link("billing")' Icon="Hugeicons.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
         </NavMenu>
     </AppSidebar>
 
@@ -121,7 +121,7 @@
     // Full-height sidebar: the brand, in the top-left corner of the app.
     private static readonly RenderFragment SidebarBrand =
         @<Row Gap="2" Align="Align.Center" Padding="1">
-            <Box Bg="Color.Primary" Radius="Radius.Md" Padding="1" Class="host-ws-mark"><Icon Name="Tabler.Bolt" /></Box>
+            <Box Bg="Color.Primary" Radius="Radius.Md" Padding="1" Class="host-ws-mark"><Icon Name="Hugeicons.Flash" /></Box>
             <Stack Gap="0" Class="ib-collapsed-hide">
                 <TextBlock As="span" Size="TextSize.Sm" Weight="FontWeight.Semibold">Acme Inc.</TextBlock>
                 <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">Pro plan</TextBlock>
@@ -132,22 +132,22 @@
     private static readonly RenderFragment SidebarSwitcher =
         @<Menu Id="project-switch" Label="Switch project">
             <Trigger>
-                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Tabler.FolderCode" FullWidth Class="host-switcher" @attributes="context">
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Hugeicons.FolderCode" FullWidth Class="host-switcher" @attributes="context">
                     <span class="ib-collapsed-hide">Website</span>
-                    <Icon Name="Tabler.Selector" Class="ib-collapsed-hide" Color="Color.Muted" />
+                    <Icon Name="Hugeicons.UnfoldMore" Class="ib-collapsed-hide" Color="Color.Muted" />
                 </Button>
             </Trigger>
             <ChildContent>
-                <MenuItem Icon="Tabler.FolderCode">Website</MenuItem>
-                <MenuItem Icon="Tabler.FolderCode">Course app</MenuItem>
+                <MenuItem Icon="Hugeicons.FolderCode">Website</MenuItem>
+                <MenuItem Icon="Hugeicons.FolderCode">Course app</MenuItem>
                 <MenuDivider />
-                <MenuItem Icon="Tabler.Plus">New project</MenuItem>
+                <MenuItem Icon="Hugeicons.Add01">New project</MenuItem>
             </ChildContent>
         </Menu>;
 
     private RenderFragment SidebarFooter =>
         @<NavMenu aria-label="Account">
-            <NavItem Href='@Link("account")' Icon="Tabler.UserCircle">Ada Lovelace</NavItem>
+            <NavItem Href='@Link("account")' Icon="Hugeicons.UserCircle">Ada Lovelace</NavItem>
         </NavMenu>;
 
     // ?sb=dark|light|inverse and ?hd=... give the sidebar and header their own color scheme.

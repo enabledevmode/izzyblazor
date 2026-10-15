@@ -53,7 +53,8 @@ server projects; WebAssembly (`.Client`) projects reference `IzzyBlazor.Core` an
 - [Styling](https://github.com/enabledevmode/izzyblazor/blob/main/docs/styling.md)
 - [Source and issues](https://github.com/enabledevmode/izzyblazor)
 
-[MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE). Bundled Tabler Icons are MIT
-licensed, and so are the few brand logos drawn for IzzyBlazor; see
+[MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE). Bundled Hugeicons are MIT
+licensed, and so are the few brand logos drawn for IzzyBlazor; the bundled Inter font is under the SIL
+Open Font License. See
 [THIRD-PARTY-NOTICES.md](https://github.com/enabledevmode/izzyblazor/blob/main/THIRD-PARTY-NOTICES.md).
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

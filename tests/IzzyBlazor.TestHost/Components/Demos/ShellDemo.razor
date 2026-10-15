@@ -100,14 +100,14 @@
         <Box MaxWidth="16.Rem">
             <NavMenu>
                 <NavLabel>Workspace</NavLabel>
-                <NavItem Href="static/shell" Icon="Tabler.LayoutDashboard">This page (active)</NavItem>
-                <NavItem Href="static/forms" Icon="Tabler.Inbox" Badge="12" BadgeAccent="Accent.Primary">Forms</NavItem>
-                <NavGroup Label="Layout" Icon="Tabler.Columns2" Open>
+                <NavItem Href="static/shell" Icon="Hugeicons.DashboardSquare01">This page (active)</NavItem>
+                <NavItem Href="static/forms" Icon="Hugeicons.Inbox" Badge="12" BadgeAccent="Accent.Primary">Forms</NavItem>
+                <NavGroup Label="Layout" Icon="Hugeicons.Layout2Column" Open>
                     <NavItem Href="static/box">Box</NavItem>
                     <NavItem Href="static/stack">Stack</NavItem>
                 </NavGroup>
                 <NavDivider />
-                <NavItem Href="static/icons" Icon="Tabler.Shape">Icons</NavItem>
+                <NavItem Href="static/icons" Icon="Hugeicons.Shapes">Icons</NavItem>
             </NavMenu>
         </Box>
     </Example>
@@ -151,11 +151,11 @@
 
         <AppSidebar Collapsible>
             <Header>
-                <Row Gap="2"><Icon Name="Tabler.Bolt" /><TextBlock As="span" Class="ib-collapsed-hide">Acme Inc.</TextBlock></Row>
+                <Row Gap="2"><Icon Name="Hugeicons.Flash" /><TextBlock As="span" Class="ib-collapsed-hide">Acme Inc.</TextBlock></Row>
             </Header>
             <ChildContent><NavMenu>...</NavMenu></ChildContent>
             <Footer>
-                <NavMenu><NavItem Href="account" Icon="Tabler.UserCircle">Ada Lovelace</NavItem></NavMenu>
+                <NavMenu><NavItem Href="account" Icon="Hugeicons.UserCircle">Ada Lovelace</NavItem></NavMenu>
             </Footer>
         </AppSidebar>
 
@@ -224,8 +224,8 @@
             </AppHeader>
             <AppSidebar>
                 <NavMenu>
-                    <NavItem Href="/" Icon="Tabler.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
-                    <NavItem Href="/inbox" Icon="Tabler.Inbox" Badge="4">Inbox</NavItem>
+                    <NavItem Href="/" Icon="Hugeicons.DashboardSquare01" Match="NavLinkMatch.All">Dashboard</NavItem>
+                    <NavItem Href="/inbox" Icon="Hugeicons.Inbox" Badge="4">Inbox</NavItem>
                 </NavMenu>
             </AppSidebar>
             <AppMain>@Body</AppMain>
@@ -244,8 +244,8 @@
         """
         <NavMenu>
             <NavLabel>Workspace</NavLabel>
-            <NavItem Href="/inbox" Icon="Tabler.Inbox" Badge="12">Inbox</NavItem>
-            <NavGroup Label="Layout" Icon="Tabler.Columns2" ActivePrefix="/layout">
+            <NavItem Href="/inbox" Icon="Hugeicons.Inbox" Badge="12">Inbox</NavItem>
+            <NavGroup Label="Layout" Icon="Hugeicons.Layout2Column" ActivePrefix="/layout">
                 <NavItem Href="/layout/box">Box</NavItem>
             </NavGroup>
             <NavDivider />

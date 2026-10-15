@@ -44,7 +44,7 @@ public class TimelineItem : IzzyComponentBase
     /// </summary>
     [Parameter] public string? DateTime { get; set; }
 
-    /// <summary>An icon in the marker in place of the dot, such as <c>Tabler.GitCommit</c>.</summary>
+    /// <summary>An icon in the marker in place of the dot, such as <c>Hugeicons.GitCommit</c>.</summary>
     [Parameter] public IconData? Icon { get; set; }
 
     /// <summary>Colors the marker, such as <see cref="Status.Success"/> for a passed build.</summary>

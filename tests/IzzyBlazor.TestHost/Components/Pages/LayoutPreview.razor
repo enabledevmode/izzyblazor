@@ -17,7 +17,7 @@
        footer, a hero, a card grid, a check list, full-bleed bands and a footer of link columns. *@
     <AppShell Variant="ShellVariantValue" ContentWidth="Length.Rem(72)">
         <AppHeader>
-            <AppBrand Href="@Url(Kind)" Icon="Tabler.Bolt" Label="Acme Labs" />
+            <AppBrand Href="@Url(Kind)" Icon="Hugeicons.Flash" Label="Acme Labs" />
             <Box Grow />
             <HeaderNav Label="Site">
                 <ChildContent>
@@ -26,11 +26,11 @@
                     <NavItem Href="@Url("document")">Guides</NavItem>
                 </ChildContent>
                 <PanelHeader>
-                    <Icon Name="Tabler.Bolt" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                    <Icon Name="Hugeicons.Flash" Color="Color.PrimaryText" Size="IconSize.Lg" />
                     <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
                 </PanelHeader>
                 <PanelFooter>
-                    <LinkButton Href="@Url("marketing")" StartIcon="Tabler.PlayerPlay" FullWidth>Watch the series</LinkButton>
+                    <LinkButton Href="@Url("marketing")" StartIcon="Hugeicons.Play" FullWidth>Watch the series</LinkButton>
                 </PanelFooter>
             </HeaderNav>
             <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
@@ -44,7 +44,7 @@
                         <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl4" LetterSpacing="LetterSpacing.Tight">Build real apps, one commit at a time</Heading>
                         <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every episode ships a working feature. Watch the change, read the diff, and run the code at that exact step.</TextBlock>
                         <Row Gap="3" Wrap>
-                            <LinkButton Href="@Url("marketing")" StartIcon="Tabler.PlayerPlay" Size="ControlSize.Lg">Watch the series</LinkButton>
+                            <LinkButton Href="@Url("marketing")" StartIcon="Hugeicons.Play" Size="ControlSize.Lg">Watch the series</LinkButton>
                             <LinkButton Href="@Url("marketing")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</LinkButton>
                         </Row>
                     </Stack>
@@ -78,7 +78,7 @@
                         <Heading Level="2" Size="TextSize.Xl3">What every episode gives you</Heading>
                         <TextBlock Color="Color.Muted">No skipped steps. If it's on screen, it's in the repo.</TextBlock>
                     </Stack>
-                    <List Icon="Tabler.Check" IconColor="Color.SuccessText" Gap="3">
+                    <List Icon="Hugeicons.Tick02" IconColor="Color.SuccessText" Gap="3">
                         <ListItem>The commit, linked from the video at the moment it lands</ListItem>
                         <ListItem>The code at that step, ready to clone and run</ListItem>
                         <ListItem>Notes on why, not just what</ListItem>
@@ -106,7 +106,7 @@
                 <Grid Columns="new() { Base = 2, Md = 4 }" Gap="6">
                     <Stack Gap="2">
                         <Row Gap="2" Align="Align.Center">
-                            <Icon Name="Tabler.Bolt" Color="Color.PrimaryText" />
+                            <Icon Name="Hugeicons.Flash" Color="Color.PrimaryText" />
                             <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
                         </Row>
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Apps built in the open.</TextBlock>
@@ -142,7 +142,7 @@
        one centered column, while the bars and their lines stay full width. *@
     <AppShell Variant="ShellVariantValue" ContentWidth="Length.Rem(42)">
         <AppHeader>
-            <AppBrand Href="@Url(Kind)" Icon="Tabler.Bolt" Label="Acme Journal" />
+            <AppBrand Href="@Url(Kind)" Icon="Hugeicons.Flash" Label="Acme Journal" />
             <Box Grow />
             <HeaderNav Label="Sections" Breakpoint="Breakpoint.Sm">
                 <ChildContent>
@@ -150,11 +150,11 @@
                     <NavItem Href="@Url("document")">Guides</NavItem>
                 </ChildContent>
                 <PanelHeader>
-                    <Icon Name="Tabler.Bolt" Color="Color.PrimaryText" Size="IconSize.Lg" />
+                    <Icon Name="Hugeicons.Flash" Color="Color.PrimaryText" Size="IconSize.Lg" />
                     <TextBlock As="span" Weight="FontWeight.Bold">Acme Journal</TextBlock>
                 </PanelHeader>
             </HeaderNav>
-            <IconButton Icon="Tabler.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Hugeicons.Search01" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         </AppHeader>
         <AppMain>
             <Stack Gap="5" PaddingY="new() { Base = 8, Md = 12 }">
@@ -205,7 +205,7 @@
 <AppShell Variant="ShellVariantValue">
     <AppHeader>
         <SidebarToggle />
-        <AppBrand Href="@Url(Kind)" Icon="Tabler.Bolt" Label="Acme" />
+        <AppBrand Href="@Url(Kind)" Icon="Hugeicons.Flash" Label="Acme" />
         <Box Grow />
         @if (Kind == "document")
         {
@@ -217,19 +217,19 @@
                 <NavItem Href="@Url("marketing")">Videos</NavItem>
             </HeaderNav>
         }
-        <IconButton Icon="Tabler.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Hugeicons.Notification01" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         <Avatar Name="Ada Lovelace" />
     </AppHeader>
 
     <AppSidebar>
         <NavMenu>
-            <NavItem Href="@Url("dashboard")" Icon="Tabler.LayoutDashboard">Overview</NavItem>
-            <NavItem Href="@Url("list")" Icon="Tabler.ListCheck" Badge="57">Rules</NavItem>
-            <NavItem Href="@Url("document")" Icon="Tabler.Book">Guide</NavItem>
+            <NavItem Href="@Url("dashboard")" Icon="Hugeicons.DashboardSquare01">Overview</NavItem>
+            <NavItem Href="@Url("list")" Icon="Hugeicons.CheckList" Badge="57">Rules</NavItem>
+            <NavItem Href="@Url("document")" Icon="Hugeicons.Book01">Guide</NavItem>
             <NavDivider />
             <NavLabel>Workspace</NavLabel>
-            <NavItem Href="@Url("settings")" Icon="Tabler.Settings">Settings</NavItem>
-            <NavItem Href="@Url("billing")" Icon="Tabler.CreditCard">Billing</NavItem>
+            <NavItem Href="@Url("settings")" Icon="Hugeicons.Settings01">Settings</NavItem>
+            <NavItem Href="@Url("billing")" Icon="Hugeicons.CreditCard">Billing</NavItem>
         </NavMenu>
     </AppSidebar>
 
@@ -244,7 +244,7 @@
                             <Heading Level="1" Size="TextSize.Xl2">Project settings</Heading>
                         </Stack>
                         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
-                        <Button StartIcon="Tabler.Check">Save changes</Button>
+                        <Button StartIcon="Hugeicons.Tick02">Save changes</Button>
                     </Row>
                     <Form Model="Settings" FormName="layout-settings" OnValidSubmit="() => { }">
                         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
@@ -272,7 +272,7 @@
                             </Card>
                             <Card Title="Danger zone" Description="Deleting removes every rule and its history.">
                                 <Row Gap="2">
-                                    <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Tabler.Trash">Delete project</Button>
+                                    <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.Delete02">Delete project</Button>
                                 </Row>
                             </Card>
                         </Grid>
@@ -287,8 +287,8 @@
                             <Heading Level="1" Size="TextSize.Xl2">Rules</Heading>
                             <TextBlock Color="Color.Muted" Size="TextSize.Sm">Every rule in this project, most recently changed first.</TextBlock>
                         </Stack>
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Tabler.Download">Export</Button>
-                        <Button StartIcon="Tabler.Plus">New rule</Button>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Hugeicons.Download01">Export</Button>
+                        <Button StartIcon="Hugeicons.Add01">New rule</Button>
                     </Row>
                     <Table Items="Rules" PageSize="8" PageSizeOptions="SizeOptions" Caption="Rules" id="layout-rules">
                         <PropertyColumn Property="r => r.Name" Sortable />
@@ -330,13 +330,13 @@
                             <Heading Level="1" Size="TextSize.Xl2">Overview</Heading>
                             <TextBlock Color="Color.Muted" Size="TextSize.Sm">Decisions across all projects, last 30 days.</TextBlock>
                         </Stack>
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Tabler.ChevronDown">Last 30 days</Button>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Hugeicons.ArrowDown01">Last 30 days</Button>
                     </Row>
                     <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
-                        <Card><Stat Label="Decisions" Value="48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Tabler.Activity" /></Card>
-                        <Card><Stat Label="Held for review" Value="1,284" Change="3%" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Tabler.HandStop" /></Card>
-                        <Card><Stat Label="Median latency" Value="18 ms" Change="2 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Tabler.Stopwatch" /></Card>
-                        <Card><Stat Label="Rules live" Value="57" Change="+4" Trend="StatTrend.Up" Icon="Tabler.ListCheck" /></Card>
+                        <Card><Stat Label="Decisions" Value="48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Hugeicons.Activity01" /></Card>
+                        <Card><Stat Label="Held for review" Value="1,284" Change="3%" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Hugeicons.Hand" /></Card>
+                        <Card><Stat Label="Median latency" Value="18 ms" Change="2 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Hugeicons.Timer02" /></Card>
+                        <Card><Stat Label="Rules live" Value="57" Change="+4" Trend="StatTrend.Up" Icon="Hugeicons.CheckList" /></Card>
                     </Grid>
                     <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
                         <Box Style="grid-column: span 2">
@@ -403,10 +403,10 @@
 
     private static readonly (string Title, string Text, IconData Icon, string Tag)[] Projects =
     [
-        ("Rulebook console", "A rules engine admin, from empty repo to deployed.", Tabler.ListCheck, "Blazor"),
-        ("Invoice kit", "Billing with PDFs, email and a customer portal.", Tabler.Receipt, "Blazor"),
-        ("Field notes", "An offline-first notes app with sync.", Tabler.Notebook, "WebAssembly"),
-        ("Status page", "Uptime checks and an incident timeline.", Tabler.Activity, "Static SSR"),
+        ("Rulebook console", "A rules engine admin, from empty repo to deployed.", Hugeicons.CheckList, "Blazor"),
+        ("Invoice kit", "Billing with PDFs, email and a customer portal.", Hugeicons.Invoice01, "Blazor"),
+        ("Field notes", "An offline-first notes app with sync.", Hugeicons.Notebook, "WebAssembly"),
+        ("Status page", "Uptime checks and an incident timeline.", Hugeicons.Activity01, "Static SSR"),
     ];
 
     private static readonly (string Heading, string[] Links)[] FooterLinks =

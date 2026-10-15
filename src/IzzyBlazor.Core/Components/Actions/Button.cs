@@ -11,7 +11,7 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;Button Type="ButtonType.Submit"&gt;Save&lt;/Button&gt;
-/// &lt;Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Tabler.Trash"&gt;Delete&lt;/Button&gt;
+/// &lt;Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.Delete02"&gt;Delete&lt;/Button&gt;
 /// &lt;Button Type="ButtonType.Submit" Name="action" Value="publish"&gt;Publish&lt;/Button&gt;
 /// </code>
 /// </example>

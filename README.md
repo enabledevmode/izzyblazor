@@ -41,7 +41,7 @@ choose a different component for each.
 - **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
   HeaderNav
 - **Typography:** TextBlock, Heading, Anchor, Code (with syntax highlighting), Kbd, List, Prose, Icon
-  (all of Tabler Icons, outline and filled, plus brand logos)
+  (all of the free Hugeicons, plus brand logos)
 - **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
@@ -59,7 +59,7 @@ computed at runtime. If you've used Chakra UI or Mantine, the layout props will 
 ```razor
 <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4">
     <Box Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow>...</Box>
-    <Button StartIcon="Tabler.Plus">New order</Button>
+    <Button StartIcon="Hugeicons.Add01">New order</Button>
 </Stack>
 ```
 
@@ -108,6 +108,7 @@ The project doesn't take pull requests for now.
 
 ## License
 
-MIT. Bundled Tabler Icons are MIT licensed, and so are the few brand logos drawn for IzzyBlazor; see
+MIT. Bundled Hugeicons are MIT licensed, and so are the few brand logos drawn for IzzyBlazor; the
+bundled Inter font is under the SIL Open Font License. See
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

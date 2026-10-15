@@ -85,8 +85,6 @@
     --ib-tag-h: 1.5rem;
     --ib-tag-px: var(--ib-space-2);
     --ib-tag-icon: 0.875rem;
-    /* Its icons are 12 to 16px, so they take the small controls' heavier stroke. */
-    --ib-icon-stroke: var(--ib-control-icon-stroke-sm);
     --ib-tag-x: 1.125rem;
     --ib-tag-x-icon: 0.75rem;
 

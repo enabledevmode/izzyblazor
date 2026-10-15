@@ -19,24 +19,24 @@
     <Example Title="Menu" Note="Links, form posts and C# actions. Open, Escape and click-outside are native; the script adds arrow keys, Home, End and type-ahead." Code="@MenuCode">
         <form method="get" action="@_path">
             <Row Gap="3" Wrap Align="Align.Center">
-                <Menu Label="Project" StartIcon="Tabler.Folder" Id="project-menu">
-                    <MenuItem Href="@($"{_path}#settings")" Icon="Tabler.Settings" Shortcut="Ctrl+,">Settings</MenuItem>
-                    <MenuItem Icon="Tabler.Copy" Shortcut="Ctrl+D" OnClick="@(() => _clicked = "duplicate")">Duplicate</MenuItem>
-                    <MenuItem Icon="Tabler.Share2" Disabled="true">Share (soon)</MenuItem>
+                <Menu Label="Project" StartIcon="Hugeicons.Folder01" Id="project-menu">
+                    <MenuItem Href="@($"{_path}#settings")" Icon="Hugeicons.Settings01" Shortcut="Ctrl+,">Settings</MenuItem>
+                    <MenuItem Icon="Hugeicons.Copy01" Shortcut="Ctrl+D" OnClick="@(() => _clicked = "duplicate")">Duplicate</MenuItem>
+                    <MenuItem Icon="Hugeicons.Share08" Disabled="true">Share (soon)</MenuItem>
                     <MenuDivider />
                     <MenuGroup Label="Posts the form">
-                        <MenuItem Type="ButtonType.Submit" Name="action" Value="archive" Icon="Tabler.Archive">Archive</MenuItem>
-                        <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Icon="Tabler.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                        <MenuItem Type="ButtonType.Submit" Name="action" Value="archive" Icon="Hugeicons.Archive">Archive</MenuItem>
+                        <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Icon="Hugeicons.Delete02" Accent="Accent.Danger">Delete</MenuItem>
                     </MenuGroup>
                 </Menu>
 
                 <Menu Placement="Placement.BottomEnd" Id="more-menu">
                     <Trigger>
-                        <IconButton Icon="Tabler.Dots" Label="More actions" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
+                        <IconButton Icon="Hugeicons.MoreHorizontal" Label="More actions" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
                     </Trigger>
                     <ChildContent>
-                        <MenuItem Icon="Tabler.Pencil">Rename</MenuItem>
-                        <MenuItem Icon="Tabler.Download">Export</MenuItem>
+                        <MenuItem Icon="Hugeicons.PencilEdit01">Rename</MenuItem>
+                        <MenuItem Icon="Hugeicons.Download01">Export</MenuItem>
                     </ChildContent>
                 </Menu>
 
@@ -50,7 +50,7 @@
 
     <Example Title="Checkable items and submenus" Note="@CheckableNote" Code="@CheckableCode">
         <Row Gap="3" Wrap Align="Align.Center">
-            <Menu Label="View" StartIcon="Tabler.AdjustmentsHorizontal" Id="view-menu">
+            <Menu Label="View" StartIcon="Hugeicons.SlidersHorizontal" Id="view-menu">
                 <MenuRadioGroup Label="Sort by" QueryKey="sort">
                     <MenuItem Value="name">Name</MenuItem>
                     <MenuItem Value="date">Date modified</MenuItem>
@@ -65,21 +65,21 @@
             </Menu>
 
             <Menu Label="Actions" Id="actions-menu">
-                <MenuItem Icon="Tabler.Pencil">Rename</MenuItem>
-                <MenuSub Label="Move to" Icon="Tabler.FolderSymlink">
-                    <MenuItem Icon="Tabler.Inbox">Inbox</MenuItem>
-                    <MenuItem Icon="Tabler.Archive">Archive</MenuItem>
-                    <MenuSub Label="Projects" Icon="Tabler.Folder">
+                <MenuItem Icon="Hugeicons.PencilEdit01">Rename</MenuItem>
+                <MenuSub Label="Move to" Icon="Hugeicons.FolderExport">
+                    <MenuItem Icon="Hugeicons.Inbox">Inbox</MenuItem>
+                    <MenuItem Icon="Hugeicons.Archive">Archive</MenuItem>
+                    <MenuSub Label="Projects" Icon="Hugeicons.Folder01">
                         <MenuItem>Website</MenuItem>
                         <MenuItem>Course app</MenuItem>
                     </MenuSub>
                 </MenuSub>
-                <MenuSub Label="Share" Icon="Tabler.Share2">
-                    <MenuItem Icon="Tabler.Link">Copy link</MenuItem>
-                    <MenuItem Icon="Tabler.Mail">Email</MenuItem>
+                <MenuSub Label="Share" Icon="Hugeicons.Share08">
+                    <MenuItem Icon="Hugeicons.Link04">Copy link</MenuItem>
+                    <MenuItem Icon="Hugeicons.Mail01">Email</MenuItem>
                 </MenuSub>
                 <MenuDivider />
-                <MenuItem Icon="Tabler.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                <MenuItem Icon="Hugeicons.Delete02" Accent="Accent.Danger">Delete</MenuItem>
             </Menu>
 
             <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">
@@ -102,7 +102,7 @@
 
     <Example Title="Popover" Note="Non-modal content next to its trigger. Auto mode closes on Escape and outside clicks; Manual stays until closed." Code="@PopoverCode">
         <Row Gap="3" Wrap>
-            <Popover Label="Filters" StartIcon="Tabler.AdjustmentsHorizontal" Title="Filter results" Id="filters">
+            <Popover Label="Filters" StartIcon="Hugeicons.SlidersHorizontal" Title="Filter results" Id="filters">
                 <Stack Gap="2">
                     <label class="ib-check"><input type="checkbox" class="ib-check-input" checked /> Open issues</label>
                     <label class="ib-check"><input type="checkbox" class="ib-check-input" /> Closed issues</label>
@@ -127,16 +127,16 @@
             <Tooltip Text="Start side" Placement="Placement.Start"><Button Variant="ButtonVariant.Soft">Start</Button></Tooltip>
             <Tooltip Text="End side" Placement="Placement.End"><Button Variant="ButtonVariant.Soft">End</Button></Tooltip>
             <Box Padding="2" Radius="Radius.Md" Class="host-dashed" Style="overflow:hidden">
-                <Tooltip Text="Notifications: 3 unread" Delay="0"><IconButton Icon="Tabler.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" /></Tooltip>
+                <Tooltip Text="Notifications: 3 unread" Delay="0"><IconButton Icon="Hugeicons.Notification01" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" /></Tooltip>
             </Box>
         </Row>
     </Example>
 
     <Example Title="Dialog" Note="A native modal dialog: focus is trapped, the page behind is inert, Escape closes it. Opened by DialogTrigger (commandfor), by a ?dialog= link rendered open on the server, or from C#." Code="@DialogCode">
         <Row Gap="3" Wrap>
-            <DialogTrigger For="invite" StartIcon="Tabler.UserPlus">Invite people</DialogTrigger>
+            <DialogTrigger For="invite" StartIcon="Hugeicons.UserAdd01">Invite people</DialogTrigger>
             <DialogTrigger For="confirm-delete" Accent="Accent.Danger" Variant="ButtonVariant.Outline">Delete project</DialogTrigger>
-            <DialogTrigger For="rename" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Tabler.Pencil">Rename</DialogTrigger>
+            <DialogTrigger For="rename" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.PencilEdit01">Rename</DialogTrigger>
             @if (_renamed is not null)
             {
                 <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" data-testid="renamed">Renamed to @_renamed</TextBlock>
@@ -165,7 +165,7 @@
             </ChildContent>
             <Footer>
                 <DialogClose>Cancel</DialogClose>
-                <Button Type="ButtonType.Submit" Form="invite-form" StartIcon="Tabler.Mail">Send invite</Button>
+                <Button Type="ButtonType.Submit" Form="invite-form" StartIcon="Hugeicons.Mail01">Send invite</Button>
             </Footer>
         </Dialog>
 
@@ -198,7 +198,7 @@
         @if (RendererInfo.IsInteractive)
         {
             <Row Gap="3" Wrap Align="Align.Center">
-                <Button StartIcon="Tabler.Pencil" OnClick="EditFromCode">Edit name</Button>
+                <Button StartIcon="Hugeicons.PencilEdit01" OnClick="EditFromCode">Edit name</Button>
                 <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" OnClick="ConfirmFromCode">Remove member</Button>
                 <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" data-testid="service-result">@_serviceResult</TextBlock>
             </Row>
@@ -207,9 +207,9 @@
 
     <Example Title="Drawer" Note="A dialog that slides in from an edge: the end side by default, the start side, or a sheet along the bottom (good on phones) or top. It behaves like Dialog, so it traps focus, closes on Escape and opens the same ways. Size sets a side drawer's width; sides flip in right-to-left languages." Code="@DrawerCode">
         <Row Gap="3" Wrap>
-            <DialogTrigger For="details-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Tabler.LayoutSidebarRight">End</DialogTrigger>
-            <DialogTrigger For="nav-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Tabler.LayoutSidebar">Start, small</DialogTrigger>
-            <DialogTrigger For="share-sheet" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Tabler.LayoutBottombar">Bottom sheet</DialogTrigger>
+            <DialogTrigger For="details-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.LayoutRight">End</DialogTrigger>
+            <DialogTrigger For="nav-drawer" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.LayoutLeft">Start, small</DialogTrigger>
+            <DialogTrigger For="share-sheet" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.LayoutBottom">Bottom sheet</DialogTrigger>
         </Row>
 
         <Drawer Id="details-drawer" Title="Project details" Size="DialogSize.Lg">
@@ -227,9 +227,9 @@
 
         <Drawer Id="nav-drawer" Title="Navigate" Placement="DialogPlacement.Start" Size="DialogSize.Sm">
             <nav aria-label="Drawer navigation"><NavMenu>
-                <NavItem Href="static/overlays" Icon="Tabler.Home">Home</NavItem>
-                <NavItem Href="static/overlays" Icon="Tabler.LayoutKanban">Projects</NavItem>
-                <NavItem Href="static/overlays" Icon="Tabler.Settings">Settings</NavItem>
+                <NavItem Href="static/overlays" Icon="Hugeicons.Home01">Home</NavItem>
+                <NavItem Href="static/overlays" Icon="Hugeicons.Kanban">Projects</NavItem>
+                <NavItem Href="static/overlays" Icon="Hugeicons.Settings01">Settings</NavItem>
             </NavMenu></nav>
         </Drawer>
 
@@ -237,8 +237,8 @@
             <Stack Gap="3">
                 <TextBlock Color="Color.Muted" Size="TextSize.Sm">Anyone with the link can view this project.</TextBlock>
                 <Row Gap="2" Wrap>
-                    <Button StartIcon="Tabler.Link">Copy link</Button>
-                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Tabler.Mail">Email</Button>
+                    <Button StartIcon="Hugeicons.Link04">Copy link</Button>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Hugeicons.Mail01">Email</Button>
                 </Row>
             </Stack>
         </Drawer>
@@ -264,7 +264,7 @@
                                Accent="Accent.Danger"
                                Variant="ButtonVariant.Outline"
                                Size="ControlSize.Sm"
-                               StartIcon="Tabler.Trash"
+                               StartIcon="Hugeicons.Delete02"
                                Name="action"
                                Value="delete">Delete</ConfirmButton>
                 @if (RendererInfo.IsInteractive)
@@ -394,7 +394,7 @@
         </Menu>
 
         <Menu Label="Actions">
-            <MenuSub Label="Move to" Icon="Tabler.FolderSymlink">
+            <MenuSub Label="Move to" Icon="Hugeicons.FolderExport">
                 <MenuItem>Inbox</MenuItem>
                 <MenuItem>Archive</MenuItem>
             </MenuSub>
@@ -420,9 +420,9 @@
 
     private const string MenuCode =
         """
-        <Menu Label="Project" StartIcon="Tabler.Folder">
-            <MenuItem Href="/settings" Icon="Tabler.Settings">Settings</MenuItem>
-            <MenuItem Icon="Tabler.Copy" OnClick="Duplicate">Duplicate</MenuItem>
+        <Menu Label="Project" StartIcon="Hugeicons.Folder01">
+            <MenuItem Href="/settings" Icon="Hugeicons.Settings01">Settings</MenuItem>
+            <MenuItem Icon="Hugeicons.Copy01" OnClick="Duplicate">Duplicate</MenuItem>
             <MenuDivider />
             <MenuGroup Label="Posts the form">
                 <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Accent="Accent.Danger">Delete</MenuItem>
@@ -430,7 +430,7 @@
         </Menu>
 
         <Menu Placement="Placement.BottomEnd">
-            <Trigger><IconButton Icon="Tabler.Dots" Label="More actions" @attributes="context" /></Trigger>
+            <Trigger><IconButton Icon="Hugeicons.MoreHorizontal" Label="More actions" @attributes="context" /></Trigger>
             <ChildContent>...</ChildContent>
         </Menu>
         """;

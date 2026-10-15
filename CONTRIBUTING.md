@@ -28,7 +28,7 @@ behind an interface defined in Core. Core's build fails if server types creep in
 Requirements: .NET 10 SDK and Node 20 or newer.
 
 ```bash
-npm ci        # once: installs esbuild and the Tabler source icons (@tabler/icons)
+npm ci        # once: installs esbuild, the Hugeicons source icons and the Inter font
 npm run dev   # asset watcher + dotnet watch on the dev host
 ```
 

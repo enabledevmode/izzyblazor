@@ -36,7 +36,6 @@
     --ib-field-font: var(--ib-control-font-sm);
     --ib-field-label-font: var(--ib-control-font-sm);
     --ib-icon-size: var(--ib-control-icon-sm);
-    --ib-icon-stroke: var(--ib-control-icon-stroke-sm);
   }
 
   .ib-field-lg {
@@ -331,10 +330,10 @@
     border-end-end-radius: calc(var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md))) - 1px);
   }
 
-  /* The plus and minus are straight lines through the icon's middle. At 16px, the icon's 2-unit
-     stroke is 1.33px centered on a pixel boundary, so it smears across two rows. A 3-unit stroke
-     is exactly 2px, filling two whole rows (and columns) on either side of the middle: crisp, and
-     as heavy as the stacked chevrons look. */
+  /* The plus and minus are straight lines through the icon's middle. At 16px, the icon's 1.5-unit
+     stroke is 1px centered on a pixel boundary, so it smears across two rows. A 3-unit stroke is
+     exactly 2px, filling a whole row (and column) on either side of the middle: crisp, and easy to
+     see on a button meant for tapping. */
   .ib-field-steppers-split .ib-field-step .ib-icon {
     width: 1rem;
     height: 1rem;

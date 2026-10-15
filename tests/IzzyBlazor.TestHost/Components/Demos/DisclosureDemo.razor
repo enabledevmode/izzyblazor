@@ -9,7 +9,7 @@
                 <Stack Gap="2">
                     <TextBlock As="span" Class="host-label">@variant</TextBlock>
                     <Accordion Variant="variant">
-                        <AccordionItem Title="What is static SSR?" Icon="Tabler.Server">
+                        <AccordionItem Title="What is static SSR?" Icon="Hugeicons.ServerStack01">
                             The server renders HTML and sends it. No SignalR circuit and no WebAssembly.
                         </AccordionItem>
                         <AccordionItem Title="Does this accordion need JavaScript?" Open="true">
@@ -54,7 +54,7 @@
                 <Stack Gap="2">
                     <TextBlock As="span" Class="host-label">@size</TextBlock>
                     <Accordion Size="size" Variant="AccordionVariant.Bordered">
-                        <AccordionItem Title="Billing" Icon="Tabler.CreditCard" Open="true">
+                        <AccordionItem Title="Billing" Icon="Hugeicons.CreditCard" Open="true">
                             Invoices go out on the first of the month.
                         </AccordionItem>
                         <AccordionItem Title="Security">Two-factor sign-in is on.</AccordionItem>
@@ -92,7 +92,7 @@
                 <TextBlock Color="Color.Muted">Hidden until you ask for it.</TextBlock>
             </Collapsible>
             <Collapsible>
-                <Trigger><Badge Status="Status.Info" StartIcon="Tabler.InfoCircle">Why is this free?</Badge></Trigger>
+                <Trigger><Badge Status="Status.Info" StartIcon="Hugeicons.InformationCircle">Why is this free?</Badge></Trigger>
                 <ChildContent><TextBlock Color="Color.Muted">Because it is open source.</TextBlock></ChildContent>
             </Collapsible>
         </Stack>
@@ -110,7 +110,7 @@
     private const string VariantsCode =
         """
         <Accordion Variant="AccordionVariant.Bordered">
-            <AccordionItem Title="What is static SSR?" Icon="Tabler.Server">...</AccordionItem>
+            <AccordionItem Title="What is static SSR?" Icon="Hugeicons.ServerStack01">...</AccordionItem>
             <AccordionItem Title="Does this need JavaScript?" Open="true">...</AccordionItem>
         </Accordion>
         """;
@@ -150,7 +150,7 @@
         <Collapsible Label="Advanced options">...</Collapsible>
 
         <Collapsible>
-            <Trigger><Badge StartIcon="Tabler.InfoCircle">Why is this free?</Badge></Trigger>
+            <Trigger><Badge StartIcon="Hugeicons.InformationCircle">Why is this free?</Badge></Trigger>
             <ChildContent>...</ChildContent>
         </Collapsible>
         """;

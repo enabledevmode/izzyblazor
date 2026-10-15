@@ -5,21 +5,22 @@ public class IconRenderTests : BunitContext
     [Fact]
     public void Decorative_icon_is_hidden_from_assistive_technology()
     {
-        var svg = Render<Icon>(p => p.Add(i => i.Name, Tabler.X)).Find("svg");
+        var svg = Render<Icon>(p => p.Add(i => i.Name, Hugeicons.Cancel01)).Find("svg");
 
         Assert.Equal("true", svg.GetAttribute("aria-hidden"));
         Assert.Null(svg.GetAttribute("role"));
         Assert.Equal("0 0 24 24", svg.GetAttribute("viewBox"));
         Assert.Equal("currentColor", svg.GetAttribute("stroke"));
         Assert.Equal("none", svg.GetAttribute("fill"));
-        Assert.Equal(2, svg.QuerySelectorAll("path").Length);
+        Assert.Equal("1.5", svg.GetAttribute("stroke-width"));
+        Assert.Single(svg.QuerySelectorAll("path"));
     }
 
     [Fact]
     public void Labeled_icon_is_an_image_with_a_name()
     {
         var svg = Render<Icon>(p => p
-            .Add(i => i.Name, Tabler.CircleCheck)
+            .Add(i => i.Name, Hugeicons.CheckmarkCircle02)
             .Add(i => i.Label, "Done")).Find("svg");
 
         Assert.Equal("img", svg.GetAttribute("role"));
@@ -31,7 +32,7 @@ public class IconRenderTests : BunitContext
     public void Role_resolves_through_the_current_icon_set()
     {
         var byRole = Render<Icon>(p => p.Add(i => i.Role, IconRole.Close));
-        var byName = Render<Icon>(p => p.Add(i => i.Name, Tabler.X));
+        var byName = Render<Icon>(p => p.Add(i => i.Name, Hugeicons.Cancel01));
 
         byRole.MarkupMatches(byName.Markup);
     }
@@ -40,15 +41,15 @@ public class IconRenderTests : BunitContext
     public void Size_color_stroke_and_spin()
     {
         var svg = Render<Icon>(p => p
-            .Add(i => i.Name, Tabler.Heart)
+            .Add(i => i.Name, Hugeicons.Favourite)
             .Add(i => i.Size, IconSize.Lg)
             .Add(i => i.Color, Color.DangerText)
-            .Add(i => i.StrokeWidth, 1.5)
+            .Add(i => i.StrokeWidth, 2)
             .Add(i => i.Spin, true)).Find("svg");
 
         Assert.Equal("ib-icon ib-icon-lg ib-icon-spin ib-fg", svg.ClassName);
         Assert.Equal("--ib-fg:var(--ib-color-danger-text);", svg.GetAttribute("style"));
-        Assert.Equal("1.5", svg.GetAttribute("stroke-width"));
+        Assert.Equal("2", svg.GetAttribute("stroke-width"));
     }
 
     [Fact]
@@ -66,7 +67,7 @@ public class IconRenderTests : BunitContext
     {
         Assert.Throws<InvalidOperationException>(() => Render<Icon>());
         Assert.Throws<InvalidOperationException>(() => Render<Icon>(p => p
-            .Add(i => i.Name, Tabler.X)
+            .Add(i => i.Name, Hugeicons.Cancel01)
             .Add(i => i.Role, IconRole.Close)));
     }
 
@@ -80,8 +81,7 @@ public class IconRenderTests : BunitContext
     }
 
     [Theory]
-    [InlineData(typeof(Tabler), 5000)]
-    [InlineData(typeof(TablerFilled), 1000)]
+    [InlineData(typeof(Hugeicons), 6000)]
     [InlineData(typeof(Brands), 13)]
     public void Every_bundled_icon_passes_the_markup_check(Type set, int atLeast)
     {
@@ -101,6 +101,16 @@ public class IconRenderTests : BunitContext
             .Select(p => (IconData)p.GetValue(null)!);
 
         Assert.All(brands, icon => Assert.Equal(IconStyle.Stroke, icon.Style));
+    }
+
+    [Fact]
+    public void Hugeicons_leave_the_stroke_to_the_svg_so_StrokeWidth_applies()
+    {
+        // Stroke color, round caps and joins and the 1.5 width come from <svg>; an element only
+        // says so when it differs.
+        Assert.DoesNotContain("stroke-width=\"1.5\"", Hugeicons.Delete02.Body);
+        Assert.DoesNotContain("currentColor", Hugeicons.Delete02.Body);
+        Assert.Equal(1.5, Hugeicons.Delete02.StrokeWidth);
     }
 
     [Theory]

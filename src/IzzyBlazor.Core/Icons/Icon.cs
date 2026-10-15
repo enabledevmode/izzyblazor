@@ -10,8 +10,8 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Icon Name="Tabler.Home" /&gt;
-/// &lt;Icon Name="Tabler.AlertTriangle" Size="IconSize.Lg" Color="Color.WarningText" Label="Warning" /&gt;
+/// &lt;Icon Name="Hugeicons.Home01" /&gt;
+/// &lt;Icon Name="Hugeicons.Alert02" Size="IconSize.Lg" Color="Color.WarningText" Label="Warning" /&gt;
 /// &lt;Icon Role="IconRole.Close" /&gt;
 /// </code>
 /// </example>
@@ -21,7 +21,7 @@ namespace IzzyBlazor;
 /// </remarks>
 public class Icon : IzzyComponentBase
 {
-    /// <summary>The icon to show, such as <c>Tabler.Home</c>. Set this or <see cref="Role"/>.</summary>
+    /// <summary>The icon to show, such as <c>Hugeicons.Home01</c>. Set this or <see cref="Role"/>.</summary>
     [Parameter] public IconData? Name { get; set; }
 
     /// <summary>A purpose such as <see cref="IconRole.Close"/>, resolved through the current icon set. Set this or <see cref="Name"/>.</summary>
@@ -39,7 +39,7 @@ public class Icon : IzzyComponentBase
     /// </summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>Overrides the stroke width of outlined icons (Tabler's default is 2).</summary>
+    /// <summary>Overrides the stroke width of outlined icons (Hugeicons' default is 1.5).</summary>
     [Parameter] public double? StrokeWidth { get; set; }
 
     /// <summary>Rotates continuously, for loading indicators. Respects reduced-motion settings.</summary>

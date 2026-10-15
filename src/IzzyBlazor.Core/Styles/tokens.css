@@ -39,13 +39,12 @@
     /* Text in small controls: 13px, between xs and sm. 12px reads cramped in a 32px control;
        medium and large controls use --ib-text-sm and --ib-text-md. */
     --ib-control-font-sm: 0.8125rem;
-    /* Icons in controls at each ControlSize: 16, 20 and 24px, about 1.4 times the label. Tabler
-       draws on a 24px grid, so its 2-unit stroke is 1.33px at 16px and looks faint on a 1x screen;
-       small controls draw it at 2.5 units (1.67px, as heavy as a 20px icon's). */
+    /* Icons in controls at each ControlSize: 16, 20 and 24px, about 1.4 times the label. Hugeicons
+       draw a 1.5-unit stroke on a 24px grid, so lines are 1, 1.25 and 1.5px: light enough to sit
+       with regular text, and whole or near-whole pixels on a standard-density screen. */
     --ib-control-icon-sm: 1rem;
     --ib-control-icon-md: 1.25rem;
     --ib-control-icon-lg: 1.5rem;
-    --ib-control-icon-stroke-sm: 2.5;
     --ib-table-cell-py: var(--ib-space-3);
     --ib-card-padding: var(--ib-space-5);
 
@@ -64,7 +63,7 @@
     --ib-size-prose: 68ch;
 
     /* Type */
-    --ib-font-body: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --ib-font-body: Inter, ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ib-font-mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
     /* Headings, card and dialog titles: the body sans by default; a theme can give them their own
        face and weight. */

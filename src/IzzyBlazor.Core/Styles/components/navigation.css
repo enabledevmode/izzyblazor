@@ -111,7 +111,6 @@
     --ib-btn-h: var(--ib-control-h-sm);
     --ib-btn-font: var(--ib-control-font-sm);
     --ib-icon-size: var(--ib-control-icon-sm);
-    --ib-icon-stroke: var(--ib-control-icon-stroke-sm);
   }
 
   .ib-pagination-lg .ib-pagination-item {

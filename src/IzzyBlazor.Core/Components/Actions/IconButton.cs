@@ -10,8 +10,8 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;IconButton Icon="Tabler.Pencil" Label="Edit" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" /&gt;
-/// &lt;IconButton Icon="Tabler.ExternalLink" Label="Open the docs" Href="https://example.com/docs" /&gt;
+/// &lt;IconButton Icon="Hugeicons.PencilEdit01" Label="Edit" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" /&gt;
+/// &lt;IconButton Icon="Hugeicons.LinkSquare02" Label="Open the docs" Href="https://example.com/docs" /&gt;
 /// </code>
 /// </example>
 public class IconButton : ButtonBase
@@ -44,7 +44,7 @@ public class IconButton : ButtonBase
 
         if (string.IsNullOrEmpty(Icon.Body))
         {
-            throw new InvalidOperationException("IconButton needs an Icon, such as Icon=\"Tabler.Pencil\".");
+            throw new InvalidOperationException("IconButton needs an Icon, such as Icon=\"Hugeicons.PencilEdit01\".");
         }
     }
 

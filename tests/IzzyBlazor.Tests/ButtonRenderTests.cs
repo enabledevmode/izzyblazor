@@ -45,8 +45,8 @@ public class ButtonRenderTests : BunitContext
     public void Icons_render_around_the_label()
     {
         var button = Render<Button>(p => p
-            .Add(b => b.StartIcon, Tabler.Plus)
-            .Add(b => b.EndIcon, Tabler.ArrowRight)
+            .Add(b => b.StartIcon, Hugeicons.Add01)
+            .Add(b => b.EndIcon, Hugeicons.ArrowRight02)
             .AddChildContent("Add")).Find("button");
 
         var children = button.Children;
@@ -61,7 +61,7 @@ public class ButtonRenderTests : BunitContext
     {
         var button = Render<Button>(p => p
             .Add(b => b.Loading, true)
-            .Add(b => b.StartIcon, Tabler.DeviceFloppy)
+            .Add(b => b.StartIcon, Hugeicons.FloppyDisk)
             .AddChildContent("Saving")).Find("button");
 
         Assert.False(button.HasAttribute("disabled"));
@@ -129,7 +129,7 @@ public class ButtonRenderTests : BunitContext
     public void IconButton_is_labelled_and_square()
     {
         var button = Render<IconButton>(p => p
-            .Add(b => b.Icon, Tabler.Pencil)
+            .Add(b => b.Icon, Hugeicons.PencilEdit01)
             .Add(b => b.Label, "Edit")).Find("button");
 
         Assert.Equal("Edit", button.GetAttribute("aria-label"));
@@ -142,14 +142,14 @@ public class ButtonRenderTests : BunitContext
     public void IconButton_requires_a_label()
     {
         Assert.Throws<InvalidOperationException>(() =>
-            Render<IconButton>(p => p.Add(b => b.Icon, Tabler.Pencil)));
+            Render<IconButton>(p => p.Add(b => b.Icon, Hugeicons.PencilEdit01)));
     }
 
     [Fact]
     public void IconButton_with_Href_renders_a_link()
     {
         var a = Render<IconButton>(p => p
-            .Add(b => b.Icon, Tabler.ExternalLink)
+            .Add(b => b.Icon, Hugeicons.LinkSquare02)
             .Add(b => b.Label, "Docs")
             .Add(b => b.Href, "/docs")).Find("a");
 

@@ -23,7 +23,6 @@
     --ib-tab-px: var(--ib-space-2);
     --ib-tab-font: var(--ib-control-font-sm);
     --ib-icon-size: var(--ib-control-icon-sm);
-    --ib-icon-stroke: var(--ib-control-icon-stroke-sm);
   }
 
   .ib-tabs-lg {
