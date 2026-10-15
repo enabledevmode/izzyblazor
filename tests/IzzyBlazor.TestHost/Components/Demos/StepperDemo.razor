@@ -13,8 +13,8 @@
                 }
             </Stepper>
             <Row Gap="2">
-                <LinkButton Href="@StepUrl(Math.Max(1, _step - 1))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft" Disabled="_step <= 1">Back</LinkButton>
-                <LinkButton Href="@StepUrl(Math.Min(Checkout.Length + 1, _step + 1))" EndIcon="Lucide.ArrowRight">@(_step >= Checkout.Length ? "Finish" : "Next")</LinkButton>
+                <LinkButton Href="@StepUrl(Math.Max(1, _step - 1))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Tabler.ArrowLeft" Disabled="_step <= 1">Back</LinkButton>
+                <LinkButton Href="@StepUrl(Math.Min(Checkout.Length + 1, _step + 1))" EndIcon="Tabler.ArrowRight">@(_step >= Checkout.Length ? "Finish" : "Next")</LinkButton>
             </Row>
         </Stack>
     </Example>
@@ -22,8 +22,8 @@
     <Example Title="With descriptions, vertical" Note="Orientation.Vertical keeps the column on every screen. Icon replaces a step's number until it's done." Code="@VerticalCode">
         <Stepper Current="2" Orientation="Orientation.Vertical">
             <Step Label="Create the project" Description="Name, region and plan" />
-            <Step Label="Connect a repository" Description="GitHub, GitLab or Bitbucket" Icon="Lucide.GitBranch" />
-            <Step Label="Deploy" Description="Builds on every push to main" Icon="Lucide.Rocket" />
+            <Step Label="Connect a repository" Description="GitHub, GitLab or Bitbucket" Icon="Tabler.GitBranch" />
+            <Step Label="Deploy" Description="Builds on every push to main" Icon="Tabler.Rocket" />
         </Stepper>
     </Example>
 
@@ -67,8 +67,8 @@
         """
         <Stepper Current="2" Orientation="Orientation.Vertical">
             <Step Label="Create the project" Description="Name, region and plan" />
-            <Step Label="Connect a repository" Description="GitHub, GitLab or Bitbucket" Icon="Lucide.GitBranch" />
-            <Step Label="Deploy" Description="Builds on every push to main" Icon="Lucide.Rocket" />
+            <Step Label="Connect a repository" Description="GitHub, GitLab or Bitbucket" Icon="Tabler.GitBranch" />
+            <Step Label="Deploy" Description="Builds on every push to main" Icon="Tabler.Rocket" />
         </Stepper>
         """;
 

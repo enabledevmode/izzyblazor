@@ -86,7 +86,7 @@ public class OverlayRenderTests : BunitContext
             .Add(m => m.Trigger, (RenderFragment<IReadOnlyDictionary<string, object>>)(attributes => b =>
             {
                 b.OpenComponent<IconButton>(0);
-                b.AddComponentParameter(1, nameof(IconButton.Icon), Lucide.Ellipsis);
+                b.AddComponentParameter(1, nameof(IconButton.Icon), Tabler.Dots);
                 b.AddComponentParameter(2, nameof(IconButton.Label), "More");
                 b.AddMultipleAttributes(3, attributes);
                 b.CloseComponent();

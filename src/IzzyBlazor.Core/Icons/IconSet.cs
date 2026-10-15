@@ -95,6 +95,24 @@ public enum IconRole
 
     /// <summary>Filter a column or list.</summary>
     Filter,
+
+    /// <summary>The light color scheme.</summary>
+    SchemeLight,
+
+    /// <summary>The dark color scheme.</summary>
+    SchemeDark,
+
+    /// <summary>Follow the device's color scheme.</summary>
+    SchemeSystem,
+
+    /// <summary>A person with no photo or name, such as an empty avatar.</summary>
+    Person,
+
+    /// <summary>Play a video.</summary>
+    Play,
+
+    /// <summary>Upload a file.</summary>
+    Upload,
 }
 
 /// <summary>
@@ -103,47 +121,53 @@ public enum IconRole
 /// </summary>
 public class IconSet
 {
-    /// <summary>The bundled Lucide mapping.</summary>
-    public static IconSet Lucide { get; } = new(role => role switch
+    /// <summary>The bundled Tabler mapping (outline icons).</summary>
+    public static IconSet Tabler { get; } = new(role => role switch
     {
-        IconRole.Close => IzzyBlazor.Lucide.X,
-        IconRole.ChevronDown => IzzyBlazor.Lucide.ChevronDown,
-        IconRole.ChevronUp => IzzyBlazor.Lucide.ChevronUp,
-        IconRole.ChevronLeft => IzzyBlazor.Lucide.ChevronLeft,
-        IconRole.ChevronRight => IzzyBlazor.Lucide.ChevronRight,
-        IconRole.Check => IzzyBlazor.Lucide.Check,
-        IconRole.Minus => IzzyBlazor.Lucide.Minus,
-        IconRole.Plus => IzzyBlazor.Lucide.Plus,
-        IconRole.Menu => IzzyBlazor.Lucide.Menu,
-        IconRole.Search => IzzyBlazor.Lucide.Search,
-        IconRole.MoreHorizontal => IzzyBlazor.Lucide.Ellipsis,
-        IconRole.Info => IzzyBlazor.Lucide.Info,
-        IconRole.Success => IzzyBlazor.Lucide.CircleCheck,
-        IconRole.Warning => IzzyBlazor.Lucide.TriangleAlert,
-        IconRole.Error => IzzyBlazor.Lucide.CircleAlert,
-        IconRole.ExternalLink => IzzyBlazor.Lucide.ExternalLink,
-        IconRole.Copy => IzzyBlazor.Lucide.Copy,
-        IconRole.Copied => IzzyBlazor.Lucide.CopyCheck,
-        IconRole.Calendar => IzzyBlazor.Lucide.Calendar,
-        IconRole.Clock => IzzyBlazor.Lucide.Clock,
-        IconRole.Show => IzzyBlazor.Lucide.Eye,
-        IconRole.Hide => IzzyBlazor.Lucide.EyeOff,
-        IconRole.Loading => IzzyBlazor.Lucide.LoaderCircle,
-        IconRole.SortAscending => IzzyBlazor.Lucide.ArrowUp,
-        IconRole.SortDescending => IzzyBlazor.Lucide.ArrowDown,
-        IconRole.Sortable => IzzyBlazor.Lucide.ArrowUpDown,
-        IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
-        IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
-        IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
-        IconRole.Filter => IzzyBlazor.Lucide.Funnel,
+        IconRole.Close => IzzyBlazor.Tabler.X,
+        IconRole.ChevronDown => IzzyBlazor.Tabler.ChevronDown,
+        IconRole.ChevronUp => IzzyBlazor.Tabler.ChevronUp,
+        IconRole.ChevronLeft => IzzyBlazor.Tabler.ChevronLeft,
+        IconRole.ChevronRight => IzzyBlazor.Tabler.ChevronRight,
+        IconRole.Check => IzzyBlazor.Tabler.Check,
+        IconRole.Minus => IzzyBlazor.Tabler.Minus,
+        IconRole.Plus => IzzyBlazor.Tabler.Plus,
+        IconRole.Menu => IzzyBlazor.Tabler.Menu2,
+        IconRole.Search => IzzyBlazor.Tabler.Search,
+        IconRole.MoreHorizontal => IzzyBlazor.Tabler.Dots,
+        IconRole.Info => IzzyBlazor.Tabler.InfoCircle,
+        IconRole.Success => IzzyBlazor.Tabler.CircleCheck,
+        IconRole.Warning => IzzyBlazor.Tabler.AlertTriangle,
+        IconRole.Error => IzzyBlazor.Tabler.AlertCircle,
+        IconRole.ExternalLink => IzzyBlazor.Tabler.ExternalLink,
+        IconRole.Copy => IzzyBlazor.Tabler.Copy,
+        IconRole.Copied => IzzyBlazor.Tabler.CopyCheck,
+        IconRole.Calendar => IzzyBlazor.Tabler.Calendar,
+        IconRole.Clock => IzzyBlazor.Tabler.Clock,
+        IconRole.Show => IzzyBlazor.Tabler.Eye,
+        IconRole.Hide => IzzyBlazor.Tabler.EyeOff,
+        IconRole.Loading => IzzyBlazor.Tabler.Loader2,
+        IconRole.SortAscending => IzzyBlazor.Tabler.ArrowUp,
+        IconRole.SortDescending => IzzyBlazor.Tabler.ArrowDown,
+        IconRole.Sortable => IzzyBlazor.Tabler.ArrowsSort,
+        IconRole.TrendUp => IzzyBlazor.Tabler.ArrowUpRight,
+        IconRole.TrendDown => IzzyBlazor.Tabler.ArrowDownRight,
+        IconRole.TrendFlat => IzzyBlazor.Tabler.ArrowRight,
+        IconRole.Filter => IzzyBlazor.Tabler.Filter,
+        IconRole.SchemeLight => IzzyBlazor.Tabler.Sun,
+        IconRole.SchemeDark => IzzyBlazor.Tabler.Moon,
+        IconRole.SchemeSystem => IzzyBlazor.Tabler.DeviceDesktop,
+        IconRole.Person => IzzyBlazor.Tabler.User,
+        IconRole.Play => IzzyBlazor.Tabler.PlayerPlay,
+        IconRole.Upload => IzzyBlazor.Tabler.CloudUpload,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
     /// <summary>
-    /// The set IzzyBlazor components use. Lucide for now; becomes configurable when more
+    /// The set IzzyBlazor components use. Tabler for now; becomes configurable when more
     /// icon sets are supported.
     /// </summary>
-    public static IconSet Current => Lucide;
+    public static IconSet Current => Tabler;
 
     private readonly Func<IconRole, IconData> _resolve;
 

@@ -5,7 +5,7 @@ public class IconRenderTests : BunitContext
     [Fact]
     public void Decorative_icon_is_hidden_from_assistive_technology()
     {
-        var svg = Render<Icon>(p => p.Add(i => i.Name, Lucide.X)).Find("svg");
+        var svg = Render<Icon>(p => p.Add(i => i.Name, Tabler.X)).Find("svg");
 
         Assert.Equal("true", svg.GetAttribute("aria-hidden"));
         Assert.Null(svg.GetAttribute("role"));
@@ -19,7 +19,7 @@ public class IconRenderTests : BunitContext
     public void Labeled_icon_is_an_image_with_a_name()
     {
         var svg = Render<Icon>(p => p
-            .Add(i => i.Name, Lucide.CircleCheck)
+            .Add(i => i.Name, Tabler.CircleCheck)
             .Add(i => i.Label, "Done")).Find("svg");
 
         Assert.Equal("img", svg.GetAttribute("role"));
@@ -31,7 +31,7 @@ public class IconRenderTests : BunitContext
     public void Role_resolves_through_the_current_icon_set()
     {
         var byRole = Render<Icon>(p => p.Add(i => i.Role, IconRole.Close));
-        var byName = Render<Icon>(p => p.Add(i => i.Name, Lucide.X));
+        var byName = Render<Icon>(p => p.Add(i => i.Name, Tabler.X));
 
         byRole.MarkupMatches(byName.Markup);
     }
@@ -40,7 +40,7 @@ public class IconRenderTests : BunitContext
     public void Size_color_stroke_and_spin()
     {
         var svg = Render<Icon>(p => p
-            .Add(i => i.Name, Lucide.Heart)
+            .Add(i => i.Name, Tabler.Heart)
             .Add(i => i.Size, IconSize.Lg)
             .Add(i => i.Color, Color.DangerText)
             .Add(i => i.StrokeWidth, 1.5)
@@ -66,7 +66,7 @@ public class IconRenderTests : BunitContext
     {
         Assert.Throws<InvalidOperationException>(() => Render<Icon>());
         Assert.Throws<InvalidOperationException>(() => Render<Icon>(p => p
-            .Add(i => i.Name, Lucide.X)
+            .Add(i => i.Name, Tabler.X)
             .Add(i => i.Role, IconRole.Close)));
     }
 
@@ -79,16 +79,28 @@ public class IconRenderTests : BunitContext
         }
     }
 
-    [Fact]
-    public void Every_lucide_icon_passes_the_markup_check()
+    [Theory]
+    [InlineData(typeof(Tabler), 5000)]
+    [InlineData(typeof(TablerFilled), 1000)]
+    [InlineData(typeof(Brands), 13)]
+    public void Every_bundled_icon_passes_the_markup_check(Type set, int atLeast)
     {
-        var icons = typeof(Lucide).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+        var icons = set.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Where(p => p.PropertyType == typeof(IconData))
             .Select(p => (IconData)p.GetValue(null)!)
             .ToList();
 
-        Assert.True(icons.Count > 1000);
+        Assert.True(icons.Count >= atLeast, $"{set.Name} has {icons.Count} icons");
         Assert.All(icons, icon => Assert.Null(IconMarkup.Find(icon.Body)));
+    }
+
+    [Fact]
+    public void Brands_are_outlines_like_the_rest_of_the_set()
+    {
+        var brands = typeof(Brands).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Select(p => (IconData)p.GetValue(null)!);
+
+        Assert.All(brands, icon => Assert.Equal(IconStyle.Stroke, icon.Style));
     }
 
     [Theory]

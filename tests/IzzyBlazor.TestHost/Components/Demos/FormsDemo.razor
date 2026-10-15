@@ -17,8 +17,8 @@
         <Box MaxWidth="32.Rem" MarginY="new() { Base = 4 }">
             <Form Model="Signup" FormName="signup" OnValidSubmit="SubmitAsync">
                 <FormErrors />
-                <TextField @bind-Value="Signup!.Name" AutoComplete="name" StartIcon="Lucide.User" />
-                <TextField @bind-Value="Signup!.Email" AutoComplete="email" StartIcon="Lucide.Mail" Placeholder="you@example.com" Hint="We'll never share your email." />
+                <TextField @bind-Value="Signup!.Name" AutoComplete="name" StartIcon="Tabler.User" />
+                <TextField @bind-Value="Signup!.Email" AutoComplete="email" StartIcon="Tabler.Mail" Placeholder="you@example.com" Hint="We'll never share your email." />
                 <TextField @bind-Value="Signup!.Password" AutoComplete="new-password" Hint="At least 8 characters." />
                 <Select @bind-Value="Signup!.Plan" Placeholder="Choose a plan" />
                 <RadioGroup @bind-Value="Signup!.Contact" Orientation="Orientation.Horizontal" />
@@ -26,7 +26,7 @@
                 <Switch @bind-Value="Signup!.Newsletter" />
                 <Checkbox @bind-Value="Signup!.AcceptTerms">I agree to the <a href="static/forms">terms of service</a></Checkbox>
                 <Row Gap="2">
-                    <Button Type="ButtonType.Submit" StartIcon="Lucide.UserPlus">Create account</Button>
+                    <Button Type="ButtonType.Submit" StartIcon="Tabler.UserPlus">Create account</Button>
                     <Button Type="ButtonType.Reset" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
                 </Row>
             </Form>
@@ -235,7 +235,7 @@
                 <FileUpload Name="Attachments" Label="Attachments" Multiple Hint="Several files at once." OnChange="files => ShowChosen(files)" />
                 <TextField @bind-Value="Upload!.Note" />
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit" StartIcon="Lucide.Upload">Upload</Button>
+                    <Button Type="ButtonType.Submit" StartIcon="Tabler.Upload">Upload</Button>
                     @if (_uploaded is not null)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_uploaded</TextBlock>
@@ -251,14 +251,14 @@
                 <TextField @bind-Value="Addons!.Website" Placeholder="example.com">
                     <StartAddon>https://</StartAddon>
                 </TextField>
-                <TextField @bind-Value="Addons!.Price" Placeholder="0.00" StartIcon="Lucide.Banknote">
+                <TextField @bind-Value="Addons!.Price" Placeholder="0.00" StartIcon="Tabler.Cash">
                     <EndAddon><Select @bind-Value="Addons!.Currency" /></EndAddon>
                 </TextField>
                 <TextField @bind-Value="Addons!.Weight">
                     <EndAddon>kg</EndAddon>
                 </TextField>
                 <TextField @bind-Value="Addons!.Invite" Type="TextFieldType.Email" Placeholder="teammate@example.com">
-                    <EndAddon><Button Type="ButtonType.Submit" StartIcon="Lucide.Send">Invite</Button></EndAddon>
+                    <EndAddon><Button Type="ButtonType.Submit" StartIcon="Tabler.Send">Invite</Button></EndAddon>
                 </TextField>
                 @if (_addonsSaved)
                 {
@@ -280,15 +280,15 @@
         <Box MaxWidth="32.Rem">
             <Form Model="Sizes" FormName="sizes" OnValidSubmit="() => { }">
                 <Row Gap="2" Align="Align.End">
-                    <TextField @bind-Value="Sizes!.Small" Size="ControlSize.Sm" Hint="A hint below the field." Placeholder="Search" StartIcon="Lucide.Search" Class="host-grow" />
+                    <TextField @bind-Value="Sizes!.Small" Size="ControlSize.Sm" Hint="A hint below the field." Placeholder="Search" StartIcon="Tabler.Search" Class="host-grow" />
                     <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="host-hint-offset">Go</Button>
                 </Row>
                 <Row Gap="2" Align="Align.End">
-                    <TextField @bind-Value="Sizes!.Medium" Hint="A hint below the field." Placeholder="Search" StartIcon="Lucide.Search" Class="host-grow" />
+                    <TextField @bind-Value="Sizes!.Medium" Hint="A hint below the field." Placeholder="Search" StartIcon="Tabler.Search" Class="host-grow" />
                     <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="host-hint-offset">Go</Button>
                 </Row>
                 <Row Gap="2" Align="Align.End">
-                    <TextField @bind-Value="Sizes!.Large" Size="ControlSize.Lg" Hint="A hint below the field." Placeholder="Search" StartIcon="Lucide.Search" Class="host-grow" />
+                    <TextField @bind-Value="Sizes!.Large" Size="ControlSize.Lg" Hint="A hint below the field." Placeholder="Search" StartIcon="Tabler.Search" Class="host-grow" />
                     <Button Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="host-hint-offset-lg">Go</Button>
                 </Row>
             </Form>
@@ -299,7 +299,7 @@
         <Box MaxWidth="36.Rem">
             <Form Model="Profile" FormName="profile" Layout="FormLayout.Horizontal" OnValidSubmit="() => { }">
                 <TextField @bind-Value="Profile!.DisplayName" />
-                <TextField @bind-Value="Profile!.Website" StartIcon="Lucide.Globe" />
+                <TextField @bind-Value="Profile!.Website" StartIcon="Tabler.Globe" />
                 <Select @bind-Value="Profile!.Language" />
                 <TextField @bind-Value="Profile!.Username" ReadOnly Hint="Usernames can't be changed." />
             </Form>
@@ -325,10 +325,10 @@
 
     private static IconData? AlignIcon(TextAlignment align) => align switch
     {
-        TextAlignment.Left => Lucide.TextAlignStart,
-        TextAlignment.Center => Lucide.TextAlignCenter,
-        TextAlignment.Right => Lucide.TextAlignEnd,
-        _ => Lucide.TextAlignJustify,
+        TextAlignment.Left => Tabler.AlignLeft,
+        TextAlignment.Center => Tabler.AlignCenter,
+        TextAlignment.Right => Tabler.AlignRight,
+        _ => Tabler.AlignJustified,
     };
 
     [SupplyParameterFromForm(FormName = "sliders")] public SlidersModel? Sliders { get; set; }
@@ -418,7 +418,7 @@
 
     private static string PlanName(Plan? plan) => plan switch { Plan.Pro => "Pro", Plan.Team => "Team", _ => "Free" };
     private static string PlanHint(Plan? plan) => plan switch { Plan.Pro => "$12/month", Plan.Team => "$10/user/month", _ => "For side projects" };
-    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Lucide.Rocket, Plan.Team => Lucide.Users, _ => Lucide.Sprout };
+    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Tabler.Rocket, Plan.Team => Tabler.Users, _ => Tabler.Seedling };
     private static string PriorityColor(Priority p) => p switch { Priority.Urgent => "danger", Priority.High => "warning", Priority.Medium => "primary", _ => "subtle" };
 
     private bool _submitted;
@@ -668,8 +668,8 @@
         """
         <Form Model="Signup" FormName="signup" OnValidSubmit="SubmitAsync">
             <FormErrors />
-            <TextField @bind-Value="Signup.Name" StartIcon="Lucide.User" />
-            <TextField @bind-Value="Signup.Email" StartIcon="Lucide.Mail" Hint="We'll never share your email." />
+            <TextField @bind-Value="Signup.Name" StartIcon="Tabler.User" />
+            <TextField @bind-Value="Signup.Email" StartIcon="Tabler.Mail" Hint="We'll never share your email." />
             <TextField @bind-Value="Signup.Password" />        @* [DataType(Password)]: masked, with show/hide *@
             <Select @bind-Value="Signup.Plan" Placeholder="Choose a plan" />   @* enum: options automatic *@
             <RadioGroup @bind-Value="Signup.Contact" Orientation="Orientation.Horizontal" />

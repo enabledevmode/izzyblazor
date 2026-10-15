@@ -12,7 +12,7 @@ namespace IzzyBlazor;
 /// <code>
 /// &lt;AppHeader&gt;
 ///     &lt;SidebarToggle /&gt;
-///     &lt;AppBrand Href="/" Icon="Lucide.Zap" Label="Enable Dev Mode" /&gt;
+///     &lt;AppBrand Href="/" Icon="Tabler.Bolt" Label="Enable Dev Mode" /&gt;
 ///     &lt;Box Grow /&gt;
 ///     ...
 /// &lt;/AppHeader&gt;

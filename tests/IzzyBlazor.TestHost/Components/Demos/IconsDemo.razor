@@ -5,10 +5,10 @@
 
     <Example Title="Icons beside text" Note="Icons size in em and paint with currentColor, so they match the text next to them." Code="@InlineCode">
         <Stack Gap="3">
-            <Row Gap="2" Align="Align.Center"><Icon Name="Lucide.House" /><TextBlock As="span">Home</TextBlock></Row>
-            <Row Gap="2" Align="Align.Center"><Icon Name="Lucide.Settings" /><TextBlock As="span" Size="TextSize.Lg">Settings, larger text</TextBlock></Row>
-            <Row Gap="2" Align="Align.Center" Color="Color.Muted"><Icon Name="Lucide.Clock" /><TextBlock As="span" Size="TextSize.Sm">Muted text, muted icon</TextBlock></Row>
-            <TextBlock>An icon <Icon Name="Lucide.Sparkles" Color="Color.PrimaryText" /> inside a sentence sits on the text baseline.</TextBlock>
+            <Row Gap="2" Align="Align.Center"><Icon Name="Tabler.Home" /><TextBlock As="span">Home</TextBlock></Row>
+            <Row Gap="2" Align="Align.Center"><Icon Name="Tabler.Settings" /><TextBlock As="span" Size="TextSize.Lg">Settings, larger text</TextBlock></Row>
+            <Row Gap="2" Align="Align.Center" Color="Color.Muted"><Icon Name="Tabler.Clock" /><TextBlock As="span" Size="TextSize.Sm">Muted text, muted icon</TextBlock></Row>
+            <TextBlock>An icon <Icon Name="Tabler.Sparkles" Color="Color.PrimaryText" /> inside a sentence sits on the text baseline.</TextBlock>
         </Stack>
     </Example>
 
@@ -17,7 +17,7 @@
             @foreach (var size in Enum.GetValues<IconSize>())
             {
                 <Stack Gap="1" Align="Align.Center">
-                    <Icon Name="Lucide.Rocket" Size="size" />
+                    <Icon Name="Tabler.Rocket" Size="size" />
                     <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">@size</TextBlock>
                 </Stack>
             }
@@ -26,11 +26,11 @@
 
     <Example Title="Color, stroke width, spin" Code="@StyleCode">
         <Row Gap="5" Align="Align.Center" Wrap>
-            <Icon Name="Lucide.CircleCheck" Size="IconSize.Xl" Color="Color.SuccessText" Label="Done" />
-            <Icon Name="Lucide.TriangleAlert" Size="IconSize.Xl" Color="Color.WarningText" Label="Warning" />
-            <Icon Name="Lucide.CircleAlert" Size="IconSize.Xl" Color="Color.DangerText" Label="Error" />
-            <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="1" />
-            <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="3" />
+            <Icon Name="Tabler.CircleCheck" Size="IconSize.Xl" Color="Color.SuccessText" Label="Done" />
+            <Icon Name="Tabler.AlertTriangle" Size="IconSize.Xl" Color="Color.WarningText" Label="Warning" />
+            <Icon Name="Tabler.AlertCircle" Size="IconSize.Xl" Color="Color.DangerText" Label="Error" />
+            <Icon Name="Tabler.Heart" Size="IconSize.Xl" StrokeWidth="1" />
+            <Icon Name="Tabler.Heart" Size="IconSize.Xl" StrokeWidth="3" />
             <Icon Role="IconRole.Loading" Size="IconSize.Xl" Spin Label="Loading" />
         </Row>
     </Example>
@@ -47,7 +47,19 @@
         </Row>
     </Example>
 
-    <Example Title="Brand logos" Note="Lucide has none, so Brands carries a few from Simple Icons (CC0): solid shapes in the text color. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
+    <Example Title="Filled variants" Note="TablerFilled has solid versions of about a thousand icons, for a selected or active state: a starred item, a liked post, the current tab." Code="@FilledCode">
+        <Row Gap="5" Align="Align.Center" Wrap>
+            @foreach (var (name, outline, filled) in FilledPairs)
+            {
+                <Stack Gap="1" Align="Align.Center">
+                    <Row Gap="2"><Icon Name="outline" Size="IconSize.Xl" /><Icon Name="filled" Size="IconSize.Xl" Color="Color.PrimaryText" /></Row>
+                    <TextBlock Size="TextSize.Xs" Color="Color.Muted">@name</TextBlock>
+                </Stack>
+            }
+        </Row>
+    </Example>
+
+    <Example Title="Brand logos" Note="A short list of the logos sites link to most, as outlines that match the rest of the set: from Tabler, with NuGet and .NET drawn to match. Tabler has hundreds more as Tabler.Brand*. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
         <Row Gap="5" Align="Align.Center" Wrap>
             @foreach (var (name, icon) in BrandIcons)
             {
@@ -59,12 +71,13 @@
         </Row>
     </Example>
 
-    <Example Title="Browse Lucide" Note="@($"All {AllIcons.Count} icons. The search is a plain GET form, so it works on static pages with JavaScript off.")">
+    <Example Title="Browse Tabler" Note="@($"All {Icons.Count} {(Filled ? "filled" : "outline")} icons. The search is a plain GET form, so it works on static pages with JavaScript off.")">
         <Stack Gap="4">
             <form method="get" class="host-search">
-                <Row Gap="2" Align="Align.Center">
-                    <Icon Name="Lucide.Search" Color="Color.Muted" />
+                <Row Gap="2" Align="Align.Center" Wrap>
+                    <Icon Name="Tabler.Search" Color="Color.Muted" />
                     <input type="search" name="q" value="@Query" placeholder="Search icons, such as arrow or user" aria-label="Search icons" />
+                    <label><input type="checkbox" name="style" value="filled" checked="@Filled" /> Filled</label>
                     <button type="submit" class="host-button">Search</button>
                 </Row>
             </form>
@@ -93,6 +106,17 @@
         ("Instagram", Brands.Instagram), ("Facebook", Brands.Facebook), ("NuGet", Brands.NuGet), ("Npm", Brands.Npm), ("DotNet", Brands.DotNet),
     ];
 
+    private static readonly (string Name, IconData Outline, IconData Filled)[] FilledPairs =
+    [
+        ("Star", Tabler.Star, TablerFilled.Star), ("Heart", Tabler.Heart, TablerFilled.Heart), ("Bell", Tabler.Bell, TablerFilled.Bell),
+        ("Bookmark", Tabler.Bookmark, TablerFilled.Bookmark), ("Home", Tabler.Home, TablerFilled.Home), ("CircleCheck", Tabler.CircleCheck, TablerFilled.CircleCheck),
+    ];
+
+    private const string FilledCode =
+        """
+        <Icon Name="@(starred ? TablerFilled.Star : Tabler.Star)" Label="Starred" />
+        """;
+
     private const string BrandsCode =
         """
         <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com/..." />
@@ -102,12 +126,20 @@
     private const int MaxShown = 120;
 
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
+    [SupplyParameterFromQuery(Name = "style")] public string? Style { get; set; }
 
-    private static readonly IReadOnlyList<(string Name, IconData Icon)> AllIcons =
-        typeof(Lucide).GetProperties(BindingFlags.Public | BindingFlags.Static)
+    private bool Filled => string.Equals(Style, "filled", StringComparison.OrdinalIgnoreCase);
+
+    private static IReadOnlyList<(string Name, IconData Icon)> Load(Type set) =>
+        set.GetProperties(BindingFlags.Public | BindingFlags.Static)
             .Where(p => p.PropertyType == typeof(IconData))
             .Select(p => (p.Name, (IconData)p.GetValue(null)!))
             .ToList();
+
+    private static readonly IReadOnlyList<(string Name, IconData Icon)> OutlineIcons = Load(typeof(Tabler));
+    private static readonly IReadOnlyList<(string Name, IconData Icon)> FilledIcons = Load(typeof(TablerFilled));
+
+    private IReadOnlyList<(string Name, IconData Icon)> Icons => Filled ? FilledIcons : OutlineIcons;
 
     private IReadOnlyList<(string Name, IconData Icon)> Matches = [];
 
@@ -115,25 +147,25 @@
     {
         var q = Query?.Trim();
         Matches = string.IsNullOrEmpty(q)
-            ? AllIcons
-            : AllIcons.Where(i => i.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+            ? Icons
+            : Icons.Where(i => i.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
                                || i.Icon.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 
     private const string InlineCode =
         """
         <Row Gap="2" Align="Align.Center">
-            <Icon Name="Lucide.House" />
+            <Icon Name="Tabler.Home" />
             <TextBlock As="span">Home</TextBlock>
         </Row>
         """;
 
-    private const string SizesCode = """<Icon Name="Lucide.Rocket" Size="IconSize.Xl" />""";
+    private const string SizesCode = """<Icon Name="Tabler.Rocket" Size="IconSize.Xl" />""";
 
     private const string StyleCode =
         """
-        <Icon Name="Lucide.CircleCheck" Color="Color.SuccessText" Label="Done" />
-        <Icon Name="Lucide.Heart" StrokeWidth="1" />
+        <Icon Name="Tabler.CircleCheck" Color="Color.SuccessText" Label="Done" />
+        <Icon Name="Tabler.Heart" StrokeWidth="1" />
         <Icon Role="IconRole.Loading" Spin Label="Loading" />
         """;
 

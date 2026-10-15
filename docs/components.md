@@ -80,7 +80,7 @@ The rest:
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
 `List` is a bulleted list of `ListItem`s; `Ordered` numbers it, `Plain` drops the bullets and indent,
-and `Icon` puts an icon in place of each bullet (`<List Icon="Lucide.Check" IconColor="Color.SuccessText">`
+and `Icon` puts an icon in place of each bullet (`<List Icon="Tabler.Check" IconColor="Color.SuccessText">`
 for a check list; an item's own `Icon` wins). `Gap` spaces the items (8px by default). Lists without
 bullets keep `role="list"`, which Safari drops otherwise.
 
@@ -113,25 +113,28 @@ highlighter (for more languages), implement `ICodeHighlighter` and register it a
 
 ## Icons
 
-`<Icon Name="Lucide.House" />` renders inline SVG on the server. There's no icon font, it works on
+`<Icon Name="Tabler.Home" />` renders inline SVG on the server. There's no icon font, it works on
 static pages, and it follows the text color (`currentColor`) and size (`em`).
 
-- All 1,877 Lucide icons are bundled as a typed `Lucide` class with IntelliSense. Browse them at
-  https://lucide.dev/icons or on the dev host's Icon page.
+- All of Tabler Icons is bundled as two typed classes with IntelliSense: `Tabler` (5,184 outline
+  icons) and `TablerFilled` (1,054 solid versions of some of them, for a selected or active state,
+  such as `TablerFilled.Star` for a starred item). Browse them at https://tabler.io/icons or on the
+  dev host's Icon page. Every icon is its own property, so a trimmed WebAssembly app keeps only the
+  icons it uses.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
   thins or thickens a stroked icon, and `Spin` rotates it.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
-- Lucide has no brand logos, so a small `Brands` class carries some from Simple Icons (CC0): `GitHub`,
-  `GitLab`, `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`,
-  `NuGet`, `Npm` and `DotNet`. They're solid shapes in the text color, like any icon. The logos are
-  their owners' trademarks; follow each brand's guidelines. (LinkedIn asked Simple Icons to remove
-  its logo, so it isn't included.)
+- `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,
+  `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`, `NuGet`, `Npm`
+  and `DotNet`. They're outlines like the rest of the set: Tabler's, with NuGet and .NET drawn for
+  IzzyBlazor to match. Tabler has hundreds more as `Tabler.Brand*` (`Tabler.BrandLinkedin`,
+  `Tabler.BrandTwitch`). The logos are their owners' trademarks; follow each brand's guidelines.
 
 **Your own icon.** An icon is an `IconData`: a view box, SVG drawing elements, and whether it's
-drawn with fill or stroke. For any other logo, copy its path from https://simpleicons.org (or your
-designer's SVG) into a static property and use it like the rest:
+drawn with fill or stroke. For a logo Tabler doesn't have, copy its path from https://simpleicons.org
+(solid) or your designer's SVG into a static property and use it like the rest:
 
 ```csharp
 public static class MyIcons
@@ -458,8 +461,8 @@ with JavaScript any group holding the current page opens itself.
 ```razor
 <NavMenu>
     <NavLabel>Workspace</NavLabel>
-    <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Home</NavItem>
-    <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="/projects">
+    <NavItem Href="/" Icon="Tabler.Home" Match="NavLinkMatch.All">Home</NavItem>
+    <NavGroup Label="Projects" Icon="Tabler.Folder" ActivePrefix="/projects">
         <NavItem Href="/projects/active">Active</NavItem>
     </NavGroup>
 </NavMenu>
@@ -598,7 +601,7 @@ and the arrow key back or Escape returns to its item. Choosing any item closes t
         <MenuItem Value="date">Date modified</MenuItem>
     </MenuRadioGroup>
     <MenuDivider />
-    <MenuSub Label="Move to" Icon="Lucide.FolderInput">
+    <MenuSub Label="Move to" Icon="Tabler.FolderSymlink">
         <MenuItem>Inbox</MenuItem>
     </MenuSub>
 </Menu>
@@ -625,7 +628,7 @@ A `Tabs` holds either `Tab`s or `TabLink`s, not both.
 
 ```razor
 <Tabs Label="Settings">
-    <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
+    <TabLink Href="settings/profile" Label="Profile" Icon="Tabler.User" />
     <TabLink Href="settings/billing" Label="Billing" />
 </Tabs>
 ```
@@ -800,7 +803,7 @@ it needs a `Title`), while buttons in it stay clickable.
 
 ```razor
 <Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
-    <Actions><IconButton Icon="Lucide.Ellipsis" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
+    <Actions><IconButton Icon="Tabler.Dots" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
     <ChildContent>...</ChildContent>
 </Card>
 ```

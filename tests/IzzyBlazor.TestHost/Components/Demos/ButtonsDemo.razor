@@ -19,7 +19,7 @@
 
     <Example Title="Custom colors" Note="Three accents cover actions: Primary for the main one, Neutral for the rest, Danger for destructive ones. For anything else, pass Accent.Of with a hex value or any CSS color, or Accent.Token with a theme color's name. Text on it is picked for contrast, so the amber button gets dark text." Code="@CustomCode">
         <Row Gap="2" Wrap>
-            <Button Accent="@Teal" StartIcon="Lucide.Check">Approve</Button>
+            <Button Accent="@Teal" StartIcon="Tabler.Check">Approve</Button>
             <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline">Reject</Button>
             <Button Accent="@Amber">Upgrade</Button>
             <Button Accent='Accent.Token("success")' Variant="ButtonVariant.Soft">Theme token</Button>
@@ -31,30 +31,30 @@
             <Button Size="ControlSize.Sm">Small</Button>
             <Button>Medium</Button>
             <Button Size="ControlSize.Lg">Large</Button>
-            <IconButton Size="ControlSize.Sm" Icon="Lucide.Plus" Label="Add (small)" />
-            <IconButton Icon="Lucide.Plus" Label="Add" />
-            <IconButton Size="ControlSize.Lg" Icon="Lucide.Plus" Label="Add (large)" />
+            <IconButton Size="ControlSize.Sm" Icon="Tabler.Plus" Label="Add (small)" />
+            <IconButton Icon="Tabler.Plus" Label="Add" />
+            <IconButton Size="ControlSize.Lg" Icon="Tabler.Plus" Label="Add (large)" />
         </Row>
     </Example>
 
     <Example Title="Icons" Code="@IconsCode">
         <Row Gap="2" Wrap>
-            <Button StartIcon="Lucide.Plus">New project</Button>
-            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download">Download</Button>
-            <Button Variant="ButtonVariant.Soft" EndIcon="Lucide.ArrowRight">Continue</Button>
-            <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Lucide.Trash">Delete</Button>
+            <Button StartIcon="Tabler.Plus">New project</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Tabler.Download">Download</Button>
+            <Button Variant="ButtonVariant.Soft" EndIcon="Tabler.ArrowRight">Continue</Button>
+            <Button Variant="ButtonVariant.Ghost" Accent="Accent.Danger" StartIcon="Tabler.Trash">Delete</Button>
         </Row>
     </Example>
 
     <Example Title="Icon buttons" Note="Label is required: it becomes the accessible name and the tooltip." Code="@IconButtonsCode">
         <Row Gap="1" Align="Align.Center">
-            <IconButton Icon="Lucide.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
-            <IconButton Icon="Lucide.Italic" Label="Italic" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
-            <IconButton Icon="Lucide.Underline" Label="Underline" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Tabler.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Tabler.Italic" Label="Italic" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Tabler.Underline" Label="Underline" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
             <Box Width="1.Px" MinHeight="1.5.Rem" Bg="Color.Border" MarginX="1" />
-            <IconButton Icon="Lucide.Link" Label="Insert link" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
-            <IconButton Icon="Lucide.Settings" Label="Settings" Variant="ButtonVariant.Soft" />
-            <IconButton Icon="Lucide.ExternalLink" Label="Lucide website (opens a link)" Href="https://lucide.dev" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" />
+            <IconButton Icon="Tabler.Link" Label="Insert link" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+            <IconButton Icon="Tabler.Settings" Label="Settings" Variant="ButtonVariant.Soft" />
+            <IconButton Icon="Tabler.ExternalLink" Label="Tabler Icons website (opens a link)" Href="https://tabler.io/icons" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" />
         </Row>
     </Example>
 
@@ -67,33 +67,33 @@
                     <Button>Month</Button>
                 </ButtonGroup>
                 <ButtonGroup Label="Text alignment" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
-                    <IconButton Icon="Lucide.TextAlignStart" Label="Align start" />
-                    <IconButton Icon="Lucide.TextAlignCenter" Label="Center" />
-                    <IconButton Icon="Lucide.TextAlignEnd" Label="Align end" />
+                    <IconButton Icon="Tabler.AlignLeft" Label="Align start" />
+                    <IconButton Icon="Tabler.AlignCenter" Label="Center" />
+                    <IconButton Icon="Tabler.AlignRight" Label="Align end" />
                 </ButtonGroup>
                 <ButtonGroup Label="Save options">
-                    <Button StartIcon="Lucide.Save">Save</Button>
-                    <IconButton Icon="Lucide.ChevronDown" Label="More save options" />
+                    <Button StartIcon="Tabler.DeviceFloppy">Save</Button>
+                    <IconButton Icon="Tabler.ChevronDown" Label="More save options" />
                 </ButtonGroup>
             </Row>
             <Row Gap="4" Align="Align.Center" Wrap>
                 <ButtonGroup Label="Pages" Variant="ButtonVariant.Soft" Size="ControlSize.Sm">
-                    <IconButton Icon="Lucide.ChevronLeft" Label="Previous page" />
+                    <IconButton Icon="Tabler.ChevronLeft" Label="Previous page" />
                     <Button>1</Button>
                     <Button>2</Button>
                     <Button>3</Button>
-                    <IconButton Icon="Lucide.ChevronRight" Label="Next page" />
+                    <IconButton Icon="Tabler.ChevronRight" Label="Next page" />
                 </ButtonGroup>
                 <ButtonGroup Label="Clipboard" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Attached="false">
-                    <Button StartIcon="Lucide.Scissors">Cut</Button>
-                    <Button StartIcon="Lucide.Copy">Copy</Button>
-                    <Button StartIcon="Lucide.ClipboardPaste">Paste</Button>
+                    <Button StartIcon="Tabler.Scissors">Cut</Button>
+                    <Button StartIcon="Tabler.Copy">Copy</Button>
+                    <Button StartIcon="Tabler.Clipboard">Paste</Button>
                 </ButtonGroup>
             </Row>
             <Row Gap="4" Align="Align.Start" Wrap>
                 <ButtonGroup Label="Zoom" Orientation="Orientation.Vertical" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
-                    <IconButton Icon="Lucide.ZoomIn" Label="Zoom in" />
-                    <IconButton Icon="Lucide.ZoomOut" Label="Zoom out" />
+                    <IconButton Icon="Tabler.ZoomIn" Label="Zoom in" />
+                    <IconButton Icon="Tabler.ZoomOut" Label="Zoom out" />
                 </ButtonGroup>
                 <ButtonGroup Label="Review" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">
                     <Button>Approve</Button>
@@ -114,7 +114,7 @@
         <Row Gap="2" Wrap>
             <Button Loading>Saving</Button>
             <Button Loading Variant="ButtonVariant.Outline">Saving</Button>
-            <IconButton Icon="Lucide.RefreshCw" Label="Refresh" Loading Variant="ButtonVariant.Soft" />
+            <IconButton Icon="Tabler.Refresh" Label="Refresh" Loading Variant="ButtonVariant.Soft" />
             <Button Disabled>Disabled</Button>
             <Button Disabled Variant="ButtonVariant.Outline">Disabled</Button>
         </Row>
@@ -122,15 +122,15 @@
 
     <Example Title="Links that look like buttons" Note="Use LinkButton for navigation. External opens a new tab and says so to screen readers." Code="@LinkCode">
         <Row Gap="2" Wrap>
-            <LinkButton Href="static/stack" EndIcon="Lucide.ArrowRight">See Stack</LinkButton>
-            <LinkButton Href="https://lucide.dev/icons" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Lucide icons</LinkButton>
+            <LinkButton Href="static/stack" EndIcon="Tabler.ArrowRight">See Stack</LinkButton>
+            <LinkButton Href="https://tabler.io/icons" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Tabler icons</LinkButton>
             <LinkButton Href="static/box" Variant="ButtonVariant.Link">A link-style button</LinkButton>
         </Row>
     </Example>
 
     <Example Title="Full width" Code="@FullCode">
         <Stack Gap="2" MaxWidth="20.Rem">
-            <Button FullWidth StartIcon="Lucide.LogIn">Sign in</Button>
+            <Button FullWidth StartIcon="Tabler.Login">Sign in</Button>
             <Button FullWidth Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Create an account</Button>
         </Stack>
     </Example>
@@ -139,7 +139,7 @@
         <form method="get">
             <Stack Gap="3">
                 <Row Gap="2" Wrap>
-                    <Button Type="ButtonType.Submit" Name="action" Value="publish" StartIcon="Lucide.Send">Publish</Button>
+                    <Button Type="ButtonType.Submit" Name="action" Value="publish" StartIcon="Tabler.Send">Publish</Button>
                     <Button Type="ButtonType.Submit" Name="action" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save draft</Button>
                     <Button Type="ButtonType.Submit" Name="action" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger">Discard</Button>
                 </Row>
@@ -153,7 +153,7 @@
 
     <Example Title="C# click handlers" Note="On the interactive page, OnClick runs C#. On the static page it does nothing, by design.">
         <Row Gap="3" Align="Align.Center" Wrap>
-            <Button OnClick="() => _count++" StartIcon="Lucide.Plus">Clicked @_count times</Button>
+            <Button OnClick="() => _count++" StartIcon="Tabler.Plus">Clicked @_count times</Button>
             <Button Loading="_saving" OnClick="SaveAsync" Variant="ButtonVariant.Soft">@(_saving ? "Saving" : "Save (simulated)")</Button>
         </Row>
     </Example>
@@ -179,17 +179,17 @@
     private const string SizesCode =
         """
         <Button Size="ControlSize.Sm">Small</Button>
-        <IconButton Size="ControlSize.Lg" Icon="Lucide.Plus" Label="Add" />
+        <IconButton Size="ControlSize.Lg" Icon="Tabler.Plus" Label="Add" />
         """;
 
     private const string IconsCode =
         """
-        <Button StartIcon="Lucide.Plus">New project</Button>
-        <Button Variant="ButtonVariant.Soft" EndIcon="Lucide.ArrowRight">Continue</Button>
+        <Button StartIcon="Tabler.Plus">New project</Button>
+        <Button Variant="ButtonVariant.Soft" EndIcon="Tabler.ArrowRight">Continue</Button>
         """;
 
     private const string IconButtonsCode =
-        """<IconButton Icon="Lucide.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />""";
+        """<IconButton Icon="Tabler.Bold" Label="Bold" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />""";
 
     private const string GroupsCode =
         """
@@ -200,8 +200,8 @@
         </ButtonGroup>
 
         <ButtonGroup Label="Save options">
-            <Button StartIcon="Lucide.Save">Save</Button>
-            <IconButton Icon="Lucide.ChevronDown" Label="More save options" />
+            <Button StartIcon="Tabler.DeviceFloppy">Save</Button>
+            <IconButton Icon="Tabler.ChevronDown" Label="More save options" />
         </ButtonGroup>
 
         <ButtonGroup Label="Clipboard" Variant="ButtonVariant.Ghost" Attached="false">...</ButtonGroup>
@@ -216,11 +216,11 @@
 
     private const string LinkCode =
         """
-        <LinkButton Href="/courses/wizard" EndIcon="Lucide.ArrowRight">Start the project</LinkButton>
-        <LinkButton Href="https://lucide.dev/icons" External>Lucide icons</LinkButton>
+        <LinkButton Href="/courses/wizard" EndIcon="Tabler.ArrowRight">Start the project</LinkButton>
+        <LinkButton Href="https://tabler.io/icons" External>Tabler icons</LinkButton>
         """;
 
-    private const string FullCode = """<Button FullWidth StartIcon="Lucide.LogIn">Sign in</Button>""";
+    private const string FullCode = """<Button FullWidth StartIcon="Tabler.Login">Sign in</Button>""";
 
     private const string SubmitCode =
         """

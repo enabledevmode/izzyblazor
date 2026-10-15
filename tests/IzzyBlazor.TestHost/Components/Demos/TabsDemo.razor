@@ -9,13 +9,13 @@
                 <Stack Gap="2">
                     <TextBlock As="span" Class="host-label">@variant</TextBlock>
                     <Tabs Variant="variant" Label="@($"{variant} example")" Id="@($"tabs-{variant.ToString().ToLowerInvariant()}")">
-                        <Tab Label="Overview" Icon="Lucide.LayoutDashboard">
+                        <Tab Label="Overview" Icon="Tabler.LayoutDashboard">
                             <TextBlock>Everything at a glance.</TextBlock>
                         </Tab>
                         <Tab Label="Activity" Badge="3">
                             <TextBlock>Three new events since yesterday.</TextBlock>
                         </Tab>
-                        <Tab Label="Settings" Icon="Lucide.Settings">
+                        <Tab Label="Settings" Icon="Tabler.Settings">
                             <TextBlock>Preferences for this project.</TextBlock>
                         </Tab>
                         <Tab Label="Archive" Disabled="true">Not yet.</Tab>
@@ -41,19 +41,19 @@
     <Example Title="Vertical" Note="Orientation.Vertical puts the tabs in a column beside the panels from 640px up; Up and Down arrows move between them. On phones the tabs stay a scrolling row above the panels, so the content keeps its width." Code="@VerticalCode">
         <Stack Gap="10">
             <Tabs Orientation="Orientation.Vertical" Label="Project settings" Id="tabs-vertical">
-                <Tab Label="General" Icon="Lucide.Settings">
+                <Tab Label="General" Icon="Tabler.Settings">
                     <Stack Gap="2">
                         <TextBlock Weight="FontWeight.Medium">General</TextBlock>
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Name, description and visibility.</TextBlock>
                     </Stack>
                 </Tab>
-                <Tab Label="Members" Icon="Lucide.Users" Badge="4">
+                <Tab Label="Members" Icon="Tabler.Users" Badge="4">
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Four people have access.</TextBlock>
                 </Tab>
-                <Tab Label="Integrations" Icon="Lucide.Plug">
+                <Tab Label="Integrations" Icon="Tabler.Plug">
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Connected services.</TextBlock>
                 </Tab>
-                <Tab Label="Danger zone" Icon="Lucide.TriangleAlert">
+                <Tab Label="Danger zone" Icon="Tabler.AlertTriangle">
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Transfer or delete the project.</TextBlock>
                 </Tab>
             </Tabs>
@@ -68,9 +68,9 @@
     <Example Title="Tabs as links" Note="TabLink makes each tab a link to its own page, for sections split across routes. The Tabs renders a nav of real links with no panels and no script, and the tab for the current page is marked (aria-current) from the URL on the server. These link to other demo pages; this page's tab is selected." Code="@LinksCode">
         <Stack Gap="6">
             <Tabs Label="Demo pages">
-                <TabLink Href="@($"{Mode}/tabs")" Label="Tabs" Icon="Lucide.PanelTop" />
-                <TabLink Href="@($"{Mode}/buttons")" Label="Buttons" Icon="Lucide.MousePointerClick" />
-                <TabLink Href="@($"{Mode}/forms")" Label="Forms" Icon="Lucide.TextCursorInput" />
+                <TabLink Href="@($"{Mode}/tabs")" Label="Tabs" Icon="Tabler.LayoutNavbar" />
+                <TabLink Href="@($"{Mode}/buttons")" Label="Buttons" Icon="Tabler.Click" />
+                <TabLink Href="@($"{Mode}/forms")" Label="Forms" Icon="Tabler.CursorText" />
                 <TabLink Href="@($"{Mode}/billing")" Label="Billing" Disabled />
             </Tabs>
             <Tabs Label="Demo pages" Variant="TabsVariant.Segmented">
@@ -84,13 +84,13 @@
     <Example Title="In the URL" Note="QueryKey keeps the selected tab in the query string: a link to ?tab=billing opens Billing, and with JavaScript switching tabs updates the address so it can be shared." Code="@UrlCode">
         <Stack Gap="3">
             <Tabs QueryKey="tab" Label="Account" Id="account-tabs">
-                <Tab Label="Profile" Icon="Lucide.User">
+                <Tab Label="Profile" Icon="Tabler.User">
                     <TextBlock>Your name and photo.</TextBlock>
                 </Tab>
-                <Tab Label="Billing" Icon="Lucide.CreditCard">
+                <Tab Label="Billing" Icon="Tabler.CreditCard">
                     <TextBlock>Plan and invoices.</TextBlock>
                 </Tab>
-                <Tab Label="Security" Icon="Lucide.Shield">
+                <Tab Label="Security" Icon="Tabler.Shield">
                     <TextBlock>Password and two-factor sign-in.</TextBlock>
                 </Tab>
             </Tabs>
@@ -130,16 +130,16 @@
     private const string VerticalCode =
         """
         <Tabs Orientation="Orientation.Vertical" Label="Project settings">
-            <Tab Label="General" Icon="Lucide.Settings">...</Tab>
-            <Tab Label="Members" Icon="Lucide.Users" Badge="4">...</Tab>
-            <Tab Label="Integrations" Icon="Lucide.Plug">...</Tab>
+            <Tab Label="General" Icon="Tabler.Settings">...</Tab>
+            <Tab Label="Members" Icon="Tabler.Users" Badge="4">...</Tab>
+            <Tab Label="Integrations" Icon="Tabler.Plug">...</Tab>
         </Tabs>
         """;
 
     private const string LinksCode =
         """
         <Tabs Label="Settings">
-            <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
+            <TabLink Href="settings/profile" Label="Profile" Icon="Tabler.User" />
             <TabLink Href="settings/billing" Label="Billing" />
             <TabLink Href="settings/security" Label="Security" />
         </Tabs>
@@ -159,7 +159,7 @@
     private const string VariantsCode =
         """
         <Tabs Label="Project">
-            <Tab Label="Overview" Icon="Lucide.LayoutDashboard">...</Tab>
+            <Tab Label="Overview" Icon="Tabler.LayoutDashboard">...</Tab>
             <Tab Label="Activity" Badge="3">...</Tab>
             <Tab Label="Archive" Disabled="true">...</Tab>
         </Tabs>

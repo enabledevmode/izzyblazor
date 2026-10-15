@@ -13,7 +13,7 @@
 <AppShell>
     <AppHeader>
         <SidebarToggle />
-        <AppBrand Href="preview/showcase" Icon="Lucide.Zap" Label="Acme" />
+        <AppBrand Href="preview/showcase" Icon="Tabler.Bolt" Label="Acme" />
         <Box Grow />
         <HeaderNav Label="Site" Breakpoint="Breakpoint.Lg">
             <NavItem Href="preview/showcase/docs">Docs</NavItem>
@@ -21,16 +21,16 @@
             <NavItem Href="preview/showcase/support">Support</NavItem>
         </HeaderNav>
         <ColorSchemeSwitch />
-        <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Tabler.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         <Menu Label="Account" Placement="Placement.BottomEnd">
             <Trigger>
-                <IconButton Icon="Lucide.CircleUser" Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
+                <IconButton Icon="Tabler.UserCircle" Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
             </Trigger>
             <ChildContent>
-                <MenuItem Href="preview/showcase/profile" Icon="Lucide.User">Profile</MenuItem>
-                <MenuItem Href="preview/showcase/settings" Icon="Lucide.Settings">Settings</MenuItem>
+                <MenuItem Href="preview/showcase/profile" Icon="Tabler.User">Profile</MenuItem>
+                <MenuItem Href="preview/showcase/settings" Icon="Tabler.Settings">Settings</MenuItem>
                 <MenuDivider />
-                <MenuItem Href="preview/showcase" Icon="Lucide.LogOut">Sign out</MenuItem>
+                <MenuItem Href="preview/showcase" Icon="Tabler.Logout">Sign out</MenuItem>
             </ChildContent>
         </Menu>
     </AppHeader>
@@ -39,38 +39,38 @@
         <Header>
             <Menu Label="Switch store">
                 <Trigger>
-                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Store" FullWidth Class="host-switcher" @attributes="context">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Tabler.BuildingStore" FullWidth Class="host-switcher" @attributes="context">
                         <span class="ib-collapsed-hide">Acme Outdoors</span>
-                        <Icon Name="Lucide.ChevronsUpDown" Class="ib-collapsed-hide" Color="Color.Muted" />
+                        <Icon Name="Tabler.Selector" Class="ib-collapsed-hide" Color="Color.Muted" />
                     </Button>
                 </Trigger>
                 <ChildContent>
-                    <MenuItem Icon="Lucide.Store">Acme Outdoors</MenuItem>
-                    <MenuItem Icon="Lucide.Store">Acme Home</MenuItem>
+                    <MenuItem Icon="Tabler.BuildingStore">Acme Outdoors</MenuItem>
+                    <MenuItem Icon="Tabler.BuildingStore">Acme Home</MenuItem>
                     <MenuDivider />
-                    <MenuItem Icon="Lucide.Plus">New store</MenuItem>
+                    <MenuItem Icon="Tabler.Plus">New store</MenuItem>
                 </ChildContent>
             </Menu>
         </Header>
         <ChildContent>
             <NavMenu>
-                <NavItem Href="preview/showcase/home" Icon="Lucide.LayoutDashboard">Overview</NavItem>
-                <NavItem Href="preview/showcase" Icon="Lucide.ShoppingCart" Match="NavLinkMatch.All" Badge="12" BadgeAccent="Accent.Primary">Orders</NavItem>
-                <NavItem Href="preview/showcase/customers" Icon="Lucide.Users">Customers</NavItem>
-                <NavGroup Label="Catalog" Icon="Lucide.Package" ActivePrefix="preview/showcase/catalog">
+                <NavItem Href="preview/showcase/home" Icon="Tabler.LayoutDashboard">Overview</NavItem>
+                <NavItem Href="preview/showcase" Icon="Tabler.ShoppingCart" Match="NavLinkMatch.All" Badge="12" BadgeAccent="Accent.Primary">Orders</NavItem>
+                <NavItem Href="preview/showcase/customers" Icon="Tabler.Users">Customers</NavItem>
+                <NavGroup Label="Catalog" Icon="Tabler.Package" ActivePrefix="preview/showcase/catalog">
                     <NavItem Href="preview/showcase/catalog/products">Products</NavItem>
                     <NavItem Href="preview/showcase/catalog/collections">Collections</NavItem>
                 </NavGroup>
-                <NavItem Href="preview/showcase/reports" Icon="Lucide.ChartColumn">Reports</NavItem>
+                <NavItem Href="preview/showcase/reports" Icon="Tabler.ChartColumn">Reports</NavItem>
                 <NavDivider />
                 <NavLabel>Workspace</NavLabel>
-                <NavItem Href="preview/showcase/team" Icon="Lucide.UsersRound">Team</NavItem>
-                <NavItem Href="preview/showcase/billing" Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
+                <NavItem Href="preview/showcase/team" Icon="Tabler.Users">Team</NavItem>
+                <NavItem Href="preview/showcase/billing" Icon="Tabler.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
             </NavMenu>
         </ChildContent>
         <Footer>
             <NavMenu aria-label="Account">
-                <NavItem Href="preview/showcase/profile" Icon="Lucide.CircleUser">Izzy Dryer</NavItem>
+                <NavItem Href="preview/showcase/profile" Icon="Tabler.UserCircle">Izzy Dryer</NavItem>
             </NavMenu>
         </Footer>
     </AppSidebar>
@@ -82,14 +82,14 @@
                     <Heading Level="1" Size="TextSize.Xl2">Orders</Heading>
                     <TextBlock Color="Color.Muted" Size="TextSize.Sm">Every order across your stores, newest first.</TextBlock>
                 </Stack>
-                <LinkButton Href="preview/showcase/export" StartIcon="Lucide.Download" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Export</LinkButton>
-                <Button StartIcon="Lucide.Plus">New order</Button>
+                <LinkButton Href="preview/showcase/export" StartIcon="Tabler.Download" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Export</LinkButton>
+                <Button StartIcon="Tabler.Plus">New order</Button>
             </Row>
 
             <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4">
-                <Card><Stat Label="Revenue" Value="$18,420" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.DollarSign" /></Card>
-                <Card><Stat Label="Orders" Value="57" Change="8%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.ShoppingCart" /></Card>
-                <Card><Stat Label="Refund rate" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Up" ChangeStatus="Status.Danger" Description="vs last month" Icon="Lucide.RotateCcw" /></Card>
+                <Card><Stat Label="Revenue" Value="$18,420" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Tabler.CurrencyDollar" /></Card>
+                <Card><Stat Label="Orders" Value="57" Change="8%" Trend="StatTrend.Up" Description="vs last month" Icon="Tabler.ShoppingCart" /></Card>
+                <Card><Stat Label="Refund rate" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Up" ChangeStatus="Status.Danger" Description="vs last month" Icon="Tabler.Rotate" /></Card>
             </Grid>
 
             <Stack Gap="3">

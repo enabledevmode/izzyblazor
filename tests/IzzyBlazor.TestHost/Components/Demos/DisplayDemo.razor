@@ -4,10 +4,10 @@
 
     <Example Title="Stat" Note="A label, the figure, and how it changed. Up is green and down is red unless ChangeStatus says otherwise, as for response times. The arrow is hidden from screen readers; TrendLabel is read in its place." Code="@StatCode">
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
-            <Card><Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.DollarSign" data-testid="stat-revenue" /></Card>
-            <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="StatTrend.Down" Description="vs last week" Icon="Lucide.Users" /></Card>
-            <Card><Stat Label="Response time" Value="182 ms" Change="24 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="faster" Icon="Lucide.Timer" /></Card>
-            <Card><Stat Label="Uptime" Value="99.98%" Change="0%" Trend="StatTrend.Flat" Description="30 days" Icon="Lucide.Activity" /></Card>
+            <Card><Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Tabler.CurrencyDollar" data-testid="stat-revenue" /></Card>
+            <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="StatTrend.Down" Description="vs last week" Icon="Tabler.Users" /></Card>
+            <Card><Stat Label="Response time" Value="182 ms" Change="24 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="faster" Icon="Tabler.Stopwatch" /></Card>
+            <Card><Stat Label="Uptime" Value="99.98%" Change="0%" Trend="StatTrend.Flat" Description="30 days" Icon="Tabler.Activity" /></Card>
         </Grid>
     </Example>
 
@@ -46,12 +46,12 @@
 
     <Example Title="EmptyState" Note="An icon, a title, why it's empty, and the action that fills it. Bordered draws a dashed outline for an empty area inside a page." Code="@EmptyCode">
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
-            <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here, with their payment status." data-testid="empty-invoices">
+            <EmptyState Bordered Icon="Tabler.Inbox" Title="No invoices yet" Description="Invoices you send appear here, with their payment status." data-testid="empty-invoices">
                 <Actions>
-                    <LinkButton Href="static/display" StartIcon="Lucide.Plus">New invoice</LinkButton>
+                    <LinkButton Href="static/display" StartIcon="Tabler.Plus">New invoice</LinkButton>
                 </Actions>
             </EmptyState>
-            <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.SearchX" Title="No results for “quarterly”" Description="Try a different word, or clear the filters.">
+            <EmptyState Bordered Size="ControlSize.Sm" Icon="Tabler.SearchOff" Title="No results for “quarterly”" Description="Try a different word, or clear the filters.">
                 <Actions>
                     <LinkButton Href="static/display" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Clear filters</LinkButton>
                 </Actions>
@@ -94,10 +94,10 @@
                 </TimelineItem>
             </Timeline>
             <Timeline>
-                <TimelineItem Title="Delivered" Time="Oct 13, 2:14 PM" Icon="Lucide.PackageCheck" Status="Status.Success">Left at the front door.</TimelineItem>
-                <TimelineItem Title="Out for delivery" Time="Oct 13, 8:02 AM" Icon="Lucide.Truck" />
-                <TimelineItem Title="Delayed in transit" Time="Oct 12" Icon="Lucide.TriangleAlert" Status="Status.Warning">Weather at the regional hub.</TimelineItem>
-                <TimelineItem Title="Order placed" Time="Oct 10" Icon="Lucide.ShoppingCart" />
+                <TimelineItem Title="Delivered" Time="Oct 13, 2:14 PM" Icon="Tabler.Package" Status="Status.Success">Left at the front door.</TimelineItem>
+                <TimelineItem Title="Out for delivery" Time="Oct 13, 8:02 AM" Icon="Tabler.Truck" />
+                <TimelineItem Title="Delayed in transit" Time="Oct 12" Icon="Tabler.AlertTriangle" Status="Status.Warning">Weather at the regional hub.</TimelineItem>
+                <TimelineItem Title="Order placed" Time="Oct 10" Icon="Tabler.ShoppingCart" />
             </Timeline>
         </Grid>
     </Example>
@@ -119,7 +119,7 @@
             <TimelineItem Title="Add a full-bleed Section" Href="..." Time="2 hours ago" DateTime="2026-10-13T20:00Z" Current>
                 <Code>93c85d4</Code> <Anchor Href="...">Watch from here</Anchor>
             </TimelineItem>
-            <TimelineItem Title="Delivered" Icon="Lucide.PackageCheck" Status="Status.Success">Left at the front door.</TimelineItem>
+            <TimelineItem Title="Delivered" Icon="Tabler.Package" Status="Status.Success">Left at the front door.</TimelineItem>
         </Timeline>
         """;
 
@@ -127,7 +127,7 @@
         """
         <Card>
             <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up"
-                  Description="vs last month" Icon="Lucide.DollarSign" />
+                  Description="vs last month" Icon="Tabler.CurrencyDollar" />
         </Card>
         <Card>
             @* Down is good here *@
@@ -162,10 +162,10 @@
 
     private const string EmptyCode =
         """
-        <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet"
+        <EmptyState Bordered Icon="Tabler.Inbox" Title="No invoices yet"
                     Description="Invoices you send appear here, with their payment status.">
             <Actions>
-                <LinkButton Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</LinkButton>
+                <LinkButton Href="/invoices/new" StartIcon="Tabler.Plus">New invoice</LinkButton>
             </Actions>
         </EmptyState>
         """;
