@@ -33,7 +33,7 @@ public enum AvatarSize
 /// <code>
 /// &lt;Avatar Name="Grace Hopper" Src="/img/grace.jpg" /&gt;
 /// &lt;Avatar Name="Ada Lovelace" Size="AvatarSize.Lg" Status="Status.Success" StatusLabel="Online" /&gt;
-/// &lt;Avatar Name="Acme Corp" Square Bg="Color.Primary" /&gt;
+/// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" /&gt;
 /// </code>
 /// </example>
 public class Avatar : IzzyComponentBase, IDisposable
@@ -63,10 +63,11 @@ public class Avatar : IzzyComponentBase, IDisposable
     [Parameter] public bool Square { get; set; }
 
     /// <summary>
-    /// The background behind the initials, such as <c>Color.Primary</c>; the initials take its
-    /// contrast color. Defaults to a soft color picked from <see cref="Name"/>.
+    /// The color behind the initials, which also sets their color for contrast: <c>Accent.Primary</c>,
+    /// <c>Accent.Of("#0d9488")</c> or <c>Accent.Token("success")</c>. Unset: a soft color picked from
+    /// <see cref="Name"/>.
     /// </summary>
-    [Parameter] public Color? Bg { get; set; }
+    [Parameter] public Accent? Accent { get; set; }
 
     /// <summary>A dot in the corner, such as <see cref="IzzyBlazor.Status.Success"/> for online. Give it a <see cref="StatusLabel"/>.</summary>
     [Parameter] public Status? Status { get; set; }
@@ -145,10 +146,10 @@ public class Avatar : IzzyComponentBase, IDisposable
         classes.Add("ib-avatar");
         classes.Add($"ib-avatar-{ResolvedSize.ToString().ToLowerInvariant()}", ResolvedSize != AvatarSize.Md);
         classes.Add("ib-avatar-square", Square);
-        if (Bg is { } color)
+        if (Accent is { } accent)
         {
             classes.Add("ib-avatar-colored");
-            ColorOverride.Apply(styles, color);
+            ColorOverride.Apply(styles, accent.ToColor());
         }
         else if (string.IsNullOrWhiteSpace(Name) && Initials is null)
         {
