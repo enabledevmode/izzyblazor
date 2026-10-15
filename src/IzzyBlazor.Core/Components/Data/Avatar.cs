@@ -33,7 +33,7 @@ public enum AvatarSize
 /// <code>
 /// &lt;Avatar Name="Grace Hopper" Src="/img/grace.jpg" /&gt;
 /// &lt;Avatar Name="Ada Lovelace" Size="AvatarSize.Lg" Status="Status.Success" StatusLabel="Online" /&gt;
-/// &lt;Avatar Name="Acme Corp" Square Color="Color.Primary" /&gt;
+/// &lt;Avatar Name="Acme Corp" Square Bg="Color.Primary" /&gt;
 /// </code>
 /// </example>
 public class Avatar : IzzyComponentBase, IDisposable
