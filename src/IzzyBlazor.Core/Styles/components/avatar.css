@@ -29,7 +29,7 @@
     border-radius: calc(var(--ib-avatar-size) * 0.2);
   }
 
-  /* A soft color from the name's hue, readable in both schemes. */
+  /* Soft: a tint of the name's hue with the hue as text, readable in both schemes. */
   .ib-avatar-fallback {
     display: grid;
     place-items: center;
@@ -37,9 +37,7 @@
     height: 100%;
     overflow: hidden;
     border-radius: inherit;
-    background: oklch(0.92 0.045 var(--ib-avatar-hue));
     background: light-dark(oklch(0.92 0.045 var(--ib-avatar-hue)), oklch(0.36 0.06 var(--ib-avatar-hue)));
-    color: oklch(0.42 0.11 var(--ib-avatar-hue));
     color: light-dark(oklch(0.42 0.11 var(--ib-avatar-hue)), oklch(0.9 0.06 var(--ib-avatar-hue)));
     letter-spacing: 0.02em;
   }
@@ -49,13 +47,25 @@
     height: 55%;
   }
 
+  /* Solid: filled with the name's hue; white text holds 4.8:1 or more at every hue. */
+  .ib-avatar-solid > .ib-avatar-fallback {
+    background: oklch(0.52 0.13 var(--ib-avatar-hue));
+    color: #fff;
+  }
+
   /* No name: a neutral fill behind the person icon. */
   .ib-avatar-anonymous > .ib-avatar-fallback {
     background: var(--ib-color-surface-container-high);
     color: var(--ib-color-muted);
   }
 
+  /* An Accent: its soft tint and text color, or its fill and the text on it. */
   .ib-avatar-colored > .ib-avatar-fallback {
+    background: var(--ib-accent-soft);
+    color: var(--ib-accent-text);
+  }
+
+  .ib-avatar-colored.ib-avatar-solid > .ib-avatar-fallback {
     background: var(--ib-accent);
     color: var(--ib-on-accent);
   }

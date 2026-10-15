@@ -25,6 +25,16 @@ public enum AvatarSize
     Xl2,
 }
 
+/// <summary>How an avatar's initials or icon are colored, as on <see cref="Badge"/> and <see cref="Tag"/>.</summary>
+public enum AvatarVariant
+{
+    /// <summary>A light tint with the color as text (the default).</summary>
+    Soft,
+
+    /// <summary>Filled with the color, with text picked for contrast.</summary>
+    Solid,
+}
+
 /// <summary>
 /// A picture of a person or thing: an image, else initials from <see cref="Name"/>, else an icon.
 /// When the image fails to load, the initials show through, with no script needed.
@@ -33,7 +43,7 @@ public enum AvatarSize
 /// <code>
 /// &lt;Avatar Name="Grace Hopper" Src="/img/grace.jpg" /&gt;
 /// &lt;Avatar Name="Ada Lovelace" Size="AvatarSize.Lg" Status="Status.Success" StatusLabel="Online" /&gt;
-/// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" /&gt;
+/// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" /&gt;
 /// </code>
 /// </example>
 public class Avatar : IzzyComponentBase, IDisposable
@@ -63,11 +73,17 @@ public class Avatar : IzzyComponentBase, IDisposable
     [Parameter] public bool Square { get; set; }
 
     /// <summary>
-    /// The color behind the initials, which also sets their color for contrast: <c>Accent.Primary</c>,
-    /// <c>Accent.Of("#0d9488")</c> or <c>Accent.Token("success")</c>. Unset: a soft color picked from
-    /// <see cref="Name"/>.
+    /// The color of the initials or icon and what's behind them, as <see cref="Variant"/> uses it:
+    /// <c>Accent.Primary</c>, <c>Accent.Of("#0d9488")</c> or <c>Accent.Token("success")</c>. Unset: a
+    /// color picked from <see cref="Name"/>, so a person looks the same on every page.
     /// </summary>
     [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>
+    /// <see cref="AvatarVariant.Soft"/> (the default) tints the background and colors the initials;
+    /// <see cref="AvatarVariant.Solid"/> fills it, with initials picked for contrast. A photo covers both.
+    /// </summary>
+    [Parameter] public AvatarVariant Variant { get; set; }
 
     /// <summary>A dot in the corner, such as <see cref="IzzyBlazor.Status.Success"/> for online. Give it a <see cref="StatusLabel"/>.</summary>
     [Parameter] public Status? Status { get; set; }
@@ -146,6 +162,7 @@ public class Avatar : IzzyComponentBase, IDisposable
         classes.Add("ib-avatar");
         classes.Add($"ib-avatar-{ResolvedSize.ToString().ToLowerInvariant()}", ResolvedSize != AvatarSize.Md);
         classes.Add("ib-avatar-square", Square);
+        classes.Add("ib-avatar-solid", Variant == AvatarVariant.Solid);
         if (Accent is { } accent)
         {
             classes.Add("ib-avatar-colored");

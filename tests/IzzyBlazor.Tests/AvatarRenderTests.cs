@@ -73,13 +73,44 @@ public class AvatarRenderTests : BunitContext
     }
 
     [Fact]
-    public void Accent_fills_the_fallback_and_sets_its_text()
+    public void Accent_colors_the_fallback_through_the_accent_properties()
     {
         var avatar = Render<Avatar>(p => p.Add(a => a.Name, "Acme").Add(a => a.Accent, Accent.Primary)).Find(".ib-avatar");
 
         Assert.Contains("ib-avatar-colored", avatar.ClassName);
+        Assert.DoesNotContain("ib-avatar-solid", avatar.ClassName);
         Assert.Contains("--ib-accent:var(--ib-color-primary)", avatar.GetAttribute("style"));
         Assert.Contains("--ib-on-accent:var(--ib-color-on-primary)", avatar.GetAttribute("style"));
+        Assert.Contains("--ib-accent-soft:", avatar.GetAttribute("style"));
+    }
+
+    [Theory]
+    [InlineData(true)]
+    [InlineData(false)]
+    public void Solid_fills_with_the_accent_or_the_names_hue(bool withAccent)
+    {
+        var avatar = Render<Avatar>(p =>
+        {
+            p.Add(a => a.Name, "Acme").Add(a => a.Variant, AvatarVariant.Solid);
+            if (withAccent)
+            {
+                p.Add(a => a.Accent, Accent.Of("#0f766e"));
+            }
+        }).Find(".ib-avatar");
+
+        Assert.Contains("ib-avatar-solid", avatar.ClassName);
+        Assert.Equal(withAccent, avatar.ClassList.Contains("ib-avatar-colored"));
+        Assert.Equal(!withAccent, avatar.GetAttribute("style")?.Contains("--ib-avatar-hue") ?? false);
+    }
+
+    [Fact]
+    public void Css_paints_soft_and_solid_for_hues_and_accents()
+    {
+        var css = File.ReadAllText(Path.Combine(RepoRoot(), "src", "IzzyBlazor.Core", "Styles", "components", "avatar.css")).Replace("\r", "");
+
+        Assert.Matches(@"\.ib-avatar-solid > \.ib-avatar-fallback \{\s*background: oklch\(0\.52 0\.13 var\(--ib-avatar-hue\)\);\s*color: #fff;", css);
+        Assert.Matches(@"\.ib-avatar-colored > \.ib-avatar-fallback \{\s*background: var\(--ib-accent-soft\);\s*color: var\(--ib-accent-text\);", css);
+        Assert.Matches(@"\.ib-avatar-colored\.ib-avatar-solid > \.ib-avatar-fallback \{\s*background: var\(--ib-accent\);\s*color: var\(--ib-on-accent\);", css);
     }
 
     [Fact]
@@ -119,5 +150,16 @@ public class AvatarRenderTests : BunitContext
             .AddChildContent<Avatar>(a => a.Add(x => x.Name, "Grace Hopper")));
 
         Assert.Empty(cut.FindAll(".ib-avatar-more"));
+    }
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "izzyblazor.sln")))
+        {
+            dir = dir.Parent;
+        }
+
+        return dir?.FullName ?? throw new InvalidOperationException("izzyblazor.sln not found.");
     }
 }

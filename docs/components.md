@@ -779,8 +779,9 @@ over the initials, so if it fails to load the initials show, in every browser an
 
 - `Name` is also the accessible name. `Decorative` hides the avatar from screen readers when the
   name is written beside it; an avatar with no name is hidden from them anyway.
-- `Size` (`Xs` to `Xl2`), `Square` for teams and companies, `Accent` for a fixed color (the
-  initials take the text color that goes with it), `Initials` to
+- `Size` (`Xs` to `Xl2`), `Square` for teams and companies, `Accent` for a fixed color in place of
+  the name's, `Variant` `Soft` (the default: a tint with the color as text) or `Solid` (filled, text
+  picked for contrast), as on Badge and Tag, `Initials` to
   override the letters, `Icon` for the no-name icon.
 - `Status` adds a dot in the corner (`Success` for online, say), with `StatusLabel` ("Online")
   joined to the accessible name.
