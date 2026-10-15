@@ -6,9 +6,9 @@
             {
                 <Row Gap="2" Align="Align.Center" Wrap>
                     <TextBlock As="span" Class="host-label">@variant</TextBlock>
-                    @foreach (var accent in new[] { Accent.Primary, Accent.Neutral, Accent.Danger })
+                    @foreach (var (accent, name) in new[] { (Accent.Primary, "Primary"), (Accent.Neutral, "Neutral"), (Accent.Danger, "Danger") })
                     {
-                        <Button Accent="accent" Variant="variant">@accent</Button>
+                        <Button Accent="accent" Variant="variant">@name</Button>
                     }
                     <Button Accent="@Teal" Variant="variant">Custom</Button>
                     <Button Accent="@Amber" Variant="variant">Custom</Button>
@@ -17,7 +17,7 @@
         </Stack>
     </Example>
 
-    <Example Title="Custom colors" Note="Three accents cover actions: Primary for the main one, Neutral for the rest, Danger for destructive ones. For anything else, pass a Color: a theme token or a hex value. Text on it is picked for contrast, so the amber button gets dark text." Code="@CustomCode">
+    <Example Title="Custom colors" Note="Three accents cover actions: Primary for the main one, Neutral for the rest, Danger for destructive ones. For anything else, pass Accent.Of with a hex value or any CSS color, or Accent.Token with a theme color's name. Text on it is picked for contrast, so the amber button gets dark text." Code="@CustomCode">
         <Row Gap="2" Wrap>
             <Button Accent="@Teal" StartIcon="Lucide.Check">Approve</Button>
             <Button Accent="Accent.Danger" Variant="ButtonVariant.Outline">Reject</Button>

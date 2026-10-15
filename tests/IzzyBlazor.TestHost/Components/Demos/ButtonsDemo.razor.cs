@@ -10,6 +10,6 @@ public partial class ButtonsDemo
     private const string CustomCode =
         """
         <Button Accent='Accent.Of("#0f766e")'>Approve</Button>
-        <Button Accent='Accent.Token("brand-teal")' Variant="ButtonVariant.Soft">Publish</Button>
+        <Button Accent='Accent.Token("success")' Variant="ButtonVariant.Soft">Theme token</Button>
         """;
 }
