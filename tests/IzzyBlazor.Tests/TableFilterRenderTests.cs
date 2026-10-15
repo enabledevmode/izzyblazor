@@ -246,15 +246,22 @@ public class TableFilterRenderTests : BunitContext
         Assert.Empty(cut.FindAll("[data-ib-filter]"));
         cut.Find(".ib-table-filter input").Input("ad");
 
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada" }, Names(cut)));
-        Assert.Equal("ad", reported.Single()["name"]);
-        Assert.Equal(new[] { 2, 1 }, pages);
-        Assert.Contains("1–1 of 2", cut.Find(".ib-table-summary").TextContent);
+        // The filter applies on a timer, so wait for all of its effects, not just the rows.
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(new[] { "Ada" }, Names(cut));
+            Assert.Equal("ad", Assert.Single(reported)["name"]);
+            Assert.Equal(new[] { 2, 1 }, pages);
+            Assert.Contains("1–1 of 2", cut.Find(".ib-table-summary").TextContent);
+        });
         Assert.Equal(url, Nav.Uri);
 
         cut.Find("select.ib-field-select").Change("Refunded");
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "adam" }, Names(cut)));
-        Assert.Equal("Refunded", reported.Last()["status"]);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(new[] { "adam" }, Names(cut));
+            Assert.Equal("Refunded", reported.Last()["status"]);
+        });
     }
 
     private static RenderFragment MultiColumns => b =>

@@ -14,7 +14,7 @@
     every render mode.
 
     With content, it themes that part of the page instead, in a div: Brand, a built-in Gray,
-    Radius, Density, Preset (shape, density and type only) and ColorScheme; what it doesn't set
+    Radius, Density, Preset (shape, density and depth only) and ColorScheme; what it doesn't set
     comes from around it. Fonts, HeadingWeight and a hex Gray are app-wide only. For one exact value, use CSS:
     its variable in your stylesheet, or Style and Class on a nested IzzyTheme (docs/styling.md).
 *@
@@ -257,10 +257,11 @@ else
     // the rule or the element.
     private static string FontList(string value, string parameter)
     {
-        // No way out of the declaration or the style element, and no open string: an unclosed
-        // quote (or a newline, which ends a CSS string) would swallow every declaration after it.
+        // No way out of the declaration or the style element, and no open string or block: an
+        // unclosed quote, bracket or parenthesis (or a newline, which ends a CSS string) would
+        // swallow every declaration after it. A font-family list needs none of ( ) [ ].
         var list = value.Trim();
-        if (list.IndexOfAny([';', '{', '}', '<', '>', '\\']) >= 0 || list.Contains("/*", StringComparison.Ordinal)
+        if (list.IndexOfAny([';', '{', '}', '<', '>', '\\', '(', ')', '[', ']']) >= 0 || list.Contains("/*", StringComparison.Ordinal)
             || list.Any(char.IsControl) || !QuotesClose(list))
         {
             throw new ArgumentException($"{parameter} is a CSS font-family list, such as \"Inter, system-ui, sans-serif\".", parameter);

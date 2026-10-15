@@ -227,7 +227,7 @@
 
   /* Density: control heights (buttons, fields, tabs, pagination, nav items, menu rows), table cell
      padding and card padding, together. Standard is tokens.css's defaults; heights stay whole
-     pixels. A look sets its density; data-ib-density or IzzyTheme's Density beats it. */
+     pixels. A preset sets its density; data-ib-density or IzzyTheme's Density beats it. */
   [data-ib-preset][data-ib-preset="standard"],
   :root:where(:has(> head > meta[name="ib-preset"][content="standard"])),
   [data-ib-preset][data-ib-preset="editorial"],
@@ -264,7 +264,13 @@
   }
 
   /* Depth. Compact: borders do the separating, so the hairline shadow under cards goes. Soft: a
-     gentler, two-layer lift. */
+     gentler, two-layer lift. Standard and Editorial restate the default, so a part with one of them
+     doesn't keep a Compact or Soft page's. */
+  [data-ib-preset][data-ib-preset="standard"],
+  [data-ib-preset][data-ib-preset="editorial"] {
+    --ib-shadow-xs: 0 1px 2px light-dark(rgb(0 0 0 / 0.04), rgb(0 0 0 / 0.3));
+  }
+
   [data-ib-preset][data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])) {
     --ib-shadow-xs: none;
@@ -276,8 +282,9 @@
   }
 
   /* Editorial: Newsreader headings over IBM Plex Sans. Load the fonts yourself (see
-     docs/styling.md); the fallbacks keep the look without them. */
-  [data-ib-preset][data-ib-preset="editorial"],
+     docs/styling.md); the fallbacks keep the look without them. Fonts are app-wide, so only on
+     <html>: on part of a page a preset changes density, shape and depth. */
+  :root[data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])) {
     --ib-font-body: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
     --ib-font-heading: Newsreader, Georgia, "Times New Roman", serif;

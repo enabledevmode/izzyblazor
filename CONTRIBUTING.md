@@ -93,7 +93,7 @@ Use the same name for the same idea everywhere:
 | `...Label` suffix | Text only screen readers get (`aria-label`, visually hidden) | `CloseLabel`, `PreviousLabel`, `LoadingLabel` |
 | `...Text` suffix | Visible text | `EmptyText`, `ApplyText`, `ClearText` |
 | `Icon` | One fixed icon slot | `NavItem Icon`, `Tab Icon` |
-| `StartIcon`, `EndIcon` | An icon beside text that could go on either side | `Button`, `TextField`, `Badge` |
+| `StartIcon`, `EndIcon` | An icon beside text that could go on either side | `Button`, `TextField`; `Badge StartIcon` |
 | `Accent` | A color set: a fill plus the text that goes with it (on the fill, as a tint, as text). The roles `Primary`, `Neutral`, `Danger`, or a custom `Accent.Of(css)` / `Accent.Token(name)`. On feedback it replaces the status's color | Button, MenuItem, Progress, Avatar; `Badge Accent`, `Banner Accent` |
 | `Status` | Feedback meaning: `Info`, `Success`, `Warning`, `Danger`, `Neutral`; also sets icons and what screen readers hear | Alert, Badge, Toast |
 | `Color`, `Bg` | Text (or stroke) color and a surface's background, as in CSS. When a color brings its own text color, it's an `Accent` | Box, TextBlock, Icon, Spinner, Image |
@@ -102,7 +102,7 @@ Use the same name for the same idea everywhere:
 | `For` | The id of the element a control acts on | `DialogTrigger For`, `SidebarToggle For` |
 | `FullWidth` | Fill the available width | Button, Tabs |
 | `Size` | `ControlSize` for anything that lines up with buttons and fields | Button, fields, Tabs, Table |
-| `Header`, `Footer`, `Actions` | Render fragments for those regions | Card, Dialog, AppSidebar |
+| `Header`, `Footer`, `Actions` | Render fragments for those regions | Card (all three), Dialog and AppSidebar (`Header`, `Footer`), Alert (`Actions`) |
 
 On/off switches are plain `bool`s so they can be written bare (`<Box Grow>`); anything that changes
 with screen size is `Responsive<T>`. Two-way state follows Blazor's `@bind-X` pattern (`Open`/

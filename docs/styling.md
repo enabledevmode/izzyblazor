@@ -165,7 +165,7 @@ To tune the shades yourself, set the four tokens instead:
 :root {
   --ib-color-primary:      light-dark(#0a7d5a, #0a7d5a);  /* the fill */
   --ib-color-on-primary:   light-dark(#ffffff, #ffffff);  /* text on the fill */
-  --ib-color-primary-text: light-dark(#00714e, #6ccba4);  /* the accent as text */
+  --ib-color-primary-text: light-dark(#006e4c, #70cfa7);  /* the accent as text */
   --ib-color-primary-soft: light-dark(#dceae3, #202f2b);  /* the soft tint */
 }
 ```
@@ -179,7 +179,9 @@ paper, which pairs with serif headings), or a hex color for your light page back
 
 The page is that color, as given (kept light enough for text to read). The rest of the ladder is
 derived from it (`GrayPalette.From`): surfaces just above it, the container fills, borders and the
-outline stepping down by the same amounts as the built-in sets, in its hue; body, muted, subtle and
+outline stepping down by the same amounts as the built-in sets, in its hue. The container fills are
+never darker than the built-in sets' own, so the colors that don't change with the grays (brand and
+status text, code) keep their contrast on them: a darker page gets a shallower ladder. Body, muted, subtle and
 disabled text, each checked for contrast (muted and subtle hold 4.5:1 on the page, the surface and
 the container fill); and the dark scheme in the same hue. A hex gray is app-wide only.
 
@@ -367,7 +369,8 @@ from the theme around it:
 
 It takes `Brand` (a name or hex), a built-in `Gray`, `Radius`, `Density`, `Preset` and `ColorScheme`,
 and renders a `div` (with `Class`, `Style` and other attributes). On part of a page a preset changes
-density, shape and type only; its brand color and gray apply to the whole app alone. Fonts,
+density, shape and depth (the card shadow) only; its fonts, brand color and gray apply to the whole
+app alone. Fonts,
 `HeadingWeight` and a hex `Gray` are app-wide: set them on the `IzzyTheme` in `<head>`.
 
 `IzzyTheme` takes only the choices it keeps consistent. A single exact value is CSS: put it in

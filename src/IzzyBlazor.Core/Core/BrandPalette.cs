@@ -25,13 +25,13 @@ public sealed record BrandPalette(
     string DarkText,
     string DarkSoft)
 {
-    // The default gray set's surfaces the accent is checked against (neutral; slate and stone sit
-    // within a few hundredths of these).
+    // The built-in gray sets' surfaces the accent is checked against (neutral, slate, stone), so
+    // the promises hold on each. A hex Gray keeps its fills at least this light (GrayPalette).
     private static readonly Rgb White = Rgb.Parse("#ffffff");
     private static readonly Rgb Ink = Rgb.Parse("#111111");
-    private static readonly Rgb ContainerHigh = Rgb.Parse("#dfdfe3");
-    private static readonly Rgb DarkSurface = Rgb.Parse("#1b1b1e");
-    private static readonly Rgb DarkContainerHigh = Rgb.Parse("#313135");
+    private static readonly Rgb[] ContainerHigh = [Rgb.Parse("#dfdfe3"), Rgb.Parse("#dce2ea"), Rgb.Parse("#e0ddd5")];
+    private static readonly Rgb[] DarkSurface = [Rgb.Parse("#1b1b1e"), Rgb.Parse("#161a21"), Rgb.Parse("#1d1f22")];
+    private static readonly Rgb[] DarkContainerHigh = [Rgb.Parse("#313135"), Rgb.Parse("#29313a"), Rgb.Parse("#323438")];
 
     /// <summary>Derives the palette from a hex color (<c>#rgb</c> or <c>#rrggbb</c>).</summary>
     /// <exception cref="ArgumentException">The value isn't a hex color.</exception>
@@ -43,16 +43,16 @@ public sealed record BrandPalette(
         }
 
         var (fill, on) = WithText(brand);
-        var soft = Rgb.Mix(fill, White, 0.16);
-        var text = MoveUntil(fill, -0.01, c => Rgb.Ratio(c, soft) >= 4.5 && Rgb.Ratio(c, ContainerHigh) >= 4.5 && Rgb.Ratio(c, White) >= 4.5);
+        var soft = Snap(Rgb.Mix(fill, White, 0.16));
+        var text = MoveUntil(fill, -0.01, c => Rgb.Ratio(c, soft) >= 4.5 && ContainerHigh.All(g => Rgb.Ratio(c, g) >= 4.5) && Rgb.Ratio(c, White) >= 4.5);
 
         // Dark mode: lift a dark brand color until it shows on the dark surface, then the same steps.
         // The accent as text is lifted further (6.5:1 on the strongest fill) so it reads as a
         // light tint of the brand, not a saturated one.
-        var darkBase = MoveUntil(brand, 0.01, c => Rgb.Ratio(c, DarkSurface) >= 3);
+        var darkBase = MoveUntil(brand, 0.01, c => DarkSurface.All(g => Rgb.Ratio(c, g) >= 3));
         var (darkFill, darkOn) = WithText(darkBase);
-        var darkSoft = Rgb.Mix(darkFill, DarkSurface, 0.22);
-        var darkText = MoveUntil(darkFill, 0.01, c => Rgb.Ratio(c, darkSoft) >= 4.5 && Rgb.Ratio(c, DarkContainerHigh) >= 6.5);
+        var darkSoft = Snap(Rgb.Mix(darkFill, DarkSurface[0], 0.22));
+        var darkText = MoveUntil(darkFill, 0.01, c => Rgb.Ratio(c, darkSoft) >= 4.5 && DarkContainerHigh.All(g => Rgb.Ratio(c, g) >= 6.5));
 
         return new BrandPalette(
             fill.ToHex(), on.ToHex(), text.ToHex(), soft.ToHex(),
@@ -66,6 +66,7 @@ public sealed record BrandPalette(
         $"--ib-color-primary-text: light-dark({Text}, {DarkText}); " +
         $"--ib-color-primary-soft: light-dark({Soft}, {DarkSoft});";
 
+    // Each check is on the color as written (rounded to hex), so rounding can't take it under.
     // White or near-black, whichever reads better; if neither reaches 4.5:1, move the fill's
     // lightness away from the text until it does.
     private static (Rgb Fill, Rgb On) WithText(Rgb fill)
@@ -78,11 +79,11 @@ public sealed record BrandPalette(
     private static Rgb MoveUntil(Rgb color, double step, Func<Rgb, bool> done)
     {
         var lab = Oklab.From(color);
-        var current = color;
+        var current = Snap(color);
         for (var i = 0; i < 200 && !done(current); i++)
         {
             lab = lab with { L = Math.Clamp(lab.L + step, 0, 1) };
-            current = lab.ToRgb();
+            current = Snap(lab.ToRgb());
             if (lab.L <= 0 || lab.L >= 1)
             {
                 break;

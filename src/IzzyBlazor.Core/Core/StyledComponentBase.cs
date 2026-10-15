@@ -191,5 +191,39 @@ public abstract class StyledComponentBase : IzzyComponentBase
         ApplyResponsive(classes, styles, Either(end, axis), "ib-" + endName, endName, format);
     }
 
-    private static Responsive<int> Either(Responsive<int> axis, Responsive<int> all) => axis.IsEmpty ? all : axis;
+    // The specific value (a side, or an axis over the all-sides value) where it applies, the
+    // general one elsewhere. Mobile first: once the specific value starts at a breakpoint it holds
+    // at every larger one, so it's repeated wherever the general value would take over again.
+    // PaddingTop {Md=0} with Padding 4 is 4 below md and 0 from md up.
+    private static Responsive<int> Either(Responsive<int> specific, Responsive<int> general)
+    {
+        if (specific.IsEmpty || general.IsEmpty)
+        {
+            return specific.IsEmpty ? general : specific;
+        }
+
+        var own = specific.Entries.ToDictionary(e => e.Breakpoint ?? (Breakpoint)(-1), e => e.Value);
+        var fallback = general.Entries.ToDictionary(e => e.Breakpoint ?? (Breakpoint)(-1), e => e.Value);
+        var result = default(Responsive<int>);
+        int? current = null;
+        foreach (var bp in new[] { (Breakpoint)(-1), Breakpoint.Sm, Breakpoint.Md, Breakpoint.Lg, Breakpoint.Xl })
+        {
+            int? value = own.TryGetValue(bp, out var o) ? current = o
+                : current is { } held ? (fallback.ContainsKey(bp) ? held : null)
+                : fallback.TryGetValue(bp, out var f) ? f : null;
+            if (value is { } v)
+            {
+                result = bp switch
+                {
+                    Breakpoint.Sm => result with { Sm = v },
+                    Breakpoint.Md => result with { Md = v },
+                    Breakpoint.Lg => result with { Lg = v },
+                    Breakpoint.Xl => result with { Xl = v },
+                    _ => result with { Base = v },
+                };
+            }
+        }
+
+        return result;
+    }
 }

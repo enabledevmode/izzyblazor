@@ -61,15 +61,17 @@ export const STYLE_PROPS = [
   { cls: "ib-minh", prop: "min-height", v: "minh" },
   { cls: "ib-ov", prop: "overflow", v: "ov" },
   // Borders: each side is one shorthand (width, solid, color), so it touches only that side and
-  // never resets a component's own borders. The color comes from BorderColor (--ib-bc), else the
-  // border token. ib-bc comes after the sides so BorderColor alone recolors an existing border.
-  { cls: "ib-bx", prop: "border-inline", v: "bx", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
-  { cls: "ib-by", prop: "border-block", v: "by", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
-  { cls: "ib-bt", prop: "border-block-start", v: "bt", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
-  { cls: "ib-bb", prop: "border-block-end", v: "bb", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
-  { cls: "ib-bs", prop: "border-inline-start", v: "bs", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
-  { cls: "ib-be", prop: "border-inline-end", v: "be", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
-  { cls: "ib-bc", prop: "border-color", v: "bc" },
+  // never resets a component's own borders. The color is BorderColor at the current breakpoint
+  // (--ib-bc-now, which each ib-bc class sets), else the border token, so a width set at a larger
+  // breakpoint keeps a color set at a smaller one. ib-bc also sets border-color, so BorderColor
+  // alone recolors an existing border.
+  { cls: "ib-bx", prop: "border-inline", v: "bx", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-by", prop: "border-block", v: "by", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bt", prop: "border-block-start", v: "bt", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bb", prop: "border-block-end", v: "bb", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bs", prop: "border-inline-start", v: "bs", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-be", prop: "border-inline-end", v: "be", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bc", prop: "border-color", v: "bc", now: "--ib-bc-now" },
   { cls: "ib-grow", prop: "flex-grow", v: "grow" },
   { cls: "ib-shrink", prop: "flex-shrink", v: "shrink" },
   { cls: "ib-basis", prop: "flex-basis", v: "basis" },
@@ -108,15 +110,19 @@ function generateCss() {
       props += `@property --ib-${name} { syntax: "*"; inherits: false; }\n`;
     }
   }
+  for (const { now } of STYLE_PROPS.filter((p) => p.now)) {
+    props += `@property ${now} { syntax: "*"; inherits: false; }\n`;
+  }
 
   // One class per breakpoint (.ib-px, .ib-px-md...). C# adds a class only for the
   // breakpoints that have a value, so an unset base never overrides a component's
   // default, and a larger breakpoint wins by source order.
   const rules = (bp) =>
-    STYLE_PROPS.map(({ cls, prop, v, tpl }) => {
+    STYLE_PROPS.map(({ cls, prop, v, tpl, now }) => {
       const suffix = bp ? `-${bp}` : "";
       const value = `var(--ib-${v}${suffix})`;
-      return `  .${cls}${suffix} { ${prop}: ${tpl ? tpl.replace("{v}", value) : value}; }`;
+      const current = now ? `${now}: ${value}; ` : "";
+      return `  .${cls}${suffix} { ${current}${prop}: ${tpl ? tpl.replace("{v}", value) : value}; }`;
     }).join("\n");
 
   let styleProps = header + "@layer izzy.utilities {\n" + rules(null) + "\n";

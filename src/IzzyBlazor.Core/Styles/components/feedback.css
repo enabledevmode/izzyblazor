@@ -121,10 +121,9 @@
     width: 60%;
   }
 
+  /* A block is a Skeleton with a Height (the style prop), which sets its height. */
   .ib-skeleton-block {
     width: 100%;
-    /* A Height (the style prop) sets the block's height; 6rem without one. */
-    height: 6rem;
     border-radius: var(--ib-radius-md);
   }
 
@@ -133,6 +132,10 @@
     aspect-ratio: 1;
     border-radius: var(--ib-radius-full);
     flex-shrink: 0;
+  }
+
+  .ib-skeleton-circle-h {
+    width: auto;
   }
 
   @keyframes ib-skeleton-shimmer {
