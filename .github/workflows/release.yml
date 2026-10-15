@@ -4,37 +4,46 @@ name: Release
 # Trusted publishing: NuGet/login trades GitHub's OIDC token for a one-hour API key,
 # so no NuGet key is stored anywhere. The nuget.org policy names this file (release.yml),
 # the enabledevmode/izzyblazor repository and the "release" environment.
+#
+# Two jobs: "build" checks, builds, tests and packs with read-only access, so the npm and build
+# tools never run where a publishing token can be had; "publish" only takes the packages it made,
+# logs in to NuGet and pushes. Who may push v* tags, and approval for the "release" environment,
+# are repository settings: this file can't enforce them, since a tag runs its own copy of it.
 
 on:
   push:
     tags: ['v*']
 
+permissions: {}
+
 jobs:
-  publish:
+  build:
     runs-on: ubuntu-latest
-    environment: release
     permissions:
-      contents: write   # the GitHub release
-      id-token: write   # the OIDC token NuGet/login exchanges
+      contents: read
+    outputs:
+      version: ${{ steps.tag.outputs.version }}
     steps:
       - uses: actions/checkout@v7
         with:
           fetch-depth: 0
+          persist-credentials: false
 
       - name: Check the tag
+        id: tag
         # Only tags on main, and only the version the packages will carry.
         run: |
           git merge-base --is-ancestor "$GITHUB_SHA" origin/main || { echo "The tag isn't on main."; exit 1; }
           version=$(sed -n 's:.*<Version>\(.*\)</Version>.*:\1:p' Directory.Build.props | tr -d '\r')
           test "v$version" = "$GITHUB_REF_NAME" || { echo "Tag $GITHUB_REF_NAME doesn't match <Version>$version</Version>."; exit 1; }
-          echo "VERSION=$version" >> "$GITHUB_ENV"
+          echo "version=$version" >> "$GITHUB_OUTPUT"
 
       - uses: actions/setup-dotnet@v6
         with:
           dotnet-version: 10.0.x
 
-      # No dependency cache in this job: it can publish, so it shouldn't restore files another
-      # run saved.
+      # No dependency cache: these packages get published, so the build shouldn't restore files
+      # another run saved.
       - uses: actions/setup-node@v7
         with:
           node-version: 22
@@ -49,8 +58,43 @@ jobs:
       - name: Unit and render tests
         run: dotnet test izzyblazor.sln --configuration Release --no-build
 
+      - name: Asset size budget
+        run: |
+          css=$(gzip -c src/IzzyBlazor.Core/wwwroot/izzyblazor.css | wc -c)
+          js=$(gzip -c src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js | wc -c)
+          echo "CSS gzip: $css bytes (budget 40960)"
+          echo "JS gzip:  $js bytes (budget 15360)"
+          test "$css" -le 40960 && test "$js" -le 15360
+
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts
+
+      - uses: actions/upload-artifact@v7
+        with:
+          name: packages
+          path: |
+            artifacts/*.nupkg
+            artifacts/*.snupkg
+          if-no-files-found: error
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: write   # the GitHub release
+      id-token: write   # the OIDC token NuGet/login exchanges
+    env:
+      VERSION: ${{ needs.build.outputs.version }}
+    steps:
+      - uses: actions/setup-dotnet@v6
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/download-artifact@v8
+        with:
+          name: packages
+          path: artifacts
 
       # Last before the push: the key it returns lasts an hour.
       - name: NuGet login
@@ -60,10 +104,13 @@ jobs:
           user: ${{ secrets.NUGET_USER }}
 
       - name: Push to nuget.org
+        # The key goes in through the environment, never pasted into the script the log shows.
         # The .snupkg symbol packages go up with their .nupkg. Core first: IzzyBlazor depends on it.
+        env:
+          NUGET_API_KEY: ${{ steps.login.outputs.NUGET_API_KEY }}
         run: |
           for package in artifacts/IzzyBlazor.Core.*.nupkg artifacts/IzzyBlazor.[0-9]*.nupkg; do
-            dotnet nuget push "$package" --api-key "${{ steps.login.outputs.NUGET_API_KEY }}" \
+            dotnet nuget push "$package" --api-key "$NUGET_API_KEY" \
               --source https://api.nuget.org/v3/index.json --skip-duplicate
           done
 
@@ -74,4 +121,4 @@ jobs:
           prerelease=""
           case "$VERSION" in *-*) prerelease="--prerelease" ;; esac
           gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg \
-            --title "$GITHUB_REF_NAME" --generate-notes $prerelease
+            --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes $prerelease
