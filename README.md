@@ -101,6 +101,11 @@ Auto render modes, see [Getting started](docs/getting-started.md#webassembly-and
 - [Components](docs/components.md): what each component does in each mode
 - [Contributing](CONTRIBUTING.md): repository layout, the dev host and adding a component
 
+## Issues and pull requests
+
+Bug reports and feature requests are welcome as [issues](https://github.com/enabledevmode/izzyblazor/issues).
+The project doesn't take pull requests for now.
+
 ## License
 
 MIT. Bundled Lucide icons are ISC licensed and the brand logos come from Simple Icons (CC0); see
