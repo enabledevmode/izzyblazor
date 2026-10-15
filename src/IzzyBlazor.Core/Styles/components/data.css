@@ -169,7 +169,7 @@
 @layer izzy.components {
   .ib-table {
     --ib-table-py: var(--ib-table-cell-py);
-    --ib-table-px: var(--ib-space-4);
+    --ib-table-px: var(--ib-table-cell-px, var(--ib-space-4));
     --ib-table-font: var(--ib-text-sm);
     --ib-table-stripe: color-mix(in oklab, var(--ib-color-surface-container) 50%, transparent);
 

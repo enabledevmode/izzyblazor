@@ -8,7 +8,7 @@
 @layer izzy.components {
   .ib-btn {
     --ib-btn-h: var(--ib-control-h-md);
-    --ib-btn-px: var(--ib-space-4);
+    --ib-btn-pad: var(--ib-space-4);
     --ib-btn-font: var(--ib-text-sm);
 
     display: inline-flex;
@@ -16,9 +16,9 @@
     justify-content: center;
     gap: 0.5em;
     height: var(--ib-btn-h);
-    padding: 0 var(--ib-btn-px);
+    padding: 0 var(--ib-btn-px, var(--ib-btn-pad));
     border: 1px solid transparent;
-    border-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
     font: inherit;
     font-size: var(--ib-btn-font);
     font-weight: var(--ib-weight-medium);
@@ -50,13 +50,13 @@
   /* Sizes (shared heights with form fields via ControlSize) */
   .ib-btn-sm {
     --ib-btn-h: var(--ib-control-h-sm);
-    --ib-btn-px: var(--ib-space-3);
+    --ib-btn-pad: var(--ib-space-3);
     --ib-btn-font: var(--ib-control-font-sm);
   }
 
   .ib-btn-lg {
     --ib-btn-h: var(--ib-control-h-lg);
-    --ib-btn-px: var(--ib-space-5);
+    --ib-btn-pad: var(--ib-space-5);
     --ib-btn-font: var(--ib-text-md);
   }
 
@@ -229,26 +229,26 @@
 
   .ib-btn-group-attached > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
-    border-start-start-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-start-start-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn,
   .ib-btn-group-attached.ib-btn-group-vertical > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached.ib-btn-group-vertical > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
-    border-end-start-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-end-start-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn,
   .ib-btn-group-attached.ib-btn-group-vertical > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached.ib-btn-group-vertical > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
-    border-start-end-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-start-end-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-btn-group-attached > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
-    border-end-end-radius: var(--ib-radius-control, var(--ib-radius-md));
+    border-end-end-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   /* Filled buttons have no border to share, so a faint line divides them. */

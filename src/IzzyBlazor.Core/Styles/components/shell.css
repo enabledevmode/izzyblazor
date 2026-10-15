@@ -19,8 +19,6 @@
  */
 @layer izzy.components {
   .ib-shell {
-    --ib-shell-header-h: 3.5rem;
-    --ib-shell-footer-h: 3.5rem;
     /* Room the sticky bars take at the top and bottom of the window: a sticky banner, then a
        sticky header, at the top. */
     --ib-shell-banner-top: 0px;
@@ -66,7 +64,7 @@
   /* Safe-area insets keep bars clear of the notch and home indicator when the page uses
      viewport-fit=cover; they are 0 otherwise. */
   .ib-shell:has(> .ib-shell-header-sticky) {
-    --ib-shell-header-top: calc(var(--ib-shell-header-h) + env(safe-area-inset-top, 0px));
+    --ib-shell-header-top: calc(var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px));
   }
 
   /* A sticky banner, until it's dismissed with no script (an interactive page removes it). */
@@ -79,7 +77,7 @@
   }
 
   .ib-shell:has(> .ib-shell-footer-sticky) {
-    --ib-shell-bottom: calc(var(--ib-shell-footer-h) + env(safe-area-inset-bottom, 0px));
+    --ib-shell-bottom: calc(var(--ib-shell-footer-h, 3.5rem) + env(safe-area-inset-bottom, 0px));
   }
 
   /* Header */
@@ -88,7 +86,7 @@
     display: flex;
     align-items: center;
     gap: var(--ib-space-3);
-    min-height: calc(var(--ib-shell-header-h) + env(safe-area-inset-top, 0px));
+    min-height: calc(var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px));
     /* 1px at the top balances the divider at the bottom: the content box stays even (54px), so
        even-height controls center on whole pixels, the same distance from the top and the line. */
     padding: calc(env(safe-area-inset-top, 0px) + 1px) max(var(--ib-space-4), env(safe-area-inset-right, 0px)) 0 max(var(--ib-space-4), env(safe-area-inset-left, 0px));
@@ -360,7 +358,7 @@
     z-index: 20;
     display: flex;
     align-items: center;
-    min-height: calc(var(--ib-shell-footer-h) + env(safe-area-inset-bottom, 0px));
+    min-height: calc(var(--ib-shell-footer-h, 3.5rem) + env(safe-area-inset-bottom, 0px));
     padding-block: var(--ib-space-2) calc(var(--ib-space-2) + env(safe-area-inset-bottom, 0px));
   }
 
@@ -492,7 +490,7 @@
       display: flex;
       align-items: center;
       flex: none;
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
       /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
       padding: 1px var(--ib-sb-pad-x) 0;
@@ -560,7 +558,7 @@
       display: flex;
       align-items: center;
       flex: none;
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
       /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
       padding: 1px var(--ib-sb-pad-x) 0;
@@ -628,7 +626,7 @@
       display: flex;
       align-items: center;
       flex: none;
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
       /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
       padding: 1px var(--ib-sb-pad-x) 0;
@@ -696,7 +694,7 @@
       display: flex;
       align-items: center;
       flex: none;
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
       /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
       padding: 1px var(--ib-sb-pad-x) 0;
@@ -1596,7 +1594,7 @@
    */
   @media (width >= 640px) {
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
       padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
@@ -1614,7 +1612,7 @@
 
   @media (width >= 768px) {
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
       padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
@@ -1632,7 +1630,7 @@
 
   @media (width >= 1024px) {
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
       padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
@@ -1650,7 +1648,7 @@
 
   @media (width >= 1280px) {
     .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
-      min-height: var(--ib-shell-header-h);
+      min-height: var(--ib-shell-header-h, 3.5rem);
       margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) calc(var(--ib-space-2) * -1);
       padding: calc(var(--ib-space-1) + 1px) var(--ib-sb-pad-x) var(--ib-space-1);
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));

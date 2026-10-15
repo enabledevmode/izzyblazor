@@ -18,6 +18,9 @@ better when scripts run, and binds to C# on interactive pages.
 
 > **Status:** preview (`0.1.0-alpha.1`). The API will change before 0.1.
 
+**Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on. IzzyBlazor relies on CSS
+`:has()`, `light-dark()` and the Popover API; older browsers aren't supported.
+
 ## Every component works three ways
 
 | | With JavaScript off | With JavaScript | On interactive pages |
