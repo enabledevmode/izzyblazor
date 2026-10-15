@@ -36,9 +36,14 @@
     <AssetOutput Include="$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor-assets.stamp" />
   </ItemGroup>
 
+  <!-- Installs the npm tools on a fresh clone, and again whenever package-lock.json changes (npm
+       writes node_modules/.package-lock.json on every install), so a pulled dependency change,
+       such as a new icon set, is picked up without a manual npm ci. -->
   <Target Name="InstallAssetTools"
-          Condition="'$(SkipAssetBuild)' != 'true' And !Exists('$(RepoRoot)node_modules\esbuild')"
-          BeforeTargets="BuildAssets">
+          Condition="'$(SkipAssetBuild)' != 'true'"
+          BeforeTargets="BuildAssets"
+          Inputs="$(RepoRoot)package-lock.json"
+          Outputs="$(RepoRoot)node_modules\.package-lock.json">
     <Message Importance="high" Text="IzzyBlazor: installing asset build tools (npm ci)..." />
     <Exec Command="npm ci" WorkingDirectory="$(RepoRoot)" />
   </Target>

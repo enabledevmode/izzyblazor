@@ -167,6 +167,9 @@ const builds = [
 function generateIcons() {
   // Read from disk: the package's exports map doesn't expose its JSON files to require().
   const tabler = join(root, "node_modules", "@tabler", "icons");
+  if (!existsSync(join(tabler, "package.json"))) {
+    throw new Error("@tabler/icons isn't installed. Run `npm ci` in the repository root, then build again.");
+  }
   const json = (file) => JSON.parse(readFileSync(join(tabler, file), "utf8"));
   const pkg = json("package.json");
   const meta = json("icons.json");
