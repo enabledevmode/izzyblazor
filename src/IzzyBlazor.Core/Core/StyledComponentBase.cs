@@ -92,6 +92,46 @@ public abstract class StyledComponentBase : IzzyComponentBase
     /// <summary>Minimum height.</summary>
     [Parameter] public Responsive<Length> MinHeight { get; set; }
 
+    /// <summary>Minimum width.</summary>
+    [Parameter] public Responsive<Length> MinWidth { get; set; }
+
+    /// <summary>Height.</summary>
+    [Parameter] public Responsive<Length> Height { get; set; }
+
+    /// <summary>Maximum height; pair it with <see cref="Overflow"/> to scroll what doesn't fit.</summary>
+    [Parameter] public Responsive<Length> MaxHeight { get; set; }
+
+    /// <summary>What happens to content that doesn't fit: <see cref="IzzyBlazor.Overflow.Auto"/> to scroll it.</summary>
+    [Parameter] public Responsive<Overflow> Overflow { get; set; }
+
+    /// <summary>
+    /// A border on every side, in whole pixels (0 to 16), in <see cref="BorderColor"/> (the border
+    /// token by default). Like padding: <see cref="BorderX"/> and <see cref="BorderY"/> override an
+    /// axis, the single sides override that. Sides you don't set keep the component's own border.
+    /// </summary>
+    [Parameter] public Responsive<int> Border { get; set; }
+
+    /// <summary>Borders at the start and end. Replaces <see cref="Border"/> on this axis.</summary>
+    [Parameter] public Responsive<int> BorderX { get; set; }
+
+    /// <summary>Borders at the top and bottom, such as a band with lines above and below. Replaces <see cref="Border"/> on this axis.</summary>
+    [Parameter] public Responsive<int> BorderY { get; set; }
+
+    /// <summary>The top border. Replaces <see cref="BorderY"/> and <see cref="Border"/> on this side.</summary>
+    [Parameter] public Responsive<int> BorderTop { get; set; }
+
+    /// <summary>The bottom border. Replaces <see cref="BorderY"/> and <see cref="Border"/> on this side.</summary>
+    [Parameter] public Responsive<int> BorderBottom { get; set; }
+
+    /// <summary>The border at the start (left in left-to-right text). Replaces <see cref="BorderX"/> and <see cref="Border"/> on this side.</summary>
+    [Parameter] public Responsive<int> BorderStart { get; set; }
+
+    /// <summary>The border at the end (right in left-to-right text). Replaces <see cref="BorderX"/> and <see cref="Border"/> on this side.</summary>
+    [Parameter] public Responsive<int> BorderEnd { get; set; }
+
+    /// <summary>The border color, for borders set here or the component's own. Defaults to <see cref="IzzyBlazor.Color.Border"/>.</summary>
+    [Parameter] public Responsive<Color> BorderColor { get; set; }
+
     /// <summary>Whether to grow into free space inside a Stack, Row or Column: <c>&lt;Box Grow&gt;</c>.</summary>
     [Parameter] public bool Grow { get; set; }
 
@@ -122,6 +162,13 @@ public abstract class StyledComponentBase : IzzyComponentBase
         ApplyResponsive(classes, styles, Width, "ib-w", "w", StyleValues.Length);
         ApplyResponsive(classes, styles, MaxWidth, "ib-maxw", "maxw", StyleValues.Length);
         ApplyResponsive(classes, styles, MinHeight, "ib-minh", "minh", StyleValues.Length);
+        ApplyResponsive(classes, styles, MinWidth, "ib-minw", "minw", StyleValues.Length);
+        ApplyResponsive(classes, styles, Height, "ib-h", "h", StyleValues.Length);
+        ApplyResponsive(classes, styles, MaxHeight, "ib-maxh", "maxh", StyleValues.Length);
+        ApplyResponsive(classes, styles, Overflow, "ib-ov", "ov", StyleValues.Overflow);
+        ApplyAxis(classes, styles, Either(BorderX, Border), BorderStart, BorderEnd, "bx", "bs", "be", StyleValues.BorderWidth);
+        ApplyAxis(classes, styles, Either(BorderY, Border), BorderTop, BorderBottom, "by", "bt", "bb", StyleValues.BorderWidth);
+        ApplyResponsive(classes, styles, BorderColor, "ib-bc", "bc", StyleValues.Color);
         // On/off switches are plain bools (so <Box Grow> works); only a change from the default adds CSS.
         ApplyResponsive(classes, styles, Grow ? true : default(Responsive<bool>), "ib-grow", "grow", StyleValues.Factor);
         ApplyResponsive(classes, styles, Shrink ? default(Responsive<bool>) : false, "ib-shrink", "shrink", StyleValues.Factor);

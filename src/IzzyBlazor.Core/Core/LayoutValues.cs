@@ -79,6 +79,25 @@ public enum Radius
     Full,
 }
 
+/// <summary>What happens to content that doesn't fit.</summary>
+public enum Overflow
+{
+    /// <summary>It shows outside the box (the CSS default).</summary>
+    Visible,
+
+    /// <summary>It's cut off, with no scrollbars.</summary>
+    Hidden,
+
+    /// <summary>The box scrolls when it needs to.</summary>
+    Auto,
+
+    /// <summary>The box always has scrollbars.</summary>
+    Scroll,
+
+    /// <summary>It's cut off, and the box can't be scrolled even from script.</summary>
+    Clip,
+}
+
 /// <summary>Elevation tokens.</summary>
 public enum Shadow
 {

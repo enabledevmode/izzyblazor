@@ -55,7 +55,21 @@ export const STYLE_PROPS = [
   { cls: "ib-shadow", prop: "box-shadow", v: "elevation" },
   { cls: "ib-w", prop: "width", v: "w" },
   { cls: "ib-maxw", prop: "max-width", v: "maxw" },
+  { cls: "ib-minw", prop: "min-width", v: "minw" },
+  { cls: "ib-h", prop: "height", v: "h" },
+  { cls: "ib-maxh", prop: "max-height", v: "maxh" },
   { cls: "ib-minh", prop: "min-height", v: "minh" },
+  { cls: "ib-ov", prop: "overflow", v: "ov" },
+  // Borders: each side is one shorthand (width, solid, color), so it touches only that side and
+  // never resets a component's own borders. The color comes from BorderColor (--ib-bc), else the
+  // border token. ib-bc comes after the sides so BorderColor alone recolors an existing border.
+  { cls: "ib-bx", prop: "border-inline", v: "bx", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
+  { cls: "ib-by", prop: "border-block", v: "by", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
+  { cls: "ib-bt", prop: "border-block-start", v: "bt", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
+  { cls: "ib-bb", prop: "border-block-end", v: "bb", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
+  { cls: "ib-bs", prop: "border-inline-start", v: "bs", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
+  { cls: "ib-be", prop: "border-inline-end", v: "be", tpl: "{v} solid var(--ib-bc, var(--ib-color-border))" },
+  { cls: "ib-bc", prop: "border-color", v: "bc" },
   { cls: "ib-grow", prop: "flex-grow", v: "grow" },
   { cls: "ib-shrink", prop: "flex-shrink", v: "shrink" },
   { cls: "ib-basis", prop: "flex-basis", v: "basis" },
@@ -99,9 +113,10 @@ function generateCss() {
   // breakpoints that have a value, so an unset base never overrides a component's
   // default, and a larger breakpoint wins by source order.
   const rules = (bp) =>
-    STYLE_PROPS.map(({ cls, prop, v }) => {
+    STYLE_PROPS.map(({ cls, prop, v, tpl }) => {
       const suffix = bp ? `-${bp}` : "";
-      return `  .${cls}${suffix} { ${prop}: var(--ib-${v}${suffix}); }`;
+      const value = `var(--ib-${v}${suffix})`;
+      return `  .${cls}${suffix} { ${prop}: ${tpl ? tpl.replace("{v}", value) : value}; }`;
     }).join("\n");
 
   let styleProps = header + "@layer izzy.utilities {\n" + rules(null) + "\n";

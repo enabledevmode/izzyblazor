@@ -25,6 +25,22 @@ go from -16 to 16, where a negative step pulls the element outward.
 
 A side beats its axis, which beats the all-sides value, at every breakpoint.
 
+## Borders, sizes and overflow
+
+`Border` draws a solid border on every side, in whole pixels (0 to 16), and works like padding:
+`BorderX` and `BorderY` override an axis, `BorderTop`, `BorderBottom`, `BorderStart` and `BorderEnd`
+one side. `BorderColor` sets the color (`Color.Border` by default); on its own it recolors a
+component's existing border. Sides you don't set keep the component's own.
+
+```razor
+<Section Bg="Color.SurfaceContainerLow" BorderY="1">...</Section>   @* a band with lines above and below *@
+<Box Border="1" BorderColor="Color.Outline" Radius="Radius.Lg">...</Box>
+```
+
+`Width`, `MinWidth`, `MaxWidth`, `Height`, `MinHeight` and `MaxHeight` take a `Length`. `Overflow`
+(`Visible`, `Hidden`, `Auto`, `Scroll`, `Clip`) says what happens to content that doesn't fit:
+`MaxHeight="Length.Rem(20)" Overflow="Overflow.Auto"` scrolls it.
+
 `Box` and the components built on it (Stack, Row, Grid, Section, Card, the typography components and
 the like) take these props. The App layout parts take `Bg` and `ColorScheme` only, and controls such as
 fields and buttons take none: space them with the layout around them (`Stack Gap`, `Row Gap`).
@@ -54,11 +70,16 @@ Text can be fluid instead of stepped: `MinSize` on `TextBlock` and `Heading` mak
 (`<Heading Size="TextSize.Xl5" MinSize="TextSize.Xl3">`). See
 [Typography](components.md#typography-links-and-code).
 
-## Text color
+## Colors
 
-Text uses `Color.OnSurface` by default.
+`Color` is always the text (or stroke) color and `Bg` the background, as in CSS. A control's own
+color is its `Accent` (below). Text uses `Color.OnSurface` by default.
 
 - **Emphasis levels:** `Color.Muted`, `Color.Subtle`, `Color.Disabled`.
+- **Soft fills** for a status: `Color.PrimarySoft`, `SuccessSoft`, `WarningSoft`, `DangerSoft`,
+  `InfoSoft`. As a `Bg` each picks its matching text color (`DangerSoft` gets `DangerText`).
+- **Focus:** `Color.Focus`, the focus ring and field halo color (the primary color unless the theme
+  sets `--ib-color-focus`).
 - **Accent text** that stays readable on surfaces (at least 4.5:1 in both themes):
   `Color.PrimaryText`, `SuccessText`, `WarningText`, `DangerText`, `InfoText`.
 - **Automatic contrast:** setting `Bg` to a theme color picks the matching text color
@@ -67,14 +88,23 @@ Text uses `Color.OnSurface` by default.
 
 ## Actions and status colors
 
-Actions get three colors: `Accent.Primary`, `Neutral` and `Danger`. Emphasis comes from the variant
-(`Solid`, `Soft`, `Outline`, `Ghost`, `Link`), not from more hues.
+Controls take an `Accent`: the roles `Accent.Primary` (your brand color), `Neutral` and `Danger`.
+Emphasis comes from the variant (`Solid`, `Soft`, `Outline`, `Ghost`, `Link`), not from more hues: a
+solid control is filled with its accent; outline, ghost and link controls use it for text and border.
 
-Feedback (badges, alerts and toasts) uses `Status`: `Neutral`, `Info`, `Success`, `Warning`, `Danger`.
+Feedback (badges, tags, alerts, banners and toasts) uses `Status`: `Neutral`, `Info`, `Success`,
+`Warning`, `Danger`. It sets the icon and what screen readers hear as well as the color; `Accent` on
+a badge, tag or banner replaces only the color.
 
-For anything else, pass a `Color`: `<Button Accent='Accent.Of("#0f766e")'>` or
-`Color='Color.Token("brand")'`. Text on it is picked for contrast: the token's `on-` partner, or near-black
-or white for a hex color.
+For one control in another color, `Accent` takes any CSS color or a token:
+
+```razor
+<Button Accent='Accent.Of("#0f766e")'>Approve</Button>
+<Badge Accent='Accent.Token("brand")'>New</Badge>
+<Progress Value="80" Accent="Accent.From(Color.Success)" />
+```
+
+Text on it is picked for contrast: the token's `on-` partner, or near-black or white for a hex color.
 
 ## Presets and colors
 

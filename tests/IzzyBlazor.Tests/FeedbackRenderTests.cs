@@ -153,7 +153,8 @@ public class FeedbackRenderTests : BunitContext
 
         var block = Render<Skeleton>(p => p.Add(s => s.Height, Length.Rem(8))).Find(".ib-skeleton");
         Assert.Contains("ib-skeleton-block", block.ClassName);
-        Assert.Contains("--ib-skeleton-h:8rem", block.GetAttribute("style"));
+        Assert.Contains("ib-h", block.ClassName);
+        Assert.Contains("--ib-h:8rem", block.GetAttribute("style"));
 
         Assert.Contains("ib-skeleton-circle", Render<Skeleton>(p => p.Add(s => s.Circle, true)).Find(".ib-skeleton").ClassName);
 
