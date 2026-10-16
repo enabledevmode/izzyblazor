@@ -126,7 +126,7 @@ public class StepperTagSegmentedRenderTests : BunitContext
             .AddCascadingValue(context)
             .Add(s => s.Value, _model.View)
             .Add(s => s.ValueExpression, () => _model.View)
-            .Add(s => s.ItemIcon, v => v == View.Day ? Hugeicons.Sun03 : Hugeicons.Calendar03)
+            .Add(s => s.ItemIcon, v => v == View.Day ? Lucide.Sun : Lucide.Calendar)
             .Add(s => s.IconOnly, true));
 
         var segment = cut.FindAll("label.ib-segment")[0];

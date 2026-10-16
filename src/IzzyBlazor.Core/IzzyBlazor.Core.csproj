@@ -31,7 +31,7 @@
     <AssetSource Include="Styles\**\*.css;Scripts\**\*.ts" Exclude="Styles\_generated\**" />
     <AssetSource Include="$(RepoRoot)build\build-assets.mjs" />
     <AssetSource Include="$(RepoRoot)package-lock.json" />
-    <AssetOutput Include="wwwroot\izzyblazor.css;wwwroot\IzzyBlazor.Core.lib.module.js;wwwroot\fonts\inter-latin-standard-normal.woff2;Icons\_generated\Hugeicons.g.cs" />
+    <AssetOutput Include="wwwroot\izzyblazor.css;wwwroot\IzzyBlazor.Core.lib.module.js;wwwroot\fonts\inter-latin-standard-normal.woff2;Icons\_generated\Lucide.g.cs" />
     <!-- Per-configuration stamp, so switching Debug/Release rebuilds minified or debug assets. -->
     <AssetOutput Include="$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor-assets.stamp" />
   </ItemGroup>

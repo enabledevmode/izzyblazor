@@ -10,7 +10,7 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 
 /// <summary>
 /// A bulleted, numbered or icon list of <see cref="ListItem"/>s, spaced with <see cref="Gap"/>.
-/// <c>&lt;List Icon="Hugeicons.Check" IconColor="Color.SuccessText"&gt;</c> makes a check list.
+/// <c>&lt;List Icon="Lucide.Check" IconColor="Color.SuccessText"&gt;</c> makes a check list.
 /// </summary>
 /// <remarks>
 /// Lists without bullets keep <c>role="list"</c>, which Safari otherwise drops from a list with no
@@ -27,7 +27,7 @@ public class List : Box
     /// <summary>No bullets or numbers, and no indent.</summary>
     [Parameter] public bool Plain { get; set; }
 
-    /// <summary>An icon in place of each bullet, such as <c>Hugeicons.Check</c>. An item's own icon wins.</summary>
+    /// <summary>An icon in place of each bullet, such as <c>Lucide.Check</c>. An item's own icon wins.</summary>
     [Parameter] public IconData? Icon { get; set; }
 
     /// <summary>The icons' color. Defaults to the text color.</summary>

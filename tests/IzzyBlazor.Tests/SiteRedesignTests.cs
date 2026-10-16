@@ -37,7 +37,7 @@ public class SiteRedesignTests : BunitContext
         var a = Render<LinkButton>(p => p
             .Add(b => b.Href, "https://example.com")
             .Add(b => b.External, true)
-            .Add(b => b.EndIcon, Hugeicons.ArrowRight02)
+            .Add(b => b.EndIcon, Lucide.ArrowRight)
             .Add(b => b.NewTabLabel, "(new tab)")
             .AddChildContent("Docs")).Find("a");
 
@@ -49,7 +49,7 @@ public class SiteRedesignTests : BunitContext
     {
         var a = Render<AppBrand>(p => p
             .Add(b => b.Href, "/")
-            .Add(b => b.Icon, Hugeicons.Flash)
+            .Add(b => b.Icon, Lucide.Zap)
             .Add(b => b.Label, "Enable Dev Mode")).Find("a");
 
         Assert.Equal("/", a.GetAttribute("href"));

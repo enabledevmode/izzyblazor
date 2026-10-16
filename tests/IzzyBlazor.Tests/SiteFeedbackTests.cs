@@ -104,7 +104,7 @@ public class SiteFeedbackTests : BunitContext
         Assert.Contains("ib-list-ordered", numbers.ClassList);
 
         var checks = Render<List>(p => p
-            .Add(l => l.Icon, Hugeicons.Check)
+            .Add(l => l.Icon, Lucide.Check)
             .Add(l => l.IconColor, Color.SuccessText)
             .AddChildContent<ListItem>(i => i.AddChildContent("Works with JavaScript off")));
         var ul = checks.Find("ul");
@@ -121,7 +121,7 @@ public class SiteFeedbackTests : BunitContext
     {
         var cut = Render<List>(p => p
             .Add(l => l.Plain, true)
-            .AddChildContent<ListItem>(i => i.Add(x => x.Icon, Hugeicons.Cancel01).AddChildContent("No")));
+            .AddChildContent<ListItem>(i => i.Add(x => x.Icon, Lucide.X).AddChildContent("No")));
 
         Assert.Equal("list", cut.Find("ul").GetAttribute("role"));
         Assert.NotNull(cut.Find("li svg.ib-list-icon"));
@@ -165,7 +165,7 @@ public class SiteFeedbackTests : BunitContext
         var li = Render<TimelineItem>(p => p
             .Add(x => x.Title, "Delivered")
             .Add(x => x.Time, "Today")
-            .Add(x => x.Icon, Hugeicons.Package)
+            .Add(x => x.Icon, Lucide.PackageCheck)
             .Add(x => x.Status, Status.Success)).Find("li");
 
         Assert.Equal("ib-timeline-item ib-timeline-has-icon ib-timeline-success", li.ClassName);

@@ -80,7 +80,7 @@ The rest:
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
 `List` is a bulleted list of `ListItem`s; `Ordered` numbers it, `Plain` drops the bullets and indent,
-and `Icon` puts an icon in place of each bullet (`<List Icon="Hugeicons.Check" IconColor="Color.SuccessText">`
+and `Icon` puts an icon in place of each bullet (`<List Icon="Lucide.Check" IconColor="Color.SuccessText">`
 for a check list; an item's own `Icon` wins). `Gap` spaces the items (8px by default). Lists without
 bullets keep `role="list"`, which Safari drops otherwise.
 
@@ -113,31 +113,31 @@ highlighter (for more languages), implement `ICodeHighlighter` and register it a
 
 ## Icons
 
-`<Icon Name="Hugeicons.Home03" />` renders inline SVG on the server. There's no icon font, it works on
+`<Icon Name="Lucide.House" />` renders inline SVG on the server. There's no icon font, it works on
 static pages, and it follows the text color (`currentColor`) and size (`em`).
 
-- The free Hugeicons set (Stroke Rounded, 6,025 icons) is bundled as one typed class with
-  IntelliSense: `Hugeicons`. Names follow Hugeicons' own, numbered where it has several takes on an
-  idea (`Hugeicons.Delete02`, `Hugeicons.Home03`); IntelliSense lists other names for each,
-  such as Trash for `Delete02`. Browse them at https://hugeicons.com/icons (Stroke Rounded, Free) or
-  on the dev host's Icon page. Every icon is its own property, so nothing is created for icons a page
-  doesn't use. There are no filled icons in the free set.
+- All of Lucide (1,890 icons) is bundled as one typed class with IntelliSense: `Lucide`, named as
+  on https://lucide.dev/icons, where you can browse them (or on the dev host's Icon page).
+  IntelliSense lists each icon's search terms. Every icon is its own property, so nothing is created
+  for icons a page doesn't use.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
   thins or thickens a stroked icon, and `Spin` rotates it. Inside a control (a button, field, tab,
   pagination or nav item), an icon follows the control's size instead: 16, 20 or 24px for small,
-  medium and large. A `Size` still wins. Hugeicons' 1.5-unit stroke draws 1, 1.25 and 1.5px lines at
-  those sizes; set `--ib-icon-stroke` on any element to change it for the icons inside.
+  medium and large. A `Size` still wins. IzzyBlazor draws Lucide with a 1.5-unit stroke (Lucide's own
+  default is 2), which gives 1, 1.25 and 1.5px lines at those sizes: crisp on a standard-density
+  screen and light enough for regular text. Set `--ib-icon-stroke` on any element to change it for
+  the icons inside.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
 - `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,
   `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`, `NuGet`, `Npm`
-  and `DotNet`. They're outlines like the rest of the set: Hugeicons', with NuGet and .NET drawn for
-  IzzyBlazor to match. Hugeicons has more, such as `Hugeicons.Linkedin01` and `Hugeicons.Twitch`. The
-  logos are their owners' trademarks; follow each brand's guidelines.
+  and `DotNet`. They're outlines drawn like the rest of the set: Tabler's, since Lucide no longer
+  includes brands, with NuGet and .NET drawn for IzzyBlazor to match. The logos are their owners'
+  trademarks; follow each brand's guidelines.
 
 **Your own icon.** An icon is an `IconData`: a view box, SVG drawing elements, and whether it's
-drawn with fill or stroke. For a logo Hugeicons doesn't have, copy its path from https://simpleicons.org
+drawn with fill or stroke. For a logo `Brands` doesn't have, copy its path from https://simpleicons.org
 (solid) or your designer's SVG into a static property and use it like the rest:
 
 ```csharp
@@ -465,8 +465,8 @@ with JavaScript any group holding the current page opens itself.
 ```razor
 <NavMenu>
     <NavLabel>Workspace</NavLabel>
-    <NavItem Href="/" Icon="Hugeicons.Home03" Match="NavLinkMatch.All">Home</NavItem>
-    <NavGroup Label="Projects" Icon="Hugeicons.Folder01" ActivePrefix="/projects">
+    <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Home</NavItem>
+    <NavGroup Label="Projects" Icon="Lucide.Folder" ActivePrefix="/projects">
         <NavItem Href="/projects/active">Active</NavItem>
     </NavGroup>
 </NavMenu>
@@ -605,7 +605,7 @@ and the arrow key back or Escape returns to its item. Choosing any item closes t
         <MenuItem Value="date">Date modified</MenuItem>
     </MenuRadioGroup>
     <MenuDivider />
-    <MenuSub Label="Move to" Icon="Hugeicons.FolderExport">
+    <MenuSub Label="Move to" Icon="Lucide.FolderInput">
         <MenuItem>Inbox</MenuItem>
     </MenuSub>
 </Menu>
@@ -632,7 +632,7 @@ A `Tabs` holds either `Tab`s or `TabLink`s, not both.
 
 ```razor
 <Tabs Label="Settings">
-    <TabLink Href="settings/profile" Label="Profile" Icon="Hugeicons.User02" />
+    <TabLink Href="settings/profile" Label="Profile" Icon="Lucide.User" />
     <TabLink Href="settings/billing" Label="Billing" />
 </Tabs>
 ```
@@ -807,7 +807,7 @@ it needs a `Title`), while buttons in it stay clickable.
 
 ```razor
 <Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
-    <Actions><IconButton Icon="Hugeicons.MoreHorizontal" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
+    <Actions><IconButton Icon="Lucide.Ellipsis" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
     <ChildContent>...</ChildContent>
 </Card>
 ```

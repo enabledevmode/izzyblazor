@@ -105,7 +105,7 @@ public class DisplayRenderTests : BunitContext
     public void EmptyState_renders_its_parts_with_the_title_level()
     {
         var empty = Render<EmptyState>(p => p
-            .Add(e => e.Icon, Hugeicons.Inbox)
+            .Add(e => e.Icon, Lucide.Inbox)
             .Add(e => e.Title, "No invoices yet")
             .Add(e => e.TitleLevel, 2)
             .Add(e => e.Description, "Invoices you send appear here.")

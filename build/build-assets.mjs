@@ -12,8 +12,8 @@
 //    @fontsource-variable/inter -> wwwroot/fonts, with its @font-face rules in
 //    src/IzzyBlazor.Core/Styles/_generated/fonts.css. Browsers download only the subsets a page uses.
 //
-// 5. Generates the typed Hugeicons class from @hugeicons/core-free-icons
-//    -> src/IzzyBlazor.Core/Icons/_generated/Hugeicons.g.cs
+// 5. Generates the typed Lucide class from lucide-static
+//    -> src/IzzyBlazor.Core/Icons/_generated/Lucide.g.cs
 //    (only when the package's version changes).
 //
 // STYLE_PROPS must stay in sync with the ApplyResponsive calls in src/IzzyBlazor.Core.
@@ -21,7 +21,7 @@
 import * as esbuild from "esbuild";
 import { copyFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, utimesSync, writeFileSync } from "node:fs";
 import { dirname, join } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { fileURLToPath } from "node:url";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const lib = join(root, "src", "IzzyBlazor.Core");
@@ -190,22 +190,24 @@ const builds = [
   },
 ];
 
-// Hugeicons (Stroke Rounded, the free set) -> one typed C# class, Hugeicons. Each icon is an
-// expression-bodied property, so nothing is allocated for icons an app never uses, and a trimmed
-// WebAssembly app keeps only the ones it references.
-async function generateIcons() {
-  const pkgDir = join(root, "node_modules", "@hugeicons", "core-free-icons");
+// Lucide -> one typed C# class, Lucide. Each icon is an expression-bodied property, so nothing is
+// allocated for icons an app never uses, and a trimmed WebAssembly app keeps only the ones it
+// references. Lucide draws a 2-unit stroke; IzzyBlazor draws it at 1.5 (see IconData), which gives
+// 1, 1.25 and 1.5px lines at the 16, 20 and 24px control sizes.
+function generateIcons() {
+  const pkgDir = join(root, "node_modules", "lucide-static");
   if (!existsSync(join(pkgDir, "package.json"))) {
-    throw new Error("@hugeicons/core-free-icons isn't installed. Run `npm ci` in the repository root, then build again.");
+    throw new Error("lucide-static isn't installed. Run `npm ci` in the repository root, then build again.");
   }
-  const pkg = JSON.parse(readFileSync(join(pkgDir, "package.json"), "utf8"));
-  const marker = `// @hugeicons/core-free-icons ${pkg.version}`;
+  const json = (file) => JSON.parse(readFileSync(join(pkgDir, file), "utf8"));
+  const pkg = json("package.json");
+  const marker = `// lucide-static ${pkg.version}`;
   const generated = join(lib, "Icons", "_generated");
-  const out = join(generated, "Hugeicons.g.cs");
-  // Classes from an earlier icon set (Tabler.g.cs, Lucide.g.cs) would still compile in; remove them.
+  const out = join(generated, "Lucide.g.cs");
+  // Classes from an earlier icon set (Tabler.g.cs, Hugeicons.g.cs) would still compile in; remove them.
   if (existsSync(generated)) {
     for (const file of readdirSync(generated)) {
-      if (file.endsWith(".g.cs") && file !== "Hugeicons.g.cs") rmSync(join(generated, file));
+      if (file.endsWith(".g.cs") && file !== "Lucide.g.cs") rmSync(join(generated, file));
     }
   }
   if (existsSync(out) && readFileSync(out, "utf8").includes(marker)) {
@@ -215,49 +217,27 @@ async function generateIcons() {
     return;
   }
 
-  // The index re-exports each icon file under its name ("Delete02Icon"), a "FreeIcons" twin and
-  // sometimes other names ("Braces" for FirstBracket), which become search keywords.
-  const index = join(pkgDir, "dist", "esm", "index.js");
-  const icons = await import(pathToFileURL(index).href);
-  const names = new Map();
-  for (const [, list, file] of readFileSync(index, "utf8").matchAll(/export \{ (.+?) \} from '\.\/(\w+)Icon\.js';/g)) {
-    const aliases = [...list.matchAll(/default as (\w+)/g)].map((m) => m[1])
-      .filter((a) => !a.endsWith("Icon") && !a.endsWith("FreeIcons"));
-    names.set(file, aliases);
-  }
-
-  // Stroke, round caps and joins and the 1.5 width are set once on the <svg> (IconData's
-  // defaults), so they're dropped from each element and StrokeWidth can change them. An element
-  // drawn without round caps or joins says so, since it would otherwise inherit them.
-  const kebab = (k) => k.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
-  // Coordinates come with up to five decimals; two (under a hundredth of a pixel at 24px) look the
-  // same and keep the assembly smaller.
-  const round = (v) => String(v).replace(/-?\d*\.\d+/g, (n) => String(Number(Number(n).toFixed(2))));
-  const element = ([el, attrs]) => {
-    const out = [];
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k === "key" || (k === "stroke" && v === "currentColor") || (k === "strokeWidth" && v === "1.5")) continue;
-      if ((k === "strokeLinecap" || k === "strokeLinejoin") && v === "round") continue;
-      out.push(`${kebab(k)}="${k === "d" || /^(c[xy]|r[xy]?|x|y|width|height)$/.test(k) ? round(v) : v}"`);
-    }
-    if (attrs.stroke && !attrs.strokeLinecap) out.push('stroke-linecap="butt"');
-    if (attrs.stroke && !attrs.strokeLinejoin) out.push('stroke-linejoin="miter"');
-    if (!attrs.stroke) out.push('stroke="none"');
-    return `<${el} ${out.join(" ")}/>`;
-  };
+  const nodes = json("icon-nodes.json");
+  const tags = json("tags.json");
+  const pascal = (name) => name.split("-").map((w) => w[0].toUpperCase() + w.slice(1)).join("");
   const xmlEscape = (text) => text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
-  const reserved = new Set(["Hugeicons", "Equals", "GetHashCode", "ToString", "GetType", "ReferenceEquals", "MemberwiseClone", "Finalize"]);
+  const reserved = new Set(["Lucide", "Equals", "GetHashCode", "ToString", "GetType", "ReferenceEquals", "MemberwiseClone", "Finalize"]);
 
   const lines = [];
-  for (const name of [...names.keys()].sort()) {
-    const data = icons[`${name}Icon`];
-    if (!Array.isArray(data)) throw new Error(`Hugeicons export ${name}Icon is missing`);
-    let id = /^[0-9]/.test(name) ? "_" + name : name;
+  const seen = new Set();
+  for (const name of Object.keys(nodes).sort()) {
+    let id = pascal(name);
+    if (/^[0-9]/.test(id)) id = "_" + id;
     if (reserved.has(id)) id += "Icon";
-    const body = data.map(element).join("");
-    const aliases = names.get(name);
+    if (seen.has(id)) throw new Error(`Duplicate icon identifier ${id} (${name})`);
+    seen.add(id);
+
+    const body = nodes[name]
+      .map(([el, attrs]) => `<${el} ${Object.entries(attrs).map(([k, v]) => `${k}="${v}"`).join(" ")}/>`)
+      .join("");
+    const keywords = (tags[name] ?? []).join(", ");
     lines.push(
-      `    /// <summary><c>${name}</c>${aliases.length ? `. Also: ${xmlEscape(aliases.join(", "))}` : ""}.</summary>`,
+      `    /// <summary><c>${name}</c>${keywords ? `. Also: ${xmlEscape(keywords)}` : ""}.</summary>`,
       `    public static IconData ${id} => new("0 0 24 24", ${JSON.stringify(body)}, IconStyle.Stroke, 1.5, "${name}");`,
       ""
     );
@@ -265,30 +245,30 @@ async function generateIcons() {
 
   const source = `// <auto-generated />
 ${marker}
-// Generated by build/build-assets.mjs from @hugeicons/core-free-icons. Do not edit.
-// Hugeicons' free icons are licensed under the MIT License; see THIRD-PARTY-NOTICES.md.
+// Generated by build/build-assets.mjs from lucide-static. Do not edit.
+// Lucide is licensed under the ISC License; see THIRD-PARTY-NOTICES.md.
 #nullable enable
 
 namespace IzzyBlazor;
 
 /// <summary>
-/// The free Hugeicons set, Stroke Rounded style (${names.size} icons, MIT License), bundled with
-/// IzzyBlazor. Browse them at https://hugeicons.com/icons (choose Stroke Rounded and Free).
+/// The Lucide icon set (${seen.size} icons, ISC License), bundled with IzzyBlazor and drawn with a
+/// 1.5-unit stroke. Browse them at https://lucide.dev/icons.
 /// </summary>
-/// <example><code>&lt;Icon Name="Hugeicons.Home03" /&gt;</code></example>
-public static class Hugeicons
+/// <example><code>&lt;Icon Name="Lucide.House" /&gt;</code></example>
+public static class Lucide
 {
 ${lines.join("\n").trimEnd()}
 }
 `;
   mkdirSync(dirname(out), { recursive: true });
   writeFileSync(out, source);
-  console.log(`IzzyBlazor: generated ${names.size} Hugeicons (@hugeicons/core-free-icons ${pkg.version}).`);
+  console.log(`IzzyBlazor: generated ${seen.size} Lucide icons (lucide-static ${pkg.version}).`);
 }
 
 generateCss();
 generateFonts();
-await generateIcons();
+generateIcons();
 
 if (watch) {
   for (const options of builds) {

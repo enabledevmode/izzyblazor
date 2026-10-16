@@ -5,10 +5,10 @@
 
     <Example Title="Icons beside text" Note="Icons size in em and paint with currentColor, so they match the text next to them." Code="@InlineCode">
         <Stack Gap="3">
-            <Row Gap="2" Align="Align.Center"><Icon Name="Hugeicons.Home03" /><TextBlock As="span">Home</TextBlock></Row>
-            <Row Gap="2" Align="Align.Center"><Icon Name="Hugeicons.Settings01" /><TextBlock As="span" Size="TextSize.Lg">Settings, larger text</TextBlock></Row>
-            <Row Gap="2" Align="Align.Center" Color="Color.Muted"><Icon Name="Hugeicons.Clock01" /><TextBlock As="span" Size="TextSize.Sm">Muted text, muted icon</TextBlock></Row>
-            <TextBlock>An icon <Icon Name="Hugeicons.Sparkles" Color="Color.PrimaryText" /> inside a sentence sits on the text baseline.</TextBlock>
+            <Row Gap="2" Align="Align.Center"><Icon Name="Lucide.House" /><TextBlock As="span">Home</TextBlock></Row>
+            <Row Gap="2" Align="Align.Center"><Icon Name="Lucide.Settings" /><TextBlock As="span" Size="TextSize.Lg">Settings, larger text</TextBlock></Row>
+            <Row Gap="2" Align="Align.Center" Color="Color.Muted"><Icon Name="Lucide.Clock" /><TextBlock As="span" Size="TextSize.Sm">Muted text, muted icon</TextBlock></Row>
+            <TextBlock>An icon <Icon Name="Lucide.Sparkles" Color="Color.PrimaryText" /> inside a sentence sits on the text baseline.</TextBlock>
         </Stack>
     </Example>
 
@@ -17,7 +17,7 @@
             @foreach (var size in Enum.GetValues<IconSize>())
             {
                 <Stack Gap="1" Align="Align.Center">
-                    <Icon Name="Hugeicons.Rocket01" Size="size" />
+                    <Icon Name="Lucide.Rocket" Size="size" />
                     <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">@size</TextBlock>
                 </Stack>
             }
@@ -26,11 +26,11 @@
 
     <Example Title="Color, stroke width, spin" Code="@StyleCode">
         <Row Gap="5" Align="Align.Center" Wrap>
-            <Icon Name="Hugeicons.CircleCheck" Size="IconSize.Xl" Color="Color.SuccessText" Label="Done" />
-            <Icon Name="Hugeicons.Alert02" Size="IconSize.Xl" Color="Color.WarningText" Label="Warning" />
-            <Icon Name="Hugeicons.AlertCircle" Size="IconSize.Xl" Color="Color.DangerText" Label="Error" />
-            <Icon Name="Hugeicons.Favourite" Size="IconSize.Xl" StrokeWidth="1" />
-            <Icon Name="Hugeicons.Favourite" Size="IconSize.Xl" StrokeWidth="2.5" />
+            <Icon Name="Lucide.CircleCheck" Size="IconSize.Xl" Color="Color.SuccessText" Label="Done" />
+            <Icon Name="Lucide.TriangleAlert" Size="IconSize.Xl" Color="Color.WarningText" Label="Warning" />
+            <Icon Name="Lucide.CircleAlert" Size="IconSize.Xl" Color="Color.DangerText" Label="Error" />
+            <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="1" />
+            <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="2.5" />
             <Icon Role="IconRole.Loading" Size="IconSize.Xl" Spin Label="Loading" />
         </Row>
     </Example>
@@ -47,7 +47,7 @@
         </Row>
     </Example>
 
-    <Example Title="Brand logos" Note="A short list of the logos sites link to most, as outlines that match the rest of the set: from Hugeicons, with NuGet and .NET drawn to match. Hugeicons has more, such as Hugeicons.Linkedin01 and Hugeicons.Twitch. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
+    <Example Title="Brand logos" Note="A short list of the logos sites link to most, as outlines drawn like the rest of the set: from Tabler, with NuGet and .NET drawn to match. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
         <Row Gap="5" Align="Align.Center" Wrap>
             @foreach (var (name, icon) in BrandIcons)
             {
@@ -59,11 +59,11 @@
         </Row>
     </Example>
 
-    <Example Title="Browse Hugeicons" Note="@($"All {Icons.Count} icons. Search by Hugeicons' name, such as Delete (Hugeicons' name for trash). The search is a plain GET form, so it works on static pages with JavaScript off.")">
+    <Example Title="Browse Lucide" Note="@($"All {Icons.Count} icons. The search is a plain GET form, so it works on static pages with JavaScript off.")">
         <Stack Gap="4">
             <form method="get" class="host-search">
                 <Row Gap="2" Align="Align.Center" Wrap>
-                    <Icon Name="Hugeicons.Search01" Color="Color.Muted" />
+                    <Icon Name="Lucide.Search" Color="Color.Muted" />
                     <input type="search" name="q" value="@Query" placeholder="Search icons, such as arrow or user" aria-label="Search icons" />
                     <button type="submit" class="host-button">Search</button>
                 </Row>
@@ -109,7 +109,7 @@
             .Select(p => (p.Name, (IconData)p.GetValue(null)!))
             .ToList();
 
-    private static readonly IReadOnlyList<(string Name, IconData Icon)> Icons = Load(typeof(Hugeicons));
+    private static readonly IReadOnlyList<(string Name, IconData Icon)> Icons = Load(typeof(Lucide));
 
     private IReadOnlyList<(string Name, IconData Icon)> Matches = [];
 
@@ -125,17 +125,17 @@
     private const string InlineCode =
         """
         <Row Gap="2" Align="Align.Center">
-            <Icon Name="Hugeicons.Home03" />
+            <Icon Name="Lucide.House" />
             <TextBlock As="span">Home</TextBlock>
         </Row>
         """;
 
-    private const string SizesCode = """<Icon Name="Hugeicons.Rocket01" Size="IconSize.Xl" />""";
+    private const string SizesCode = """<Icon Name="Lucide.Rocket" Size="IconSize.Xl" />""";
 
     private const string StyleCode =
         """
-        <Icon Name="Hugeicons.CircleCheck" Color="Color.SuccessText" Label="Done" />
-        <Icon Name="Hugeicons.Favourite" StrokeWidth="1" />
+        <Icon Name="Lucide.CircleCheck" Color="Color.SuccessText" Label="Done" />
+        <Icon Name="Lucide.Heart" StrokeWidth="1" />
         <Icon Role="IconRole.Loading" Spin Label="Loading" />
         """;
 

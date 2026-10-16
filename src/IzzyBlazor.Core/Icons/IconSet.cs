@@ -121,53 +121,53 @@ public enum IconRole
 /// </summary>
 public class IconSet
 {
-    /// <summary>The bundled Hugeicons mapping (Stroke Rounded).</summary>
-    public static IconSet Hugeicons { get; } = new(role => role switch
+    /// <summary>The bundled Lucide mapping.</summary>
+    public static IconSet Lucide { get; } = new(role => role switch
     {
-        IconRole.Close => IzzyBlazor.Hugeicons.Cancel01,
-        IconRole.ChevronDown => IzzyBlazor.Hugeicons.ChevronDown,
-        IconRole.ChevronUp => IzzyBlazor.Hugeicons.ChevronUp,
-        IconRole.ChevronLeft => IzzyBlazor.Hugeicons.ChevronLeft,
-        IconRole.ChevronRight => IzzyBlazor.Hugeicons.ChevronRight,
-        IconRole.Check => IzzyBlazor.Hugeicons.Check,
-        IconRole.Minus => IzzyBlazor.Hugeicons.Minus,
-        IconRole.Plus => IzzyBlazor.Hugeicons.Plus,
-        IconRole.Menu => IzzyBlazor.Hugeicons.Menu01,
-        IconRole.Search => IzzyBlazor.Hugeicons.Search01,
-        IconRole.MoreHorizontal => IzzyBlazor.Hugeicons.MoreHorizontal,
-        IconRole.Info => IzzyBlazor.Hugeicons.InformationCircle,
-        IconRole.Success => IzzyBlazor.Hugeicons.CircleCheck,
-        IconRole.Warning => IzzyBlazor.Hugeicons.Alert02,
-        IconRole.Error => IzzyBlazor.Hugeicons.AlertCircle,
-        IconRole.ExternalLink => IzzyBlazor.Hugeicons.ExternalLink,
-        IconRole.Copy => IzzyBlazor.Hugeicons.Copy,
-        IconRole.Copied => IzzyBlazor.Hugeicons.CopyCheck,
-        IconRole.Calendar => IzzyBlazor.Hugeicons.Calendar03,
-        IconRole.Clock => IzzyBlazor.Hugeicons.Clock01,
-        IconRole.Show => IzzyBlazor.Hugeicons.View,
-        IconRole.Hide => IzzyBlazor.Hugeicons.ViewOffSlash,
-        IconRole.Loading => IzzyBlazor.Hugeicons.Loader,
-        IconRole.SortAscending => IzzyBlazor.Hugeicons.ArrowUpNarrowWide,
-        IconRole.SortDescending => IzzyBlazor.Hugeicons.ArrowDownNarrowWide,
-        IconRole.Sortable => IzzyBlazor.Hugeicons.ArrowUpDown,
-        IconRole.TrendUp => IzzyBlazor.Hugeicons.ArrowUpRight01,
-        IconRole.TrendDown => IzzyBlazor.Hugeicons.ArrowDownRight01,
-        IconRole.TrendFlat => IzzyBlazor.Hugeicons.ArrowRight02,
-        IconRole.Filter => IzzyBlazor.Hugeicons.Filter,
-        IconRole.SchemeLight => IzzyBlazor.Hugeicons.Sun03,
-        IconRole.SchemeDark => IzzyBlazor.Hugeicons.Moon02,
-        IconRole.SchemeSystem => IzzyBlazor.Hugeicons.Computer,
-        IconRole.Person => IzzyBlazor.Hugeicons.User02,
-        IconRole.Play => IzzyBlazor.Hugeicons.Play,
-        IconRole.Upload => IzzyBlazor.Hugeicons.CloudUpload,
+        IconRole.Close => IzzyBlazor.Lucide.X,
+        IconRole.ChevronDown => IzzyBlazor.Lucide.ChevronDown,
+        IconRole.ChevronUp => IzzyBlazor.Lucide.ChevronUp,
+        IconRole.ChevronLeft => IzzyBlazor.Lucide.ChevronLeft,
+        IconRole.ChevronRight => IzzyBlazor.Lucide.ChevronRight,
+        IconRole.Check => IzzyBlazor.Lucide.Check,
+        IconRole.Minus => IzzyBlazor.Lucide.Minus,
+        IconRole.Plus => IzzyBlazor.Lucide.Plus,
+        IconRole.Menu => IzzyBlazor.Lucide.Menu,
+        IconRole.Search => IzzyBlazor.Lucide.Search,
+        IconRole.MoreHorizontal => IzzyBlazor.Lucide.Ellipsis,
+        IconRole.Info => IzzyBlazor.Lucide.Info,
+        IconRole.Success => IzzyBlazor.Lucide.CircleCheck,
+        IconRole.Warning => IzzyBlazor.Lucide.TriangleAlert,
+        IconRole.Error => IzzyBlazor.Lucide.CircleAlert,
+        IconRole.ExternalLink => IzzyBlazor.Lucide.ExternalLink,
+        IconRole.Copy => IzzyBlazor.Lucide.Copy,
+        IconRole.Copied => IzzyBlazor.Lucide.CopyCheck,
+        IconRole.Calendar => IzzyBlazor.Lucide.Calendar,
+        IconRole.Clock => IzzyBlazor.Lucide.Clock,
+        IconRole.Show => IzzyBlazor.Lucide.Eye,
+        IconRole.Hide => IzzyBlazor.Lucide.EyeOff,
+        IconRole.Loading => IzzyBlazor.Lucide.LoaderCircle,
+        IconRole.SortAscending => IzzyBlazor.Lucide.ArrowUpNarrowWide,
+        IconRole.SortDescending => IzzyBlazor.Lucide.ArrowDownNarrowWide,
+        IconRole.Sortable => IzzyBlazor.Lucide.ArrowUpDown,
+        IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
+        IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
+        IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
+        IconRole.Filter => IzzyBlazor.Lucide.Funnel,
+        IconRole.SchemeLight => IzzyBlazor.Lucide.Sun,
+        IconRole.SchemeDark => IzzyBlazor.Lucide.Moon,
+        IconRole.SchemeSystem => IzzyBlazor.Lucide.Monitor,
+        IconRole.Person => IzzyBlazor.Lucide.User,
+        IconRole.Play => IzzyBlazor.Lucide.Play,
+        IconRole.Upload => IzzyBlazor.Lucide.CloudUpload,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
     /// <summary>
-    /// The set IzzyBlazor components use. Hugeicons for now; becomes configurable when more
+    /// The set IzzyBlazor components use. Lucide for now; becomes configurable when more
     /// icon sets are supported.
     /// </summary>
-    public static IconSet Current => Hugeicons;
+    public static IconSet Current => Lucide;
 
     private readonly Func<IconRole, IconData> _resolve;
 

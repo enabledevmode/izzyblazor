@@ -9,7 +9,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;LinkButton Href="/courses/wizard" EndIcon="Hugeicons.ArrowRight02"&gt;Start the project&lt;/LinkButton&gt;
+/// &lt;LinkButton Href="/courses/wizard" EndIcon="Lucide.ArrowRight"&gt;Start the project&lt;/LinkButton&gt;
 /// &lt;LinkButton Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/LinkButton&gt;
 /// </code>
 /// </example>

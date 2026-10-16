@@ -7,7 +7,7 @@
  * Controls set --ib-icon-size for the icons inside them (16, 20 or 24px by ControlSize); a size
  * class still wins over the control's size. Set --ib-icon-stroke on any element to change the
  * stroke of the icons inside it (1.75 for heavier buttons, say). It applies only to icons at
- * Hugeicons' default 1.5 units, so an icon given its own StrokeWidth keeps it.
+ * IzzyBlazor's default 1.5 units, so an icon given its own StrokeWidth keeps it.
  */
 @layer izzy.components {
   .ib-icon {

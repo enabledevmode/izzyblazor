@@ -39,8 +39,8 @@
     /* Text in small controls: 13px, between xs and sm. 12px reads cramped in a 32px control;
        medium and large controls use --ib-text-sm and --ib-text-md. */
     --ib-control-font-sm: 0.8125rem;
-    /* Icons in controls at each ControlSize: 16, 20 and 24px, about 1.4 times the label. Hugeicons
-       draw a 1.5-unit stroke on a 24px grid, so lines are 1, 1.25 and 1.5px: light enough to sit
+    /* Icons in controls at each ControlSize: 16, 20 and 24px, about 1.4 times the label. Lucide is
+       drawn with a 1.5-unit stroke on its 24px grid, so lines are 1, 1.25 and 1.5px: light enough to sit
        with regular text, and whole or near-whole pixels on a standard-density screen. */
     --ib-control-icon-sm: 1rem;
     --ib-control-icon-md: 1.25rem;

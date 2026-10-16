@@ -3,7 +3,7 @@ namespace IzzyBlazor;
 /// <summary>How an icon's shapes are painted.</summary>
 public enum IconStyle
 {
-    /// <summary>Outlined shapes drawn with <c>stroke</c> (Hugeicons, Lucide, Tabler, Heroicons outline).</summary>
+    /// <summary>Outlined shapes drawn with <c>stroke</c> (Lucide, Tabler, Heroicons outline).</summary>
     Stroke,
 
     /// <summary>Solid shapes drawn with <c>fill</c> (Bootstrap Icons, Fluent, Material).</summary>
