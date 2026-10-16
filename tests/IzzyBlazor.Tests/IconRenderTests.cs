@@ -12,6 +12,7 @@ public class IconRenderTests : BunitContext
         Assert.Equal("0 0 24 24", svg.GetAttribute("viewBox"));
         Assert.Equal("currentColor", svg.GetAttribute("stroke"));
         Assert.Equal("none", svg.GetAttribute("fill"));
+        Assert.Equal("1.5", svg.GetAttribute("stroke-width"));
         Assert.Equal(2, svg.QuerySelectorAll("path").Length);
     }
 
@@ -43,12 +44,12 @@ public class IconRenderTests : BunitContext
             .Add(i => i.Name, Lucide.Heart)
             .Add(i => i.Size, IconSize.Lg)
             .Add(i => i.Color, Color.DangerText)
-            .Add(i => i.StrokeWidth, 1.5)
+            .Add(i => i.StrokeWidth, 2)
             .Add(i => i.Spin, true)).Find("svg");
 
         Assert.Equal("ib-icon ib-icon-lg ib-icon-spin ib-fg", svg.ClassName);
         Assert.Equal("--ib-fg:var(--ib-color-danger-text);", svg.GetAttribute("style"));
-        Assert.Equal("1.5", svg.GetAttribute("stroke-width"));
+        Assert.Equal("2", svg.GetAttribute("stroke-width"));
     }
 
     [Fact]
@@ -79,16 +80,36 @@ public class IconRenderTests : BunitContext
         }
     }
 
-    [Fact]
-    public void Every_lucide_icon_passes_the_markup_check()
+    [Theory]
+    [InlineData(typeof(Lucide), 1800)]
+    [InlineData(typeof(Brands), 13)]
+    public void Every_bundled_icon_passes_the_markup_check(Type set, int atLeast)
     {
-        var icons = typeof(Lucide).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+        var icons = set.GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
             .Where(p => p.PropertyType == typeof(IconData))
             .Select(p => (IconData)p.GetValue(null)!)
             .ToList();
 
-        Assert.True(icons.Count > 1000);
+        Assert.True(icons.Count >= atLeast, $"{set.Name} has {icons.Count} icons");
         Assert.All(icons, icon => Assert.Null(IconMarkup.Find(icon.Body)));
+    }
+
+    [Fact]
+    public void Brands_are_outlines_like_the_rest_of_the_set()
+    {
+        var brands = typeof(Brands).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
+            .Select(p => (IconData)p.GetValue(null)!);
+
+        Assert.All(brands, icon => Assert.Equal(IconStyle.Stroke, icon.Style));
+    }
+
+    [Fact]
+    public void Lucide_is_drawn_at_a_1_5_stroke_set_on_the_svg()
+    {
+        // Stroke color, caps, joins and width come from <svg>, so StrokeWidth and --ib-icon-stroke
+        // apply to every element.
+        Assert.DoesNotContain("stroke", Lucide.Trash.Body);
+        Assert.Equal(1.5, Lucide.Trash.StrokeWidth);
     }
 
     [Theory]

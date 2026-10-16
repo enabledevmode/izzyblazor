@@ -54,6 +54,7 @@ server projects; WebAssembly (`.Client`) projects reference `IzzyBlazor.Core` an
 - [Source and issues](https://github.com/enabledevmode/izzyblazor)
 
 [MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE). Bundled Lucide icons are ISC
-licensed and the brand logos come from Simple Icons (CC0); see
+licensed; the brand logos (from Tabler Icons, plus a few drawn for IzzyBlazor) are MIT licensed; the
+bundled Inter font is under the SIL Open Font License. See
 [THIRD-PARTY-NOTICES.md](https://github.com/enabledevmode/izzyblazor/blob/main/THIRD-PARTY-NOTICES.md).
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

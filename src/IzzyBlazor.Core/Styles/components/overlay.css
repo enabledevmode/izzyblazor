@@ -94,6 +94,9 @@
 
   /* Menu */
   .ib-menu-item {
+    /* A menu row is a small control: 16px icons. */
+    --ib-icon-size: var(--ib-control-icon-sm);
+
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
@@ -127,8 +130,6 @@
   }
 
   .ib-menu-item .ib-icon {
-    width: 1rem;
-    height: 1rem;
     color: var(--ib-color-muted);
   }
 

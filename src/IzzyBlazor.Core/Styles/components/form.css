@@ -16,6 +16,7 @@
     --ib-field-font: var(--ib-text-sm);
     --ib-field-label-font: var(--ib-text-sm);
     --ib-field-hint-font: var(--ib-text-xs);
+    --ib-icon-size: var(--ib-control-icon-md);
     --ib-field-border: var(--ib-color-outline);
     --ib-field-bg: var(--ib-color-surface);
 
@@ -34,6 +35,7 @@
     --ib-field-px: var(--ib-space-2);
     --ib-field-font: var(--ib-control-font-sm);
     --ib-field-label-font: var(--ib-control-font-sm);
+    --ib-icon-size: var(--ib-control-icon-sm);
   }
 
   .ib-field-lg {
@@ -42,6 +44,7 @@
     --ib-field-font: var(--ib-text-md);
     --ib-field-label-font: var(--ib-text-md);
     --ib-field-hint-font: var(--ib-text-sm);
+    --ib-icon-size: var(--ib-control-icon-lg);
   }
 
   .ib-field-label {
@@ -188,8 +191,8 @@
 
   .ib-field-icon-start { inset-inline-start: var(--ib-field-px); }
   .ib-field-icon-end { inset-inline-end: var(--ib-field-px); }
-  .ib-has-start .ib-field-input { padding-inline-start: calc(var(--ib-field-px) + 1.5em); }
-  .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + 1.75em); }
+  .ib-has-start .ib-field-input { padding-inline-start: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-2)); }
+  .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-2)); }
 
   /*
    * NumberInput. The browser's own spin buttons are hidden; the script reveals IzzyBlazor's
@@ -327,10 +330,10 @@
     border-end-end-radius: calc(var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md))) - 1px);
   }
 
-  /* The plus and minus are straight lines through the icon's middle. At 16px, the icon's 2-unit
-     stroke is 1.33px centered on a pixel boundary, so it smears across two rows. A 3-unit stroke
-     is exactly 2px, filling two whole rows (and columns) on either side of the middle: crisp, and
-     as heavy as the stacked chevrons look. */
+  /* The plus and minus are straight lines through the icon's middle. At 16px, the icon's 1.5-unit
+     stroke is 1px centered on a pixel boundary, so it smears across two rows. A 3-unit stroke is
+     exactly 2px, filling a whole row (and column) on either side of the middle: crisp, and easy to
+     see on a button meant for tapping. */
   .ib-field-steppers-split .ib-field-step .ib-icon {
     width: 1rem;
     height: 1rem;
@@ -1151,10 +1154,6 @@
   .ib-select-value .ib-icon,
   .ib-combobox-option .ib-icon {
     flex: none;
-    width: 1em;
-    width: round(nearest, 1em, 2px);
-    height: 1em;
-    height: round(nearest, 1em, 2px);
   }
 
   /* Password reveal (shown by script) */
@@ -1655,18 +1654,6 @@
 
   .ib-segment > .ib-icon {
     flex: none;
-    width: 1rem;
-    height: 1rem;
-  }
-
-  .ib-field-sm .ib-segment > .ib-icon {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
-
-  .ib-field-lg .ib-segment > .ib-icon {
-    width: 1.125rem;
-    height: 1.125rem;
   }
 
   .ib-segmented-icon-only > .ib-segment {

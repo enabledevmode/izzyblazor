@@ -116,22 +116,29 @@ highlighter (for more languages), implement `ICodeHighlighter` and register it a
 `<Icon Name="Lucide.House" />` renders inline SVG on the server. There's no icon font, it works on
 static pages, and it follows the text color (`currentColor`) and size (`em`).
 
-- All 1,877 Lucide icons are bundled as a typed `Lucide` class with IntelliSense. Browse them at
-  https://lucide.dev/icons or on the dev host's Icon page.
+- All of Lucide (1,890 icons) is bundled as one typed class with IntelliSense: `Lucide`, named as
+  on https://lucide.dev/icons, where you can browse them (or on the dev host's Icon page).
+  IntelliSense lists each icon's search terms. Every icon is its own property, so nothing is created
+  for icons a page doesn't use.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
-  thins or thickens a stroked icon, and `Spin` rotates it.
+  thins or thickens a stroked icon, and `Spin` rotates it. Inside a control (a button, field, tab,
+  pagination or nav item), an icon follows the control's size instead: 16, 20 or 24px for small,
+  medium and large. A `Size` still wins. IzzyBlazor draws Lucide with a 1.5-unit stroke (Lucide's own
+  default is 2), which gives 1, 1.25 and 1.5px lines at those sizes: crisp on a standard-density
+  screen and light enough for regular text. Set `--ib-icon-stroke` on any element to change it for
+  the icons inside.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
   `IconSet.Current`, so a different icon set can be swapped in without touching components.
-- Lucide has no brand logos, so a small `Brands` class carries some from Simple Icons (CC0): `GitHub`,
-  `GitLab`, `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`,
-  `NuGet`, `Npm` and `DotNet`. They're solid shapes in the text color, like any icon. The logos are
-  their owners' trademarks; follow each brand's guidelines. (LinkedIn asked Simple Icons to remove
-  its logo, so it isn't included.)
+- `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,
+  `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`, `NuGet`, `Npm`
+  and `DotNet`. They're outlines drawn like the rest of the set: Tabler's, since Lucide no longer
+  includes brands, with NuGet and .NET drawn for IzzyBlazor to match. The logos are their owners'
+  trademarks; follow each brand's guidelines.
 
 **Your own icon.** An icon is an `IconData`: a view box, SVG drawing elements, and whether it's
-drawn with fill or stroke. For any other logo, copy its path from https://simpleicons.org (or your
-designer's SVG) into a static property and use it like the rest:
+drawn with fill or stroke. For a logo `Brands` doesn't have, copy its path from https://simpleicons.org
+(solid) or your designer's SVG into a static property and use it like the rest:
 
 ```csharp
 public static class MyIcons

@@ -95,8 +95,9 @@ else
     [Parameter] public ThemeDensity? Density { get; set; }
 
     /// <summary>
-    /// The body font, as a CSS font-family list (<c>"Inter, system-ui, sans-serif"</c>). Load the
-    /// font yourself; end the list with a generic family so text shows while it loads.
+    /// The body font, as a CSS font-family list (<c>"Sora, system-ui, sans-serif"</c>). Inter, served
+    /// with IzzyBlazor, when unset. Load any other font yourself; end the list with a generic family
+    /// so text shows while it loads.
     /// </summary>
     [Parameter] public string? BodyFont { get; set; }
 

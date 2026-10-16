@@ -30,7 +30,7 @@
             <Icon Name="Lucide.TriangleAlert" Size="IconSize.Xl" Color="Color.WarningText" Label="Warning" />
             <Icon Name="Lucide.CircleAlert" Size="IconSize.Xl" Color="Color.DangerText" Label="Error" />
             <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="1" />
-            <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="3" />
+            <Icon Name="Lucide.Heart" Size="IconSize.Xl" StrokeWidth="2.5" />
             <Icon Role="IconRole.Loading" Size="IconSize.Xl" Spin Label="Loading" />
         </Row>
     </Example>
@@ -47,7 +47,7 @@
         </Row>
     </Example>
 
-    <Example Title="Brand logos" Note="Lucide has none, so Brands carries a few from Simple Icons (CC0): solid shapes in the text color. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
+    <Example Title="Brand logos" Note="A short list of the logos sites link to most, as outlines drawn like the rest of the set: from Tabler, with NuGet and .NET drawn to match. Give a logo a Label when it stands alone, as in an icon-only link." Code="@BrandsCode">
         <Row Gap="5" Align="Align.Center" Wrap>
             @foreach (var (name, icon) in BrandIcons)
             {
@@ -59,10 +59,10 @@
         </Row>
     </Example>
 
-    <Example Title="Browse Lucide" Note="@($"All {AllIcons.Count} icons. The search is a plain GET form, so it works on static pages with JavaScript off.")">
+    <Example Title="Browse Lucide" Note="@($"All {Icons.Count} icons. The search is a plain GET form, so it works on static pages with JavaScript off.")">
         <Stack Gap="4">
             <form method="get" class="host-search">
-                <Row Gap="2" Align="Align.Center">
+                <Row Gap="2" Align="Align.Center" Wrap>
                     <Icon Name="Lucide.Search" Color="Color.Muted" />
                     <input type="search" name="q" value="@Query" placeholder="Search icons, such as arrow or user" aria-label="Search icons" />
                     <button type="submit" class="host-button">Search</button>
@@ -103,11 +103,13 @@
 
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
 
-    private static readonly IReadOnlyList<(string Name, IconData Icon)> AllIcons =
-        typeof(Lucide).GetProperties(BindingFlags.Public | BindingFlags.Static)
+    private static IReadOnlyList<(string Name, IconData Icon)> Load(Type set) =>
+        set.GetProperties(BindingFlags.Public | BindingFlags.Static)
             .Where(p => p.PropertyType == typeof(IconData))
             .Select(p => (p.Name, (IconData)p.GetValue(null)!))
             .ToList();
+
+    private static readonly IReadOnlyList<(string Name, IconData Icon)> Icons = Load(typeof(Lucide));
 
     private IReadOnlyList<(string Name, IconData Icon)> Matches = [];
 
@@ -115,8 +117,8 @@
     {
         var q = Query?.Trim();
         Matches = string.IsNullOrEmpty(q)
-            ? AllIcons
-            : AllIcons.Where(i => i.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
+            ? Icons
+            : Icons.Where(i => i.Name.Contains(q, StringComparison.OrdinalIgnoreCase)
                                || i.Icon.Name.Contains(q, StringComparison.OrdinalIgnoreCase)).ToList();
     }
 

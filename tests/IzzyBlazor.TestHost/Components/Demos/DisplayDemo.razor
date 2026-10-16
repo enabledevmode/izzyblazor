@@ -5,7 +5,7 @@
     <Example Title="Stat" Note="A label, the figure, and how it changed. Up is green and down is red unless ChangeStatus says otherwise, as for response times. The arrow is hidden from screen readers; TrendLabel is read in its place." Code="@StatCode">
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
             <Card><Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Lucide.DollarSign" data-testid="stat-revenue" /></Card>
-            <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="StatTrend.Down" Description="vs last week" Icon="Lucide.Users" /></Card>
+            <Card><Stat Label="Active users" Value="2,340" Change="3.1%" Trend="StatTrend.Down" Description="vs last week" Icon="Lucide.UsersRound" /></Card>
             <Card><Stat Label="Response time" Value="182 ms" Change="24 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="faster" Icon="Lucide.Timer" /></Card>
             <Card><Stat Label="Uptime" Value="99.98%" Change="0%" Trend="StatTrend.Flat" Description="30 days" Icon="Lucide.Activity" /></Card>
         </Grid>

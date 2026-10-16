@@ -108,6 +108,7 @@ The project doesn't take pull requests for now.
 
 ## License
 
-MIT. Bundled Lucide icons are ISC licensed and the brand logos come from Simple Icons (CC0); see
+MIT. Bundled Lucide icons are ISC licensed; the brand logos (from Tabler Icons, plus a few drawn for
+IzzyBlazor) are MIT licensed; the bundled Inter font is under the SIL Open Font License. See
 [THIRD-PARTY-NOTICES.md](THIRD-PARTY-NOTICES.md).
 IzzyBlazor is an independent project and is not affiliated with Microsoft.

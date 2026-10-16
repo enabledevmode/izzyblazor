@@ -13,6 +13,7 @@
 @layer izzy.tokens, izzy.base, izzy.components, izzy.utilities;
 
 @import "./_generated/properties.css";
+@import "./_generated/fonts.css";
 @import "./tokens.css";
 @import "./themes.css";
 @import "./base.css";
