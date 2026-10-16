@@ -1,3 +1,4 @@
+using System.Diagnostics.CodeAnalysis;
 using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor;
@@ -126,12 +127,12 @@ public sealed class DialogService
     /// <param name="title">The dialog's heading, which also names it for screen readers.</param>
     /// <param name="parameters">The component's parameters, by name.</param>
     /// <param name="options">Size, placement and closing behavior.</param>
-    public Task<DialogResult> OpenAsync<TComponent>(string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
+    public Task<DialogResult> OpenAsync<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TComponent>(string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
         where TComponent : IComponent =>
         OpenAsync(typeof(TComponent), title, parameters, options);
 
     /// <summary>Opens a component of <paramref name="component"/>'s type in a dialog and waits until it closes.</summary>
-    public Task<DialogResult> OpenAsync(Type component, string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
+    public Task<DialogResult> OpenAsync([DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type component, string? title, Dictionary<string, object?>? parameters = null, DialogOptions? options = null)
     {
         ArgumentNullException.ThrowIfNull(component);
         options ??= new DialogOptions();
@@ -262,10 +263,11 @@ public sealed class DialogService
 }
 
 /// <summary>One dialog opened by <see cref="DialogService"/>.</summary>
-internal sealed class DialogEntry(DialogInstance instance, Type component, string? title, Dictionary<string, object?>? parameters, DialogOptions options)
+internal sealed class DialogEntry(DialogInstance instance, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] Type component, string? title, Dictionary<string, object?>? parameters, DialogOptions options)
 {
     public DialogInstance Instance { get; } = instance;
 
+    [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)]
     public Type Component { get; } = component;
 
     public string? Title { get; } = title;

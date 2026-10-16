@@ -74,7 +74,7 @@
 
         // An interactive region picks up the toasts its prerender showed, so they don't vanish
         // when the circuit starts.
-        if (state is not null && state.TryTakeFromJson<List<ToastMessage>>("ib-toasts", out var carried) && carried is not null)
+        if (state is not null && PersistedState.TryTake(state, "ib-toasts", PersistedStateJson.Default.ListToastMessage, out var carried) && carried is not null)
         {
             _rendered = carried;
         }
@@ -88,7 +88,7 @@
         {
             _persisting = state.RegisterOnPersisting(() =>
             {
-                state.PersistAsJson("ib-toasts", _rendered.ToList());
+                PersistedState.Persist(state, "ib-toasts", _rendered.ToList(), PersistedStateJson.Default.ListToastMessage);
                 return Task.CompletedTask;
             });
         }

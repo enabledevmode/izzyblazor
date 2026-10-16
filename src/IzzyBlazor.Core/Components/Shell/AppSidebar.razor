@@ -216,7 +216,7 @@
         // value handed over through persisted state.
         var state = Services.GetService<PersistentComponentState>();
         var key = $"ib-sidebar:{Id}";
-        if (state is not null && state.TryTakeFromJson<bool?>(key, out var handedOver) && handedOver is not null)
+        if (state is not null && PersistedState.TryTake(state, key, PersistedStateJson.Default.NullableBoolean, out var handedOver) && handedOver is not null)
         {
             _remembered = handedOver;
         }
@@ -231,7 +231,7 @@
             var value = _remembered;
             _persisting = state.RegisterOnPersisting(() =>
             {
-                state.PersistAsJson(key, value);
+                PersistedState.Persist(state, key, value, PersistedStateJson.Default.NullableBoolean);
                 return Task.CompletedTask;
             });
         }

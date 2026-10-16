@@ -192,7 +192,7 @@
         // answer handed over through persisted state.
         var state = Services.GetService<PersistentComponentState>();
         var key = $"ib-banner:{RememberKey}";
-        if (state is not null && state.TryTakeFromJson<bool>(key, out var handedOver) && handedOver)
+        if (state is not null && PersistedState.TryTake(state, key, PersistedStateJson.Default.Boolean, out var handedOver) && handedOver)
         {
             _remembered = true;
         }
@@ -205,7 +205,7 @@
         {
             _persisting = state.RegisterOnPersisting(() =>
             {
-                state.PersistAsJson(key, true);
+                PersistedState.Persist(state, key, true, PersistedStateJson.Default.Boolean);
                 return Task.CompletedTask;
             });
         }

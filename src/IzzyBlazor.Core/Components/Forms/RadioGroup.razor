@@ -68,10 +68,7 @@
 
         if (item is Enum e)
         {
-            var member = e.GetType().GetMember(e.ToString()).FirstOrDefault();
-            var display = member?.GetCustomAttributes(typeof(System.ComponentModel.DataAnnotations.DisplayAttribute), false)
-                .OfType<System.ComponentModel.DataAnnotations.DisplayAttribute>().FirstOrDefault();
-            return display?.GetName() ?? e.ToString();
+            return ChoiceOptions.EnumText(e);
         }
 
         return item?.ToString() ?? "";

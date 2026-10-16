@@ -29,6 +29,14 @@ IzzyBlazor. Icon names don't change.
   component, through six new roles: `SchemeLight`, `SchemeDark`, `SchemeSystem`, `Person`, `Play`
   and `Upload`.
 - Lucide is updated to 1.57.0 (1,890 icons).
+- **IzzyBlazor.Core is trimmable.** A WebAssembly app published with trimming now keeps only the
+  components and icons it uses, where before it kept the whole assembly: a test app that uses two
+  icons kept 8 KB of its 1.46 MB. The trim analyzer runs on every build, so code that would break
+  under trimming fails it. Persisted state (the color scheme, a remembered banner or sidebar, toasts
+  carried into an interactive render) is written with source-generated JSON, and the generic fields
+  (`Select`, `RadioGroup`, `MultiSelect` and the rest) ask the trimmer to keep their value type's
+  members, which Blazor's value conversion needs. `DialogService.OpenAsync` does the same for the
+  dialog's component.
 
 ## Size
 
