@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using Microsoft.AspNetCore.Components;
 
@@ -27,25 +28,27 @@ internal static class ChoiceOptions
             return itemText(item);
         }
 
-        if (item is Enum e)
-        {
-            var member = e.GetType().GetMember(e.ToString()).FirstOrDefault();
-            var display = member?.GetCustomAttributes(typeof(DisplayAttribute), false).OfType<DisplayAttribute>().FirstOrDefault();
-            return display?.GetName() ?? e.ToString();
-        }
+        return item is Enum e ? EnumText(e) : item?.ToString() ?? "";
+    }
 
-        return item?.ToString() ?? "";
+    /// <summary>An enum value's <c>[Display(Name)]</c>, or its name.</summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2075", Justification = "The trimmer keeps every field of an enum it keeps, and their [Display] attributes when DisplayAttribute is kept, which this method's use of it ensures.")]
+    public static string EnumText(Enum e)
+    {
+        var member = e.GetType().GetMember(e.ToString()).FirstOrDefault();
+        var display = member?.GetCustomAttributes(typeof(DisplayAttribute), false).OfType<DisplayAttribute>().FirstOrDefault();
+        return display?.GetName() ?? e.ToString();
     }
 
     /// <summary>An option's form value, the way Blazor binds it back (an enum's name, a number in the current culture).</summary>
-    public static string Value<T>(T item) => BindConverter.FormatValue(item, CultureInfo.CurrentCulture)?.ToString() ?? "";
+    public static string Value<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] T>(T item) => BindConverter.FormatValue(item, CultureInfo.CurrentCulture)?.ToString() ?? "";
 }
 
 /// <summary>
 /// Reads and builds the collection a multi-choice field is bound to, whatever its type: an array,
 /// <c>List&lt;T&gt;</c>, <c>HashSet&lt;T&gt;</c>, or an interface either implements.
 /// </summary>
-internal static class ChoiceCollection<TValue, TItem>
+internal static class ChoiceCollection<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.PublicParameterlessConstructor)] TValue, TItem>
 {
     public static IEnumerable<TItem> Items(TValue? value) => value as IEnumerable<TItem> ?? [];
 
@@ -66,7 +69,7 @@ internal static class ChoiceCollection<TValue, TItem>
         {
             result = new HashSet<TItem>(list);
         }
-        else if (!type.IsAbstract && Activator.CreateInstance(type) is ICollection<TItem> collection)
+        else if (type == typeof(TValue) && !type.IsAbstract && Activator.CreateInstance<TValue>() is ICollection<TItem> collection)
         {
             foreach (var item in list)
             {
