@@ -176,14 +176,15 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
-    public void Brand_icons_are_filled_shapes_in_the_text_color()
+    public void Brand_icons_are_outlines_in_the_text_color_at_the_icon_stroke()
     {
         var svg = Render<Icon>(p => p.Add(i => i.Name, Brands.GitHub).Add(i => i.Label, "GitHub")).Find("svg");
 
-        Assert.Equal("currentColor", svg.GetAttribute("fill"));
-        Assert.Null(svg.GetAttribute("stroke"));
+        Assert.Equal("none", svg.GetAttribute("fill"));
+        Assert.Equal("currentColor", svg.GetAttribute("stroke"));
+        Assert.Equal("1.5", svg.GetAttribute("stroke-width"));
         Assert.Equal("GitHub", svg.GetAttribute("aria-label"));
-        Assert.Single(svg.QuerySelectorAll("path"));
+        Assert.NotEmpty(svg.QuerySelectorAll("path"));
     }
 
     [Fact]
