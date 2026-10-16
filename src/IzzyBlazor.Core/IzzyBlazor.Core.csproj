@@ -8,6 +8,9 @@
     <Description>IzzyBlazor's components, CSS and JavaScript, for any render mode including WebAssembly. Server apps install IzzyBlazor, which includes this and adds the server-only pieces.</Description>
     <PackageTags>blazor;components;ssr;static-ssr;ui;design-system</PackageTags>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- Trimmed WebAssembly apps keep only the components and icons they use. Also turns on the
+         trim analyzer, so code that would break under trimming fails the build. -->
+    <IsTrimmable>true</IsTrimmable>
     <AddRazorSupportForMvc>false</AddRazorSupportForMvc>
 
     <!-- Asset pipeline: CSS and TypeScript are built by esbuild (see /build). -->

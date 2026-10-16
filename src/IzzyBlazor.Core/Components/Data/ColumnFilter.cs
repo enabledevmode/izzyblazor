@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -40,7 +41,7 @@ internal static class ColumnFilter
     }
 
     private static Expression Capture<T>(T value) =>
-        Expression.Property(Expression.Constant(new Captured<T>(value)), nameof(Captured<T>.Value));
+        Expression.Property(Expression.Constant(new Captured<T>(value)), typeof(Captured<T>).GetProperty(nameof(Captured<T>.Value))!);
 
     public static ColumnFilterKind KindOf(Type type)
     {
@@ -64,6 +65,7 @@ internal static class ColumnFilter
     }
 
     /// <summary>Enum names (with [Display(Name)] text) or true/false.</summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2070", Justification = "The trimmer keeps every field of an enum it keeps, and their [Display] attributes when DisplayAttribute is kept, which this method's use of it ensures.")]
     public static IReadOnlyList<(string Value, string Text)> Choices(Type type, IzzyText text)
     {
         var t = Nullable.GetUnderlyingType(type) ?? type;
@@ -155,9 +157,9 @@ internal static class ColumnFilter
         {
             // DateTimeOffset(?): x.Date == day, through .Value when nullable.
             var date = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.Date))!;
-            Expression instance = type == t ? body : Expression.Property(body, "Value");
+            Expression instance = type == t ? body : Expression.Property(body, typeof(DateTimeOffset?).GetProperty(nameof(Nullable<DateTimeOffset>.Value))!);
             var equal = Expression.Equal(Expression.Property(instance, date), Capture(day.ToDateTime(TimeOnly.MinValue)));
-            test = type == t ? equal : Expression.AndAlso(Expression.Property(body, "HasValue"), equal);
+            test = type == t ? equal : Expression.AndAlso(Expression.Property(body, typeof(DateTimeOffset?).GetProperty(nameof(Nullable<DateTimeOffset>.HasValue))!), equal);
         }
 
         return source.Where(Expression.Lambda<Func<TItem, bool>>(test, property.Parameters));
@@ -167,6 +169,7 @@ internal static class ColumnFilter
     /// <c>x =&gt; values.Contains(property(x))</c> for the values that parse (EF Core turns it into
     /// <c>IN (...)</c>). No valid value matches nothing.
     /// </summary>
+    [UnconditionalSuppressMessage("Trimming", "IL2060", Justification = "Enumerable.Contains<T> places no requirements on T, so any column type works.")]
     public static IQueryable<TItem> AnyOf<TItem>(IQueryable<TItem> source, LambdaExpression property, IReadOnlyList<string> values)
     {
         var type = property.Body.Type;

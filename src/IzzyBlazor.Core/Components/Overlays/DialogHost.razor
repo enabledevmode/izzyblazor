@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @implements IDisposable
+@attribute [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2111", Justification = "The renderer sets DynamicComponent.Type as a parameter. The type comes from DialogService.OpenAsync, which keeps the component's members for the trimmer.")]
 @inject IServiceProvider Services
 
 @*
