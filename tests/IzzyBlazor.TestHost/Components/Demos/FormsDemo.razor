@@ -418,7 +418,7 @@
 
     private static string PlanName(Plan? plan) => plan switch { Plan.Pro => "Pro", Plan.Team => "Team", _ => "Free" };
     private static string PlanHint(Plan? plan) => plan switch { Plan.Pro => "$12/month", Plan.Team => "$10/user/month", _ => "For side projects" };
-    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Lucide.Rocket, Plan.Team => Lucide.Users, _ => Lucide.Sprout };
+    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Lucide.Rocket, Plan.Team => Lucide.UsersRound, _ => Lucide.Sprout };
     private static string PriorityColor(Priority p) => p switch { Priority.Urgent => "danger", Priority.High => "warning", Priority.Medium => "primary", _ => "subtle" };
 
     private bool _submitted;

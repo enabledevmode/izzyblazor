@@ -95,6 +95,24 @@ public enum IconRole
 
     /// <summary>Filter a column or list.</summary>
     Filter,
+
+    /// <summary>The light color scheme.</summary>
+    SchemeLight,
+
+    /// <summary>The dark color scheme.</summary>
+    SchemeDark,
+
+    /// <summary>Follow the device's color scheme.</summary>
+    SchemeSystem,
+
+    /// <summary>A person with no photo or name, such as an empty avatar.</summary>
+    Person,
+
+    /// <summary>Play a video.</summary>
+    Play,
+
+    /// <summary>Upload a file.</summary>
+    Upload,
 }
 
 /// <summary>
@@ -129,13 +147,19 @@ public class IconSet
         IconRole.Show => IzzyBlazor.Lucide.Eye,
         IconRole.Hide => IzzyBlazor.Lucide.EyeOff,
         IconRole.Loading => IzzyBlazor.Lucide.LoaderCircle,
-        IconRole.SortAscending => IzzyBlazor.Lucide.ArrowUp,
-        IconRole.SortDescending => IzzyBlazor.Lucide.ArrowDown,
+        IconRole.SortAscending => IzzyBlazor.Lucide.ArrowUpNarrowWide,
+        IconRole.SortDescending => IzzyBlazor.Lucide.ArrowDownNarrowWide,
         IconRole.Sortable => IzzyBlazor.Lucide.ArrowUpDown,
         IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
         IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
         IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
         IconRole.Filter => IzzyBlazor.Lucide.Funnel,
+        IconRole.SchemeLight => IzzyBlazor.Lucide.Sun,
+        IconRole.SchemeDark => IzzyBlazor.Lucide.Moon,
+        IconRole.SchemeSystem => IzzyBlazor.Lucide.Monitor,
+        IconRole.Person => IzzyBlazor.Lucide.User,
+        IconRole.Play => IzzyBlazor.Lucide.Play,
+        IconRole.Upload => IzzyBlazor.Lucide.CloudUpload,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 

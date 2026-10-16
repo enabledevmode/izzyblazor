@@ -40,6 +40,8 @@
   }
 
   .ib-nav-item {
+    --ib-icon-size: var(--ib-control-icon-md);
+
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
@@ -70,10 +72,6 @@
     color: var(--ib-color-primary-text);
   }
 
-  .ib-nav-item .ib-icon {
-    width: 1.125rem;
-    height: 1.125rem;
-  }
 
   .ib-nav-text {
     flex: 1;

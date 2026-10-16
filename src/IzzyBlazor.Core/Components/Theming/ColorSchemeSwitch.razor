@@ -32,11 +32,11 @@
             @* Two links; CSS shows the one that leads away from the page's scheme. *@
             <a class="@ButtonClass ib-scheme-if-light" href="@Href(ColorScheme.Dark)" data-ib-scheme="dark"
                aria-label="@TextDefaults.SchemeToDark" title="@TextDefaults.SchemeToDark">
-                <Icon Name="Lucide.Moon" />
+                <Icon Role="IconRole.SchemeDark" />
             </a>
             <a class="@ButtonClass ib-scheme-if-dark" href="@Href(ColorScheme.Light)" data-ib-scheme="light"
                aria-label="@TextDefaults.SchemeToLight" title="@TextDefaults.SchemeToLight">
-                <Icon Name="Lucide.Sun" />
+                <Icon Role="IconRole.SchemeLight" />
             </a>
             break;
 
@@ -62,8 +62,8 @@
             <Menu Placement="Placement.BottomEnd">
                 <Trigger>
                     <button type="button" class="@ButtonClass" aria-label="@GroupLabel" title="@GroupLabel" @attributes="context">
-                        <Icon Name="Lucide.Sun" Class="ib-scheme-if-light" />
-                        <Icon Name="Lucide.Moon" Class="ib-scheme-if-dark" />
+                        <Icon Role="IconRole.SchemeLight" Class="ib-scheme-if-light" />
+                        <Icon Role="IconRole.SchemeDark" Class="ib-scheme-if-dark" />
                     </button>
                 </Trigger>
                 <ChildContent>
@@ -134,9 +134,9 @@
 
     private IEnumerable<(ColorScheme Scheme, IconData Icon, string Label)> Options =>
     [
-        (ColorScheme.Auto, Lucide.Monitor, TextDefaults.SchemeSystem),
-        (ColorScheme.Light, Lucide.Sun, TextDefaults.SchemeLight),
-        (ColorScheme.Dark, Lucide.Moon, TextDefaults.SchemeDark),
+        (ColorScheme.Auto, IconSet.Current.Get(IconRole.SchemeSystem), TextDefaults.SchemeSystem),
+        (ColorScheme.Light, IconSet.Current.Get(IconRole.SchemeLight), TextDefaults.SchemeLight),
+        (ColorScheme.Dark, IconSet.Current.Get(IconRole.SchemeDark), TextDefaults.SchemeDark),
     ];
 
     /// <inheritdoc />

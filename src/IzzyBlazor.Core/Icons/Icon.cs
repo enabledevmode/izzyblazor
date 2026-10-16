@@ -39,7 +39,7 @@ public class Icon : IzzyComponentBase
     /// </summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>Overrides the stroke width of outlined icons (Lucide's default is 2).</summary>
+    /// <summary>Overrides the stroke width of outlined icons (IzzyBlazor draws Lucide at 1.5).</summary>
     [Parameter] public double? StrokeWidth { get; set; }
 
     /// <summary>Rotates continuously, for loading indicators. Respects reduced-motion settings.</summary>

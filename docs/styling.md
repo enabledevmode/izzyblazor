@@ -188,7 +188,10 @@ the container fill); and the dark scheme in the same hue. A hex gray is app-wide
 `Brand` and `Gray` are strings because a custom color makes them open sets: anything other than a
 known name or a hex color is refused, with a message listing the names.
 
-**Fonts.** Body text uses the system font (`--ib-font-body`). Headings, card and dialog titles use
+**Fonts.** Body text uses Inter (`--ib-font-body`), served with IzzyBlazor: variable weight and
+optical size, so headings get Inter Display's tighter shapes on their own. Browsers download only
+the character sets a page uses (about 70 KB for English), and nothing at all once `BodyFont` or
+`--ib-font-body` names another font. Headings, card and dialog titles use
 `--ib-font-heading` at `--ib-weight-heading`: by default the body font, semibold. The `editorial`
 preset uses IBM Plex Sans and Newsreader; load them in your `<head>` (or self-host them; both are
 under the SIL Open Font License):
@@ -235,7 +238,7 @@ Two levels. `IzzyTheme` takes the choices that move many values together and kee
 
 ```razor
 <IzzyTheme Preset="ThemePreset.Soft" Density="ThemeDensity.Compact" Brand="#0a7d5a" Gray="stone"
-           BodyFont="Inter, system-ui, sans-serif" HeadingWeight="700" ColorScheme="ColorScheme.Light" />
+           BodyFont="Sora, system-ui, sans-serif" HeadingWeight="700" ColorScheme="ColorScheme.Light" />
 ```
 
 | `IzzyTheme` / attribute | Sets | Values |
@@ -245,7 +248,7 @@ Two levels. `IzzyTheme` takes the choices that move many values together and kee
 | `Gray` / `data-ib-gray` | Page, surfaces, fills, borders and text | Hex (app-wide), or `neutral`, `slate`, `stone` |
 | `Radius` / `data-ib-radius` | Controls, cards and dialogs, in proportion | `None`, `Sm`, `Md`, `Lg`, `Full` |
 | `Density` / `data-ib-density` | Control heights, table rows and card padding | `Compact` (32px), `Standard` (36px), `Comfortable` (40px) |
-| `BodyFont`, `HeadingFont`, `MonoFont` | Body, heading and code font families (load the fonts yourself); app-wide | CSS font-family lists |
+| `BodyFont`, `HeadingFont`, `MonoFont` | Body, heading and code font families (Inter is served with IzzyBlazor; load any other font yourself); app-wide | CSS font-family lists |
 | `HeadingWeight` | Headings' weight; app-wide | 100 to 900 |
 | `ColorScheme` / `data-ib-color-scheme` | Light or dark until the user picks one with a `ColorSchemeSwitch` | `Auto`, `Light`, `Dark` (and `Inverse` for part of a page) |
 
@@ -273,7 +276,7 @@ Every token, by group:
 | Status | `--ib-color-success`, `-warning`, `-danger`, `-info`, `-neutral`, each with `-on-` (text on it); the first four with `-text` and `-soft` |
 | Made from other colors | `--ib-color-focus` (focus ring and halo; primary), `--ib-color-halo`, `--ib-color-selected` (a selected row), `--ib-state-hover` and `--ib-state-pressed` (washes of the text color), `--ib-color-segment` and `-segment-edge` (the chosen segment), `--ib-color-scrollbar` and `-scrollbar-hover`. Unset by default: each is worked out where it's used, so it follows colors set on part of the page; set it to replace the calculation |
 | Shape | `--ib-radius-none`, `-sm`, `-md`, `-lg`, `-xl`, `-full`; `--ib-radius-control` (buttons, fields, segmented controls, tags; unset: `-md`) and `--ib-radius-control-sm` (badges; unset: `-sm`) |
-| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
+| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-control-icon-sm`, `-md`, `-lg` (icons in controls, 16, 20 and 24px) and `--ib-control-icon-stroke-sm` (their stroke at 16px, 2.5 units), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
 | Sizes | `--ib-size-sm`, `-md`, `-lg`, `-xl` (640 to 1280px), `--ib-size-prose` (a readable line) |
 | Type | `--ib-font-body`, `-heading`, `-mono`; `--ib-text-xs` to `-6xl`; `--ib-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`, `-extrabold`, `-heading`; `--ib-leading-none`, `-tight`, `-snug`, `-normal`, `-relaxed`, `-loose`; `--ib-tracking-tighter` to `-widest` |
 | Depth | `--ib-shadow-none`, `-xs` (under cards), `-sm`, `-md`, `-lg` |
@@ -309,7 +312,7 @@ Most tokens have a single value. Override them on `:root`:
 
 ```css
 :root {
-  --ib-font-body: "Inter", system-ui, sans-serif;
+  --ib-font-body: "IBM Plex Sans", system-ui, sans-serif;
   --ib-radius-md: 0.5rem;
 }
 ```

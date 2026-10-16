@@ -20,7 +20,7 @@
 <FieldFrame Class="@_class" Id="@InputId" Label="@Label" Required="Required"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@(TooLargeText ?? TextDefaults.FileTooLarge)" data-ib-wrong-type="@(WrongTypeText ?? TextDefaults.FileWrongType)" data-ib-interactive="@(IsInteractive ? "" : null)">
-        <Icon Name="Icon ?? Lucide.CloudUpload" Class="ib-file-icon" />
+        <Icon Name="Icon ?? IconSet.Current.Get(IconRole.Upload)" Class="ib-file-icon" />
         <span class="ib-file-prompt">@(PromptText ?? (Multiple ? TextDefaults.DropFiles : TextDefaults.DropFile))</span>
         @if (IsInteractive)
         {

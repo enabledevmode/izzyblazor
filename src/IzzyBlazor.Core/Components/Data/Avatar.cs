@@ -210,7 +210,7 @@ public class Avatar : IzzyComponentBase, IDisposable
         else
         {
             builder.OpenComponent<Icon>(10);
-            builder.AddComponentParameter(11, nameof(IzzyBlazor.Icon.Name), Icon ?? Lucide.User);
+            builder.AddComponentParameter(11, nameof(IzzyBlazor.Icon.Name), Icon ?? IconSet.Current.Get(IconRole.Person));
             builder.CloseComponent();
         }
 

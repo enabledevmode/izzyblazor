@@ -50,6 +50,7 @@
     --ib-field-h: var(--ib-control-h-md);
     --ib-field-px: var(--ib-space-3);
     --ib-field-font: var(--ib-text-sm);
+    --ib-icon-size: var(--ib-control-icon-md);
 
     /* Not SegmentedControl's top alignment: in a header or toolbar it centers like the buttons. */
     align-self: center;
@@ -61,26 +62,18 @@
     --ib-field-h: var(--ib-control-h-sm);
     --ib-field-px: var(--ib-space-2);
     --ib-field-font: var(--ib-control-font-sm);
+    --ib-icon-size: var(--ib-control-icon-sm);
   }
 
   .ib-scheme-switch-lg {
     --ib-field-h: var(--ib-control-h-lg);
     --ib-field-px: var(--ib-space-4);
     --ib-field-font: var(--ib-text-md);
+    --ib-icon-size: var(--ib-control-icon-lg);
   }
 
   .ib-scheme-switch > .ib-segment {
     text-decoration: none;
-  }
-
-  .ib-scheme-switch-sm > .ib-segment > .ib-icon {
-    width: 0.875rem;
-    height: 0.875rem;
-  }
-
-  .ib-scheme-switch-lg > .ib-segment > .ib-icon {
-    width: 1.125rem;
-    height: 1.125rem;
   }
 
   .ib-scheme-switch > .ib-segment[aria-current="true"] {

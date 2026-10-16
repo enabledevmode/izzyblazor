@@ -200,7 +200,7 @@ public partial class VideoEmbed : StyledComponentBase
         builder.AddAttribute(16, "class", "ib-video-play");
         builder.AddAttribute(17, "aria-hidden", "true");
         builder.OpenComponent<Icon>(18);
-        builder.AddComponentParameter(19, nameof(Icon.Name), Lucide.Play);
+        builder.AddComponentParameter(19, nameof(Icon.Name), IconSet.Current.Get(IconRole.Play));
         builder.CloseComponent();
         builder.CloseElement();
         builder.CloseElement();

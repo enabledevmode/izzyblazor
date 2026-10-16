@@ -12,6 +12,7 @@
     --ib-tab-h: var(--ib-control-h-md);
     --ib-tab-px: var(--ib-space-3);
     --ib-tab-font: var(--ib-text-sm);
+    --ib-icon-size: var(--ib-control-icon-md);
 
     display: block;
     min-width: 0;
@@ -21,12 +22,14 @@
     --ib-tab-h: var(--ib-control-h-sm);
     --ib-tab-px: var(--ib-space-2);
     --ib-tab-font: var(--ib-control-font-sm);
+    --ib-icon-size: var(--ib-control-icon-sm);
   }
 
   .ib-tabs-lg {
     --ib-tab-h: var(--ib-control-h-lg);
     --ib-tab-px: var(--ib-space-4);
     --ib-tab-font: var(--ib-text-md);
+    --ib-icon-size: var(--ib-control-icon-lg);
   }
 
   .ib-tabs-list {
@@ -67,13 +70,6 @@
 
   .ib-tab:hover {
     color: var(--ib-color-on-surface);
-  }
-
-  .ib-tab .ib-icon {
-    width: 1.125em;
-    width: round(nearest, 1.125em, 2px);
-    height: 1.125em;
-    height: round(nearest, 1.125em, 2px);
   }
 
   /* Focus: on the radio with no script, on the tab itself with script. */
