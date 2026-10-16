@@ -119,7 +119,7 @@ static pages, and it follows the text color (`currentColor`) and size (`em`).
 - All of Lucide (1,890 icons) is bundled as one typed class with IntelliSense: `Lucide`, named as
   on https://lucide.dev/icons, where you can browse them (or on the dev host's Icon page).
   IntelliSense lists each icon's search terms. Every icon is its own property, so nothing is created
-  for icons a page doesn't use.
+  for icons a page doesn't use, and a trimmed WebAssembly app keeps only the icons it references.
 - Icons are decorative (`aria-hidden`) unless you give them a `Label`.
 - `Size` is relative to the text (1em by default), `Color` overrides the text color, `StrokeWidth`
   thins or thickens a stroked icon, and `Spin` rotates it. Inside a control (a button, field, tab,

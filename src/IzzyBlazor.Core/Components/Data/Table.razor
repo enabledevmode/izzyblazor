@@ -1047,6 +1047,12 @@
     private LoadKey? _loadedKey;
     private int _loadVersion;
 
+    // A list is queried as an EnumerableQuery, which runs the query through Enumerable's methods,
+    // found by reflection; the DynamicDependency keeps them in a trimmed app.
+    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicMethods, typeof(Enumerable))]
+    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The DynamicDependency keeps the Enumerable methods the in-memory query binds to.")]
+    private static IQueryable<TItem> AsQuery(IEnumerable<TItem> items) => items as IQueryable<TItem> ?? items.AsQueryable();
+
     private async Task LoadAsync()
     {
         var (sortRaw, pageRaw) = CurrentState();
@@ -1113,7 +1119,7 @@
         }
         else if (Items is not null)
         {
-            var source = Items as IQueryable<TItem> ?? Items.AsQueryable();
+            var source = AsQuery(Items);
             var sorted = request.ApplySorting(request.ApplyFiltering(source));
             total = sorted.Count();
             if (pageSize is { } size)
