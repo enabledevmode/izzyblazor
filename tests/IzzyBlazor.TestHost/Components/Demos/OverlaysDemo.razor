@@ -21,11 +21,11 @@
             <Row Gap="3" Wrap Align="Align.Center">
                 <Menu Label="Project" StartIcon="Hugeicons.Folder01" Id="project-menu">
                     <MenuItem Href="@($"{_path}#settings")" Icon="Hugeicons.Settings01" Shortcut="Ctrl+,">Settings</MenuItem>
-                    <MenuItem Icon="Hugeicons.Copy01" Shortcut="Ctrl+D" OnClick="@(() => _clicked = "duplicate")">Duplicate</MenuItem>
+                    <MenuItem Icon="Hugeicons.Copy" Shortcut="Ctrl+D" OnClick="@(() => _clicked = "duplicate")">Duplicate</MenuItem>
                     <MenuItem Icon="Hugeicons.Share08" Disabled="true">Share (soon)</MenuItem>
                     <MenuDivider />
                     <MenuGroup Label="Posts the form">
-                        <MenuItem Type="ButtonType.Submit" Name="action" Value="archive" Icon="Hugeicons.Archive">Archive</MenuItem>
+                        <MenuItem Type="ButtonType.Submit" Name="action" Value="archive" Icon="Hugeicons.Archive03">Archive</MenuItem>
                         <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Icon="Hugeicons.Delete02" Accent="Accent.Danger">Delete</MenuItem>
                     </MenuGroup>
                 </Menu>
@@ -68,7 +68,7 @@
                 <MenuItem Icon="Hugeicons.PencilEdit01">Rename</MenuItem>
                 <MenuSub Label="Move to" Icon="Hugeicons.FolderExport">
                     <MenuItem Icon="Hugeicons.Inbox">Inbox</MenuItem>
-                    <MenuItem Icon="Hugeicons.Archive">Archive</MenuItem>
+                    <MenuItem Icon="Hugeicons.Archive03">Archive</MenuItem>
                     <MenuSub Label="Projects" Icon="Hugeicons.Folder01">
                         <MenuItem>Website</MenuItem>
                         <MenuItem>Course app</MenuItem>
@@ -134,7 +134,7 @@
 
     <Example Title="Dialog" Note="A native modal dialog: focus is trapped, the page behind is inert, Escape closes it. Opened by DialogTrigger (commandfor), by a ?dialog= link rendered open on the server, or from C#." Code="@DialogCode">
         <Row Gap="3" Wrap>
-            <DialogTrigger For="invite" StartIcon="Hugeicons.UserAdd01">Invite people</DialogTrigger>
+            <DialogTrigger For="invite" StartIcon="Hugeicons.UserAdd02">Invite people</DialogTrigger>
             <DialogTrigger For="confirm-delete" Accent="Accent.Danger" Variant="ButtonVariant.Outline">Delete project</DialogTrigger>
             <DialogTrigger For="rename" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" StartIcon="Hugeicons.PencilEdit01">Rename</DialogTrigger>
             @if (_renamed is not null)
@@ -227,7 +227,7 @@
 
         <Drawer Id="nav-drawer" Title="Navigate" Placement="DialogPlacement.Start" Size="DialogSize.Sm">
             <nav aria-label="Drawer navigation"><NavMenu>
-                <NavItem Href="static/overlays" Icon="Hugeicons.Home01">Home</NavItem>
+                <NavItem Href="static/overlays" Icon="Hugeicons.Home03">Home</NavItem>
                 <NavItem Href="static/overlays" Icon="Hugeicons.Kanban">Projects</NavItem>
                 <NavItem Href="static/overlays" Icon="Hugeicons.Settings01">Settings</NavItem>
             </NavMenu></nav>
@@ -422,7 +422,7 @@
         """
         <Menu Label="Project" StartIcon="Hugeicons.Folder01">
             <MenuItem Href="/settings" Icon="Hugeicons.Settings01">Settings</MenuItem>
-            <MenuItem Icon="Hugeicons.Copy01" OnClick="Duplicate">Duplicate</MenuItem>
+            <MenuItem Icon="Hugeicons.Copy" OnClick="Duplicate">Duplicate</MenuItem>
             <MenuDivider />
             <MenuGroup Label="Posts the form">
                 <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Accent="Accent.Danger">Delete</MenuItem>

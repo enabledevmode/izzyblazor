@@ -45,7 +45,7 @@ public class ButtonRenderTests : BunitContext
     public void Icons_render_around_the_label()
     {
         var button = Render<Button>(p => p
-            .Add(b => b.StartIcon, Hugeicons.Add01)
+            .Add(b => b.StartIcon, Hugeicons.Plus)
             .Add(b => b.EndIcon, Hugeicons.ArrowRight02)
             .AddChildContent("Add")).Find("button");
 
@@ -149,7 +149,7 @@ public class ButtonRenderTests : BunitContext
     public void IconButton_with_Href_renders_a_link()
     {
         var a = Render<IconButton>(p => p
-            .Add(b => b.Icon, Hugeicons.LinkSquare02)
+            .Add(b => b.Icon, Hugeicons.ExternalLink)
             .Add(b => b.Label, "Docs")
             .Add(b => b.Href, "/docs")).Find("a");
 

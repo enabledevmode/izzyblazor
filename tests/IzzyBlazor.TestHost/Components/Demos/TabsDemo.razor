@@ -47,7 +47,7 @@
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Name, description and visibility.</TextBlock>
                     </Stack>
                 </Tab>
-                <Tab Label="Members" Icon="Hugeicons.UserGroup" Badge="4">
+                <Tab Label="Members" Icon="Hugeicons.UserGroup02" Badge="4">
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">Four people have access.</TextBlock>
                 </Tab>
                 <Tab Label="Integrations" Icon="Hugeicons.Plug01">
@@ -84,13 +84,13 @@
     <Example Title="In the URL" Note="QueryKey keeps the selected tab in the query string: a link to ?tab=billing opens Billing, and with JavaScript switching tabs updates the address so it can be shared." Code="@UrlCode">
         <Stack Gap="3">
             <Tabs QueryKey="tab" Label="Account" Id="account-tabs">
-                <Tab Label="Profile" Icon="Hugeicons.User">
+                <Tab Label="Profile" Icon="Hugeicons.User02">
                     <TextBlock>Your name and photo.</TextBlock>
                 </Tab>
                 <Tab Label="Billing" Icon="Hugeicons.CreditCard">
                     <TextBlock>Plan and invoices.</TextBlock>
                 </Tab>
-                <Tab Label="Security" Icon="Hugeicons.Shield01">
+                <Tab Label="Security" Icon="Hugeicons.ShieldCheck">
                     <TextBlock>Password and two-factor sign-in.</TextBlock>
                 </Tab>
             </Tabs>
@@ -131,7 +131,7 @@
         """
         <Tabs Orientation="Orientation.Vertical" Label="Project settings">
             <Tab Label="General" Icon="Hugeicons.Settings01">...</Tab>
-            <Tab Label="Members" Icon="Hugeicons.UserGroup" Badge="4">...</Tab>
+            <Tab Label="Members" Icon="Hugeicons.UserGroup02" Badge="4">...</Tab>
             <Tab Label="Integrations" Icon="Hugeicons.Plug01">...</Tab>
         </Tabs>
         """;
@@ -139,7 +139,7 @@
     private const string LinksCode =
         """
         <Tabs Label="Settings">
-            <TabLink Href="settings/profile" Label="Profile" Icon="Hugeicons.User" />
+            <TabLink Href="settings/profile" Label="Profile" Icon="Hugeicons.User02" />
             <TabLink Href="settings/billing" Label="Billing" />
             <TabLink Href="settings/security" Label="Security" />
         </Tabs>

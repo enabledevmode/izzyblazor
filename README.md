@@ -59,7 +59,7 @@ computed at runtime. If you've used Chakra UI or Mantine, the layout props will 
 ```razor
 <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4">
     <Box Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow>...</Box>
-    <Button StartIcon="Hugeicons.Add01">New order</Button>
+    <Button StartIcon="Hugeicons.Plus">New order</Button>
 </Stack>
 ```
 

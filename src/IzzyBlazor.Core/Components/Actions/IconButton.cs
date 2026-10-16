@@ -11,7 +11,7 @@ namespace IzzyBlazor;
 /// <example>
 /// <code>
 /// &lt;IconButton Icon="Hugeicons.PencilEdit01" Label="Edit" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" /&gt;
-/// &lt;IconButton Icon="Hugeicons.LinkSquare02" Label="Open the docs" Href="https://example.com/docs" /&gt;
+/// &lt;IconButton Icon="Hugeicons.ExternalLink" Label="Open the docs" Href="https://example.com/docs" /&gt;
 /// </code>
 /// </example>
 public class IconButton : ButtonBase

@@ -104,7 +104,7 @@ public class SiteFeedbackTests : BunitContext
         Assert.Contains("ib-list-ordered", numbers.ClassList);
 
         var checks = Render<List>(p => p
-            .Add(l => l.Icon, Hugeicons.Tick02)
+            .Add(l => l.Icon, Hugeicons.Check)
             .Add(l => l.IconColor, Color.SuccessText)
             .AddChildContent<ListItem>(i => i.AddChildContent("Works with JavaScript off")));
         var ul = checks.Find("ul");

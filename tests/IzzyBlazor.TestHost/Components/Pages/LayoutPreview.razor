@@ -78,7 +78,7 @@
                         <Heading Level="2" Size="TextSize.Xl3">What every episode gives you</Heading>
                         <TextBlock Color="Color.Muted">No skipped steps. If it's on screen, it's in the repo.</TextBlock>
                     </Stack>
-                    <List Icon="Hugeicons.Tick02" IconColor="Color.SuccessText" Gap="3">
+                    <List Icon="Hugeicons.Check" IconColor="Color.SuccessText" Gap="3">
                         <ListItem>The commit, linked from the video at the moment it lands</ListItem>
                         <ListItem>The code at that step, ready to clone and run</ListItem>
                         <ListItem>Notes on why, not just what</ListItem>
@@ -225,7 +225,7 @@
         <NavMenu>
             <NavItem Href="@Url("dashboard")" Icon="Hugeicons.DashboardSquare01">Overview</NavItem>
             <NavItem Href="@Url("list")" Icon="Hugeicons.CheckList" Badge="57">Rules</NavItem>
-            <NavItem Href="@Url("document")" Icon="Hugeicons.Book01">Guide</NavItem>
+            <NavItem Href="@Url("document")" Icon="Hugeicons.Book03">Guide</NavItem>
             <NavDivider />
             <NavLabel>Workspace</NavLabel>
             <NavItem Href="@Url("settings")" Icon="Hugeicons.Settings01">Settings</NavItem>
@@ -244,7 +244,7 @@
                             <Heading Level="1" Size="TextSize.Xl2">Project settings</Heading>
                         </Stack>
                         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
-                        <Button StartIcon="Hugeicons.Tick02">Save changes</Button>
+                        <Button StartIcon="Hugeicons.Check">Save changes</Button>
                     </Row>
                     <Form Model="Settings" FormName="layout-settings" OnValidSubmit="() => { }">
                         <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="4">
@@ -288,7 +288,7 @@
                             <TextBlock Color="Color.Muted" Size="TextSize.Sm">Every rule in this project, most recently changed first.</TextBlock>
                         </Stack>
                         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Hugeicons.Download01">Export</Button>
-                        <Button StartIcon="Hugeicons.Add01">New rule</Button>
+                        <Button StartIcon="Hugeicons.Plus">New rule</Button>
                     </Row>
                     <Table Items="Rules" PageSize="8" PageSizeOptions="SizeOptions" Caption="Rules" id="layout-rules">
                         <PropertyColumn Property="r => r.Name" Sortable />
@@ -330,7 +330,7 @@
                             <Heading Level="1" Size="TextSize.Xl2">Overview</Heading>
                             <TextBlock Color="Color.Muted" Size="TextSize.Sm">Decisions across all projects, last 30 days.</TextBlock>
                         </Stack>
-                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Hugeicons.ArrowDown01">Last 30 days</Button>
+                        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Hugeicons.ChevronDown">Last 30 days</Button>
                     </Row>
                     <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
                         <Card><Stat Label="Decisions" Value="48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Hugeicons.Activity01" /></Card>

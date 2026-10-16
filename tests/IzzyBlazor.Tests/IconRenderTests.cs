@@ -20,7 +20,7 @@ public class IconRenderTests : BunitContext
     public void Labeled_icon_is_an_image_with_a_name()
     {
         var svg = Render<Icon>(p => p
-            .Add(i => i.Name, Hugeicons.CheckmarkCircle02)
+            .Add(i => i.Name, Hugeicons.CircleCheck)
             .Add(i => i.Label, "Done")).Find("svg");
 
         Assert.Equal("img", svg.GetAttribute("role"));

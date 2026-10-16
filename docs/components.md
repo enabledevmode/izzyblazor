@@ -80,7 +80,7 @@ The rest:
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
 
 `List` is a bulleted list of `ListItem`s; `Ordered` numbers it, `Plain` drops the bullets and indent,
-and `Icon` puts an icon in place of each bullet (`<List Icon="Hugeicons.Tick02" IconColor="Color.SuccessText">`
+and `Icon` puts an icon in place of each bullet (`<List Icon="Hugeicons.Check" IconColor="Color.SuccessText">`
 for a check list; an item's own `Icon` wins). `Gap` spaces the items (8px by default). Lists without
 bullets keep `role="list"`, which Safari drops otherwise.
 
@@ -113,12 +113,12 @@ highlighter (for more languages), implement `ICodeHighlighter` and register it a
 
 ## Icons
 
-`<Icon Name="Hugeicons.Home01" />` renders inline SVG on the server. There's no icon font, it works on
+`<Icon Name="Hugeicons.Home03" />` renders inline SVG on the server. There's no icon font, it works on
 static pages, and it follows the text color (`currentColor`) and size (`em`).
 
 - The free Hugeicons set (Stroke Rounded, 6,025 icons) is bundled as one typed class with
   IntelliSense: `Hugeicons`. Names follow Hugeicons' own, numbered where it has several takes on an
-  idea (`Hugeicons.Delete02`, `Hugeicons.ArrowRight01`); IntelliSense lists other names for each,
+  idea (`Hugeicons.Delete02`, `Hugeicons.Home03`); IntelliSense lists other names for each,
   such as Trash for `Delete02`. Browse them at https://hugeicons.com/icons (Stroke Rounded, Free) or
   on the dev host's Icon page. Every icon is its own property, so nothing is created for icons a page
   doesn't use. There are no filled icons in the free set.
@@ -465,7 +465,7 @@ with JavaScript any group holding the current page opens itself.
 ```razor
 <NavMenu>
     <NavLabel>Workspace</NavLabel>
-    <NavItem Href="/" Icon="Hugeicons.Home01" Match="NavLinkMatch.All">Home</NavItem>
+    <NavItem Href="/" Icon="Hugeicons.Home03" Match="NavLinkMatch.All">Home</NavItem>
     <NavGroup Label="Projects" Icon="Hugeicons.Folder01" ActivePrefix="/projects">
         <NavItem Href="/projects/active">Active</NavItem>
     </NavGroup>
@@ -632,7 +632,7 @@ A `Tabs` holds either `Tab`s or `TabLink`s, not both.
 
 ```razor
 <Tabs Label="Settings">
-    <TabLink Href="settings/profile" Label="Profile" Icon="Hugeicons.User" />
+    <TabLink Href="settings/profile" Label="Profile" Icon="Hugeicons.User02" />
     <TabLink Href="settings/billing" Label="Billing" />
 </Tabs>
 ```

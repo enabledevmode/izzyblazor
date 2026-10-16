@@ -27,7 +27,7 @@
                 <IconButton Icon="Hugeicons.UserCircle" Label="Account" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
             </Trigger>
             <ChildContent>
-                <MenuItem Href="preview/showcase/profile" Icon="Hugeicons.User">Profile</MenuItem>
+                <MenuItem Href="preview/showcase/profile" Icon="Hugeicons.User02">Profile</MenuItem>
                 <MenuItem Href="preview/showcase/settings" Icon="Hugeicons.Settings01">Settings</MenuItem>
                 <MenuDivider />
                 <MenuItem Href="preview/showcase" Icon="Hugeicons.Logout01">Sign out</MenuItem>
@@ -39,24 +39,24 @@
         <Header>
             <Menu Label="Switch store">
                 <Trigger>
-                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Hugeicons.Store01" FullWidth Class="host-switcher" @attributes="context">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Hugeicons.Store02" FullWidth Class="host-switcher" @attributes="context">
                         <span class="ib-collapsed-hide">Acme Outdoors</span>
                         <Icon Name="Hugeicons.UnfoldMore" Class="ib-collapsed-hide" Color="Color.Muted" />
                     </Button>
                 </Trigger>
                 <ChildContent>
-                    <MenuItem Icon="Hugeicons.Store01">Acme Outdoors</MenuItem>
-                    <MenuItem Icon="Hugeicons.Store01">Acme Home</MenuItem>
+                    <MenuItem Icon="Hugeicons.Store02">Acme Outdoors</MenuItem>
+                    <MenuItem Icon="Hugeicons.Store02">Acme Home</MenuItem>
                     <MenuDivider />
-                    <MenuItem Icon="Hugeicons.Add01">New store</MenuItem>
+                    <MenuItem Icon="Hugeicons.Plus">New store</MenuItem>
                 </ChildContent>
             </Menu>
         </Header>
         <ChildContent>
             <NavMenu>
                 <NavItem Href="preview/showcase/home" Icon="Hugeicons.DashboardSquare01">Overview</NavItem>
-                <NavItem Href="preview/showcase" Icon="Hugeicons.ShoppingCart01" Match="NavLinkMatch.All" Badge="12" BadgeAccent="Accent.Primary">Orders</NavItem>
-                <NavItem Href="preview/showcase/customers" Icon="Hugeicons.UserGroup">Customers</NavItem>
+                <NavItem Href="preview/showcase" Icon="Hugeicons.ShoppingCart02" Match="NavLinkMatch.All" Badge="12" BadgeAccent="Accent.Primary">Orders</NavItem>
+                <NavItem Href="preview/showcase/customers" Icon="Hugeicons.UserGroup02">Customers</NavItem>
                 <NavGroup Label="Catalog" Icon="Hugeicons.Package" ActivePrefix="preview/showcase/catalog">
                     <NavItem Href="preview/showcase/catalog/products">Products</NavItem>
                     <NavItem Href="preview/showcase/catalog/collections">Collections</NavItem>
@@ -64,7 +64,7 @@
                 <NavItem Href="preview/showcase/reports" Icon="Hugeicons.ChartColumn">Reports</NavItem>
                 <NavDivider />
                 <NavLabel>Workspace</NavLabel>
-                <NavItem Href="preview/showcase/team" Icon="Hugeicons.UserGroup">Team</NavItem>
+                <NavItem Href="preview/showcase/team" Icon="Hugeicons.UserGroup02">Team</NavItem>
                 <NavItem Href="preview/showcase/billing" Icon="Hugeicons.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
             </NavMenu>
         </ChildContent>
@@ -83,12 +83,12 @@
                     <TextBlock Color="Color.Muted" Size="TextSize.Sm">Every order across your stores, newest first.</TextBlock>
                 </Stack>
                 <LinkButton Href="preview/showcase/export" StartIcon="Hugeicons.Download01" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Export</LinkButton>
-                <Button StartIcon="Hugeicons.Add01">New order</Button>
+                <Button StartIcon="Hugeicons.Plus">New order</Button>
             </Row>
 
             <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4">
                 <Card><Stat Label="Revenue" Value="$18,420" Change="12%" Trend="StatTrend.Up" Description="vs last month" Icon="Hugeicons.Dollar01" /></Card>
-                <Card><Stat Label="Orders" Value="57" Change="8%" Trend="StatTrend.Up" Description="vs last month" Icon="Hugeicons.ShoppingCart01" /></Card>
+                <Card><Stat Label="Orders" Value="57" Change="8%" Trend="StatTrend.Up" Description="vs last month" Icon="Hugeicons.ShoppingCart02" /></Card>
                 <Card><Stat Label="Refund rate" Value="2.1%" Change="0.4 pts" Trend="StatTrend.Up" ChangeStatus="Status.Danger" Description="vs last month" Icon="Hugeicons.RotateClockwise" /></Card>
             </Grid>
 

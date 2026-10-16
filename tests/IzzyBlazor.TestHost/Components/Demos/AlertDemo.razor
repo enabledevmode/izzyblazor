@@ -87,7 +87,7 @@
         <Row Gap="3" Align="Align.Center" Wrap>
             <form method="post" @formname="toast-archive" @onsubmit="Archive">
                 <AntiforgeryToken />
-                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Hugeicons.Archive" data-testid="toast-archive">Archive message</Button>
+                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Hugeicons.Archive03" data-testid="toast-archive">Archive message</Button>
             </form>
             <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Message: <strong data-testid="archive-state">@ArchiveState</strong></TextBlock>
         </Row>

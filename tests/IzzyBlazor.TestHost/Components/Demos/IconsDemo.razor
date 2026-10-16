@@ -5,7 +5,7 @@
 
     <Example Title="Icons beside text" Note="Icons size in em and paint with currentColor, so they match the text next to them." Code="@InlineCode">
         <Stack Gap="3">
-            <Row Gap="2" Align="Align.Center"><Icon Name="Hugeicons.Home01" /><TextBlock As="span">Home</TextBlock></Row>
+            <Row Gap="2" Align="Align.Center"><Icon Name="Hugeicons.Home03" /><TextBlock As="span">Home</TextBlock></Row>
             <Row Gap="2" Align="Align.Center"><Icon Name="Hugeicons.Settings01" /><TextBlock As="span" Size="TextSize.Lg">Settings, larger text</TextBlock></Row>
             <Row Gap="2" Align="Align.Center" Color="Color.Muted"><Icon Name="Hugeicons.Clock01" /><TextBlock As="span" Size="TextSize.Sm">Muted text, muted icon</TextBlock></Row>
             <TextBlock>An icon <Icon Name="Hugeicons.Sparkles" Color="Color.PrimaryText" /> inside a sentence sits on the text baseline.</TextBlock>
@@ -26,7 +26,7 @@
 
     <Example Title="Color, stroke width, spin" Code="@StyleCode">
         <Row Gap="5" Align="Align.Center" Wrap>
-            <Icon Name="Hugeicons.CheckmarkCircle02" Size="IconSize.Xl" Color="Color.SuccessText" Label="Done" />
+            <Icon Name="Hugeicons.CircleCheck" Size="IconSize.Xl" Color="Color.SuccessText" Label="Done" />
             <Icon Name="Hugeicons.Alert02" Size="IconSize.Xl" Color="Color.WarningText" Label="Warning" />
             <Icon Name="Hugeicons.AlertCircle" Size="IconSize.Xl" Color="Color.DangerText" Label="Error" />
             <Icon Name="Hugeicons.Favourite" Size="IconSize.Xl" StrokeWidth="1" />
@@ -59,7 +59,7 @@
         </Row>
     </Example>
 
-    <Example Title="Browse Hugeicons" Note="@($"All {Icons.Count} icons. Search by Hugeicons' name, such as Delete or Add (Hugeicons' names for trash and plus). The search is a plain GET form, so it works on static pages with JavaScript off.")">
+    <Example Title="Browse Hugeicons" Note="@($"All {Icons.Count} icons. Search by Hugeicons' name, such as Delete (Hugeicons' name for trash). The search is a plain GET form, so it works on static pages with JavaScript off.")">
         <Stack Gap="4">
             <form method="get" class="host-search">
                 <Row Gap="2" Align="Align.Center" Wrap>
@@ -125,7 +125,7 @@
     private const string InlineCode =
         """
         <Row Gap="2" Align="Align.Center">
-            <Icon Name="Hugeicons.Home01" />
+            <Icon Name="Hugeicons.Home03" />
             <TextBlock As="span">Home</TextBlock>
         </Row>
         """;
@@ -134,7 +134,7 @@
 
     private const string StyleCode =
         """
-        <Icon Name="Hugeicons.CheckmarkCircle02" Color="Color.SuccessText" Label="Done" />
+        <Icon Name="Hugeicons.CircleCheck" Color="Color.SuccessText" Label="Done" />
         <Icon Name="Hugeicons.Favourite" StrokeWidth="1" />
         <Icon Role="IconRole.Loading" Spin Label="Loading" />
         """;

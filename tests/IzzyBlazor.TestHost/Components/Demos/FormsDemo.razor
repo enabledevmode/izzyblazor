@@ -17,7 +17,7 @@
         <Box MaxWidth="32.Rem" MarginY="new() { Base = 4 }">
             <Form Model="Signup" FormName="signup" OnValidSubmit="SubmitAsync">
                 <FormErrors />
-                <TextField @bind-Value="Signup!.Name" AutoComplete="name" StartIcon="Hugeicons.User" />
+                <TextField @bind-Value="Signup!.Name" AutoComplete="name" StartIcon="Hugeicons.User02" />
                 <TextField @bind-Value="Signup!.Email" AutoComplete="email" StartIcon="Hugeicons.Mail01" Placeholder="you@example.com" Hint="We'll never share your email." />
                 <TextField @bind-Value="Signup!.Password" AutoComplete="new-password" Hint="At least 8 characters." />
                 <Select @bind-Value="Signup!.Plan" Placeholder="Choose a plan" />
@@ -26,7 +26,7 @@
                 <Switch @bind-Value="Signup!.Newsletter" />
                 <Checkbox @bind-Value="Signup!.AcceptTerms">I agree to the <a href="static/forms">terms of service</a></Checkbox>
                 <Row Gap="2">
-                    <Button Type="ButtonType.Submit" StartIcon="Hugeicons.UserAdd01">Create account</Button>
+                    <Button Type="ButtonType.Submit" StartIcon="Hugeicons.UserAdd02">Create account</Button>
                     <Button Type="ButtonType.Reset" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
                 </Row>
             </Form>
@@ -258,7 +258,7 @@
                     <EndAddon>kg</EndAddon>
                 </TextField>
                 <TextField @bind-Value="Addons!.Invite" Type="TextFieldType.Email" Placeholder="teammate@example.com">
-                    <EndAddon><Button Type="ButtonType.Submit" StartIcon="Hugeicons.Sent">Invite</Button></EndAddon>
+                    <EndAddon><Button Type="ButtonType.Submit" StartIcon="Hugeicons.Send">Invite</Button></EndAddon>
                 </TextField>
                 @if (_addonsSaved)
                 {
@@ -418,7 +418,7 @@
 
     private static string PlanName(Plan? plan) => plan switch { Plan.Pro => "Pro", Plan.Team => "Team", _ => "Free" };
     private static string PlanHint(Plan? plan) => plan switch { Plan.Pro => "$12/month", Plan.Team => "$10/user/month", _ => "For side projects" };
-    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Hugeicons.Rocket01, Plan.Team => Hugeicons.UserGroup, _ => Hugeicons.Plant01 };
+    private static IconData PlanIcon(Plan? plan) => plan switch { Plan.Pro => Hugeicons.Rocket01, Plan.Team => Hugeicons.UserGroup02, _ => Hugeicons.Plant01 };
     private static string PriorityColor(Priority p) => p switch { Priority.Urgent => "danger", Priority.High => "warning", Priority.Medium => "primary", _ => "subtle" };
 
     private bool _submitted;
@@ -668,7 +668,7 @@
         """
         <Form Model="Signup" FormName="signup" OnValidSubmit="SubmitAsync">
             <FormErrors />
-            <TextField @bind-Value="Signup.Name" StartIcon="Hugeicons.User" />
+            <TextField @bind-Value="Signup.Name" StartIcon="Hugeicons.User02" />
             <TextField @bind-Value="Signup.Email" StartIcon="Hugeicons.Mail01" Hint="We'll never share your email." />
             <TextField @bind-Value="Signup.Password" />        @* [DataType(Password)]: masked, with show/hide *@
             <Select @bind-Value="Signup.Plan" Placeholder="Choose a plan" />   @* enum: options automatic *@

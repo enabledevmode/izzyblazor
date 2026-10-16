@@ -275,7 +275,7 @@ namespace IzzyBlazor;
 /// The free Hugeicons set, Stroke Rounded style (${names.size} icons, MIT License), bundled with
 /// IzzyBlazor. Browse them at https://hugeicons.com/icons (choose Stroke Rounded and Free).
 /// </summary>
-/// <example><code>&lt;Icon Name="Hugeicons.Home01" /&gt;</code></example>
+/// <example><code>&lt;Icon Name="Hugeicons.Home03" /&gt;</code></example>
 public static class Hugeicons
 {
 ${lines.join("\n").trimEnd()}
