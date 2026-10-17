@@ -79,6 +79,7 @@ export const STYLE_PROPS = [
   { cls: "ib-grow", prop: "flex-grow", v: "grow" },
   { cls: "ib-shrink", prop: "flex-shrink", v: "shrink" },
   { cls: "ib-basis", prop: "flex-basis", v: "basis" },
+  { cls: "ib-self", prop: "align-self", v: "self" },
   // Flex container props (Stack, Row, Column)
   { cls: "ib-dir", prop: "flex-direction", v: "dir" },
   { cls: "ib-gap", prop: "gap", v: "gap" },
