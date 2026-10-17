@@ -262,7 +262,7 @@
   }
 
   .ib-empty-bordered {
-    border: 1px dashed var(--ib-color-outline);
+    border: 1px var(--ib-bst-now, dashed) var(--ib-color-outline);
     border-radius: var(--ib-radius-xl);
   }
 

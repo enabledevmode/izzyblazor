@@ -106,7 +106,8 @@ public abstract class StyledComponentBase : LayoutItemBase
 
     /// <summary>
     /// How borders set here are drawn (<see cref="IzzyBlazor.BorderStyle.Dashed"/>,
-    /// <see cref="IzzyBlazor.BorderStyle.Dotted"/>), and a <see cref="Card"/>'s own border. Solid by default.
+    /// <see cref="IzzyBlazor.BorderStyle.Dotted"/>), and the own border of a <see cref="Card"/> or a bordered
+    /// <see cref="EmptyState"/>. Solid by default (dashed on an EmptyState).
     /// </summary>
     [Parameter] public Responsive<BorderStyle> BorderStyle { get; set; }
 

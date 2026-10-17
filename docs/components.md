@@ -879,7 +879,8 @@ lines between items; `Size` sets the text size and spacing.
 
 What to show when there's nothing yet: `Icon` (in a tinted circle), `Title` (`TitleLevel`, default
 3), `Description`, any content, and `Actions` such as a "New invoice" button or "Clear filters".
-`Bordered` draws a dashed outline for an empty area inside a page; `Size` scales it.
+`Bordered` draws a dashed outline for an empty area inside a page (`BorderStyle` and `BorderColor`
+change it); `Size` scales it.
 
 ## Image and VideoEmbed
 
