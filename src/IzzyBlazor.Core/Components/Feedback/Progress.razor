@@ -80,6 +80,8 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-progress");
+        base.BuildAttributes(classes, styles);
+
         classes.Add("ib-progress-sm", Size == ControlSize.Sm);
         classes.Add("ib-progress-lg", Size == ControlSize.Lg);
         classes.Add("ib-progress-indeterminate", Value is null);
@@ -87,8 +89,6 @@
         {
             styles.AddVar("progress-color", StyleValues.Color(accent.ToColor()));
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

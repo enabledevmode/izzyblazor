@@ -175,6 +175,8 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-scheme-switch");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-scheme-switch-{Variant.ToString().ToLowerInvariant()}");
         if (Variant == ColorSchemeSwitchVariant.Segmented)
         {
@@ -182,8 +184,6 @@
             classes.Add($"ib-scheme-switch-{Size.ToString().ToLowerInvariant()}");
             classes.Add("ib-segmented-icon-only", IconOnly);
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     // The no-script route: the endpoint sets the cookie and redirects back to this page.

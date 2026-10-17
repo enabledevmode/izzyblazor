@@ -70,6 +70,8 @@ public class Badge : LayoutItemBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-badge");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-badge-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-badge-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-badge-sm", Size == BadgeSize.Sm);
@@ -78,8 +80,6 @@ public class Badge : LayoutItemBase
         {
             ColorOverride.Apply(styles, accent.ToColor());
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

@@ -160,6 +160,8 @@ public class Avatar : LayoutItemBase, IDisposable
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-avatar");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-avatar-{ResolvedSize.ToString().ToLowerInvariant()}", ResolvedSize != AvatarSize.Md);
         classes.Add("ib-avatar-square", Square);
         classes.Add("ib-avatar-solid", Variant == AvatarVariant.Solid);
@@ -176,8 +178,6 @@ public class Avatar : LayoutItemBase, IDisposable
         {
             styles.AddVar("avatar-hue", HueOf(Name ?? Initials ?? "").ToString(System.Globalization.CultureInfo.InvariantCulture));
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

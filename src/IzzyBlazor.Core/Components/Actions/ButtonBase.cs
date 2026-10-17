@@ -77,6 +77,8 @@ public abstract class ButtonBase : LayoutItemBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-btn");
+        base.BuildAttributes(classes, styles);
+
         // A custom color paints over the primary accent's custom properties.
         var accent = EffectiveAccent;
         classes.Add($"ib-btn-{accent.Role ?? "primary"}");
@@ -89,8 +91,6 @@ public abstract class ButtonBase : LayoutItemBase
         {
             ColorOverride.Apply(styles, custom);
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     /// <summary>Renders the start icon (or spinner), the label and the end icon.</summary>

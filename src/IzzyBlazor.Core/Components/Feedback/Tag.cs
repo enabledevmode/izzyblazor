@@ -80,6 +80,8 @@ public class Tag : LayoutItemBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-tag");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-tag-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-tag-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-tag-sm", Size == ControlSize.Sm);
@@ -89,8 +91,6 @@ public class Tag : LayoutItemBase
         {
             ColorOverride.Apply(styles, accent.ToColor());
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

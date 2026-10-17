@@ -24,13 +24,13 @@ public class Spinner : LayoutItemBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-icon ib-spinner");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-icon-{Size.ToString().ToLowerInvariant()}", Size != IconSize.Md);
         if (Color is { } color)
         {
             styles.AddRaw($"color:{StyleValues.Color(color)}");
         }
-
-        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

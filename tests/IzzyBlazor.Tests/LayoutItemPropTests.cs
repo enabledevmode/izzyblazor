@@ -116,7 +116,7 @@ public class LayoutItemPropTests : BunitContext
             .Add(b => b.AlignSelf, Align.End)
             .AddChildContent("Search")).Find("button");
 
-        Assert.Equal("ib-btn ib-btn-primary ib-btn-solid ib-grow ib-self", button.ClassName);
+        Assert.Equal("ib-btn ib-grow ib-self ib-btn-primary ib-btn-solid", button.ClassName);
         Assert.Contains("--ib-self:flex-end", button.GetAttribute("style"));
     }
 
