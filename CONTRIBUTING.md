@@ -148,7 +148,8 @@ git push origin v0.1.0-alpha.1
 
 For release notes, add `docs/releases/v<version>.md` in the same commit: it heads the GitHub
 release's notes, above the generated list of commits. List every rename, since Razor takes an old
-parameter name silently.
+parameter name silently. Write each paragraph and list item on one line, without wrapping it: GitHub keeps every line
+break in a release body, so wrapped text shows gaps mid-sentence.
 
 The Release workflow (`.github/workflows/release.yml`) checks that the tag is on main and matches
 `<Version>`, builds, tests, checks the asset budgets and packs with read-only access; a second job
