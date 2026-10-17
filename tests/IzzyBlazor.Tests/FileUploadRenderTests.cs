@@ -65,11 +65,86 @@ public class FileUploadRenderTests : BunitContext
     }
 
     [Fact]
-    public void Prompt_is_singular_unless_multiple()
+    public void Choose_link_is_a_label_for_the_input()
     {
-        Assert.Equal("Drag a file here, or", Render<FileUpload>(p => p.Add(f => f.Name, "A")).Find(".ib-file-prompt").TextContent);
-        Assert.Equal("Drag files here, or", Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Multiple, true)).Find(".ib-file-prompt").TextContent);
-        Assert.Equal("Drop it here", Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.PromptText, "Drop it here")).Find(".ib-file-prompt").TextContent);
+        var cut = Render<FileUpload>(p => p.Add(f => f.Name, "A"));
+        var input = cut.Find("input[type=file]");
+        var choose = cut.Find(".ib-file-choose");
+
+        Assert.Equal("label", choose.TagName, ignoreCase: true);
+        Assert.Equal(input.Id, choose.GetAttribute("for"));
+        Assert.Equal("Choose a file", choose.TextContent);
+        Assert.Equal("or drag it here", cut.Find(".ib-file-drag").TextContent);
+    }
+
+    [Fact]
+    public void Prompt_is_plural_with_multiple_and_can_be_replaced()
+    {
+        var multiple = Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Multiple, true));
+        Assert.Equal("Choose files", multiple.Find(".ib-file-choose").TextContent);
+        Assert.Equal("or drag them here", multiple.Find(".ib-file-drag").TextContent);
+
+        var custom = Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.ChooseText, "Browse").Add(f => f.DragText, "or drop a photo"));
+        Assert.Equal("Browse", custom.Find(".ib-file-choose").TextContent);
+        Assert.Equal("or drop a photo", custom.Find(".ib-file-drag").TextContent);
+    }
+
+    [Fact]
+    public void Input_is_named_by_the_field_label_not_the_link()
+    {
+        var cut = Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Label, "New photo"));
+        var input = cut.Find("input[type=file]");
+        var label = cut.Find(".ib-field-label");
+
+        Assert.Equal(label.Id, input.GetAttribute("aria-labelledby"));
+        Assert.False(Render<FileUpload>(p => p.Add(f => f.Name, "A")).Find("input").HasAttribute("aria-labelledby"));
+    }
+
+    [Theory]
+    [InlineData(".png,.jpg", 2_000_000L, "PNG or JPG · up to 2 MB")]
+    [InlineData("image/png, image/jpeg, image/svg+xml", null, "PNG, JPEG or SVG")]
+    [InlineData(".pdf", 1_536L, "PDF · up to 1.5 KB")]
+    [InlineData("image/*", 5_000_000L, "up to 5 MB")]
+    [InlineData(".png,application/vnd.ms-excel", null, null)]
+    [InlineData(null, null, null)]
+    public void Hint_comes_from_accept_and_max_size(string? accept, long? max, string? expected)
+    {
+        var cut = Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Accept, accept).Add(f => f.MaxFileSize, max));
+        var hint = cut.FindAll(".ib-file-accept");
+
+        if (expected is null) Assert.Empty(hint);
+        else Assert.Equal(expected, Assert.Single(hint).TextContent);
+    }
+
+    [Fact]
+    public void Hint_describes_the_input()
+    {
+        var input = Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Accept, ".pdf").Add(f => f.Hint, "One file.")).Find("input");
+        Assert.Equal($"{input.Id}-accept {input.Id}-hint", input.GetAttribute("aria-describedby"));
+    }
+
+    [Fact]
+    public void AcceptText_replaces_the_hint_and_empty_hides_it()
+    {
+        Assert.Equal("Square photos", Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Accept, ".png").Add(f => f.AcceptText, "Square photos")).Find(".ib-file-accept").TextContent);
+        Assert.Empty(Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Accept, ".png").Add(f => f.AcceptText, "")).FindAll(".ib-file-accept"));
+    }
+
+    [Fact]
+    public void Script_gets_an_empty_chosen_line_and_the_several_files_text()
+    {
+        var cut = Render<FileUpload>(p => p.Add(f => f.Name, "A"));
+
+        Assert.Equal("", cut.Find(".ib-file-chosen").TextContent);
+        Assert.Equal("polite", cut.Find(".ib-file-chosen").GetAttribute("aria-live"));
+        Assert.Equal("{0} files", cut.Find("ib-file-upload").GetAttribute("data-ib-many"));
+    }
+
+    [Fact]
+    public void HideLabel_keeps_the_label_for_screen_readers()
+    {
+        var label = Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Label, "Photo").Add(f => f.HideLabel, true)).Find(".ib-field-label");
+        Assert.Contains("ib-visually-hidden", label.ClassList);
     }
 
     [Fact]

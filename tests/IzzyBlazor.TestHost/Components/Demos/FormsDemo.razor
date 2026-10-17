@@ -228,10 +228,10 @@
         </Box>
     </Example>
 
-    <Example Title="File upload" Note="A drop zone around a real file input. With JavaScript off, the button chooses files and they post with the form (Multipart on the Form); the page binds them as IFormFile. With JavaScript, files can be dropped on the zone, and a file over MaxFileSize is flagged before posting. On interactive pages, OnChange gets IBrowserFile streams instead." Code="@UploadCode">
+    <Example Title="File upload" Note="A drop zone around a real file input. &quot;Choose a file&quot; is a label for the input, so it opens the picker with JavaScript off too; the browser then names the chosen file, and it posts with the form (Multipart on the Form); the page binds it as IFormFile. The hint comes from Accept and MaxFileSize. With JavaScript, files can be dropped on the zone, the chosen file's name and size replace the hint, and a file over MaxFileSize is flagged before posting. On interactive pages, OnChange gets IBrowserFile streams instead." Code="@UploadCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Upload" FormName="upload" Multipart OnValidSubmit="UploadedAsync">
-                <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" AcceptText="PNG or JPG, up to 2 MB" OnChange="files => ShowChosen(files)" />
+                <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg" MaxFileSize="2_000_000" Hint="Square images work best." OnChange="files => ShowChosen(files)" />
                 <FileUpload Name="Attachments" Label="Attachments" Multiple Hint="Several files at once." OnChange="files => ShowChosen(files)" />
                 <TextField @bind-Value="Upload!.Note" />
                 <Row Gap="2" Align="Align.Center">
@@ -750,7 +750,8 @@
     private const string UploadCode =
         """
         <Form Model="Model" FormName="upload" Multipart OnValidSubmit="SaveAsync">
-            <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" />
+            @* The hint reads "PNG or JPEG · up to 2 MB" *@
+            <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg" MaxFileSize="2_000_000" />
             <FileUpload Name="Attachments" Label="Attachments" Multiple />
         </Form>
 

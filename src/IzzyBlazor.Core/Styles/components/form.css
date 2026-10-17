@@ -498,39 +498,59 @@
   }
 
   /*
-   * FileUpload: a dashed drop zone around a real file input. The input's own button picks files
-   * (and shows what was chosen) with no script; the script adds dropping on the whole zone.
+   * FileUpload: a dashed drop zone around a real file input. "Choose a file" is a <label> for the
+   * input, so it opens the picker with no script. While scripts run, the input is hidden (still
+   * focusable, and its validation bubble points at the zone) and the script names the chosen file.
+   * Without them, the input shows only its file name (its button is hidden): the browser's own
+   * "No file chosen" or the file picked. A media query decides, so nothing flashes on load.
+   * Public variables: --ib-upload-bg, --ib-upload-border-color, --ib-upload-border-style.
    */
   .ib-file-zone {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--ib-space-2);
     padding: var(--ib-space-6) var(--ib-space-4);
-    border: 1px dashed color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
+    border: 1px var(--ib-upload-border-style, dashed) var(--ib-upload-border-color, color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface)));
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-color-surface);
+    background-color: var(--ib-upload-bg, var(--ib-color-surface-container-low));
     text-align: center;
-    transition: border-color var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease);
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
 
   .ib-file-zone[data-dragging] {
     border-style: solid;
     border-color: var(--ib-color-primary);
-    background-color: color-mix(in oklab, var(--ib-color-primary) 8%, var(--ib-color-surface));
+    background-color: color-mix(in oklab, var(--ib-color-primary) 8%, var(--ib-upload-bg, var(--ib-color-surface-container-low)));
   }
 
-  .ib-file-zone:focus-within {
+  /* The zone shows the input's focus, like a field. */
+  .ib-file-zone:has(.ib-file-input:focus-visible) {
+    border-style: solid;
     border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
+  }
+
+  /* The icon in a 36px circle on the surface, like a button waiting to be pressed. */
+  .ib-file-badge {
+    display: grid;
+    place-items: center;
+    width: 2.25rem;
+    height: 2.25rem;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-full);
+    background-color: var(--ib-color-surface);
+    color: var(--ib-color-muted);
   }
 
   .ib-file-icon {
-    width: 1.75rem;
-    height: 1.75rem;
-    color: var(--ib-color-subtle);
+    width: var(--ib-control-icon-sm, 1rem);
+    height: var(--ib-control-icon-sm, 1rem);
   }
 
-  .ib-file-zone[data-dragging] .ib-file-icon {
+  .ib-file-zone[data-dragging] .ib-file-badge {
+    border-color: var(--ib-color-primary);
     color: var(--ib-color-primary-text);
   }
 
@@ -539,53 +559,88 @@
     color: var(--ib-color-on-surface);
   }
 
-  .ib-file-accept {
+  .ib-file-choose {
+    color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-medium);
+    text-decoration: underline;
+    text-decoration-thickness: 1px;
+    text-underline-offset: 0.2em;
+    cursor: pointer;
+  }
+
+  .ib-file-choose:hover {
+    text-decoration-thickness: 2px;
+  }
+
+  /* Dragging isn't a thing on a touch screen: the link alone. */
+  @media (pointer: coarse) {
+    .ib-file-drag {
+      display: none;
+    }
+  }
+
+  .ib-file-accept,
+  .ib-file-chosen,
+  .ib-file-input {
     font-size: var(--ib-text-xs);
     color: var(--ib-color-subtle);
   }
 
-  /* The native input, kept: its button opens the picker and its text names the chosen files. */
+  .ib-file-chosen {
+    max-width: 100%;
+    overflow-wrap: anywhere;
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-file-chosen:empty,
+  .ib-file-zone[data-chosen] .ib-file-accept {
+    display: none;
+  }
+
+  /* Sized to its text, so the browser's file name sits centered (where field-sizing works). */
   .ib-file-input {
     max-width: 100%;
-    font: inherit;
-    font-size: var(--ib-text-sm);
-    color: var(--ib-color-subtle);
-  }
-
-  .ib-file-input::file-selector-button {
-    height: 2rem;
-    margin-inline-end: var(--ib-space-3);
-    padding: 0 var(--ib-space-3);
-    border: 1px solid var(--ib-color-outline);
-    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
-    background-color: var(--ib-color-surface);
-    color: var(--ib-color-on-surface);
-    font: inherit;
-    font-weight: var(--ib-weight-medium);
-    cursor: pointer;
-    transition: background-color var(--ib-duration-fast) var(--ib-ease);
-  }
-
-  .ib-file-input:hover:not(:disabled)::file-selector-button {
-    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+    field-sizing: content;
+    font-family: inherit;
   }
 
   .ib-file-input:focus-visible {
     outline: none;
   }
 
-  .ib-file-input:focus-visible::file-selector-button {
-    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
-    outline-offset: 2px;
+  /* With scripts: out of sight, but focusable, and at the bottom of the zone for the validation bubble. */
+  @media (scripting: enabled) {
+    .ib-file-input {
+      position: absolute;
+      inset-block-end: var(--ib-space-4);
+      inset-inline-start: 50%;
+      width: 1px;
+      height: 1px;
+      padding: 0;
+      border: 0;
+      opacity: 0;
+      pointer-events: none;
+    }
   }
 
-  .ib-file-input:disabled::file-selector-button {
-    color: var(--ib-color-disabled);
-    cursor: not-allowed;
+  /* Without them: the browser names the chosen file; the link is the only button. */
+  .ib-file-input::file-selector-button {
+    display: none;
   }
 
   .ib-field-disabled .ib-file-zone {
     background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-field-disabled .ib-file-choose {
+    color: var(--ib-color-disabled);
+    text-decoration: none;
+    cursor: not-allowed;
+  }
+
+  .ib-field-disabled .ib-file-prompt,
+  .ib-field-disabled .ib-file-badge {
+    color: var(--ib-color-disabled);
   }
 
   .ib-field-invalid .ib-file-zone,
