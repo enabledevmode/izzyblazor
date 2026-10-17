@@ -56,6 +56,24 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>Makes the field read-only. Read-only fields are still posted.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
+    /// <summary>The form's Disabled, ReadOnly and RequiredMark.</summary>
+    [CascadingParameter] internal FormOptions? FormOptions { get; set; }
+
+    /// <summary>Whether the field is disabled: by itself or by its <see cref="Form"/>.</summary>
+    protected bool IsDisabled => Disabled || FormOptions?.Disabled == true;
+
+    /// <summary>Whether the field is read-only: by itself or by its <see cref="Form"/>.</summary>
+    protected bool IsReadOnly => ReadOnly || FormOptions?.ReadOnly == true;
+
+    /// <summary>
+    /// Whether a hidden input posts the value. Selects, checkboxes and radios can't be read-only in
+    /// HTML, so a read-only one is disabled, and disabled controls aren't posted.
+    /// </summary>
+    protected bool PostsReadOnlyValue => IsReadOnly && !IsDisabled && !string.IsNullOrEmpty(NameAttributeValue);
+
+    /// <summary>Whether to show the asterisk on a field that renders its own label (checkboxes and switches).</summary>
+    protected bool ShowRequiredMark => IsRequired && (FormOptions?.RequiredMark ?? RequiredMark.Required) == RequiredMark.Required;
+
     /// <summary>Height, shared with buttons. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
 
@@ -255,7 +273,8 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             .Add("ib-field-sm", Size == ControlSize.Sm)
             .Add("ib-field-lg", Size == ControlSize.Lg)
             .Add("ib-field-invalid", Invalid)
-            .Add("ib-field-disabled", Disabled);
+            .Add("ib-field-disabled", IsDisabled)
+            .Add("ib-field-readonly", IsReadOnly && !IsDisabled);
         LayoutItemProps.Apply(classes, new StyleBuilder(), this);
         return classes
             .Add(LayoutItemProps.VisibilityClasses(HiddenFrom, VisibleFrom))

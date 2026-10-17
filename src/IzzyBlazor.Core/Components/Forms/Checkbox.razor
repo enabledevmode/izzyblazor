@@ -28,7 +28,7 @@
                value="true"
                @bind="CurrentValue"
                required="@IsRequired"
-               disabled="@Disabled"
+               disabled="@(IsDisabled || IsReadOnly)"
                aria-invalid="@(Invalid ? "true" : null)"
                aria-describedby="@DescribedBy" />
         <span class="ib-check-label">
@@ -40,15 +40,17 @@
             {
                 @ResolvedLabel
             }
-            @if (IsRequired)
+            @if (ShowRequiredMark)
             {
                 <span class="ib-field-required" aria-hidden="true"> *</span>
             }
         </span>
     </label>
-    @if (!Disabled && !string.IsNullOrEmpty(NameAttributeValue))
+    @if (!IsDisabled && !string.IsNullOrEmpty(NameAttributeValue))
     {
-        <input type="hidden" name="@NameAttributeValue" value="false" />
+        @* An unchecked box doesn't post, so this "false" does. A read-only box is disabled and doesn't
+           post at all, so this posts its value. *@
+        <input type="hidden" name="@NameAttributeValue" value="@(IsReadOnly && CurrentValue ? "true" : "false")" />
     }
 </FieldFrame>
 

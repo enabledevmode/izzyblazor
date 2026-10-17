@@ -97,6 +97,27 @@ else
     /// </summary>
     [Parameter] public int Columns { get; set; } = 1;
 
+    /// <summary>
+    /// Disables every field in the form. Disabled fields can't be changed or focused and aren't
+    /// posted. Buttons are left as they are.
+    /// </summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Makes every field read-only: shown and posted, but not changed, as on a page that shows a
+    /// record before editing it. Selects, checkboxes, radios and switches can't be read-only in
+    /// HTML, so they're disabled and their values are posted from hidden inputs.
+    /// </summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <summary>
+    /// Which fields are marked beside their labels: <see cref="RequiredMark.Required"/> (an asterisk
+    /// on required fields, the default), <see cref="RequiredMark.Optional"/> ("(optional)" on the
+    /// others) or <see cref="RequiredMark.None"/>. Whether a field is required still comes from
+    /// <c>[Required]</c> or its own <c>Required</c>.
+    /// </summary>
+    [Parameter] public RequiredMark RequiredMark { get; set; } = RequiredMark.Required;
+
     /// <summary>The fields and buttons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -104,6 +125,7 @@ else
     private string? _style;
     private string? _gridClass;
     private string? _gridStyle;
+    private FormOptions _options = new(false, false, RequiredMark.Required);
 
     private int ColumnCount => Math.Clamp(Columns, 1, 4);
 
@@ -118,17 +140,19 @@ else
             @Validator
         }
 
-        if (ColumnCount > 1)
-        {
-            @* The form is the container the columns measure; an element can't query its own width. *@
-            <div class="@_gridClass" style="@_gridStyle">
+        <CascadingValue Value="_options">
+            @if (ColumnCount > 1)
+            {
+                @* The form is the container the columns measure; an element can't query its own width. *@
+                <div class="@_gridClass" style="@_gridStyle">
+                    @ChildContent
+                </div>
+            }
+            else
+            {
                 @ChildContent
-            </div>
-        }
-        else
-        {
-            @ChildContent
-        }
+            }
+        </CascadingValue>
     };
 
     /// <inheritdoc />
@@ -152,6 +176,14 @@ else
     protected override void OnParametersSet()
     {
         (_class, _style) = BuildRootAttributes();
+
+        // A new value tells every field to render again, so only when something changed.
+        var options = new FormOptions(Disabled, ReadOnly, RequiredMark);
+        if (options != _options)
+        {
+            _options = options;
+        }
+
         (_gridClass, _gridStyle) = (null, null);
         if (ColumnCount > 1)
         {

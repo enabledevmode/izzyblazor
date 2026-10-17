@@ -33,8 +33,8 @@
                required="@IsRequired"
                maxlength="@(MaxLength ?? AnnotatedMaxLength)"
                minlength="@(MinLength ?? AnnotatedMinLength)"
-               disabled="@Disabled"
-               readonly="@ReadOnly"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
                aria-invalid="@(Invalid ? "true" : null)"
                aria-describedby="@DescribedBy" />
         @if (ResolvedType == TextFieldType.Password && Reveal)

@@ -86,6 +86,9 @@ public class IzzyText
     /// <summary>Combobox while searching on the server.</summary>
     public virtual string Searching { get; set; } = "Searching…";
 
+    /// <summary>After the label of a field that isn't required, in a Form with <c>RequiredMark.Optional</c>.</summary>
+    public virtual string Optional { get; set; } = "(optional)";
+
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
 

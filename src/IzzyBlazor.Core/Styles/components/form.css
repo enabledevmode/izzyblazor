@@ -64,6 +64,12 @@
     color: var(--ib-color-danger-text);
   }
 
+  /* "(optional)", in a Form with RequiredMark.Optional. */
+  .ib-field-optional {
+    font-weight: var(--ib-weight-normal);
+    color: var(--ib-color-muted);
+  }
+
   .ib-field-hint {
     margin: 0;
     font-size: var(--ib-field-hint-font);
@@ -1549,6 +1555,45 @@
     display: flex;
     flex-direction: column;
     margin-top: var(--ib-space-3);
+  }
+
+  /* Read-only choices (Select, Combobox, MultiSelect, checkboxes, radios, switches, segments): the
+     control is disabled so it can't change, and a hidden input posts the value. They read as a
+     value, like a read-only text field, not as unavailable. */
+  .ib-field-readonly .ib-field-input:disabled {
+    color: var(--ib-color-on-surface);
+    cursor: default;
+    opacity: 1; /* Chrome fades a disabled select */
+  }
+
+  .ib-field-readonly .ib-check-input:disabled {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
+    cursor: default;
+  }
+
+  /* As specific as the disabled-and-checked rule it replaces. */
+  .ib-field-readonly .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate, [type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared])) {
+    border-color: var(--ib-color-primary);
+    background-color: var(--ib-color-primary);
+  }
+
+  .ib-field-readonly .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate, [type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared]))::before {
+    background-color: var(--ib-color-on-primary);
+  }
+
+  .ib-field-readonly .ib-check-input:disabled + .ib-check-label,
+  .ib-field-readonly .ib-segment:has(.ib-segment-input:disabled) {
+    color: var(--ib-color-on-surface);
+    cursor: default;
+  }
+
+  .ib-field-readonly .ib-switch-input:disabled {
+    opacity: 1;
+    cursor: default;
+  }
+
+  .ib-field-readonly .ib-chip-remove {
+    display: none;
   }
 
   /* Columns (Form and Fieldset Columns): up to N columns by the form's or group's own width, so a

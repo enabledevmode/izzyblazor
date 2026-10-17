@@ -32,8 +32,8 @@
                    step="@ResolvedStep"
                    placeholder="@Placeholder"
                    required="@IsRequired"
-                   disabled="@Disabled"
-                   readonly="@ReadOnly"
+                   disabled="@IsDisabled"
+                   readonly="@IsReadOnly"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
             @if (StepButtons == IzzyBlazor.StepButtons.Stacked)
@@ -119,7 +119,7 @@
         .Add("ib-has-split-steppers", StepButtons == IzzyBlazor.StepButtons.Split)
         .Build()!;
 
-    private bool Locked => Disabled || ReadOnly;
+    private bool Locked => IsDisabled || IsReadOnly;
 
     /// <inheritdoc />
     protected override void OnParametersSet()

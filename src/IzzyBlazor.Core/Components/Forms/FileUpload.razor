@@ -67,6 +67,11 @@
     /// <summary>Disables the picker.</summary>
     [Parameter] public bool Disabled { get; set; }
 
+    [CascadingParameter] internal FormOptions? FormOptions { get; set; }
+
+    // A file can't be read-only, so a read-only form disables the picker.
+    private bool IsDisabled => Disabled || FormOptions is { Disabled: true } or { ReadOnly: true };
+
     /// <summary>
     /// The file types to offer, as the <c>accept</c> attribute: <c>"image/*"</c>, <c>".pdf,.docx"</c>.
     /// A hint for the picker only; check types on the server too.
@@ -170,7 +175,7 @@
             if (Accept is not null) attributes["accept"] = Accept;
             if (Multiple) attributes["multiple"] = true;
             if (Required) attributes["required"] = true;
-            if (Disabled) attributes["disabled"] = true;
+            if (IsDisabled) attributes["disabled"] = true;
             // The input has two labels, the field's and the "Choose a file" link; it's named by the first.
             if (!string.IsNullOrEmpty(Label)) attributes["aria-labelledby"] = LabelId;
             if (Errors is { Count: > 0 }) attributes["aria-invalid"] = "true";
@@ -196,7 +201,7 @@
         classes.Add("ib-field");
         classes.Add("ib-field-file");
         classes.Add("ib-field-invalid", Errors is { Count: > 0 });
-        classes.Add("ib-field-disabled", Disabled);
+        classes.Add("ib-field-disabled", IsDisabled);
         base.BuildAttributes(classes, styles);
     }
 

@@ -30,7 +30,7 @@
                        checked="@(value == CurrentValueAsString)"
                        @onchange="() => CurrentValue = item"
                        required="@IsRequired"
-                       disabled="@Disabled"
+                       disabled="@(IsDisabled || IsReadOnly)"
                        aria-invalid="@(Invalid ? "true" : null)" />
                 @if (icon is not null)
                 {
@@ -40,6 +40,11 @@
             </label>
         }
     </div>
+    @if (PostsReadOnlyValue)
+    {
+        @* Read-only: the control is disabled, and disabled controls don't post, so this does. *@
+        <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
+    }
 </FieldFrame>
 
 @code {

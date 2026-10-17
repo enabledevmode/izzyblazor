@@ -22,7 +22,7 @@
                min="@Format(ResolvedMin)"
                max="@Format(ResolvedMax)"
                step="@ResolvedStep"
-               disabled="@(Disabled || ReadOnly)"
+               disabled="@(IsDisabled || IsReadOnly)"
                aria-valuetext="@ValueText"
                data-ib-format="@ValueFormat"
                aria-invalid="@(Invalid ? "true" : null)"
@@ -33,7 +33,7 @@
             <output class="ib-slider-value" for="@FieldId" aria-hidden="true">@ValueText</output>
         }
     </ib-field-control>
-    @if (ReadOnly && !Disabled)
+    @if (IsReadOnly && !IsDisabled)
     {
         @* A disabled input isn't posted, so a read-only slider posts its value here. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />

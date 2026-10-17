@@ -31,7 +31,7 @@
                 multiple
                 size="@Math.Clamp(ItemList.Count, 2, 6)"
                 required="@IsRequired"
-                disabled="@Disabled"
+                disabled="@(IsDisabled || IsReadOnly)"
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy"
                 @onchange="OnSelectChanged">
@@ -57,10 +57,10 @@
                    autocomplete="off"
                    autocapitalize="off"
                    spellcheck="false"
-                   disabled="@Disabled"
-                   readonly="@ReadOnly" />
+                   disabled="@IsDisabled"
+                   readonly="@IsReadOnly" />
         </div>
-        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@Disabled">
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@(IsDisabled || IsReadOnly)">
             <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
         </button>
         <div id="@ListId"
@@ -93,6 +93,14 @@
             <div class="ib-combobox-empty" role="status">@(EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
     </ib-combobox>
+    @if (PostsReadOnlyValue)
+    {
+        @* Read-only: the control is disabled, and disabled controls don't post, so these do. *@
+        @foreach (var item in ItemList.Where(IsChosen))
+        {
+            <input type="hidden" name="@NameAttributeValue" value="@ChoiceOptions.Value(item)" />
+        }
+    }
 </FieldFrame>
 
 @code {
