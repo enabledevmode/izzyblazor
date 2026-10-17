@@ -27,14 +27,16 @@ A side beats its axis, which beats the all-sides value, at every breakpoint.
 
 ## Borders, sizes and overflow
 
-`Border` draws a solid border on every side, in whole pixels (0 to 16), and works like padding:
+`Border` draws a border on every side, in whole pixels (0 to 16), and works like padding:
 `BorderX` and `BorderY` override an axis, `BorderTop`, `BorderBottom`, `BorderStart` and `BorderEnd`
-one side. `BorderColor` sets the color (`Color.Border` by default); on its own it recolors a
-component's existing border. Sides you don't set keep the component's own.
+one side. `BorderColor` sets the color (`Color.Border` by default) and `BorderStyle` the line
+(`Solid` by default, `Dashed`, `Dotted` or `None`); on their own they restyle a component's existing
+border. Sides you don't set keep the component's own.
 
 ```razor
 <Section Bg="Color.SurfaceContainerLow" BorderY="1">...</Section>   @* a band with lines above and below *@
 <Box Border="1" BorderColor="Color.Outline" Radius="Radius.Lg">...</Box>
+<Card BorderStyle="BorderStyle.Dashed">...</Card>                    @* a placeholder or "add new" tile *@
 ```
 
 `Width`, `MinWidth`, `MaxWidth`, `Height`, `MinHeight` and `MaxHeight` take a `Length`. `Overflow`

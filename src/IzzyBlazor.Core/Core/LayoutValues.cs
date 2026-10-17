@@ -98,6 +98,22 @@ public enum Overflow
     Clip,
 }
 
+/// <summary>How a border is drawn.</summary>
+public enum BorderStyle
+{
+    /// <summary>A continuous line (the default).</summary>
+    Solid,
+
+    /// <summary>Dashes: placeholders, "add new" tiles and drop targets.</summary>
+    Dashed,
+
+    /// <summary>Dots.</summary>
+    Dotted,
+
+    /// <summary>No border, whatever its width.</summary>
+    None,
+}
+
 /// <summary>Elevation tokens.</summary>
 public enum Shadow
 {

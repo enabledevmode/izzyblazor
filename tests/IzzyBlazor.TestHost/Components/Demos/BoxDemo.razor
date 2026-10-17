@@ -69,6 +69,17 @@
         </Row>
     </Example>
 
+    <Example Title="Border styles" Note="Border sets the width, BorderColor the color and BorderStyle the line: Solid (the default), Dashed, Dotted or None. On their own, BorderColor and BorderStyle restyle a component's own border, like a card's." Code="@BorderCode">
+        <Row Gap="3" Wrap>
+            <Box Border="1" Padding="4" Radius="Radius.Lg" Width="Length.FitContent">Solid</Box>
+            <Box Border="1" BorderStyle="BorderStyle.Dashed" BorderColor="Color.Outline" Padding="4" Radius="Radius.Lg" Width="Length.FitContent">Dashed</Box>
+            <Box Border="2" BorderStyle="BorderStyle.Dotted" BorderColor="Color.Outline" Padding="4" Radius="Radius.Lg" Width="Length.FitContent">Dotted, 2px</Box>
+            <Card BorderStyle="BorderStyle.Dashed" Width="Length.FitContent" data-testid="dashed-card">
+                <Row Gap="2" Align="Align.Center"><Icon Name="Lucide.Plus" /> Add a project</Row>
+            </Card>
+        </Row>
+    </Example>
+
     <Example Title="Semantic element and width" Note="As renders any element; Length.Prose is a comfortable reading width (68ch)." Code="@SemanticCode">
         <Box As="article" MaxWidth="Length.Prose" Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Md">
             <p style="margin:0">
@@ -138,6 +149,13 @@
         <Box Padding="2" PaddingX="10">...</Box>
         <Box Padding="4" PaddingTop="10" PaddingStart="10">...</Box>
         <Box MarginTop="new() { Base = 4, Md = 8 }" MarginEnd="-2">...</Box>
+        """;
+
+    private const string BorderCode =
+        """
+        <Box Border="1" BorderStyle="BorderStyle.Dashed" BorderColor="Color.Outline">Dashed</Box>
+        <Box Border="2" BorderStyle="BorderStyle.Dotted">Dotted, 2px</Box>
+        <Card BorderStyle="BorderStyle.Dashed">Add a project</Card>
         """;
 
     private const string SemanticCode =

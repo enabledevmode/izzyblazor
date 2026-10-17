@@ -64,18 +64,20 @@ export const STYLE_PROPS = [
   { cls: "ib-maxh", prop: "max-height", v: "maxh" },
   { cls: "ib-minh", prop: "min-height", v: "minh" },
   { cls: "ib-ov", prop: "overflow", v: "ov" },
-  // Borders: each side is one shorthand (width, solid, color), so it touches only that side and
-  // never resets a component's own borders. The color is BorderColor at the current breakpoint
-  // (--ib-bc-now, which each ib-bc class sets), else the border token, so a width set at a larger
-  // breakpoint keeps a color set at a smaller one. ib-bc also sets border-color, so BorderColor
-  // alone recolors an existing border.
-  { cls: "ib-bx", prop: "border-inline", v: "bx", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
-  { cls: "ib-by", prop: "border-block", v: "by", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
-  { cls: "ib-bt", prop: "border-block-start", v: "bt", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
-  { cls: "ib-bb", prop: "border-block-end", v: "bb", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
-  { cls: "ib-bs", prop: "border-inline-start", v: "bs", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
-  { cls: "ib-be", prop: "border-inline-end", v: "be", tpl: "{v} solid var(--ib-bc-now, var(--ib-color-border))" },
+  // Borders: each side is one shorthand (width, style, color), so it touches only that side and
+  // never resets a component's own borders. The style and color are BorderStyle and BorderColor at
+  // the current breakpoint (--ib-bst-now and --ib-bc-now, which each ib-bst and ib-bc class sets),
+  // else solid and the border token, so a width set at a larger breakpoint keeps a style or color
+  // set at a smaller one. ib-bst and ib-bc also set border-style and border-color, so either alone
+  // restyles an existing border.
+  { cls: "ib-bx", prop: "border-inline", v: "bx", tpl: "{v} var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-by", prop: "border-block", v: "by", tpl: "{v} var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bt", prop: "border-block-start", v: "bt", tpl: "{v} var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bb", prop: "border-block-end", v: "bb", tpl: "{v} var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-bs", prop: "border-inline-start", v: "bs", tpl: "{v} var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border))" },
+  { cls: "ib-be", prop: "border-inline-end", v: "be", tpl: "{v} var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border))" },
   { cls: "ib-bc", prop: "border-color", v: "bc", now: "--ib-bc-now" },
+  { cls: "ib-bst", prop: "border-style", v: "bst", now: "--ib-bst-now" },
   { cls: "ib-grow", prop: "flex-grow", v: "grow" },
   { cls: "ib-shrink", prop: "flex-shrink", v: "shrink" },
   { cls: "ib-basis", prop: "flex-basis", v: "basis" },
