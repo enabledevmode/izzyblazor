@@ -50,6 +50,12 @@
     }
   }
 
+  /* PanelWidth: a set width, still never wider than the screen. */
+  .ib-pop.ib-pop-sized {
+    width: var(--ib-pop-w);
+    max-width: calc(100vw - 1rem);
+  }
+
   .ib-pop-placed {
     inset: auto;
     margin: 0;
@@ -408,6 +414,11 @@
   html:has(.ib-dialog:modal),
   html:has(.ib-dialog[open]:not(:modal)) {
     overflow: hidden;
+  }
+
+  /* A Width set on the dialog replaces the size's, and still leaves a margin on small screens. */
+  .ib-dialog:is(.ib-w, .ib-w-sm, .ib-w-md, .ib-w-lg, .ib-w-xl) {
+    max-width: calc(100% - 2rem);
   }
 
   .ib-dialog-sm { --ib-dialog-w: 24rem; }

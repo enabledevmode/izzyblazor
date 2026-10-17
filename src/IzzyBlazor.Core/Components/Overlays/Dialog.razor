@@ -74,7 +74,7 @@
                     }
                 </header>
             }
-            <div class="ib-dialog-body">
+            <div class="@_bodyClass" style="@_bodyStyle">
                 @ChildContent
             </div>
             @if (Footer is not null)
@@ -100,6 +100,12 @@
 
     /// <summary>The body.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>
+    /// Padding inside the body, in spacing steps, in place of the dialog's. <c>0</c> lets content
+    /// such as a table or image run edge to edge.
+    /// </summary>
+    [Parameter] public Responsive<int> ContentPadding { get; set; }
 
     /// <summary>The action row at the bottom, usually a <see cref="DialogClose"/> and a primary button.</summary>
     [Parameter] public RenderFragment? Footer { get; set; }
@@ -134,6 +140,8 @@
     private bool _openedByQuery;
     private string? _class;
     private string? _style;
+    private string? _bodyClass;
+    private string? _bodyStyle;
 
     private string TitleId => $"{ElementId}-title";
 
@@ -146,6 +154,7 @@
         classes.Add("ib-dialog");
         classes.Add($"ib-dialog-{Size.Name()}");
         classes.Add($"ib-dialog-{Placement.Name()}");
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
@@ -171,6 +180,13 @@
         }
 
         (_class, _style) = BuildRootAttributes();
+
+        var bodyClasses = new ClassBuilder().Add("ib-dialog-body");
+        var bodyStyles = new StyleBuilder();
+        ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-px", "px", StyleValues.Spacing);
+        ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-py", "py", StyleValues.Spacing);
+        _bodyClass = bodyClasses.Build();
+        _bodyStyle = bodyStyles.Build();
     }
 
     /// <inheritdoc />

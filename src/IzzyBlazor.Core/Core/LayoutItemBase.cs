@@ -16,7 +16,8 @@ namespace IzzyBlazor;
 /// </code>
 /// </example>
 /// <remarks>
-/// The props go on the component's outermost element, the one its parent lays out. Props that
+/// The props go on the component's outermost element, the one its parent lays out, even when
+/// <c>Class</c> and <c>Style</c> go on an inner element (see <see cref="BuildOuterAttributes"/>). Props that
 /// are not set add nothing, so they never override a component's own defaults.
 /// <see cref="StyledComponentBase"/> adds the surface props (padding, background, borders...)
 /// for boxes and containers.
@@ -72,7 +73,31 @@ public abstract class LayoutItemBase : IzzyComponentBase, ILayoutItem
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        BuildLayoutAttributes(classes, styles);
+        if (VisibilityOnRoot)
+        {
+            BuildLayoutAttributes(classes, styles);
+        }
+    }
+
+    /// <summary>
+    /// For components whose <see cref="IzzyComponentBase.Class"/> and <see cref="IzzyComponentBase.Style"/>
+    /// go on an inner element (<see cref="IzzyComponentBase.VisibilityOnRoot"/> is false, as in a menu's
+    /// panel): the outer element's class and style, with the item props and the visibility classes.
+    /// The outer element is the one the parent lays out.
+    /// </summary>
+    /// <param name="cssClass">The outer element's own classes.</param>
+    /// <param name="style">The outer element's own style, if any. Returned as is when no item prop is set.</param>
+    protected (string Class, string? Style) BuildOuterAttributes(string cssClass, string? style = null)
+    {
+        var classes = new ClassBuilder().Add(cssClass);
+        var styles = new StyleBuilder();
+        LayoutItemProps.Apply(classes, styles, this);
+        classes.Add(VisibilityClasses);
+        var vars = styles.Build();
+        var outerStyle = vars is null ? style
+            : string.IsNullOrEmpty(style) ? vars
+            : $"{style.TrimEnd(';')};{vars}";
+        return (classes.Build()!, outerStyle);
     }
 
     /// <summary>
