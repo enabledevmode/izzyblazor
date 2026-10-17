@@ -63,8 +63,8 @@ The App layout parts take `Bg` and `ColorScheme` only. Items that a parent alway
 
 Item props go on the component's outermost element, the one its parent lays out. For a field, that's
 the wrapper around the label, control and hint, not the input. For `Menu`, `Popover` and `Tooltip`,
-it's the element around the trigger, while `Class` and `Style` go on the panel. For a `Dialog`, it's
-the dialog itself, so `Width` sets its width:
+it's the element around the trigger, while `Class` and `Style` go on the panel; a `Grow` or `Width`
+there stretches the trigger too, so the panel lines up with it:
 
 ```razor
 <Row Gap="2" Align="Align.End">

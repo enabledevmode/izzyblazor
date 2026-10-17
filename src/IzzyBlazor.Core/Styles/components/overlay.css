@@ -50,10 +50,15 @@
     }
   }
 
-  /* PanelWidth: a set width, still never wider than the screen. */
+  /* PanelWidth: a set width, still never wider than the screen. A menu drops its usual minimum
+     (10rem, and the trigger's width), so the width is exact. */
   .ib-pop.ib-pop-sized {
     width: var(--ib-pop-w);
     max-width: calc(100vw - 1rem);
+  }
+
+  .ib-pop.ib-menu.ib-pop-sized {
+    min-width: 0;
   }
 
   .ib-pop-placed {
@@ -249,6 +254,15 @@
     position: relative;
     display: inline-flex;
     vertical-align: middle;
+  }
+
+  /*
+   * Grow, Width, MinWidth or Basis size the wrapper, the element the anchor is on, so the trigger
+   * fills it: the panel then lines up with what you see. Content of the tooltip and closed panels
+   * aren't flex items (positioned or display: none).
+   */
+  :is(.ib-pop-root, .ib-tooltip-root):is(.ib-grow, .ib-w, .ib-w-sm, .ib-w-md, .ib-w-lg, .ib-w-xl, .ib-minw, .ib-minw-sm, .ib-minw-md, .ib-minw-lg, .ib-minw-xl, .ib-basis, .ib-basis-sm, .ib-basis-md, .ib-basis-lg, .ib-basis-xl) > :not([popover], .ib-tooltip) {
+    flex-grow: 1;
   }
 
   .ib-tooltip {
