@@ -1557,6 +1557,16 @@
     margin-top: var(--ib-space-3);
   }
 
+  /* FormActions: the buttons at the end of a form, across the whole row. */
+  .ib-form-actions {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--ib-space-2);
+    grid-column: 1 / -1;
+  }
+
   /* Read-only choices (Select, Combobox, MultiSelect, checkboxes, radios, switches, segments): the
      control is disabled so it can't change, and a hidden input posts the value. They read as a
      value, like a read-only text field, not as unavailable. */

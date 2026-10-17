@@ -1,0 +1,36 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+
+@*
+    The row of buttons at the end of a form. It takes the whole row in a form with Columns and puts
+    the buttons at the end. Last in a form that fills a Dialog or Drawer, it becomes the dialog's
+    footer, like DialogActions: it reaches the edges and stays in view when the body scrolls.
+    <FormActions>
+        <LinkButton Href="/orders" Variant="ButtonVariant.Outline">Cancel</LinkButton>
+        <Button Type="ButtonType.Submit">Save</Button>
+    </FormActions>
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</div>
+
+@code {
+    /// <summary>The buttons, in reading order: usually Cancel, then the main action.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Where the buttons go along the row. Defaults to the end.</summary>
+    [Parameter] public Responsive<Justify> Justify { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-form-actions");
+        base.BuildAttributes(classes, styles);
+        ApplyResponsive(classes, styles, Justify, "ib-justify", "justify", StyleValues.Justify);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}

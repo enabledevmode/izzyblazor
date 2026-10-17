@@ -304,17 +304,17 @@
             <TextField @bind-Value="Account!.Company" />
             <RadioGroup @bind-Value="Account!.Contact" Orientation="Orientation.Horizontal" />
             <Switch @bind-Value="Account!.Newsletter" />
-            <Row Gap="2">
+            <FormActions>
                 @if (EditAccount)
                 {
-                    <Button Type="ButtonType.Submit">Save</Button>
                     <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", (bool?)null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</LinkButton>
+                    <Button Type="ButtonType.Submit">Save</Button>
                 }
                 else
                 {
                     <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", true)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Edit</LinkButton>
                 }
-            </Row>
+            </FormActions>
         </Form>
     </Example>
 
@@ -329,7 +329,7 @@
         </Box>
     </Example>
 
-    <Example Title="Columns" Note="Columns lays fields out in up to that many columns, by the form's own width rather than the screen's: narrow the window and this one goes from three to two to one, as it would in a dialog. Fields take a column; ColSpan widens one (never past the columns shown) and GridSpan.Full takes the row. A Fieldset takes the row and can have its own Columns. Anything that isn't a field, such as the button, takes the row too. The first name's message is the model's own ErrorMessage, in the browser's check as well as after posting." Code="@ColumnsCode">
+    <Example Title="Columns" Note="Columns lays fields out in up to that many columns, by the form's own width rather than the screen's: narrow the window and this one goes from three to two to one, as it would in a dialog. Fields take a column; ColSpan widens one (never past the columns shown) and GridSpan.Full takes the row. A Fieldset takes the row and can have its own Columns. Anything that isn't a field takes the row too, such as FormActions, which puts the buttons at the end. The first name's message is the model's own ErrorMessage, in the browser's check as well as after posting." Code="@ColumnsCode">
         <Form Model="Contact" FormName="columns" Columns="3" OnValidSubmit="() => { }">
             <TextField @bind-Value="Contact!.FirstName" />
             <TextField @bind-Value="Contact!.LastName" />
@@ -341,7 +341,7 @@
                 <TextField @bind-Value="Contact!.PostalCode" />
             </Fieldset>
             <TextArea @bind-Value="Contact!.Notes" ColSpan="2" />
-            <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+            <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
         </Form>
     </Example>
 
@@ -882,7 +882,7 @@
                 <TextField @bind-Value="Contact.PostalCode" />
             </Fieldset>
             <TextArea @bind-Value="Contact.Notes" ColSpan="2" />   @* two columns, one when narrow *@
-            <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+            <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
         </Form>
         """;
 
@@ -895,7 +895,7 @@
             <TextField @bind-Value="Account.Company" />         @* "Company (optional)" *@
             <RadioGroup @bind-Value="Account.Contact" Orientation="Orientation.Horizontal" />
             <Switch @bind-Value="Account.Newsletter" />
-            <Row><LinkButton Href="@Navigation.GetUriWithQueryParameter("edit", true)">Edit</LinkButton></Row>
+            <FormActions><LinkButton Href="@Navigation.GetUriWithQueryParameter("edit", true)">Edit</LinkButton></FormActions>
         </Form>
         """;
 

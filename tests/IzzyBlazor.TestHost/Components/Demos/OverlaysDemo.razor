@@ -172,10 +172,11 @@
         <Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm" @bind-Open="_renameOpen">
             <Form Model="Rename" FormName="rename" OnValidSubmit="RenameSaved">
                 <TextField @bind-Value="Rename!.Name" Hint="3 to 40 characters." />
-                <Row Gap="2" Justify="Justify.End">
+                @* Last in a form that fills the dialog, FormActions becomes the dialog's footer. *@
+                <FormActions>
                     <DialogClose>Cancel</DialogClose>
                     <Button Type="ButtonType.Submit">Rename</Button>
-                </Row>
+                </FormActions>
             </Form>
         </Dialog>
 
