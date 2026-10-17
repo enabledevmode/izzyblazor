@@ -15,7 +15,7 @@
     only: the box posts as unchecked ("false"), and choosing it clears the dash.
 *@
 
-<FieldFrame Class="@WrapperClass(AsSwitch ? "switch" : "checkbox")" Id="@FieldId" LabelInControl
+<FieldFrame Class="@WrapperClass(AsSwitch ? "switch" : "checkbox")" Style="@WrapperStyle" Id="@FieldId" LabelInControl
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <label class="ib-check" for="@FieldId">
         <input @attributes="ControlAttributes"

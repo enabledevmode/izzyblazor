@@ -19,7 +19,7 @@ namespace IzzyBlazor;
 /// <c>[Required]</c> becomes <c>required</c>, <c>[StringLength]</c> becomes <c>maxlength</c>.
 /// The browser checks those before posting; the server still validates.
 /// </remarks>
-public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue> : InputBase<TValue>
+public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue> : InputBase<TValue>, ILayoutItem
 {
     [Inject] private IServiceProvider IzzyServices { get; set; } = default!;
 
@@ -61,6 +61,57 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
 
     /// <summary>Classes for the field's outer wrapper (label, control, hint and error).</summary>
     [Parameter] public string? Class { get; set; }
+
+    /// <summary>Inline style for the field's outer wrapper, after its generated custom properties.</summary>
+    [Parameter] public string? Style { get; set; }
+
+    /// <summary>Hides the field from this breakpoint up.</summary>
+    [Parameter] public Breakpoint? HiddenFrom { get; set; }
+
+    /// <summary>Shows the field only from this breakpoint up.</summary>
+    [Parameter] public Breakpoint? VisibleFrom { get; set; }
+
+    /// <summary>Margin on all sides, in spacing steps (-16 to 16; one step = 4px).</summary>
+    [Parameter] public Responsive<int> Margin { get; set; }
+
+    /// <summary>Horizontal margin. When set, replaces <see cref="Margin"/> on this axis.</summary>
+    [Parameter] public Responsive<int> MarginX { get; set; }
+
+    /// <summary>Vertical margin. When set, replaces <see cref="Margin"/> on this axis.</summary>
+    [Parameter] public Responsive<int> MarginY { get; set; }
+
+    /// <summary>Top margin. When set, replaces <see cref="MarginY"/> and <see cref="Margin"/> on this side.</summary>
+    [Parameter] public Responsive<int> MarginTop { get; set; }
+
+    /// <summary>Bottom margin. When set, replaces <see cref="MarginY"/> and <see cref="Margin"/> on this side.</summary>
+    [Parameter] public Responsive<int> MarginBottom { get; set; }
+
+    /// <summary>Margin at the start (left in left-to-right text). Replaces <see cref="MarginX"/> and <see cref="Margin"/> on this side.</summary>
+    [Parameter] public Responsive<int> MarginStart { get; set; }
+
+    /// <summary>Margin at the end (right in left-to-right text). Replaces <see cref="MarginX"/> and <see cref="Margin"/> on this side.</summary>
+    [Parameter] public Responsive<int> MarginEnd { get; set; }
+
+    /// <summary>Width of the whole field (label, control, hint).</summary>
+    [Parameter] public Responsive<Length> Width { get; set; }
+
+    /// <summary>Minimum width of the whole field.</summary>
+    [Parameter] public Responsive<Length> MinWidth { get; set; }
+
+    /// <summary>Maximum width of the whole field.</summary>
+    [Parameter] public Responsive<Length> MaxWidth { get; set; }
+
+    /// <summary>Whether to grow into free space inside a Stack, Row or Column: <c>&lt;TextField Grow /&gt;</c>.</summary>
+    [Parameter] public bool Grow { get; set; }
+
+    /// <summary>Whether to shrink when space is short inside a Stack, Row or Column. Defaults to true.</summary>
+    [Parameter] public bool Shrink { get; set; } = true;
+
+    /// <summary>Starting size inside a Stack, before growing or shrinking.</summary>
+    [Parameter] public Responsive<Length> Basis { get; set; }
+
+    /// <summary>Alignment across the parent's direction, overriding the parent's <c>Align</c> for this field only.</summary>
+    [Parameter] public Responsive<Align> AlignSelf { get; set; }
 
     /// <summary>The control's element id. Generated when not set; also accepted as an <c>id</c> attribute.</summary>
     protected string FieldId =>
@@ -154,16 +205,33 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// </summary>
     protected string GroupName => NameAttributeValue is { Length: > 0 } name ? name : FieldId;
 
-    /// <summary>The wrapper's classes.</summary>
-    protected string WrapperClass(string kind) => new ClassBuilder()
-        .Add("ib-field")
-        .Add($"ib-field-{kind}")
-        .Add("ib-field-sm", Size == ControlSize.Sm)
-        .Add("ib-field-lg", Size == ControlSize.Lg)
-        .Add("ib-field-invalid", Invalid)
-        .Add("ib-field-disabled", Disabled)
-        .Add(Class)
-        .Build()!;
+    /// <summary>The wrapper's classes: the field's own, the item props, then <see cref="Class"/>.</summary>
+    protected string WrapperClass(string kind)
+    {
+        var classes = new ClassBuilder()
+            .Add("ib-field")
+            .Add($"ib-field-{kind}")
+            .Add("ib-field-sm", Size == ControlSize.Sm)
+            .Add("ib-field-lg", Size == ControlSize.Lg)
+            .Add("ib-field-invalid", Invalid)
+            .Add("ib-field-disabled", Disabled);
+        LayoutItemProps.Apply(classes, new StyleBuilder(), this);
+        return classes
+            .Add(LayoutItemProps.VisibilityClasses(HiddenFrom, VisibleFrom))
+            .Add(Class)
+            .Build()!;
+    }
+
+    /// <summary>The wrapper's style: the item props' custom properties, then <see cref="Style"/>.</summary>
+    protected string? WrapperStyle
+    {
+        get
+        {
+            var styles = new StyleBuilder();
+            LayoutItemProps.Apply(new ClassBuilder(), styles, this);
+            return styles.AddRaw(Style).Build();
+        }
+    }
 
     /// <inheritdoc />
     protected override string? FormatValueAsString(TValue? value) =>

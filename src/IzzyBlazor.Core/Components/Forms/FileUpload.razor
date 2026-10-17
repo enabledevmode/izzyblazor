@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @using Microsoft.AspNetCore.Components.Forms
 
 @*
@@ -17,7 +17,7 @@
     @code { [SupplyParameterFromForm(FormName = "profile")] public IFormFile? Avatar { get; set; } }
 *@
 
-<FieldFrame Class="@_class" Id="@InputId" Label="@Label" Required="Required"
+<FieldFrame Class="@_class" Style="@_style" Id="@InputId" Label="@Label" Required="Required"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-file-upload class="ib-file-zone" data-ib-max-size="@MaxFileSize" data-ib-too-large="@(TooLargeText ?? TextDefaults.FileTooLarge)" data-ib-wrong-type="@(WrongTypeText ?? TextDefaults.FileWrongType)" data-ib-interactive="@(IsInteractive ? "" : null)">
         <Icon Name="Icon ?? IconSet.Current.Get(IconRole.Upload)" Class="ib-file-icon" />
@@ -39,6 +39,7 @@
 
 @code {
     private string? _class;
+    private string? _style;
     private string? _generatedId;
 
     /// <summary>
@@ -158,7 +159,7 @@
             throw new InvalidOperationException("FileUpload needs a Name: the form field its files post under.");
         }
 
-        (_class, _) = BuildRootAttributes();
+        (_class, _style) = BuildRootAttributes();
     }
 
     /// <inheritdoc />
@@ -168,6 +169,7 @@
         classes.Add("ib-field-file");
         classes.Add("ib-field-invalid", Errors is { Count: > 0 });
         classes.Add("ib-field-disabled", Disabled);
+        base.BuildAttributes(classes, styles);
     }
 
     private Task ChangedAsync(InputFileChangeEventArgs args)
