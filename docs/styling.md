@@ -124,9 +124,9 @@ the starting set of defaults, then your brand color, grays, radius and density o
 
 | `Preset` (`data-ib-preset`) | For | Controls | Shape | Type | Brand | Gray |
 | --- | --- | --- | --- | --- | --- | --- |
-| `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | System font | Blue | Neutral |
-| `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | System font | Indigo | Slate |
-| `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | System font | Teal | Neutral |
+| `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | Inter | Blue | Neutral |
+| `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | Inter | Indigo | Slate |
+| `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | Inter | Teal | Neutral |
 | `editorial` | Docs, publishing, knowledge bases | 36px | Large radius | IBM Plex Sans, Newsreader headings | Ink | Stone |
 
 A preset's brand color, gray and radius are only its defaults: `Brand`, `Gray` and `Radius` beat them.
@@ -276,7 +276,7 @@ Every token, by group:
 | Status | `--ib-color-success`, `-warning`, `-danger`, `-info`, `-neutral`, each with `-on-` (text on it); the first four with `-text` and `-soft` |
 | Made from other colors | `--ib-color-focus` (focus ring and halo; primary), `--ib-color-halo`, `--ib-color-selected` (a selected row), `--ib-state-hover` and `--ib-state-pressed` (washes of the text color), `--ib-color-segment` and `-segment-edge` (the chosen segment), `--ib-color-scrollbar` and `-scrollbar-hover`. Unset by default: each is worked out where it's used, so it follows colors set on part of the page; set it to replace the calculation |
 | Shape | `--ib-radius-none`, `-sm`, `-md`, `-lg`, `-xl`, `-full`; `--ib-radius-control` (buttons, fields, segmented controls, tags; unset: `-md`) and `--ib-radius-control-sm` (badges; unset: `-sm`) |
-| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-control-icon-sm`, `-md`, `-lg` (icons in controls, 16, 20 and 24px) and `--ib-control-icon-stroke-sm` (their stroke at 16px, 2.5 units), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
+| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-control-icon-sm`, `-md`, `-lg` (icons in controls, 16, 20 and 24px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
 | Sizes | `--ib-size-sm`, `-md`, `-lg`, `-xl` (640 to 1280px), `--ib-size-prose` (a readable line) |
 | Type | `--ib-font-body`, `-heading`, `-mono`; `--ib-text-xs` to `-6xl`; `--ib-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`, `-extrabold`, `-heading`; `--ib-leading-none`, `-tight`, `-snug`, `-normal`, `-relaxed`, `-loose`; `--ib-tracking-tighter` to `-widest` |
 | Depth | `--ib-shadow-none`, `-xs` (under cards), `-sm`, `-md`, `-lg` |
@@ -294,7 +294,8 @@ your own way, add a class with `Class`.
 | Fields | `--ib-field-radius`; heights are `--ib-control-h-*` |
 | Card | `--ib-card-padding` |
 | Table | `--ib-table-cell-py`, `--ib-table-cell-px` (medium size) |
-| AppShell | `--ib-shell-{header,sidebar,main,aside,footer}-bg` and `-fg` (each part's colors), `--ib-shell-divider` (the lines between parts), `--ib-sidebar-w`, `--ib-aside-w`, `--ib-shell-header-h` and `--ib-shell-footer-h` (room kept for sticky bars), `--ib-banner-h` (a sticky banner's height) |
+| AppShell | `--ib-shell-{header,sidebar,main,aside,footer}-bg` and `-fg` (each part's colors), `--ib-shell-divider` (the lines between parts), `--ib-shell-header-h` and `--ib-shell-footer-h` (room kept for sticky bars), `--ib-banner-h` (a sticky banner's height) |
+| Icon | `--ib-icon-stroke` (the stroke of icons at the default 1.5 units; an icon's own `StrokeWidth` wins), `--ib-spin-duration` (one turn of a spinning icon or a `Spinner`, 1s) |
 | AvatarGroup | `--ib-avatar-ring` (the ring between avatars; the page color by default) |
 | Timeline | `--ib-timeline-bg` (behind the markers; the surface by default) |
 

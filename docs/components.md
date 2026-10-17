@@ -129,7 +129,8 @@ static pages, and it follows the text color (`currentColor`) and size (`em`).
   screen and light enough for regular text. Set `--ib-icon-stroke` on any element to change it for
   the icons inside.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
-  `IconSet.Current`, so a different icon set can be swapped in without touching components.
+  `IconSet.Current` (Lucide for now), so another icon set can be swapped in later without touching
+  components.
 - `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,
   `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`, `NuGet`, `Npm`
   and `DotNet`. They're outlines drawn like the rest of the set: Tabler's, since Lucide no longer
@@ -215,6 +216,9 @@ enhanced form handling, and `Validator` replaces the DataAnnotations validator.
   reader users start from the list of problems.
 - `FieldError For="() => Model.Email"` shows one property's messages, for your own inputs.
   IzzyBlazor fields show their own.
+- `FieldFrame` is the frame every field uses: `Label`, `Hint`, `Errors` and the required marker
+  around your own control (`Id` links the label to it; `Group` renders a `fieldset`). Wrap a custom
+  field in it to match the built-in ones.
 
 **TextField and TextArea.** `TextField`'s `Type` (`Text`, `Email`, `Password`, `Search`, `Tel`, `Url`)
 comes from `[EmailAddress]`, `[Phone]`, `[Url]` or `[DataType(DataType.Password)]` when not set. It
@@ -1027,11 +1031,11 @@ Lets the user pick System, Light or Dark. Three looks:
 ```
 
 The icon is worked out in CSS from the page's actual scheme, so it's right even when the device
-decides. `Size` matches the buttons around it. `@bind-Value` is a `ColorScheme` (`System`, `Light`,
-`Dark`).
+decides. `Size` matches the buttons around it. `@bind-Value` is a `ColorScheme` (`Auto` for System,
+`Light`, `Dark`).
 
 The choice is kept in the `ib-scheme` cookie. Put `IzzyTheme` in `<head>` so the server applies it
-before the first paint. (`IzzyTheme` also declares the app's preset, accent, fonts and default
+before the first paint. (`IzzyTheme` also declares the app's preset, brand color, fonts and default
 `ColorScheme`; see [Styling](styling.md).) With JavaScript the switch is instant and other open tabs follow; with it
 off, each option is a link to `/_izzy/scheme`, which `app.MapIzzyBlazor()` adds: it saves the
 cookie and redirects back to the page.
