@@ -10,7 +10,7 @@
     flex-direction: column;
     min-width: 0;
     overflow: hidden;
-    border: 1px solid transparent;
+    border: 1px var(--ib-bst-now, solid) transparent;
     border-radius: var(--ib-radius-xl);
     background-color: var(--ib-color-surface);
     color: var(--ib-color-on-surface);

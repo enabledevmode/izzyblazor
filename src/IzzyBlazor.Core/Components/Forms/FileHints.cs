@@ -40,7 +40,7 @@ internal static class FileHints
             unit++;
         }
 
-        return Math.Round(size, 1).ToString(CultureInfo.InvariantCulture) + " " + units[unit];
+        return Math.Round(size, 1, MidpointRounding.AwayFromZero).ToString(CultureInfo.InvariantCulture) + " " + units[unit];
     }
 
     private static List<string>? TypeNames(string? accept)
