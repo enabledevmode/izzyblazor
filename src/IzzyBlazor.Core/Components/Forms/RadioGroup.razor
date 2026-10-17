@@ -15,7 +15,8 @@
             var value = FormatValueAsString(item);
             var id = $"{FieldId}-{index}";
             <label class="ib-check" for="@id">
-                <input id="@id"
+                <input @attributes="ValidationMessageAttributes"
+                       id="@id"
                        class="ib-check-input"
                        type="radio"
                        name="@GroupName"

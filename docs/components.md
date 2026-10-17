@@ -208,10 +208,19 @@ Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `ColorPicker`, `Select
 - wire up `aria-describedby` and `aria-invalid`,
 - show their own errors.
 
+An attribute's own `ErrorMessage` is used before posting too: with
+`[Required(ErrorMessage = "Enter your email")]`, the browser's check says "Enter your email", not
+its built-in "Please fill out this field", so the message matches the one the validator shows
+after posting. This covers `[Required]`, `[StringLength]`, `[MinLength]`, `[MaxLength]`, `[Range]`,
+`[EmailAddress]` and `[Url]`; attributes with the default message keep the browser's text, and
+so does every field with JavaScript off. To word one form differently, set the message on the
+field: `data-ib-required="…"` (also `data-ib-length`, `data-ib-range`, `data-ib-type`).
+
 Every field also takes `Hint` (help text under it, linked for screen readers), `Required`,
-`Disabled`, `ReadOnly` and `Size`. `HideLabel` keeps a field's label for screen readers but doesn't
-show it, as in a one-field newsletter form or a toolbar. (Checkboxes and switches show their label
-beside the box.)
+`Disabled`, `ReadOnly` and `Size`. `Required` on the field marks it and asks the browser to check
+it, but the server's validator only reads `[Required]` on the model, so put rules that must hold
+there. `HideLabel` keeps a field's label for screen readers but doesn't show it, as in a one-field
+newsletter form or a toolbar. (Checkboxes and switches show their label beside the box.)
 
 Fields and `FileUpload` also take the item props (`<TextField Grow />`, `Width`, margins,
 `AlignSelf`), `HiddenFrom`, `VisibleFrom`, `Class` and `Style`, all on the wrapper around the label,

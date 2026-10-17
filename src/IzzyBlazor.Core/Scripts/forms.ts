@@ -48,3 +48,47 @@ export function installSubmitFeedback(): void {
     });
   });
 }
+
+/** Which of a field's messages answers each failed browser check. */
+const messageFor: [keyof ValidityState, string][] = [
+  ["valueMissing", "ibRequired"],
+  ["tooShort", "ibLength"],
+  ["tooLong", "ibLength"],
+  ["rangeUnderflow", "ibRange"],
+  ["rangeOverflow", "ibRange"],
+  ["typeMismatch", "ibType"],
+];
+
+/**
+ * The model's error messages for the browser's checks before posting. Fields render the custom
+ * ErrorMessage of [Required], [StringLength], [Range], [EmailAddress] and [Url] as data-ib-*
+ * attributes; when the browser finds a field invalid, this swaps its text for the field's own.
+ *
+ * A message set here is cleared on the next edit anywhere, so the browser checks afresh on the
+ * next submit. A custom error set by other code (FileUpload's file checks) is left alone.
+ */
+export function installValidityMessages(): void {
+  const ours = new Set<HTMLInputElement>();
+  document.addEventListener(
+    "invalid",
+    (event) => {
+      const field = event.target as HTMLInputElement;
+      if (ours.delete(field)) field.setCustomValidity("");
+      else if (field.validity.customError) return;
+      for (const [check, key] of messageFor) {
+        const message = field.dataset[key];
+        if (message && field.validity[check]) {
+          field.setCustomValidity(message);
+          ours.add(field);
+          return;
+        }
+      }
+    },
+    true
+  );
+  const clear = () => {
+    ours.forEach((field) => field.setCustomValidity(""));
+    ours.clear();
+  };
+  for (const type of ["input", "change", "reset"]) document.addEventListener(type, clear, true);
+}
