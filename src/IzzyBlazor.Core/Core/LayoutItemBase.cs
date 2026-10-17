@@ -5,7 +5,8 @@ namespace IzzyBlazor;
 /// <summary>
 /// Base class for components that sit in a layout: adds the item props, which say how the
 /// component sits in its parent (margins, growing and shrinking in a Stack, widths, alignment).
-/// Every prop takes a single value or a breakpoint map.
+/// Every prop takes a single value or a breakpoint map, except the on/off switches <see cref="Grow"/>
+/// and <see cref="Shrink"/>.
 /// </summary>
 /// <example>
 /// <code>
@@ -73,10 +74,7 @@ public abstract class LayoutItemBase : IzzyComponentBase, ILayoutItem
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        if (VisibilityOnRoot)
-        {
-            BuildLayoutAttributes(classes, styles);
-        }
+        BuildLayoutAttributes(classes, styles, itemProps: VisibilityOnRoot);
     }
 
     /// <summary>
@@ -104,6 +102,18 @@ public abstract class LayoutItemBase : IzzyComponentBase, ILayoutItem
     /// Adds the style-prop classes and custom properties. <see cref="StyledComponentBase"/>
     /// overrides it to interleave the surface props.
     /// </summary>
-    private protected virtual void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles) =>
-        LayoutItemProps.Apply(classes, styles, this);
+    /// <param name="classes">The root's classes.</param>
+    /// <param name="styles">The root's style.</param>
+    /// <param name="itemProps">
+    /// Whether the item props go on this element: false when <see cref="IzzyComponentBase.VisibilityOnRoot"/>
+    /// is false, as they go on the outer element (<see cref="BuildOuterAttributes"/>). Surface props
+    /// always go on the element <c>Class</c> goes on.
+    /// </param>
+    private protected virtual void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps)
+    {
+        if (itemProps)
+        {
+            LayoutItemProps.Apply(classes, styles, this);
+        }
+    }
 }

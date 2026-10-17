@@ -153,6 +153,46 @@ public class LayoutItemPropTests : BunitContext
         Assert.Equal("ib-box ib-px ib-py ib-mx ib-my ib-w ib-minh ib-minw ib-grow ib-self", box.ClassName);
     }
 
+    // A StyledComponentBase whose Class goes inside, as a menu's does: surface props stay on the
+    // inner element and only the item props move out.
+    public sealed class InnerPanel : StyledComponentBase
+    {
+        protected override bool VisibilityOnRoot => false;
+
+        protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+        {
+            classes.Add("inner");
+            base.BuildAttributes(classes, styles);
+        }
+
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+        {
+            var (outerClass, outerStyle) = BuildOuterAttributes("outer");
+            var (cssClass, style) = BuildRootAttributes();
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", outerClass);
+            builder.AddAttribute(2, "style", outerStyle);
+            builder.OpenElement(3, "div");
+            builder.AddAttribute(4, "class", cssClass);
+            builder.AddAttribute(5, "style", style);
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+    }
+
+    [Fact]
+    public void Surface_props_stay_on_the_inner_element_when_Class_goes_inside()
+    {
+        var cut = Render<InnerPanel>(p => p
+            .Add(x => x.Padding, 4)
+            .Add(x => x.Bg, Color.Primary)
+            .Add(x => x.Grow, true)
+            .Add(x => x.HiddenFrom, Breakpoint.Md));
+
+        Assert.Equal("outer ib-grow ib-hidden-from-md", cut.Find(".outer").ClassName);
+        Assert.Equal("inner ib-px ib-py ib-bg ib-fg", cut.Find(".inner").ClassName);
+    }
+
     public static TheoryData<string> ItemComponents =>
     [
         nameof(Button), nameof(Badge), nameof(Spinner), nameof(Tag), nameof(Kbd),

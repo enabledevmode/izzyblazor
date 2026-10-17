@@ -80,10 +80,13 @@ public abstract partial class IzzyComponentBase : ComponentBase
     }
 
     /// <summary>
-    /// Whether <see cref="BuildRootAttributes"/> adds the <see cref="HiddenFrom"/> and
-    /// <see cref="VisibleFrom"/> classes. Components whose <see cref="Class"/> goes on an inner
-    /// element (such as a menu's panel) return false and put <see cref="VisibilityClasses"/>
-    /// on their outer element themselves.
+    /// Whether the root element, the one <see cref="Class"/> goes on, is also the element the
+    /// parent lays out. When true, <see cref="BuildRootAttributes"/> adds the <see cref="HiddenFrom"/>
+    /// and <see cref="VisibleFrom"/> classes, and on a <see cref="LayoutItemBase"/> the item props.
+    /// Components whose <see cref="Class"/> goes on an inner element (such as a menu's panel)
+    /// return false and build their outer element's class and style themselves: with
+    /// <see cref="LayoutItemBase.BuildOuterAttributes"/>, or from <see cref="VisibilityClasses"/>.
+    /// Surface props stay on the inner element.
     /// </summary>
     protected virtual bool VisibilityOnRoot => true;
 

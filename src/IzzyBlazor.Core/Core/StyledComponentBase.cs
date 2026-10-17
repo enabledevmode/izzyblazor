@@ -5,7 +5,8 @@ namespace IzzyBlazor;
 /// <summary>
 /// Base class for layout and surface components. Adds the surface props (padding, background,
 /// text color, radius, shadow, borders, heights, overflow) to the item props of
-/// <see cref="LayoutItemBase"/>. Every prop takes a single value or a breakpoint map.
+/// <see cref="LayoutItemBase"/>. Every prop takes a single value or a breakpoint map, except the
+/// on/off switches.
 /// </summary>
 /// <example>
 /// <code>
@@ -104,8 +105,10 @@ public abstract class StyledComponentBase : LayoutItemBase
     [Parameter] public Responsive<Color> BorderColor { get; set; }
 
     /// <inheritdoc />
-    private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles)
+    private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps)
     {
+        // Item props (margins, widths, flex) only where the parent lays this element out; surface
+        // props always. The order matches the output before the two sets were split.
         if (ColorScheme.ClassName() is { } scheme)
         {
             classes.Add(scheme);
@@ -113,23 +116,38 @@ public abstract class StyledComponentBase : LayoutItemBase
 
         ApplyAxis(classes, styles, Either(PaddingX, Padding), PaddingStart, PaddingEnd, "px", "ps", "pe", StyleValues.Spacing);
         ApplyAxis(classes, styles, Either(PaddingY, Padding), PaddingTop, PaddingBottom, "py", "pt", "pb", StyleValues.Spacing);
-        LayoutItemProps.ApplyMargins(classes, styles, this);
+        if (itemProps)
+        {
+            LayoutItemProps.ApplyMargins(classes, styles, this);
+        }
+
         ApplyResponsive(classes, styles, Bg, "ib-bg", "bg", StyleValues.Color);
         var textColor = Color.IsEmpty ? Bg.Select(bg => bg.ContrastText) : Color;
         ApplyResponsive(classes, styles, textColor, "ib-fg", "fg", StyleValues.Color);
         ApplyResponsive(classes, styles, Radius, "ib-radius", "rounded", StyleValues.Radius);
         ApplyResponsive(classes, styles, Shadow, "ib-shadow", "elevation", StyleValues.Shadow);
-        ApplyResponsive(classes, styles, Width, "ib-w", "w", StyleValues.Length);
-        ApplyResponsive(classes, styles, MaxWidth, "ib-maxw", "maxw", StyleValues.Length);
+        if (itemProps)
+        {
+            ApplyResponsive(classes, styles, Width, "ib-w", "w", StyleValues.Length);
+            ApplyResponsive(classes, styles, MaxWidth, "ib-maxw", "maxw", StyleValues.Length);
+        }
+
         ApplyResponsive(classes, styles, MinHeight, "ib-minh", "minh", StyleValues.Length);
-        ApplyResponsive(classes, styles, MinWidth, "ib-minw", "minw", StyleValues.Length);
+        if (itemProps)
+        {
+            ApplyResponsive(classes, styles, MinWidth, "ib-minw", "minw", StyleValues.Length);
+        }
+
         ApplyResponsive(classes, styles, Height, "ib-h", "h", StyleValues.Length);
         ApplyResponsive(classes, styles, MaxHeight, "ib-maxh", "maxh", StyleValues.Length);
         ApplyResponsive(classes, styles, Overflow, "ib-ov", "ov", StyleValues.Overflow);
         ApplyAxis(classes, styles, Either(BorderX, Border), BorderStart, BorderEnd, "bx", "bs", "be", StyleValues.BorderWidth);
         ApplyAxis(classes, styles, Either(BorderY, Border), BorderTop, BorderBottom, "by", "bt", "bb", StyleValues.BorderWidth);
         ApplyResponsive(classes, styles, BorderColor, "ib-bc", "bc", StyleValues.Color);
-        LayoutItemProps.ApplyFlex(classes, styles, this);
+        if (itemProps)
+        {
+            LayoutItemProps.ApplyFlex(classes, styles, this);
+        }
     }
 
     private static void ApplyAxis(ClassBuilder classes, StyleBuilder styles, Responsive<int> axis, Responsive<int> start, Responsive<int> end,
