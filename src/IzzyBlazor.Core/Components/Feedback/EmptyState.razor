@@ -52,7 +52,10 @@
     /// <summary>Buttons or links that fill it, such as "New invoice" or "Clear filters".</summary>
     [Parameter] public RenderFragment? Actions { get; set; }
 
-    /// <summary>A dashed border around it, for an empty area inside a page.</summary>
+    /// <summary>
+    /// A dashed border around it, for an empty area inside a page. <c>BorderStyle</c> changes the line
+    /// and <c>BorderColor</c> its color.
+    /// </summary>
     [Parameter] public bool Bordered { get; set; }
 
     /// <summary>Icon, text size and spacing. Defaults to <see cref="ControlSize.Md"/>.</summary>

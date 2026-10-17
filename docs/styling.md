@@ -31,8 +31,8 @@ A side beats its axis, which beats the all-sides value, at every breakpoint.
 `BorderX` and `BorderY` override an axis, `BorderTop`, `BorderBottom`, `BorderStart` and `BorderEnd`
 one side. `BorderColor` sets the color (`Color.Border` by default) and `BorderStyle` the line
 (`Solid` by default, `Dashed`, `Dotted` or `None`). On its own, `BorderColor` recolors a component's
-existing border; `BorderStyle` on its own restyles a `Card`'s border, and otherwise needs a `Border`
-width to draw. Sides you don't set keep the component's own.
+existing border; `BorderStyle` on its own restyles the border of a `Card` or a `Bordered`
+`EmptyState`, and otherwise needs a `Border` width to draw. Sides you don't set keep the component's own.
 
 ```razor
 <Section Bg="Color.SurfaceContainerLow" BorderY="1">...</Section>   @* a band with lines above and below *@
