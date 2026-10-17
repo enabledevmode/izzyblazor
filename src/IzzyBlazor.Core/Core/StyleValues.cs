@@ -74,6 +74,16 @@ public static partial class StyleValues
         ? pixels.ToString(System.Globalization.CultureInfo.InvariantCulture) + "px"
         : throw new ArgumentOutOfRangeException(nameof(pixels), pixels, "A border is 0 to 16 pixels wide.");
 
+    /// <summary>CSS <c>border-style</c>.</summary>
+    public static string BorderStyle(BorderStyle style) => style switch
+    {
+        IzzyBlazor.BorderStyle.Solid => "solid",
+        IzzyBlazor.BorderStyle.Dashed => "dashed",
+        IzzyBlazor.BorderStyle.Dotted => "dotted",
+        IzzyBlazor.BorderStyle.None => "none",
+        _ => throw new ArgumentOutOfRangeException(nameof(style)),
+    };
+
     /// <summary>CSS <c>overflow</c>.</summary>
     public static string Overflow(Overflow overflow) => overflow.ToString().ToLowerInvariant();
 

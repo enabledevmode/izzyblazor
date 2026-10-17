@@ -59,7 +59,7 @@ public class FourthReviewTests : BunitContext
         var css = Read("Styles", "_generated", "style-props.css");
 
         Assert.Contains(".ib-bc-md { --ib-bc-now: var(--ib-bc-md); border-color: var(--ib-bc-md); }", css);
-        Assert.Contains(".ib-bt-lg { border-block-start: var(--ib-bt-lg) solid var(--ib-bc-now, var(--ib-color-border)); }", css);
+        Assert.Contains(".ib-bt-lg { border-block-start: var(--ib-bt-lg) var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border)); }", css);
         Assert.DoesNotContain("var(--ib-bc, var(--ib-color-border))", css);
         Assert.Contains("@property --ib-bc-now { syntax: \"*\"; inherits: false; }", Read("Styles", "_generated", "properties.css"));
     }

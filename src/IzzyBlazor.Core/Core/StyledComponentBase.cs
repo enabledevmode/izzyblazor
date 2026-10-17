@@ -78,7 +78,7 @@ public abstract class StyledComponentBase : LayoutItemBase
 
     /// <summary>
     /// A border on every side, in whole pixels (0 to 16), in <see cref="BorderColor"/> (the border
-    /// token by default). Like padding: <see cref="BorderX"/> and <see cref="BorderY"/> override an
+    /// token by default) and <see cref="BorderStyle"/> (solid by default). Like padding: <see cref="BorderX"/> and <see cref="BorderY"/> override an
     /// axis, the single sides override that. Sides you don't set keep the component's own border.
     /// </summary>
     [Parameter] public Responsive<int> Border { get; set; }
@@ -103,6 +103,12 @@ public abstract class StyledComponentBase : LayoutItemBase
 
     /// <summary>The border color, for borders set here or the component's own. Defaults to <see cref="IzzyBlazor.Color.Border"/>.</summary>
     [Parameter] public Responsive<Color> BorderColor { get; set; }
+
+    /// <summary>
+    /// How borders are drawn (<see cref="IzzyBlazor.BorderStyle.Dashed"/>, <see cref="IzzyBlazor.BorderStyle.Dotted"/>),
+    /// for borders set here or the component's own. Solid by default.
+    /// </summary>
+    [Parameter] public Responsive<BorderStyle> BorderStyle { get; set; }
 
     /// <inheritdoc />
     private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps)
@@ -144,6 +150,7 @@ public abstract class StyledComponentBase : LayoutItemBase
         ApplyAxis(classes, styles, Either(BorderX, Border), BorderStart, BorderEnd, "bx", "bs", "be", StyleValues.BorderWidth);
         ApplyAxis(classes, styles, Either(BorderY, Border), BorderTop, BorderBottom, "by", "bt", "bb", StyleValues.BorderWidth);
         ApplyResponsive(classes, styles, BorderColor, "ib-bc", "bc", StyleValues.Color);
+        ApplyResponsive(classes, styles, BorderStyle, "ib-bst", "bst", StyleValues.BorderStyle);
         if (itemProps)
         {
             LayoutItemProps.ApplyFlex(classes, styles, this);
