@@ -50,7 +50,8 @@ Style props come in two sets:
   fields and `FileUpload`, buttons and `ButtonGroup`, `Alert`, `Badge`, `Banner`, `Progress`,
   `Spinner`, `Tag`, `Avatar`, `Stat`, `Table`, `Accordion`, `Form`, `FilterForm`, `Tabs`,
   `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `HeaderNav`, `AppBrand`, `ColorSchemeSwitch`,
-  `SidebarToggle`, `Code`, `Kbd` and `Anchor`.
+  `SidebarToggle`, `Code`, `Kbd`, `Anchor`, `Menu`, `Popover`, `Tooltip`, `Collapsible`,
+  `AccordionItem`, `Dialog` and `Drawer`.
 - **Surface props** say how a box looks inside: `Padding`, `Bg`, `Color`, `ColorScheme`, `Radius`,
   `Shadow`, the borders, `Height`, `MinHeight`, `MaxHeight` and `Overflow`. `Box` and the components
   built on it take these as well as the item props: Stack, Row, Column, Grid, Section, Card, the
@@ -60,7 +61,9 @@ The App layout parts take `Bg` and `ColorScheme` only. Items that a parent alway
 `NavItem`, `Tab`, `Step` and `MenuItem`, take neither.
 
 Item props go on the component's outermost element, the one its parent lays out. For a field, that's
-the wrapper around the label, control and hint, not the input:
+the wrapper around the label, control and hint, not the input. For `Menu`, `Popover` and `Tooltip`,
+it's the element around the trigger, while `Class` and `Style` go on the panel. For a `Dialog`, it's
+the dialog itself, so `Width` sets its width:
 
 ```razor
 <Row Gap="2" Align="Align.End">
@@ -77,8 +80,8 @@ the wrapper around the label, control and hint, not the input:
 `AlignSelf` takes an `Align` and overrides the parent's `Align` for one item, such as a button lined up
 with the bottom of labeled fields when the row centers everything else.
 
-`Class` and `Style` also go on the outermost element of every component, after the generated custom
-properties, for anything the props don't cover.
+`Class` and `Style` go on the same element, after the generated custom properties, for anything the
+props don't cover. The exceptions are `Menu`, `Popover` and `Tooltip`, where they style the panel.
 
 ## Responsive values
 

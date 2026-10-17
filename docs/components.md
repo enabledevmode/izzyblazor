@@ -100,7 +100,9 @@ have sanitized.
 icon (for repeated links such as a list of lessons) and keeps the note. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
 
 `Code` is inline, or a `Block` that scrolls sideways with an optional `Language` label. Its copy
-button appears only when JavaScript runs (`Copyable="false"` leaves it out).
+button appears only when JavaScript runs (`Copyable="false"` leaves it out). `MaxHeight` caps a
+block's height, such as `Length.Rem(20)` for a long file: the code scrolls and the label and copy
+button stay in place.
 
 **Syntax highlighting.** When the `Language` is one the built-in highlighter knows, the code is colored
 on the server, so it works with JavaScript off and never flashes plain first. It knows C# (`csharp`,
@@ -515,6 +517,11 @@ below, above or beside the trigger (`BottomStart` by default, `Top` for tooltips
 - `Tooltip` wraps its trigger and shows `Text` (or `Content`) on hover and keyboard focus, after
   `Delay` (300ms). With JavaScript off it's pure CSS. Keep essential content out of tooltips: touch
   screens can't hover.
+- `PanelWidth` sets a `Menu` or `Popover` panel's width, such as `Length.Rem(32)` for a filter form.
+  Without it a panel fits its content, up to 24rem. It never gets wider than the screen.
+
+The layout props (`Grow`, margins, `AlignSelf` and the rest) go on the element that wraps the trigger
+and panel, so a menu can grow or take a margin in a toolbar. `Class` and `Style` go on the panel.
 
 `Dialog` is a native modal `dialog`, opened by `DialogTrigger`, by a link with `?dialog=id` (rendered
 open on the server), or from C#. Close buttons submit a `method="dialog"` form, so closing works
@@ -547,6 +554,10 @@ closes it. `Size` is `Sm` (24rem), `Md` (32rem, the default), `Lg`, `Xl` or `Ful
 traps focus the same way. `Size` sets a side drawer's width (`Sm` 20rem, `Md` 24rem, `Lg` 32rem,
 `Xl` 40rem, `Full`); top and bottom sheets are as tall as their content, up to 85% of the screen.
 Sides flip in right-to-left languages.
+
+For a width the sizes don't cover, set `Width` (and `MaxWidth`) on a `Dialog` or side `Drawer`, such as
+`Width="Length.Rem(56)"` for a dialog holding a table. It still leaves a margin on small screens.
+`ContentPadding` replaces the body's padding (`0` runs a table or image edge to edge).
 
 **Dialogs from code (interactive pages).** `DialogService` opens a component in a dialog and awaits
 how it ends, for flows like "edit this, then refresh":
@@ -634,6 +645,8 @@ proper ARIA tabs (roving focus, Home/End).
   to its label in lower case with dashes (`billing-history`).
 - `@bind-Selected` follows it on interactive pages.
 - `Variant` (`Line`, `Soft`, `Segmented`), `Size` and `FullWidth`; each `Tab` takes a `Label`, `Icon`, `Badge` and `Disabled`.
+- `ContentPadding` replaces the space above and below every panel (`0` lets a table run edge to edge);
+  a `Tab` can set its own.
 - `Orientation="Orientation.Vertical"` puts the tabs in a column beside the panels from 640px up,
   and Up and Down arrows move between them. On phones they stay a scrolling row above the panels.
 
