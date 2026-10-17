@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 
 @*
@@ -107,6 +107,7 @@
         classes.Add("ib-header-nav");
         classes.Add($"ib-header-nav-bp-{Breakpoint.Name()}");
         classes.Add("ib-header-nav-end", MenuButtonAtEnd);
+        base.BuildAttributes(classes, styles);
     }
 
     [CascadingParameter] private ShellHeaderLinks? ShellLinks { get; set; }

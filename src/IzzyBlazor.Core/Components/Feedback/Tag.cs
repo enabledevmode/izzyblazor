@@ -27,7 +27,7 @@ public enum TagVariant
 /// &lt;Tag Label="Status: Paid" Status="Status.Success" RemoveHref="/invoices" OnRemove="ClearStatus" /&gt;
 /// </code>
 /// </example>
-public class Tag : IzzyComponentBase
+public class Tag : LayoutItemBase
 {
     /// <summary>The text. Also used in the remove button's name.</summary>
     [Parameter] public string? Label { get; set; }
@@ -89,6 +89,8 @@ public class Tag : IzzyComponentBase
         {
             ColorOverride.Apply(styles, accent.ToColor());
         }
+
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

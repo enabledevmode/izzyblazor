@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @using System.Net
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.Extensions.DependencyInjection
@@ -79,8 +79,11 @@ else
     private RenderFragment? Content => _tokens is null ? ChildContent : RenderTokens;
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
         classes.Add(Block ? "ib-code-block" : "ib-code");
+        base.BuildAttributes(classes, styles);
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()

@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
@@ -229,6 +229,8 @@
         {
             ColorOverride.Apply(styles, accent.ToColor());
         }
+
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
@@ -83,7 +83,11 @@
     protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-filter-form");
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-filter-form");
+        base.BuildAttributes(classes, styles);
+    }
 
     private bool IsField(string key) => _context.Names.Contains(key) || Fields?.Contains(key) == true;
 

@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     A stack of AccordionItems. Each item is a native <details>, so items open and close with
@@ -61,6 +61,7 @@
         classes.Add($"ib-accordion-{Variant.Name()}");
         classes.Add("ib-accordion-sm", Size == ControlSize.Sm);
         classes.Add("ib-accordion-lg", Size == ControlSize.Lg);
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     A progress bar. With a Value it shows how far along something is; without one it's
@@ -87,6 +87,8 @@
         {
             styles.AddVar("progress-color", StyleValues.Color(accent.ToColor()));
         }
+
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

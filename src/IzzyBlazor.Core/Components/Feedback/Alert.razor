@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     A message on the page: an icon, an optional title, the message and optional actions.
@@ -145,6 +145,7 @@
         classes.Add("ib-alert");
         classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

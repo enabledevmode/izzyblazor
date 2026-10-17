@@ -7,7 +7,7 @@ namespace IzzyBlazor;
 /// Shared look and content for <see cref="Button"/>, <see cref="LinkButton"/> and
 /// <see cref="IconButton"/>.
 /// </summary>
-public abstract class ButtonBase : IzzyComponentBase
+public abstract class ButtonBase : LayoutItemBase
 {
     /// <summary>
     /// Primary (the default) for the main action, Neutral for everything else, Danger for
@@ -89,6 +89,8 @@ public abstract class ButtonBase : IzzyComponentBase
         {
             ColorOverride.Apply(styles, custom);
         }
+
+        base.BuildAttributes(classes, styles);
     }
 
     /// <summary>Renders the start icon (or spinner), the label and the end icon.</summary>

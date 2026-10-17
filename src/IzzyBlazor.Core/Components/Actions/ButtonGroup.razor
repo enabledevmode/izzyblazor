@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     Related buttons in a row, joined into one control by default. Accent, Variant and Size here
@@ -59,6 +59,7 @@
         classes.Add("ib-btn-group-attached", Attached);
         classes.Add("ib-btn-group-vertical", Orientation == Orientation.Vertical);
         classes.Add("ib-btn-group-full", FullWidth);
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
@@ -226,6 +226,7 @@ else
         classes.Add("ib-tabs-fitted", FullWidth);
         classes.Add("ib-tabs-vertical", Orientation == Orientation.Vertical);
         classes.Add("ib-tabs-nav", _context.Links.Count > 0);
+        base.BuildAttributes(classes, styles);
     }
 
     internal void TabsChanged()

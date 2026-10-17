@@ -9,7 +9,7 @@ namespace IzzyBlazor;
 /// Pure CSS: it spins on static pages too.
 /// </summary>
 /// <example><code>&lt;Spinner /&gt;  &lt;Spinner Size="IconSize.Xl2" Color="Color.Primary" Label="Loading orders" /&gt;</code></example>
-public class Spinner : IzzyComponentBase
+public class Spinner : LayoutItemBase
 {
     /// <summary>Size, on the same scale as icons (relative to the text). Defaults to <see cref="IconSize.Md"/> (1em).</summary>
     [Parameter] public IconSize Size { get; set; } = IconSize.Md;
@@ -29,6 +29,8 @@ public class Spinner : IzzyComponentBase
         {
             styles.AddRaw($"color:{StyleValues.Color(color)}");
         }
+
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
