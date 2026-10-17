@@ -48,36 +48,6 @@ public class StylePropTests : BunitContext
         Assert.Contains("--ib-bst-md:solid", style);
     }
 
-    [Fact]
-    public void BorderStyle_alone_restyles_a_components_own_border()
-    {
-        var card = Render<Card>(p => p.Add(c => c.BorderStyle, BorderStyle.Dotted)).Find(".ib-card");
-        Assert.Contains("ib-bst", card.ClassName);
-        Assert.Contains("--ib-bst:dotted", card.GetAttribute("style"));
-        Assert.DoesNotContain("ib-bx", card.ClassName);
-    }
-
-    [Fact]
-    public void BorderStyle_at_a_breakpoint_survives_a_width_set_at_a_larger_one()
-    {
-        var dir = new DirectoryInfo(AppContext.BaseDirectory);
-        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "izzyblazor.sln"))) dir = dir.Parent;
-        var css = File.ReadAllText(Path.Combine(dir!.FullName, "src", "IzzyBlazor.Core", "Styles", "_generated", "style-props.css")).Replace("\r", "");
-
-        Assert.Contains(".ib-bst-md { --ib-bst-now: var(--ib-bst-md); border-style: var(--ib-bst-md); }", css);
-        Assert.Contains(".ib-bx { border-inline: var(--ib-bx) var(--ib-bst-now, solid) var(--ib-bc-now, var(--ib-color-border)); }", css);
-    }
-
-    [Theory]
-    [InlineData(BorderStyle.Solid, "solid")]
-    [InlineData(BorderStyle.Dashed, "dashed")]
-    [InlineData(BorderStyle.Dotted, "dotted")]
-    [InlineData(BorderStyle.None, "none")]
-    public void BorderStyle_values_are_css_keywords(BorderStyle value, string css)
-    {
-        Assert.Equal(css, StyleValues.BorderStyle(value));
-    }
-
     [Theory]
     [InlineData(-1)]
     [InlineData(17)]

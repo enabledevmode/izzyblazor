@@ -572,8 +572,8 @@
     text-decoration-thickness: 2px;
   }
 
-  /* Dragging isn't a thing on a touch screen: the link alone. */
-  @media (pointer: coarse) {
+  /* Dragging needs the script, and isn't a thing on a touch screen: the link alone. */
+  @media (pointer: coarse), (scripting: none) {
     .ib-file-drag {
       display: none;
     }
@@ -592,9 +592,18 @@
     color: var(--ib-color-on-surface);
   }
 
-  .ib-file-chosen:empty,
   .ib-file-zone[data-chosen] .ib-file-accept {
     display: none;
+  }
+
+  /* The live region stays rendered while empty (an unrendered one may not be announced), out of sight. */
+  .ib-file-zone:not([data-chosen]) .ib-file-chosen {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
 
   /* Sized to its text, so the browser's file name sits centered (where field-sizing works). */
@@ -646,6 +655,13 @@
   .ib-field-invalid .ib-file-zone,
   .ib-file-zone:has(.ib-file-input:user-invalid) {
     border-color: var(--ib-color-danger);
+  }
+
+  /* Invalid and focused: the danger border and halo, as on other fields. */
+  .ib-field-invalid .ib-file-zone:has(.ib-file-input:focus-visible),
+  .ib-file-zone:has(.ib-file-input:user-invalid:focus-visible) {
+    border-color: var(--ib-color-danger);
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-danger) 25%, transparent);
   }
 
   /*

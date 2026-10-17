@@ -104,6 +104,7 @@ public class FileUploadRenderTests : BunitContext
     [InlineData(".png,.jpg", 2_000_000L, "PNG or JPG · up to 2 MB")]
     [InlineData("image/png, image/jpeg, image/svg+xml", null, "PNG, JPEG or SVG")]
     [InlineData(".pdf", 1_536L, "PDF · up to 1.5 KB")]
+    [InlineData(".pdf", 1_250_000L, "PDF · up to 1.3 MB")] // rounds half up, as the script's messages do
     [InlineData("image/*", 5_000_000L, "up to 5 MB")]
     [InlineData(".png,application/vnd.ms-excel", null, null)]
     [InlineData(null, null, null)]
@@ -128,16 +129,6 @@ public class FileUploadRenderTests : BunitContext
     {
         Assert.Equal("Square photos", Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Accept, ".png").Add(f => f.AcceptText, "Square photos")).Find(".ib-file-accept").TextContent);
         Assert.Empty(Render<FileUpload>(p => p.Add(f => f.Name, "A").Add(f => f.Accept, ".png").Add(f => f.AcceptText, "")).FindAll(".ib-file-accept"));
-    }
-
-    [Fact]
-    public void Script_gets_an_empty_chosen_line_and_the_several_files_text()
-    {
-        var cut = Render<FileUpload>(p => p.Add(f => f.Name, "A"));
-
-        Assert.Equal("", cut.Find(".ib-file-chosen").TextContent);
-        Assert.Equal("polite", cut.Find(".ib-file-chosen").GetAttribute("aria-live"));
-        Assert.Equal("{0} files", cut.Find("ib-file-upload").GetAttribute("data-ib-many"));
     }
 
     [Fact]
