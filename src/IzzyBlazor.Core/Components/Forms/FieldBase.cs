@@ -113,6 +113,12 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>Alignment across the parent's direction, overriding the parent's <c>Align</c> for this field only.</summary>
     [Parameter] public Responsive<Align> AlignSelf { get; set; }
 
+    /// <summary>
+    /// How many columns the field spans in a <see cref="Form"/> or <see cref="Fieldset"/> with
+    /// <c>Columns</c>; <see cref="GridSpan.Full"/> for the whole row. Never more than the columns shown.
+    /// </summary>
+    [Parameter] public Responsive<int> ColSpan { get; set; }
+
     /// <summary>The control's element id. Generated when not set; also accepted as an <c>id</c> attribute.</summary>
     protected string FieldId =>
         AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s && s.Length > 0

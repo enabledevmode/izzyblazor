@@ -195,7 +195,7 @@
   .ib-has-end .ib-field-input { padding-inline-end: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-2)); }
 
   /*
-   * NumberInput. The browser's own spin buttons are hidden; the script reveals IzzyBlazor's
+   * NumberField. The browser's own spin buttons are hidden; the script reveals IzzyBlazor's
    * stepper buttons, stacked at the end or split across both ends.
    */
   /* textfield, not none: it's what makes Firefox hide its spin buttons (and outranks the
@@ -1549,6 +1549,48 @@
     display: flex;
     flex-direction: column;
     margin-top: var(--ib-space-3);
+  }
+
+  /* Columns (Form and Fieldset Columns): up to N columns by the form's or group's own width, so a
+     two-column form is one column in a narrow dialog. The form or fieldset is the container; the
+     grid inside it can't measure itself. --ib-form-cols is the count shown now, and ColSpan never
+     spans more (span min(n, var(--ib-form-cols))). Fields take one column, anything else the row. */
+  .ib-form-cols,
+  .ib-fieldset-cols {
+    container-type: inline-size;
+  }
+
+  .ib-form-grid {
+    --ib-form-cols: 1;
+
+    display: grid;
+    grid-template-columns: repeat(var(--ib-form-cols), minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .ib-form-grid > :not(.ib-field) {
+    grid-column: 1 / -1;
+  }
+
+  @container (width >= 32rem) {
+    .ib-form-grid-2,
+    .ib-form-grid-3,
+    .ib-form-grid-4 {
+      --ib-form-cols: 2;
+    }
+  }
+
+  @container (width >= 48rem) {
+    .ib-form-grid-3,
+    .ib-form-grid-4 {
+      --ib-form-cols: 3;
+    }
+  }
+
+  @container (width >= 64rem) {
+    .ib-form-grid-4 {
+      --ib-form-cols: 4;
+    }
   }
 
   /* Error summary */

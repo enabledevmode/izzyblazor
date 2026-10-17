@@ -140,18 +140,18 @@
         </Box>
     </Example>
 
-    <Example Title="Numbers" Note="NumberInput is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons appear, stacked or split (hold to repeat); the browser's own spin buttons are always hidden, and arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
+    <Example Title="Numbers" Note="NumberField is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons appear, stacked or split (hold to repeat); the browser's own spin buttons are always hidden, and arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Numbers" FormName="numbers" OnValidSubmit="() => _numbersSaved = true">
-                <NumberInput @bind-Value="Numbers!.Quantity" />
-                <NumberInput @bind-Value="Numbers!.Price" Step="0.01" Placeholder="0.00">
+                <NumberField @bind-Value="Numbers!.Quantity" />
+                <NumberField @bind-Value="Numbers!.Price" Step="0.01" Placeholder="0.00">
                     <StartAddon>$</StartAddon>
-                </NumberInput>
-                <NumberInput @bind-Value="Numbers!.Discount" Step="5">
+                </NumberField>
+                <NumberField @bind-Value="Numbers!.Discount" Step="5">
                     <EndAddon>%</EndAddon>
-                </NumberInput>
-                <NumberInput @bind-Value="Numbers!.Guests" StepButtons="StepButtons.Split" Hint="Split steppers: easier to tap." />
-                <NumberInput @bind-Value="Numbers!.Seats" StepButtons="StepButtons.None" Hint="No steppers: type a number, or use the arrow keys." />
+                </NumberField>
+                <NumberField @bind-Value="Numbers!.Guests" StepButtons="StepButtons.Split" Hint="Split steppers: easier to tap." />
+                <NumberField @bind-Value="Numbers!.Seats" StepButtons="StepButtons.None" Hint="No steppers: type a number, or use the arrow keys." />
                 <Row Gap="2" Align="Align.Center">
                     <Button Type="ButtonType.Submit">Save</Button>
                     @if (_numbersSaved)
@@ -306,12 +306,29 @@
         </Box>
     </Example>
 
+    <Example Title="Columns" Note="Columns lays fields out in up to that many columns, by the form's own width rather than the screen's: narrow the window and this one goes from three to two to one, as it would in a dialog. Fields take a column; ColSpan widens one (never past the columns shown) and GridSpan.Full takes the row. A Fieldset takes the row and can have its own Columns. Anything that isn't a field, such as the button, takes the row too. The first name's message is the model's own ErrorMessage, in the browser's check as well as after posting." Code="@ColumnsCode">
+        <Form Model="Contact" FormName="columns" Columns="3" OnValidSubmit="() => { }">
+            <TextField @bind-Value="Contact!.FirstName" />
+            <TextField @bind-Value="Contact!.LastName" />
+            <TextField @bind-Value="Contact!.Email" />
+            <Fieldset Label="Address" Columns="3">
+                <TextField @bind-Value="Contact!.Street" ColSpan="GridSpan.Full" />
+                <TextField @bind-Value="Contact!.City" />
+                <TextField @bind-Value="Contact!.Region" />
+                <TextField @bind-Value="Contact!.PostalCode" />
+            </Fieldset>
+            <TextArea @bind-Value="Contact!.Notes" ColSpan="2" />
+            <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+        </Form>
+    </Example>
+
 </Stack>
 
 @code {
     [SupplyParameterFromForm(FormName = "signup")] public SignupModel? Signup { get; set; }
     [SupplyParameterFromForm(FormName = "address")] public AddressModel? Address { get; set; }
     [SupplyParameterFromForm(FormName = "profile")] public ProfileModel? Profile { get; set; }
+    [SupplyParameterFromForm(FormName = "columns")] public ContactModel? Contact { get; set; }
     [SupplyParameterFromForm(FormName = "sizes")] public SizesModel? Sizes { get; set; }
     [SupplyParameterFromForm(FormName = "rich")] public RichModel? Rich { get; set; }
     [SupplyParameterFromForm(FormName = "combo")] public ComboModel? Combo { get; set; }
@@ -438,6 +455,7 @@
         Segments ??= new();
         Checks ??= new();
         Upload ??= new();
+        Contact ??= new();
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
 
@@ -656,6 +674,18 @@
         public string? Coupon { get; set; }
     }
 
+    public class ContactModel
+    {
+        [Required(ErrorMessage = "Enter a first name.")] public string? FirstName { get; set; }
+        public string? LastName { get; set; }
+        [EmailAddress] public string? Email { get; set; }
+        public string? Street { get; set; }
+        public string? City { get; set; }
+        [Display(Name = "State or region")] public string? Region { get; set; }
+        public string? PostalCode { get; set; }
+        public string? Notes { get; set; }
+    }
+
     public class ProfileModel
     {
         [Required, Display(Name = "Display name")] public string? DisplayName { get; set; }
@@ -725,12 +755,12 @@
 
     private const string NumbersCode =
         """
-        <NumberInput @bind-Value="Model.Quantity" />            @* [Range(1, 99)]: min and max *@
-        <NumberInput @bind-Value="Model.Price" Step="0.01">
+        <NumberField @bind-Value="Model.Quantity" />            @* [Range(1, 99)]: min and max *@
+        <NumberField @bind-Value="Model.Price" Step="0.01">
             <StartAddon>$</StartAddon>
-        </NumberInput>
-        <NumberInput @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
-        <NumberInput @bind-Value="Model.Seats" StepButtons="StepButtons.None" />
+        </NumberField>
+        <NumberField @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
+        <NumberField @bind-Value="Model.Seats" StepButtons="StepButtons.None" />
         """;
 
     private const string SegmentsCode =
@@ -801,6 +831,23 @@
         </Fieldset>
         <TextField @bind-Value="Address.Coupon" Size="ControlSize.Sm" />
         <Button Size="ControlSize.Sm">Apply</Button>
+        """;
+
+    private const string ColumnsCode =
+        """
+        <Form Model="Contact" FormName="columns" Columns="3">
+            <TextField @bind-Value="Contact.FirstName" />
+            <TextField @bind-Value="Contact.LastName" />
+            <TextField @bind-Value="Contact.Email" />
+            <Fieldset Label="Address" Columns="3">
+                <TextField @bind-Value="Contact.Street" ColSpan="GridSpan.Full" />
+                <TextField @bind-Value="Contact.City" />
+                <TextField @bind-Value="Contact.Region" />
+                <TextField @bind-Value="Contact.PostalCode" />
+            </Fieldset>
+            <TextArea @bind-Value="Contact.Notes" ColSpan="2" />   @* two columns, one when narrow *@
+            <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+        </Form>
         """;
 
     private const string HorizontalCode =

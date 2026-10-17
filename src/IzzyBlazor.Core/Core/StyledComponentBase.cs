@@ -155,6 +155,7 @@ public abstract class StyledComponentBase : LayoutItemBase
         if (itemProps)
         {
             LayoutItemProps.ApplyFlex(classes, styles, this);
+            LayoutItemProps.ApplyGrid(classes, styles, this);
         }
     }
 

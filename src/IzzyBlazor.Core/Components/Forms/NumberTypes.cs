@@ -3,7 +3,7 @@ using System.Globalization;
 
 namespace IzzyBlazor;
 
-/// <summary>The number types NumberInput and Slider bind to, and conversions they share.</summary>
+/// <summary>The number types NumberField and Slider bind to, and conversions they share.</summary>
 internal static class NumberTypes
 {
     private static readonly HashSet<Type> Whole =

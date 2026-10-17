@@ -22,7 +22,7 @@ public partial class SegmentedControl<[DynamicallyAccessedMembers(DynamicallyAcc
 public partial class Combobox<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
 /// <summary>A number field with optional stepper buttons.</summary>
-public partial class NumberInput<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+public partial class NumberField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
 
 /// <summary>A range slider.</summary>
 public partial class Slider<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;

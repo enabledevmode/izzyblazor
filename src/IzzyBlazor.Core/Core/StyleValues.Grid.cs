@@ -18,6 +18,17 @@ public static partial class StyleValues
     public static string GridAutoColumns(Length minWidth, bool stretch = false) =>
         $"repeat({(stretch ? "auto-fit" : "auto-fill")}, minmax(min({Length(minWidth)}, 100%), 1fr))";
 
+    /// <summary>
+    /// An item's column span: <c>span 2</c>, never more than the columns a Form or Fieldset shows
+    /// at its current width (<c>--ib-form-cols</c>), so a span collapses with the columns.
+    /// <see cref="GridSpan.Full"/> spans the whole row.
+    /// </summary>
+    public static string ColumnSpan(int count) => count == GridSpan.Full
+        ? "1 / -1"
+        : count is >= 1 and <= MaxColumns
+            ? $"span min({count}, var(--ib-form-cols, {count}))"
+            : throw new ArgumentOutOfRangeException(nameof(count), count, $"Column spans go from 1 to {MaxColumns}, or GridSpan.Full.");
+
     /// <summary>A grid item spanning columns or rows: <c>span 2 / span 2</c>.</summary>
     public static string Span(int count) => count is >= 1 and <= MaxColumns
         ? $"span {count} / span {count}"

@@ -15,6 +15,9 @@
 
   /* Grid: one column until Columns or MinChildWidth says otherwise. */
   .ib-grid {
+    /* A Grid inside a form with columns doesn't clamp its items' spans to the form's columns. */
+    --ib-form-cols: initial;
+
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     min-width: 0;
