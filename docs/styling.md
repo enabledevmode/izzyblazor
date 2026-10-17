@@ -333,6 +333,7 @@ your own way, add a class with `Class`.
 | --- | --- |
 | Button, LinkButton, IconButton | `--ib-btn-px` (side padding, every size), `--ib-btn-radius`; heights are `--ib-control-h-*` |
 | Fields | `--ib-field-radius`; heights are `--ib-control-h-*` |
+| FileUpload | `--ib-upload-bg` (the zone's fill; container-low by default), `--ib-upload-border-color`, `--ib-upload-border-style` (dashed by default) |
 | Card | `--ib-card-padding` |
 | Table | `--ib-table-cell-py`, `--ib-table-cell-px` (medium size) |
 | AppShell | `--ib-shell-{header,sidebar,main,aside,footer}-bg` and `-fg` (each part's colors), `--ib-shell-divider` (the lines between parts), `--ib-shell-header-h` and `--ib-shell-footer-h` (room kept for sticky bars), `--ib-banner-h` (a sticky banner's height) |

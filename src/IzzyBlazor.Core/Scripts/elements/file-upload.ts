@@ -2,7 +2,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
 
 /**
  * <ib-file-upload> is the drop zone around a FileUpload's file input. The input works on its own
- * (its button chooses files, which post with the form); this adds:
+ * (the zone's "Choose a file" label opens it, and its files post with the form); this adds:
+ * - the chosen file's name and size (or "3 files") in place of the hint, since CSS hides the
+ *   input itself while scripts run
  * - dropping files on the zone, highlighted while dragging over it; files that don't match the
  *   input's accept attribute are refused (the picker filters by type, a drop doesn't)
  * - flagging chosen files of the wrong type, or over data-ib-max-size, before the form posts
@@ -63,10 +65,15 @@ class FileUpload extends IzzyElement {
       { signal }
     );
 
-    // A chosen file of the wrong type (the picker's "All files" allows any) or over the size limit
-    // keeps the input invalid until a new choice replaces it.
+    // Names the chosen files. A chosen file of the wrong type (the picker's "All files" allows any)
+    // or over the size limit keeps the input invalid until a new choice replaces it.
+    const chosen = this.querySelector(".ib-file-chosen")!;
     const check = () => {
       const files = Array.from(input.files ?? []);
+      chosen.textContent = files[1]
+        ? this.dataset.ibMany!.replace("{0}", "" + files.length)
+        : files[0] ? `${files[0].name} · ${formatSize(files[0].size)}` : "";
+      this.toggleAttribute("data-chosen", !!files[0]);
       const wrong = files.find((file) => !accepts(input.accept, file));
       const max = Number(this.dataset.ibMaxSize);
       const big = max > 0 ? files.find((file) => file.size > max) : undefined;

@@ -274,26 +274,36 @@ disabled and posts its value through a hidden input.
 <ColorPicker @bind-Value="Model.Brand" Presets="@(["#2563eb", "#0f766e", "#be123c"])" />
 ```
 
-**FileUpload.** A drop zone around a real file input, named by `Name`.
+**FileUpload.** A drop zone around a real file input, named by `Name`: "Choose a file or drag it
+here", with a hint under it.
 
-- **No JavaScript:** the input's button chooses files and they post with the form. Set `Multipart`
-  on the `Form` (it sets `enctype="multipart/form-data"`; without it only file names post), and
-  bind the files on the page with `[SupplyParameterFromForm(FormName = "...")]`: `IFormFile` for one,
+- **No JavaScript:** "Choose a file" is a `<label>` for the input, so it opens the picker; the
+  browser names the chosen file under it, and the file posts with the form. Set `Multipart` on the
+  `Form` (it sets `enctype="multipart/form-data"`; without it only file names post), and bind the
+  files on the page with `[SupplyParameterFromForm(FormName = "...")]`: `IFormFile` for one,
   `IFormFileCollection` for `Multiple`, named like the field.
-- **With JavaScript:** files can be dropped anywhere on the zone. Dropped files that don't match
-  `Accept` are refused, and a picked file of the wrong type (the picker's "All files" lets one
-  through) or over `MaxFileSize` is flagged before the form posts. A form that isn't multipart logs a console warning.
+- **With JavaScript:** files can be dropped anywhere on the zone, and the chosen file's name and size
+  (or "3 files") replace the hint. Dropped files that don't match `Accept` are refused, and a picked
+  file of the wrong type (the picker's "All files" lets one through) or over `MaxFileSize` is flagged
+  before the form posts. A form that isn't multipart logs a console warning.
 - **Interactive pages:** `OnChange` receives the chosen files as `IBrowserFile`, up to `MaxFiles`
   (10 by default) and leaving out any over `MaxFileSize`. Read one with
   `OpenReadStream(maxAllowedSize)`: its default limit is 500 KB. Nothing posts.
 
+The hint comes from `Accept` and `MaxFileSize`: `Accept=".png,.jpg" MaxFileSize="2_000_000"` reads
+"PNG or JPG · up to 2 MB". Types are listed only when each has a plain name, so `"image/*"` shows just
+the size. `AcceptText` replaces the hint (`""` hides it); `ChooseText` and `DragText` replace the
+prompt's two parts. On touch screens the zone shows only the link. `Hint` is help text under the
+zone, as on other fields.
+
 `Accept` filters the picker (`"image/*"`, `".pdf"`), but always check types and sizes on the server,
 and raise the server's request size limit to match `MaxFileSize`. `Errors` shows server-side
-messages under the zone.
+messages under the zone. The zone's look is set with `--ib-upload-bg`, `--ib-upload-border-color`
+and `--ib-upload-border-style` (see [Customizing](styling.md#customizing)).
 
 ```razor
 <Form Model="Model" FormName="profile" Multipart OnValidSubmit="SaveAsync">
-    <FileUpload Name="Avatar" Label="Profile photo" Accept="image/*" MaxFileSize="2_000_000" />
+    <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
 </Form>
 
 @code {

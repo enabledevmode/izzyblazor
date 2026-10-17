@@ -159,7 +159,7 @@ public class IconSet
         IconRole.SchemeSystem => IzzyBlazor.Lucide.Monitor,
         IconRole.Person => IzzyBlazor.Lucide.User,
         IconRole.Play => IzzyBlazor.Lucide.Play,
-        IconRole.Upload => IzzyBlazor.Lucide.CloudUpload,
+        IconRole.Upload => IzzyBlazor.Lucide.Upload,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
