@@ -115,6 +115,12 @@ else
     [Parameter] public bool FullWidth { get; set; }
 
     /// <summary>
+    /// Padding inside every panel, in spacing steps, in place of the default space above and below.
+    /// <c>0</c> lets content such as a table run edge to edge. A <see cref="Tab"/> can set its own.
+    /// </summary>
+    [Parameter] public Responsive<int> ContentPadding { get; set; }
+
+    /// <summary>
     /// A row above the panels (the default), or a column beside them from 640px up. Vertical tabs
     /// stay a scrolling row on phones, where a column would crowd the content.
     /// </summary>

@@ -38,6 +38,9 @@
     /// <summary>Shows the tab but stops it being selected.</summary>
     [Parameter] public bool Disabled { get; set; }
 
+    /// <summary>Padding inside this tab's panel, in spacing steps, in place of the tabs' <c>ContentPadding</c>.</summary>
+    [Parameter] public Responsive<int> ContentPadding { get; set; }
+
     /// <summary>The panel content.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -61,7 +64,13 @@
     }
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-tab-panel");
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-tab-panel");
+        var padding = ContentPadding.IsEmpty ? Context?.ContentPadding ?? default : ContentPadding;
+        ApplyResponsive(classes, styles, padding, "ib-px", "px", StyleValues.Spacing);
+        ApplyResponsive(classes, styles, padding, "ib-py", "py", StyleValues.Spacing);
+    }
 
     private (string, string?, IconData?, string?, bool)? _shown;
 
