@@ -69,13 +69,13 @@ public class Grid : Box
     }
 }
 
-/// <summary>A cell of a <see cref="Grid"/> that spans several columns or rows.</summary>
+/// <summary>
+/// A cell of a <see cref="Grid"/> that spans several rows, or columns. Any component takes
+/// <c>ColSpan</c>; GridItem adds <see cref="RowSpan"/>.
+/// </summary>
 /// <example><code>&lt;GridItem ColSpan="new() { Base = 1, Lg = 2 }"&gt;...&lt;/GridItem&gt;</code></example>
 public class GridItem : Box
 {
-    /// <summary>How many columns it spans, per breakpoint.</summary>
-    [Parameter] public Responsive<int> ColSpan { get; set; }
-
     /// <summary>How many rows it spans, per breakpoint.</summary>
     [Parameter] public Responsive<int> RowSpan { get; set; }
 
@@ -86,7 +86,6 @@ public class GridItem : Box
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
-        ApplyResponsive(classes, styles, ColSpan, "ib-colspan", "colspan", StyleValues.Span);
         ApplyResponsive(classes, styles, RowSpan, "ib-rowspan", "rowspan", StyleValues.Span);
     }
 }

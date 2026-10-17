@@ -21,6 +21,14 @@ internal interface ILayoutItem
     bool Shrink { get; }
     Responsive<Length> Basis { get; }
     Responsive<Align> AlignSelf { get; }
+    Responsive<int> ColSpan { get; }
+}
+
+/// <summary>Special values for <c>ColSpan</c>.</summary>
+public static class GridSpan
+{
+    /// <summary>Spans the whole row: <c>ColSpan="GridSpan.Full"</c>.</summary>
+    public const int Full = -1;
 }
 
 /// <summary>Writes style props as modifier classes and custom properties.</summary>
@@ -32,7 +40,11 @@ internal static class LayoutItemProps
         ApplyMargins(classes, styles, item);
         ApplyWidths(classes, styles, item);
         ApplyFlex(classes, styles, item);
+        ApplyGrid(classes, styles, item);
     }
+
+    public static void ApplyGrid(ClassBuilder classes, StyleBuilder styles, ILayoutItem item) =>
+        Write(classes, styles, item.ColSpan, "ib-colspan", "colspan", StyleValues.ColumnSpan);
 
     public static void ApplyMargins(ClassBuilder classes, StyleBuilder styles, ILayoutItem item)
     {

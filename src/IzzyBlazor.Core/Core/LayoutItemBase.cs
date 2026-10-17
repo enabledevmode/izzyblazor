@@ -70,6 +70,13 @@ public abstract class LayoutItemBase : IzzyComponentBase, ILayoutItem
     /// </summary>
     [Parameter] public Responsive<Align> AlignSelf { get; set; }
 
+    /// <summary>
+    /// How many columns it spans in a <see cref="Form"/> or <see cref="Fieldset"/> with
+    /// <c>Columns</c>, or a <see cref="Grid"/>; <see cref="GridSpan.Full"/> for the whole row. Never
+    /// more than the columns shown, so a form that narrows to one column needs no breakpoints.
+    /// </summary>
+    [Parameter] public Responsive<int> ColSpan { get; set; }
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {

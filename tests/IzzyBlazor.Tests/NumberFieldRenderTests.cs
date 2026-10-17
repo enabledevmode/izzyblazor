@@ -5,7 +5,7 @@ using Microsoft.AspNetCore.Components.Forms;
 
 namespace IzzyBlazor.Tests;
 
-public class NumberInputRenderTests : BunitContext
+public class NumberFieldRenderTests : BunitContext
 {
     public class Model
     {
@@ -23,13 +23,13 @@ public class NumberInputRenderTests : BunitContext
     private readonly Model _model = new();
     private readonly EditContext _context;
 
-    public NumberInputRenderTests()
+    public NumberFieldRenderTests()
     {
         _context = new EditContext(_model);
     }
 
-    private IRenderedComponent<NumberInput<T>> NumberFor<T>(Expression<Func<T>> field, Action<ComponentParameterCollectionBuilder<NumberInput<T>>>? more = null) =>
-        Render<NumberInput<T>>(p =>
+    private IRenderedComponent<NumberField<T>> NumberFor<T>(Expression<Func<T>> field, Action<ComponentParameterCollectionBuilder<NumberField<T>>>? more = null) =>
+        Render<NumberField<T>>(p =>
         {
             p.AddCascadingValue(_context);
             p.Add(f => f.ValueExpression, field);

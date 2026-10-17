@@ -43,7 +43,7 @@ choose a different component for each.
 - **Typography:** TextBlock, Heading, Anchor, Code (with syntax highlighting), Kbd, List, Prose, Icon
   (all of Lucide, plus brand logos)
 - **Actions:** Button, LinkButton, IconButton, ButtonGroup, ConfirmButton
-- **Forms:** Form, TextField (with add-ons), TextArea, NumberInput, Slider, Select, Combobox,
+- **Forms:** Form, TextField (with add-ons), TextArea, NumberField, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
   Fieldset, FilterForm
 - **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible

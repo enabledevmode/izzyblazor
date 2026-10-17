@@ -88,11 +88,24 @@ else
     /// <summary>Space between fields, in spacing steps. Defaults to 5.</summary>
     [Parameter] public Responsive<int> Gap { get; set; } = 5;
 
+    /// <summary>
+    /// Lays the fields out in up to this many columns (1 to 4). Defaults to 1. The form shows fewer
+    /// when it's narrow, by its own width rather than the screen's, so the same form fits a page, a
+    /// dialog and a drawer: two columns from 32rem, three from 48rem, four from 64rem. Fields take
+    /// one column and anything else (text, errors, buttons, a Fieldset) the whole row; set
+    /// <c>ColSpan</c> to change either.
+    /// </summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
     /// <summary>The fields and buttons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private string? _class;
     private string? _style;
+    private string? _gridClass;
+    private string? _gridStyle;
+
+    private int ColumnCount => Math.Clamp(Columns, 1, 4);
 
     private RenderFragment Body => __builder =>
     {
@@ -105,7 +118,17 @@ else
             @Validator
         }
 
-        @ChildContent
+        if (ColumnCount > 1)
+        {
+            @* The form is the container the columns measure; an element can't query its own width. *@
+            <div class="@_gridClass" style="@_gridStyle">
+                @ChildContent
+            </div>
+        }
+        else
+        {
+            @ChildContent
+        }
     };
 
     /// <inheritdoc />
@@ -115,9 +138,27 @@ else
         base.BuildAttributes(classes, styles);
 
         classes.Add("ib-form-horizontal", Layout == FormLayout.Horizontal);
-        ApplyResponsive(classes, styles, Gap, "ib-gap", "gap", StyleValues.Spacing);
+        if (ColumnCount > 1)
+        {
+            classes.Add("ib-form-cols");
+        }
+        else
+        {
+            ApplyResponsive(classes, styles, Gap, "ib-gap", "gap", StyleValues.Spacing);
+        }
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        (_gridClass, _gridStyle) = (null, null);
+        if (ColumnCount > 1)
+        {
+            var gridClasses = new ClassBuilder().Add("ib-form-grid").Add($"ib-form-grid-{ColumnCount}");
+            var gridStyles = new StyleBuilder();
+            ApplyResponsive(gridClasses, gridStyles, Gap, "ib-gap", "gap", StyleValues.Spacing);
+            (_gridClass, _gridStyle) = (gridClasses.Build(), gridStyles.Build());
+        }
+    }
 }

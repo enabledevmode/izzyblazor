@@ -89,10 +89,10 @@ public class IzzyText
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
 
-    /// <summary>NumberInput's increase button.</summary>
+    /// <summary>NumberField's increase button.</summary>
     public virtual string Increase { get; set; } = "Increase";
 
-    /// <summary>NumberInput's decrease button.</summary>
+    /// <summary>NumberField's decrease button.</summary>
     public virtual string Decrease { get; set; } = "Decrease";
 
     /// <summary>A password field's reveal button (a toggle, pressed while the password shows).</summary>

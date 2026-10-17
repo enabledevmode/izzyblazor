@@ -6,11 +6,11 @@
     A number field: a native number input, so it posts with the form, validates min, max and step
     in the browser, and brings up a number keyboard on phones. With JavaScript, increase and
     decrease buttons appear (hold to repeat); the browser's own spin buttons are always hidden.
-    <NumberInput @bind-Value="Model.Quantity" Min="1" Max="99" />
-    <NumberInput @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
-    <NumberInput @bind-Value="Model.Price" Step="0.01">
+    <NumberField @bind-Value="Model.Quantity" Min="1" Max="99" />
+    <NumberField @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
+    <NumberField @bind-Value="Model.Price" Step="0.01">
         <StartAddon>$</StartAddon>
-    </NumberInput>
+    </NumberField>
 *@
 
 <FieldFrame Class="@WrapperClass("number")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
@@ -126,7 +126,7 @@
     {
         if (!NumberTypes.IsNumber(typeof(TValue)))
         {
-            throw new InvalidOperationException($"NumberInput doesn't support {typeof(TValue)}. Bind it to a number type, such as int, decimal or double, or a nullable one.");
+            throw new InvalidOperationException($"NumberField doesn't support {typeof(TValue)}. Bind it to a number type, such as int, decimal or double, or a nullable one.");
         }
 
         base.OnParametersSet();

@@ -29,6 +29,12 @@
     /// <summary>Space between the fields, in spacing steps. Defaults to 4.</summary>
     [Parameter] public Responsive<int> Gap { get; set; } = 4;
 
+    /// <summary>
+    /// Lays the group's fields out in up to this many columns (1 to 4), by the group's own width,
+    /// as <see cref="Form.Columns"/> does. Defaults to 1.
+    /// </summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
     /// <summary>The fields.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -41,6 +47,7 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-fieldset");
+        classes.Add("ib-fieldset-cols", Columns > 1);
         base.BuildAttributes(classes, styles);
     }
 
@@ -50,7 +57,13 @@
         (_class, _style) = BuildRootAttributes();
 
         // The gap applies to the body that holds the fields, not to the legend.
+        var columns = Math.Clamp(Columns, 1, 4);
         var bodyClasses = new ClassBuilder().Add("ib-fieldset-body");
+        if (columns > 1)
+        {
+            bodyClasses.Add("ib-form-grid").Add($"ib-form-grid-{columns}");
+        }
+
         var bodyStyles = new StyleBuilder();
         ApplyResponsive(bodyClasses, bodyStyles, Gap, "ib-gap", "gap", StyleValues.Spacing);
         (_bodyClass, _bodyStyle) = (bodyClasses.Build(), bodyStyles.Build());

@@ -54,7 +54,7 @@ all four take the [style props](styling.md).
 - `MinChildWidth`, to fit as many columns as there's room for. `Stretch` lets a short row fill the width.
 - `Template`, for your own column sizes per breakpoint: `"15rem minmax(0, 1fr)"`.
 
-`GridItem` spans columns and rows. For content-sized items that flow, use `Stack` or `Row` with `Wrap`.
+`GridItem` spans rows (`RowSpan`); any component spans columns with `ColSpan`. For content-sized items that flow, use `Stack` or `Row` with `Wrap`.
 
 The rest:
 
@@ -201,7 +201,7 @@ JavaScript off), with enhanced handling when scripts run, and with live validati
 pages. Pair it with `[SupplyParameterFromForm(FormName = "...")]` on the model property; see
 [Getting started](getting-started.md#forms-on-static-pages).
 
-Fields (`TextField`, `TextArea`, `NumberInput`, `Slider`, `ColorPicker`, `Select`, `Combobox`,
+Fields (`TextField`, `TextArea`, `NumberField`, `Slider`, `ColorPicker`, `Select`, `Combobox`,
 `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup`, `MultiSelect`):
 
 - take their label, required marker, input type and length limits from the model's DataAnnotations,
@@ -231,6 +231,26 @@ from 640px up, and `Gap` spaces the fields (5 by default). `NativeValidation` (o
 browser check required fields and lengths before posting, `Enhance` (on by default) uses Blazor's
 enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
+**Columns.** `Columns="2"` (up to 4) lays the fields out in columns, sized by the form's own width
+rather than the screen's, so the same form fits a page, a dialog and a drawer: two columns from
+32rem, three from 48rem, four from 64rem, and one below that. It defaults to 1, which is the plain
+stacked form. Each field takes one column, and anything else (text, `FormErrors`, a row of buttons, a
+`Fieldset`) takes the whole row. `ColSpan` changes either: `ColSpan="2"` widens a field, and
+`ColSpan="GridSpan.Full"` gives it the row. A span never goes past the columns shown, so a form that
+narrows to one column needs no breakpoints. A `Fieldset` takes `Columns` too, for a group laid out
+on its own (an address in three columns inside a two-column form).
+
+```razor
+<Form Model="Model" FormName="contact" Columns="2">
+    <TextField @bind-Value="Model.FirstName" />
+    <TextField @bind-Value="Model.LastName" />
+    <TextField @bind-Value="Model.Street" ColSpan="GridSpan.Full" />
+    <TextField @bind-Value="Model.City" />
+    <Select @bind-Value="Model.Region" />
+    <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+</Form>
+```
+
 - `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
   It takes the style props, so `Border="1" Padding="4" Radius="Radius.Md"` draws a boxed group.
 - `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
@@ -250,7 +270,7 @@ with the text where the browser supports `field-sizing`, and `ShowCount` shows "
 
 `Select` and `RadioGroup` list enum values automatically, using `[Display(Name)]`.
 
-**NumberInput.** A native number input bound to any number type (`int`, `decimal`, `double`, and
+**NumberField.** A native number input bound to any number type (`int`, `decimal`, `double`, and
 their nullable forms), so it posts with the form, the browser checks `Min`, `Max` and `Step`, and phones
 show a number keyboard. `Min` and `Max` default to the model's `[Range]`; `Step` defaults to 1 for
 whole numbers and to any value for decimal types (set `Step="0.01"` for cents). Values always use
@@ -320,7 +340,7 @@ and `--ib-upload-border-style` (see [Customizing](styling.md#customizing)).
 }
 ```
 
-**Add-ons.** `TextField` and `NumberInput` take `StartAddon` and `EndAddon`: content attached to the control, outside its
+**Add-ons.** `TextField` and `NumberField` take `StartAddon` and `EndAddon`: content attached to the control, outside its
 border, at the field's height. Use them for short text (`https://`, `kg`), a `Button` (a submit button
 posts the form, so it works with JavaScript off), or another field, such as a currency `Select`, whose
 label is kept for screen readers but not shown. Add-on text isn't part of the field's accessible name,

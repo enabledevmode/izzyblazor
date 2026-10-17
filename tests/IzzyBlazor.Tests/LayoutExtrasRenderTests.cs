@@ -59,8 +59,12 @@ public class LayoutExtrasRenderTests : BunitContext
     {
         var div = Render<GridItem>(p => p.Add(g => g.ColSpan, new Responsive<int> { Base = 1, Md = 2 })).Find("div");
 
-        Assert.Equal("ib-grid-item ib-colspan ib-colspan-md", div.ClassName);
-        Assert.Contains("--ib-colspan-md:span 2 / span 2;", div.GetAttribute("style"));
+        Assert.Contains("ib-colspan-md", div.ClassList);
+        Assert.Contains("--ib-colspan-md:span min(2,", div.GetAttribute("style"));
+
+        // Any component spans, fields included, and Full takes the whole row.
+        var full = Render<Box>(p => p.Add(b => b.ColSpan, (Responsive<int>)GridSpan.Full)).Find("div");
+        Assert.Contains("--ib-colspan:1 / -1;", full.GetAttribute("style"));
     }
 
     [Fact]
