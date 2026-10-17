@@ -21,10 +21,10 @@
                    id="@FieldId"
                    class="ib-color-input"
                    type="color"
-                   name="@(ReadOnly ? null : FormName)"
+                   name="@(IsReadOnly ? null : FormName)"
                    @bind="CurrentValueAsString"
                    list="@(HasPresets ? ListId : null)"
-                   disabled="@(Disabled || ReadOnly)"
+                   disabled="@(IsDisabled || IsReadOnly)"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
             @if (ShowHex)
@@ -35,13 +35,13 @@
                        maxlength="7"
                        spellcheck="false"
                        autocomplete="off"
-                       disabled="@Disabled"
-                       readonly="@ReadOnly"
+                       disabled="@IsDisabled"
+                       readonly="@IsReadOnly"
                        aria-label="@($"{ResolvedLabel}, {HexLabel ?? TextDefaults.ColorHex}")"
                        aria-describedby="@DescribedBy" />
             }
         </span>
-        @if (ReadOnly && FormName is { Length: > 0 } name)
+        @if (IsReadOnly && FormName is { Length: > 0 } name)
         {
             @* A disabled input doesn't post; read-only fields do. *@
             <input type="hidden" name="@name" value="@Hex" />
@@ -60,7 +60,7 @@
                     <button type="button" class="ib-color-preset" style="--ib-color-preset:@preset"
                             data-ib-color="@preset" aria-label="@preset" title="@preset"
                             aria-pressed="@(preset == Hex ? "true" : "false")"
-                            disabled="@(Disabled || ReadOnly)"></button>
+                            disabled="@(IsDisabled || IsReadOnly)"></button>
                 }
             </div>
         }

@@ -231,6 +231,16 @@ from 640px up, and `Gap` spaces the fields (5 by default). `NativeValidation` (o
 browser check required fields and lengths before posting, `Enhance` (on by default) uses Blazor's
 enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
+**Read-only, disabled and marks.** `ReadOnly` on the `Form` makes every field read-only, as on a
+page that shows a record before editing it: the values show and post, but don't change. Selects,
+radios, checkboxes and switches can't be read-only in HTML, so they're disabled (styled as values,
+not as unavailable) and post from hidden inputs; a `FileUpload` is disabled. `Disabled` on the
+`Form` disables every field, and disabled fields post nothing. Neither touches buttons, so show the
+ones that fit. A field's own `ReadOnly` and `Disabled` work the same way. `RequiredMark` chooses the
+marks beside labels: `Required` (an asterisk on required fields, the default), `Optional`
+("(optional)" on the others, from `IzzyText.Optional`; clearer when most fields are required) or
+`None`.
+
 **Columns.** `Columns="2"` (up to 4) lays the fields out in columns, sized by the form's own width
 rather than the screen's, so the same form fits a page, a dialog and a drawer: two columns from
 32rem, three from 48rem, four from 64rem, and one below that. It defaults to 1, which is the plain

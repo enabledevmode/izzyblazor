@@ -24,7 +24,7 @@
                 name="@NameAttributeValue"
                 @bind="CurrentValueAsString"
                 required="@IsRequired"
-                disabled="@Disabled"
+                disabled="@(IsDisabled || IsReadOnly)"
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy">
             @if (ItemTemplate is not null)
@@ -53,6 +53,11 @@
         </select>
         <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
     </ib-field-control>
+    @if (PostsReadOnlyValue)
+    {
+        @* Read-only: the control is disabled, and disabled controls don't post, so this does. *@
+        <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
+    }
 </FieldFrame>
 
 @code {

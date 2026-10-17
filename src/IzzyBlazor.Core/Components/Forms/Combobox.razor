@@ -30,7 +30,7 @@
                 name="@NameAttributeValue"
                 @bind="CurrentValueAsString"
                 required="@IsRequired"
-                disabled="@Disabled"
+                disabled="@(IsDisabled || IsReadOnly)"
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy">
             @* Always present: clearing the text clears the value. *@
@@ -56,10 +56,10 @@
                autocapitalize="off"
                spellcheck="false"
                enterkeyhint="done"
-               disabled="@Disabled"
-               readonly="@ReadOnly"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
                @attributes="SearchAttributes" />
-        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@Disabled">
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@(IsDisabled || IsReadOnly)">
             <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
         </button>
         <div id="@ListId"
@@ -92,6 +92,11 @@
             <div class="ib-combobox-empty" role="status">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
     </ib-combobox>
+    @if (PostsReadOnlyValue)
+    {
+        @* Read-only: the control is disabled, and disabled controls don't post, so this does. *@
+        <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
+    }
 </FieldFrame>
 
 @code {

@@ -398,4 +398,71 @@ public class FormRenderTests : BunitContext
         Assert.All(radios, r => Assert.EndsWith("Plan", r.GetAttribute("name")));
         Assert.True(radios[1].HasAttribute("checked"));
     }
+
+    [Fact]
+    public void A_read_only_form_shows_values_and_still_posts_them()
+    {
+        var readOnly = new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required);
+
+        // The Form passes ReadOnly down to its fields.
+        var form = Render<Form>(p => p
+            .Add(f => f.Model, _model)
+            .Add(f => f.FormName, "view")
+            .Add(f => f.ReadOnly, true)
+            .Add(f => f.ChildContent, b =>
+            {
+                b.OpenComponent<TextField>(0);
+                b.AddAttribute(1, nameof(TextField.ValueExpression), (System.Linq.Expressions.Expression<Func<string?>>)(() => _model.Name));
+                b.CloseComponent();
+            }));
+        Assert.True(form.Find("input.ib-field-input").HasAttribute("readonly"));
+
+        // A select can't be read-only, so it's disabled and a hidden input posts its value.
+        var select = Render<Select<Plan>>(p => p
+            .AddCascadingValue(_context)
+            .AddCascadingValue(readOnly)
+            .Add(s => s.Value, _model.Plan)
+            .Add(s => s.ValueExpression, () => _model.Plan));
+        Assert.True(select.Find("select").HasAttribute("disabled"));
+        var posted = select.Find("input[type=hidden]");
+        Assert.Equal(select.Find("select").GetAttribute("name"), posted.GetAttribute("name"));
+        Assert.Equal("Pro", posted.GetAttribute("value"));
+
+        // A checked read-only box posts "true", not the usual hidden "false".
+        var box = Render<Checkbox>(p => p
+            .AddCascadingValue(_context)
+            .AddCascadingValue(readOnly)
+            .Add(c => c.Value, true)
+            .Add(c => c.ValueExpression, () => _model.Accept));
+        Assert.True(box.Find("input[type=checkbox]").HasAttribute("disabled"));
+        Assert.Equal("true", box.Find("input[type=hidden]").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void A_disabled_form_disables_its_fields_and_posts_none_of_them()
+    {
+        var disabled = new FormOptions(Disabled: true, ReadOnly: false, RequiredMark.Required);
+
+        Assert.True(TextFieldFor(() => _model.Name, p => p.AddCascadingValue(disabled)).Find("input").HasAttribute("disabled"));
+        var box = Render<Checkbox>(p => p
+            .AddCascadingValue(_context)
+            .AddCascadingValue(disabled)
+            .Add(c => c.ValueExpression, () => _model.Accept)).FindAll("input");
+        Assert.Single(box);
+        Assert.True(box[0].HasAttribute("disabled"));
+    }
+
+    [Theory]
+    [InlineData(RequiredMark.Required, "Full name *", "Favorite color")]
+    [InlineData(RequiredMark.Optional, "Full name", "Favorite color (optional)")]
+    [InlineData(RequiredMark.None, "Full name", "Favorite color")]
+    public void The_form_chooses_which_fields_are_marked(RequiredMark mark, string required, string optional)
+    {
+        var options = new FormOptions(Disabled: false, ReadOnly: false, mark);
+        string Label(System.Linq.Expressions.Expression<Func<string?>> field) =>
+            TextFieldFor(field, p => p.AddCascadingValue(options)).Find("label").TextContent;
+
+        Assert.Equal(required, Label(() => _model.Name));
+        Assert.Equal(optional, Label(() => _model.FavoriteColor));
+    }
 }

@@ -308,6 +308,8 @@ class Combobox extends IzzyElement {
 
   /** MultiSelect: selects or clears one option (flips it when `on` is left out). */
   private toggle(value: string, on?: boolean): void {
+    // A read-only MultiSelect's select is disabled: its chips can't be removed.
+    if (this.#select.disabled) return;
     const option = [...this.#select.options].find((o) => o.value === value);
     if (!option) return;
     const want = on ?? !option.selected;

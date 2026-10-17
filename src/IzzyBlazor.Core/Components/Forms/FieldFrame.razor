@@ -1,4 +1,5 @@
 @namespace IzzyBlazor
+@inject IServiceProvider Services
 
 @*
     The shared frame around every field: label, control, hint, errors. Field components use it;
@@ -47,8 +48,10 @@ else
     /// <summary>Keeps the label for screen readers but doesn't show it.</summary>
     [Parameter] public bool HideLabel { get; set; }
 
-    /// <summary>Whether to show the required marker.</summary>
+    /// <summary>Whether the field is required: an asterisk, or no "(optional)", depending on the form's <c>RequiredMark</c>.</summary>
     [Parameter] public bool Required { get; set; }
+
+    [CascadingParameter] internal FormOptions? FormOptions { get; set; }
 
     /// <summary>Help text.</summary>
     [Parameter] public string? Hint { get; set; }
@@ -75,7 +78,21 @@ else
         ? string.Join(' ', new[] { string.IsNullOrEmpty(Hint) ? null : HintId, Errors is { Count: > 0 } ? ErrorId : null }.Where(x => x is not null)) is { Length: > 0 } ids ? ids : null
         : null;
 
-    private RenderFragment? RequiredMark => Required ? RenderRequiredMark : null;
+    private RenderFragment? RequiredMark => (FormOptions?.RequiredMark ?? IzzyBlazor.RequiredMark.Required) switch
+    {
+        IzzyBlazor.RequiredMark.Required when Required => RenderRequiredMark,
+        IzzyBlazor.RequiredMark.Optional when !Required => RenderOptionalMark,
+        _ => null,
+    };
+
+    private void RenderOptionalMark(RenderTreeBuilder builder)
+    {
+        builder.AddContent(0, " ");
+        builder.OpenElement(1, "span");
+        builder.AddAttribute(2, "class", "ib-field-optional");
+        builder.AddContent(3, IzzyText.From(Services).Optional);
+        builder.CloseElement();
+    }
 
     private static void RenderRequiredMark(RenderTreeBuilder builder)
     {

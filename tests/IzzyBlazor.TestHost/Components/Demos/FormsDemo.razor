@@ -1,5 +1,6 @@
 @using System.ComponentModel.DataAnnotations
 @using Microsoft.AspNetCore.Http
+@inject NavigationManager Navigation
 
 <Stack Gap="8">
 
@@ -295,6 +296,28 @@
         </Box>
     </Example>
 
+    <Example Title="Read-only and optional marks" Note="ReadOnly on the Form shows a record without letting it change. Text fields are read-only; selects, radios and switches, which HTML can't make read-only, are disabled and post their values from hidden inputs. Edit turns it into a normal form. Disabled on the Form works the same way, but posts nothing. RequiredMark.Optional marks the fields that aren't required, instead of starring the ones that are: clearer when most fields are required." Code="@AccountCode">
+        <Form Model="Account" FormName="account" Columns="2" ReadOnly="!EditAccount" RequiredMark="RequiredMark.Optional" OnValidSubmit="() => { }">
+            <TextField @bind-Value="Account!.DisplayName" />
+            <TextField @bind-Value="Account!.Email" />
+            <Select @bind-Value="Account!.Plan" />
+            <TextField @bind-Value="Account!.Company" />
+            <RadioGroup @bind-Value="Account!.Contact" Orientation="Orientation.Horizontal" />
+            <Switch @bind-Value="Account!.Newsletter" />
+            <Row Gap="2">
+                @if (EditAccount)
+                {
+                    <Button Type="ButtonType.Submit">Save</Button>
+                    <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", (bool?)null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</LinkButton>
+                }
+                else
+                {
+                    <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", true)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Edit</LinkButton>
+                }
+            </Row>
+        </Form>
+    </Example>
+
     <Example Title="Horizontal layout" Note="Labels in a column from 640px up; stacked on phones." Code="@HorizontalCode">
         <Box MaxWidth="36.Rem">
             <Form Model="Profile" FormName="profile" Layout="FormLayout.Horizontal" OnValidSubmit="() => { }">
@@ -329,6 +352,8 @@
     [SupplyParameterFromForm(FormName = "address")] public AddressModel? Address { get; set; }
     [SupplyParameterFromForm(FormName = "profile")] public ProfileModel? Profile { get; set; }
     [SupplyParameterFromForm(FormName = "columns")] public ContactModel? Contact { get; set; }
+    [SupplyParameterFromForm(FormName = "account")] public AccountModel? Account { get; set; }
+    [SupplyParameterFromQuery(Name = "edit-account")] private bool EditAccount { get; set; }
     [SupplyParameterFromForm(FormName = "sizes")] public SizesModel? Sizes { get; set; }
     [SupplyParameterFromForm(FormName = "rich")] public RichModel? Rich { get; set; }
     [SupplyParameterFromForm(FormName = "combo")] public ComboModel? Combo { get; set; }
@@ -456,6 +481,7 @@
         Checks ??= new();
         Upload ??= new();
         Contact ??= new();
+        Account ??= new() { DisplayName = "Izzy Dryer", Email = "izzy@example.com", Plan = Plan.Pro, Newsletter = true };
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
 
@@ -674,6 +700,16 @@
         public string? Coupon { get; set; }
     }
 
+    public class AccountModel
+    {
+        [Required, Display(Name = "Display name")] public string? DisplayName { get; set; }
+        [Required, EmailAddress] public string? Email { get; set; }
+        [Required] public Plan Plan { get; set; }
+        public string? Company { get; set; }
+        [Required, Display(Name = "Preferred contact")] public ContactMethod Contact { get; set; } = ContactMethod.Email;
+        [Display(Name = "Email me product updates")] public bool Newsletter { get; set; }
+    }
+
     public class ContactModel
     {
         [Required(ErrorMessage = "Enter a first name.")] public string? FirstName { get; set; }
@@ -847,6 +883,19 @@
             </Fieldset>
             <TextArea @bind-Value="Contact.Notes" ColSpan="2" />   @* two columns, one when narrow *@
             <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+        </Form>
+        """;
+
+    private const string AccountCode =
+        """
+        <Form Model="Account" FormName="account" Columns="2" ReadOnly="!editing" RequiredMark="RequiredMark.Optional">
+            <TextField @bind-Value="Account.DisplayName" />     @* [Required]: no mark *@
+            <TextField @bind-Value="Account.Email" />
+            <Select @bind-Value="Account.Plan" />
+            <TextField @bind-Value="Account.Company" />         @* "Company (optional)" *@
+            <RadioGroup @bind-Value="Account.Contact" Orientation="Orientation.Horizontal" />
+            <Switch @bind-Value="Account.Newsletter" />
+            <Row><LinkButton Href="@Navigation.GetUriWithQueryParameter("edit", true)">Edit</LinkButton></Row>
         </Form>
         """;
 
