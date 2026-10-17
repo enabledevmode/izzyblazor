@@ -70,7 +70,20 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
    `Scripts/index.ts`. Elements change attributes, classes and ARIA state, never content Blazor
    renders.
 4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
-5. **Tests** in `tests/IzzyBlazor.Tests/`.
+5. **Tests** in `tests/IzzyBlazor.Tests/`, for its behavior (see [Tests](#tests)).
+
+### Tests
+
+Test the behavior people rely on: what a form posts and binds, what screen readers get (names,
+descriptions, states), what works with JavaScript off, what an interactive page receives, and the
+messages and limits a user sees. Don't test markup details, class names, attribute values the
+script reads, the text of generated CSS, or one-line mappings; the demo and a look in the browser
+cover those.
+
+Prefer a few broad tests to many narrow ones; a new case often fits as one more row in an existing
+`[Theory]`. When a refactor that doesn't change behavior breaks a test, loosen or delete the test
+instead of patching it to match. A test that has to be fixed with every change ends up being fixed
+instead of the product, and stops helping.
 
 ### Namespaces
 
@@ -129,7 +142,8 @@ A component is done when:
   dots, checkboxes) have whole, even sizes and sit at whole-pixel offsets in the box they're
   centered in, and its heights don't add half pixels to the page. Use `round()` where a size comes
   from rem or a percentage, and center even graphics in even spaces;
-- it has render tests, and the docs in `docs/components.md` cover it.
+- tests cover its behavior (not its markup; see [Tests](#tests)), and the docs in
+  `docs/components.md` cover it.
 
 ## Commits
 
