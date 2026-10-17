@@ -6,7 +6,7 @@
     <LangVersion>latest</LangVersion>
     <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
 
-    <Version>0.1.0-alpha.3</Version>
+    <Version>0.1.0-alpha.4</Version>
     <Authors>Israel Dryer</Authors>
     <Copyright>Copyright (c) Israel Dryer</Copyright>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
