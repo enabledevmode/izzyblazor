@@ -28,7 +28,7 @@ import "./elements/table";
 import "./elements/banner";
 import "./elements/dismiss";
 import { installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
-import { installSubmitFeedback } from "./forms";
+import { installSubmitFeedback, installValidityMessages } from "./forms";
 import { installSelects, syncSelects } from "./select";
 import { openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
@@ -36,6 +36,7 @@ import { installIndeterminate, syncIndeterminate } from "./checkbox";
 import { focusMarked } from "./focus";
 
 installSubmitFeedback();
+installValidityMessages();
 installSelects();
 installIndeterminate();
 

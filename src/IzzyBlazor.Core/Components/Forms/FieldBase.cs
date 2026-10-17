@@ -194,9 +194,44 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
         return _member?.GetCustomAttribute<TAttribute>(inherit: true);
     }
 
-    /// <summary>Attributes other than <c>id</c>, for the native control.</summary>
-    protected IEnumerable<KeyValuePair<string, object>>? ControlAttributes =>
-        AdditionalAttributes?.Where(a => !string.Equals(a.Key, "id", StringComparison.OrdinalIgnoreCase));
+    /// <summary>
+    /// The validation messages for the native control, then the attributes other than <c>id</c>
+    /// (so a <c>data-ib-required</c> set on the field replaces the model's).
+    /// </summary>
+    protected IEnumerable<KeyValuePair<string, object>> ControlAttributes =>
+        ValidationMessageAttributes.Concat(
+            AdditionalAttributes?.Where(a => !string.Equals(a.Key, "id", StringComparison.OrdinalIgnoreCase)) ?? []);
+
+    /// <summary>
+    /// The model's own error messages for the browser's checks before posting. A <c>[Required]</c>,
+    /// length, <c>[Range]</c>, <c>[EmailAddress]</c> or <c>[Url]</c> attribute with an
+    /// <c>ErrorMessage</c> (or a resource message) replaces the browser's text for that check, so
+    /// the message matches the one the validator shows after posting. Attributes without one keep
+    /// the browser's own text. The script applies these; with JavaScript off the browser's text shows.
+    /// </summary>
+    protected IEnumerable<KeyValuePair<string, object>> ValidationMessageAttributes
+    {
+        get
+        {
+            if (IsRequired && Message(Attribute<RequiredAttribute>()) is { } required)
+                yield return new("data-ib-required", required);
+            if (Message((ValidationAttribute?)Attribute<StringLengthAttribute>() ?? (ValidationAttribute?)Attribute<MinLengthAttribute>() ?? Attribute<MaxLengthAttribute>()) is { } length)
+                yield return new("data-ib-length", length);
+            if (Message(Attribute<RangeAttribute>()) is { } range)
+                yield return new("data-ib-range", range);
+            if (Message((ValidationAttribute?)Attribute<EmailAddressAttribute>() ?? Attribute<UrlAttribute>()) is { } type)
+                yield return new("data-ib-type", type);
+        }
+    }
+
+    /// <summary>
+    /// An attribute's custom message, formatted with the name the validator uses
+    /// (<c>[Display(Name)]</c>, or the property name), or null when it has the default message.
+    /// </summary>
+    private string? Message(ValidationAttribute? attribute) =>
+        attribute is { ErrorMessage: not null } or { ErrorMessageResourceName: not null }
+            ? attribute!.FormatErrorMessage(Attribute<DisplayAttribute>()?.GetName() ?? FieldIdentifier.FieldName)
+            : null;
 
     /// <summary>
     /// A name for a group of radios: the field's form name, or its id where Blazor gives none

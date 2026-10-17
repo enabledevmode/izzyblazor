@@ -21,7 +21,8 @@
             var text = TextFor(item);
             var icon = ItemIcon?.Invoke(item);
             <label class="ib-segment" for="@id" title="@(IconOnly ? text : null)">
-                <input id="@id"
+                <input @attributes="ValidationMessageAttributes"
+                       id="@id"
                        class="ib-segment-input"
                        type="radio"
                        name="@GroupName"
