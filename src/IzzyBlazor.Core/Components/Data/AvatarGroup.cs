@@ -21,7 +21,7 @@ namespace IzzyBlazor;
 /// Put the avatars directly inside the group: <see cref="Max"/> hides the extra ones with CSS,
 /// counting the group's children.
 /// </remarks>
-public class AvatarGroup : IzzyComponentBase
+public class AvatarGroup : LayoutItemBase
 {
     private readonly List<Avatar> _avatars = [];
 
@@ -70,6 +70,7 @@ public class AvatarGroup : IzzyComponentBase
     {
         classes.Add("ib-avatar-group");
         classes.Add($"ib-avatar-group-{Size.ToString().ToLowerInvariant()}", Size != AvatarSize.Md);
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

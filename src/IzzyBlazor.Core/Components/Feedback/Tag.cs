@@ -27,7 +27,7 @@ public enum TagVariant
 /// &lt;Tag Label="Status: Paid" Status="Status.Success" RemoveHref="/invoices" OnRemove="ClearStatus" /&gt;
 /// </code>
 /// </example>
-public class Tag : IzzyComponentBase
+public class Tag : LayoutItemBase
 {
     /// <summary>The text. Also used in the remove button's name.</summary>
     [Parameter] public string? Label { get; set; }
@@ -80,6 +80,8 @@ public class Tag : IzzyComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-tag");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-tag-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-tag-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-tag-sm", Size == ControlSize.Sm);

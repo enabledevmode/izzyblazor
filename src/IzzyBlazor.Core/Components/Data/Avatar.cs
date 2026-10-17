@@ -46,7 +46,7 @@ public enum AvatarVariant
 /// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" /&gt;
 /// </code>
 /// </example>
-public class Avatar : IzzyComponentBase, IDisposable
+public class Avatar : LayoutItemBase, IDisposable
 {
     // Soft hues for initials, picked from the name so a person keeps the same color everywhere.
     private static readonly int[] Hues = [25, 55, 95, 150, 190, 230, 270, 320];
@@ -160,6 +160,8 @@ public class Avatar : IzzyComponentBase, IDisposable
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-avatar");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-avatar-{ResolvedSize.ToString().ToLowerInvariant()}", ResolvedSize != AvatarSize.Md);
         classes.Add("ib-avatar-square", Square);
         classes.Add("ib-avatar-solid", Variant == AvatarVariant.Solid);

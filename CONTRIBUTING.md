@@ -56,10 +56,12 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
 
 1. **The class.** Add it under `src/IzzyBlazor.Core/Components/<Group>/`, in the `IzzyBlazor`
    namespace (`@namespace IzzyBlazor` or `namespace IzzyBlazor;`, not one per folder), inheriting
-   `StyledComponentBase` (layout and surfaces) or `IzzyComponentBase` (everything else). Override
-   `BuildAttributes`: add the base class first, call `base.BuildAttributes`, then apply component
-   parameters with `ApplyResponsive`. Use `Responsive<T>` for any parameter that should vary by
-   breakpoint.
+   `StyledComponentBase` (boxes and surfaces: item and surface props), `LayoutItemBase` (anything
+   that sits in a layout: item props only), or `IzzyComponentBase` (parts a parent always lays out,
+   such as a tab or menu item). Override `BuildAttributes`: add the base class first, call
+   `base.BuildAttributes`, then apply component parameters with `ApplyResponsive`. Use
+   `Responsive<T>` for any parameter that should vary by breakpoint. Put `Class`, `Style` and the
+   style props on the outermost element, the one a parent lays out.
 2. **The CSS.** Add it under `src/IzzyBlazor.Core/Styles/components/` inside
    `@layer izzy.components`, and import it in `Styles/izzyblazor.css`. New responsive props also need
    an entry in `STYLE_PROPS` in `build/build-assets.mjs`.

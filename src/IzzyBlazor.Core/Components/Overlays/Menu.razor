@@ -21,8 +21,8 @@
     </Menu>
 *@
 
-<ib-popover class="@RootClass"
-            style="@($"anchor-name:{StyleValues.AnchorName(ElementId)}")"
+<ib-popover class="@_outerClass"
+            style="@_outerStyle"
             data-placement="@Placement.Name()"
             data-open="@(IsOpen ? "" : null)">
     @if (Trigger is not null)
@@ -73,6 +73,13 @@
     /// <summary>Where the menu opens. Defaults to <see cref="Placement.BottomStart"/>.</summary>
     [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
 
+    /// <summary>
+    /// The width of the menu panel, such as <c>Length.Rem(16)</c> for a column of long labels.
+    /// Defaults to the content's width, at least 10rem and the trigger's width, up to 24rem.
+    /// Never wider than the screen.
+    /// </summary>
+    [Parameter] public Length? PanelWidth { get; set; }
+
     /// <summary>The <see cref="MenuItem"/>s, <see cref="MenuGroup"/>s and <see cref="MenuDivider"/>s.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -80,13 +87,14 @@
     private MenuContext _context = null!;
     private string? _class;
     private string? _style;
+    private string? _outerClass;
+    private string? _outerStyle;
 
     private string TriggerId => $"{ElementId}-trigger";
 
     /// <inheritdoc />
     protected override string IdPrefix => "ib-menu";
 
-    private string RootClass => VisibilityClasses is { } visibility ? $"ib-pop-root {visibility}" : "ib-pop-root";
 
     /// <inheritdoc />
     protected override bool VisibilityOnRoot => false;
@@ -98,6 +106,13 @@
         classes.Add("ib-menu");
         classes.Add($"ib-place-{Placement.Name()}");
         styles.AddRaw($"position-anchor:{StyleValues.AnchorName(ElementId)}");
+        if (PanelWidth is { } width)
+        {
+            classes.Add("ib-pop-sized");
+            styles.AddVar("pop-w", StyleValues.Length(width));
+        }
+
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
@@ -119,5 +134,6 @@
             [RendererInfo.IsInteractive ? "aria-haspopup" : "data-ib-haspopup"] = "menu",
         };
         (_class, _style) = BuildRootAttributes();
+        (_outerClass, _outerStyle) = BuildOuterAttributes("ib-pop-root", $"anchor-name:{StyleValues.AnchorName(ElementId)}");
     }
 }

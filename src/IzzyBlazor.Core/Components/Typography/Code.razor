@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @using System.Net
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.Extensions.DependencyInjection
@@ -50,6 +50,12 @@ else
     [Parameter] public bool Block { get; set; }
 
     /// <summary>
+    /// The tallest a block gets before its code scrolls, such as <c>Length.Rem(20)</c> for a long
+    /// file. The language label and copy button stay in place. Blocks only.
+    /// </summary>
+    [Parameter] public Length? MaxHeight { get; set; }
+
+    /// <summary>
     /// The language, such as "razor", "csharp", "css" or "bash": shown above a block, and used to
     /// color the code when the highlighter knows it (see <see cref="IzzyCodeHighlighter.Languages"/>).
     /// </summary>
@@ -79,8 +85,17 @@ else
     private RenderFragment? Content => _tokens is null ? ChildContent : RenderTokens;
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
         classes.Add(Block ? "ib-code-block" : "ib-code");
+        if (Block && MaxHeight is { } maxHeight)
+        {
+            classes.Add("ib-code-sized");
+            styles.AddVar("code-maxh", StyleValues.Length(maxHeight));
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()

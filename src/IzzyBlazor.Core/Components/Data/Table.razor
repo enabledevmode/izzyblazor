@@ -1,7 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @attribute [CascadingTypeParameter(nameof(TItem))]
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
@@ -998,6 +998,7 @@
         classes.Add("ib-table-sm", Size == ControlSize.Sm);
         classes.Add("ib-table-lg", Size == ControlSize.Lg);
         classes.Add("ib-table-sticky", MaxHeight is not null);
+        base.BuildAttributes(classes, styles);
     }
 
     private async Task ColumnsReadyAsync()

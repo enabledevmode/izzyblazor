@@ -3,8 +3,10 @@ using Microsoft.AspNetCore.Components;
 namespace IzzyBlazor;
 
 /// <summary>
-/// Base class for layout and surface components. Adds a small, token-based set of
-/// style props. Every prop takes a single value or a breakpoint map.
+/// Base class for layout and surface components. Adds the surface props (padding, background,
+/// text color, radius, shadow, borders, heights, overflow) to the item props of
+/// <see cref="LayoutItemBase"/>. Every prop takes a single value or a breakpoint map, except the
+/// on/off switches.
 /// </summary>
 /// <example>
 /// <code>
@@ -17,7 +19,7 @@ namespace IzzyBlazor;
 /// non-inheriting custom property. Props that are not set add nothing, so they never
 /// override a component's own defaults.
 /// </remarks>
-public abstract class StyledComponentBase : IzzyComponentBase
+public abstract class StyledComponentBase : LayoutItemBase
 {
     /// <summary>
     /// The color scheme inside: <see cref="IzzyBlazor.ColorScheme.Dark"/> for a dark band on a light
@@ -35,15 +37,6 @@ public abstract class StyledComponentBase : IzzyComponentBase
     /// <summary>Vertical padding. When set, replaces <see cref="Padding"/> on this axis.</summary>
     [Parameter] public Responsive<int> PaddingY { get; set; }
 
-    /// <summary>Margin on all sides, in spacing steps (-16 to 16).</summary>
-    [Parameter] public Responsive<int> Margin { get; set; }
-
-    /// <summary>Horizontal margin. When set, replaces <see cref="Margin"/> on this axis.</summary>
-    [Parameter] public Responsive<int> MarginX { get; set; }
-
-    /// <summary>Vertical margin. When set, replaces <see cref="Margin"/> on this axis.</summary>
-    [Parameter] public Responsive<int> MarginY { get; set; }
-
     /// <summary>Top padding. When set, replaces <see cref="PaddingY"/> and <see cref="Padding"/> on this side.</summary>
     [Parameter] public Responsive<int> PaddingTop { get; set; }
 
@@ -55,18 +48,6 @@ public abstract class StyledComponentBase : IzzyComponentBase
 
     /// <summary>Padding at the end (right in left-to-right text, left in right-to-left). Replaces <see cref="PaddingX"/> and <see cref="Padding"/> on this side.</summary>
     [Parameter] public Responsive<int> PaddingEnd { get; set; }
-
-    /// <summary>Top margin. When set, replaces <see cref="MarginY"/> and <see cref="Margin"/> on this side.</summary>
-    [Parameter] public Responsive<int> MarginTop { get; set; }
-
-    /// <summary>Bottom margin. When set, replaces <see cref="MarginY"/> and <see cref="Margin"/> on this side.</summary>
-    [Parameter] public Responsive<int> MarginBottom { get; set; }
-
-    /// <summary>Margin at the start (left in left-to-right text, right in right-to-left). Replaces <see cref="MarginX"/> and <see cref="Margin"/> on this side.</summary>
-    [Parameter] public Responsive<int> MarginStart { get; set; }
-
-    /// <summary>Margin at the end (right in left-to-right text, left in right-to-left). Replaces <see cref="MarginX"/> and <see cref="Margin"/> on this side.</summary>
-    [Parameter] public Responsive<int> MarginEnd { get; set; }
 
     /// <summary>Background color.</summary>
     [Parameter] public Responsive<Color> Bg { get; set; }
@@ -83,17 +64,8 @@ public abstract class StyledComponentBase : IzzyComponentBase
     /// <summary>Elevation.</summary>
     [Parameter] public Responsive<Shadow> Shadow { get; set; }
 
-    /// <summary>Width.</summary>
-    [Parameter] public Responsive<Length> Width { get; set; }
-
-    /// <summary>Maximum width.</summary>
-    [Parameter] public Responsive<Length> MaxWidth { get; set; }
-
     /// <summary>Minimum height.</summary>
     [Parameter] public Responsive<Length> MinHeight { get; set; }
-
-    /// <summary>Minimum width.</summary>
-    [Parameter] public Responsive<Length> MinWidth { get; set; }
 
     /// <summary>Height.</summary>
     [Parameter] public Responsive<Length> Height { get; set; }
@@ -132,19 +104,11 @@ public abstract class StyledComponentBase : IzzyComponentBase
     /// <summary>The border color, for borders set here or the component's own. Defaults to <see cref="IzzyBlazor.Color.Border"/>.</summary>
     [Parameter] public Responsive<Color> BorderColor { get; set; }
 
-    /// <summary>Whether to grow into free space inside a Stack, Row or Column: <c>&lt;Box Grow&gt;</c>.</summary>
-    [Parameter] public bool Grow { get; set; }
-
-    /// <summary>Whether to shrink when space is short inside a Stack, Row or Column. Defaults to true; <c>Shrink="false"</c> keeps the size.</summary>
-    [Parameter] public bool Shrink { get; set; } = true;
-
-    /// <summary>Starting size inside a Stack, before growing or shrinking.</summary>
-    [Parameter] public Responsive<Length> Basis { get; set; }
-
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps)
     {
-        base.BuildAttributes(classes, styles);
+        // Item props (margins, widths, flex) only where the parent lays this element out; surface
+        // props always. The order matches the output before the two sets were split.
         if (ColorScheme.ClassName() is { } scheme)
         {
             classes.Add(scheme);
@@ -152,78 +116,44 @@ public abstract class StyledComponentBase : IzzyComponentBase
 
         ApplyAxis(classes, styles, Either(PaddingX, Padding), PaddingStart, PaddingEnd, "px", "ps", "pe", StyleValues.Spacing);
         ApplyAxis(classes, styles, Either(PaddingY, Padding), PaddingTop, PaddingBottom, "py", "pt", "pb", StyleValues.Spacing);
-        ApplyAxis(classes, styles, Either(MarginX, Margin), MarginStart, MarginEnd, "mx", "ms", "me", StyleValues.Margin);
-        ApplyAxis(classes, styles, Either(MarginY, Margin), MarginTop, MarginBottom, "my", "mt", "mb", StyleValues.Margin);
+        if (itemProps)
+        {
+            LayoutItemProps.ApplyMargins(classes, styles, this);
+        }
+
         ApplyResponsive(classes, styles, Bg, "ib-bg", "bg", StyleValues.Color);
         var textColor = Color.IsEmpty ? Bg.Select(bg => bg.ContrastText) : Color;
         ApplyResponsive(classes, styles, textColor, "ib-fg", "fg", StyleValues.Color);
         ApplyResponsive(classes, styles, Radius, "ib-radius", "rounded", StyleValues.Radius);
         ApplyResponsive(classes, styles, Shadow, "ib-shadow", "elevation", StyleValues.Shadow);
-        ApplyResponsive(classes, styles, Width, "ib-w", "w", StyleValues.Length);
-        ApplyResponsive(classes, styles, MaxWidth, "ib-maxw", "maxw", StyleValues.Length);
+        if (itemProps)
+        {
+            ApplyResponsive(classes, styles, Width, "ib-w", "w", StyleValues.Length);
+            ApplyResponsive(classes, styles, MaxWidth, "ib-maxw", "maxw", StyleValues.Length);
+        }
+
         ApplyResponsive(classes, styles, MinHeight, "ib-minh", "minh", StyleValues.Length);
-        ApplyResponsive(classes, styles, MinWidth, "ib-minw", "minw", StyleValues.Length);
+        if (itemProps)
+        {
+            ApplyResponsive(classes, styles, MinWidth, "ib-minw", "minw", StyleValues.Length);
+        }
+
         ApplyResponsive(classes, styles, Height, "ib-h", "h", StyleValues.Length);
         ApplyResponsive(classes, styles, MaxHeight, "ib-maxh", "maxh", StyleValues.Length);
         ApplyResponsive(classes, styles, Overflow, "ib-ov", "ov", StyleValues.Overflow);
         ApplyAxis(classes, styles, Either(BorderX, Border), BorderStart, BorderEnd, "bx", "bs", "be", StyleValues.BorderWidth);
         ApplyAxis(classes, styles, Either(BorderY, Border), BorderTop, BorderBottom, "by", "bt", "bb", StyleValues.BorderWidth);
         ApplyResponsive(classes, styles, BorderColor, "ib-bc", "bc", StyleValues.Color);
-        // On/off switches are plain bools (so <Box Grow> works); only a change from the default adds CSS.
-        ApplyResponsive(classes, styles, Grow ? true : default(Responsive<bool>), "ib-grow", "grow", StyleValues.Factor);
-        ApplyResponsive(classes, styles, Shrink ? default(Responsive<bool>) : false, "ib-shrink", "shrink", StyleValues.Factor);
-        ApplyResponsive(classes, styles, Basis, "ib-basis", "basis", StyleValues.Length);
+        if (itemProps)
+        {
+            LayoutItemProps.ApplyFlex(classes, styles, this);
+        }
     }
 
-    // With no side set, one axis class (ib-px). With either side set, a class per side, each from
-    // its own value or the axis value: an axis class at a larger breakpoint would otherwise
-    // override a side set at a smaller one.
     private static void ApplyAxis(ClassBuilder classes, StyleBuilder styles, Responsive<int> axis, Responsive<int> start, Responsive<int> end,
-        string axisName, string startName, string endName, Func<int, string> format)
-    {
-        if (start.IsEmpty && end.IsEmpty)
-        {
-            ApplyResponsive(classes, styles, axis, "ib-" + axisName, axisName, format);
-            return;
-        }
+        string axisName, string startName, string endName, Func<int, string> format) =>
+        LayoutItemProps.ApplyAxis(classes, styles, axis, start, end, axisName, startName, endName, format);
 
-        ApplyResponsive(classes, styles, Either(start, axis), "ib-" + startName, startName, format);
-        ApplyResponsive(classes, styles, Either(end, axis), "ib-" + endName, endName, format);
-    }
-
-    // The specific value (a side, or an axis over the all-sides value) where it applies, the
-    // general one elsewhere. Mobile first: once the specific value starts at a breakpoint it holds
-    // at every larger one, so it's repeated wherever the general value would take over again.
-    // PaddingTop {Md=0} with Padding 4 is 4 below md and 0 from md up.
-    private static Responsive<int> Either(Responsive<int> specific, Responsive<int> general)
-    {
-        if (specific.IsEmpty || general.IsEmpty)
-        {
-            return specific.IsEmpty ? general : specific;
-        }
-
-        var own = specific.Entries.ToDictionary(e => e.Breakpoint ?? (Breakpoint)(-1), e => e.Value);
-        var fallback = general.Entries.ToDictionary(e => e.Breakpoint ?? (Breakpoint)(-1), e => e.Value);
-        var result = default(Responsive<int>);
-        int? current = null;
-        foreach (var bp in new[] { (Breakpoint)(-1), Breakpoint.Sm, Breakpoint.Md, Breakpoint.Lg, Breakpoint.Xl })
-        {
-            int? value = own.TryGetValue(bp, out var o) ? current = o
-                : current is { } held ? (fallback.ContainsKey(bp) ? held : null)
-                : fallback.TryGetValue(bp, out var f) ? f : null;
-            if (value is { } v)
-            {
-                result = bp switch
-                {
-                    Breakpoint.Sm => result with { Sm = v },
-                    Breakpoint.Md => result with { Md = v },
-                    Breakpoint.Lg => result with { Lg = v },
-                    Breakpoint.Xl => result with { Xl = v },
-                    _ => result with { Base = v },
-                };
-            }
-        }
-
-        return result;
-    }
+    private static Responsive<int> Either(Responsive<int> specific, Responsive<int> general) =>
+        LayoutItemProps.Either(specific, general);
 }

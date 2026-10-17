@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     The menu button that opens an AppShell's sidebar below its breakpoint. Hidden above it.
@@ -48,6 +48,7 @@
     {
         classes.Add("ib-btn ib-btn-neutral ib-btn-icon-only ib-shell-toggle");
         classes.Add($"ib-btn-{Variant.ToString().ToLowerInvariant()}");
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

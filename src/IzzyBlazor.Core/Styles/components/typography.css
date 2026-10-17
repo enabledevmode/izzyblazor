@@ -190,6 +190,12 @@
     tab-size: 4;
   }
 
+  /* MaxHeight: the code scrolls; the bar floats over it and stays put. */
+  .ib-code-sized .ib-code-pre {
+    max-height: var(--ib-code-maxh);
+    overflow-y: auto;
+  }
+
   .ib-code-block:has(.ib-code-bar) .ib-code-pre {
     padding-inline-end: 7rem;
   }

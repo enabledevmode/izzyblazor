@@ -26,7 +26,7 @@ public enum AnchorUnderline
 /// &lt;Anchor Href="https://github.com/..." External&gt;GitHub&lt;/Anchor&gt;
 /// </code>
 /// </example>
-public class Anchor : IzzyComponentBase
+public class Anchor : LayoutItemBase
 {
     /// <summary>Where it goes.</summary>
     [Parameter, EditorRequired] public string Href { get; set; } = "";
@@ -59,6 +59,7 @@ public class Anchor : IzzyComponentBase
         classes.Add("ib-anchor-hover", Underline == AnchorUnderline.Hover);
         classes.Add("ib-anchor-plain", Underline == AnchorUnderline.None);
         classes.Add("ib-anchor-inherit", Inherit);
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

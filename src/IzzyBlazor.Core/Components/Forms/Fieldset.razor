@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits StyledComponentBase
 
 @*
     Groups related fields under a heading, such as a shipping address.
@@ -38,7 +38,11 @@
     private string? _bodyStyle;
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-fieldset");
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-fieldset");
+        base.BuildAttributes(classes, styles);
+    }
 
     /// <inheritdoc />
     protected override void OnParametersSet()

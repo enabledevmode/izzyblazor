@@ -13,6 +13,9 @@ internal sealed class TabsContext(Tabs owner)
 
     public string RootId => owner.RootId;
 
+    /// <summary>The padding inside every panel, unless a tab sets its own.</summary>
+    public Responsive<int> ContentPadding => owner.ContentPadding;
+
     public bool IsSelected(Tab tab) => owner.SelectedValue == KeyOf(tab);
 
     /// <summary>

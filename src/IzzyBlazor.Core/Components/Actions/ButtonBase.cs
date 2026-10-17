@@ -7,7 +7,7 @@ namespace IzzyBlazor;
 /// Shared look and content for <see cref="Button"/>, <see cref="LinkButton"/> and
 /// <see cref="IconButton"/>.
 /// </summary>
-public abstract class ButtonBase : IzzyComponentBase
+public abstract class ButtonBase : LayoutItemBase
 {
     /// <summary>
     /// Primary (the default) for the main action, Neutral for everything else, Danger for
@@ -77,6 +77,8 @@ public abstract class ButtonBase : IzzyComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-btn");
+        base.BuildAttributes(classes, styles);
+
         // A custom color paints over the primary accent's custom properties.
         var accent = EffectiveAccent;
         classes.Add($"ib-btn-{accent.Role ?? "primary"}");

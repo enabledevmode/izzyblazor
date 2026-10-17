@@ -10,6 +10,9 @@ better when scripts run, and binds to C# on interactive pages.
 
 > **Preview** (`0.1.0-alpha.3`). The API will change before 0.1.
 
+**Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on (CSS `:has()`, `light-dark()`
+and the Popover API).
+
 ## Every component works three ways
 
 | | With JavaScript off | With JavaScript | On interactive pages |

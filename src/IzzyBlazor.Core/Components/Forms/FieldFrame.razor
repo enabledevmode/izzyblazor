@@ -7,7 +7,7 @@
 
 @if (Group)
 {
-    <fieldset class="@Class" aria-describedby="@DescribedBy">
+    <fieldset class="@Class" style="@Style" aria-describedby="@DescribedBy">
         @if (!string.IsNullOrEmpty(Label))
         {
             <legend class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")">@Label@RequiredMark</legend>
@@ -18,7 +18,7 @@
 }
 else
 {
-    <div class="@Class">
+    <div class="@Class" style="@Style">
         @if (!string.IsNullOrEmpty(Label) && !LabelInControl)
         {
             <label class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")" for="@Id" id="@LabelId">@Label@RequiredMark</label>
@@ -31,6 +31,9 @@ else
 @code {
     /// <summary>Classes for the wrapper.</summary>
     [Parameter] public string? Class { get; set; }
+
+    /// <summary>Inline style for the wrapper.</summary>
+    [Parameter] public string? Style { get; set; }
 
     /// <summary>The control's id, for the label's <c>for</c>.</summary>
     [Parameter] public string? Id { get; set; }

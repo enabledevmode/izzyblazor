@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     A list of navigation links: vertical for sidebars, horizontal for headers.
@@ -33,6 +33,7 @@
     {
         classes.Add("ib-nav");
         classes.Add(Orientation == Orientation.Horizontal ? "ib-nav-horizontal" : "ib-nav-vertical");
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

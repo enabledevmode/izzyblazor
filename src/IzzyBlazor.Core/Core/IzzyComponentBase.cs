@@ -80,23 +80,18 @@ public abstract partial class IzzyComponentBase : ComponentBase
     }
 
     /// <summary>
-    /// Whether <see cref="BuildRootAttributes"/> adds the <see cref="HiddenFrom"/> and
-    /// <see cref="VisibleFrom"/> classes. Components whose <see cref="Class"/> goes on an inner
-    /// element (such as a menu's panel) return false and put <see cref="VisibilityClasses"/>
-    /// on their outer element themselves.
+    /// Whether the root element, the one <see cref="Class"/> goes on, is also the element the
+    /// parent lays out. When true, <see cref="BuildRootAttributes"/> adds the <see cref="HiddenFrom"/>
+    /// and <see cref="VisibleFrom"/> classes, and on a <see cref="LayoutItemBase"/> the item props.
+    /// Components whose <see cref="Class"/> goes on an inner element (such as a menu's panel)
+    /// return false and build their outer element's class and style themselves: with
+    /// <see cref="LayoutItemBase.BuildOuterAttributes"/>, or from <see cref="VisibilityClasses"/>.
+    /// Surface props stay on the inner element.
     /// </summary>
     protected virtual bool VisibilityOnRoot => true;
 
     /// <summary>The classes for <see cref="HiddenFrom"/> and <see cref="VisibleFrom"/>, or null.</summary>
-    protected string? VisibilityClasses
-    {
-        get
-        {
-            var hidden = HiddenFrom is { } h ? $"ib-hidden-from-{h.Name()}" : null;
-            var visible = VisibleFrom is { } v ? $"ib-visible-from-{v.Name()}" : null;
-            return hidden is null ? visible : visible is null ? hidden : $"{hidden} {visible}";
-        }
-    }
+    protected string? VisibilityClasses => LayoutItemProps.VisibilityClasses(HiddenFrom, VisibleFrom);
 
     /// <summary>Checks a tag name passed to an <c>As</c> parameter.</summary>
     protected static string ValidateTag(string tag) =>
@@ -118,15 +113,8 @@ public abstract partial class IzzyComponentBase : ComponentBase
         Responsive<T> value,
         string cssClass,
         string varName,
-        Func<T, string> map)
-    {
-        foreach (var (breakpoint, _) in value.Entries)
-        {
-            classes.Add(breakpoint is { } bp ? $"{cssClass}-{bp.Name()}" : cssClass);
-        }
-
-        styles.AddVars(varName, value, map);
-    }
+        Func<T, string> map) =>
+        LayoutItemProps.Write(classes, styles, value, cssClass, varName, map);
 
     [GeneratedRegex("^[a-z][a-z0-9-]*$")]
     private static partial Regex TagName();
