@@ -648,8 +648,8 @@ proper ARIA tabs (roving focus, Home/End).
   to its label in lower case with dashes (`billing-history`).
 - `@bind-Selected` follows it on interactive pages.
 - `Variant` (`Line`, `Soft`, `Segmented`), `Size` and `FullWidth`; each `Tab` takes a `Label`, `Icon`, `Badge` and `Disabled`.
-- `ContentPadding` replaces the space above and below every panel (`0` lets a table run edge to edge);
-  a `Tab` can set its own.
+- `ContentPadding` pads every side of each panel, in place of the default space above and below (`0`
+  lets a table run edge to edge); a `Tab` can set its own.
 - `Orientation="Orientation.Vertical"` puts the tabs in a column beside the panels from 640px up,
   and Up and Down arrows move between them. On phones they stay a scrolling row above the panels.
 

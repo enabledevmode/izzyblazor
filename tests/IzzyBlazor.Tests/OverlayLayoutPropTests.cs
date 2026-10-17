@@ -151,6 +151,19 @@ public class OverlayLayoutPropTests : BunitContext
     }
 
     [Fact]
+    public void Changing_Tabs_ContentPadding_updates_every_panel()
+    {
+        var cut = Render<Tabs>(p => p
+            .Add(t => t.Id, "t")
+            .Add(t => t.ContentPadding, 6)
+            .Add(t => t.ChildContent, TwoTabs()));
+
+        cut.Render(p => p.Add(t => t.ContentPadding, 2));
+
+        Assert.All(cut.FindAll(".ib-tab-panel"), panel => Assert.Contains("--ib-px:var(--ib-space-2)", panel.GetAttribute("style")));
+    }
+
+    [Fact]
     public void Tab_panels_have_no_padding_props_by_default()
     {
         var panel = Render<Tabs>(p => p.Add(t => t.Id, "t").Add(t => t.ChildContent, TwoTabs())).FindAll(".ib-tab-panel")[0];

@@ -74,6 +74,16 @@
 
     private (string, string?, IconData?, string?, bool)? _shown;
 
+    /// <summary>The tabs' <c>ContentPadding</c> changed: recompute the panel's padding.</summary>
+    internal void ContentPaddingChanged()
+    {
+        if (ContentPadding.IsEmpty)
+        {
+            (_class, _style) = BuildRootAttributes();
+            StateHasChanged();
+        }
+    }
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
