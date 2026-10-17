@@ -416,11 +416,6 @@
     overflow: hidden;
   }
 
-  /* A Width set on the dialog replaces the size's, and still leaves a margin on small screens. */
-  .ib-dialog:is(.ib-w, .ib-w-sm, .ib-w-md, .ib-w-lg, .ib-w-xl) {
-    max-width: calc(100% - 2rem);
-  }
-
   .ib-dialog-sm { --ib-dialog-w: 24rem; }
   .ib-dialog-lg { --ib-dialog-w: 48rem; }
   .ib-dialog-xl { --ib-dialog-w: 64rem; }
@@ -470,6 +465,17 @@
   .ib-dialog-lg:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 32rem; }
   .ib-dialog-xl:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 40rem; }
   .ib-dialog-full:is(.ib-dialog-start, .ib-dialog-end) { width: 100%; }
+
+  /*
+   * Width: replaces the Size's width through the same variables, so when it doesn't fit, a dialog
+   * still leaves 1rem of screen each side and a side drawer 3rem on its open side. Top and bottom
+   * sheets span the screen, and Full fills it, so they ignore it.
+   */
+  .ib-dialog.ib-dialog-sized:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw); --ib-drawer-w: var(--ib-dlgw); }
+  @media (min-width: 640px) { .ib-dialog.ib-dialog-sized-sm:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-sm); --ib-drawer-w: var(--ib-dlgw-sm); } }
+  @media (min-width: 768px) { .ib-dialog.ib-dialog-sized-md:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-md); --ib-drawer-w: var(--ib-dlgw-md); } }
+  @media (min-width: 1024px) { .ib-dialog.ib-dialog-sized-lg:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-lg); --ib-drawer-w: var(--ib-dlgw-lg); } }
+  @media (min-width: 1280px) { .ib-dialog.ib-dialog-sized-xl:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-xl); --ib-drawer-w: var(--ib-dlgw-xl); } }
 
   /* Top and bottom sheets: full width, as tall as the content up to 85% of the screen. */
   .ib-dialog-top,

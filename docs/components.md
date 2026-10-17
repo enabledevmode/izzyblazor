@@ -555,9 +555,12 @@ traps focus the same way. `Size` sets a side drawer's width (`Sm` 20rem, `Md` 24
 `Xl` 40rem, `Full`); top and bottom sheets are as tall as their content, up to 85% of the screen.
 Sides flip in right-to-left languages.
 
-For a width the sizes don't cover, set `Width` (and `MaxWidth`) on a `Dialog` or side `Drawer`, such as
-`Width="Length.Rem(56)"` for a dialog holding a table. It still leaves a margin on small screens.
-`ContentPadding` replaces the body's padding (`0` runs a table or image edge to edge).
+For a width the sizes don't cover, set `Width` on a `Dialog` or side `Drawer`, such as
+`Width="Length.Rem(56)"` for a dialog holding a table; it can change per breakpoint. It replaces the
+`Size`'s width and keeps its margin on small screens (1rem each side of a dialog, 3rem beside a
+drawer). Top and bottom sheets span the screen and `Full` fills it, so they ignore it. A dialog isn't
+laid out in the page, so it takes no other layout props: margins, `MinWidth`, `MaxWidth` and the flex
+props throw. `ContentPadding` replaces the body's padding (`0` runs a table or image edge to edge).
 
 **Dialogs from code (interactive pages).** `DialogService` opens a component in a dialog and awaits
 how it ends, for flows like "edit this, then refresh":

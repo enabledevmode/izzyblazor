@@ -157,10 +157,26 @@
         base.BuildAttributes(classes, styles);
     }
 
+    /// <summary>
+    /// A dialog isn't in the page layout: <c>Width</c> replaces the <see cref="Size"/>'s width
+    /// through the size's own variables, which keep a margin on small screens. Top and bottom
+    /// sheets span the screen and ignore it.
+    /// </summary>
+    private protected override void BuildLayoutAttributes(ClassBuilder classes, StyleBuilder styles, bool itemProps) =>
+        ApplyResponsive(classes, styles, Width, "ib-dialog-sized", "dlgw", StyleValues.Length);
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        if (!Margin.IsEmpty || !MarginX.IsEmpty || !MarginY.IsEmpty || !MarginTop.IsEmpty || !MarginBottom.IsEmpty
+            || !MarginStart.IsEmpty || !MarginEnd.IsEmpty || !MinWidth.IsEmpty || !MaxWidth.IsEmpty
+            || Grow || !Shrink || !Basis.IsEmpty || !AlignSelf.IsEmpty)
+        {
+            throw new InvalidOperationException(
+                $"A {GetType().Name} isn't laid out in the page, so margins, MinWidth, MaxWidth and the flex props don't apply. Set its Size, or Width for a width the sizes don't cover.");
+        }
+
         _context ??= new DialogContext(ElementId, !InsideForm);
 
         // ?dialog=id opens it. Only a change in the URL does, so closing it in the browser sticks.

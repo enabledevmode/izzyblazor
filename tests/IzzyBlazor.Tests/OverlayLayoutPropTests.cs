@@ -86,10 +86,31 @@ public class OverlayLayoutPropTests : BunitContext
         var dialog = cut.Find("dialog");
         var body = cut.Find(".ib-dialog-body");
 
-        Assert.Contains("ib-w", dialog.ClassName);
-        Assert.Contains("--ib-w:56rem", dialog.GetAttribute("style"));
+        Assert.Equal("ib-dialog ib-dialog-md ib-dialog-center ib-dialog-sized", dialog.ClassName);
+        Assert.Equal("--ib-dlgw:56rem;", dialog.GetAttribute("style"));
         Assert.Equal("ib-dialog-body ib-px ib-py", body.ClassName);
         Assert.Contains("--ib-px:var(--ib-space-0)", body.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void Dialog_Width_can_change_per_breakpoint()
+    {
+        var dialog = Render<Dialog>(p => p
+            .Add(d => d.Id, "wide")
+            .Add(d => d.Title, "Members")
+            .Add(d => d.Width, new Responsive<Length> { Md = Length.Rem(48) })).Find("dialog");
+
+        Assert.Contains("ib-dialog-sized-md", dialog.ClassName);
+        Assert.DoesNotContain("ib-dialog-sized ", dialog.ClassName + " ");
+        Assert.Equal("--ib-dlgw-md:48rem;", dialog.GetAttribute("style"));
+    }
+
+    [Fact]
+    public void Dialog_rejects_layout_props_that_dont_apply()
+    {
+        Assert.Throws<InvalidOperationException>(() => Render<Dialog>(p => p.Add(d => d.Id, "a").Add(d => d.Title, "A").Add(d => d.MarginX, 4)));
+        Assert.Throws<InvalidOperationException>(() => Render<Drawer>(p => p.Add(d => d.Id, "b").Add(d => d.Title, "B").Add(d => d.MaxWidth, Length.Rem(40))));
+        Assert.Throws<InvalidOperationException>(() => Render<Dialog>(p => p.Add(d => d.Id, "c").Add(d => d.Title, "C").Add(d => d.Grow, true)));
     }
 
     [Fact]

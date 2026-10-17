@@ -50,8 +50,9 @@ Style props come in two sets:
   fields and `FileUpload`, buttons and `ButtonGroup`, `Alert`, `Badge`, `Banner`, `Progress`,
   `Spinner`, `Tag`, `Avatar`, `Stat`, `Table`, `Accordion`, `Form`, `FilterForm`, `Tabs`,
   `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `HeaderNav`, `AppBrand`, `ColorSchemeSwitch`,
-  `SidebarToggle`, `Code`, `Kbd`, `Anchor`, `Menu`, `Popover`, `Tooltip`, `Collapsible`,
-  `AccordionItem`, `Dialog` and `Drawer`.
+  `SidebarToggle`, `Code`, `Kbd`, `Anchor`, `Menu`, `Popover`, `Tooltip`, `Collapsible` and
+  `AccordionItem`. `Dialog` and `Drawer` aren't laid out in the page, so they take only `Width`
+  (see [Dialog](components.md#overlays)).
 - **Surface props** say how a box looks inside: `Padding`, `Bg`, `Color`, `ColorScheme`, `Radius`,
   `Shadow`, the borders, `Height`, `MinHeight`, `MaxHeight` and `Overflow`. `Box` and the components
   built on it take these as well as the item props: Stack, Row, Column, Grid, Section, Card, the
