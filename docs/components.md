@@ -263,6 +263,10 @@ on its own (an address in three columns inside a two-column form).
 
 - `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
   It takes the style props, so `Border="1" Padding="4" Radius="Radius.Md"` draws a boxed group.
+- `FormActions` is the row of buttons at the end: across the whole row, buttons at the end
+  (`Justify` moves them). Put them in reading order, Cancel before the main action. Last in a form
+  that fills a `Dialog` or `Drawer`, it becomes the dialog's footer, like `DialogActions`: it
+  reaches the edges and stays in view while the body scrolls, and its buttons still submit the form.
 - `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
   following"). After a failed submit it takes focus, with JavaScript off too, so keyboard and screen
   reader users start from the list of problems.
