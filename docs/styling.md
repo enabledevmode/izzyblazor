@@ -41,9 +41,44 @@ component's existing border. Sides you don't set keep the component's own.
 (`Visible`, `Hidden`, `Auto`, `Scroll`, `Clip`) says what happens to content that doesn't fit:
 `MaxHeight="Length.Rem(20)" Overflow="Overflow.Auto"` scrolls it.
 
-`Box` and the components built on it (Stack, Row, Grid, Section, Card, the typography components and
-the like) take these props. The App layout parts take `Bg` and `ColorScheme` only, and controls such as
-fields and buttons take none: space them with the layout around them (`Stack Gap`, `Row Gap`).
+## Which components take which props
+
+Style props come in two sets:
+
+- **Item props** say how a component sits in its parent: `Margin` (and its axes and sides), `Width`,
+  `MinWidth`, `MaxWidth`, `Grow`, `Shrink`, `Basis` and `AlignSelf`. Most components take them:
+  fields and `FileUpload`, buttons and `ButtonGroup`, `Alert`, `Badge`, `Banner`, `Progress`,
+  `Spinner`, `Tag`, `Avatar`, `Stat`, `Table`, `Accordion`, `Form`, `FilterForm`, `Tabs`,
+  `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `HeaderNav`, `AppBrand`, `ColorSchemeSwitch`,
+  `SidebarToggle`, `Code`, `Kbd` and `Anchor`.
+- **Surface props** say how a box looks inside: `Padding`, `Bg`, `Color`, `ColorScheme`, `Radius`,
+  `Shadow`, the borders, `Height`, `MinHeight`, `MaxHeight` and `Overflow`. `Box` and the components
+  built on it take these as well as the item props: Stack, Row, Column, Grid, Section, Card, the
+  typography components, `Fieldset`, `Image`, `EmptyState` and the like.
+
+The App layout parts take `Bg` and `ColorScheme` only. Items that a parent always lays out, such as
+`NavItem`, `Tab`, `Step` and `MenuItem`, take neither.
+
+Item props go on the component's outermost element, the one its parent lays out. For a field, that's
+the wrapper around the label, control and hint, not the input:
+
+```razor
+<Row Gap="2" Align="Align.End">
+    <TextField @bind-Value="Query" Label="Search" Grow />
+    <Button>Search</Button>
+</Row>
+
+<Row Gap="4">
+    <Avatar Name="@User.Name" Size="AvatarSize.Lg" />
+    <FileUpload Name="Photo" Label="Profile photo" Grow />
+</Row>
+```
+
+`AlignSelf` takes an `Align` and overrides the parent's `Align` for one item, such as a button lined up
+with the bottom of labeled fields when the row centers everything else.
+
+`Class` and `Style` also go on the outermost element of every component, after the generated custom
+properties, for anything the props don't cover.
 
 ## Responsive values
 
@@ -58,7 +93,7 @@ Every style prop takes a single value or a breakpoint map:
 Breakpoints: `Sm` 640px, `Md` 768px, `Lg` 1024px, `Xl` 1280px. Only the values you set produce CSS,
 so `new() { Md = 6 }` keeps the component's default below 768px.
 
-`HiddenFrom="Breakpoint.Md"` and `VisibleFrom="Breakpoint.Md"` work on any styled component.
+`HiddenFrom="Breakpoint.Md"` and `VisibleFrom="Breakpoint.Md"` work on any component, fields included.
 
 What's responsive and what isn't follows one rule: things that change with screen size (direction,
 gap, spacing, columns, sizes, alignment, visibility) take a breakpoint map; on/off switches (`Grow`,

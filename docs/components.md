@@ -4,6 +4,10 @@ What each component does, and how it behaves with JavaScript off, with JavaScrip
 interactive pages. Every component has a live demo in the dev host, in both static and interactive
 modes (see [Contributing](../CONTRIBUTING.md)).
 
+Most components take the item props, which place them in a layout (`Margin`, `Width`, `Grow`,
+`AlignSelf` and the rest), and boxes also take the surface props (`Padding`, `Bg`, borders and the
+rest). [Styling](styling.md#which-components-take-which-props) lists which take which.
+
 - [Layout](#layout)
 - [Typography, links and code](#typography-links-and-code)
 - [Icons](#icons)
@@ -205,12 +209,17 @@ Every field also takes `Hint` (help text under it, linked for screen readers), `
 show it, as in a one-field newsletter form or a toolbar. (Checkboxes and switches show their label
 beside the box.)
 
+Fields and `FileUpload` also take the item props (`<TextField Grow />`, `Width`, margins,
+`AlignSelf`), `HiddenFrom`, `VisibleFrom`, `Class` and `Style`, all on the wrapper around the label,
+control and hint: the element a `Row` or `Stack` lays out.
+
 On the `Form`, `Layout="FormLayout.Horizontal"` puts labels in a column to the left of the fields
 from 640px up, and `Gap` spaces the fields (5 by default). `NativeValidation` (on by default) lets the
 browser check required fields and lengths before posting, `Enhance` (on by default) uses Blazor's
 enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
 - `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
+  It takes the style props, so `Border="1" Padding="4" Radius="Radius.Md"` draws a boxed group.
 - `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
   following"). After a failed submit it takes focus, with JavaScript off too, so keyboard and screen
   reader users start from the list of problems.
