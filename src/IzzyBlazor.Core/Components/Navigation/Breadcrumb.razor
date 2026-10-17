@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     The path to the current page. Plain links, so it needs no script.
@@ -35,6 +35,7 @@
     {
         classes.Add("ib-breadcrumb");
         classes.Add("ib-breadcrumb-slash", Separator == BreadcrumbSeparator.Slash);
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

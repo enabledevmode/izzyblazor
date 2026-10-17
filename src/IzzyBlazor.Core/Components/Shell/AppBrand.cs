@@ -18,7 +18,7 @@ namespace IzzyBlazor;
 /// &lt;/AppHeader&gt;
 /// </code>
 /// </example>
-public class AppBrand : IzzyComponentBase
+public class AppBrand : LayoutItemBase
 {
     /// <summary>The name, shown and used as the link's name.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
@@ -39,8 +39,11 @@ public class AppBrand : IzzyComponentBase
     [Parameter] public bool HideLabel { get; set; }
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
         classes.Add("ib-shell-brand");
+        base.BuildAttributes(classes, styles);
+    }
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)

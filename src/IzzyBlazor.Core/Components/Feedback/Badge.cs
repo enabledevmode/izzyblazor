@@ -37,7 +37,7 @@ public enum BadgeSize
 /// &lt;Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill&gt;12&lt;/Badge&gt;
 /// </code>
 /// </example>
-public class Badge : IzzyComponentBase
+public class Badge : LayoutItemBase
 {
     /// <summary>What the badge means. Defaults to <see cref="IzzyBlazor.Status.Neutral"/>.</summary>
     [Parameter] public Status Status { get; set; } = Status.Neutral;
@@ -70,6 +70,8 @@ public class Badge : IzzyComponentBase
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-badge");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-badge-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-badge-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-badge-sm", Size == BadgeSize.Sm);

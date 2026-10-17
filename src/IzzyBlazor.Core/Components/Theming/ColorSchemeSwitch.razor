@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject NavigationManager Navigation
@@ -175,6 +175,8 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-scheme-switch");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-scheme-switch-{Variant.ToString().ToLowerInvariant()}");
         if (Variant == ColorSchemeSwitchVariant.Segmented)
         {

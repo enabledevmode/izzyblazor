@@ -12,7 +12,7 @@ namespace IzzyBlazor;
 /// <c>ibtoggle</c> event reports changes back, so <c>@bind-Open</c> follows the page and
 /// setting <see cref="Open"/> from C# opens or closes it.
 /// </remarks>
-public abstract class ToggleComponentBase : IzzyComponentBase
+public abstract class ToggleComponentBase : LayoutItemBase
 {
     private string? _generatedId;
     private bool? _lastOpenParameter;

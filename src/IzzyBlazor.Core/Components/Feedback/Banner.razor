@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
@@ -222,6 +222,8 @@
     {
         // The alert's status and variant classes supply the colors; the banner adds its own shape.
         classes.Add("ib-banner");
+        base.BuildAttributes(classes, styles);
+
         classes.Add($"ib-alert-{Status.ToString().ToLowerInvariant()}");
         classes.Add($"ib-alert-{Variant.ToString().ToLowerInvariant()}");
         classes.Add("ib-banner-sticky", Position == BarPosition.Sticky);

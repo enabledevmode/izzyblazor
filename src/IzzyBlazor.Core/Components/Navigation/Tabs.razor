@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
@@ -115,6 +115,13 @@ else
     [Parameter] public bool FullWidth { get; set; }
 
     /// <summary>
+    /// Padding on every side of each panel, in spacing steps, in place of the default space above
+    /// and below (the default has none at the sides). <c>0</c> lets content such as a table run edge
+    /// to edge. A <see cref="Tab"/> can set its own.
+    /// </summary>
+    [Parameter] public Responsive<int> ContentPadding { get; set; }
+
+    /// <summary>
     /// A row above the panels (the default), or a column beside them from 640px up. Vertical tabs
     /// stay a scrolling row on phones, where a column would crowd the content.
     /// </summary>
@@ -133,6 +140,7 @@ else
     private bool _initialized;
     private string? _class;
     private string? _style;
+    private Responsive<int> _lastContentPadding;
 
     internal string RootId => Id ?? (_generatedId ??= IdGenerator.Next("ib-tabs"));
 
@@ -196,6 +204,7 @@ else
             _initialized = true;
             _selected = FromQuery() ?? Selected;
             _lastSelectedParam = Selected;
+            _lastContentPadding = ContentPadding;
             (_class, _style) = BuildRootAttributes();
 
             // A tab named in the URL wins; a bound parent hears about it once the page is interactive.
@@ -213,6 +222,17 @@ else
             _lastSelectedParam = Selected;
         }
 
+        // Tabs compute their panel's padding from this; a tab whose own parameters didn't change
+        // isn't rendered again, so tell each one.
+        if (!ContentPadding.Equals(_lastContentPadding))
+        {
+            _lastContentPadding = ContentPadding;
+            foreach (var tab in _context.Items)
+            {
+                tab.ContentPaddingChanged();
+            }
+        }
+
         (_class, _style) = BuildRootAttributes();
     }
 
@@ -226,6 +246,7 @@ else
         classes.Add("ib-tabs-fitted", FullWidth);
         classes.Add("ib-tabs-vertical", Orientation == Orientation.Vertical);
         classes.Add("ib-tabs-nav", _context.Links.Count > 0);
+        base.BuildAttributes(classes, styles);
     }
 
     internal void TabsChanged()

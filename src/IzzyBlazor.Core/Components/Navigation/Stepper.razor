@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     Where someone is in a process, such as a checkout or a setup wizard: an ordered list of steps,
@@ -63,6 +63,7 @@
         classes.Add("ib-steps-horizontal", Orientation == Orientation.Horizontal);
         classes.Add("ib-steps-sm", Size == ControlSize.Sm);
         classes.Add("ib-steps-lg", Size == ControlSize.Lg);
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />

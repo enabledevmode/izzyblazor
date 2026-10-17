@@ -50,6 +50,17 @@
     }
   }
 
+  /* PanelWidth: a set width, still never wider than the screen. A menu drops its usual minimum
+     (10rem, and the trigger's width), so the width is exact. */
+  .ib-pop.ib-pop-sized {
+    width: var(--ib-pop-w);
+    max-width: calc(100vw - 1rem);
+  }
+
+  .ib-pop.ib-menu.ib-pop-sized {
+    min-width: 0;
+  }
+
   .ib-pop-placed {
     inset: auto;
     margin: 0;
@@ -243,6 +254,15 @@
     position: relative;
     display: inline-flex;
     vertical-align: middle;
+  }
+
+  /*
+   * Grow, Width, MinWidth or Basis size the wrapper, the element the anchor is on, so the trigger
+   * fills it: the panel then lines up with what you see. Content of the tooltip and closed panels
+   * aren't flex items (positioned or display: none).
+   */
+  :is(.ib-pop-root, .ib-tooltip-root):is(.ib-grow, .ib-w, .ib-w-sm, .ib-w-md, .ib-w-lg, .ib-w-xl, .ib-minw, .ib-minw-sm, .ib-minw-md, .ib-minw-lg, .ib-minw-xl, .ib-basis, .ib-basis-sm, .ib-basis-md, .ib-basis-lg, .ib-basis-xl) > :not([popover], .ib-tooltip) {
+    flex-grow: 1;
   }
 
   .ib-tooltip {
@@ -459,6 +479,17 @@
   .ib-dialog-lg:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 32rem; }
   .ib-dialog-xl:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 40rem; }
   .ib-dialog-full:is(.ib-dialog-start, .ib-dialog-end) { width: 100%; }
+
+  /*
+   * Width: replaces the Size's width through the same variables, so when it doesn't fit, a dialog
+   * still leaves 1rem of screen each side and a side drawer 3rem on its open side. Top and bottom
+   * sheets span the screen, and Full fills it, so they ignore it.
+   */
+  .ib-dialog.ib-dialog-sized:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw); --ib-drawer-w: var(--ib-dlgw); }
+  @media (min-width: 640px) { .ib-dialog.ib-dialog-sized-sm:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-sm); --ib-drawer-w: var(--ib-dlgw-sm); } }
+  @media (min-width: 768px) { .ib-dialog.ib-dialog-sized-md:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-md); --ib-drawer-w: var(--ib-dlgw-md); } }
+  @media (min-width: 1024px) { .ib-dialog.ib-dialog-sized-lg:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-lg); --ib-drawer-w: var(--ib-dlgw-lg); } }
+  @media (min-width: 1280px) { .ib-dialog.ib-dialog-sized-xl:not(.ib-dialog-top, .ib-dialog-bottom) { --ib-dialog-w: var(--ib-dlgw-xl); --ib-drawer-w: var(--ib-dlgw-xl); } }
 
   /* Top and bottom sheets: full width, as tall as the content up to 85% of the screen. */
   .ib-dialog-top,

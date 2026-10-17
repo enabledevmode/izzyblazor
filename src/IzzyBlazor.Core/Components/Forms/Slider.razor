@@ -10,7 +10,7 @@
     <Slider @bind-Value="Model.Discount" Min="0" Max="50" Step="5" ShowValue ValueFormat="{0}%" />
 *@
 
-<FieldFrame Class="@WrapperClass("slider")" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("slider")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="ib-field-control ib-slider" style="@FillStyle">
         <input @attributes="InputAttributes"

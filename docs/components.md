@@ -4,6 +4,10 @@ What each component does, and how it behaves with JavaScript off, with JavaScrip
 interactive pages. Every component has a live demo in the dev host, in both static and interactive
 modes (see [Contributing](../CONTRIBUTING.md)).
 
+Most components take the item props, which place them in a layout (`Margin`, `Width`, `Grow`,
+`AlignSelf` and the rest), and boxes also take the surface props (`Padding`, `Bg`, borders and the
+rest). [Styling](styling.md#which-components-take-which-props) lists which take which.
+
 - [Layout](#layout)
 - [Typography, links and code](#typography-links-and-code)
 - [Icons](#icons)
@@ -93,10 +97,14 @@ have sanitized.
 
 `Anchor` is a text link, underlined by default (`Underline` changes it). `Inherit` takes the text color, and
 `External` opens a new tab with an icon and a note for screen readers; `HideExternalIcon` drops the
-icon (for repeated links such as a list of lessons) and keeps the note. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.)
+icon (for repeated links such as a list of lessons) and keeps the note. (It's `Anchor`, not `Link`: Razor treats `<Link>` as the HTML `<link>` element, which can't have content.) In running text an `Anchor` is
+inline, so of the layout props only side margins apply; widths and top and bottom margins work where a
+`Row`, `Stack` or `Grid` lays it out.
 
 `Code` is inline, or a `Block` that scrolls sideways with an optional `Language` label. Its copy
-button appears only when JavaScript runs (`Copyable="false"` leaves it out).
+button appears only when JavaScript runs (`Copyable="false"` leaves it out). `MaxHeight` caps a
+block's height, such as `Length.Rem(20)` for a long file: the code scrolls and the label and copy
+button stay in place.
 
 **Syntax highlighting.** When the `Language` is one the built-in highlighter knows, the code is colored
 on the server, so it works with JavaScript off and never flashes plain first. It knows C# (`csharp`,
@@ -129,7 +137,8 @@ static pages, and it follows the text color (`currentColor`) and size (`em`).
   screen and light enough for regular text. Set `--ib-icon-stroke` on any element to change it for
   the icons inside.
 - IzzyBlazor's own components use semantic roles (`<Icon Role="IconRole.Close" />`) resolved through
-  `IconSet.Current`, so a different icon set can be swapped in without touching components.
+  `IconSet.Current` (Lucide for now), so another icon set can be swapped in later without touching
+  components.
 - `Brands` is a short list of the logos sites link to most, by their usual names: `GitHub`, `GitLab`,
   `YouTube`, `X`, `Bluesky`, `Mastodon`, `Discord`, `Reddit`, `Instagram`, `Facebook`, `NuGet`, `Npm`
   and `DotNet`. They're outlines drawn like the rest of the set: Tabler's, since Lucide no longer
@@ -204,17 +213,25 @@ Every field also takes `Hint` (help text under it, linked for screen readers), `
 show it, as in a one-field newsletter form or a toolbar. (Checkboxes and switches show their label
 beside the box.)
 
+Fields and `FileUpload` also take the item props (`<TextField Grow />`, `Width`, margins,
+`AlignSelf`), `HiddenFrom`, `VisibleFrom`, `Class` and `Style`, all on the wrapper around the label,
+control and hint: the element a `Row` or `Stack` lays out.
+
 On the `Form`, `Layout="FormLayout.Horizontal"` puts labels in a column to the left of the fields
 from 640px up, and `Gap` spaces the fields (5 by default). `NativeValidation` (on by default) lets the
 browser check required fields and lengths before posting, `Enhance` (on by default) uses Blazor's
 enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
 - `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
+  It takes the style props, so `Border="1" Padding="4" Radius="Radius.Md"` draws a boxed group.
 - `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
   following"). After a failed submit it takes focus, with JavaScript off too, so keyboard and screen
   reader users start from the list of problems.
 - `FieldError For="() => Model.Email"` shows one property's messages, for your own inputs.
   IzzyBlazor fields show their own.
+- `FieldFrame` is the frame every field uses: `Label`, `Hint`, `Errors` and the required marker
+  around your own control (`Id` links the label to it; `Group` renders a `fieldset`). Wrap a custom
+  field in it to match the built-in ones.
 
 **TextField and TextArea.** `TextField`'s `Type` (`Text`, `Email`, `Password`, `Search`, `Tel`, `Url`)
 comes from `[EmailAddress]`, `[Phone]`, `[Url]` or `[DataType(DataType.Password)]` when not set. It
@@ -502,6 +519,11 @@ below, above or beside the trigger (`BottomStart` by default, `Top` for tooltips
 - `Tooltip` wraps its trigger and shows `Text` (or `Content`) on hover and keyboard focus, after
   `Delay` (300ms). With JavaScript off it's pure CSS. Keep essential content out of tooltips: touch
   screens can't hover.
+- `PanelWidth` sets a `Menu` or `Popover` panel's width, such as `Length.Rem(32)` for a filter form.
+  Without it a panel fits its content, up to 24rem. It never gets wider than the screen.
+
+The layout props (`Grow`, margins, `AlignSelf` and the rest) go on the element that wraps the trigger
+and panel, so a menu can grow or take a margin in a toolbar. `Class` and `Style` go on the panel.
 
 `Dialog` is a native modal `dialog`, opened by `DialogTrigger`, by a link with `?dialog=id` (rendered
 open on the server), or from C#. Close buttons submit a `method="dialog"` form, so closing works
@@ -534,6 +556,13 @@ closes it. `Size` is `Sm` (24rem), `Md` (32rem, the default), `Lg`, `Xl` or `Ful
 traps focus the same way. `Size` sets a side drawer's width (`Sm` 20rem, `Md` 24rem, `Lg` 32rem,
 `Xl` 40rem, `Full`); top and bottom sheets are as tall as their content, up to 85% of the screen.
 Sides flip in right-to-left languages.
+
+For a width the sizes don't cover, set `Width` on a `Dialog` or side `Drawer`, such as
+`Width="Length.Rem(56)"` for a dialog holding a table; it can change per breakpoint. It replaces the
+`Size`'s width and keeps its margin on small screens (1rem each side of a dialog, 3rem beside a
+drawer). Top and bottom sheets span the screen and `Full` fills it, so they ignore it. A dialog isn't
+laid out in the page, so it takes no other layout props: margins, `MinWidth`, `MaxWidth` and the flex
+props throw. `ContentPadding` replaces the body's padding (`0` runs a table or image edge to edge).
 
 **Dialogs from code (interactive pages).** `DialogService` opens a component in a dialog and awaits
 how it ends, for flows like "edit this, then refresh":
@@ -621,6 +650,8 @@ proper ARIA tabs (roving focus, Home/End).
   to its label in lower case with dashes (`billing-history`).
 - `@bind-Selected` follows it on interactive pages.
 - `Variant` (`Line`, `Soft`, `Segmented`), `Size` and `FullWidth`; each `Tab` takes a `Label`, `Icon`, `Badge` and `Disabled`.
+- `ContentPadding` pads every side of each panel, in place of the default space above and below (`0`
+  lets a table run edge to edge); a `Tab` can set its own.
 - `Orientation="Orientation.Vertical"` puts the tabs in a column beside the panels from 640px up,
   and Up and Down arrows move between them. On phones they stay a scrolling row above the panels.
 
@@ -1027,11 +1058,11 @@ Lets the user pick System, Light or Dark. Three looks:
 ```
 
 The icon is worked out in CSS from the page's actual scheme, so it's right even when the device
-decides. `Size` matches the buttons around it. `@bind-Value` is a `ColorScheme` (`System`, `Light`,
-`Dark`).
+decides. `Size` matches the buttons around it. `@bind-Value` is a `ColorScheme` (`Auto` for System,
+`Light`, `Dark`).
 
 The choice is kept in the `ib-scheme` cookie. Put `IzzyTheme` in `<head>` so the server applies it
-before the first paint. (`IzzyTheme` also declares the app's preset, accent, fonts and default
+before the first paint. (`IzzyTheme` also declares the app's preset, brand color, fonts and default
 `ColorScheme`; see [Styling](styling.md).) With JavaScript the switch is instant and other open tabs follow; with it
 off, each option is a link to `/_izzy/scheme`, which `app.MapIzzyBlazor()` adds: it saves the
 cookie and redirects back to the page.

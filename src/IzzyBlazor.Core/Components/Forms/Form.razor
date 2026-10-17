@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     A styled EditForm. Works three ways:
@@ -112,6 +112,8 @@ else
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-form");
+        base.BuildAttributes(classes, styles);
+
         classes.Add("ib-form-horizontal", Layout == FormLayout.Horizontal);
         ApplyResponsive(classes, styles, Gap, "ib-gap", "gap", StyleValues.Spacing);
     }

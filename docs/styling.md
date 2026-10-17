@@ -41,9 +41,48 @@ component's existing border. Sides you don't set keep the component's own.
 (`Visible`, `Hidden`, `Auto`, `Scroll`, `Clip`) says what happens to content that doesn't fit:
 `MaxHeight="Length.Rem(20)" Overflow="Overflow.Auto"` scrolls it.
 
-`Box` and the components built on it (Stack, Row, Grid, Section, Card, the typography components and
-the like) take these props. The App layout parts take `Bg` and `ColorScheme` only, and controls such as
-fields and buttons take none: space them with the layout around them (`Stack Gap`, `Row Gap`).
+## Which components take which props
+
+Style props come in two sets:
+
+- **Item props** say how a component sits in its parent: `Margin` (and its axes and sides), `Width`,
+  `MinWidth`, `MaxWidth`, `Grow`, `Shrink`, `Basis` and `AlignSelf`. Most components take them:
+  fields and `FileUpload`, buttons and `ButtonGroup`, `Alert`, `Badge`, `Banner`, `Progress`,
+  `Spinner`, `Tag`, `Avatar`, `Stat`, `Table`, `Accordion`, `Form`, `FilterForm`, `Tabs`,
+  `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `HeaderNav`, `AppBrand`, `ColorSchemeSwitch`,
+  `SidebarToggle`, `Code`, `Kbd`, `Anchor`, `Menu`, `Popover`, `Tooltip`, `Collapsible` and
+  `AccordionItem`. `Dialog` and `Drawer` aren't laid out in the page, so they take only `Width`
+  (see [Dialog](components.md#overlays)).
+- **Surface props** say how a box looks inside: `Padding`, `Bg`, `Color`, `ColorScheme`, `Radius`,
+  `Shadow`, the borders, `Height`, `MinHeight`, `MaxHeight` and `Overflow`. `Box` and the components
+  built on it take these as well as the item props: Stack, Row, Column, Grid, Section, Card, the
+  typography components, `Fieldset`, `Image`, `EmptyState` and the like.
+
+The App layout parts take `Bg` and `ColorScheme` only. Items that a parent always lays out, such as
+`NavItem`, `Tab`, `Step` and `MenuItem`, take neither.
+
+Item props go on the component's outermost element, the one its parent lays out. For a field, that's
+the wrapper around the label, control and hint, not the input. For `Menu`, `Popover` and `Tooltip`,
+it's the element around the trigger, while `Class` and `Style` go on the panel; a `Grow` or `Width`
+there stretches the trigger too, so the panel lines up with it:
+
+```razor
+<Row Gap="2" Align="Align.End">
+    <TextField @bind-Value="Query" Label="Search" Grow />
+    <Button>Search</Button>
+</Row>
+
+<Row Gap="4">
+    <Avatar Name="@User.Name" Size="AvatarSize.Lg" />
+    <FileUpload Name="Photo" Label="Profile photo" Grow />
+</Row>
+```
+
+`AlignSelf` takes an `Align` and overrides the parent's `Align` for one item, such as a button lined up
+with the bottom of labeled fields when the row centers everything else.
+
+`Class` and `Style` go on the same element, after the generated custom properties, for anything the
+props don't cover. The exceptions are `Menu`, `Popover` and `Tooltip`, where they style the panel.
 
 ## Responsive values
 
@@ -58,7 +97,7 @@ Every style prop takes a single value or a breakpoint map:
 Breakpoints: `Sm` 640px, `Md` 768px, `Lg` 1024px, `Xl` 1280px. Only the values you set produce CSS,
 so `new() { Md = 6 }` keeps the component's default below 768px.
 
-`HiddenFrom="Breakpoint.Md"` and `VisibleFrom="Breakpoint.Md"` work on any styled component.
+`HiddenFrom="Breakpoint.Md"` and `VisibleFrom="Breakpoint.Md"` work on any component, fields included.
 
 What's responsive and what isn't follows one rule: things that change with screen size (direction,
 gap, spacing, columns, sizes, alignment, visibility) take a breakpoint map; on/off switches (`Grow`,
@@ -124,9 +163,9 @@ the starting set of defaults, then your brand color, grays, radius and density o
 
 | `Preset` (`data-ib-preset`) | For | Controls | Shape | Type | Brand | Gray |
 | --- | --- | --- | --- | --- | --- | --- |
-| `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | System font | Blue | Neutral |
-| `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | System font | Indigo | Slate |
-| `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | System font | Teal | Neutral |
+| `standard` (default) | Internal tools, line-of-business | 36px | Medium radius, hairline shadow | Inter | Blue | Neutral |
+| `compact` | Admin, ERP, finance, data grids | 32px, tight rows | Small radius, borders only | Inter | Indigo | Slate |
+| `soft` | Consumer apps, education, health, portals | 40px, roomy | Large radius, gentle shadow | Inter | Teal | Neutral |
 | `editorial` | Docs, publishing, knowledge bases | 36px | Large radius | IBM Plex Sans, Newsreader headings | Ink | Stone |
 
 A preset's brand color, gray and radius are only its defaults: `Brand`, `Gray` and `Radius` beat them.
@@ -276,7 +315,7 @@ Every token, by group:
 | Status | `--ib-color-success`, `-warning`, `-danger`, `-info`, `-neutral`, each with `-on-` (text on it); the first four with `-text` and `-soft` |
 | Made from other colors | `--ib-color-focus` (focus ring and halo; primary), `--ib-color-halo`, `--ib-color-selected` (a selected row), `--ib-state-hover` and `--ib-state-pressed` (washes of the text color), `--ib-color-segment` and `-segment-edge` (the chosen segment), `--ib-color-scrollbar` and `-scrollbar-hover`. Unset by default: each is worked out where it's used, so it follows colors set on part of the page; set it to replace the calculation |
 | Shape | `--ib-radius-none`, `-sm`, `-md`, `-lg`, `-xl`, `-full`; `--ib-radius-control` (buttons, fields, segmented controls, tags; unset: `-md`) and `--ib-radius-control-sm` (badges; unset: `-sm`) |
-| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-control-icon-sm`, `-md`, `-lg` (icons in controls, 16, 20 and 24px) and `--ib-control-icon-stroke-sm` (their stroke at 16px, 2.5 units), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
+| Density | `--ib-control-h-sm`, `-md`, `-lg` (buttons, fields, tabs, pagination, nav items, menu rows), `--ib-control-font-sm` (text in small controls, 13px), `--ib-control-icon-sm`, `-md`, `-lg` (icons in controls, 16, 20 and 24px), `--ib-table-cell-py`, `--ib-card-padding`, the spacing scale `--ib-space-0` to `-16` |
 | Sizes | `--ib-size-sm`, `-md`, `-lg`, `-xl` (640 to 1280px), `--ib-size-prose` (a readable line) |
 | Type | `--ib-font-body`, `-heading`, `-mono`; `--ib-text-xs` to `-6xl`; `--ib-weight-light`, `-normal`, `-medium`, `-semibold`, `-bold`, `-extrabold`, `-heading`; `--ib-leading-none`, `-tight`, `-snug`, `-normal`, `-relaxed`, `-loose`; `--ib-tracking-tighter` to `-widest` |
 | Depth | `--ib-shadow-none`, `-xs` (under cards), `-sm`, `-md`, `-lg` |
@@ -294,7 +333,8 @@ your own way, add a class with `Class`.
 | Fields | `--ib-field-radius`; heights are `--ib-control-h-*` |
 | Card | `--ib-card-padding` |
 | Table | `--ib-table-cell-py`, `--ib-table-cell-px` (medium size) |
-| AppShell | `--ib-shell-{header,sidebar,main,aside,footer}-bg` and `-fg` (each part's colors), `--ib-shell-divider` (the lines between parts), `--ib-sidebar-w`, `--ib-aside-w`, `--ib-shell-header-h` and `--ib-shell-footer-h` (room kept for sticky bars), `--ib-banner-h` (a sticky banner's height) |
+| AppShell | `--ib-shell-{header,sidebar,main,aside,footer}-bg` and `-fg` (each part's colors), `--ib-shell-divider` (the lines between parts), `--ib-shell-header-h` and `--ib-shell-footer-h` (room kept for sticky bars), `--ib-banner-h` (a sticky banner's height) |
+| Icon | `--ib-icon-stroke` (the stroke of icons at the default 1.5 units; an icon's own `StrokeWidth` wins), `--ib-spin-duration` (one turn of a spinning icon or a `Spinner`, 1s) |
 | AvatarGroup | `--ib-avatar-ring` (the ring between avatars; the page color by default) |
 | Timeline | `--ib-timeline-bg` (behind the markers; the surface by default) |
 

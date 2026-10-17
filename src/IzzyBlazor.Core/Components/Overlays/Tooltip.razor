@@ -1,5 +1,5 @@
 @namespace IzzyBlazor
-@inherits IzzyComponentBase
+@inherits LayoutItemBase
 
 @*
     Short text shown on hover and keyboard focus. With JavaScript off it is pure CSS; with
@@ -13,8 +13,8 @@
     </Tooltip>
 *@
 
-<ib-tooltip class="@RootClass"
-            style="@($"anchor-name:{StyleValues.AnchorName(_id)}")"
+<ib-tooltip class="@_outerClass"
+            style="@_outerStyle"
             data-placement="@Placement.Name()"
             data-delay="@Delay">
     @ChildContent
@@ -49,8 +49,9 @@
     private readonly string _id = IdGenerator.Next("ib-tooltip");
     private string? _class;
     private string? _style;
+    private string? _outerClass;
+    private string? _outerStyle;
 
-    private string RootClass => VisibilityClasses is { } visibility ? $"ib-tooltip-root {visibility}" : "ib-tooltip-root";
 
     /// <inheritdoc />
     protected override bool VisibilityOnRoot => false;
@@ -62,6 +63,7 @@
         classes.Add($"ib-tooltip-{Placement.Name()}");
         styles.AddRaw($"position-anchor:{StyleValues.AnchorName(_id)}");
         styles.AddVar("tooltip-delay", $"{Delay}ms");
+        base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
@@ -78,5 +80,6 @@
         }
 
         (_class, _style) = BuildRootAttributes();
+        (_outerClass, _outerStyle) = BuildOuterAttributes("ib-tooltip-root", $"anchor-name:{StyleValues.AnchorName(_id)}");
     }
 }

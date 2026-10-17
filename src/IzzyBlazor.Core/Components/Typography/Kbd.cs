@@ -14,7 +14,7 @@ namespace IzzyBlazor;
 /// &lt;Kbd Keys="⌘+Shift+P" /&gt;
 /// </code>
 /// </example>
-public class Kbd : IzzyComponentBase
+public class Kbd : LayoutItemBase
 {
     /// <summary>One key, such as "Esc". For a combination, use <see cref="Keys"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -89,8 +89,11 @@ public class Kbd : IzzyComponentBase
     }
 
     /// <inheritdoc />
-    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) =>
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
         classes.Add(string.IsNullOrWhiteSpace(Keys) ? "ib-kbd" : "ib-kbd-combo");
+        base.BuildAttributes(classes, styles);
+    }
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
