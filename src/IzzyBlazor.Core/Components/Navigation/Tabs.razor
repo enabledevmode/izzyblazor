@@ -155,10 +155,6 @@ else
     {
         _context = new TabsContext(this);
         Navigation.LocationChanged += OnLocationChanged;
-
-        // The browser's own check can't reach a field in a closed tab, so the form leaves checking
-        // to the server with JavaScript off, and to the script with it (see Form.ContainsTabs).
-        ParentForm?.ContainsTabs();
     }
 
     // Link tabs mark the current page, and a QueryKey tab follows the address (a link to
@@ -196,8 +192,6 @@ else
     // the first tab with errors opens, unless the open one has some. Only after a submit: errors
     // that appear while someone types on one tab never switch them to another.
     [CascadingParameter] private EditContext? EditContext { get; set; }
-
-    [CascadingParameter] internal Form? ParentForm { get; set; }
 
     private EditContext? _subscribed;
     private bool _submitPending;

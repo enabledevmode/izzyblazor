@@ -249,6 +249,42 @@
   .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(29) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(30),
   .ib-tabs:has(> .ib-tabs-list > .ib-tab:nth-child(30) > .ib-tab-input:checked) > .ib-tab-panel:nth-child(31) {
     display: block;
+    /* Undoes the hiding below, for the open panel. */
+    position: static;
+    inline-size: auto;
+    block-size: auto;
+    overflow: visible;
+    clip-path: none;
+  }
+
+  /* Tabs in a form, with JavaScript off. Before posting, the browser checks every field and
+     points at the first invalid one, but it can't focus a field in a display:none panel: it would
+     block the post with no message. So closed panels in a form stay rendered, out of view, and the
+     panel holding the field the browser points at shows in place of the open one. (With
+     JavaScript, tabs.ts opens that field's tab instead.) Screen readers can reach these closed
+     panels; that's the cost of a form that can always be sent. */
+  @media (scripting: none) {
+    form .ib-tabs > .ib-tab-panel {
+      display: block;
+      position: absolute;
+      inline-size: 1px;
+      block-size: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+
+    form .ib-tabs > .ib-tab-panel:focus-within {
+      position: static;
+      inline-size: auto;
+      block-size: auto;
+      overflow: visible;
+      clip-path: none;
+    }
+
+    /* !important: the open-panel rules above are far more specific. */
+    form .ib-tabs:has(> .ib-tab-panel:focus-within) > .ib-tab-panel:not(:focus-within) {
+      display: none !important;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
