@@ -851,6 +851,10 @@
       field-sizing: fixed;
       inline-size: 100%;
       margin: 0;
+      /* The closed field is a button, which wraps long labels; keep the value on one line like
+         the classic select. */
+      overflow: hidden;
+      white-space: nowrap;
     }
 
     /* The field keeps its own chevron, turned while open. */
@@ -903,6 +907,8 @@
       border-radius: var(--ib-radius-sm);
       color: var(--ib-color-on-surface);
       cursor: pointer;
+      /* Long options wrap in the open list; only the closed value stays on one line. */
+      white-space: normal;
     }
 
     /* Only the highlighted option is filled; the chosen one has a check and medium weight. */
@@ -959,6 +965,7 @@
       color: var(--ib-color-subtle);
       font-size: var(--ib-text-xs);
       font-weight: 600;
+      white-space: normal;
     }
 
     /* ItemTemplate: the closed field shows a copy of the chosen option. */
@@ -982,6 +989,13 @@
 
     .ib-select-value .ib-option-hint {
       display: none;
+    }
+
+    /* Text in a templated value ends in an ellipsis when it doesn't fit (icons keep their size). */
+    .ib-select-value > :not(.ib-icon) {
+      min-inline-size: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   }
 
