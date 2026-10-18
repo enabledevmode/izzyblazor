@@ -57,6 +57,8 @@ internal sealed class TabsContext(Tabs owner)
 
     public void Changed() => owner.TabsChanged();
 
+    public void FieldsChanged() => owner.FieldsChanged();
+
     public void Register(Tab tab)
     {
         if (!_tabs.Contains(tab))

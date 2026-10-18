@@ -14,7 +14,10 @@
          id="@Context.PanelId(this)"
          class="@_class"
          style="@_style">
-        @ChildContent
+        @* Fields inside register with their tab, so Tabs can count each tab's errors. *@
+        <CascadingValue Value="this" IsFixed="true">
+            @ChildContent
+        </CascadingValue>
     </div>
 }
 
@@ -48,6 +51,27 @@
 
     private string? _class;
     private string? _style;
+    private readonly HashSet<FieldIdentifier> _fields = [];
+
+    /// <summary>A field inside this tab, so its errors count toward the tab's.</summary>
+    internal void AddField(FieldIdentifier field)
+    {
+        if (_fields.Add(field))
+        {
+            Context?.FieldsChanged();
+        }
+    }
+
+    internal void RemoveField(FieldIdentifier field)
+    {
+        if (_fields.Remove(field))
+        {
+            Context?.FieldsChanged();
+        }
+    }
+
+    /// <summary>The validation messages on this tab's fields.</summary>
+    internal int ErrorCount(EditContext context) => _fields.Sum(field => context.GetValidationMessages(field).Count());
 
     /// <summary>The value used for ids and selection.</summary>
     internal string Key => Value ?? Slug(Label);

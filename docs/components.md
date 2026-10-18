@@ -714,6 +714,13 @@ proper ARIA tabs (roving focus, Home/End).
 - `Orientation="Orientation.Vertical"` puts the tabs in a column beside the panels from 640px up,
   and Up and Down arrows move between them. On phones they stay a scrolling row above the panels.
 
+**Tabs in a form.** Every panel is part of the form, so every field posts, whichever tab is open.
+After a submit that fails, the first tab with errors opens, unless the open one has some, and each
+tab shows how many errors its fields have, which screen readers hear with its name ("Address, 2
+errors"; `IzzyText.OneError` and `ErrorCount`). Only a submit switches tabs, never an error that
+appears while someone types. On a static page the server doesn't know which tab was open when the
+form posted, so it counts the first tab (or the `QueryKey` one) as open.
+
 **Tabs as links.** For sections split across routes (`/settings/profile`, `/settings/billing`), use
 `TabLink` children instead of `Tab`. The `Tabs` then renders a `<nav>` of real links with no panels
 and no script, and the tab for the current page gets `aria-current` from the URL on the server

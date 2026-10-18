@@ -465,4 +465,36 @@ public class FormRenderTests : BunitContext
         Assert.Equal(required, Label(() => _model.Name));
         Assert.Equal(optional, Label(() => _model.FavoriteColor));
     }
+
+    [Fact]
+    public async Task After_a_failed_submit_the_first_tab_with_errors_opens_and_counts_them()
+    {
+        RenderFragment Field(System.Linq.Expressions.Expression<Func<string?>> field) => b =>
+        {
+            b.OpenComponent<TextField>(0);
+            b.AddAttribute(1, nameof(TextField.ValueExpression), field);
+            b.CloseComponent();
+        };
+        var cut = Render<Tabs>(p => p
+            .AddCascadingValue(_context)
+            .Add(t => t.ChildContent, b =>
+            {
+                b.OpenComponent<Tab>(0);
+                b.AddAttribute(1, nameof(Tab.Label), "Profile");
+                b.AddAttribute(2, nameof(Tab.ChildContent), Field(() => _model.FavoriteColor));
+                b.CloseComponent();
+                b.OpenComponent<Tab>(3);
+                b.AddAttribute(4, nameof(Tab.Label), "Account");
+                b.AddAttribute(5, nameof(Tab.ChildContent), Field(() => _model.Name)); // [Required], empty
+                b.CloseComponent();
+            }));
+        Assert.Empty(cut.FindAll(".ib-tab-errors"));
+
+        await cut.InvokeAsync(() => _context.Validate());
+
+        var radios = cut.FindAll("input[type=radio]");
+        Assert.True(radios[1].HasAttribute("checked"));
+        Assert.Contains("1 error", cut.FindAll(".ib-tab")[1].TextContent);
+        Assert.Single(cut.FindAll(".ib-tab-errors"));
+    }
 }

@@ -89,6 +89,12 @@ public class IzzyText
     /// <summary>After the label of a field that isn't required, in a Form with <c>RequiredMark.Optional</c>.</summary>
     public virtual string Optional { get; set; } = "(optional)";
 
+    /// <summary>For screen readers, after a tab's label when one field in it has an error.</summary>
+    public virtual string OneError { get; set; } = "1 error";
+
+    /// <summary>For screen readers, after a tab's label when fields in it have errors: "{0} errors".</summary>
+    public virtual string ErrorCount { get; set; } = "{0} errors";
+
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
 
