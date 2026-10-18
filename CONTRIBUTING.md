@@ -68,7 +68,11 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
 3. **Browser behavior,** if it needs any: add a custom element under
    `src/IzzyBlazor.Core/Scripts/elements/` extending `IzzyElement`, and import it in
    `Scripts/index.ts`. Elements change attributes, classes and ARIA state, never content Blazor
-   renders.
+   renders. An element most pages won't have (a table, a combobox, a color picker) loads on
+   demand instead: add it to the loaders in `Scripts/lazy.ts` and to `lazyElements` in
+   `build/build-assets.mjs`, not to `index.ts`. Every page loads the main module (15 KB gzip
+   budget); each on-demand element is its own file (5 KB each). Until its code loads, an
+   element shows its server-rendered markup, so it must work without script anyway.
 4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
 5. **Tests** in `tests/IzzyBlazor.Tests/`, for its behavior (see [Tests](#tests)).
 

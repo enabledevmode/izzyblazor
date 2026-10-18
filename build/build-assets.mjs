@@ -178,6 +178,9 @@ const common = {
   legalComments: "none",
 };
 
+// Keep in step with the loaders in Scripts/lazy.ts.
+const lazyElements = ["combobox", "table", "filter-form", "file-upload", "color-picker", "video", "code", "toasts"];
+
 const builds = [
   {
     ...common,
@@ -192,6 +195,38 @@ const builds = [
     outfile: join(lib, "wwwroot", "IzzyBlazor.Core.lib.module.js"),
     format: "esm",
     target: "es2022",
+    plugins: [
+      {
+        // Scripts/lazy.ts imports the on-demand elements by their built file name; leave those
+        // imports for the browser, which loads them relative to this module.
+        name: "lazy-elements",
+        setup(build) {
+          build.onResolve({ filter: /^\.\/elements\/[a-z-]+\.js$/ }, (args) =>
+            args.kind === "dynamic-import" ? { path: args.path, external: true } : undefined
+          );
+        },
+      },
+    ],
+  },
+  {
+    // Elements most pages don't have, one file each in wwwroot/elements, loaded on demand by
+    // Scripts/lazy.ts. Each bundles its own copy of the small shared code (IzzyElement), so the
+    // main module stays a single request and a page with a combobox makes two.
+    ...common,
+    entryPoints: Object.fromEntries(
+      lazyElements.map((name) => [`elements/${name}`, join(lib, "Scripts", "elements", `${name}.ts`)])
+    ),
+    outdir: join(lib, "wwwroot"),
+    format: "esm",
+    target: "es2022",
+    plugins: [
+      {
+        name: "clear-elements",
+        setup(build) {
+          build.onStart(() => rmSync(join(lib, "wwwroot", "elements"), { recursive: true, force: true }));
+        },
+      },
+    ],
   },
 ];
 
