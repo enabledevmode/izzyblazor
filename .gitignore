@@ -11,6 +11,7 @@ playwright-report/
 # Built assets are produced by build/build-assets.mjs
 src/IzzyBlazor.Core/wwwroot/izzyblazor.css
 src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js
+src/IzzyBlazor.Core/wwwroot/elements/
 src/IzzyBlazor.Core/wwwroot/fonts/
 src/IzzyBlazor.Core/Styles/_generated/
 src/IzzyBlazor.Core/Icons/_generated/

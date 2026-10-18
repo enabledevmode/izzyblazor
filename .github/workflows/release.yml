@@ -63,8 +63,16 @@ jobs:
           css=$(gzip -c src/IzzyBlazor.Core/wwwroot/izzyblazor.css | wc -c)
           js=$(gzip -c src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js | wc -c)
           echo "CSS gzip: $css bytes (budget 40960)"
-          echo "JS gzip:  $js bytes (budget 15360)"
-          test "$css" -le 40960 && test "$js" -le 15360
+          echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
+          # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
+          big=0
+          for f in src/IzzyBlazor.Core/wwwroot/elements/*.js; do
+            n=$(gzip -c "$f" | wc -c)
+            echo "  $(basename "$f"): $n bytes"
+            if [ "$n" -gt "$big" ]; then big=$n; fi
+          done
+          echo "Largest on-demand element: $big bytes (budget 5120)"
+          test "$css" -le 40960 && test "$js" -le 15360 && test "$big" -le 5120
 
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts

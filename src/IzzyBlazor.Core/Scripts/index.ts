@@ -9,22 +9,16 @@
  */
 import { reconnect, type IzzyEventDefinition } from "./izzy-element";
 
-// Elements register themselves on import. Add new ones here as they are built.
+// Elements register themselves on import. Add new ones here as they are built, or to lazy.ts
+// if most pages won't have one.
 import "./elements/field-control";
-import "./elements/file-upload";
 import { resetShellScroll } from "./elements/shell";
 import "./elements/popover";
 import "./elements/tooltip";
 import { syncTabs } from "./elements/tabs";
-import { showToast } from "./elements/toasts";
-import "./elements/filter-form";
+import type { ToastDetail } from "./elements/toasts";
 import { applySavedScheme } from "./elements/scheme-switch";
-import "./elements/code";
-import "./elements/color-picker";
-import "./elements/video";
 import "./elements/header-nav";
-import "./elements/combobox";
-import "./elements/table";
 import "./elements/banner";
 import "./elements/dismiss";
 import { installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
@@ -34,7 +28,9 @@ import { openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
 import { installIndeterminate, syncIndeterminate } from "./checkbox";
 import { focusMarked } from "./focus";
+import { installLazyElements, load } from "./lazy";
 
+installLazyElements();
 installSubmitFeedback();
 installValidityMessages();
 installSelects();
@@ -43,7 +39,8 @@ installIndeterminate();
 // ToastService calls this through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {
   ...((window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor ?? {}),
-  showToast,
+  showToast: (detail: ToastDetail) =>
+    load<typeof import("./elements/toasts")>("ib-toasts").then((toasts) => toasts.showToast(detail)),
 };
 installToggleBridge();
 installCommandFallback();

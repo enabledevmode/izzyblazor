@@ -61,7 +61,8 @@ const registry = new Map<string, CustomElementConstructor>();
  */
 export function reconnect(selector: string): void {
   document.querySelectorAll(selector).forEach((el) => {
-    if (el instanceof IzzyElement && el.isConnected) el.connectedCallback();
+    // Not instanceof: the on-demand elements (lazy.ts) carry their own copy of IzzyElement.
+    if (el.isConnected && typeof (el as Partial<{ setup: unknown }>).setup === "function") (el as IzzyElement).connectedCallback();
   });
 }
 
