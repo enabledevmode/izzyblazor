@@ -218,6 +218,20 @@
     margin: 0;
   }
 
+  /* Without script IzzyBlazor's steppers can't work, so a field that would have them gets the
+     browser's own spin buttons instead: a mouse can still step the value. StepButtons.None
+     keeps none. */
+  @media (scripting: none) {
+    :is(.ib-has-steppers, .ib-has-split-steppers) > input.ib-field-number {
+      -moz-appearance: number-input;
+      appearance: auto;
+    }
+
+    :is(.ib-has-steppers, .ib-has-split-steppers) > .ib-field-number::-webkit-inner-spin-button {
+      -webkit-appearance: auto;
+    }
+  }
+
   /*
    * Stacked: two small chevrons floating inside the field's end, no dividers; each gets a soft
    * rounded fill on hover. The column is inset 2px from the field's edges, so its height is the

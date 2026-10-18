@@ -141,7 +141,7 @@
         </Box>
     </Example>
 
-    <Example Title="Numbers" Note="NumberField is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons appear, stacked or split (hold to repeat); the browser's own spin buttons are always hidden, and arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
+    <Example Title="Numbers" Note="NumberField is a native number input: it posts with the form, the browser checks min, max and step, and phones show a number keyboard. Min and Max come from [Range]. With JavaScript, stepper buttons appear, stacked or split (hold to repeat); without it, the browser's own spin buttons show instead, and arrow keys step either way. Values use invariant formatting (1.5), whatever the page's culture." Code="@NumbersCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Numbers" FormName="numbers" OnValidSubmit="() => _numbersSaved = true">
                 <NumberField @bind-Value="Numbers!.Quantity" />

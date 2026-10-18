@@ -308,8 +308,8 @@ whole numbers and to any value for decimal types (set `Step="0.01"` for cents). 
 invariant formatting (`1.5`), as number inputs require, whatever the page's culture. With JavaScript,
 stepper buttons appear: hold one to repeat, and each end disables at `Min` or `Max`.
 `StepButtons` places them: `StepButtons.Stacked` at the end (the default), `Split` (a full-height
-button at each end, easier to tap) or `None`. The browser's own spin buttons are always hidden, and
-arrow keys step either way. It takes the same
+button at each end, easier to tap) or `None`. With JavaScript off, a field with steppers shows the
+browser's own spin buttons in their place (`None` shows neither), and arrow keys step either way. It takes the same
 `StartIcon` and add-ons as `TextField`.
 
 **Slider.** A native range input bound to a number type, so it posts with the form and takes arrow
