@@ -3,51 +3,58 @@
 
 @*
     A surface for one thing: media, a heading with actions, content, and a footer. With Href
-    the whole card is a link (the title's link stretches over it), while buttons in Actions
-    and Footer stay clickable. No script involved.
+    the whole card is a link (the title's link stretches over it), while buttons in CardActions
+    and CardFooter stay clickable. No script involved.
+
+    Content between the tags is the body. The other parts are components written among it, directly
+    in the card: CardMedia (drawn at the top), CardHeader (custom heading content, above the title),
+    CardActions (at the end of the heading row), CardBody (the body with layout props) and
+    CardFooter (the bottom row, drawn last). CardMedia, CardHeader and CardActions are drawn at the
+    card's level, so a form or cascading value they're written inside doesn't reach them.
 
     <Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
-        <Actions><IconButton ... /></Actions>
-        <ChildContent>...</ChildContent>
-        <Footer>...</Footer>
+        <CardActions><IconButton ... /></CardActions>
+        <CardBody>...</CardBody>
+        <CardFooter Justify="Justify.End">...</CardFooter>
     </Card>
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
-    @if (Media is not null)
+    @if (Shown(CardPartKind.Media) is { } media)
     {
-        <div class="ib-card-media">@Media</div>
+        <div class="ib-card-media">@Outlet(media)</div>
     }
     @if (HasHeader)
     {
         <div class="ib-card-header">
-            <div class="ib-card-heading">
-                @if (Header is not null)
-                {
-                    @Header
-                }
-                @if (Title is not null)
-                {
-                    @TitleElement
-                }
-                @if (Description is not null)
-                {
-                    <p class="ib-card-description">@Description</p>
-                }
-            </div>
-            @if (Actions is not null)
+            @if (Title is not null || Description is not null || Shown(CardPartKind.Header) is not null)
             {
-                <div class="ib-card-actions">@Actions</div>
+                <div class="ib-card-heading">
+                    @if (Shown(CardPartKind.Header) is { } header)
+                    {
+                        @Outlet(header)
+                    }
+                    @if (Title is not null)
+                    {
+                        @TitleElement
+                    }
+                    @if (Description is not null)
+                    {
+                        <p class="ib-card-description">@Description</p>
+                    }
+                </div>
+            }
+            @if (Shown(CardPartKind.Actions) is { } actions)
+            {
+                <div class="ib-card-actions">@Outlet(actions)</div>
             }
         </div>
     }
     @if (ChildContent is not null)
     {
-        <div class="ib-card-body">@ChildContent</div>
-    }
-    @if (Footer is not null)
-    {
-        <div class="ib-card-footer">@Footer</div>
+        <CascadingValue Value="_context" IsFixed="true">
+            <div class="ib-card-body">@ChildContent</div>
+        </CascadingValue>
     }
 </div>
 
@@ -61,23 +68,20 @@
     /// <summary>A muted line under the title.</summary>
     [Parameter] public string? Description { get; set; }
 
-    /// <summary>Custom heading content, above <see cref="Title"/>, such as an avatar row.</summary>
-    [Parameter] public RenderFragment? Header { get; set; }
-
-    /// <summary>Buttons at the end of the heading row, such as a menu.</summary>
-    [Parameter] public RenderFragment? Actions { get; set; }
-
-    /// <summary>An image or video at the top, edge to edge.</summary>
-    [Parameter] public RenderFragment? Media { get; set; }
-
-    /// <summary>The main content.</summary>
+    /// <summary>
+    /// The card's content: the body, plus any <see cref="CardMedia"/>, <see cref="CardHeader"/>,
+    /// <see cref="CardActions"/>, <see cref="CardBody"/> and <see cref="CardFooter"/>.
+    /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    /// <summary>The bottom row, such as buttons or metadata.</summary>
-    [Parameter] public RenderFragment? Footer { get; set; }
 
     /// <summary>Makes the whole card a link to this address, through its title. Needs a <see cref="Title"/>.</summary>
     [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// Makes each <see cref="CardBody"/> a section, with a line across the card between sections,
+    /// as in a settings page.
+    /// </summary>
+    [Parameter] public bool Dividers { get; set; }
 
     /// <summary>How it's drawn. Defaults to <see cref="CardVariant.Outline"/>.</summary>
     [Parameter] public CardVariant Variant { get; set; } = CardVariant.Outline;
@@ -87,8 +91,19 @@
 
     private string? _class;
     private string? _style;
+    private readonly CardContext _context;
+    private readonly List<CardPart> _parts = [];
+    private readonly Dictionary<CardPart, CardPartOutlet> _outlets = [];
 
-    private bool HasHeader => Title is not null || Description is not null || Header is not null || Actions is not null;
+    /// <summary>Creates a card.</summary>
+    public Card() => _context = new CardContext(this);
+
+    private bool HasHeader => Title is not null || Description is not null
+        || Shown(CardPartKind.Header) is not null || Shown(CardPartKind.Actions) is not null;
+
+    // The last of a kind is drawn. While one part replaces another (@if/else), the new one is added
+    // before the old one is removed, so both are briefly in the list.
+    private CardPart? Shown(CardPartKind kind) => _parts.FindLast(p => p.Kind == kind);
 
     private RenderFragment TitleElement => builder =>
     {
@@ -110,6 +125,40 @@
         builder.CloseElement();
     };
 
+    // A part renders nothing where it's written; it hands its content to the card, which draws it
+    // in its place. Adding or removing one re-renders the card; a change to its content re-renders
+    // only the outlet, so the card's content (which holds the part) isn't rendered again.
+    internal void AddPart(CardPart part)
+    {
+        _parts.Add(part);
+        StateHasChanged();
+    }
+
+    internal void RemovePart(CardPart part)
+    {
+        _outlets.Remove(part);
+        if (_parts.Remove(part))
+        {
+            StateHasChanged();
+        }
+    }
+
+    private RenderFragment Outlet(CardPart part) => builder =>
+    {
+        builder.OpenComponent<CardPartOutlet>(0);
+        builder.AddComponentParameter(1, nameof(CardPartOutlet.Part), part);
+        builder.AddComponentReferenceCapture(2, outlet => _outlets[part] = (CardPartOutlet)outlet);
+        builder.CloseComponent();
+    };
+
+    internal void PartChanged(CardPart part)
+    {
+        if (_outlets.TryGetValue(part, out var outlet))
+        {
+            outlet.Refresh();
+        }
+    }
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
@@ -118,6 +167,7 @@
         classes.Add("ib-card-sm", Size == ControlSize.Sm);
         classes.Add("ib-card-lg", Size == ControlSize.Lg);
         classes.Add("ib-card-linked", Href is not null && Title is not null);
+        classes.Add("ib-card-dividers", Dividers);
         base.BuildAttributes(classes, styles);
     }
 
