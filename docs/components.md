@@ -237,11 +237,19 @@ browser check required fields and lengths before posting, `Enhance` (on by defau
 enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
 **Read-only, disabled and marks.** `ReadOnly` on the `Form` makes every field read-only, as on a
-page that shows a record before editing it: the values show and post, but don't change. Selects,
-radios, checkboxes and switches can't be read-only in HTML, so they're disabled (styled as values,
-not as unavailable) and post from hidden inputs; a `FileUpload` is disabled. `Disabled` on the
-`Form` disables every field, and disabled fields post nothing. Neither touches buttons, so show the
-ones that fit. A field's own `ReadOnly` and `Disabled` work the same way. `RequiredMark` chooses the
+page that shows a record before editing it: the values show and post, but don't change. Read-only
+fields can still be focused, and screen readers say they're read-only. HTML has no read-only
+select, checkbox or radio, so:
+
+- `Select`, `Combobox` and `MultiSelect` show their value in a read-only text field ("Pro plan",
+  or "Design, Writing" for several).
+- `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl` and `CheckboxGroup` stay as they are, with
+  `aria-readonly`, and clicks do nothing. With JavaScript, keys don't change them either; with it
+  off, a key can still flip one on screen, but the value posted doesn't change.
+- Their values post from hidden inputs. A `FileUpload` is disabled, since a file can't be read-only.
+
+`Disabled` on the `Form` disables every field, and disabled fields post nothing. Neither touches
+buttons, so show the ones that fit. A field's own `ReadOnly` and `Disabled` work the same way. `RequiredMark` chooses the
 marks beside labels: `Required` (an asterisk on required fields, the default), `Optional`
 ("(optional)" on the others, from `IzzyText.Optional`; clearer when most fields are required) or
 `None`.

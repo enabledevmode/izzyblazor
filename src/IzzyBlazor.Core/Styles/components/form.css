@@ -1567,43 +1567,12 @@
     grid-column: 1 / -1;
   }
 
-  /* Read-only choices (Select, Combobox, MultiSelect, checkboxes, radios, switches, segments): the
-     control is disabled so it can't change, and a hidden input posts the value. They read as a
-     value, like a read-only text field, not as unavailable. */
-  .ib-field-readonly .ib-field-input:disabled {
-    color: var(--ib-color-on-surface);
-    cursor: default;
-    opacity: 1; /* Chrome fades a disabled select */
-  }
-
-  .ib-field-readonly .ib-check-input:disabled {
-    border-color: color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface));
-    cursor: default;
-  }
-
-  /* As specific as the disabled-and-checked rule it replaces. */
-  .ib-field-readonly .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate, [type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared])) {
-    border-color: var(--ib-color-primary);
-    background-color: var(--ib-color-primary);
-  }
-
-  .ib-field-readonly .ib-check-input:disabled:is(:checked, [type="checkbox"]:indeterminate, [type="checkbox"][data-indeterminate]:not([data-indeterminate-cleared]))::before {
-    background-color: var(--ib-color-on-primary);
-  }
-
-  .ib-field-readonly .ib-check-input:disabled + .ib-check-label,
-  .ib-field-readonly .ib-segment:has(.ib-segment-input:disabled) {
-    color: var(--ib-color-on-surface);
-    cursor: default;
-  }
-
-  .ib-field-readonly .ib-switch-input:disabled {
-    opacity: 1;
-    cursor: default;
-  }
-
-  .ib-field-readonly .ib-chip-remove {
-    display: none;
+  /* Read-only checkboxes, switches, radios and segments stay enabled (focusable, read as read
+     only) and outside the form; hidden inputs post the value. Clicks do nothing here, and the
+     script cancels the keys that would change them. Read-only selects show as a read-only text
+     field (.ib-field-input[readonly]). */
+  .ib-field-readonly :is(.ib-check, .ib-segment) {
+    pointer-events: none;
   }
 
   /* Columns (Form and Fieldset Columns): up to N columns by the form's or group's own width, so a

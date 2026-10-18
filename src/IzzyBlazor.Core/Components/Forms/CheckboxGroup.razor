@@ -29,7 +29,9 @@
                        value="@ChoiceOptions.Value(item)"
                        checked="@IsChecked(item)"
                        @onchange="e => Toggle(item, e)"
-                       disabled="@(IsDisabled || IsReadOnly)"
+                       disabled="@IsDisabled"
+                       form="@(ShowsReadOnly ? "" : null)"
+                       aria-readonly="@(ShowsReadOnly ? "true" : null)"
                        aria-invalid="@(Invalid ? "true" : null)" />
                 <span class="ib-check-label">
                     @if (ItemTemplate is not null)
@@ -46,7 +48,7 @@
     </div>
     @if (PostsReadOnlyValue)
     {
-        @* Read-only: the control is disabled, and disabled controls don't post, so these do. *@
+        @* Read-only: the boxes are outside the form (form=""), so these post the value. *@
         @foreach (var item in ChoiceOptions.Of(Items).Where(IsChecked))
         {
             <input type="hidden" name="@NameAttributeValue" value="@ChoiceOptions.Value(item)" />

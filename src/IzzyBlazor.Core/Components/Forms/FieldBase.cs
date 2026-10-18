@@ -95,10 +95,40 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     protected bool IsReadOnly => ReadOnly || FormOptions?.ReadOnly == true;
 
     /// <summary>
-    /// Whether a hidden input posts the value. Selects, checkboxes and radios can't be read-only in
-    /// HTML, so a read-only one is disabled, and disabled controls aren't posted.
+    /// Whether hidden inputs post the value. Selects, checkboxes and radios can't be read-only in
+    /// HTML, so a read-only one shows its value without posting it (<see cref="ShowsReadOnly"/>).
     /// </summary>
-    protected bool PostsReadOnlyValue => IsReadOnly && !IsDisabled && !string.IsNullOrEmpty(NameAttributeValue);
+    protected bool PostsReadOnlyValue => ShowsReadOnly && !string.IsNullOrEmpty(NameAttributeValue);
+
+    /// <summary>
+    /// Whether a read-only field shows as read-only (a field that is also disabled shows as
+    /// disabled). Selects can't be read-only in HTML, so a read-only Select, Combobox or
+    /// MultiSelect shows its value in a read-only text field (<see cref="ReadOnlyControl"/>);
+    /// checkboxes and radios stay enabled with <c>aria-readonly</c>, outside the form (<c>form=""</c>),
+    /// and the script keeps them from changing.
+    /// </summary>
+    protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
+
+    /// <summary>
+    /// A read-only text field showing a choice field's value: focusable, and announced as read
+    /// only, where a disabled select would be skipped and read as unavailable. The value posts
+    /// from hidden inputs (<see cref="PostsReadOnlyValue"/>).
+    /// </summary>
+    protected RenderFragment ReadOnlyControl(string? text) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-field-control");
+        builder.OpenElement(2, "input");
+        builder.AddAttribute(3, "id", FieldId);
+        builder.AddAttribute(4, "class", "ib-field-input");
+        builder.AddAttribute(5, "type", "text");
+        builder.AddAttribute(6, "readonly", true);
+        builder.AddAttribute(7, "value", text ?? "");
+        builder.AddAttribute(8, "aria-invalid", Invalid ? "true" : null);
+        builder.AddAttribute(9, "aria-describedby", DescribedBy);
+        builder.CloseElement();
+        builder.CloseElement();
+    };
 
     /// <summary>Whether to show the asterisk on a field that renders its own label (checkboxes and switches).</summary>
     protected bool ShowRequiredMark => IsRequired && (FormOptions?.RequiredMark ?? RequiredMark.Required) == RequiredMark.Required;

@@ -17,6 +17,12 @@
 
 <FieldFrame Class="@WrapperClass("select")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (ShowsReadOnly)
+    {
+        @ReadOnlyControl(ReadOnlyText)
+    }
+    else
+    {
     <ib-field-control class="ib-field-control ib-has-end">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
@@ -24,7 +30,7 @@
                 name="@NameAttributeValue"
                 @bind="CurrentValueAsString"
                 required="@IsRequired"
-                disabled="@(IsDisabled || IsReadOnly)"
+                disabled="@IsDisabled"
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy">
             @if (ItemTemplate is not null)
@@ -53,9 +59,10 @@
         </select>
         <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
     </ib-field-control>
+    }
     @if (PostsReadOnlyValue)
     {
-        @* Read-only: the control is disabled, and disabled controls don't post, so this does. *@
+        @* Read-only: the value shows in a read-only text field, which doesn't post it; this does. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
     }
 </FieldFrame>
@@ -90,6 +97,9 @@
             return type.IsEnum ? Enum.GetValues(type).Cast<object>().Select(v => (TValue)v) : [];
         }
     }
+
+    private string ReadOnlyText =>
+        string.IsNullOrEmpty(CurrentValueAsString) ? "" : Options.FirstOrDefault(o => FormatValueAsString(o) == CurrentValueAsString) is { } item ? TextFor(item) : CurrentValueAsString;
 
     private string TextFor(TValue item)
     {
