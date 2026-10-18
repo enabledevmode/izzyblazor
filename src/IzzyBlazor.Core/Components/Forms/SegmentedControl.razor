@@ -22,7 +22,7 @@
             var text = TextFor(item);
             var icon = ItemIcon?.Invoke(item);
             <label class="ib-segment" for="@id" title="@(IconOnly ? text : null)">
-                <input @attributes="ValidationMessageAttributes"
+                <input @attributes="RadioMessageAttributes"
                        id="@id"
                        class="ib-segment-input"
                        type="radio"

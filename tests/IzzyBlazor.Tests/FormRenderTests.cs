@@ -507,4 +507,132 @@ public class FormRenderTests : BunitContext
         Assert.Contains("1 error", cut.FindAll(".ib-tab")[1].TextContent);
         Assert.Single(cut.FindAll(".ib-tab-errors"));
     }
+
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void Read_only_choices_post_their_values_once_and_nothing_when_also_disabled(bool alsoDisabled)
+    {
+        var options = new FormOptions(Disabled: alsoDisabled, ReadOnly: true, RequiredMark.Required);
+        List<string> Posts<TComponent>(Action<ComponentParameterCollectionBuilder<TComponent>> parameters) where TComponent : IComponent =>
+            Posted(Render<TComponent>(p =>
+            {
+                p.AddCascadingValue(_context);
+                p.AddCascadingValue(options);
+                parameters(p);
+            }).FindAll("input, select, textarea"));
+        string[] Expect(params string[] posted) => alsoDisabled ? [] : posted;
+
+        Assert.Equal(Expect("Plan=Pro"), Posts<RadioGroup<Plan>>(p => p.Add(c => c.Value, Plan.Pro).Add(c => c.ValueExpression, () => _model.Plan)));
+        Assert.Equal(Expect("Plan=Pro"), Posts<SegmentedControl<Plan>>(p => p.Add(c => c.Value, Plan.Pro).Add(c => c.ValueExpression, () => _model.Plan)));
+        Assert.Equal(Expect("Plan=Pro"), Posts<Select<Plan>>(p => p.Add(c => c.Value, Plan.Pro).Add(c => c.ValueExpression, () => _model.Plan)));
+        Assert.Equal(Expect("Accept=true"), Posts<Switch>(p => p.Add(c => c.Value, true).Add(c => c.ValueExpression, () => _model.Accept)));
+        Assert.Equal(Expect("Plans=Free", "Plans=Pro"), Posts<CheckboxGroup<List<Plan>, Plan>>(p => p
+            .Add(c => c.Value, [Plan.Free, Plan.Pro]).Add(c => c.ValueExpression, () => _model.Plans)));
+        Assert.Equal(Expect("Tags=b"), Posts<MultiSelect<string[], string>>(p => p
+            .Add(c => c.Value, ["b"]).Add(c => c.ValueExpression, () => _model.Tags).Add(c => c.Items, ["a", "b"])));
+        Assert.Equal(Expect("FavoriteColor=red"), Posts<Combobox<string?>>(p => p
+            .Add(c => c.Value, "red").Add(c => c.ValueExpression, () => _model.FavoriteColor).Add(c => c.Items, ["red", "blue"])));
+    }
+
+    private static RenderFragment FieldFor(System.Linq.Expressions.Expression<Func<string?>> field) => b =>
+    {
+        b.OpenComponent<TextField>(0);
+        b.AddAttribute(1, nameof(TextField.ValueExpression), field);
+        b.CloseComponent();
+    };
+
+    private static RenderFragment TabOf(string label, RenderFragment content) => b =>
+    {
+        b.OpenComponent<Tab>(0);
+        b.AddAttribute(1, nameof(Tab.Label), label);
+        b.AddAttribute(2, nameof(Tab.ChildContent), content);
+        b.CloseComponent();
+    };
+
+    [Fact]
+    public async Task The_open_tab_stays_when_it_has_errors_and_typing_never_switches_tabs()
+    {
+        _model.Email = "not an address";
+        var cut = Render<Tabs>(p => p
+            .AddCascadingValue(_context)
+            .Add(t => t.Selected, "account")
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, TabOf("Profile", FieldFor(() => _model.Name)));  // [Required], empty
+                b.AddContent(1, TabOf("Account", FieldFor(() => _model.Email))); // [EmailAddress]
+            }));
+        bool Open(int index) => cut.FindAll("input[type=radio]")[index].HasAttribute("checked");
+
+        await cut.InvokeAsync(() => _context.Validate());
+        Assert.True(Open(1)); // Account has errors too, so it stays open.
+
+        _model.Email = "izzy@example.com";
+        await cut.InvokeAsync(() => _context.NotifyFieldChanged(_context.Field(nameof(Model.Email))));
+        Assert.True(Open(1)); // Profile still has errors, but only a submit switches tabs.
+        Assert.Single(cut.FindAll(".ib-tab-errors"));
+    }
+
+    [Fact]
+    public async Task A_field_in_nested_tabs_counts_toward_the_outer_tab()
+    {
+        RenderFragment inner = b =>
+        {
+            b.OpenComponent<Tabs>(0);
+            b.AddAttribute(1, nameof(Tabs.ChildContent), TabOf("Limits", FieldFor(() => _model.Name)));
+            b.CloseComponent();
+        };
+        var cut = Render<Tabs>(p => p
+            .AddCascadingValue(_context)
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, TabOf("General", FieldFor(() => _model.FavoriteColor)));
+                b.AddContent(1, TabOf("Advanced", inner));
+            }));
+
+        await cut.InvokeAsync(() => _context.Validate());
+
+        var outer = cut.FindAll(".ib-tabs-list")[0];
+        Assert.True(outer.QuerySelectorAll("input[type=radio]")[1].HasAttribute("checked"));
+        Assert.Contains("1 error", outer.QuerySelectorAll(".ib-tab")[1].TextContent);
+    }
+
+    public class MessageModel
+    {
+        [Required(ErrorMessage = "Enter your {0}."), Display(Name = "nickname")]
+        public string? Nickname { get; set; }
+
+        [StringLength(80), MinLength(3, ErrorMessage = "At least 3 letters.")]
+        public string? Code { get; set; }
+
+        [StringLength(80)]
+        public string? Plain { get; set; }
+    }
+
+    [Fact]
+    public void The_model_s_own_messages_reach_the_browser_s_check_and_a_field_can_replace_them()
+    {
+        var model = new MessageModel();
+        var context = new EditContext(model);
+        AngleSharp.Dom.IElement Input(System.Linq.Expressions.Expression<Func<string?>> field, string? own = null) =>
+            Render<TextField>(p =>
+            {
+                p.AddCascadingValue(context);
+                p.Add(t => t.ValueExpression, field);
+                if (own is not null) p.AddUnmatched("data-ib-required", own);
+            }).Find("input");
+
+        Assert.Equal("Enter your nickname.", Input(() => model.Nickname).GetAttribute("data-ib-required"));
+        Assert.Equal("At least 3 letters.", Input(() => model.Code).GetAttribute("data-ib-length"));
+        Assert.False(Input(() => model.Plain).HasAttribute("data-ib-length")); // the browser's own text
+        Assert.Equal("Say who you are.", Input(() => model.Nickname, "Say who you are.").GetAttribute("data-ib-required"));
+    }
+
+    [Fact]
+    public void Fields_take_ColSpan_and_NewRow()
+    {
+        var field = TextFieldFor(() => _model.Name, p => p.Add(t => t.ColSpan, (Responsive<int>)2).Add(t => t.NewRow, true)).Find(".ib-field");
+
+        Assert.Contains("--ib-colspan:1 / span min(2,", field.GetAttribute("style"));
+    }
 }

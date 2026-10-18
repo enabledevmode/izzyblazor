@@ -88,6 +88,8 @@
   .ib-tabs-fitted > .ib-tabs-list > .ib-tab {
     flex: 1 1 0;
     min-width: 0;
+    /* A narrow tab cuts its label (and badge) off rather than running into the next one. */
+    overflow: hidden;
   }
 
   /* Line: a rule under the list; the selected tab is underlined in the accent color. */

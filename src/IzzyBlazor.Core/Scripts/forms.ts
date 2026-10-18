@@ -54,16 +54,21 @@ export function installSubmitFeedback(): void {
     true
   );
 
-  // Read-only checkboxes and radios (aria-readonly, on the box or its radio group): HTML has no
-  // read-only for them, so cancel what would change them. A click (also from Space or the
-  // label) and the arrow keys that move a radio group's choice. CSS stops clicks without script.
+  // Read-only checkboxes, radios and sliders (aria-readonly, on the input or its radio group):
+  // HTML has no read-only for them, so cancel what would change them: a click (also from Space or
+  // the label), and the keys that move a radio group's choice or a slider. CSS stops the pointer
+  // without script.
   const readOnly = (target: EventTarget | null): target is HTMLInputElement =>
     target instanceof HTMLInputElement &&
     (target.getAttribute("aria-readonly") === "true" || !!target.closest('[role="radiogroup"][aria-readonly="true"]'));
   document.addEventListener("click", (event) => readOnly(event.target) && event.preventDefault(), true);
   document.addEventListener(
     "keydown",
-    (event) => readOnly(event.target) && event.target.type === "radio" && event.key.startsWith("Arrow") && event.preventDefault(),
+    (event) =>
+      readOnly(event.target) &&
+      event.target.type !== "checkbox" &&
+      /^(Arrow|Page|Home|End)/.test(event.key) &&
+      event.preventDefault(),
     true
   );
 
@@ -96,27 +101,39 @@ const messageFor: [keyof ValidityState, string][] = [
  * next submit. A custom error set by other code (FileUpload's file checks) is left alone.
  */
 export function installValidityMessages(): void {
-  const ours = new Set<HTMLInputElement>();
+  // The messages this set, by field. A field's custom error is only ours while its message is
+  // still the one we set: other code (FileUpload's file checks) may have replaced it since.
+  const ours = new Map<HTMLInputElement, string>();
+  const release = (field: HTMLInputElement) => {
+    if (field.validationMessage === ours.get(field)) field.setCustomValidity("");
+    ours.delete(field);
+  };
   document.addEventListener(
     "invalid",
     (event) => {
       const field = event.target as HTMLInputElement;
-      if (ours.delete(field)) field.setCustomValidity("");
-      else if (field.validity.customError) return;
+      if (ours.has(field)) release(field);
+      if (field.validity.customError) return;
       for (const [check, key] of messageFor) {
         const message = field.dataset[key];
         if (message && field.validity[check]) {
           field.setCustomValidity(message);
-          ours.add(field);
+          ours.set(field, message);
           return;
         }
       }
     },
     true
   );
-  const clear = () => {
-    ours.forEach((field) => field.setCustomValidity(""));
-    ours.clear();
-  };
+  const clear = () => ours.forEach((_, field) => release(field));
   for (const type of ["input", "change", "reset"]) document.addEventListener(type, clear, true);
+  // A field can become valid with no event (C# sets its value on an interactive page). The
+  // browser checks before "invalid" fires, so clear ahead of a submit: a click on a submit
+  // button, or Enter in a field.
+  document.addEventListener(
+    "click",
+    (event) => (event.target as Element).closest?.('button:not([type]), [type="submit"]') && clear(),
+    true
+  );
+  document.addEventListener("keydown", (event) => event.key === "Enter" && clear(), true);
 }

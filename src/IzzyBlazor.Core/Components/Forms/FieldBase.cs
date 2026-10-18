@@ -292,6 +292,13 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             AdditionalAttributes?.Where(a => !string.Equals(a.Key, "id", StringComparison.OrdinalIgnoreCase)) ?? []);
 
     /// <summary>
+    /// The <c>data-ib-*</c> messages for each radio of a group: the model's, then any set on the
+    /// field, which win (as in <see cref="ControlAttributes"/>).
+    /// </summary>
+    protected IEnumerable<KeyValuePair<string, object>> RadioMessageAttributes =>
+        ControlAttributes.Where(a => a.Key.StartsWith("data-ib-", StringComparison.OrdinalIgnoreCase));
+
+    /// <summary>
     /// The model's own error messages for the browser's checks before posting. A <c>[Required]</c>,
     /// length, <c>[Range]</c>, <c>[EmailAddress]</c> or <c>[Url]</c> attribute with an
     /// <c>ErrorMessage</c> (or a resource message) replaces the browser's text for that check, so
@@ -304,7 +311,10 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
         {
             if (IsRequired && Message(Attribute<RequiredAttribute>()) is { } required)
                 yield return new("data-ib-required", required);
-            if (Message((ValidationAttribute?)Attribute<StringLengthAttribute>() ?? (ValidationAttribute?)Attribute<MinLengthAttribute>() ?? Attribute<MaxLengthAttribute>()) is { } length)
+            // The first length attribute with a message of its own: [StringLength(80)] beside
+            // [MinLength(3, ErrorMessage = "...")] uses the latter's.
+            if (new ValidationAttribute?[] { Attribute<StringLengthAttribute>(), Attribute<MinLengthAttribute>(), Attribute<MaxLengthAttribute>() }
+                    .Select(Message).FirstOrDefault(message => message is not null) is { } length)
                 yield return new("data-ib-length", length);
             if (Message(Attribute<RangeAttribute>()) is { } range)
                 yield return new("data-ib-range", range);

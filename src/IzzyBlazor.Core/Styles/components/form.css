@@ -1567,11 +1567,11 @@
     grid-column: 1 / -1;
   }
 
-  /* Read-only checkboxes, switches, radios and segments stay enabled (focusable, read as read
+  /* Read-only checkboxes, switches, radios, segments and sliders stay enabled (focusable, read as read
      only) and outside the form; hidden inputs post the value. Clicks do nothing here, and the
      script cancels the keys that would change them. Read-only selects show as a read-only text
      field (.ib-field-input[readonly]). */
-  .ib-field-readonly :is(.ib-check, .ib-segment) {
+  .ib-field-readonly :is(.ib-check, .ib-segment, .ib-slider-input) {
     pointer-events: none;
   }
 
