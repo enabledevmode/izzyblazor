@@ -121,6 +121,9 @@ function generateCss() {
     }
   }
   for (const { now } of STYLE_PROPS.filter((p) => p.now)) {
+    if (tokens.has(now)) {
+      throw new Error(`Style prop variable ${now} clashes with a design token of the same name. Rename it.`);
+    }
     props += `@property ${now} { syntax: "*"; inherits: false; }\n`;
   }
 

@@ -36,8 +36,9 @@
     [Parameter] public int Columns { get; set; } = 1;
 
     /// <summary>
-    /// Draws a line between the fields, midway between them, as in a list of settings. Each direct
-    /// child is a row. Ignored when <see cref="Columns"/> is more than 1.
+    /// Draws a line between the fields, with the <see cref="Gap"/> above and below it, as in a list
+    /// of settings. Each direct child is a row; use it instead of <c>Divider</c>s between them.
+    /// Ignored when <see cref="Columns"/> is more than 1.
     /// </summary>
     [Parameter] public bool Dividers { get; set; }
 

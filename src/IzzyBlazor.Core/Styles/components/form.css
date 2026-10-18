@@ -852,8 +852,7 @@
       inline-size: 100%;
       margin: 0;
       /* The closed field is a button, which wraps long labels; keep the value on one line like
-         the classic select. */
-      overflow: hidden;
+         the classic select (the select clips it at its edge). */
       white-space: nowrap;
     }
 
@@ -991,8 +990,9 @@
       display: none;
     }
 
-    /* Text in a templated value ends in an ellipsis when it doesn't fit (icons keep their size). */
-    .ib-select-value > :not(.ib-icon) {
+    /* Text in its own element in a templated value ends in an ellipsis when it doesn't fit.
+       Pictures, icons, avatars and badges keep their size. */
+    .ib-select-value > :not(img, svg, picture, .ib-icon, .ib-avatar, .ib-badge, .ib-tag) {
       min-inline-size: 0;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -1478,7 +1478,7 @@
     }
   }
 
-  .ib-check-input:disabled + .ib-check-label {
+  :is(.ib-check-input, .ib-switch-input):disabled + .ib-check-label {
     color: var(--ib-color-disabled);
     cursor: not-allowed;
   }
@@ -1597,6 +1597,11 @@
     cursor: pointer;
   }
 
+  /* Even line heights, so the control, centered on them, lands on whole pixels. */
+  .ib-field-control-end :is(.ib-check-label, .ib-field-hint) {
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
+  }
+
   .ib-field-control-end :is(.ib-check-input, .ib-switch-input) {
     grid-column: 2;
     grid-row: 1;
@@ -1656,17 +1661,23 @@
   }
 
   /*
-   * Fieldset Dividers: a line between rows, midway between them. Each row after the first visible
-   * one gets the line and the gap again as padding above it. The body's gap at the current
+   * Fieldset Dividers: a line between rows, with the gap above and below it. Each row after the
+   * first visible one gets the line and the gap again as padding above it. The body's gap at the current
    * breakpoint (--ib-gap-now, set by its ib-gap classes) is passed down as --ib-fieldset-row-gap.
    */
   .ib-fieldset-dividers > .ib-fieldset-body {
-    --ib-fieldset-row-gap: var(--ib-gap-now, var(--ib-space-4));
+    --ib-fieldset-row-gap: var(--ib-gap-now, 0px);
   }
 
   .ib-fieldset-dividers > .ib-fieldset-body > :not([hidden], [type="hidden"]) ~ :not([hidden], [type="hidden"]) {
     padding-block-start: var(--ib-fieldset-row-gap);
     border-block-start: 1px solid var(--ib-color-border);
+  }
+
+  /* A nested fieldset's legend would sit in its top border, on the line; float it inside instead. */
+  .ib-fieldset-dividers > .ib-fieldset-body > fieldset > legend {
+    float: inline-start;
+    inline-size: 100%;
   }
 
   /* FormActions: the buttons at the end of a form, across the whole row. */
@@ -1722,7 +1733,7 @@
   /* Side labels need room the columns don't have: fields in columns keep their labels on top. */
   @media (width >= 640px) {
     /* .ib-form makes it more specific than the side-label rule further down. */
-    .ib-form.ib-form-horizontal .ib-form-grid .ib-field {
+    .ib-form.ib-form-horizontal .ib-form-grid .ib-field:not(.ib-field-control-end) {
       display: flex;
     }
   }
@@ -1790,7 +1801,7 @@
       align-items: center;
     }
 
-    .ib-form-horizontal .ib-field > :not(.ib-field-label) {
+    .ib-form-horizontal .ib-field:not(.ib-field-control-end) > :not(.ib-field-label) {
       grid-column: 2;
     }
   }

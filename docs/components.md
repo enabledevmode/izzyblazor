@@ -283,8 +283,10 @@ labels on top, as there's no room beside them.
 
 - `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
   It takes the style props, so `Border="1" Padding="4" Radius="Radius.Md"` draws a boxed group.
-  `Dividers` draws a line between its rows, midway in the `Gap`, as in a list of settings. Each
-  direct child is a row. It's ignored when `Columns` is more than 1.
+  `Dividers` draws a line between its rows, with the `Gap` above and below it, as in a list of
+  settings. Each direct child is a row, so don't put `Divider`s between them, and a row's own
+  `Padding` replaces the space above its line. A first row hidden with `HiddenFrom` or `VisibleFrom`
+  still counts as first, so the next row keeps its line. It's ignored when `Columns` is more than 1.
 - `FormActions` is the row of buttons at the end: across the whole row, buttons at the end
   (`Justify` moves them). Put them in reading order, Cancel before the main action. Last in a form
   that fills a `Dialog` or `Drawer`, it becomes the dialog's footer, like `DialogActions`: it
@@ -398,6 +400,8 @@ wrapping their `ib-field-control` in `FieldAddons`.
 (`appearance: base-select`, Chrome and Edge 135+), the open list is themed like a menu, and
 `ItemTemplate` adds markup to options: an icon, a colored dot, or an `ib-option-hint` second line that
 the closed field hides. Other browsers, including iOS Safari, keep their own list and show `ItemText`.
+The closed field keeps a long value on one line: put the text in its own element
+(`<span>@plan.Name</span>`) and it ends in "…"; otherwise it's cut off at the field's edge.
 
 **Combobox.** A select you can type in.
 
@@ -417,6 +421,7 @@ posts as unchecked and choosing it clears the dash. CSS shows it with no script;
 screen readers announce it as "mixed". Work it out from the other values, so it's right after a
 post too.
 
+On `Checkbox` and `Switch` (not the options of `RadioGroup` or `CheckboxGroup`),
 `ControlPosition="ControlPosition.End"` puts the box or switch at the end of the row, centered on
 the label and hint, with the hint under the label. The label text still toggles it and names it,
 and errors show under the hint without moving it. Together with `Fieldset Dividers` it makes a

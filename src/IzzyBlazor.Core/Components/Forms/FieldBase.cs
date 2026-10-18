@@ -344,12 +344,16 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// </summary>
     protected string GroupName => NameAttributeValue is { Length: > 0 } name ? name : FieldId;
 
-    /// <summary>The wrapper's classes: the field's own, the item props, then <see cref="Class"/>.</summary>
-    protected string WrapperClass(string kind)
+    /// <summary>
+    /// The wrapper's classes: the field's own (with <paramref name="modifier"/>, if any), the item
+    /// props, then <see cref="Class"/>.
+    /// </summary>
+    protected string WrapperClass(string kind, string? modifier = null)
     {
         var classes = new ClassBuilder()
             .Add("ib-field")
             .Add($"ib-field-{kind}")
+            .Add(modifier)
             .Add("ib-field-sm", Size == ControlSize.Sm)
             .Add("ib-field-lg", Size == ControlSize.Lg)
             .Add("ib-field-invalid", Invalid)
