@@ -1004,6 +1004,15 @@
     cursor: pointer;
   }
 
+  /* A MultiSelect without script is a list box, not a dropdown: no chevron, and no room kept for it. */
+  .ib-multiselect:not([data-ready]) > .ib-combobox-toggle {
+    display: none;
+  }
+
+  .ib-multiselect:not([data-ready]) > select.ib-multiselect-select {
+    padding-inline-end: var(--ib-field-px);
+  }
+
   .ib-combobox[data-ready] > .ib-combobox-toggle:hover {
     color: var(--ib-color-on-surface);
   }
