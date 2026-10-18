@@ -123,6 +123,20 @@
         </Box>
     </Example>
 
+    <Example Title="Settings list" Note="ControlPosition.End puts a switch (or checkbox) at the end of the row, with the hint under the label; the label text still toggles it. Dividers on the Fieldset draws a line between rows, midway in the gap." Code="@SettingsCode">
+        <Box MaxWidth="36.Rem">
+            <Form Model="Notifications" FormName="notifications" OnValidSubmit="() => { }">
+                <Fieldset Label="Email notifications" Description="Choose what we email you about." Dividers Gap="3">
+                    <Switch @bind-Value="Notifications!.NewDevice" ControlPosition="ControlPosition.End" Hint="An email each time, with a link to sign that device out." />
+                    <Switch @bind-Value="Notifications!.Mentions" ControlPosition="ControlPosition.End" Hint="When someone mentions you or replies to you." />
+                    <Switch @bind-Value="Notifications!.ProductUpdates" ControlPosition="ControlPosition.End" Hint="A short email when something new ships, about once a month." />
+                    <Checkbox @bind-Value="Notifications!.Digest" ControlPosition="ControlPosition.End" />
+                </Fieldset>
+                <Button Type="ButtonType.Submit">Save</Button>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="Groups and sizes" Note="Fieldset groups related fields. ControlSize matches the button sizes, so fields and buttons line up." Code="@GroupsCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Address" FormName="address" OnValidSubmit="() => { }">
@@ -400,6 +414,7 @@
     [SupplyParameterFromForm(FormName = "sliders")] public SlidersModel? Sliders { get; set; }
     private bool _slidersSaved;
     [SupplyParameterFromForm(FormName = "checks")] public ChecksModel? Checks { get; set; }
+    [SupplyParameterFromForm(FormName = "notifications")] public NotificationsModel? Notifications { get; set; }
 
     private bool AllNotify => Checks!.Comments && Checks.Mentions && Checks.Releases;
     private bool SomeNotify => !AllNotify && (Checks!.Comments || Checks.Mentions || Checks.Releases);
@@ -503,6 +518,7 @@
         Colors ??= new();
         Segments ??= new();
         Checks ??= new();
+        Notifications ??= new();
         Upload ??= new();
         Contact ??= new();
         Tabbed ??= new() { Name = "Izzy Dryer", Email = "izzy@example.com" };
@@ -639,6 +655,14 @@
         public bool Large { get; set; } = true;
         [Display(Name = "Disabled")] public bool Locked { get; set; }
         [Display(Name = "Disabled, checked")] public bool LockedOn { get; set; } = true;
+    }
+
+    public class NotificationsModel
+    {
+        [Display(Name = "Sign-in from a new device")] public bool NewDevice { get; set; } = true;
+        [Display(Name = "Mentions and comments")] public bool Mentions { get; set; } = true;
+        [Display(Name = "Product updates")] public bool ProductUpdates { get; set; }
+        [Display(Name = "Weekly digest (a checkbox)")] public bool Digest { get; set; }
     }
 
     public enum CalendarView { Day, Week, Month, Year }
@@ -872,6 +896,18 @@
             bool All => Model.Comments && Model.Mentions;
             bool Some => !All && (Model.Comments || Model.Mentions);
         }
+        """;
+
+    private const string SettingsCode =
+        """
+        <Fieldset Label="Email notifications" Description="Choose what we email you about." Dividers Gap="3">
+            <Switch @bind-Value="Model.NewDevice" ControlPosition="ControlPosition.End"
+                    Hint="An email each time, with a link to sign that device out." />
+            <Switch @bind-Value="Model.Mentions" ControlPosition="ControlPosition.End"
+                    Hint="When someone mentions you or replies to you." />
+            <Switch @bind-Value="Model.ProductUpdates" ControlPosition="ControlPosition.End"
+                    Hint="A short email when something new ships, about once a month." />
+        </Fieldset>
         """;
 
     private const string AddonsCode =

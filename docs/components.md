@@ -283,6 +283,8 @@ labels on top, as there's no room beside them.
 
 - `Fieldset` groups related fields under a `Label` (its `legend`), with an optional `Description`.
   It takes the style props, so `Border="1" Padding="4" Radius="Radius.Md"` draws a boxed group.
+  `Dividers` draws a line between its rows, midway in the `Gap`, as in a list of settings. Each
+  direct child is a row. It's ignored when `Columns` is more than 1.
 - `FormActions` is the row of buttons at the end: across the whole row, buttons at the end
   (`Justify` moves them). Put them in reading order, Cancel before the main action. Last in a form
   that fills a `Dialog` or `Drawer`, it becomes the dialog's footer, like `DialogActions`: it
@@ -414,6 +416,20 @@ shows a dash, for a "select all" box when only some items are selected. It's dis
 posts as unchecked and choosing it clears the dash. CSS shows it with no script; with script,
 screen readers announce it as "mixed". Work it out from the other values, so it's right after a
 post too.
+
+`ControlPosition="ControlPosition.End"` puts the box or switch at the end of the row, centered on
+the label and hint, with the hint under the label. The label text still toggles it and names it,
+and errors show under the hint without moving it. Together with `Fieldset Dividers` it makes a
+settings list:
+
+```razor
+<Fieldset Label="Email notifications" Dividers Gap="3">
+    <Switch @bind-Value="Model.NewDevice" ControlPosition="ControlPosition.End"
+            Hint="An email each time, with a link to sign that device out." />
+    <Switch @bind-Value="Model.Mentions" ControlPosition="ControlPosition.End"
+            Hint="When someone mentions you or replies to you." />
+</Fieldset>
+```
 
 **SegmentedControl.** One choice from a few (a view, an alignment, a billing period), as joined
 buttons. They're real radio buttons drawn as segments, so it posts like a `RadioGroup`, arrow keys
