@@ -80,7 +80,7 @@ else
                        disabled="@tab.Disabled"
                        aria-controls="@_context.PanelId(tab)"
                        @onchange="() => SelectAsync(key)" />
-                @TabContent(tab.Icon, tab.Label, tab.Badge, _subscribed is null ? 0 : tab.ErrorCount(_subscribed))
+                @TabContent(tab.Icon, tab.Label, tab.Badge, _subscribed is null || tab.Disabled ? 0 : tab.ErrorCount(_subscribed))
             </label>
         }
     </div>

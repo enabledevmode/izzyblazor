@@ -22,7 +22,9 @@
                min="@Format(ResolvedMin)"
                max="@Format(ResolvedMax)"
                step="@ResolvedStep"
-               disabled="@(IsDisabled || IsReadOnly)"
+               disabled="@IsDisabled"
+               form="@(ShowsReadOnly ? "" : null)"
+               aria-readonly="@(ShowsReadOnly ? "true" : null)"
                aria-valuetext="@ValueText"
                data-ib-format="@ValueFormat"
                aria-invalid="@(Invalid ? "true" : null)"
@@ -33,9 +35,10 @@
             <output class="ib-slider-value" for="@FieldId" aria-hidden="true">@ValueText</output>
         }
     </ib-field-control>
-    @if (IsReadOnly && !IsDisabled)
+    @if (PostsReadOnlyValue)
     {
-        @* A disabled input isn't posted, so a read-only slider posts its value here. *@
+        @* A range can't be read-only in HTML: a read-only slider stays focusable with aria-readonly,
+           outside the form (form=""), and posts its value here. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
     }
 </FieldFrame>

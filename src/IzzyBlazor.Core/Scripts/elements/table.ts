@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { TypingGuard, navigateTo } from "./filter-form";
+import { TypingGuard, navigateTo } from "../filtering";
 
 /**
  * <ib-table> adds two things to a Table:

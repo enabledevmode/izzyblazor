@@ -243,7 +243,7 @@ select, checkbox or radio, so:
 
 - `Select`, `Combobox` and `MultiSelect` show their value in a read-only text field ("Pro plan",
   or "Design, Writing" for several).
-- `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl` and `CheckboxGroup` stay as they are, with
+- `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup` and `Slider` stay as they are, with
   `aria-readonly`, and clicks do nothing. With JavaScript, keys don't change them either; with it
   off, a key can still flip one on screen, but the value posted doesn't change.
 - Their values post from hidden inputs. A `FileUpload` is disabled, since a file can't be read-only.
@@ -252,7 +252,7 @@ select, checkbox or radio, so:
 buttons, so show the ones that fit. A field's own `ReadOnly` and `Disabled` work the same way. `RequiredMark` chooses the
 marks beside labels: `Required` (an asterisk on required fields, the default), `Optional`
 ("(optional)" on the others, from `IzzyText.Optional`; clearer when most fields are required) or
-`None`.
+`None`. A checkbox or switch is never marked "(optional)": unticked is already an answer.
 
 **Columns.** `Columns="2"` (up to 4) lays the fields out in columns, sized by the form's own width
 rather than the screen's, so the same form fits a page, a dialog and a drawer: two columns from
@@ -736,7 +736,9 @@ The browser's own check before posting can't reach a field in a closed tab: it w
 submit with no message. So a `Form` that holds `Tabs` renders `novalidate`. With JavaScript off the
 server checks it and opens the tab with errors; with JavaScript the form runs the browser's check
 itself, opening the tab of the first invalid field and pointing at it. Fields count toward their
-tab, and toward the outer tab when tabs are nested.
+tab, and toward the outer tab when tabs are nested. A `FileUpload`, Blazor's own `Input*`
+components and fields of your own don't count toward a tab, since they aren't IzzyBlazor fields;
+their errors still show beside them.
 
 **Tabs as links.** For sections split across routes (`/settings/profile`, `/settings/billing`), use
 `TabLink` children instead of `Tab`. The `Tabs` then renders a `<nav>` of real links with no panels
