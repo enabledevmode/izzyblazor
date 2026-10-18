@@ -25,7 +25,7 @@
                disabled="@IsDisabled"
                form="@(ShowsReadOnly ? "" : null)"
                aria-readonly="@(ShowsReadOnly ? "true" : null)"
-               aria-valuetext="@ValueText"
+               aria-valuetext="@(RendererInfo.IsInteractive ? ValueText : null)"
                data-ib-format="@ValueFormat"
                aria-invalid="@(Invalid ? "true" : null)"
                aria-describedby="@DescribedBy" />

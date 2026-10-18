@@ -1,6 +1,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Globalization;
 using System.Linq.Expressions;
+using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Forms;
 
 namespace IzzyBlazor.Tests;
@@ -32,6 +33,7 @@ public class SliderRenderTests : BunitContext
     public SliderRenderTests()
     {
         _context = new EditContext(_model);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
     }
 
     private IRenderedComponent<Slider<T>> SliderFor<T>(Expression<Func<T>> field, Action<ComponentParameterCollectionBuilder<Slider<T>>>? more = null) =>
@@ -72,8 +74,10 @@ public class SliderRenderTests : BunitContext
         var cut = SliderFor(() => _model.Discount, p => p.Add(f => f.ShowValue, true).Add(f => f.ValueFormat, "{0}%"));
 
         Assert.Equal("10%", cut.Find("output").TextContent);
-        Assert.Equal("10%", cut.Find("input").GetAttribute("aria-valuetext"));
         Assert.Equal("{0}%", cut.Find("input").GetAttribute("data-ib-format"));
+        // On a static page nothing could keep it current without script, so the script sets it:
+        // with JavaScript off, screen readers hear the slider's own (always current) value.
+        Assert.False(cut.Find("input").HasAttribute("aria-valuetext"));
     }
 
     [Fact]
@@ -115,7 +119,6 @@ public class SliderRenderTests : BunitContext
         var cut = SliderFor(() => _model.Rating, p => p.Add(f => f.ShowValue, true));
 
         Assert.Equal("6", cut.Find("output").TextContent);
-        Assert.Equal("6", cut.Find("input").GetAttribute("aria-valuetext"));
     }
 
     [Fact]
