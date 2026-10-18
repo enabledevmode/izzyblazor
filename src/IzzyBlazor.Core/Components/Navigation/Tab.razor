@@ -14,6 +14,8 @@
          id="@Context.PanelId(this)"
          class="@_class"
          style="@_style">
+        @* Shown only when the panels are stacked: in a form, with JavaScript off. *@
+        <p class="ib-tab-panel-label">@Label</p>
         @* Fields inside register with their tab, so Tabs can count each tab's errors. *@
         <CascadingValue Value="this" IsFixed="true">
             @ChildContent

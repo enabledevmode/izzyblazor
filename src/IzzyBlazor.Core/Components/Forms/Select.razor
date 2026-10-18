@@ -98,8 +98,29 @@
         }
     }
 
-    private string ReadOnlyText =>
-        string.IsNullOrEmpty(CurrentValueAsString) ? "" : Options.FirstOrDefault(o => FormatValueAsString(o) == CurrentValueAsString) is { } item ? TextFor(item) : CurrentValueAsString;
+    // The chosen option's text; a value that isn't among the options shows as itself (for a value
+    // type, FirstOrDefault would hand back the default, an option that wasn't chosen).
+    private string ReadOnlyText
+    {
+        get
+        {
+            var current = CurrentValueAsString;
+            if (string.IsNullOrEmpty(current))
+            {
+                return "";
+            }
+
+            foreach (var option in Options)
+            {
+                if (FormatValueAsString(option) == current)
+                {
+                    return TextFor(option);
+                }
+            }
+
+            return current;
+        }
+    }
 
     private string TextFor(TValue item)
     {

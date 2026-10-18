@@ -102,6 +102,15 @@ public class ColorPickerRenderTests : BunitContext
         Assert.True(color.HasAttribute("disabled"));
         Assert.Null(color.GetAttribute("name"));
         Assert.Equal("#2563eb", cut.Find("input[type=hidden][name=brand]").GetAttribute("value"));
+
+        // Disabled as well: nothing posts.
+        var disabled = Render<ColorPicker>(p => p
+            .Add(f => f.ValueExpression, () => _model.Brand)
+            .Add(f => f.Value, "#2563eb")
+            .Add(f => f.ReadOnly, true)
+            .Add(f => f.Disabled, true)
+            .AddUnmatched("name", "brand"));
+        Assert.Empty(disabled.FindAll("input[type=hidden]"));
     }
 
     [Fact]

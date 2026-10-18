@@ -20,12 +20,12 @@
                        id="@id"
                        class="ib-check-input"
                        type="radio"
-                       name="@GroupName"
+                       name="@(ShowsReadOnly ? FieldId : GroupName)"
                        value="@value"
                        checked="@(value == CurrentValueAsString)"
                        @onchange="() => CurrentValue = item"
                        required="@(IsRequired && !ShowsReadOnly)"
-                       disabled="@IsDisabled"
+                       disabled="@(IsDisabled || ShowsReadOnly)"
                        form="@(ShowsReadOnly ? "" : null)"
                        aria-invalid="@(Invalid ? "true" : null)" />
                 <span class="ib-check-label">@TextFor(item)</span>

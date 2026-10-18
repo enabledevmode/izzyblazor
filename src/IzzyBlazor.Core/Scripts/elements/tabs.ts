@@ -51,7 +51,10 @@ class Tabs extends IzzyElement {
     this.addEventListener(
       "invalid",
       (event) => {
-        let panel = (event.target as Element).closest(".ib-tab-panel");
+        const field = event.target as HTMLInputElement;
+        // The browser points at the first invalid field in the form; a field before the tabs may be it.
+        if (field.form && field.form.querySelector("input:invalid, select:invalid, textarea:invalid") !== field) return;
+        let panel = field.closest(".ib-tab-panel");
         while (panel && panel.parentElement !== this) panel = panel.parentElement?.closest(".ib-tab-panel") ?? null;
         if (!panel || opened) return;
         opened = true;

@@ -29,7 +29,7 @@
                        value="@ChoiceOptions.Value(item)"
                        checked="@IsChecked(item)"
                        @onchange="e => Toggle(item, e)"
-                       disabled="@IsDisabled"
+                       disabled="@(IsDisabled || ShowsReadOnly)"
                        form="@(ShowsReadOnly ? "" : null)"
                        aria-readonly="@(ShowsReadOnly ? "true" : null)"
                        aria-invalid="@(Invalid ? "true" : null)" />

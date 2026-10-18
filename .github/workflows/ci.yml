@@ -41,10 +41,12 @@ jobs:
           echo "CSS gzip: $css bytes (budget 40960)"
           echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
           # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
-          expected=$(grep -c 'import("./elements/' src/IzzyBlazor.Core/Scripts/lazy.ts)
+          # The built files must be exactly the ones lazy.ts loads.
+          expected=$(grep -o 'import("./elements/[a-z-]*\.js")' src/IzzyBlazor.Core/Scripts/lazy.ts | sed 's|.*/||; s|")||' | sort)
           files=(src/IzzyBlazor.Core/wwwroot/elements/*.js)
-          echo "On-demand elements: ${#files[@]} files (lazy.ts has $expected)"
-          test "${#files[@]}" -eq "$expected"
+          built=$(for f in "${files[@]}"; do basename "$f"; done | sort)
+          echo "On-demand elements: ${#files[@]} files"
+          test -n "$expected" && test "$built" = "$expected"
           big=0
           for f in "${files[@]}"; do
             n=$(gzip -c "$f" | wc -c)

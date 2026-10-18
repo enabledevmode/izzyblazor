@@ -105,8 +105,10 @@ else
 
     /// <summary>
     /// Makes every field read-only: shown and posted, but not changed, as on a page that shows a
-    /// record before editing it. Selects, checkboxes, radios and switches can't be read-only in
-    /// HTML, so they're disabled and their values are posted from hidden inputs.
+    /// record before editing it. HTML has no read-only select, checkbox or radio, so a read-only
+    /// Select, Combobox or MultiSelect shows its value in a read-only text field, and checkboxes,
+    /// radios and sliders stay focusable with <c>aria-readonly</c> and don't change; their values
+    /// post from hidden inputs.
     /// </summary>
     [Parameter] public bool ReadOnly { get; set; }
 
