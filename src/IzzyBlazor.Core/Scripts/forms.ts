@@ -39,21 +39,6 @@ export function installSubmitFeedback(): void {
     }
   });
 
-  // A Form with Tabs renders novalidate (data-ib-validate), so with JavaScript off the server
-  // checks it: the browser's own check can't reach a field in a closed tab. With script, run the
-  // browser's check here; Tabs opens the tab of the first invalid field (tabs.ts).
-  document.addEventListener(
-    "submit",
-    (event) => {
-      const form = event.target;
-      if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-ib-validate")) return;
-      if ((event as SubmitEvent).submitter?.hasAttribute("formnovalidate") || form.reportValidity()) return;
-      event.preventDefault();
-      event.stopImmediatePropagation();
-    },
-    true
-  );
-
   // Read-only checkboxes, radios and sliders (aria-readonly, on the input or its radio group):
   // HTML has no read-only for them, so cancel what would change them: a click (also from Space or
   // the label), and the keys that move a radio group's choice or a slider. CSS stops the pointer

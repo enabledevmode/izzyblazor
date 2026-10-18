@@ -732,10 +732,9 @@ errors"; `IzzyText.OneError` and `ErrorCount`). Only a submit switches tabs, nev
 appears while someone types. On a static page the server doesn't know which tab was open when the
 form posted, so it counts the first tab (or the `QueryKey` one) as open.
 
-The browser's own check before posting can't reach a field in a closed tab: it would block the
-submit with no message. So a `Form` that holds `Tabs` renders `novalidate`. With JavaScript off the
-server checks it and opens the tab with errors; with JavaScript the form runs the browser's check
-itself, opening the tab of the first invalid field and pointing at it. Fields count toward their
+The browser checks fields before posting and points at the first invalid one, even in a closed
+tab: with JavaScript, that tab opens; with it off, its panel shows in place of the open one (the tab
+strip still marks the open tab). Errors found by the server after posting open their tab as above. Fields count toward their
 tab, and toward the outer tab when tabs are nested. A `FileUpload`, Blazor's own `Input*`
 components and fields of your own don't count toward a tab, since they aren't IzzyBlazor fields;
 their errors still show beside them.
