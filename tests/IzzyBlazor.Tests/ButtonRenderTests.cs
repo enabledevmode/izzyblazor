@@ -41,12 +41,21 @@ public class ButtonRenderTests : BunitContext
         Assert.Equal("/drafts", button.GetAttribute("formaction"));
     }
 
-    [Fact]
-    public void Reset_resets_and_cant_be_combined_with_Submit()
+    [Theory]
+    [InlineData(false, false, "button")]
+    [InlineData(true, false, "submit")]
+    [InlineData(false, true, "reset")]
+    [InlineData(true, true, null)]
+    public void Submit_and_Reset_set_the_type(bool submit, bool reset, string? expected)
     {
-        Assert.Equal("reset", Render<Button>(p => p.Add(b => b.Reset, true)).Find("button").GetAttribute("type"));
-        Assert.Equal("button", Render<Button>().Find("button").GetAttribute("type"));
-        Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Submit, true).Add(b => b.Reset, true)));
+        if (expected is null)
+        {
+            Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Submit, submit).Add(b => b.Reset, reset)));
+            return;
+        }
+
+        var type = Render<Button>(p => p.Add(b => b.Submit, submit).Add(b => b.Reset, reset)).Find("button").GetAttribute("type");
+        Assert.Equal(expected, type);
     }
 
     [Fact]
