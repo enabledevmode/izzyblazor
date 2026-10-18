@@ -76,7 +76,6 @@
     /// <summary>Renders as a switch. Use <see cref="Switch"/> instead of setting this.</summary>
     protected virtual bool AsSwitch => false;
 
-    private string FrameClass => ControlPosition == ControlPosition.End
-        ? WrapperClass(AsSwitch ? "switch" : "checkbox") + " ib-field-control-end"
-        : WrapperClass(AsSwitch ? "switch" : "checkbox");
+    private string FrameClass => WrapperClass(AsSwitch ? "switch" : "checkbox",
+        ControlPosition == ControlPosition.End ? "ib-field-control-end" : null);
 }

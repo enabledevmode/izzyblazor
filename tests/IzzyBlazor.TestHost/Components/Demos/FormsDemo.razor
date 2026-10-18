@@ -123,7 +123,7 @@
         </Box>
     </Example>
 
-    <Example Title="Settings list" Note="ControlPosition.End puts a switch (or checkbox) at the end of the row, with the hint under the label; the label text still toggles it. Dividers on the Fieldset draws a line between rows, midway in the gap." Code="@SettingsCode">
+    <Example Title="Settings list" Note="ControlPosition.End puts a switch (or checkbox) at the end of the row, with the hint under the label; the label text still toggles it. Dividers on the Fieldset draws a line between rows, with the gap above and below it. In a horizontal form it takes the whole row (see Horizontal layout)." Code="@SettingsCode">
         <Box MaxWidth="36.Rem">
             <Form Model="Notifications" FormName="notifications" OnValidSubmit="() => { }">
                 <Fieldset Label="Email notifications" Description="Choose what we email you about." Dividers Gap="3">
@@ -362,6 +362,7 @@
                 <TextField @bind-Value="Profile!.Website" StartIcon="Lucide.Globe" />
                 <Select @bind-Value="Profile!.Language" />
                 <TextField @bind-Value="Profile!.Username" ReadOnly Hint="Usernames can't be changed." />
+                <Switch @bind-Value="Profile!.PublicProfile" ControlPosition="ControlPosition.End" Hint="Anyone with the link can see your name and photo." />
             </Form>
         </Box>
     </Example>
@@ -662,7 +663,7 @@
         [Display(Name = "Sign-in from a new device")] public bool NewDevice { get; set; } = true;
         [Display(Name = "Mentions and comments")] public bool Mentions { get; set; } = true;
         [Display(Name = "Product updates")] public bool ProductUpdates { get; set; }
-        [Display(Name = "Weekly digest (a checkbox)")] public bool Digest { get; set; }
+        [Display(Name = "Weekly digest")] public bool Digest { get; set; }
     }
 
     public enum CalendarView { Day, Week, Month, Year }
@@ -785,6 +786,7 @@
         [Url] public string? Website { get; set; }
         public Language Language { get; set; }
         public string? Username { get; set; }
+        [Display(Name = "Public profile")] public bool PublicProfile { get; set; }
     }
 
     private const string SignupCode =
@@ -907,6 +909,7 @@
                     Hint="When someone mentions you or replies to you." />
             <Switch @bind-Value="Model.ProductUpdates" ControlPosition="ControlPosition.End"
                     Hint="A short email when something new ships, about once a month." />
+            <Checkbox @bind-Value="Model.Digest" ControlPosition="ControlPosition.End" />
         </Fieldset>
         """;
 

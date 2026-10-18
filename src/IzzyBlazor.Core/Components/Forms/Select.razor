@@ -76,7 +76,8 @@
 
     /// <summary>
     /// Markup for each option, such as an icon, avatar or a second line (class <c>ib-option-hint</c>,
-    /// hidden in the closed field). Shown where the browser supports the customizable select;
+    /// hidden in the closed field). In the closed field, text in its own element (a <c>span</c>)
+    /// ends in an ellipsis when it doesn't fit. Shown where the browser supports the customizable select;
     /// elsewhere the option shows <see cref="ItemText"/>. Keep it non-interactive: options can't hold links or buttons.
     /// </summary>
     [Parameter] public RenderFragment<TValue>? ItemTemplate { get; set; }

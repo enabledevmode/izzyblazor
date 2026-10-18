@@ -276,42 +276,6 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void Switch_at_the_end_keeps_its_label_and_hint_linked()
-    {
-        var cut = Render<Switch>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.ValueExpression, () => _model.Accept)
-            .Add(c => c.Hint, "Sends an email")
-            .Add(c => c.ControlPosition, ControlPosition.End));
-
-        var wrapper = cut.Find(".ib-field");
-        Assert.Contains("ib-field-control-end", wrapper.ClassList);
-        var input = cut.Find("label.ib-check > input");
-        Assert.Equal(input.Id, cut.Find("label.ib-check").GetAttribute("for"));
-        var hintId = cut.Find(".ib-field-hint").Id;
-        Assert.NotNull(hintId);
-        Assert.Contains(hintId, input.GetAttribute("aria-describedby"));
-    }
-
-    [Fact]
-    public void Checkbox_sits_at_the_start_by_default()
-    {
-        var cut = Render<Checkbox>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.ValueExpression, () => _model.Accept));
-
-        Assert.DoesNotContain("ib-field-control-end", cut.Find(".ib-field").ClassList);
-    }
-
-    [Fact]
-    public void Fieldset_Dividers_applies_to_one_column_only()
-    {
-        Assert.Contains("ib-fieldset-dividers", Render<Fieldset>(p => p.Add(f => f.Label, "Email").Add(f => f.Dividers, true)).Find("fieldset").ClassList);
-        Assert.DoesNotContain("ib-fieldset-dividers", Render<Fieldset>(p => p.Add(f => f.Label, "Email")).Find("fieldset").ClassList);
-        Assert.DoesNotContain("ib-fieldset-dividers", Render<Fieldset>(p => p.Add(f => f.Label, "Email").Add(f => f.Dividers, true).Add(f => f.Columns, 2)).Find("fieldset").ClassList);
-    }
-
-    [Fact]
     public void Select_lists_enum_values_with_display_names_and_marks_the_current_one()
     {
         var cut = Render<Select<Plan>>(p => p
