@@ -30,7 +30,7 @@ public class ButtonRenderTests : BunitContext
     public void Submit_button_posts_its_name_and_value()
     {
         var button = Render<Button>(p => p
-            .Add(b => b.Type, ButtonType.Submit)
+            .Add(b => b.Submit, true)
             .Add(b => b.Name, "action")
             .Add(b => b.Value, "publish")
             .Add(b => b.FormAction, "/drafts")).Find("button");
@@ -39,6 +39,14 @@ public class ButtonRenderTests : BunitContext
         Assert.Equal("action", button.GetAttribute("name"));
         Assert.Equal("publish", button.GetAttribute("value"));
         Assert.Equal("/drafts", button.GetAttribute("formaction"));
+    }
+
+    [Fact]
+    public void Reset_resets_and_cant_be_combined_with_Submit()
+    {
+        Assert.Equal("reset", Render<Button>(p => p.Add(b => b.Reset, true)).Find("button").GetAttribute("type"));
+        Assert.Equal("button", Render<Button>().Find("button").GetAttribute("type"));
+        Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Submit, true).Add(b => b.Reset, true)));
     }
 
     [Fact]

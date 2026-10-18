@@ -145,7 +145,7 @@ public class FormRenderTests : BunitContext
         var cut = TextFieldFor(() => _model.FavoriteColor, p => p.Add(f => f.EndAddon, b =>
         {
             b.OpenComponent<Button>(0);
-            b.AddAttribute(1, nameof(Button.Type), ButtonType.Submit);
+            b.AddAttribute(1, nameof(Button.Submit), true);
             b.AddAttribute(2, nameof(Button.ChildContent), (RenderFragment)(c => c.AddContent(0, "Go")));
             b.CloseComponent();
         }));

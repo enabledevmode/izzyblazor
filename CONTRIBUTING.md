@@ -142,7 +142,12 @@ Use the same name for the same idea everywhere:
 | `Header`, `Footer`, `Actions` | Render fragments for those regions | Card (all three), Dialog and AppSidebar (`Header`, `Footer`), Alert (`Actions`) |
 
 On/off switches are plain `bool`s so they can be written bare (`<Box Grow>`); anything that changes
-with screen size is `Responsive<T>`. Two-way state follows Blazor's `@bind-X` pattern (`Open`/
+with screen size is `Responsive<T>`.
+
+Fixed choices are enums. On a component named like an HTML element (`Button`, `Select`, `Form`,
+`Dialog`), don't name a parameter after one of that element's attributes unless it takes the same
+values: Rider and ReSharper check `<Button Type="...">` against HTML's `<button type>` and flag
+an enum value as wrong. That's why buttons take a bare `Submit` rather than `Type`. Two-way state follows Blazor's `@bind-X` pattern (`Open`/
 `OpenChanged`, `Selected`/`SelectedChanged`).
 
 ### Definition of done

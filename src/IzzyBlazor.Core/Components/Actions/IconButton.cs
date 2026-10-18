@@ -25,8 +25,11 @@ public class IconButton : ButtonBase
     /// <summary>Renders a link to this URL instead of a button.</summary>
     [Parameter] public string? Href { get; set; }
 
-    /// <summary>What the button does in a form, when it is a button. Defaults to <see cref="ButtonType.Button"/>.</summary>
-    [Parameter] public ButtonType Type { get; set; } = ButtonType.Button;
+    /// <summary>Submits the form it's in, when it's a button (not a link), like <c>type="submit"</c>.</summary>
+    [Parameter] public bool Submit { get; set; }
+
+    /// <summary>Resets the form it's in, when it's a button, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
+    [Parameter] public bool Reset { get; set; }
 
     /// <summary>Runs on click on interactive pages.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
@@ -65,12 +68,7 @@ public class IconButton : ButtonBase
         }
         else
         {
-            builder.AddAttribute(3, "type", Loading ? "button" : Type switch
-            {
-                ButtonType.Submit => "submit",
-                ButtonType.Reset => "reset",
-                _ => "button",
-            });
+            builder.AddAttribute(3, "type", Loading ? "button" : ButtonTypes.Of(Submit, Reset, nameof(IconButton)));
             builder.AddAttribute(4, "disabled", Disabled);
             if (OnClick.HasDelegate && !Loading)
             {

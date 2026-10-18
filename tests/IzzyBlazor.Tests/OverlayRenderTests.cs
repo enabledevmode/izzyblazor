@@ -58,7 +58,7 @@ public class OverlayRenderTests : BunitContext
                 b.AddContent(0, Item("Settings", (nameof(MenuItem.Href), "/settings")));
                 b.AddContent(1, Item("Copy", (nameof(MenuItem.Shortcut), "Ctrl+C")));
                 b.AddContent(2, Item("Delete",
-                    (nameof(MenuItem.Type), ButtonType.Submit),
+                    (nameof(MenuItem.Submit), true),
                     (nameof(MenuItem.FormAction), "/delete"),
                     (nameof(MenuItem.Accent), Accent.Danger)));
             })));

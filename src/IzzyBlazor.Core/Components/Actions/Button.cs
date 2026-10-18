@@ -10,18 +10,21 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Button Type="ButtonType.Submit"&gt;Save&lt;/Button&gt;
+/// &lt;Button Submit&gt;Save&lt;/Button&gt;
 /// &lt;Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Lucide.Trash"&gt;Delete&lt;/Button&gt;
-/// &lt;Button Type="ButtonType.Submit" Name="action" Value="publish"&gt;Publish&lt;/Button&gt;
+/// &lt;Button Submit Name="action" Value="publish"&gt;Publish&lt;/Button&gt;
 /// </code>
 /// </example>
 public class Button : ButtonBase
 {
     /// <summary>
-    /// What the button does in a form. Defaults to <see cref="ButtonType.Button"/>, which does
-    /// nothing by itself; use <see cref="ButtonType.Submit"/> to submit.
+    /// Submits the form it's in (or <see cref="Form"/>), like <c>type="submit"</c>. Without it (or
+    /// <see cref="Reset"/>), a button does nothing by itself.
     /// </summary>
-    [Parameter] public ButtonType Type { get; set; } = ButtonType.Button;
+    [Parameter] public bool Submit { get; set; }
+
+    /// <summary>Resets the form it's in, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
+    [Parameter] public bool Reset { get; set; }
 
     /// <summary>
     /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
@@ -54,12 +57,7 @@ public class Button : ButtonBase
 
         builder.OpenElement(0, "button");
         // While loading, a submit button can't submit again (Enter in a field, Space on the button).
-        builder.AddAttribute(1, "type", Loading ? "button" : Type switch
-        {
-            ButtonType.Submit => "submit",
-            ButtonType.Reset => "reset",
-            _ => "button",
-        });
+        builder.AddAttribute(1, "type", Loading ? "button" : ButtonTypes.Of(Submit, Reset, nameof(Button)));
         builder.AddAttribute(2, "name", Name);
         builder.AddAttribute(3, "value", Value);
         builder.AddAttribute(4, "formaction", FormAction);
@@ -86,4 +84,16 @@ public class Button : ButtonBase
         builder.CloseRegion();
         builder.CloseElement();
     }
+}
+
+/// <summary>The <c>type</c> attribute for a button's <c>Submit</c> and <c>Reset</c> parameters.</summary>
+internal static class ButtonTypes
+{
+    public static string Of(bool submit, bool reset, string component) => (submit, reset) switch
+    {
+        (true, true) => throw new InvalidOperationException($"{component} can't set both Submit and Reset."),
+        (true, _) => "submit",
+        (_, true) => "reset",
+        _ => "button",
+    };
 }

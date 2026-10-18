@@ -65,7 +65,7 @@
                 <PropertyColumn Property="o => o.Total" Format="C" FooterText="@RecentTotal" />
             </Table>
             <Row Gap="3" Align="Align.Center" Wrap>
-                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive selected</Button>
+                <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive selected</Button>
                 @if (_archived is not null)
                 {
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="archived">Archived: @(_archived.Count == 0 ? "nothing selected" : string.Join(", ", _archived.Select(k => "#" + k)))</TextBlock>
@@ -299,7 +299,7 @@
                 <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
                 <PropertyColumn Property="o => o.Total" Format="C" FooterText="@total.ToString("C")" />
             </Table>
-            <Button Type="ButtonType.Submit">Archive selected</Button>
+            <Button Submit>Archive selected</Button>
         </form>
 
         @code {

@@ -38,7 +38,7 @@
                     <ColorPicker @bind-Value="_pick" name="brand" Label="Brand" Presets="PresetHexes" Size="ControlSize.Sm" />
                 </Box>
                 <Row Gap="3" Align="Align.Center">
-                    <Button Type="ButtonType.Submit" Size="ControlSize.Sm">Apply</Button>
+                    <Button Submit Size="ControlSize.Sm">Apply</Button>
                     <a href="@Navigation.GetUriWithQueryParameter("brand", (string?)null)" class="host-label">Reset</a>
                 </Row>
             </form>

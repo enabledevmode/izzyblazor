@@ -70,15 +70,15 @@
         <Row Gap="2" Wrap>
             <form method="post" @formname="toast-now" @onsubmit="ShowNow">
                 <AntiforgeryToken />
-                <Button Type="ButtonType.Submit" data-testid="toast-now">Save</Button>
+                <Button Submit data-testid="toast-now">Save</Button>
             </form>
             <form method="post" @formname="toast-redirect" @onsubmit="ShowAndRedirect">
                 <AntiforgeryToken />
-                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-testid="toast-redirect">Save and redirect</Button>
+                <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-testid="toast-redirect">Save and redirect</Button>
             </form>
             <form method="post" @formname="toast-error" @onsubmit="ShowError">
                 <AntiforgeryToken />
-                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Danger" data-testid="toast-error">Fail</Button>
+                <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Danger" data-testid="toast-error">Fail</Button>
             </form>
         </Row>
     </Example>
@@ -87,7 +87,7 @@
         <Row Gap="3" Align="Align.Center" Wrap>
             <form method="post" @formname="toast-archive" @onsubmit="Archive">
                 <AntiforgeryToken />
-                <Button Type="ButtonType.Submit" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive" data-testid="toast-archive">Archive message</Button>
+                <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive" data-testid="toast-archive">Archive message</Button>
             </form>
             <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Message: <strong data-testid="archive-state">@ArchiveState</strong></TextBlock>
         </Row>

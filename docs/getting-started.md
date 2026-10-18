@@ -97,7 +97,7 @@ the same form posts and validates on a static page:
     <FormErrors />
     <TextField @bind-Value="Signup.Email" />
     <Select @bind-Value="Signup.Plan" Placeholder="Choose a plan" />
-    <Button Type="ButtonType.Submit">Create account</Button>
+    <Button Submit>Create account</Button>
 </Form>
 
 @code {

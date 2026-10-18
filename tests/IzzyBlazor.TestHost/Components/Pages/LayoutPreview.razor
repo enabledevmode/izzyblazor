@@ -95,7 +95,7 @@
                     </Stack>
                     <Form Model="Newsletter" FormName="layout-newsletter" OnValidSubmit="() => _subscribed = true">
                         <TextField @bind-Value="Newsletter!.Email" Type="TextFieldType.Email" Placeholder="you@example.com" HideLabel>
-                            <EndAddon><Button Type="ButtonType.Submit" Accent="Accent.Neutral">Subscribe</Button></EndAddon>
+                            <EndAddon><Button Submit Accent="Accent.Neutral">Subscribe</Button></EndAddon>
                         </TextField>
                     </Form>
                 </Grid>
@@ -181,7 +181,7 @@
                     <TextBlock Color="Color.Muted">One email when something new is up. No tracking, unsubscribe any time.</TextBlock>
                     <Form Model="Newsletter" FormName="layout-newsletter" OnValidSubmit="() => _subscribed = true">
                         <TextField @bind-Value="Newsletter!.Email" Type="TextFieldType.Email" Placeholder="you@example.com" HideLabel>
-                            <EndAddon><Button Type="ButtonType.Submit">Subscribe</Button></EndAddon>
+                            <EndAddon><Button Submit>Subscribe</Button></EndAddon>
                         </TextField>
                     </Form>
                     @if (_subscribed)

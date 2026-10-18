@@ -27,8 +27,8 @@
                 <Switch @bind-Value="Signup!.Newsletter" />
                 <Checkbox @bind-Value="Signup!.AcceptTerms">I agree to the <a href="static/forms">terms of service</a></Checkbox>
                 <Row Gap="2">
-                    <Button Type="ButtonType.Submit" StartIcon="Lucide.UserPlus">Create account</Button>
-                    <Button Type="ButtonType.Reset" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
+                    <Button Submit StartIcon="Lucide.UserPlus">Create account</Button>
+                    <Button Reset Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Reset</Button>
                 </Row>
             </Form>
         </Box>
@@ -69,7 +69,7 @@
                     </ItemTemplate>
                 </Combobox>
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                     @if (_comboSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @(Combo!.Country is { } c ? Countries[c] : "no country"), @(Combo!.OwnerId is { } o ? P(o).Name : "no owner")</TextBlock>
@@ -85,7 +85,7 @@
                 <CheckboxGroup @bind-Value="Choices!.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" />
                 <MultiSelect @bind-Value="Choices!.Skills" Items="Skills" Placeholder="Add skills" Hint="Up to 5." />
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                     @if (_choicesSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="choices-saved">Saved: @(Choices!.Toppings is not { Count: > 0 } ? "no toppings" : string.Join(", ", Choices.Toppings)); @(Choices.Skills is not { Length: > 0 } ? "no skills" : string.Join(", ", Choices.Skills))</TextBlock>
@@ -118,7 +118,7 @@
                     <Checkbox @bind-Value="Checks!.Locked" Disabled />
                     <Checkbox @bind-Value="Checks!.LockedOn" Disabled />
                 </Row>
-                <Button Type="ButtonType.Submit">Save</Button>
+                <Button Submit>Save</Button>
             </Form>
         </Box>
     </Example>
@@ -132,7 +132,7 @@
                     <Switch @bind-Value="Notifications!.ProductUpdates" ControlPosition="ControlPosition.End" Hint="A short email when something new ships, about once a month." />
                     <Checkbox @bind-Value="Notifications!.Digest" ControlPosition="ControlPosition.End" />
                 </Fieldset>
-                <Button Type="ButtonType.Submit">Save</Button>
+                <Button Submit>Save</Button>
             </Form>
         </Box>
     </Example>
@@ -168,7 +168,7 @@
                 <NumberField @bind-Value="Numbers!.Guests" StepButtons="StepButtons.Split" Hint="Split steppers: easier to tap." />
                 <NumberField @bind-Value="Numbers!.Seats" StepButtons="StepButtons.None" Hint="No steppers: type a number, or use the arrow keys." />
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                     @if (_numbersSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Numbers!.Quantity × @(Numbers.Price?.ToString("0.00") ?? "no price"), @Numbers.Discount% off, @Numbers.Guests guests, @(Numbers.Seats?.ToString() ?? "no") seats</TextBlock>
@@ -189,7 +189,7 @@
                     <SegmentedControl @bind-Value="Segments!.Large" Size="ControlSize.Lg" />
                 </Row>
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                     @if (_segmentsSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @Segments!.View, @Segments.Align, @Segments.Billing</TextBlock>
@@ -212,7 +212,7 @@
                 </Row>
                 <Slider @bind-Value="Sliders!.Locked" Disabled ShowValue />
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                     @if (_slidersSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: volume @Sliders!.Volume, @Sliders.Discount% off, opacity @Sliders.Opacity</TextBlock>
@@ -233,7 +233,7 @@
                 </Row>
                 <ColorPicker @bind-Value="Colors!.Locked" Disabled />
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                     @if (_colorsSaved)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: brand @Colors!.Brand, highlight @Colors.Highlight</TextBlock>
@@ -250,7 +250,7 @@
                 <FileUpload Name="Attachments" Label="Attachments" Multiple Hint="Several files at once." OnChange="files => ShowChosen(files)" />
                 <TextField @bind-Value="Upload!.Note" />
                 <Row Gap="2" Align="Align.Center">
-                    <Button Type="ButtonType.Submit" StartIcon="Lucide.Upload">Upload</Button>
+                    <Button Submit StartIcon="Lucide.Upload">Upload</Button>
                     @if (_uploaded is not null)
                     {
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_uploaded</TextBlock>
@@ -273,7 +273,7 @@
                     <EndAddon>kg</EndAddon>
                 </TextField>
                 <TextField @bind-Value="Addons!.Invite" Type="TextFieldType.Email" Placeholder="teammate@example.com">
-                    <EndAddon><Button Type="ButtonType.Submit" StartIcon="Lucide.Send">Invite</Button></EndAddon>
+                    <EndAddon><Button Submit StartIcon="Lucide.Send">Invite</Button></EndAddon>
                 </TextField>
                 @if (_addonsSaved)
                 {
@@ -322,7 +322,7 @@
                 @if (EditAccount)
                 {
                     <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", (bool?)null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</LinkButton>
-                    <Button Type="ButtonType.Submit">Save</Button>
+                    <Button Submit>Save</Button>
                 }
                 else
                 {
@@ -350,7 +350,7 @@
                         </Stack>
                     </Tab>
                 </Tabs>
-                <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
+                <FormActions><Button Submit>Save</Button></FormActions>
             </Form>
         </Box>
     </Example>
@@ -379,7 +379,7 @@
                 <TextField @bind-Value="Contact!.PostalCode" />
             </Fieldset>
             <TextArea @bind-Value="Contact!.Notes" ColSpan="2" />
-            <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
+            <FormActions><Button Submit>Save</Button></FormActions>
         </Form>
     </Example>
 
@@ -801,7 +801,7 @@
             <TextArea @bind-Value="Signup.Bio" AutoGrow ShowCount />
             <Switch @bind-Value="Signup.Newsletter" />
             <Checkbox @bind-Value="Signup.AcceptTerms">I agree to the <a href="/terms">terms</a></Checkbox>
-            <Button Type="ButtonType.Submit">Create account</Button>
+            <Button Submit>Create account</Button>
         </Form>
 
         @code {
@@ -922,7 +922,7 @@
             <EndAddon><Select @bind-Value="Model.Currency" /></EndAddon>
         </TextField>
         <TextField @bind-Value="Model.Invite" Type="TextFieldType.Email">
-            <EndAddon><Button Type="ButtonType.Submit">Invite</Button></EndAddon>
+            <EndAddon><Button Submit>Invite</Button></EndAddon>
         </TextField>
         """;
 
@@ -954,7 +954,7 @@
                 <TextField @bind-Value="Contact.PostalCode" />
             </Fieldset>
             <TextArea @bind-Value="Contact.Notes" ColSpan="2" />   @* two columns, one when narrow *@
-            <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
+            <FormActions><Button Submit>Save</Button></FormActions>
         </Form>
         """;
 
@@ -979,7 +979,7 @@
                 <Tab Label="Profile">...</Tab>
                 <Tab Label="Address">...</Tab>     @* opens after a failed submit, "Address 2" *@
             </Tabs>
-            <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
+            <FormActions><Button Submit>Save</Button></FormActions>
         </Form>
         """;
 
