@@ -315,10 +315,12 @@ browser's own spin buttons in their place (`None` shows neither), and arrow keys
 **Slider.** A native range input bound to a number type, so it posts with the form and takes arrow
 keys, Page Up/Down and Home/End with no script. `Min` and `Max` default to `[Range]`, or 0 to 100;
 `Step` to 1. With JavaScript the track fills up to the thumb and the value shown by `ShowValue`
-follows as you drag. `ValueFormat` sets how the value reads, both shown and announced to screen
-readers: `"{0}%"`, `"${0}"`. On interactive pages the bound value updates on release; `Live` updates
-it while dragging, at one round trip per move. A read-only slider is disabled and posts its value
-through a hidden input.
+follows as you drag. Without it neither could follow, so the track is plain (Firefox fills it
+itself) and the value isn't shown. `ValueFormat` sets how the value reads, both shown and announced to screen
+readers: `"{0}%"`, `"${0}"` (without JavaScript, screen readers hear the plain number, which
+unlike formatted text stays current). On interactive pages the bound value updates on release; `Live` updates
+it while dragging, at one round trip per move. A read-only slider stays focusable with
+`aria-readonly` and posts its value through a hidden input.
 
 **ColorPicker.** A color field bound to a hex string, which it keeps as `#rrggbb` in lowercase
 (`#ABC` and `abc` are read as `#aabbcc`). Underneath is a native color input, so it posts with the form

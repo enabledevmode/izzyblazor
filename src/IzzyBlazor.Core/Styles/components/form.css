@@ -517,6 +517,20 @@
     font-size: var(--ib-field-font);
   }
 
+  /* Without script nothing follows the thumb while it's dragged: the fill (a gradient from the
+     server's value in Chrome and Safari) and the value text would stay where the page loaded.
+     Show the plain track and no value instead; Firefox keeps its own fill, which does follow. */
+  @media (scripting: none) {
+    .ib-slider-input::-webkit-slider-runnable-track,
+    .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
+      background: var(--ib-color-surface-container-high, var(--ib-color-outline));
+    }
+
+    .ib-slider-value {
+      display: none;
+    }
+  }
+
   /*
    * FileUpload: a dashed drop zone around a real file input. "Choose a file" is a <label> for the
    * input, so it opens the picker with no script. While scripts run, the input is hidden (still
