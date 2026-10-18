@@ -176,7 +176,14 @@ else
             {
                 _selected = value;
                 StateHasChanged();
-                await SelectedChanged.InvokeAsync(value);
+                try
+                {
+                    await SelectedChanged.InvokeAsync(value);
+                }
+                catch (Exception ex)
+                {
+                    await DispatchExceptionAsync(ex);
+                }
             });
         }
     }
@@ -225,14 +232,21 @@ else
         }
     }
 
-    // A submit. The default validator subscribed first, so its messages are usually in already;
-    // one placed after Tabs, or one that adds messages later, reports them through
-    // OnValidationStateChanged, so the submit stays pending until errors appear or someone edits
-    // a field. Typing never switches tabs.
+    // A submit. Its validation pass runs inside this event: the default validator subscribed
+    // first, so its messages are usually in already, and one placed after Tabs reports them
+    // through OnValidationStateChanged before Validate returns. The submit stays pending until the
+    // pass ends (a yield), so a later edit never switches tabs, whatever its validator checks.
     private void OnValidationRequested(object? sender, ValidationRequestedEventArgs e)
     {
         _submitPending = true;
         Refresh();
+        _ = EndSubmitAsync();
+    }
+
+    private async Task EndSubmitAsync()
+    {
+        await Task.Yield();
+        _submitPending = false;
     }
 
     private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => Refresh();
@@ -240,8 +254,10 @@ else
     private void OnFieldChanged(object? sender, FieldChangedEventArgs e) => _submitPending = false;
 
     // Opens the first tab with errors after a submit, and renders again only when that or a
-    // tab's count changed (rendering Tabs renders every field in every panel).
-    private void Refresh()
+    // tab's count changed (rendering Tabs renders every field in every panel). On the renderer's
+    // dispatcher, where it runs at once when called from it: a validator may report from another
+    // thread.
+    private void Refresh() => _ = InvokeAsync(async () =>
     {
         if (_subscribed is not { } context)
         {
@@ -256,33 +272,30 @@ else
         }
 
         var counts = _context.Items.Select(t => t.ErrorCount(context)).ToArray();
-        if (target is null && counts.AsSpan().SequenceEqual(_counts))
+        if (target is null && counts.SequenceEqual(_counts))
         {
             return;
         }
 
         _counts = counts;
-        _ = InvokeAsync(async () =>
+        if (target is not null)
         {
-            if (target is not null)
-            {
-                _selected = target;
-            }
+            _selected = target;
+        }
 
-            StateHasChanged();
-            if (target is not null)
+        StateHasChanged();
+        if (target is not null)
+        {
+            try
             {
-                try
-                {
-                    await SelectedChanged.InvokeAsync(target);
-                }
-                catch (Exception ex)
-                {
-                    await DispatchExceptionAsync(ex);
-                }
+                await SelectedChanged.InvokeAsync(target);
             }
-        });
-    }
+            catch (Exception ex)
+            {
+                await DispatchExceptionAsync(ex);
+            }
+        }
+    });
 
     // The first tab with errors, or null when the open tab has some (or none has).
     private string? TabToOpen()

@@ -238,15 +238,18 @@ enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
 **Read-only, disabled and marks.** `ReadOnly` on the `Form` makes every field read-only, as on a
 page that shows a record before editing it: the values show and post, but don't change. Read-only
-fields can still be focused, and screen readers say they're read-only. HTML has no read-only
+fields can still be focused, and screen readers say they're read-only (checkboxes, radios and
+sliders only with JavaScript; see below). HTML has no read-only
 select, checkbox or radio, so:
 
 - `Select`, `Combobox` and `MultiSelect` show their value in a read-only text field ("Pro plan",
   or "Design, Writing" for several).
 - `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup` and `Slider` stay as they are, with
-  `aria-readonly`, and clicks do nothing. With JavaScript, keys don't change them either; with it
-  off, a key can still flip one on screen, but the value posted doesn't change.
+  `aria-readonly`, and neither clicks nor keys change them. Without JavaScript they're disabled
+  instead, so they can't change but can't be focused either.
 - Their values post from hidden inputs. A `FileUpload` is disabled, since a file can't be read-only.
+  A read-only `ColorPicker` can be focused through its hex box, which needs JavaScript; without it
+  only the color swatch shows, disabled.
 
 `Disabled` on the `Form` disables every field, and disabled fields post nothing. Neither touches
 buttons, so show the ones that fit. A field's own `ReadOnly` and `Disabled` work the same way. `RequiredMark` chooses the
@@ -735,8 +738,9 @@ appears while someone types. On a static page the server doesn't know which tab 
 form posted, so it counts the first tab (or the `QueryKey` one) as open.
 
 The browser checks fields before posting and points at the first invalid one, even in a closed
-tab: with JavaScript, that tab opens; with it off, its panel shows in place of the open one (the tab
-strip still marks the open tab). Errors found by the server after posting open their tab as above. Fields count toward their
+tab: with JavaScript, that tab opens. Without it, tabs in a form show every panel in order, each
+under its tab's label, since the browser can't point at a field in a hidden panel. Errors found by
+the server after posting open their tab as above. Fields count toward their
 tab, and toward the outer tab when tabs are nested. A `FileUpload`, Blazor's own `Input*`
 components and fields of your own don't count toward a tab, since they aren't IzzyBlazor fields;
 their errors still show beside them.

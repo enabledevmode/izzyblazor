@@ -22,7 +22,7 @@
                min="@Format(ResolvedMin)"
                max="@Format(ResolvedMax)"
                step="@ResolvedStep"
-               disabled="@IsDisabled"
+               disabled="@(IsDisabled || ShowsReadOnly)"
                form="@(ShowsReadOnly ? "" : null)"
                aria-readonly="@(ShowsReadOnly ? "true" : null)"
                aria-valuetext="@(RendererInfo.IsInteractive ? ValueText : null)"

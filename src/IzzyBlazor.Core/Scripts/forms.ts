@@ -39,6 +39,16 @@ export function installSubmitFeedback(): void {
     }
   });
 
+  // Read-only checkboxes, radios and sliders arrive disabled, so without script nothing can change
+  // them. Enable them, so they can be focused and are announced as read-only; the handlers below
+  // keep them from changing. Watched, since Blazor and enhanced navigation can render them later.
+  const unlock = () =>
+    document
+      .querySelectorAll<HTMLInputElement>('input:disabled:is([aria-readonly="true"], [role="radiogroup"][aria-readonly="true"] input)')
+      .forEach((input) => (input.disabled = false));
+  unlock();
+  new MutationObserver(unlock).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["disabled"] });
+
   // Read-only checkboxes, radios and sliders (aria-readonly, on the input or its radio group):
   // HTML has no read-only for them, so cancel what would change them: a click (also from Space or
   // the label), and the keys that move a radio group's choice or a slider. CSS stops the pointer
@@ -110,7 +120,11 @@ export function installValidityMessages(): void {
     },
     true
   );
-  const clear = () => ours.forEach((_, field) => release(field));
+  const clear = (event?: Event) => {
+    // Switching tabs changes no field (tabs.ts announces it while the browser shows a message).
+    if ((event?.target as Element | null)?.classList?.contains("ib-tab-input")) return;
+    ours.forEach((_, field) => release(field));
+  };
   for (const type of ["input", "change", "reset"]) document.addEventListener(type, clear, true);
   // A field can become valid with no event (C# sets its value on an interactive page). The
   // browser checks before "invalid" fires, so clear ahead of a submit: a click on a submit

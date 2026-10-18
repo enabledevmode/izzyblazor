@@ -131,15 +131,15 @@ public class SliderRenderTests : BunitContext
     }
 
     [Fact]
-    public void Read_only_stays_focusable_and_posts_its_value_from_a_hidden_input()
+    public void Read_only_says_so_and_posts_its_value_from_a_hidden_input()
     {
         var cut = SliderFor(() => _model.Volume, p => p.Add(f => f.ReadOnly, true));
         var range = cut.Find("input[type=range]");
         var hidden = cut.Find("input[type=hidden]");
 
-        // A range can't be read-only in HTML: it stays enabled, says it's read-only, and sits
-        // outside the form (form=""), so only the hidden input posts.
-        Assert.False(range.HasAttribute("disabled"));
+        // A range can't be read-only in HTML: it arrives disabled (the script enables it), says
+        // it's read-only, and sits outside the form (form=""), so only the hidden input posts.
+        Assert.True(range.HasAttribute("disabled"));
         Assert.Equal("true", range.GetAttribute("aria-readonly"));
         Assert.Equal("", range.GetAttribute("form"));
         Assert.Equal("25", hidden.GetAttribute("value"));

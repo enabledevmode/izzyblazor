@@ -1623,6 +1623,11 @@
     pointer-events: none;
   }
 
+  /* A link in a read-only checkbox's label ("I agree to the terms") still works. */
+  .ib-field-readonly .ib-check :is(a, button) {
+    pointer-events: auto;
+  }
+
   /* Columns (Form and Fieldset Columns): up to N columns by the form's or group's own width, so a
      two-column form is one column in a narrow dialog. The form or fieldset is the container; the
      grid inside it can't measure itself. --ib-form-cols is the count shown now, and ColSpan never

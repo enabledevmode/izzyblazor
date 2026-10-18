@@ -426,14 +426,15 @@ public class FormRenderTests : BunitContext
         Assert.Equal("Pro plan", select.Find("input[readonly]").GetAttribute("value"));
         Assert.Equal(new[] { "Plan=Pro" }, Posted(select.FindAll("input, select, textarea")));
 
-        // A read-only box stays focusable and says it's read-only; it posts its value once ("true").
+        // A read-only box says it's read-only, and arrives disabled so it can't change without
+        // script (the script enables it, keeping it from changing); it posts its value once ("true").
         var box = Render<Checkbox>(p => p
             .AddCascadingValue(_context)
             .AddCascadingValue(readOnly)
             .Add(c => c.Value, true)
             .Add(c => c.ValueExpression, () => _model.Accept));
         var input = box.Find("input[type=checkbox]");
-        Assert.False(input.HasAttribute("disabled"));
+        Assert.True(input.HasAttribute("disabled"));
         Assert.Equal("true", input.GetAttribute("aria-readonly"));
         Assert.Equal(new[] { "Accept=true" }, Posted(box.FindAll("input")));
     }
@@ -634,5 +635,45 @@ public class FormRenderTests : BunitContext
         var field = TextFieldFor(() => _model.Name, p => p.Add(t => t.ColSpan, (Responsive<int>)2).Add(t => t.NewRow, true)).Find(".ib-field");
 
         Assert.Contains("--ib-colspan:1 / span min(2,", field.GetAttribute("style"));
+    }
+
+    [Fact]
+    public async Task An_edit_after_a_valid_submit_never_switches_tabs()
+    {
+        _model.Name = "Izzy";
+        _model.Email = "izzy@example.com";
+        var cut = Render<Tabs>(p => p
+            .AddCascadingValue(_context)
+            .Add(t => t.Selected, "account")
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, TabOf("Profile", FieldFor(() => _model.Name)));
+                b.AddContent(1, TabOf("Account", FieldFor(() => _model.Email)));
+            }));
+
+        await cut.InvokeAsync(() => _context.Validate()); // valid: nothing to open
+        _model.Name = null;
+        await cut.InvokeAsync(() => _context.NotifyFieldChanged(_context.Field(nameof(Model.Name))));
+
+        Assert.True(cut.FindAll("input[type=radio]")[1].HasAttribute("checked")); // still Account
+        Assert.Single(cut.FindAll(".ib-tab-errors")); // Profile counts its new error
+    }
+
+    [Fact]
+    public void Read_only_boxes_and_radios_never_block_a_post()
+    {
+        var readOnly = new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required);
+
+        var radios = Render<RadioGroup<Plan>>(p => p
+            .AddCascadingValue(_context).AddCascadingValue(readOnly)
+            .Add(c => c.Value, Plan.Pro).Add(c => c.ValueExpression, () => _model.Plan)
+            .Add(c => c.Required, true));
+        Assert.All(radios.FindAll("input[type=radio]"), r => Assert.False(r.HasAttribute("required")));
+
+        var box = Render<Checkbox>(p => p
+            .AddCascadingValue(_context).AddCascadingValue(readOnly)
+            .Add(c => c.Value, false).Add(c => c.ValueExpression, () => _model.Accept)
+            .Add(c => c.Required, true));
+        Assert.False(box.Find("input[type=checkbox]").HasAttribute("required"));
     }
 }

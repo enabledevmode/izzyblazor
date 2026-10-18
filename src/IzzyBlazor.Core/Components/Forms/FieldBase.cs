@@ -103,9 +103,10 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>
     /// Whether a read-only field shows as read-only (a field that is also disabled shows as
     /// disabled). Selects can't be read-only in HTML, so a read-only Select, Combobox or
-    /// MultiSelect shows its value in a read-only text field (<see cref="ReadOnlyControl"/>);
-    /// checkboxes and radios stay enabled with <c>aria-readonly</c>, outside the form (<c>form=""</c>),
-    /// and the script keeps them from changing.
+    /// MultiSelect shows its value in a read-only text field (<see cref="ReadOnlyControl"/>).
+    /// Checkboxes, radios and sliders are rendered disabled, with <c>aria-readonly</c> and outside
+    /// the form (<c>form=""</c>), so without script they can't change; the script enables them
+    /// (focusable, announced as read-only) and keeps them from changing.
     /// </summary>
     protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
 
@@ -119,13 +120,17 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-field-control");
         builder.OpenElement(2, "input");
-        builder.AddAttribute(3, "id", FieldId);
-        builder.AddAttribute(4, "class", "ib-field-input");
-        builder.AddAttribute(5, "type", "text");
-        builder.AddAttribute(6, "readonly", true);
-        builder.AddAttribute(7, "value", text ?? "");
-        builder.AddAttribute(8, "aria-invalid", Invalid ? "true" : null);
-        builder.AddAttribute(9, "aria-describedby", DescribedBy);
+        // The field's own attributes (aria-label, title, data-*), less what would post or validate it.
+        builder.AddMultipleAttributes(3, AdditionalAttributes?.Where(a =>
+            a.Key is not ("id" or "name" or "required" or "value" or "type" or "readonly") &&
+            !a.Key.StartsWith("data-ib-", StringComparison.OrdinalIgnoreCase)));
+        builder.AddAttribute(4, "id", FieldId);
+        builder.AddAttribute(5, "class", "ib-field-input");
+        builder.AddAttribute(6, "type", "text");
+        builder.AddAttribute(7, "readonly", true);
+        builder.AddAttribute(8, "value", text ?? "");
+        builder.AddAttribute(9, "aria-invalid", Invalid ? "true" : null);
+        builder.AddAttribute(10, "aria-describedby", DescribedBy);
         builder.CloseElement();
         builder.CloseElement();
     };
