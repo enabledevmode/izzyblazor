@@ -44,6 +44,29 @@ class Tabs extends IzzyElement {
 
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
 
+    // The browser can't focus an invalid field in a closed panel, and blocks the submit with no
+    // message: open its tab first. "invalid" doesn't bubble, so listen while it travels down.
+    // Only the first invalid field of a check counts (the browser focuses that one).
+    let opened = false;
+    this.addEventListener(
+      "invalid",
+      (event) => {
+        let panel = (event.target as Element).closest(".ib-tab-panel");
+        while (panel && panel.parentElement !== this) panel = panel.parentElement?.closest(".ib-tab-panel") ?? null;
+        if (!panel || opened) return;
+        opened = true;
+        setTimeout(() => (opened = false));
+        const radio = this.querySelector<HTMLInputElement>(`:scope > .ib-tabs-list .ib-tab-input[aria-controls="${panel.id}"]`);
+        if (radio && !radio.checked) {
+          radio.checked = true;
+          // Announce it once the check is over: a change during it would clear the field's own
+          // message (forms.ts) before the browser shows it.
+          setTimeout(() => radio.dispatchEvent(new Event("change", { bubbles: true })));
+        }
+      },
+      { capture: true, signal }
+    );
+
     // Vertical tabs switch between a column and a row at 640px; keep aria-orientation in step
     // (checked on each change, since C# can switch the orientation on interactive pages).
     const wide = matchMedia("(min-width: 640px)");

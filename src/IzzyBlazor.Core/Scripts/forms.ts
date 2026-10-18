@@ -39,6 +39,21 @@ export function installSubmitFeedback(): void {
     }
   });
 
+  // A Form with Tabs renders novalidate (data-ib-validate), so with JavaScript off the server
+  // checks it: the browser's own check can't reach a field in a closed tab. With script, run the
+  // browser's check here; Tabs opens the tab of the first invalid field (tabs.ts).
+  document.addEventListener(
+    "submit",
+    (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement) || !form.hasAttribute("data-ib-validate")) return;
+      if ((event as SubmitEvent).submitter?.hasAttribute("formnovalidate") || form.reportValidity()) return;
+      event.preventDefault();
+      event.stopImmediatePropagation();
+    },
+    true
+  );
+
   // Coming back with the Back button can restore a page from the cache mid-submit.
   window.addEventListener("pageshow", (event) => {
     if (!event.persisted) return;

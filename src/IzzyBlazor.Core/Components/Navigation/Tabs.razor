@@ -155,6 +155,10 @@ else
     {
         _context = new TabsContext(this);
         Navigation.LocationChanged += OnLocationChanged;
+
+        // The browser's own check can't reach a field in a closed tab, so the form leaves checking
+        // to the server with JavaScript off, and to the script with it (see Form.ContainsTabs).
+        ParentForm?.ContainsTabs();
     }
 
     // Link tabs mark the current page, and a QueryKey tab follows the address (a link to
@@ -193,7 +197,11 @@ else
     // that appear while someone types on one tab never switch them to another.
     [CascadingParameter] private EditContext? EditContext { get; set; }
 
+    [CascadingParameter] internal Form? ParentForm { get; set; }
+
     private EditContext? _subscribed;
+    private bool _submitPending;
+    private int[] _counts = [];
 
     private void Subscribe()
     {
@@ -208,6 +216,7 @@ else
         {
             _subscribed.OnValidationRequested += OnValidationRequested;
             _subscribed.OnValidationStateChanged += OnValidationStateChanged;
+            _subscribed.OnFieldChanged += OnFieldChanged;
         }
     }
 
@@ -217,30 +226,69 @@ else
         {
             _subscribed.OnValidationRequested -= OnValidationRequested;
             _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+            _subscribed.OnFieldChanged -= OnFieldChanged;
             _subscribed = null;
         }
     }
 
-    // A submit. The form's validator subscribed first (it renders before the fields and Tabs), so
-    // by the time this runs it has already recorded its messages.
+    // A submit. The default validator subscribed first, so its messages are usually in already;
+    // one placed after Tabs, or one that adds messages later, reports them through
+    // OnValidationStateChanged, so the submit stays pending until errors appear or someone edits
+    // a field. Typing never switches tabs.
     private void OnValidationRequested(object? sender, ValidationRequestedEventArgs e)
     {
-        if (TabToOpen() is not { } target)
+        _submitPending = true;
+        Refresh();
+    }
+
+    private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) => Refresh();
+
+    private void OnFieldChanged(object? sender, FieldChangedEventArgs e) => _submitPending = false;
+
+    // Opens the first tab with errors after a submit, and renders again only when that or a
+    // tab's count changed (rendering Tabs renders every field in every panel).
+    private void Refresh()
+    {
+        if (_subscribed is not { } context)
         {
             return;
         }
 
+        string? target = null;
+        if (_submitPending && context.GetValidationMessages().Any())
+        {
+            _submitPending = false;
+            target = TabToOpen();
+        }
+
+        var counts = _context.Items.Select(t => t.ErrorCount(context)).ToArray();
+        if (target is null && counts.AsSpan().SequenceEqual(_counts))
+        {
+            return;
+        }
+
+        _counts = counts;
         _ = InvokeAsync(async () =>
         {
-            _selected = target;
+            if (target is not null)
+            {
+                _selected = target;
+            }
+
             StateHasChanged();
-            await SelectedChanged.InvokeAsync(target);
+            if (target is not null)
+            {
+                try
+                {
+                    await SelectedChanged.InvokeAsync(target);
+                }
+                catch (Exception ex)
+                {
+                    await DispatchExceptionAsync(ex);
+                }
+            }
         });
     }
-
-    // Errors added or cleared: update the counts.
-    private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) =>
-        _ = InvokeAsync(StateHasChanged);
 
     // The first tab with errors, or null when the open tab has some (or none has).
     private string? TabToOpen()
@@ -261,13 +309,7 @@ else
     }
 
     // A field registered with a tab: its errors may need showing.
-    internal void FieldsChanged()
-    {
-        if (_subscribed?.GetValidationMessages().Any() == true)
-        {
-            StateHasChanged();
-        }
-    }
+    internal void FieldsChanged() => Refresh();
 
     private RenderFragment TabContent(IconData? icon, string label, string? badge, int errors = 0) => __builder =>
     {

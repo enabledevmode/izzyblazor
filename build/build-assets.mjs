@@ -178,8 +178,10 @@ const common = {
   legalComments: "none",
 };
 
-// Keep in step with the loaders in Scripts/lazy.ts.
-const lazyElements = ["combobox", "table", "filter-form", "file-upload", "color-picker", "video", "code", "toasts"];
+// The elements that load on demand, read from the loaders in Scripts/lazy.ts so the two can't
+// drift apart: each `import("./elements/<name>.js")` there is built to wwwroot/elements/<name>.js.
+const lazyElements = [...readFileSync(join(lib, "Scripts", "lazy.ts"), "utf8").matchAll(/import\("\.\/elements\/([a-z-]+)\.js"\)/g)].map((m) => m[1]);
+if (lazyElements.length === 0) throw new Error("No on-demand elements found in Scripts/lazy.ts.");
 
 const builds = [
   {
@@ -219,11 +221,19 @@ const builds = [
     outdir: join(lib, "wwwroot"),
     format: "esm",
     target: "es2022",
+    metafile: true,
     plugins: [
       {
-        name: "clear-elements",
+        // Remove files from elements that are no longer built, after writing the new ones, so a
+        // page loading during a watch rebuild never finds the folder empty.
+        name: "remove-stale-elements",
         setup(build) {
-          build.onStart(() => rmSync(join(lib, "wwwroot", "elements"), { recursive: true, force: true }));
+          build.onEnd((result) => {
+            const dir = join(lib, "wwwroot", "elements");
+            if (!result.metafile || !existsSync(dir)) return;
+            const built = new Set(Object.keys(result.metafile.outputs).map((file) => file.split("/").pop()));
+            for (const file of readdirSync(dir)) if (!built.has(file)) rmSync(join(dir, file));
+          });
         },
       },
     ],

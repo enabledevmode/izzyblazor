@@ -41,7 +41,7 @@
                        aria-describedby="@DescribedBy" />
             }
         </span>
-        @if (IsReadOnly && FormName is { Length: > 0 } name)
+        @if (IsReadOnly && !IsDisabled && FormName is { Length: > 0 } name)
         {
             @* A disabled input doesn't post; read-only fields do. *@
             <input type="hidden" name="@name" value="@Hex" />

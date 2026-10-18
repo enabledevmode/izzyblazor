@@ -14,10 +14,13 @@
   }
 
   /* Grid: one column until Columns or MinChildWidth says otherwise. */
-  .ib-grid {
-    /* A Grid inside a form with columns doesn't clamp its items' spans to the form's columns. */
+  /* A Grid's own items span its columns, not those of a form with columns around it. The Grid
+     itself is still an item of that form, so its own ColSpan keeps the form's limit. */
+  .ib-grid > * {
     --ib-form-cols: initial;
+  }
 
+  .ib-grid {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     min-width: 0;

@@ -59,14 +59,20 @@ jobs:
         run: dotnet test izzyblazor.sln --configuration Release --no-build
 
       - name: Asset size budget
+        shell: bash
         run: |
+          shopt -s nullglob
           css=$(gzip -c src/IzzyBlazor.Core/wwwroot/izzyblazor.css | wc -c)
           js=$(gzip -c src/IzzyBlazor.Core/wwwroot/IzzyBlazor.Core.lib.module.js | wc -c)
           echo "CSS gzip: $css bytes (budget 40960)"
           echo "JS gzip:  $js bytes (budget 15360; every page loads it)"
           # Elements most pages don't have load on demand, one file each (Scripts/lazy.ts).
+          expected=$(grep -c 'import("./elements/' src/IzzyBlazor.Core/Scripts/lazy.ts)
+          files=(src/IzzyBlazor.Core/wwwroot/elements/*.js)
+          echo "On-demand elements: ${#files[@]} files (lazy.ts has $expected)"
+          test "${#files[@]}" -eq "$expected"
           big=0
-          for f in src/IzzyBlazor.Core/wwwroot/elements/*.js; do
+          for f in "${files[@]}"; do
             n=$(gzip -c "$f" | wc -c)
             echo "  $(basename "$f"): $n bytes"
             if [ "$n" -gt "$big" ]; then big=$n; fi

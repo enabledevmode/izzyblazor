@@ -634,8 +634,8 @@
    body, so a form's buttons can be the footer and still submit it. */
 @layer izzy.components {
   .ib-dialog-actions,
-  .ib-dialog-body > .ib-form:last-child > .ib-form-actions:last-child,
-  .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:last-child {
+  .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])),
+  .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])) {
     position: sticky;
     bottom: calc(-1 * var(--ib-space-5));
     display: flex;
@@ -649,12 +649,12 @@
   }
 
   /* The form's gap already spaces it from the fields. */
-  .ib-dialog-body > .ib-form:last-child > .ib-form-actions:last-child,
-  .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:last-child {
+  .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])),
+  .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])) {
     margin-top: 0;
   }
 
-  .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) :is(.ib-dialog-actions, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:last-child, .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:last-child) {
+  .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) :is(.ib-dialog-actions, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) {
     border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
   }
 }

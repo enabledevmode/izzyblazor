@@ -1613,6 +1613,12 @@
   .ib-form-cols,
   .ib-fieldset-cols {
     container-type: inline-size;
+    /* A container has no width of its own content, so in a parent that sizes to its content (a
+       Row beside a sidebar, Center, a Popover) it would shrink to nothing: fill the parent
+       instead, and share a Row's free space. Width or Basis on the form sets it. */
+    flex: 1 1 0%;
+    width: 100%;
+    min-width: 0;
   }
 
   .ib-form-grid {
@@ -1625,6 +1631,14 @@
 
   .ib-form-grid > :not(.ib-field) {
     grid-column: 1 / -1;
+  }
+
+  /* Side labels need room the columns don't have: fields in columns keep their labels on top. */
+  @media (width >= 640px) {
+    /* .ib-form makes it more specific than the side-label rule further down. */
+    .ib-form.ib-form-horizontal .ib-form-grid .ib-field {
+      display: flex;
+    }
   }
 
   @container (width >= 32rem) {

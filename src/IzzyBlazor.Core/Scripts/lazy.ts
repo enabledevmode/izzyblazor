@@ -19,29 +19,46 @@ const loaders: Record<string, () => Promise<unknown>> = {
 };
 
 const loading = new Map<string, Promise<unknown>>();
+const failures = new Map<string, number>();
 
-/** Loads an element's code once; later calls get the same promise. */
+/**
+ * Loads an element's code once; later calls get the same promise. If the request fails (a
+ * deploy, a flaky connection), the next call tries again. The browser remembers a failed module
+ * URL, so a retry asks for a new one: elements/x.js?retry=1, beside this module, which the
+ * server serves without the import map's fingerprint.
+ */
 export function load<T = unknown>(tag: string): Promise<T> {
   let module = loading.get(tag);
   if (!module) {
-    module = loaders[tag]();
+    const retry = failures.get(tag) ?? 0;
+    module = (retry ? import(new URL(`elements/${tag.slice(3)}.js?retry=${retry}`, import.meta.url).href) : loaders[tag]()).catch(
+      (error: unknown) => {
+        loading.delete(tag);
+        failures.set(tag, retry + 1);
+        throw error;
+      }
+    );
     loading.set(tag, module);
   }
   return module as Promise<T>;
 }
 
-function scan(): void {
+/** Loads the code for the elements in a part of the page (the whole page by default). */
+export function loadElementsIn(root: Element | Document = document): void {
   for (const tag in loaders) {
-    if (!loading.has(tag) && document.querySelector(tag)) load(tag);
+    if (loading.has(tag)) continue;
+    if (root instanceof Element ? root.localName === tag || root.querySelector(tag) : root.querySelector(tag)) {
+      load(tag).catch((error: unknown) => console.warn(`IzzyBlazor: couldn't load <${tag}>; it works without script until it loads.`, error));
+    }
   }
 }
 
 /** Loads the code for elements on the page now, and for any added later (enhanced navigation, interactive renders, streaming). */
 export function installLazyElements(): void {
-  scan();
-  const observer = new MutationObserver(() => {
-    scan();
-    if (loading.size === Object.keys(loaders).length) observer.disconnect();
-  });
-  observer.observe(document.documentElement, { childList: true, subtree: true });
+  loadElementsIn();
+  new MutationObserver((records) => {
+    for (const record of records) {
+      for (const node of record.addedNodes) if (node instanceof Element) loadElementsIn(node);
+    }
+  }).observe(document.documentElement, { childList: true, subtree: true });
 }
