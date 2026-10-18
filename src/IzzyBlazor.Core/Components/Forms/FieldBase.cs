@@ -56,6 +56,35 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>Makes the field read-only. Read-only fields are still posted.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
+    /// <summary>The tab the field is in, which counts its errors.</summary>
+    [CascadingParameter] internal Tab? ParentTab { get; set; }
+
+    private Tab? _registeredTab;
+
+    /// <inheritdoc />
+    public override async Task SetParametersAsync(ParameterView parameters)
+    {
+        await base.SetParametersAsync(parameters);
+        if (!ReferenceEquals(ParentTab, _registeredTab))
+        {
+            _registeredTab?.RemoveField(FieldIdentifier);
+            _registeredTab = ParentTab;
+            _registeredTab?.AddField(FieldIdentifier);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void Dispose(bool disposing)
+    {
+        if (disposing)
+        {
+            _registeredTab?.RemoveField(FieldIdentifier);
+            _registeredTab = null;
+        }
+
+        base.Dispose(disposing);
+    }
+
     /// <summary>The form's Disabled, ReadOnly and RequiredMark.</summary>
     [CascadingParameter] internal FormOptions? FormOptions { get; set; }
 

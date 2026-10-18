@@ -3,6 +3,7 @@
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
+@inject IServiceProvider Services
 
 @*
     A set of tabs, in three layers:
@@ -79,7 +80,7 @@ else
                        disabled="@tab.Disabled"
                        aria-controls="@_context.PanelId(tab)"
                        @onchange="() => SelectAsync(key)" />
-                @TabContent(tab.Icon, tab.Label, tab.Badge)
+                @TabContent(tab.Icon, tab.Label, tab.Badge, _subscribed is null ? 0 : tab.ErrorCount(_subscribed))
             </label>
         }
     </div>
@@ -181,9 +182,94 @@ else
     }
 
     /// <inheritdoc />
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        Unsubscribe();
+    }
 
-    private RenderFragment TabContent(IconData? icon, string label, string? badge) => __builder =>
+    // Inside a Form: each tab shows how many errors its fields have, and after a submit that fails
+    // the first tab with errors opens, unless the open one has some. Only after a submit: errors
+    // that appear while someone types on one tab never switch them to another.
+    [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    private EditContext? _subscribed;
+
+    private void Subscribe()
+    {
+        if (ReferenceEquals(EditContext, _subscribed))
+        {
+            return;
+        }
+
+        Unsubscribe();
+        _subscribed = EditContext;
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationRequested += OnValidationRequested;
+            _subscribed.OnValidationStateChanged += OnValidationStateChanged;
+        }
+    }
+
+    private void Unsubscribe()
+    {
+        if (_subscribed is not null)
+        {
+            _subscribed.OnValidationRequested -= OnValidationRequested;
+            _subscribed.OnValidationStateChanged -= OnValidationStateChanged;
+            _subscribed = null;
+        }
+    }
+
+    // A submit. The form's validator subscribed first (it renders before the fields and Tabs), so
+    // by the time this runs it has already recorded its messages.
+    private void OnValidationRequested(object? sender, ValidationRequestedEventArgs e)
+    {
+        if (TabToOpen() is not { } target)
+        {
+            return;
+        }
+
+        _ = InvokeAsync(async () =>
+        {
+            _selected = target;
+            StateHasChanged();
+            await SelectedChanged.InvokeAsync(target);
+        });
+    }
+
+    // Errors added or cleared: update the counts.
+    private void OnValidationStateChanged(object? sender, ValidationStateChangedEventArgs e) =>
+        _ = InvokeAsync(StateHasChanged);
+
+    // The first tab with errors, or null when the open tab has some (or none has).
+    private string? TabToOpen()
+    {
+        if (_subscribed is not { } context)
+        {
+            return null;
+        }
+
+        var tabs = _context.Items.Where(t => !t.Disabled).ToList();
+        var open = tabs.FirstOrDefault(t => _context.KeyOf(t) == SelectedValue);
+        if (open is not null && open.ErrorCount(context) > 0)
+        {
+            return null;
+        }
+
+        return tabs.FirstOrDefault(t => t.ErrorCount(context) > 0) is { } tab ? _context.KeyOf(tab) : null;
+    }
+
+    // A field registered with a tab: its errors may need showing.
+    internal void FieldsChanged()
+    {
+        if (_subscribed?.GetValidationMessages().Any() == true)
+        {
+            StateHasChanged();
+        }
+    }
+
+    private RenderFragment TabContent(IconData? icon, string label, string? badge, int errors = 0) => __builder =>
     {
         if (icon is { } shown)
         {
@@ -194,11 +280,17 @@ else
         {
             <Badge Size="BadgeSize.Sm" Pill>@badge</Badge>
         }
+        if (errors > 0)
+        {
+            var text = IzzyText.From(Services);
+            <Badge Size="BadgeSize.Sm" Pill Status="Status.Danger" Class="ib-tab-errors"><span aria-hidden="true">@errors</span><span class="ib-visually-hidden">, @(errors == 1 ? text.OneError : string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ErrorCount, errors))</span></Badge>
+        }
     };
 
     /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
+        Subscribe();
         if (!_initialized)
         {
             _initialized = true;

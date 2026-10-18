@@ -318,6 +318,29 @@
         </Form>
     </Example>
 
+    <Example Title="Tabs in a form" Note="A form can spread over Tabs: every panel is in the form, so every field posts. After a submit that fails, the first tab with errors opens (unless the open one has some) and each tab shows how many errors it holds, read out with its name. Here the profile is filled in, so Save opens Address. Only a submit switches tabs; errors that appear while typing don't." Code="@TabbedCode">
+        <Box MaxWidth="36.Rem">
+            <Form Model="Tabbed" FormName="tabbed" OnValidSubmit="() => { }">
+                <FormErrors />
+                <Tabs Label="Account details">
+                    <Tab Label="Profile">
+                        <Stack Gap="4">
+                            <TextField @bind-Value="Tabbed!.Name" />
+                            <TextField @bind-Value="Tabbed!.Email" />
+                        </Stack>
+                    </Tab>
+                    <Tab Label="Address">
+                        <Stack Gap="4">
+                            <TextField @bind-Value="Tabbed!.Street" />
+                            <TextField @bind-Value="Tabbed!.City" />
+                        </Stack>
+                    </Tab>
+                </Tabs>
+                <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
+            </Form>
+        </Box>
+    </Example>
+
     <Example Title="Horizontal layout" Note="Labels in a column from 640px up; stacked on phones." Code="@HorizontalCode">
         <Box MaxWidth="36.Rem">
             <Form Model="Profile" FormName="profile" Layout="FormLayout.Horizontal" OnValidSubmit="() => { }">
@@ -353,6 +376,7 @@
     [SupplyParameterFromForm(FormName = "profile")] public ProfileModel? Profile { get; set; }
     [SupplyParameterFromForm(FormName = "columns")] public ContactModel? Contact { get; set; }
     [SupplyParameterFromForm(FormName = "account")] public AccountModel? Account { get; set; }
+    [SupplyParameterFromForm(FormName = "tabbed")] public TabbedModel? Tabbed { get; set; }
     [SupplyParameterFromQuery(Name = "edit-account")] private bool EditAccount { get; set; }
     [SupplyParameterFromForm(FormName = "sizes")] public SizesModel? Sizes { get; set; }
     [SupplyParameterFromForm(FormName = "rich")] public RichModel? Rich { get; set; }
@@ -481,6 +505,7 @@
         Checks ??= new();
         Upload ??= new();
         Contact ??= new();
+        Tabbed ??= new() { Name = "Izzy Dryer", Email = "izzy@example.com" };
         Account ??= new() { DisplayName = "Izzy Dryer", Email = "izzy@example.com", Plan = Plan.Pro, Newsletter = true };
         Profile ??= new() { DisplayName = "Izzy", Username = "izzy", Language = Language.English };
     }
@@ -700,6 +725,14 @@
         public string? Coupon { get; set; }
     }
 
+    public class TabbedModel
+    {
+        [Required, Display(Name = "Full name")] public string? Name { get; set; }
+        [Required, EmailAddress] public string? Email { get; set; }
+        [Required] public string? Street { get; set; }
+        [Required] public string? City { get; set; }
+    }
+
     public class AccountModel
     {
         [Required, Display(Name = "Display name")] public string? DisplayName { get; set; }
@@ -896,6 +929,18 @@
             <RadioGroup @bind-Value="Account.Contact" Orientation="Orientation.Horizontal" />
             <Switch @bind-Value="Account.Newsletter" />
             <FormActions><LinkButton Href="@Navigation.GetUriWithQueryParameter("edit", true)">Edit</LinkButton></FormActions>
+        </Form>
+        """;
+
+    private const string TabbedCode =
+        """
+        <Form Model="Model" FormName="details">
+            <FormErrors />
+            <Tabs Label="Account details">
+                <Tab Label="Profile">...</Tab>
+                <Tab Label="Address">...</Tab>     @* opens after a failed submit, "Address 2" *@
+            </Tabs>
+            <FormActions><Button Type="ButtonType.Submit">Save</Button></FormActions>
         </Form>
         """;
 
