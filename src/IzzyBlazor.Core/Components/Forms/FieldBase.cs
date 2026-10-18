@@ -137,6 +137,12 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// </summary>
     [Parameter] public Responsive<int> ColSpan { get; set; }
 
+    /// <summary>
+    /// Starts a new row in a <see cref="Form"/> or <see cref="Fieldset"/> with <c>Columns</c>, or a
+    /// <see cref="Grid"/>, leaving the rest of the row before it empty.
+    /// </summary>
+    [Parameter] public bool NewRow { get; set; }
+
     /// <summary>The control's element id. Generated when not set; also accepted as an <c>id</c> attribute.</summary>
     protected string FieldId =>
         AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s && s.Length > 0

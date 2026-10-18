@@ -65,6 +65,10 @@ public class LayoutExtrasRenderTests : BunitContext
         // Any component spans, fields included, and Full takes the whole row.
         var full = Render<Box>(p => p.Add(b => b.ColSpan, (Responsive<int>)GridSpan.Full)).Find("div");
         Assert.Contains("--ib-colspan:1 / -1;", full.GetAttribute("style"));
+
+        // NewRow starts in the first column and keeps the span.
+        var newRow = Render<Box>(p => p.Add(b => b.ColSpan, (Responsive<int>)2).Add(b => b.NewRow, true)).Find("div");
+        Assert.Contains("--ib-colspan:1 / span min(2,", newRow.GetAttribute("style"));
     }
 
     [Fact]

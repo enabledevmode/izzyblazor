@@ -208,6 +208,11 @@ Fields (`TextField`, `TextArea`, `NumberField`, `Slider`, `ColorPicker`, `Select
 - wire up `aria-describedby` and `aria-invalid`,
 - show their own errors.
 
+A field without `[Display(Name)]` gets its label from the property name split into words
+(`ZipCode` becomes "Zip code"), but the validator's messages use the name as written ("The ZipCode
+field is required."). Give a property `[Display(Name = "Zip code")]` when its messages should read
+like its label.
+
 An attribute's own `ErrorMessage` is used before posting too: with
 `[Required(ErrorMessage = "Enter your email")]`, the browser's check says "Enter your email", not
 its built-in "Please fill out this field", so the message matches the one the validator shows
@@ -247,7 +252,8 @@ rather than the screen's, so the same form fits a page, a dialog and a drawer: t
 stacked form. Each field takes one column, and anything else (text, `FormErrors`, a row of buttons, a
 `Fieldset`) takes the whole row. `ColSpan` changes either: `ColSpan="2"` widens a field, and
 `ColSpan="GridSpan.Full"` gives it the row. A span never goes past the columns shown, so a form that
-narrows to one column needs no breakpoints. A `Fieldset` takes `Columns` too, for a group laid out
+narrows to one column needs no breakpoints. `NewRow` starts a field on a new row, leaving the rest of
+the row before it empty. A `Fieldset` takes `Columns` too, for a group laid out
 on its own (an address in three columns inside a two-column form).
 
 ```razor

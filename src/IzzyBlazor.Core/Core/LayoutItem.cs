@@ -22,6 +22,7 @@ internal interface ILayoutItem
     Responsive<Length> Basis { get; }
     Responsive<Align> AlignSelf { get; }
     Responsive<int> ColSpan { get; }
+    bool NewRow { get; }
 }
 
 /// <summary>Special values for <c>ColSpan</c>.</summary>
@@ -43,8 +44,20 @@ internal static class LayoutItemProps
         ApplyGrid(classes, styles, item);
     }
 
-    public static void ApplyGrid(ClassBuilder classes, StyleBuilder styles, ILayoutItem item) =>
-        Write(classes, styles, item.ColSpan, "ib-colspan", "colspan", StyleValues.ColumnSpan);
+    // NewRow starts the item in the first column: "1 / span 2" rather than "span 2", so one
+    // grid-column carries both and neither overrides the other.
+    public static void ApplyGrid(ClassBuilder classes, StyleBuilder styles, ILayoutItem item)
+    {
+        if (!item.NewRow)
+        {
+            Write(classes, styles, item.ColSpan, "ib-colspan", "colspan", StyleValues.ColumnSpan);
+            return;
+        }
+
+        var span = item.ColSpan.IsEmpty ? (Responsive<int>)1 : item.ColSpan;
+        Write(classes, styles, span, "ib-colspan", "colspan", count =>
+            count == GridSpan.Full ? StyleValues.ColumnSpan(count) : "1 / " + StyleValues.ColumnSpan(count));
+    }
 
     public static void ApplyMargins(ClassBuilder classes, StyleBuilder styles, ILayoutItem item)
     {

@@ -49,7 +49,7 @@ existing border; `BorderStyle` on its own restyles the border of a `Card` or a `
 Style props come in two sets:
 
 - **Item props** say how a component sits in its parent: `Margin` (and its axes and sides), `Width`,
-  `MinWidth`, `MaxWidth`, `Grow`, `Shrink`, `Basis`, `AlignSelf` and `ColSpan`. Most components take them:
+  `MinWidth`, `MaxWidth`, `Grow`, `Shrink`, `Basis`, `AlignSelf`, `ColSpan` and `NewRow`. Most components take them:
   fields and `FileUpload`, buttons and `ButtonGroup`, `Alert`, `Badge`, `Banner`, `Progress`,
   `Spinner`, `Tag`, `Avatar`, `Stat`, `Table`, `Accordion`, `Form`, `FilterForm`, `Tabs`,
   `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `HeaderNav`, `AppBrand`, `ColorSchemeSwitch`,
@@ -86,6 +86,7 @@ with the bottom of labeled fields when the row centers everything else.
 
 `ColSpan` sets how many columns an item spans in a `Grid`, or in a `Form` or `Fieldset` with
 `Columns`; `GridSpan.Full` spans the row. In a form it never spans more columns than are shown.
+`NewRow` starts the item on a new row.
 
 `Class` and `Style` go on the same element, after the generated custom properties, for anything the
 props don't cover. The exceptions are `Menu`, `Popover` and `Tooltip`, where they style the panel.

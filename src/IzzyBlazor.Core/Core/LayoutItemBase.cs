@@ -77,6 +77,12 @@ public abstract class LayoutItemBase : IzzyComponentBase, ILayoutItem
     /// </summary>
     [Parameter] public Responsive<int> ColSpan { get; set; }
 
+    /// <summary>
+    /// Starts a new row in a <see cref="Form"/> or <see cref="Fieldset"/> with <c>Columns</c>, or a
+    /// <see cref="Grid"/>, leaving the rest of the row before it empty.
+    /// </summary>
+    [Parameter] public bool NewRow { get; set; }
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
