@@ -1256,6 +1256,17 @@
   }
 
   .ib-field-reveal[hidden] { display: none; }
+
+  /* Edge has its own reveal button in password fields while a new password is typed. With ours
+     shown, hide Edge's, so there aren't two. Without script ours stays hidden: give back the room
+     kept for it, so Edge's sits at the edge like in any other password field. */
+  .ib-field-control:has(> .ib-field-reveal:not([hidden])) > .ib-field-input::-ms-reveal {
+    display: none;
+  }
+
+  .ib-field-control:has(> .ib-field-reveal[hidden]):not(:has(> .ib-field-icon-end)) > .ib-field-input {
+    padding-inline-end: var(--ib-field-px);
+  }
   .ib-field-reveal:hover { color: var(--ib-color-on-surface); }
   .ib-field-reveal[aria-pressed="true"] .ib-reveal-show,
   .ib-field-reveal[aria-pressed="false"] .ib-reveal-hide { display: none; }
