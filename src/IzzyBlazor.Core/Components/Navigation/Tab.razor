@@ -51,27 +51,43 @@
 
     private string? _class;
     private string? _style;
-    private readonly HashSet<FieldIdentifier> _fields = [];
+    // Fields inside this tab, counted: two fields can edit the same property (one shown under a
+    // condition), and removing one mustn't drop the other.
+    private readonly Dictionary<FieldIdentifier, int> _fields = [];
+
+    /// <summary>The tab this one is nested in: fields in an inner tab count toward the outer one too.</summary>
+    [CascadingParameter] internal Tab? ParentTab { get; set; }
 
     /// <summary>A field inside this tab, so its errors count toward the tab's.</summary>
     internal void AddField(FieldIdentifier field)
     {
-        if (_fields.Add(field))
-        {
-            Context?.FieldsChanged();
-        }
+        _fields[field] = _fields.GetValueOrDefault(field) + 1;
+        ParentTab?.AddField(field);
+        Context?.FieldsChanged();
     }
 
     internal void RemoveField(FieldIdentifier field)
     {
-        if (_fields.Remove(field))
+        if (!_fields.TryGetValue(field, out var count))
         {
-            Context?.FieldsChanged();
+            return;
         }
+
+        if (count > 1)
+        {
+            _fields[field] = count - 1;
+        }
+        else
+        {
+            _fields.Remove(field);
+        }
+
+        ParentTab?.RemoveField(field);
+        Context?.FieldsChanged();
     }
 
     /// <summary>The validation messages on this tab's fields.</summary>
-    internal int ErrorCount(EditContext context) => _fields.Sum(field => context.GetValidationMessages(field).Count());
+    internal int ErrorCount(EditContext context) => _fields.Keys.Sum(field => context.GetValidationMessages(field).Count());
 
     /// <summary>The value used for ids and selection.</summary>
     internal string Key => Value ?? Slug(Label);

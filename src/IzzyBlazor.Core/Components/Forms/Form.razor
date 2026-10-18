@@ -20,7 +20,8 @@
               OnValidSubmit="OnValidSubmit"
               OnInvalidSubmit="OnInvalidSubmit"
               OnSubmit="OnSubmit"
-              novalidate="@(NativeValidation ? null : "novalidate")"
+              novalidate="@(NativeValidation && !_hasTabs ? null : "novalidate")"
+              data-ib-validate="@(NativeValidation && _hasTabs ? "" : null)"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
               class="@_class"
@@ -36,7 +37,8 @@ else
               OnValidSubmit="OnValidSubmit"
               OnInvalidSubmit="OnInvalidSubmit"
               OnSubmit="OnSubmit"
-              novalidate="@(NativeValidation ? null : "novalidate")"
+              novalidate="@(NativeValidation && !_hasTabs ? null : "novalidate")"
+              data-ib-validate="@(NativeValidation && _hasTabs ? "" : null)"
               enctype="@(Multipart ? "multipart/form-data" : null)"
               @attributes="AdditionalAttributes"
               class="@_class"
@@ -140,6 +142,7 @@ else
             @Validator
         }
 
+        <CascadingValue Value="this" IsFixed="true">
         <CascadingValue Value="_options">
             @if (ColumnCount > 1)
             {
@@ -153,7 +156,25 @@ else
                 @ChildContent
             }
         </CascadingValue>
+        </CascadingValue>
     };
+
+    private bool _hasTabs;
+
+    /// <summary>
+    /// Called by a Tabs inside the form. The browser's own check can't focus a field in a closed
+    /// tab and blocks the submit with no message, so the form renders <c>novalidate</c>: with
+    /// JavaScript off the server checks it, and the script runs the browser's check itself and
+    /// opens the tab of the first invalid field (<c>data-ib-validate</c>).
+    /// </summary>
+    internal void ContainsTabs()
+    {
+        if (!_hasTabs)
+        {
+            _hasTabs = true;
+            StateHasChanged();
+        }
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -177,7 +198,7 @@ else
     {
         (_class, _style) = BuildRootAttributes();
 
-        // A new value tells every field to render again, so only when something changed.
+        // Keep the same instance while nothing changed (fields read it on their own renders).
         var options = new FormOptions(Disabled, ReadOnly, RequiredMark);
         if (options != _options)
         {

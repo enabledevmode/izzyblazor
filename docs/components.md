@@ -254,7 +254,10 @@ stacked form. Each field takes one column, and anything else (text, `FormErrors`
 `ColSpan="GridSpan.Full"` gives it the row. A span never goes past the columns shown, so a form that
 narrows to one column needs no breakpoints. `NewRow` starts a field on a new row, leaving the rest of
 the row before it empty. A `Fieldset` takes `Columns` too, for a group laid out
-on its own (an address in three columns inside a two-column form).
+on its own (an address in three columns inside a two-column form). A form with columns fills its
+parent's width (in a `Row`, the space left beside the rest), since its columns follow that width;
+`Width` or `Basis` sizes it. With `Layout="FormLayout.Horizontal"`, fields in columns keep their
+labels on top, as there's no room beside them.
 
 ```razor
 <Form Model="Model" FormName="contact" Columns="2">
@@ -720,6 +723,12 @@ tab shows how many errors its fields have, which screen readers hear with its na
 errors"; `IzzyText.OneError` and `ErrorCount`). Only a submit switches tabs, never an error that
 appears while someone types. On a static page the server doesn't know which tab was open when the
 form posted, so it counts the first tab (or the `QueryKey` one) as open.
+
+The browser's own check before posting can't reach a field in a closed tab: it would block the
+submit with no message. So a `Form` that holds `Tabs` renders `novalidate`. With JavaScript off the
+server checks it and opens the tab with errors; with JavaScript the form runs the browser's check
+itself, opening the tab of the first invalid field and pointing at it. Fields count toward their
+tab, and toward the outer tab when tabs are nested.
 
 **Tabs as links.** For sections split across routes (`/settings/profile`, `/settings/billing`), use
 `TabLink` children instead of `Tab`. The `Tabs` then renders a `<nav>` of real links with no panels
