@@ -174,10 +174,10 @@ They share:
 - `Size` (`ControlSize`, shared with form fields),
 - `StartIcon`/`EndIcon`, `Loading` (with `LoadingLabel`), `Disabled` and `FullWidth`.
 
-A `Button` does nothing by itself unless it's `Submit` (submits its form) or `Reset` (resets it):
-`<Button Submit>Save</Button>`. On static pages a submit button posts like plain HTML,
-including `Name`/`Value` to tell several submit buttons apart, and `Form` and `FormAction` work as
-the native attributes do. `OnClick` runs C# on interactive pages.
+A `Button` or `IconButton` does nothing by itself unless it's `Submit` (submits its form) or
+`Reset` (resets it): `<Button Submit>Save</Button>`. On static pages a submit button posts like
+plain HTML, including `Name`/`Value` to tell several submit buttons apart, and `Form` and
+`FormAction` work as the native attributes do. `OnClick` runs C# on interactive pages.
 
 **ButtonGroup.** Related buttons joined into one control, with `role="group"` and a `Label` for
 screen readers. Its `Accent`, `Variant` and `Size` become the defaults for the buttons inside; a

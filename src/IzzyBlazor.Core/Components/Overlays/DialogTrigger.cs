@@ -73,7 +73,9 @@ public class DialogClose : Button
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (!UsesCloseForm)
+        base.OnParametersSet();
+        // It submits its close form; Reset (or no close form) makes it an ordinary button instead.
+        if (!UsesCloseForm || Reset)
         {
             Submit = false;
         }

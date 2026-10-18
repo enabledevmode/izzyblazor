@@ -18,13 +18,17 @@ namespace IzzyBlazor;
 public class Button : ButtonBase
 {
     /// <summary>
-    /// Submits the form it's in (or <see cref="Form"/>), like <c>type="submit"</c>. Without it (or
-    /// <see cref="Reset"/>), a button does nothing by itself.
+    /// Submits the form it's in (or <see cref="Form"/>), like <c>type="submit"</c>. Without
+    /// <c>Submit</c> or <see cref="Reset"/>, a button does nothing by itself.
     /// </summary>
     [Parameter] public bool Submit { get; set; }
 
     /// <summary>Resets the form it's in, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
     [Parameter] public bool Reset { get; set; }
+
+    /// <summary>Replaced by <see cref="Submit"/> and <see cref="Reset"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Buttons take a bare Submit or Reset now: <Button Submit>. Type and ButtonType go in a later release.", error: true)]
+    public ButtonType Type { get; set; }
 
     /// <summary>
     /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
@@ -55,9 +59,10 @@ public class Button : ButtonBase
     {
         var (cssClass, style) = BuildRootAttributes();
 
+        var type = ButtonTypes.Of(Submit, Reset, GetType().Name);
         builder.OpenElement(0, "button");
         // While loading, a submit button can't submit again (Enter in a field, Space on the button).
-        builder.AddAttribute(1, "type", Loading ? "button" : ButtonTypes.Of(Submit, Reset, nameof(Button)));
+        builder.AddAttribute(1, "type", Loading ? "button" : type);
         builder.AddAttribute(2, "name", Name);
         builder.AddAttribute(3, "value", Value);
         builder.AddAttribute(4, "formaction", FormAction);
@@ -96,4 +101,18 @@ internal static class ButtonTypes
         (_, true) => "reset",
         _ => "button",
     };
+}
+
+/// <summary>Replaced by the <c>Submit</c> and <c>Reset</c> parameters. Kept for one release so old markup fails to build.</summary>
+[Obsolete("Buttons take a bare Submit or Reset now: <Button Submit>. Type and ButtonType go in a later release.", error: true)]
+public enum ButtonType
+{
+    /// <summary>Replaced: a button does nothing by itself without <c>Submit</c> or <c>Reset</c>.</summary>
+    Button,
+
+    /// <summary>Replaced by <c>Submit</c>.</summary>
+    Submit,
+
+    /// <summary>Replaced by <c>Reset</c>.</summary>
+    Reset,
 }
