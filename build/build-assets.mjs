@@ -85,7 +85,9 @@ export const STYLE_PROPS = [
   { cls: "ib-self", prop: "align-self", v: "self" },
   // Flex container props (Stack, Row, Column)
   { cls: "ib-dir", prop: "flex-direction", v: "dir" },
-  { cls: "ib-gap", prop: "gap", v: "gap" },
+  // --ib-gap-now is the gap at the current breakpoint, for components that space more than the
+  // gap itself by it (Fieldset Dividers pads each row by it).
+  { cls: "ib-gap", prop: "gap", v: "gap", now: "--ib-gap-now" },
   { cls: "ib-align", prop: "align-items", v: "align" },
   { cls: "ib-justify", prop: "justify-content", v: "justify" },
   { cls: "ib-wrap", prop: "flex-wrap", v: "wrap" },

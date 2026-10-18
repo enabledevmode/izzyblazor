@@ -126,6 +126,19 @@ public enum ControlSize
     Lg,
 }
 
+/// <summary>Which side of its label a checkbox or switch sits on.</summary>
+public enum ControlPosition
+{
+    /// <summary>Before the label (the default).</summary>
+    Start,
+
+    /// <summary>
+    /// After the label, at the end of the row, with the hint under the label. For settings lists
+    /// of switches.
+    /// </summary>
+    End,
+}
+
 /// <summary>What a button does inside a form.</summary>
 public enum ButtonType
 {

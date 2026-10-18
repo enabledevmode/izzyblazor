@@ -1572,6 +1572,42 @@
     cursor: not-allowed;
   }
 
+  /*
+   * ControlPosition.End: the label and hint in the first column, the box or switch at the end of
+   * the row, centered on the label and hint. The label becomes display: contents so its text and
+   * input join the grid; it's still the <label> in the DOM, so the text toggles the control and
+   * names it. Errors go under the hint without moving the control. Columns follow the writing
+   * direction, so RTL flips on its own.
+   */
+  .ib-field-control-end {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    column-gap: var(--ib-space-4);
+  }
+
+  .ib-field-control-end > .ib-check {
+    display: contents;
+  }
+
+  .ib-field-control-end :is(.ib-check-label, .ib-field-hint, .ib-field-error) {
+    grid-column: 1;
+  }
+
+  .ib-field-control-end .ib-check-label {
+    cursor: pointer;
+  }
+
+  .ib-field-control-end :is(.ib-check-input, .ib-switch-input) {
+    grid-column: 2;
+    grid-row: 1;
+    align-self: center;
+    margin: 0;
+  }
+
+  .ib-field-control-end:has(> .ib-field-hint) :is(.ib-check-input, .ib-switch-input) {
+    grid-row: 1 / span 2;
+  }
+
   .ib-radio-options {
     display: flex;
     flex-direction: column;
@@ -1617,6 +1653,20 @@
     display: flex;
     flex-direction: column;
     margin-top: var(--ib-space-3);
+  }
+
+  /*
+   * Fieldset Dividers: a line between rows, midway between them. Each row after the first visible
+   * one gets the line and the gap again as padding above it. The body's gap at the current
+   * breakpoint (--ib-gap-now, set by its ib-gap classes) is passed down as --ib-fieldset-row-gap.
+   */
+  .ib-fieldset-dividers > .ib-fieldset-body {
+    --ib-fieldset-row-gap: var(--ib-gap-now, var(--ib-space-4));
+  }
+
+  .ib-fieldset-dividers > .ib-fieldset-body > :not([hidden], [type="hidden"]) ~ :not([hidden], [type="hidden"]) {
+    padding-block-start: var(--ib-fieldset-row-gap);
+    border-block-start: 1px solid var(--ib-color-border);
   }
 
   /* FormActions: the buttons at the end of a form, across the whole row. */

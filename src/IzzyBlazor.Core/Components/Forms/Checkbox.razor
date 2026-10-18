@@ -15,7 +15,7 @@
     only: the box posts as unchecked ("false"), and choosing it clears the dash.
 *@
 
-<FieldFrame Class="@WrapperClass(AsSwitch ? "switch" : "checkbox")" Style="@WrapperStyle" Id="@FieldId" LabelInControl
+<FieldFrame Class="@FrameClass" Style="@WrapperStyle" Id="@FieldId" LabelInControl
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <label class="ib-check" for="@FieldId">
         <input @attributes="ControlAttributes"
@@ -67,6 +67,16 @@
     /// </summary>
     [Parameter] public bool Indeterminate { get; set; }
 
+    /// <summary>
+    /// Which side of the label the box or switch sits on. <c>End</c> puts it at the end of the row,
+    /// with the hint and errors under the label, as in a list of settings. Defaults to <c>Start</c>.
+    /// </summary>
+    [Parameter] public ControlPosition ControlPosition { get; set; }
+
     /// <summary>Renders as a switch. Use <see cref="Switch"/> instead of setting this.</summary>
     protected virtual bool AsSwitch => false;
+
+    private string FrameClass => ControlPosition == ControlPosition.End
+        ? WrapperClass(AsSwitch ? "switch" : "checkbox") + " ib-field-control-end"
+        : WrapperClass(AsSwitch ? "switch" : "checkbox");
 }

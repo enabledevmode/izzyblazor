@@ -35,6 +35,12 @@
     /// </summary>
     [Parameter] public int Columns { get; set; } = 1;
 
+    /// <summary>
+    /// Draws a line between the fields, midway between them, as in a list of settings. Each direct
+    /// child is a row. Ignored when <see cref="Columns"/> is more than 1.
+    /// </summary>
+    [Parameter] public bool Dividers { get; set; }
+
     /// <summary>The fields.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -48,6 +54,7 @@
     {
         classes.Add("ib-fieldset");
         classes.Add("ib-fieldset-cols", Columns > 1);
+        classes.Add("ib-fieldset-dividers", Dividers && Columns <= 1);
         base.BuildAttributes(classes, styles);
     }
 
