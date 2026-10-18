@@ -62,10 +62,10 @@
                         @foreach (var (title, text, icon, tag) in Projects)
                         {
                             <Card Title="@title" Description="@text" Href="@Url("marketing")">
-                                <Media>
+                                <CardMedia>
                                     <AspectRatio Ratio="16 / 9.0" Bg="Color.PrimarySoft" Class="host-media"><Icon Name="icon" Color="Color.PrimaryText" Size="IconSize.Xl" /></AspectRatio>
-                                </Media>
-                                <ChildContent><Row Gap="2"><Badge>@tag</Badge></Row></ChildContent>
+                                </CardMedia>
+                                <Row Gap="2"><Badge>@tag</Badge></Row>
                             </Card>
                         }
                     </Grid>

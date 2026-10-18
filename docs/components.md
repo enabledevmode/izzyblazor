@@ -942,15 +942,38 @@ directly inside the group, since `Max` hides the extras by counting its children
 
 ## Card
 
-`Title` (`TitleLevel` 3 by default), `Description`, `Header`, `Actions`, `Media`, content and
-`Footer`, in `Outline` (the default), `Elevated` or `Filled`. `Size` sets the inner spacing and
-title size. `Href` makes the whole card a link through its title (one link for screen readers, so
-it needs a `Title`), while buttons in it stay clickable.
+`Title` (`TitleLevel` 3 by default) and `Description`, in `Outline` (the default), `Elevated` or
+`Filled`. `Size` sets the inner spacing and title size. `Href` makes the whole card a link through
+its title (one link for screen readers, so it needs a `Title`), while buttons in it stay clickable.
+
+Content between the tags is the body. The other parts are components written directly in the
+card, among its content:
+
+- `CardMedia`: an image or video at the top, edge to edge.
+- `CardHeader`: custom heading content above the `Title`, such as an avatar row.
+- `CardActions`: buttons at the end of the heading row, such as a menu.
+- `CardBody`: the body with `Stack`'s layout props (`Gap`, `Align`, `Justify`, `Direction`).
+  Optional; it reads well when a card has several parts. `Flush` runs its content to the card's
+  edges, for a table or a divided list.
+- `CardFooter`: the bottom row, with `Row`'s props (`Justify` moves its buttons), drawn last. It
+  spans the card's width and bottom edge, so `Bg` or `BorderTop` makes it a bar across the bottom:
+  `<CardFooter Justify="Justify.End" Bg="Color.SurfaceContainerLow" BorderTop="1">`.
+
+`CardMedia`, `CardHeader` and `CardActions` are drawn where they belong, wherever they're written,
+but at the card's level: a form or cascading value they're written inside doesn't reach them. Put a
+form's buttons in a `CardFooter` inside the form, or the form around the whole card.
+
+`Dividers` on the card makes each `CardBody` a section, with a line across the card between
+sections, as in a settings page. Content outside a `CardBody` isn't a section.
 
 ```razor
-<Card Title="Website" Description="Updated 2 hours ago" Href="/projects/website">
-    <Actions><IconButton Icon="Lucide.Ellipsis" Label="More" Variant="ButtonVariant.Ghost" /></Actions>
-    <ChildContent>...</ChildContent>
+<Card Title="Delete project?" Description="This can't be undone.">
+    <CardActions><IconButton Icon="Lucide.Ellipsis" Label="More" Variant="ButtonVariant.Ghost" /></CardActions>
+    <CardBody Gap="2">...</CardBody>
+    <CardFooter Justify="Justify.End">
+        <Button Variant="ButtonVariant.Ghost">Cancel</Button>
+        <Button Accent="Accent.Danger">Delete</Button>
+    </CardFooter>
 </Card>
 ```
 

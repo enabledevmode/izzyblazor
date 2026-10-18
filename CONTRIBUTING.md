@@ -139,7 +139,8 @@ Use the same name for the same idea everywhere:
 | `For` | The id of the element a control acts on | `DialogTrigger For`, `SidebarToggle For` |
 | `FullWidth` | Fill the available width | Button, Tabs |
 | `Size` | `ControlSize` for anything that lines up with buttons and fields | Button, fields, Tabs, Table |
-| `Header`, `Footer`, `Actions` | Render fragments for those regions | Card (all three), Dialog and AppSidebar (`Header`, `Footer`), Alert (`Actions`) |
+| `Header`, `Footer`, `Actions` | Render fragments for those regions | Dialog and AppSidebar (`Header`, `Footer`), Alert (`Actions`) |
+| `CardMedia`, `CardHeader`, `CardActions`, `CardBody`, `CardFooter` | Parts written among a component's content instead of named fragments, so the body needs no `<ChildContent>` wrapper; the box parts (`CardBody`, `CardFooter`) take layout props | Card |
 
 On/off switches are plain `bool`s so they can be written bare (`<Box Grow>`); anything that changes
 with screen size is `Responsive<T>`. Two-way state follows Blazor's `@bind-X` pattern (`Open`/

@@ -260,13 +260,59 @@ public class DataRenderTests : BunitContext
             .Add(c => c.TitleLevel, 2)
             .Add(c => c.Href, "/projects/website")
             .Add(c => c.Variant, CardVariant.Elevated)
-            .Add(c => c.Footer, (RenderFragment)(b => b.AddContent(0, "Footer")))
             .AddChildContent("Body")).Find(".ib-card");
 
         Assert.Equal("ib-card ib-card-elevated ib-card-linked", card.ClassName);
         Assert.Equal("/projects/website", card.QuerySelector("h2.ib-card-title > a.ib-card-link")!.GetAttribute("href"));
         Assert.Equal("Body", card.QuerySelector(".ib-card-body")!.TextContent);
-        Assert.Equal("Footer", card.QuerySelector(".ib-card-footer")!.TextContent);
+    }
+
+    [Fact]
+    public void Card_draws_its_parts_in_place_wherever_they_are_written()
+    {
+        var cut = Render<Card>(p => p
+            .Add(c => c.Title, "Orders")
+            .AddChildContent<CardFooter>(f => f.AddChildContent("Footer"))
+            .AddChildContent<CardActions>(a => a.AddChildContent("<button>More</button>"))
+            .AddChildContent<CardMedia>(m => m.AddChildContent("<img alt=\"\">")));
+
+        var card = cut.Find(".ib-card");
+        Assert.Equal(new[] { "ib-card-media", "ib-card-header", "ib-card-body" }, card.Children.Select(c => c.ClassName));
+        Assert.Equal("More", card.QuerySelector(".ib-card-header .ib-card-actions button")!.TextContent);
+        Assert.Equal("Footer", card.QuerySelector(".ib-card-body > .ib-card-footer")!.TextContent);
+        Assert.Throws<InvalidOperationException>(() => Render<CardActions>());
+    }
+
+    [Fact]
+    public void Card_parts_follow_their_content_when_swapped_added_and_removed()
+    {
+        static RenderFragment Content(string? actions) => b =>
+        {
+            // Different sequence numbers: one part replaces another, as with @if/else.
+            if (actions == "A")
+            {
+                b.OpenComponent<CardActions>(0);
+                b.AddComponentParameter(1, nameof(CardActions.ChildContent), (RenderFragment)(c => c.AddContent(0, "A")));
+                b.CloseComponent();
+            }
+            else if (actions == "B")
+            {
+                b.OpenComponent<CardActions>(2);
+                b.AddComponentParameter(3, nameof(CardActions.ChildContent), (RenderFragment)(c => c.AddContent(0, "B")));
+                b.CloseComponent();
+            }
+
+            b.AddContent(4, "Body");
+        };
+
+        var cut = Render<Card>(p => p.Add(c => c.Title, "Orders").Add(c => c.ChildContent, Content("A")));
+        Assert.Equal("A", cut.Find(".ib-card-actions").TextContent);
+
+        cut.Render(p => p.Add(c => c.ChildContent, Content("B")));
+        Assert.Equal("B", cut.Find(".ib-card-actions").TextContent);
+
+        cut.Render(p => p.Add(c => c.ChildContent, Content(null)));
+        Assert.Empty(cut.FindAll(".ib-card-actions"));
     }
 
     private static RenderFragment FilterFields => builder =>

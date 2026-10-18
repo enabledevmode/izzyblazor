@@ -2,7 +2,7 @@
 
 <Stack Gap="8">
 
-    <Example Title="Variants" Note="Outline (the default), Elevated and Filled. Sections share the card's padding; Size changes it." Code="@VariantsCode">
+    <Example Title="Variants" Note="Outline (the default), Elevated and Filled. Content between the tags is the body. Sections share the card's padding; Size changes it." Code="@VariantsCode">
         <Row Gap="4" Wrap Align="Align.Stretch">
             @foreach (var variant in Enum.GetValues<CardVariant>())
             {
@@ -13,10 +13,10 @@
         </Row>
     </Example>
 
-    <Example Title="Linked card with actions" Note="Href makes the whole card a link through its title, so it reads as one link to screen readers. Buttons in Actions and Footer stay clickable on their own." Code="@LinkedCode">
+    <Example Title="Linked card with actions" Note="Href makes the whole card a link through its title, so it reads as one link to screen readers. CardActions is drawn at the end of the heading row and CardMedia at the top, wherever they're written; buttons in them and in CardFooter stay clickable on their own." Code="@LinkedCode">
         <Row Gap="4" Wrap Align="Align.Stretch">
             <Card Title="Website" Description="enabledevmode.com" Href="static/card" Grow Basis="18.Rem" data-testid="linked-card">
-                <Actions>
+                <CardActions>
                     <Menu Label="Project actions" Id="card-menu">
                         <Trigger><IconButton Icon="Lucide.Ellipsis" Label="Project actions" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="context" /></Trigger>
                         <ChildContent>
@@ -24,72 +24,163 @@
                             <MenuItem Icon="Lucide.Archive">Archive</MenuItem>
                         </ChildContent>
                     </Menu>
-                </Actions>
-                <ChildContent>
-                    <Row Gap="2" Wrap>
-                        <Badge Status="Status.Success" Dot>Deployed</Badge>
-                        <Badge>Blazor</Badge>
-                    </Row>
-                </ChildContent>
-                <Footer>
+                </CardActions>
+                <Row Gap="2" Wrap>
+                    <Badge Status="Status.Success" Dot>Deployed</Badge>
+                    <Badge>Blazor</Badge>
+                </Row>
+                <CardFooter>
                     <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">3 contributors</TextBlock>
-                </Footer>
+                </CardFooter>
             </Card>
             <Card Variant="CardVariant.Elevated" Title="Course app" Description="Lessons and progress" Href="static/card" Grow Basis="18.Rem">
-                <Media>
+                <CardMedia>
                     <svg viewBox="0 0 400 140" preserveAspectRatio="xMidYMid slice" style="height: 11.25rem" role="img" aria-label="Abstract cover">
                         <defs><linearGradient id="cover" x1="0" x2="1"><stop offset="0" stop-color="#4f46e5" /><stop offset="1" stop-color="#0ea5e9" /></linearGradient></defs>
                         <rect width="400" height="140" fill="url(#cover)" />
                     </svg>
-                </Media>
-                <ChildContent>
-                    <TextBlock Color="Color.Muted">12 lessons · 3 hours</TextBlock>
-                </ChildContent>
+                </CardMedia>
+                <TextBlock Color="Color.Muted">12 lessons · 3 hours</TextBlock>
             </Card>
         </Row>
     </Example>
 
-    <Example Title="Footer actions" Code="@FooterCode">
+    <Example Title="Body and footer" Note="CardBody is the body with Stack's layout props (Gap, Align, Direction); it's optional, and reads well when a card has several parts. CardFooter is a row with Row's props: Justify moves its buttons. In a stretched card it sits at the bottom." Code="@FooterCode">
         <Box MaxWidth="26.Rem">
-            <Card Variant="CardVariant.Filled" Title="Delete project?" Size="ControlSize.Sm">
-                <ChildContent>
-                    <TextBlock>This removes the project and its deployments. It can't be undone.</TextBlock>
-                </ChildContent>
-                <Footer>
-                    <Button Accent="Accent.Danger" Size="ControlSize.Sm">Delete</Button>
+            <Card Variant="CardVariant.Filled" Title="Delete project?" Description="This can't be undone." Size="ControlSize.Sm">
+                <CardBody Gap="2">
+                    <TextBlock>This removes the project, its 12 boards and their history for everyone.</TextBlock>
+                    <TextBlock Color="Color.Muted">Deployments stop within a minute.</TextBlock>
+                </CardBody>
+                <CardFooter Justify="Justify.End">
                     <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm">Cancel</Button>
-                </Footer>
+                    <Button Accent="Accent.Danger" Size="ControlSize.Sm">Delete</Button>
+                </CardFooter>
             </Card>
+        </Box>
+    </Example>
+
+    <Example Title="Flush content" Note="CardBody Flush runs its content to the card's edges, for a table or a divided list; at the bottom of the card it reaches the bottom edge too." Code="@FlushCode">
+        <Box MaxWidth="32.Rem">
+            <Card Title="Recent orders" Description="Last 7 days">
+                <CardActions><LinkButton Href="static/table" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">View all</LinkButton></CardActions>
+                <CardBody Flush>
+                    <Table Items="Orders" Caption="Recent orders" QueryPrefix="card-">
+                        <PropertyColumn Property="o => o.Number" Title="Order" />
+                        <PropertyColumn Property="o => o.Customer" />
+                        <PropertyColumn Property="o => o.Total" Format="C0" />
+                    </Table>
+                </CardBody>
+            </Card>
+        </Box>
+    </Example>
+
+    <Example Title="Sections and a footer bar" Note="Dividers makes each CardBody a section, with a line across the card between them. A CardFooter with a Bg or a top border becomes a bar across the card's bottom edge." Code="@SectionsCode">
+        <Box MaxWidth="48.Rem">
+            <Form Model="_settings" FormName="card-settings" OnValidSubmit="() => { }">
+            <Card Dividers>
+                <CardBody Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="6">
+                    <Stack Gap="1" Basis="new() { Md = 14.Rem }" Shrink="false">
+                        <Heading Level="3" Size="TextSize.Md">Profile</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Your name is visible to people in your organization.</TextBlock>
+                    </Stack>
+                    <Stack Gap="3" Grow>
+                        <Row Gap="3"><TextField @bind-Value="_settings.FirstName" Grow /><TextField @bind-Value="_settings.LastName" Grow /></Row>
+                    </Stack>
+                </CardBody>
+                <CardBody Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="6">
+                    <Stack Gap="1" Basis="new() { Md = 14.Rem }" Shrink="false">
+                        <Heading Level="3" Size="TextSize.Md">Notifications</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Security emails can't be turned off entirely.</TextBlock>
+                    </Stack>
+                    <Stack Gap="3" Grow>
+                        <Switch @bind-Value="_settings.NewDevice" ControlPosition="ControlPosition.End" Hint="An email each time, with a link to sign that device out." />
+                        <Switch @bind-Value="_settings.Mentions" ControlPosition="ControlPosition.End" Hint="When someone mentions you or replies to you." />
+                    </Stack>
+                </CardBody>
+                <CardFooter Justify="Justify.End" Bg="Color.SurfaceContainerLow" BorderTop="1">
+                    <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Cancel</Button>
+                    <Button Submit>Save changes</Button>
+                </CardFooter>
+            </Card>
+            </Form>
         </Box>
     </Example>
 
 </Stack>
 
 @code {
+    private readonly SettingsModel _settings = new();
+
+    private sealed class SettingsModel
+    {
+        [System.ComponentModel.DataAnnotations.Display(Name = "First name")] public string? FirstName { get; set; } = "Maya";
+        [System.ComponentModel.DataAnnotations.Display(Name = "Last name")] public string? LastName { get; set; } = "Reyes";
+        [System.ComponentModel.DataAnnotations.Display(Name = "Sign-in from a new device")] public bool NewDevice { get; set; } = true;
+        [System.ComponentModel.DataAnnotations.Display(Name = "Mentions and comments")] public bool Mentions { get; set; } = true;
+    }
+
+    private const string SectionsCode =
+        """
+        <Card Dividers>
+            <CardBody Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="6">...</CardBody>
+            <CardBody Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="6">...</CardBody>
+            <CardFooter Justify="Justify.End" Bg="Color.SurfaceContainerLow" BorderTop="1">
+                <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Cancel</Button>
+                <Button>Save changes</Button>
+            </CardFooter>
+        </Card>
+        """;
+
+    private record Order(string Number, string Customer, decimal Total);
+
+    private static readonly Order[] Orders =
+    [
+        new("#1042", "Ada Lovelace", 128m),
+        new("#1041", "Grace Hopper", 64m),
+        new("#1040", "Alan Turing", 312m),
+    ];
+
     private const string VariantsCode =
         """
-        <Card Title="Outline" Description="Updated 2 hours ago">...</Card>
+        <Card Title="Outline" Description="Updated 2 hours ago">
+            <TextBlock>Static pages, fast first paint...</TextBlock>
+        </Card>
         <Card Variant="CardVariant.Elevated">...</Card>
         """;
 
     private const string LinkedCode =
         """
         <Card Title="Website" Description="enabledevmode.com" Href="/projects/website">
-            <Actions><Menu>...</Menu></Actions>
-            <ChildContent>...</ChildContent>
-            <Footer>...</Footer>
+            <CardActions><Menu>...</Menu></CardActions>
+            <Row Gap="2">...</Row>
+            <CardFooter>3 contributors</CardFooter>
         </Card>
 
         <Card Variant="CardVariant.Elevated" Title="Course app" Href="...">
-            <Media><img src="cover.jpg" alt="" /></Media>
+            <CardMedia><img src="cover.jpg" alt="" /></CardMedia>
+            <TextBlock>12 lessons · 3 hours</TextBlock>
         </Card>
         """;
 
     private const string FooterCode =
         """
-        <Card Variant="CardVariant.Filled" Title="Delete project?" Size="ControlSize.Sm">
-            <ChildContent>...</ChildContent>
-            <Footer><Button Accent="Accent.Danger">Delete</Button></Footer>
+        <Card Variant="CardVariant.Filled" Title="Delete project?" Description="This can't be undone.">
+            <CardBody Gap="2">...</CardBody>
+            <CardFooter Justify="Justify.End">
+                <Button Variant="ButtonVariant.Ghost">Cancel</Button>
+                <Button Accent="Accent.Danger">Delete</Button>
+            </CardFooter>
+        </Card>
+        """;
+
+    private const string FlushCode =
+        """
+        <Card Title="Recent orders" Description="Last 7 days">
+            <CardActions><LinkButton Href="/orders">View all</LinkButton></CardActions>
+            <CardBody Flush>
+                <Table Items="Orders">...</Table>
+            </CardBody>
         </Card>
         """;
 }

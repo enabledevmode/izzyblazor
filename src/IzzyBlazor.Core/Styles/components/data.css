@@ -12,7 +12,7 @@
     overflow: hidden;
     border: 1px var(--ib-bst-now, solid) transparent;
     border-radius: var(--ib-radius-xl);
-    background-color: var(--ib-color-surface);
+    background-color: var(--ib-card-bg, var(--ib-color-surface));
     color: var(--ib-color-on-surface);
   }
 
@@ -35,19 +35,18 @@
   }
 
   .ib-card-elevated {
+    --ib-card-bg: var(--ib-color-surface-raised);
     border-color: var(--ib-color-raised-border);
-    background-color: var(--ib-color-surface-raised);
     box-shadow: var(--ib-shadow-md);
   }
 
   .ib-card-filled {
-    background-color: var(--ib-color-surface-container-low);
+    --ib-card-bg: var(--ib-color-surface-container-low);
   }
 
   /* Sections share the padding; the space between them is the gap. */
   .ib-card-header,
-  .ib-card-body,
-  .ib-card-footer {
+  .ib-card-body {
     padding: var(--ib-card-gap) var(--ib-card-p) 0;
   }
 
@@ -56,6 +55,19 @@
   }
 
   .ib-card > :last-child:not(.ib-card-media) {
+    padding-bottom: var(--ib-card-p);
+  }
+
+  /* A body holding only parts drawn elsewhere (CardActions, CardMedia) takes no room. */
+  .ib-card-body:empty {
+    display: none;
+  }
+
+  .ib-card-body:has(> .ib-card-content:only-child:empty) {
+    display: none;
+  }
+
+  .ib-card-header:has(+ .ib-card-body:last-child:is(:empty, :has(> .ib-card-content:only-child:empty))) {
     padding-bottom: var(--ib-card-p);
   }
 
@@ -98,7 +110,8 @@
     display: flex;
     flex: none;
     gap: var(--ib-space-1);
-    margin: calc(var(--ib-space-1) * -1) calc(var(--ib-space-2) * -1) 0 0;
+    margin-block-start: calc(var(--ib-space-1) * -1);
+    margin-inline: auto calc(var(--ib-space-2) * -1);
   }
 
   .ib-card-body {
@@ -109,11 +122,99 @@
     font-size: var(--ib-text-sm);
   }
 
-  .ib-card-footer {
-    display: flex;
+  /* CardBody: the body with layout props. Its own Gap (a utility) wins over this default. */
+  .ib-card-body > .ib-card-content {
+    flex: 1;
+    gap: var(--ib-space-3);
+  }
+
+  /* Flush: edge to edge, and to the card's top or bottom edge when nothing is between. */
+  .ib-card-body > .ib-card-flush {
+    margin-inline: calc(var(--ib-card-p) * -1);
+  }
+
+  /* A table's own frame would draw a box inside the card: the card is its frame. */
+  .ib-card-flush > .ib-table {
+    --ib-table-bg: var(--ib-card-bg, var(--ib-color-surface));
+  }
+
+  .ib-card-flush > .ib-table > .ib-table-scroll {
+    border: 0;
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  /* The card clips anything outside it: draw the scroll area's focus ring inside. */
+  .ib-card-flush > .ib-table > .ib-table-scroll:focus-visible {
+    outline-offset: -2px;
+  }
+
+  /* The pager and filter tags keep the card's padding. */
+  .ib-card-flush > .ib-table > :not(.ib-table-scroll) {
+    padding-inline: var(--ib-card-p);
+  }
+
+  .ib-card-flush > .ib-table > :last-child:not(.ib-table-scroll) {
+    padding-block-end: var(--ib-card-gap);
+  }
+
+  .ib-card-flush > .ib-table :is(th, td):first-child {
+    padding-inline-start: var(--ib-card-p);
+  }
+
+  .ib-card-flush > .ib-table :is(th, td):last-child {
+    padding-inline-end: var(--ib-card-p);
+  }
+
+  .ib-card > .ib-card-body:first-child:has(> .ib-card-flush:first-child) {
+    padding-top: 0;
+  }
+
+  .ib-card > .ib-card-body:last-child:has(> .ib-card-flush:last-child) {
+    padding-bottom: 0;
+  }
+
+  /*
+   * CardFooter: drawn last in the body (order), and pushed to the bottom of a stretched card by a
+   * spacer before it that also keeps a section's space above it. It spans the card's width and
+   * bottom edge (the margins undo the body's padding, its own padding puts it back), so a Bg or a
+   * top border colors the whole strip; then its padding is even above and below.
+   */
+  .ib-card-body:has(> .ib-card-footer):not(:has(> .ib-card-footer:only-child))::after {
+    content: "";
+    order: 1;
+    flex: 1 0 calc(var(--ib-card-gap) - var(--ib-space-3));
+    margin-top: calc(var(--ib-space-3) * -1);
+  }
+
+  .ib-card-body > .ib-card-footer {
+    order: 2;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ib-space-2);
+    margin: 0 calc(var(--ib-card-p) * -1) calc(var(--ib-card-p) * -1);
+    padding: 0 var(--ib-card-p) var(--ib-card-p);
+    font-size: var(--ib-text-md);
+  }
+
+  .ib-card-body > .ib-card-footer:is([class*="ib-bg"], [class*="ib-bt"], [class*="ib-by"]) {
+    padding-block: var(--ib-card-gap);
+  }
+
+  /* Card Dividers: each CardBody is a section, with a line across the card between sections. */
+  .ib-card-dividers > .ib-card-body {
+    gap: var(--ib-card-p);
+  }
+
+  .ib-card-dividers > .ib-card-body > .ib-card-content ~ .ib-card-content {
+    margin-inline: calc(var(--ib-card-p) * -1);
+    padding: var(--ib-card-p) var(--ib-card-p) 0;
+    border-top: 1px solid var(--ib-color-border);
+  }
+
+  .ib-card-dividers > .ib-card-body > .ib-card-content ~ .ib-card-flush {
+    padding-inline: 0;
   }
 
   /* A linked card: the title's link covers the card; actions and footer controls sit above it. */
