@@ -21,6 +21,12 @@
 
 <FieldFrame Class="@WrapperClass("combobox")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (ShowsReadOnly)
+    {
+        @ReadOnlyControl(SelectedText)
+    }
+    else
+    {
     <ib-combobox class="ib-field-control ib-has-end ib-combobox"
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
                  data-server="@(ServerFiltered ? "" : null)">
@@ -30,7 +36,7 @@
                 name="@NameAttributeValue"
                 @bind="CurrentValueAsString"
                 required="@IsRequired"
-                disabled="@(IsDisabled || IsReadOnly)"
+                disabled="@IsDisabled"
                 aria-invalid="@(Invalid ? "true" : null)"
                 aria-describedby="@DescribedBy">
             @* Always present: clearing the text clears the value. *@
@@ -59,7 +65,7 @@
                disabled="@IsDisabled"
                readonly="@IsReadOnly"
                @attributes="SearchAttributes" />
-        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@(IsDisabled || IsReadOnly)">
+        <button type="button" class="ib-combobox-toggle" tabindex="-1" aria-label="@(ToggleLabel ?? TextDefaults.ShowOptions)" disabled="@IsDisabled">
             <Icon Role="IconRole.ChevronDown" Class="ib-field-icon" />
         </button>
         <div id="@ListId"
@@ -92,9 +98,10 @@
             <div class="ib-combobox-empty" role="status">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
     </ib-combobox>
+    }
     @if (PostsReadOnlyValue)
     {
-        @* Read-only: the control is disabled, and disabled controls don't post, so this does. *@
+        @* Read-only: the value shows in a read-only text field, which doesn't post it; this does. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
     }
 </FieldFrame>

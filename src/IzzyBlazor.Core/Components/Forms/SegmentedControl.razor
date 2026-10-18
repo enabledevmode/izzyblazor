@@ -13,7 +13,8 @@
 
 <FieldFrame Class="@WrapperClass("segmented")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <div class="@SegmentsClass">
+    @* Read-only radios stay focusable and readable; the group says it's read-only. *@
+    <div class="@SegmentsClass" role="@(ShowsReadOnly ? "radiogroup" : null)" aria-readonly="@(ShowsReadOnly ? "true" : null)" aria-label="@(ShowsReadOnly ? ResolvedLabel : null)">
         @foreach (var (item, index) in Options.Select((o, i) => (o, i)))
         {
             var value = FormatValueAsString(item);
@@ -29,8 +30,9 @@
                        value="@value"
                        checked="@(value == CurrentValueAsString)"
                        @onchange="() => CurrentValue = item"
-                       required="@IsRequired"
-                       disabled="@(IsDisabled || IsReadOnly)"
+                       required="@(IsRequired && !ShowsReadOnly)"
+                       disabled="@IsDisabled"
+                       form="@(ShowsReadOnly ? "" : null)"
                        aria-invalid="@(Invalid ? "true" : null)" />
                 @if (icon is not null)
                 {
@@ -42,7 +44,7 @@
     </div>
     @if (PostsReadOnlyValue)
     {
-        @* Read-only: the control is disabled, and disabled controls don't post, so this does. *@
+        @* Read-only: the radios are outside the form (form=""), so this posts the value. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
     }
 </FieldFrame>

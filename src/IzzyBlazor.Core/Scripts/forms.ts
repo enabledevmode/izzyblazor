@@ -54,6 +54,19 @@ export function installSubmitFeedback(): void {
     true
   );
 
+  // Read-only checkboxes and radios (aria-readonly, on the box or its radio group): HTML has no
+  // read-only for them, so cancel what would change them. A click (also from Space or the
+  // label) and the arrow keys that move a radio group's choice. CSS stops clicks without script.
+  const readOnly = (target: EventTarget | null): target is HTMLInputElement =>
+    target instanceof HTMLInputElement &&
+    (target.getAttribute("aria-readonly") === "true" || !!target.closest('[role="radiogroup"][aria-readonly="true"]'));
+  document.addEventListener("click", (event) => readOnly(event.target) && event.preventDefault(), true);
+  document.addEventListener(
+    "keydown",
+    (event) => readOnly(event.target) && event.target.type === "radio" && event.key.startsWith("Arrow") && event.preventDefault(),
+    true
+  );
+
   // Coming back with the Back button can restore a page from the cache mid-submit.
   window.addEventListener("pageshow", (event) => {
     if (!event.persisted) return;

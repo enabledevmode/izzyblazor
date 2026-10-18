@@ -417,26 +417,36 @@ public class FormRenderTests : BunitContext
             }));
         Assert.True(form.Find("input.ib-field-input").HasAttribute("readonly"));
 
-        // A select can't be read-only, so it's disabled and a hidden input posts its value.
+        // A select can't be read-only: it shows its text in a read-only field, and posts its value once.
         var select = Render<Select<Plan>>(p => p
             .AddCascadingValue(_context)
             .AddCascadingValue(readOnly)
             .Add(s => s.Value, _model.Plan)
             .Add(s => s.ValueExpression, () => _model.Plan));
-        Assert.True(select.Find("select").HasAttribute("disabled"));
-        var posted = select.Find("input[type=hidden]");
-        Assert.Equal(select.Find("select").GetAttribute("name"), posted.GetAttribute("name"));
-        Assert.Equal("Pro", posted.GetAttribute("value"));
+        Assert.Equal("Pro plan", select.Find("input[readonly]").GetAttribute("value"));
+        Assert.Equal(new[] { "Plan=Pro" }, Posted(select.FindAll("input, select, textarea")));
 
-        // A checked read-only box posts "true", not the usual hidden "false".
+        // A read-only box stays focusable and says it's read-only; it posts its value once ("true").
         var box = Render<Checkbox>(p => p
             .AddCascadingValue(_context)
             .AddCascadingValue(readOnly)
             .Add(c => c.Value, true)
             .Add(c => c.ValueExpression, () => _model.Accept));
-        Assert.True(box.Find("input[type=checkbox]").HasAttribute("disabled"));
-        Assert.Equal("true", box.Find("input[type=hidden]").GetAttribute("value"));
+        var input = box.Find("input[type=checkbox]");
+        Assert.False(input.HasAttribute("disabled"));
+        Assert.Equal("true", input.GetAttribute("aria-readonly"));
+        Assert.Equal(new[] { "Accept=true" }, Posted(box.FindAll("input")));
     }
+
+    // What a browser would post from these controls, as "Property=value": named controls that are
+    // enabled and in the form (no form=""), boxes and radios only when checked.
+    private static List<string> Posted(IEnumerable<AngleSharp.Dom.IElement> controls) =>
+        controls
+            .Where(e => e.HasAttribute("name") && !e.HasAttribute("disabled") && !e.HasAttribute("form"))
+            .Where(e => e.GetAttribute("type") is not ("checkbox" or "radio") || e.HasAttribute("checked"))
+            .Select(e => $"{e.GetAttribute("name")!.Split('.')[^1]}=" +
+                (e.LocalName == "select" ? e.QuerySelector("option[selected]")?.GetAttribute("value") ?? "" : e.GetAttribute("value") ?? ""))
+            .ToList();
 
     [Fact]
     public void A_disabled_form_disables_its_fields_and_posts_none_of_them()
