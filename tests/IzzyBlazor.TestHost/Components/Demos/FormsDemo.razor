@@ -83,7 +83,7 @@
         <Box MaxWidth="32.Rem">
             <Form Model="Choices" FormName="choices" OnValidSubmit="() => _choicesSaved = true">
                 <CheckboxGroup @bind-Value="Choices!.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" />
-                <MultiSelect @bind-Value="Choices!.Skills" Items="Skills" Placeholder="Add skills" Hint="Type to filter." />
+                <MultiSelect @bind-Value="Choices!.Skills" Items="Skills" Placeholder="Add skills" Hint="Up to 5." />
                 <Row Gap="2" Align="Align.Center">
                     <Button Type="ButtonType.Submit">Save</Button>
                     @if (_choicesSaved)
