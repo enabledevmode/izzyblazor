@@ -45,7 +45,7 @@ public class DialogTrigger : Button
 /// <code>
 /// &lt;Footer&gt;
 ///     &lt;DialogClose&gt;Cancel&lt;/DialogClose&gt;
-///     &lt;Button Type="ButtonType.Submit" Form="invite-form"&gt;Send invite&lt;/Button&gt;
+///     &lt;Button Submit Form="invite-form"&gt;Send invite&lt;/Button&gt;
 /// &lt;/Footer&gt;
 /// </code>
 /// </example>
@@ -56,7 +56,7 @@ public class DialogClose : Button
     {
         Accent = Accent.Neutral;
         Variant = ButtonVariant.Outline;
-        Type = ButtonType.Submit;
+        Submit = true;
     }
 
     /// <summary>The id of the dialog to close. Defaults to the dialog this button is in.</summary>
@@ -75,7 +75,7 @@ public class DialogClose : Button
     {
         if (!UsesCloseForm)
         {
-            Type = ButtonType.Button;
+            Submit = false;
         }
     }
 

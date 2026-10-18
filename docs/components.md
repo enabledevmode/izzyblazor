@@ -174,8 +174,8 @@ They share:
 - `Size` (`ControlSize`, shared with form fields),
 - `StartIcon`/`EndIcon`, `Loading` (with `LoadingLabel`), `Disabled` and `FullWidth`.
 
-A `Button`'s `Type` is `ButtonType.Button` by default, which does nothing by itself; set
-`Type="ButtonType.Submit"` to submit a form. On static pages a submit button posts like plain HTML,
+A `Button` does nothing by itself unless it's `Submit` (submits its form) or `Reset` (resets it):
+`<Button Submit>Save</Button>`. On static pages a submit button posts like plain HTML,
 including `Name`/`Value` to tell several submit buttons apart, and `Form` and `FormAction` work as
 the native attributes do. `OnClick` runs C# on interactive pages.
 
@@ -277,7 +277,7 @@ labels on top, as there's no room beside them.
     <TextField @bind-Value="Model.Street" ColSpan="GridSpan.Full" />
     <TextField @bind-Value="Model.City" />
     <Select @bind-Value="Model.Region" />
-    <Row><Button Type="ButtonType.Submit">Save</Button></Row>
+    <Row><Button Submit>Save</Button></Row>
 </Form>
 ```
 
@@ -642,7 +642,7 @@ closes it. `Size` is `Sm` (24rem), `Md` (32rem, the default), `Lg`, `Xl` or `Ful
     <ChildContent>This can't be undone.</ChildContent>
     <Footer>
         <DialogClose>Cancel</DialogClose>
-        <Button Type="ButtonType.Submit" Form="delete-form" Accent="Accent.Danger">Delete</Button>
+        <Button Submit Form="delete-form" Accent="Accent.Danger">Delete</Button>
     </Footer>
 </Dialog>
 ```
@@ -696,7 +696,7 @@ project?"), an optional `Message` or `Body`, Cancel (focused first) and a confir
 
 The backdrop doesn't close it; Escape and Cancel do.
 
-Menu items are links (`Href`), form posts (`Type="ButtonType.Submit"`, with `FormAction`, `Name`
+Menu items are links (`Href`), form posts (`Submit`, with `FormAction`, `Name`
 and `Value`) or C# actions (`OnClick`). An item takes an `Icon`, a `Shortcut` shown at the end,
 `Accent.Danger` for a destructive action, and `Disabled`. `MenuGroup` gives a few items a heading
 and `MenuDivider` draws a line. Menu roles (`menu`, `menuitem`) promise arrow keys,

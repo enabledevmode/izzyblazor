@@ -139,19 +139,6 @@ public enum ControlPosition
     End,
 }
 
-/// <summary>What a button does inside a form.</summary>
-public enum ButtonType
-{
-    /// <summary>Nothing by itself (the default). Use for actions handled in C# or by script.</summary>
-    Button,
-
-    /// <summary>Submits the form it is in.</summary>
-    Submit,
-
-    /// <summary>Resets the form it is in.</summary>
-    Reset,
-}
-
 /// <summary>Where a <see cref="NumberField{TValue}"/> puts its increase and decrease buttons.</summary>
 public enum StepButtons
 {

@@ -25,8 +25,8 @@
                     <MenuItem Icon="Lucide.Share2" Disabled="true">Share (soon)</MenuItem>
                     <MenuDivider />
                     <MenuGroup Label="Posts the form">
-                        <MenuItem Type="ButtonType.Submit" Name="action" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
-                        <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                        <MenuItem Submit Name="action" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
+                        <MenuItem Submit Name="action" Value="delete" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
                     </MenuGroup>
                 </Menu>
 
@@ -165,7 +165,7 @@
             </ChildContent>
             <Footer>
                 <DialogClose>Cancel</DialogClose>
-                <Button Type="ButtonType.Submit" Form="invite-form" StartIcon="Lucide.Mail">Send invite</Button>
+                <Button Submit Form="invite-form" StartIcon="Lucide.Mail">Send invite</Button>
             </Footer>
         </Dialog>
 
@@ -175,7 +175,7 @@
                 @* Last in a form that fills the dialog, FormActions becomes the dialog's footer. *@
                 <FormActions>
                     <DialogClose>Cancel</DialogClose>
-                    <Button Type="ButtonType.Submit">Rename</Button>
+                    <Button Submit>Rename</Button>
                 </FormActions>
             </Form>
         </Dialog>
@@ -187,7 +187,7 @@
             <Footer>
                 <DialogClose>Cancel</DialogClose>
                 <form method="get" action="@_path" style="display:contents">
-                    <Button Type="ButtonType.Submit" Name="action" Value="delete" Accent="Accent.Danger">Delete</Button>
+                    <Button Submit Name="action" Value="delete" Accent="Accent.Danger">Delete</Button>
                 </form>
             </Footer>
         </Dialog>
@@ -426,7 +426,7 @@
             <MenuItem Icon="Lucide.Copy" OnClick="Duplicate">Duplicate</MenuItem>
             <MenuDivider />
             <MenuGroup Label="Posts the form">
-                <MenuItem Type="ButtonType.Submit" Name="action" Value="delete" Accent="Accent.Danger">Delete</MenuItem>
+                <MenuItem Submit Name="action" Value="delete" Accent="Accent.Danger">Delete</MenuItem>
             </MenuGroup>
         </Menu>
 
@@ -460,7 +460,7 @@
             <ChildContent>It can't be undone.</ChildContent>
             <Footer>
                 <DialogClose>Cancel</DialogClose>
-                <Button Type="ButtonType.Submit" Form="delete-form" Accent="Accent.Danger">Delete</Button>
+                <Button Submit Form="delete-form" Accent="Accent.Danger">Delete</Button>
             </Footer>
         </Dialog>
 

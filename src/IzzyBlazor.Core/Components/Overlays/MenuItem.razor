@@ -5,7 +5,7 @@
 @*
     One entry in a Menu. Three kinds, so items act on static pages too:
       - Href: a link.
-      - Type="ButtonType.Submit": posts the surrounding form (or Form="id"), optionally to FormAction.
+      - Submit: posts the surrounding form (or Form="id"), optionally to FormAction.
       - OnClick: runs C# on interactive pages; the item closes the menu natively.
 
     Checkable: @bind-Checked makes it a checkbox item (menuitemcheckbox). Inside a MenuRadioGroup
@@ -36,7 +36,7 @@
 }
 else
 {
-    var submit = Type == ButtonType.Submit || RadioGroup?.Name is not null;
+    var submit = Submit || RadioGroup?.Name is not null;
     var closes = !submit && Menu is not null && !KeepOpen;
     <button @attributes="AdditionalAttributes"
             type="@(submit ? "submit" : "button")"
@@ -64,8 +64,8 @@ else
     /// <summary>Makes the item a link to this URL.</summary>
     [Parameter] public string? Href { get; set; }
 
-    /// <summary>For button items: <see cref="ButtonType.Submit"/> posts a form. Defaults to <see cref="ButtonType.Button"/>.</summary>
-    [Parameter] public ButtonType Type { get; set; } = ButtonType.Button;
+    /// <summary>For button items: posts the surrounding form (or <c>Form</c>), optionally to <c>FormAction</c>.</summary>
+    [Parameter] public bool Submit { get; set; }
 
     /// <summary>
     /// Makes this a checkbox item that shows a check when true, with <c>@bind-Checked</c> on
