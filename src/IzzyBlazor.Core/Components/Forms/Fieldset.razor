@@ -10,6 +10,10 @@
 
 <fieldset @attributes="AdditionalAttributes" class="@_class" style="@_style">
     <legend class="ib-fieldset-legend">@Label</legend>
+    @if (Icon is { } icon)
+    {
+        <span class="ib-fieldset-icon" aria-hidden="true"><Icon Name="icon" /></span>
+    }
     @if (Description is not null)
     {
         <p class="ib-fieldset-description">@Description</p>
@@ -22,6 +26,12 @@
 @code {
     /// <summary>The group's heading. Screen readers announce it with each field in the group.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>
+    /// An icon at the start of the heading, centered on the label and description, to tell sections
+    /// apart. Decorative. Use icons on the sections or on the rows within them, not both.
+    /// </summary>
+    [Parameter] public IconData? Icon { get; set; }
 
     /// <summary>A short explanation under the heading.</summary>
     [Parameter] public string? Description { get; set; }
@@ -55,6 +65,7 @@
     {
         classes.Add("ib-fieldset");
         classes.Add("ib-fieldset-cols", Columns > 1);
+        classes.Add("ib-fieldset-has-icon", Icon is not null);
         classes.Add("ib-fieldset-dividers", Dividers && Columns <= 1);
         base.BuildAttributes(classes, styles);
     }

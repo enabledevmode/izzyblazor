@@ -436,6 +436,12 @@ settings list:
 </Fieldset>
 ```
 
+`Icon` on a `Checkbox` or `Switch` puts an icon before the label; at the end position it's at the
+start of the row, centered on the label and hint. `Icon` on a `Fieldset` puts one at the start of
+its heading, centered on the label and description, to tell sections apart. Both are decorative
+(screen readers read only the text). Use icons on the rows or on the sections, not both, and on
+every row of a group or none.
+
 **SegmentedControl.** One choice from a few (a view, an alignment, a billing period), as joined
 buttons. They're real radio buttons drawn as segments, so it posts like a `RadioGroup`, arrow keys
 move the choice, and it works with no script. It lists enum values automatically, or takes `Items`

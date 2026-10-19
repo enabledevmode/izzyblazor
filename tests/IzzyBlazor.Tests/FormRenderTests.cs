@@ -266,6 +266,23 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
+    public void Row_and_section_icons_are_decorative()
+    {
+        var row = Render<Switch>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.ValueExpression, () => _model.Accept)
+            .Add(c => c.Label, "Sign-in alerts")
+            .Add(c => c.Icon, Lucide.KeyRound)
+            .Add(c => c.ControlPosition, ControlPosition.End));
+        Assert.Equal("true", row.Find("label.ib-check > .ib-check-icon").GetAttribute("aria-hidden"));
+        Assert.Equal("Sign-in alerts", row.Find(".ib-check-label").TextContent.Trim());
+
+        var section = Render<Fieldset>(p => p.Add(f => f.Label, "Notifications").Add(f => f.Icon, Lucide.Bell));
+        Assert.Equal("true", section.Find("fieldset > .ib-fieldset-icon").GetAttribute("aria-hidden"));
+        Assert.Equal("Notifications", section.Find("fieldset > legend").TextContent);
+    }
+
+    [Fact]
     public void Switch_has_the_switch_role()
     {
         var cut = Render<Switch>(p => p
