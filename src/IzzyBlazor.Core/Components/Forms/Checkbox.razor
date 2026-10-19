@@ -33,6 +33,10 @@
                aria-readonly="@(ShowsReadOnly ? "true" : null)"
                aria-invalid="@(Invalid ? "true" : null)"
                aria-describedby="@DescribedBy" />
+        @if (Icon is { } icon)
+        {
+            <span class="ib-check-icon" aria-hidden="true"><Icon Name="icon" /></span>
+        }
         <span class="ib-check-label">
             @if (ChildContent is not null)
             {
@@ -73,9 +77,22 @@
     /// </summary>
     [Parameter] public ControlPosition ControlPosition { get; set; }
 
+    /// <summary>
+    /// An icon before the label, such as a key for a security setting. With
+    /// <c>ControlPosition.End</c> it's centered on the label and hint, at the start of the row.
+    /// Decorative: screen readers read only the label. Use icons on every row of a group or none.
+    /// </summary>
+    [Parameter] public IconData? Icon { get; set; }
+
     /// <summary>Renders as a switch. Use <see cref="Switch"/> instead of setting this.</summary>
     protected virtual bool AsSwitch => false;
 
     private string FrameClass => WrapperClass(AsSwitch ? "switch" : "checkbox",
-        ControlPosition == ControlPosition.End ? "ib-field-control-end" : null);
+        (ControlPosition == ControlPosition.End, Icon is not null) switch
+        {
+            (true, true) => "ib-field-control-end ib-check-has-icon",
+            (true, false) => "ib-field-control-end",
+            (false, true) => "ib-check-has-icon",
+            _ => null,
+        });
 }

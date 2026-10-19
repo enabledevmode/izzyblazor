@@ -137,6 +137,28 @@
         </Box>
     </Example>
 
+    <Example Title="Icons on rows or sections" Note="Icon on a Switch or Checkbox goes at the start of the row, centered on the label and hint; Icon on a Fieldset goes at the start of its heading. Both are decorative. Use one or the other on a page, not both." Code="@IconsCode">
+        <Row Gap="8" Wrap Align="Align.Start">
+            <Box MaxWidth="30.Rem" Grow>
+                <Form Model="Notifications" FormName="notifications-icons" OnValidSubmit="() => { }">
+                    <Fieldset Label="Email notifications" Description="Icons on the rows." Dividers Gap="3">
+                        <Switch @bind-Value="Notifications!.NewDevice" Icon="Lucide.KeyRound" ControlPosition="ControlPosition.End" Hint="An email each time, with a link to sign that device out." />
+                        <Switch @bind-Value="Notifications!.Mentions" Icon="Lucide.MessageSquareCheck" ControlPosition="ControlPosition.End" Hint="When someone mentions you or replies to you." />
+                        <Switch @bind-Value="Notifications!.ProductUpdates" Icon="Lucide.LayersPlus" ControlPosition="ControlPosition.End" Hint="A short email when something new ships, about once a month." />
+                    </Fieldset>
+                </Form>
+            </Box>
+            <Box MaxWidth="30.Rem" Grow>
+                <Form Model="Notifications" FormName="notifications-section" OnValidSubmit="() => { }">
+                    <Fieldset Label="Email notifications" Description="An icon on the section." Icon="Lucide.Bell" Dividers Gap="3">
+                        <Switch @bind-Value="Notifications!.NewDevice" ControlPosition="ControlPosition.End" Hint="An email each time, with a link to sign that device out." />
+                        <Switch @bind-Value="Notifications!.Mentions" ControlPosition="ControlPosition.End" Hint="When someone mentions you or replies to you." />
+                    </Fieldset>
+                </Form>
+            </Box>
+        </Row>
+    </Example>
+
     <Example Title="Groups and sizes" Note="Fieldset groups related fields. ControlSize matches the button sizes, so fields and buttons line up." Code="@GroupsCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Address" FormName="address" OnValidSubmit="() => { }">
@@ -898,6 +920,20 @@
             bool All => Model.Comments && Model.Mentions;
             bool Some => !All && (Model.Comments || Model.Mentions);
         }
+        """;
+
+    private const string IconsCode =
+        """
+        <Fieldset Label="Email notifications" Dividers>
+            <Switch @bind-Value="Model.NewDevice" Icon="Lucide.KeyRound" ControlPosition="ControlPosition.End"
+                    Hint="An email each time, with a link to sign that device out." />
+            ...
+        </Fieldset>
+
+        <Fieldset Label="Email notifications" Icon="Lucide.Bell" Dividers>
+            <Switch @bind-Value="Model.NewDevice" ControlPosition="ControlPosition.End" Hint="..." />
+            ...
+        </Fieldset>
         """;
 
     private const string SettingsCode =

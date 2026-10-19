@@ -1613,6 +1613,43 @@
     grid-row: 1 / span 2;
   }
 
+  /* Icon on a check row: before the label, on its first line; at the end position, a column of
+     its own at the start, centered on the label and hint like the control. */
+  .ib-check-icon {
+    display: flex;
+    flex: none;
+    align-items: center;
+    height: 1lh;
+    color: var(--ib-color-muted);
+  }
+
+  .ib-field-disabled .ib-check-icon {
+    color: var(--ib-color-disabled);
+  }
+
+  .ib-field-control-end.ib-check-has-icon {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+  }
+
+  .ib-field-control-end.ib-check-has-icon :is(.ib-check-label, .ib-field-hint, .ib-field-error) {
+    grid-column: 2;
+  }
+
+  .ib-field-control-end.ib-check-has-icon :is(.ib-check-input, .ib-switch-input) {
+    grid-column: 3;
+  }
+
+  .ib-field-control-end .ib-check-icon {
+    grid-column: 1;
+    grid-row: 1;
+    align-self: center;
+    height: auto;
+  }
+
+  .ib-field-control-end:has(> .ib-field-hint) .ib-check-icon {
+    grid-row: 1 / span 2;
+  }
+
   .ib-radio-options {
     display: flex;
     flex-direction: column;
@@ -1658,6 +1695,49 @@
     display: flex;
     flex-direction: column;
     margin-top: var(--ib-space-3);
+  }
+
+  /*
+   * Fieldset Icon: the icon in a column at the start, centered on the label and description. A
+   * floated legend isn't drawn in the fieldset's border, so it can be a grid item like the rest.
+   */
+  .ib-fieldset-has-icon {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    column-gap: var(--ib-space-3);
+  }
+
+  .ib-fieldset-has-icon > .ib-fieldset-legend {
+    float: inline-start;
+    grid-column: 2;
+    grid-row: 1;
+  }
+
+  .ib-fieldset-has-icon > .ib-fieldset-description {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  /* Even line heights, so the icon, centered on them, lands on whole pixels. */
+  .ib-fieldset-has-icon > :is(.ib-fieldset-legend, .ib-fieldset-description) {
+    line-height: round(up, calc(1em * var(--ib-leading-normal)), 2px);
+  }
+
+  .ib-fieldset-has-icon > .ib-fieldset-icon {
+    --ib-icon-size: var(--ib-control-icon-lg);
+    display: flex;
+    grid-column: 1;
+    grid-row: 1 / span 2;
+    align-self: center;
+    color: var(--ib-color-muted);
+  }
+
+  .ib-fieldset-has-icon:not(:has(> .ib-fieldset-description)) > .ib-fieldset-icon {
+    grid-row: 1;
+  }
+
+  .ib-fieldset-has-icon > .ib-fieldset-body {
+    grid-column: 1 / -1;
   }
 
   /*
