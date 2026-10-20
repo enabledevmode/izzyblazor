@@ -7,6 +7,9 @@
  * - Where it is, the browser copies the chosen option into <selectedcontent>, but only when the
  *   choice changes. Blazor can replace that copy (enhanced navigation) or the option's markup
  *   (an interactive render), so the copy is refreshed after both.
+ *
+ * Every Select: the field's tooltip (the title on its <ib-field-control>, which the server sets to
+ * the chosen text so a value cut short can be read on hover) follows a new choice.
  */
 const supported = typeof CSS !== "undefined" && CSS.supports("appearance", "base-select");
 
@@ -60,4 +63,14 @@ export function installSelects(): void {
 
   // Blazor sets select.value directly on interactive pages; that fires no event.
   if (supported) document.addEventListener("change", (e) => e.target instanceof HTMLSelectElement && refresh(e.target), true);
+  document.addEventListener("change", (e) => e.target instanceof HTMLSelectElement && e.target.matches(".ib-field-select") && retitle(e.target), true);
+}
+
+function retitle(select: HTMLSelectElement): void {
+  const control = select.closest("ib-field-control");
+  const option = select.selectedOptions[0];
+  const text = option && option.value !== "" ? (option.dataset.ibLabel ?? option.text).trim() : "";
+  if (!control) return;
+  if (text) control.setAttribute("title", text);
+  else control.removeAttribute("title");
 }

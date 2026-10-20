@@ -303,6 +303,8 @@ public class FormRenderTests : BunitContext
 
         Assert.Equal(new[] { "Free", "Pro plan" }, options.Select(o => o.TextContent));
         Assert.True(options[1].HasAttribute("selected"));
+        // The chosen text is the field's tooltip, for a value cut short.
+        Assert.Equal("Pro plan", cut.Find("ib-field-control").GetAttribute("title"));
     }
 
     [Fact]
