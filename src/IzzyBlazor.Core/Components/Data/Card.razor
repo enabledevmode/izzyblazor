@@ -20,19 +20,19 @@
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">
-    @if (Shown(CardPartKind.Media) is { } media)
+    @if (_scope.Shown<CardMedia>() is { } media)
     {
-        <div class="ib-card-media">@Outlet(media)</div>
+        <div class="ib-card-media">@_scope.Outlet(media)</div>
     }
     @if (HasHeader)
     {
         <div class="ib-card-header">
-            @if (Title is not null || Description is not null || Shown(CardPartKind.Header) is not null)
+            @if (Title is not null || Description is not null || _scope.Shown<CardHeader>() is not null)
             {
                 <div class="ib-card-heading">
-                    @if (Shown(CardPartKind.Header) is { } header)
+                    @if (_scope.Shown<CardHeader>() is { } header)
                     {
-                        @Outlet(header)
+                        @_scope.Outlet(header)
                     }
                     @if (Title is not null)
                     {
@@ -44,15 +44,15 @@
                     }
                 </div>
             }
-            @if (Shown(CardPartKind.Actions) is { } actions)
+            @if (_scope.Shown<CardActions>() is { } actions)
             {
-                <div class="ib-card-actions">@Outlet(actions)</div>
+                <div class="ib-card-actions">@_scope.Outlet(actions)</div>
             }
         </div>
     }
     @if (ChildContent is not null)
     {
-        <CascadingValue Value="_context" IsFixed="true">
+        <CascadingValue Value="_scope" IsFixed="true">
             <div class="ib-card-body">@ChildContent</div>
         </CascadingValue>
     }
@@ -91,19 +91,13 @@
 
     private string? _class;
     private string? _style;
-    private readonly CardContext _context;
-    private readonly List<CardPart> _parts = [];
-    private readonly Dictionary<CardPart, CardPartOutlet> _outlets = [];
+    private PartScope _scope = null!;
 
-    /// <summary>Creates a card.</summary>
-    public Card() => _context = new CardContext(this);
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
 
     private bool HasHeader => Title is not null || Description is not null
-        || Shown(CardPartKind.Header) is not null || Shown(CardPartKind.Actions) is not null;
+        || _scope.Shown<CardHeader>() is not null || _scope.Shown<CardActions>() is not null;
 
-    // The last of a kind is drawn. While one part replaces another (@if/else), the new one is added
-    // before the old one is removed, so both are briefly in the list.
-    private CardPart? Shown(CardPartKind kind) => _parts.FindLast(p => p.Kind == kind);
 
     private RenderFragment TitleElement => builder =>
     {
@@ -125,41 +119,8 @@
         builder.CloseElement();
     };
 
-    // A part renders nothing where it's written; it hands its content to the card, which draws it
-    // in its place. Adding or removing one re-renders the card; a change to its content re-renders
-    // only the outlet, so the card's content (which holds the part) isn't rendered again.
-    internal void AddPart(CardPart part)
-    {
-        _parts.Add(part);
-        StateHasChanged();
-    }
-
-    internal void RemovePart(CardPart part)
-    {
-        _outlets.Remove(part);
-        if (_parts.Remove(part))
-        {
-            StateHasChanged();
-        }
-    }
-
-    private RenderFragment Outlet(CardPart part) => builder =>
-    {
-        builder.OpenComponent<CardPartOutlet>(0);
-        // Keyed by part, so a swapped-in part (@if/else) gets its own outlet and its reference is captured.
-        builder.SetKey(part);
-        builder.AddComponentParameter(1, nameof(CardPartOutlet.Part), part);
-        builder.AddComponentReferenceCapture(2, outlet => _outlets[part] = (CardPartOutlet)outlet);
-        builder.CloseComponent();
-    };
-
-    internal void PartChanged(CardPart part)
-    {
-        if (_outlets.TryGetValue(part, out var outlet))
-        {
-            outlet.Refresh();
-        }
-    }
+    /// <inheritdoc />
+    protected override void OnInitialized() => _scope = new PartScope(this, OuterScope, StateHasChanged);
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

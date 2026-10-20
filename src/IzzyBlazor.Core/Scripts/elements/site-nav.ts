@@ -1,15 +1,15 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 
 /**
- * <ib-header-nav> upgrades HeaderNav's sheet. The sheet is a native popover opened by its menu
+ * <ib-site-nav> upgrades SiteNav's panel. The panel is a native popover toggled by its menu
  * button, so it opens, light-dismisses and closes on Escape with no script. With script it also
- * moves focus to the close button when it opens, closes when a link in it is followed (enhanced
+ * moves focus to the first link when it opens, closes when a link in it is followed (enhanced
  * navigation keeps the page, so the popover would stay open), and closes when the screen grows
  * past the breakpoint and the row of links comes back.
  */
-class HeaderNav extends IzzyElement {
+class SiteNav extends IzzyElement {
   private get panel(): HTMLElement | null {
-    return this.querySelector<HTMLElement>(":scope > .ib-header-nav-panel");
+    return this.querySelector<HTMLElement>(":scope > .ib-site-nav-panel");
   }
 
   private get isOpen(): boolean {
@@ -32,7 +32,7 @@ class HeaderNav extends IzzyElement {
       (event) => {
         const panel = event.target as HTMLElement;
         if (panel !== this.panel || (event as ToggleEvent).newState !== "open") return;
-        panel.querySelector<HTMLElement>(".ib-header-nav-close")?.focus();
+        panel.querySelector<HTMLElement>("a[href], button, [tabindex]:not([tabindex='-1'])")?.focus();
       },
       { signal, capture: true }
     );
@@ -40,7 +40,7 @@ class HeaderNav extends IzzyElement {
     window.addEventListener(
       "resize",
       () => {
-        const toggle = this.querySelector<HTMLElement>(":scope > .ib-header-nav-toggle");
+        const toggle = this.querySelector<HTMLElement>(":scope > .ib-site-nav-toggle");
         if (this.isOpen && toggle && getComputedStyle(toggle).display === "none") this.panel?.hidePopover();
       },
       { signal }
@@ -48,4 +48,4 @@ class HeaderNav extends IzzyElement {
   }
 }
 
-defineElement("ib-header-nav", HeaderNav);
+defineElement("ib-site-nav", SiteNav);

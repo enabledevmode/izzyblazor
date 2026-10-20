@@ -59,7 +59,7 @@
                 <header class="ib-dialog-header">
                     @if (ShownHeader is not null)
                     {
-                        <div class="ib-dialog-title" id="@TitleId">@HeaderOutlet</div>
+                        <div class="ib-dialog-title" id="@TitleId">@_scope.Outlet(ShownHeader!)</div>
                     }
                     else if (Title is not null)
                     {
@@ -79,7 +79,7 @@
                 </header>
             }
             <div class="@_bodyClass" style="@_bodyStyle">
-                <CascadingValue Value="_partContext" IsFixed="true">@ChildContent</CascadingValue>
+                <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
             </div>
         </CascadingValue>
         </CascadingValue>
@@ -136,10 +136,11 @@
     [Parameter] public string? QueryKey { get; set; } = "dialog";
 
     private DialogContext _context = null!;
-    private readonly DialogPartContext _partContext;
-    private readonly List<DialogHeader> _headers = [];
-    private DialogHeader? ShownHeader => _headers.Count > 0 ? _headers[^1] : null;
-    private PartOutlet? _headerOutlet;
+    private PartScope _scope = null!;
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    private DialogHeader? ShownHeader => _scope.Shown<DialogHeader>();
     private string? _lastQueryValue;
     private bool _openedByQuery;
     private string? _class;
@@ -149,9 +150,6 @@
 
     private string TitleId => $"{ElementId}-title";
 
-    /// <summary>Creates a dialog.</summary>
-    public Dialog() => _partContext = new DialogPartContext(this);
-
     /// <inheritdoc />
     public override Task SetParametersAsync(ParameterView parameters)
     {
@@ -159,37 +157,6 @@
         return base.SetParametersAsync(parameters);
     }
 
-    // A DialogHeader renders nothing where it's written; the dialog draws the last one in its header.
-    // Adding or removing one re-renders the dialog; a change to its content re-renders only the outlet.
-    internal void AddHeader(DialogHeader header)
-    {
-        _headers.Add(header);
-        StateHasChanged();
-    }
-
-    internal void RemoveHeader(DialogHeader header)
-    {
-        if (_headers.Remove(header))
-        {
-            StateHasChanged();
-        }
-    }
-
-    internal void HeaderChanged(DialogHeader header)
-    {
-        if (header == ShownHeader)
-        {
-            _headerOutlet?.Refresh();
-        }
-    }
-
-    private RenderFragment HeaderOutlet => builder =>
-    {
-        builder.OpenComponent<PartOutlet>(0);
-        builder.AddComponentParameter(1, nameof(PartOutlet.Content), (Func<RenderFragment?>)(() => ShownHeader?.ChildContent));
-        builder.AddComponentReferenceCapture(2, outlet => _headerOutlet = (PartOutlet)outlet);
-        builder.CloseComponent();
-    };
 
     /// <inheritdoc />
     protected override string IdPrefix => "ib-dialog";
@@ -256,6 +223,8 @@
     /// <inheritdoc />
     protected override void OnInitialized()
     {
+        _scope = new PartScope(this, OuterScope, StateHasChanged);
+
         // On interactive pages the address can change without new parameters (a ?dialog= link
         // clicked again after the dialog was closed); follow it.
         Navigation.LocationChanged += OnLocationChanged;

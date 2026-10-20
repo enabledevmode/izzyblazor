@@ -18,7 +18,7 @@ import "./elements/tooltip";
 import { syncTabs } from "./elements/tabs";
 import type { ToastDetail } from "./elements/toasts";
 import { applySavedScheme } from "./elements/scheme-switch";
-import "./elements/header-nav";
+import "./elements/site-nav";
 import "./elements/banner";
 import "./elements/dismiss";
 import { installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";

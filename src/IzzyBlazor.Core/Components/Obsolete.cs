@@ -11,6 +11,12 @@ public sealed class LinkButton : Button
 {
 }
 
+/// <summary>Replaced by <see cref="SiteNav"/>.</summary>
+[Obsolete("HeaderNav is now <SiteNav>, its PanelFooter <SiteNavFooter>; the panel opens under the header, so PanelHeader is gone. HeaderNav goes in a later release.", error: true)]
+public sealed class HeaderNav : SiteNav
+{
+}
+
 /// <summary>Replaced by <see cref="DialogFooter"/>.</summary>
 [Obsolete("DialogActions is now <DialogFooter>. DialogActions goes in a later release.", error: true)]
 public sealed class DialogActions : DialogFooter

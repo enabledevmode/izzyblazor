@@ -11,8 +11,8 @@
     @if (BannerOn == "on")
     {
         <Banner Status="Status.Warning" Dismissible Position="@(BannerSticky == "on" ? BarPosition.Sticky : BarPosition.Static)">
-            <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
-            <Actions><Anchor Href='@Link("changelog")'>Details</Anchor></Actions>
+            Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
+            <BannerActions><Anchor Href='@Link("changelog")'>Details</Anchor></BannerActions>
         </Banner>
     }
     <AppHeader Bg="@Chrome" ColorScheme="@SchemeOf(HeaderScheme)">
@@ -27,10 +27,10 @@
         }
         <Box Grow />
         @* Header links; below Lg they move into the sidebar (the drawer on phones), so there is one menu. *@
-        <HeaderNav Label="Site" Breakpoint="Breakpoint.Lg">
+        <SiteNav Label="Site" Breakpoint="Breakpoint.Lg">
             <NavItem Href='@Link("docs")'>Docs</NavItem>
             <NavItem Href='@Link("changelog")'>Changelog</NavItem>
-        </HeaderNav>
+        </SiteNav>
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
     </AppHeader>
 

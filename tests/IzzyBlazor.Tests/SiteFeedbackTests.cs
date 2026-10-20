@@ -269,9 +269,9 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
-    public void HeaderNav_renders_a_row_and_a_sheet_opened_by_a_native_popover_button()
+    public void SiteNav_renders_a_row_and_a_panel_toggled_by_a_native_popover_button()
     {
-        var cut = Render<HeaderNav>(p => p
+        var cut = Render<SiteNav>(p => p
             .Add(n => n.Label, "Site")
             .Add(n => n.Id, "site-nav")
             .Add(n => n.Breakpoint, Breakpoint.Sm)
@@ -281,41 +281,42 @@ public class SiteFeedbackTests : BunitContext
                 b.AddAttribute(1, nameof(NavItem.Href), "/articles");
                 b.AddAttribute(2, nameof(NavItem.ChildContent), (RenderFragment)(t => t.AddContent(0, "Articles")));
                 b.CloseComponent();
-            }))
-            .Add(n => n.PanelFooter, (RenderFragment)(b => b.AddContent(0, "Footer"))));
+                b.OpenComponent<SiteNavFooter>(3);
+                b.AddAttribute(4, nameof(SiteNavFooter.ChildContent), (RenderFragment)(f => f.AddContent(0, "Footer")));
+                b.CloseComponent();
+            })));
 
-        var root = cut.Find("ib-header-nav");
-        Assert.Contains("ib-header-nav-bp-sm", root.ClassName);
-        Assert.Contains("ib-header-nav-end", root.ClassName);
+        var root = cut.Find("ib-site-nav");
+        Assert.Contains("ib-site-nav-bp-sm", root.ClassName);
+        Assert.Contains("ib-site-nav-end", root.ClassName);
 
-        // The same links twice: the row and the sheet, each its own labeled nav.
+        // The same links twice: the row and the panel, each its own labeled nav.
         var navs = cut.FindAll("nav");
         Assert.Equal(2, navs.Count);
         Assert.All(navs, n => Assert.Equal("Site", n.GetAttribute("aria-label")));
         Assert.Equal(2, cut.FindAll("a[href='/articles']").Count);
 
-        // The button opens the sheet with no script; the close button hides it.
-        var panel = cut.Find(".ib-header-nav-panel");
+        // The button opens and closes the panel with no script; the footer is drawn once, in the panel.
+        var panel = cut.Find(".ib-site-nav-panel");
         Assert.Equal("site-nav", panel.Id);
         Assert.True(panel.HasAttribute("popover"));
-        Assert.Equal("site-nav", cut.Find(".ib-header-nav-toggle").GetAttribute("popovertarget"));
-        Assert.Equal("Open menu", cut.Find(".ib-header-nav-toggle").GetAttribute("aria-label"));
-        var close = cut.Find(".ib-header-nav-close");
-        Assert.Equal("site-nav", close.GetAttribute("popovertarget"));
-        Assert.Equal("hide", close.GetAttribute("popovertargetaction"));
-        Assert.Equal("Footer", cut.Find(".ib-header-nav-foot").TextContent);
+        Assert.Equal("site-nav", cut.Find(".ib-site-nav-toggle").GetAttribute("popovertarget"));
+        Assert.Equal("Open menu", cut.Find(".ib-site-nav-toggle").GetAttribute("aria-label"));
+        Assert.Null(cut.Find(".ib-site-nav-toggle").GetAttribute("popovertargetaction"));
+        Assert.Equal("Footer", cut.Find(".ib-site-nav-panel .ib-site-nav-foot").TextContent);
+        Assert.Single(cut.FindAll(".ib-site-nav-foot"));
     }
 
     [Fact]
-    public void HeaderNav_is_named_Site_by_default_so_it_differs_from_the_sidebar()
+    public void SiteNav_is_named_Site_by_default_so_it_differs_from_the_sidebar()
     {
-        var cut = Render<HeaderNav>(p => p.Add(n => n.Id, "site-nav"));
+        var cut = Render<SiteNav>(p => p.Add(n => n.Id, "site-nav"));
 
         Assert.All(cut.FindAll("nav"), n => Assert.Equal("Site", n.GetAttribute("aria-label")));
     }
 
     [Fact]
-    public void HeaderNav_in_a_shell_with_a_sidebar_puts_its_links_at_the_top_of_the_sidebar()
+    public void SiteNav_in_a_shell_with_a_sidebar_puts_its_links_at_the_top_of_the_sidebar()
     {
         RenderFragment link = b =>
         {
@@ -325,15 +326,15 @@ public class SiteFeedbackTests : BunitContext
             b.CloseComponent();
         };
 
-        // The header comes first, as in a real layout: the sidebar has rendered before HeaderNav does.
+        // The header comes first, as in a real layout: the sidebar has rendered before SiteNav does.
         var cut = Render<AppShell>(p => p.Add(s => s.ChildContent, (RenderFragment)(b =>
         {
             b.OpenComponent<AppHeader>(0);
             b.AddAttribute(1, nameof(AppHeader.ChildContent), (RenderFragment)(h =>
             {
-                h.OpenComponent<HeaderNav>(0);
-                h.AddAttribute(1, nameof(HeaderNav.Breakpoint), Breakpoint.Lg);
-                h.AddAttribute(2, nameof(HeaderNav.ChildContent), link);
+                h.OpenComponent<SiteNav>(0);
+                h.AddAttribute(1, nameof(SiteNav.Breakpoint), Breakpoint.Lg);
+                h.AddAttribute(2, nameof(SiteNav.ChildContent), link);
                 h.CloseComponent();
             }));
             b.CloseComponent();
@@ -350,7 +351,7 @@ public class SiteFeedbackTests : BunitContext
     }
 
     [Fact]
-    public void AppSidebar_without_a_HeaderNav_has_no_header_links()
+    public void AppSidebar_without_a_SiteNav_has_no_header_links()
     {
         var cut = Render<AppShell>(p => p.Add(s => s.ChildContent, (RenderFragment)(b =>
         {

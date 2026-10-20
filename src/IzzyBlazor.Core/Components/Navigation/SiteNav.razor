@@ -1,0 +1,116 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@implements IDisposable
+
+@*
+    A site's links in an AppHeader: a row of links on wide screens and, below Breakpoint, a menu
+    button that opens the same links in a panel just under the header. The same button closes it
+    (its icon turns into a close icon), so the header, with the site's name, stays in view. For
+    sites with no sidebar; an app with a sidebar puts its links there and uses SidebarToggle.
+
+    <AppHeader>
+        <AppBrand Href="/" Label="Acme" />
+        <Box Grow />
+        <SiteNav>
+            <NavItem Href="/projects">Projects</NavItem>
+            <NavItem Href="/articles">Articles</NavItem>
+            <SiteNavFooter><ColorSchemeSwitch /></SiteNavFooter>
+        </SiteNav>
+    </AppHeader>
+
+    The items render twice, once in the row and once in the panel; only one of them shows at a time.
+    The panel is a native popover opened by its button, so it works with JavaScript off (light
+    dismiss and Escape come from the browser). It sits under the header through CSS anchor
+    positioning, or under the shell's header height where that isn't supported. With script,
+    <ib-site-nav> also closes it when a link is followed (enhanced navigation keeps the page) or
+    the screen grows past the breakpoint, and moves focus to the first link when it opens.
+
+    Inside an AppShell with an AppSidebar, the menu button and panel stay hidden: below the
+    breakpoint the links show at the top of the sidebar (its drawer on phones), so there is one menu.
+*@
+
+<ib-site-nav @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <nav class="ib-site-nav-bar" aria-label="@NavLabel">
+        <ul class="ib-nav ib-nav-horizontal">
+            @* The row's copy: its parts are the panel's, so they're discarded here. *@
+            <CascadingValue Value="PartScope.Discard" IsFixed="true">@ChildContent</CascadingValue>
+        </ul>
+    </nav>
+    <button type="button"
+            class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-site-nav-toggle"
+            popovertarget="@PanelId"
+            aria-label="@(MenuLabel ?? TextDefaults.OpenMenu)">
+        <Icon Role="IconRole.Menu" Class="ib-site-nav-open-icon" />
+        <Icon Role="IconRole.Close" Class="ib-site-nav-close-icon" />
+    </button>
+    <div id="@PanelId" popover class="ib-site-nav-panel">
+        <div class="ib-site-nav-sheet">
+            <nav class="ib-site-nav-body" aria-label="@NavLabel">
+                <ul class="ib-nav ib-nav-vertical">
+                    <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
+                </ul>
+            </nav>
+            @if (_scope.Shown<SiteNavFooter>() is { } footer)
+            {
+                <div class="ib-site-nav-foot">@_scope.Outlet(footer)</div>
+            }
+        </div>
+    </div>
+</ib-site-nav>
+
+@code {
+    /// <summary>The links: <see cref="NavItem"/>, plus <see cref="NavDivider"/> or <see cref="NavLabel"/>, and any <see cref="SiteNavFooter"/>.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>Below this width the links fold into the menu button. Defaults to <see cref="Breakpoint.Md"/>.</summary>
+    [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.Md;
+
+    /// <summary>The navigation landmark's name for screen readers. Defaults to "Site", so it differs from the sidebar's "Main".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The menu button's name. Defaults to "Open menu"; screen readers also hear whether the panel is open.</summary>
+    [Parameter] public string? MenuLabel { get; set; }
+
+    /// <summary>
+    /// Puts the menu button at the end of the header on small screens, where people look for it,
+    /// whatever comes after the links. Defaults to true; false leaves it where the links are.
+    /// </summary>
+    [Parameter] public bool MenuButtonAtEnd { get; set; } = true;
+
+    private PartScope _scope = null!;
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    /// <summary>The panel's id. Generated when not set.</summary>
+    [Parameter] public string? Id { get; set; }
+
+    private string NavLabel => Label ?? TextDefaults.SiteNavigation;
+    private string PanelId => Id ?? (_generatedId ??= IdGenerator.Next("ib-site-nav"));
+    private string? _generatedId;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-site-nav");
+        classes.Add($"ib-site-nav-bp-{Breakpoint.Name()}");
+        classes.Add("ib-site-nav-end", MenuButtonAtEnd);
+        base.BuildAttributes(classes, styles);
+    }
+
+    [CascadingParameter] private ShellHeaderLinks? ShellLinks { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _scope = new PartScope(this, OuterScope, StateHasChanged);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        ShellLinks?.Set(ChildContent, Breakpoint);
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => ShellLinks?.Set(null, Breakpoint);
+}

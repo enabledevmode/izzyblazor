@@ -19,20 +19,14 @@
         <AppHeader>
             <AppBrand Href="@Url(Kind)" Icon="Lucide.Zap" Label="Acme Labs" />
             <Box Grow />
-            <HeaderNav Label="Site">
-                <ChildContent>
-                    <NavItem Href="@Url("marketing")">Projects</NavItem>
-                    <NavItem Href="@Url("reading")">Articles</NavItem>
-                    <NavItem Href="@Url("document")">Guides</NavItem>
-                </ChildContent>
-                <PanelHeader>
-                    <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
-                    <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
-                </PanelHeader>
-                <PanelFooter>
+            <SiteNav Label="Site">
+                <NavItem Href="@Url("marketing")">Projects</NavItem>
+                <NavItem Href="@Url("reading")">Articles</NavItem>
+                <NavItem Href="@Url("document")">Guides</NavItem>
+                <SiteNavFooter>
                     <Button Href="@Url("marketing")" StartIcon="Lucide.Play" FullWidth>Watch the series</Button>
-                </PanelFooter>
-            </HeaderNav>
+                </SiteNavFooter>
+            </SiteNav>
             <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
             <IconButton Icon="Brands.YouTube" Label="YouTube" Href="https://youtube.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         </AppHeader>
@@ -144,16 +138,10 @@
         <AppHeader>
             <AppBrand Href="@Url(Kind)" Icon="Lucide.Zap" Label="Acme Journal" />
             <Box Grow />
-            <HeaderNav Label="Sections" Breakpoint="Breakpoint.Sm">
-                <ChildContent>
-                    <NavItem Href="@Url("reading")">Articles</NavItem>
-                    <NavItem Href="@Url("document")">Guides</NavItem>
-                </ChildContent>
-                <PanelHeader>
-                    <Icon Name="Lucide.Zap" Color="Color.PrimaryText" Size="IconSize.Lg" />
-                    <TextBlock As="span" Weight="FontWeight.Bold">Acme Journal</TextBlock>
-                </PanelHeader>
-            </HeaderNav>
+            <SiteNav Label="Sections" Breakpoint="Breakpoint.Sm">
+                <NavItem Href="@Url("reading")">Articles</NavItem>
+                <NavItem Href="@Url("document")">Guides</NavItem>
+            </SiteNav>
             <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         </AppHeader>
         <AppMain>
@@ -211,11 +199,11 @@
         {
             @* A docs site: site links in the header as well as the sidebar. On phones they move to the
                top of the drawer, so there is one menu. *@
-            <HeaderNav Label="Site">
+            <SiteNav Label="Site">
                 <NavItem Href="@Url("document")">Docs</NavItem>
                 <NavItem Href="@Url("reading")">Blog</NavItem>
                 <NavItem Href="@Url("marketing")">Videos</NavItem>
-            </HeaderNav>
+            </SiteNav>
         }
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         <Avatar Name="Ada Lovelace" />

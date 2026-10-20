@@ -3,84 +3,13 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
-/// <summary>Where a <see cref="CardPart"/> is drawn.</summary>
-internal enum CardPartKind
-{
-    Media,
-    Header,
-    Actions,
-}
-
-/// <summary>What a <see cref="Card"/> cascades to its parts.</summary>
-internal sealed class CardContext(Card card)
-{
-    public Card Card { get; } = card;
-}
-
-/// <summary>
-/// A part of a <see cref="Card"/> that the card draws in its own place, wherever it's written
-/// directly in the card. It's drawn at the card's level, so a form or cascading value it's written
-/// inside doesn't reach its content.
-/// </summary>
-public abstract class CardPart : ComponentBase, IDisposable
-{
-    private bool _added;
-
-    private protected CardPart()
-    {
-    }
-
-    /// <summary>The part's content.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    [CascadingParameter] private CardContext? Context { get; set; }
-
-    internal abstract CardPartKind Kind { get; }
-
-    /// <inheritdoc />
-    protected sealed override void OnParametersSet()
-    {
-        if (Context is null)
-        {
-            throw new InvalidOperationException($"{GetType().Name} must be inside a Card.");
-        }
-
-        if (_added)
-        {
-            Context.Card.PartChanged(this);
-        }
-        else
-        {
-            _added = true;
-            Context.Card.AddPart(this);
-        }
-    }
-
-    /// <inheritdoc />
-    protected sealed override void BuildRenderTree(RenderTreeBuilder builder)
-    {
-        // Drawn by the card, not here.
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        if (_added)
-        {
-            Context?.Card.RemovePart(this);
-        }
-
-        GC.SuppressFinalize(this);
-    }
-}
-
 /// <summary>
 /// An image or video at the top of a <see cref="Card"/>, edge to edge. Write it directly in the card.
 /// </summary>
 /// <example><code>&lt;CardMedia&gt;&lt;img src="cover.jpg" alt="" /&gt;&lt;/CardMedia&gt;</code></example>
-public sealed class CardMedia : CardPart
+public sealed class CardMedia : ComponentPart
 {
-    internal override CardPartKind Kind => CardPartKind.Media;
+    internal override Type HostType => typeof(Card);
 }
 
 /// <summary>
@@ -88,9 +17,9 @@ public sealed class CardMedia : CardPart
 /// beside any <see cref="CardActions"/>. Write it directly in the card.
 /// </summary>
 /// <example><code>&lt;CardHeader&gt;&lt;Avatar Name="Maya Reyes" /&gt;&lt;/CardHeader&gt;</code></example>
-public sealed class CardHeader : CardPart
+public sealed class CardHeader : ComponentPart
 {
-    internal override CardPartKind Kind => CardPartKind.Header;
+    internal override Type HostType => typeof(Card);
 }
 
 /// <summary>
@@ -98,19 +27,9 @@ public sealed class CardHeader : CardPart
 /// a linked card. Write it directly in the card.
 /// </summary>
 /// <example><code>&lt;CardActions&gt;&lt;IconButton Icon="Lucide.Ellipsis" Label="More" /&gt;&lt;/CardActions&gt;</code></example>
-public sealed class CardActions : CardPart
+public sealed class CardActions : ComponentPart
 {
-    internal override CardPartKind Kind => CardPartKind.Actions;
-}
-
-/// <summary>Draws a <see cref="CardPart"/>'s content in the card.</summary>
-internal sealed class CardPartOutlet : ComponentBase
-{
-    [Parameter] public CardPart? Part { get; set; }
-
-    public void Refresh() => StateHasChanged();
-
-    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, Part?.ChildContent);
+    internal override Type HostType => typeof(Card);
 }
 
 /// <summary>

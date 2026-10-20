@@ -21,9 +21,9 @@
             <Icon Name="icon" />
         }
         <span class="ib-accordion-title">
-            @if (Header is not null)
+            @if (_scope.Shown<AccordionHeader>() is { } header)
             {
-                @Header
+                @_scope.Outlet(header)
             }
             else
             {
@@ -33,16 +33,35 @@
         <Icon Role="IconRole.ChevronDown" Class="ib-accordion-chevron" />
     </summary>
     <div class="@_panelClass" style="@_panelStyle">
-        @ChildContent
+        <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
     </div>
 </details>
 
 @code {
-    /// <summary>The heading text. Use <see cref="Header"/> for richer content.</summary>
+    /// <summary>The heading text. Use an <see cref="AccordionHeader"/> for richer content.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Heading content, in place of <see cref="Title"/>. Keep it to inline content: it sits in a <c>summary</c>.</summary>
-    [Parameter] public RenderFragment? Header { get; set; }
+    /// <summary>Replaced by <see cref="AccordionHeader"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Write <AccordionHeader> in the item instead. Header goes in a later release.", error: true)]
+    public RenderFragment? Header { get; set; }
+
+    private PartScope _scope = null!;
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        RemovedSlots.Check(parameters, nameof(AccordionItem), ("Header", "AccordionHeader"));
+        return base.SetParametersAsync(parameters);
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _scope = new PartScope(this, OuterScope, StateHasChanged);
+    }
 
     /// <summary>An icon before the heading.</summary>
     [Parameter] public IconData? Icon { get; set; }
@@ -88,11 +107,6 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        if (Title is null && Header is null)
-        {
-            throw new InvalidOperationException("AccordionItem needs a Title or a Header.");
-        }
-
         (_class, _style) = BuildRootAttributes();
 
         var padding = ContentPadding.IsEmpty ? Accordion?.ContentPadding ?? default : ContentPadding;
