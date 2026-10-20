@@ -654,12 +654,12 @@
 
   /* DialogBody fills the body (as a column with the footer after it), so the footer sits at the
      bottom of a tall drawer. In a form, the form fills the body and the DialogBody the form. */
-  .ib-dialog-body:has(> .ib-dialog-content, > form:last-child > .ib-dialog-content) {
+  .ib-dialog-body:has(> .ib-dialog-content, > form:last-child > .ib-dialog-content, > form:last-child > .ib-form-grid > .ib-dialog-content) {
     display: flex;
     flex-direction: column;
   }
 
-  .ib-dialog-body > form:last-child:has(> .ib-dialog-content) {
+  .ib-dialog-body > form:last-child:has(> .ib-dialog-content, > .ib-form-grid > .ib-dialog-content) {
     display: flex;
     flex: 1 0 auto;
     flex-direction: column;
@@ -668,6 +668,17 @@
   .ib-dialog-body > .ib-dialog-content,
   .ib-dialog-body > form:last-child > .ib-dialog-content {
     flex: 1 0 auto;
+  }
+
+  /* A Form with Columns: the grid fills the form, the DialogBody takes the stretching row and every column. */
+  .ib-dialog-body > form:last-child > .ib-form-grid:has(> .ib-dialog-content) {
+    flex: 1 0 auto;
+    grid-template-rows: 1fr;
+    grid-auto-rows: auto;
+  }
+
+  .ib-form-grid > .ib-dialog-content {
+    grid-column: 1 / -1;
   }
 
   .ib-dialog-content.ib-dialog-flush {

@@ -552,11 +552,15 @@ The panel is a native popover, so it opens, closes on Escape and closes on a cli
 JavaScript off. It lines up under the header with CSS anchor positioning; where that isn't
 supported, it sits under the shell's header height. With JavaScript it also moves focus to the first
 link, and closes after a link is followed (enhanced navigation keeps the page) or when the screen
-grows past the breakpoint. The items render twice (row and panel), so keep them to links.
+grows past the breakpoint. The items render twice (row and panel), so keep them to links. With
+JavaScript off, a link to a section of the same page (`#features`) leaves the panel open. With
+`MenuButtonAtEnd`, the button is drawn at the header's end but keeps its place in the Tab order, so
+for keyboard users put the SiteNav last in the header, or set `MenuButtonAtEnd="false"`.
 
 With an `AppSidebar` in the shell there is one menu, not two: SiteNav's button and panel stay
 hidden, and below its breakpoint its links show at the top of the sidebar, above a line (in the
-drawer on phones, or in the sidebar column if SiteNav's breakpoint is the wider one).
+drawer on phones, or in the sidebar column if SiteNav's breakpoint is the wider one). A
+`SiteNavFooter` doesn't move with them: put that content in the `SidebarFooter`.
 
 **Sidebar header and footer.** `SidebarHeader` and `SidebarFooter`, written directly in the
 `AppSidebar` among its content, are pinned to its top and bottom (a workspace switcher, an account
@@ -625,7 +629,8 @@ keep one item open, and heights animate with no script where the browser support
   `Size` (`Lg` for FAQ pages), and `ContentPadding`/`ContentGap` for every item's content (`0`
   padding lets a table run edge to edge). `Name` groups several accordions as one exclusive set.
 - `AccordionItem`: `Title` (or an `AccordionHeader` part for inline markup), `Icon`, `Disabled`, `Open`, and its own
-  `ContentPadding`/`ContentGap`.
+  `ContentPadding`/`ContentGap`. Give every item one or the other: the heading is the item's only
+  name for screen readers.
 - `Collapsible`: a `Label` after a chevron, or your own `Trigger` content.
 
 ## Overlays
@@ -684,7 +689,8 @@ Parts are written among the content:
   bottom of a side drawer however short the content is.
 - `DialogBody` (optional) is the body with `Stack`'s layout props. It fills the dialog's height, so
   the `DialogFooter` after it sits at the bottom of a drawer; in a form, put both in the form.
-  `Flush` runs it to the dialog's sides, for a table or a list.
+  `Flush` runs it to the dialog's sides, for a table or a list. With a `DialogBody`, put all the
+  body's content in it: text written beside it is laid out as separate rows.
 - `DialogHeader` is heading content in place of `Title` (a title with an icon or badge). It's drawn
   in the header row beside the close button and names the dialog for screen readers. Like
   `CardHeader`, a form or cascading value it's written inside doesn't reach it.

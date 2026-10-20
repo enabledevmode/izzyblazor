@@ -56,8 +56,8 @@
         <div class="ib-shell-sidebar-body">
             @if (HeaderLinks?.Links is { } links)
             {
-                @* A SiteNav's links, shown here below its breakpoint (see SiteNav). Parts among them
-                   (SiteNavFooter) belong to the SiteNav, which draws them; here they're discarded. *@
+                @* A SiteNav's links, shown here below its breakpoint (see SiteNav). A SiteNavFooter among
+                   them isn't shown here (the sidebar has its own SidebarFooter), so it's discarded. *@
                 <ul class="@($"ib-nav ib-nav-vertical ib-shell-sidebar-links ib-shell-sidebar-links-bp-{HeaderLinks.Breakpoint.Name()}")">
                     <CascadingValue Value="PartScope.Discard" IsFixed="true">@links</CascadingValue>
                 </ul>

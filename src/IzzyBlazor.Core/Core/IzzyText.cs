@@ -219,6 +219,9 @@ public class IzzyText
     /// <summary>SiteNav's name: different from the sidebar's, since both can be on screen.</summary>
     public virtual string SiteNavigation { get; set; } = "Site";
 
+    /// <summary>SiteNav's menu button, which opens and closes its panel (screen readers also hear whether it's open).</summary>
+    public virtual string Menu { get; set; } = "Menu";
+
     /// <summary>The button that opens the sidebar drawer on phones.</summary>
     public virtual string OpenMenu { get; set; } = "Open menu";
 

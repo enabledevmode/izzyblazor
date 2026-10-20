@@ -36,4 +36,25 @@ public class PartSwapTests : BunitContext
 
         Assert.Equal("B 1", text);
     }
+
+    [Theory]
+    [InlineData("banner", "BannerActions")]
+    [InlineData("empty", "EmptyStateActions")]
+    [InlineData("accordion", "AccordionHeader")]
+    [InlineData("dialog", "DialogFooter")]
+    [InlineData("sidebar", "SidebarHeader")]
+    public void A_removed_slot_written_as_a_child_element_names_its_part(string kind, string part)
+    {
+        var error = Assert.ThrowsAny<InvalidOperationException>(() => Render<RemovedSlotProbe>(p => p.Add(r => r.Kind, kind)));
+
+        Assert.Contains(part, error.Message);
+    }
+
+    [Fact]
+    public void A_part_outside_its_component_says_where_it_belongs()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Render<CardActions>());
+
+        Assert.Equal("CardActions must be inside a Card.", error.Message);
+    }
 }

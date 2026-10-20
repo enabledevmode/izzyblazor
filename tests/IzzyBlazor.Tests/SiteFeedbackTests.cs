@@ -301,7 +301,7 @@ public class SiteFeedbackTests : BunitContext
         Assert.Equal("site-nav", panel.Id);
         Assert.True(panel.HasAttribute("popover"));
         Assert.Equal("site-nav", cut.Find(".ib-site-nav-toggle").GetAttribute("popovertarget"));
-        Assert.Equal("Open menu", cut.Find(".ib-site-nav-toggle").GetAttribute("aria-label"));
+        Assert.Equal("Menu", cut.Find(".ib-site-nav-toggle").GetAttribute("aria-label"));
         Assert.Null(cut.Find(".ib-site-nav-toggle").GetAttribute("popovertargetaction"));
         Assert.Equal("Footer", cut.Find(".ib-site-nav-panel .ib-site-nav-foot").TextContent);
         Assert.Single(cut.FindAll(".ib-site-nav-foot"));

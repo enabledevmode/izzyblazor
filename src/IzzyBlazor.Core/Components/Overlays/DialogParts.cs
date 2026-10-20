@@ -55,8 +55,9 @@ public class DialogFooter : FlexBase
 /// <c>Justify</c> and <c>Direction</c>, like <see cref="Stack"/>. Optional: content written straight
 /// in the dialog is its body too. It fills the dialog's height, so a <see cref="DialogFooter"/>
 /// after it sits at the bottom of a side drawer whatever the content's length; put it and the
-/// footer in a form to keep the footer's buttons in the form. <see cref="Flush"/> runs it to the
-/// dialog's edges, for a table or a list.
+/// footer in a form to keep the footer's buttons in the form. With a DialogBody, put all the body's
+/// content in it: text written beside it is laid out as separate rows. <see cref="Flush"/> runs it
+/// to the dialog's edges, for a table or a list.
 /// </summary>
 /// <example>
 /// <code>

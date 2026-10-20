@@ -218,6 +218,12 @@
     min-width: 0;
   }
 
+  /* SidebarBody: the same gap as content written straight in the sidebar, filling its height. */
+  .ib-shell-sidebar-content {
+    flex: 1 0 auto;
+    gap: var(--ib-space-2);
+  }
+
   /*
    * The pinned rows have no lines at rest. A line shows at the content's top or bottom edge
    * only while content is scrolled out of view there, and only next to a pinned row. No script:

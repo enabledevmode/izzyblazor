@@ -178,13 +178,13 @@
 
   /*
    * The panel covers the screen below the header with the backdrop color; the sheet of links sits
-   * at its top. The panel lets clicks through to the page (light dismiss closes it), the sheet
-   * takes them. Under the header: anchored to it where anchor positioning is supported, else the
-   * shell's header height (a header that has scrolled away then leaves a gap).
+   * at its top, over a scrim that closes the panel when tapped (so the tap doesn't reach the page).
+   * Under the header: anchored to it where anchor positioning is supported, else the shell's banner
+   * and header height (a header that has scrolled away then leaves a gap).
    */
   .ib-site-nav-panel {
     position: fixed;
-    inset: calc(var(--ib-shell-top, 0px) + var(--ib-shell-header-h, 3.5rem)) 0 0;
+    inset: calc(var(--ib-shell-banner-top, 0px) + var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px)) 0 0;
     box-sizing: border-box;
     width: 100%;
     max-width: none;
@@ -196,7 +196,6 @@
     border: 0;
     background-color: var(--ib-color-backdrop);
     color: var(--ib-shell-header-fg, var(--ib-color-on-surface));
-    pointer-events: none;
     transition:
       opacity var(--ib-duration-normal) var(--ib-ease),
       overlay var(--ib-duration-normal) allow-discrete,
@@ -220,7 +219,18 @@
     background-color: transparent;
   }
 
+  .ib-site-nav-scrim {
+    position: absolute;
+    inset: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    cursor: default;
+  }
+
   .ib-site-nav-sheet {
+    position: relative;
     display: flex;
     flex-direction: column;
     min-height: 0;
@@ -230,7 +240,6 @@
     border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     background-color: var(--ib-shell-header-bg, var(--ib-shell-tone, var(--ib-color-surface)));
     box-shadow: var(--ib-shadow-lg);
-    pointer-events: auto;
     transition: translate var(--ib-duration-normal) var(--ib-ease);
   }
 
@@ -261,10 +270,6 @@
         translate: 0 -0.5rem;
       }
     }
-  }
-
-  html:has(.ib-site-nav-panel:popover-open) {
-    overflow: hidden;
   }
 
   /* Link text lines up with the header's content edge (16px): 4px here plus the item's 12px. */
@@ -303,6 +308,11 @@
     .ib-site-nav-bp-sm > .ib-site-nav-bar {
       display: none;
     }
+
+    /* While the panel is open the page doesn't scroll (only below the breakpoint, where it shows). */
+    html:has(.ib-site-nav-bp-sm > .ib-site-nav-panel:popover-open) {
+      overflow: hidden;
+    }
   }
 
   @media (width >= 768px) {
@@ -316,6 +326,11 @@
   @media (width < 768px) {
     .ib-site-nav-bp-md > .ib-site-nav-bar {
       display: none;
+    }
+
+    /* While the panel is open the page doesn't scroll (only below the breakpoint, where it shows). */
+    html:has(.ib-site-nav-bp-md > .ib-site-nav-panel:popover-open) {
+      overflow: hidden;
     }
   }
 
@@ -331,6 +346,11 @@
     .ib-site-nav-bp-lg > .ib-site-nav-bar {
       display: none;
     }
+
+    /* While the panel is open the page doesn't scroll (only below the breakpoint, where it shows). */
+    html:has(.ib-site-nav-bp-lg > .ib-site-nav-panel:popover-open) {
+      overflow: hidden;
+    }
   }
 
   @media (width >= 1280px) {
@@ -344,6 +364,11 @@
   @media (width < 1280px) {
     .ib-site-nav-bp-xl > .ib-site-nav-bar {
       display: none;
+    }
+
+    /* While the panel is open the page doesn't scroll (only below the breakpoint, where it shows). */
+    html:has(.ib-site-nav-bp-xl > .ib-site-nav-panel:popover-open) {
+      overflow: hidden;
     }
   }
 
