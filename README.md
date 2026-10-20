@@ -40,14 +40,14 @@ choose a different component for each.
 - **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio, Section
 - **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
   SiteNav
-- **Typography:** TextBlock, Heading, Anchor, Code (with syntax highlighting), Kbd, List, Prose, Icon
-  (all of Lucide, plus brand logos)
-- **Actions:** Button, IconButton, ButtonGroup, ConfirmButton
+- **Typography:** TextBlock, Heading (with anchor links), Anchor, Code (with syntax highlighting,
+  line numbers and highlighted lines), Kbd, List, Prose, Icon (all of Lucide, plus brand logos)
+- **Actions:** Button, IconButton, ButtonGroup, ConfirmButton, CopyButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberField, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
   Fieldset, FilterForm
 - **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
-- **Navigation:** Tabs, Stepper, Breadcrumb, Pagination
+- **Navigation:** Tabs, Stepper, Breadcrumb, Pagination, OnThisPage, PrevNext
 - **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
 - **Data and media:** Card, Table, Stat, DescriptionList, Timeline, Avatar, AvatarGroup, Image,
   VideoEmbed
