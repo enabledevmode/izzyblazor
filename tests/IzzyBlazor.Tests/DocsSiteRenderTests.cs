@@ -143,4 +143,20 @@ public class DocsSiteRenderTests : BunitContext
         Assert.Throws<InvalidOperationException>(() => Render<CopyButton>(p => p.Add(c => c.Text, "a").Add(c => c.For, "b")));
     }
 
+    [Fact]
+    public void PrevNext_links_the_pages_around_this_one()
+    {
+        var both = Render<PrevNext>(p => p
+            .Add(n => n.PreviousHref, "/docs/install").Add(n => n.PreviousTitle, "Install")
+            .Add(n => n.NextHref, "/docs/theming").Add(n => n.NextTitle, "Theming"));
+
+        Assert.Equal("More pages", both.Find("nav").GetAttribute("aria-label"));
+        Assert.Equal("Previous Install", both.Find("a[rel=prev]").TextContent.Trim().Replace("\n", " ").Split(' ', StringSplitOptions.RemoveEmptyEntries).Aggregate((a, b) => $"{a} {b}"));
+        Assert.Equal("/docs/theming", both.Find("a[rel=next]").GetAttribute("href"));
+
+        var last = Render<PrevNext>(p => p.Add(n => n.PreviousHref, "/docs/install").Add(n => n.PreviousTitle, "Install"));
+        Assert.Empty(last.FindAll("a[rel=next]"));
+        Assert.Empty(Render<PrevNext>().FindAll("nav"));
+        Assert.Throws<InvalidOperationException>(() => Render<PrevNext>(p => p.Add(n => n.NextHref, "/x")));
+    }
 }

@@ -1,0 +1,77 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+
+@*
+    Previous and next links for the end of an article: two cards with the page titles, side by
+    side from 32rem of width up (the previous one at the start, the next at the end), stacked
+    below. Plain links with rel="prev" and rel="next", so it needs no script.
+
+    <PrevNext PreviousHref="docs/install" PreviousTitle="Install"
+              NextHref="docs/theming" NextTitle="Theming" />
+*@
+
+@if (PreviousHref is not null || NextHref is not null)
+{
+    <nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.PrevNextNavigation)" class="@_class" style="@_style">
+        <div class="ib-prev-next-grid">
+            @if (PreviousHref is not null)
+            {
+                <a class="ib-prev-next-link ib-prev-next-prev" href="@PreviousHref" rel="prev">
+                    <span class="ib-prev-next-dir"><Icon Role="IconRole.ChevronLeft" Class="ib-prev-next-icon" />@(PreviousText ?? TextDefaults.Previous)</span>
+                    <span class="ib-prev-next-title">@PreviousTitle</span>
+                </a>
+            }
+            @if (NextHref is not null)
+            {
+                <a class="ib-prev-next-link ib-prev-next-next" href="@NextHref" rel="next">
+                    <span class="ib-prev-next-dir">@(NextText ?? TextDefaults.Next)<Icon Role="IconRole.ChevronRight" Class="ib-prev-next-icon" /></span>
+                    <span class="ib-prev-next-title">@NextTitle</span>
+                </a>
+            }
+        </div>
+    </nav>
+}
+
+@code {
+    /// <summary>The previous page's URL. Leave it out on the first page.</summary>
+    [Parameter] public string? PreviousHref { get; set; }
+
+    /// <summary>The previous page's title.</summary>
+    [Parameter] public string? PreviousTitle { get; set; }
+
+    /// <summary>The next page's URL. Leave it out on the last page.</summary>
+    [Parameter] public string? NextHref { get; set; }
+
+    /// <summary>The next page's title.</summary>
+    [Parameter] public string? NextTitle { get; set; }
+
+    /// <summary>The small text above the previous page's title. Defaults to "Previous".</summary>
+    [Parameter] public string? PreviousText { get; set; }
+
+    /// <summary>The small text above the next page's title. Defaults to "Next".</summary>
+    [Parameter] public string? NextText { get; set; }
+
+    /// <summary>The navigation landmark's name. Defaults to "More pages".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-prev-next");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if ((PreviousHref is not null && string.IsNullOrWhiteSpace(PreviousTitle)) || (NextHref is not null && string.IsNullOrWhiteSpace(NextTitle)))
+        {
+            throw new InvalidOperationException("PrevNext needs a title for each link it shows: PreviousTitle with PreviousHref, NextTitle with NextHref.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+}
