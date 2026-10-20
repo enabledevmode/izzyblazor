@@ -23,7 +23,9 @@
     }
     else
     {
-    <ib-field-control class="ib-field-control ib-has-end">
+    @* The chosen text as a tooltip, so a value cut short can be read on hover. It's on the wrapper,
+       not the select, so screen readers don't hear the value twice. The script keeps it current. *@
+    <ib-field-control class="ib-field-control ib-has-end" title="@(ReadOnlyText is { Length: > 0 } chosen ? chosen : null)">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
                 class="ib-field-input ib-field-select"
