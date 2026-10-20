@@ -110,7 +110,12 @@ public class DisplayRenderTests : BunitContext
             .Add(e => e.TitleLevel, 2)
             .Add(e => e.Description, "Invoices you send appear here.")
             .Add(e => e.Bordered, true)
-            .Add(e => e.Actions, (RenderFragment)(b => b.AddContent(0, "New invoice")))).Find(".ib-empty");
+            .AddChildContent(b =>
+            {
+                b.OpenComponent<EmptyStateActions>(0);
+                b.AddAttribute(1, nameof(EmptyStateActions.ChildContent), (RenderFragment)(a => a.AddContent(0, "New invoice")));
+                b.CloseComponent();
+            })).Find(".ib-empty");
 
         Assert.Contains("ib-empty-bordered", empty.ClassName);
         Assert.Equal("true", empty.QuerySelector(".ib-empty-icon")!.GetAttribute("aria-hidden"));

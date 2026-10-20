@@ -120,16 +120,16 @@
         </NavMenu>
     </Example>
 
-    <Example Title="Header links on phones" Note="For sites with no sidebar. HeaderNav is a row of links in the header from its Breakpoint up (Md by default); below it a menu button opens the same links as a sheet from the top, with the close button where the menu button was. It is a native popover, so it works with JavaScript off. PanelHeader and PanelFooter add the site name and extra content to the sheet. The frames are live: try the menu button on the left." Code="@HeaderNavCode">
+    <Example Title="Header links on phones" Note="For sites with no sidebar. SiteNav is a row of links in the header from its Breakpoint up (Md by default); below it a menu button opens the same links as a sheet from the top, with the close button where the menu button was. It is a native popover, so it works with JavaScript off. PanelHeader and PanelFooter add the site name and extra content to the sheet. The frames are live: try the menu button on the left." Code="@SiteNavCode">
         <Stack Gap="4">
             <Row Gap="4" Wrap Align="Align.Start">
-                <iframe class="host-frame host-frame-phone" src="preview/layout/marketing?variant=flat" title="HeaderNav at phone width"></iframe>
-                <iframe class="host-frame host-frame-wide" src="preview/layout/marketing?variant=flat" title="HeaderNav at desktop width"></iframe>
+                <iframe class="host-frame host-frame-phone" src="preview/layout/marketing?variant=flat" title="SiteNav at phone width"></iframe>
+                <iframe class="host-frame host-frame-wide" src="preview/layout/marketing?variant=flat" title="SiteNav at desktop width"></iframe>
             </Row>
             <TextBlock As="span" Class="host-label">With a sidebar · one menu: on phones the header links move to the top of the drawer</TextBlock>
             <Row Gap="4" Wrap Align="Align.Start">
-                <iframe class="host-frame host-frame-phone" src="preview/layout/document?variant=tinted" title="HeaderNav with a sidebar at phone width"></iframe>
-                <iframe class="host-frame host-frame-wide" src="preview/layout/document?variant=tinted" title="HeaderNav with a sidebar at desktop width"></iframe>
+                <iframe class="host-frame host-frame-phone" src="preview/layout/document?variant=tinted" title="SiteNav with a sidebar at phone width"></iframe>
+                <iframe class="host-frame host-frame-wide" src="preview/layout/document?variant=tinted" title="SiteNav with a sidebar at desktop width"></iframe>
             </Row>
             <Row Gap="2">
                 <Button Href="preview/layout/marketing?variant=flat" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Open full page</Button>
@@ -255,22 +255,19 @@
     private const string HorizontalCode =
         """<NavMenu Orientation="Orientation.Horizontal">...</NavMenu>""";
 
-    private const string HeaderNavCode =
+    private const string SiteNavCode =
         """
         <AppShell ContentWidth="Length.Rem(72)">
             <AppHeader>
-                <strong>Acme Labs</strong>
+                <AppBrand Href="/" Label="Acme Labs" />
                 <Box Grow />
-                <HeaderNav Label="Site">
-                    <ChildContent>
-                        <NavItem Href="/projects">Projects</NavItem>
-                        <NavItem Href="/articles">Articles</NavItem>
-                    </ChildContent>
-                    <PanelHeader><strong>Acme Labs</strong></PanelHeader>
-                    <PanelFooter>
+                <SiteNav Label="Site">
+                    <NavItem Href="/projects">Projects</NavItem>
+                    <NavItem Href="/articles">Articles</NavItem>
+                    <SiteNavFooter>
                         <Button Href="/watch" FullWidth>Watch the series</Button>
-                    </PanelFooter>
-                </HeaderNav>
+                    </SiteNavFooter>
+                </SiteNav>
                 <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com/acme" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
             </AppHeader>
             <AppMain>@Body</AppMain>

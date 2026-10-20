@@ -6,7 +6,7 @@
     icon, a title, a line of explanation and the action that fills it. Centered; no script.
 
     <EmptyState Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here.">
-        <Actions><Button Href="/invoices/new">New invoice</Button></Actions>
+        <EmptyStateActions><Button Href="/invoices/new">New invoice</Button></EmptyStateActions>
     </EmptyState>
 *@
 
@@ -25,11 +25,11 @@
     }
     @if (ChildContent is not null)
     {
-        <div class="ib-empty-body">@ChildContent</div>
+        <div class="ib-empty-body"><CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue></div>
     }
-    @if (Actions is not null)
+    @if (_scope.Shown<EmptyStateActions>() is { } actions)
     {
-        <div class="ib-empty-actions">@Actions</div>
+        <div class="ib-empty-actions">@_scope.Outlet(actions)</div>
     }
 </div>
 
@@ -46,11 +46,26 @@
     /// <summary>A muted line under the title saying why it's empty or what to do.</summary>
     [Parameter] public string? Description { get; set; }
 
-    /// <summary>Anything else, below the description, such as a list of suggestions.</summary>
+    /// <summary>Anything else, below the description, such as a list of suggestions, and any <see cref="EmptyStateActions"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Buttons or links that fill it, such as "New invoice" or "Clear filters".</summary>
-    [Parameter] public RenderFragment? Actions { get; set; }
+    /// <summary>Replaced by <see cref="EmptyStateActions"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Write <EmptyStateActions> in the empty state instead. Actions goes in a later release.", error: true)]
+    public RenderFragment? Actions { get; set; }
+
+    private PartScope _scope = null!;
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        RemovedSlots.Check(parameters, nameof(EmptyState), ("Actions", "EmptyStateActions"));
+        return base.SetParametersAsync(parameters);
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => _scope = new PartScope(this, OuterScope, StateHasChanged);
 
     /// <summary>
     /// A dashed border around it, for an empty area inside a page. <c>BorderStyle</c> changes the line

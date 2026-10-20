@@ -3,12 +3,6 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
-/// <summary>What a <see cref="Dialog"/> cascades to its <see cref="DialogHeader"/>.</summary>
-internal sealed class DialogPartContext(Dialog dialog)
-{
-    public Dialog Dialog { get; } = dialog;
-}
-
 /// <summary>
 /// Heading content for a <see cref="Dialog"/> in place of its <c>Title</c>, such as a title with
 /// an icon or a badge. It names the dialog for screen readers. Write it directly in the dialog; the
@@ -16,48 +10,9 @@ internal sealed class DialogPartContext(Dialog dialog)
 /// written inside doesn't reach it.
 /// </summary>
 /// <example><code>&lt;DialogHeader&gt;&lt;Row Gap="2"&gt;&lt;Icon Name="Lucide.Users" /&gt;Invite people&lt;/Row&gt;&lt;/DialogHeader&gt;</code></example>
-public sealed class DialogHeader : ComponentBase, IDisposable
+public sealed class DialogHeader : ComponentPart
 {
-    private bool _added;
-
-    /// <summary>The heading content.</summary>
-    [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    [CascadingParameter] private DialogPartContext? Context { get; set; }
-
-    /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        if (Context is null)
-        {
-            throw new InvalidOperationException("DialogHeader must be inside a Dialog.");
-        }
-
-        if (_added)
-        {
-            Context.Dialog.HeaderChanged(this);
-        }
-        else
-        {
-            _added = true;
-            Context.Dialog.AddHeader(this);
-        }
-    }
-
-    /// <inheritdoc />
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
-    {
-        // Drawn by the dialog, not here.
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        if (_added)
-        {
-            Context?.Dialog.RemoveHeader(this);
-        }
-    }
+    internal override Type HostType => typeof(Dialog);
 }
 
 /// <summary>
@@ -92,5 +47,41 @@ public class DialogFooter : FlexBase
     {
         base.BuildAttributes(classes, styles);
         classes.Add("ib-dialog-footer");
+    }
+}
+
+/// <summary>
+/// A <see cref="Dialog"/>'s body with layout props: a column with <c>Gap</c>, <c>Align</c>,
+/// <c>Justify</c> and <c>Direction</c>, like <see cref="Stack"/>. Optional: content written straight
+/// in the dialog is its body too. It fills the dialog's height, so a <see cref="DialogFooter"/>
+/// after it sits at the bottom of a side drawer whatever the content's length; put it and the
+/// footer in a form to keep the footer's buttons in the form. <see cref="Flush"/> runs it to the
+/// dialog's edges, for a table or a list.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Drawer Id="details" Title="Project details"&gt;
+///     &lt;DialogBody Gap="4"&gt;...&lt;/DialogBody&gt;
+///     &lt;DialogFooter&gt;&lt;DialogClose&gt;Close&lt;/DialogClose&gt;&lt;/DialogFooter&gt;
+/// &lt;/Drawer&gt;
+/// </code>
+/// </example>
+public class DialogBody : FlexBase
+{
+    /// <summary>Layout direction. Defaults to a column.</summary>
+    [Parameter] public Responsive<Direction> Direction { get; set; }
+
+    /// <summary>Runs the content to the dialog's sides, without its side padding: for a table, a divided list or an image.</summary>
+    [Parameter] public bool Flush { get; set; }
+
+    /// <inheritdoc />
+    protected override Responsive<Direction> LayoutDirection => Direction;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        classes.Add("ib-dialog-content");
+        classes.Add("ib-dialog-flush", Flush);
     }
 }

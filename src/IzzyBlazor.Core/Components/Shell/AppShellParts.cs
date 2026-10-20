@@ -9,12 +9,12 @@ namespace IzzyBlazor;
 public sealed record AppShellContext(string MainId, Length? ContentWidth = null);
 
 /// <summary>
-/// Carries a <see cref="HeaderNav"/>'s links to the shell's <see cref="AppSidebar"/>, which shows
-/// them at its top below the HeaderNav's breakpoint, so a phone has one menu, not two.
+/// Carries a <see cref="SiteNav"/>'s links to the shell's <see cref="AppSidebar"/>, which shows
+/// them at its top below the SiteNav's breakpoint, so a phone has one menu, not two.
 /// </summary>
 internal sealed class ShellHeaderLinks
 {
-    /// <summary>The links, or null when the shell has no <see cref="HeaderNav"/>.</summary>
+    /// <summary>The links, or null when the shell has no <see cref="SiteNav"/>.</summary>
     public RenderFragment? Links { get; private set; }
 
     /// <summary>Below this width the links show in the sidebar.</summary>

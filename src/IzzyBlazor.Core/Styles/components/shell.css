@@ -1761,7 +1761,7 @@
 }
 
 /*
- * On a phone the drawer takes the full width, like HeaderNav's sheet: its top bar has the close
+ * On a phone the drawer takes the full width, like SiteNav's sheet: its top bar has the close
  * button where the menu button was, and Escape closes it. Every breakpoint's sidebar is a drawer here.
  */
 @layer izzy.components {

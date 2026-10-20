@@ -652,6 +652,28 @@
     grid-column: 1 / -1;
   }
 
+  /* DialogBody fills the body (as a column with the footer after it), so the footer sits at the
+     bottom of a tall drawer. In a form, the form fills the body and the DialogBody the form. */
+  .ib-dialog-body:has(> .ib-dialog-content, > form:last-child > .ib-dialog-content) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .ib-dialog-body > form:last-child:has(> .ib-dialog-content) {
+    display: flex;
+    flex: 1 0 auto;
+    flex-direction: column;
+  }
+
+  .ib-dialog-body > .ib-dialog-content,
+  .ib-dialog-body > form:last-child > .ib-dialog-content {
+    flex: 1 0 auto;
+  }
+
+  .ib-dialog-content.ib-dialog-flush {
+    margin-inline: calc(-1 * var(--ib-dialog-px, var(--ib-space-6)));
+  }
+
   .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) :is(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) {
     border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
   }

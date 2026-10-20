@@ -52,7 +52,7 @@ Style props come in two sets:
   `MinWidth`, `MaxWidth`, `Grow`, `Shrink`, `Basis`, `AlignSelf`, `ColSpan` and `NewRow`. Most components take them:
   fields and `FileUpload`, buttons and `ButtonGroup`, `Alert`, `Badge`, `Banner`, `Progress`,
   `Spinner`, `Tag`, `Avatar`, `Stat`, `Table`, `Accordion`, `Form`, `FilterForm`, `Tabs`,
-  `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `HeaderNav`, `AppBrand`, `ColorSchemeSwitch`,
+  `Breadcrumb`, `Pagination`, `Stepper`, `NavMenu`, `SiteNav`, `AppBrand`, `ColorSchemeSwitch`,
   `SidebarToggle`, `Code`, `Kbd`, `Anchor`, `Menu`, `Popover`, `Tooltip`, `Collapsible` and
   `AccordionItem`. `Dialog` and `Drawer` aren't laid out in the page, so they take only `Width`
   (see [Dialog](components.md#overlays)).

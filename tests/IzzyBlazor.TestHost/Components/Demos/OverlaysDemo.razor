@@ -211,11 +211,14 @@
         </Row>
 
         <Drawer Id="details-drawer" Title="Project details" Size="DialogSize.Lg">
-            <DescriptionList Orientation="Orientation.Vertical" Divided>
-                <DescriptionItem Term="Owner">Israel</DescriptionItem>
-                <DescriptionItem Term="Visibility">Private</DescriptionItem>
-                <DescriptionItem Term="Created">Oct 12, 2026</DescriptionItem>
-            </DescriptionList>
+            @* DialogBody fills the drawer, so the footer sits at its bottom. *@
+            <DialogBody>
+                <DescriptionList Orientation="Orientation.Vertical" Divided>
+                    <DescriptionItem Term="Owner">Israel</DescriptionItem>
+                    <DescriptionItem Term="Visibility">Private</DescriptionItem>
+                    <DescriptionItem Term="Created">Oct 12, 2026</DescriptionItem>
+                </DescriptionList>
+            </DialogBody>
             <DialogFooter>
                 <DialogClose>Close</DialogClose>
             </DialogFooter>

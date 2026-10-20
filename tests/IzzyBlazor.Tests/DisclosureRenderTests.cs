@@ -82,12 +82,6 @@ public class DisclosureRenderTests : BunitContext
     }
 
     [Fact]
-    public void Item_needs_a_title()
-    {
-        Assert.Throws<InvalidOperationException>(() => Render<AccordionItem>());
-    }
-
-    [Fact]
     public void Collapsible_renders_label_and_chevron()
     {
         var cut = Render<Collapsible>(p => p

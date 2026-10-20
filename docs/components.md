@@ -527,40 +527,43 @@ wider. `DrawerPosition` sets the drawer's side on its own: it follows `Position`
 the right on small ones, and moves `SidebarToggle` to the end of the header there, where content
 sites put the menu button.
 
-**Header links on phones.** A site with no sidebar puts its links in `HeaderNav`. From its
+**Header links on phones.** A site with no sidebar puts its links in `SiteNav`. From its
 `Breakpoint` up (`Md` by default) they are a row in the header; below it they fold into a menu
-button that opens the same links as a sheet from the top of the screen, with 44px rows. The sheet's
-top bar matches the header, so its close button sits where the menu button was. `PanelHeader` adds
-the site name to that bar and `PanelFooter` adds content below the links (social links, a call to
-action). The menu button moves to the end of the header on phones (`MenuButtonAtEnd="false"` keeps
-it in place).
+button that opens the same links in a panel just under the header, with 44px rows. The header stays
+in view, with the site's name, and the same button closes the panel (its icon turns into a close
+icon). `SiteNavFooter`, written among the links, adds content under them in the panel (social
+links, a call to action). The menu button moves to the end of the header on phones
+(`MenuButtonAtEnd="false"` keeps it in place).
 
 ```razor
 <AppHeader>
-    <strong>Acme</strong>
+    <AppBrand Href="/" Label="Acme" />
     <Box Grow />
-    <HeaderNav Label="Site">
+    <SiteNav Label="Site">
         <NavItem Href="/projects">Projects</NavItem>
         <NavItem Href="/articles">Articles</NavItem>
-    </HeaderNav>
+        <SiteNavFooter><Button Href="/signup" FullWidth>Sign up</Button></SiteNavFooter>
+    </SiteNav>
     <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com/acme" Variant="ButtonVariant.Ghost" />
 </AppHeader>
 ```
 
-The sheet is a native popover, so it opens, closes on Escape and closes on a click outside with
-JavaScript off. With JavaScript it also takes focus, and closes after a link is followed (enhanced
-navigation keeps the page) or when the screen grows past the breakpoint. The items render twice
-(row and sheet), so keep them to links.
+The panel is a native popover, so it opens, closes on Escape and closes on a click outside with
+JavaScript off. It lines up under the header with CSS anchor positioning; where that isn't
+supported, it sits under the shell's header height. With JavaScript it also moves focus to the first
+link, and closes after a link is followed (enhanced navigation keeps the page) or when the screen
+grows past the breakpoint. The items render twice (row and panel), so keep them to links.
 
-With an `AppSidebar` in the shell there is one menu, not two: HeaderNav's button and sheet stay
+With an `AppSidebar` in the shell there is one menu, not two: SiteNav's button and panel stay
 hidden, and below its breakpoint its links show at the top of the sidebar, above a line (in the
-drawer on phones, or in the sidebar column if HeaderNav's breakpoint is the wider one).
+drawer on phones, or in the sidebar column if SiteNav's breakpoint is the wider one).
 
 **Sidebar header and footer.** `SidebarHeader` and `SidebarFooter`, written directly in the
 `AppSidebar` among its content, are pinned to its top and bottom (a workspace switcher, an account
 menu), with the content scrolling between them. They have no lines at rest; a line shows next to one
 only while content is scrolled out of view there (CSS only). They're drawn at the sidebar's level, so
-a form or cascading value they're written inside doesn't reach them.
+a form or cascading value they're written inside doesn't reach them. `SidebarBody` (optional) is the
+scrolling content with `Stack`'s layout props, such as a `Gap` between several `NavMenu`s.
 
 ```razor
 <AppSidebar Collapsible>
@@ -621,7 +624,7 @@ keep one item open, and heights animate with no script where the browser support
 - `Accordion`: `Variant` (`Separated` cards by default, `Bordered` one box, `Flush` lines only),
   `Size` (`Lg` for FAQ pages), and `ContentPadding`/`ContentGap` for every item's content (`0`
   padding lets a table run edge to edge). `Name` groups several accordions as one exclusive set.
-- `AccordionItem`: `Title` (or `Header` for inline markup), `Icon`, `Disabled`, `Open`, and its own
+- `AccordionItem`: `Title` (or an `AccordionHeader` part for inline markup), `Icon`, `Disabled`, `Open`, and its own
   `ContentPadding`/`ContentGap`.
 - `Collapsible`: a `Label` after a chevron, or your own `Trigger` content.
 
@@ -676,9 +679,12 @@ Parts are written among the content:
 - `DialogFooter` is the row of buttons at the bottom, with `Row`'s props (`Justify` moves the
   buttons; they're at the end by default). It's drawn where it's written, so write it last: last in
   the dialog, or last in a form that's last in the dialog. In a form, its submit button submits the
-  form with no `Form="id"`, with JavaScript off too. It reaches the dialog's edges, stays in view
-  while the body scrolls. In a side drawer it follows the content (it doesn't move to the drawer's
-  bottom when the content is short).
+  form with no `Form="id"`, with JavaScript off too. It reaches the dialog's edges and stays in view
+  while the body scrolls. On its own it follows the content; after a `DialogBody` it sits at the
+  bottom of a side drawer however short the content is.
+- `DialogBody` (optional) is the body with `Stack`'s layout props. It fills the dialog's height, so
+  the `DialogFooter` after it sits at the bottom of a drawer; in a form, put both in the form.
+  `Flush` runs it to the dialog's sides, for a table or a list.
 - `DialogHeader` is heading content in place of `Title` (a title with an icon or badge). It's drawn
   in the header row beside the close button and names the dialog for screen readers. Like
   `CardHeader`, a form or cascading value it's written inside doesn't reach it.
@@ -910,8 +916,8 @@ warning. Use `Alert` for a message about part of a page.
 ```razor
 <AppShell>
     <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11">
-        <ChildContent>Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.</ChildContent>
-        <Actions><Anchor Href="/status">Details</Anchor></Actions>
+        Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
+        <BannerActions><Anchor Href="/status">Details</Anchor></BannerActions>
     </Banner>
     <AppHeader>...</AppHeader>
     ...
@@ -926,7 +932,7 @@ warning. Use `Alert` for a message about part of a page.
 - **Look:** `Status` (Info by default) and `Variant` (`Soft` by default, `Outline`, `Solid`), as on
   Alert. `Accent` replaces the status's color, for a brand message such as `Accent.Primary`; the status
   still sets the icon and what screen readers hear. `Icon` and `HideIcon` change the icon, `Title`
-  adds a bold lead-in, and `Actions` holds a link or small button after the message.
+  adds a bold lead-in, and `BannerActions` holds a link or small button after the message.
 - **Dismissing:** `Dismissible` adds a close button that works with JavaScript off, with
   `@bind-Dismissed` on interactive pages. With JavaScript it is a real button, and closing moves
   focus to the next control on the page.
@@ -1060,7 +1066,7 @@ lines between items; `Size` sets the text size and spacing.
 ## EmptyState
 
 What to show when there's nothing yet: `Icon` (in a tinted circle), `Title` (`TitleLevel`, default
-3), `Description`, any content, and `Actions` such as a "New invoice" button or "Clear filters".
+3), `Description`, any content, and `EmptyStateActions` such as a "New invoice" button or "Clear filters".
 `Bordered` draws a dashed outline for an empty area inside a page (`BorderStyle` and `BorderColor`
 change it); `Size` scales it.
 

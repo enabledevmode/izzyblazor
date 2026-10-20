@@ -33,12 +33,12 @@
 <a class="ib-shell-backdrop" href="#ib-shell-closed" tabindex="-1" aria-hidden="true"></a>
 <nav @attributes="AdditionalAttributes" id="@Id" aria-label="@(Label ?? TextDefaults.MainNavigation)" class="@_class" style="@_style">
     <div class="ib-shell-sidebar-inner">
-        @if (Shown(SidebarPartKind.Header) is { } header)
+        @if (_scope.Shown<SidebarHeader>() is { } header)
         {
             <div class="ib-shell-sidebar-head">
                 @* First, so on phones (where it's drawn first, where the menu button was) Tab reaches it first too. *@
                 @CloseControl
-                <div class="ib-shell-sidebar-slot">@Outlet(header)</div>
+                <div class="ib-shell-sidebar-slot">@_scope.Outlet(header)</div>
                 @if (ChevronAt(VerticalPosition.Top))
                 {
                     @CollapseControl
@@ -56,17 +56,18 @@
         <div class="ib-shell-sidebar-body">
             @if (HeaderLinks?.Links is { } links)
             {
-                @* A HeaderNav's links, shown here below its breakpoint (see HeaderNav). *@
+                @* A SiteNav's links, shown here below its breakpoint (see SiteNav). Parts among them
+                   (SiteNavFooter) belong to the SiteNav, which draws them; here they're discarded. *@
                 <ul class="@($"ib-nav ib-nav-vertical ib-shell-sidebar-links ib-shell-sidebar-links-bp-{HeaderLinks.Breakpoint.Name()}")">
-                    @links
+                    <CascadingValue Value="PartScope.Discard" IsFixed="true">@links</CascadingValue>
                 </ul>
             }
-            <CascadingValue Value="_context" IsFixed="true">@ChildContent</CascadingValue>
+            <CascadingValue Value="_scope" IsFixed="true">@ChildContent</CascadingValue>
         </div>
-        @if (Shown(SidebarPartKind.Footer) is { } footer)
+        @if (_scope.Shown<SidebarFooter>() is { } footer)
         {
             <div class="ib-shell-sidebar-foot">
-                <div class="ib-shell-sidebar-slot">@Outlet(footer)</div>
+                <div class="ib-shell-sidebar-slot">@_scope.Outlet(footer)</div>
                 @if (ChevronAt(VerticalPosition.Bottom))
                 {
                     @CollapseControl
@@ -163,9 +164,9 @@
 
     private string? _class;
     private string? _style;
-    private readonly SidebarContext _context;
-    private readonly List<SidebarPart> _parts = [];
-    private readonly Dictionary<SidebarPart, PartOutlet> _outlets = [];
+    private PartScope _scope = null!;
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
     private bool _collapsed;
     private bool _lastCollapsedParam;
     private bool _initialized;
@@ -178,53 +179,12 @@
 
     private void OnHeaderLinksChanged() => _ = InvokeAsync(StateHasChanged);
 
-    /// <summary>Creates a sidebar.</summary>
-    public AppSidebar() => _context = new SidebarContext(this);
-
     /// <inheritdoc />
     public override Task SetParametersAsync(ParameterView parameters)
     {
         RemovedSlots.Check(parameters, nameof(AppSidebar), ("Header", "SidebarHeader"), ("Footer", "SidebarFooter"));
         return base.SetParametersAsync(parameters);
     }
-
-    // The last of a kind is drawn: while one part replaces another (@if/else), both are briefly listed.
-    private SidebarPart? Shown(SidebarPartKind kind) => _parts.FindLast(p => p.Kind == kind);
-
-    // A part renders nothing where it's written; it hands its content to the sidebar. Adding or
-    // removing one re-renders the sidebar; a change to its content re-renders only its outlet.
-    internal void AddPart(SidebarPart part)
-    {
-        _parts.Add(part);
-        StateHasChanged();
-    }
-
-    internal void RemovePart(SidebarPart part)
-    {
-        _outlets.Remove(part);
-        if (_parts.Remove(part))
-        {
-            StateHasChanged();
-        }
-    }
-
-    internal void PartChanged(SidebarPart part)
-    {
-        if (_outlets.TryGetValue(part, out var outlet))
-        {
-            outlet.Refresh();
-        }
-    }
-
-    private RenderFragment Outlet(SidebarPart part) => builder =>
-    {
-        builder.OpenComponent<PartOutlet>(0);
-        // Keyed by part, so a swapped-in part (@if/else) gets its own outlet and its reference is captured.
-        builder.SetKey(part);
-        builder.AddComponentParameter(1, nameof(PartOutlet.Content), (Func<RenderFragment?>)(() => part.ChildContent));
-        builder.AddComponentReferenceCapture(2, outlet => _outlets[part] = (PartOutlet)outlet);
-        builder.CloseComponent();
-    };
 
     private RenderFragment CloseControl => __builder =>
     {
@@ -274,6 +234,7 @@
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()
     {
+        _scope = new PartScope(this, OuterScope, StateHasChanged);
         if (!Collapsible || !RememberState)
         {
             return;

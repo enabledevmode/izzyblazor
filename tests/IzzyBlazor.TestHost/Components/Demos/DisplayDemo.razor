@@ -47,14 +47,14 @@
     <Example Title="EmptyState" Note="An icon, a title, why it's empty, and the action that fills it. Bordered draws a dashed outline for an empty area inside a page." Code="@EmptyCode">
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
             <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here, with their payment status." data-testid="empty-invoices">
-                <Actions>
+                <EmptyStateActions>
                     <Button Href="static/display" StartIcon="Lucide.Plus">New invoice</Button>
-                </Actions>
+                </EmptyStateActions>
             </EmptyState>
             <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.SearchX" Title="No results for “quarterly”" Description="Try a different word, or clear the filters.">
-                <Actions>
+                <EmptyStateActions>
                     <Button Href="static/display" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Clear filters</Button>
-                </Actions>
+                </EmptyStateActions>
             </EmptyState>
         </Grid>
     </Example>
@@ -164,9 +164,9 @@
         """
         <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet"
                     Description="Invoices you send appear here, with their payment status.">
-            <Actions>
+            <EmptyStateActions>
                 <Button Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</Button>
-            </Actions>
+            </EmptyStateActions>
         </EmptyState>
         """;
 

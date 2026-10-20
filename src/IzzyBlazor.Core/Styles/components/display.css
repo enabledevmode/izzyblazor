@@ -304,6 +304,11 @@
     margin-top: var(--ib-space-4);
   }
 
+  /* Content that's only an EmptyStateActions (drawn below) leaves the body empty. */
+  .ib-empty-body:empty {
+    display: none;
+  }
+
   .ib-empty-actions {
     display: flex;
     flex-wrap: wrap;

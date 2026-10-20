@@ -12,7 +12,7 @@ public static class DemoCatalog
     public static IReadOnlyList<Demo> All { get; } =
     [
         new("brand", "Brand color", "Theming", typeof(BrandDemo)),
-        new("shell", "AppShell, NavMenu and HeaderNav", "Layout", typeof(ShellDemo)),
+        new("shell", "AppShell, NavMenu and SiteNav", "Layout", typeof(ShellDemo)),
         new("layouts", "Page layouts", "Layout", typeof(LayoutsDemo)),
         new("box", "Box", "Layout", typeof(BoxDemo)),
         new("stack", "Stack, Row, Column", "Layout", typeof(StackDemo)),
