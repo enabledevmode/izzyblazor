@@ -196,8 +196,80 @@
     overflow-y: auto;
   }
 
-  .ib-code-block:has(.ib-code-bar) .ib-code-pre {
+  .ib-code-block:has(> .ib-code-bar:not(.ib-code-head)) .ib-code-pre {
     padding-inline-end: 7rem;
+  }
+
+  /* Title: the bar becomes a header row above the code (it no longer floats over it). */
+  .ib-code-head {
+    position: static;
+    justify-content: space-between;
+    /* 40px inside the bottom line, so the 32px copy button sits 4px from each edge. */
+    min-height: calc(2.5rem + 1px);
+    padding: 0 var(--ib-space-2) 0 var(--ib-space-4);
+    border-bottom: 1px solid var(--ib-color-border);
+    border-radius: 0;
+    background-color: transparent;
+    box-shadow: none;
+  }
+
+  .ib-code-title {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ib-color-muted);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-text-xs);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Lines (LineNumbers, HighlightLines): each line is a block as wide as the widest, so a
+     highlight spans the whole scroll width; the side padding moves from the pre to the lines. */
+  .ib-code-lined .ib-code-pre {
+    padding-inline: 0;
+  }
+
+  .ib-code-lined .ib-code-pre > code {
+    display: inline-block;
+    min-width: 100%;
+  }
+
+  .ib-code-line {
+    display: block;
+    padding-inline: var(--ib-space-4);
+  }
+
+  .ib-code-block:has(> .ib-code-bar:not(.ib-code-head)) .ib-code-line {
+    padding-inline-end: 7rem;
+  }
+
+  .ib-code-line-hl {
+    border-inline-start: 2px solid var(--ib-color-primary);
+    padding-inline-start: calc(var(--ib-space-4) - 2px);
+    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    color: inherit;
+  }
+
+  /* Line numbers: generated content, so they're never selected or copied (and the empty alt text
+     keeps screen readers from reading them where it's supported). */
+  .ib-code-numbered .ib-code-pre > code {
+    counter-reset: ib-code-line;
+  }
+
+  .ib-code-numbered .ib-code-line::before {
+    counter-increment: ib-code-line;
+    content: counter(ib-code-line);
+    content: counter(ib-code-line) / "";
+    display: inline-block;
+    width: calc(var(--ib-code-digits, 2) * 1ch);
+    margin-inline-end: var(--ib-space-4);
+    color: var(--ib-color-subtle);
+    text-align: end;
+    user-select: none;
+  }
+
+  .ib-code-numbered .ib-code-line-hl::before {
+    color: var(--ib-color-on-surface);
   }
 
   .ib-code-pre:focus-visible {
