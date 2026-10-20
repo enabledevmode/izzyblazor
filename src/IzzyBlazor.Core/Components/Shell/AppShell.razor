@@ -22,7 +22,9 @@
     <a class="ib-skip-link" href="@($"#{MainId}")">Skip to content</a>
     <CascadingValue Value="_context">
         <CascadingValue Value="_headerLinks" IsFixed="true">
-            @ChildContent
+            <CascadingValue Value="_outline" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
         </CascadingValue>
     </CascadingValue>
 </ib-shell>
@@ -63,6 +65,7 @@
 
     private AppShellContext _context = null!;
     private readonly ShellHeaderLinks _headerLinks = new();
+    private readonly PageOutline _outline = new();
     private string? _class;
     private string? _style;
 

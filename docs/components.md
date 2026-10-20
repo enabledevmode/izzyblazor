@@ -82,6 +82,8 @@ The rest:
 360px screen and grows smoothly to `Size` at 1280px, as for a hero heading
 (`<Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3">`). Text components have no default margins; space them with a
 Stack's `Gap`. (It's `TextBlock`, not `Text`, because Razor reserves `<text>` in code blocks.)
+On a page with an `OnThisPage`, headings in the main area get ids and link to themselves (see
+[On this page](#app-layout)); `Outline` and `Anchor` on `Heading` change that.
 
 `List` is a bulleted list of `ListItem`s; `Ordered` numbers it, `Plain` drops the bullets and indent,
 and `Icon` puts an icon in place of each bullet (`<List Icon="Lucide.Check" IconColor="Color.SuccessText">`
@@ -514,7 +516,7 @@ recreates it with its initial values. In practice:
   wrapping.
 - `AppSidebar` (`Position` start or end, `DrawerPosition`, `FullHeight`, `Width`, `Breakpoint`)
 - `AppMain` (`ContentWidth`)
-- `AppAside` (`Width`, `Breakpoint`)
+- `AppAside` (`Width`, `Breakpoint`), for `OnThisPage` or other side content
 - `AppFooter` (`Position`, `ContentWidth`)
 
 Every part takes `Bg` and `ColorScheme`, and the sidebar and aside colors run the full height. `AppShell`
@@ -642,6 +644,30 @@ with JavaScript any group holding the current page opens itself.
     </NavGroup>
 </NavMenu>
 ```
+
+**On this page.** `OnThisPage`, in an `AppAside`, lists the page's sections. Each `Heading` in
+`AppMain` adds itself while the page renders, so the list is in the first response and works with
+JavaScript off; once an `OnThisPage` is on the page, headings get an `id` slugged from their text
+("Rows & columns" becomes `rows-columns`, a repeat `-2`) unless they set one. `MinLevel` and
+`MaxLevel` (2 and 3 by default) are the heading levels listed; lower levels are indented. Headings it
+lists also link to themselves: the heading's text becomes a link to its section, with a "#" after it
+on hover or focus (`Anchor` on `Heading` turns that on or off; a heading that holds a link of its own
+never gets one). `Outline="false"` leaves a heading out. Linked sections stop below a sticky header.
+
+```razor
+<AppMain>@Body</AppMain>
+<AppAside>
+    <OnThisPage />
+</AppAside>
+```
+
+With JavaScript, `OnThisPage` marks the section in view (`aria-current="location"`) as the page
+scrolls, and adds headings with ids that aren't `Heading` components, such as those in `Prose` or
+rendered Markdown. Two limits of the server's list, which the script fixes: a heading inside another
+component (a `Card`, a `Section`) is listed after the headings around it, since components render
+their content after their parent's; and with no `Heading` components the list is hidden until the
+script fills it in. Headings in an interactive page under a static layout aren't seen by the shell,
+so only those with their own `id` are listed (by the script).
 
 `SidebarToggle` opens the sidebar whose id is its `For` (`ib-sidebar` by default, the sidebar's
 default `Id`), so a page with two sidebars gives each its own `Id` and toggle.

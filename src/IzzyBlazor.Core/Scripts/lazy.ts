@@ -16,6 +16,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-video": () => import("./elements/video.js"),
   "ib-code": () => import("./elements/code.js"),
   "ib-copy": () => import("./elements/copy.js"),
+  "ib-on-this-page": () => import("./elements/on-this-page.js"),
   "ib-toasts": () => import("./elements/toasts.js"),
 };
 

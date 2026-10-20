@@ -231,6 +231,9 @@ public class IzzyText
     /// <summary>The button that collapses the sidebar to icons.</summary>
     public virtual string CollapseSidebar { get; set; } = "Collapse sidebar";
 
+    /// <summary>OnThisPage's heading, which also names its navigation landmark.</summary>
+    public virtual string OnThisPage { get; set; } = "On this page";
+
     // Typography
 
     /// <summary>A code block's copy button.</summary>

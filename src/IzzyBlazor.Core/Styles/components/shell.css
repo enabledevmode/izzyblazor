@@ -302,6 +302,15 @@
     max-height: calc(100dvh - var(--ib-shell-top) - var(--ib-shell-bottom));
   }
 
+  /* Linked sections (heading anchors, OnThisPage) land below the sticky bars, with some room. */
+  .ib-shell-scroll-page > .ib-shell-main [id] {
+    scroll-margin-top: calc(var(--ib-shell-top) + var(--ib-space-4));
+  }
+
+  .ib-shell-scroll-main > .ib-shell-main [id] {
+    scroll-margin-top: var(--ib-space-4);
+  }
+
   /* Footer */
   .ib-shell-footer {
     grid-area: footer;

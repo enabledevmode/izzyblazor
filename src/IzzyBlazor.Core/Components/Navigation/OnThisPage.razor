@@ -1,0 +1,116 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    "On this page": links to the page's sections, for an AppAside.
+
+    <AppAside>
+        <OnThisPage />
+    </AppAside>
+
+    Each Heading in AppMain adds itself to the shell's outline while the page renders, so the list
+    is in the first response and works with JavaScript off; the headings get ids from their text.
+    With script, <ib-on-this-page> marks the section in view (aria-current="location") and adds
+    headings the server didn't see: ones in raw HTML (Prose, rendered Markdown) that have ids.
+    With no headings it renders hidden, so the script can still fill it in.
+*@
+
+<ib-on-this-page @attributes="AdditionalAttributes" class="@_class" style="@_style" data-min="@MinLevel" data-max="@MaxLevel" hidden="@(_entries.Count == 0)">
+    <nav class="ib-toc-nav" aria-labelledby="@_titleId">
+        <h2 class="ib-toc-title" id="@_titleId">@(Title ?? TextDefaults.OnThisPage)</h2>
+        <ul class="ib-toc-list" role="list">
+            @foreach (var entry in _entries)
+            {
+                <li class="ib-toc-item" style="@($"--ib-toc-depth: {entry.Level - MinLevel}")">
+                    <a class="ib-toc-link" href="@PageLinks.ToFragment(Navigation, entry.Id)">@entry.Text</a>
+                </li>
+            }
+        </ul>
+    </nav>
+</ib-on-this-page>
+
+@code {
+    /// <summary>The list's heading. Defaults to "On this page".</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>The highest heading level listed (h2 by default), 1 to 6.</summary>
+    [Parameter] public int MinLevel { get; set; } = 2;
+
+    /// <summary>The lowest heading level listed (h3 by default), 1 to 6. Lower levels are indented under higher ones.</summary>
+    [Parameter] public int MaxLevel { get; set; } = 3;
+
+    [CascadingParameter] private PageOutline? Outline { get; set; }
+
+    private readonly string _titleId = IdGenerator.Next("ib-toc");
+    private List<OutlineEntry> _entries = [];
+    private PageOutline? _subscribed;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-toc");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (MinLevel is < 1 or > 6 || MaxLevel is < 1 or > 6 || MinLevel > MaxLevel)
+        {
+            throw new ArgumentException($"OnThisPage lists heading levels MinLevel to MaxLevel, each 1 to 6 (got {MinLevel} to {MaxLevel}).");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+        if (_subscribed != Outline)
+        {
+            Unsubscribe();
+            if (Outline is not null)
+            {
+                Outline.EntriesChanged += OnEntriesChanged;
+                _subscribed = Outline;
+            }
+        }
+
+        // Reading the outline gives headings their ids, so set the levels before taking the entries.
+        Outline?.SetReader(this, MinLevel, MaxLevel);
+        Collect();
+    }
+
+    private void Collect() =>
+        _entries = Outline?.Entries.Where(e => e.Level >= MinLevel && e.Level <= MaxLevel).ToList() ?? [];
+
+    private void OnEntriesChanged()
+    {
+        Collect();
+        _ = InvokeAsync(StateHasChanged);
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    private void Unsubscribe()
+    {
+        if (_subscribed is null)
+        {
+            return;
+        }
+
+        _subscribed.EntriesChanged -= OnEntriesChanged;
+        _subscribed.RemoveReader(this);
+        _subscribed = null;
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        Unsubscribe();
+    }
+}
