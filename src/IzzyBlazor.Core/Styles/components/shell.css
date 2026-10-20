@@ -291,6 +291,13 @@
     border-inline-end: 1px solid var(--ib-shell-divider, var(--ib-color-border));
   }
 
+  /* An OnThisPage draws its own rail, so the aside drops its divider: two lines side by side read
+     as a double border. */
+  .ib-shell > .ib-shell-aside:has(.ib-toc:not([hidden])),
+  .ib-shell:has(> .ib-shell-sidebar-end) > .ib-shell-aside:has(.ib-toc:not([hidden])) {
+    border-inline: 0;
+  }
+
   .ib-shell-aside-inner {
     padding: var(--ib-space-4);
     overflow-y: auto;
