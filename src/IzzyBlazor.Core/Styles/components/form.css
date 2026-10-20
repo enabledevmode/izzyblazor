@@ -759,25 +759,33 @@
   }
 
   /* A button or nested field fills the add-on: no padding or fill of its own, field height. */
-  .ib-field-addon:has(> .ib-btn, > .ib-field) {
+  .ib-field-addon:has(> .ib-btn, > .ib-field, > ib-copy) {
     padding: 0;
     border: 0;
     background: none;
   }
 
-  .ib-field-addon > .ib-btn {
+  /* A CopyButton's wrapper takes no box: its button is styled as the add-on's own. */
+  .ib-field-addon > ib-copy {
+    border-radius: inherit;
+  }
+
+  .ib-field-addon > .ib-btn,
+  .ib-field-addon > ib-copy > .ib-btn {
     --ib-btn-h: var(--ib-field-h);
     --ib-btn-font: var(--ib-field-font);
     position: relative;
     border-radius: inherit;
   }
 
-  .ib-field-addon > .ib-btn:not(.ib-btn-solid) {
+  .ib-field-addon > .ib-btn:not(.ib-btn-solid),
+  .ib-field-addon > ib-copy > .ib-btn:not(.ib-btn-solid) {
     border-color: var(--ib-field-border);
   }
 
   /* The focus ring sits inside so it isn't clipped by the field next to it. */
-  .ib-field-addon > .ib-btn:focus-visible {
+  .ib-field-addon > .ib-btn:focus-visible,
+  .ib-field-addon > ib-copy > .ib-btn:focus-visible {
     outline-offset: -2px;
   }
 
@@ -800,8 +808,25 @@
   }
 
   /* A button or nested field grows to fill the add-on, whose width is rounded up to whole pixels. */
-  .ib-field-addon > :is(.ib-btn, .ib-field) {
+  .ib-field-addon > :is(.ib-btn, .ib-field),
+  .ib-field-addon > ib-copy > .ib-btn {
     flex: 1 0 auto;
+  }
+
+  /* An add-on holding only a CopyButton, before its script runs (or with none): no empty box, and
+     the input keeps its rounded corner. */
+  .ib-field-addon:has(> ib-copy:only-child:not(:defined)) {
+    display: none;
+  }
+
+  .ib-field-group:has(> .ib-field-addon-start > ib-copy:only-child:not(:defined)) > .ib-field-control .ib-field-input {
+    border-start-start-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    border-end-start-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+  }
+
+  .ib-field-group:has(> .ib-field-addon-end > ib-copy:only-child:not(:defined)) > .ib-field-control .ib-field-input {
+    border-start-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    border-end-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-field-addon > .ib-field .ib-field-input {

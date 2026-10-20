@@ -32,10 +32,24 @@
         <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@ProgramSample</Code>
     </Example>
 
+    <Example Title="CopyButton" Note="Copies Text, or the value or text of the element For names, and shows a check for a moment. Like a code block's copy button, it appears only with JavaScript." Code="@CopyCode">
+        <Stack Gap="4">
+            <Row Gap="2" Align="Align.Center">
+                <Code>@Install</Code>
+                <CopyButton Text="@Install" Label="Copy the command" Size="ControlSize.Sm" />
+            </Row>
+            <TextField Label="API key" @bind-Value="_apiKey" id="demo-api-key" ReadOnly MaxWidth="Length.Rem(24)">
+                <EndAddon><CopyButton For="demo-api-key" Variant="ButtonVariant.Outline">Copy</CopyButton></EndAddon>
+            </TextField>
+        </Stack>
+    </Example>
+
 </Stack>
 
 @code {
     private const string Install = "dotnet add package IzzyBlazor";
+
+    private string? _apiKey = "ib_live_4f9a2c7d1e8b";
 
     private const string ProgramSample =
         """
@@ -53,6 +67,16 @@
     private const string LinesCode =
         """
         <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@program</Code>
+        """;
+
+    private const string CopyCode =
+        """
+        <Code>dotnet add package IzzyBlazor</Code>
+        <CopyButton Text="dotnet add package IzzyBlazor" Label="Copy the command" Size="ControlSize.Sm" />
+
+        <TextField Label="API key" @bind-Value="key" id="api-key" ReadOnly>
+            <EndAddon><CopyButton For="api-key" Variant="ButtonVariant.Outline">Copy</CopyButton></EndAddon>
+        </TextField>
         """;
 
     private const string Snippet =

@@ -269,3 +269,26 @@
     box-shadow: none;
   }
 }
+
+/* CopyButton: <ib-copy> takes no box (the button is the item its parent lays out). Copying needs
+   script, so the button is hidden until <ib-copy> is defined. */
+@layer izzy.components {
+  ib-copy {
+    display: contents;
+  }
+
+  ib-copy > .ib-copy-btn,
+  .ib-copy-btn .ib-copied-icon,
+  .ib-copy-btn[data-copied] .ib-copy-icon {
+    display: none;
+  }
+
+  ib-copy:defined > .ib-copy-btn {
+    display: inline-flex;
+  }
+
+  .ib-copy-btn[data-copied] .ib-copied-icon {
+    display: block;
+    color: var(--ib-color-success-text);
+  }
+}
