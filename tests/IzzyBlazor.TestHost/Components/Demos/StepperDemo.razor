@@ -13,8 +13,8 @@
                 }
             </Stepper>
             <Row Gap="2">
-                <LinkButton Href="@StepUrl(Math.Max(1, _step - 1))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft" Disabled="_step <= 1">Back</LinkButton>
-                <LinkButton Href="@StepUrl(Math.Min(Checkout.Length + 1, _step + 1))" EndIcon="Lucide.ArrowRight">@(_step >= Checkout.Length ? "Finish" : "Next")</LinkButton>
+                <Button Href="@StepUrl(Math.Max(1, _step - 1))" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft" Disabled="_step <= 1">Back</Button>
+                <Button Href="@StepUrl(Math.Min(Checkout.Length + 1, _step + 1))" EndIcon="Lucide.ArrowRight">@(_step >= Checkout.Length ? "Finish" : "Next")</Button>
             </Row>
         </Stack>
     </Example>

@@ -108,9 +108,9 @@ public class ButtonRenderTests : BunitContext
     }
 
     [Fact]
-    public void LinkButton_renders_a_link()
+    public void Button_with_Href_renders_a_link()
     {
-        var a = Render<LinkButton>(p => p
+        var a = Render<Button>(p => p
             .Add(b => b.Href, "/start")
             .Add(b => b.Variant, ButtonVariant.Soft)).Find("a");
 
@@ -119,9 +119,9 @@ public class ButtonRenderTests : BunitContext
     }
 
     [Fact]
-    public void External_LinkButton_opens_a_new_tab_and_says_so()
+    public void External_link_button_opens_a_new_tab_and_says_so()
     {
-        var a = Render<LinkButton>(p => p
+        var a = Render<Button>(p => p
             .Add(b => b.Href, "https://example.com")
             .Add(b => b.External, true)
             .AddChildContent("Docs")).Find("a");
@@ -132,14 +132,22 @@ public class ButtonRenderTests : BunitContext
     }
 
     [Fact]
-    public void Disabled_LinkButton_has_no_href()
+    public void Disabled_link_button_has_no_href()
     {
-        var a = Render<LinkButton>(p => p
+        var a = Render<Button>(p => p
             .Add(b => b.Href, "/start")
             .Add(b => b.Disabled, true)).Find("a");
 
         Assert.False(a.HasAttribute("href"));
         Assert.Equal("true", a.GetAttribute("aria-disabled"));
+    }
+
+    [Fact]
+    public void A_link_button_refuses_button_only_parameters()
+    {
+        Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Href, "/x").Add(b => b.Submit, true)));
+        Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Href, "/x").Add(b => b.Form, "f")));
+        Assert.Throws<InvalidOperationException>(() => Render<DialogTrigger>(p => p.Add(b => b.For, "d").Add(b => b.Href, "/x")));
     }
 
     [Fact]

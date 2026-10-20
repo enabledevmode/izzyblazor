@@ -120,11 +120,11 @@
         </Row>
     </Example>
 
-    <Example Title="Links that look like buttons" Note="Use LinkButton for navigation. External opens a new tab and says so to screen readers." Code="@LinkCode">
+    <Example Title="Links that look like buttons" Note="A Button with Href is a link, for navigation. External opens a new tab and says so to screen readers." Code="@LinkCode">
         <Row Gap="2" Wrap>
-            <LinkButton Href="static/stack" EndIcon="Lucide.ArrowRight">See Stack</LinkButton>
-            <LinkButton Href="https://lucide.dev/icons" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Lucide icons</LinkButton>
-            <LinkButton Href="static/box" Variant="ButtonVariant.Link">A link-style button</LinkButton>
+            <Button Href="static/stack" EndIcon="Lucide.ArrowRight">See Stack</Button>
+            <Button Href="https://lucide.dev/icons" External Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Lucide icons</Button>
+            <Button Href="static/box" Variant="ButtonVariant.Link">A link-style button</Button>
         </Row>
     </Example>
 
@@ -216,8 +216,8 @@
 
     private const string LinkCode =
         """
-        <LinkButton Href="/courses/wizard" EndIcon="Lucide.ArrowRight">Start the project</LinkButton>
-        <LinkButton Href="https://lucide.dev/icons" External>Lucide icons</LinkButton>
+        <Button Href="/courses/wizard" EndIcon="Lucide.ArrowRight">Start the project</Button>
+        <Button Href="https://lucide.dev/icons" External>Lucide icons</Button>
         """;
 
     private const string FullCode = """<Button FullWidth StartIcon="Lucide.LogIn">Sign in</Button>""";

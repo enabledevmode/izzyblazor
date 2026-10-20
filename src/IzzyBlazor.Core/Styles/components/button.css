@@ -1,5 +1,5 @@
 /*
- * Button, LinkButton, IconButton.
+ * Button (a button, or a link with Href), IconButton.
  *
  * Each accent sets three properties (--ib-accent, --ib-on-accent, --ib-accent-text);
  * each variant paints with them. A custom Color sets the same three inline. Hover and active states mix the accent toward the

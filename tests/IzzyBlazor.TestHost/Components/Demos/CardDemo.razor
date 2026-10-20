@@ -63,7 +63,7 @@
     <Example Title="Flush content" Note="CardBody Flush runs its content to the card's edges, for a table or a divided list; at the bottom of the card it reaches the bottom edge too." Code="@FlushCode">
         <Box MaxWidth="32.Rem">
             <Card Title="Recent orders" Description="Last 7 days">
-                <CardActions><LinkButton Href="static/table" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">View all</LinkButton></CardActions>
+                <CardActions><Button Href="static/table" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">View all</Button></CardActions>
                 <CardBody Flush>
                     <Table Items="Orders" Caption="Recent orders" QueryPrefix="card-">
                         <PropertyColumn Property="o => o.Number" Title="Order" />
@@ -177,7 +177,7 @@
     private const string FlushCode =
         """
         <Card Title="Recent orders" Description="Last 7 days">
-            <CardActions><LinkButton Href="/orders">View all</LinkButton></CardActions>
+            <CardActions><Button Href="/orders">View all</Button></CardActions>
             <CardBody Flush>
                 <Table Items="Orders">...</Table>
             </CardBody>

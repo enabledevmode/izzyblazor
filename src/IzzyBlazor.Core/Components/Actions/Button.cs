@@ -5,18 +5,44 @@ using Microsoft.AspNetCore.Components.Web;
 namespace IzzyBlazor;
 
 /// <summary>
-/// A native <c>button</c>. On static pages it submits or resets forms like plain HTML; on
-/// interactive pages <see cref="OnClick"/> runs C#.
+/// A native <c>button</c>, or a link (<c>a</c>) that looks like one when <see cref="Href"/> is set.
+/// On static pages a button submits or resets forms like plain HTML; on interactive pages
+/// <see cref="OnClick"/> runs C#. Use a link for navigation ("Start the project") and a button
+/// for actions.
 /// </summary>
 /// <example>
 /// <code>
 /// &lt;Button Submit&gt;Save&lt;/Button&gt;
 /// &lt;Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Lucide.Trash"&gt;Delete&lt;/Button&gt;
 /// &lt;Button Submit Name="action" Value="publish"&gt;Publish&lt;/Button&gt;
+/// &lt;Button Href="/courses/wizard" EndIcon="Lucide.ArrowRight"&gt;Start the project&lt;/Button&gt;
+/// &lt;Button Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
 /// </code>
 /// </example>
 public class Button : ButtonBase
 {
+    /// <summary>
+    /// Makes it a link to this URL (an <c>a</c>) instead of a button. A link can't take
+    /// <see cref="Submit"/>, <see cref="Reset"/>, <see cref="Name"/>, <see cref="Value"/>,
+    /// <see cref="FormAction"/> or <see cref="Form"/>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>
+    /// For a link: opens in a new tab with <c>rel="noopener noreferrer"</c> and shows an
+    /// external-link icon.
+    /// </summary>
+    [Parameter] public bool External { get; set; }
+
+    /// <summary>
+    /// Leaves out an external link's icon, for repeated links where it would be noise. Screen
+    /// readers still hear <see cref="NewTabLabel"/>.
+    /// </summary>
+    [Parameter] public bool HideExternalIcon { get; set; }
+
+    /// <summary>Read to screen readers after an external link's text. Defaults to "(opens in a new tab)".</summary>
+    [Parameter] public string? NewTabLabel { get; set; }
+
     /// <summary>
     /// Submits the form it's in (or <see cref="Form"/>), like <c>type="submit"</c>. Without
     /// <c>Submit</c> or <see cref="Reset"/>, a button does nothing by itself.
@@ -45,7 +71,7 @@ public class Button : ButtonBase
     /// <summary>The id of a form elsewhere on the page that this button submits (native <c>form</c>).</summary>
     [Parameter] public string? Form { get; set; }
 
-    /// <summary>Runs on click on interactive pages. Has no effect on static pages.</summary>
+    /// <summary>Runs on click on interactive pages (a link still navigates). Has no effect on static pages.</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>
@@ -54,9 +80,18 @@ public class Button : ButtonBase
     /// </summary>
     protected virtual IEnumerable<KeyValuePair<string, object>>? ExtraAttributes => null;
 
+    /// <summary>Whether this kind of button can be a link. Dialog buttons can't.</summary>
+    private protected virtual bool CanBeLink => true;
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        if (Href is not null)
+        {
+            RenderLink(builder);
+            return;
+        }
+
         var (cssClass, style) = BuildRootAttributes();
 
         var type = ButtonTypes.Of(Submit, Reset, GetType().Name);
@@ -87,6 +122,78 @@ public class Button : ButtonBase
         builder.OpenRegion(14);
         RenderContent(builder);
         builder.CloseRegion();
+        builder.CloseElement();
+    }
+
+    private void RenderLink(RenderTreeBuilder builder)
+    {
+        var component = GetType().Name;
+        if (!CanBeLink)
+        {
+            throw new InvalidOperationException($"{component} can't take Href: it's a button. Use a Button with Href for a link.");
+        }
+
+        if (Submit || Reset || Name is not null || Value is not null || FormAction is not null || Form is not null)
+        {
+            throw new InvalidOperationException(
+                $"{component} with Href is a link, so Submit, Reset, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
+        }
+
+        var (cssClass, style) = BuildRootAttributes();
+        var inactive = Disabled || Loading;
+
+        builder.OpenElement(20, "a");
+        if (inactive)
+        {
+            // A link with no href can't be followed or reached with Tab; role="link" keeps its name.
+            builder.AddAttribute(21, "role", "link");
+            builder.AddAttribute(22, "aria-disabled", "true");
+        }
+        else
+        {
+            builder.AddAttribute(23, "href", Href);
+        }
+
+        if (Loading)
+        {
+            builder.AddAttribute(24, "aria-busy", "true");
+        }
+
+        if (External)
+        {
+            builder.AddAttribute(25, "target", "_blank");
+            builder.AddAttribute(26, "rel", "noopener noreferrer");
+        }
+
+        if (OnClick.HasDelegate && !inactive)
+        {
+            builder.AddAttribute(27, "onclick", OnClick);
+        }
+
+        builder.AddMultipleAttributes(28, ExtraAttributes);
+        builder.AddMultipleAttributes(29, AdditionalAttributes);
+        builder.AddAttribute(30, "class", cssClass);
+        builder.AddAttribute(31, "style", style);
+        builder.OpenRegion(32);
+        RenderContent(builder);
+        builder.CloseRegion();
+
+        if (External)
+        {
+            if (EndIcon is null && !HideExternalIcon)
+            {
+                builder.OpenComponent<Icon>(33);
+                builder.AddComponentParameter(34, nameof(Icon.Role), (IconRole?)IconRole.ExternalLink);
+                builder.AddComponentParameter(35, nameof(Icon.Size), IconSize.Sm);
+                builder.CloseComponent();
+            }
+
+            builder.OpenElement(36, "span");
+            builder.AddAttribute(37, "class", "ib-visually-hidden");
+            builder.AddContent(38, $" {NewTabLabel ?? TextDefaults.OpensInNewTab}");
+            builder.CloseElement();
+        }
+
         builder.CloseElement();
     }
 }
