@@ -29,14 +29,19 @@
                    Announce="false"
                    DismissLabel="@(DismissLabel ?? TextDefaults.Dismiss)"
                    Class="ib-toast"
-                   Actions="@ActionLink(toast.Action)"
-                   data-duration="@(toast.Duration ?? DefaultDuration(toast))">@toast.Message</Alert>
+                   data-duration="@(toast.Duration ?? DefaultDuration(toast))">
+                @toast.Message
+                @if (ActionLink(toast.Action) is { } action)
+                {
+                    <AlertActions>@action</AlertActions>
+                }
+            </Alert>
         }
     </div>
     @foreach (var status in Enum.GetValues<Status>())
     {
         <template data-status="@status.ToString().ToLowerInvariant()">
-            <Alert Status="status" Variant="Variant" Title="title" Dismissible Announce="false" DismissLabel="@(DismissLabel ?? TextDefaults.Dismiss)" Id="ib-toast-template" Class="ib-toast" Actions="ActionSlot"><span data-ib-toast-message></span></Alert>
+            <Alert Status="status" Variant="Variant" Title="title" Dismissible Announce="false" DismissLabel="@(DismissLabel ?? TextDefaults.Dismiss)" Id="ib-toast-template" Class="ib-toast"><span data-ib-toast-message></span><AlertActions>@ActionSlot</AlertActions></Alert>
         </template>
     }
 </ib-toasts>

@@ -576,25 +576,6 @@
     padding-top: var(--ib-space-6);
   }
 
-  .ib-dialog-footer {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: var(--ib-space-2);
-    padding: var(--ib-space-4) var(--ib-space-6);
-    border-top: 1px solid var(--ib-color-border);
-    /* A step off the dialog's own surface: a little darker in light mode, lighter in dark. */
-    background-color: color-mix(in oklab, var(--ib-color-surface-raised), var(--ib-color-on-surface) 4%);
-    border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
-  }
-
-  .ib-dialog-start .ib-dialog-footer,
-  .ib-dialog-end .ib-dialog-footer,
-  .ib-dialog-bottom .ib-dialog-footer,
-  .ib-dialog-full .ib-dialog-footer {
-    border-radius: 0;
-  }
-
   @media (prefers-reduced-motion: reduce) {
     .ib-pop,
     .ib-dialog,
@@ -628,16 +609,17 @@
   }
 }
 
-/* DialogActions: a footer for content shown by DialogService, drawn like Dialog's Footer. It sits
-   last in the body, reaches its edges (the body's padding is 24px at the sides, 20px below), and
-   stays in view when the body scrolls. FormActions does the same when it ends a form that ends the
-   body, so a form's buttons can be the footer and still submit it. */
+/* DialogFooter: the button row, written last in the dialog's body or last in a form that's last in
+   it, so it can hold the form's submit button. It reaches the body's edges (the body's padding is
+   24px at the sides, 20px below) and stays in view when the body scrolls. FormActions does the same
+   when it ends a form that ends the body. */
 @layer izzy.components {
-  .ib-dialog-actions,
+  .ib-dialog-footer,
   .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])),
   .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])) {
     position: sticky;
     bottom: calc(-1 * var(--ib-space-5));
+    z-index: 1;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
@@ -645,16 +627,41 @@
     margin: var(--ib-space-5) calc(-1 * var(--ib-space-6)) calc(-1 * var(--ib-space-5));
     padding: var(--ib-space-4) var(--ib-space-6);
     border-top: 1px solid var(--ib-color-border);
+    /* A step off the dialog's own surface: a little darker in light mode, lighter in dark. */
     background-color: color-mix(in oklab, var(--ib-color-surface-raised), var(--ib-color-on-surface) 4%);
   }
 
-  /* The form's gap already spaces it from the fields. */
+  /* In a form, the form's gap already spaces it from the fields, and it takes the whole grid row. */
+  :is(.ib-form, .ib-form-grid) > .ib-dialog-footer,
   .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])),
   .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])) {
     margin-top: 0;
   }
 
-  .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) :is(.ib-dialog-actions, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) {
+  .ib-form-grid > .ib-dialog-footer {
+    grid-column: 1 / -1;
+  }
+
+  .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) :is(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) {
     border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
+  }
+
+  /* A side drawer (or a full-screen dialog) keeps its footer at the bottom when the content is short:
+     the body becomes a column, a form ending it fills it, and the footer takes the space above it. */
+  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body:has(> .ib-dialog-footer, > .ib-form:last-child > .ib-dialog-footer, > .ib-form:last-child > .ib-form-grid > .ib-dialog-footer) {
+    display: flex;
+    flex-direction: column;
+  }
+
+  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body > .ib-form:last-child:has(> .ib-dialog-footer, > .ib-form-grid > .ib-dialog-footer) {
+    flex: 1 0 auto;
+  }
+
+  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body > :has(+ .ib-dialog-footer) {
+    margin-bottom: var(--ib-space-5);
+  }
+
+  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body :is(.ib-dialog-footer) {
+    margin-top: auto;
   }
 }

@@ -249,16 +249,43 @@ public class OverlayRenderTests : BunitContext
 
         var dialog = Render<Dialog>(p => p
             .Add(d => d.Id, "invite")
-            .Add(d => d.Footer, (RenderFragment)(b =>
+            .AddChildContent(b =>
             {
-                b.OpenComponent<DialogClose>(0);
-                b.AddComponentParameter(1, nameof(DialogClose.ChildContent), (RenderFragment)(c => c.AddContent(0, "Cancel")));
+                b.OpenComponent<DialogFooter>(0);
+                b.AddComponentParameter(1, nameof(DialogFooter.ChildContent), (RenderFragment)(f =>
+                {
+                    f.OpenComponent<DialogClose>(0);
+                    f.AddComponentParameter(1, nameof(DialogClose.ChildContent), (RenderFragment)(c => c.AddContent(0, "Cancel")));
+                    f.CloseComponent();
+                }));
                 b.CloseComponent();
-            })));
+            }));
         var close = dialog.Find(".ib-dialog-footer button");
         Assert.Equal("submit", close.GetAttribute("type"));
         Assert.Equal("invite-close", close.GetAttribute("form"));
         Assert.Contains("ib-btn-outline", close.ClassName);
+    }
+
+    [Fact]
+    public void Dialog_parts_name_the_dialog_and_keep_the_footer_in_its_form()
+    {
+        var dialog = Render<Dialog>(p => p
+            .Add(d => d.Id, "rename")
+            .AddChildContent(b =>
+            {
+                b.OpenElement(0, "form");
+                b.OpenComponent<DialogFooter>(1);
+                b.AddComponentParameter(2, nameof(DialogFooter.ChildContent), (RenderFragment)(f => f.AddContent(0, "Save")));
+                b.CloseComponent();
+                b.CloseElement();
+                b.OpenComponent<DialogHeader>(3);
+                b.AddComponentParameter(4, nameof(DialogHeader.ChildContent), (RenderFragment)(h => h.AddContent(0, "Rename")));
+                b.CloseComponent();
+            })).Find("dialog");
+
+        Assert.Equal("rename-title", dialog.GetAttribute("aria-labelledby"));
+        Assert.Equal("Rename", dialog.QuerySelector(".ib-dialog-header #rename-title")!.TextContent);
+        Assert.NotNull(dialog.QuerySelector(".ib-dialog-body form > .ib-dialog-footer"));
     }
 
     [Fact]
@@ -274,12 +301,17 @@ public class OverlayRenderTests : BunitContext
             .Add(d => d.Id, "d")
             .Add(d => d.Title, "Sure?")
             .Add(d => d.InsideForm, true)
-            .Add(d => d.Footer, (RenderFragment)(b =>
+            .AddChildContent(b =>
             {
-                b.OpenComponent<DialogClose>(0);
-                b.AddComponentParameter(1, nameof(DialogClose.ChildContent), (RenderFragment)(c => c.AddContent(0, "Cancel")));
+                b.OpenComponent<DialogFooter>(0);
+                b.AddComponentParameter(1, nameof(DialogFooter.ChildContent), (RenderFragment)(f =>
+                {
+                    f.OpenComponent<DialogClose>(0);
+                    f.AddComponentParameter(1, nameof(DialogClose.ChildContent), (RenderFragment)(c => c.AddContent(0, "Cancel")));
+                    f.CloseComponent();
+                }));
                 b.CloseComponent();
-            })));
+            }));
 
         Assert.Empty(dialog.FindAll("form"));
         foreach (var close in new[] { dialog.Find(".ib-dialog-close"), dialog.Find(".ib-dialog-footer button") })

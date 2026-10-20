@@ -45,10 +45,10 @@ public class DialogTrigger : Button
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Footer&gt;
+/// &lt;DialogFooter&gt;
 ///     &lt;DialogClose&gt;Cancel&lt;/DialogClose&gt;
 ///     &lt;Button Submit Form="invite-form"&gt;Send invite&lt;/Button&gt;
-/// &lt;/Footer&gt;
+/// &lt;/DialogFooter&gt;
 /// </code>
 /// </example>
 public class DialogClose : Button

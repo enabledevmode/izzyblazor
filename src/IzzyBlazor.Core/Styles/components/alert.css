@@ -64,11 +64,13 @@
     font-weight: var(--ib-weight-semibold);
   }
 
+  /* Inside the message: the body's gap (space-1) is added to its margin, as when it was a row of the body. */
   .ib-alert-actions {
     display: flex;
     flex-wrap: wrap;
+    align-items: center;
     gap: var(--ib-space-2);
-    margin-top: var(--ib-space-2);
+    margin-top: calc(var(--ib-space-1) + var(--ib-space-2));
   }
 
   .ib-alert-close {

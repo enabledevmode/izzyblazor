@@ -4,10 +4,10 @@
 @* DialogService.ConfirmAsync's content: the message, and Cancel (focused first) and confirm buttons. *@
 
 <p class="ib-confirm-message">@Message</p>
-<DialogActions>
+<DialogFooter>
     <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => Dialog?.Cancel()" autofocus>@(Options.CancelText ?? Text.Cancel)</Button>
     <Button Accent="Options.Accent" OnClick="() => Dialog?.Close(true)">@(Options.ConfirmText ?? Text.Ok)</Button>
-</DialogActions>
+</DialogFooter>
 
 @code {
     [CascadingParameter] public DialogInstance? Dialog { get; set; }
