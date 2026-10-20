@@ -306,3 +306,57 @@
     }
   }
 }
+
+/*
+ * OnThisPage: the page's sections on a rail; the one in view (marked by the script) gets the
+ * accent bar. Deeper levels indent by --ib-toc-depth.
+ */
+@layer izzy.components {
+  .ib-toc[hidden] {
+    display: none;
+  }
+
+  .ib-toc-title {
+    margin: 0 0 var(--ib-space-3);
+    color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-semibold);
+    line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px);
+  }
+
+  .ib-toc-list {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    border-inline-start: 1px solid var(--ib-color-border);
+  }
+
+  .ib-toc-link {
+    display: block;
+    margin-inline-start: -1px;
+    padding-block: 0.3125rem;
+    padding-inline: calc(var(--ib-space-3) + var(--ib-toc-depth, 0) * var(--ib-space-3)) 0;
+    border-inline-start: 2px solid transparent;
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px);
+    text-decoration: none;
+    overflow-wrap: anywhere;
+  }
+
+  .ib-toc-link:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-toc-link:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+    border-radius: var(--ib-radius-sm);
+  }
+
+  .ib-toc-link[aria-current] {
+    border-inline-start-color: var(--ib-color-primary);
+    color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-medium);
+  }
+}

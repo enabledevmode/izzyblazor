@@ -20,12 +20,55 @@
      the line half a pixel taller (24.5px), moving everything below off the pixel grid. As a flex
      row the heading keeps its own line height, rounded to an even pixel so the badge (an even
      height) centers on a whole pixel. */
-  .ib-heading:has(> :is(.ib-badge, .ib-tag)) {
+  .ib-heading:has(> :is(.ib-badge, .ib-tag)),
+  .ib-heading:has(> .ib-heading-anchor > :is(.ib-badge, .ib-tag)) {
     line-height: round(up, calc(1em * var(--ib-leading-tight)), 2px);
     display: flex;
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ib-space-2);
+  }
+
+  .ib-heading > .ib-heading-anchor:has(> :is(.ib-badge, .ib-tag)) {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: inherit;
+  }
+
+  /* Heading anchors: the heading's text links to its own section (so its name stays the text),
+     with a "#" after it on hover or focus. The "#" is generated content with empty alt text, so
+     it's never read or copied. */
+  .ib-heading-anchor {
+    border-radius: var(--ib-radius-sm);
+    color: inherit;
+    text-decoration: none;
+  }
+
+  .ib-heading-anchor::after {
+    content: "#";
+    content: "#" / "";
+    padding-inline-start: 0.3em;
+    color: var(--ib-color-subtle);
+    font-weight: var(--ib-weight-normal);
+    opacity: 0;
+    transition: opacity var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-heading:hover > .ib-heading-anchor::after,
+  .ib-heading-anchor:focus-visible::after {
+    opacity: 1;
+  }
+
+  .ib-heading-anchor:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-heading-anchor::after {
+      transition: none;
+    }
   }
 }
 

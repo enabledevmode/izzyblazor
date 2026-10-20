@@ -141,6 +141,9 @@ public class AppMain : AppShellPart
     /// <inheritdoc />
     protected override string Area => "main";
 
+    // The shell's page outline, passed on to the headings in the main area only.
+    [CascadingParameter] private PageOutline? Outline { get; set; }
+
     // The content goes in a centered column (a div inside main), so main itself stays full width
     // and full-bleed sections can measure it as a container.
     private bool Measured => ContentWidth is not null || Shell?.ContentWidth is not null;
@@ -171,16 +174,26 @@ public class AppMain : AppShellPart
         {
             builder.OpenElement(6, "div");
             builder.AddAttribute(7, "class", "ib-shell-main-column");
-            builder.AddContent(8, ChildContent);
+            builder.AddContent(8, Content);
             builder.CloseElement();
         }
         else
         {
-            builder.AddContent(9, ChildContent);
+            builder.AddContent(9, Content);
         }
 
         builder.CloseElement();
     }
+
+    private RenderFragment? Content => Outline is null ? ChildContent : builder =>
+    {
+        builder.OpenComponent<CascadingValue<PageOutline>>(0);
+        builder.AddComponentParameter(1, nameof(CascadingValue<PageOutline>.Name), PageOutline.MainCascade);
+        builder.AddComponentParameter(2, nameof(CascadingValue<PageOutline>.Value), Outline);
+        builder.AddComponentParameter(3, nameof(CascadingValue<PageOutline>.IsFixed), true);
+        builder.AddComponentParameter(4, nameof(CascadingValue<PageOutline>.ChildContent), ChildContent);
+        builder.CloseComponent();
+    };
 }
 
 /// <summary>

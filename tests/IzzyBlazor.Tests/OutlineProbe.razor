@@ -1,0 +1,31 @@
+@* A docs page: headings in the main area, one in the aside, and OnThisPage when WithOutline. *@
+<AppShell>
+    <AppMain>
+        <Heading Level="1">Getting started</Heading>
+        <Heading>Install</Heading>
+        <Heading Level="3">From the CLI</Heading>
+        <Heading Level="4">On Windows</Heading>
+        <Heading>Rows &amp; columns</Heading>
+        <Heading>Install</Heading>
+        <Heading id="custom">Its own id</Heading>
+        <Heading Outline="false">Left out</Heading>
+        <Heading>Linked <a href="/elsewhere">elsewhere</a></Heading>
+        @if (ShowLate)
+        {
+            <Heading>Added later</Heading>
+        }
+    </AppMain>
+    <AppAside>
+        @if (WithOutline)
+        {
+            <OnThisPage />
+        }
+        <Heading>In the aside</Heading>
+    </AppAside>
+</AppShell>
+
+@code {
+    [Parameter] public bool WithOutline { get; set; } = true;
+
+    [Parameter] public bool ShowLate { get; set; }
+}
