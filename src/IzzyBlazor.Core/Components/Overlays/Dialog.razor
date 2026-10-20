@@ -102,6 +102,14 @@
     /// </summary>
     [Parameter] public Responsive<int> ContentPadding { get; set; }
 
+    /// <summary>Replaced by <see cref="DialogHeader"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Write <DialogHeader> in the dialog instead. Header goes in a later release.", error: true)]
+    public RenderFragment? Header { get; set; }
+
+    /// <summary>Replaced by <see cref="DialogFooter"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Write <DialogFooter> last in the dialog instead. Footer goes in a later release.", error: true)]
+    public RenderFragment? Footer { get; set; }
+
     /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
     [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
 
@@ -143,6 +151,13 @@
 
     /// <summary>Creates a dialog.</summary>
     public Dialog() => _partContext = new DialogPartContext(this);
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        RemovedSlots.Check(parameters, GetType().Name, ("Header", "DialogHeader"), ("Footer", "DialogFooter"));
+        return base.SetParametersAsync(parameters);
+    }
 
     // A DialogHeader renders nothing where it's written; the dialog draws the last one in its header.
     // Adding or removing one re-renders the dialog; a change to its content re-renders only the outlet.
@@ -232,6 +247,8 @@
         var bodyStyles = new StyleBuilder();
         ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-px", "px", StyleValues.Spacing);
         ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-py", "py", StyleValues.Spacing);
+        // The same value for a DialogFooter in the body, which reaches out to the body's edges.
+        ApplyResponsive(bodyClasses, bodyStyles, ContentPadding, "ib-dialog-pad", "dlgpad", StyleValues.Spacing);
         _bodyClass = bodyClasses.Build();
         _bodyStyle = bodyStyles.Build();
     }

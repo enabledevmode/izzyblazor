@@ -36,12 +36,13 @@
         @if (Shown(SidebarPartKind.Header) is { } header)
         {
             <div class="ib-shell-sidebar-head">
+                @* First, so on phones (where it's drawn first, where the menu button was) Tab reaches it first too. *@
+                @CloseControl
                 <div class="ib-shell-sidebar-slot">@Outlet(header)</div>
                 @if (ChevronAt(VerticalPosition.Top))
                 {
                     @CollapseControl
                 }
-                @CloseControl
             </div>
         }
         else
@@ -145,6 +146,14 @@
     /// <summary>Where the chevron goes: <see cref="VerticalPosition.Bottom"/> (the default, in the footer row) or <see cref="VerticalPosition.Top"/>.</summary>
     [Parameter] public VerticalPosition CollapseButtonPosition { get; set; } = VerticalPosition.Bottom;
 
+    /// <summary>Replaced by <see cref="SidebarHeader"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Write <SidebarHeader> in the sidebar instead. Header goes in a later release.", error: true)]
+    public RenderFragment? Header { get; set; }
+
+    /// <summary>Replaced by <see cref="SidebarFooter"/>. Kept for one release so old markup fails to build.</summary>
+    [Parameter, Obsolete("Write <SidebarFooter> in the sidebar instead. Footer goes in a later release.", error: true)]
+    public RenderFragment? Footer { get; set; }
+
     /// <summary>The drawer's close button name. Defaults to "Close menu".</summary>
     [Parameter] public string? CloseLabel { get; set; }
 
@@ -171,6 +180,13 @@
 
     /// <summary>Creates a sidebar.</summary>
     public AppSidebar() => _context = new SidebarContext(this);
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        RemovedSlots.Check(parameters, nameof(AppSidebar), ("Header", "SidebarHeader"), ("Footer", "SidebarFooter"));
+        return base.SetParametersAsync(parameters);
+    }
 
     // The last of a kind is drawn: while one part replaces another (@if/else), both are briefly listed.
     private SidebarPart? Shown(SidebarPartKind kind) => _parts.FindLast(p => p.Kind == kind);
@@ -203,6 +219,8 @@
     private RenderFragment Outlet(SidebarPart part) => builder =>
     {
         builder.OpenComponent<PartOutlet>(0);
+        // Keyed by part, so a swapped-in part (@if/else) gets its own outlet and its reference is captured.
+        builder.SetKey(part);
         builder.AddComponentParameter(1, nameof(PartOutlet.Content), (Func<RenderFragment?>)(() => part.ChildContent));
         builder.AddComponentReferenceCapture(2, outlet => _outlets[part] = (PartOutlet)outlet);
         builder.CloseComponent();

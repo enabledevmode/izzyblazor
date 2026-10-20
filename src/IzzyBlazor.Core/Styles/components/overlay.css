@@ -549,11 +549,21 @@
   }
 
   .ib-dialog-body {
+    /* The side and bottom padding, which a DialogFooter in the body reaches out across. */
+    --ib-dialog-px: var(--ib-space-6);
+    --ib-dialog-pb: var(--ib-space-5);
     flex: 1;
     min-height: 0;
     overflow: auto;
     padding: var(--ib-space-2) var(--ib-space-6) var(--ib-space-5);
   }
+
+  /* ContentPadding (its ib-px/ib-py utilities set the padding itself). */
+  .ib-dialog-body.ib-dialog-pad { --ib-dialog-px: var(--ib-dlgpad); --ib-dialog-pb: var(--ib-dlgpad); }
+  @media (min-width: 640px) { .ib-dialog-body.ib-dialog-pad-sm { --ib-dialog-px: var(--ib-dlgpad-sm); --ib-dialog-pb: var(--ib-dlgpad-sm); } }
+  @media (min-width: 768px) { .ib-dialog-body.ib-dialog-pad-md { --ib-dialog-px: var(--ib-dlgpad-md); --ib-dialog-pb: var(--ib-dlgpad-md); } }
+  @media (min-width: 1024px) { .ib-dialog-body.ib-dialog-pad-lg { --ib-dialog-px: var(--ib-dlgpad-lg); --ib-dialog-pb: var(--ib-dlgpad-lg); } }
+  @media (min-width: 1280px) { .ib-dialog-body.ib-dialog-pad-xl { --ib-dialog-px: var(--ib-dlgpad-xl); --ib-dialog-pb: var(--ib-dlgpad-xl); } }
 
   /* ConfirmButton's message: muted, under the question. */
   .ib-confirm-message {
@@ -618,13 +628,13 @@
   .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])),
   .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])) {
     position: sticky;
-    bottom: calc(-1 * var(--ib-space-5));
+    bottom: calc(-1 * var(--ib-dialog-pb, var(--ib-space-5)));
     z-index: 1;
     display: flex;
     flex-wrap: wrap;
     justify-content: flex-end;
     gap: var(--ib-space-2);
-    margin: var(--ib-space-5) calc(-1 * var(--ib-space-6)) calc(-1 * var(--ib-space-5));
+    margin: var(--ib-space-5) calc(-1 * var(--ib-dialog-px, var(--ib-space-6))) calc(-1 * var(--ib-dialog-pb, var(--ib-space-5)));
     padding: var(--ib-space-4) var(--ib-space-6);
     border-top: 1px solid var(--ib-color-border);
     /* A step off the dialog's own surface: a little darker in light mode, lighter in dark. */
@@ -644,24 +654,5 @@
 
   .ib-dialog:not(.ib-dialog-start, .ib-dialog-end, .ib-dialog-bottom, .ib-dialog-full) :is(.ib-dialog-footer, .ib-dialog-body > .ib-form:last-child > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"])), .ib-dialog-body > .ib-form:last-child > .ib-form-grid > .ib-form-actions:nth-last-child(1 of :not(input[type="hidden"]))) {
     border-radius: 0 0 calc(var(--ib-radius-lg) - 1px) calc(var(--ib-radius-lg) - 1px);
-  }
-
-  /* A side drawer (or a full-screen dialog) keeps its footer at the bottom when the content is short:
-     the body becomes a column, a form ending it fills it, and the footer takes the space above it. */
-  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body:has(> .ib-dialog-footer, > .ib-form:last-child > .ib-dialog-footer, > .ib-form:last-child > .ib-form-grid > .ib-dialog-footer) {
-    display: flex;
-    flex-direction: column;
-  }
-
-  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body > .ib-form:last-child:has(> .ib-dialog-footer, > .ib-form-grid > .ib-dialog-footer) {
-    flex: 1 0 auto;
-  }
-
-  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body > :has(+ .ib-dialog-footer) {
-    margin-bottom: var(--ib-space-5);
-  }
-
-  :is(.ib-dialog-start, .ib-dialog-end, .ib-dialog-full) > .ib-dialog-body :is(.ib-dialog-footer) {
-    margin-top: auto;
   }
 }

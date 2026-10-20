@@ -143,7 +143,8 @@ class Shell extends IzzyElement {
     this.setAttribute("data-sidebar-open", "");
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", "true"));
     this.setInert(true);
-    this.sidebar?.querySelector<HTMLElement>("[data-ib-shell-close], a[href], button")?.focus();
+    // The close button first: with a SidebarHeader it comes after the header's links in the row.
+    (this.sidebar?.querySelector<HTMLElement>("[data-ib-shell-close]") ?? this.sidebar?.querySelector<HTMLElement>("a[href], button"))?.focus();
   }
 
   /** While the drawer is open the rest of the shell is inert, so focus and screen readers stay in it. */

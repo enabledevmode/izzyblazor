@@ -64,7 +64,8 @@ public sealed class DialogHeader : ComponentBase, IDisposable
 /// The row of buttons at the bottom of a <see cref="Dialog"/> or <see cref="Drawer"/>, usually a
 /// <see cref="DialogClose"/> and the main action. Write it last: last in the dialog, or last in a
 /// form that's last in the dialog, so its buttons stay inside the form and submit it. It reaches the
-/// dialog's edges and stays in view when the body scrolls; in a side drawer it sits at the bottom.
+/// dialog's edges (and follows <c>ContentPadding</c>) and stays in view when the body scrolls. In a
+/// side drawer it follows the content, so with little content it sits partway down.
 /// A row like <see cref="Row"/>, with <c>Gap</c>, <c>Align</c> and <c>Justify</c> (the buttons go at
 /// the end by default). Also for content shown by <see cref="DialogService"/>.
 /// </summary>

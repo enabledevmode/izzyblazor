@@ -35,7 +35,7 @@ public class IconButton : ButtonBase
     [Parameter, Obsolete("Buttons take a bare Submit or Reset now: <Button Submit>. Type and ButtonType go in a later release.", error: true)]
     public ButtonType Type { get; set; }
 
-    /// <summary>Runs on click on interactive pages.</summary>
+    /// <summary>Runs on click on interactive pages (a link still navigates).</summary>
     [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <inheritdoc />
@@ -64,11 +64,20 @@ public class IconButton : ButtonBase
         builder.OpenElement(0, isLink ? "a" : "button");
         if (isLink)
         {
+            if (Submit || Reset)
+            {
+                throw new InvalidOperationException("IconButton with Href is a link, so Submit and Reset don't apply. Leave out Href for a button.");
+            }
+
             // Like Button with Href: an inactive link has no href, so it keeps role="link" for its name.
             var inactive = Disabled || Loading;
             builder.AddAttribute(1, "href", inactive ? null : Href);
             builder.AddAttribute(2, "aria-disabled", inactive ? "true" : null);
             builder.AddAttribute(15, "role", inactive ? "link" : null);
+            if (OnClick.HasDelegate && !inactive)
+            {
+                builder.AddAttribute(16, "onclick", OnClick);
+            }
         }
         else
         {

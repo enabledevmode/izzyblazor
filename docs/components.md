@@ -405,6 +405,8 @@ wrapping their `ib-field-control` in `FieldAddons`.
 the closed field hides. Other browsers, including iOS Safari, keep their own list and show `ItemText`.
 The closed field keeps a long value on one line: put the text in its own element
 (`<span>@plan.Name</span>`) and it ends in "…"; otherwise it's cut off at the field's edge.
+Either way, hovering the field shows the chosen text as a tooltip (a `title` on the field's wrapper,
+so screen readers don't hear it twice).
 
 **Combobox.** A select you can type in.
 
@@ -675,7 +677,8 @@ Parts are written among the content:
   buttons; they're at the end by default). It's drawn where it's written, so write it last: last in
   the dialog, or last in a form that's last in the dialog. In a form, its submit button submits the
   form with no `Form="id"`, with JavaScript off too. It reaches the dialog's edges, stays in view
-  while the body scrolls and, in a side drawer, sits at the bottom.
+  while the body scrolls. In a side drawer it follows the content (it doesn't move to the drawer's
+  bottom when the content is short).
 - `DialogHeader` is heading content in place of `Title` (a title with an icon or badge). It's drawn
   in the header row beside the close button and names the dialog for screen readers. Like
   `CardHeader`, a form or cascading value it's written inside doesn't reach it.
