@@ -653,6 +653,7 @@ JavaScript off; once an `OnThisPage` is on the page, headings get an `id` slugge
 lists also link to themselves: the heading's text becomes a link to its section, with a "#" after it
 on hover or focus (`Anchor` on `Heading` turns that on or off; a heading that holds a link of its own
 never gets one). `Outline="false"` leaves a heading out. Linked sections stop below a sticky header.
+The list has its own rail, so the aside drops its divider while it shows one.
 
 ```razor
 <AppMain>@Body</AppMain>
