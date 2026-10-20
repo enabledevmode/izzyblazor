@@ -45,4 +45,24 @@ public class DocsSiteRenderTests : BunitContext
         Assert.NotEmpty(cut.FindAll(".ib-tok-keyword"));
     }
 
+    [Fact]
+    public void CopyButton_copies_text_or_another_elements_value_and_is_named()
+    {
+        var icon = Render<CopyButton>(p => p.Add(c => c.Text, "dotnet add package IzzyBlazor"));
+        Assert.Equal("dotnet add package IzzyBlazor", icon.Find("ib-copy").GetAttribute("data-copy-text"));
+        var button = icon.Find("button");
+        Assert.Equal("button", button.GetAttribute("type"));
+        Assert.Equal("Copy", button.GetAttribute("aria-label"));
+        Assert.Equal("Copied", button.GetAttribute("data-copied-label"));
+
+        // With text, the text names it.
+        var text = Render<CopyButton>(p => p.Add(c => c.For, "api-key").AddChildContent("Copy key"));
+        Assert.Equal("api-key", text.Find("ib-copy").GetAttribute("data-copy-for"));
+        Assert.Null(text.Find("button").GetAttribute("aria-label"));
+        Assert.Equal("Copy key", text.Find("button").TextContent.Trim());
+
+        Assert.Throws<InvalidOperationException>(() => Render<CopyButton>());
+        Assert.Throws<InvalidOperationException>(() => Render<CopyButton>(p => p.Add(c => c.Text, "a").Add(c => c.For, "b")));
+    }
+
 }

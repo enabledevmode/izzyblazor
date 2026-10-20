@@ -117,6 +117,19 @@ highlighting does.
 <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@program</Code>
 ```
 
+`CopyButton` copies other text: `Text`, or the value or text of the element whose id is `For` (an
+install command, an ID, an API key in a read-only field). It's a ghost neutral icon button named
+"Copy" (`Label`) unless set otherwise, takes the buttons' `Accent`, `Variant`, `Size` and
+`Disabled`, and with content shows that text after the icon. After copying it shows a check and
+announces `CopiedLabel` for a moment. Copying needs JavaScript, so like a block's copy button it
+appears only when the script runs. In a field's `EndAddon` it's drawn as the add-on's button, and
+with JavaScript off the add-on is left out.
+
+```razor
+<Code>dotnet add package IzzyBlazor</Code>
+<CopyButton Text="dotnet add package IzzyBlazor" Label="Copy the command" />
+```
+
 **Syntax highlighting.** When the `Language` is one the built-in highlighter knows, the code is colored
 on the server, so it works with JavaScript off and never flashes plain first. It knows C# (`csharp`,
 `cs`), Razor (`razor`), HTML and XML (`html`, `xml`, `svg`), CSS (`css`), JavaScript and TypeScript (`js`,

@@ -236,6 +236,9 @@ public class IzzyText
     /// <summary>A code block's copy button.</summary>
     public virtual string CopyCode { get; set; } = "Copy code";
 
+    /// <summary>CopyButton's name when it shows no text.</summary>
+    public virtual string Copy { get; set; } = "Copy";
+
     /// <summary>Announced after copying.</summary>
     public virtual string Copied { get; set; } = "Copied";
 
