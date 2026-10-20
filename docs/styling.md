@@ -336,7 +336,7 @@ your own way, add a class with `Class`.
 
 | Component | Variables |
 | --- | --- |
-| Button, LinkButton, IconButton | `--ib-btn-px` (side padding, every size), `--ib-btn-radius`; heights are `--ib-control-h-*` |
+| Button, IconButton | `--ib-btn-px` (side padding, every size), `--ib-btn-radius`; heights are `--ib-control-h-*` |
 | Fields | `--ib-field-radius`; heights are `--ib-control-h-*` |
 | FileUpload | `--ib-upload-bg` (the zone's fill; container-low by default), `--ib-upload-border-color`, `--ib-upload-border-style` (dashed by default) |
 | Card | `--ib-card-padding` |

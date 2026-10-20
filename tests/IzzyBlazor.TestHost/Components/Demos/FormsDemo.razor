@@ -343,12 +343,12 @@
             <FormActions>
                 @if (EditAccount)
                 {
-                    <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", (bool?)null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</LinkButton>
+                    <Button Href="@Navigation.GetUriWithQueryParameter("edit-account", (bool?)null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
                     <Button Submit>Save</Button>
                 }
                 else
                 {
-                    <LinkButton Href="@Navigation.GetUriWithQueryParameter("edit-account", true)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Edit</LinkButton>
+                    <Button Href="@Navigation.GetUriWithQueryParameter("edit-account", true)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Edit</Button>
                 }
             </FormActions>
         </Form>
@@ -1003,7 +1003,7 @@
             <TextField @bind-Value="Account.Company" />         @* "Company (optional)" *@
             <RadioGroup @bind-Value="Account.Contact" Orientation="Orientation.Horizontal" />
             <Switch @bind-Value="Account.Newsletter" />
-            <FormActions><LinkButton Href="@Navigation.GetUriWithQueryParameter("edit", true)">Edit</LinkButton></FormActions>
+            <FormActions><Button Href="@Navigation.GetUriWithQueryParameter("edit", true)">Edit</Button></FormActions>
         </Form>
         """;
 

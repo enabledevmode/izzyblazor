@@ -64,7 +64,7 @@ public class IconButton : ButtonBase
         builder.OpenElement(0, isLink ? "a" : "button");
         if (isLink)
         {
-            // Like LinkButton: an inactive link has no href, so it keeps role="link" for its name.
+            // Like Button with Href: an inactive link has no href, so it keeps role="link" for its name.
             var inactive = Disabled || Loading;
             builder.AddAttribute(1, "href", inactive ? null : Href);
             builder.AddAttribute(2, "aria-disabled", inactive ? "true" : null);

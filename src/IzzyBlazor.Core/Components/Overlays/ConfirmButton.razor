@@ -57,7 +57,7 @@
         <DialogClose autofocus>@(CancelText ?? TextDefaults.Cancel)</DialogClose>
         @if (Href is not null)
         {
-            <LinkButton Href="@Href" Accent="Accent">@ResolvedConfirmText</LinkButton>
+            <Button Href="@Href" Accent="Accent">@ResolvedConfirmText</Button>
         }
         else if (OnConfirm.HasDelegate && IsInteractive)
         {

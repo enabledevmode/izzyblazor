@@ -19,7 +19,7 @@ public static class DemoCatalog
         new("grid", "Grid, Container and more", "Layout", typeof(GridDemo)),
         new("typography", "Text, Heading, List and Prose", "Typography", typeof(TypographyDemo)),
         new("anchor", "Anchor and Code", "Typography", typeof(AnchorDemo)),
-        new("buttons", "Button, LinkButton, IconButton", "Actions", typeof(ButtonsDemo)),
+        new("buttons", "Button, IconButton", "Actions", typeof(ButtonsDemo)),
         new("forms", "Form and fields", "Forms", typeof(FormsDemo)),
         new("disclosure", "Accordion, Collapsible", "Disclosure", typeof(DisclosureDemo)),
         new("overlays", "Menu, Popover, Tooltip, Dialog", "Overlays", typeof(OverlaysDemo)),

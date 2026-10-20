@@ -161,9 +161,12 @@ public static class MyIcons
 
 ## Buttons
 
-- `Button` is a native `button`.
-- `LinkButton` is an `a`, for navigation. `External` opens a new tab, with an icon unless
-  `HideExternalIcon` or an `EndIcon` is set; screen readers always hear `NewTabLabel`.
+`Href` makes a button a link: without it you get a native `button`, with it an `a`.
+
+- `Button` is a native `button`, or with `Href` an `a`, for navigation. A link's `External` opens a
+  new tab, with an icon unless `HideExternalIcon` or an `EndIcon` is set; screen readers always hear
+  `NewTabLabel`. A link can't be `Submit` or `Reset` or take `Name`, `Value`, `Form` or
+  `FormAction` (it throws). A disabled or loading link has no `href`.
 - `IconButton` shows only an icon. Its required `Label` becomes the accessible name and tooltip.
   With `Href` it's a link.
 

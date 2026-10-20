@@ -48,12 +48,12 @@
         <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
             <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here, with their payment status." data-testid="empty-invoices">
                 <Actions>
-                    <LinkButton Href="static/display" StartIcon="Lucide.Plus">New invoice</LinkButton>
+                    <Button Href="static/display" StartIcon="Lucide.Plus">New invoice</Button>
                 </Actions>
             </EmptyState>
             <EmptyState Bordered Size="ControlSize.Sm" Icon="Lucide.SearchX" Title="No results for “quarterly”" Description="Try a different word, or clear the filters.">
                 <Actions>
-                    <LinkButton Href="static/display" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Clear filters</LinkButton>
+                    <Button Href="static/display" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Clear filters</Button>
                 </Actions>
             </EmptyState>
         </Grid>
@@ -165,7 +165,7 @@
         <EmptyState Bordered Icon="Lucide.Inbox" Title="No invoices yet"
                     Description="Invoices you send appear here, with their payment status.">
             <Actions>
-                <LinkButton Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</LinkButton>
+                <Button Href="/invoices/new" StartIcon="Lucide.Plus">New invoice</Button>
             </Actions>
         </EmptyState>
         """;

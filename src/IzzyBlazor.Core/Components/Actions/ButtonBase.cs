@@ -4,8 +4,7 @@ using Microsoft.AspNetCore.Components.Rendering;
 namespace IzzyBlazor;
 
 /// <summary>
-/// Shared look and content for <see cref="Button"/>, <see cref="LinkButton"/> and
-/// <see cref="IconButton"/>.
+/// Shared look and content for <see cref="Button"/> and <see cref="IconButton"/>.
 /// </summary>
 public abstract class ButtonBase : LayoutItemBase
 {

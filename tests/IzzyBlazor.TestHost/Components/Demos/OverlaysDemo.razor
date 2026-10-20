@@ -141,7 +141,7 @@
             {
                 <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted" data-testid="renamed">Renamed to @_renamed</TextBlock>
             }
-            <LinkButton Href="@($"{_path}?dialog=confirm-delete")" Variant="ButtonVariant.Link">Open with a link (?dialog=)</LinkButton>
+            <Button Href="@($"{_path}?dialog=confirm-delete")" Variant="ButtonVariant.Link">Open with a link (?dialog=)</Button>
             @if (RendererInfo.IsInteractive)
             {
                 <Button Variant="ButtonVariant.Ghost" OnClick="() => _confirmOpen = true">Open from C#</Button>
@@ -454,7 +454,7 @@
     private const string DialogCode =
         """
         <DialogTrigger For="confirm-delete" Accent="Accent.Danger">Delete project</DialogTrigger>
-        <LinkButton Href="?dialog=confirm-delete">Open with a link</LinkButton>
+        <Button Href="?dialog=confirm-delete">Open with a link</Button>
 
         <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm" @bind-Open="confirmOpen">
             <ChildContent>It can't be undone.</ChildContent>

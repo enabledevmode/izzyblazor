@@ -17,6 +17,8 @@ public class DialogTrigger : Button
     /// <summary>The id of the dialog to open.</summary>
     [Parameter, EditorRequired] public string For { get; set; } = "";
 
+    private protected override bool CanBeLink => false;
+
     /// <inheritdoc />
     protected override IEnumerable<KeyValuePair<string, object>>? ExtraAttributes =>
     [
@@ -63,6 +65,8 @@ public class DialogClose : Button
     [Parameter] public string? For { get; set; }
 
     [CascadingParameter] private DialogContext? Dialog { get; set; }
+
+    private protected override bool CanBeLink => false;
 
     private string Target => For ?? Dialog?.Id
         ?? throw new InvalidOperationException("DialogClose must be inside a Dialog, or set For to the dialog's id.");

@@ -18,9 +18,9 @@ public class SiteRedesignTests : BunitContext
     }
 
     [Fact]
-    public void External_LinkButton_can_hide_its_icon_and_still_says_so()
+    public void External_link_button_can_hide_its_icon_and_still_says_so()
     {
-        var a = Render<LinkButton>(p => p
+        var a = Render<Button>(p => p
             .Add(b => b.Href, "https://example.com")
             .Add(b => b.External, true)
             .Add(b => b.HideExternalIcon, true)
@@ -32,9 +32,9 @@ public class SiteRedesignTests : BunitContext
     }
 
     [Fact]
-    public void External_LinkButton_with_an_end_icon_still_says_it_opens_a_new_tab()
+    public void External_link_button_with_an_end_icon_still_says_it_opens_a_new_tab()
     {
-        var a = Render<LinkButton>(p => p
+        var a = Render<Button>(p => p
             .Add(b => b.Href, "https://example.com")
             .Add(b => b.External, true)
             .Add(b => b.EndIcon, Lucide.ArrowRight)

@@ -30,7 +30,7 @@
                     <TextBlock As="span" Weight="FontWeight.Bold">Acme Labs</TextBlock>
                 </PanelHeader>
                 <PanelFooter>
-                    <LinkButton Href="@Url("marketing")" StartIcon="Lucide.Play" FullWidth>Watch the series</LinkButton>
+                    <Button Href="@Url("marketing")" StartIcon="Lucide.Play" FullWidth>Watch the series</Button>
                 </PanelFooter>
             </HeaderNav>
             <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
@@ -44,8 +44,8 @@
                         <Heading Level="1" Size="TextSize.Xl6" MinSize="TextSize.Xl4" LetterSpacing="LetterSpacing.Tight">Build real apps, one commit at a time</Heading>
                         <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every episode ships a working feature. Watch the change, read the diff, and run the code at that exact step.</TextBlock>
                         <Row Gap="3" Wrap>
-                            <LinkButton Href="@Url("marketing")" StartIcon="Lucide.Play" Size="ControlSize.Lg">Watch the series</LinkButton>
-                            <LinkButton Href="@Url("marketing")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</LinkButton>
+                            <Button Href="@Url("marketing")" StartIcon="Lucide.Play" Size="ControlSize.Lg">Watch the series</Button>
+                            <Button Href="@Url("marketing")" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</Button>
                         </Row>
                     </Stack>
                     <VideoEmbed YouTubeId="aqz-KE-bpKQ" Label="Series trailer" />
