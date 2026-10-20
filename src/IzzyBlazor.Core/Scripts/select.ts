@@ -64,6 +64,16 @@ export function installSelects(): void {
   // Blazor sets select.value directly on interactive pages; that fires no event.
   if (supported) document.addEventListener("change", (e) => e.target instanceof HTMLSelectElement && refresh(e.target), true);
   document.addEventListener("change", (e) => e.target instanceof HTMLSelectElement && e.target.matches(".ib-field-select") && retitle(e.target), true);
+  // A form reset and the browser restoring a form (back button) change the choice with no change event.
+  document.addEventListener("reset", (e) => e.target instanceof HTMLFormElement && setTimeout(() => resync(e.target as HTMLFormElement)), true);
+  window.addEventListener("pageshow", () => resync(document));
+}
+
+function resync(root: ParentNode): void {
+  root.querySelectorAll<HTMLSelectElement>("select.ib-field-select").forEach((select) => {
+    retitle(select);
+    if (supported) refresh(select);
+  });
 }
 
 function retitle(select: HTMLSelectElement): void {

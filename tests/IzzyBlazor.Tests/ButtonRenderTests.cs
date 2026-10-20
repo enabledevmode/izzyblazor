@@ -148,6 +148,8 @@ public class ButtonRenderTests : BunitContext
         Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Href, "/x").Add(b => b.Submit, true)));
         Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Href, "/x").Add(b => b.Form, "f")));
         Assert.Throws<InvalidOperationException>(() => Render<DialogTrigger>(p => p.Add(b => b.For, "d").Add(b => b.Href, "/x")));
+        Assert.Throws<InvalidOperationException>(() => Render<DialogClose>(p => p.Add(b => b.For, "d").Add(b => b.Href, "/x")));
+        Assert.Throws<InvalidOperationException>(() => Render<IconButton>(p => p.Add(b => b.Icon, Lucide.Pencil).Add(b => b.Label, "Edit").Add(b => b.Href, "/x").Add(b => b.Submit, true)));
     }
 
     [Fact]

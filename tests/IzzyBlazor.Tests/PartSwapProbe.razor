@@ -1,0 +1,33 @@
+@* Swaps a part with @if/else and changes its content by itself, as an app's own component would. *@
+@if (Kind == "sidebar")
+{
+    if (First) { <SidebarHeader>A @Count</SidebarHeader> } else { <SidebarHeader>B @Count</SidebarHeader> }
+}
+else if (Kind == "card")
+{
+    if (First) { <CardHeader>A @Count</CardHeader> } else { <CardHeader>B @Count</CardHeader> }
+}
+else
+{
+    if (First) { <DialogHeader>A @Count</DialogHeader> } else { <DialogHeader>B @Count</DialogHeader> }
+}
+
+@code {
+    [Parameter] public string Kind { get; set; } = "sidebar";
+
+    public bool First { get; private set; } = true;
+
+    public int Count { get; private set; }
+
+    public void Swap()
+    {
+        First = !First;
+        StateHasChanged();
+    }
+
+    public void Bump()
+    {
+        Count++;
+        StateHasChanged();
+    }
+}

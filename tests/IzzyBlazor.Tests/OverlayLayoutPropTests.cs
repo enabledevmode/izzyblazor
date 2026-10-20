@@ -88,7 +88,7 @@ public class OverlayLayoutPropTests : BunitContext
 
         Assert.Equal("ib-dialog ib-dialog-md ib-dialog-center ib-dialog-sized", dialog.ClassName);
         Assert.Equal("--ib-dlgw:56rem;", dialog.GetAttribute("style"));
-        Assert.Equal("ib-dialog-body ib-px ib-py", body.ClassName);
+        Assert.Equal("ib-dialog-body ib-px ib-py ib-dialog-pad", body.ClassName);
         Assert.Contains("--ib-px:var(--ib-space-0)", body.GetAttribute("style"));
     }
 

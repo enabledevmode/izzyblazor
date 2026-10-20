@@ -1478,7 +1478,8 @@
     }
   }
 
-  :is(.ib-check-input, .ib-switch-input):disabled + .ib-check-label {
+  /* "~": a row Icon can sit between the input and its label. */
+  :is(.ib-check-input, .ib-switch-input):disabled ~ .ib-check-label {
     color: var(--ib-color-disabled);
     cursor: not-allowed;
   }
@@ -1620,6 +1621,8 @@
     flex: none;
     align-items: center;
     height: 1lh;
+    /* An even height, so a 16/20/24px icon centered in it lands on a whole pixel when the line is odd. */
+    height: round(down, 1lh, 2px);
     color: var(--ib-color-muted);
   }
 
@@ -1711,6 +1714,8 @@
     float: inline-start;
     grid-column: 2;
     grid-row: 1;
+    /* A rendered legend takes no part in the fieldset's gap; as a grid item it would. */
+    margin-bottom: calc(-1 * var(--ib-space-1));
   }
 
   .ib-fieldset-has-icon > .ib-fieldset-description {

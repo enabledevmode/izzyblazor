@@ -146,6 +146,8 @@
     private RenderFragment Outlet(CardPart part) => builder =>
     {
         builder.OpenComponent<CardPartOutlet>(0);
+        // Keyed by part, so a swapped-in part (@if/else) gets its own outlet and its reference is captured.
+        builder.SetKey(part);
         builder.AddComponentParameter(1, nameof(CardPartOutlet.Part), part);
         builder.AddComponentReferenceCapture(2, outlet => _outlets[part] = (CardPartOutlet)outlet);
         builder.CloseComponent();
