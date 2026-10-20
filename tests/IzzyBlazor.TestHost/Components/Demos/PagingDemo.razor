@@ -18,6 +18,10 @@
         </Stack>
     </Example>
 
+    <Example Title="Previous and next pages" Note="PrevNext ends an article with links to the pages around it: side by side from 32rem of width, stacked below. Leave out a side on the first or last page." Code="@PrevNextCode">
+        <PrevNext PreviousHref="static/paging" PreviousTitle="Breadcrumb and Pagination" NextHref="static/stepper" NextTitle="Stepper" />
+    </Example>
+
     <Example Title="Pagination in the URL" Note="Each page is a link that sets ?page= in the address, so paging works with JavaScript off, survives a reload and can be shared. The page reads it with [SupplyParameterFromQuery]. On phones only the neighbors and the ends are shown." Code="@UrlCode">
         <Stack Gap="4">
             <TextBlock data-testid="items">Showing items @((CurrentPage - 1) * 10 + 1)–@(Math.Min(CurrentPage * 10, Total)) of @Total</TextBlock>
@@ -36,6 +40,12 @@
 </Stack>
 
 @code {
+    private const string PrevNextCode =
+        """
+        <PrevNext PreviousHref="docs/install" PreviousTitle="Install"
+                  NextHref="docs/theming" NextTitle="Theming" />
+        """;
+
     private const int Total = 237;
 
     [SupplyParameterFromQuery(Name = "page")] private int? QueryPage { get; set; }

@@ -24,7 +24,7 @@ public static class DemoCatalog
         new("disclosure", "Accordion, Collapsible", "Disclosure", typeof(DisclosureDemo)),
         new("overlays", "Menu, Popover, Tooltip, Dialog", "Overlays", typeof(OverlaysDemo)),
         new("tabs", "Tabs", "Navigation", typeof(TabsDemo)),
-        new("paging", "Breadcrumb, Pagination", "Navigation", typeof(PagingDemo)),
+        new("paging", "Breadcrumb, Pagination, PrevNext", "Navigation", typeof(PagingDemo)),
         new("stepper", "Stepper", "Navigation", typeof(StepperDemo)),
         new("badge", "Badge and Tag", "Feedback", typeof(BadgeDemo)),
         new("alerts", "Alert, Banner and Toast", "Feedback", typeof(AlertDemo)),

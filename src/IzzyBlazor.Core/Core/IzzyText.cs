@@ -234,6 +234,15 @@ public class IzzyText
     /// <summary>OnThisPage's heading, which also names its navigation landmark.</summary>
     public virtual string OnThisPage { get; set; } = "On this page";
 
+    /// <summary>PrevNext's navigation landmark.</summary>
+    public virtual string PrevNextNavigation { get; set; } = "More pages";
+
+    /// <summary>PrevNext: the small text above the previous page's title.</summary>
+    public virtual string Previous { get; set; } = "Previous";
+
+    /// <summary>PrevNext: the small text above the next page's title.</summary>
+    public virtual string Next { get; set; } = "Next";
+
     // Typography
 
     /// <summary>A code block's copy button.</summary>

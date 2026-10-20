@@ -360,3 +360,89 @@
     font-weight: var(--ib-weight-medium);
   }
 }
+
+/*
+ * PrevNext: two link cards; side by side when the nav is 32rem wide or more (the next one always
+ * in the end column), stacked below. Titles wrap; the cards in a row share their height.
+ */
+@layer izzy.components {
+  .ib-prev-next {
+    container-type: inline-size;
+  }
+
+  .ib-prev-next-grid {
+    display: grid;
+    gap: var(--ib-space-3);
+  }
+
+  @container (width >= 32rem) {
+    .ib-prev-next-link {
+      grid-row: 1;
+    }
+
+    .ib-prev-next-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .ib-prev-next-next {
+      grid-column: 2;
+    }
+  }
+
+  .ib-prev-next-link {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    min-width: 0;
+    padding: var(--ib-space-3) var(--ib-space-4);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    color: var(--ib-color-on-surface);
+    text-decoration: none;
+    transition: border-color var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-prev-next-next {
+    align-items: flex-end;
+    text-align: end;
+  }
+
+  .ib-prev-next-link:hover {
+    border-color: var(--ib-color-primary);
+  }
+
+  .ib-prev-next-link:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-prev-next-dir {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    line-height: 1.25rem;
+  }
+
+  .ib-prev-next-icon {
+    --ib-icon-size: 1rem;
+  }
+
+  .ib-prev-next-icon:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-prev-next-title {
+    color: var(--ib-color-primary-text);
+    font-weight: var(--ib-weight-medium);
+    line-height: round(nearest, calc(1em * var(--ib-leading-snug)), 1px);
+    overflow-wrap: anywhere;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-prev-next-link {
+      transition: none;
+    }
+  }
+}

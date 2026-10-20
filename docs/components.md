@@ -905,6 +905,17 @@ set how many numbers show around the current page and at the ends. On phones it 
 neighbors and the ends. With `@bind-Page` on an interactive page, the pages
 become buttons that update C# without touching the URL.
 
+`PrevNext` ends an article with links to the pages around it: two cards with "Previous" and "Next"
+over the page titles (`PreviousHref` and `PreviousTitle`, `NextHref` and `NextTitle`), side by side
+when it's 32rem wide or more and stacked below. Leave out a side on the first or last page. The
+links carry `rel="prev"` and `rel="next"`; `PreviousText`, `NextText` and `Label` (the landmark,
+"More pages") change the text.
+
+```razor
+<PrevNext PreviousHref="docs/install" PreviousTitle="Install"
+          NextHref="docs/theming" NextTitle="Theming" />
+```
+
 ## Stepper
 
 Where someone is in a process, such as a checkout: `Stepper Current="2"` (counting from 1) around
