@@ -190,6 +190,79 @@
     return;
 }
 
+@if (Kind == "docs")
+{
+    @* A documentation site: a sidebar of sections with quiet counts and a long title that wraps, an
+       article whose headings are listed in OnThisPage (in AppAside) and link to themselves, code
+       with a file name, line numbers and highlighted lines, a copy button, and previous/next links. *@
+    <AppShell Variant="ShellVariantValue">
+        <AppHeader>
+            <SidebarToggle />
+            <AppBrand Href="@Url(Kind)" Icon="Lucide.BookOpen" Label="Acme Docs" />
+            <Box Grow />
+            <SiteNav Label="Site">
+                <NavItem Href="@Url("docs")">Docs</NavItem>
+                <NavItem Href="@Url("marketing")">Demos</NavItem>
+            </SiteNav>
+            <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        </AppHeader>
+
+        <AppSidebar>
+            <NavMenu aria-label="Docs">
+                <NavLabel>Get started</NavLabel>
+                <NavItem Href="@Url("docs")">Blazor Web App</NavItem>
+                <NavItem Href="@Url("document")">WebAssembly or Auto</NavItem>
+                <NavItem Href="@Url("reading")">Add IzzyBlazor to an app that already has its own layout</NavItem>
+                <NavLabel>Components</NavLabel>
+                <NavItem Href="@Url("list")" Badge="12" BadgeVariant="BadgeVariant.Plain">Forms</NavItem>
+                <NavItem Href="@Url("settings")" Badge="7" BadgeVariant="BadgeVariant.Plain">Overlays</NavItem>
+                <NavItem Href="@Url("dashboard")" Badge="9" BadgeVariant="BadgeVariant.Plain">Data display</NavItem>
+            </NavMenu>
+        </AppSidebar>
+
+        <AppMain>
+            <Box Padding="new() { Base = 4, Md = 10 }">
+                <Stack Gap="5" MaxWidth="Length.Prose">
+                    <Breadcrumb>
+                        <BreadcrumbItem Href="@Url("docs")">Get started</BreadcrumbItem>
+                        <BreadcrumbItem>Blazor Web App</BreadcrumbItem>
+                    </Breadcrumb>
+                    <Heading Level="1" Size="TextSize.Xl3">Add IzzyBlazor to a Blazor Web App</Heading>
+                    <TextBlock Size="TextSize.Lg" Color="Color.Muted">Install the package, register its services, and build your first page. Every component works on static pages, with JavaScript off.</TextBlock>
+
+                    <Heading Level="2" Size="TextSize.Xl">Install the package</Heading>
+                    <TextBlock>Add the package from NuGet. It brings its CSS and script with it; there are no tags to add.</TextBlock>
+                    <Row Gap="2" Align="Align.Center">
+                        <Code>dotnet add package IzzyBlazor --prerelease</Code>
+                        <CopyButton Text="dotnet add package IzzyBlazor --prerelease" Label="Copy the command" Size="ControlSize.Sm" />
+                    </Row>
+
+                    <Heading Level="2" Size="TextSize.Xl">Register the services</Heading>
+                    <TextBlock>Call <Code>AddIzzyBlazor</Code> with your other services, and map its endpoints after the components.</TextBlock>
+                    <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,9">@ProgramSample</Code>
+
+                    <Heading Level="3" Size="TextSize.Lg">What the endpoints are for</Heading>
+                    <TextBlock>They save choices that work without script, such as the color scheme, in a cookie, then send the browser back to the page it came from.</TextBlock>
+
+                    <Heading Level="2" Size="TextSize.Xl">Build your first page</Heading>
+                    <TextBlock>Wrap the layout in an <Code>AppShell</Code>. Its parts arrange themselves with CSS alone, so the page is right on the first response.</TextBlock>
+                    <Code Block Language="razor" Title="Components/Layout/MainLayout.razor" HighlightLines="1-2,7">@LayoutSample</Code>
+                    <Alert Title="Static first">Start with static pages; add an interactive render mode only where a page needs C# events.</Alert>
+
+                    <Heading Level="2" Size="TextSize.Xl">Next steps</Heading>
+                    <TextBlock>Pick a look and a brand color, then browse the components. Each one lists what it does with JavaScript off.</TextBlock>
+                    <PrevNext MarginTop="6" PreviousHref="@Url("document")" PreviousTitle="Packages: IzzyBlazor or IzzyBlazor.Core" NextHref="@Url("reading")" NextTitle="WebAssembly or Auto" />
+                </Stack>
+            </Box>
+        </AppMain>
+
+        <AppAside>
+            <OnThisPage />
+        </AppAside>
+    </AppShell>
+    return;
+}
+
 <AppShell Variant="ShellVariantValue">
     <AppHeader>
         <SidebarToggle />
@@ -387,7 +460,31 @@
 
     private string Url(string kind) => VariantName is null ? $"preview/layout/{kind}" : $"preview/layout/{kind}?variant={VariantName}";
 
-    private string Title => Kind switch { "settings" => "Settings", "list" => "Rules", "document" => "Guide", "reading" => "Journal", "marketing" => "Acme Labs", _ => "Overview" };
+    private const string ProgramSample = """
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddRazorComponents();
+        builder.Services.AddIzzyBlazor();
+
+        var app = builder.Build();
+        app.UseStaticFiles();
+        app.MapRazorComponents<App>();
+        app.MapIzzyBlazor();
+        app.Run();
+        """;
+
+    private const string LayoutSample = """
+        @inherits LayoutComponentBase
+        <AppShell>
+            <AppHeader>
+                <SidebarToggle />
+                <AppBrand Href="/" Label="My app" />
+            </AppHeader>
+            <AppMain>@Body</AppMain>
+        </AppShell>
+        """;
+
+    private string Title => Kind switch { "docs" => "Docs", "settings" => "Settings", "list" => "Rules", "document" => "Guide", "reading" => "Journal", "marketing" => "Acme Labs", _ => "Overview" };
 
     private static readonly (string Title, string Text, IconData Icon, string Tag)[] Projects =
     [
