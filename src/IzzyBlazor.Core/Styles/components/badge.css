@@ -65,6 +65,16 @@
     color: var(--ib-accent-text);
   }
 
+  /* Plain: the text alone, at normal weight; Neutral is muted, like a total beside a link. */
+  .ib-badge-plain {
+    color: var(--ib-accent-text);
+    font-weight: var(--ib-weight-normal);
+  }
+
+  .ib-badge-neutral.ib-badge-plain:not(.ib-badge-accent) {
+    color: var(--ib-color-muted);
+  }
+
   .ib-badge-dot {
     /* Even, like the badge's inside height, so it centers on whole pixels. */
     width: 0.375rem;

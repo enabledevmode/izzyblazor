@@ -14,6 +14,12 @@ public enum BadgeVariant
 
     /// <summary>A colored border.</summary>
     Outline,
+
+    /// <summary>
+    /// Just the text, in the color's text shade, with no fill or border: a quiet count, such as the
+    /// totals beside sidebar links. Neutral is a muted gray.
+    /// </summary>
+    Plain,
 }
 
 /// <summary>Badge sizes.</summary>
@@ -79,6 +85,8 @@ public class Badge : LayoutItemBase
         if (Accent is { } accent)
         {
             ColorOverride.Apply(styles, accent.ToColor());
+            // Plain text takes the accent's text color, not the muted gray of a neutral count.
+            classes.Add("ib-badge-accent", accent.Role != "neutral");
         }
     }
 

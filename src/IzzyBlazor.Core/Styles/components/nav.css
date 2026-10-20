@@ -73,12 +73,16 @@
   }
 
 
+  /* Long titles wrap in a vertical menu, with the same space above and below as a one-line item
+     has (whole pixels); a row (horizontal menu) keeps them on one line. */
+  .ib-nav-vertical .ib-nav-item {
+    padding-block: max(var(--ib-space-1), round(down, calc((var(--ib-control-h-md) - 1lh) / 2), 1px));
+  }
+
   .ib-nav-text {
     flex: 1;
     min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    overflow-wrap: anywhere;
   }
 
   .ib-nav-horizontal .ib-nav-text {
