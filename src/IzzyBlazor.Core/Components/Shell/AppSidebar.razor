@@ -17,32 +17,40 @@
         request, so the page arrives already collapsed with no flash.
       - Interactive: @bind-Collapsed follows the checkbox and can set it from C#.
 
-    Layout inside: Header (pinned at the top), the content (scrolls), Footer (pinned at the
-    bottom). The chevron sits in the footer row by default, or the header row.
+    Layout inside: SidebarHeader (pinned at the top), the content (scrolls), SidebarFooter
+    (pinned at the bottom), the parts written among the content. The chevron sits in the footer
+    row by default, or the header row. In the drawer, the header row is the top bar, with the
+    close button in it.
+
+    <AppSidebar Collapsible>
+        <SidebarHeader><AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" /></SidebarHeader>
+        <NavMenu>...</NavMenu>
+        <SidebarFooter>...</SidebarFooter>
+    </AppSidebar>
 *@
 
 @* "#ib-shell-closed" matches no element: it clears :target without scrolling to the top as "#" would. *@
 <a class="ib-shell-backdrop" href="#ib-shell-closed" tabindex="-1" aria-hidden="true"></a>
 <nav @attributes="AdditionalAttributes" id="@Id" aria-label="@(Label ?? TextDefaults.MainNavigation)" class="@_class" style="@_style">
     <div class="ib-shell-sidebar-inner">
-        <div class="ib-shell-sidebar-close">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="#ib-shell-closed" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
-                <Icon Role="IconRole.Close" />
-            </a>
-        </div>
-        @if (Header is not null)
+        @if (Shown(SidebarPartKind.Header) is { } header)
         {
             <div class="ib-shell-sidebar-head">
-                <div class="ib-shell-sidebar-slot">@Header</div>
+                <div class="ib-shell-sidebar-slot">@Outlet(header)</div>
                 @if (ChevronAt(VerticalPosition.Top))
                 {
                     @CollapseControl
                 }
+                @CloseControl
             </div>
         }
-        else if (ChevronAt(VerticalPosition.Top))
+        else
         {
-            @CollapseControl
+            @CloseControl
+            @if (ChevronAt(VerticalPosition.Top))
+            {
+                @CollapseControl
+            }
         }
         <div class="ib-shell-sidebar-body">
             @if (HeaderLinks?.Links is { } links)
@@ -52,12 +60,12 @@
                     @links
                 </ul>
             }
-            @ChildContent
+            <CascadingValue Value="_context" IsFixed="true">@ChildContent</CascadingValue>
         </div>
-        @if (Footer is not null)
+        @if (Shown(SidebarPartKind.Footer) is { } footer)
         {
             <div class="ib-shell-sidebar-foot">
-                <div class="ib-shell-sidebar-slot">@Footer</div>
+                <div class="ib-shell-sidebar-slot">@Outlet(footer)</div>
                 @if (ChevronAt(VerticalPosition.Bottom))
                 {
                     @CollapseControl
@@ -137,15 +145,6 @@
     /// <summary>Where the chevron goes: <see cref="VerticalPosition.Bottom"/> (the default, in the footer row) or <see cref="VerticalPosition.Top"/>.</summary>
     [Parameter] public VerticalPosition CollapseButtonPosition { get; set; } = VerticalPosition.Bottom;
 
-    /// <summary>
-    /// Pinned to the top of the sidebar, above the scrolling content: a brand or workspace
-    /// switcher. In the icon rail, mark text with <c>class="ib-collapsed-hide"</c>.
-    /// </summary>
-    [Parameter] public RenderFragment? Header { get; set; }
-
-    /// <summary>Pinned to the bottom of the sidebar, below the scrolling content: an account menu or settings.</summary>
-    [Parameter] public RenderFragment? Footer { get; set; }
-
     /// <summary>The drawer's close button name. Defaults to "Close menu".</summary>
     [Parameter] public string? CloseLabel { get; set; }
 
@@ -155,6 +154,9 @@
 
     private string? _class;
     private string? _style;
+    private readonly SidebarContext _context;
+    private readonly List<SidebarPart> _parts = [];
+    private readonly Dictionary<SidebarPart, PartOutlet> _outlets = [];
     private bool _collapsed;
     private bool _lastCollapsedParam;
     private bool _initialized;
@@ -166,6 +168,54 @@
     private ShellHeaderLinks? _subscribed;
 
     private void OnHeaderLinksChanged() => _ = InvokeAsync(StateHasChanged);
+
+    /// <summary>Creates a sidebar.</summary>
+    public AppSidebar() => _context = new SidebarContext(this);
+
+    // The last of a kind is drawn: while one part replaces another (@if/else), both are briefly listed.
+    private SidebarPart? Shown(SidebarPartKind kind) => _parts.FindLast(p => p.Kind == kind);
+
+    // A part renders nothing where it's written; it hands its content to the sidebar. Adding or
+    // removing one re-renders the sidebar; a change to its content re-renders only its outlet.
+    internal void AddPart(SidebarPart part)
+    {
+        _parts.Add(part);
+        StateHasChanged();
+    }
+
+    internal void RemovePart(SidebarPart part)
+    {
+        _outlets.Remove(part);
+        if (_parts.Remove(part))
+        {
+            StateHasChanged();
+        }
+    }
+
+    internal void PartChanged(SidebarPart part)
+    {
+        if (_outlets.TryGetValue(part, out var outlet))
+        {
+            outlet.Refresh();
+        }
+    }
+
+    private RenderFragment Outlet(SidebarPart part) => builder =>
+    {
+        builder.OpenComponent<PartOutlet>(0);
+        builder.AddComponentParameter(1, nameof(PartOutlet.Content), (Func<RenderFragment?>)(() => part.ChildContent));
+        builder.AddComponentReferenceCapture(2, outlet => _outlets[part] = (PartOutlet)outlet);
+        builder.CloseComponent();
+    };
+
+    private RenderFragment CloseControl => __builder =>
+    {
+        <div class="ib-shell-sidebar-close">
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="#ib-shell-closed" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
+                <Icon Role="IconRole.Close" />
+            </a>
+        </div>
+    };
 
     private bool ChevronAt(VerticalPosition position) => Collapsible && CollapseButtonPosition == position;
 

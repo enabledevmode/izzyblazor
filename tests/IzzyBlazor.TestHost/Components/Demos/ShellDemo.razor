@@ -150,13 +150,13 @@
         <AppSidebar Collapsible>...</AppSidebar>
 
         <AppSidebar Collapsible>
-            <Header>
+            <SidebarHeader>
                 <Row Gap="2"><Icon Name="Lucide.Zap" /><TextBlock As="span" Class="ib-collapsed-hide">Acme Inc.</TextBlock></Row>
-            </Header>
-            <ChildContent><NavMenu>...</NavMenu></ChildContent>
-            <Footer>
+            </SidebarHeader>
+            <NavMenu>...</NavMenu>
+            <SidebarFooter>
                 <NavMenu><NavItem Href="account" Icon="Lucide.CircleUser">Ada Lovelace</NavItem></NavMenu>
-            </Footer>
+            </SidebarFooter>
         </AppSidebar>
 
         <!-- Interactive pages: follow it and set it from C# -->
@@ -191,8 +191,8 @@
     private const string FullCode =
         """
         <AppSidebar FullHeight Bg="Color.Background">
-            <Header>(your brand: the row matches AppHeader's height)</Header>
-            <ChildContent><NavMenu>...</NavMenu></ChildContent>
+            <SidebarHeader>(your brand: the row matches AppHeader's height)</SidebarHeader>
+            <NavMenu>...</NavMenu>
         </AppSidebar>
         """;
 

@@ -36,7 +36,7 @@
     </AppHeader>
 
     <AppSidebar Collapsible>
-        <Header>
+        <SidebarHeader>
             <Menu Label="Switch store">
                 <Trigger>
                     <Button Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Store" FullWidth Class="host-switcher" @attributes="context">
@@ -51,28 +51,26 @@
                     <MenuItem Icon="Lucide.Plus">New store</MenuItem>
                 </ChildContent>
             </Menu>
-        </Header>
-        <ChildContent>
-            <NavMenu>
-                <NavItem Href="preview/showcase/home" Icon="Lucide.LayoutDashboard">Overview</NavItem>
-                <NavItem Href="preview/showcase" Icon="Lucide.ShoppingCart" Match="NavLinkMatch.All" Badge="12" BadgeAccent="Accent.Primary">Orders</NavItem>
-                <NavItem Href="preview/showcase/customers" Icon="Lucide.UsersRound">Customers</NavItem>
-                <NavGroup Label="Catalog" Icon="Lucide.PackageCheck" ActivePrefix="preview/showcase/catalog">
-                    <NavItem Href="preview/showcase/catalog/products">Products</NavItem>
-                    <NavItem Href="preview/showcase/catalog/collections">Collections</NavItem>
-                </NavGroup>
-                <NavItem Href="preview/showcase/reports" Icon="Lucide.ChartColumn">Reports</NavItem>
-                <NavDivider />
-                <NavLabel>Workspace</NavLabel>
-                <NavItem Href="preview/showcase/team" Icon="Lucide.UsersRound">Team</NavItem>
-                <NavItem Href="preview/showcase/billing" Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
-            </NavMenu>
-        </ChildContent>
-        <Footer>
+        </SidebarHeader>
+        <NavMenu>
+            <NavItem Href="preview/showcase/home" Icon="Lucide.LayoutDashboard">Overview</NavItem>
+            <NavItem Href="preview/showcase" Icon="Lucide.ShoppingCart" Match="NavLinkMatch.All" Badge="12" BadgeAccent="Accent.Primary">Orders</NavItem>
+            <NavItem Href="preview/showcase/customers" Icon="Lucide.UsersRound">Customers</NavItem>
+            <NavGroup Label="Catalog" Icon="Lucide.PackageCheck" ActivePrefix="preview/showcase/catalog">
+                <NavItem Href="preview/showcase/catalog/products">Products</NavItem>
+                <NavItem Href="preview/showcase/catalog/collections">Collections</NavItem>
+            </NavGroup>
+            <NavItem Href="preview/showcase/reports" Icon="Lucide.ChartColumn">Reports</NavItem>
+            <NavDivider />
+            <NavLabel>Workspace</NavLabel>
+            <NavItem Href="preview/showcase/team" Icon="Lucide.UsersRound">Team</NavItem>
+            <NavItem Href="preview/showcase/billing" Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
+        </NavMenu>
+        <SidebarFooter>
             <NavMenu aria-label="Account">
                 <NavItem Href="preview/showcase/profile" Icon="Lucide.CircleUser">Izzy Dryer</NavItem>
             </NavMenu>
-        </Footer>
+        </SidebarFooter>
     </AppSidebar>
 
     <AppMain>

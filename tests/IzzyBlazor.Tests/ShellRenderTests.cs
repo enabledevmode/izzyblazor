@@ -275,13 +275,23 @@ public class ShellRenderTests : BunitContext
     public void Sidebar_header_and_footer_frame_the_scrolling_content()
     {
         var inner = Render<AppSidebar>(p => p
-            .Add(s => s.Header, (RenderFragment)(b => b.AddContent(0, "Brand")))
-            .Add(s => s.Footer, (RenderFragment)(b => b.AddContent(0, "Account")))
-            .AddChildContent("Links")).Find(".ib-shell-sidebar-inner");
+            .AddChildContent(b =>
+            {
+                b.AddContent(0, "Links");
+                b.OpenComponent<SidebarFooter>(1);
+                b.AddComponentParameter(2, nameof(SidebarFooter.ChildContent), (RenderFragment)(f => f.AddContent(0, "Account")));
+                b.CloseComponent();
+                b.OpenComponent<SidebarHeader>(3);
+                b.AddComponentParameter(4, nameof(SidebarHeader.ChildContent), (RenderFragment)(h => h.AddContent(0, "Brand")));
+                b.CloseComponent();
+            })).Find(".ib-shell-sidebar-inner");
 
+        // Written anywhere among the content; the drawer's close button goes in the header row.
         var rows = inner.Children.Select(c => c.ClassName).ToArray();
-        Assert.Equal(new[] { "ib-shell-sidebar-close", "ib-shell-sidebar-head", "ib-shell-sidebar-body", "ib-shell-sidebar-foot" }, rows);
+        Assert.Equal(new[] { "ib-shell-sidebar-head", "ib-shell-sidebar-body", "ib-shell-sidebar-foot" }, rows);
         Assert.Equal("Brand", inner.QuerySelector(".ib-shell-sidebar-head > .ib-shell-sidebar-slot")!.TextContent);
+        Assert.NotNull(inner.QuerySelector(".ib-shell-sidebar-head > .ib-shell-sidebar-close"));
+        Assert.Equal("Account", inner.QuerySelector(".ib-shell-sidebar-foot > .ib-shell-sidebar-slot")!.TextContent);
         Assert.Equal("Links", inner.QuerySelector(".ib-shell-sidebar-body")!.TextContent.Trim());
     }
 
@@ -296,8 +306,18 @@ public class ShellRenderTests : BunitContext
         var cut = Render<AppSidebar>(p => p
             .Add(s => s.Collapsible, true)
             .Add(s => s.CollapseButtonPosition, position)
-            .Add(s => s.Header, slots ? slot : null)
-            .Add(s => s.Footer, slots ? slot : null));
+            .AddChildContent(b =>
+            {
+                if (slots)
+                {
+                    b.OpenComponent<SidebarHeader>(0);
+                    b.AddComponentParameter(1, nameof(SidebarHeader.ChildContent), slot);
+                    b.CloseComponent();
+                    b.OpenComponent<SidebarFooter>(2);
+                    b.AddComponentParameter(3, nameof(SidebarFooter.ChildContent), slot);
+                    b.CloseComponent();
+                }
+            }));
 
         Assert.Single(cut.FindAll(".ib-shell-collapse"));
         Assert.NotNull(cut.Find(selector));
