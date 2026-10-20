@@ -109,8 +109,8 @@ internal sealed class PartScope
         return null;
     }
 
-    // Adding or removing a part re-renders the host; a change to a part's content re-renders only
-    // its outlet, so the host's content (which holds the part) isn't rendered again.
+    // Adding or removing a part re-renders the host. A change to a part's content (from a component
+    // of the app's that re-renders by itself) re-renders only its outlet, not the host's content.
     public void Add(ComponentPart part)
     {
         if (Discards)
@@ -124,6 +124,11 @@ internal sealed class PartScope
 
     public void Remove(ComponentPart part)
     {
+        if (Discards)
+        {
+            return;
+        }
+
         _outlets.Remove(part);
         if (_parts.Remove(part))
         {
@@ -133,15 +138,15 @@ internal sealed class PartScope
 
     public void Changed(ComponentPart part)
     {
-        if (_outlets.TryGetValue(part, out var outlet))
+        if (!Discards && _outlets.TryGetValue(part, out var outlet))
         {
             outlet.Refresh();
         }
     }
 
     /// <summary>
-    /// The part of this kind to draw: the last. While one replaces another (@if/else), the new one is
-    /// added before the old one is removed, so both are briefly listed.
+    /// The part of this kind to draw: the last added. Write one of each kind; while one replaces
+    /// another (@if/else), the new one is added before the old one is removed, so both are briefly listed.
     /// </summary>
     public T? Shown<T>() where T : ComponentPart => (T?)_parts.FindLast(p => p is T);
 

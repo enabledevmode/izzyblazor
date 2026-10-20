@@ -1,0 +1,13 @@
+@* Old markup from before 0.1.0-alpha.11: slots written as child elements, which Razor passes by name. *@
+@switch (Kind)
+{
+    case "banner": <Banner><Actions>x</Actions></Banner> break;
+    case "empty": <EmptyState Title="t"><Actions>x</Actions></EmptyState> break;
+    case "accordion": <AccordionItem Title="t"><Header>x</Header></AccordionItem> break;
+    case "dialog": <Dialog Id="d"><Footer>x</Footer></Dialog> break;
+    default: <AppSidebar><Header>x</Header></AppSidebar> break;
+}
+
+@code {
+    [Parameter] public string Kind { get; set; } = "";
+}

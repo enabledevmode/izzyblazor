@@ -39,11 +39,14 @@
     <button type="button"
             class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-site-nav-toggle"
             popovertarget="@PanelId"
-            aria-label="@(MenuLabel ?? TextDefaults.OpenMenu)">
+            aria-label="@(MenuLabel ?? TextDefaults.Menu)">
         <Icon Role="IconRole.Menu" Class="ib-site-nav-open-icon" />
         <Icon Role="IconRole.Close" Class="ib-site-nav-close-icon" />
     </button>
     <div id="@PanelId" popover class="ib-site-nav-panel">
+        @* The dimmed area below the sheet: a tap there closes the panel (with no script too) instead of
+           reaching the page underneath. *@
+        <button type="button" class="ib-site-nav-scrim" popovertarget="@PanelId" popovertargetaction="hide" tabindex="-1" aria-hidden="true"></button>
         <div class="ib-site-nav-sheet">
             <nav class="ib-site-nav-body" aria-label="@NavLabel">
                 <ul class="ib-nav ib-nav-vertical">
@@ -68,7 +71,7 @@
     /// <summary>The navigation landmark's name for screen readers. Defaults to "Site", so it differs from the sidebar's "Main".</summary>
     [Parameter] public string? Label { get; set; }
 
-    /// <summary>The menu button's name. Defaults to "Open menu"; screen readers also hear whether the panel is open.</summary>
+    /// <summary>The menu button's name. Defaults to "Menu"; screen readers also hear whether the panel is open.</summary>
     [Parameter] public string? MenuLabel { get; set; }
 
     /// <summary>
