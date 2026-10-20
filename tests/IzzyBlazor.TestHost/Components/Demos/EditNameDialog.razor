@@ -10,10 +10,10 @@
             </ib-field-control>
         </div>
     </Stack>
-    <DialogActions>
+    <DialogFooter>
         <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" OnClick="() => Dialog!.Cancel()">Cancel</Button>
         <Button Submit Disabled="string.IsNullOrWhiteSpace(_name)">Save</Button>
-    </DialogActions>
+    </DialogFooter>
 </form>
 
 @code {

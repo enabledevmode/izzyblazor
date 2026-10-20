@@ -10,12 +10,16 @@
     <DialogTrigger For="confirm-delete" Accent="Accent.Danger">Delete</DialogTrigger>
 
     <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm">
-        <ChildContent>This can't be undone.</ChildContent>
-        <Footer>
+        This can't be undone.
+        <DialogFooter>
             <DialogClose>Cancel</DialogClose>
             <Button Submit Form="delete-form" Accent="Accent.Danger">Delete</Button>
-        </Footer>
+        </DialogFooter>
     </Dialog>
+
+    Parts written among the content: DialogHeader (heading content in place of Title, drawn in the
+    header row) and DialogFooter (the button row, written last, where it is: last in the dialog or
+    last in a form that's last in it, so a form's submit button can be in the footer).
 
     Ways to open it:
       - DialogTrigger: a button with commandfor="id" command="show-modal" (native, with a
@@ -36,7 +40,7 @@
             id="@ElementId"
             class="@_class"
             style="@_style"
-            aria-labelledby="@(Title is not null || Header is not null ? TitleId : null)"
+            aria-labelledby="@(Title is not null || ShownHeader is not null ? TitleId : null)"
             closedby="@(CloseOnBackdrop ? "any" : "closerequest")"
             open="@(IsOpen && !IsInteractive)"
             @onibtoggle="HandleToggle">
@@ -50,12 +54,12 @@
         <CascadingValue Value="_context" IsFixed="true">
         @* Buttons in the dialog don't take the style of a ButtonGroup around its trigger. *@
         <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
-            @if (Title is not null || Header is not null || ShowCloseButton)
+            @if (Title is not null || ShownHeader is not null || ShowCloseButton)
             {
                 <header class="ib-dialog-header">
-                    @if (Header is not null)
+                    @if (ShownHeader is not null)
                     {
-                        <div class="ib-dialog-title" id="@TitleId">@Header</div>
+                        <div class="ib-dialog-title" id="@TitleId">@HeaderOutlet</div>
                     }
                     else if (Title is not null)
                     {
@@ -75,14 +79,8 @@
                 </header>
             }
             <div class="@_bodyClass" style="@_bodyStyle">
-                @ChildContent
+                <CascadingValue Value="_partContext" IsFixed="true">@ChildContent</CascadingValue>
             </div>
-            @if (Footer is not null)
-            {
-                <footer class="ib-dialog-footer">
-                    @Footer
-                </footer>
-            }
         </CascadingValue>
         </CascadingValue>
     </dialog>
@@ -95,10 +93,7 @@
     /// <summary>The close button's name. Defaults to "Close".</summary>
     [Parameter] public string? CloseLabel { get; set; }
 
-    /// <summary>Heading content in place of <see cref="Title"/>.</summary>
-    [Parameter] public RenderFragment? Header { get; set; }
-
-    /// <summary>The body.</summary>
+    /// <summary>The body, plus any <see cref="DialogHeader"/> and <see cref="DialogFooter"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>
@@ -106,9 +101,6 @@
     /// such as a table or image run edge to edge.
     /// </summary>
     [Parameter] public Responsive<int> ContentPadding { get; set; }
-
-    /// <summary>The action row at the bottom, usually a <see cref="DialogClose"/> and a primary button.</summary>
-    [Parameter] public RenderFragment? Footer { get; set; }
 
     /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
     [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
@@ -136,6 +128,10 @@
     [Parameter] public string? QueryKey { get; set; } = "dialog";
 
     private DialogContext _context = null!;
+    private readonly DialogPartContext _partContext;
+    private readonly List<DialogHeader> _headers = [];
+    private DialogHeader? ShownHeader => _headers.Count > 0 ? _headers[^1] : null;
+    private PartOutlet? _headerOutlet;
     private string? _lastQueryValue;
     private bool _openedByQuery;
     private string? _class;
@@ -144,6 +140,41 @@
     private string? _bodyStyle;
 
     private string TitleId => $"{ElementId}-title";
+
+    /// <summary>Creates a dialog.</summary>
+    public Dialog() => _partContext = new DialogPartContext(this);
+
+    // A DialogHeader renders nothing where it's written; the dialog draws the last one in its header.
+    // Adding or removing one re-renders the dialog; a change to its content re-renders only the outlet.
+    internal void AddHeader(DialogHeader header)
+    {
+        _headers.Add(header);
+        StateHasChanged();
+    }
+
+    internal void RemoveHeader(DialogHeader header)
+    {
+        if (_headers.Remove(header))
+        {
+            StateHasChanged();
+        }
+    }
+
+    internal void HeaderChanged(DialogHeader header)
+    {
+        if (header == ShownHeader)
+        {
+            _headerOutlet?.Refresh();
+        }
+    }
+
+    private RenderFragment HeaderOutlet => builder =>
+    {
+        builder.OpenComponent<PartOutlet>(0);
+        builder.AddComponentParameter(1, nameof(PartOutlet.Content), (Func<RenderFragment?>)(() => ShownHeader?.ChildContent));
+        builder.AddComponentReferenceCapture(2, outlet => _headerOutlet = (PartOutlet)outlet);
+        builder.CloseComponent();
+    };
 
     /// <inheritdoc />
     protected override string IdPrefix => "ib-dialog";

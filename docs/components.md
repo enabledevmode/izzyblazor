@@ -292,7 +292,7 @@ labels on top, as there's no room beside them.
   still counts as first, so the next row keeps its line. It's ignored when `Columns` is more than 1.
 - `FormActions` is the row of buttons at the end: across the whole row, buttons at the end
   (`Justify` moves them). Put them in reading order, Cancel before the main action. Last in a form
-  that fills a `Dialog` or `Drawer`, it becomes the dialog's footer, like `DialogActions`: it
+  that fills a `Dialog` or `Drawer`, it becomes the dialog's footer, like `DialogFooter`: it
   reaches the edges and stays in view while the body scrolls, and its buttons still submit the form.
 - `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
   following"). After a failed submit it takes focus, with JavaScript off too, so keyboard and screen
@@ -654,18 +654,41 @@ script leaves the dialog open after a submit; close it from your submit handler 
 `@bind-Open`) when the save succeeds. With JavaScript off, a dialog
 opened with `?dialog=id` posts to the same address, so the server renders it open again.
 
-A `Dialog` has a `Title` (or `Header`), content and a `Footer`; `DialogClose` is a button that
-closes it. `Size` is `Sm` (24rem), `Md` (32rem, the default), `Lg`, `Xl` or `Full`.
-`CloseOnBackdrop` and `ShowCloseButton` are on by default. `QueryKey` changes the `?dialog=` key.
+A `Dialog` has a `Title`, content and a `DialogFooter`; `DialogClose` is a button that closes it.
+`Size` is `Sm` (24rem), `Md` (32rem, the default), `Lg`, `Xl` or `Full`. `CloseOnBackdrop` and
+`ShowCloseButton` are on by default. `QueryKey` changes the `?dialog=` key.
 
 ```razor
 <DialogTrigger For="confirm-delete" Accent="Accent.Danger">Delete</DialogTrigger>
 <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm">
-    <ChildContent>This can't be undone.</ChildContent>
-    <Footer>
+    This can't be undone.
+    <DialogFooter>
         <DialogClose>Cancel</DialogClose>
         <Button Submit Form="delete-form" Accent="Accent.Danger">Delete</Button>
-    </Footer>
+    </DialogFooter>
+</Dialog>
+```
+
+Parts are written among the content:
+
+- `DialogFooter` is the row of buttons at the bottom, with `Row`'s props (`Justify` moves the
+  buttons; they're at the end by default). It's drawn where it's written, so write it last: last in
+  the dialog, or last in a form that's last in the dialog. In a form, its submit button submits the
+  form with no `Form="id"`, with JavaScript off too. It reaches the dialog's edges, stays in view
+  while the body scrolls and, in a side drawer, sits at the bottom.
+- `DialogHeader` is heading content in place of `Title` (a title with an icon or badge). It's drawn
+  in the header row beside the close button and names the dialog for screen readers. Like
+  `CardHeader`, a form or cascading value it's written inside doesn't reach it.
+
+```razor
+<Dialog Id="rename" Title="Rename project">
+    <Form Model="model" OnValidSubmit="Save">
+        <TextField @bind-Value="model.Name" />
+        <DialogFooter>
+            <DialogClose>Cancel</DialogClose>
+            <Button Submit>Rename</Button>
+        </DialogFooter>
+    </Form>
 </Dialog>
 ```
 
@@ -697,7 +720,7 @@ if (await Dialogs.ConfirmAsync("Ada loses access.", "Remove member?",
 
 The component gets a cascading `DialogInstance` to close with data (`Dialog.Close(site)`) or cancel;
 Escape, the backdrop and the close button cancel too (`result.Canceled`). Put its buttons in
-`DialogActions`, last, for a footer row. `DialogOptions` set the size, placement (a drawer or sheet)
+`DialogFooter`, last, for a footer row. `DialogOptions` set the size, placement (a drawer or sheet)
 and closing behavior, and the `ColorScheme`, `Brand` and `Density`: the host shows the dialog, not the part of
 the page that opened it, so a dark or compact part passes its own. It needs a `<DialogHost />` on the
 interactive page or in an interactive layout (`@rendermode` on the host where the layout is static);
@@ -826,11 +849,21 @@ the markers. Nothing needs script: drive `Current` from the URL or the form post
 ## Alerts and toasts
 
 `Alert` takes a `Status` (`Info` by default), `Variant` (`Soft` by default, `Outline`, `Solid`),
-`Title`, `Actions`, `Icon` or `HideIcon`, and `Dismissible`: a close button that works with
+`Title`, `Icon` or `HideIcon`, and `Dismissible`: a close button that works with
 JavaScript off, with `@bind-Dismissed` on interactive pages. With JavaScript it is a real button,
 and closing moves focus to the next control on the page. Danger and warning alerts are
 `role="alert"`, announced right away; the rest are `role="status"`. The status is read before the
 message (`StatusLabel`), since the icon and color carry it only visually.
+
+Buttons or links after the message go in `AlertActions`, written last in the alert (a row with
+`Row`'s props):
+
+```razor
+<Alert Status="Status.Warning" Title="Unverified email">
+    Check your inbox for the link.
+    <AlertActions><Button Size="ControlSize.Sm">Resend email</Button></AlertActions>
+</Alert>
+```
 
 Toasts appear in a `<ToastRegion />`, placed once in the layout: `Placement` (`BottomEnd` by
 default, or `TopStart`, `TopCenter`, `TopEnd`, `BottomStart`, `BottomCenter`), `Duration` (5000ms)

@@ -41,19 +41,17 @@
         CloseOnBackdrop="false"
         role="alertdialog"
         aria-describedby="@(Message is not null || Body is not null ? MessageId : null)">
-    <ChildContent>
-        @if (Message is not null || Body is not null)
-        {
-            <div id="@MessageId" class="ib-confirm-message">
-                @if (Message is not null)
-                {
-                    <p>@Message</p>
-                }
-                @Body
-            </div>
-        }
-    </ChildContent>
-    <Footer>
+    @if (Message is not null || Body is not null)
+    {
+        <div id="@MessageId" class="ib-confirm-message">
+            @if (Message is not null)
+            {
+                <p>@Message</p>
+            }
+            @Body
+        </div>
+    }
+    <DialogFooter>
         <DialogClose autofocus>@(CancelText ?? TextDefaults.Cancel)</DialogClose>
         @if (Href is not null)
         {
@@ -67,7 +65,7 @@
         {
             <Button Submit Accent="Accent" Form="@Form" Name="@Name" Value="@Value" FormAction="@FormAction">@ResolvedConfirmText</Button>
         }
-    </Footer>
+    </DialogFooter>
 </Dialog>
 
 @code {

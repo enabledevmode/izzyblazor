@@ -2,7 +2,8 @@
 @inherits LayoutItemBase
 
 @*
-    A message on the page: an icon, an optional title, the message and optional actions.
+    A message on the page: an icon, an optional title, the message and optional actions
+    (AlertActions, written last in the message).
 
     Dismissible adds a close button that works with no script: a visually hidden checkbox and
     its label, with CSS :has(:checked) hiding the alert. With the script it is a real button
@@ -33,10 +34,6 @@
             @if (ChildContent is not null)
             {
                 <div class="ib-alert-message">@ChildContent</div>
-            }
-            @if (Actions is not null)
-            {
-                <div class="ib-alert-actions">@Actions</div>
             }
         </div>
         @if (Dismissible)
@@ -69,11 +66,8 @@
     /// <summary>A short bold line above the message.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>The message.</summary>
+    /// <summary>The message, and any <see cref="AlertActions"/> written last.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Buttons or links below the message, such as "Retry".</summary>
-    [Parameter] public RenderFragment? Actions { get; set; }
 
     /// <summary>An icon in place of the status's own.</summary>
     [Parameter] public IconData? Icon { get; set; }

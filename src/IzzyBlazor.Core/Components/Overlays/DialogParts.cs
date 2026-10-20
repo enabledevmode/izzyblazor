@@ -1,0 +1,95 @@
+using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Rendering;
+
+namespace IzzyBlazor;
+
+/// <summary>What a <see cref="Dialog"/> cascades to its <see cref="DialogHeader"/>.</summary>
+internal sealed class DialogPartContext(Dialog dialog)
+{
+    public Dialog Dialog { get; } = dialog;
+}
+
+/// <summary>
+/// Heading content for a <see cref="Dialog"/> in place of its <c>Title</c>, such as a title with
+/// an icon or a badge. It names the dialog for screen readers. Write it directly in the dialog; the
+/// dialog draws it in its header row, beside the close button, so a form or cascading value it's
+/// written inside doesn't reach it.
+/// </summary>
+/// <example><code>&lt;DialogHeader&gt;&lt;Row Gap="2"&gt;&lt;Icon Name="Lucide.Users" /&gt;Invite people&lt;/Row&gt;&lt;/DialogHeader&gt;</code></example>
+public sealed class DialogHeader : ComponentBase, IDisposable
+{
+    private bool _added;
+
+    /// <summary>The heading content.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private DialogPartContext? Context { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Context is null)
+        {
+            throw new InvalidOperationException("DialogHeader must be inside a Dialog.");
+        }
+
+        if (_added)
+        {
+            Context.Dialog.HeaderChanged(this);
+        }
+        else
+        {
+            _added = true;
+            Context.Dialog.AddHeader(this);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        // Drawn by the dialog, not here.
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_added)
+        {
+            Context?.Dialog.RemoveHeader(this);
+        }
+    }
+}
+
+/// <summary>
+/// The row of buttons at the bottom of a <see cref="Dialog"/> or <see cref="Drawer"/>, usually a
+/// <see cref="DialogClose"/> and the main action. Write it last: last in the dialog, or last in a
+/// form that's last in the dialog, so its buttons stay inside the form and submit it. It reaches the
+/// dialog's edges and stays in view when the body scrolls; in a side drawer it sits at the bottom.
+/// A row like <see cref="Row"/>, with <c>Gap</c>, <c>Align</c> and <c>Justify</c> (the buttons go at
+/// the end by default). Also for content shown by <see cref="DialogService"/>.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;Dialog Id="rename" Title="Rename"&gt;
+///     &lt;Form Model="model" OnValidSubmit="Save"&gt;
+///         &lt;TextField @bind-Value="model.Name" Label="Name" /&gt;
+///         &lt;DialogFooter&gt;
+///             &lt;DialogClose&gt;Cancel&lt;/DialogClose&gt;
+///             &lt;Button Submit&gt;Save&lt;/Button&gt;
+///         &lt;/DialogFooter&gt;
+///     &lt;/Form&gt;
+/// &lt;/Dialog&gt;
+/// </code>
+/// </example>
+public class DialogFooter : FlexBase
+{
+    /// <inheritdoc />
+    protected override Responsive<Direction> LayoutDirection => IzzyBlazor.Direction.Row;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        classes.Add("ib-dialog-footer");
+    }
+}

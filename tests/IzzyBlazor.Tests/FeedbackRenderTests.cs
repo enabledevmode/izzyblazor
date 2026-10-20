@@ -34,11 +34,16 @@ public class FeedbackRenderTests : BunitContext
         var alert = Render<Alert>(p => p
             .Add(a => a.Title, "Saved")
             .Add(a => a.HideIcon, true)
-            .Add(a => a.Actions, (RenderFragment)(b => b.AddContent(0, "Undo")))
-            .AddChildContent("Done.")).Find(".ib-alert");
+            .AddChildContent(b =>
+            {
+                b.AddContent(0, "Done.");
+                b.OpenComponent<AlertActions>(1);
+                b.AddComponentParameter(2, nameof(AlertActions.ChildContent), (RenderFragment)(a => a.AddContent(0, "Undo")));
+                b.CloseComponent();
+            })).Find(".ib-alert");
 
         Assert.Equal("Saved", alert.QuerySelector(".ib-alert-title")!.TextContent);
-        Assert.Equal("Done.", alert.QuerySelector(".ib-alert-message")!.TextContent);
+        Assert.StartsWith("Done.", alert.QuerySelector(".ib-alert-message")!.TextContent);
         Assert.Equal("Undo", alert.QuerySelector(".ib-alert-actions")!.TextContent);
         Assert.Null(alert.QuerySelector(".ib-alert-icon"));
     }

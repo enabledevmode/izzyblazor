@@ -150,23 +150,22 @@
         </Row>
 
         <Dialog Id="invite" Title="Invite people">
-            <ChildContent>
-                <form method="get" action="@_path" id="invite-form">
-                    <Stack Gap="3">
-                        <TextBlock Color="Color.Muted" Size="TextSize.Sm">They'll get an email with a link to join.</TextBlock>
-                        <div class="ib-field">
-                            <label class="ib-field-label" for="invite-email">Email</label>
-                            <ib-field-control class="ib-field-control">
-                                <input id="invite-email" class="ib-field-input" type="email" name="invite" required autofocus />
-                            </ib-field-control>
-                        </div>
-                    </Stack>
-                </form>
-            </ChildContent>
-            <Footer>
-                <DialogClose>Cancel</DialogClose>
-                <Button Submit Form="invite-form" StartIcon="Lucide.Mail">Send invite</Button>
-            </Footer>
+            <form method="get" action="@_path" id="invite-form">
+                <Stack Gap="3">
+                    <TextBlock Color="Color.Muted" Size="TextSize.Sm">They'll get an email with a link to join.</TextBlock>
+                    <div class="ib-field">
+                        <label class="ib-field-label" for="invite-email">Email</label>
+                        <ib-field-control class="ib-field-control">
+                            <input id="invite-email" class="ib-field-input" type="email" name="invite" required autofocus />
+                        </ib-field-control>
+                    </div>
+                </Stack>
+                @* Last in the form, the footer's submit button submits it. *@
+                <DialogFooter>
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit StartIcon="Lucide.Mail">Send invite</Button>
+                </DialogFooter>
+            </form>
         </Dialog>
 
         <Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm" @bind-Open="_renameOpen">
@@ -181,15 +180,13 @@
         </Dialog>
 
         <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm" CloseOnBackdrop="false" @bind-Open="_confirmOpen">
-            <ChildContent>
-                <TextBlock>This removes the project and its history. It can't be undone.</TextBlock>
-            </ChildContent>
-            <Footer>
+            <TextBlock>This removes the project and its history. It can't be undone.</TextBlock>
+            <DialogFooter>
                 <DialogClose>Cancel</DialogClose>
                 <form method="get" action="@_path" style="display:contents">
                     <Button Submit Name="action" Value="delete" Accent="Accent.Danger">Delete</Button>
                 </form>
-            </Footer>
+            </DialogFooter>
         </Dialog>
 
     </Example>
@@ -214,16 +211,14 @@
         </Row>
 
         <Drawer Id="details-drawer" Title="Project details" Size="DialogSize.Lg">
-            <ChildContent>
-                <DescriptionList Orientation="Orientation.Vertical" Divided>
-                    <DescriptionItem Term="Owner">Israel</DescriptionItem>
-                    <DescriptionItem Term="Visibility">Private</DescriptionItem>
-                    <DescriptionItem Term="Created">Oct 12, 2026</DescriptionItem>
-                </DescriptionList>
-            </ChildContent>
-            <Footer>
+            <DescriptionList Orientation="Orientation.Vertical" Divided>
+                <DescriptionItem Term="Owner">Israel</DescriptionItem>
+                <DescriptionItem Term="Visibility">Private</DescriptionItem>
+                <DescriptionItem Term="Created">Oct 12, 2026</DescriptionItem>
+            </DescriptionList>
+            <DialogFooter>
                 <DialogClose>Close</DialogClose>
-            </Footer>
+            </DialogFooter>
         </Drawer>
 
         <Drawer Id="nav-drawer" Title="Navigate" Placement="DialogPlacement.Start" Size="DialogSize.Sm">
@@ -336,7 +331,7 @@
         @* In the dialog's component *@
         [CascadingParameter] public DialogInstance Dialog { get; set; }
         Dialog.Close(newName);   // or Dialog.Cancel()
-        <DialogActions>...buttons...</DialogActions>
+        <DialogFooter>...buttons...</DialogFooter>
         """;
 
     [SupplyParameterFromForm(FormName = "rename")] public RenameModel? Rename { get; set; }
@@ -457,11 +452,11 @@
         <Button Href="?dialog=confirm-delete">Open with a link</Button>
 
         <Dialog Id="confirm-delete" Title="Delete this project?" Size="DialogSize.Sm" @bind-Open="confirmOpen">
-            <ChildContent>It can't be undone.</ChildContent>
-            <Footer>
+            It can't be undone.
+            <DialogFooter>
                 <DialogClose>Cancel</DialogClose>
                 <Button Submit Form="delete-form" Accent="Accent.Danger">Delete</Button>
-            </Footer>
+            </DialogFooter>
         </Dialog>
 
         <Dialog Id="details" Title="Project details" Placement="DialogPlacement.End">...</Dialog>

@@ -26,10 +26,10 @@
     <Example Title="Actions and dismissing" Note="@DismissNote" Code="@DismissCode">
         <Stack Gap="3">
             <Alert Status="Status.Warning" Title="Unverified email" Dismissible Id="verify-alert">
-                <ChildContent>Check your inbox for the link.</ChildContent>
-                <Actions>
+                Check your inbox for the link.
+                <AlertActions>
                     <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Resend email</Button>
-                </Actions>
+                </AlertActions>
             </Alert>
             <Alert Dismissible @bind-Dismissed="_dismissed" Id="bound-alert">This one is bound to C#.</Alert>
             <Row Gap="2" Align="Align.Center">
@@ -195,8 +195,8 @@
     private const string DismissCode =
         """
         <Alert Status="Status.Warning" Title="Unverified email" Dismissible>
-            <ChildContent>Check your inbox for the link.</ChildContent>
-            <Actions><Button Size="ControlSize.Sm">Resend email</Button></Actions>
+            Check your inbox for the link.
+            <AlertActions><Button Size="ControlSize.Sm">Resend email</Button></AlertActions>
         </Alert>
 
         <Alert Dismissible @bind-Dismissed="dismissed">...</Alert>

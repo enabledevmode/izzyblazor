@@ -82,7 +82,7 @@ public class ButtonGroupRenderTests : BunitContext
         Assert.Contains("ib-btn-danger", trigger.ClassName);
 
         // The dialog's buttons are not.
-        var inDialog = cut.FindAll("dialog .ib-dialog-footer .ib-btn, dialog footer .ib-btn");
+        var inDialog = cut.FindAll("dialog .ib-dialog-footer .ib-btn");
         Assert.NotEmpty(inDialog);
         Assert.All(inDialog, b => Assert.DoesNotContain("ib-btn-ghost", b.ClassName));
         Assert.All(inDialog, b => Assert.DoesNotContain("ib-btn-sm", b.ClassName));

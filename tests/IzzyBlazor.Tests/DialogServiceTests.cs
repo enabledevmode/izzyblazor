@@ -111,7 +111,7 @@ public class DialogServiceTests : BunitContext
         await host.InvokeAsync(() => { task = service.ConfirmAsync("Remove Ada?", "Remove member", new() { ConfirmText = "Remove", Accent = Accent.Danger }); });
 
         host.WaitForAssertion(() => Assert.Equal("Remove Ada?", host.Find("dialog .ib-confirm-message").TextContent));
-        var buttons = host.FindAll("dialog .ib-dialog-actions button");
+        var buttons = host.FindAll("dialog .ib-dialog-footer button");
         Assert.Equal("Remove", buttons[1].TextContent.Trim());
         Assert.Contains("ib-btn-danger", buttons[1].ClassName);
         buttons[confirm ? 1 : 0].Click();
