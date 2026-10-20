@@ -554,13 +554,24 @@ With an `AppSidebar` in the shell there is one menu, not two: HeaderNav's button
 hidden, and below its breakpoint its links show at the top of the sidebar, above a line (in the
 drawer on phones, or in the sidebar column if HeaderNav's breakpoint is the wider one).
 
-**Sidebar header and footer.** `AppSidebar` takes `Header` and `Footer`, pinned to its top and bottom
-(a workspace switcher, an account menu), with the content scrolling between them. They have no lines
-at rest; a line shows next to one only while content is scrolled out of view there (CSS only).
+**Sidebar header and footer.** `SidebarHeader` and `SidebarFooter`, written directly in the
+`AppSidebar` among its content, are pinned to its top and bottom (a workspace switcher, an account
+menu), with the content scrolling between them. They have no lines at rest; a line shows next to one
+only while content is scrolled out of view there (CSS only). They're drawn at the sidebar's level, so
+a form or cascading value they're written inside doesn't reach them.
 
-Under a full-width `AppHeader`, the brand belongs in the header and the sidebar `Header` suits a
-workspace switcher. With `FullHeight`, the sidebar `Header` is the top-left corner, so put the brand
-there. Its row then matches `AppHeader`'s height, with a line that continues the header's.
+```razor
+<AppSidebar Collapsible>
+    <SidebarHeader><AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" /></SidebarHeader>
+    <NavMenu>...</NavMenu>
+    <SidebarFooter><NavMenu aria-label="Account">...</NavMenu></SidebarFooter>
+</AppSidebar>
+```
+
+Under a full-width `AppHeader`, the brand belongs in the header and the `SidebarHeader` suits a
+workspace switcher. With `FullHeight`, the `SidebarHeader` is the top-left corner, so put the brand
+there. Its row then matches `AppHeader`'s height, with a line that continues the header's. In the
+drawer, the `SidebarHeader` row is the top bar, with the close button in it.
 
 **Collapsing to a rail.** `Collapsible` on `AppSidebar` shrinks it to an icon rail on wide screens.
 
@@ -573,8 +584,10 @@ there. Its row then matches `AppHeader`'s height, with a line that continues the
   `@bind-Collapsed` follows it and sets it from C#.
 - A remembered choice wins over `Collapsed` when the page loads (`RememberState="false"` turns that off).
 - In the rail, nav labels show as tooltips, badges and group items hide, opening a group expands the
-  sidebar, and `Header`/`Footer` content stacks and centers. Mark text with the `ib-collapsed-hide`
-  class (or `ib-collapsed-show` for rail-only content).
+  sidebar, and `SidebarHeader`/`SidebarFooter` content stacks and centers. An `AppBrand`'s name
+  hides there by itself (it shows in the drawer and the full sidebar), so a brand needs no
+  `HideLabel`. Mark other text with the `ib-collapsed-hide` class (or `ib-collapsed-show` for
+  rail-only content).
 
 **Navigation.** `NavMenu` is a list of links, vertical by default (`Orientation.Horizontal` for a
 header). `NavItem`s work out their active state on the server: `Match` is `Prefix` by default, so

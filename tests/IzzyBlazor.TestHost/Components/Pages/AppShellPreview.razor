@@ -35,8 +35,12 @@
     </AppHeader>
 
     <AppSidebar Bg="@Chrome" ColorScheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" DrawerPosition="@(Drawer == "end" ? SidebarPosition.End : null)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
-                CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)"
-                Header="@(Slots == "on" ? (BrandInSidebar ? SidebarBrand : SidebarSwitcher) : null)" Footer="@(Slots == "on" ? SidebarFooter : null)">
+                CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)">
+        @if (Slots == "on")
+        {
+            <SidebarHeader>@(BrandInSidebar ? SidebarBrand : SidebarSwitcher)</SidebarHeader>
+            <SidebarFooter>@SidebarFooterContent</SidebarFooter>
+        }
         <NavMenu>
             <NavItem Href="@Link(null)" Icon="Lucide.LayoutDashboard" Match="NavLinkMatch.All">Dashboard</NavItem>
             <NavItem Href='@Link("inbox")' Icon="Lucide.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>
@@ -145,7 +149,7 @@
             </ChildContent>
         </Menu>;
 
-    private RenderFragment SidebarFooter =>
+    private RenderFragment SidebarFooterContent =>
         @<NavMenu aria-label="Account">
             <NavItem Href='@Link("account")' Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
         </NavMenu>;

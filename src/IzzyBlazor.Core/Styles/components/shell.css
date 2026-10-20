@@ -497,6 +497,25 @@
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     }
 
+    /* With a SidebarHeader, its row is the top bar and the close button sits in it. */
+    .ib-shell-sidebar-bp-sm .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) {
+      min-height: var(--ib-shell-header-h, 3.5rem);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell-sidebar-bp-sm .ib-shell-sidebar-head > .ib-shell-sidebar-close {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-sm .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
+    }
+
     /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
     .ib-shell-sidebar-bp-sm .ib-nav-item {
       min-height: 2.75rem;
@@ -563,6 +582,25 @@
       /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
       padding: 1px var(--ib-sb-pad-x) 0;
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* With a SidebarHeader, its row is the top bar and the close button sits in it. */
+    .ib-shell-sidebar-bp-md .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) {
+      min-height: var(--ib-shell-header-h, 3.5rem);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell-sidebar-bp-md .ib-shell-sidebar-head > .ib-shell-sidebar-close {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-md .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
     }
 
     /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
@@ -633,6 +671,25 @@
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
     }
 
+    /* With a SidebarHeader, its row is the top bar and the close button sits in it. */
+    .ib-shell-sidebar-bp-lg .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) {
+      min-height: var(--ib-shell-header-h, 3.5rem);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell-sidebar-bp-lg .ib-shell-sidebar-head > .ib-shell-sidebar-close {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-lg .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
+    }
+
     /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
     .ib-shell-sidebar-bp-lg .ib-nav-item {
       min-height: 2.75rem;
@@ -699,6 +756,25 @@
       /* 1px at the top balances the line, as in the header, so the button sits on whole pixels. */
       padding: 1px var(--ib-sb-pad-x) 0;
       border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* With a SidebarHeader, its row is the top bar and the close button sits in it. */
+    .ib-shell-sidebar-bp-xl .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) {
+      min-height: var(--ib-shell-header-h, 3.5rem);
+      margin: calc(var(--ib-space-4) * -1) calc(var(--ib-sb-pad-x) * -1) 0;
+      padding: 1px var(--ib-sb-pad-x) 0;
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell-sidebar-bp-xl .ib-shell-sidebar-head > .ib-shell-sidebar-close {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-xl .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) + .ib-shell-sidebar-body {
+      --ib-sb-line-top: transparent;
     }
 
     /* Phone-sized rows: 44px targets and 16px text, as native menus use. */
@@ -977,7 +1053,8 @@
     }
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
-    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -1168,7 +1245,8 @@
     }
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
-    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -1359,7 +1437,8 @@
     }
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
-    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -1550,7 +1629,8 @@
     }
 
     /* Hidden from sight but not from screen readers, so an icon-only control keeps its name. */
-    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide {
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-collapsed-hide,
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-brand-label {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -1605,7 +1685,8 @@
       padding-top: var(--ib-space-3);
     }
 
-    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head,
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head > .ib-shell-sidebar-slot {
       justify-content: center;
     }
   }
@@ -1623,7 +1704,8 @@
       padding-top: var(--ib-space-3);
     }
 
-    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head,
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head > .ib-shell-sidebar-slot {
       justify-content: center;
     }
   }
@@ -1641,7 +1723,8 @@
       padding-top: var(--ib-space-3);
     }
 
-    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head,
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head > .ib-shell-sidebar-slot {
       justify-content: center;
     }
   }
@@ -1659,7 +1742,8 @@
       padding-top: var(--ib-space-3);
     }
 
-    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head {
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head,
+    .ib-shell:has(> .ib-shell-header) > .ib-shell-sidebar-full.ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) > .ib-shell-sidebar-inner > .ib-shell-sidebar-head > .ib-shell-sidebar-slot {
       justify-content: center;
     }
   }
@@ -1693,6 +1777,21 @@
     :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl).ib-shell-drawer-end .ib-shell-sidebar-close {
       justify-content: flex-end;
       padding-inline: max(var(--ib-space-4), env(safe-area-inset-right, 0px));
+    }
+
+    /* In a SidebarHeader's row the close button comes first (last for an end drawer), at the same place. */
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) {
+      padding-inline: max(var(--ib-space-4), env(safe-area-inset-left, 0px)) max(var(--ib-space-4), env(safe-area-inset-right, 0px));
+    }
+
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl) .ib-shell-sidebar-head > .ib-shell-sidebar-close {
+      order: -1;
+      padding-inline: 0;
+    }
+
+    :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl).ib-shell-drawer-end .ib-shell-sidebar-head > .ib-shell-sidebar-close {
+      order: 1;
+      padding-inline: 0;
     }
   }
 }
