@@ -601,7 +601,10 @@ drawer, the `SidebarHeader` row is the top bar, with the close button in it.
 **Navigation.** `NavMenu` is a list of links, vertical by default (`Orientation.Horizontal` for a
 header). `NavItem`s work out their active state on the server: `Match` is `Prefix` by default, so
 pages below the link count too (`NavLinkMatch.All` for an exact match; a root link always needs
-one). An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeAccent`). `NavLabel` is a small
+one). An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeAccent`, `BadgeVariant`;
+`BadgeVariant.Plain` is a quiet count with no fill, as docs and mail sidebars show totals). Long
+titles wrap in a vertical menu, keeping the space a one-line item has above and below; a horizontal
+menu keeps them on one line. `NavLabel` is a small
 heading and `NavDivider` a line. `NavGroup` is a collapsible group with a `Label` and `Icon`, built
 on `details`: it starts open with `Open` or when the current page is under its `ActivePrefix`, and
 with JavaScript any group holding the current page opens itself.
@@ -955,7 +958,8 @@ warning. Use `Alert` for a message about part of a page.
 ## Badge
 
 A small label for a status, category or count: `Status` (`Neutral` by default, `Info`, `Success`,
-`Warning`, `Danger`) or an `Accent` in its place, `Variant` (`Soft` by default, `Solid`, `Outline`) and `Size`
+`Warning`, `Danger`) or an `Accent` in its place, `Variant` (`Soft` by default, `Solid`, `Outline`,
+or `Plain`: just the text, in the color's text shade, a muted gray for `Neutral`) and `Size`
 (`Sm` for counts in navigation, `Md`). `Pill` rounds the ends, for counts; `Dot` adds a colored dot
 before the text, for statuses; `StartIcon` adds an icon.
 

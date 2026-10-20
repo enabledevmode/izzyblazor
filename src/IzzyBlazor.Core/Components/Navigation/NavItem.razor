@@ -22,7 +22,7 @@
         <span class="ib-nav-text">@ChildContent</span>
         @if (Badge is not null)
         {
-            <Badge Size="BadgeSize.Sm" Pill Status="BadgeStatus" Accent="BadgeAccent">@Badge</Badge>
+            <Badge Size="BadgeSize.Sm" Pill Status="BadgeStatus" Accent="BadgeAccent" Variant="BadgeVariant">@Badge</Badge>
         }
     </a>
 </li>
@@ -48,6 +48,12 @@
 
     /// <summary>A badge color in place of the status's, such as <c>Accent.Primary</c> for an unread count.</summary>
     [Parameter] public Accent? BadgeAccent { get; set; }
+
+    /// <summary>
+    /// The badge's look. Defaults to <see cref="BadgeVariant.Soft"/>; <see cref="BadgeVariant.Plain"/>
+    /// is a quiet count with no fill, as docs and mail sidebars show totals.
+    /// </summary>
+    [Parameter] public BadgeVariant BadgeVariant { get; set; } = BadgeVariant.Soft;
 
     /// <summary>The link text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
