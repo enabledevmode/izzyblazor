@@ -13,25 +13,30 @@
     With a Language the highlighter knows (C#, Razor, HTML, CSS, JavaScript/TypeScript, JSON,
     shell), the code is colored on the server: spans with ib-tok-* classes, so it works with no
     script and never flashes plain first.
+
+    LineNumbers and HighlightLines put each line in its own span (a <mark> when highlighted), with
+    its newline inside, so copying still gives the code as written; the numbers are CSS counters,
+    never selected or copied. A Title turns the floating bar into a header row.
 *@
 
 @if (Block)
 {
     <ib-code @attributes="AdditionalAttributes" class="@_class" style="@_style">
-        @if (Language is not null || Copyable)
+        @if (Title is not null)
+        {
+            <div class="ib-code-bar ib-code-head">
+                <span class="ib-code-title">@Title</span>
+                @CopyControl
+            </div>
+        }
+        else if (Language is not null || Copyable)
         {
             <div class="ib-code-bar">
                 @if (Language is not null)
                 {
                     <span class="ib-code-language">@Language</span>
                 }
-                @if (Copyable)
-                {
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only ib-code-copy" aria-label="@(CopyLabel ?? TextDefaults.CopyCode)" title="@(CopyLabel ?? TextDefaults.CopyCode)" data-copied-label="@(CopiedLabel ?? TextDefaults.Copied)">
-                        <Icon Role="IconRole.Copy" Class="ib-code-copy-icon" />
-                        <Icon Role="IconRole.Copied" Class="ib-code-copied-icon" />
-                    </button>
-                }
+                @CopyControl
             </div>
         }
         <pre class="ib-code-pre" tabindex="0"><code>@Content</code></pre>
@@ -43,6 +48,17 @@ else
 }
 
 @code {
+    private RenderFragment CopyControl => __builder =>
+    {
+        @if (Copyable)
+        {
+            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only ib-code-copy" aria-label="@(CopyLabel ?? TextDefaults.CopyCode)" title="@(CopyLabel ?? TextDefaults.CopyCode)" data-copied-label="@(CopiedLabel ?? TextDefaults.Copied)">
+                <Icon Role="IconRole.Copy" Class="ib-code-copy-icon" />
+                <Icon Role="IconRole.Copied" Class="ib-code-copied-icon" />
+            </button>
+        }
+    };
+
     /// <summary>The code. In a block, whitespace and line breaks are kept as written.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
@@ -67,6 +83,21 @@ else
     /// </summary>
     [Parameter] public bool Highlight { get; set; } = true;
 
+    /// <summary>
+    /// A file name or caption for a block, such as "Program.cs", shown in a header row above the
+    /// code in place of <see cref="Language"/> (which still sets the colors).
+    /// </summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Numbers a block's lines. The numbers aren't selected or copied with the code.</summary>
+    [Parameter] public bool LineNumbers { get; set; }
+
+    /// <summary>
+    /// Lines of a block to highlight, by number from 1: single lines and ranges, such as
+    /// <c>"3-5,9"</c>. Highlighted lines are <c>mark</c> elements with a tinted background.
+    /// </summary>
+    [Parameter] public string? HighlightLines { get; set; }
+
     /// <summary>Adds a copy button to a block (with JavaScript). Defaults to true.</summary>
     [Parameter] public bool Copyable { get; set; } = true;
 
@@ -82,7 +113,10 @@ else
     private string? _source;
     private string? _sourceLanguage;
 
-    private RenderFragment? Content => _tokens is null ? ChildContent : RenderTokens;
+    private List<List<CodeToken>>? _lines;
+    private HashSet<int>? _highlighted;
+
+    private RenderFragment? Content => _lines is not null ? RenderLines : _tokens is null ? ChildContent : RenderTokens;
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -94,31 +128,122 @@ else
             styles.AddVar("code-maxh", StyleValues.Length(maxHeight));
         }
 
+        if (_lines is not null)
+        {
+            classes.Add("ib-code-lined");
+            classes.Add("ib-code-numbered", LineNumbers);
+            if (LineNumbers)
+            {
+                styles.AddVar("code-digits", _lines.Count.ToString(System.Globalization.CultureInfo.InvariantCulture).Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
+            }
+        }
+
         base.BuildAttributes(classes, styles);
     }
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        (_class, _style) = BuildRootAttributes();
+        _highlighted = HighlightLines is null ? null : ParseLines(HighlightLines);
         _tokens = null;
-        if (!Highlight || Language is null || ChildContent is null || ReadText(ChildContent) is not { } text)
+        _lines = null;
+        var text = ChildContent is null ? null : ReadText(ChildContent);
+        if (Highlight && Language is not null && text is not null)
         {
-            return;
-        }
+            // Re-highlight only when the code or language changes.
+            if (text != _source || Language != _sourceLanguage || _lastTokens is null)
+            {
+                var highlighter = Services.GetService<ICodeHighlighter>() ?? IzzyCodeHighlighter.Instance;
+                _source = text;
+                _sourceLanguage = Language;
+                _lastTokens = highlighter.TryHighlight(text, Language, out var tokens) ? tokens : null;
+            }
 
-        // Re-highlight only when the code or language changes.
-        if (text == _source && Language == _sourceLanguage && _lastTokens is not null)
-        {
             _tokens = _lastTokens;
-            return;
         }
 
-        var highlighter = Services.GetService<ICodeHighlighter>() ?? IzzyCodeHighlighter.Instance;
-        _source = text;
-        _sourceLanguage = Language;
-        _lastTokens = highlighter.TryHighlight(text, Language, out var tokens) ? tokens : null;
-        _tokens = _lastTokens;
+        if (Block && text is not null && (LineNumbers || _highlighted is not null))
+        {
+            _lines = SplitLines(_tokens ?? [new CodeToken(CodeTokenKind.Text, text)]);
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    /// <summary>Splits tokens into lines at each newline; a newline at the very end adds no line.</summary>
+    private static List<List<CodeToken>> SplitLines(IReadOnlyList<CodeToken> tokens)
+    {
+        var lines = new List<List<CodeToken>> { new() };
+        foreach (var token in tokens)
+        {
+            var parts = token.Text.Split('\n');
+            for (var i = 0; i < parts.Length; i++)
+            {
+                if (i > 0)
+                {
+                    lines.Add([]);
+                }
+
+                if (parts[i].Length > 0)
+                {
+                    lines[^1].Add(token with { Text = parts[i] });
+                }
+            }
+        }
+
+        if (lines.Count > 1 && lines[^1].Count == 0)
+        {
+            lines.RemoveAt(lines.Count - 1);
+        }
+
+        return lines;
+    }
+
+    /// <summary>"3-5, 9" becomes {3, 4, 5, 9}.</summary>
+    private static HashSet<int> ParseLines(string spec)
+    {
+        var lines = new HashSet<int>();
+        foreach (var part in spec.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+        {
+            var range = part.Split('-', StringSplitOptions.TrimEntries);
+            if (range.Length is 1 or 2
+                && int.TryParse(range[0], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var from)
+                && int.TryParse(range[^1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var to)
+                && from >= 1 && to >= from && to - from < 100_000)
+            {
+                for (var line = from; line <= to; line++)
+                {
+                    lines.Add(line);
+                }
+
+                continue;
+            }
+
+            throw new ArgumentException($"Code HighlightLines takes line numbers and ranges from 1, such as \"3-5,9\" (got \"{spec}\").", nameof(HighlightLines));
+        }
+
+        return lines;
+    }
+
+    private void RenderLines(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        for (var i = 0; i < _lines!.Count; i++)
+        {
+            var highlighted = _highlighted?.Contains(i + 1) == true;
+            builder.OpenElement(0, highlighted ? "mark" : "span");
+            builder.AddAttribute(1, "class", highlighted ? "ib-code-line ib-code-line-hl" : "ib-code-line");
+            foreach (var token in _lines[i])
+            {
+                RenderToken(builder, token);
+            }
+
+            if (i < _lines.Count - 1)
+            {
+                builder.AddContent(2, "\n");
+            }
+
+            builder.CloseElement();
+        }
     }
 
     private IReadOnlyList<CodeToken>? _lastTokens;
@@ -127,17 +252,22 @@ else
     {
         foreach (var token in _tokens!)
         {
-            if (token.Kind == CodeTokenKind.Text)
-            {
-                builder.AddContent(0, token.Text);
-                continue;
-            }
-
-            builder.OpenElement(1, "span");
-            builder.AddAttribute(2, "class", ClassOf(token.Kind));
-            builder.AddContent(3, token.Text);
-            builder.CloseElement();
+            RenderToken(builder, token);
         }
+    }
+
+    private static void RenderToken(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder, CodeToken token)
+    {
+        if (token.Kind == CodeTokenKind.Text)
+        {
+            builder.AddContent(10, token.Text);
+            return;
+        }
+
+        builder.OpenElement(11, "span");
+        builder.AddAttribute(12, "class", ClassOf(token.Kind));
+        builder.AddContent(13, token.Text);
+        builder.CloseElement();
     }
 
     private static string ClassOf(CodeTokenKind kind) => kind switch

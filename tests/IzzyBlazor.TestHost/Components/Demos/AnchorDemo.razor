@@ -28,10 +28,32 @@
         </Stack>
     </Example>
 
+    <Example Title="File names, line numbers and highlighted lines" Note="Title puts a file name in a header row above the code. LineNumbers numbers the lines and HighlightLines marks some (&quot;3-5,9&quot;); both are drawn on the server, and copying still gives the code as written, without the numbers." Code="@LinesCode">
+        <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@ProgramSample</Code>
+    </Example>
+
 </Stack>
 
 @code {
     private const string Install = "dotnet add package IzzyBlazor";
+
+    private const string ProgramSample =
+        """
+        var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddRazorComponents();
+        builder.Services.AddIzzyBlazor();
+
+        var app = builder.Build();
+        app.MapRazorComponents<App>();
+        app.MapIzzyBlazor();
+        app.Run();
+        """;
+
+    private const string LinesCode =
+        """
+        <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@program</Code>
+        """;
 
     private const string Snippet =
         """
