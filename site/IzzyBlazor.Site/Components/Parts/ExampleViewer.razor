@@ -57,24 +57,28 @@
                 </Tab>
             }
         </Tabs>
-        <div class="ex-tools">
-            @if (WidthSwitch)
-            {
+        @if (WidthSwitch)
+        {
+            <div class="ex-tools">
                 <fieldset class="ex-widths">
                     <legend class="ib-visually-hidden">Preview width</legend>
                     <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
                     <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
                 </fieldset>
-            }
-            @if (_source is not null)
-            {
+            </div>
+        }
+        @* The Source toggle sits under the preview, where the code opens, so it stays beside what it
+           shows; the bar above holds only what changes the preview. *@
+        @if (_source is not null)
+        {
+            <div class="ex-foot">
                 <label class="ex-source-toggle">
                     <input type="checkbox" class="ex-source-input" checked="@SourceOpen" />
                     <Icon Name="Lucide.CodeXml" />
                     <span>Source</span>
                 </label>
-            }
-        </div>
+            </div>
+        }
         @if (_source is { } source)
         {
             <div class="ex-source">
