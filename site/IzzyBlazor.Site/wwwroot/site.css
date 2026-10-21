@@ -60,6 +60,8 @@
 }
 
 .site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
+/* The hero's example is a light window on the dark band, lifted off the glow. */
+.site-hero .ex { box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.6); }
 .site-install {
   width: fit-content;
   padding: var(--ib-space-1) var(--ib-space-1) var(--ib-space-1) var(--ib-space-3);
