@@ -243,7 +243,8 @@
       linear-gradient(var(--ib-sb-line-bottom), var(--ib-sb-line-bottom)) bottom / 100% 1px no-repeat scroll;
   }
 
-  .ib-shell-sidebar-head + .ib-shell-sidebar-body,
+  /* (Not the drawer's brand row: it's hidden above the breakpoint, so nothing is pinned there.) */
+  .ib-shell-sidebar-head:not(.ib-shell-sidebar-head-auto) + .ib-shell-sidebar-body,
   .ib-shell-collapse + .ib-shell-sidebar-body {
     --ib-sb-line-top: var(--ib-shell-divider, var(--ib-color-border));
   }
