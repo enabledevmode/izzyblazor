@@ -21,6 +21,16 @@ public class OverlayRenderTests : BunitContext
     };
 
     [Fact]
+    public void Mac_modifier_keys_in_a_shortcut_are_drawn_but_still_read_as_written()
+    {
+        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, "⌘+⇧+P").AddChildContent("Command palette"));
+
+        var key = cut.Find(".ib-menu-shortcut");
+        Assert.Equal("⌘+⇧+P", string.Concat(key.TextContent.Where(c => !char.IsWhiteSpace(c))));
+        Assert.Equal(2, key.QuerySelectorAll("svg").Length);
+    }
+
+    [Fact]
     public void Menu_wires_trigger_panel_and_anchor()
     {
         var cut = Render<Menu>(p => p
@@ -70,7 +80,7 @@ public class OverlayRenderTests : BunitContext
         Assert.Equal("button", items[1].GetAttribute("type"));
         Assert.Equal("m", items[1].GetAttribute("popovertarget"));
         Assert.Equal("hide", items[1].GetAttribute("popovertargetaction"));
-        Assert.Equal("Ctrl+C", items[1].QuerySelector(".ib-menu-shortcut")!.TextContent);
+        Assert.Equal("Ctrl+C", items[1].QuerySelector(".ib-menu-shortcut")!.TextContent.Trim());
 
         Assert.Equal("submit", items[2].GetAttribute("type"));
         Assert.Equal("/delete", items[2].GetAttribute("formaction"));

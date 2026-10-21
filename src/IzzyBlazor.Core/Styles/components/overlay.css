@@ -159,7 +159,6 @@
     display: inline-flex;
     flex: none;
     align-items: center;
-    justify-content: center;
     height: 1.25rem;
     margin-inline-start: var(--ib-space-6);
     padding-inline: var(--ib-space-2);
@@ -175,6 +174,12 @@
     white-space: nowrap;
     /* Text widths are rarely whole: rounded up, so the cap's left edge lands on a pixel. */
     width: calc-size(max-content, round(up, size, 1px));
+  }
+
+  /* A modifier key drawn as an icon: the text's size, nudged onto the letters' line. */
+  .ib-menu-item .ib-menu-shortcut .ib-menu-key-icon {
+    --ib-icon-size: 0.75rem;
+    color: inherit;
   }
 
   .ib-menu-item:disabled .ib-menu-shortcut,

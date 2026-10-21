@@ -95,7 +95,10 @@ else
     /// <summary>An icon before the text.</summary>
     [Parameter] public IconData? Icon { get; set; }
 
-    /// <summary>A keyboard hint shown at the end in a key cap, such as "Ctrl+C". Display only.</summary>
+    /// <summary>
+    /// A keyboard hint shown at the end in a key cap, such as "Ctrl+C" or "⌘+C". Display only. The
+    /// Mac modifier symbols ⌘ ⌥ ⇧ ⌃ are drawn as icons, so they look the same on every system.
+    /// </summary>
     [Parameter] public string? Shortcut { get; set; }
 
     /// <summary>
@@ -208,7 +211,30 @@ else
         <span class="ib-menu-label">@ChildContent</span>
         @if (Shortcut is not null)
         {
-            <kbd class="ib-menu-shortcut">@Shortcut</kbd>
+            <kbd class="ib-menu-shortcut">
+                @* Mac modifier symbols as icons: no web font has them, and system fallbacks draw them
+                   at very different sizes. The character stays for screen readers. *@
+                @foreach (var c in Shortcut)
+                {
+                    if (ModifierIcon(c) is { } modifier)
+                    {
+                        <Icon Name="modifier" Class="ib-menu-key-icon" /><span class="ib-visually-hidden">@c</span>
+                    }
+                    else
+                    {
+                        @c
+                    }
+                }
+            </kbd>
         }
     </text>;
+
+    private static IconData? ModifierIcon(char c) => c switch
+    {
+        '\u2318' => Lucide.Command,
+        '\u2325' => Lucide.Option,
+        '\u21E7' => Lucide.ArrowBigUp,
+        '\u2303' => Lucide.ChevronUp,
+        _ => null,
+    };
 }
