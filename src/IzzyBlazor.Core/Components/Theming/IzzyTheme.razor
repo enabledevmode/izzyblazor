@@ -41,6 +41,10 @@
     {
         <meta name="ib-density" content="@Name(density)" />
     }
+    @if (Scrollbars is { } scrollbars && scrollbars != ThemeScrollbars.Auto)
+    {
+        <meta name="ib-scrollbars" content="@Name(scrollbars)" />
+    }
     @if (_scheme is IzzyBlazor.ColorScheme.Light or IzzyBlazor.ColorScheme.Dark)
     {
         <meta name="ib-color-scheme" content="@ColorSchemes.Name(_scheme.Value)" />
@@ -122,6 +126,14 @@ else
     /// follow the device. <see cref="ColorScheme.Inverse"/> is for part of a page only.
     /// </summary>
     [Parameter] public ColorScheme? ColorScheme { get; set; }
+
+    /// <summary>
+    /// Whose scrollbars the app uses. Unset or <see cref="ThemeScrollbars.Auto"/>: the system's on the
+    /// page, thin themed ones in the library's scroll areas. <see cref="ThemeScrollbars.Themed"/> puts
+    /// the thin ones on the page too (always visible); <see cref="ThemeScrollbars.Native"/> uses the
+    /// system's everywhere. App-wide only.
+    /// </summary>
+    [Parameter] public ThemeScrollbars? Scrollbars { get; set; }
 
     /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one.</summary>
     [Parameter] public string? Nonce { get; set; }
@@ -226,6 +238,11 @@ else
             {
                 throw new ArgumentException($"{name} is app-wide: set it on the IzzyTheme in <head>.", name);
             }
+        }
+
+        if (Scrollbars is not null)
+        {
+            throw new ArgumentException("Scrollbars is app-wide: set it on the IzzyTheme in <head>.", nameof(Scrollbars));
         }
 
         if (HeadingWeight is not null)

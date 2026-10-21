@@ -177,6 +177,10 @@ the starting set of defaults, then your brand color, grays, radius and density o
 
 A preset's brand color, gray and radius are only its defaults: `Brand`, `Gray` and `Radius` beat them.
 
+`Scrollbars` (`Auto` by default, `Themed`, `Native`) chooses whose scrollbars the app uses: the
+system's on the page and thin themed ones in the library's scroll areas, thin ones everywhere, or
+the system's everywhere (see [Scrollbars](components.md#scrollbars)). It's app-wide only.
+
 `IzzyTheme` renders meta tags the theme CSS matches (and a small `<style>` block for hex colors, the
 fonts and `HeadingWeight`), so it's in place on first paint, needs no script and works in every
 render mode. The built-in choices also work as attributes, on `<html>` or on any element for part of

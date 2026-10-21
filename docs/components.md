@@ -1358,9 +1358,29 @@ IzzyBlazor's scrolling areas (the sidebar, tables, menus, dialogs, code blocks a
 theme-colored scrollbars with no arrow buttons, a little stronger while the pointer is on the
 thumb. `--ib-color-scrollbar` and `--ib-color-scrollbar-hover` set the colors; high-contrast mode
 uses system colors.
-The page's scrollbar gets the same look when the page uses `AppShell`; on other
-pages add `ib-scrollbars` to `<html>`. For a scroll region of your own (a chat log, a long list in a
-card), add `ib-scroll` to the element that scrolls. On macOS these stay visible rather than auto-hiding as the system's do.
+For a scroll region of your own (a chat log, a long list in a card), add `ib-scroll` to the element
+that scrolls.
+
+`Scrollbars` on `IzzyTheme` chooses whose scrollbars the app uses:
+
+- `ThemeScrollbars.Auto` (the default): the page keeps the system's own scrollbar, and the library's
+  scroll areas get the thin themed ones. The page's scrollbar then behaves as on any other site:
+  on macOS, and in browsers with overlay scrollbars (Windows 11), it fades when you stop scrolling
+  and takes no room.
+- `ThemeScrollbars.Themed`: the page's scrollbar gets the thin look too, matching the rest. Styled
+  scrollbars never fade, so it stays visible, on macOS as well. `ib-scrollbars` on `<html>` does
+  the same without an `IzzyTheme`.
+- `ThemeScrollbars.Native`: the system's scrollbars everywhere, including the library's scroll
+  areas. `ib-scrollbars-native` on `<html>` does the same without an `IzzyTheme`.
+
+```razor
+<IzzyTheme Scrollbars="ThemeScrollbars.Native" />
+```
+
+On a page that `AppShell` scrolls, room for the page's scrollbar is kept even when the page can't
+scroll (`scrollbar-gutter: stable`), so opening the sidebar drawer or panel, which stops the page
+scrolling, doesn't widen the page and shift it sideways. With overlay scrollbars that room is zero;
+with classic ones, a page too short to scroll shows an empty strip where the scrollbar would be.
 
 ## Text and other languages
 
