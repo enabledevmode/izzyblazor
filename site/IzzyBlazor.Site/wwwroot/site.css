@@ -87,6 +87,8 @@
   margin-inline: auto;
   padding-block: var(--ib-space-8) var(--ib-space-16);
 }
+/* Phones: the docs and demos content keeps the page gutter (wider screens set it below). */
+:where(.site-shell) .site-article { padding-inline: var(--ib-space-4); }
 .site-article > h2 { margin-block-start: var(--ib-space-6); }
 .site-article > .ib-prevnext, .site-article > nav:last-child { margin-block-start: var(--ib-space-8); }
 .site-pagehead { margin-block-end: var(--ib-space-2); }
@@ -113,6 +115,24 @@
 .site-picto-sm { width: 2rem; height: 2rem; font-size: 1rem; }
 .site-picto-lg { width: 3rem; height: 3rem; font-size: 1.5rem; border-radius: var(--ib-radius-lg); }
 .site-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
+
+/* Component pictograms (Services/Pictures.cs): ink tiles in either scheme, like the hero. */
+.pg { display: block; width: 100%; height: auto; background: #14161a; }
+.pg :is(rect, circle, path) { fill: none; }
+.pg .pg-rings circle { fill: #f26a1b; }
+.pg .s { stroke: #f5f4f1; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pg .d { stroke: #5c616b; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pg .d0 { stroke: #33373f; stroke-width: 1.5; }
+.pg .es { stroke: #f26a1b; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pg .ink-s { stroke: #14161a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.pg .w2 { stroke-width: 2; } .pg .w3 { stroke-width: 3; }
+.pg .dash { stroke-dasharray: 4 5; }
+.pg .f { fill: #1d2026; } .pg .m { fill: #2a2e36; }
+.pg .e { fill: #f26a1b; } .pg .a { fill: #ffb020; }
+.pg .h { fill: #f26a1b; fill-opacity: .08; } .pg .h2 { fill: #f26a1b; fill-opacity: .22; } .pg .hs { fill: #f26a1b; fill-opacity: .12; }
+.pg .t { fill: #5c616b; } .pg .p { fill: #c9ccd1; } .pg .p0 { fill: #f5f4f1; } .pg .ink { fill: #14161a; }
+.pg .o55 { opacity: .55; }
+.pg { aspect-ratio: 160 / 96; }
 
 /* Mode chips: "none" is struck through, so the color isn't the only signal. */
 .site-modes { display: inline-flex; flex-wrap: wrap; gap: var(--ib-space-1); vertical-align: middle; }
