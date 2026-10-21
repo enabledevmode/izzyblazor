@@ -65,12 +65,13 @@
             </ListItem>
             <ListItem>
                 <strong>Toasts show straight away.</strong> A redirect in the browser is a navigation, not a new request, so
-                there's nothing to carry over. Put <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> in the layout as
-                usual.
+                there's nothing to carry over. <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> stays in the layout,
+                which can be static.
             </ListItem>
             <ListItem>
                 <strong>Dialogs opened from code need a host in the browser.</strong> Put one <Code>&lt;DialogHost /&gt;</Code> on the
-                interactive page, or in an interactive layout, in the <Code>.Client</Code> project. See
+                interactive page, or in the layout with a render mode on the host
+                (<Code>&lt;DialogHost @@rendermode="InteractiveAuto" /&gt;</Code>). See
                 <Anchor Href="docs/components/dialog">Dialog</Anchor>.
             </ListItem>
         </List>

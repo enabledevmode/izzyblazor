@@ -91,7 +91,7 @@
       "features": [
         { "feature": "Label, hint, type and limits from the model" },
         { "feature": "Icons and add-ons" },
-        { "feature": "Checks before posting, errors after" },
+        { "feature": "Checks before posting, server messages under the field" },
         { "feature": "Show/hide button on passwords", "off": "none", "static": "full", "live": "full" }
       ],
       "examples": [

@@ -12,7 +12,7 @@
     <ChildContent>
         <Heading Level="2">Set it up</Heading>
         <TextBlock>
-            IzzyBlazor needs a .NET 10 Blazor Web App, the project shape with an <Code>App.razor</Code> (.NET 8 and later).
+            IzzyBlazor needs a Blazor Web App (the project shape with an <Code>App.razor</Code>) on .NET 10.
             Follow the <Anchor Href="docs/get-started/blazor-web-app">Blazor Web App</Anchor> steps, and the
             <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor> ones too if you have a
             <Code>.Client</Code> project. The rest of this page is about what's already there.
@@ -25,9 +25,10 @@
             components: button links turn blue on blue and headings change size.
         </TextBlock>
         <TextBlock>
-            Put Bootstrap in a layer of its own, declared before IzzyBlazor's. Import it at the top of <Code>app.css</Code>, move
-            rules that style bare elements (<Code>body</Code>, <Code>a</Code>, <Code>h1</Code>) into the same layer, and link
-            <Code>app.css</Code> before IzzyBlazor's stylesheet:
+            Put Bootstrap in a layer of its own, declared before IzzyBlazor's. Remove its <Code>&lt;link&gt;</Code> from
+            <Code>App.razor</Code> and import it at the top of <Code>app.css</Code> instead, move rules that style bare elements
+            (<Code>body</Code>, <Code>a</Code>, <Code>h1</Code>) into the same layer, and link <Code>app.css</Code> before
+            IzzyBlazor's stylesheet. The order matters here because <Code>app.css</Code> now declares a layer:
         </TextBlock>
         <Code Block Language="css" Title="wwwroot/app.css">@AppCss</Code>
         <Code Block Language="razor" Title="Components/App.razor" HighlightLines="1-2">@AppHead</Code>
@@ -36,8 +37,8 @@
             Bootstrap's classes keep styling your existing markup. Your rules outside a layer still win over both.
         </TextBlock>
         <Alert Status="Status.Info" Title="Your pages take IzzyBlazor's page defaults">
-            IzzyBlazor sets the page's font, text color and background. Once Bootstrap is in a layer, those apply to your
-            existing pages too. To keep your own, set them outside a layer, in <Code>app.css</Code>.
+            IzzyBlazor sets the page's font, text color and background, and its focus ring. Once Bootstrap is in a layer, those
+            apply to your existing pages too. To keep your own, set them outside a layer, in <Code>app.css</Code>.
         </Alert>
 
         <Heading Level="2">Name clashes</Heading>
@@ -58,7 +59,9 @@
         <TextBlock>
             <Code>_Imports.razor</Code> applies to its folder and the folders under it. To bring IzzyBlazor in gradually, put
             <Code>@@using IzzyBlazor</Code> in a folder's own <Code>_Imports.razor</Code> instead of the one in
-            <Code>Components</Code>, and only the pages there see its components:
+            <Code>Components</Code>, and only the pages there see its components. <Code>App.razor</Code> and any layout built
+            with IzzyBlazor need it too, at the top of the file: without it, <Code>&lt;IzzyTheme /&gt;</Code> is read as an
+            unknown HTML element, the build only warns, and the theme never renders.
         </TextBlock>
         <Code Block Language="text">@Folders</Code>
         <TextBlock>
@@ -75,7 +78,7 @@
         <Code Block Language="razor">@EditFormCode</Code>
         <TextBlock>
             They show their own label, hint and errors. Switch the <Code>EditForm</Code> to IzzyBlazor's
-            <Anchor Href="docs/components/form">Form</Anchor> when you want its layout, columns and error summary; it takes the
+            <Anchor Href="docs/components/form">Form</Anchor> when you want its layout and columns; it takes the
             same <Code>Model</Code>, <Code>FormName</Code> and submit events, and adds the DataAnnotations validator itself.
         </TextBlock>
 
@@ -112,6 +115,7 @@
     private const string Folders = """
         Components/
           _Imports.razor           your usings, as before
+          App.razor                @using IzzyBlazor at the top, for IzzyTheme
           Pages/
             Orders.razor           untouched
             Settings/

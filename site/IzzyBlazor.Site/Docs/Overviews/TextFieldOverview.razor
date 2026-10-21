@@ -6,15 +6,15 @@
 <Code Block Language="razor">@Usage</Code>
 
 <Heading Level="2">Labels and hints</Heading>
-<TextBlock>The label comes from the property's <Code>[Display(Name)]</Code>, or its name in words; use <Code>Label</Code> to change it and <Code>Hint</Code> for help under the field. <Code>[Required]</Code> marks the field.</TextBlock>
+<TextBlock>Use <Code>Label</Code> to replace the label from the model (its <Code>[Display(Name)]</Code>, or the property name in words), and <Code>Hint</Code> for help under the field. <Code>[Required]</Code> marks it.</TextBlock>
 <ExampleViewer Example="text-field-labels" HideTitle />
 
 <Heading Level="2">Types</Heading>
-<TextBlock>Use <Code>Type</Code> for email, phone, URL, search or password. It defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code>, <Code>[Url]</Code> and <Code>[DataType(DataType.Password)]</Code>, and sets the phone keyboard and the browser's checks.</TextBlock>
+<TextBlock>Use <Code>Type</Code> for email, phone, URL, search or password. It defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code>, <Code>[Url]</Code> and <Code>[DataType(DataType.Password)]</Code>, and sets the on-screen keyboard and, for email and URL, the browser's check.</TextBlock>
 <Code Block Language="razor">@Types</Code>
 
 <Heading Level="2">Passwords</Heading>
-<TextBlock>A password field gets a show/hide button once IzzyBlazor's script runs. Use <Code>Reveal="false"</Code> to leave it out.</TextBlock>
+<TextBlock>Use <Code>Reveal="false"</Code> to leave out the show/hide button a password field gets once IzzyBlazor's script runs.</TextBlock>
 <ExampleViewer Example="text-field-password" HideTitle />
 
 <Heading Level="2">Icons</Heading>
@@ -26,11 +26,11 @@
 <ExampleViewer Example="text-field-addons" HideTitle />
 
 <Heading Level="2">Validation</Heading>
-<TextBlock>Put the rules on the model. The browser checks them before posting, with your <Code>ErrorMessage</Code>, and the server's messages show under the field after.</TextBlock>
+<TextBlock>Use the model's attributes for the rules. The browser checks required, length, range, email and URL before posting, with your <Code>ErrorMessage</Code>; the server checks every rule and shows its messages under the field.</TextBlock>
 <ExampleViewer Example="text-field-validation" HideTitle />
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to match the buttons beside it, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
 <ExampleViewer Example="text-field-states" HideTitle />
 
 <Heading Level="2">Mode support</Heading>
