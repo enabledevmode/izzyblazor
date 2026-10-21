@@ -51,15 +51,9 @@
     <Stack Gap="6">
         <Stack Gap="2">
             <Heading Level="2" Size="TextSize.Xl2">Why SSR first</Heading>
-            <Stack Gap="2" Class="site-why-intro">
-                <TextBlock Size="TextSize.Xl" Weight="FontWeight.Medium">
-                    Static SSR is Blazor at its lightest.<br />With IzzyBlazor, it's enough for most of your pages.
-                </TextBlock>
-                <TextBlock Color="Color.Muted">
-                    Interactive Server keeps a SignalR circuit open for every visitor. WebAssembly downloads a runtime
-                    before the page can respond. Static SSR does neither.
-                </TextBlock>
-            </Stack>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Class="site-why-intro">
+                Static SSR is Blazor at its lightest.<br />With IzzyBlazor, it's enough for most of your pages.
+            </TextBlock>
         </Stack>
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="8" Class="site-why">
             <Stack Gap="2">
