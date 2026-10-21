@@ -117,6 +117,9 @@ public sealed record RegistryComponent
     public required string Name { get; init; }
     public required string Category { get; init; }
 
+    /// <summary>A Lucide icon's name (<c>MousePointerClick</c>), the component's pictogram on cards and its page.</summary>
+    public required string Icon { get; init; }
+
     /// <summary>One line for cards and the index.</summary>
     public required string Summary { get; init; }
 

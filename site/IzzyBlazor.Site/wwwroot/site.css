@@ -8,8 +8,40 @@
 .site-logo-ink { fill: light-dark(#14161a, #f5f4f1); }
 .site-logo-soft { fill: light-dark(#5a6069, #a9aeb6); }
 
-.site-hero-title span { color: var(--ib-color-muted); }
+/* The home page's hero, after brand/hero/hero-dark: ink in either scheme, Bricolage Grotesque for
+   the headline, Ember for its second line, and the glowing knob behind the example. */
+.site-hero {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: #14161a;
+}
+.site-hero-grid { position: relative; z-index: 1; }
+.site-hero-glow {
+  position: absolute;
+  z-index: 0;
+  top: 50%;
+  right: -18rem;
+  width: 52rem;
+  height: 52rem;
+  translate: 0 -50%;
+  pointer-events: none;
+}
+.site-hero-wordmark { display: block; align-self: flex-start; width: auto; height: 3.5rem; max-width: 100%; margin: 0; }
+.site-hero-title {
+  font-family: "Bricolage Grotesque", var(--ib-font-heading);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: #f5f4f1;
+}
+.site-hero-title span { color: #f26a1b; }
+@media (max-width: 63.98rem) {
+  /* One column: the glow sits behind the top corner instead of the example. */
+  .site-hero-glow { top: 0; right: -30rem; translate: 0 -45%; opacity: 0.35; }
+  .site-hero-wordmark { height: 2.5rem; }
+}
 
+.site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
 .site-install {
   width: fit-content;
   padding: var(--ib-space-1) var(--ib-space-1) var(--ib-space-1) var(--ib-space-3);
@@ -64,6 +96,23 @@
 
 /* Scenario links under a component in the demos sidebar. */
 .site-nav-sub { padding-inline-start: var(--ib-space-6); }
+
+/* Pictograms: an icon on a tile tinted with the accent. */
+.site-picto {
+  display: inline-grid;
+  place-items: center;
+  flex: none;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: var(--ib-radius-md);
+  background: var(--ib-color-primary-soft);
+  color: var(--ib-color-primary-text);
+  font-size: 1.25rem;
+}
+.site-picto .ib-icon { width: 1em; height: 1em; }
+.site-picto-sm { width: 2rem; height: 2rem; font-size: 1rem; }
+.site-picto-lg { width: 3rem; height: 3rem; font-size: 1.5rem; border-radius: var(--ib-radius-lg); }
+.site-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
 
 /* Mode chips: "none" is struck through, so the color isn't the only signal. */
 .site-modes { display: inline-flex; flex-wrap: wrap; gap: var(--ib-space-1); vertical-align: middle; }

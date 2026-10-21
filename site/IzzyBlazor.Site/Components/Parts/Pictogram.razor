@@ -1,0 +1,24 @@
+@* A pictogram: an icon on a tinted tile, beside the text of cards and page titles. Decorative: the
+   text next to it says what it is. *@
+
+<span class="@($"site-picto site-picto-{Size.ToString().ToLowerInvariant()}")" aria-hidden="true">
+    <IzzyBlazor.Icon Name="_icon" />
+</span>
+
+@code {
+    /// <summary>The icon, or <see cref="Name"/> for one by name.</summary>
+    [Parameter] public IconData? Icon { get; set; }
+
+    /// <summary>A Lucide icon's name, as components.json gives it.</summary>
+    [Parameter] public string? Name { get; set; }
+
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    private IconData? _icon;
+
+    protected override void OnParametersSet() => _icon = Icon ?? (Name is null ? null : Lookup(Name));
+
+    /// <summary>A Lucide icon by its property name, or null.</summary>
+    public static IconData? Lookup(string name) =>
+        typeof(Lucide).GetProperty(name, System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)?.GetValue(null) is IconData icon ? icon : null;
+}

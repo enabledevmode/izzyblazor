@@ -124,7 +124,8 @@
       return;
     }
 
-    if (!root) return;
+    // A frame with its own scheme (?scheme=dark) keeps it.
+    if (!root || /[?&]scheme=/.test(frame.getAttribute("src") || frame.dataset.src || "")) return;
     const value = document.documentElement.getAttribute("data-ib-color-scheme");
     if (value) root.setAttribute("data-ib-color-scheme", value);
     else root.removeAttribute("data-ib-color-scheme");

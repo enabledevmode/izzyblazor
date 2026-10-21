@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-ib-color-scheme="@FrameScheme">
 
 <head>
     <meta charset="utf-8" />
@@ -9,6 +9,9 @@
     <link rel="icon" href="favicon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="apple-touch-icon.png" />
     <meta name="theme-color" content="#14161A" />
+    <meta property="og:image" content="@($"{Navigation.BaseUri}og-image.png")" />
+    <meta property="og:site_name" content="IzzyBlazor" />
+    <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
     <link rel="stylesheet" href="@Assets["site.css"]" />
     <IzzyTheme />
@@ -30,8 +33,16 @@
 
 </html>
 
+@inject NavigationManager Navigation
+
 @code {
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // An example frame asked for a fixed scheme (?scheme=dark), for a viewer on a band of its own.
+    private string? FrameScheme =>
+        HttpContext?.Request.Path.StartsWithSegments("/frame") == true && HttpContext.Request.Query["scheme"].ToString() is "light" or "dark"
+            ? HttpContext.Request.Query["scheme"].ToString()
+            : null;
 
     // An example frame in Off mode sends no script at all: the frame is sandboxed without
     // allow-scripts anyway, and leaving the tags out keeps the console quiet.

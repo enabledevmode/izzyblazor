@@ -32,6 +32,9 @@
 
     [SupplyParameterFromQuery(Name = "mode")] public string? Mode { get; set; }
 
+    // Read by App (the <html> scheme); declared so the query value is part of the page's parameters.
+    [SupplyParameterFromQuery(Name = "scheme")] public string? Scheme { get; set; }
+
     private Type? _type;
     private string _mode = "static";
     private string _class = "frame";
