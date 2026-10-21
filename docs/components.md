@@ -454,8 +454,9 @@ post too.
 
 On `Checkbox` and `Switch` (not the options of `RadioGroup` or `CheckboxGroup`),
 `ControlPosition="ControlPosition.End"` puts the box or switch at the end of the row, centered on
-the label and hint, with the hint under the label. The label text still toggles it and names it,
-and errors show under the hint without moving it. Together with `Fieldset Dividers` it makes a
+the label and hint, with the hint under the label. The label names it, and errors show under the
+hint without moving it. In either position, a click anywhere on the row (the icon, label, hint or
+the gap beside the control) toggles it; a link in the hint stays a link. Together with `Fieldset Dividers` it makes a
 settings list:
 
 ```razor
