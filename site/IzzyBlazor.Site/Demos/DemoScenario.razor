@@ -21,7 +21,7 @@
             <TextBlock Size="TextSize.Lg" Color="Color.Muted">@_scenario.Description</TextBlock>
         </Stack>
 
-        <ExampleViewer Example="@_scenario.Example.Id" WidthSwitch SourceOpen />
+        <ExampleViewer Example="@_scenario.Example.Id" WidthSwitch ModeSwitch SourceOpen />
 
         <Row Gap="3" Wrap>
             <Button Href="@Registry.OverviewHref(_component)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.BookOpen">@_component.Name overview</Button>

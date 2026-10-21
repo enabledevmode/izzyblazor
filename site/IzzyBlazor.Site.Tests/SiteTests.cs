@@ -128,6 +128,17 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
+    public async Task A_link_opens_a_page_in_its_mode()
+    {
+        // The page's mode switch starts on ?mode=, so a link can show the examples with JavaScript off.
+        var off = await site.Client.GetStringAsync("docs/components/button?mode=off");
+        var plain = await site.Client.GetStringAsync("docs/components/button");
+
+        Assert.Matches("value=\"off\" checked", off);
+        Assert.Matches("value=\"static\" checked", plain);
+    }
+
+    [Fact]
     public async Task Unknown_pages_are_not_found()
     {
         foreach (var path in new[] { "docs/components/nope", "docs/components/nope/api", "demos/button/nope", "frame/nope" })

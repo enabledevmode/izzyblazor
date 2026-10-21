@@ -7,78 +7,89 @@
       Off     the static page in an iframe sandboxed without allow-scripts, so the browser really
               runs no script in it;
       Static  the static page, with IzzyBlazor's script;
-      Live    the example in an interactive render mode (Blazor Server), loaded only when picked
+      Live    the example in an interactive render mode (Blazor Server), loaded only when shown
               and in view, so a page of examples doesn't open a circuit for each.
 
-    The mode switch is a segmented Tabs (radios and CSS, so it works with JavaScript off), and the
-    source is a Code block from the embedded .razor file. site.js sizes each frame to its content;
-    without script the frames keep the example's height from components.json.
+    The page picks the mode, not each example: one ModeSwitch per page (the right column on docs
+    pages; this viewer's own strip with ModeSwitch, for a page that is one example), and CSS shows
+    each viewer's frame for the checked mode, so it works with no script. Under the preview is one
+    strip: Show source at the left, the example's note for the mode where it has one, and the width
+    switch and ModeSwitch where asked for. site.js sizes each frame to its content and keeps the
+    preview at the tallest mode's height; without script the frames keep the example's height from
+    components.json.
 *@
 
 @if (_example is not null)
 {
     <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
-        <div class="ex-bar"></div>
         @if (!HideTitle)
         {
             <span class="ex-title">@Title</span>
         }
-        <Tabs Label="@($"Render mode: {Title}")" Variant="TabsVariant.Segmented" Size="ControlSize.Sm"
-              Selected="@_example.StartMode" ContentPadding="0" Class="ex-modes">
+        <div class="ex-stage">
             @foreach (var mode in _example.Modes)
             {
-                <Tab Label="@ModeChip.Name(mode)">
-                    <div class="ex-stage">
-                        @if (mode == "off")
-                        {
-                            <iframe class="ex-frame" src="@Src(mode)" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
-                                    title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
-                        }
-                        else if (mode == "static")
-                        {
-                            <iframe class="ex-frame" src="@Src(mode)" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
-                        }
-                        else
-                        {
-                            <iframe class="ex-frame ex-frame-live" data-src="@Src(mode)" title="@($"{Title}, interactive page")" style="@_height"></iframe>
-                            <div class="ex-needs-js" style="@_height">
-                                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
-                                    Live examples run over a Blazor Server connection, which needs JavaScript. Turn it on to try this one.
-                                </TextBlock>
-                            </div>
-                        }
-                    </div>
-                    @if (NoteFor(mode) is { } note)
+                <div class="ex-mode" data-mode="@mode">
+                    @if (mode == "off")
                     {
-                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note">
-                            <Icon Name="Lucide.Info" /> @note
-                        </TextBlock>
+                        <iframe class="ex-frame" src="@Src(mode)" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
+                                title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
                     }
-                </Tab>
+                    else if (mode == "static")
+                    {
+                        <iframe class="ex-frame" src="@Src(mode)" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
+                    }
+                    else
+                    {
+                        <iframe class="ex-frame ex-frame-live" data-src="@Src(mode)" title="@($"{Title}, interactive page")" style="@_height"></iframe>
+                        <div class="ex-needs-js" style="@_height">
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+                                Live examples run over a Blazor Server connection, which needs JavaScript. Turn it on to try this one.
+                            </TextBlock>
+                        </div>
+                    }
+                </div>
             }
-        </Tabs>
-        @if (WidthSwitch)
-        {
-            <div class="ex-tools">
-                <fieldset class="ex-widths">
-                    <legend class="ib-visually-hidden">Preview width</legend>
-                    <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
-                    <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
-                </fieldset>
-            </div>
-        }
-        @* The Source toggle sits under the preview, where the code opens, so it stays beside what it
-           shows; the bar above holds only what changes the preview. *@
-        @if (_source is not null)
-        {
-            <div class="ex-foot">
+        </div>
+        <div class="ex-strip">
+            @if (_source is not null)
+            {
                 <label class="ex-source-toggle">
                     <input type="checkbox" class="ex-source-input" checked="@SourceOpen" />
                     <Icon Name="Lucide.CodeXml" />
-                    <span>Source</span>
+                    @* One shows at a time (CSS, by the checkbox), so the name says what clicking does. *@
+                    <span class="ex-source-show">Show source</span>
+                    <span class="ex-source-hide">Hide source</span>
                 </label>
-            </div>
-        }
+            }
+            @* The example's own note for each mode it has one for; CSS shows the current mode's. *@
+            @foreach (var mode in _example.Modes)
+            {
+                @if (NoteFor(mode) is { } note)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note" data-mode="@mode">
+                        <Icon Name="Lucide.Info" /> @note
+                    </TextBlock>
+                }
+            }
+            @if (WidthSwitch || ModeSwitch)
+            {
+                <div class="ex-tools">
+                    @if (WidthSwitch)
+                    {
+                        <fieldset class="ex-widths">
+                            <legend class="ib-visually-hidden">Preview width</legend>
+                            <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
+                            <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
+                        </fieldset>
+                    }
+                    @if (ModeSwitch)
+                    {
+                        <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="example" Compact />
+                    }
+                </div>
+            }
+        </div>
         @if (_source is { } source)
         {
             <div class="ex-source">
@@ -117,6 +128,12 @@
     /// <summary>Adds a Desktop/Phone width switch, for demo scenarios.</summary>
     [Parameter] public bool WidthSwitch { get; set; }
 
+    /// <summary>
+    /// Puts the page's mode switch in this viewer's strip, for a page that is this one example (a
+    /// demo, the home page's hero). Elsewhere the page has its own.
+    /// </summary>
+    [Parameter] public bool ModeSwitch { get; set; }
+
     /// <summary>Lines of the source to highlight, such as <c>"3-5"</c>.</summary>
     [Parameter] public string? HighlightLines { get; set; }
 
@@ -142,7 +159,7 @@
 
         _example = found.Example;
         _source = Catalog.SourceOf(Example);
-        _class = (_example.Page ? "ex ex-page" : "ex") + (HideTitle ? " ex-untitled" : "");
+        _class = _example.Page ? "ex ex-page" : "ex";
         _height = $"height: {_example.Height}px";
         _uid = $"ex-{Example}";
     }

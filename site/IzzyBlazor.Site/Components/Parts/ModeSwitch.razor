@@ -1,0 +1,70 @@
+@inject NavigationManager Navigation
+
+@*
+    The page's Off · Static · Live switch: every example on the page shows the checked mode. It's
+    a group of radios named "site-mode", and CSS picks each example's frame from whichever is
+    checked (body:has(...)), so it works with no script. Copies on one page (the right column on
+    wide screens, the top of the content on narrow ones) share the name, so they're one group.
+
+    The mode comes from ?mode= (a link can open a page in Off), then the "site-mode" cookie the
+    script sets when it changes, then Static.
+*@
+
+<div class="@($"site-modeswitch site-modeswitch-{Placement}")">
+    @if (!Compact)
+    {
+        <span class="site-modeswitch-label" id="@_labelId">Examples run</span>
+    }
+    <div class="site-modeswitch-options" role="radiogroup" aria-labelledby="@(Compact ? null : _labelId)" aria-label="@(Compact ? "Examples run" : null)">
+        @foreach (var mode in Modes)
+        {
+            <label class="site-modeswitch-option">
+                <input type="radio" class="site-mode-input" name="site-mode" value="@mode" checked="@(mode == _mode)" />
+                <span>@ModeChip.Name(mode)</span>
+            </label>
+        }
+    </div>
+    @if (!Compact)
+    {
+        @foreach (var mode in Modes)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-modeswitch-text" data-mode="@mode">@Meaning(mode)</TextBlock>
+        }
+    }
+</div>
+
+@code {
+    public static readonly string[] Modes = ["off", "static", "live"];
+
+    /// <summary>Where it sits, for CSS: <c>aside</c> (wide screens), <c>top</c> (narrow) or <c>example</c>.</summary>
+    [Parameter] public string Placement { get; set; } = "top";
+
+    /// <summary>Only the three options, for an example's own strip.</summary>
+    [Parameter] public bool Compact { get; set; }
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private readonly string _labelId = $"site-modes-{Guid.NewGuid():N}"[..20];
+    private string _mode = "static";
+
+    protected override void OnInitialized() => _mode = Current(Navigation, HttpContext);
+
+    /// <summary>The page's mode: <c>?mode=</c>, then the cookie, then Static.</summary>
+    public static string Current(NavigationManager navigation, HttpContext? context)
+    {
+        var query = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(navigation.Uri).Query);
+        if (query.TryGetValue("mode", out var value) && Modes.Contains(value.ToString()))
+        {
+            return value.ToString();
+        }
+
+        return context?.Request.Cookies["site-mode"] is { } cookie && Modes.Contains(cookie) ? cookie : "static";
+    }
+
+    private static string Meaning(string mode) => mode switch
+    {
+        "off" => "JavaScript off: what the HTML and CSS do on their own.",
+        "live" => "An interactive page: C# runs over a Blazor Server connection.",
+        _ => "A static page with IzzyBlazor's script. No circuit.",
+    };
+}

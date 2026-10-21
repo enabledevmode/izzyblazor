@@ -21,6 +21,8 @@
 
         @if (_overview is not null && _api is not null)
         {
+            @* Below 1024px, where the right column with its switch is hidden. *@
+            <ModeSwitch Placement="top" />
             <DynamicComponent Type="_overview" Parameters="_parameters" />
         }
         else if (_api is not null)
