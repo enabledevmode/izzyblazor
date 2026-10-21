@@ -32,7 +32,7 @@ class SiteNav extends IzzyElement {
       (event) => {
         const panel = event.target as HTMLElement;
         if (panel !== this.panel || (event as ToggleEvent).newState !== "open") return;
-        panel.querySelector<HTMLElement>("a[href], button, [tabindex]:not([tabindex='-1'])")?.focus();
+        panel.querySelector<HTMLElement>("a[href], button:not([tabindex='-1'], [aria-hidden='true']), [tabindex]:not([tabindex='-1'])")?.focus();
       },
       { signal, capture: true }
     );
