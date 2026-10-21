@@ -52,7 +52,7 @@
                 <ModeSupportTable Component="_component" ApiComponent="_api" />
             }
             <Heading Level="2">Parameters</Heading>
-            <ParameterTable ApiComponent="_api" ApiHref="@Registry.ApiPageHref(_component)" Context="_context" />
+            <ParameterTable ApiComponent="_api" ApiHref="@Registry.ApiPageHref(_component)" Context="_context" Compact />
         }
 
         <PrevNext PreviousHref="@(_previous is null ? null : Registry.OverviewHref(_previous))" PreviousTitle="@_previous?.Name"
