@@ -1,0 +1,154 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+
+@*
+    A live example with its source: the preview (the content) in a frame, and the code under it in
+    a Code block, colored on the server, with a copy button. Works with JavaScript off.
+
+    <CodeExample Code="@source">
+        <Button>Save</Button>
+    </CodeExample>
+
+    Several files: CodeExampleFile parts among the content, shown as tabs over the source (the
+    radio-button Tabs, so switching needs no script). Collapsible hides the source behind a
+    "Show code" toggle (a <details>).
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (ChildContent is not null)
+    {
+        <CascadingValue Value="this" IsFixed="true">
+            <div class="@(Center ? "ib-example-preview ib-example-center" : "ib-example-preview")">
+                @ChildContent
+            </div>
+        </CascadingValue>
+    }
+    @if (HasSource)
+    {
+        if (Collapsible)
+        {
+            <details class="ib-example-source" open="@SourceOpen">
+                <summary class="ib-example-toggle">
+                    <Icon Role="IconRole.ChevronRight" Class="ib-example-toggle-icon" />
+                    <span class="ib-example-show">@(ShowCodeText ?? TextDefaults.ShowCode)</span>
+                    <span class="ib-example-hide">@(HideCodeText ?? TextDefaults.HideCode)</span>
+                </summary>
+                @Source
+            </details>
+        }
+        else
+        {
+            <div class="ib-example-source">@Source</div>
+        }
+    }
+</div>
+
+@code {
+    /// <summary>The live example.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The example's source. For several files, write <see cref="CodeExampleFile"/>s instead (or as well: this is then the first tab).</summary>
+    [Parameter] public string? Code { get; set; }
+
+    /// <summary>The language of the source, for colors. Defaults to "razor".</summary>
+    [Parameter] public string Language { get; set; } = "razor";
+
+    /// <summary>A file name for the source, such as "SignIn.razor", in a header row (or on its tab).</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>Lines of the source to highlight, such as <c>"3-5,9"</c>.</summary>
+    [Parameter] public string? HighlightLines { get; set; }
+
+    /// <summary>Numbers the source's lines.</summary>
+    [Parameter] public bool LineNumbers { get; set; }
+
+    /// <summary>The tallest the source gets before it scrolls, such as <c>Length.Rem(20)</c>.</summary>
+    [Parameter] public Length? MaxHeight { get; set; }
+
+    /// <summary>Hides the source behind a "Show code" toggle, which works with JavaScript off.</summary>
+    [Parameter] public bool Collapsible { get; set; }
+
+    /// <summary>With <see cref="Collapsible"/>, starts with the source shown.</summary>
+    [Parameter] public bool SourceOpen { get; set; }
+
+    /// <summary>Centers the preview's content both ways.</summary>
+    [Parameter] public bool Center { get; set; }
+
+    /// <summary>The toggle's text while the source is hidden. Defaults to "Show code".</summary>
+    [Parameter] public string? ShowCodeText { get; set; }
+
+    /// <summary>The toggle's text while the source is shown. Defaults to "Hide code".</summary>
+    [Parameter] public string? HideCodeText { get; set; }
+
+    /// <summary>The source tabs' name for screen readers. Defaults to "Source files".</summary>
+    [Parameter] public string? FilesLabel { get; set; }
+
+    private readonly List<CodeExampleFile> _files = [];
+    private readonly Dictionary<CodeExampleFile, (string, string, string?, string?)> _seen = [];
+    private string? _class;
+    private string? _style;
+
+    private bool HasSource => Code is not null || _files.Count > 0;
+
+    // Files re-register every time the example renders (their content is a parameter), so only a
+    // new file or a changed one renders the example again.
+    internal void AddFile(CodeExampleFile file)
+    {
+        var values = (file.Title, file.Code, file.Language, file.HighlightLines);
+        if (_seen.TryGetValue(file, out var seen) && seen == values)
+        {
+            return;
+        }
+
+        if (!_files.Contains(file))
+        {
+            _files.Add(file);
+        }
+
+        _seen[file] = values;
+        StateHasChanged();
+    }
+
+    internal void RemoveFile(CodeExampleFile file)
+    {
+        _seen.Remove(file);
+        if (_files.Remove(file))
+        {
+            StateHasChanged();
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-example");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    private RenderFragment Source => __builder =>
+    {
+        if (_files.Count == 0)
+        {
+            <IzzyBlazor.Code Block Language="@Language" Title="@Title" HighlightLines="@HighlightLines" LineNumbers="LineNumbers" MaxHeight="MaxHeight">@Code</IzzyBlazor.Code>
+            return;
+        }
+
+        <Tabs Label="@(FilesLabel ?? TextDefaults.SourceFiles)" Size="ControlSize.Sm" ContentPadding="0" Class="ib-example-files">
+            @if (Code is not null)
+            {
+                <Tab Label="@(Title ?? Language)">
+                    <IzzyBlazor.Code Block Language="@Language" HighlightLines="@HighlightLines" LineNumbers="LineNumbers" MaxHeight="MaxHeight">@Code</IzzyBlazor.Code>
+                </Tab>
+            }
+            @foreach (var file in _files)
+            {
+                <Tab Label="@file.Title">
+                    <IzzyBlazor.Code Block Language="@(file.Language ?? Language)" HighlightLines="@file.HighlightLines" LineNumbers="LineNumbers" MaxHeight="MaxHeight">@file.Code</IzzyBlazor.Code>
+                </Tab>
+            }
+        </Tabs>
+    };
+}

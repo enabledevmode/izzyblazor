@@ -120,6 +120,23 @@ highlighting does.
 <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@program</Code>
 ```
 
+`CodeExample` shows a live example with its source under it, in one frame: the content is the
+preview, and `Code` (with `Language`, Razor by default, `Title`, `HighlightLines`, `LineNumbers`
+and `MaxHeight`) is the source, shown as a `Code` block with its copy button. Several files go in
+`CodeExampleFile` parts (`Title`, `Code`, `Language`, `HighlightLines`) written among the content,
+shown as tabs over the source that switch with no script. `Collapsible` hides the source behind
+"Show code" (a `details`, so it works with JavaScript off; `SourceOpen` starts it shown), and
+`Center` centers the preview. `--ib-example-padding` and `--ib-example-bg` set the preview's padding
+and background.
+
+```razor
+<CodeExample Center Collapsible>
+    <Button StartIcon="Lucide.Save">Save</Button>
+    <CodeExampleFile Title="Buttons.razor" Code="@markup" />
+    <CodeExampleFile Title="Buttons.razor.cs" Language="csharp" Code="@codeBehind" />
+</CodeExample>
+```
+
 `CopyButton` copies other text: `Text`, or the value or text of the element whose id is `For` (an
 install command, an ID, an API key in a read-only field). It's a ghost neutral icon button named
 "Copy" (`Label`) unless set otherwise, takes the buttons' `Accent`, `Variant`, `Size` and

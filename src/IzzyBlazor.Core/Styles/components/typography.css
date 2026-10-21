@@ -585,3 +585,111 @@
     margin-block-end: 0;
   }
 }
+
+/*
+ * CodeExample: the preview on the surface and the source under it, in one frame. The Code block
+ * inside drops its own border and corners and becomes the frame's recessed lower part. Variables:
+ * --ib-example-padding (the preview's), --ib-example-bg (the preview's background).
+ */
+@layer izzy.components {
+  .ib-example {
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface);
+  }
+
+  .ib-example-preview {
+    min-width: 0;
+    padding: var(--ib-example-padding, var(--ib-space-5));
+    overflow-x: auto;
+    background-color: var(--ib-example-bg, transparent);
+  }
+
+  .ib-example-center {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ib-space-3);
+  }
+
+  .ib-example-preview + .ib-example-source {
+    border-top: 1px solid var(--ib-color-border);
+  }
+
+  .ib-example-source {
+    background-color: var(--ib-color-surface-container);
+  }
+
+  .ib-example-source .ib-code-block {
+    border: 0;
+    border-radius: 0;
+  }
+
+  /* Several files: the tabs sit on the source's color, the line under them separating the code. */
+  .ib-example-files > .ib-tabs-list {
+    padding-inline: var(--ib-space-2);
+  }
+
+  .ib-example-files .ib-tab-panel {
+    border-top: 0;
+  }
+
+  /* Collapsible: a "Show code" row; open, it says "Hide code" and the chevron turns. */
+  .ib-example-toggle {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    min-height: var(--ib-control-h-sm);
+    padding-inline: var(--ib-space-4);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    list-style: none;
+    cursor: pointer;
+    user-select: none;
+  }
+
+  .ib-example-toggle::-webkit-details-marker {
+    display: none;
+  }
+
+  .ib-example-toggle:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-example-toggle:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-example-toggle-icon {
+    --ib-icon-size: 1rem;
+    transition: rotate var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-example-source[open] > .ib-example-toggle .ib-example-toggle-icon {
+    rotate: 90deg;
+  }
+
+  .ib-example-source:not([open]) .ib-example-hide,
+  .ib-example-source[open] .ib-example-show {
+    display: none;
+  }
+
+  .ib-example-source[open] > .ib-example-toggle {
+    border-bottom: 1px solid var(--ib-color-border);
+  }
+
+  .ib-example-toggle-icon:dir(rtl) {
+    scale: -1 1;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-example-toggle-icon {
+      transition: none;
+    }
+  }
+}

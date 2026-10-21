@@ -8,29 +8,8 @@
             <p class="host-example-note">@Note</p>
         }
     </Stack>
-    <div class="host-example-frame">
-        @if (ChildContent is not null)
-        {
-            <div class="host-example-canvas">
-                @ChildContent
-            </div>
-        }
-        @if (Code is not null)
-        {
-            @* Colored with the library's highlighter, the same spans Code renders. *@
-            <pre class="host-example-code"><code>@foreach (var token in Tokens)
-            {
-                if (token.Kind == CodeTokenKind.Text)
-                {
-                    <text>@token.Text</text>
-                }
-                else
-                {
-                    <span class="ib-tok-@(token.Kind == CodeTokenKind.Attribute ? "attr" : token.Kind.ToString().ToLowerInvariant())">@token.Text</span>
-                }
-            }</code></pre>
-        }
-    </div>
+    @* The library's CodeExample: the live result and its source, colored, with a copy button. *@
+    <CodeExample Code="@Code" Language="@CodeLanguage">@ChildContent</CodeExample>
 </section>
 
 @code {
@@ -41,7 +20,4 @@
 
     /// <summary>The code's language for coloring. Defaults to razor.</summary>
     [Parameter] public string CodeLanguage { get; set; } = "razor";
-
-    private IEnumerable<CodeToken> Tokens =>
-        IzzyCodeHighlighter.Instance.TryHighlight(Code!, CodeLanguage, out var tokens) ? tokens : [new CodeToken(CodeTokenKind.Text, Code!)];
 }
