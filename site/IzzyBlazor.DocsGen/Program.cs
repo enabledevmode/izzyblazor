@@ -4,13 +4,17 @@ using IzzyBlazor.DocsGen;
 
 // Writes izzyblazor.api.json from the built library and its XML docs.
 //
-//   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous last-release.api.json]
+//   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous last-release.api.json] [--source src]
+//
+// With --source (the library's source folder), components written as .razor files take their
+// summary and example from their header comment, since they can't carry an XML doc comment.
 //
 // With --previous (the last release's file), members new since then get this version as
 // "addedIn", and anything removed is listed for the Upgrade page.
 
 var output = Arg("--out") ?? "izzyblazor.api.json";
 var previousPath = Arg("--previous");
+var sourceRoot = Arg("--source");
 
 var assemblies = new[]
 {
@@ -28,7 +32,8 @@ var version = assemblies[0].GetCustomAttribute<AssemblyInformationalVersionAttri
 var plus = version.IndexOf('+');
 version = plus < 0 ? version : version[..plus];
 
-var file = new ApiReader(docs, version).Read(assemblies);
+var headers = new RazorHeaders(sourceRoot);
+var file = new ApiReader(docs, version, headers).Read(assemblies);
 
 if (previousPath is not null)
 {

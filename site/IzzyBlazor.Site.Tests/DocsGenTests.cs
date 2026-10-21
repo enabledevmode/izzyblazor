@@ -78,4 +78,51 @@ public class DocsGenTests
     [InlineData("T:IzzyBlazor.FieldBase`1", "FieldBase<T>")]
     [InlineData("M:IzzyBlazor.Accent.Of(System.String)", "Of")]
     public void Links_read_like_code(string cref, string text) => Assert.Equal(text, XmlDocs.CrefText(cref));
+
+    [Fact]
+    public void A_razor_header_gives_a_summary_and_an_example_but_not_its_notes()
+    {
+        var root = Directory.CreateTempSubdirectory().FullName;
+        File.WriteAllText(Path.Combine(root, "Sample.razor"), """
+            @namespace IzzyBlazor
+            @inherits FieldBase<bool>
+
+            @*
+                A sample with a `Value` and a native <details>.
+                It wraps.
+
+                <Sample @bind-Value="Model.On" />
+                <Sample Disabled />
+
+                Posting: an implementation note.
+            *@
+
+            <div></div>
+            """);
+
+        var (summary, example) = new RazorHeaders(root).For("Sample");
+
+        Assert.Equal("<p>A sample with a <code>Value</code> and a native <code>&lt;details&gt;</code>. It wraps.</p>", summary);
+        Assert.Equal("<Sample @bind-Value=\"Model.On\" />\n<Sample Disabled />", example);
+    }
+
+    [Fact]
+    public void Every_documented_component_has_a_summary()
+    {
+        var api = IzzyBlazor.Site.Services.ApiMetadata.Load();
+        var registry = IzzyBlazor.Site.Services.Registry.Load(api);
+        var missing = registry.Components.Where(c => api.Component(c.Name)?.Summary is null).Select(c => c.Name).ToList();
+
+        Assert.True(missing.Count == 0, $"No summary: {string.Join(", ", missing)}");
+    }
+
+    [Fact]
+    public void Every_documented_component_records_its_mode_support()
+    {
+        var api = IzzyBlazor.Site.Services.ApiMetadata.Load();
+        var registry = IzzyBlazor.Site.Services.Registry.Load(api);
+        var missing = registry.Components.Where(c => api.Component(c.Name)?.Modes is null).Select(c => c.Name).ToList();
+
+        Assert.True(missing.Count == 0, $"Add [ModeSupport] to: {string.Join(", ", missing)}");
+    }
 }

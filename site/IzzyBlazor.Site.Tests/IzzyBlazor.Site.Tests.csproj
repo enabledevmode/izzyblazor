@@ -26,6 +26,7 @@
   <ItemGroup>
     <Compile Include="..\IzzyBlazor.DocsGen\ReleaseComparer.cs" Link="DocsGen\ReleaseComparer.cs" />
     <Compile Include="..\IzzyBlazor.DocsGen\XmlDocs.cs" Link="DocsGen\XmlDocs.cs" />
+    <Compile Include="..\IzzyBlazor.DocsGen\RazorHeaders.cs" Link="DocsGen\RazorHeaders.cs" />
   </ItemGroup>
 
 </Project>

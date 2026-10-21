@@ -1,6 +1,7 @@
 @* A component's or member's mode support, from its [ModeSupport], as one label shown only when
-   it's restricted: works everywhere says nothing (the usual case), interactive-only says so, and
-   anything else names the modes it works in. The Overview's Mode support table has the full grid. *@
+   it's restricted: "Needs JavaScript" (nothing without script), "Interactive only" (needs a
+   circuit), or the modes it works in. Works everywhere, or works with JavaScript off and does more
+   with it, says nothing. The Overview's Mode support table has the full grid. *@
 
 @if (Label is { } label)
 {
@@ -25,9 +26,12 @@
                 ("Static", ModeChip.Parse(Modes.Static)),
                 ("Live", ModeChip.Parse(Modes.Live)),
             };
-            if (levels.All(l => l.Level == ModeLevel.Full))
+            // Working without script and doing more with it is the design, not a restriction: a
+            // component that only loses an extra with JavaScript off says nothing here (the
+            // Overview's Mode support table has the detail).
+            if (levels[1].Level == ModeLevel.Full && levels[2].Level == ModeLevel.Full)
             {
-                return null;
+                return levels[0].Level == ModeLevel.None ? "Needs JavaScript" : null;
             }
 
             if (levels[0].Level == ModeLevel.None && levels[1].Level == ModeLevel.None && levels[2].Level == ModeLevel.Full)
