@@ -1,0 +1,154 @@
+@page "/docs/get-started/blazor-web-app"
+
+@* Setting up a new Blazor Web App. Each step was checked against `dotnet new blazor --empty` on
+   .NET 10: the app builds, serves the stylesheet and posts the first page's form. *@
+
+<ArticlePage Section="get-started" Slug="blazor-web-app">
+    <Lead>
+        A new Blazor Web App needs one package, a stylesheet, the theme and two lines in <Code>Program.cs</Code>. Pages render
+        on the server as static HTML by default, and you make interactive only the ones that need it.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Create the app</Heading>
+        <TextBlock>You need the .NET 10 SDK. Start from the empty template, which has no Bootstrap or sample styles to override IzzyBlazor's:</TextBlock>
+        <Code Block Language="bash">dotnet new blazor --empty -o MyApp</Code>
+        <TextBlock>
+            Its pages are static by default, and any page can be made interactive on the server. Add <Code>--interactivity None</Code>
+            for an app that never opens a circuit. For WebAssembly or Auto, see
+            <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Install the package</Heading>
+        <Code Block Language="bash">dotnet add package IzzyBlazor --prerelease</Code>
+
+        <Heading Level="2">Add the stylesheet and the theme</Heading>
+        <TextBlock>
+            In <Code>Components/App.razor</Code>, link the stylesheet before your own and put <Code>IzzyTheme</Code> in the
+            <Code>head</Code>:
+        </TextBlock>
+        <Code Block Language="razor" Title="Components/App.razor" HighlightLines="6,9">@AppHead</Code>
+        <TextBlock>
+            <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> sets the preset, brand color and fonts, as in
+            <Code>&lt;IzzyTheme Preset="ThemePreset.Compact" Brand="#0a7d5a" /&gt;</Code>. It renders on the server, so the
+            theme is there on first paint with no script. There's no script tag to add either: Blazor loads IzzyBlazor's
+            script by itself.
+        </TextBlock>
+
+        <Heading Level="2">Import the components</Heading>
+        <TextBlock>Add one line to <Code>Components/_Imports.razor</Code>:</TextBlock>
+        <Code Block Language="razor" Title="Components/_Imports.razor">@@using IzzyBlazor</Code>
+        <TextBlock>
+            Prefer this to a <Code>global using</Code>: it brings the components into <Code>.razor</Code> files only, so names
+            such as <Code>Table</Code> and <Code>Column</Code> don't meet EF Core's attributes in your entity classes.
+        </TextBlock>
+
+        <Heading Level="2">Register the services</Heading>
+        <TextBlock>In <Code>Program.cs</Code>, add the services and map IzzyBlazor's endpoints after your components:</TextBlock>
+        <Code Block Language="csharp" Title="Program.cs" HighlightLines="2,10">@ProgramCs</Code>
+        <TextBlock>
+            <Code>AddIzzyBlazor</Code> adds the toast and dialog services and lets components read their cookies on the server,
+            such as the color scheme someone picked. <Code>MapIzzyBlazor</Code> adds the endpoint
+            <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> uses with JavaScript off. Other
+            components need neither.
+        </TextBlock>
+
+        <Heading Level="2">Build a first page</Heading>
+        <TextBlock>A form is a good first page, because it shows what static rendering does on its own:</TextBlock>
+        <Code Block Language="razor" Title="Components/Pages/Signup.razor">@Signup</Code>
+        <TextBlock>
+            Run the app and open <Code>/signup</Code>. The form posts, validates and shows its message with no circuit, and with
+            JavaScript turned off too. Add <Code>@@rendermode InteractiveServer</Code> under <Code>@@page</Code> and the same
+            markup runs over a circuit instead. See <Anchor Href="docs/components/form">Form</Anchor> for the rest.
+        </TextBlock>
+
+        <Heading Level="2">From the full template</Heading>
+        <TextBlock>
+            Started without <Code>--empty</Code>? Two things in the sample app get in the way:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Its styles win over IzzyBlazor's.</strong> IzzyBlazor's CSS sits in cascade layers so your own CSS
+                always wins, and that includes Bootstrap and the template's <Code>app.css</Code>: button links turn blue on blue
+                and headings change size. Remove the Bootstrap link and the template's rules in <Code>app.css</Code>, or
+                <Anchor Href="docs/get-started/existing-app#keep-bootstrap">put Bootstrap in a layer</Anchor>.
+            </ListItem>
+            <ListItem>
+                <strong>Its <Code>NavMenu</Code> clashes with IzzyBlazor's.</strong> The build fails with
+                <Code>RZ9985: Multiple components use the tag 'NavMenu'</Code>. Rename the template's component, or write its
+                full name in <Code>MainLayout.razor</Code>: <Code>&lt;MyApp.Components.Layout.NavMenu /&gt;</Code>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor>: a header, sidebar and main area for your layout.</ListItem>
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each mode.</ListItem>
+            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string AppHead = """
+        <head>
+            <meta charset="utf-8" />
+            <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+            <base href="/" />
+            <ResourcePreloader />
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+            <link rel="stylesheet" href="@Assets["app.css"]" />
+            <link rel="stylesheet" href="@Assets["MyApp.styles.css"]" />
+            <IzzyTheme />
+            <ImportMap />
+            <HeadOutlet />
+        </head>
+        """;
+
+    private const string ProgramCs = """
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddIzzyBlazor();
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        var app = builder.Build();
+        // ...
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+        app.MapIzzyBlazor();
+
+        app.Run();
+        """;
+
+    private const string Signup = """
+        @page "/signup"
+        @using System.ComponentModel.DataAnnotations
+
+        <Container Size="ContainerSize.Sm" PaddingY="8">
+            <Form Model="Model" FormName="signup" OnValidSubmit="Save">
+                <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+                <Button Submit>Sign up</Button>
+            </Form>
+            @if (_signedUp)
+            {
+                <Alert Status="Status.Success">Thanks! We'll write to @Model!.Email.</Alert>
+            }
+        </Container>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "signup")]
+            private SignupModel? Model { get; set; }
+
+            private bool _signedUp;
+
+            protected override void OnInitialized() => Model ??= new();
+
+            private void Save() => _signedUp = true;
+
+            public sealed class SignupModel
+            {
+                [Required, EmailAddress]
+                public string? Email { get; set; }
+            }
+        }
+        """;
+}

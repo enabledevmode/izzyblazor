@@ -1,0 +1,130 @@
+@page "/docs/get-started/existing-app"
+
+@* Adding IzzyBlazor to an app that already has pages, a layout and its own CSS. The Bootstrap
+   layering was checked in Chromium against Bootstrap 5.3 and the .NET 10 template's app.css; the
+   EditForm case against a .NET 10 app. *@
+
+<ArticlePage Section="get-started" Slug="existing-app">
+    <Lead>
+        IzzyBlazor can join an app that already has pages, a layout and its own styles. Set it up once, then use it page by
+        page: your existing pages, forms and components keep working beside it.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Set it up</Heading>
+        <TextBlock>
+            IzzyBlazor needs a .NET 10 Blazor Web App, the project shape with an <Code>App.razor</Code> (.NET 8 and later).
+            Follow the <Anchor Href="docs/get-started/blazor-web-app">Blazor Web App</Anchor> steps, and the
+            <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor> ones too if you have a
+            <Code>.Client</Code> project. The rest of this page is about what's already there.
+        </TextBlock>
+
+        <Heading Level="2">Keep Bootstrap</Heading>
+        <TextBlock>
+            IzzyBlazor's CSS sits in cascade layers, so any CSS of yours outside a layer wins over it. That's what makes it easy
+            to adjust, but it means Bootstrap, and rules like the template's <Code>a { color: … }</Code>, override IzzyBlazor's
+            components: button links turn blue on blue and headings change size.
+        </TextBlock>
+        <TextBlock>
+            Put Bootstrap in a layer of its own, declared before IzzyBlazor's. Import it at the top of <Code>app.css</Code>, move
+            rules that style bare elements (<Code>body</Code>, <Code>a</Code>, <Code>h1</Code>) into the same layer, and link
+            <Code>app.css</Code> before IzzyBlazor's stylesheet:
+        </TextBlock>
+        <Code Block Language="css" Title="wwwroot/app.css">@AppCss</Code>
+        <Code Block Language="razor" Title="Components/App.razor" HighlightLines="1-2">@AppHead</Code>
+        <TextBlock>
+            The first layer declared loses to the ones after it, so IzzyBlazor's components win over Bootstrap, while
+            Bootstrap's classes keep styling your existing markup. Your rules outside a layer still win over both.
+        </TextBlock>
+        <Alert Status="Status.Info" Title="Your pages take IzzyBlazor's page defaults">
+            IzzyBlazor sets the page's font, text color and background. Once Bootstrap is in a layer, those apply to your
+            existing pages too. To keep your own, set them outside a layer, in <Code>app.css</Code>.
+        </Alert>
+
+        <Heading Level="2">Name clashes</Heading>
+        <TextBlock>
+            IzzyBlazor's components have plain names, such as <Code>Button</Code>, <Code>Card</Code> and <Code>NavMenu</Code>.
+            When a component of yours has the same name, the build fails with
+            <Code>RZ9985: Multiple components use the tag 'NavMenu'</Code>. The full template's own <Code>NavMenu</Code> is the
+            usual one. Rename yours, or write its full name where you use it:
+        </TextBlock>
+        <Code Block Language="razor">&lt;MyApp.Components.Layout.NavMenu /&gt;</Code>
+        <TextBlock>
+            A type with the same name, such as your own <Code>Status</Code> enum, gives an ambiguous reference instead. Qualify one
+            (<Code>IzzyBlazor.Status.Success</Code>) or add an alias to <Code>_Imports.razor</Code>:
+        </TextBlock>
+        <Code Block Language="razor">@@using Status = IzzyBlazor.Status</Code>
+
+        <Heading Level="2">One folder at a time</Heading>
+        <TextBlock>
+            <Code>_Imports.razor</Code> applies to its folder and the folders under it. To bring IzzyBlazor in gradually, put
+            <Code>@@using IzzyBlazor</Code> in a folder's own <Code>_Imports.razor</Code> instead of the one in
+            <Code>Components</Code>, and only the pages there see its components:
+        </TextBlock>
+        <Code Block Language="text">@Folders</Code>
+        <TextBlock>
+            A page can use a new layout while the rest keep yours: build one with
+            <Anchor Href="docs/components/app-shell">AppShell</Anchor> and set it with <Code>@@layout</Code>, or as the default
+            layout of a folder in its <Code>_Imports.razor</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Forms you already have</Heading>
+        <TextBlock>
+            IzzyBlazor's fields are Blazor input components, so they work inside your existing <Code>EditForm</Code>, beside
+            Blazor's own inputs, with the validator you have:
+        </TextBlock>
+        <Code Block Language="razor">@EditFormCode</Code>
+        <TextBlock>
+            They show their own label, hint and errors. Switch the <Code>EditForm</Code> to IzzyBlazor's
+            <Anchor Href="docs/components/form">Form</Anchor> when you want its layout, columns and error summary; it takes the
+            same <Code>Model</Code>, <Code>FormName</Code> and submit events, and adds the DataAnnotations validator itself.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each mode.</ListItem>
+            <ListItem><Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor>: match your brand color and fonts.</ListItem>
+            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: spacing, sizes and colors on any component.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string AppCss = """
+        /* First: puts Bootstrap in a layer that IzzyBlazor's layers come after. */
+        @import url("lib/bootstrap/dist/css/bootstrap.min.css") layer(bootstrap);
+
+        /* Rules for bare elements, in the same layer, so they don't reach IzzyBlazor's components. */
+        @layer bootstrap {
+            a, .btn-link { color: #006bb7; }
+        }
+
+        /* Everything else as before: outside a layer, these still win. */
+        .content { padding-top: 1.1rem; }
+        """;
+
+    private const string AppHead = """
+        <link rel="stylesheet" href="@Assets["app.css"]" />
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+        <link rel="stylesheet" href="@Assets["MyApp.styles.css"]" />
+        <IzzyTheme />
+        """;
+
+    private const string Folders = """
+        Components/
+          _Imports.razor           your usings, as before
+          Pages/
+            Orders.razor           untouched
+            Settings/
+              _Imports.razor       @using IzzyBlazor
+              Profile.razor        uses IzzyBlazor
+        """;
+
+    private const string EditFormCode = """
+        <EditForm Model="Model" FormName="profile" OnValidSubmit="Save">
+            <DataAnnotationsValidator />
+            <TextField @bind-Value="Model!.Email" />
+            <InputText @bind-Value="Model!.Nickname" class="form-control" />
+            <button type="submit" class="btn btn-primary">Save</button>
+        </EditForm>
+        """;
+}

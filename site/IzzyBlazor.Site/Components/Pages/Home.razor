@@ -34,7 +34,7 @@
                 the same markup binds to C# on the pages you make interactive.
             </TextBlock>
             <Row Gap="3" Wrap>
-                <Button Href="docs" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
+                <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
             </Row>
             <Row Gap="2" Align="Align.Center" Class="site-install">
@@ -115,17 +115,17 @@
     <Stack Gap="6">
         <Heading Level="2" Size="TextSize.Xl2">Start from your project</Heading>
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
-            <Card Title="New Blazor Web App" Href="@GettingStarted" Description="Install IzzyBlazor, add IzzyTheme to the head, map the endpoints." Size="ControlSize.Sm" Class="site-linkcard">
+            <Card Title="New Blazor Web App" Href="docs/get-started/blazor-web-app" Description="Install IzzyBlazor, add the stylesheet and IzzyTheme, map the endpoints." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
             </Card>
-            <Card Title="WebAssembly or Auto" Href="@($"{GettingStarted}#webassembly-and-auto-render-modes")" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
+            <Card Title="WebAssembly or Auto" Href="docs/get-started/webassembly-and-auto" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
+            </Card>
+            <Card Title="An app you already have" Href="docs/get-started/existing-app" Description="Add it page by page, next to Bootstrap and your own components." Size="ControlSize.Sm" Class="site-linkcard">
+                <CardHeader><Pictogram Icon="Lucide.PackagePlus" /></CardHeader>
             </Card>
             <Card Title="Every component" Href="docs/components" Description="Each one's API, generated from the library, and an Overview with live examples." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
-            </Card>
-            <Card Title="Demos" Href="demos" Description="Realistic scenarios, each in all three modes, with the source." Size="ControlSize.Sm" Class="site-linkcard">
-                <CardHeader><Pictogram Icon="Lucide.MonitorPlay" /></CardHeader>
             </Card>
         </Grid>
     </Stack>
@@ -151,7 +151,6 @@
     private static readonly Accent Ember = Accent.Of("#F26A1B");
 
     private const string Install = "dotnet add package IzzyBlazor --prerelease";
-    private const string GettingStarted = "https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md";
 
     private static readonly HashSet<string> Featured =
     [

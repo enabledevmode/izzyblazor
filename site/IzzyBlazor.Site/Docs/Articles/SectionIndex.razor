@@ -1,0 +1,42 @@
+@page "/docs/{Slug}"
+@inject NavigationManager Navigation
+
+@* A section's articles as cards: the breadcrumb's target for each article. *@
+
+@if (_section is not null)
+{
+    <PageTitle>@_section.Title · IzzyBlazor</PageTitle>
+    <HeadContent><meta name="description" content="@($"IzzyBlazor docs: {_section.Title}.")" /></HeadContent>
+
+    <article class="site-article">
+        <Stack Gap="4" Class="site-pagehead">
+            <Breadcrumb>
+                <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
+            </Breadcrumb>
+            <Heading Level="1" Size="TextSize.Xl3">@_section.Title</Heading>
+        </Stack>
+        <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="3">
+            @foreach (var article in _section.Articles)
+            {
+                <Card Title="@article.Title" Href="@_section.HrefOf(article)" Description="@article.Summary" Size="ControlSize.Sm" Class="site-linkcard">
+                    <CardHeader><Pictogram Name="@article.Icon" /></CardHeader>
+                </Card>
+            }
+        </Grid>
+    </article>
+}
+
+@code {
+    [Parameter] public string Slug { get; set; } = "";
+
+    private ArticleSection? _section;
+
+    protected override void OnParametersSet()
+    {
+        _section = Articles.Section(Slug);
+        if (_section is null)
+        {
+            Navigation.NotFound();
+        }
+    }
+}
