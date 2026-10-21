@@ -826,7 +826,7 @@ project?"), an optional `Message` or `Body`, Cancel (focused first) and a confir
 The backdrop doesn't close it; Escape and Cancel do.
 
 Menu items are links (`Href`), form posts (`Submit`, with `FormAction`, `Name`
-and `Value`) or C# actions (`OnClick`). An item takes an `Icon`, a `Shortcut` shown at the end,
+and `Value`) or C# actions (`OnClick`). An item takes an `Icon`, a `Shortcut` shown at the end in a key cap (display only),
 `Accent.Danger` for a destructive action, and `Disabled`. `MenuGroup` gives a few items a heading
 and `MenuDivider` draws a line. Menu roles (`menu`, `menuitem`) promise arrow keys,
 so they come with the script: with JavaScript off the items are plain links and buttons, a checked

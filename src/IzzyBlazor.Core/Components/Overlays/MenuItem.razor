@@ -95,7 +95,7 @@ else
     /// <summary>An icon before the text.</summary>
     [Parameter] public IconData? Icon { get; set; }
 
-    /// <summary>A keyboard hint shown at the end, such as "Ctrl+C". Display only.</summary>
+    /// <summary>A keyboard hint shown at the end in a key cap, such as "Ctrl+C". Display only.</summary>
     [Parameter] public string? Shortcut { get; set; }
 
     /// <summary>
@@ -208,7 +208,7 @@ else
         <span class="ib-menu-label">@ChildContent</span>
         @if (Shortcut is not null)
         {
-            <span class="ib-menu-shortcut">@Shortcut</span>
+            <kbd class="ib-menu-shortcut">@Shortcut</kbd>
         }
     </text>;
 }
