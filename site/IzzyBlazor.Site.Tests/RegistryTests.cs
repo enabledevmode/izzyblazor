@@ -40,6 +40,13 @@ public class RegistryTests
     }
 
     [Fact]
+    public void Every_component_has_a_picture()
+    {
+        Assert.Empty(Registry.Components.Select(c => c.Id).Except(Pictures.ById.Keys));
+        Assert.Empty(Pictures.ById.Keys.Except(Registry.Components.Select(c => c.Id)));
+    }
+
+    [Fact]
     public void Shown_source_leaves_out_hidden_lines()
     {
         var source = ExampleCatalog.Clean("<A />\r\n@* hide *@\n<Scaffolding />\n@* /hide *@\n<B />\n");

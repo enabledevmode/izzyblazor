@@ -14,7 +14,9 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
     <link rel="stylesheet" href="@Assets["site.css"]" />
-    <IzzyTheme />
+    @* The site's chrome takes the brand's Ember; example frames keep the component default (Blue),
+       so readers see what the library gives them. IzzyTheme derives contrast-checked shades. *@
+    <IzzyTheme Brand="@(IsFrame ? null : "#F26A1B")" />
     @if (Scripts)
     {
         <ImportMap />
@@ -37,6 +39,8 @@
 
 @code {
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private bool IsFrame => HttpContext?.Request.Path.StartsWithSegments("/frame") == true;
 
     // An example frame asked for a fixed scheme (?scheme=dark), for a viewer on a band of its own.
     private string? FrameScheme =>
