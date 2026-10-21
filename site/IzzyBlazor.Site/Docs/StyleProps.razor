@@ -1,0 +1,62 @@
+@page "/docs/common/style-props"
+@inject ApiMetadata Api
+@inject Registry Registry
+
+@* The props many components share, documented once: generated from the shared bases. *@
+
+<PageTitle>Style props · IzzyBlazor</PageTitle>
+<HeadContent><meta name="description" content="The item, surface, field and common props IzzyBlazor components share." /></HeadContent>
+
+<article class="site-article">
+    <Stack Gap="3" Class="site-pagehead">
+        <Breadcrumb>
+            <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
+            <BreadcrumbItem>Common features</BreadcrumbItem>
+        </Breadcrumb>
+        <Heading Level="1" Size="TextSize.Xl3">Style props</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
+            Props many components share, listed once here. A component's API page says which sets it takes.
+            Most take a single value or one per breakpoint: <Code>Padding="new() { Base = 4, Md = 8 }"</Code>.
+        </TextBlock>
+    </Stack>
+
+    @foreach (var group in _sections)
+    {
+        <Heading Level="2" id="@ApiMetadata.Anchor(group.Base)">@group.Title</Heading>
+        <TextBlock>@group.Description</TextBlock>
+        <Table Items="group.Members" Caption="@group.Title" Size="ControlSize.Sm">
+            <TemplateColumn Title="Name" Width="Length.Rem(11)">
+                <span id="@($"{ApiMetadata.Anchor(group.Base)}-{ApiMetadata.Anchor(context!.Name)}")"><code>@context.Name</code></span>
+            </TemplateColumn>
+            <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
+            <TemplateColumn Title="Responsive" Width="Length.Rem(7)">
+                @if (context!.Responsive)
+                {
+                    <Badge Size="BadgeSize.Sm" Status="Status.Success">Yes</Badge>
+                }
+            </TemplateColumn>
+            <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" /></TemplateColumn>
+        </Table>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            Taken by @group.Components.Count components:
+            @for (var i = 0; i < group.Components.Count; i++)
+            {
+                var component = group.Components[i];
+                @(i == 0 ? "" : ", ")<Anchor Href="@Registry.ApiPageHref(component)">@component.Name</Anchor>
+            }
+        </TextBlock>
+    }
+</article>
+
+@code {
+    private List<(string Base, string Title, string Description, List<ApiMember> Members, List<RegistryComponent> Components)> _sections = [];
+    private readonly ApiPageContext _context = new("docs/common/style-props", null, new HashSet<string>(), new HashSet<string>());
+
+    protected override void OnParametersSet() =>
+        _sections = SharedProps.Sections
+            .Select(s => (s.Base, s.Title, s.Description,
+                Members: Api.Base(s.Base)?.Properties ?? [],
+                Components: Registry.Components.Where(c => Api.Component(c.Name)?.Bases.Contains(s.Base) == true).ToList()))
+            .Where(s => s.Members.Count > 0)
+            .ToList();
+}

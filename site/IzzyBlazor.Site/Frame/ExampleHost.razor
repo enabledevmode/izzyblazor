@@ -1,0 +1,12 @@
+@inject ExampleCatalog Catalog
+
+@* Renders an example by id: the interactive root of a Live frame. *@
+
+@if (Catalog.TypeOf(ExampleId) is { } type)
+{
+    <DynamicComponent Type="type" />
+}
+
+@code {
+    [Parameter, EditorRequired] public string ExampleId { get; set; } = "";
+}

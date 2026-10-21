@@ -1,0 +1,54 @@
+@page "/frame/{ExampleId}"
+@layout FrameLayout
+@inject ExampleCatalog Catalog
+@inject Registry Registry
+@inject NavigationManager Navigation
+
+@*
+    One example on a bare page, for the example viewer's frames. Off and Static render it in
+    static SSR (Off is the same page in a sandbox without script, and App leaves the script tags
+    out); Live renders it in an interactive render mode from this static page.
+*@
+
+<PageTitle>@_title</PageTitle>
+<HeadContent><meta name="robots" content="noindex" /></HeadContent>
+
+@if (_type is not null)
+{
+    <div class="@_class" data-mode="@_mode">
+        @if (_mode == "live")
+        {
+            <ExampleHost ExampleId="@ExampleId" @rendermode="InteractiveServer" />
+        }
+        else
+        {
+            <DynamicComponent Type="_type" />
+        }
+    </div>
+}
+
+@code {
+    [Parameter] public string ExampleId { get; set; } = "";
+
+    [SupplyParameterFromQuery(Name = "mode")] public string? Mode { get; set; }
+
+    private Type? _type;
+    private string _mode = "static";
+    private string _class = "frame";
+    private string _title = "";
+
+    protected override void OnParametersSet()
+    {
+        _type = Catalog.TypeOf(ExampleId);
+        var entry = Registry.Example(ExampleId);
+        if (_type is null || entry is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _mode = Mode is "off" or "static" or "live" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
+        _class = entry.Value.Example.Page ? "frame frame-page" : "frame frame-sample";
+        _title = $"{entry.Value.Example.Title} ({ModeChip.Name(_mode)})";
+    }
+}

@@ -1,0 +1,93 @@
+@page "/docs/components/{Id}"
+@inject Registry Registry
+@inject ApiMetadata Api
+@inject NavigationManager Navigation
+
+@*
+    A component's Overview. Components with a hand-written Overview (Docs/Overviews/{Name}Overview)
+    show it; the rest get one generated from the metadata until theirs is written: the summary,
+    the doc comment's remarks and example, mode support and the parameter table.
+*@
+
+@if (_component is not null)
+{
+    <PageTitle>@_component.Name · IzzyBlazor</PageTitle>
+    <HeadContent><meta name="description" content="@(_api?.Summary is { } summary ? ApiMetadata.PlainText(summary) : _component.Summary)" /></HeadContent>
+
+    <article class="site-article">
+        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" />
+
+        @if (_overview is not null && _api is not null)
+        {
+            <DynamicComponent Type="_overview" Parameters="_parameters" />
+        }
+        else if (_api is not null)
+        {
+            <Alert Title="Overview on the way.">
+                This page is generated from the API metadata until its guide is written. The
+                <Anchor Href="@Registry.ApiPageHref(_component)">API page</Anchor> lists every member.
+            </Alert>
+            @if (_api.Remarks is not null)
+            {
+                <Heading Level="2">Remarks</Heading>
+                <DocHtml Html="@_api.Remarks" Context="_context" Size="ProseSize.Md" />
+            }
+            @if (_api.Examples is { Count: > 0 } examples)
+            {
+                <Heading Level="2">Example</Heading>
+                @foreach (var example in examples)
+                {
+                    <Code Block Language="razor">@example</Code>
+                }
+            }
+            <Heading Level="2">Mode support</Heading>
+            @if (_api.Modes is null && _component.Features.Count == 0)
+            {
+                <TextBlock Color="Color.Muted">Not recorded yet for @_component.Name.</TextBlock>
+            }
+            else
+            {
+                <ModeSupportTable Component="_component" ApiComponent="_api" />
+            }
+            <Heading Level="2">Parameters</Heading>
+            <ParameterTable ApiComponent="_api" ApiHref="@Registry.ApiPageHref(_component)" Context="_context" />
+        }
+
+        <PrevNext PreviousHref="@(_previous is null ? null : Registry.OverviewHref(_previous))" PreviousTitle="@_previous?.Name"
+                  NextHref="@(_next is null ? null : Registry.OverviewHref(_next))" NextTitle="@_next?.Name" />
+    </article>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    private RegistryComponent? _component;
+    private ApiComponent? _api;
+    private ApiPageContext _context = null!;
+    private Type? _overview;
+    private Dictionary<string, object?> _parameters = [];
+    private RegistryComponent? _previous;
+    private RegistryComponent? _next;
+
+    protected override void OnParametersSet()
+    {
+        _component = Registry.ById(Id);
+        if (_component is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        _api = Api.Component(_component.Name);
+        var page = Registry.ApiPageHref(_component);
+        _context = _api is null ? new ApiPageContext(page, _component.Name, new HashSet<string>(), new HashSet<string>()) : ApiMetadata.ContextFor(page, _api);
+        _overview = typeof(ComponentPage).Assembly.GetType($"IzzyBlazor.Site.Docs.Overviews.{_component.Name}Overview");
+        _parameters = new()
+        {
+            ["Component"] = _component,
+            ["ApiComponent"] = _api,
+            ["Context"] = _context,
+        };
+        (_previous, _next) = Registry.Around(_component);
+    }
+}

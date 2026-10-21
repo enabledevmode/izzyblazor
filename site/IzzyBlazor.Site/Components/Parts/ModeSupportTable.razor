@@ -1,0 +1,44 @@
+@* What works in each mode, a row per feature (from components.json), or one row for the whole
+   component (from its [ModeSupport]). *@
+
+@if (_rows.Count > 0)
+{
+    <Stack Gap="2">
+        <Table Items="_rows" Caption="@($"What works in each mode, {Component.Name}")" Size="ControlSize.Sm">
+            <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
+            <TemplateColumn Title="Off" Width="Length.Rem(6)"><ModeChip Mode="off" Level="context!.Off" Text="@Word(context.Off)" /></TemplateColumn>
+            <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeChip Mode="static" Level="context!.Static" Text="@Word(context.Static)" /></TemplateColumn>
+            <TemplateColumn Title="Live" Width="Length.Rem(6)"><ModeChip Mode="live" Level="context!.Live" Text="@Word(context.Live)" /></TemplateColumn>
+        </Table>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            Off: JavaScript disabled. Static: a static SSR page with IzzyBlazor's script. Live: an interactive page
+            (Server, WebAssembly or Auto). @if (Notes is not null) { @Notes }
+        </TextBlock>
+    </Stack>
+}
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter] public ApiComponent? ApiComponent { get; set; }
+
+    private List<RegistryFeature> _rows = [];
+
+    private string? Notes => ApiComponent?.Modes?.Notes;
+
+    protected override void OnParametersSet()
+    {
+        _rows = Component.Features.Count > 0
+            ? Component.Features
+            : ApiComponent?.Modes is { } modes
+                ? [new RegistryFeature { Feature = "Everything", Off = ModeChip.Parse(modes.Off), Static = ModeChip.Parse(modes.Static), Live = ModeChip.Parse(modes.Live) }]
+                : [];
+    }
+
+    private static string Word(ModeLevel level) => level switch
+    {
+        ModeLevel.Full => "Yes",
+        ModeLevel.Partial => "Partly",
+        _ => "No",
+    };
+}

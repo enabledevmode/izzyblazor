@@ -1,0 +1,46 @@
+@* The component's own parameters and events, generated from the metadata, with a line for the
+   shared props it also takes and a link to the full API page. *@
+
+<Stack Gap="3">
+    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params">
+        <TemplateColumn Title="Name" Width="Length.Rem(12)">
+            <span class="site-member-name">
+                <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
+                @if (context.Required)
+                {
+                    <Badge Size="BadgeSize.Sm" Status="Status.Warning">Required</Badge>
+                }
+            </span>
+        </TemplateColumn>
+        <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
+        <TemplateColumn Title="Default">
+            @if (context!.Default is { } value)
+            {
+                <code class="site-default">@value</code>
+            }
+        </TemplateColumn>
+        <TemplateColumn Title="Description">
+            <DocHtml Html="@context!.Summary" Context="Context" />
+            @if (context.Modes is { } modes)
+            {
+                <ModeChips Modes="modes" />
+            }
+        </TemplateColumn>
+    </Table>
+    <InheritedLine ApiComponent="ApiComponent">
+        <Button Href="@ApiHref" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Lucide.ArrowRight">Full API</Button>
+    </InheritedLine>
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public string ApiHref { get; set; } = "";
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private List<ApiMember> _members = [];
+
+    protected override void OnParametersSet() =>
+        _members = ApiComponent.Properties.Where(p => p.Obsolete is null).Concat(ApiComponent.Events).ToList();
+}

@@ -1,0 +1,89 @@
+@page "/"
+@layout HomeLayout
+@inject Registry Registry
+
+<PageTitle>IzzyBlazor: Blazor components. No circuit required.</PageTitle>
+<HeadContent><meta name="description" content="Blazor components that work in static SSR, even with JavaScript off, and bind to C# on interactive pages." /></HeadContent>
+
+<Section Spacing="SectionSpacing.Lg">
+    <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="10" Align="Align.Center">
+        <Stack Gap="5">
+            <Badge Accent="Accent.Primary">Static SSR first · MIT</Badge>
+            <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
+                Blazor components.<br /><span>No circuit required.</span>
+            </Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
+                Works in static SSR. No SignalR or WebAssembly needed. Every component works with JavaScript off,
+                gets better with it on, and binds to C# on interactive pages.
+            </TextBlock>
+            <Row Gap="3" Wrap>
+                <Button Href="docs" Size="ControlSize.Lg">Get started</Button>
+                <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
+            </Row>
+            <Row Gap="2" Align="Align.Center" Class="site-install">
+                <TextBlock As="span" Color="Color.Muted" aria-hidden="true">$</TextBlock>
+                <Code>@Install</Code>
+                <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
+            </Row>
+        </Stack>
+        <ExampleViewer Example="home-sign-in" />
+    </Grid>
+</Section>
+
+<Section Bg="Color.SurfaceContainerLow">
+    <Stack Gap="6">
+        <Heading Level="2" Size="TextSize.Xl2">One test for every component</Heading>
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
+            <Card Title="Works with JavaScript off" Variant="CardVariant.Outline">
+                <CardHeader><ModeChip Mode="off" Level="ModeLevel.Full" /></CardHeader>
+                <TextBlock>Components render complete HTML from their parameters. Native forms, links, details and dialog do the work.</TextBlock>
+            </Card>
+            <Card Title="Better with script" Variant="CardVariant.Outline">
+                <CardHeader><ModeChip Mode="static" Level="ModeLevel.Full" /></CardHeader>
+                <TextBlock>Small custom elements add keyboard handling, live values and drop zones. No Blazor circuit.</TextBlock>
+            </Card>
+            <Card Title="Binds to C# when interactive" Variant="CardVariant.Outline">
+                <CardHeader><ModeChip Mode="live" Level="ModeLevel.Full" /></CardHeader>
+                <TextBlock>On Server, WebAssembly or Auto pages, the same markup takes <Code>@("@bind-Value")</Code> and events.</TextBlock>
+            </Card>
+        </Grid>
+    </Stack>
+</Section>
+
+<Section>
+    <Stack Gap="6">
+        <Heading Level="2" Size="TextSize.Xl2">Start from your project</Heading>
+        <Grid MinChildWidth="Length.Rem(15)" Gap="4">
+            <Card Title="New Blazor Web App" Href="@GettingStarted" Description="Install IzzyBlazor, add IzzyTheme to the head, map the endpoints." />
+            <Card Title="WebAssembly or Auto" Href="@($"{GettingStarted}#webassembly-and-auto-render-modes")" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." />
+            <Card Title="Every component" Href="docs/components" Description="Each one's API, generated from the library, and an Overview with live examples." />
+            <Card Title="Demos" Href="demos" Description="Realistic scenarios, each in all three modes, with the source." />
+        </Grid>
+    </Stack>
+</Section>
+
+<Section>
+    <Stack Gap="4">
+        <Row Gap="4" Align="Align.Baseline" Wrap>
+            <Heading Level="2" Size="TextSize.Xl2">Components</Heading>
+            <Anchor Href="docs/components">All @Registry.Components.Count components</Anchor>
+        </Row>
+        <Row Gap="2" Wrap>
+            @foreach (var component in Registry.Components.Where(c => Featured.Contains(c.Name)))
+            {
+                <Tag Href="@Registry.OverviewHref(component)">@component.Name</Tag>
+            }
+        </Row>
+    </Stack>
+</Section>
+
+@code {
+    private const string Install = "dotnet add package IzzyBlazor --prerelease";
+    private const string GettingStarted = "https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md";
+
+    private static readonly HashSet<string> Featured =
+    [
+        "AppShell", "Button", "Form", "TextField", "NumberField", "Select", "Combobox", "FileUpload", "Tabs", "Menu",
+        "Dialog", "Drawer", "ToastRegion", "Table", "Card", "Stat", "Timeline", "Code",
+    ];
+}

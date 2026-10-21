@@ -1,0 +1,129 @@
+@inject Registry Registry
+@inject ExampleCatalog Catalog
+
+@*
+    One example, three ways. Each mode is a frame of /frame/{example}:
+
+      Off     the static page in an iframe sandboxed without allow-scripts, so the browser really
+              runs no script in it;
+      Static  the static page, with IzzyBlazor's script;
+      Live    the example in an interactive render mode (Blazor Server), loaded only when picked
+              and in view, so a page of examples doesn't open a circuit for each.
+
+    The mode switch is a segmented Tabs (radios and CSS, so it works with JavaScript off), and the
+    source is a Code block from the embedded .razor file. site.js sizes each frame to its content;
+    without script the frames keep the example's height from components.json.
+*@
+
+@if (_example is not null)
+{
+    <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
+        <div class="ex-bar"></div>
+        <span class="ex-title">@Title</span>
+        <Tabs Label="@($"Render mode: {Title}")" Variant="TabsVariant.Segmented" Size="ControlSize.Sm"
+              Selected="@_example.StartMode" ContentPadding="0" Class="ex-modes">
+            @foreach (var mode in _example.Modes)
+            {
+                <Tab Label="@ModeChip.Name(mode)">
+                    <div class="ex-stage">
+                        @if (mode == "off")
+                        {
+                            <iframe class="ex-frame" src="@Src(mode)" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
+                                    title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
+                        }
+                        else if (mode == "static")
+                        {
+                            <iframe class="ex-frame" src="@Src(mode)" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
+                        }
+                        else
+                        {
+                            <iframe class="ex-frame ex-frame-live" data-src="@Src(mode)" title="@($"{Title}, interactive page")" style="@_height"></iframe>
+                            <div class="ex-needs-js" style="@_height">
+                                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+                                    Live examples run over a Blazor Server connection, which needs JavaScript. Turn it on to try this one.
+                                </TextBlock>
+                            </div>
+                        }
+                    </div>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note">
+                        <Icon Name="Lucide.Info" /> @NoteFor(mode)
+                    </TextBlock>
+                </Tab>
+            }
+        </Tabs>
+        <div class="ex-tools">
+            @if (WidthSwitch)
+            {
+                <fieldset class="ex-widths">
+                    <legend class="ib-visually-hidden">Preview width</legend>
+                    <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
+                    <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
+                </fieldset>
+            }
+            @if (_source is not null)
+            {
+                <label class="ex-source-toggle">
+                    <input type="checkbox" class="ex-source-input" checked="@SourceOpen" />
+                    <Icon Name="Lucide.CodeXml" />
+                    <span>Source</span>
+                </label>
+            }
+        </div>
+        @if (_source is { } source)
+        {
+            <div class="ex-source">
+                <Code Block Language="razor" Title="@source.FileName" HighlightLines="@HighlightLines" MaxHeight="Length.Rem(32)">@source.Source</Code>
+            </div>
+        }
+    </section>
+}
+
+@code {
+    /// <summary>The example's id in components.json, such as <c>button-variants</c>.</summary>
+    [Parameter, EditorRequired] public string Example { get; set; } = "";
+
+    /// <summary>Starts with the source shown.</summary>
+    [Parameter] public bool SourceOpen { get; set; }
+
+    /// <summary>Adds a Desktop/Phone width switch, for demo scenarios.</summary>
+    [Parameter] public bool WidthSwitch { get; set; }
+
+    /// <summary>Lines of the source to highlight, such as <c>"3-5"</c>.</summary>
+    [Parameter] public string? HighlightLines { get; set; }
+
+    private RegistryExample? _example;
+    private (string FileName, string Source)? _source;
+    private string _class = "";
+    private string _height = "";
+    private string _uid = "";
+
+    private string Title => _example!.Title;
+
+    protected override void OnParametersSet()
+    {
+        if (Registry.Example(Example) is not { } found)
+        {
+            throw new InvalidOperationException($"No example \"{Example}\" in components.json.");
+        }
+
+        if (Catalog.TypeOf(Example) is null)
+        {
+            throw new InvalidOperationException($"Example \"{Example}\" is in components.json but has no Examples/.../*.razor file.");
+        }
+
+        _example = found.Example;
+        _source = Catalog.SourceOf(Example);
+        _class = _example.Page ? "ex ex-page" : "ex";
+        _height = $"height: {_example.Height}px";
+        _uid = $"ex-{Example}";
+    }
+
+    private string Src(string mode) => $"frame/{Example}?mode={mode}";
+
+    private string NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : mode switch
+    {
+        "off" => "JavaScript is off in this frame: what the HTML and CSS do on their own.",
+        "static" => "A static page with IzzyBlazor's script. No circuit, no WebAssembly.",
+        _ => "An interactive page (Blazor Server): C# event handlers run.",
+    };
+}

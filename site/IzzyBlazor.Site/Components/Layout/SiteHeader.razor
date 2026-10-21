@@ -1,0 +1,33 @@
+@inject ApiMetadata Api
+
+@* The header every page shares: brand, version, the three areas, GitHub and the scheme switch. *@
+
+<AppHeader>
+    @if (Sidebar)
+    {
+        <SidebarToggle />
+    }
+    <AppBrand Href="/" Label="IzzyBlazor" HideLabel>
+        <Logo>
+            <SiteLogo />
+        </Logo>
+    </AppBrand>
+    <Badge Variant="BadgeVariant.Outline" VisibleFrom="Breakpoint.Sm">@(Demos ? "Demos · latest" : Api.Version)</Badge>
+    <Box Grow />
+    <SiteNav Label="Site">
+        <NavItem Href="docs" Match="NavLinkMatch.All">Docs</NavItem>
+        <NavItem Href="docs/components">Components</NavItem>
+        <NavItem Href="demos">Demos</NavItem>
+    </SiteNav>
+    <IconButton Icon="Brands.GitHub" Label="IzzyBlazor on GitHub" Href="https://github.com/enabledevmode/izzyblazor"
+                Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    <ColorSchemeSwitch />
+</AppHeader>
+
+@code {
+    /// <summary>The page has a sidebar, so the header needs its menu button.</summary>
+    [Parameter] public bool Sidebar { get; set; }
+
+    /// <summary>In the demos area, which always shows the latest release.</summary>
+    [Parameter] public bool Demos { get; set; }
+}

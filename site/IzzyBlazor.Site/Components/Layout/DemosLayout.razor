@@ -1,0 +1,37 @@
+@inherits LayoutComponentBase
+@inject Registry Registry
+
+@* /demos: scenarios by category, then component. A sidebar of its own so the area reads as
+   separate from the docs. *@
+
+<AppShell>
+    <SiteHeader Sidebar Demos />
+    <AppSidebar Label="Demos" Bg="Color.SurfaceContainerLow">
+        <NavMenu aria-label="Demos">
+            <NavItem Href="demos" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All">All demos</NavItem>
+            @foreach (var category in Registry.Categories)
+            {
+                var components = Registry.InCategory(category).Where(c => c.Scenarios.Count > 0).ToList();
+                if (components.Count == 0)
+                {
+                    continue;
+                }
+
+                <NavLabel>@category</NavLabel>
+                @foreach (var component in components)
+                {
+                    <NavItem Href="@Registry.DemosHref(component)" Match="NavLinkMatch.All"
+                             Badge="@component.Scenarios.Count.ToString()" BadgeVariant="BadgeVariant.Plain">@component.Name</NavItem>
+                    @foreach (var scenario in component.Scenarios)
+                    {
+                        <NavItem Href="@Registry.ScenarioHref(component, scenario)" Class="site-nav-sub">@scenario.Title</NavItem>
+                    }
+                }
+            }
+        </NavMenu>
+    </AppSidebar>
+    <AppMain>
+        @Body
+    </AppMain>
+    <SiteFooter />
+</AppShell>

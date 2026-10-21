@@ -1,0 +1,80 @@
+@page "/docs/components"
+@inject Registry Registry
+@inject ApiMetadata Api
+
+@* Every component by category, from the registry. The filter is a GET form (FilterForm): it
+   works with JavaScript off and applies as you type with it. *@
+
+<PageTitle>Components · IzzyBlazor</PageTitle>
+<HeadContent><meta name="description" content="Every IzzyBlazor component by category, with what works with JavaScript off, with script, and on interactive pages." /></HeadContent>
+
+<article class="site-article site-article-wide">
+    <Stack Gap="3" Class="site-pagehead">
+        <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
+            @Registry.Components.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
+            the marks show what works with JavaScript off, with script, and on interactive pages, where that's recorded.
+        </TextBlock>
+    </Stack>
+
+    <Row Gap="4" Align="Align.Center" Wrap>
+        <FilterForm Label="Filter components" Grow>
+            <FilterSearch Placeholder="Filter components" Label="Filter components" />
+            <FilterCheckbox Name="off" Label="Fully works with JavaScript off" />
+        </FilterForm>
+        <Row Gap="2" Align="Align.Center" Inline>
+            <ModeChip Mode="off" Level="ModeLevel.Full" />
+            <ModeChip Mode="off" Level="ModeLevel.Partial" />
+            <ModeChip Mode="off" Level="ModeLevel.None" />
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">full, partial, none</TextBlock>
+        </Row>
+    </Row>
+
+    @if (_groups.Count == 0)
+    {
+        <EmptyState Icon="Lucide.SearchX" Title="No components match" Bordered>
+            <EmptyStateActions><Button Href="docs/components" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear the filter</Button></EmptyStateActions>
+        </EmptyState>
+    }
+
+    @foreach (var (category, components) in _groups)
+    {
+        <Heading Level="2">@category</Heading>
+        <Grid MinChildWidth="Length.Rem(15)" Gap="3">
+            @foreach (var component in components)
+            {
+                var api = Api.Component(component.Name);
+                <Card Title="@component.Name" Href="@Registry.OverviewHref(component)" Description="@component.Summary" Size="ControlSize.Sm">
+                    @if (api?.Modes is { } modes)
+                    {
+                        <ModeChips Modes="modes" />
+                    }
+                </Card>
+            }
+        </Grid>
+    }
+</article>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
+
+    [SupplyParameterFromQuery(Name = "off")] public bool FullyOff { get; set; }
+
+    private List<(string Category, List<RegistryComponent> Components)> _groups = [];
+
+    protected override void OnParametersSet()
+    {
+        var query = Query?.Trim();
+        _groups = Registry.Categories
+            .Select(c => (Category: c, Components: Registry.InCategory(c).Where(Matches).ToList()))
+            .Where(g => g.Components.Count > 0)
+            .ToList();
+
+        bool Matches(RegistryComponent component) =>
+            (string.IsNullOrEmpty(query)
+             || component.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
+             || component.Summary.Contains(query, StringComparison.OrdinalIgnoreCase)
+             || component.Parts.Any(p => p.Contains(query, StringComparison.OrdinalIgnoreCase)))
+            && (!FullyOff || Api.Component(component.Name)?.Modes?.Off == "full");
+    }
+}

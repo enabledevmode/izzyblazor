@@ -15,6 +15,9 @@ src/IzzyBlazor.Core/         the components, CSS and JS; runs in any render mode
 src/IzzyBlazor/              server-only pieces: cookie-backed toast carrier and request cookies (IzzyBlazor package)
 tests/IzzyBlazor.TestHost/   dev host: every demo at /static/{demo} and /interactive/{demo}, previews at /preview/...
 tests/IzzyBlazor.Tests/      xUnit and bUnit tests
+site/IzzyBlazor.Site/        the documentation site: /docs and /demos (see "The docs site" below)
+site/IzzyBlazor.DocsGen/     writes izzyblazor.api.json, the API metadata, from the built library
+site/IzzyBlazor.Site.Tests/  checks the registry, every example's frames and the site's links
 build/                       asset build and dev scripts
 docs/                        documentation and README images
 ```
@@ -75,6 +78,30 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
    element shows its server-rendered markup, so it must work without script anyway.
 4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
 5. **Tests** in `tests/IzzyBlazor.Tests/`, for its behavior (see [Tests](#tests)).
+6. **Docs:** an entry in `site/IzzyBlazor.Site/components.json` (or a part on its parent's entry;
+   a test fails until it's there), doc comments on every parameter, and `[ModeSupport]` on the
+   class saying what works with JavaScript off, with script and on interactive pages (on a
+   parameter too, when it differs, such as an `OnClick` that runs only on interactive pages).
+
+### The docs site
+
+`dotnet run --project site/IzzyBlazor.Site` serves the site, built with IzzyBlazor itself and
+rendered in static SSR. Its build runs DocsGen, which reads the library's assemblies and XML doc
+comments into `izzyblazor.api.json` (also served at `/izzyblazor.api.json`), so API pages,
+parameter tables and defaults are never written by hand.
+
+- `components.json` lists each documented component: its id (the URL), category, a one-line
+  summary, the parts documented on its page, the mode-support rows for its Overview, its examples
+  and its demo scenarios.
+- An example is a component in `Examples/{Folder}/{Name}.razor`, known by the id
+  `{folder}-{name}` (`Examples/Button/MultiSubmit.razor` is `button-multi-submit`). The viewer
+  shows it in three frames of `/frame/{id}?mode=off|static|live`: Off is sandboxed without
+  `allow-scripts`, so the browser really runs no script; Live renders it on Blazor Server and loads
+  only when picked. Its source is embedded and shown under it; lines between `@* hide *@` and
+  `@* /hide *@` are left out. Links in examples open in the whole window with script; in Off they
+  open in the frame.
+- A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
+  Button's); otherwise one is generated from the metadata. The API page is always generated.
 
 ### Tests
 

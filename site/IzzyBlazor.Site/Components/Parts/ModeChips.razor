@@ -1,0 +1,14 @@
+@* Off · Static · Live chips for a component or member, from its [ModeSupport]. *@
+
+@if (Modes is not null)
+{
+    <span class="site-modes" title="@Modes.Notes">
+        <ModeChip Mode="off" Level="ModeChip.Parse(Modes.Off)" />
+        <ModeChip Mode="static" Level="ModeChip.Parse(Modes.Static)" />
+        <ModeChip Mode="live" Level="ModeChip.Parse(Modes.Live)" />
+    </span>
+}
+
+@code {
+    [Parameter] public ApiModes? Modes { get; set; }
+}

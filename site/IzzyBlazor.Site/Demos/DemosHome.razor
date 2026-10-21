@@ -1,0 +1,39 @@
+@page "/demos"
+@layout DemosLayout
+@inject Registry Registry
+
+<PageTitle>Demos · IzzyBlazor</PageTitle>
+<HeadContent><meta name="description" content="IzzyBlazor demos: realistic scenarios, each with JavaScript off, on a static page and on an interactive page." /></HeadContent>
+
+<article class="site-article site-article-wide">
+    <Stack Gap="3" Class="site-pagehead">
+        <Heading Level="1" Size="TextSize.Xl3">Demos</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
+            Realistic scenarios, each in all three modes with its source. Demos always show the latest release.
+        </TextBlock>
+    </Stack>
+    @foreach (var category in Registry.Categories)
+    {
+        var components = Registry.InCategory(category).Where(c => c.Scenarios.Count > 0).ToList();
+        if (components.Count == 0)
+        {
+            continue;
+        }
+
+        <Heading Level="2">@category</Heading>
+        @foreach (var component in components)
+        {
+            <Grid MinChildWidth="Length.Rem(16)" Gap="3">
+                @foreach (var scenario in component.Scenarios)
+                {
+                    <Card Title="@scenario.Title" Href="@Registry.ScenarioHref(component, scenario)" Description="@scenario.Description" Size="ControlSize.Sm">
+                        <CardHeader><Badge Size="BadgeSize.Sm">@component.Name</Badge></CardHeader>
+                    </Card>
+                }
+            </Grid>
+        }
+    }
+    <Alert Title="More on the way.">
+        Demos for the other components move here from the library's dev host as their docs are written.
+    </Alert>
+</article>
