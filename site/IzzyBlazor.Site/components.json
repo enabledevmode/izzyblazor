@@ -78,7 +78,7 @@
     {
       "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts on static pages, validates live on interactive ones.", "parts": ["FormActions", "FormErrors"],
       "examples": [
-        { "id": "home-settings", "title": "A settings form, three ways", "height": 440, "mode": "static",
+        { "id": "home-settings", "title": "A settings form, three modes", "height": 440, "mode": "static",
           "notes": {
             "off": "JavaScript is off in this frame. Every control still works, and Save posts, checks and shows the result.",
             "static": "IzzyBlazor's script adds the slider's live value and keyboard handling. Save still posts.",
