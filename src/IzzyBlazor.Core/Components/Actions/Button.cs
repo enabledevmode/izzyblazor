@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// &lt;Button Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
 /// </code>
 /// </example>
+[ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere.")]
 public class Button : ButtonBase
 {
     /// <summary>
@@ -72,7 +73,8 @@ public class Button : ButtonBase
     [Parameter] public string? Form { get; set; }
 
     /// <summary>Runs on click on interactive pages (a link still navigates). Has no effect on static pages.</summary>
-    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>
     /// Attributes a derived button adds, such as <see cref="DialogTrigger"/>'s <c>commandfor</c>.
