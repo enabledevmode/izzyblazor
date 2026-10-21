@@ -125,4 +125,22 @@ public class DocsGenTests
 
         Assert.True(missing.Count == 0, $"Add [ModeSupport] to: {string.Join(", ", missing)}");
     }
+
+    [Fact]
+    public void Every_callback_says_where_it_runs()
+    {
+        // C# callbacks run only on interactive pages, and the API pages label them so. The
+        // exceptions are what a static post does too: a form's submit events, and a field's
+        // @bind-Value (the model binds from the posted form).
+        string[] everywhere = ["Form.OnValidSubmit", "Form.OnInvalidSubmit", "Form.OnSubmit"];
+        var unmarked = Api.File.Components
+            .SelectMany(c => c.Events.Where(e => e.Modes is null).Select(e => $"{c.Name}.{e.Name}")
+                .Concat(c.Properties
+                    .Where(p => p.Bindable && p.BindModes is null && !(p.Name == "Value" && c.Bases.Contains("FieldBase")))
+                    .Select(p => $"{c.Name}.{p.Name}Changed")))
+            .Except(everywhere)
+            .ToList();
+
+        Assert.True(unmarked.Count == 0, $"Add [ModeSupport] to: {string.Join(", ", unmarked)}");
+    }
 }

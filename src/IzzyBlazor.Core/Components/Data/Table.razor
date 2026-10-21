@@ -290,7 +290,8 @@
     /// Raised when a page size is chosen on an interactive page. Binding it
     /// (<c>@bind-PageSize</c>) keeps the size, with sort, page and filters, in the component.
     /// </summary>
-    [Parameter] public EventCallback<int?> PageSizeChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<int?> PageSizeChanged { get; set; }
 
     /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending).</summary>
     [Parameter] public string? InitialSort { get; set; }
@@ -303,7 +304,8 @@
     [Parameter] public string? Sort { get; set; }
 
     /// <summary>Raised when a header is chosen, on interactive pages.</summary>
-    [Parameter] public EventCallback<string?> SortChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string?> SortChanged { get; set; }
 
     /// <summary>
     /// The page, from 1. Binding it (<c>@bind-Page</c>) on an interactive page keeps sort and page
@@ -312,7 +314,8 @@
     [Parameter] public int? Page { get; set; }
 
     /// <summary>Raised when a page is chosen (and with 1 when the sort or filters change), on interactive pages.</summary>
-    [Parameter] public EventCallback<int> PageChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<int> PageChanged { get; set; }
 
     /// <summary>
     /// Where the column filters go: a filter button in each header that opens the filter
@@ -329,7 +332,8 @@
     [Parameter] public IReadOnlyDictionary<string, string>? Filters { get; set; }
 
     /// <summary>Raised when a filter changes, on interactive pages (typing waits for a pause).</summary>
-    [Parameter] public EventCallback<IReadOnlyDictionary<string, string>> FiltersChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyDictionary<string, string>> FiltersChanged { get; set; }
 
     /// <summary>
     /// Prefix for this table's query-string keys, so several tables can share a page:
@@ -387,7 +391,8 @@
     [Parameter] public IReadOnlyCollection<string>? SelectedKeys { get; set; }
 
     /// <summary>Raised when rows are selected or cleared on interactive pages.</summary>
-    [Parameter] public EventCallback<IReadOnlyCollection<string>> SelectedKeysChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyCollection<string>> SelectedKeysChanged { get; set; }
 
     /// <summary>
     /// Makes each row a link, such as to the item's details page. The whole row is clickable;

@@ -1,15 +1,19 @@
 @* A component's or member's mode support, from its [ModeSupport], as one label shown only when
    it's restricted: "Needs JavaScript" (nothing without script), "Interactive only" (needs a
    circuit), or the modes it works in. Works everywhere, or works with JavaScript off and does more
-   with it, says nothing. The Overview's Mode support table has the full grid. *@
+   with it, says nothing. The Overview's Mode support table has the full grid. With a Subject, the
+   label is about that part of the member, as in "@bind: Interactive only". *@
 
 @if (Label is { } label)
 {
-    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@label</Badge>
+    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@(Subject is null ? label : $"{Subject}: {label}")</Badge>
 }
 
 @code {
     [Parameter] public ApiModes? Modes { get; set; }
+
+    /// <summary>What the label is about when it isn't the whole member, such as <c>@bind</c>.</summary>
+    [Parameter] public string? Subject { get; set; }
 
     private string? Label
     {
@@ -41,7 +45,8 @@
 
             var works = levels.Where(l => l.Level == ModeLevel.Full).Select(l => l.Name).ToList();
             var partly = levels.Where(l => l.Level == ModeLevel.Partial).Select(l => l.Name).ToList();
-            var text = works.Count > 0 ? string.Join(" and ", works) + " only" : "";
+            // "Live only" when nothing else works at all; "Live; Off and Static partly" otherwise.
+            var text = works.Count > 0 ? string.Join(" and ", works) + (partly.Count == 0 ? " only" : "") : "";
             if (partly.Count > 0)
             {
                 text += (text.Length > 0 ? "; " : "") + string.Join(" and ", partly) + " partly";

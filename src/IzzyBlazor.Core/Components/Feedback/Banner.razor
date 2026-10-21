@@ -136,7 +136,8 @@
     [Parameter] public bool Dismissed { get; set; }
 
     /// <summary>Called when someone dismisses it (interactive pages), and when a remembered dismissal is found.</summary>
-    [Parameter] public EventCallback<bool> DismissedChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<bool> DismissedChanged { get; set; }
 
     /// <summary>
     /// Whether screen readers announce the message when it appears (<c>role="alert"</c> for

@@ -92,7 +92,8 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
                 continue;
             }
 
-            var member = ReadMember(property, instance, type, names.Contains(property.Name + "Changed"));
+            var changed = parameters.FirstOrDefault(p => p.Name == property.Name + "Changed");
+            var member = ReadMember(property, instance, type, changed);
             (IsEvent(property.PropertyType) ? events : properties).Add(member);
         }
 
@@ -197,11 +198,12 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
         {
             Name = TypeNames.Plain(type),
             Summary = XmlDocs.Html(docs.ForType(type), "summary"),
-            Properties = properties.Select(p => ReadMember(p, sample, type, bindable: false)).ToList(),
+            Properties = properties.Select(p => ReadMember(p, sample, type, changed: null)).ToList(),
         };
     }
 
-    private ApiMember ReadMember(PropertyInfo property, object? instance, Type component, bool bindable)
+    /// <summary>A parameter; with its <paramref name="changed"/> callback, one bindable member.</summary>
+    private ApiMember ReadMember(PropertyInfo property, object? instance, Type component, PropertyInfo? changed)
     {
         var doc = docs.ForProperty(property);
         var summary = XmlDocs.Html(doc, "summary");
@@ -218,7 +220,8 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
             Default = DefaultOf(property, instance, summary),
             Summary = summary,
             Remarks = XmlDocs.Html(doc, "remarks"),
-            Bindable = bindable,
+            Bindable = changed is not null,
+            BindModes = changed is null ? null : Modes(changed.GetCustomAttribute<ModeSupportAttribute>()),
             Required = property.GetCustomAttribute<EditorRequiredAttribute>() is not null,
             Responsive = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition().Name == "Responsive`1",
             Modes = Modes(property.GetCustomAttribute<ModeSupportAttribute>()),

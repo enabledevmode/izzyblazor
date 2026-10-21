@@ -78,7 +78,8 @@ else
     [Parameter] public bool? Checked { get; set; }
 
     /// <summary>Runs with the new state when a checkbox item is chosen on an interactive page.</summary>
-    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<bool> CheckedChanged { get; set; }
 
     /// <summary>
     /// Posted as <c>Name=Value</c> when a submit item is chosen. Not <c>action</c>, <c>method</c> or <c>target</c>: a control with one of those

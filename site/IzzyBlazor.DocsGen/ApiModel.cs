@@ -88,6 +88,9 @@ public sealed record ApiMember
     /// <summary>A two-way pair: <c>Value</c> with <c>ValueChanged</c>, written <c>@bind-Value</c>.</summary>
     public bool Bindable { get; init; }
 
+    /// <summary>Where the two-way binding works: the <c>[ModeSupport]</c> on the <c>...Changed</c> callback.</summary>
+    public ApiModes? BindModes { get; init; }
+
     /// <summary>Marked <c>[EditorRequired]</c>.</summary>
     public bool Required { get; init; }
 

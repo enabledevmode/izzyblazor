@@ -96,7 +96,8 @@ else
     [Parameter] public string? Selected { get; set; }
 
     /// <summary>Called when someone picks a tab (interactive pages).</summary>
-    [Parameter] public EventCallback<string> SelectedChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string> SelectedChanged { get; set; }
 
     /// <summary>The tab list's name for screen readers, such as "Account settings".</summary>
     [Parameter] public string? Label { get; set; }

@@ -37,7 +37,8 @@
     [Parameter] public string? Value { get; set; }
 
     /// <summary>Runs with the chosen value on interactive pages.</summary>
-    [Parameter] public EventCallback<string> ValueChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string> ValueChanged { get; set; }
 
     /// <summary>
     /// Makes each option a link that sets this query-string key, keeping the rest of the URL:

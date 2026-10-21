@@ -41,6 +41,7 @@ else
                             <span>From <Anchor Href="@from" Underline="AnchorUnderline.Hover">@declared</Anchor></span>
                         }
                         <ModeChips Modes="member.Modes" />
+                        <ModeChips Modes="member.BindModes" Subject="@("@bind")" />
                     </span>
                 </div>
                 @if (IsMethod)

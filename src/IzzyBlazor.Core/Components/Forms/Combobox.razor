@@ -120,7 +120,8 @@
     /// the list at first (on every page), and as the user types on interactive pages. Return a
     /// short list, such as the first 50 matches.
     /// </summary>
-    [Parameter] public Func<string, CancellationToken, Task<IEnumerable<TValue>>>? Search { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once; searching as you type needs an interactive page.")]
+    public Func<string, CancellationToken, Task<IEnumerable<TValue>>>? Search { get; set; }
 
     /// <summary>Milliseconds to wait after the last keystroke before calling <see cref="Search"/>.</summary>
     [Parameter] public int Debounce { get; set; } = 250;
