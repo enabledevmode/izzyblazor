@@ -1,0 +1,30 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="project" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <TextField @bind-Value="Model!.Name" Label="Project name" />
+    <Row Gap="2">
+        <Button Submit>Save</Button>
+        <Button Reset Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Reset</Button>
+    </Row>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Saved "@_saved".</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "project")]
+    private Project? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Name;
+
+    public sealed class Project
+    {
+        [Required, StringLength(40)]
+        public string Name { get; set; } = "Docs site";
+    }
+}

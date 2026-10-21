@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/" />
+    <link rel="icon" href="favicon.ico" sizes="48x48" />
+    <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="apple-touch-icon.png" />
+    <meta name="theme-color" content="#14161A" />
+    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+    <link rel="stylesheet" href="@Assets["site.css"]" />
+    <IzzyTheme />
+    @if (Scripts)
+    {
+        <ImportMap />
+    }
+    <HeadOutlet />
+</head>
+
+<body>
+    <Routes />
+    @if (Scripts)
+    {
+        <script src="_framework/blazor.web.js"></script>
+        <script src="@Assets["site.js"]"></script>
+    }
+</body>
+
+</html>
+
+@code {
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // An example frame in Off mode sends no script at all: the frame is sandboxed without
+    // allow-scripts anyway, and leaving the tags out keeps the console quiet.
+    private bool Scripts =>
+        !(HttpContext?.Request.Path.StartsWithSegments("/frame") == true && HttpContext.Request.Query["mode"] == "off");
+}

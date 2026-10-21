@@ -1,0 +1,235 @@
+/*
+ * The docs site's own styles: page layout, the example viewer and API reference blocks. Everything
+ * else is IzzyBlazor's. Unlayered, so these win over the library's layers where they meet.
+ */
+
+/* Brand: the wordmark's ink and gray follow the color scheme. */
+.site-logo { display: block; width: auto; height: 22px; }
+.site-logo-ink { fill: light-dark(#14161a, #f5f4f1); }
+.site-logo-soft { fill: light-dark(#5a6069, #a9aeb6); }
+
+.site-hero-title span { color: var(--ib-color-muted); }
+
+.site-install {
+  width: fit-content;
+  padding: var(--ib-space-1) var(--ib-space-1) var(--ib-space-1) var(--ib-space-3);
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-md);
+  background: var(--ib-color-surface);
+}
+.site-install code { background: none; padding: 0; }
+
+/* Pages: one readable column; headings break the flow into sections. */
+.site-article {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ib-space-4);
+  width: 100%;
+  max-width: 52rem;
+  margin-inline: auto;
+  padding-block: var(--ib-space-8) var(--ib-space-16);
+}
+.site-article-wide { max-width: 72rem; }
+.site-article > h2 { margin-block-start: var(--ib-space-6); }
+.site-article > .ib-prevnext, .site-article > nav:last-child { margin-block-start: var(--ib-space-8); }
+.site-pagehead { margin-block-end: var(--ib-space-2); }
+.site-lead p { margin: 0; }
+
+.site-footer { width: 100%; }
+
+/* Scenario links under a component in the demos sidebar. */
+.site-nav-sub { padding-inline-start: var(--ib-space-6); }
+
+/* Mode chips: "none" is struck through, so the color isn't the only signal. */
+.site-modes { display: inline-flex; flex-wrap: wrap; gap: var(--ib-space-1); vertical-align: middle; }
+.site-mode-none { text-decoration: line-through; }
+
+/* API reference */
+.site-type, .site-default, .site-signature {
+  font-family: var(--ib-font-mono);
+  font-size: 0.8125rem;
+  color: var(--ib-color-muted);
+  background: none;
+  padding: 0;
+  overflow-wrap: break-word;
+}
+.site-params .site-default { white-space: nowrap; }
+.site-default { color: var(--ib-color-on-surface); }
+.site-member-name { display: inline-flex; align-items: center; gap: var(--ib-space-2); text-decoration: none; }
+.site-member-name code { font-weight: 600; color: var(--ib-color-on-surface); }
+a.site-member-name:hover code { color: var(--ib-color-primary-text); }
+.site-params .ib-prose p { margin: 0; }
+.site-params .site-modes { margin-block-start: var(--ib-space-1); }
+
+.site-members {
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-surface);
+}
+.site-member {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ib-space-2);
+  padding: var(--ib-space-4);
+  scroll-margin-block-start: calc(var(--ib-control-h-md) + var(--ib-space-10));
+}
+.site-member + .site-member { border-top: 1px solid var(--ib-color-border); }
+.site-member:target { background: var(--ib-color-primary-soft); }
+.site-member .ib-prose p { margin: 0; }
+.site-member-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-2) var(--ib-space-3); }
+.site-member-meta {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ib-space-1) var(--ib-space-3);
+  margin-inline-start: auto;
+  font-size: var(--ib-text-sm);
+  color: var(--ib-color-muted);
+}
+.site-part, .site-type-block {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ib-space-3);
+  padding-block-start: var(--ib-space-4);
+  scroll-margin-block-start: calc(var(--ib-control-h-md) + var(--ib-space-10));
+}
+.site-inherit { font-size: var(--ib-text-sm); }
+
+/*
+ * The example viewer: a bar (title, Off · Static · Live, tools), the preview frame for the chosen
+ * mode, the note under it, and the source. The mode switch is a segmented Tabs whose list and
+ * panels are placed into this grid (display: contents), so it keeps working with no script.
+ */
+.ex {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  align-items: center;
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-surface);
+  overflow: hidden;
+}
+.ex-bar {
+  grid-row: 1;
+  grid-column: 1 / -1;
+  align-self: stretch;
+  border-bottom: 1px solid var(--ib-color-border);
+}
+.ex-title {
+  grid-row: 1;
+  grid-column: 1;
+  padding: var(--ib-space-2) var(--ib-space-4);
+  font-size: var(--ib-text-sm);
+  font-weight: 600;
+  min-width: 0;
+}
+.ex > .ex-modes { display: contents; }
+.ex > .ex-modes > .ib-tabs-list { grid-row: 1; grid-column: 2; margin-block: var(--ib-space-2); }
+.ex > .ex-modes > .ib-tab-panel { grid-row: 2; grid-column: 1 / -1; padding: 0; min-width: 0; }
+.ex-tools {
+  grid-row: 1;
+  grid-column: 3;
+  display: flex;
+  align-items: center;
+  gap: var(--ib-space-2);
+  padding-inline: var(--ib-space-2) var(--ib-space-3);
+}
+.ex-stage {
+  background: var(--ib-color-background);
+  border-bottom: 1px solid var(--ib-color-border);
+}
+.ex-frame {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color-scheme: normal;
+}
+.ex-page .ex-frame { margin-inline: auto; }
+.ex:has(.ex-widths input[value="phone"]:checked) .ex-frame {
+  width: 390px;
+  max-width: 100%;
+  border-inline: 1px solid var(--ib-color-border);
+}
+.ex-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--ib-space-2);
+  padding: var(--ib-space-2) var(--ib-space-4);
+  margin: 0;
+}
+.ex-note .ib-icon { flex: none; margin-block-start: 0.2em; }
+.ex-source {
+  grid-row: 3;
+  grid-column: 1 / -1;
+  display: none;
+  min-width: 0;
+  border-top: 1px solid var(--ib-color-border);
+}
+.ex:has(.ex-source-input:checked) .ex-source { display: block; }
+.ex-source .ib-code-block, .ex-source pre { margin: 0; border: 0; border-radius: 0; }
+
+/* Live needs script: without it, a note takes the frame's place. A media query rather than a class
+   on <html>, which enhanced navigation would drop. */
+.ex-needs-js { display: none; align-items: center; justify-content: center; padding: var(--ib-space-4); }
+@media (scripting: none) {
+  .ex-needs-js { display: flex; }
+  .ex-frame-live { display: none; }
+}
+
+/* The Source toggle and the width switch: buttons drawn around native inputs. */
+.ex-source-toggle, .ex-widths label {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--ib-space-1);
+  height: var(--ib-control-h-sm);
+  padding-inline: var(--ib-space-2);
+  border-radius: var(--ib-radius-md);
+  font-size: var(--ib-text-sm);
+  font-weight: 500;
+  color: var(--ib-color-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.ex-source-toggle input, .ex-widths input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+.ex-source-toggle:hover, .ex-widths label:hover { background: var(--ib-color-surface-container); color: var(--ib-color-on-surface); }
+.ex-source-toggle:has(input:checked), .ex-widths label:has(input:checked) {
+  background: var(--ib-color-surface-container-high);
+  color: var(--ib-color-on-surface);
+}
+.ex-source-toggle:has(input:focus-visible), .ex-widths label:has(input:focus-visible) {
+  outline: 2px solid var(--ib-color-focus);
+  outline-offset: 1px;
+}
+.ex-widths { display: inline-flex; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
+
+/* Phones: the title takes its own row above the switch and tools. */
+@media (max-width: 639.98px) {
+  .ex { grid-template-columns: minmax(0, 1fr) auto; }
+  .ex-bar { grid-row: 1 / span 2; }
+  .ex-title { grid-column: 1 / -1; padding-block-end: 0; }
+  .ex > .ex-modes > .ib-tabs-list { grid-row: 2; grid-column: 1; justify-self: start; margin-inline-start: var(--ib-space-4); }
+  .ex-tools { grid-row: 2; grid-column: 2; }
+  .ex > .ex-modes > .ib-tab-panel { grid-row: 3; }
+  .ex-source { grid-row: 4; }
+  .ex-source-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+}
+
+/* An example frame's own page. */
+html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-background); }
+html:has(> body > .frame) body { margin: 0; }
+.frame-sample {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--ib-space-6);
+}
+.frame-sample > * { max-width: 100%; }
+.frame-page { padding: var(--ib-space-4); }

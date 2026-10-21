@@ -1,0 +1,55 @@
+@* One mode's support as a chip: green works, amber partly, gray not. The color isn't the only
+   signal: screen readers hear the level, and "none" is struck through. *@
+
+<Badge Size="BadgeSize.Sm" Status="@_status" Variant="@(Level == ModeLevel.None ? BadgeVariant.Outline : BadgeVariant.Soft)"
+       Class="@(Level == ModeLevel.None ? "site-mode site-mode-none" : "site-mode")" title="@_title">
+    @(Text ?? Name(Mode))<span class="ib-visually-hidden">: @_words</span>
+</Badge>
+
+@code {
+    /// <summary>"off", "static" or "live".</summary>
+    [Parameter, EditorRequired] public string Mode { get; set; } = "";
+
+    [Parameter] public ModeLevel Level { get; set; }
+
+    /// <summary>Visible text in place of the mode's name (a table column already names it).</summary>
+    [Parameter] public string? Text { get; set; }
+
+    private Status _status;
+    private string _words = "";
+    private string _title = "";
+
+    protected override void OnParametersSet()
+    {
+        (_status, _words) = Level switch
+        {
+            ModeLevel.Full => (Status.Success, "works"),
+            ModeLevel.Partial => (Status.Warning, "partly"),
+            _ => (Status.Neutral, "doesn't work"),
+        };
+        _title = $"{Describe(Mode)}: {_words}";
+    }
+
+    public static string Name(string mode) => mode switch
+    {
+        "off" => "Off",
+        "static" => "Static",
+        "live" => "Live",
+        _ => mode,
+    };
+
+    public static string Describe(string mode) => mode switch
+    {
+        "off" => "With JavaScript off",
+        "static" => "On a static page with script",
+        "live" => "On an interactive page",
+        _ => mode,
+    };
+
+    public static ModeLevel Parse(string? level) => level switch
+    {
+        "partial" => ModeLevel.Partial,
+        "none" => ModeLevel.None,
+        _ => ModeLevel.Full,
+    };
+}

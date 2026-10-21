@@ -1,0 +1,68 @@
+@inject ApiMetadata Api
+
+@* The top of a component's pages: breadcrumb, name with tier and version, the summary from its
+   doc comment, and Overview · API · Demos as links. *@
+
+<Stack Gap="4" Class="site-pagehead">
+    <Breadcrumb>
+        <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
+        <BreadcrumbItem Href="docs/components">Components</BreadcrumbItem>
+        <BreadcrumbItem Href="@($"docs/components#{ApiMetadata.Anchor(Component.Category).Replace(' ', '-')}")">@Component.Category</BreadcrumbItem>
+        @if (Page == "api")
+        {
+            <BreadcrumbItem Href="@Registry.OverviewHref(Component)">@Component.Name</BreadcrumbItem>
+        }
+    </Breadcrumb>
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Heading Level="1" Size="TextSize.Xl3">@(Page == "api" ? $"{Component.Name} API" : Component.Name)</Heading>
+        @if (ApiComponent is not null)
+        {
+            <Badge Status="Status.Success">@ApiComponent.Tier</Badge>
+            @if (ApiComponent.AddedIn is { } added)
+            {
+                <Badge Variant="BadgeVariant.Outline">Since @added</Badge>
+            }
+        }
+    </Row>
+    @if (Page == "api" && ApiComponent is not null)
+    {
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
+            <Code>IzzyBlazor.@ApiComponent.DisplayName</Code> in the @ApiComponent.Package package. Generated from the
+            @Api.Version assembly and its doc comments.
+        </TextBlock>
+    }
+    else if (Lead is not null)
+    {
+        <div class="site-lead">@Lead</div>
+    }
+    else if (ApiComponent?.Summary is not null)
+    {
+        <DocHtml Html="@ApiComponent.Summary" Context="Context" Size="ProseSize.Lg" Class="site-lead" />
+    }
+    else
+    {
+        <TextBlock Size="TextSize.Lg">@Component.Summary</TextBlock>
+    }
+    <Tabs Label="@($"{Component.Name} pages")">
+        <TabLink Href="@Registry.OverviewHref(Component)" Label="Overview" Match="NavLinkMatch.All" />
+        <TabLink Href="@Registry.ApiPageHref(Component)" Label="API" Match="NavLinkMatch.All" />
+        @if (Component.Scenarios.Count > 0)
+        {
+            <TabLink Href="@Registry.DemosHref(Component)" Label="Demos" Icon="Lucide.SquareArrowOutUpRight" />
+        }
+    </Tabs>
+</Stack>
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter] public ApiComponent? ApiComponent { get; set; }
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    /// <summary>"overview" or "api".</summary>
+    [Parameter] public string Page { get; set; } = "overview";
+
+    /// <summary>A hand-written lead in place of the doc comment's summary.</summary>
+    [Parameter] public RenderFragment? Lead { get; set; }
+}

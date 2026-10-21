@@ -1,0 +1,37 @@
+@page "/docs"
+@inject Registry Registry
+@inject ApiMetadata Api
+
+<PageTitle>Docs · IzzyBlazor</PageTitle>
+<HeadContent><meta name="description" content="IzzyBlazor's documentation: components, their API, style props and demos." /></HeadContent>
+
+<article class="site-article">
+    <Stack Gap="3" Class="site-pagehead">
+        <Heading Level="1" Size="TextSize.Xl3">Documentation</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
+            IzzyBlazor @Api.Version: Blazor components that work in static SSR, even with JavaScript off, and bind to C#
+            on interactive pages. Every example on this site runs three ways, so you can see what each mode does.
+        </TextBlock>
+    </Stack>
+
+    <Heading Level="2">Off · Static · Live</Heading>
+    <Prose>
+        <p>Each example has a switch for the three ways a page can run:</p>
+        <ul>
+            <li><strong>Off</strong>: JavaScript disabled. The frame is sandboxed without script, so you see exactly what the HTML and CSS do on their own.</li>
+            <li><strong>Static</strong>: a static SSR page with IzzyBlazor's script, which adds keyboard handling, live values and the like. No circuit.</li>
+            <li><strong>Live</strong>: an interactive page on Blazor Server, where C# event handlers and <code>@@bind</code> run.</li>
+        </ul>
+        <p>Component pages show the same thing as a table: what works in each mode, feature by feature.</p>
+    </Prose>
+
+    <Heading Level="2">Where to go</Heading>
+    <Grid MinChildWidth="Length.Rem(15)" Gap="3">
+        <Card Title="Components" Href="docs/components" Description="@($"All {Registry.Components.Count}, by category, each with an Overview and an API page.")" Size="ControlSize.Sm" />
+        <Card Title="Style props" Href="docs/common/style-props" Description="The item, surface and field props many components share." Size="ControlSize.Sm" />
+        <Card Title="Demos" Href="demos" Description="Realistic scenarios in all three modes, with the source." Size="ControlSize.Sm" />
+        <Card Title="Getting started" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md" Description="Install the package, add IzzyTheme and map the endpoints." Size="ControlSize.Sm" />
+        <Card Title="Styling and themes" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/styling.md" Description="Presets, brand colors, tokens, color schemes and customizing." Size="ControlSize.Sm" />
+        <Card Title="API metadata" Href="izzyblazor.api.json" Description="Every component's API as JSON, for tools and AI assistants." Size="ControlSize.Sm" />
+    </Grid>
+</article>

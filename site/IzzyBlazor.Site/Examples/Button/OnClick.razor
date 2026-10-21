@@ -1,0 +1,24 @@
+<Stack Gap="3" Align="Align.Center">
+    <Row Gap="2" Wrap Justify="Justify.Center">
+        <Button StartIcon="Lucide.MousePointerClick" OnClick="() => _clicks++">Click me</Button>
+        <Button Loading="_saving" OnClick="SaveAsync" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save</Button>
+    </Row>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+        Clicked @_clicks @(_clicks == 1 ? "time" : "times"), saved @_saves @(_saves == 1 ? "time" : "times")
+    </TextBlock>
+</Stack>
+
+@code {
+    private int _clicks;
+    private int _saves;
+    private bool _saving;
+
+    // Loading blocks further clicks until the work is done.
+    private async Task SaveAsync()
+    {
+        _saving = true;
+        await Task.Delay(1000);
+        _saving = false;
+        _saves++;
+    }
+}

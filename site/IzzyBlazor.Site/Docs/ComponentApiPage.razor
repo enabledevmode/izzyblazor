@@ -1,0 +1,160 @@
+@page "/docs/components/{Id}/api"
+@inject Registry Registry
+@inject ApiMetadata Api
+@inject NavigationManager Navigation
+
+@*
+    One generic page for every component's API, built from the metadata alone: properties,
+    events, methods, the parts documented with it, and the types they use. The filter is a GET
+    form (FilterForm), so it works with JavaScript off and applies as you type with it.
+*@
+
+@if (_component is not null && _api is not null)
+{
+    <PageTitle>@_component.Name API · IzzyBlazor</PageTitle>
+    <HeadContent><meta name="description" content="@($"Parameters, events, methods and types of the IzzyBlazor {_component.Name} component.")" /></HeadContent>
+
+    <article class="site-article">
+        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" Page="api" />
+
+        <FilterForm Label="Filter members">
+            <FilterSearch Placeholder="Filter members" Label="Filter members" />
+            <FilterCheckbox Name="inherited" Label="Show inherited" />
+        </FilterForm>
+
+        <Heading Level="2" id="properties">Properties (@_properties.Count)</Heading>
+        <ApiMemberList Members="_properties" Context="_context" ShowDeclaredOn EmptyText="@NoMatch" />
+        @if (Inherited)
+        {
+            @foreach (var (title, members, name) in _inherited)
+            {
+                <Heading Level="3" id="@($"inherited-{ApiMetadata.Anchor(name)}")">@title</Heading>
+                <ApiMemberList Members="members" Context="_context" EmptyText="@NoMatch" />
+            }
+        }
+        else
+        {
+            <InheritedLine ApiComponent="_api">
+                @if (_api.Bases.Count > 0)
+                {
+                    <Button Href="@ShowInheritedHref" Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Show them here</Button>
+                }
+            </InheritedLine>
+        }
+
+        @if (_events.Count > 0 || Query is null)
+        {
+            <Heading Level="2" id="events">Events (@_events.Count)</Heading>
+            <ApiMemberList Members="_events" Context="_context" ShowDeclaredOn EmptyText="@(Query is null ? "No events." : NoMatch)" />
+        }
+
+        @if (_methods.Count > 0)
+        {
+            <Heading Level="2" id="methods">Methods (@_methods.Count)</Heading>
+            <ApiMemberList Members="_methods" Context="_context" IsMethod />
+        }
+
+        @if (_parts.Count > 0)
+        {
+            <Heading Level="2" id="parts">Parts (@_parts.Count)</Heading>
+            <TextBlock Color="Color.Muted">Components written inside @_component.Name, documented here with it.</TextBlock>
+            @foreach (var (part, members) in _parts)
+            {
+                var anchor = ApiMetadata.Anchor(part.Name);
+                <div class="site-part" id="@anchor">
+                    <Heading Level="3" Outline="false" Anchor="false">
+                        <code>@part.DisplayName</code>
+                    </Heading>
+                    <DocHtml Html="@part.Summary" Context="_context" />
+                    <ApiMemberList Members="members" Context="_context" AnchorPrefix="@($"{anchor}-")" EmptyText="@(Query is null ? "No parameters of its own." : NoMatch)" />
+                    @if (part.Bases.Count > 0)
+                    {
+                        <InheritedLine ApiComponent="part" />
+                    }
+                </div>
+            }
+        }
+
+        @if (_types.Count > 0)
+        {
+            <Heading Level="2" id="types">Types (@_types.Count)</Heading>
+            @foreach (var type in _types)
+            {
+                <div class="site-type-block" id="@($"type-{ApiMetadata.Anchor(type.Name)}")">
+                    <Row Gap="2" Align="Align.Center">
+                        <Heading Level="3" Outline="false" Anchor="false"><code>@type.Name</code></Heading>
+                        <Badge Variant="BadgeVariant.Outline" Size="BadgeSize.Sm">@type.Kind</Badge>
+                    </Row>
+                    <DocHtml Html="@type.Summary" Context="_context" />
+                    @if (type.Members.Count > 0)
+                    {
+                        <Table Items="type.Members" Caption="@($"{type.Name} {(type.Kind == "enum" ? "values" : "members")}")" Size="ControlSize.Sm">
+                            <TemplateColumn Title="@(type.Kind == "enum" ? "Value" : "Member")" Width="Length.Rem(14)">
+                                <code>@(context!.Type.Contains('(') ? context.Type[(context.Type.IndexOf(' ') + 1)..] : context.Name)</code>
+                            </TemplateColumn>
+                            <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" /></TemplateColumn>
+                        </Table>
+                    }
+                </div>
+            }
+        }
+
+        <PrevNext PreviousHref="@(_previous is null ? null : Registry.ApiPageHref(_previous))" PreviousTitle="@(_previous is null ? null : $"{_previous.Name} API")"
+                  NextHref="@(_next is null ? null : Registry.ApiPageHref(_next))" NextTitle="@(_next is null ? null : $"{_next.Name} API")" />
+    </article>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
+
+    [SupplyParameterFromQuery(Name = "inherited")] public bool Inherited { get; set; }
+
+    private RegistryComponent? _component;
+    private ApiComponent? _api;
+    private ApiPageContext _context = null!;
+    private List<ApiMember> _properties = [];
+    private List<ApiMember> _events = [];
+    private List<ApiMember> _methods = [];
+    private List<(string Title, List<ApiMember> Members, string Name)> _inherited = [];
+    private List<(ApiComponent Part, List<ApiMember> Members)> _parts = [];
+    private List<ApiType> _types = [];
+    private RegistryComponent? _previous;
+    private RegistryComponent? _next;
+
+    private string? NoMatch => Query is null ? null : $"Nothing matches \"{Query}\".";
+
+    private string ShowInheritedHref => Navigation.GetUriWithQueryParameter("inherited", true);
+
+    protected override void OnParametersSet()
+    {
+        _component = Registry.ById(Id);
+        _api = _component is null ? null : Api.Component(_component.Name);
+        if (_component is null || _api is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        var parts = _component.Parts.Select(Api.Component).OfType<ApiComponent>().ToList();
+        var typeNames = _api.Types.Concat(parts.SelectMany(p => p.Types)).Distinct().ToList();
+        _context = ApiMetadata.ContextFor(Registry.ApiPageHref(_component), _api, typeNames);
+
+        _properties = Filter(_api.Properties.Where(p => p.Obsolete is null));
+        _events = Filter(_api.Events);
+        _methods = Filter(_api.Methods);
+        _inherited = SharedProps.Sections
+            .Where(s => _api.Bases.Contains(s.Base))
+            .Select(s => (Title: $"{s.Title} (from {s.Base})", Members: Filter(Api.Base(s.Base)?.Properties ?? []), Name: s.Base))
+            .ToList();
+        _parts = parts.Select(p => (p, Filter(p.Properties.Where(m => m.Obsolete is null).Concat(p.Events)))).ToList();
+        _types = typeNames.Select(Api.Type).OfType<ApiType>().OrderBy(t => t.Name, StringComparer.Ordinal).ToList();
+        (_previous, _next) = Registry.Around(_component);
+    }
+
+    private List<ApiMember> Filter(IEnumerable<ApiMember> members) =>
+        string.IsNullOrWhiteSpace(Query)
+            ? members.ToList()
+            : members.Where(m => m.Name.Contains(Query.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+}

@@ -1,0 +1,27 @@
+<Card Size="ControlSize.Sm">
+    <CardBody Gap="4">
+        <Row Gap="2" Align="Align.Center" Wrap>
+            <ButtonGroup Label="History" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">
+                <IconButton Icon="Lucide.Undo2" Label="Undo" />
+                <IconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ButtonGroup>
+            <ButtonGroup Label="Text style" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+                <IconButton Icon="Lucide.Bold" Label="Bold" />
+                <IconButton Icon="Lucide.Italic" Label="Italic" />
+                <IconButton Icon="Lucide.Underline" Label="Underline" />
+            </ButtonGroup>
+            <ButtonGroup Label="Insert" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Attached="false">
+                <Button StartIcon="Lucide.Link">Link</Button>
+                <Button StartIcon="Lucide.Image">Image</Button>
+            </ButtonGroup>
+            <Spacer />
+            <Button StartIcon="Lucide.Eye" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Preview</Button>
+            <Button StartIcon="Lucide.Send">Publish</Button>
+        </Row>
+        <Divider />
+        <Stack Gap="2">
+            <Heading Level="2" Size="TextSize.Xl">Release notes</Heading>
+            <TextBlock Color="Color.Muted">Start writing, or paste the notes from the changelog.</TextBlock>
+        </Stack>
+    </CardBody>
+</Card>

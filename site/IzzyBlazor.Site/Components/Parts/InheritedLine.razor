@@ -1,0 +1,39 @@
+@inject ApiMetadata Api
+
+@* "Plus 16 item props and 4 common props": the shared props a component takes, documented once
+   on the Style props page. *@
+
+<Row Gap="3" Align="Align.Center" Wrap Class="site-inherit">
+    @if (_bases.Count > 0)
+    {
+        <TextBlock Size="TextSize.Sm" Grow>
+            Plus
+            @for (var i = 0; i < _bases.Count; i++)
+            {
+                var (name, count, label) = _bases[i];
+                @(i == 0 ? "" : i == _bases.Count - 1 ? " and " : ", ")
+                <Anchor Href="@($"docs/common/style-props#{ApiMetadata.Anchor(name)}")">@count @label</Anchor>@(i == _bases.Count - 1 ? "." : "")
+            }
+        </TextBlock>
+    }
+    else
+    {
+        <Box Grow />
+    }
+    @ChildContent
+</Row>
+
+@code {
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private List<(string Name, int Count, string Label)> _bases = [];
+
+    protected override void OnParametersSet() =>
+        _bases = ApiComponent.Bases
+            .Select(b => (Name: b, Base: Api.Base(b)))
+            .Where(b => b.Base is not null)
+            .Select(b => (b.Name, b.Base!.Properties.Count, SharedProps.Label(b.Name)))
+            .ToList();
+}

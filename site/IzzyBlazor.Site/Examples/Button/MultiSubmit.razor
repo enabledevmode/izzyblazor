@@ -1,0 +1,49 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="article" OnValidSubmit="Save" MaxWidth="36.Rem">
+    <TextField @bind-Value="Model!.Title" />
+    <TextArea @bind-Value="Model!.Body" Rows="3" />
+    <FormActions Justify="Justify.Start">
+        <Button Submit Name="action" Value="publish" StartIcon="Lucide.Send"
+                OnClick='() => _pressed = "publish"'>Publish</Button>
+        <Button Submit Name="action" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+                OnClick='() => _pressed = "draft"'>Save draft</Button>
+        <Button Submit Name="action" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger"
+                OnClick='() => _pressed = "discard"'>Discard</Button>
+    </FormActions>
+    @if (_result is not null)
+    {
+        <Alert Status="Status.Success">@_result</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "article")]
+    private Article? Model { get; set; }
+
+    // Static pages: the pressed button's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "article", Name = "action")]
+    private string? Action { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which button it was.
+    private string? _pressed;
+    private string? _result;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _result = (Action ?? _pressed) switch
+    {
+        "publish" => $"Published \"{Model!.Title}\".",
+        "draft" => "Saved as a draft.",
+        "discard" => "Discarded the changes.",
+        _ => null,
+    };
+
+    public sealed class Article
+    {
+        [Required, StringLength(80)]
+        public string Title { get; set; } = "What's new in alpha.12";
+
+        public string? Body { get; set; } = "OnThisPage, PrevNext and CopyButton, for docs sites.";
+    }
+}

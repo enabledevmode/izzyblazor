@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Checks the docs site: the registry covers the library, every example has a file and renders
+       in each mode it claims, Off frames carry no script, and internal links resolve. -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Using Include="Xunit" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <FrameworkReference Include="Microsoft.AspNetCore.App" />
+    <ProjectReference Include="..\IzzyBlazor.Site\IzzyBlazor.Site.csproj" />
+  </ItemGroup>
+
+  <!-- DocsGen's logic, compiled here against the model the site links (one copy of ApiFile). -->
+  <ItemGroup>
+    <Compile Include="..\IzzyBlazor.DocsGen\ReleaseComparer.cs" Link="DocsGen\ReleaseComparer.cs" />
+    <Compile Include="..\IzzyBlazor.DocsGen\XmlDocs.cs" Link="DocsGen\XmlDocs.cs" />
+  </ItemGroup>
+
+</Project>

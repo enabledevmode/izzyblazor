@@ -1,0 +1,19 @@
+@inject ApiMetadata Api
+
+@* HTML from a doc comment, with its member links resolved for this page. The HTML is the
+   generator's, built from the library's own XML docs, so it's trusted. *@
+
+@if (!string.IsNullOrEmpty(Html))
+{
+    <Prose Size="Size" Class="@Class">@((MarkupString)Api.Resolve(Html, Context))</Prose>
+}
+
+@code {
+    [Parameter] public string? Html { get; set; }
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    [Parameter] public ProseSize Size { get; set; } = ProseSize.Sm;
+
+    [Parameter] public string? Class { get; set; }
+}

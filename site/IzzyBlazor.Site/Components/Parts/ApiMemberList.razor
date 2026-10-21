@@ -1,0 +1,74 @@
+@* Members on an API page: name, type, default, version and modes, then the doc comment. Each has
+   an anchor, so a member can be linked to. *@
+
+@if (Members.Count == 0)
+{
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@(EmptyText ?? "None.")</TextBlock>
+}
+else
+{
+    <div class="site-members">
+        @foreach (var member in Members)
+        {
+            <div class="site-member" id="@($"{AnchorPrefix}{ApiMetadata.Anchor(member.Name)}")">
+                <div class="site-member-head">
+                    <a class="site-member-name" href="@($"{Context.Page}#{AnchorPrefix}{ApiMetadata.Anchor(member.Name)}")">
+                        <code>@(member.Bindable ? $"@bind-{member.Name}" : member.Name)</code>
+                    </a>
+                    @if (!IsMethod)
+                    {
+                        <code class="site-type">@member.Type</code>
+                    }
+                    @if (member.Required)
+                    {
+                        <Badge Size="BadgeSize.Sm" Status="Status.Warning">Required</Badge>
+                    }
+                    @if (member.Responsive)
+                    {
+                        <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" title="Takes a value per breakpoint">Responsive</Badge>
+                    }
+                    <span class="site-member-meta">
+                        @if (member.Default is { } value)
+                        {
+                            <span>Default <code class="site-default">@value</code></span>
+                        }
+                        @if (member.AddedIn is { } added)
+                        {
+                            <span>Added in @added</span>
+                        }
+                        @if (member.DeclaredOn is { } declared && ShowDeclaredOn)
+                        {
+                            <span>From @declared</span>
+                        }
+                        <ModeChips Modes="member.Modes" />
+                    </span>
+                </div>
+                @if (IsMethod)
+                {
+                    <code class="site-signature">@member.Type</code>
+                }
+                <DocHtml Html="@member.Summary" Context="Context" />
+                <DocHtml Html="@member.Remarks" Context="Context" />
+                @if (member.Modes?.Notes is { } notes)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@notes</TextBlock>
+                }
+            </div>
+        }
+    </div>
+}
+
+@code {
+    [Parameter, EditorRequired] public IReadOnlyList<ApiMember> Members { get; set; } = [];
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    /// <summary>Put before each member's anchor, for a part's members (<c>cardheader-</c>).</summary>
+    [Parameter] public string AnchorPrefix { get; set; } = "";
+
+    [Parameter] public bool IsMethod { get; set; }
+
+    [Parameter] public bool ShowDeclaredOn { get; set; }
+
+    [Parameter] public string? EmptyText { get; set; }
+}

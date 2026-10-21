@@ -1,0 +1,64 @@
+@page "/demos/{Id}/{ScenarioId}"
+@layout DemosLayout
+@inject Registry Registry
+@inject NavigationManager Navigation
+
+@* One demo scenario: a sentence about it, the example in all three modes at desktop or phone
+   width, and links back to the component's Overview and the API member it's about. *@
+
+@if (_component is not null && _scenario is not null)
+{
+    <PageTitle>@_scenario.Title · @_component.Name demos · IzzyBlazor</PageTitle>
+    <HeadContent><meta name="description" content="@_scenario.Description" /></HeadContent>
+
+    <article class="site-article site-article-wide">
+        <Stack Gap="3" Class="site-pagehead">
+            <Breadcrumb>
+                <BreadcrumbItem Href="demos">Demos</BreadcrumbItem>
+                <BreadcrumbItem Href="@Registry.DemosHref(_component)">@_component.Name</BreadcrumbItem>
+            </Breadcrumb>
+            <Heading Level="1" Size="TextSize.Xl3">@_scenario.Title</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">@_scenario.Description</TextBlock>
+        </Stack>
+
+        <ExampleViewer Example="@_scenario.Example.Id" WidthSwitch SourceOpen />
+
+        <Row Gap="3" Wrap>
+            <Button Href="@Registry.OverviewHref(_component)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.BookOpen">@_component.Name overview</Button>
+            <Button Href="@ApiHref" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.CodeXml">@(_scenario.Member is null ? "API" : $"{_scenario.Member} in the API")</Button>
+        </Row>
+
+        <PrevNext PreviousHref="@(_previous is null ? null : Registry.ScenarioHref(_component, _previous))" PreviousTitle="@_previous?.Title"
+                  NextHref="@(_next is null ? null : Registry.ScenarioHref(_component, _next))" NextTitle="@_next?.Title" />
+    </article>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    [Parameter] public string ScenarioId { get; set; } = "";
+
+    private RegistryComponent? _component;
+    private RegistryScenario? _scenario;
+    private RegistryScenario? _previous;
+    private RegistryScenario? _next;
+
+    private string ApiHref => _scenario!.Member is { } member
+        ? $"{Registry.ApiPageHref(_component!)}#{ApiMetadata.Anchor(member)}"
+        : Registry.ApiPageHref(_component!);
+
+    protected override void OnParametersSet()
+    {
+        _component = Registry.ById(Id);
+        _scenario = _component?.Scenarios.FirstOrDefault(s => s.Id == ScenarioId);
+        if (_component is null || _scenario is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        var index = _component.Scenarios.IndexOf(_scenario);
+        _previous = index > 0 ? _component.Scenarios[index - 1] : null;
+        _next = index < _component.Scenarios.Count - 1 ? _component.Scenarios[index + 1] : null;
+    }
+}

@@ -1,0 +1,17 @@
+@inherits LayoutComponentBase
+
+@* /docs: articles, component pages and API reference, with the docs sidebar and "On this page". *@
+
+<AppShell>
+    <SiteHeader Sidebar />
+    <AppSidebar Label="Docs">
+        <DocsNav />
+    </AppSidebar>
+    <AppMain>
+        @Body
+    </AppMain>
+    <AppAside>
+        <OnThisPage />
+    </AppAside>
+    <SiteFooter />
+</AppShell>

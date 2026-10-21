@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <!--
+    The documentation site: docs (/docs) and demos (/demos) in one Blazor Web App, built with
+    IzzyBlazor. Pages render in static SSR; only Live examples open a circuit.
+
+    The build runs DocsGen, which writes the API metadata (izzyblazor.api.json) from the library
+    and its XML docs, and embeds it with every example's source.
+
+      Run it: dotnet run (in this folder)
+  -->
+  <PropertyGroup>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>IzzyBlazor.Site</RootNamespace>
+    <ApiMetadataFile>$(MSBuildProjectDirectory)/$(BaseIntermediateOutputPath)$(Configuration)/izzyblazor.api.json</ApiMetadataFile>
+    <DocsGenHost>$(DOTNET_HOST_PATH)</DocsGenHost>
+    <DocsGenHost Condition="'$(DocsGenHost)' == ''">dotnet</DocsGenHost>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IzzyBlazor\IzzyBlazor.csproj" />
+    <!-- Built first, run by GenerateApiMetadata below; not referenced as code. -->
+    <ProjectReference Include="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="..\IzzyBlazor.DocsGen\ApiModel.cs" Link="Api\ApiModel.cs" />
+    <EmbeddedResource Include="components.json" LogicalName="components.json" />
+    <!-- Each example's source, shown under its preview: example:{Folder}/{Name}. -->
+    <EmbeddedResource Include="Examples\**\*.razor" LogicalName="example:%(RecursiveDir)%(Filename)" />
+    <InternalsVisibleTo Include="IzzyBlazor.Site.Tests" />
+  </ItemGroup>
+
+  <!-- Not in design-time builds (IntelliSense), where DocsGen may not be built: the last file is used. -->
+  <Target Name="GenerateApiMetadata" AfterTargets="ResolveProjectReferences" BeforeTargets="PrepareResources"
+          Condition="'$(DesignTimeBuild)' != 'true'">
+    <MSBuild Projects="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" Targets="GetTargetPath" Properties="Configuration=$(Configuration)">
+      <Output TaskParameter="TargetOutputs" ItemName="DocsGenAssembly" />
+    </MSBuild>
+    <!-- DocsGen only rewrites the file when the API changed, so an unchanged API rebuilds nothing. -->
+    <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(ApiMetadataFile)&quot;" />
+  </Target>
+
+  <Target Name="EmbedApiMetadata" AfterTargets="GenerateApiMetadata" BeforeTargets="PrepareResources" Condition="Exists('$(ApiMetadataFile)')">
+    <ItemGroup>
+      <EmbeddedResource Include="$(ApiMetadataFile)" LogicalName="izzyblazor.api.json" />
+    </ItemGroup>
+  </Target>
+
+</Project>
