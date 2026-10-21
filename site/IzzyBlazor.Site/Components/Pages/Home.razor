@@ -52,15 +52,18 @@
         <Heading Level="2" Size="TextSize.Xl2">One test for every component</Heading>
         <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
             <Card Title="Works with JavaScript off" Variant="CardVariant.Outline">
-                <CardHeader><span class="site-card-head"><Pictogram Icon="Lucide.ZapOff" /><ModeChip Mode="off" Level="ModeLevel.Full" /></span></CardHeader>
+                <CardMedia><ComponentPicture Id="mode-off" /></CardMedia>
+                <CardHeader><ModeChip Mode="off" Level="ModeLevel.Full" /></CardHeader>
                 <TextBlock>Components render complete HTML from their parameters. Native forms, links, details and dialog do the work.</TextBlock>
             </Card>
             <Card Title="Better with script" Variant="CardVariant.Outline">
-                <CardHeader><span class="site-card-head"><Pictogram Icon="Lucide.FileCode" /><ModeChip Mode="static" Level="ModeLevel.Full" /></span></CardHeader>
+                <CardMedia><ComponentPicture Id="mode-static" /></CardMedia>
+                <CardHeader><ModeChip Mode="static" Level="ModeLevel.Full" /></CardHeader>
                 <TextBlock>Small custom elements add keyboard handling, live values and drop zones. No Blazor circuit.</TextBlock>
             </Card>
             <Card Title="Binds to C# when interactive" Variant="CardVariant.Outline">
-                <CardHeader><span class="site-card-head"><Pictogram Icon="Lucide.Zap" /><ModeChip Mode="live" Level="ModeLevel.Full" /></span></CardHeader>
+                <CardMedia><ComponentPicture Id="mode-live" /></CardMedia>
+                <CardHeader><ModeChip Mode="live" Level="ModeLevel.Full" /></CardHeader>
                 <TextBlock>On Server, WebAssembly or Auto pages, the same markup takes <Code>@("@bind-Value")</Code> and events.</TextBlock>
             </Card>
         </Grid>
