@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Writes izzyblazor.api.json, the API metadata the docs site, llms.txt and the MCP server read:
+    every public component, its parameters, events and methods with their XML docs, defaults read
+    from a fresh instance, and [ModeSupport]. It reads the built library by reference, in its own
+    process, so creating components to read their defaults can't affect anything else.
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>IzzyBlazor.DocsGen</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\IzzyBlazor\IzzyBlazor.csproj" />
+  </ItemGroup>
+
+</Project>
