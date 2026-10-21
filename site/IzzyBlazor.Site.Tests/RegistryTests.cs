@@ -53,4 +53,17 @@ public class RegistryTests
 
         Assert.Equal("<A />\n<B />", source);
     }
+
+    [Fact]
+    public void No_example_names_a_control_after_a_form_property()
+    {
+        // A control named "action" hides the form's own action, and Blazor's enhanced form
+        // handling then posts to "[object RadioNodeList]".
+        var clashes = Catalog.Ids
+            .Where(id => System.Text.RegularExpressions.Regex.IsMatch(Catalog.SourceOf(id)!.Value.Source,
+                @"\bName=""(action|method|target|submit|enctype|elements)""", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
+            .ToList();
+
+        Assert.True(clashes.Count == 0, $"Rename the control in: {string.Join(", ", clashes)}");
+    }
 }

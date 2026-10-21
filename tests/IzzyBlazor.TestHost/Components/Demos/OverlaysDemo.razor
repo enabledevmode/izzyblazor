@@ -10,7 +10,7 @@
         <Box Padding="3" Radius="Radius.Md" Bg="Color.SurfaceContainer" data-testid="server-result">
             <TextBlock Size="TextSize.Sm">
                 The server received:
-                @if (_chosen is not null) { <strong>action=@_chosen</strong> }
+                @if (_chosen is not null) { <strong>intent=@_chosen</strong> }
                 @if (_invited is not null) { <strong>invite=@_invited</strong> }
             </TextBlock>
         </Box>
@@ -25,8 +25,8 @@
                     <MenuItem Icon="Lucide.Share2" Disabled="true">Share (soon)</MenuItem>
                     <MenuDivider />
                     <MenuGroup Label="Posts the form">
-                        <MenuItem Submit Name="action" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
-                        <MenuItem Submit Name="action" Value="delete" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                        <MenuItem Submit Name="intent" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
+                        <MenuItem Submit Name="intent" Value="delete" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
                     </MenuGroup>
                 </Menu>
 
@@ -184,7 +184,7 @@
             <DialogFooter>
                 <DialogClose>Cancel</DialogClose>
                 <form method="get" action="@_path" style="display:contents">
-                    <Button Submit Name="action" Value="delete" Accent="Accent.Danger">Delete</Button>
+                    <Button Submit Name="intent" Value="delete" Accent="Accent.Danger">Delete</Button>
                 </form>
             </DialogFooter>
         </Dialog>
@@ -254,7 +254,7 @@
                                Accent="Accent.Neutral"
                                Variant="ButtonVariant.Outline"
                                Size="ControlSize.Sm"
-                               Name="action"
+                               Name="intent"
                                Value="archive">Archive</ConfirmButton>
                 <ConfirmButton Id="confirm-delete-project"
                                Title="Delete this project?"
@@ -264,7 +264,7 @@
                                Variant="ButtonVariant.Outline"
                                Size="ControlSize.Sm"
                                StartIcon="Lucide.Trash"
-                               Name="action"
+                               Name="intent"
                                Value="delete">Delete</ConfirmButton>
                 @if (RendererInfo.IsInteractive)
                 {
@@ -358,7 +358,7 @@
 
     private string ConfirmNote => RendererInfo.IsInteractive
         ? "Archive and Delete submit the form they're in once confirmed; Reset runs C# with OnConfirm. Cancel is focused first."
-        : "The buttons sit inside a form; confirming submits it with action=archive or action=delete. Works with JavaScript off. Cancel is focused first.";
+        : "The buttons sit inside a form; confirming submits it with intent=archive or intent=delete. Works with JavaScript off. Cancel is focused first.";
 
     private const string ConfirmCode =
         """
@@ -366,7 +366,7 @@
             ...
             <ConfirmButton Title="Delete this project?" Message="It can't be undone."
                            ConfirmText="Delete" Accent="Accent.Danger"
-                           Name="action" Value="delete">Delete</ConfirmButton>
+                           Name="intent" Value="delete">Delete</ConfirmButton>
         </form>
 
         <ConfirmButton Title="Reset the counter?" OnConfirm="Reset">Reset</ConfirmButton>   @* interactive *@
@@ -413,7 +413,7 @@
         var uri = new Uri(Navigation.Uri);
         _path = uri.AbsolutePath;
         var query = QueryHelpers.ParseQuery(uri.Query);
-        _chosen = query.TryGetValue("action", out var action) ? action.ToString() : null;
+        _chosen = query.TryGetValue("intent", out var action) ? action.ToString() : null;
         _invited = query.TryGetValue("invite", out var invite) ? invite.ToString() : null;
     }
 
@@ -424,7 +424,7 @@
             <MenuItem Icon="Lucide.Copy" OnClick="Duplicate">Duplicate</MenuItem>
             <MenuDivider />
             <MenuGroup Label="Posts the form">
-                <MenuItem Submit Name="action" Value="delete" Accent="Accent.Danger">Delete</MenuItem>
+                <MenuItem Submit Name="intent" Value="delete" Accent="Accent.Danger">Delete</MenuItem>
             </MenuGroup>
         </Menu>
 

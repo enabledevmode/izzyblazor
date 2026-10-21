@@ -14,7 +14,7 @@
 <ExampleViewer Example="button-submit-reset" HideTitle />
 
 <Heading Level="2">Several submit buttons</Heading>
-<TextBlock>Give each one a <Code>Name</Code> and <Code>Value</Code>, and the form posts which was pressed. <Anchor Href="demos/button/several-submit-buttons">See it run</Anchor>.</TextBlock>
+<TextBlock>Give each one the same <Code>Name</Code> and its own <Code>Value</Code>, and the form posts which was pressed. <Anchor Href="demos/button/several-submit-buttons">See it run</Anchor>.</TextBlock>
 <Code Block Language="razor">@SeveralSubmit</Code>
 
 <Heading Level="2">Links</Heading>
@@ -69,7 +69,7 @@
         <Button Submit>Save</Button>
 
         @* A link that looks like a button. *@
-        <Button Href="docs/getting-started">Get started</Button>
+        <Button Href="docs/get-started">Get started</Button>
 
         @* C# on click, on interactive pages. *@
         <Button OnClick="Refresh" Variant="ButtonVariant.Outline">Refresh</Button>
@@ -78,8 +78,14 @@
     private const string SeveralSubmit = """
         <Form Model="Post" FormName="post" OnValidSubmit="Save">
             ...
-            <Button Submit Name="action" Value="publish">Publish</Button>
-            <Button Submit Name="action" Value="draft" Variant="ButtonVariant.Outline">Save draft</Button>
+            <Button Submit Name="intent" Value="publish">Publish</Button>
+            <Button Submit Name="intent" Value="draft" Variant="ButtonVariant.Outline">Save draft</Button>
         </Form>
+
+        @code {
+            // "publish" or "draft". Not "action": that name would hide the form's own.
+            [SupplyParameterFromForm(FormName = "post", Name = "intent")]
+            private string? Intent { get; set; }
+        }
         """;
 }

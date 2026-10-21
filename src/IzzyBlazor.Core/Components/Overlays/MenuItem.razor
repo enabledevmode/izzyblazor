@@ -80,7 +80,11 @@ else
     /// <summary>Runs with the new state when a checkbox item is chosen on an interactive page.</summary>
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
 
-    /// <summary>Posted as <c>Name=Value</c> when a submit item is chosen.</summary>
+    /// <summary>
+    /// Posted as <c>Name=Value</c> when a submit item is chosen. Not <c>action</c>, <c>method</c> or <c>target</c>: a control with one of those
+    /// names hides the form's own property, and Blazor's enhanced form handling then posts to the
+    /// wrong address.
+    /// </summary>
     [Parameter] public string? Name { get; set; }
 
     /// <summary>The value posted with <see cref="Name"/>; in a <see cref="MenuRadioGroup"/>, the option this item picks.</summary>
