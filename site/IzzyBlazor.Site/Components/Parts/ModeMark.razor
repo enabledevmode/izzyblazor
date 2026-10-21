@@ -1,0 +1,21 @@
+@* A table cell's mark for one mode: a check where it works, a dash where it partly does, an x where
+   it doesn't. The shape carries the meaning as well as the color, and screen readers hear the word. *@
+
+<span class="@($"site-mark site-mark-{_kind}")" title="@_word">
+    <IzzyBlazor.Icon Name="_icon" /><span class="ib-visually-hidden">@_word</span>
+</span>
+
+@code {
+    [Parameter] public ModeLevel Level { get; set; }
+
+    private IconData _icon;
+    private string _kind = "";
+    private string _word = "";
+
+    protected override void OnParametersSet() => (_icon, _kind, _word) = Level switch
+    {
+        ModeLevel.Full => (Lucide.Check, "yes", "Yes"),
+        ModeLevel.Partial => (Lucide.Minus, "partly", "Partly"),
+        _ => (Lucide.X, "no", "No"),
+    };
+}
