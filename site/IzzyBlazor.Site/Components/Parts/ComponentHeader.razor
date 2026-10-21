@@ -17,7 +17,11 @@
         <Heading Level="1" Size="TextSize.Xl3">@(Page == "api" ? $"{Component.Name} API" : Component.Name)</Heading>
         @if (ApiComponent is not null)
         {
-            <Badge Status="Status.Success">@ApiComponent.Tier</Badge>
+            @* Only Pro is marked: nearly everything is free, so "Free" would say nothing. *@
+            @if (ApiComponent.Tier == "Pro")
+            {
+                <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid">Pro</Badge>
+            }
             @if (ApiComponent.AddedIn is { } added)
             {
                 <Badge Variant="BadgeVariant.Outline">Since @added</Badge>
