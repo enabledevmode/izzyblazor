@@ -1,10 +1,20 @@
 @inject Registry Registry
 @inject NavigationManager Navigation
 
-@* The docs sidebar. Each category is a group that starts open when the page is in it. *@
+@* The docs sidebar: the article sections, then the components by category. Each group starts open
+   when the page is in it. *@
 
 <NavMenu aria-label="Docs">
     <NavItem Href="docs" Icon="Lucide.BookOpen" Match="NavLinkMatch.All">Overview</NavItem>
+    @foreach (var group in Articles.Sections)
+    {
+        <NavGroup Label="@group.Title" Icon="@Pictogram.Lookup(group.Icon)" Open="@(group.Slug == _section)">
+            @foreach (var article in group.Articles)
+            {
+                <NavItem Href="@group.HrefOf(article)">@article.Title</NavItem>
+            }
+        </NavGroup>
+    }
     <NavItem Href="docs/common/style-props" Icon="Lucide.Ruler">Style props</NavItem>
     <NavItem Href="docs/components" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All">All components</NavItem>
     <NavLabel>Components</NavLabel>
@@ -21,11 +31,13 @@
 
 @code {
     private RegistryComponent? _current;
+    private string? _section;
 
     protected override void OnParametersSet()
     {
         // docs/components/{id}[/api]
         var parts = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].Split('/');
         _current = parts is ["docs", "components", var id, ..] ? Registry.ById(id) : null;
+        _section = parts is ["docs", var slug, ..] ? slug : null;
     }
 }

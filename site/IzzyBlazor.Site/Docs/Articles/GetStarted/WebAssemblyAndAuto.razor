@@ -1,0 +1,122 @@
+@page "/docs/get-started/webassembly-and-auto"
+
+@* Setting up an app with WebAssembly or Auto pages. The server project's steps are the Blazor Web
+   App article's; this one adds the .Client project and what changes in the browser. *@
+
+<ArticlePage Section="get-started" Slug="webassembly-and-auto">
+    <Lead>
+        WebAssembly and Auto pages run their components in the browser, from a <Code>.Client</Code> project that can't use
+        ASP.NET Core's server framework. That project gets <Code>IzzyBlazor.Core</Code>, and the server project keeps
+        <Code>IzzyBlazor</Code>.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Create the app</Heading>
+        <Code Block Language="bash">dotnet new blazor --empty --interactivity Auto -o MyApp</Code>
+        <TextBlock>
+            Use <Code>--interactivity WebAssembly</Code> for pages that only ever run in the browser. Either way you get two
+            projects: <Code>MyApp</Code>, the server, and <Code>MyApp.Client</Code>, where interactive pages and components live.
+            Pages are still static by default; a page runs in the browser once it has a render mode.
+        </TextBlock>
+
+        <Heading Level="2">Set up the server project</Heading>
+        <TextBlock>
+            Follow the <Anchor Href="docs/get-started/blazor-web-app">Blazor Web App</Anchor> steps in <Code>MyApp</Code>: install
+            <Code>IzzyBlazor</Code>, add the stylesheet and <Code>IzzyTheme</Code> to <Code>App.razor</Code>, add
+            <Code>@@using IzzyBlazor</Code> to <Code>_Imports.razor</Code>, and register the services:
+        </TextBlock>
+        <Code Block Language="csharp" Title="MyApp/Program.cs" HighlightLines="2,13">@ServerProgram</Code>
+        <TextBlock>
+            <Code>App.razor</Code> always renders on the server, so the stylesheet and theme are set up once, there, for every
+            page.
+        </TextBlock>
+
+        <Heading Level="2">Set up the .Client project</Heading>
+        <TextBlock>Install <Code>IzzyBlazor.Core</Code>:</TextBlock>
+        <Code Block Language="bash">dotnet add MyApp.Client package IzzyBlazor.Core --prerelease</Code>
+        <TextBlock>Import the components in <Code>MyApp.Client/_Imports.razor</Code>:</TextBlock>
+        <Code Block Language="razor" Title="MyApp.Client/_Imports.razor">@@using IzzyBlazor</Code>
+        <TextBlock>And register its services:</TextBlock>
+        <Code Block Language="csharp" Title="MyApp.Client/Program.cs" HighlightLines="4">@ClientProgram</Code>
+        <TextBlock>
+            An Auto page renders on the server first and in the browser later, so it uses both registrations.
+            <Code>AddIzzyBlazor</Code> on the server includes everything <Code>AddIzzyBlazorCore</Code> adds.
+        </TextBlock>
+
+        <Heading Level="2">Packages</Heading>
+        <TextBlock>IzzyBlazor ships as two packages. Keep them on the same version.</TextBlock>
+        <Table Items="Packages" Caption="Packages" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="Package" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
+            <TemplateColumn Title="Contains">@context!.Contains</TemplateColumn>
+            <TemplateColumn Title="Install in">@context!.Where</TemplateColumn>
+        </Table>
+        <TextBlock>
+            Every component is in <Code>IzzyBlazor.Core</Code>, and both packages use the <Code>IzzyBlazor</Code> namespace, so
+            the same markup works in either project.
+        </TextBlock>
+
+        <Heading Level="2">In the browser</Heading>
+        <TextBlock>Components behave the same in the browser, apart from what depends on the request:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Keep prerendering on</strong> (the default). <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>'s
+                remembered state, a dismissed <Anchor Href="docs/components/banner">Banner</Anchor> and the choice in
+                <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> are read from cookies on the server and
+                handed to the browser with the prerendered page. With <Code>prerender: false</Code> they start from their defaults.
+            </ListItem>
+            <ListItem>
+                <strong>Toasts show straight away.</strong> A redirect in the browser is a navigation, not a new request, so
+                there's nothing to carry over. Put <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> in the layout as
+                usual.
+            </ListItem>
+            <ListItem>
+                <strong>Dialogs opened from code need a host in the browser.</strong> Put one <Code>&lt;DialogHost /&gt;</Code> on the
+                interactive page, or in an interactive layout, in the <Code>.Client</Code> project. See
+                <Anchor Href="docs/components/dialog">Dialog</Anchor>.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: every component, with what it does in each mode.</ListItem>
+            <ListItem><Anchor Href="docs/components/form">Form</Anchor>: one form that posts on static pages and validates on interactive ones.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/existing-app">Add to an existing app</Anchor>: Bootstrap, your own components and name clashes.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private sealed record Package(string Name, string Contains, string Where);
+
+    private static readonly Package[] Packages =
+    [
+        new("IzzyBlazor", "Everything in IzzyBlazor.Core, plus the server pieces that read and write the request's cookies", "The server project"),
+        new("IzzyBlazor.Core", "Every component, the CSS and the script, with no dependency on the ASP.NET Core server", "The .Client project, or a Razor class library"),
+    ];
+
+    private const string ServerProgram = """
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddIzzyBlazor();
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents()
+            .AddInteractiveWebAssemblyComponents();
+
+        var app = builder.Build();
+        // ...
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode()
+            .AddInteractiveWebAssemblyRenderMode()
+            .AddAdditionalAssemblies(typeof(MyApp.Client._Imports).Assembly);
+        app.MapIzzyBlazor();
+
+        app.Run();
+        """;
+
+    private const string ClientProgram = """
+        using Microsoft.AspNetCore.Components.WebAssembly.Hosting;
+
+        var builder = WebAssemblyHostBuilder.CreateDefault(args);
+        builder.Services.AddIzzyBlazorCore();
+
+        await builder.Build().RunAsync();
+        """;
+}

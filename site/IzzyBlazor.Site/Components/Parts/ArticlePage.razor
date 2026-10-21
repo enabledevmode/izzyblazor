@@ -1,0 +1,48 @@
+@* An article's frame: the title and description for the head, breadcrumb, heading and lead, the
+   article's own content, then links to the articles before and after it in its section. *@
+
+@if (_found is { } found)
+{
+    <PageTitle>@found.Article.Title · IzzyBlazor</PageTitle>
+    <HeadContent><meta name="description" content="@found.Article.Summary" /></HeadContent>
+
+    <article class="site-article">
+        <Stack Gap="4" Class="site-pagehead">
+            <Breadcrumb>
+                <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
+                <BreadcrumbItem Href="@found.Section.Href">@found.Section.Title</BreadcrumbItem>
+            </Breadcrumb>
+            <Heading Level="1" Size="TextSize.Xl3">@found.Article.Title</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">@Lead</TextBlock>
+        </Stack>
+
+        @ChildContent
+
+        <PrevNext PreviousHref="@(_previous is null ? null : found.Section.HrefOf(_previous))" PreviousTitle="@_previous?.Title"
+                  NextHref="@(_next is null ? null : found.Section.HrefOf(_next))" NextTitle="@_next?.Title" />
+    </article>
+}
+
+@code {
+    /// <summary>The section's slug, as in <see cref="Articles"/>.</summary>
+    [Parameter, EditorRequired] public string Section { get; set; } = "";
+
+    /// <summary>The article's slug, as in <see cref="Articles"/>.</summary>
+    [Parameter, EditorRequired] public string Slug { get; set; } = "";
+
+    /// <summary>The opening paragraph under the title.</summary>
+    [Parameter, EditorRequired] public RenderFragment? Lead { get; set; }
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private (ArticleSection Section, Article Article)? _found;
+    private Article? _previous;
+    private Article? _next;
+
+    protected override void OnParametersSet()
+    {
+        _found = Articles.Find(Section, Slug)
+            ?? throw new InvalidOperationException($"No article docs/{Section}/{Slug} in Articles.");
+        (_previous, _next) = Articles.Around(_found.Value.Section, _found.Value.Article);
+    }
+}

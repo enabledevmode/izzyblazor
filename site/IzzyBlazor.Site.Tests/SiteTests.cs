@@ -105,6 +105,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.True(broken.Count == 0, string.Join("\n", broken));
         Assert.Contains("/docs/components/button/api", seen);
         Assert.Contains("/demos/button/toolbar", seen);
+        Assert.Contains("/docs/get-started/existing-app", seen);
     }
 
     [Fact]
