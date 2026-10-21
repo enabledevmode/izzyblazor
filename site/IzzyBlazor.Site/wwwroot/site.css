@@ -140,6 +140,11 @@
   font-size: 1.25rem;
 }
 .site-picto .ib-icon { width: 1em; height: 1em; }
+/* On the home page's gray band the tint washes out: a white tile with a hairline in light mode. */
+.site-band .site-picto {
+  background: light-dark(var(--ib-color-surface), var(--ib-color-primary-soft));
+  box-shadow: inset 0 0 0 1px light-dark(var(--ib-color-border), transparent);
+}
 .site-picto-sm { width: 2rem; height: 2rem; font-size: 1rem; }
 .site-picto-lg { width: 3rem; height: 3rem; font-size: 1.5rem; border-radius: var(--ib-radius-lg); }
 .site-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
