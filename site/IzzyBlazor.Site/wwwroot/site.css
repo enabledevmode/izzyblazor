@@ -2,6 +2,9 @@
    and the picture tiles' color) and a quiet border. Light mode keeps the library's Neutral, and
    example frames keep the library's grays in both schemes. */
 :root.site {
+  /* The brand's Ember for pictograms, which keep it while the chrome is Ink. */
+  --site-ember-soft: light-dark(#fdebdf, rgb(242 106 27 / 0.18));
+  --site-ember-text: light-dark(#b8480b, #ff9a5c);
   --ib-color-background: light-dark(#fafafa, #08090b);
   --ib-color-surface: light-dark(#ffffff, #0d0e11);
   --ib-color-surface-container-low: light-dark(#f3f3f5, #14161a);
@@ -137,14 +140,14 @@
   width: 2.5rem;
   height: 2.5rem;
   border-radius: var(--ib-radius-md);
-  background: var(--ib-color-primary-soft);
-  color: var(--ib-color-primary-text);
+  background: var(--site-ember-soft);
+  color: var(--site-ember-text);
   font-size: 1.25rem;
 }
 .site-picto .ib-icon { width: 1em; height: 1em; }
 /* On the home page's gray band the tint washes out: a white tile with a hairline in light mode. */
 .site-band .site-picto {
-  background: light-dark(var(--ib-color-surface), var(--ib-color-primary-soft));
+  background: light-dark(var(--ib-color-surface), var(--site-ember-soft));
   box-shadow: inset 0 0 0 1px light-dark(var(--ib-color-border), transparent);
 }
 .site-picto-sm { width: 2rem; height: 2rem; font-size: 1rem; }
