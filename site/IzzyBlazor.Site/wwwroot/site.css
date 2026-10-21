@@ -117,22 +117,32 @@
 .site-card-head { display: flex; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
 
 /* Component pictograms (Services/Pictures.cs): ink tiles in either scheme, like the hero. */
-.pg { display: block; width: 100%; height: auto; background: #14161a; }
+.pg {
+  /* Paper tiles with ink lines in light, ink tiles with paper lines in dark (as the monogram's i
+     switches); the knob and the rings are Ember in both. */
+  --pg-bg: light-dark(#f5f4f1, #14161a);
+  --pg-line: light-dark(#14161a, #f5f4f1);
+  --pg-steel: light-dark(#a9aeb6, #5c616b);
+  --pg-faint: light-dark(#dcdcd8, #33373f);
+  --pg-raised: light-dark(#ffffff, #1d2026);
+  --pg-muted: light-dark(#e7e5e0, #2a2e36);
+  --pg-strong: light-dark(#5a6069, #c9ccd1);
+  display: block; width: 100%; height: auto; aspect-ratio: 160 / 96; background: var(--pg-bg);
+}
 .pg :is(rect, circle, path) { fill: none; }
-.pg .pg-rings circle { fill: #f26a1b; }
-.pg .s { stroke: #f5f4f1; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.pg .d { stroke: #5c616b; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
-.pg .d0 { stroke: #33373f; stroke-width: 1.5; }
+.pg .pg-rings circle { fill: light-dark(rgb(242 106 27 / .5), #f26a1b); }
+.pg .s { stroke: var(--pg-line); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pg .d { stroke: var(--pg-steel); stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
+.pg .d0 { stroke: var(--pg-faint); stroke-width: 1.5; }
 .pg .es { stroke: #f26a1b; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; }
 .pg .ink-s { stroke: #14161a; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .pg .w2 { stroke-width: 2; } .pg .w3 { stroke-width: 3; }
 .pg .dash { stroke-dasharray: 4 5; }
-.pg .f { fill: #1d2026; } .pg .m { fill: #2a2e36; }
+.pg .f { fill: var(--pg-raised); } .pg .m { fill: var(--pg-muted); } .pg .bgf { fill: var(--pg-bg); }
 .pg .e { fill: #f26a1b; } .pg .a { fill: #ffb020; }
 .pg .h { fill: #f26a1b; fill-opacity: .08; } .pg .h2 { fill: #f26a1b; fill-opacity: .22; } .pg .hs { fill: #f26a1b; fill-opacity: .12; }
-.pg .t { fill: #5c616b; } .pg .p { fill: #c9ccd1; } .pg .p0 { fill: #f5f4f1; } .pg .ink { fill: #14161a; }
+.pg .t { fill: var(--pg-steel); } .pg .p { fill: var(--pg-strong); } .pg .p0 { fill: var(--pg-line); } .pg .inv { fill: var(--pg-bg); } .pg .ink { fill: #14161a; }
 .pg .o55 { opacity: .55; }
-.pg { aspect-ratio: 160 / 96; }
 
 /* Mode chips: "none" is struck through, so the color isn't the only signal. */
 .site-modes { display: inline-flex; flex-wrap: wrap; gap: var(--ib-space-1); vertical-align: middle; }
