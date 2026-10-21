@@ -27,7 +27,9 @@
     <CascadingValue Value="_context">
         <CascadingValue Value="_headerLinks" IsFixed="true">
             <CascadingValue Value="_outline" IsFixed="true">
-                @ChildContent
+                <CascadingValue Value="_brand" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
             </CascadingValue>
         </CascadingValue>
     </CascadingValue>
@@ -70,6 +72,7 @@
     private AppShellContext _context = null!;
     private readonly ShellHeaderLinks _headerLinks = new();
     private readonly PageOutline _outline = new();
+    private readonly ShellBrand _brand = new();
     private string? _class;
     private string? _style;
 

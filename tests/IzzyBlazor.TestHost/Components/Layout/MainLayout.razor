@@ -13,7 +13,9 @@
     </Banner>
     <AppHeader>
         <SidebarToggle />
-        <a href="/" class="host-brand">IzzyBlazor <span>dev host</span></a>
+        <AppBrand Href="/" Label="IzzyBlazor dev host" HideLabel>
+            <Logo><span class="host-brand">IzzyBlazor <span>dev host</span></span></Logo>
+        </AppBrand>
         <Box Grow />
         @if (_counterpart is not null)
         {

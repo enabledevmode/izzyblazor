@@ -1828,26 +1828,330 @@
  */
 @layer izzy.components {
   @media (width < 640px) {
-    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-drawer-end) > .ib-shell-header > :is(.ib-shell-toggle, .ib-shell-toggle-close) {
       order: 1;
     }
   }
 
   @media (width < 768px) {
-    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-drawer-end) > .ib-shell-header > :is(.ib-shell-toggle, .ib-shell-toggle-close) {
       order: 1;
     }
   }
 
   @media (width < 1024px) {
-    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-drawer-end) > .ib-shell-header > :is(.ib-shell-toggle, .ib-shell-toggle-close) {
       order: 1;
     }
   }
 
   @media (width < 1280px) {
-    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-drawer-end) > .ib-shell-header > .ib-shell-toggle {
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-drawer-end) > .ib-shell-header > :is(.ib-shell-toggle, .ib-shell-toggle-close) {
       order: 1;
+    }
+  }
+}
+
+/*
+ * SmallScreen="Panel": below its breakpoint the sidebar opens under the header instead of as a
+ * drawer, full width and as tall as its content (up to the window's bottom, then it scrolls), like
+ * SiteNav's menu. The header stays in view and SidebarToggle's close button takes the menu button's
+ * place. The sidebar box spans from the header to the bottom without catching taps, so the
+ * backdrop under it closes the panel; the visible sheet is the inner box.
+ *
+ * Under the header: anchored to it where anchor positioning is supported, else the sticky banner
+ * and header heights (a header that isn't sticky then leaves a gap once scrolled).
+ */
+@layer izzy.components {
+  .ib-shell {
+    --ib-shell-panel-top: calc(var(--ib-shell-banner-top) + var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px));
+  }
+
+  .ib-shell-header {
+    anchor-name: --ib-shell-header;
+  }
+
+  @supports (anchor-name: --a) {
+    .ib-shell {
+      --ib-shell-panel-top: max(0px, anchor(--ib-shell-header bottom, calc(var(--ib-shell-banner-top) + var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px))));
+    }
+  }
+
+  /* The drawer's top row with the shell's brand (no SidebarHeader): only in the drawer. */
+  .ib-shell-sidebar-head-auto,
+  .ib-shell-toggle-close {
+    display: none;
+  }
+
+  @media (width < 640px) {
+    .ib-shell-sidebar-bp-sm .ib-shell-sidebar-head-auto {
+      display: flex;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel {
+      inset: var(--ib-shell-panel-top) 0 0;
+      width: 100%;
+      contain: none;
+      border-inline-width: 0;
+      background: none;
+      box-shadow: none;
+      pointer-events: none;
+      opacity: 0;
+      translate: 0 -0.5rem;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel {
+      opacity: 1;
+      translate: 0 0;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel > .ib-shell-sidebar-inner {
+      height: auto;
+      max-height: 100%;
+      padding-block: var(--ib-space-2) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      background-color: var(--ib-shell-sidebar-bg, var(--ib-shell-tone));
+      box-shadow: var(--ib-shadow-lg);
+      pointer-events: auto;
+    }
+
+    /* No close button or top bar in the panel: the header stays in view, with its own. */
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel .ib-shell-sidebar-close {
+      display: none;
+    }
+
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel .ib-shell-sidebar-head {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* The backdrop dims what's below the header, not the header. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+      top: var(--ib-shell-panel-top);
+    }
+
+    /* While it's open, the menu button's place holds its close button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel:target) .ib-shell-toggle,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel) .ib-shell-toggle {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel:target) .ib-shell-toggle-close,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel) .ib-shell-toggle-close {
+      display: inline-flex;
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-shell-sidebar-bp-md .ib-shell-sidebar-head-auto {
+      display: flex;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel {
+      inset: var(--ib-shell-panel-top) 0 0;
+      width: 100%;
+      contain: none;
+      border-inline-width: 0;
+      background: none;
+      box-shadow: none;
+      pointer-events: none;
+      opacity: 0;
+      translate: 0 -0.5rem;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel {
+      opacity: 1;
+      translate: 0 0;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel > .ib-shell-sidebar-inner {
+      height: auto;
+      max-height: 100%;
+      padding-block: var(--ib-space-2) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      background-color: var(--ib-shell-sidebar-bg, var(--ib-shell-tone));
+      box-shadow: var(--ib-shadow-lg);
+      pointer-events: auto;
+    }
+
+    /* No close button or top bar in the panel: the header stays in view, with its own. */
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel .ib-shell-sidebar-close {
+      display: none;
+    }
+
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel .ib-shell-sidebar-head {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* The backdrop dims what's below the header, not the header. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+      top: var(--ib-shell-panel-top);
+    }
+
+    /* While it's open, the menu button's place holds its close button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel:target) .ib-shell-toggle,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel) .ib-shell-toggle {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel:target) .ib-shell-toggle-close,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel) .ib-shell-toggle-close {
+      display: inline-flex;
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-shell-sidebar-bp-lg .ib-shell-sidebar-head-auto {
+      display: flex;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel {
+      inset: var(--ib-shell-panel-top) 0 0;
+      width: 100%;
+      contain: none;
+      border-inline-width: 0;
+      background: none;
+      box-shadow: none;
+      pointer-events: none;
+      opacity: 0;
+      translate: 0 -0.5rem;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel {
+      opacity: 1;
+      translate: 0 0;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel > .ib-shell-sidebar-inner {
+      height: auto;
+      max-height: 100%;
+      padding-block: var(--ib-space-2) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      background-color: var(--ib-shell-sidebar-bg, var(--ib-shell-tone));
+      box-shadow: var(--ib-shadow-lg);
+      pointer-events: auto;
+    }
+
+    /* No close button or top bar in the panel: the header stays in view, with its own. */
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel .ib-shell-sidebar-close {
+      display: none;
+    }
+
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel .ib-shell-sidebar-head {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* The backdrop dims what's below the header, not the header. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+      top: var(--ib-shell-panel-top);
+    }
+
+    /* While it's open, the menu button's place holds its close button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel:target) .ib-shell-toggle,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel) .ib-shell-toggle {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel:target) .ib-shell-toggle-close,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel) .ib-shell-toggle-close {
+      display: inline-flex;
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-shell-sidebar-bp-xl .ib-shell-sidebar-head-auto {
+      display: flex;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel {
+      inset: var(--ib-shell-panel-top) 0 0;
+      width: 100%;
+      contain: none;
+      border-inline-width: 0;
+      background: none;
+      box-shadow: none;
+      pointer-events: none;
+      opacity: 0;
+      translate: 0 -0.5rem;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel:target,
+    .ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel {
+      opacity: 1;
+      translate: 0 0;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), opacity var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel > .ib-shell-sidebar-inner {
+      height: auto;
+      max-height: 100%;
+      padding-block: var(--ib-space-2) calc(var(--ib-space-4) + env(safe-area-inset-bottom, 0px));
+      border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      background-color: var(--ib-shell-sidebar-bg, var(--ib-shell-tone));
+      box-shadow: var(--ib-shadow-lg);
+      pointer-events: auto;
+    }
+
+    /* No close button or top bar in the panel: the header stays in view, with its own. */
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel .ib-shell-sidebar-close {
+      display: none;
+    }
+
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel .ib-shell-sidebar-head {
+      min-height: 0;
+      margin: 0;
+      padding: 0;
+      border-bottom: 0;
+    }
+
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel .ib-shell-sidebar-head + .ib-shell-sidebar-body {
+      --ib-sb-line-top: var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    /* The backdrop dims what's below the header, not the header. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+      top: var(--ib-shell-panel-top);
+    }
+
+    /* While it's open, the menu button's place holds its close button. */
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel:target) .ib-shell-toggle,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel) .ib-shell-toggle {
+      display: none;
+    }
+
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel:target) .ib-shell-toggle-close,
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel) .ib-shell-toggle-close {
+      display: inline-flex;
     }
   }
 }

@@ -144,13 +144,27 @@ class Shell extends IzzyElement {
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", "true"));
     this.setInert(true);
     // The close button first: with a SidebarHeader it comes after the header's links in the row.
-    (this.sidebar?.querySelector<HTMLElement>("[data-ib-shell-close]") ?? this.sidebar?.querySelector<HTMLElement>("a[href], button"))?.focus();
+    // A panel has none (its close button is in the header), so focus goes to its first link.
+    const shown = (el: HTMLElement) => (el.checkVisibility ? el.checkVisibility() : el.offsetParent !== null);
+    const sidebar = this.sidebar;
+    const close = sidebar ? [...sidebar.querySelectorAll<HTMLElement>("[data-ib-shell-close]")].find(shown) : undefined;
+    (close ?? (sidebar ? [...sidebar.querySelectorAll<HTMLElement>("a[href], button, input, summary")].find(shown) : undefined))?.focus();
   }
 
-  /** While the drawer is open the rest of the shell is inert, so focus and screen readers stay in it. */
+  /** Below its breakpoint a SmallScreen="Panel" sidebar opens under the header, which stays usable. */
+  private get isPanel(): boolean {
+    return !!this.sidebar?.classList.contains("ib-shell-sidebar-panel");
+  }
+
+  /**
+   * While the drawer is open the rest of the shell is inert, so focus and screen readers stay in it.
+   * A panel leaves the header usable: its menu button has become the close button.
+   */
   private setInert(on: boolean): void {
+    const panel = this.isPanel;
     for (const child of this.children) {
       if (child === this.sidebar || child.classList.contains("ib-shell-backdrop") || child.classList.contains("ib-skip-link")) continue;
+      if (panel && child.classList.contains("ib-shell-header")) continue;
       child.toggleAttribute("inert", on);
     }
   }

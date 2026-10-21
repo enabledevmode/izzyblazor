@@ -140,6 +140,19 @@ public enum Orientation
     Horizontal,
 }
 
+/// <summary>How an <see cref="AppSidebar"/> opens below its breakpoint.</summary>
+public enum SidebarSmallScreen
+{
+    /// <summary>A drawer that slides in from the side over the page (the default), full width on phones.</summary>
+    Drawer,
+
+    /// <summary>
+    /// A panel under the header, full width and as tall as its content: the header stays in view and
+    /// the menu button turns into the close button, as SiteNav's menu does.
+    /// </summary>
+    Panel,
+}
+
 /// <summary>Which side of the page a sidebar sits on, following the reading direction.</summary>
 public enum SidebarPosition
 {

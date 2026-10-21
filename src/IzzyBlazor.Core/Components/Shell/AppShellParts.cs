@@ -31,6 +31,39 @@ internal sealed class ShellHeaderLinks
     }
 }
 
+/// <summary>
+/// Carries the shell's <see cref="AppBrand"/> to its <see cref="AppSidebar"/>, whose drawer shows it
+/// in its top row when the sidebar has no <see cref="SidebarHeader"/>.
+/// </summary>
+internal sealed class ShellBrand
+{
+    /// <summary>The first brand in the shell, or null.</summary>
+    public AppBrand? Brand { get; private set; }
+
+    /// <summary>Raised when the brand changes, so the sidebar renders it.</summary>
+    public event Action? Changed;
+
+    internal void Set(AppBrand brand)
+    {
+        if (Brand is not null && Brand != brand)
+        {
+            return;
+        }
+
+        Brand = brand;
+        Changed?.Invoke();
+    }
+
+    internal void Clear(AppBrand brand)
+    {
+        if (Brand == brand)
+        {
+            Brand = null;
+            Changed?.Invoke();
+        }
+    }
+}
+
 /// <summary>Shared plumbing for the parts of an <see cref="AppShell"/>.</summary>
 public abstract class AppShellPart : IzzyComponentBase
 {

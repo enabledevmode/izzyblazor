@@ -47,6 +47,19 @@
                 }
             </div>
         }
+        else if (SmallScreen == SidebarSmallScreen.Drawer && Brand?.Brand is { } brand)
+        {
+            @* No SidebarHeader: the drawer's top row shows the shell's brand, as the header does, so it
+               never opens on an empty bar. Shown in the drawer only (the header has the brand above it). *@
+            <div class="ib-shell-sidebar-head ib-shell-sidebar-head-auto">
+                @CloseControl
+                <div class="ib-shell-sidebar-slot">@brand.Copy</div>
+            </div>
+            @if (ChevronAt(VerticalPosition.Top))
+            {
+                @CollapseControl
+            }
+        }
         else
         {
             @CloseControl
@@ -97,6 +110,15 @@
     /// from the right on phones, with the menu button on the right, where content sites put it.
     /// </summary>
     [Parameter] public SidebarPosition? DrawerPosition { get; set; }
+
+    /// <summary>
+    /// How it opens below <see cref="Breakpoint"/>: <see cref="SidebarSmallScreen.Drawer"/> (the
+    /// default) slides in from the side over the page, for long navigation such as docs or an app;
+    /// <see cref="SidebarSmallScreen.Panel"/> opens under the header, full width, with the header
+    /// still in view and <see cref="SidebarToggle"/> turned into its close button, as SiteNav does.
+    /// Both work with JavaScript off.
+    /// </summary>
+    [Parameter] public SidebarSmallScreen SmallScreen { get; set; } = SidebarSmallScreen.Drawer;
 
     /// <summary>Runs the full height of the window, with the header and footer beside it instead of above and below.</summary>
     [Parameter] public bool FullHeight { get; set; }
@@ -176,6 +198,10 @@
     private PersistingComponentStateSubscription? _persisting;
 
     [CascadingParameter] private ShellHeaderLinks? HeaderLinks { get; set; }
+
+    [CascadingParameter] private ShellBrand? Brand { get; set; }
+
+    private ShellBrand? _brandSubscribed;
 
     private ShellHeaderLinks? _subscribed;
 
@@ -289,6 +315,7 @@
         classes.Add("ib-shell-sidebar-end", Position == SidebarPosition.End);
         classes.Add("ib-shell-drawer-end", (DrawerPosition ?? Position) == SidebarPosition.End);
         classes.Add("ib-shell-sidebar-full", FullHeight);
+        classes.Add("ib-shell-sidebar-panel", SmallScreen == SidebarSmallScreen.Panel);
         classes.Add("ib-shell-sidebar-collapsible", Collapsible);
         styles.AddVar("sidebar-w", StyleValues.Length(Width));
         if (Collapsible)
@@ -313,6 +340,20 @@
 
         _lastCollapsedParam = Collapsed;
         (_class, _style) = BuildRootAttributes();
+
+        if (!ReferenceEquals(_brandSubscribed, Brand))
+        {
+            if (_brandSubscribed is not null)
+            {
+                _brandSubscribed.Changed -= OnHeaderLinksChanged;
+            }
+
+            _brandSubscribed = Brand;
+            if (_brandSubscribed is not null)
+            {
+                _brandSubscribed.Changed += OnHeaderLinksChanged;
+            }
+        }
 
         if (!ReferenceEquals(_subscribed, HeaderLinks))
         {
@@ -343,6 +384,11 @@
         if (_subscribed is not null)
         {
             _subscribed.Changed -= OnHeaderLinksChanged;
+        }
+
+        if (_brandSubscribed is not null)
+        {
+            _brandSubscribed.Changed -= OnHeaderLinksChanged;
         }
     }
 }
