@@ -46,6 +46,9 @@ public sealed class Registry
     /// <summary>Every component, in category order, then file order.</summary>
     public IReadOnlyList<RegistryComponent> Components { get; }
 
+    /// <summary>The component count rounded down to ten, as "80+", for links and marketing copy.</summary>
+    public string ComponentCountLabel => Components.Count < 10 ? $"{Components.Count}" : $"{Components.Count / 10 * 10}+";
+
     public static Registry Load(ApiMetadata api)
     {
         using var stream = typeof(Registry).Assembly.GetManifestResourceStream("components.json")

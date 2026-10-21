@@ -135,7 +135,7 @@
     <Stack Gap="4">
         <Row Gap="4" Align="Align.Baseline" Wrap>
             <Heading Level="2" Size="TextSize.Xl2">Components</Heading>
-            <Anchor Href="docs/components">All @Registry.Components.Count components</Anchor>
+            <Anchor Href="docs/components">@Registry.ComponentCountLabel components</Anchor>
         </Row>
         <Row Gap="2" Wrap>
             @foreach (var component in Registry.Components.Where(c => Featured.Contains(c.Name)))

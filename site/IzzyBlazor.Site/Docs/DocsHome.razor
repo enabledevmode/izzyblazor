@@ -28,7 +28,7 @@
 
     <Heading Level="2">Where to go</Heading>
     <Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="3">
-        <Card Title="Components" Href="docs/components" Description="@($"All {Registry.Components.Count}, by category, each with an Overview and an API page.")" Size="ControlSize.Sm" Class="site-linkcard">
+        <Card Title="Components" Href="docs/components" Description="@($"{Registry.ComponentCountLabel}, by category, each with an Overview and an API page.")" Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
         </Card>
         <Card Title="Style props" Href="docs/common/style-props" Description="The item, surface and field props many components share." Size="ControlSize.Sm" Class="site-linkcard">
