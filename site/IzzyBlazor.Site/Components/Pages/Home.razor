@@ -3,12 +3,29 @@
 @inject Registry Registry
 
 <PageTitle>IzzyBlazor: Blazor components. No circuit required.</PageTitle>
-<HeadContent><meta name="description" content="Blazor components that work in static SSR, even with JavaScript off, and bind to C# on interactive pages." /></HeadContent>
+<HeadContent>
+    <meta name="description" content="Blazor components that work in static SSR, even with JavaScript off, and bind to C# on interactive pages." />
+    @* The brand's display face, for the hero's headline only. *@
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,700&display=swap" />
+</HeadContent>
 
-<Section Spacing="SectionSpacing.Lg">
-    <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="10" Align="Align.Center">
-        <Stack Gap="5">
-            <Badge Accent="Accent.Primary">Static SSR first · MIT</Badge>
+@* The brand's hero (brand/hero/hero-dark): an ink band in either scheme, the wordmark, the headline
+   with its ember line, and the glowing knob behind the live example. Drawn rather than placed as
+   the image, so the headline stays text and the example stays live. *@
+<Section Spacing="SectionSpacing.Lg" ColorScheme="ColorScheme.Dark" Class="site-hero">
+    <svg class="site-hero-glow" viewBox="0 0 800 800" aria-hidden="true" focusable="false">
+        <circle cx="400" cy="400" r="364" fill="#F26A1B" fill-opacity="0.05" />
+        <circle cx="400" cy="400" r="280" fill="#F26A1B" fill-opacity="0.07" />
+        <circle cx="400" cy="400" r="210" fill="#F26A1B" fill-opacity="0.1" />
+        <circle cx="400" cy="400" r="197.3" fill="#F26A1B" fill-opacity="0.22" />
+        <circle cx="400" cy="400" r="140" fill="#F26A1B" />
+        <circle cx="400" cy="400" r="57.3" fill="#FFB020" />
+    </svg>
+    <Grid Columns="new() { Base = 1, Lg = 2 }" Gap="10" Align="Align.Center" Class="site-hero-grid">
+        <Stack Gap="6">
+            <img class="site-hero-wordmark" src="img/izzyblazor-wordmark-dark.svg" alt="" width="944" height="210" />
             <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Wrap="TextWrap.Balance" Class="site-hero-title">
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
@@ -17,7 +34,7 @@
                 gets better with it on, and binds to C# on interactive pages.
             </TextBlock>
             <Row Gap="3" Wrap>
-                <Button Href="docs" Size="ControlSize.Lg">Get started</Button>
+                <Button Href="docs" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
                 <Button Href="docs/components" Size="ControlSize.Lg" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
             </Row>
             <Row Gap="2" Align="Align.Center" Class="site-install">
@@ -26,7 +43,7 @@
                 <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
             </Row>
         </Stack>
-        <ExampleViewer Example="home-sign-in" />
+        <ExampleViewer Example="home-sign-in" Scheme="dark" />
     </Grid>
 </Section>
 
@@ -35,15 +52,15 @@
         <Heading Level="2" Size="TextSize.Xl2">One test for every component</Heading>
         <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
             <Card Title="Works with JavaScript off" Variant="CardVariant.Outline">
-                <CardHeader><ModeChip Mode="off" Level="ModeLevel.Full" /></CardHeader>
+                <CardHeader><span class="site-card-head"><Pictogram Icon="Lucide.ZapOff" /><ModeChip Mode="off" Level="ModeLevel.Full" /></span></CardHeader>
                 <TextBlock>Components render complete HTML from their parameters. Native forms, links, details and dialog do the work.</TextBlock>
             </Card>
             <Card Title="Better with script" Variant="CardVariant.Outline">
-                <CardHeader><ModeChip Mode="static" Level="ModeLevel.Full" /></CardHeader>
+                <CardHeader><span class="site-card-head"><Pictogram Icon="Lucide.FileCode" /><ModeChip Mode="static" Level="ModeLevel.Full" /></span></CardHeader>
                 <TextBlock>Small custom elements add keyboard handling, live values and drop zones. No Blazor circuit.</TextBlock>
             </Card>
             <Card Title="Binds to C# when interactive" Variant="CardVariant.Outline">
-                <CardHeader><ModeChip Mode="live" Level="ModeLevel.Full" /></CardHeader>
+                <CardHeader><span class="site-card-head"><Pictogram Icon="Lucide.Zap" /><ModeChip Mode="live" Level="ModeLevel.Full" /></span></CardHeader>
                 <TextBlock>On Server, WebAssembly or Auto pages, the same markup takes <Code>@("@bind-Value")</Code> and events.</TextBlock>
             </Card>
         </Grid>
@@ -54,10 +71,18 @@
     <Stack Gap="6">
         <Heading Level="2" Size="TextSize.Xl2">Start from your project</Heading>
         <Grid MinChildWidth="Length.Rem(15)" Gap="4">
-            <Card Title="New Blazor Web App" Href="@GettingStarted" Description="Install IzzyBlazor, add IzzyTheme to the head, map the endpoints." />
-            <Card Title="WebAssembly or Auto" Href="@($"{GettingStarted}#webassembly-and-auto-render-modes")" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." />
-            <Card Title="Every component" Href="docs/components" Description="Each one's API, generated from the library, and an Overview with live examples." />
-            <Card Title="Demos" Href="demos" Description="Realistic scenarios, each in all three modes, with the source." />
+            <Card Title="New Blazor Web App" Href="@GettingStarted" Description="Install IzzyBlazor, add IzzyTheme to the head, map the endpoints.">
+                <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
+            </Card>
+            <Card Title="WebAssembly or Auto" Href="@($"{GettingStarted}#webassembly-and-auto-render-modes")" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor.">
+                <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
+            </Card>
+            <Card Title="Every component" Href="docs/components" Description="Each one's API, generated from the library, and an Overview with live examples.">
+                <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
+            </Card>
+            <Card Title="Demos" Href="demos" Description="Realistic scenarios, each in all three modes, with the source.">
+                <CardHeader><Pictogram Icon="Lucide.MonitorPlay" /></CardHeader>
+            </Card>
         </Grid>
     </Stack>
 </Section>
@@ -78,6 +103,9 @@
 </Section>
 
 @code {
+    // The brand's Ember, on the hero's call to action only (it isn't a component accent).
+    private static readonly Accent Ember = Accent.Of("#F26A1B");
+
     private const string Install = "dotnet add package IzzyBlazor --prerelease";
     private const string GettingStarted = "https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md";
 

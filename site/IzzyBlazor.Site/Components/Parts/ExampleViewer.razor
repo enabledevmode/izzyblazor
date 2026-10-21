@@ -82,6 +82,12 @@
     /// <summary>The example's id in components.json, such as <c>button-variants</c>.</summary>
     [Parameter, EditorRequired] public string Example { get; set; } = "";
 
+    /// <summary>
+    /// Shows the example in this scheme ("light" or "dark") whatever the page's, for a viewer on a
+    /// band of its own scheme, such as the home page's dark hero.
+    /// </summary>
+    [Parameter] public string? Scheme { get; set; }
+
     /// <summary>Starts with the source shown.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
@@ -118,7 +124,7 @@
         _uid = $"ex-{Example}";
     }
 
-    private string Src(string mode) => $"frame/{Example}?mode={mode}";
+    private string Src(string mode) => Scheme is "light" or "dark" ? $"frame/{Example}?mode={mode}&scheme={Scheme}" : $"frame/{Example}?mode={mode}";
 
     private string NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : mode switch
     {

@@ -32,6 +32,14 @@ public class RegistryTests
     }
 
     [Fact]
+    public void Every_pictogram_is_a_Lucide_icon()
+    {
+        var unknown = Registry.Components.Where(c => IzzyBlazor.Site.Components.Parts.Pictogram.Lookup(c.Icon) is null).Select(c => $"{c.Id}: {c.Icon}").ToList();
+
+        Assert.True(unknown.Count == 0, string.Join(", ", unknown));
+    }
+
+    [Fact]
     public void Shown_source_leaves_out_hidden_lines()
     {
         var source = ExampleCatalog.Clean("<A />\r\n@* hide *@\n<Scaffolding />\n@* /hide *@\n<B />\n");
