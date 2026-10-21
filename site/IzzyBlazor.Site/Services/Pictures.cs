@@ -91,4 +91,12 @@ public static class Pictures
         ["accordion"] = """<rect class="f s" x="32" y="12" width="96" height="18" rx="6"/><rect class="f es" x="32" y="36" width="96" height="30" rx="6"/><path class="es" fill="none" d="M112 44l4 4 4-4"/><rect class="p" x="42" y="50" width="50" height="3" rx="1.5"/><rect class="f s" x="32" y="72" width="96" height="14" rx="6"/>""",
         ["collapsible"] = """<path class="es" fill="none" d="M36 26l4 4 4-4"/><rect class="p" x="52" y="26.5" width="48" height="3" rx="1.5"/><path class="es" fill="none" d="M40 40V74"/><rect class="t" x="50" y="44" width="70" height="3" rx="1.5"/><rect class="t" x="50" y="56" width="58" height="3" rx="1.5"/><rect class="t" x="50" y="68" width="64" height="3" rx="1.5"/>""",
     };
+
+    /// <summary>Pictures for the three modes (Off, Static, Live), on the home page.</summary>
+    public static IReadOnlyDictionary<string, string> Modes { get; } = new Dictionary<string, string>(StringComparer.Ordinal)
+    {
+        ["mode-off"] = """<rect class="f s" x="44" y="12" width="72" height="72" rx="9"/><rect class="p" x="56" y="24" width="30" height="3" rx="1.5"/><rect class="f s" x="56" y="34" width="48" height="11" rx="4"/><rect class="f s" x="56" y="50" width="48" height="11" rx="4"/><rect class="e" x="56" y="67" width="26" height="9" rx="4"/>""",
+        ["mode-static"] = """<rect class="f s" x="44" y="12" width="72" height="72" rx="9"/><rect class="f es" x="54" y="24" width="52" height="13" rx="5"/><rect class="p" x="62" y="29" width="22" height="3" rx="1.5"/><path class="es" fill="none" d="M94 28l3 3 3-3"/><rect class="f s" x="54" y="42" width="52" height="32" rx="5"/><rect class="hs" x="56" y="51" width="48" height="11" rx="3"/><rect class="p" x="62" y="55" width="30" height="3" rx="1.5"/><rect class="t" x="62" y="66" width="22" height="3" rx="1.5"/>""",
+        ["mode-live"] = """<rect class="f s" x="18" y="22" width="58" height="52" rx="8"/><rect class="p" x="28" y="34" width="30" height="3" rx="1.5"/><rect class="t" x="28" y="44" width="38" height="3" rx="1.5"/><rect class="e" x="28" y="56" width="22" height="9" rx="4"/><rect class="f s" x="106" y="26" width="36" height="18" rx="5"/><rect class="f s" x="106" y="50" width="36" height="18" rx="5"/><circle class="t" cx="116" cy="35" r="2.5"/><circle class="t" cx="116" cy="59" r="2.5"/><path class="es w2" fill="none" d="M76 48H106"/><circle class="h" cx="91" cy="48" r="10"/><circle class="h2" cx="91" cy="48" r="7.2"/><circle class="e" cx="91" cy="48" r="5"/><circle class="a" cx="91" cy="48" r="2.1"/>""",
+    };
 }

@@ -1,7 +1,7 @@
 @* A component's pictogram (Services/Pictures.cs) on its ink tile, with the hero's rings in the
    corner. Decorative: the card's title names the component. *@
 
-@if (Pictures.ById.TryGetValue(Id, out var drawing))
+@if (Pictures.ById.TryGetValue(Id, out var drawing) || Pictures.Modes.TryGetValue(Id, out drawing))
 {
     <svg class="pg" viewBox="0 0 160 96" aria-hidden="true" focusable="false">
         <g class="pg-rings"><circle cx="160" cy="96" r="150" fill-opacity=".03" /><circle cx="160" cy="96" r="110" fill-opacity=".035" /><circle cx="160" cy="96" r="75" fill-opacity=".045" /></g>
@@ -10,6 +10,6 @@
 }
 
 @code {
-    /// <summary>The component's id in components.json.</summary>
+    /// <summary>A component's id in components.json, or a mode's picture ("mode-off", "mode-static", "mode-live").</summary>
     [Parameter, EditorRequired] public string Id { get; set; } = "";
 }
