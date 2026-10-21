@@ -50,29 +50,6 @@
 <Section Bg="Color.SurfaceContainerLow" Class="site-band">
     <Stack Gap="6">
         <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl2">Progressive by design</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every component works at each layer and gets better at the next.</TextBlock>
-        </Stack>
-        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
-            <Card Title="Real HTML first" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-off" /><span class="site-media-tag"><ModeChip Mode="off" Level="ModeLevel.Full" /></span></div></CardMedia>
-                <TextBlock>Components render complete HTML on the server: a fast first paint, readable by search engines, and working before the script loads or if it fails.</TextBlock>
-            </Card>
-            <Card Title="Interactive without a circuit" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><ModeChip Mode="static" Level="ModeLevel.Full" /></span></div></CardMedia>
-                <TextBlock>Small custom elements add keyboard handling, live values and drop zones on static pages. No SignalR, no WebAssembly.</TextBlock>
-            </Card>
-            <Card Title="C# where you need it" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-live" /><span class="site-media-tag"><ModeChip Mode="live" Level="ModeLevel.Full" /></span></div></CardMedia>
-                <TextBlock>Make a page Server, WebAssembly or Auto and the same components take <Code>@("@bind-Value")</Code> and events. Nothing to rewrite.</TextBlock>
-            </Card>
-        </Grid>
-    </Stack>
-</Section>
-
-<Section>
-    <Stack Gap="6">
-        <Stack Gap="2">
             <Heading Level="2" Size="TextSize.Xl2">Why SSR first</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted">
                 Interactive Server keeps a SignalR circuit open for every visitor; WebAssembly downloads a runtime first.
@@ -100,6 +77,29 @@
                 <Heading Level="3" Size="TextSize.Md">One set of components</Heading>
                 <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages. Opt a page into interactivity when it needs C#.</TextBlock>
             </Stack>
+        </Grid>
+    </Stack>
+</Section>
+
+<Section>
+    <Stack Gap="6">
+        <Stack Gap="2">
+            <Heading Level="2" Size="TextSize.Xl2">Progressive by design</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every component works at each layer and gets better at the next.</TextBlock>
+        </Stack>
+        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
+            <Card Title="Real HTML first" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-off" /><span class="site-media-tag"><ModeChip Mode="off" Level="ModeLevel.Full" /></span></div></CardMedia>
+                <TextBlock>Components render complete HTML on the server: a fast first paint, readable by search engines, and working before the script loads or if it fails.</TextBlock>
+            </Card>
+            <Card Title="Interactive without a circuit" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><ModeChip Mode="static" Level="ModeLevel.Full" /></span></div></CardMedia>
+                <TextBlock>Small custom elements add keyboard handling, live values and drop zones on static pages. No SignalR, no WebAssembly.</TextBlock>
+            </Card>
+            <Card Title="C# where you need it" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-live" /><span class="site-media-tag"><ModeChip Mode="live" Level="ModeLevel.Full" /></span></div></CardMedia>
+                <TextBlock>Make a page Server, WebAssembly or Auto and the same components take <Code>@("@bind-Value")</Code> and events. Nothing to rewrite.</TextBlock>
+            </Card>
         </Grid>
     </Stack>
 </Section>

@@ -12,9 +12,12 @@
   --ib-color-outline: light-dark(#b8b8bf, #44474f);
 }
 :root.site .ib-card-outline { --ib-card-bg: light-dark(#ffffff, #14161a); }
-/* The home page's gray band is light mode only: in dark mode the hero is the one Ink band, and the
-   cards below sit on Ink against the near-black page. */
-:root.site .site-band { background: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface)); }
+/* The home page's band ("Why SSR first"): gray in light mode; in dark mode a shade above the hero's
+   Ink, with a hairline, so the two read as separate bands. */
+:root.site .site-band {
+  background: light-dark(var(--ib-color-surface-container-low), #191b20);
+  border-block-start: 1px solid light-dark(transparent, var(--ib-color-border));
+}
 
 /*
  * The docs site's own styles: page layout, the example viewer and API reference blocks. Everything
