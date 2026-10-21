@@ -148,28 +148,19 @@
    card reads picture, title, text. */
 .site-media { position: relative; }
 .site-media-tag { position: absolute; top: var(--ib-space-3); left: var(--ib-space-3); display: inline-flex; gap: var(--ib-space-1); }
-.site-media-tag .ib-badge { box-shadow: 0 0 0 2px var(--ib-color-surface); }
 
 /* Link cards: they take you somewhere, so they read as links rather than content: a small
-   pictogram on the left, the title with an arrow, the description under it. */
+   pictogram on the left, the title and the description beside it. */
 .site-linkcard .ib-card-heading {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: auto minmax(0, 1fr);
   column-gap: var(--ib-space-3);
   row-gap: var(--ib-space-1);
   align-items: center;
 }
 .site-linkcard .ib-card-heading > .site-picto { grid-row: 1 / span 2; align-self: start; }
 .site-linkcard .ib-card-title { grid-column: 2; }
-.site-linkcard .ib-card-description { grid-column: 2 / span 2; margin: 0; }
-.site-linkcard .ib-card-heading::after {
-  content: "\2192" / "";
-  grid-row: 1;
-  grid-column: 3;
-  color: var(--ib-color-muted);
-  transition: translate 0.15s ease, color 0.15s ease;
-}
-.site-linkcard:hover .ib-card-heading::after { translate: 3px 0; color: var(--ib-color-primary-text); }
+.site-linkcard .ib-card-description { grid-column: 2; margin: 0; }
 .site-linkcard:hover { border-color: var(--ib-color-primary); }
 .site-linkcard .ib-card-body:empty { display: none; }
 
