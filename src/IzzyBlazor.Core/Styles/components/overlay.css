@@ -69,7 +69,7 @@
   /* Menus are at least 15rem wide (more with long labels or shortcuts), so a short menu doesn't
      read as cramped. */
   .ib-pop.ib-menu {
-    min-width: 15rem;
+    min-width: min(15rem, calc(100vw - 1rem));
   }
 
   @supports (anchor-name: --a) {
@@ -81,7 +81,7 @@
     }
 
     .ib-pop.ib-menu {
-      min-width: max(15rem, anchor-size(width));
+      min-width: max(min(15rem, calc(100vw - 1rem)), anchor-size(width));
     }
 
     .ib-place-bottom-start { position-area: block-end span-inline-end; margin-block-start: var(--ib-pop-gap); }
@@ -100,9 +100,22 @@
       margin-block-start: calc(-1 * var(--ib-space-1) - 1px);
     }
 
+    /* No room beside the item on either side (a phone): below it, over the menu, lined up with
+       whichever edge keeps it on screen. */
     .ib-pop.ib-menu-sub {
-      min-width: 15rem;
+      min-width: min(15rem, calc(100vw - 1rem));
+      position-try-fallbacks: flip-inline, --ib-sub-below-end, --ib-sub-below-start, flip-block;
     }
+  }
+
+  @position-try --ib-sub-below-end {
+    position-area: block-end span-inline-start;
+    margin: 0.125rem 0 0;
+  }
+
+  @position-try --ib-sub-below-start {
+    position-area: block-end span-inline-end;
+    margin: 0.125rem 0 0;
   }
 
   /* Menu */
@@ -174,6 +187,9 @@
     white-space: nowrap;
     /* Text widths are rarely whole: rounded up, so the cap's left edge lands on a pixel. */
     width: calc-size(max-content, round(up, size, 1px));
+    /* Short shortcuts (⌘+O, ⌘+D) share one width, so the column's edges line up. */
+    min-width: 3rem;
+    justify-content: center;
   }
 
   /* A modifier key drawn as an icon: the text's size, nudged onto the letters' line. */

@@ -1644,10 +1644,17 @@
    * not only the label's text. The label's own box is stretched over the field (a pseudo-element of
    * the <label>, so a click on it is a click on the label), which keeps the label alone as the
    * control's name and the hint as its description. A link in the hint stays clickable above it.
-   * (Not in a CheckboxGroup, whose boxes share one field.)
+   * (Not in a CheckboxGroup, whose boxes share one field.) The field is only as wide as its label
+   * and hint, so blank space beside a short label doesn't toggle it; a settings row
+   * (ControlPosition.End) is the full width it draws.
    */
   .ib-field:has(> .ib-check) {
     position: relative;
+  }
+
+  .ib-field:not(.ib-field-control-end):has(> .ib-check) {
+    width: fit-content;
+    max-width: 100%;
   }
 
   .ib-field > .ib-check::after {

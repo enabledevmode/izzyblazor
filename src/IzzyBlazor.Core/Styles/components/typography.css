@@ -206,13 +206,17 @@
      sit on the block's own color, with a short fade where the text meets them. */
   .ib-code-bar {
     position: absolute;
-    top: var(--ib-space-2);
-    inset-inline-end: var(--ib-space-2);
+    /* Out to the block's edges (its padding in the same place as before), so no text shows
+       between the bar and the border. */
+    top: 0;
+    inset-inline-end: 0;
     display: flex;
     align-items: center;
     gap: var(--ib-space-2);
+    padding: var(--ib-space-2);
     padding-inline-start: var(--ib-space-2);
-    border-radius: var(--ib-radius-md);
+    border-start-end-radius: calc(var(--ib-radius-lg) - 1px);
+    border-end-start-radius: var(--ib-radius-md);
     background-color: var(--ib-color-surface-container);
     box-shadow: calc(-1 * var(--ib-space-3)) 0 var(--ib-space-2) calc(-1 * var(--ib-space-1)) var(--ib-color-surface-container);
   }
