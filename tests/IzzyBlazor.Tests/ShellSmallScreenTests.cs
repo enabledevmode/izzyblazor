@@ -35,14 +35,24 @@ public class ShellSmallScreenTests : BunitContext
         Assert.Equal("ib-sidebar", close.GetAttribute("aria-controls"));
     }
 
-    [Fact]
-    public void Shell_links_to_places_on_the_page_keep_the_pages_path_so_they_work_under_a_base_href()
+    [Theory]
+    [InlineData("docs/install?tab=cli")]
+    // A route that echoes the request mustn't turn the links into script or another site.
+    [InlineData("javascript:alert(1)//")]
+    [InlineData("//evil.example/x")]
+    public void Shell_links_to_places_on_the_page_stay_on_the_page_under_a_base_href(string path)
     {
-        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("docs/install?tab=cli");
+        var navigation = Services.GetRequiredService<BunitNavigationManager>();
+        navigation.NavigateTo(navigation.BaseUri + path);
+        var page = new Uri(navigation.Uri);
         var cut = Render<ShellProbe>();
 
-        Assert.Equal("docs/install?tab=cli#ib-main", cut.Find(".ib-skip-link").GetAttribute("href"));
-        Assert.Equal("docs/install?tab=cli#ib-sidebar", cut.Find("[data-ib-shell-toggle]").GetAttribute("href"));
-        Assert.All(cut.FindAll("[data-ib-shell-close], .ib-shell-backdrop"), a => Assert.Equal("docs/install?tab=cli#ib-shell-closed", a.GetAttribute("href")));
+        Uri Resolve(string selector) => new(new Uri(navigation.BaseUri), cut.Find(selector).GetAttribute("href"));
+        foreach (var (selector, id) in new[] { (".ib-skip-link", "ib-main"), ("[data-ib-shell-toggle]", "ib-sidebar"), ("[data-ib-shell-close]", "ib-shell-closed"), (".ib-shell-backdrop", "ib-shell-closed") })
+        {
+            var target = Resolve(selector);
+            Assert.Equal(page.GetLeftPart(UriPartial.Query), target.GetLeftPart(UriPartial.Query));
+            Assert.Equal("#" + id, target.Fragment);
+        }
     }
 }

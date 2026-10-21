@@ -10,7 +10,7 @@ public class DocsSiteRenderTests : BunitContext
 
         var links = cut.FindAll(".ib-toc-link");
         Assert.Equal(
-            ["Install|#install", "From the CLI|#from-the-cli", "Rows & columns|#rows-columns", "Install|#install-2", "Its own id|#custom", "Linked elsewhere|#linked-elsewhere"],
+            ["Install|./#install", "From the CLI|./#from-the-cli", "Rows & columns|./#rows-columns", "Install|./#install-2", "Its own id|./#custom", "Linked elsewhere|./#linked-elsewhere", "Via a component|./#via-a-component", "Alpha|./#alpha", "Beta|./#beta"],
             links.Select(a => $"{a.TextContent}|{a.GetAttribute("href")}"));
 
         // The headings carry the ids the links point to: every level gets one, so any section can be linked.
@@ -18,8 +18,9 @@ public class DocsSiteRenderTests : BunitContext
         Assert.Equal("on-windows", cut.Find("h4").Id);
         Assert.NotNull(cut.Find("#install-2"));
 
-        // A heading left out has no id; one outside the main area isn't listed.
+        // A heading left out has no id; one outside the main area, or in an example, isn't listed.
         Assert.Null(cut.FindAll("h2").Single(h => h.TextContent == "Left out").GetAttribute("id"));
+        Assert.Null(cut.FindAll("h2").Single(h => h.TextContent == "Demo heading").GetAttribute("id"));
         Assert.DoesNotContain(links, a => a.TextContent == "In the aside");
 
         // The list is a landmark named by its heading.
@@ -35,14 +36,14 @@ public class DocsSiteRenderTests : BunitContext
         // The text is the link, so the heading's name stays its text.
         var h2 = cut.FindAll("h2").First(h => h.Id == "install");
         var anchor = h2.QuerySelector("a.ib-heading-anchor");
-        Assert.Equal("#install", anchor?.GetAttribute("href"));
+        Assert.Equal("./#install", anchor?.GetAttribute("href"));
         Assert.Equal("Install", h2.TextContent);
 
         // Levels the outline doesn't list (h1, h4) keep plain text; a heading with its own link isn't wrapped in another.
         Assert.Null(cut.Find("h1").QuerySelector("a"));
         Assert.Null(cut.Find("h4").QuerySelector("a"));
-        var linked = cut.Find("#linked-elsewhere");
-        Assert.Single(linked.QuerySelectorAll("a"));
+        Assert.Single(cut.Find("#linked-elsewhere").QuerySelectorAll("a"));
+        Assert.Single(cut.Find("#via-a-component").QuerySelectorAll("a"));
     }
 
     [Fact]
@@ -63,6 +64,11 @@ public class DocsSiteRenderTests : BunitContext
 
         cut.Render(p => p.Add(o => o.ShowLate, false));
         Assert.DoesNotContain(cut.FindAll(".ib-toc-link"), a => a.TextContent == "Added later");
+
+        // Headings that swap text swap ids too, so a shared link still finds its section.
+        cut.Render(p => p.Add(o => o.Swap, true));
+        Assert.Equal("Beta", cut.Find("#beta").TextContent);
+        Assert.Equal("Alpha", cut.Find("#alpha").TextContent);
 
         var empty = Render<OnThisPage>();
         Assert.True(empty.Find("ib-on-this-page").HasAttribute("hidden"));

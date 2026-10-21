@@ -143,7 +143,8 @@ install command, an ID, an API key in a read-only field). It's a ghost neutral i
 `Disabled`, and with content shows that text after the icon. After copying it shows a check and
 announces `CopiedLabel` for a moment. Copying needs JavaScript, so like a block's copy button it
 appears only when the script runs. In a field's `EndAddon` it's drawn as the add-on's button, and
-with JavaScript off the add-on is left out.
+with JavaScript off the add-on is left out. It draws its own icons, so `StartIcon`, `EndIcon` and
+`Loading` aren't accepted.
 
 ```razor
 <Code>dotnet add package IzzyBlazor</Code>
@@ -533,7 +534,7 @@ recreates it with its initial values. In practice:
 - `AppBrand`, the name in the header (`Label`, `Href`, `Icon` or `Logo`, `HideLabel` for a logo that
   spells the name). It stays on one line: on a narrow screen the name ends in an ellipsis instead of
   wrapping.
-- `AppSidebar` (`Position` start or end, `DrawerPosition`, `FullHeight`, `Width`, `Breakpoint`)
+- `AppSidebar` (`Position` start or end, `DrawerPosition`, `SmallScreen`, `FullHeight`, `Width`, `Breakpoint`)
 - `AppMain` (`ContentWidth`)
 - `AppAside` (`Width`, `Breakpoint`), for `OnThisPage` or other side content
 - `AppFooter` (`Position`, `ContentWidth`)
@@ -574,7 +575,8 @@ sites put the menu button.
 
 The drawer's top row is its `SidebarHeader`, with the close button in it. A sidebar with no
 `SidebarHeader` shows the shell's `AppBrand` there instead (the first one in the shell), as the
-header does, so the drawer never opens on an empty bar.
+header does, so the drawer never opens on an empty bar. To show something else there, give the
+sidebar a `SidebarHeader`. `SidebarToggle`'s `CloseLabel` names the close button ("Close menu").
 
 **A panel instead of a drawer.** `SmallScreen="SidebarSmallScreen.Panel"` opens the sidebar under
 the header below its breakpoint, as `SiteNav`'s menu does: full width and as tall as its content (up
@@ -686,8 +688,11 @@ JavaScript off; once an `OnThisPage` is on the page, headings get an `id` slugge
 ("Rows & columns" becomes `rows-columns`, a repeat `-2`) unless they set one. `MinLevel` and
 `MaxLevel` (2 and 3 by default) are the heading levels listed; lower levels are indented. Headings it
 lists also link to themselves: the heading's text becomes a link to its section, with a "#" after it
-on hover or focus (`Anchor` on `Heading` turns that on or off; a heading that holds a link of its own
-never gets one). `Outline="false"` leaves a heading out. Linked sections stop below a sticky header.
+on hover or focus (`Anchor="true"` or `"false"` on `Heading` turns that on or off). A heading that holds
+a link or button of its own (an `a`, an `Anchor` or a button) never gets one, since links can't
+nest; one that holds another component (other than `Icon`, `Badge`, `Kbd` or `TextBlock`) gets one
+only with `Anchor="true"`, since it might render a link. Headings in a `CodeExample`'s preview, a
+dialog or a popover aren't sections and aren't listed. `Outline="false"` leaves a heading out. Linked sections stop below a sticky header.
 The list has its own rail, so the aside drops its divider while it shows one.
 
 ```razor
@@ -1046,8 +1051,10 @@ warning. Use `Alert` for a message about part of a page.
   leaves the banner out of later pages, static or interactive. `Remember` sets how long:
   `DismissMemory.Session` (the default) until the browser closes, `Persistent` for a year, `None`
   only on the page it was closed on. `RememberKey` names the cookie; change it to show a new message
-  to everyone. Without one, the key comes from the `Title` and text, so a changed message shows
-  again by itself. Reading the cookie needs `AddIzzyBlazor()` on the server. In WebAssembly the
+  to everyone. Without one, the key comes from the `Title`, text and links, so a changed message
+  shows again by itself, and banners with the same words and links share a dismissal. Text that
+  comes from a component of your own (a localizer, say) can't be read, so such a banner is
+  remembered only under a `RememberKey`. Reading the cookie needs `AddIzzyBlazor()` on the server. In WebAssembly the
   banner renders, and the script closes it as soon as it appears. With JavaScript off the close
   button works, but nothing is remembered. Keys are letters, digits, `-`, `_` and `.`.
 - **Accessibility:** it's a region named "Announcement" (`Label`), so screen reader users can find

@@ -19,7 +19,10 @@
     {
         <CascadingValue Value="this" IsFixed="true">
             <div class="@(Center ? "ib-example-preview ib-example-center" : "ib-example-preview")">
-                @ChildContent
+                @* Headings in a demo aren't sections of the page. *@
+                <CascadingValue TValue="PageOutline" Name="@PageOutline.MainCascade" Value="null" IsFixed="true">
+                    @ChildContent
+                </CascadingValue>
             </div>
         </CascadingValue>
     }

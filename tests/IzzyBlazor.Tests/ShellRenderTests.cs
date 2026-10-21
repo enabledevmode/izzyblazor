@@ -29,7 +29,7 @@ public class ShellRenderTests : BunitContext
     {
         var a = Render<SidebarToggle>().Find("a");
 
-        Assert.Equal("#ib-sidebar", a.GetAttribute("href"));
+        Assert.Equal("./#ib-sidebar", a.GetAttribute("href"));
         Assert.Equal("ib-sidebar", a.GetAttribute("aria-controls"));
         Assert.Equal("false", a.GetAttribute("aria-expanded"));
         Assert.Equal("Open menu", a.GetAttribute("aria-label"));
@@ -125,7 +125,7 @@ public class ShellRenderTests : BunitContext
             (typeof(AppSidebar), [], "Nav"),
             (typeof(AppMain), [], "Body"))));
 
-        Assert.Equal("#ib-main", cut.Find(".ib-skip-link").GetAttribute("href"));
+        Assert.Equal("./#ib-main", cut.Find(".ib-skip-link").GetAttribute("href"));
         Assert.Equal("ib-shell-header ib-shell-header-sticky", cut.Find("header").ClassName);
         var nav = cut.Find("nav");
         Assert.Equal("ib-sidebar", nav.Id);
@@ -236,7 +236,7 @@ public class ShellRenderTests : BunitContext
             .Add(s => s.MainId, "content")
             .Add(s => s.ChildContent, Parts((typeof(AppMain), [], "Body"))));
 
-        Assert.Equal("#content", cut.Find(".ib-skip-link").GetAttribute("href"));
+        Assert.Equal("./#content", cut.Find(".ib-skip-link").GetAttribute("href"));
         Assert.Equal("content", cut.Find("main").Id);
     }
 

@@ -68,11 +68,11 @@ internal sealed class PageOutline
         }
     }
 
-    internal OutlineEntry Add(int level, string text, string? explicitId)
+    internal OutlineEntry Add(int level, string text, string? explicitId, Action? idChanged = null)
     {
-        var entry = new OutlineEntry { Level = level, Text = text, ExplicitId = explicitId };
-        entry.Id = explicitId ?? UniqueSlug(text, entry);
+        var entry = new OutlineEntry { Level = level, Text = text, ExplicitId = explicitId, IdChanged = idChanged };
         _entries.Add(entry);
+        AssignIds(entry);
         EntriesChanged?.Invoke();
         return entry;
     }
@@ -84,13 +84,13 @@ internal sealed class PageOutline
             return;
         }
 
-        var slugChanged = entry.Text != text || entry.ExplicitId != explicitId;
+        var idsChange = entry.Text != text || entry.ExplicitId != explicitId;
         entry.Level = level;
         entry.Text = text;
         entry.ExplicitId = explicitId;
-        if (slugChanged)
+        if (idsChange)
         {
-            entry.Id = explicitId ?? UniqueSlug(text, entry);
+            AssignIds(entry);
         }
 
         EntriesChanged?.Invoke();
@@ -100,21 +100,54 @@ internal sealed class PageOutline
     {
         if (_entries.Remove(entry))
         {
+            AssignIds(null);
             EntriesChanged?.Invoke();
         }
     }
 
-    // "Getting started", then "getting-started-2" for a second heading with the same text.
-    private string UniqueSlug(string text, OutlineEntry self)
+    // Slugs in page order, so the ids are the same however the headings got here: "Getting
+    // started", then "getting-started-2" for a second heading with the same text, never one an
+    // explicit id has. Other headings whose id changes re-render; the one rendering now doesn't need to.
+    private void AssignIds(OutlineEntry? rendering)
     {
-        var slug = Slug(text);
-        var candidate = slug;
-        for (var n = 2; _entries.Any(e => e != self && e.Id == candidate); n++)
+        var taken = new HashSet<string>(StringComparer.Ordinal);
+        foreach (var e in _entries)
         {
-            candidate = string.Create(CultureInfo.InvariantCulture, $"{slug}-{n}");
+            if (e.ExplicitId is { } id)
+            {
+                taken.Add(id);
+            }
         }
 
-        return candidate;
+        foreach (var e in _entries)
+        {
+            string id;
+            if (e.ExplicitId is { } explicitId)
+            {
+                id = explicitId;
+            }
+            else
+            {
+                var slug = Slug(e.Text);
+                id = slug;
+                for (var n = 2; taken.Contains(id); n++)
+                {
+                    id = string.Create(CultureInfo.InvariantCulture, $"{slug}-{n}");
+                }
+
+                taken.Add(id);
+            }
+
+            if (e.Id != id)
+            {
+                var first = e.Id.Length == 0;
+                e.Id = id;
+                if (!first && e != rendering)
+                {
+                    e.IdChanged?.Invoke();
+                }
+            }
+        }
     }
 
     /// <summary>
@@ -147,23 +180,37 @@ internal sealed class PageOutline
     }
 
     /// <summary>
-    /// The plain text of a heading's content, for its id and its entry: literal and encoded text,
-    /// and text inside elements; components inside are skipped. Also says whether the content holds
-    /// a link or button of its own (the heading then gets no anchor link around it).
+    /// The plain text of some content, for a heading's id and entry or a banner's key: literal and
+    /// encoded text, text inside elements, and the content of IzzyBlazor components inside. Also
+    /// says whether the content holds a link or button of its own (<c>a</c>, <c>button</c>,
+    /// <see cref="Anchor"/>, a button component, <c>NavLink</c>, or a component given an
+    /// <c>Href</c> or <c>OnClick</c>), whether it holds a component that might render one (any but
+    /// <see cref="Icon"/>, <see cref="Badge"/>, <see cref="Kbd"/> and <see cref="TextBlock"/>), and
+    /// whether it holds a component from outside IzzyBlazor, whose text can't be read here.
     /// </summary>
-    internal static (string Text, bool HasControl) ReadText(RenderFragment? fragment)
+    internal static ContentText ReadText(RenderFragment? fragment)
     {
-        if (fragment is null)
+        var text = new StringBuilder();
+        var result = new ContentText();
+        Read(fragment, text, ref result, 0);
+        result.Text = CollapseSpaces(text.ToString());
+        return result;
+    }
+
+    // Components that only show what they're given (or an icon).
+    private static readonly HashSet<Type> PlainComponents = [typeof(Icon), typeof(Badge), typeof(Kbd), typeof(TextBlock)];
+
+    private static void Read(RenderFragment? fragment, StringBuilder text, ref ContentText result, int depth)
+    {
+        if (fragment is null || depth > 8)
         {
-            return ("", false);
+            return;
         }
 
 #pragma warning disable BL0006 // Reading render frames: the content is rendered here only to read its text.
         using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
         fragment(builder);
         var frames = builder.GetFrames();
-        var text = new StringBuilder();
-        var hasControl = false;
         for (var i = 0; i < frames.Count; i++)
         {
             ref var frame = ref frames.Array[i];
@@ -174,21 +221,56 @@ internal sealed class PageOutline
                     break;
                 case RenderTreeFrameType.Markup:
                     var markup = frame.MarkupContent;
-                    hasControl |= markup.Contains("<a", StringComparison.OrdinalIgnoreCase) || markup.Contains("<button", StringComparison.OrdinalIgnoreCase);
+                    result.HasControl |= markup.Contains("<a", StringComparison.OrdinalIgnoreCase) || markup.Contains("<button", StringComparison.OrdinalIgnoreCase);
                     text.Append(WebUtility.HtmlDecode(StripTags(markup)));
                     break;
                 case RenderTreeFrameType.Element:
-                    hasControl |= frame.ElementName is "a" or "button";
+                    result.HasControl |= frame.ElementName is "a" or "button";
+                    break;
+                case RenderTreeFrameType.Attribute:
+                    // An element's link target tells two messages with the same words apart.
+                    if (frame.AttributeName == "href" && frame.AttributeValue is string elementHref)
+                    {
+                        result.Links += elementHref + "\n";
+                    }
+
                     break;
                 case RenderTreeFrameType.Component:
-                    // Its content is a parameter, not frames here: skip the component and its attributes.
-                    i += frame.ComponentSubtreeLength - 1;
+                    var type = frame.ComponentType;
+                    var end = i + frame.ComponentSubtreeLength;
+                    var ours = type.Assembly == typeof(PageOutline).Assembly;
+                    var isControl = type == typeof(Anchor) || typeof(ButtonBase).IsAssignableFrom(type) || type == typeof(Microsoft.AspNetCore.Components.Routing.NavLink);
+                    for (var j = i + 1; j < end; j++)
+                    {
+                        ref var attribute = ref frames.Array[j];
+                        if (attribute.FrameType != RenderTreeFrameType.Attribute)
+                        {
+                            break;
+                        }
+
+                        var name = attribute.AttributeName;
+                        if (name is "Href" or "href" or "OnClick" or "onclick")
+                        {
+                            isControl = true;
+                            if (attribute.AttributeValue is string href)
+                            {
+                                result.Links += href + "\n";
+                            }
+                        }
+                        else if (ours && attribute.AttributeValue is RenderFragment child)
+                        {
+                            Read(child, text, ref result, depth + 1);
+                        }
+                    }
+
+                    result.HasControl |= isControl;
+                    result.MayHaveControl |= !isControl && !PlainComponents.Contains(type);
+                    result.Opaque |= !ours && type != typeof(Microsoft.AspNetCore.Components.Routing.NavLink);
+                    i = end - 1;
                     break;
             }
         }
 #pragma warning restore BL0006
-
-        return (CollapseSpaces(text.ToString()), hasControl);
     }
 
     private static string StripTags(string markup)
@@ -235,6 +317,25 @@ internal sealed class PageOutline
     }
 }
 
+/// <summary>What <see cref="PageOutline.ReadText"/> found in some content.</summary>
+internal struct ContentText
+{
+    /// <summary>The text, with runs of white space as one space.</summary>
+    public string Text { get; set; }
+
+    /// <summary>Whether the content holds a link or button.</summary>
+    public bool HasControl { get; set; }
+
+    /// <summary>Whether the content holds a component that might render a link or button.</summary>
+    public bool MayHaveControl { get; set; }
+
+    /// <summary>Whether the content holds a component from outside IzzyBlazor, whose text can't be read here.</summary>
+    public bool Opaque { get; set; }
+
+    /// <summary>The link targets in the content, one per line.</summary>
+    public string? Links { get; set; }
+}
+
 /// <summary>One heading in a <see cref="PageOutline"/>.</summary>
 internal sealed class OutlineEntry
 {
@@ -245,6 +346,9 @@ internal sealed class OutlineEntry
     public string Id { get; set; } = "";
 
     public string? ExplicitId { get; set; }
+
+    /// <summary>Called when the id changes because of another heading, so this one re-renders.</summary>
+    public Action? IdChanged { get; set; }
 }
 
 /// <summary>Links to a place on the current page.</summary>
@@ -252,7 +356,9 @@ internal static class PageLinks
 {
     /// <summary>
     /// The current page's path and query with <c>#id</c>, relative to the base URL. A bare
-    /// <c>#id</c> would resolve against <c>&lt;base href&gt;</c> and lead to another page.
+    /// <c>#id</c> would resolve against <c>&lt;base href&gt;</c> and lead to another page. It starts
+    /// with <c>./</c>, so a path like <c>javascript:x</c> or <c>//other.example</c> (a route that
+    /// echoes the request) stays a path on this site.
     /// </summary>
     internal static string ToFragment(NavigationManager navigation, string id)
     {
@@ -263,6 +369,6 @@ internal static class PageLinks
             uri = uri[..hash];
         }
 
-        return $"{navigation.ToBaseRelativePath(uri)}#{Uri.EscapeDataString(id)}";
+        return $"./{navigation.ToBaseRelativePath(uri)}#{Uri.EscapeDataString(id)}";
     }
 }

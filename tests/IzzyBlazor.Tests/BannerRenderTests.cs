@@ -104,6 +104,8 @@ public class BannerRenderTests : BunitContext
             .Find("input.ib-banner-dismiss");
 
         Assert.Equal("ib-banner-trial-ends", input.GetAttribute("data-ib-remember"));
+        // A key alone still means the session (alpha.12), not a year.
+        Assert.Equal("session", input.GetAttribute("data-ib-remember-for"));
     }
 
     [Theory]
@@ -162,6 +164,26 @@ public class BannerRenderTests : BunitContext
         UseCookie($"ib-banner-{Banner.AutoKeyFor(null, b => b.AddContent(0, "Alpha"))}=1");
         Assert.Empty(Render<Banner>(p => p.Add(b => b.Dismissible, true).AddChildContent("Alpha")).FindAll("ib-banner"));
         Assert.Single(Render<Banner>(p => p.Add(b => b.Dismissible, true).AddChildContent("Beta")).FindAll("ib-banner"));
+    }
+
+    [Fact]
+    public void A_banner_whose_text_this_cant_read_is_remembered_only_under_a_RememberKey()
+    {
+        UseCookie(null);
+        // Text from a component of the app's own: two different messages could get the same key.
+        RenderFragment opaque = b => { b.OpenComponent<OpaqueText>(0); b.CloseComponent(); };
+        Assert.Null(Banner.AutoKeyFor(null, opaque));
+        Assert.Null(Render<Banner>(p => p.Add(b => b.Dismissible, true).Add(b => b.ChildContent, opaque)).Find("input.ib-banner-dismiss").GetAttribute("data-ib-remember"));
+
+        // An Anchor's text and link are read, so the key follows them.
+        RenderFragment Link(string text, string href = "/x") => b => { b.OpenComponent<Anchor>(0); b.AddComponentParameter(1, nameof(Anchor.Href), href); b.AddComponentParameter(2, nameof(Anchor.ChildContent), (RenderFragment)(c => c.AddContent(0, text))); b.CloseComponent(); };
+        Assert.NotEqual(Banner.AutoKeyFor(null, Link("Read the notes")), Banner.AutoKeyFor(null, Link("See the schedule")));
+        Assert.NotEqual(Banner.AutoKeyFor(null, Link("Details")), Banner.AutoKeyFor(null, Link("Details", "/status")));
+    }
+
+    private sealed class OpaqueText : ComponentBase
+    {
+        protected override void BuildRenderTree(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder) => builder.AddContent(0, "Localized");
     }
 
     [Theory]

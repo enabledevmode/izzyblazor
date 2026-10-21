@@ -38,7 +38,11 @@ public class Heading : TextBase, IDisposable
     /// Makes the heading a link to itself, with a "#" on hover, so a section can be linked. By
     /// default, headings listed in an <see cref="OnThisPage"/> are; true adds the link to any heading
     /// with an id, false removes it. A heading whose content holds a link or button of its own
-    /// never gets one (links can't nest).
+    /// (an <c>a</c>, <c>button</c>, <see cref="IzzyBlazor.Anchor"/> or button component) never gets
+    /// one, since links can't nest. A heading holding a component that isn't one of IzzyBlazor's
+    /// plain ones (<see cref="Icon"/>, <see cref="Badge"/>, <see cref="Kbd"/>, <see cref="TextBlock"/>)
+    /// gets one only with true, since it might render a link. Set it as <c>Anchor="true"</c>:
+    /// the attribute needs a value.
     /// </summary>
     [Parameter] public bool? Anchor { get; set; }
 
@@ -49,6 +53,7 @@ public class Heading : TextBase, IDisposable
     private OutlineEntry? _entry;
     private PageOutline? _subscribed;
     private bool _hasControl;
+    private bool _mayHaveControl;
     private bool _watchingLocation;
 
     /// <inheritdoc />
@@ -64,8 +69,10 @@ public class Heading : TextBase, IDisposable
 
         As = $"h{Level}";
 
-        var (text, hasControl) = IzzyBlazor.PageOutline.ReadText(ChildContent);
-        _hasControl = hasControl;
+        var content = IzzyBlazor.PageOutline.ReadText(ChildContent);
+        var text = content.Text;
+        _hasControl = content.HasControl;
+        _mayHaveControl = content.MayHaveControl;
         var outline = Outline ? PageOutline : null;
         if (_subscribed != outline)
         {
@@ -84,7 +91,7 @@ public class Heading : TextBase, IDisposable
 
         if (_entry is null)
         {
-            _entry = outline.Add(Level, text, ExplicitId);
+            _entry = outline.Add(Level, text, ExplicitId, OnReadersChanged);
         }
         else
         {
@@ -98,7 +105,7 @@ public class Heading : TextBase, IDisposable
     private string? ElementId => ExplicitId ?? (_entry is not null && _subscribed!.Active ? _entry.Id : null);
 
     private bool Anchored(string? id) =>
-        id is not null && !_hasControl && (Anchor ?? (_entry is not null && _subscribed!.Active && _subscribed.Lists(Level)));
+        id is not null && !_hasControl && (Anchor ?? (!_mayHaveControl && _entry is not null && _subscribed!.Active && _subscribed.Lists(Level)));
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
