@@ -1,3 +1,16 @@
+/* The site's chrome is drawn on the brand's Ink in dark mode, like the hero, with containers stepping
+   up from it. Light mode keeps the library's Neutral. Example frames keep the library's grays. */
+:root.site {
+  --ib-color-background: light-dark(#fafafa, #101114);
+  --ib-color-surface: light-dark(#ffffff, #14161a);
+  --ib-color-surface-container-low: light-dark(#f3f3f5, #1b1d21);
+  --ib-color-surface-container: light-dark(#e9e9ec, #212328);
+  --ib-color-surface-container-high: light-dark(#dfdfe3, #282a30);
+  --ib-color-surface-raised: light-dark(#ffffff, #1d1f24);
+  --ib-color-border: light-dark(#dcdce0, #2c2f35);
+  --ib-color-outline: light-dark(#b8b8bf, #4b4e56);
+}
+
 /*
  * The docs site's own styles: page layout, the example viewer and API reference blocks. Everything
  * else is IzzyBlazor's. Unlayered, so these win over the library's layers where they meet.
