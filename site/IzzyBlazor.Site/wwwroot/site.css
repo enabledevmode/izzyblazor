@@ -12,6 +12,8 @@
   --ib-color-outline: light-dark(#b8b8bf, #44474f);
 }
 :root.site .ib-card-outline { --ib-card-bg: light-dark(#ffffff, #14161a); }
+.site-why-intro { max-inline-size: 44rem; margin-block-end: var(--ib-space-2); }
+
 /* The home page's band ("Why SSR first"): gray in light mode; in dark mode a shade above the hero's
    Ink, with a hairline, so the two read as separate bands. */
 :root.site .site-band {
