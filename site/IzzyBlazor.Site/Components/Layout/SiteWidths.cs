@@ -14,6 +14,15 @@ public static class SiteWidths
     /// <summary>The docs: sidebar, content and outline, in rem.</summary>
     public const double Docs = Sidebar + Main + Aside;
 
+    /// <summary>
+    /// How far in the sidebar's links and the outline's text start from the columns' outer edges
+    /// (1.5rem each side), so the header's content lines up with them rather than the edges.
+    /// </summary>
+    public const double TextInset = 1.5;
+
+    /// <summary>The header and footer content: the columns minus the text inset on each side.</summary>
+    public const double Bars = Docs - 2 * TextInset;
+
     /// <summary>The demos: sidebar and content, the content taking the outline's room. In rem.</summary>
     public const double Demos = Docs;
 }
