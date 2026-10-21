@@ -6,9 +6,9 @@
     <Stack Gap="2">
         <Table Items="_rows" Caption="@($"What works in each mode, {Component.Name}")" Size="ControlSize.Sm">
             <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
-            <TemplateColumn Title="Off" Width="Length.Rem(6)"><ModeChip Mode="off" Level="context!.Off" Text="@Word(context.Off)" /></TemplateColumn>
-            <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeChip Mode="static" Level="context!.Static" Text="@Word(context.Static)" /></TemplateColumn>
-            <TemplateColumn Title="Live" Width="Length.Rem(6)"><ModeChip Mode="live" Level="context!.Live" Text="@Word(context.Live)" /></TemplateColumn>
+            <TemplateColumn Title="Off" Width="Length.Rem(6)"><ModeMark Level="context!.Off" /></TemplateColumn>
+            <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeMark Level="context!.Static" /></TemplateColumn>
+            <TemplateColumn Title="Live" Width="Length.Rem(6)"><ModeMark Level="context!.Live" /></TemplateColumn>
         </Table>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             Off: JavaScript disabled. Static: a static SSR page with IzzyBlazor's script. Live: an interactive page
@@ -34,11 +34,4 @@
                 ? [new RegistryFeature { Feature = "Everything", Off = ModeChip.Parse(modes.Off), Static = ModeChip.Parse(modes.Static), Live = ModeChip.Parse(modes.Live) }]
                 : [];
     }
-
-    private static string Word(ModeLevel level) => level switch
-    {
-        ModeLevel.Full => "Yes",
-        ModeLevel.Partial => "Partly",
-        _ => "No",
-    };
 }

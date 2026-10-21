@@ -202,6 +202,12 @@
 /* Mode chips: "none" is struck through, so the color isn't the only signal. */
 .site-modes { display: inline-flex; flex-wrap: wrap; gap: var(--ib-space-1); vertical-align: middle; }
 .site-mode-none { text-decoration: line-through; }
+/* The mode table's marks: a check, a dash and an x. */
+.site-mark { display: inline-flex; font-size: 1.125rem; vertical-align: middle; }
+.site-mark .ib-icon { stroke-width: 2.5; }
+.site-mark-yes { color: var(--ib-color-success-text); }
+.site-mark-partly { color: var(--ib-color-warning-text); }
+.site-mark-no { color: var(--ib-color-subtle); }
 
 /* API reference */
 .site-type, .site-default, .site-signature {
