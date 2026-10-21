@@ -3,14 +3,15 @@
 @inject ApiMetadata Api
 
 <PageTitle>Docs · IzzyBlazor</PageTitle>
-<HeadContent><meta name="description" content="IzzyBlazor's documentation: components, their API, style props and demos." /></HeadContent>
+<HeadContent><meta name="description" content="IzzyBlazor's documentation: SSR-first Blazor components, their API, style props and demos." /></HeadContent>
 
 <article class="site-article">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Documentation</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            IzzyBlazor @Api.Version: Blazor components that work in static SSR, even with JavaScript off, and bind to C#
-            on interactive pages. Every example on this site runs three ways, so you can see what each mode does.
+            IzzyBlazor @Api.Version: Blazor components built for static SSR. Pages arrive as real HTML, a small script
+            brings them to life without a circuit, and the same markup binds to C# on interactive pages. Every example on
+            this site runs all three ways, so you can see what each layer adds.
         </TextBlock>
     </Stack>
 

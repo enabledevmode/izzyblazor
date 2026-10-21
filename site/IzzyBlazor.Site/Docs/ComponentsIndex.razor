@@ -6,26 +6,27 @@
    works with JavaScript off and applies as you type with it. *@
 
 <PageTitle>Components · IzzyBlazor</PageTitle>
-<HeadContent><meta name="description" content="Every IzzyBlazor component by category, with what works with JavaScript off, with script, and on interactive pages." /></HeadContent>
+<HeadContent><meta name="description" content="Every IzzyBlazor component by category: what works as plain HTML, on static SSR pages with no circuit, and on interactive pages." /></HeadContent>
 
 <article class="site-article site-article-wide">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
             @Registry.Components.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
-            the marks show what works with JavaScript off, with script, and on interactive pages, where that's recorded.
+            the marks show what works as plain HTML, on a static page with IzzyBlazor's script (no circuit), and on
+            interactive pages, where that's recorded.
         </TextBlock>
     </Stack>
 
     <Row Gap="4" Align="Align.Center" Wrap>
         <FilterForm Label="Filter components" Grow>
             <FilterSearch Placeholder="Filter components" Label="Filter components" />
-            <FilterCheckbox Name="off" Label="Fully works with JavaScript off" />
+            <FilterCheckbox Name="static" Label="Fully works without a circuit" />
         </FilterForm>
         <Row Gap="2" Align="Align.Center" Inline>
-            <ModeChip Mode="off" Level="ModeLevel.Full" />
-            <ModeChip Mode="off" Level="ModeLevel.Partial" />
-            <ModeChip Mode="off" Level="ModeLevel.None" />
+            <ModeChip Mode="static" Level="ModeLevel.Full" />
+            <ModeChip Mode="static" Level="ModeLevel.Partial" />
+            <ModeChip Mode="static" Level="ModeLevel.None" />
             <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">full, partial, none</TextBlock>
         </Row>
     </Row>
@@ -63,7 +64,7 @@
 @code {
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
 
-    [SupplyParameterFromQuery(Name = "off")] public bool FullyOff { get; set; }
+    [SupplyParameterFromQuery(Name = "static")] public bool FullyStatic { get; set; }
 
     private List<(string Category, List<RegistryComponent> Components)> _groups = [];
 
@@ -80,6 +81,6 @@
              || component.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
              || component.Summary.Contains(query, StringComparison.OrdinalIgnoreCase)
              || component.Parts.Any(p => p.Contains(query, StringComparison.OrdinalIgnoreCase)))
-            && (!FullyOff || Api.Component(component.Name)?.Modes?.Off == "full");
+            && (!FullyStatic || Api.Component(component.Name)?.Modes?.Static == "full");
     }
 }
