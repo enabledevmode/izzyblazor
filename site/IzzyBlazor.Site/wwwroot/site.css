@@ -37,7 +37,8 @@
   .site-shell .site-article { padding-inline: var(--ib-space-8); }
   /* The header's and footer's content line up with the sidebar's text, 1.5rem in from the columns'
      edges (SiteWidths.TextInset), also where the columns fill the window. */
-  .site-shell > :is(.ib-shell-header, .ib-shell-footer) {
+  .site-shell-home > .ib-shell-main { --ib-bleed-gutter: var(--ib-space-6); }
+  :is(.site-shell, .site-shell-home) > :is(.ib-shell-header, .ib-shell-footer) {
     padding-inline: max(var(--ib-space-6), round(down, var(--ib-shell-measure-pad), 1px));
   }
   .site-shell-demos .site-article { padding-inline-end: var(--ib-space-6); }
