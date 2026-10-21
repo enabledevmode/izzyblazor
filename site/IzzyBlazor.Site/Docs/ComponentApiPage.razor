@@ -66,7 +66,7 @@
                         <code>@part.DisplayName</code>
                     </Heading>
                     <DocHtml Html="@part.Summary" Context="_context" />
-                    <ApiMemberList Members="members" Context="_context" AnchorPrefix="@($"{anchor}-")" EmptyText="@(Query is null ? "No parameters of its own." : NoMatch)" />
+                    <ApiMemberList Members="members" Context="_context" AnchorPrefix="@($"{anchor}-")" ShowDeclaredOn EmptyText="@(Query is null ? "No parameters of its own." : NoMatch)" />
                     @if (part.Bases.Count > 0)
                     {
                         <InheritedLine ApiComponent="part" />

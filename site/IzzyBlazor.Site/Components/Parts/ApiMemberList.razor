@@ -1,3 +1,5 @@
+@inject Registry Registry
+
 @* Members on an API page: name, type, default, version and modes, then the doc comment. Each has
    an anchor, so a member can be linked to. *@
 
@@ -32,9 +34,11 @@ else
                         {
                             <span>Added in @added</span>
                         }
-                        @if (member.DeclaredOn is { } declared && ShowDeclaredOn)
+                        @* Only a documented component is worth naming (DialogClose's members from Button): an
+                           internal base such as ButtonBase means nothing to a reader. *@
+                        @if (ShowDeclaredOn && member.DeclaredOn is { } declared && Registry.ApiHref(declared, member.Name) is { } from)
                         {
-                            <span>From @declared</span>
+                            <span>From <Anchor Href="@from" Underline="AnchorUnderline.Hover">@declared</Anchor></span>
                         }
                         <ModeChips Modes="member.Modes" />
                     </span>
