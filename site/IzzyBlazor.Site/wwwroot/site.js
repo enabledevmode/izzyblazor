@@ -10,6 +10,21 @@
 
   // Inside an example frame: send links to other pages to the top window.
   if (window.top !== window) {
+    // A frame with its own scheme (?scheme=light) keeps it. IzzyBlazor's script re-applies the
+    // visitor's saved choice (the ib-scheme cookie, and the switch's broadcast to open pages),
+    // which would otherwise turn a light frame dark.
+    const fixed = new URLSearchParams(location.search).get("scheme");
+    if (fixed === "light" || fixed === "dark") {
+      const root = document.documentElement;
+      const keep = () => {
+        if (root.getAttribute("data-ib-color-scheme") !== fixed) root.setAttribute("data-ib-color-scheme", fixed);
+        const meta = document.head && document.head.querySelector('meta[name="ib-color-scheme"]');
+        if (meta && meta.content !== fixed) meta.content = fixed;
+      };
+      keep();
+      new MutationObserver(keep).observe(root, { attributes: true, attributeFilter: ["data-ib-color-scheme"] });
+    }
+
     document.addEventListener("click", (event) => {
       const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
       if (!link || link.target || event.defaultPrevented || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey) return;
