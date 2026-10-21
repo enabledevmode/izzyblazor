@@ -86,6 +86,26 @@ public enum ThemeDensity
     Comfortable,
 }
 
+/// <summary>Whose scrollbars the app uses: the system's, or IzzyBlazor's thin themed ones.</summary>
+public enum ThemeScrollbars
+{
+    /// <summary>
+    /// The default: the page keeps the system's scrollbar (which fades when not scrolling on macOS
+    /// and with Windows 11's overlay scrollbars); the library's own scroll areas (sidebar, aside,
+    /// code, tables, menus, dialogs, <c>.ib-scroll</c>) get thin themed ones.
+    /// </summary>
+    Auto,
+
+    /// <summary>
+    /// Thin themed scrollbars on the page too, matching the library's scroll areas. Styled scrollbars
+    /// are always visible: they don't fade on macOS or with overlay scrollbars.
+    /// </summary>
+    Themed,
+
+    /// <summary>The system's scrollbars everywhere, including the library's scroll areas.</summary>
+    Native,
+}
+
 /// <summary>How a <see cref="ColorSchemeSwitch"/> looks.</summary>
 public enum ColorSchemeSwitchVariant
 {

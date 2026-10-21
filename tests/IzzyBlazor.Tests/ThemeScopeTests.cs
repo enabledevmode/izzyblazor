@@ -57,6 +57,17 @@ public class ThemeScopeTests : BunitContext
         Assert.Contains("app-wide", e.Message);
     }
 
+    [Theory]
+    [InlineData(ThemeScrollbars.Themed, "themed")]
+    [InlineData(ThemeScrollbars.Native, "native")]
+    public void Scrollbars_is_an_app_wide_choice_the_page_reads_from_head(ThemeScrollbars choice, string content)
+    {
+        Assert.Equal(content, Render<IzzyTheme>(p => p.Add(t => t.Scrollbars, choice)).Find("meta[name=ib-scrollbars]").GetAttribute("content"));
+        // Auto is the default: nothing to render.
+        Assert.Empty(Render<IzzyTheme>(p => p.Add(t => t.Scrollbars, ThemeScrollbars.Auto)).FindAll("meta[name=ib-scrollbars]"));
+        Assert.Contains("app-wide", Assert.ThrowsAny<ArgumentException>(() => Render<IzzyTheme>(p => p.Add(t => t.Scrollbars, choice).AddChildContent("x"))).Message);
+    }
+
     [Fact]
     public void The_app_theme_rejects_attributes_it_would_ignore()
     {
