@@ -2,7 +2,7 @@
 
 @* The header every page shares: brand, version, the three areas, GitHub and the scheme switch. *@
 
-<AppHeader>
+<AppHeader ContentWidth="ContentWidth">
     @if (Sidebar)
     {
         <SidebarToggle />
@@ -30,4 +30,7 @@
 
     /// <summary>In the demos area, which always shows the latest release.</summary>
     [Parameter] public bool Demos { get; set; }
+
+    /// <summary>Lines the header's content up with the page's centered columns.</summary>
+    [Parameter] public Length? ContentWidth { get; set; }
 }

@@ -19,17 +19,35 @@
 }
 .site-install code { background: none; padding: 0; }
 
-/* Pages: one readable column; headings break the flow into sections. */
+/*
+ * Docs and demos: the sidebar, content and outline centered as one group (as on Chakra's docs),
+ * once the sidebar is a column (768px, AppSidebar's Md breakpoint). Widths match SiteWidths.cs.
+ */
+@media (min-width: 48rem) {
+  .ib-shell.site-shell {
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 58rem) auto minmax(0, 1fr);
+    grid-template-areas:
+      "banner banner banner banner banner"
+      "header header header header header"
+      ". sidebar main aside ."
+      "footer footer footer footer footer";
+  }
+  /* The empty side columns read as the same surface as the columns between them. */
+  .ib-shell.site-shell { background: var(--ib-color-surface); }
+  .site-shell .site-article { padding-inline: var(--ib-space-8); }
+  /* Demos have no outline: the frame gets its width. */
+  .ib-shell.site-shell-demos { grid-template-columns: minmax(0, 1fr) auto minmax(0, 73rem) minmax(0, 1fr); grid-template-areas: "banner banner banner banner" "header header header header" ". sidebar main ." "footer footer footer footer"; }
+}
+
+/* Pages: headings break the flow into sections. */
 .site-article {
   display: flex;
   flex-direction: column;
   gap: var(--ib-space-4);
   width: 100%;
-  max-width: 52rem;
   margin-inline: auto;
   padding-block: var(--ib-space-8) var(--ib-space-16);
 }
-.site-article-wide { max-width: 72rem; }
 .site-article > h2 { margin-block-start: var(--ib-space-6); }
 .site-article > .ib-prevnext, .site-article > nav:last-child { margin-block-start: var(--ib-space-8); }
 .site-pagehead { margin-block-end: var(--ib-space-2); }
@@ -53,7 +71,27 @@
   padding: 0;
   overflow-wrap: break-word;
 }
-.site-params .site-default { white-space: nowrap; }
+/* Parameter tables (as MUI's): the description gets most of the row; types and defaults are small
+   chips that wrap inside a narrow column. */
+.site-params :is(.site-type, .site-default) {
+  display: inline-block;
+  max-width: 16rem;
+  padding: 1px var(--ib-space-1);
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-sm);
+  background: var(--ib-color-surface-container-low);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  white-space: normal;
+}
+.site-params .site-default { color: var(--ib-color-on-surface); }
+.site-params .site-member-name code { color: var(--ib-color-primary-text); }
+/* Prop · Default · Type with the description under it (as Chakra's): the last column takes the rest. */
+.site-params td:last-child, .site-params th:last-child { width: 100%; }
+.site-params td:not(:last-child) { white-space: nowrap; vertical-align: top; }
+.site-params td:last-child { vertical-align: top; }
+.site-params .site-param-text { margin-block-start: var(--ib-space-1); }
+.site-none { color: var(--ib-color-subtle); }
 .site-default { color: var(--ib-color-on-surface); }
 .site-member-name { display: inline-flex; align-items: center; gap: var(--ib-space-2); text-decoration: none; }
 .site-member-name code { font-weight: 600; color: var(--ib-color-on-surface); }

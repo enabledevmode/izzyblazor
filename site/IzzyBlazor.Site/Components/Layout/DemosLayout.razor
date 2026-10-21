@@ -4,9 +4,9 @@
 @* /demos: scenarios by category, then component. A sidebar of its own so the area reads as
    separate from the docs. *@
 
-<AppShell>
-    <SiteHeader Sidebar Demos />
-    <AppSidebar Label="Demos" Bg="Color.SurfaceContainerLow">
+<AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-demos">
+    <SiteHeader Sidebar Demos ContentWidth="Length.Rem(SiteWidths.Demos)" />
+    <AppSidebar Label="Demos">
         <NavMenu aria-label="Demos">
             <NavItem Href="demos" Icon="Lucide.LayoutGrid" Match="NavLinkMatch.All">All demos</NavItem>
             @foreach (var category in Registry.Categories)
@@ -33,5 +33,5 @@
     <AppMain>
         @Body
     </AppMain>
-    <SiteFooter />
+    <SiteFooter ContentWidth="Length.Rem(SiteWidths.Demos)" />
 </AppShell>

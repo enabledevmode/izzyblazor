@@ -1,4 +1,4 @@
-<AppFooter>
+<AppFooter ContentWidth="ContentWidth">
     <Row Gap="4" Justify="Justify.Between" Align="Align.Center" Wrap PaddingY="4" Class="site-footer">
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">IzzyBlazor is MIT licensed. This site runs in static SSR.</TextBlock>
         <NavMenu Orientation="Orientation.Horizontal" aria-label="Footer">
@@ -9,3 +9,7 @@
         </NavMenu>
     </Row>
 </AppFooter>
+
+@code {
+    [Parameter] public Length? ContentWidth { get; set; }
+}
