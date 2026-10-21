@@ -26,23 +26,23 @@
     </Prose>
 
     <Heading Level="2">Where to go</Heading>
-    <Grid MinChildWidth="Length.Rem(15)" Gap="3">
-        <Card Title="Components" Href="docs/components" Description="@($"All {Registry.Components.Count}, by category, each with an Overview and an API page.")" Size="ControlSize.Sm">
+    <Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="3">
+        <Card Title="Components" Href="docs/components" Description="@($"All {Registry.Components.Count}, by category, each with an Overview and an API page.")" Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
         </Card>
-        <Card Title="Style props" Href="docs/common/style-props" Description="The item, surface and field props many components share." Size="ControlSize.Sm">
+        <Card Title="Style props" Href="docs/common/style-props" Description="The item, surface and field props many components share." Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.Ruler" /></CardHeader>
         </Card>
-        <Card Title="Demos" Href="demos" Description="Realistic scenarios in all three modes, with the source." Size="ControlSize.Sm">
+        <Card Title="Demos" Href="demos" Description="Realistic scenarios in all three modes, with the source." Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.MonitorPlay" /></CardHeader>
         </Card>
-        <Card Title="Getting started" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md" Description="Install the package, add IzzyTheme and map the endpoints." Size="ControlSize.Sm">
+        <Card Title="Getting started" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md" Description="Install the package, add IzzyTheme and map the endpoints." Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
         </Card>
-        <Card Title="Styling and themes" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/styling.md" Description="Presets, brand colors, tokens, color schemes and customizing." Size="ControlSize.Sm">
+        <Card Title="Styling and themes" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/styling.md" Description="Presets, brand colors, tokens, color schemes and customizing." Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.Palette" /></CardHeader>
         </Card>
-        <Card Title="API metadata" Href="izzyblazor.api.json" Description="Every component's API as JSON, for tools and AI assistants." Size="ControlSize.Sm">
+        <Card Title="API metadata" Href="izzyblazor.api.json" Description="Every component's API as JSON, for tools and AI assistants." Size="ControlSize.Sm" Class="site-linkcard">
             <CardHeader><Pictogram Icon="Lucide.Braces" /></CardHeader>
         </Card>
     </Grid>

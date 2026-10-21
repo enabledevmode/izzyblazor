@@ -45,11 +45,15 @@
             {
                 var api = Api.Component(component.Name);
                 <Card Title="@component.Name" Href="@Registry.OverviewHref(component)" Description="@component.Summary" Size="ControlSize.Sm">
-                    <CardMedia><ComponentPicture Id="@component.Id" /></CardMedia>
-                    @if (api?.Modes is { } modes)
-                    {
-                        <ModeChips Modes="modes" />
-                    }
+                    <CardMedia>
+                        <div class="site-media">
+                            <ComponentPicture Id="@component.Id" />
+                            @if (api?.Modes is { } modes)
+                            {
+                                <span class="site-media-tag"><ModeChips Modes="modes" /></span>
+                            }
+                        </div>
+                    </CardMedia>
                 </Card>
             }
         </Grid>
