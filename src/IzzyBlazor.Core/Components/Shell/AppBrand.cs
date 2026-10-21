@@ -18,7 +18,7 @@ namespace IzzyBlazor;
 /// &lt;/AppHeader&gt;
 /// </code>
 /// </example>
-public class AppBrand : LayoutItemBase
+public class AppBrand : LayoutItemBase, IDisposable
 {
     /// <summary>The name, shown and used as the link's name.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
@@ -38,6 +38,13 @@ public class AppBrand : LayoutItemBase
     /// </summary>
     [Parameter] public bool HideLabel { get; set; }
 
+    // The shell shows a copy of its brand in the sidebar drawer's top row when the sidebar has no
+    // SidebarHeader, so the drawer never opens on an empty bar.
+    [CascadingParameter] private ShellBrand? ShellBrand { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => ShellBrand?.Set(this);
+
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
@@ -45,13 +52,25 @@ public class AppBrand : LayoutItemBase
         base.BuildAttributes(classes, styles);
     }
 
+    /// <summary>The brand's markup for the drawer's top row: no id or layout props of its own.</summary>
+    internal RenderFragment Copy => builder => Render(builder, "ib-shell-brand", null, copy: true);
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var (cssClass, style) = BuildRootAttributes();
+        Render(builder, cssClass, style, copy: false);
+    }
+
+    private void Render(RenderTreeBuilder builder, string? cssClass, string? style, bool copy)
+    {
         builder.OpenElement(0, Href is null ? "span" : "a");
         builder.AddAttribute(1, "href", Href);
-        builder.AddMultipleAttributes(2, AdditionalAttributes);
+        if (!copy)
+        {
+            builder.AddMultipleAttributes(2, AdditionalAttributes);
+        }
+
         builder.AddAttribute(3, "class", cssClass);
         builder.AddAttribute(4, "style", style);
 
@@ -79,4 +98,7 @@ public class AppBrand : LayoutItemBase
 
         builder.CloseElement();
     }
+
+    /// <inheritdoc />
+    public void Dispose() => ShellBrand?.Clear(this);
 }

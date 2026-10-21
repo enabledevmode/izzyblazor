@@ -29,6 +29,18 @@
 <label class="@_collapseClass" style="@_style" for="@($"{For}-collapse")" aria-hidden="true" title="@(CollapseLabel ?? TextDefaults.CollapseSidebar)">
     <Icon Role="IconRole.Menu" />
 </label>
+@* A sidebar that opens as a panel under the header: while it's open this close button takes the
+   menu button's place (CSS), so the same spot opens and closes it, with JavaScript off too. *@
+<a class="@_closeClass"
+   style="@_style"
+   href="@PageLinks.ToFragment(Navigation, "ib-shell-closed")"
+   role="button"
+   aria-controls="@For"
+   aria-expanded="true"
+   aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)"
+   data-ib-shell-close>
+    <Icon Role="IconRole.Close" />
+</a>
 
 @code {
     /// <summary>The accessible name. Defaults to "Open menu".</summary>
@@ -40,11 +52,18 @@
     /// <summary>Visual weight. Defaults to ghost.</summary>
     [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;
 
+    /// <summary>
+    /// The name of the button that takes the menu button's place while a
+    /// <see cref="SidebarSmallScreen.Panel"/> sidebar is open. Defaults to "Close menu".
+    /// </summary>
+    [Parameter] public string? CloseLabel { get; set; }
+
     /// <summary>The tooltip on the wide-screen collapse button. Defaults to "Collapse sidebar".</summary>
     [Parameter] public string? CollapseLabel { get; set; }
 
     private string? _class;
     private string? _collapseClass;
+    private string? _closeClass;
     private string? _style;
 
     /// <inheritdoc />
@@ -68,5 +87,6 @@
     {
         (_class, _style) = BuildRootAttributes();
         _collapseClass = _class?.Replace("ib-shell-toggle", "ib-shell-collapse-toggle");
+        _closeClass = _class?.Replace("ib-shell-toggle", "ib-shell-toggle-close");
     }
 }

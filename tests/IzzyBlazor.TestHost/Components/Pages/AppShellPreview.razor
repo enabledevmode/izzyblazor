@@ -35,7 +35,8 @@
     </AppHeader>
 
     <AppSidebar Bg="@Chrome" ColorScheme="@SchemeOf(SidebarScheme)" Position="@(Side == "end" ? SidebarPosition.End : SidebarPosition.Start)" DrawerPosition="@(Drawer == "end" ? SidebarPosition.End : null)" FullHeight="@(Full == "on")" Collapsible="@(Collapse == "on")"
-                CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)">
+                CollapseButtonPosition="@(Chevron == "top" ? VerticalPosition.Top : VerticalPosition.Bottom)"
+                SmallScreen="@(Menu == "panel" ? SidebarSmallScreen.Panel : SidebarSmallScreen.Drawer)">
         @if (Slots == "on")
         {
             <SidebarHeader>@(BrandInSidebar ? SidebarBrand : SidebarSwitcher)</SidebarHeader>
@@ -108,6 +109,9 @@
     [SupplyParameterFromQuery(Name = "slots")] public string? Slots { get; set; }
 
     [SupplyParameterFromQuery(Name = "chevron")] public string? Chevron { get; set; }
+
+    // ?menu=panel opens the sidebar under the header on small screens instead of as a drawer.
+    [SupplyParameterFromQuery(Name = "menu")] public string? Menu { get; set; }
 
     // ?banner=on puts a Banner in the shell, in its own row above the header.
     [SupplyParameterFromQuery(Name = "banner")] public string? BannerOn { get; set; }

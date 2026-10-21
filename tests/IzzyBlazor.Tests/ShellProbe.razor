@@ -4,7 +4,7 @@
         <SidebarToggle />
         <AppBrand Href="/" Label="Acme" />
     </AppHeader>
-    <AppSidebar>
+    <AppSidebar SmallScreen="SmallScreen">
         @if (WithHeader)
         {
             <SidebarHeader>Workspace</SidebarHeader>
@@ -15,5 +15,7 @@
 </AppShell>
 
 @code {
+    [Parameter] public SidebarSmallScreen SmallScreen { get; set; }
+
     [Parameter] public bool WithHeader { get; set; }
 }

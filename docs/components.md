@@ -553,6 +553,20 @@ wider. `DrawerPosition` sets the drawer's side on its own: it follows `Position`
 the right on small ones, and moves `SidebarToggle` to the end of the header there, where content
 sites put the menu button.
 
+The drawer's top row is its `SidebarHeader`, with the close button in it. A sidebar with no
+`SidebarHeader` shows the shell's `AppBrand` there instead (the first one in the shell), as the
+header does, so the drawer never opens on an empty bar.
+
+**A panel instead of a drawer.** `SmallScreen="SidebarSmallScreen.Panel"` opens the sidebar under
+the header below its breakpoint, as `SiteNav`'s menu does: full width and as tall as its content (up
+to the bottom of the window, then it scrolls), with the header still in view and `SidebarToggle`
+turned into its close button. The rest of the page is dimmed, and a tap there, Escape or following a
+link closes it; it works with JavaScript off too. `SidebarHeader` and `SidebarFooter` sit at the
+panel's top and bottom. Use it for a site whose sidebar is a short list of sections; keep the drawer
+(the default) for long navigation such as docs or an app. `DrawerPosition` still moves the menu
+button to the end of the header. The panel is placed under the header with CSS anchor positioning;
+where that isn't supported, under the sticky banner and header heights.
+
 **Header links on phones.** A site with no sidebar puts its links in `SiteNav`. From its
 `Breakpoint` up (`Md` by default) they are a row in the header; below it they fold into a menu
 button that opens the same links in a panel just under the header, with 44px rows. The header stays

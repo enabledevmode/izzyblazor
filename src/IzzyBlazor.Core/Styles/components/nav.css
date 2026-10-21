@@ -177,7 +177,7 @@
 
   /* The header the panel opens under. */
   header:has(ib-site-nav) {
-    anchor-name: --ib-site-nav-header;
+    anchor-name: --ib-site-nav-header, --ib-shell-header;
   }
 
   /*

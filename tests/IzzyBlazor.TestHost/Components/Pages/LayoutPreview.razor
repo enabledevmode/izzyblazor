@@ -282,7 +282,9 @@
         <Avatar Name="Ada Lovelace" />
     </AppHeader>
 
-    <AppSidebar>
+    @* The document screen (a site with a sidebar) opens its menu under the header on phones; the
+       others keep the drawer. *@
+    <AppSidebar SmallScreen="@(Kind == "document" ? SidebarSmallScreen.Panel : SidebarSmallScreen.Drawer)">
         <NavMenu>
             <NavItem Href="@Url("dashboard")" Icon="Lucide.LayoutDashboard">Overview</NavItem>
             <NavItem Href="@Url("list")" Icon="Lucide.ListChecks" Badge="57">Rules</NavItem>
