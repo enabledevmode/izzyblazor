@@ -46,10 +46,23 @@
         <TextBlock>In <Code>Program.cs</Code>, add the services and map IzzyBlazor's endpoints after your components:</TextBlock>
         <Code Block Language="csharp" Title="Program.cs" HighlightLines="2,10">@ProgramCs</Code>
         <TextBlock>
-            <Code>AddIzzyBlazor</Code> adds the toast and dialog services and lets components read their cookies on the server,
-            such as the color scheme someone picked. <Code>MapIzzyBlazor</Code> adds the endpoint
-            <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> uses with JavaScript off. Other
-            components need neither.
+            <Code>AddIzzyBlazor</Code> adds the toast and dialog services, carries toasts over a redirect, and lets components
+            read their cookies on the server, such as the color scheme someone picked. <Code>MapIzzyBlazor</Code> adds the
+            endpoint <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> uses with JavaScript off.
+            Other components need neither.
+        </TextBlock>
+
+        <Heading Level="2">Add toasts and dialogs</Heading>
+        <TextBlock>
+            If you show toasts, put <Anchor Href="docs/components/toast-region">ToastRegion</Anchor> in your layout, once. It
+            works on static pages too:
+        </TextBlock>
+        <Code Block Language="razor" Title="Components/Layout/MainLayout.razor" HighlightLines="5">@Layout</Code>
+        <TextBlock>
+            To open dialogs from C# with <Code>DialogService</Code>, put one <Code>&lt;DialogHost /&gt;</Code> on the interactive
+            page that opens them, or in the layout with a render mode on the host:
+            <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>. Dialogs written in the page need neither; see
+            <Anchor Href="docs/components/dialog">Dialog</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Build a first page</Heading>
@@ -117,6 +130,14 @@
         app.MapIzzyBlazor();
 
         app.Run();
+        """;
+
+    private const string Layout = """
+        @inherits LayoutComponentBase
+
+        @Body
+
+        <ToastRegion />
         """;
 
     private const string Signup = """
