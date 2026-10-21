@@ -86,7 +86,33 @@
       ]
     },
     { "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend." },
-    { "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "A labeled text input with add-ons and a password reveal." },
+    {
+      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "A labeled text input with add-ons and a password reveal.",
+      "features": [
+        { "feature": "Label, hint, type and limits from the model" },
+        { "feature": "Icons and add-ons" },
+        { "feature": "Checks before posting, errors after" },
+        { "feature": "Show/hide button on passwords", "off": "none", "static": "full", "live": "full" }
+      ],
+      "examples": [
+        { "id": "text-field-labels", "title": "Labels and hints", "height": 300 },
+        { "id": "text-field-password", "title": "Passwords", "height": 120,
+          "notes": {
+            "off": "JavaScript is off: the field is a plain password input, with no show/hide button.",
+            "static": "IzzyBlazor's script adds the show/hide button. No circuit.",
+            "live": "The same button, on an interactive page."
+          } },
+        { "id": "text-field-icons", "title": "Icons", "height": 230 },
+        { "id": "text-field-addons", "title": "Add-ons", "height": 250 },
+        { "id": "text-field-validation", "title": "Validation", "height": 260,
+          "notes": {
+            "off": "JavaScript is off: the browser checks the fields before posting, in its own words. The server's messages show after the post.",
+            "static": "The browser checks before posting, in the model's words (its ErrorMessage). The server's messages show after the post.",
+            "live": "An interactive page: each field is checked over the circuit when it changes, and submitting runs C# without a page load."
+          } },
+        { "id": "text-field-states", "title": "Sizes, read-only and disabled", "height": 380 }
+      ]
+    },
     { "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Multi-line text that can grow and count." },
     { "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Forms", "summary": "A number input with stepper buttons." },
     { "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number." },

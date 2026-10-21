@@ -1,0 +1,28 @@
+<Form Model="Model" FormName="addons" MaxWidth="26.Rem" Grow>
+    <TextField @bind-Value="Model!.Website">
+        <StartAddon>https://</StartAddon>
+    </TextField>
+    <TextField @bind-Value="Model!.Price" Label="Price">
+        <EndAddon><Select @bind-Value="Model!.Currency" /></EndAddon>
+    </TextField>
+    <TextField @bind-Value="Model!.Query" Type="TextFieldType.Search" Label="Search" HideLabel Placeholder="Search orders">
+        <EndAddon><Button Submit>Search</Button></EndAddon>
+    </TextField>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "addons")]
+    private Listing? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public enum Currency { USD, EUR, GBP }
+
+    public sealed class Listing
+    {
+        public string? Website { get; set; } = "example.com";
+        public string? Price { get; set; } = "24.00";
+        public Currency Currency { get; set; }
+        public string? Query { get; set; }
+    }
+}

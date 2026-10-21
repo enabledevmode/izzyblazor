@@ -1,0 +1,25 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="labels" MaxWidth="24.Rem" Grow>
+    <TextField @bind-Value="Model!.FullName" AutoComplete="name" />
+    <TextField @bind-Value="Model!.Email" Hint="We'll send the invitation here." />
+    <TextField @bind-Value="Model!.Dept" Label="Department" Placeholder="Design" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "labels")]
+    private Invite? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Invite
+    {
+        [Required]
+        public string? FullName { get; set; }
+
+        [Required, EmailAddress, Display(Name = "Work email")]
+        public string? Email { get; set; }
+
+        public string? Dept { get; set; }
+    }
+}
