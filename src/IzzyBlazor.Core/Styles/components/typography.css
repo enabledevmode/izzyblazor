@@ -619,13 +619,20 @@
     border-top: 1px solid var(--ib-color-border);
   }
 
-  .ib-example-source {
+  /* The source is the recessed part: its tabs and code on the container color. A toggle row stays
+     on the example's surface, as a control of the example rather than part of the code. */
+  .ib-example-files > .ib-tabs-list {
     background-color: var(--ib-color-surface-container);
   }
 
   .ib-example-source .ib-code-block {
     border: 0;
     border-radius: 0;
+  }
+
+  /* The file name or tab says what it is; the language label would only repeat it. */
+  .ib-example-source .ib-code-language {
+    display: none;
   }
 
   /* Several files: the tabs sit on the source's color, the line under them separating the code. */
