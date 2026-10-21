@@ -1639,6 +1639,33 @@
     grid-row: 1 / span 2;
   }
 
+  /*
+   * The whole row of a Checkbox or Switch toggles it: the hint and the gap beside the control too,
+   * not only the label's text. The label's own box is stretched over the field (a pseudo-element of
+   * the <label>, so a click on it is a click on the label), which keeps the label alone as the
+   * control's name and the hint as its description. A link in the hint stays clickable above it.
+   * (Not in a CheckboxGroup, whose boxes share one field.)
+   */
+  .ib-field:has(> .ib-check) {
+    position: relative;
+  }
+
+  .ib-field > .ib-check::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    cursor: pointer;
+  }
+
+  .ib-field > .ib-check:has(:disabled)::after {
+    cursor: not-allowed;
+  }
+
+  .ib-field:has(> .ib-check) > .ib-field-hint :is(a, button) {
+    position: relative;
+    z-index: 1;
+  }
+
   /* Icon on a check row: before the label, on its first line; at the end position, a column of
      its own at the start, centered on the label and hint like the control. */
   .ib-check-icon {
