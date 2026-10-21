@@ -301,8 +301,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-inherit { font-size: var(--ib-text-sm); }
 
 /*
- * The example viewer: a bar (title, Off · Static · Live, tools), the preview frame for the chosen
- * mode, the note under it, and the source. The mode switch is a segmented Tabs whose list and
+ * The example viewer: a bar (title, Off · Static · Live, the width switch), the preview frame for
+ * the chosen mode, the note under it, a strip with the Source toggle, and the source. The mode switch is a segmented Tabs whose list and
  * panels are placed into this grid (display: contents), so it keeps working with no script.
  */
 .ex {
@@ -364,8 +364,16 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   margin: 0;
 }
 .ex-note .ib-icon { flex: none; margin-block-start: 0.2em; }
-.ex-source {
+.ex-foot {
   grid-row: 3;
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  /* The toggle's left edge lines up with the mode switch's. */
+  padding: var(--ib-space-1) var(--ib-space-3);
+}
+.ex-source {
+  grid-row: 4;
   grid-column: 1 / -1;
   display: none;
   min-width: 0;
@@ -423,14 +431,15 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   .ex > .ex-modes > .ib-tabs-list { grid-row: 2; grid-column: 1; justify-self: start; margin-inline-start: var(--ib-space-4); }
   .ex-tools { grid-row: 2; grid-column: 2; }
   .ex > .ex-modes > .ib-tab-panel { grid-row: 3; }
-  .ex-source { grid-row: 4; }
-  .ex-source-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  .ex-foot { grid-row: 4; }
+  .ex-source { grid-row: 5; }
   /* Without a title the bar is one row. */
   .ex-untitled .ex-bar { grid-row: 1; }
   .ex-untitled > .ex-modes > .ib-tabs-list { grid-row: 1; }
   .ex-untitled .ex-tools { grid-row: 1; }
   .ex-untitled > .ex-modes > .ib-tab-panel { grid-row: 2; }
-  .ex-untitled .ex-source { grid-row: 3; }
+  .ex-untitled .ex-foot { grid-row: 3; }
+  .ex-untitled .ex-source { grid-row: 4; }
 }
 
 /* Without a title (an example under a heading that names it), the mode switch leads the bar, like
