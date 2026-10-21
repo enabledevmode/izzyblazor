@@ -1876,7 +1876,9 @@
     --ib-shell-panel-top: calc(var(--ib-shell-banner-top) + var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px));
   }
 
-  .ib-shell-header {
+  /* No specificity, so SiteNav's rule (header:has(ib-site-nav)), which names both anchors, wins:
+     one element has one anchor-name list. */
+  :where(.ib-shell-header) {
     anchor-name: --ib-shell-header;
   }
 
