@@ -1,4 +1,5 @@
 using System.Globalization;
+using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using IzzyBlazor.Site.Components;
 using IzzyBlazor.Site.Services;
 
@@ -19,6 +20,12 @@ public static class SiteApp
             ApplicationName = typeof(SiteApp).Assembly.GetName().Name,
         });
         configure?.Invoke(builder);
+
+        // The library's files (_content/IzzyBlazor.Core/...) and blazor.web.js come from the build's
+        // static web assets manifest, which ASP.NET Core only reads by itself in Development. Read it
+        // in any environment, so `dotnet run` without the launch profile works too; published output
+        // has no such manifest and serves its own copies.
+        StaticWebAssetsLoader.UseStaticWebAssets(builder.Environment, builder.Configuration);
 
         builder.Services.AddRazorComponents()
             .AddInteractiveServerComponents();
