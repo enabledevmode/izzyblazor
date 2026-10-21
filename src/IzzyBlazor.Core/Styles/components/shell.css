@@ -1781,6 +1781,12 @@
       transition: none !important;
     }
   }
+
+  /* While the window is resized (set by <ib-shell>), nothing in the shell animates: crossing a
+     breakpoint would otherwise slide the sidebar out as it becomes a closed drawer. */
+  .ib-shell[data-ib-resizing] :is(*, *::before, *::after) {
+    transition: none !important;
+  }
 }
 
 /*

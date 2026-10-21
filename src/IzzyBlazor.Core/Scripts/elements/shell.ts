@@ -98,6 +98,21 @@ class Shell extends IzzyElement {
     observer.observe(this, { subtree: true, attributes: true, attributeFilter: ["data-ib-collapsed"] });
     signal.addEventListener("abort", () => observer.disconnect());
 
+    // While the window is being resized, crossing a breakpoint must not animate: the sidebar turning
+    // into a closed drawer would slide away (and back, dragging to and fro). Transitions are off
+    // until resizing stops.
+    let resizing = 0;
+    window.addEventListener(
+      "resize",
+      () => {
+        this.setAttribute("data-ib-resizing", "");
+        clearTimeout(resizing);
+        resizing = window.setTimeout(() => this.removeAttribute("data-ib-resizing"), 150);
+      },
+      { signal }
+    );
+    signal.addEventListener("abort", () => clearTimeout(resizing));
+
     // Grown past the breakpoint (a rotated tablet) with the drawer open: it's a column again,
     // so close it and lift the inert state.
     window.addEventListener(
