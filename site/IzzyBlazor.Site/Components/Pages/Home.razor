@@ -56,25 +56,33 @@
                 Static SSR does neither, and IzzyBlazor makes it enough for most pages.
             </TextBlock>
         </Stack>
-        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="6" Class="site-why">
+        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="8" Class="site-why">
             <Stack Gap="2">
-                <Pictogram Icon="Lucide.MemoryStick" />
-                <Heading Level="3" Size="TextSize.Md">No per-visitor state</Heading>
+                <Row Gap="3" Align="Align.Center">
+                    <Pictogram Icon="Lucide.MemoryStick" Size="ControlSize.Sm" />
+                    <Heading Level="3" Size="TextSize.Md">No per-visitor state</Heading>
+                </Row>
                 <TextBlock Color="Color.Muted">No circuit holds server memory for each open tab. Pages scale like any web app, behind any load balancer.</TextBlock>
             </Stack>
             <Stack Gap="2">
-                <Pictogram Icon="Lucide.WifiOff" />
-                <Heading Level="3" Size="TextSize.Md">No reconnect dialog</Heading>
+                <Row Gap="3" Align="Align.Center">
+                    <Pictogram Icon="Lucide.WifiOff" Size="ControlSize.Sm" />
+                    <Heading Level="3" Size="TextSize.Md">No reconnect dialog</Heading>
+                </Row>
                 <TextBlock Color="Color.Muted">Nothing to drop when a laptop sleeps or a phone changes networks. A static page just keeps working.</TextBlock>
             </Stack>
             <Stack Gap="2">
-                <Pictogram Icon="Lucide.Zap" />
-                <Heading Level="3" Size="TextSize.Md">Fast first paint</Heading>
+                <Row Gap="3" Align="Align.Center">
+                    <Pictogram Icon="Lucide.Zap" Size="ControlSize.Sm" />
+                    <Heading Level="3" Size="TextSize.Md">Fast first paint</Heading>
+                </Row>
                 <TextBlock Color="Color.Muted">The server sends finished HTML, with no runtime to download first. Good for users and for search.</TextBlock>
             </Stack>
             <Stack Gap="2">
-                <Pictogram Icon="Lucide.Layers" />
-                <Heading Level="3" Size="TextSize.Md">One set of components</Heading>
+                <Row Gap="3" Align="Align.Center">
+                    <Pictogram Icon="Lucide.Layers" Size="ControlSize.Sm" />
+                    <Heading Level="3" Size="TextSize.Md">One set of components</Heading>
+                </Row>
                 <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages. Opt a page into interactivity when it needs C#.</TextBlock>
             </Stack>
         </Grid>
