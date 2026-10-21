@@ -20,7 +20,7 @@
         <form method="get" action="@_path">
             <Row Gap="3" Wrap Align="Align.Center">
                 <Menu Label="Project" StartIcon="Lucide.Folder" Id="project-menu">
-                    <MenuItem Href="@($"{_path}#settings")" Icon="Lucide.Settings" Shortcut="⌘+,">Settings</MenuItem>
+                    <MenuItem Href="@($"{_path}#settings")" Icon="Lucide.Settings" Shortcut="⌘+O">Settings</MenuItem>
                     <MenuItem Icon="Lucide.Copy" Shortcut="⌘+D" OnClick="@(() => _clicked = "duplicate")">Duplicate</MenuItem>
                     <MenuItem Icon="Lucide.Share2" Disabled="true">Share (soon)</MenuItem>
                     <MenuDivider />
