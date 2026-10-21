@@ -1,0 +1,87 @@
+@* TextField's Overview, written by hand, after Button's: a sentence and an example per section,
+   code alone where a preview would show nothing new (types change the keyboard, not the look).
+   Mode support, accessibility and the parameters follow; the API page has the full reference. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Labels and hints</Heading>
+<TextBlock>The label comes from the property's <Code>[Display(Name)]</Code>, or its name in words; use <Code>Label</Code> to change it and <Code>Hint</Code> for help under the field. <Code>[Required]</Code> marks the field.</TextBlock>
+<ExampleViewer Example="text-field-labels" HideTitle />
+
+<Heading Level="2">Types</Heading>
+<TextBlock>Use <Code>Type</Code> for email, phone, URL, search or password. It defaults from <Code>[EmailAddress]</Code>, <Code>[Phone]</Code>, <Code>[Url]</Code> and <Code>[DataType(DataType.Password)]</Code>, and sets the phone keyboard and the browser's checks.</TextBlock>
+<Code Block Language="razor">@Types</Code>
+
+<Heading Level="2">Passwords</Heading>
+<TextBlock>A password field gets a show/hide button once IzzyBlazor's script runs. Use <Code>Reveal="false"</Code> to leave it out.</TextBlock>
+<ExampleViewer Example="text-field-password" HideTitle />
+
+<Heading Level="2">Icons</Heading>
+<TextBlock>Use <Code>StartIcon</Code> or <Code>EndIcon</Code> for an icon inside the field.</TextBlock>
+<ExampleViewer Example="text-field-icons" HideTitle />
+
+<Heading Level="2">Add-ons</Heading>
+<TextBlock>Use <Code>StartAddon</Code> and <Code>EndAddon</Code> to attach text, a <Anchor Href="docs/components/select">Select</Anchor> or a button to the field. A submit button there posts the form, so a search box works with JavaScript off.</TextBlock>
+<ExampleViewer Example="text-field-addons" HideTitle />
+
+<Heading Level="2">Validation</Heading>
+<TextBlock>Put the rules on the model. The browser checks them before posting, with your <Code>ErrorMessage</Code>, and the server's messages show under the field after.</TextBlock>
+<ExampleViewer Example="text-field-validation" HideTitle />
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to match the buttons beside it, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="text-field-states" HideTitle />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+<Heading Level="2">Accessibility</Heading>
+<List Gap="2">
+    <ListItem>It renders a native <Code>input</Code> with a <Code>label</Code> linked to it, so clicking the label focuses the field.</ListItem>
+    <ListItem>The hint and, when the field is invalid, its errors are linked with <Code>aria-describedby</Code>; an invalid field sets <Code>aria-invalid</Code>.</ListItem>
+    <ListItem>A field with no visible label, such as a search box in a toolbar, needs <Code>HideLabel</Code>, not an empty label: screen readers still hear the label.</ListItem>
+    <ListItem>A placeholder isn't a label: it's gone once there's text, and screen readers may not read it.</ListItem>
+    <ListItem>Add-on text isn't part of the field's name, so put a unit that matters in the label too, as in "Price (USD)".</ListItem>
+    <ListItem>The show/hide button is a toggle named "Show password" (<Code>ShowPasswordLabel</Code>), pressed while the password shows.</ListItem>
+</List>
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<Heading Level="2">See also</Heading>
+<List Gap="2">
+    <ListItem><Anchor Href="docs/components/form">Form</Anchor>: posts on static pages and validates on interactive ones.</ListItem>
+    <ListItem><Anchor Href="docs/components/text-area">TextArea</Anchor>: several lines, growing and counting.</ListItem>
+    <ListItem><Anchor Href="docs/components/number-field">NumberField</Anchor>: numbers, with stepper buttons.</ListItem>
+    <ListItem><Anchor Href="docs/components/field-frame">FieldFrame</Anchor>: the same label, hint and errors around a control of your own.</ListItem>
+    <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: <Code>Width</Code>, <Code>Grow</Code> and margins on the whole field.</ListItem>
+</List>
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* Label, type and limits from the model's attributes. *@
+        <TextField @bind-Value="Model.Email" />
+
+        @* Your own label and a hint. *@
+        <TextField @bind-Value="Model.Dept" Label="Department" Hint="On your profile." />
+
+        @* Text attached to the field. *@
+        <TextField @bind-Value="Model.Website">
+            <StartAddon>https://</StartAddon>
+        </TextField>
+        """;
+
+    private const string Types = """
+        @* [Phone] on the property: type="tel". *@
+        <TextField @bind-Value="Model.Phone" />
+
+        <TextField @bind-Value="Model.Query" Type="TextFieldType.Search" />
+        """;
+}

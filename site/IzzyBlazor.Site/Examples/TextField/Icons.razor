@@ -1,0 +1,19 @@
+<Form Model="Model" FormName="icons" MaxWidth="24.Rem" Grow>
+    <TextField @bind-Value="Model!.Query" Type="TextFieldType.Search" StartIcon="Lucide.Search" Label="Search" HideLabel Placeholder="Search projects" />
+    <TextField @bind-Value="Model!.Handle" StartIcon="Lucide.AtSign" Label="Username" />
+    <TextField @bind-Value="Model!.Domain" EndIcon="Lucide.Globe" Label="Domain" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "icons")]
+    private Profile? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Profile
+    {
+        public string? Query { get; set; }
+        public string? Handle { get; set; } = "izzy";
+        public string? Domain { get; set; } = "example.com";
+    }
+}
