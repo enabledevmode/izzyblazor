@@ -27,8 +27,7 @@
                 @foreach (var scenario in component.Scenarios)
                 {
                     <Card Title="@scenario.Title" Href="@Registry.ScenarioHref(component, scenario)" Description="@scenario.Description" Size="ControlSize.Sm">
-                        <CardMedia><ComponentPicture Id="@component.Id" /></CardMedia>
-                        <CardHeader><Badge Size="BadgeSize.Sm">@component.Name</Badge></CardHeader>
+                        <CardMedia><div class="site-media"><ComponentPicture Id="@component.Id" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm">@component.Name</Badge></span></div></CardMedia>
                     </Card>
                 }
             </Grid>

@@ -52,18 +52,15 @@
         <Heading Level="2" Size="TextSize.Xl2">One test for every component</Heading>
         <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
             <Card Title="Works with JavaScript off" Variant="CardVariant.Outline">
-                <CardMedia><ComponentPicture Id="mode-off" /></CardMedia>
-                <CardHeader><ModeChip Mode="off" Level="ModeLevel.Full" /></CardHeader>
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-off" /><span class="site-media-tag"><ModeChip Mode="off" Level="ModeLevel.Full" /></span></div></CardMedia>
                 <TextBlock>Components render complete HTML from their parameters. Native forms, links, details and dialog do the work.</TextBlock>
             </Card>
             <Card Title="Better with script" Variant="CardVariant.Outline">
-                <CardMedia><ComponentPicture Id="mode-static" /></CardMedia>
-                <CardHeader><ModeChip Mode="static" Level="ModeLevel.Full" /></CardHeader>
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><ModeChip Mode="static" Level="ModeLevel.Full" /></span></div></CardMedia>
                 <TextBlock>Small custom elements add keyboard handling, live values and drop zones. No Blazor circuit.</TextBlock>
             </Card>
             <Card Title="Binds to C# when interactive" Variant="CardVariant.Outline">
-                <CardMedia><ComponentPicture Id="mode-live" /></CardMedia>
-                <CardHeader><ModeChip Mode="live" Level="ModeLevel.Full" /></CardHeader>
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-live" /><span class="site-media-tag"><ModeChip Mode="live" Level="ModeLevel.Full" /></span></div></CardMedia>
                 <TextBlock>On Server, WebAssembly or Auto pages, the same markup takes <Code>@("@bind-Value")</Code> and events.</TextBlock>
             </Card>
         </Grid>
@@ -73,17 +70,17 @@
 <Section>
     <Stack Gap="6">
         <Heading Level="2" Size="TextSize.Xl2">Start from your project</Heading>
-        <Grid MinChildWidth="Length.Rem(15)" Gap="4">
-            <Card Title="New Blazor Web App" Href="@GettingStarted" Description="Install IzzyBlazor, add IzzyTheme to the head, map the endpoints.">
+        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
+            <Card Title="New Blazor Web App" Href="@GettingStarted" Description="Install IzzyBlazor, add IzzyTheme to the head, map the endpoints." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
             </Card>
-            <Card Title="WebAssembly or Auto" Href="@($"{GettingStarted}#webassembly-and-auto-render-modes")" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor.">
+            <Card Title="WebAssembly or Auto" Href="@($"{GettingStarted}#webassembly-and-auto-render-modes")" Description="Reference IzzyBlazor.Core from the .Client project; the server keeps IzzyBlazor." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.Cpu" /></CardHeader>
             </Card>
-            <Card Title="Every component" Href="docs/components" Description="Each one's API, generated from the library, and an Overview with live examples.">
+            <Card Title="Every component" Href="docs/components" Description="Each one's API, generated from the library, and an Overview with live examples." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
             </Card>
-            <Card Title="Demos" Href="demos" Description="Realistic scenarios, each in all three modes, with the source.">
+            <Card Title="Demos" Href="demos" Description="Realistic scenarios, each in all three modes, with the source." Size="ControlSize.Sm" Class="site-linkcard">
                 <CardHeader><Pictogram Icon="Lucide.MonitorPlay" /></CardHeader>
             </Card>
         </Grid>
