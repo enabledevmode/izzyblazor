@@ -103,6 +103,30 @@ parameter tables and defaults are never written by hand.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata. The API page is always generated.
 
+#### Writing an Overview
+
+An Overview is for using the component; the API page is the reference. Follow Button's:
+
+1. **Usage**: a short code block of the common cases, ready to copy.
+2. **A section per thing to do**: a heading, one sentence that leads with the prop ("Use
+   `Loading` to show a spinner and block clicks."), then its example. Details such as ARIA
+   attributes and edge cases go in the parameter's doc comment or the Accessibility section, not
+   the sentence.
+3. **Mode support**, **Accessibility**, **Parameters** (`<ParameterTable Compact />`) and **See
+   also**, after the examples.
+
+For each section, pick how to show it by what the reader needs:
+
+| Show | When | Such as |
+| --- | --- | --- |
+| A preview (`<ExampleViewer HideTitle />`), source a click away | It looks or behaves differently, or Off · Static · Live changes the result | Sizes, variants, states, interactions, OnClick |
+| Code only (`<Code Block>`) | There's something to copy, and a preview would show nothing new | Usage, setup, a pattern to paste, behavior seen only after a post |
+| Prose only | Nothing renders | Accessibility, gotchas |
+
+The test: would the preview show something the code doesn't? If not, show the code. Give an
+example its own `notes` in `components.json` only for a mode that changes what it does; without
+them the viewer shows none.
+
 ### Tests
 
 Test the behavior people rely on: what a form posts and binds, what screen readers get (names,
