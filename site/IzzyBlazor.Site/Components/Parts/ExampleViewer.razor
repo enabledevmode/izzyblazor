@@ -19,7 +19,10 @@
 {
     <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
         <div class="ex-bar"></div>
-        <span class="ex-title">@Title</span>
+        @if (!HideTitle)
+        {
+            <span class="ex-title">@Title</span>
+        }
         <Tabs Label="@($"Render mode: {Title}")" Variant="TabsVariant.Segmented" Size="ControlSize.Sm"
               Selected="@_example.StartMode" ContentPadding="0" Class="ex-modes">
             @foreach (var mode in _example.Modes)
@@ -45,9 +48,12 @@
                             </div>
                         }
                     </div>
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note">
-                        <Icon Name="Lucide.Info" /> @NoteFor(mode)
-                    </TextBlock>
+                    @if (NoteFor(mode) is { } note)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note">
+                            <Icon Name="Lucide.Info" /> @note
+                        </TextBlock>
+                    }
                 </Tab>
             }
         </Tabs>
@@ -95,6 +101,12 @@
     /// </summary>
     [Parameter] public bool Deep { get; set; }
 
+    /// <summary>
+    /// Leaves the title out of the bar, for an example under a heading that already names it. Screen
+    /// readers still hear it, from the section's label.
+    /// </summary>
+    [Parameter] public bool HideTitle { get; set; }
+
     /// <summary>Starts with the source shown.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
@@ -126,7 +138,7 @@
 
         _example = found.Example;
         _source = Catalog.SourceOf(Example);
-        _class = _example.Page ? "ex ex-page" : "ex";
+        _class = (_example.Page ? "ex ex-page" : "ex") + (HideTitle ? " ex-untitled" : "");
         _height = $"height: {_example.Height}px";
         _uid = $"ex-{Example}";
     }
@@ -134,10 +146,7 @@
     private string Src(string mode) =>
         $"frame/{Example}?mode={mode}" + (Scheme is "light" or "dark" ? $"&scheme={Scheme}" : "") + (Deep ? "&bg=deep" : "");
 
-    private string NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : mode switch
-    {
-        "off" => "JavaScript is off in this frame: what the HTML and CSS do on their own.",
-        "static" => "A static page with IzzyBlazor's script. No circuit, no WebAssembly.",
-        _ => "An interactive page (Blazor Server): C# event handlers run.",
-    };
+    // A note shows only where the example has its own, for a mode that changes what it does: a note
+    // on every example would say the same thing a page over.
+    private string? NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : null;
 }

@@ -2,6 +2,33 @@
    shared props it also takes and a link to the full API page. *@
 
 <Stack Gap="3">
+    @if (Compact)
+    {
+        @* Overview: name, type and default, with the first sentence of each description. The API page
+           has the rest. *@
+        <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params site-params-compact" Bordered="false">
+            <TemplateColumn Title="Prop">
+                <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover" Class="site-member-name"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
+                @if (FirstSentence(context.Summary) is { } text)
+                {
+                    <span class="site-param-text">@text</span>
+                }
+            </TemplateColumn>
+            <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
+            <TemplateColumn Title="Default">
+                @if (context!.Default is { } value)
+                {
+                    <code class="site-default">@value</code>
+                }
+                else
+                {
+                    <span aria-hidden="true" class="site-none">–</span>
+                }
+            </TemplateColumn>
+        </Table>
+    }
+    else
+    {
     <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params" Bordered="false">
         <TemplateColumn Title="Prop">
             <span class="site-member-name">
@@ -31,6 +58,7 @@
             }
         </TemplateColumn>
     </Table>
+    }
     <InheritedLine ApiComponent="ApiComponent">
         <Button Href="@ApiHref" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" EndIcon="Lucide.ArrowRight">Full API</Button>
     </InheritedLine>
@@ -43,7 +71,22 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
+    /// <summary>Name, type and default, with each description's first sentence: for Overviews.</summary>
+    [Parameter] public bool Compact { get; set; }
+
     private List<ApiMember> _members = [];
+
+    private static string? FirstSentence(string? html)
+    {
+        var text = ApiMetadata.PlainText(html);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var end = text.IndexOf(". ", StringComparison.Ordinal);
+        return end < 0 ? text : text[..(end + 1)];
+    }
 
     protected override void OnParametersSet() =>
         _members = ApiComponent.Properties.Where(p => p.Obsolete is null).Concat(ApiComponent.Events).ToList();

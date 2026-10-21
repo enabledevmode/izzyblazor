@@ -15,7 +15,9 @@
     <HeadContent><meta name="description" content="@(_api?.Summary is { } summary ? ApiMetadata.PlainText(summary) : _component.Summary)" /></HeadContent>
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" />
+        @* A hand-written Overview leads with the registry's one-line summary; the doc comment's fuller
+           summary is on the API page. *@
+        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" Lead="@(_overview is not null ? Summary : null)" />
 
         @if (_overview is not null && _api is not null)
         {
@@ -68,6 +70,8 @@
     private Dictionary<string, object?> _parameters = [];
     private RegistryComponent? _previous;
     private RegistryComponent? _next;
+
+    private RenderFragment Summary => builder => builder.AddContent(0, _component!.Summary);
 
     protected override void OnParametersSet()
     {

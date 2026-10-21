@@ -44,7 +44,7 @@
         { "feature": "OnClick runs C#", "off": "none", "static": "none", "live": "full" }
       ],
       "examples": [
-        { "id": "button-variants", "title": "Accents and variants", "height": 120, "mode": "off" },
+        { "id": "button-variants", "title": "Accents and variants", "height": 120 },
         { "id": "button-submit-reset", "title": "Submit and reset", "height": 260,
           "notes": {
             "off": "JavaScript is off in this frame. Save posts the form to the server, which renders the page again with the result.",
