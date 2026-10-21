@@ -245,6 +245,9 @@
 .site-params-compact td:last-child, .site-params-compact th:last-child { width: auto; }
 .site-params-compact .site-param-text { display: block; color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 .site-none { color: var(--ib-color-subtle); }
+/* "Required" in place of a default: the one thing to notice in that column. */
+.site-required { font-size: var(--ib-text-sm); font-weight: 600; color: var(--ib-color-on-surface); }
+code .site-required { font-size: inherit; }
 .site-default { color: var(--ib-color-on-surface); }
 .site-member-name { display: inline-flex; align-items: center; gap: var(--ib-space-2); text-decoration: none; }
 .site-member-name code { font-weight: 600; color: var(--ib-color-on-surface); }

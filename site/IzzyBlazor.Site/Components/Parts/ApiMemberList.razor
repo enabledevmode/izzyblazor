@@ -18,12 +18,10 @@ else
                     @if (!IsMethod)
                     {
                         @* Read as a declaration: the type, then its default. *@
-                        <code class="site-member-type">@member.Type@if (member.Default is { } value)
+                        <code class="site-member-type">@member.Type@if (member.Required)
+                        {<span class="site-required"> required</span>}
+                        else if (member.Default is { } value)
                         {<span class="site-member-default">@(value == "computed" ? " (computed)" : $" = {value}")</span>}</code>
-                    }
-                    @if (member.Required)
-                    {
-                        <Badge Size="BadgeSize.Sm" Status="Status.Warning">Required</Badge>
                     }
                     @if (member.Responsive)
                     {

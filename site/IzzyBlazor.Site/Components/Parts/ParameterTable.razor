@@ -16,7 +16,12 @@
             </TemplateColumn>
             <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
             <TemplateColumn Title="Default">
-                @if (context!.Default is { } value)
+                @if (context!.Required)
+                {
+                    @* A required parameter has no default worth showing: it's set every time. *@
+                    <span class="site-required">Required</span>
+                }
+                else if (context.Default is { } value)
                 {
                     <code class="site-default">@value</code>
                 }
@@ -33,14 +38,14 @@
         <TemplateColumn Title="Prop">
             <span class="site-member-name">
                 <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
-                @if (context.Required)
-                {
-                    <Badge Size="BadgeSize.Sm" Status="Status.Warning">Required</Badge>
-                }
             </span>
         </TemplateColumn>
         <TemplateColumn Title="Default">
-            @if (context!.Default is { } value)
+            @if (context!.Required)
+            {
+                <span class="site-required">Required</span>
+            }
+            else if (context.Default is { } value)
             {
                 <code class="site-default">@value</code>
             }
