@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-ib-color-scheme="@FrameScheme" class="@(IsFrame ? null : "site")">
+<html lang="en" data-ib-color-scheme="@FrameScheme" class="@(IsFrame ? (Deep ? "frame-deep" : null) : "site")">
 
 <head>
     <meta charset="utf-8" />
@@ -42,7 +42,9 @@
 
     private bool IsFrame => HttpContext?.Request.Path.StartsWithSegments("/frame") == true;
 
-    // An example frame asked for a fixed scheme (?scheme=dark), for a viewer on a band of its own.
+    // An example frame on the site's near-black (?bg=deep), for the hero's viewer.
+    private bool Deep => IsFrame && HttpContext?.Request.Query["bg"].ToString() == "deep";
+
     private string? FrameScheme =>
         HttpContext?.Request.Path.StartsWithSegments("/frame") == true && HttpContext.Request.Query["scheme"].ToString() is "light" or "dark"
             ? HttpContext.Request.Query["scheme"].ToString()

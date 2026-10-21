@@ -63,8 +63,13 @@
 }
 
 .site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
-/* The hero's example is a light window on the dark band, lifted off the glow. */
-.site-hero .ex { box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.6); }
+/* The hero's example is a near-black window set into the Ink band (its frame is on the same color,
+   ?bg=deep), with a lighter edge and a shadow off the glow. */
+.site-hero .ex {
+  background: #0d0e11;
+  border-color: #2c2f36;
+  box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.7);
+}
 .site-install {
   width: fit-content;
   padding: var(--ib-space-1) var(--ib-space-1) var(--ib-space-1) var(--ib-space-3);
@@ -392,6 +397,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 /* An example frame's own page. */
 html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-background); }
 html:has(> body > .frame) body { margin: 0; }
+html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body { background: #0d0e11; }
 .frame-sample {
   display: flex;
   align-items: center;
