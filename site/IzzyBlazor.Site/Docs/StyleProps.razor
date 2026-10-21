@@ -32,10 +32,10 @@
             <TemplateColumn Title="Responsive" Width="Length.Rem(7)">
                 @if (context!.Responsive)
                 {
-                    <Badge Size="BadgeSize.Sm" Status="Status.Success">Yes</Badge>
+                    <ModeMark Level="ModeLevel.Full" />
                 }
             </TemplateColumn>
-            <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" /></TemplateColumn>
+            <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" Class="site-member-text" /></TemplateColumn>
         </Table>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
             Taken by @group.Components.Count components:
