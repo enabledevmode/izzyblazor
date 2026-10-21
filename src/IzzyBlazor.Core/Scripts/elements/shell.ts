@@ -191,7 +191,7 @@ class Shell extends IzzyElement {
     this.setInert(false);
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", "false"));
     if (this.hashOpen()) {
-      history.replaceState(history.state, "", location.pathname + location.search);
+      history.replaceState(history.state, "", location.href.split("#")[0]);
     }
     if (restoreFocus) {
       (this.#lastToggle ?? this.toggles[0])?.focus();

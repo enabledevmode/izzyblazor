@@ -25,7 +25,7 @@
         @if (Title is not null)
         {
             <div class="ib-code-bar ib-code-head">
-                <span class="ib-code-title">@Title</span>
+                <span class="ib-code-title" id="@TitleId">@Title</span>
                 @CopyControl
             </div>
         }
@@ -39,7 +39,7 @@
                 @CopyControl
             </div>
         }
-        <pre class="ib-code-pre" tabindex="0"><code>@Content</code></pre>
+        <pre class="ib-code-pre" tabindex="0" aria-labelledby="@(Title is null ? null : TitleId)"><code>@Content</code></pre>
     </ib-code>
 }
 else
@@ -88,6 +88,11 @@ else
     /// code in place of <see cref="Language"/> (which still sets the colors).
     /// </summary>
     [Parameter] public string? Title { get; set; }
+
+    // Names the scrolling block (a tab stop) after the title.
+    private string? _titleId;
+
+    private string TitleId => _titleId ??= IdGenerator.Next("ib-code-title");
 
     /// <summary>Numbers a block's lines. The numbers aren't selected or copied with the code.</summary>
     [Parameter] public bool LineNumbers { get; set; }
@@ -235,6 +240,9 @@ else
         return string.Join(", ", stops);
     }
 
+    // Past any real block; also keeps a range from running away.
+    private const int MaxLine = 100_000;
+
     /// <summary>"3-5, 9" becomes {3, 4, 5, 9}.</summary>
     private static HashSet<int> ParseLines(string spec)
     {
@@ -245,7 +253,7 @@ else
             if (range.Length is 1 or 2
                 && int.TryParse(range[0], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var from)
                 && int.TryParse(range[^1], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var to)
-                && from >= 1 && to >= from && to - from < 100_000)
+                && from >= 1 && to >= from && to <= MaxLine)
             {
                 for (var line = from; line <= to; line++)
                 {
@@ -255,7 +263,7 @@ else
                 continue;
             }
 
-            throw new ArgumentException($"Code HighlightLines takes line numbers and ranges from 1, such as \"3-5,9\" (got \"{spec}\").", nameof(HighlightLines));
+            throw new ArgumentException($"Code HighlightLines takes line numbers and ranges from 1 to {MaxLine}, such as \"3-5,9\" (got \"{spec}\").", nameof(HighlightLines));
         }
 
         return lines;

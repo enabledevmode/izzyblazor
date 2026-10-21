@@ -124,7 +124,9 @@
     /// <summary>
     /// Names the cookie that remembers a dismissal: <c>ib-banner-{key}</c>. Change the key
     /// (<c>"maintenance-2026-11"</c>) to show a new message to everyone again. Unset, the key comes
-    /// from the <see cref="Title"/> and text, so changing the message shows it again. Letters,
+    /// from the <see cref="Title"/>, text and links, so changing the message shows it again; a
+    /// banner whose text comes from a component of the app's own (a localizer) is remembered only
+    /// with a key, since its text can't be read. Letters,
     /// digits, <c>-</c>, <c>_</c> and <c>.</c> only.
     /// </summary>
     [Parameter] public string? RememberKey { get; set; }
@@ -175,11 +177,19 @@
     internal string CookieName => $"ib-banner-{_key}";
 
     /// <summary>A key from the banner's title and text (FNV-1a), for banners with no RememberKey.</summary>
-    private string AutoKey() => AutoKeyFor(Title, ChildContent);
+    private string? AutoKey() => AutoKeyFor(Title, ChildContent);
 
-    internal static string AutoKeyFor(string? title, RenderFragment? content)
+    // Null when the text holds a component whose output can't be read: two different messages
+    // could then get the same key, so such a banner is remembered only under a RememberKey.
+    internal static string? AutoKeyFor(string? title, RenderFragment? content)
     {
-        var text = $"{title}\n{PageOutline.ReadText(content).Text}";
+        var read = PageOutline.ReadText(content);
+        if (read.Opaque)
+        {
+            return null;
+        }
+
+        var text = $"{title}\n{read.Text}\n{read.Links}";
         var hash = 2166136261u;
         foreach (var c in text)
         {
@@ -229,6 +239,10 @@
         }
 
         _key = RememberKey ?? AutoKey();
+        if (_key is null)
+        {
+            return;
+        }
 
         // The cookie is there on the server's first render (read through IRequestCookies, which the
         // IzzyBlazor package registers); an interactive render that follows a prerender gets the
@@ -248,7 +262,15 @@
         {
             _persisting = state.RegisterOnPersisting(() =>
             {
-                PersistedState.Persist(state, key, true, PersistedStateJson.Default.Boolean);
+                try
+                {
+                    PersistedState.Persist(state, key, true, PersistedStateJson.Default.Boolean);
+                }
+                catch (ArgumentException)
+                {
+                    // Another banner with the same key already handed it over.
+                }
+
                 return Task.CompletedTask;
             });
         }

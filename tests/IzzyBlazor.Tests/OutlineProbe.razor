@@ -10,6 +10,12 @@
         <Heading id="custom">Its own id</Heading>
         <Heading Outline="false">Left out</Heading>
         <Heading>Linked <a href="/elsewhere">elsewhere</a></Heading>
+        <Heading>Via <Anchor Href="/x">a component</Anchor></Heading>
+        <Heading>@(Swap ? "Beta" : "Alpha")</Heading>
+        <Heading>@(Swap ? "Alpha" : "Beta")</Heading>
+        <CodeExample Code="&lt;Heading&gt;Demo heading&lt;/Heading&gt;">
+            <Heading>Demo heading</Heading>
+        </CodeExample>
         @if (ShowLate)
         {
             <Heading>Added later</Heading>
@@ -28,4 +34,6 @@
     [Parameter] public bool WithOutline { get; set; } = true;
 
     [Parameter] public bool ShowLate { get; set; }
+
+    [Parameter] public bool Swap { get; set; }
 }

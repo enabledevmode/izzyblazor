@@ -60,6 +60,11 @@ public class CopyButton : ButtonBase
         {
             throw new InvalidOperationException("CopyButton copies either Text or the element named by For: set one of them.");
         }
+
+        if (StartIcon is not null || EndIcon is not null || Loading || LoadingLabel is not null)
+        {
+            throw new InvalidOperationException("CopyButton draws its own copy and check icons: StartIcon, EndIcon, Loading and LoadingLabel don't apply to it.");
+        }
     }
 
     /// <inheritdoc />
