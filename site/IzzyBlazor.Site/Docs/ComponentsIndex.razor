@@ -13,8 +13,7 @@
         <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
             @Registry.Components.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
-            the marks show what works as plain HTML, on a static page with IzzyBlazor's script (no circuit), and on
-            interactive pages, where that's recorded.
+            a card says so where one needs an interactive page.
         </TextBlock>
     </Stack>
 
@@ -23,12 +22,6 @@
             <FilterSearch Placeholder="Filter components" Label="Filter components" />
             <FilterCheckbox Name="static" Label="Fully works without a circuit" />
         </FilterForm>
-        <Row Gap="2" Align="Align.Center" Inline>
-            <ModeChip Mode="static" Level="ModeLevel.Full" />
-            <ModeChip Mode="static" Level="ModeLevel.Partial" />
-            <ModeChip Mode="static" Level="ModeLevel.None" />
-            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">full, partial, none</TextBlock>
-        </Row>
     </Row>
 
     @if (_groups.Count == 0)

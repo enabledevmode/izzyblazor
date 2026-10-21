@@ -36,7 +36,8 @@ public class IconButton : ButtonBase
     public ButtonType Type { get; set; }
 
     /// <summary>Runs on click on interactive pages (a link still navigates).</summary>
-    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <inheritdoc />
     protected override bool IconOnly => true;

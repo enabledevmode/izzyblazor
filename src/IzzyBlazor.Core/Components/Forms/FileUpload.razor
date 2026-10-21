@@ -127,7 +127,8 @@
     /// On interactive pages, runs with the chosen files, leaving out any over <see cref="MaxFileSize"/>
     /// (the zone flags those). Read one with <c>OpenReadStream(MaxFileSize)</c>: its default limit is 500 KB.
     /// </summary>
-    [Parameter] public EventCallback<IReadOnlyList<IBrowserFile>> OnChange { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyList<IBrowserFile>> OnChange { get; set; }
 
     private string InputId =>
         AdditionalAttributes?.TryGetValue("id", out var id) == true && id is string s && s.Length > 0
