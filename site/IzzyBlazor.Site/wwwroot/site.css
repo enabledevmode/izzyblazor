@@ -237,6 +237,10 @@
 .site-params td:not(:last-child) { white-space: nowrap; vertical-align: top; }
 .site-params td:last-child { vertical-align: top; }
 .site-params .site-param-text { margin-block-start: var(--ib-space-1); }
+/* Compact (Overviews): prop and its first sentence in one cell, type and default beside it. */
+.site-params-compact td:first-child, .site-params-compact th:first-child { width: 100%; white-space: normal; }
+.site-params-compact td:last-child, .site-params-compact th:last-child { width: auto; }
+.site-params-compact .site-param-text { display: block; color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 .site-none { color: var(--ib-color-subtle); }
 .site-default { color: var(--ib-color-on-surface); }
 .site-member-name { display: inline-flex; align-items: center; gap: var(--ib-space-2); text-decoration: none; }
@@ -404,7 +408,17 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   .ex > .ex-modes > .ib-tab-panel { grid-row: 3; }
   .ex-source { grid-row: 4; }
   .ex-source-toggle span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; }
+  /* Without a title the bar is one row. */
+  .ex-untitled .ex-bar { grid-row: 1; }
+  .ex-untitled > .ex-modes > .ib-tabs-list { grid-row: 1; }
+  .ex-untitled .ex-tools { grid-row: 1; }
+  .ex-untitled > .ex-modes > .ib-tab-panel { grid-row: 2; }
+  .ex-untitled .ex-source { grid-row: 3; }
 }
+
+/* Without a title (an example under a heading that names it), the mode switch leads the bar, like
+   a Preview | Code switch. */
+.ex-untitled > .ex-modes > .ib-tabs-list { grid-column: 1; justify-self: start; margin-inline-start: var(--ib-space-3); }
 
 /* An example frame's own page. */
 html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-background); }

@@ -1,92 +1,53 @@
-@* Button's Overview, written by hand: the generated parts (mode table, parameters) are placed
-   where they read best. *@
+@* Button's Overview, written by hand. Each section is a sentence and an example: a preview where
+   it shows something the code doesn't, code alone where there's nothing new to see. Mode support,
+   accessibility and the parameters follow the examples; the API page has the full reference. *@
 
-<ExampleViewer Example="button-variants" SourceOpen />
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Accents and variants</Heading>
+<TextBlock>Use <Code>Accent</Code> for the color and <Code>Variant</Code> for the weight. Keep one solid primary button per area.</TextBlock>
+<ExampleViewer Example="button-variants" HideTitle />
+
+<Heading Level="2">Submit and reset</Heading>
+<TextBlock>Use <Code>Submit</Code> or <Code>Reset</Code> inside a <Anchor Href="docs/components/form">Form</Anchor>. The browser does the work, so it posts with JavaScript off too.</TextBlock>
+<ExampleViewer Example="button-submit-reset" HideTitle />
+
+<Heading Level="2">Several submit buttons</Heading>
+<TextBlock>Give each one a <Code>Name</Code> and <Code>Value</Code>, and the form posts which was pressed. <Anchor Href="demos/button/several-submit-buttons">See it run</Anchor>.</TextBlock>
+<Code Block Language="razor">@SeveralSubmit</Code>
+
+<Heading Level="2">Links</Heading>
+<TextBlock>Use <Code>Href</Code> to render a link that looks like a button, and <Code>External</Code> to open it in a new tab.</TextBlock>
+<ExampleViewer Example="button-links" HideTitle />
+
+<Heading Level="2">Sizes and icons</Heading>
+<TextBlock>Use <Code>Size</Code> to match the fields beside it, and <Code>StartIcon</Code> or <Code>EndIcon</Code> for an icon.</TextBlock>
+<ExampleViewer Example="button-sizes-icons" HideTitle />
+
+<Heading Level="2">Loading and disabled</Heading>
+<TextBlock>Use <Code>Loading</Code> to show a spinner and block clicks, and <Code>Disabled</Code> to turn the button off.</TextBlock>
+<ExampleViewer Example="button-states" HideTitle />
+
+<Heading Level="2">Running C# on click</Heading>
+<TextBlock>Use <Code>OnClick</Code> on interactive pages. Switch to Off or Static and the clicks don't count: use <Code>Submit</Code> or <Code>Href</Code> for actions that must work everywhere.</TextBlock>
+<ExampleViewer Example="button-on-click" HideTitle />
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
-
-<Heading Level="2">Accents and variants</Heading>
-<Prose>
-    <p>
-        <code>Accent</code> picks the color: <code>Primary</code> (the default) for the main action, <code>Neutral</code>
-        for the rest, <code>Danger</code> for destructive ones, or any color with <code>Accent.Of("#0f766e")</code>.
-        <code>Variant</code> sets the weight: <code>Solid</code>, <code>Soft</code>, <code>Outline</code>, <code>Ghost</code>
-        or <code>Link</code>. Keep one solid primary button per area, so the main action is obvious.
-    </p>
-</Prose>
-
-<Heading Level="2">Submit and reset</Heading>
-<Prose>
-    <p>
-        A button does nothing by itself. Inside a <a href="docs/components/form">Form</a>, <code>Submit</code> posts the
-        form and <code>Reset</code> puts the fields back. Neither needs a circuit or JavaScript: the browser does the
-        work, so the same form posts on a static page and validates live on an interactive one.
-    </p>
-</Prose>
-<ExampleViewer Example="button-submit-reset" />
-<Prose>
-    <p>
-        Several submit buttons in one form can say which one was pressed: <code>Name</code> and <code>Value</code>
-        post with the form, like the HTML attributes. The
-        <a href="demos/button/several-submit-buttons">Several submit buttons</a> demo shows one handler telling
-        Publish, Save draft and Discard apart. <code>Form</code> and <code>FormAction</code> submit a form elsewhere
-        on the page, or to another URL.
-    </p>
-</Prose>
-
-<Heading Level="2">Links</Heading>
-<Prose>
-    <p>
-        With <code>Href</code> the button renders an <code>&lt;a&gt;</code> that looks the same, for navigation.
-        <code>External</code> opens a new tab, adds an icon and tells screen readers. A link can't be <code>Submit</code>
-        or <code>Reset</code>, or take <code>Name</code>, <code>Value</code>, <code>Form</code> or <code>FormAction</code>:
-        that throws, so the mistake shows up the first time the page renders.
-    </p>
-</Prose>
-<ExampleViewer Example="button-links" />
-
-<Heading Level="2">Sizes and icons</Heading>
-<Prose>
-    <p>
-        <code>Size</code> is a <code>ControlSize</code>, shared with fields, tabs and pagination, so a button lines up
-        with the input beside it. <code>StartIcon</code> and <code>EndIcon</code> take any icon, sized to the button.
-    </p>
-</Prose>
-<ExampleViewer Example="button-sizes-icons" />
-
-<Heading Level="2">Loading and disabled</Heading>
-<Prose>
-    <p>
-        <code>Loading</code> shows a spinner in place of the start icon and blocks clicks, but keeps the button
-        focusable and its label readable; screen readers hear <code>LoadingLabel</code>. <code>Disabled</code> uses the
-        native attribute on a button. A disabled or loading link loses its <code>href</code>, keeps
-        <code>role="link"</code> and sets <code>aria-disabled</code>.
-    </p>
-</Prose>
-<ExampleViewer Example="button-states" />
-
-<Heading Level="2">Running C# on click</Heading>
-<Prose>
-    <p>
-        <code>OnClick</code> runs C# on an interactive page (Server, WebAssembly or Auto). A static page has no
-        connection to run it over, so there it does nothing: switch this example to Off or Static and the clicks don't
-        count. For actions that must work everywhere, use <code>Submit</code> in a form or <code>Href</code>.
-    </p>
-</Prose>
-<ExampleViewer Example="button-on-click" />
 
 <Heading Level="2">Accessibility</Heading>
 <List Gap="2">
     <ListItem>It renders a native <Code>button</Code> or <Code>a</Code>, so Enter, Space and focus work as the browser defines them.</ListItem>
     <ListItem>The focus ring shows for keyboard focus only.</ListItem>
     <ListItem>An action shown only as an icon needs a name: use <Anchor Href="docs/components/icon-button">IconButton</Anchor>, whose <Code>Label</Code> is required.</ListItem>
-    <ListItem>A loading button keeps focus and sets <Code>aria-busy</Code>, so a keyboard user isn't dropped back to the top of the page.</ListItem>
+    <ListItem>A loading button keeps focus and sets <Code>aria-busy</Code>; screen readers hear <Code>LoadingLabel</Code>.</ListItem>
+    <ListItem>A disabled or loading link loses its <Code>href</Code>, keeps <Code>role="link"</Code> and sets <Code>aria-disabled</Code>.</ListItem>
     <ListItem>An external link says it opens a new tab (<Code>NewTabLabel</Code>), not just with its icon.</ListItem>
 </List>
 
 <Heading Level="2">Parameters</Heading>
-<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" />
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
 
 <Heading Level="2">See also</Heading>
 <List Gap="2">
@@ -102,4 +63,23 @@
     [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* In a form: posts it, on any page. *@
+        <Button Submit>Save</Button>
+
+        @* A link that looks like a button. *@
+        <Button Href="docs/getting-started">Get started</Button>
+
+        @* C# on click, on interactive pages. *@
+        <Button OnClick="Refresh" Variant="ButtonVariant.Outline">Refresh</Button>
+        """;
+
+    private const string SeveralSubmit = """
+        <Form Model="Post" FormName="post" OnValidSubmit="Save">
+            ...
+            <Button Submit Name="action" Value="publish">Publish</Button>
+            <Button Submit Name="action" Value="draft" Variant="ButtonVariant.Outline">Save draft</Button>
+        </Form>
+        """;
 }
