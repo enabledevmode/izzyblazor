@@ -66,8 +66,10 @@
     margin: 0;
   }
 
+  /* Menus are at least 12rem wide (more with long labels or shortcuts), so a short menu doesn't
+     read as cramped. */
   .ib-pop.ib-menu {
-    min-width: 10rem;
+    min-width: 12rem;
   }
 
   @supports (anchor-name: --a) {
@@ -79,7 +81,7 @@
     }
 
     .ib-pop.ib-menu {
-      min-width: max(10rem, anchor-size(width));
+      min-width: max(12rem, anchor-size(width));
     }
 
     .ib-place-bottom-start { position-area: block-end span-inline-end; margin-block-start: var(--ib-pop-gap); }
@@ -99,7 +101,7 @@
     }
 
     .ib-pop.ib-menu-sub {
-      min-width: 10rem;
+      min-width: 12rem;
     }
   }
 
@@ -110,7 +112,8 @@
 
     display: flex;
     align-items: center;
-    gap: var(--ib-space-2);
+    /* 10px: a little more than a button's, so the icons read as a column of their own. */
+    gap: 0.625rem;
     width: 100%;
     min-height: var(--ib-control-h-sm);
     padding: var(--ib-space-1) var(--ib-space-2);
@@ -150,7 +153,9 @@
     text-box: trim-both cap alphabetic;
   }
 
+  /* Shortcuts: a column at the end, well apart from the labels. */
   .ib-menu-shortcut {
+    margin-inline-start: var(--ib-space-6);
     color: var(--ib-color-subtle);
     font-size: var(--ib-text-xs);
     letter-spacing: var(--ib-tracking-wide);
@@ -216,7 +221,7 @@
 
   .ib-menu-divider {
     height: 1px;
-    margin: var(--ib-space-1) calc(var(--ib-space-1) * -1);
+    margin: 0.375rem calc(var(--ib-space-1) * -1);
     background-color: var(--ib-color-border);
   }
 
