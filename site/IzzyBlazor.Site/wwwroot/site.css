@@ -252,22 +252,33 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-params .ib-prose p { margin: 0; }
 .site-params .site-modes { margin-block-start: var(--ib-space-1); }
 
-.site-members {
-  border: 1px solid var(--ib-color-border);
-  border-radius: var(--ib-radius-lg);
-  background: var(--ib-color-surface);
-}
+/* API members: a list with dividers rather than a box. Each reads as a declaration (name, type,
+   default) over its description, at a readable width. */
+.site-members { border-block-start: 1px solid var(--ib-color-border); }
 .site-member {
   display: flex;
   flex-direction: column;
   gap: var(--ib-space-2);
-  padding: var(--ib-space-4);
+  padding-block: var(--ib-space-5);
+  border-block-end: 1px solid var(--ib-color-border);
   scroll-margin-block-start: calc(var(--ib-control-h-md) + var(--ib-space-10));
 }
-.site-member + .site-member { border-top: 1px solid var(--ib-color-border); }
-.site-member:target { background: var(--ib-color-primary-soft); }
+.site-member:target {
+  background: var(--ib-color-primary-soft);
+  margin-inline: calc(-1 * var(--ib-space-3));
+  padding-inline: var(--ib-space-3);
+  border-radius: var(--ib-radius-md);
+}
 .site-member .ib-prose p { margin: 0; }
-.site-member-head { display: flex; flex-wrap: wrap; align-items: center; gap: var(--ib-space-2) var(--ib-space-3); }
+.site-member-head { display: flex; flex-wrap: wrap; align-items: baseline; gap: var(--ib-space-1) var(--ib-space-3); }
+.site-member-head .site-member-name code { font-size: 1rem; }
+.site-member-type { font-size: var(--ib-text-sm); color: var(--ib-color-muted); background: none; padding: 0; }
+.site-member-default { color: var(--ib-color-subtle); }
+.site-member-text { max-inline-size: 42rem; color: var(--ib-color-on-surface); }
+/* In descriptions, code is a light tint and a member link is underlined mono text, not both. */
+.site-member-text code { border: 0; padding: 0.05em 0.3em; font-size: 0.875em; }
+.site-member-text a:has(> code) { text-decoration-color: var(--ib-color-outline); text-underline-offset: 0.2em; }
+.site-member-text a > code { background: none; padding: 0; }
 .site-member-meta {
   display: inline-flex;
   flex-wrap: wrap;
