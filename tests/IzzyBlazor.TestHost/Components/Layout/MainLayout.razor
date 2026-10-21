@@ -5,8 +5,8 @@
 @* The dev host's chrome, built with AppShell and NavMenu. It renders statically. *@
 
 <AppShell>
-    @* A real Banner in the shell's top row, sticky above the header. Not remembered, so it comes
-       back on the next page. *@
+    @* A real Banner in the shell's top row, sticky above the header. Closed, it stays closed until
+       the browser closes (Remember's default). *@
     <Banner Title="Alpha:" Dismissible Position="BarPosition.Sticky">
         IzzyBlazor is in alpha; component APIs may change before 1.0.
         <BannerActions><Anchor Href="static/alerts">Banner demos</Anchor></BannerActions>

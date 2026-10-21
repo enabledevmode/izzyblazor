@@ -1000,7 +1000,7 @@ warning. Use `Alert` for a message about part of a page.
 
 ```razor
 <AppShell>
-    <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11">
+    <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11" Remember="DismissMemory.Persistent">
         Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
         <BannerActions><Anchor Href="/status">Details</Anchor></BannerActions>
     </Banner>
@@ -1021,12 +1021,14 @@ warning. Use `Alert` for a message about part of a page.
 - **Dismissing:** `Dismissible` adds a close button that works with JavaScript off, with
   `@bind-Dismissed` on interactive pages. With JavaScript it is a real button, and closing moves
   focus to the next control on the page.
-- **Staying dismissed:** with `RememberKey`, closing it writes a cookie (`ib-banner-{key}`, for a
-  year). The server reads it and leaves the banner out of later pages, static or interactive; change
-  the key to show a new message to everyone. Reading the cookie needs `AddIzzyBlazor()` on the
-  server. In WebAssembly the banner renders, and the script closes it as soon as it appears. With
-  JavaScript off the close button works, but nothing is remembered. Keys are letters, digits, `-`,
-  `_` and `.`.
+- **Staying dismissed:** closing it writes a cookie (`ib-banner-{key}`), and the server reads it and
+  leaves the banner out of later pages, static or interactive. `Remember` sets how long:
+  `DismissMemory.Session` (the default) until the browser closes, `Persistent` for a year, `None`
+  only on the page it was closed on. `RememberKey` names the cookie; change it to show a new message
+  to everyone. Without one, the key comes from the `Title` and text, so a changed message shows
+  again by itself. Reading the cookie needs `AddIzzyBlazor()` on the server. In WebAssembly the
+  banner renders, and the script closes it as soon as it appears. With JavaScript off the close
+  button works, but nothing is remembered. Keys are letters, digits, `-`, `_` and `.`.
 - **Accessibility:** it's a region named "Announcement" (`Label`), so screen reader users can find
   it. It isn't announced on its own, since it's there when the page loads; set `Announce` for a
   banner you show in response to something, such as a lost connection.
