@@ -88,6 +88,13 @@
     /// </summary>
     [Parameter] public string? Scheme { get; set; }
 
+    /// <summary>
+    /// Puts the example on the site's near-black page color rather than the library's background,
+    /// for a viewer on a band of its own, such as the home page's Ink hero: darker than the band, so
+    /// the window reads as set into it.
+    /// </summary>
+    [Parameter] public bool Deep { get; set; }
+
     /// <summary>Starts with the source shown.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
@@ -124,7 +131,8 @@
         _uid = $"ex-{Example}";
     }
 
-    private string Src(string mode) => Scheme is "light" or "dark" ? $"frame/{Example}?mode={mode}&scheme={Scheme}" : $"frame/{Example}?mode={mode}";
+    private string Src(string mode) =>
+        $"frame/{Example}?mode={mode}" + (Scheme is "light" or "dark" ? $"&scheme={Scheme}" : "") + (Deep ? "&bg=deep" : "");
 
     private string NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : mode switch
     {
