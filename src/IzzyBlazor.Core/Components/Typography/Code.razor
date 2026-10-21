@@ -136,6 +136,13 @@ else
             {
                 styles.AddVar("code-digits", _lines.Count.ToString(System.Globalization.CultureInfo.InvariantCulture).Length.ToString(System.Globalization.CultureInfo.InvariantCulture));
             }
+
+            if (_highlighted is { Count: > 0 } highlighted)
+            {
+                classes.Add("ib-code-has-hl");
+                styles.AddVar("code-hl-stops", HighlightStops(highlighted, _lines.Count, "var(--ib-code-hl)"));
+                styles.AddVar("code-hl-bar-stops", HighlightStops(highlighted, _lines.Count, "var(--ib-code-hl-bar)"));
+            }
         }
 
         base.BuildAttributes(classes, styles);
@@ -197,6 +204,35 @@ else
         }
 
         return lines;
+    }
+
+    /// <summary>
+    /// Gradient stops that tint the highlighted lines, measured in lines (lh) from the top of the
+    /// code: the lines themselves stay inline, so selecting and copying gives the code as written.
+    /// </summary>
+    private static string HighlightStops(HashSet<int> lines, int count, string color)
+    {
+        var stops = new List<string>();
+        var ic = System.Globalization.CultureInfo.InvariantCulture;
+        for (var line = 1; line <= count; line++)
+        {
+            if (!lines.Contains(line) || lines.Contains(line - 1))
+            {
+                continue;
+            }
+
+            var end = line;
+            while (end < count && lines.Contains(end + 1))
+            {
+                end++;
+            }
+
+            var from = string.Create(ic, $"calc(var(--ib-code-pad-top) + {line - 1}lh)");
+            var to = string.Create(ic, $"calc(var(--ib-code-pad-top) + {end}lh)");
+            stops.Add($"transparent {from}, {color} {from}, {color} {to}, transparent {to}");
+        }
+
+        return string.Join(", ", stops);
     }
 
     /// <summary>"3-5, 9" becomes {3, 4, 5, 9}.</summary>

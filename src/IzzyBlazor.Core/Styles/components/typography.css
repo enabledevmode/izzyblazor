@@ -266,30 +266,29 @@
     white-space: nowrap;
   }
 
-  /* Lines (LineNumbers, HighlightLines): each line is a block as wide as the widest, so a
-     highlight spans the whole scroll width; the side padding moves from the pre to the lines. */
-  .ib-code-lined .ib-code-pre {
-    padding-inline: 0;
+  /* Lines (LineNumbers, HighlightLines): each line is an inline span with its newline inside, so
+     selecting and copying gives the code as written. Highlighted lines are tinted by the pre's
+     background: gradient stops from the server, in lines (lh) from the top of the code, painted
+     over the whole scroll area (local), with a 2px accent bar at the start. */
+  /* On the block, where the stops are declared: a custom property resolves the ones it uses there. */
+  .ib-code-has-hl {
+    --ib-code-pad-top: var(--ib-space-4);
+    --ib-code-hl: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    --ib-code-hl-bar: var(--ib-color-primary);
   }
 
-  .ib-code-lined .ib-code-pre > code {
-    display: inline-block;
-    min-width: 100%;
-  }
-
-  .ib-code-line {
-    display: block;
-    padding-inline: var(--ib-space-4);
-  }
-
-  .ib-code-block:has(> .ib-code-bar:not(.ib-code-head)) .ib-code-line {
-    padding-inline-end: 7rem;
+  .ib-code-has-hl .ib-code-pre {
+    background-image:
+      linear-gradient(to bottom, var(--ib-code-hl-bar-stops)),
+      linear-gradient(to bottom, var(--ib-code-hl-stops));
+    background-size: 2px 100%, 100% 100%;
+    background-repeat: no-repeat;
+    background-position: left top;
+    background-attachment: local;
   }
 
   .ib-code-line-hl {
-    border-inline-start: 2px solid var(--ib-color-primary);
-    padding-inline-start: calc(var(--ib-space-4) - 2px);
-    background-color: color-mix(in oklab, var(--ib-color-primary) 12%, transparent);
+    background: none;
     color: inherit;
   }
 
