@@ -19,7 +19,8 @@
         <Box Grow />
         @if (_counterpart is not null)
         {
-            <Tabs Label="Render mode" Variant="TabsVariant.Segmented" Class="host-mode">
+            @* From 640px up; on phones it's at the top of the sidebar drawer instead. *@
+            <Tabs Label="Render mode" Variant="TabsVariant.Segmented" Class="host-mode" VisibleFrom="Breakpoint.Sm">
                 <TabLink Href="@_staticUrl" Label="Static" />
                 <TabLink Href="@_interactiveUrl" Label="Interactive" />
             </Tabs>
@@ -37,6 +38,15 @@
     </AppHeader>
 
     <AppSidebar>
+        @if (_counterpart is not null)
+        {
+            <Box HiddenFrom="Breakpoint.Sm">
+                <Tabs Label="Render mode" Variant="TabsVariant.Segmented" FullWidth>
+                    <TabLink Href="@_staticUrl" Label="Static" />
+                    <TabLink Href="@_interactiveUrl" Label="Interactive" />
+                </Tabs>
+            </Box>
+        }
         <NavMenu aria-label="Components">
             <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Overview</NavItem>
             @foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
