@@ -2,8 +2,8 @@
 
 @* /docs: articles, component pages and API reference, with the docs sidebar and "On this page". *@
 
-<AppShell>
-    <SiteHeader Sidebar />
+<AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-docs">
+    <SiteHeader Sidebar ContentWidth="Length.Rem(SiteWidths.Docs)" />
     <AppSidebar Label="Docs">
         <DocsNav />
     </AppSidebar>
@@ -13,5 +13,5 @@
     <AppAside>
         <OnThisPage />
     </AppAside>
-    <SiteFooter />
+    <SiteFooter ContentWidth="Length.Rem(SiteWidths.Docs)" />
 </AppShell>

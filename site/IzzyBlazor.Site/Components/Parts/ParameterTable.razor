@@ -2,8 +2,8 @@
    shared props it also takes and a link to the full API page. *@
 
 <Stack Gap="3">
-    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params">
-        <TemplateColumn Title="Name" Width="Length.Rem(12)">
+    <Table Items="_members" Caption="@($"{ApiComponent.Name} parameters")" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+        <TemplateColumn Title="Prop">
             <span class="site-member-name">
                 <Anchor Href="@($"{ApiHref}#{ApiMetadata.Anchor(context!.Name)}")" Underline="AnchorUnderline.Hover"><code>@(context.Bindable ? $"@bind-{context.Name}" : context.Name)</code></Anchor>
                 @if (context.Required)
@@ -12,15 +12,19 @@
                 }
             </span>
         </TemplateColumn>
-        <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
         <TemplateColumn Title="Default">
             @if (context!.Default is { } value)
             {
                 <code class="site-default">@value</code>
             }
+            else
+            {
+                <span aria-hidden="true" class="site-none">–</span>
+            }
         </TemplateColumn>
-        <TemplateColumn Title="Description">
-            <DocHtml Html="@context!.Summary" Context="Context" />
+        <TemplateColumn Title="Type">
+            <code class="site-type">@context!.Type</code>
+            <DocHtml Html="@context.Summary" Context="Context" Class="site-param-text" />
             @if (context.Modes is { } modes)
             {
                 <ModeChips Modes="modes" />
