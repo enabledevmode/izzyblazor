@@ -1,0 +1,54 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="workspace" OnValidSubmit="Save" Grow>
+    <Heading Level="2" Size="TextSize.Lg">Workspace</Heading>
+    <TextField @bind-Value="Model!.Name" />
+    <Row Gap="4" Wrap>
+        <Select @bind-Value="Model!.Region" Grow />
+        <SegmentedControl @bind-Value="Model!.Theme" />
+    </Row>
+    <Slider @bind-Value="Model!.Timeout" Min="5" Max="120" Step="5" ShowValue ValueFormat="{0} min" />
+    <Switch @bind-Value="Model!.Alerts" ControlPosition="ControlPosition.End" Hint="An email when a deploy fails." />
+    <FormActions><Button Submit>Save</Button></FormActions>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Saved @Model!.Name: @Model.Theme, @Model.Timeout-minute sessions.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "workspace")]
+    private Workspace? Model { get; set; }
+
+    private bool _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = true;
+
+    public sealed class Workspace
+    {
+        [Required(ErrorMessage = "Name the workspace"), StringLength(40)]
+        public string Name { get; set; } = "Acme";
+
+        public Region Region { get; set; } = Region.UsEast;
+
+        public Theme Theme { get; set; } = Theme.Dark;
+
+        [Display(Name = "Session timeout")]
+        public int Timeout { get; set; } = 30;
+
+        [Display(Name = "Deploy alerts")]
+        public bool Alerts { get; set; } = true;
+    }
+
+    public enum Region
+    {
+        [Display(Name = "US East")] UsEast,
+        [Display(Name = "US West")] UsWest,
+        [Display(Name = "Europe")] Europe,
+        [Display(Name = "Asia Pacific")] AsiaPacific,
+    }
+
+    public enum Theme { Light, Dark, System }
+}

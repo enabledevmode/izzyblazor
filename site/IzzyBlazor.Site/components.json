@@ -78,8 +78,11 @@
     {
       "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts on static pages, validates live on interactive ones.", "parts": ["FormActions", "FormErrors"],
       "examples": [
-        { "id": "home-sign-in", "title": "A sign-in form, three ways", "height": 420, "mode": "off",
-          "notes": { "off": "JavaScript is off in this frame. The form still checks, posts and shows the server's errors." } }
+        { "id": "home-settings", "title": "A settings form, three ways", "height": 440, "mode": "off",
+          "notes": {
+            "off": "JavaScript is off in this frame. Every control still works, and Save posts, checks and shows the result.",
+            "static": "IzzyBlazor's script adds the slider's live value and keyboard handling. Save still posts.",
+            "live": "An interactive page: the same markup binds to C#, and Save runs a C# handler." } }
       ]
     },
     { "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend." },
