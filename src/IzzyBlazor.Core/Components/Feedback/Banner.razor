@@ -11,9 +11,10 @@
 
     Dismissible adds a close button that works with no script: a visually hidden checkbox and its
     label, with CSS :has(:checked) hiding the banner. With the script it is a real button
-    (<ib-dismiss>), and focus moves to the next control when the banner closes. RememberKey keeps it dismissed: <ib-banner>
-    writes a cookie when it is closed, and the server reads the cookie and leaves the banner out
-    of later pages, static or interactive, until the key changes. Where the server can't read
+    (<ib-dismiss>), and focus moves to the next control when the banner closes. A dismissal is remembered, for the browser
+    session by default (Remember): <ib-banner> writes a cookie when it is closed, and the server reads
+    the cookie and leaves the banner out of later pages, static or interactive. The cookie is named
+    by RememberKey, or by a key made from the title and text, so a new message shows again. Where the server can't read
     cookies (WebAssembly), the element hides a remembered banner as soon as it connects.
 
     Position="BarPosition.Sticky" keeps it at the top while the page scrolls. In an AppShell the
@@ -52,7 +53,8 @@
                    id="@($"{ElementId}-dismiss")"
                    class="ib-banner-dismiss ib-visually-hidden"
                    aria-label="@(DismissLabel ?? TextDefaults.Dismiss)"
-                   data-ib-remember="@(RememberKey is null ? null : CookieName)"
+                   data-ib-remember="@(_key is null ? null : CookieName)"
+                   data-ib-remember-for="@(_key is not null && Remember == DismissMemory.Session ? "session" : null)"
                    @onchange="OnDismiss" />
             <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-banner-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
                 <Icon Role="IconRole.Close" />
@@ -113,10 +115,17 @@
     [Parameter] public bool Dismissible { get; set; }
 
     /// <summary>
-    /// Keeps a dismissed banner dismissed on later pages and visits, in a cookie named
-    /// <c>ib-banner-{key}</c>. Change the key (<c>"maintenance-2026-11"</c>) to show a new
-    /// message to everyone again. Letters, digits, <c>-</c>, <c>_</c> and <c>.</c> only.
-    /// Needs <see cref="Dismissible"/>.
+    /// How long a dismissal lasts, with <see cref="Dismissible"/>: <see cref="DismissMemory.Session"/>
+    /// (the default) until the browser closes, <see cref="DismissMemory.Persistent"/> for a year,
+    /// <see cref="DismissMemory.None"/> only on the page (it shows again on the next one).
+    /// </summary>
+    [Parameter] public DismissMemory Remember { get; set; } = DismissMemory.Session;
+
+    /// <summary>
+    /// Names the cookie that remembers a dismissal: <c>ib-banner-{key}</c>. Change the key
+    /// (<c>"maintenance-2026-11"</c>) to show a new message to everyone again. Unset, the key comes
+    /// from the <see cref="Title"/> and text, so changing the message shows it again. Letters,
+    /// digits, <c>-</c>, <c>_</c> and <c>.</c> only.
     /// </summary>
     [Parameter] public string? RememberKey { get; set; }
 
@@ -160,7 +169,25 @@
 
     private string ElementId => Id ?? (_generatedId ??= IdGenerator.Next("ib-banner"));
 
-    internal string CookieName => $"ib-banner-{RememberKey}";
+    // The key the dismissal is remembered under, or null when it isn't remembered.
+    private string? _key;
+
+    internal string CookieName => $"ib-banner-{_key}";
+
+    /// <summary>A key from the banner's title and text (FNV-1a), for banners with no RememberKey.</summary>
+    private string AutoKey() => AutoKeyFor(Title, ChildContent);
+
+    internal static string AutoKeyFor(string? title, RenderFragment? content)
+    {
+        var text = $"{title}\n{PageOutline.ReadText(content).Text}";
+        var hash = 2166136261u;
+        foreach (var c in text)
+        {
+            hash = (hash ^ c) * 16777619u;
+        }
+
+        return $"auto-{hash:x8}";
+    }
 
     private string? ResolvedStatusLabel => StatusLabel is { } label
         ? (label.Length > 0 ? label : null)
@@ -189,23 +216,25 @@
     protected override async Task OnInitializedAsync()
     {
         _scope = new PartScope(this, OuterScope, StateHasChanged);
-        if (RememberKey is null)
-        {
-            return;
-        }
-
-        if (!IsValidKey(RememberKey))
+        if (RememberKey is not null && !IsValidKey(RememberKey))
         {
             throw new ArgumentException(
                 $"Banner RememberKey \"{RememberKey}\" can only contain letters, digits, '-', '_' and '.'.",
                 nameof(RememberKey));
         }
 
+        if (!Dismissible || Remember == DismissMemory.None)
+        {
+            return;
+        }
+
+        _key = RememberKey ?? AutoKey();
+
         // The cookie is there on the server's first render (read through IRequestCookies, which the
         // IzzyBlazor package registers); an interactive render that follows a prerender gets the
         // answer handed over through persisted state.
         var state = Services.GetService<PersistentComponentState>();
-        var key = $"ib-banner:{RememberKey}";
+        var key = $"ib-banner:{_key}";
         if (state is not null && PersistedState.TryTake(state, key, PersistedStateJson.Default.Boolean, out var handedOver) && handedOver)
         {
             _remembered = true;

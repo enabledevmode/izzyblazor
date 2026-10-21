@@ -5,7 +5,7 @@ import { readCookie, writeCookie } from "../cookies";
  * <ib-banner> adds two things to Banner, both optional:
  *
  * - Remembering a dismissal. With no script the close button still works (a checkbox and CSS);
- *   this writes the cookie that keeps a banner with a RememberKey closed on later pages. The server
+ *   this writes the cookie (for the session, or a year) that keeps the banner closed on later pages. The server
  *   reads it and leaves the banner out. Where it can't (WebAssembly, a cached page), the element
  *   finds the cookie when it connects and closes the banner itself.
  * - Measuring a sticky banner in an AppShell. CSS keeps one line of room for it above the sticky
@@ -38,7 +38,8 @@ class Banner extends IzzyElement {
     input.addEventListener(
       "change",
       () => {
-        if (input.checked) writeCookie(name, "1");
+        // Remember="Session" (the default): a session cookie, gone when the browser closes.
+        if (input.checked) writeCookie(name, "1", input.dataset.ibRememberFor !== "session");
       },
       { signal }
     );

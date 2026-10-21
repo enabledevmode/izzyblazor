@@ -56,8 +56,8 @@
 
     <Example Title="Banner that stays dismissed" Note="@RememberNote" Code="@RememberCode">
         <Stack Gap="3">
-            <Banner Status="Status.Info" Dismissible RememberKey="@RememberKey" @bind-Dismissed="_bannerDismissed" data-testid="remembered-banner">
-                Close me, then reload or open another page: I stay closed until the key changes.
+            <Banner Status="Status.Info" Dismissible RememberKey="@RememberKey" Remember="DismissMemory.Persistent" @bind-Dismissed="_bannerDismissed" data-testid="remembered-banner">
+                Close me, then reload, open another page or restart the browser: I stay closed until the key changes.
             </Banner>
             <Row Gap="2" Align="Align.Center">
                 <Anchor Href="@NextKeyHref" data-testid="next-key">Use a new key</Anchor>
@@ -107,8 +107,8 @@
     private string NextKeyHref => Navigation.GetUriWithQueryParameter("banner", (BannerVersion ?? 1) + 1);
 
     private string RememberNote => RendererInfo.IsInteractive
-        ? "RememberKey stores the dismissal in a cookie. The server leaves the banner out of later pages, and @bind-Dismissed hears about it."
-        : "RememberKey stores the dismissal in a cookie, which the server reads: later pages, static or interactive, leave the banner out. With JavaScript off the close button still works on this page, but nothing is remembered.";
+        ? "A dismissal is kept in a cookie: until the browser closes by default, or for a year with Remember=\"DismissMemory.Persistent\" (this one). The server leaves the banner out of later pages, and @bind-Dismissed hears about it. RememberKey names the cookie; change it to show a new message again."
+        : "A dismissal is kept in a cookie, which the server reads: later pages, static or interactive, leave the banner out. Until the browser closes by default, or for a year with Remember=\"DismissMemory.Persistent\" (this one). RememberKey names the cookie. With JavaScript off the close button still works on this page, but nothing is remembered.";
 
     private const string BannerCode =
         """
@@ -122,8 +122,11 @@
 
     private const string RememberCode =
         """
-        @* Closed once, it stays closed until the key changes. *@
-        <Banner Dismissible RememberKey="maintenance-2026-11">...</Banner>
+        @* Closed once, it stays closed for the session (the default), across pages. *@
+        <Banner Dismissible>...</Banner>
+
+        @* For a year, until the key changes. *@
+        <Banner Dismissible RememberKey="maintenance-2026-11" Remember="DismissMemory.Persistent">...</Banner>
         """;
     private int _saves;
 

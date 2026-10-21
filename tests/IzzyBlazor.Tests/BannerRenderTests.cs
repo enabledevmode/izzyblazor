@@ -88,7 +88,6 @@ public class BannerRenderTests : BunitContext
 
         var input = cut.Find("input.ib-banner-dismiss");
         Assert.Equal("b1-dismiss", input.Id);
-        Assert.Null(input.GetAttribute("data-ib-remember"));
         Assert.Equal("b1-dismiss", cut.Find("label.ib-banner-close").GetAttribute("for"));
         Assert.Equal("Dismiss", cut.Find("ib-dismiss > button.ib-banner-close").GetAttribute("aria-label"));
 
@@ -131,6 +130,38 @@ public class BannerRenderTests : BunitContext
         cut.Render(p => p.Add(b => b.Dismissed, false));
 
         Assert.Single(cut.FindAll("ib-banner"));
+    }
+
+    [Fact]
+    public void A_dismissal_is_remembered_for_the_session_under_a_key_from_the_message_by_default()
+    {
+        UseCookie(null);
+        string? Remember(string text, DismissMemory? memory = null) =>
+            Render<Banner>(p =>
+            {
+                p.Add(b => b.Dismissible, true).AddChildContent(text);
+                if (memory is { } m) p.Add(b => b.Remember, m);
+            }).Find("input.ib-banner-dismiss").GetAttribute("data-ib-remember");
+
+        var name = Remember("Maintenance on Sunday");
+        Assert.StartsWith("ib-banner-auto-", name);
+        Assert.Equal(name, Remember("Maintenance on Sunday"));
+        // A new message gets a new key, so it shows again.
+        Assert.NotEqual(name, Remember("Maintenance on Monday"));
+
+        var session = Render<Banner>(p => p.Add(b => b.Dismissible, true).AddChildContent("x")).Find("input.ib-banner-dismiss");
+        Assert.Equal("session", session.GetAttribute("data-ib-remember-for"));
+        var persistent = Render<Banner>(p => p.Add(b => b.Dismissible, true).Add(b => b.Remember, DismissMemory.Persistent).AddChildContent("x")).Find("input.ib-banner-dismiss");
+        Assert.Null(persistent.GetAttribute("data-ib-remember-for"));
+        Assert.Null(Remember("x", DismissMemory.None));
+    }
+
+    [Fact]
+    public void A_remembered_session_dismissal_leaves_the_banner_out()
+    {
+        UseCookie($"ib-banner-{Banner.AutoKeyFor(null, b => b.AddContent(0, "Alpha"))}=1");
+        Assert.Empty(Render<Banner>(p => p.Add(b => b.Dismissible, true).AddChildContent("Alpha")).FindAll("ib-banner"));
+        Assert.Single(Render<Banner>(p => p.Add(b => b.Dismissible, true).AddChildContent("Beta")).FindAll("ib-banner"));
     }
 
     [Theory]

@@ -151,3 +151,16 @@ public enum StepButtons
     /// <summary>No buttons; arrow keys still step.</summary>
     None,
 }
+
+/// <summary>How long a dismissed <see cref="Banner"/> stays dismissed.</summary>
+public enum DismissMemory
+{
+    /// <summary>Until the browser closes (a session cookie). The default.</summary>
+    Session,
+
+    /// <summary>For a year, across visits.</summary>
+    Persistent,
+
+    /// <summary>Not remembered: it shows again on the next page.</summary>
+    None,
+}
