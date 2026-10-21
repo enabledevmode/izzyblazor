@@ -12,8 +12,9 @@
   --ib-color-outline: light-dark(#b8b8bf, #44474f);
 }
 :root.site .ib-card-outline { --ib-card-bg: light-dark(#ffffff, #14161a); }
-/* On a band that is itself Ink, cards step up once more. */
-:root.site .site-band .ib-card-outline { --ib-card-bg: light-dark(#ffffff, #1b1d22); }
+/* The home page's gray band is light mode only: in dark mode the hero is the one Ink band, and the
+   cards below sit on Ink against the near-black page. */
+:root.site .site-band { background: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface)); }
 
 /*
  * The docs site's own styles: page layout, the example viewer and API reference blocks. Everything
