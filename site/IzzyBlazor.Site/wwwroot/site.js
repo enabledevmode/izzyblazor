@@ -1,8 +1,9 @@
 // The docs site's script. Everything works without it; with it:
 //   - each example frame is sized to its content (Off frames too: they're same-origin, so this
-//     page can measure them although they run no script),
-//   - a Live frame loads only when its mode is picked and the example is in view, so a page of
-//     examples doesn't open a circuit for each,
+//     page can measure them although they run no script), and the preview keeps its tallest
+//     mode's height, so the controls under it stay put,
+//   - a Live frame loads only when the page's mode is Live and the example is in view, so a page
+//     of examples doesn't open a circuit for each, and the mode is remembered in a cookie,
 //   - frames follow the page's color scheme when it changes,
 //   - inside a frame, links to other pages open in the whole window rather than the frame.
 (() => {
@@ -60,7 +61,23 @@
 
     if (!root || !shown(frame)) return;
     const height = Math.ceil(root.getBoundingClientRect().height);
-    if (height > 0) frame.style.height = `${height}px`;
+    if (height <= 0) return;
+    frame.style.height = `${height}px`;
+
+    // The preview keeps the tallest mode's height seen so far, so switching to a shorter mode
+    // doesn't move the controls under it.
+    const viewer = frame.closest(".ex");
+    if (viewer) {
+      const tallest = Math.max(height, Number(viewer.dataset.tallest || 0));
+      viewer.dataset.tallest = String(tallest);
+      viewer.style.setProperty("--ex-tallest", `${tallest}px`);
+    }
+  }
+
+  // A new width lays every mode out again: measure from scratch.
+  function forget(viewer) {
+    delete viewer.dataset.tallest;
+    viewer.style.removeProperty("--ex-tallest");
   }
 
   function watch(frame) {
@@ -91,6 +108,9 @@
     for (const frame of viewer.querySelectorAll("iframe.ex-frame")) {
       watch(frame);
       if (frame.dataset.src && shown(frame) && near.has(viewer)) {
+        // Start at the height the other modes measured, not the configured one, so loading it
+        // doesn't move the controls; it's sized to its own content once it renders.
+        if (viewer.dataset.tallest) frame.style.height = `${viewer.dataset.tallest}px`;
         frame.src = frame.dataset.src;
         delete frame.dataset.src;
       }
@@ -118,15 +138,29 @@
     }
   }
 
-  // Picking a mode (a radio in the Tabs) or a width shows another frame.
+  // Picking the page's mode (ModeSwitch) shows another frame in every example; the server reads
+  // the cookie, so the next page opens in the same mode.
+  document.addEventListener("change", (event) => {
+    if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".site-mode-input")) return;
+    const path = new URL(document.baseURI).pathname;
+    document.cookie = `site-mode=${event.target.value}; path=${path}; max-age=31536000; samesite=lax`;
+    requestAnimationFrame(() => {
+      for (const viewer of document.querySelectorAll(".ex")) wake(viewer);
+    });
+  });
+
+  // Picking a width shows the frame at another size.
   for (const type of ["change", "click", "keyup"]) {
     document.addEventListener(type, (event) => {
       const viewer = event.target instanceof Element ? event.target.closest(".ex") : null;
-      if (viewer) requestAnimationFrame(() => wake(viewer));
+      if (!viewer) return;
+      if (type === "change" && event.target.closest(".ex-widths")) forget(viewer);
+      requestAnimationFrame(() => wake(viewer));
     });
   }
 
   window.addEventListener("resize", () => {
+    for (const viewer of document.querySelectorAll(".ex")) forget(viewer);
     for (const frame of document.querySelectorAll("iframe.ex-frame")) size(frame);
   });
 

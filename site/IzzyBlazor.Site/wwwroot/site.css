@@ -301,48 +301,42 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-inherit { font-size: var(--ib-text-sm); }
 
 /*
- * The example viewer: a bar (title, Off · Static · Live, the width switch), the preview frame for
- * the chosen mode, the note under it, a strip with the Source toggle, and the source. The mode switch is a segmented Tabs whose list and
- * panels are placed into this grid (display: contents), so it keeps working with no script.
+ * The example viewer: an optional title, the preview, one strip (Show source, the example's note
+ * for the mode, and the width and mode switches where a viewer has them), then the source.
+ *
+ * The page picks the mode: each viewer has a frame per mode, and the checked "site-mode" radio
+ * (ModeSwitch) shows that one in every viewer, Static when none is checked. No script needed.
  */
 .ex {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto auto;
-  align-items: center;
+  display: flex;
+  flex-direction: column;
   border: 1px solid var(--ib-color-border);
   border-radius: var(--ib-radius-lg);
   background: var(--ib-color-surface);
   overflow: hidden;
 }
-.ex-bar {
-  grid-row: 1;
-  grid-column: 1 / -1;
-  align-self: stretch;
-  border-bottom: 1px solid var(--ib-color-border);
-}
 .ex-title {
-  grid-row: 1;
-  grid-column: 1;
   padding: var(--ib-space-2) var(--ib-space-4);
+  border-bottom: 1px solid var(--ib-color-border);
   font-size: var(--ib-text-sm);
   font-weight: 600;
   min-width: 0;
 }
-.ex > .ex-modes { display: contents; }
-.ex > .ex-modes > .ib-tabs-list { grid-row: 1; grid-column: 2; margin-block: var(--ib-space-2); }
-.ex > .ex-modes > .ib-tab-panel { grid-row: 2; grid-column: 1 / -1; padding: 0; min-width: 0; }
-.ex-tools {
-  grid-row: 1;
-  grid-column: 3;
-  display: flex;
-  align-items: center;
-  gap: var(--ib-space-2);
-  padding-inline: var(--ib-space-2) var(--ib-space-3);
-}
 .ex-stage {
+  /* The tallest mode's height (site.js), so a shorter mode doesn't pull the strip up. */
+  min-height: var(--ex-tallest, 0);
   background: var(--ib-color-background);
   border-bottom: 1px solid var(--ib-color-border);
 }
+.ex-mode, .ex-note { display: none; }
+body:has(.site-mode-input[value="off"]:checked) .ex-mode[data-mode="off"],
+body:has(.site-mode-input[value="static"]:checked) .ex-mode[data-mode="static"],
+body:has(.site-mode-input[value="live"]:checked) .ex-mode[data-mode="live"],
+body:not(:has(.site-mode-input:checked)) .ex-mode[data-mode="static"] { display: block; }
+body:has(.site-mode-input[value="off"]:checked) .ex-note[data-mode="off"],
+body:has(.site-mode-input[value="static"]:checked) .ex-note[data-mode="static"],
+body:has(.site-mode-input[value="live"]:checked) .ex-note[data-mode="live"],
+body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display: flex; }
 .ex-frame {
   display: block;
   width: 100%;
@@ -356,25 +350,32 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   max-width: 100%;
   border-inline: 1px solid var(--ib-color-border);
 }
-.ex-note {
+.ex-strip {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  column-gap: var(--ib-space-4);
+  row-gap: var(--ib-space-1);
+  min-height: calc(var(--ib-control-h-sm) + 2 * var(--ib-space-1));
+  padding: var(--ib-space-1) var(--ib-space-2);
+}
+.ex-strip:empty { display: none; }
+.ex-note {
+  flex: 1 1 16rem;
   align-items: flex-start;
   gap: var(--ib-space-2);
-  padding: var(--ib-space-2) var(--ib-space-4);
+  min-width: 0;
   margin: 0;
+  padding-block: var(--ib-space-1);
 }
 .ex-note .ib-icon { flex: none; margin-block-start: 0.2em; }
-.ex-foot {
-  grid-row: 3;
-  grid-column: 1 / -1;
+.ex-tools {
   display: flex;
   align-items: center;
-  /* The toggle's left edge lines up with the mode switch's. */
-  padding: var(--ib-space-1) var(--ib-space-3);
+  gap: var(--ib-space-2);
+  margin-inline-start: auto;
 }
 .ex-source {
-  grid-row: 4;
-  grid-column: 1 / -1;
   display: none;
   min-width: 0;
   border-top: 1px solid var(--ib-color-border);
@@ -422,29 +423,59 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   outline-offset: 1px;
 }
 .ex-widths { display: inline-flex; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
+.ex-source-hide, .ex-source-toggle:has(input:checked) .ex-source-show { display: none; }
+.ex-source-toggle:has(input:checked) .ex-source-hide { display: inline; }
 
-/* Phones: the title takes its own row above the switch and tools. */
-@media (max-width: 639.98px) {
-  .ex { grid-template-columns: minmax(0, 1fr) auto; }
-  .ex-bar { grid-row: 1 / span 2; }
-  .ex-title { grid-column: 1 / -1; padding-block-end: 0; }
-  .ex > .ex-modes > .ib-tabs-list { grid-row: 2; grid-column: 1; justify-self: start; margin-inline-start: var(--ib-space-4); }
-  .ex-tools { grid-row: 2; grid-column: 2; }
-  .ex > .ex-modes > .ib-tab-panel { grid-row: 3; }
-  .ex-foot { grid-row: 4; }
-  .ex-source { grid-row: 5; }
-  /* Without a title the bar is one row. */
-  .ex-untitled .ex-bar { grid-row: 1; }
-  .ex-untitled > .ex-modes > .ib-tabs-list { grid-row: 1; }
-  .ex-untitled .ex-tools { grid-row: 1; }
-  .ex-untitled > .ex-modes > .ib-tab-panel { grid-row: 2; }
-  .ex-untitled .ex-foot { grid-row: 3; }
-  .ex-untitled .ex-source { grid-row: 4; }
+/*
+ * The page's mode switch (ModeSwitch): radios drawn as a segmented control, then a line on what the
+ * checked mode means. In the right column on wide screens, at the top of the content below that,
+ * and in an example's strip on a page that is one example. Hidden on pages with no example.
+ */
+.site-modeswitch { display: flex; flex-direction: column; gap: var(--ib-space-2); }
+.site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
+.site-modeswitch-options {
+  display: inline-flex;
+  width: fit-content;
+  gap: 2px;
+  padding: 2px;
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-md);
+  background: var(--ib-color-surface);
 }
-
-/* Without a title (an example under a heading that names it), the mode switch leads the bar, like
-   a Preview | Code switch. */
-.ex-untitled > .ex-modes > .ib-tabs-list { grid-column: 1; justify-self: start; margin-inline-start: var(--ib-space-3); }
+.site-modeswitch-option {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  height: calc(var(--ib-control-h-sm) - 6px);
+  padding-inline: var(--ib-space-3);
+  border-radius: var(--ib-radius-sm);
+  font-size: var(--ib-text-sm);
+  font-weight: 500;
+  color: var(--ib-color-muted);
+  cursor: pointer;
+  user-select: none;
+}
+.site-modeswitch-option input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
+.site-modeswitch-option:hover { color: var(--ib-color-on-surface); }
+/* Every copy shows the page's mode, wherever its checked radio is (copies are one radio group). */
+body:has(.site-mode-input[value="off"]:checked) .site-modeswitch-option:has(input[value="off"]),
+body:has(.site-mode-input[value="static"]:checked) .site-modeswitch-option:has(input[value="static"]),
+body:has(.site-mode-input[value="live"]:checked) .site-modeswitch-option:has(input[value="live"]) {
+  background: var(--ib-color-surface-container-high);
+  color: var(--ib-color-on-surface);
+}
+.site-modeswitch-option:has(input:focus-visible) { outline: 2px solid var(--ib-color-focus); outline-offset: 1px; }
+.site-modeswitch-text { display: none; margin: 0; }
+body:has(.site-mode-input[value="off"]:checked) .site-modeswitch-text[data-mode="off"],
+body:has(.site-mode-input[value="static"]:checked) .site-modeswitch-text[data-mode="static"],
+body:has(.site-mode-input[value="live"]:checked) .site-modeswitch-text[data-mode="live"] { display: block; }
+.site-modeswitch-aside { margin-block-end: var(--ib-space-6); }
+.site-modeswitch-top { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--ib-space-3); }
+.site-modeswitch-top .site-modeswitch-text { flex-basis: 100%; }
+body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display: none; }
+/* One place at a time: the right column shows from 1024px (AppAside's breakpoint). */
+@media (width >= 1024px) { .site-modeswitch-top { display: none; } }
+@media (width < 1024px) { .site-modeswitch-aside { display: none; } }
 
 /* An example frame's own page. */
 html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-background); }
