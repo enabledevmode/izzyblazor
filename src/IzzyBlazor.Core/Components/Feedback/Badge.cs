@@ -43,6 +43,7 @@ public enum BadgeSize
 /// &lt;Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill&gt;12&lt;/Badge&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Badge : LayoutItemBase
 {
     /// <summary>What the badge means. Defaults to <see cref="IzzyBlazor.Status.Neutral"/>.</summary>

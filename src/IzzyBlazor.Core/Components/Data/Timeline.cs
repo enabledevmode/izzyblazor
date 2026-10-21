@@ -17,6 +17,7 @@ namespace IzzyBlazor;
 /// &lt;/Timeline&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Timeline : Box
 {
     /// <summary>Creates a timeline, rendered as an ordered list.</summary>

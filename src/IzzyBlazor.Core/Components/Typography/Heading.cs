@@ -23,6 +23,7 @@ namespace IzzyBlazor;
 /// become links to themselves, with a "#" shown on hover, so a section can be linked.
 /// </para>
 /// </remarks>
+[ModeSupport]
 public class Heading : TextBase, IDisposable
 {
     /// <summary>The heading level, 1 to 6. Defaults to 2.</summary>

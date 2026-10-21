@@ -14,6 +14,7 @@ namespace IzzyBlazor;
 /// &lt;IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" /&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class IconButton : ButtonBase
 {
     /// <summary>The icon.</summary>

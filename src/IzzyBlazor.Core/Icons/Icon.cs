@@ -19,6 +19,7 @@ namespace IzzyBlazor;
 /// Without a <see cref="Label"/> the icon is decorative and hidden from screen readers, which
 /// is right when visible text sits next to it. Give icons that stand alone a label.
 /// </remarks>
+[ModeSupport]
 public class Icon : IzzyComponentBase
 {
     /// <summary>The icon to show, such as <c>Lucide.House</c>. Set this or <see cref="Role"/>.</summary>

@@ -46,6 +46,7 @@ public enum AvatarVariant
 /// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" /&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Avatar : LayoutItemBase, IDisposable
 {
     // Soft hues for initials, picked from the name so a person keeps the same color everywhere.

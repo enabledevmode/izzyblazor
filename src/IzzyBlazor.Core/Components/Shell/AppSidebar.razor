@@ -5,6 +5,7 @@
 @inject IServiceProvider Services
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Components.Routing
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the phone drawer doesn't close on Escape or move focus, and a collapsed sidebar isn't remembered.")]
 
 @*
     The navigation column of an AppShell. From its breakpoint up it is a column beside the

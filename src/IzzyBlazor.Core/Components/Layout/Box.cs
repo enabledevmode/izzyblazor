@@ -12,6 +12,7 @@ namespace IzzyBlazor;
 /// &lt;Box As="section" Padding="6 md:10" Bg="surface-container" Radius="md"&gt;...&lt;/Box&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Box : StyledComponentBase
 {
     /// <summary>The element to render. Defaults to <c>div</c>.</summary>

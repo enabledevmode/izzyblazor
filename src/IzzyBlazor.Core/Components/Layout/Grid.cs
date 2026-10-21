@@ -17,6 +17,7 @@ namespace IzzyBlazor;
 /// &lt;Grid Template='new() { Base = "1fr", Md = "240px 1fr" }' Gap="6"&gt;...&lt;/Grid&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Grid : Box
 {
     /// <summary>The number of equal columns (1 to 12), per breakpoint.</summary>
@@ -111,6 +112,7 @@ public enum ContainerSize
 
 /// <summary>Centers content at a readable width, with side padding that grows on larger screens.</summary>
 /// <example><code>&lt;Container Size="ContainerSize.Lg"&gt;...&lt;/Container&gt;</code></example>
+[ModeSupport]
 public class Container : Box
 {
     /// <summary>The widest it gets. Defaults to <see cref="ContainerSize.Xl"/>.</summary>
@@ -128,6 +130,7 @@ public class Container : Box
 }
 
 /// <summary>Centers its children both ways, such as an icon in a square or an empty state in a panel.</summary>
+[ModeSupport]
 public class Center : Box
 {
     /// <summary>Renders as <c>inline-flex</c>, to sit in a line of text.</summary>
@@ -146,6 +149,7 @@ public class Center : Box
 
 /// <summary>Takes up the free space in a <see cref="Stack"/> or <see cref="Row"/>, pushing what follows to the end.</summary>
 /// <example><code>&lt;Row&gt;&lt;Logo /&gt;&lt;Spacer /&gt;&lt;Button&gt;Sign in&lt;/Button&gt;&lt;/Row&gt;</code></example>
+[ModeSupport]
 public class Spacer : Box
 {
     /// <inheritdoc />
@@ -157,6 +161,7 @@ public class Spacer : Box
 /// and videos inside fill it and are cropped to fit.
 /// </summary>
 /// <example><code>&lt;AspectRatio Ratio="16 / 9.0"&gt;&lt;img src="..." alt="..." /&gt;&lt;/AspectRatio&gt;</code></example>
+[ModeSupport]
 public class AspectRatio : Box
 {
     /// <summary>Width divided by height. Defaults to 16:9.</summary>

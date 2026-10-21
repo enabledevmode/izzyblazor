@@ -5,6 +5,7 @@
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no select-all checkbox, and filters apply when you press Apply, not as you type.")]
 
 @*
     A data table that sorts and pages through the URL: column headers and page numbers are

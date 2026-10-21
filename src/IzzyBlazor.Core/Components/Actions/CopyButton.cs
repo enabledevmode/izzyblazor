@@ -23,6 +23,7 @@ namespace IzzyBlazor;
 /// with it off, the text is still there to select. A ghost neutral icon button by default; with
 /// content it shows the text after the icon.
 /// </remarks>
+[ModeSupport(Off = ModeLevel.None, Notes = "Copying needs JavaScript: with it off, the button doesn't appear.")]
 public class CopyButton : ButtonBase
 {
     /// <summary>Creates the button: neutral and ghost unless set.</summary>

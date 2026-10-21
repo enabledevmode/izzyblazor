@@ -23,6 +23,7 @@ public enum ImageFit
 /// <example>
 /// <code>&lt;Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" /&gt;</code>
 /// </example>
+[ModeSupport]
 public class Image : StyledComponentBase
 {
     /// <summary>The image URL.</summary>
@@ -116,6 +117,7 @@ public class Image : StyledComponentBase
 /// in place, so pages don't load YouTube's player, and its cookies, until someone wants it.
 /// </summary>
 /// <example><code>&lt;VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form in IzzyBlazor" /&gt;</code></example>
+[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the play button opens the video on YouTube instead of playing it in place.")]
 public partial class VideoEmbed : StyledComponentBase
 {
     /// <summary>

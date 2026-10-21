@@ -27,6 +27,7 @@ public enum TagVariant
 /// &lt;Tag Label="Status: Paid" Status="Status.Success" RemoveHref="/invoices" OnRemove="ClearStatus" /&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Tag : LayoutItemBase
 {
     /// <summary>The text. Also used in the remove button's name.</summary>

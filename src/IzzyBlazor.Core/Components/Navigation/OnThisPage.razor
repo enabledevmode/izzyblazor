@@ -3,6 +3,7 @@
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the section in view isn't highlighted, and headings in raw HTML aren't listed.")]
 
 @*
     "On this page": links to the page's sections, for an AppAside.

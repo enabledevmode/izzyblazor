@@ -2,6 +2,7 @@
 @inherits ToggleComponentBase
 @implements IDisposable
 @inject NavigationManager Navigation
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dialog opened from the server isn't modal: Escape doesn't close it and focus can leave it.")]
 
 @*
     A modal built on the native <dialog>: the browser traps focus, makes the page behind it
