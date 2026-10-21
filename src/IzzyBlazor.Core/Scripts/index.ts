@@ -12,7 +12,7 @@ import { reconnect, type IzzyEventDefinition } from "./izzy-element";
 // Elements register themselves on import. Add new ones here as they are built, or to lazy.ts
 // if most pages won't have one.
 import "./elements/field-control";
-import { resetShellScroll } from "./elements/shell";
+import { resetShellScroll, revealActiveNav } from "./elements/shell";
 import "./elements/popover";
 import "./elements/tooltip";
 import { syncTabs } from "./elements/tabs";
@@ -89,6 +89,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
   blazor.addEventListener?.("enhancedload", () => {
     openActiveNavGroups();
     resetShellScroll();
+    revealActiveNav();
     syncTabs();
     syncSelects();
     syncIndeterminate();

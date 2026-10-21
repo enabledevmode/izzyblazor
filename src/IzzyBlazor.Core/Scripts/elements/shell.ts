@@ -42,6 +42,7 @@ class Shell extends IzzyElement {
   }
 
   protected setup(signal: AbortSignal): void {
+    revealActiveNav(this);
     this.addEventListener(
       "click",
       (event) => {
@@ -156,6 +157,7 @@ class Shell extends IzzyElement {
 
   open(): void {
     this.setAttribute("data-sidebar-open", "");
+    revealActiveNav(this);
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", "true"));
     this.setInert(true);
     // The close button first: with a SidebarHeader it comes after the header's links in the row.
@@ -195,6 +197,27 @@ class Shell extends IzzyElement {
       (this.#lastToggle ?? this.toggles[0])?.focus();
     }
   }
+}
+
+/**
+ * Brings the current page's link into view in the sidebar: on a long menu it's often below the
+ * fold when a page opens (a shared link, a search result, a reload), so nothing on screen shows
+ * where you are. Scrolls only the sidebar's own list, only when the link is out of view, and
+ * centers it there. After nav groups holding the current page have opened.
+ */
+export function revealActiveNav(root: ParentNode = document): void {
+  requestAnimationFrame(() => {
+    root.querySelectorAll<HTMLElement>(".ib-shell-sidebar-body").forEach((list) => {
+      const link =
+        list.querySelector<HTMLElement>('.ib-nav-item[aria-current="page"]') ??
+        list.querySelector<HTMLElement>(".ib-nav-item-active");
+      if (!link) return;
+      const box = list.getBoundingClientRect();
+      const r = link.getBoundingClientRect();
+      if (!r.height || (r.top >= box.top && r.bottom <= box.bottom)) return;
+      list.scrollTop += r.top - box.top - (box.height - r.height) / 2;
+    });
+  });
 }
 
 /** Writes a collapsible sidebar's state to its cookie, which the server reads on the next request. */

@@ -666,7 +666,9 @@ titles wrap in a vertical menu, keeping the space a one-line item has above and 
 menu keeps them on one line. `NavLabel` is a small
 heading and `NavDivider` a line. `NavGroup` is a collapsible group with a `Label` and `Icon`, built
 on `details`: it starts open with `Open` or when the current page is under its `ActivePrefix`, and
-with JavaScript any group holding the current page opens itself.
+with JavaScript any group holding the current page opens itself. With JavaScript, a sidebar whose
+current link is out of view when a page opens (a long menu, a shared link) scrolls its list to show
+it; the page itself doesn't move.
 
 ```razor
 <NavMenu>
