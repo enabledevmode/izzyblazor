@@ -153,27 +153,28 @@
     text-box: trim-both cap alphabetic;
   }
 
-  /* Shortcuts: a column at the end, well apart from the labels, each in a key cap (Kbd's look,
-     quieter: a line, no fill). 20px tall, so it centers on whole pixels in an even row. */
+  /* Shortcuts: a column at the end, well apart from the labels, each in a key cap: a light fill and
+     a line, small text with room around it. 20px tall, centered in the row on whole pixels. */
   .ib-menu-shortcut {
     display: inline-flex;
     flex: none;
     align-items: center;
+    justify-content: center;
     height: 1.25rem;
     margin-inline-start: var(--ib-space-6);
-    padding-inline: 0.375rem;
+    padding-inline: var(--ib-space-2);
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-sm);
-    color: var(--ib-color-subtle);
+    background-color: var(--ib-color-surface-container);
+    color: var(--ib-color-muted);
     font-family: inherit;
     font-size: var(--ib-text-xs);
+    letter-spacing: 0.02em;
     font-variant-numeric: tabular-nums;
-    letter-spacing: var(--ib-tracking-wide);
     line-height: 1;
     white-space: nowrap;
     /* Text widths are rarely whole: rounded up, so the cap's left edge lands on a pixel. */
     width: calc-size(max-content, round(up, size, 1px));
-    justify-content: center;
   }
 
   .ib-menu-item:disabled .ib-menu-shortcut,
