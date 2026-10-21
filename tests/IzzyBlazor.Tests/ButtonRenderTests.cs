@@ -31,12 +31,12 @@ public class ButtonRenderTests : BunitContext
     {
         var button = Render<Button>(p => p
             .Add(b => b.Submit, true)
-            .Add(b => b.Name, "action")
+            .Add(b => b.Name, "intent")
             .Add(b => b.Value, "publish")
             .Add(b => b.FormAction, "/drafts")).Find("button");
 
         Assert.Equal("submit", button.GetAttribute("type"));
-        Assert.Equal("action", button.GetAttribute("name"));
+        Assert.Equal("intent", button.GetAttribute("name"));
         Assert.Equal("publish", button.GetAttribute("value"));
         Assert.Equal("/drafts", button.GetAttribute("formaction"));
     }

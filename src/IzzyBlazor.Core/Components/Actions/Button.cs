@@ -14,7 +14,7 @@ namespace IzzyBlazor;
 /// <code>
 /// &lt;Button Submit&gt;Save&lt;/Button&gt;
 /// &lt;Button Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Lucide.Trash"&gt;Delete&lt;/Button&gt;
-/// &lt;Button Submit Name="action" Value="publish"&gt;Publish&lt;/Button&gt;
+/// &lt;Button Submit Name="intent" Value="publish"&gt;Publish&lt;/Button&gt;
 /// &lt;Button Href="/courses/wizard" EndIcon="Lucide.ArrowRight"&gt;Start the project&lt;/Button&gt;
 /// &lt;Button Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
 /// </code>
@@ -59,7 +59,9 @@ public class Button : ButtonBase
 
     /// <summary>
     /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
-    /// which of several submit buttons was pressed.
+    /// which of several submit buttons was pressed. Not <c>action</c>, <c>method</c> or <c>target</c>:
+    /// a control with one of those names hides the form's own property, and Blazor's enhanced form
+    /// handling then posts to the wrong address.
     /// </summary>
     [Parameter] public string? Name { get; set; }
 

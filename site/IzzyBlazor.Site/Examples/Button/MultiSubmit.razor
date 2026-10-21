@@ -4,11 +4,11 @@
     <TextField @bind-Value="Model!.Title" />
     <TextArea @bind-Value="Model!.Body" Rows="3" />
     <FormActions Justify="Justify.Start">
-        <Button Submit Name="action" Value="publish" StartIcon="Lucide.Send"
+        <Button Submit Name="intent" Value="publish" StartIcon="Lucide.Send"
                 OnClick='() => _pressed = "publish"'>Publish</Button>
-        <Button Submit Name="action" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+        <Button Submit Name="intent" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
                 OnClick='() => _pressed = "draft"'>Save draft</Button>
-        <Button Submit Name="action" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger"
+        <Button Submit Name="intent" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger"
                 OnClick='() => _pressed = "discard"'>Discard</Button>
     </FormActions>
     @if (_result is not null)
@@ -22,8 +22,8 @@
     private Article? Model { get; set; }
 
     // Static pages: the pressed button's Name=Value posts with the form.
-    [SupplyParameterFromForm(FormName = "article", Name = "action")]
-    private string? Action { get; set; }
+    [SupplyParameterFromForm(FormName = "article", Name = "intent")]
+    private string? Intent { get; set; }
 
     // Interactive pages post nothing, so OnClick says which button it was.
     private string? _pressed;
@@ -31,7 +31,7 @@
 
     protected override void OnInitialized() => Model ??= new();
 
-    private void Save() => _result = (Action ?? _pressed) switch
+    private void Save() => _result = (Intent ?? _pressed) switch
     {
         "publish" => $"Published \"{Model!.Title}\".",
         "draft" => "Saved as a draft.",

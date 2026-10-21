@@ -139,9 +139,9 @@
         <form method="get">
             <Stack Gap="3">
                 <Row Gap="2" Wrap>
-                    <Button Submit Name="action" Value="publish" StartIcon="Lucide.Send">Publish</Button>
-                    <Button Submit Name="action" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save draft</Button>
-                    <Button Submit Name="action" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger">Discard</Button>
+                    <Button Submit Name="intent" Value="publish" StartIcon="Lucide.Send">Publish</Button>
+                    <Button Submit Name="intent" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Save draft</Button>
+                    <Button Submit Name="intent" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger">Discard</Button>
                 </Row>
                 @if (Action is not null)
                 {
@@ -161,7 +161,7 @@
 </Stack>
 
 @code {
-    [SupplyParameterFromQuery(Name = "action")] public string? Action { get; set; }
+    [SupplyParameterFromQuery(Name = "intent")] public string? Action { get; set; }
 
     private int _count;
     private bool _saving;
@@ -224,7 +224,7 @@
 
     private const string SubmitCode =
         """
-        <Button Submit Name="action" Value="publish">Publish</Button>
-        <Button Submit Name="action" Value="draft">Save draft</Button>
+        <Button Submit Name="intent" Value="publish">Publish</Button>
+        <Button Submit Name="intent" Value="draft">Save draft</Button>
         """;
 }

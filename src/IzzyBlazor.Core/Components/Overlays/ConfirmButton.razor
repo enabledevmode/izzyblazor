@@ -9,7 +9,7 @@
       - Inside a form (the usual case): submits that form, with Name=Value if given, so one
         handler can tell which action was confirmed. Works with JavaScript off.
         <ConfirmButton Title="Delete this project?" Message="This can't be undone."
-                       Accent="Accent.Danger" Name="action" Value="delete">Delete</ConfirmButton>
+                       Accent="Accent.Danger" Name="intent" Value="delete">Delete</ConfirmButton>
       - Form="id": submits a form elsewhere on the page instead.
       - Href: follows a link.
       - OnConfirm: runs C# on an interactive page.
@@ -90,7 +90,11 @@
     /// <summary>The cancel button's text. Defaults to "Cancel".</summary>
     [Parameter] public string? CancelText { get; set; }
 
-    /// <summary>Posted as <c>Name=Value</c> with the form when confirmed, so one handler can tell which action it was.</summary>
+    /// <summary>
+    /// Posted as <c>Name=Value</c> with the form when confirmed, so one handler can tell which action it was. Not <c>action</c>, <c>method</c> or <c>target</c>: a control with one of those
+    /// names hides the form's own property, and Blazor's enhanced form handling then posts to the
+    /// wrong address.
+    /// </summary>
     [Parameter] public string? Name { get; set; }
 
     /// <summary>The value posted with <see cref="Name"/>.</summary>

@@ -342,7 +342,7 @@ public class OverlayRenderTests : BunitContext
             .Add(c => c.Message, "It can't be undone.")
             .Add(c => c.ConfirmText, "Delete")
             .Add(c => c.Accent, Accent.Danger)
-            .Add(c => c.Name, "action")
+            .Add(c => c.Name, "intent")
             .Add(c => c.Value, "delete")
             .AddChildContent("Delete"));
 
@@ -365,7 +365,7 @@ public class OverlayRenderTests : BunitContext
         Assert.True(buttons[0].HasAttribute("autofocus"));
         Assert.Equal("button", buttons[0].GetAttribute("type"));
         Assert.Equal("submit", buttons[1].GetAttribute("type"));
-        Assert.Equal("action", buttons[1].GetAttribute("name"));
+        Assert.Equal("intent", buttons[1].GetAttribute("name"));
         Assert.Equal("delete", buttons[1].GetAttribute("value"));
         Assert.Equal("Delete", buttons[1].TextContent);
         Assert.Contains("ib-btn-danger", buttons[1].ClassName);
