@@ -248,6 +248,15 @@ public class IzzyText
     /// <summary>A code block's copy button.</summary>
     public virtual string CopyCode { get; set; } = "Copy code";
 
+    /// <summary>CodeExample's toggle while its source is hidden.</summary>
+    public virtual string ShowCode { get; set; } = "Show code";
+
+    /// <summary>CodeExample's toggle while its source is shown.</summary>
+    public virtual string HideCode { get; set; } = "Hide code";
+
+    /// <summary>CodeExample's tabs of source files, for screen readers.</summary>
+    public virtual string SourceFiles { get; set; } = "Source files";
+
     /// <summary>CopyButton's name when it shows no text.</summary>
     public virtual string Copy { get; set; } = "Copy";
 

@@ -159,4 +159,43 @@ public class DocsSiteRenderTests : BunitContext
         Assert.Empty(Render<PrevNext>().FindAll("nav"));
         Assert.Throws<InvalidOperationException>(() => Render<PrevNext>(p => p.Add(n => n.NextHref, "/x")));
     }
+
+    [Fact]
+    public void CodeExample_shows_the_live_example_over_its_source()
+    {
+        var cut = Render<CodeExample>(p => p
+            .Add(e => e.Code, "<Button>Save</Button>")
+            .Add(e => e.Title, "Save.razor")
+            .AddChildContent("<button>Save</button>"));
+
+        Assert.Equal("Save", cut.Find(".ib-example-preview button").TextContent);
+        var code = cut.Find(".ib-example-source ib-code");
+        Assert.Equal("Save.razor", code.QuerySelector(".ib-code-head")!.TextContent.Trim());
+        Assert.Equal("<Button>Save</Button>", code.QuerySelector("pre code")!.TextContent);
+    }
+
+    [Fact]
+    public void CodeExample_files_are_tabs_and_follow_changes_without_rendering_forever()
+    {
+        var cut = Render<ExampleProbe>();
+
+        Assert.Equal(["Save.razor", "Save.razor.cs"], cut.FindAll(".ib-example-source label.ib-tab").Select(l => l.TextContent.Trim()));
+        Assert.Equal(2, cut.FindAll(".ib-example-source ib-code").Count);
+
+        // The parent re-renders (the files re-register): the example settles, and a changed file shows.
+        cut.InvokeAsync(cut.Instance.Bump);
+        Assert.Equal("Save 1", cut.Find(".ib-example-preview button").TextContent);
+        cut.Render(p => p.Add(x => x.Markup, "<button>Saved</button>"));
+        Assert.Contains("<button>Saved</button>", cut.Find(".ib-example-source pre code").TextContent);
+    }
+
+    [Fact]
+    public void A_collapsible_CodeExample_hides_its_source_in_a_details_element()
+    {
+        var cut = Render<ExampleProbe>(p => p.Add(x => x.Collapsible, true));
+
+        var details = cut.Find("details.ib-example-source");
+        Assert.False(details.HasAttribute("open"));
+        Assert.Equal("Show code", details.QuerySelector(".ib-example-show")!.TextContent);
+    }
 }

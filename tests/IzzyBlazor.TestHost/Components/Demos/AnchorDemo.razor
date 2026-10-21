@@ -32,6 +32,15 @@
         <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@ProgramSample</Code>
     </Example>
 
+    <Example Title="CodeExample" Note="A live example with its source under it, colored and with a copy button. Several files go in CodeExampleFile parts, as tabs that switch without script; Collapsible hides the source behind Show code. (Every example on these pages is a CodeExample.)" Code="@ExampleCode">
+        <CodeExample Center Collapsible>
+            <Button StartIcon="Lucide.Save">Save</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+            <CodeExampleFile Title="Buttons.razor" Code="@ButtonsSample" />
+            <CodeExampleFile Title="Buttons.razor.cs" Language="csharp" Code="@ButtonsCodeBehind" HighlightLines="3" />
+        </CodeExample>
+    </Example>
+
     <Example Title="CopyButton" Note="Copies Text, or the value or text of the element For names, and shows a check for a moment. Like a code block's copy button, it appears only with JavaScript." Code="@CopyCode">
         <Stack Gap="4">
             <Row Gap="2" Align="Align.Center">
@@ -67,6 +76,30 @@
     private const string LinesCode =
         """
         <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="4,7-8">@program</Code>
+        """;
+
+    private const string ButtonsSample =
+        """
+        <Button StartIcon="Lucide.Save" OnClick="Save">Save</Button>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+        """;
+
+    private const string ButtonsCodeBehind =
+        """
+        public partial class Buttons
+        {
+            private Task Save() => Store.SaveAsync();
+        }
+        """;
+
+    private const string ExampleCode =
+        """
+        <CodeExample Center Collapsible>
+            <Button StartIcon="Lucide.Save">Save</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+            <CodeExampleFile Title="Buttons.razor" Code="@markup" />
+            <CodeExampleFile Title="Buttons.razor.cs" Language="csharp" Code="@codeBehind" HighlightLines="3" />
+        </CodeExample>
         """;
 
     private const string CopyCode =

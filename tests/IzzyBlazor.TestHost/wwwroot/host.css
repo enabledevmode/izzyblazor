@@ -201,34 +201,6 @@
   font-size: var(--ib-text-sm);
 }
 
-/* Each example sits on a card, the way an app's content sits on surfaces over the page: raised
-   things are lighter than what they sit on. The code is part of the card, recessed into it (a
-   container fill inside a surface), never a darker block on the page itself. */
-.host-example-frame {
-  border: 1px solid var(--ib-color-border);
-  border-radius: var(--ib-radius-lg);
-  background: var(--ib-color-surface);
-  overflow: hidden;
-}
-
-.host-example-canvas {
-  padding: 1.25rem;
-  overflow-x: auto;
-}
-
-.host-example-code {
-  margin: 0;
-  padding: 0.75rem 1rem;
-  background: var(--ib-color-surface-container);
-  font-family: var(--ib-font-mono);
-  font-size: var(--ib-text-sm);
-  overflow-x: auto;
-}
-
-.host-example-canvas + .host-example-code {
-  border-top: 1px solid var(--ib-color-border);
-}
-
 .host-brand-form {
   display: flex;
   flex-direction: column;

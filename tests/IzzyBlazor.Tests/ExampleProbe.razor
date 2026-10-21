@@ -1,0 +1,20 @@
+@* A CodeExample with two files, re-rendered by its parent like an app page would. *@
+<CodeExample Collapsible="Collapsible">
+    <button type="button">Save @Count</button>
+    <CodeExampleFile Title="Save.razor" Code="@Markup" />
+    <CodeExampleFile Title="Save.razor.cs" Language="csharp" Code="var saved = true;" />
+</CodeExample>
+
+@code {
+    [Parameter] public bool Collapsible { get; set; }
+
+    [Parameter] public string Markup { get; set; } = "<button>Save</button>";
+
+    public int Count { get; private set; }
+
+    public void Bump()
+    {
+        Count++;
+        StateHasChanged();
+    }
+}
