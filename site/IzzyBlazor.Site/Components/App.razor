@@ -14,9 +14,10 @@
     <meta name="twitter:card" content="summary_large_image" />
     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
     <link rel="stylesheet" href="@Assets["site.css"]" />
-    @* The site's chrome takes the brand's Ember; example frames keep the component default (Blue),
-       so readers see what the library gives them. IzzyTheme derives contrast-checked shades. *@
-    <IzzyTheme Brand="@(IsFrame ? null : "#F26A1B")" />
+    @* The site's chrome is Ink (monochrome): the brand's Ember is kept for brand moments (the logo,
+       the hero, its call to action, the pictograms), and example frames keep the component default
+       (Blue), so the examples are the docs' only colored accent and show what the library gives. *@
+    <IzzyTheme Brand="@(IsFrame ? null : "ink")" />
     @if (Scripts)
     {
         <ImportMap />
