@@ -63,7 +63,8 @@ public class Tag : LayoutItemBase
     /// Adds a remove button that runs this on interactive pages. Static and prerendered pages need
     /// <see cref="RemoveHref"/> to show a remove control.
     /// </summary>
-    [Parameter] public EventCallback OnRemove { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback OnRemove { get; set; }
 
     /// <summary>
     /// The remove control's name, before the label: "Remove Blazor". Defaults to "Remove". With only

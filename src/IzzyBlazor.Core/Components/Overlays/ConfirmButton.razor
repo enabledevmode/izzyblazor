@@ -105,7 +105,8 @@
     [Parameter] public string? Href { get; set; }
 
     /// <summary>Runs when confirmed, on an interactive page. On a static page the confirm button submits the form instead.</summary>
-    [Parameter] public EventCallback OnConfirm { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback OnConfirm { get; set; }
 
     /// <summary>The trigger's id. The dialog's is this plus <c>-dialog</c>.</summary>
     [Parameter] public string? Id { get; set; }

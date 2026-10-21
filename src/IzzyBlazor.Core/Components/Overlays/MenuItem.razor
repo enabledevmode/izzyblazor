@@ -118,7 +118,8 @@ else
     [Parameter] public bool Disabled { get; set; }
 
     /// <summary>Runs on click on interactive pages.</summary>
-    [Parameter] public EventCallback<MouseEventArgs> OnClick { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>The item text.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

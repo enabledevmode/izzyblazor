@@ -1,14 +1,49 @@
-@* Off · Static · Live chips for a component or member, from its [ModeSupport]. *@
+@* A component's or member's mode support, from its [ModeSupport], as one label shown only when
+   it's restricted: works everywhere says nothing (the usual case), interactive-only says so, and
+   anything else names the modes it works in. The Overview's Mode support table has the full grid. *@
 
-@if (Modes is not null)
+@if (Label is { } label)
 {
-    <span class="site-modes" title="@Modes.Notes">
-        <ModeChip Mode="off" Level="ModeChip.Parse(Modes.Off)" />
-        <ModeChip Mode="static" Level="ModeChip.Parse(Modes.Static)" />
-        <ModeChip Mode="live" Level="ModeChip.Parse(Modes.Live)" />
-    </span>
+    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@label</Badge>
 }
 
 @code {
     [Parameter] public ApiModes? Modes { get; set; }
+
+    private string? Label
+    {
+        get
+        {
+            if (Modes is null)
+            {
+                return null;
+            }
+
+            var levels = new (string Name, ModeLevel Level)[]
+            {
+                ("Off", ModeChip.Parse(Modes.Off)),
+                ("Static", ModeChip.Parse(Modes.Static)),
+                ("Live", ModeChip.Parse(Modes.Live)),
+            };
+            if (levels.All(l => l.Level == ModeLevel.Full))
+            {
+                return null;
+            }
+
+            if (levels[0].Level == ModeLevel.None && levels[1].Level == ModeLevel.None && levels[2].Level == ModeLevel.Full)
+            {
+                return "Interactive only";
+            }
+
+            var works = levels.Where(l => l.Level == ModeLevel.Full).Select(l => l.Name).ToList();
+            var partly = levels.Where(l => l.Level == ModeLevel.Partial).Select(l => l.Name).ToList();
+            var text = works.Count > 0 ? string.Join(" and ", works) + " only" : "";
+            if (partly.Count > 0)
+            {
+                text += (text.Length > 0 ? "; " : "") + string.Join(" and ", partly) + " partly";
+            }
+
+            return text;
+        }
+    }
 }
