@@ -53,7 +53,8 @@
     [Parameter] public int? Page { get; set; }
 
     /// <summary>Called with the new page when a page is picked (interactive pages, with <c>@bind-Page</c>).</summary>
-    [Parameter] public EventCallback<int> PageChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<int> PageChanged { get; set; }
 
     /// <summary>How many pages there are. Or set <see cref="TotalItems"/> and <see cref="PageSize"/>.</summary>
     [Parameter] public int? PageCount { get; set; }

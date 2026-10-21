@@ -103,7 +103,8 @@
     [Parameter] public ColorScheme? Value { get; set; }
 
     /// <summary>Raised on interactive pages when the user picks a scheme.</summary>
-    [Parameter] public EventCallback<ColorScheme> ValueChanged { get; set; }
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<ColorScheme> ValueChanged { get; set; }
 
     /// <summary>Segmented only: icons without the labels (the names stay for screen readers and as tooltips).</summary>
     [Parameter] public bool IconOnly { get; set; }
