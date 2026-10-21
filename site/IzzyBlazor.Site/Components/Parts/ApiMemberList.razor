@@ -17,7 +17,9 @@ else
                     </a>
                     @if (!IsMethod)
                     {
-                        <code class="site-type">@member.Type</code>
+                        @* Read as a declaration: the type, then its default. *@
+                        <code class="site-member-type">@member.Type@if (member.Default is { } value)
+                        {<span class="site-member-default">@(value == "computed" ? " (computed)" : $" = {value}")</span>}</code>
                     }
                     @if (member.Required)
                     {
@@ -28,10 +30,6 @@ else
                         <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" title="Takes a value per breakpoint">Responsive</Badge>
                     }
                     <span class="site-member-meta">
-                        @if (member.Default is { } value)
-                        {
-                            <span>Default <code class="site-default">@value</code></span>
-                        }
                         @if (member.AddedIn is { } added)
                         {
                             <span>Added in @added</span>
@@ -47,8 +45,8 @@ else
                 {
                     <code class="site-signature">@member.Type</code>
                 }
-                <DocHtml Html="@member.Summary" Context="Context" />
-                <DocHtml Html="@member.Remarks" Context="Context" />
+                <DocHtml Html="@member.Summary" Context="Context" Class="site-member-text" />
+                <DocHtml Html="@member.Remarks" Context="Context" Class="site-member-text" />
                 @if (member.Modes?.Notes is { } notes)
                 {
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@notes</TextBlock>
