@@ -14,6 +14,7 @@ namespace IzzyBlazor;
 /// &lt;Row&gt;...&lt;Divider Orientation="Orientation.Vertical" /&gt;...&lt;/Row&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Divider : StyledComponentBase
 {
     /// <summary>Horizontal (the default) or vertical, for use in a row.</summary>

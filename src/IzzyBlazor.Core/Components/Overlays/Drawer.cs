@@ -13,6 +13,7 @@ namespace IzzyBlazor;
 /// &lt;Drawer Id="filters" Title="Filters"&gt;...&lt;/Drawer&gt;
 /// </code>
 /// </example>
+[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a drawer opened from the server isn't modal: Escape doesn't close it and focus can leave it.")]
 public class Drawer : Dialog
 {
     /// <summary>Creates a drawer on the end side.</summary>

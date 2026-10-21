@@ -14,6 +14,7 @@ namespace IzzyBlazor;
 /// &lt;Kbd Keys="⌘+Shift+P" /&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Kbd : LayoutItemBase
 {
     /// <summary>One key, such as "Esc". For a combination, use <see cref="Keys"/>.</summary>

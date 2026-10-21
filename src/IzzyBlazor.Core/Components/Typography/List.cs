@@ -16,6 +16,7 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 /// Lists without bullets keep <c>role="list"</c>, which Safari otherwise drops from a list with no
 /// markers, so screen readers still announce the count.
 /// </remarks>
+[ModeSupport]
 public class List : Box
 {
     /// <summary>Creates a list, rendered as a <c>ul</c>.</summary>

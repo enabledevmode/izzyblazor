@@ -53,6 +53,7 @@ public abstract class FlexBase : Box
 /// &lt;Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4" Align="Align.Center"&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Stack : FlexBase
 {
     /// <summary>Layout direction. Defaults to <see cref="IzzyBlazor.Direction.Column"/> (vertical).</summary>
@@ -63,6 +64,7 @@ public class Stack : FlexBase
 }
 
 /// <summary>Lays children out horizontally. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
+[ModeSupport]
 public class Row : FlexBase
 {
     /// <summary>Not available: a Row is always horizontal. Use <see cref="Stack"/> for a direction that changes.</summary>
@@ -80,6 +82,7 @@ public class Row : FlexBase
 }
 
 /// <summary>Lays children out vertically. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
+[ModeSupport]
 public class Column : FlexBase
 {
     /// <summary>Not available: a Column is always vertical. Use <see cref="Stack"/> for a direction that changes.</summary>

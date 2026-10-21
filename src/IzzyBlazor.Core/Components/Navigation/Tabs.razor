@@ -4,6 +4,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @inject IServiceProvider Services
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, tabs switch as a radio group, but screen readers don't hear them as tabs and the URL doesn't follow.")]
 
 @*
     A set of tabs, in three layers:

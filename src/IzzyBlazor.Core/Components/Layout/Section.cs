@@ -35,6 +35,7 @@ public enum SectionSpacing
 /// It works out the bleed from the main area and the column, so put it at the page's top level or
 /// in containers without side padding of their own. It works with no script.
 /// </remarks>
+[ModeSupport]
 public class Section : Box
 {
     /// <summary>Creates a section, rendered as a <c>section</c> element.</summary>

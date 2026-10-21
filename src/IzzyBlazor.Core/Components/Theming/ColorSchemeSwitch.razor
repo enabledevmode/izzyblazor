@@ -4,6 +4,7 @@
 @using Microsoft.Extensions.DependencyInjection
 @inject NavigationManager Navigation
 @inject IServiceProvider Services
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, choosing a scheme reloads the page, and other open tabs don't follow.")]
 
 @*
     Lets the user pick light, dark or system. The choice is kept in the ib-scheme cookie, which

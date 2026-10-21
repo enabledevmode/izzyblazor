@@ -26,6 +26,7 @@ public enum AnchorUnderline
 /// &lt;Anchor Href="https://github.com/..." External&gt;GitHub&lt;/Anchor&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Anchor : LayoutItemBase
 {
     /// <summary>Where it goes.</summary>

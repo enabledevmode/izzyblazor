@@ -28,6 +28,7 @@ public enum ProseSize
 /// The rules have the lowest weight (<c>:where()</c>), so library components inside keep their
 /// own look, and your own classes win. Only render HTML you trust or have sanitized.
 /// </remarks>
+[ModeSupport]
 public class Prose : Box
 {
     /// <summary>Text size. Defaults to <see cref="ProseSize.Md"/>.</summary>

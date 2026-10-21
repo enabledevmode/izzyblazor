@@ -21,6 +21,7 @@ namespace IzzyBlazor;
 /// Put the avatars directly inside the group: <see cref="Max"/> hides the extra ones with CSS,
 /// counting the group's children.
 /// </remarks>
+[ModeSupport]
 public class AvatarGroup : LayoutItemBase
 {
     private readonly List<Avatar> _avatars = [];

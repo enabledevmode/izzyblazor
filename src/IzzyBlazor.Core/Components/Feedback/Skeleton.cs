@@ -16,6 +16,7 @@ namespace IzzyBlazor;
 /// &lt;Skeleton Loaded="_order is not null" Lines="2"&gt;@_order.Summary&lt;/Skeleton&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class Skeleton : StyledComponentBase
 {
     /// <summary>Lines of text to stand in for. The last of several is shorter. Defaults to 1.</summary>

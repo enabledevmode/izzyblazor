@@ -12,6 +12,7 @@ namespace IzzyBlazor;
 /// &lt;TextBlock As="span" Size="TextSize.Xs" Weight="FontWeight.Semibold" Transform="TextTransform.Uppercase" LetterSpacing="LetterSpacing.Wider"&gt;New&lt;/TextBlock&gt;
 /// </code>
 /// </example>
+[ModeSupport]
 public class TextBlock : TextBase
 {
     /// <summary>Creates a TextBlock that renders a paragraph.</summary>

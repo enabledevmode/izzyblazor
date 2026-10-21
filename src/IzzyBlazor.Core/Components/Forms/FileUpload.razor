@@ -1,6 +1,7 @@
 @namespace IzzyBlazor
 @inherits LayoutItemBase
 @using Microsoft.AspNetCore.Components.Forms
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, files can't be dropped on the zone, and type and size aren't checked before posting.")]
 
 @*
     A drop zone around a real file input: "Choose a file or drag it here", with a hint built from
