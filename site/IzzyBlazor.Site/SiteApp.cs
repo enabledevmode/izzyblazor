@@ -44,6 +44,7 @@ public static class SiteApp
 
         app.UseStatusCodePagesWithReExecute("/not-found");
         app.UseAntiforgery();
+        app.UseOffFrameLinks();
 
         // Tests run the app from their own folder, without the static assets manifest.
         var manifest = Path.Combine(AppContext.BaseDirectory, $"{builder.Environment.ApplicationName}.staticwebassets.endpoints.json");

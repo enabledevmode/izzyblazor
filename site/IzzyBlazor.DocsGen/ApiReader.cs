@@ -10,7 +10,7 @@ namespace IzzyBlazor.DocsGen;
 /// non-abstract <see cref="IComponent"/>; its API is its <c>[Parameter]</c> properties (minus the
 /// captured-attributes bag), with <c>EventCallback</c>s as events and public methods of its own.
 /// </summary>
-public sealed class ApiReader(XmlDocs docs, string version)
+public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? headers = null)
 {
     /// <summary>Bases whose props many components share; they're listed once, not on each component.</summary>
     public static readonly string[] SharedBases = ["IzzyComponentBase", "LayoutItemBase", "StyledComponentBase", "FieldBase"];
@@ -112,9 +112,10 @@ public sealed class ApiReader(XmlDocs docs, string version)
             FullName = XmlDocs.DocName(type),
             Package = assembly.GetName().Name!,
             Tier = assembly.GetName().Name!.EndsWith(".Pro", StringComparison.Ordinal) ? "Pro" : "Free",
-            Summary = XmlDocs.Html(doc, "summary"),
+            // A .razor component has no XML doc comment: its header comment stands in.
+            Summary = XmlDocs.Html(doc, "summary") ?? headers?.For(TypeNames.Plain(type)).Summary,
             Remarks = XmlDocs.Html(doc, "remarks"),
-            Examples = XmlDocs.Examples(doc),
+            Examples = XmlDocs.Examples(doc) ?? (headers?.For(TypeNames.Plain(type)).Example is { } example ? [example] : null),
             TypeParameters = type.IsGenericTypeDefinition ? type.GetGenericArguments().Select(a => a.Name).ToList() : null,
             Bases = componentBases,
             // Not inherited: DialogClose derives from Button, but Button's modes aren't its.

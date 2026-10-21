@@ -38,7 +38,7 @@
       <Output TaskParameter="TargetOutputs" ItemName="DocsGenAssembly" />
     </MSBuild>
     <!-- DocsGen only rewrites the file when the API changed, so an unchanged API rebuilds nothing. -->
-    <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(ApiMetadataFile)&quot;" />
+    <Exec Command="&quot;$(DocsGenHost)&quot; &quot;@(DocsGenAssembly)&quot; --out &quot;$(ApiMetadataFile)&quot; --source &quot;$(MSBuildThisFileDirectory)..\..\src&quot;" />
   </Target>
 
   <Target Name="EmbedApiMetadata" AfterTargets="GenerateApiMetadata" BeforeTargets="PrepareResources" Condition="Exists('$(ApiMetadataFile)')">
