@@ -3,6 +3,8 @@
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Components.Routing
 
 @*
     The navigation column of an AppShell. From its breakpoint up it is a column beside the
@@ -30,7 +32,7 @@
 *@
 
 @* "#ib-shell-closed" matches no element: it clears :target without scrolling to the top as "#" would. *@
-<a class="ib-shell-backdrop" href="#ib-shell-closed" tabindex="-1" aria-hidden="true"></a>
+<a class="ib-shell-backdrop" href="@ClosedHref" tabindex="-1" aria-hidden="true"></a>
 <nav @attributes="AdditionalAttributes" id="@Id" aria-label="@(Label ?? TextDefaults.MainNavigation)" class="@_class" style="@_style">
     <div class="ib-shell-sidebar-inner">
         @if (_scope.Shown<SidebarHeader>() is { } header)
@@ -179,6 +181,12 @@
 
     private void OnHeaderLinksChanged() => _ = InvokeAsync(StateHasChanged);
 
+    // The close links clear :target, written with the page's path (a bare "#..." resolves against
+    // <base href> and leads to another page); kept current as the URL changes.
+    private string ClosedHref => PageLinks.ToFragment(Navigation, "ib-shell-closed");
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
     /// <inheritdoc />
     public override Task SetParametersAsync(ParameterView parameters)
     {
@@ -189,7 +197,7 @@
     private RenderFragment CloseControl => __builder =>
     {
         <div class="ib-shell-sidebar-close">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="#ib-shell-closed" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@ClosedHref" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
                 <Icon Role="IconRole.Close" />
             </a>
         </div>
@@ -235,6 +243,7 @@
     protected override async Task OnInitializedAsync()
     {
         _scope = new PartScope(this, OuterScope, StateHasChanged);
+        Navigation.LocationChanged += OnLocationChanged;
         if (!Collapsible || !RememberState)
         {
             return;
@@ -330,6 +339,7 @@
     public void Dispose()
     {
         _persisting?.Dispose();
+        Navigation.LocationChanged -= OnLocationChanged;
         if (_subscribed is not null)
         {
             _subscribed.Changed -= OnHeaderLinksChanged;

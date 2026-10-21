@@ -1,0 +1,19 @@
+@* A shell with a brand in the header and a sidebar, as the drawer and panel tests need. *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="/" Label="Acme" />
+    </AppHeader>
+    <AppSidebar>
+        @if (WithHeader)
+        {
+            <SidebarHeader>Workspace</SidebarHeader>
+        }
+        <NavMenu><NavItem Href="/rules">Rules</NavItem></NavMenu>
+    </AppSidebar>
+    <AppMain>Content</AppMain>
+</AppShell>
+
+@code {
+    [Parameter] public bool WithHeader { get; set; }
+}

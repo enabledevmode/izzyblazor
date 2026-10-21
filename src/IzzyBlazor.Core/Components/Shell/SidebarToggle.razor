@@ -1,5 +1,8 @@
 @namespace IzzyBlazor
 @inherits LayoutItemBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
 
 @*
     The menu button that opens an AppShell's sidebar below its breakpoint. Hidden above it.
@@ -11,10 +14,11 @@
     itself is the control screen readers and keyboards use; this label is a mouse shortcut.
 *@
 
+@* Links carry the page's path: a bare "#id" resolves against <base href> and leads to another page. *@
 <a @attributes="AdditionalAttributes"
    class="@_class"
    style="@_style"
-   href="@($"#{For}")"
+   href="@PageLinks.ToFragment(Navigation, For)"
    role="button"
    aria-controls="@For"
    aria-expanded="false"
@@ -50,6 +54,14 @@
         classes.Add($"ib-btn-{Variant.ToString().ToLowerInvariant()}");
         base.BuildAttributes(classes, styles);
     }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 
     /// <inheritdoc />
     protected override void OnParametersSet()

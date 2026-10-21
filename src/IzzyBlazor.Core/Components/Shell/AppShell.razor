@@ -1,5 +1,8 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
 
 @*
     The page frame. Put the parts you need inside it, in any order; the shell arranges itself
@@ -19,7 +22,8 @@
 *@
 
 <ib-shell @attributes="AdditionalAttributes" class="@_class" style="@_style">
-    <a class="ib-skip-link" href="@($"#{MainId}")">Skip to content</a>
+    @* With the page's path: a bare "#id" resolves against <base href> and leads to another page. *@
+    <a class="ib-skip-link" href="@PageLinks.ToFragment(Navigation, MainId)">Skip to content</a>
     <CascadingValue Value="_context">
         <CascadingValue Value="_headerLinks" IsFixed="true">
             <CascadingValue Value="_outline" IsFixed="true">
@@ -92,6 +96,14 @@
             styles.AddVar("shell-content-w", StyleValues.Length(width));
         }
     }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
