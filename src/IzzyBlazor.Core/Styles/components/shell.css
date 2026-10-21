@@ -1806,8 +1806,10 @@
       padding-inline: max(var(--ib-space-4), env(safe-area-inset-right, 0px));
     }
 
-    /* In a SidebarHeader's row the close button comes first (last for an end drawer), where the menu button was. */
+    /* In a SidebarHeader's row the close button comes first (last for an end drawer), where the menu
+       button was, with the header's gap after it, so the brand stays where it was too. */
     :is(.ib-shell-sidebar-bp-sm, .ib-shell-sidebar-bp-md, .ib-shell-sidebar-bp-lg, .ib-shell-sidebar-bp-xl) .ib-shell-sidebar-head:has(> .ib-shell-sidebar-close) {
+      gap: var(--ib-space-3);
       padding-inline: max(var(--ib-space-4), env(safe-area-inset-left, 0px)) max(var(--ib-space-4), env(safe-area-inset-right, 0px));
     }
 
@@ -1882,6 +1884,13 @@
   .ib-shell-sidebar-head-auto,
   .ib-shell-toggle-close {
     display: none;
+  }
+
+  /* The brand centered in the row, as in the header (not sitting on a line of text). */
+  .ib-shell-sidebar-head-auto > .ib-shell-sidebar-slot {
+    display: flex;
+    align-items: center;
+    min-width: 0;
   }
 
   @media (width < 640px) {
