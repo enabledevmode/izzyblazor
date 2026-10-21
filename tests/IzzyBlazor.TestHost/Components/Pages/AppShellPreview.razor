@@ -64,8 +64,16 @@
                 and the backdrop, the close button or Escape closes it. It works with JavaScript off too,
                 using a plain link to the sidebar.
             </TextBlock>
+            <Heading Size="TextSize.Lg">Overview</Heading>
             <Row Gap="4" Wrap>
                 @foreach (var i in Enumerable.Range(1, 6))
+                {
+                    <Box Grow Basis="14.Rem"><Card Title="@($"Card {i}")">Content sits on surfaces over the page background.</Card></Box>
+                }
+            </Row>
+            <Heading Size="TextSize.Lg">Recent activity</Heading>
+            <Row Gap="4" Wrap>
+                @foreach (var i in Enumerable.Range(7, 3))
                 {
                     <Box Grow Basis="14.Rem"><Card Title="@($"Card {i}")">Content sits on surfaces over the page background.</Card></Box>
                 }
@@ -74,11 +82,7 @@
     </AppMain>
 
     <AppAside Bg="@Chrome">
-        <Stack Gap="2">
-            <TextBlock Size="TextSize.Xs" Weight="FontWeight.Semibold" Transform="TextTransform.Uppercase" Color="Color.Subtle" LetterSpacing="LetterSpacing.Wider">On this page</TextBlock>
-            <TextBlock Size="TextSize.Sm">Overview</TextBlock>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Recent activity</TextBlock>
-        </Stack>
+        <OnThisPage />
     </AppAside>
 
     <AppFooter Bg="@Chrome" Position="@(StickyFooter == "on" ? BarPosition.Sticky : BarPosition.Static)">
