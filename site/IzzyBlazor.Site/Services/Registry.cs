@@ -77,7 +77,8 @@ public sealed class Registry
 
     public static string ApiPageHref(RegistryComponent component) => $"docs/components/{component.Id}/api";
 
-    public static string DemosHref(RegistryComponent component) => $"demos/{component.Id}";
+    /// <summary>Where a component's Demos tab goes: its first scenario (it has no demos page of its own).</summary>
+    public static string DemosHref(RegistryComponent component) => ScenarioHref(component, component.Scenarios[0]);
 
     public static string ScenarioHref(RegistryComponent component, RegistryScenario scenario) => $"demos/{component.Id}/{scenario.Id}";
 

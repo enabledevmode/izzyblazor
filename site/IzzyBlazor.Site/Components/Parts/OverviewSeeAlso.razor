@@ -3,7 +3,7 @@
 
 @* An Overview's See also section, from the doc comment's See also: each documented component
    linked to its Overview with its components.json summary, a part to its place on its owner's
-   API page with its doc summary, then the component's demos when it has scenarios. Nothing when
+   API page with its doc summary, then a link to each of the component's demos. Nothing when
    there's nothing to list. *@
 
 @if (_entries.Count > 0 || Component.Scenarios.Count > 0)
@@ -29,7 +29,14 @@
         }
         @if (Component.Scenarios.Count > 0)
         {
-            <ListItem><Anchor Href="@Registry.DemosHref(Component)">@Component.Name demos</Anchor>: @OverviewText.Lower(Api, string.Join(", ", Component.Scenarios.Select(s => s.Title))).</ListItem>
+            <ListItem>
+                Demos:
+                @for (var i = 0; i < Component.Scenarios.Count; i++)
+                {
+                    var scenario = Component.Scenarios[i];
+                    <Anchor Href="@Registry.ScenarioHref(Component, scenario)">@scenario.Title</Anchor>@(i < Component.Scenarios.Count - 1 ? ", " : ".")
+                }
+            </ListItem>
         }
     </List>
 }
