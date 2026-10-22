@@ -19,6 +19,16 @@ namespace IzzyBlazor;
 /// &lt;Button Href="https://github.com/..." External Variant="ButtonVariant.Outline"&gt;Get the repo&lt;/Button&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a native <c>button</c> or <c>a</c>, so Enter, Space and focus work as the browser defines them.</item>
+/// <item>The focus ring shows for keyboard focus only.</item>
+/// <item>An action shown only as an icon needs a name: use <see cref="IconButton"/>, whose <c>Label</c> is required.</item>
+/// <item>A loading button keeps focus and sets <c>aria-busy</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/>.</item>
+/// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
+/// <item>An external link says it opens a new tab (<see cref="NewTabLabel"/>), not just with its icon.</item>
+/// </list>
+/// </accessibility>
 [ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere.")]
 public class Button : ButtonBase
 {

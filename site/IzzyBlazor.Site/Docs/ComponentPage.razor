@@ -4,9 +4,9 @@
 @inject NavigationManager Navigation
 
 @*
-    A component's Overview. Components with a hand-written Overview (Docs/Overviews/{Name}Overview)
-    show it; the rest get one generated from the metadata until theirs is written: the summary,
-    the doc comment's remarks and example, mode support and the parameter table.
+    A component's Overview: a hand-written one where there is one (Docs/Overviews/{Name}Overview),
+    else one generated from the doc comment and components.json (Parts/GeneratedOverview). The mode
+    switch shows where there are previews.
 *@
 
 @if (_component is not null)
@@ -17,47 +17,22 @@
     <article class="site-article">
         <ComponentHeader Component="_component" ApiComponent="_api" />
 
-        @if (_overview is not null && _api is not null)
+        @if (_api is not null)
         {
-            @* In the right column from 1024px, at the top of the content below that. *@
-            <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
-            <ModeSwitch Placement="top" />
-            <DynamicComponent Type="_overview" Parameters="_parameters" />
-        }
-        else if (_api is not null)
-        {
-            <Alert Title="Overview on the way.">
-                This page is generated from the API metadata until its guide is written. The
-                <Anchor Href="@Registry.ApiPageHref(_component)">API page</Anchor> lists every member.
-            </Alert>
-            @if (_api.Summary is not null)
+            @if (_overview is not null || _component.Examples.Count > 0)
             {
-                <DocHtml Html="@_api.Summary" Context="_context" Size="ProseSize.Md" />
+                @* In the right column from 1024px, at the top of the content below that. *@
+                <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
+                <ModeSwitch Placement="top" />
             }
-            @if (_api.Remarks is not null)
+            @if (_overview is not null)
             {
-                <Heading Level="2">Remarks</Heading>
-                <DocHtml Html="@_api.Remarks" Context="_context" Size="ProseSize.Md" />
-            }
-            @if (_api.Examples is { Count: > 0 } examples)
-            {
-                <Heading Level="2">Example</Heading>
-                @foreach (var example in examples)
-                {
-                    <Code Block Language="razor">@example</Code>
-                }
-            }
-            <Heading Level="2">Mode support</Heading>
-            @if (_api.Modes is null && _component.Features.Count == 0)
-            {
-                <TextBlock Color="Color.Muted">Not recorded yet for @_component.Name.</TextBlock>
+                <DynamicComponent Type="_overview" Parameters="_parameters" />
             }
             else
             {
-                <ModeSupportTable Component="_component" ApiComponent="_api" />
+                <GeneratedOverview Component="_component" ApiComponent="_api" Context="_context" />
             }
-            <Heading Level="2">Parameters</Heading>
-            <ParameterTable ApiComponent="_api" ApiHref="@Registry.ApiPageHref(_component)" Context="_context" Compact />
         }
 
         <PrevNext PreviousHref="@(_previous is null ? null : Registry.OverviewHref(_previous))" PreviousTitle="@_previous?.Name"

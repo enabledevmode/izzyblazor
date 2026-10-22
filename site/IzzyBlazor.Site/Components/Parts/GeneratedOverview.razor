@@ -1,0 +1,157 @@
+@inject Registry Registry
+@inject ApiMetadata Api
+
+@* The Overview of a component without a hand-written one, built from its doc comment and
+   components.json in the order CONTRIBUTING's "Writing an Overview" gives: the summary, Usage (the
+   doc comment's example), a section per registered example, the remarks, the parts, then Mode
+   support, Accessibility, Parameters and See also. A section with nothing to show is left out. *@
+
+@if (ApiComponent.Summary is not null)
+{
+    <DocHtml Html="@ApiComponent.Summary" Context="_prose" Size="ProseSize.Md" />
+}
+
+@if (ApiComponent.Examples is { Count: > 0 } usage)
+{
+    <Heading Level="2">Usage</Heading>
+    @foreach (var snippet in usage)
+    {
+        <Code Block Language="razor">@snippet</Code>
+    }
+}
+
+@foreach (var example in Component.Examples)
+{
+    <Heading Level="2">@example.Title</Heading>
+    <ExampleViewer Example="@example.Id" />
+}
+
+@if (ApiComponent.Remarks is not null)
+{
+    <Heading Level="2">Details</Heading>
+    <DocHtml Html="@ApiComponent.Remarks" Context="_prose" Size="ProseSize.Md" />
+}
+
+@if (_parts.Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+    <TextBlock>Written inside @Component.Name. The <Anchor Href="@($"{ApiHref}#parts")">API page</Anchor> lists their parameters.</TextBlock>
+    <List Gap="2">
+        @foreach (var part in _parts)
+        {
+            <ListItem>
+                <Anchor Href="@Registry.ApiHref(part.Name, null)"><Code>@part.DisplayName</Code></Anchor>@if (FirstSentence(part.Summary) is { } text)
+                {
+                    <text>: @Lower(text)</text>
+                }
+            </ListItem>
+        }
+    </List>
+}
+
+<Heading Level="2">Mode support</Heading>
+@if (ApiComponent.Modes is null && Component.Features.Count == 0)
+{
+    <TextBlock Color="Color.Muted">Not recorded yet for @Component.Name.</TextBlock>
+}
+else
+{
+    <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+}
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="_prose" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@ApiHref" Context="Context" Compact />
+
+@if (_seeAlso.Count > 0 || Component.Scenarios.Count > 0)
+{
+    <Heading Level="2">See also</Heading>
+    <List Gap="2">
+        @foreach (var (name, href, text) in _seeAlso)
+        {
+            <ListItem>
+                @if (href is not null)
+                {
+                    <Anchor Href="@href">@name</Anchor>
+                }
+                else
+                {
+                    <Code>@name</Code>
+                }
+                @if (text is not null)
+                {
+                    <text>: @text</text>
+                }
+            </ListItem>
+        }
+        @if (Component.Scenarios.Count > 0)
+        {
+            <ListItem><Anchor Href="@Registry.DemosHref(Component)">@Component.Name demos</Anchor>: @Lower(string.Join(", ", Component.Scenarios.Select(s => s.Title))).</ListItem>
+        }
+    </List>
+}
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private ApiPageContext _prose = null!;
+    private List<ApiComponent> _parts = [];
+    private List<(string Name, string? Href, string? Text)> _seeAlso = [];
+
+    private string ApiHref => Registry.ApiPageHref(Component);
+
+    protected override void OnParametersSet()
+    {
+        _prose = Context with { Overview = true };
+        _parts = Component.Parts.Select(Api.Component).OfType<ApiComponent>().Where(p => p.Obsolete is null).ToList();
+        _seeAlso = (ApiComponent.SeeAlso ?? []).Where(n => n != Component.Name).Select(SeeAlsoEntry).ToList();
+    }
+
+    // A documented component links to its Overview with its one-line summary; a part, to its
+    // place on its owner's API page with its doc summary.
+    private (string, string?, string?) SeeAlsoEntry(string name)
+    {
+        if (Registry.ByName(name) is { } component)
+        {
+            return (name, Registry.OverviewHref(component), Lower(component.Summary));
+        }
+
+        var summary = Api.Component(name)?.Summary;
+        return (name, Registry.ApiHref(name, null), summary is null ? null : Lower(FirstSentence(summary)));
+    }
+
+    /// <summary>The first sentence of a doc comment's text.</summary>
+    internal static string? FirstSentence(string? html)
+    {
+        var text = ApiMetadata.PlainText(html);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return null;
+        }
+
+        var end = text.IndexOf(". ", StringComparison.Ordinal);
+        return end < 0 ? text : text[..(end + 1)];
+    }
+
+    // "A square button…" reads as "IconButton: a square button…", but a name or code stays as written.
+    private string? Lower(string? text)
+    {
+        if (text is not { Length: > 1 } || !char.IsUpper(text[0]) || !(char.IsLower(text[1]) || text[1] == ' '))
+        {
+            return text;
+        }
+
+        var word = new string(text.TakeWhile(char.IsLetterOrDigit).ToArray());
+        var name = word.Skip(1).Any(char.IsUpper) || Api.Component(word) is not null || Api.Type(word) is not null;
+        return name ? text : char.ToLowerInvariant(text[0]) + text[1..];
+    }
+}

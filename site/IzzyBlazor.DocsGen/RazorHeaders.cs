@@ -9,12 +9,14 @@ namespace IzzyBlazor.DocsGen;
 /// comment: a <c>@* *@</c> block after the directives with a description, usage markup, and often
 /// more text. Used where a component has no <c>&lt;summary&gt;</c> or <c>&lt;remarks&gt;</c>: the
 /// text before the first markup becomes its summary, that markup its example, and everything after
-/// it its remarks (paragraphs, "- " bullet lists and more markup as code).
+/// it its remarks (paragraphs, "- " bullet lists and more markup as code). A line reading
+/// "Accessibility:" starts the accessibility section, and a "See also:" line names related
+/// components, comma-separated; both run to the next of these lines or the end.
 /// </summary>
 public sealed partial class RazorHeaders
 {
-    /// <summary>A header: summary and remarks as HTML, the example as plain text.</summary>
-    public sealed record Header(string? Summary, string? Example, string? Remarks);
+    /// <summary>A header: summary, remarks and accessibility as HTML, the example as plain text, related components by name.</summary>
+    public sealed record Header(string? Summary, string? Example, string? Remarks, string? Accessibility = null, List<string>? SeeAlso = null);
 
     private readonly Dictionary<string, Header> _byName = new(StringComparer.Ordinal);
 
@@ -83,14 +85,16 @@ public sealed partial class RazorHeaders
             }
         }
 
-        var blocks = Blocks(Dedent(body));
+        var (main, accessibilityLines, seeAlso) = Sections(Dedent(body));
+        var accessibility = accessibilityLines.Count > 0 ? Html(Blocks(Dedent(accessibilityLines))) : null;
+        var blocks = Blocks(main);
 
         // The example is the first markup, at the top level or under a bullet; what comes before
         // the block that has it is the summary, and the rest (without the example) the remarks.
         var at = blocks.FindIndex(b => b.Code is not null || b.Items.Any(i => i.Code is not null));
         if (at < 0)
         {
-            return Html(blocks) is { } only ? new Header(only, null, null) : null;
+            return Html(blocks) is { } only ? new Header(only, null, null, accessibility, seeAlso) : null;
         }
 
         var holder = blocks[at];
@@ -109,7 +113,43 @@ public sealed partial class RazorHeaders
             rest = [holder with { Items = items }, .. blocks.Skip(at + 1)];
         }
 
-        return new Header(Html(blocks.Take(at)), string.Join("\n", Dedent(code)), Html(rest));
+        return new Header(Html(blocks.Take(at)), string.Join("\n", Dedent(code)), Html(rest), accessibility, seeAlso);
+    }
+
+    // Splits off the "Accessibility:" and "See also:" sections, which start at a line of their own
+    // that isn't indented.
+    private static (List<string> Main, List<string> Accessibility, List<string>? SeeAlso) Sections(List<string> lines)
+    {
+        var main = new List<string>();
+        var accessibility = new List<string>();
+        var seeAlso = new List<string>();
+        var current = main;
+        foreach (var line in lines)
+        {
+            var top = line.Length > 0 && !char.IsWhiteSpace(line[0]);
+            if (top && line.Trim() == "Accessibility:")
+            {
+                current = accessibility;
+                continue;
+            }
+
+            if (top && line.StartsWith("See also:", StringComparison.Ordinal))
+            {
+                current = seeAlso;
+                current.Add(line["See also:".Length..]);
+                continue;
+            }
+
+            current.Add(line);
+        }
+
+        var names = string.Join(",", seeAlso.Select(l => l.Trim().TrimStart('-').Trim()))
+            .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+            .Select(n => n.Trim('`', '.', ' '))
+            .Where(n => n.Length > 0)
+            .Distinct()
+            .ToList();
+        return (main, accessibility, names.Count > 0 ? names : null);
     }
 
     // A block of the header: a paragraph (Lines), markup (Code) or a bullet list (Items, each with

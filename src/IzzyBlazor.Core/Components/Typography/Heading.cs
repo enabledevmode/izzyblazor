@@ -24,6 +24,7 @@ namespace IzzyBlazor;
 /// </para>
 /// </remarks>
 [ModeSupport]
+[RefusesParameter(nameof(As))]
 public class Heading : TextBase, IDisposable
 {
     /// <summary>The heading level, 1 to 6, which sets the element (<c>h1</c> to <c>h6</c>). Defaults to 2.</summary>

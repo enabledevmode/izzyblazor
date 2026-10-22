@@ -101,11 +101,23 @@ parameter tables and defaults are never written by hand.
   `@* /hide *@` are left out. Links in examples open in the whole window with script; in Off they
   open in the frame.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
-  Button's); otherwise one is generated from the metadata. The API page is always generated.
+  Button's); otherwise one is generated from the metadata in the same order: the doc comment's
+  summary, its example as Usage, each of the component's examples in `components.json` under its
+  title, the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
+  The API page is always generated.
+- Accessibility and See also come from the doc comment, for hand-written Overviews too: an
+  `<accessibility>` tag (a bullet `<list>`: what the component gives keyboard, screen reader and
+  focus users, and what's left to the app) and top-level `<seealso cref="..."/>` tags for related
+  components, shown with their one-line summaries.
+- A parameter a component inherits but refuses (Heading's `As`, since `Level` sets its element)
+  gets `[RefusesParameter(nameof(As))]` on the component, which keeps it off its pages. The
+  component still has to refuse it at run time.
 - A component written as a `.razor` file can't carry an XML doc comment, so DocsGen reads its
   header comment (the `@* *@` block after the directives) instead: the text before the first
   markup is its summary, that markup its example, and the rest its remarks. Lines starting `- `
-  are a list; markup starts after a blank line or a line ending in `.` or `:`.
+  are a list; markup starts after a blank line or a line ending in `.` or `:`. A line reading
+  `Accessibility:` starts the accessibility bullets, and `See also: Select, Combobox.` names
+  related components; both go at the end.
 - `Api/released.api.json` is the last release's API (names only). The build compares with it to
   mark what each release added ("Added in") and print what it removed; it's refreshed when a
   release is cut (see Releasing).
@@ -119,8 +131,8 @@ An Overview is for using the component; the API page is the reference. Follow Bu
    `Loading` to show a spinner and block clicks."), then its example. Details such as ARIA
    attributes and edge cases go in the parameter's doc comment or the Accessibility section, not
    the sentence.
-3. **Mode support**, **Accessibility**, **Parameters** (`<ParameterTable Compact />`) and **See
-   also**, after the examples.
+3. **Mode support**, **Accessibility** (from the doc comment, as above), **Parameters**
+   (`<ParameterTable Compact />`) and **See also**, after the examples.
 
 For each section, pick how to show it by what the reader needs:
 

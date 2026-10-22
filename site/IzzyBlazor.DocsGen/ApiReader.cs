@@ -80,6 +80,16 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
         var parameters = Parameters(type).ToList();
         var names = parameters.Select(p => p.Name).ToHashSet();
 
+        // Inherited parameters it refuses (Heading's As) aren't on its pages.
+        var refused = type.GetCustomAttributes<RefusesParameterAttribute>(inherit: false).Select(a => a.Name).ToHashSet();
+        if (refused.FirstOrDefault(name => parameters.FirstOrDefault(p => p.Name == name) is not { } p || p.DeclaringType == type || SharedBases.Contains(TypeNames.Plain(p.DeclaringType!))) is { } wrong)
+        {
+            throw new InvalidOperationException($"{type.Name} refuses {wrong}, which isn't a parameter it inherits from a base of its own (shared bases aren't supported).");
+        }
+
+        parameters.RemoveAll(p => refused.Contains(p.Name));
+        names.ExceptWith(refused);
+
         var properties = new List<ApiMember>();
         var events = new List<ApiMember>();
         foreach (var property in parameters)
@@ -127,6 +137,8 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
             Summary = XmlDocs.Html(doc, "summary") ?? header?.Summary,
             Remarks = XmlDocs.Html(doc, "remarks") ?? header?.Remarks,
             Examples = XmlDocs.Examples(doc) ?? (header?.Example is { } example ? [example] : null),
+            Accessibility = XmlDocs.Html(doc, "accessibility") ?? header?.Accessibility,
+            SeeAlso = XmlDocs.SeeAlso(doc) ?? header?.SeeAlso,
             TypeParameters = type.IsGenericTypeDefinition ? type.GetGenericArguments().Select(a => a.Name).ToList() : null,
             Bases = componentBases,
             // The attribute isn't inherited: DialogClose derives from Button, but Button's modes aren't its.

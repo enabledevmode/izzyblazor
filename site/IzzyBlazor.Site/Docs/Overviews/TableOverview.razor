@@ -45,14 +45,11 @@
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
 
-<Heading Level="2">Accessibility</Heading>
-<List Gap="2">
-    <ListItem><Code>Caption</Code> names the table for screen readers; it isn't shown. It also names the scrolling area, which can be scrolled from the keyboard.</ListItem>
-    <ListItem>Sortable headers are links, and the sorted column has <Code>aria-sort</Code>.</ListItem>
-    <ListItem>Each filter button is named for its column ("Filter Customer"), and the active filters are a group named "Filters".</ListItem>
-    <ListItem>Row checkboxes are named "Select" and the row's <Code>RowLabel</Code> ("Select order 1001"); without one, the <Code>ItemKey</Code>.</ListItem>
-    <ListItem>The range under the table ("1–5 of 23") is read when it changes.</ListItem>
-</List>
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
 
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />

@@ -36,15 +36,11 @@
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
 
-<Heading Level="2">Accessibility</Heading>
-<List Gap="2">
-    <ListItem>It renders a native <Code>input</Code> with a <Code>label</Code> linked to it, so clicking the label focuses the field.</ListItem>
-    <ListItem>The hint and, when the field is invalid, its errors are linked with <Code>aria-describedby</Code>; an invalid field sets <Code>aria-invalid</Code>.</ListItem>
-    <ListItem>A field with no visible label, such as a search box in a toolbar, needs <Code>HideLabel</Code>, not an empty label: screen readers still hear the label.</ListItem>
-    <ListItem>A placeholder isn't a label: it's gone once there's text, and screen readers may not read it.</ListItem>
-    <ListItem>Add-on text isn't part of the field's name, so put a unit that matters in the label too, as in "Price (USD)".</ListItem>
-    <ListItem>The show/hide button is a toggle named "Show password" (<Code>ShowPasswordLabel</Code>), pressed while the password shows.</ListItem>
-</List>
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
 
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />

@@ -33,6 +33,16 @@
         <PropertyColumn Property="o => o.Total" Format="C" Sortable />
         <TemplateColumn Title="Status"><Badge>@context.Status</Badge></TemplateColumn>
     </Table>
+
+    Accessibility:
+    - `Caption` names the table for screen readers; it isn't shown. It also names the scrolling
+      area, which can be scrolled from the keyboard.
+    - Sortable headers are links, and the sorted column has `aria-sort`.
+    - Each filter button is named for its column ("Filter Customer"), and the active filters are a
+      group named "Filters".
+    - Row checkboxes are named "Select" and the row's `RowLabel` ("Select order 1001"); without
+      one, the `ItemKey`.
+    - The range under the table ("1–5 of 23") is read when it changes.
 *@
 
 <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)">

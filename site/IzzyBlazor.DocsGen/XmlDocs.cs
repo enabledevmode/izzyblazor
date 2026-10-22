@@ -148,6 +148,22 @@ public sealed partial class XmlDocs
         return codes is { Count: > 0 } ? codes : null;
     }
 
+    /// <summary>
+    /// The types named by the member's top-level <c>seealso</c> tags (not the ones inside its text),
+    /// by plain name, or null.
+    /// </summary>
+    public static List<string>? SeeAlso(XElement? member)
+    {
+        var names = member?.Elements("seealso")
+            .Select(s => s.Attribute("cref")?.Value)
+            .OfType<string>()
+            .Where(c => c.StartsWith("T:", StringComparison.Ordinal))
+            .Select(c => GenericArity().Replace(c[(c.LastIndexOf('.') + 1)..], ""))
+            .Distinct()
+            .ToList();
+        return names is { Count: > 0 } ? names : null;
+    }
+
     // Splits the content at <para> and block elements into paragraphs.
     private static string Paragraphs(XElement element)
     {
