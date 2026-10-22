@@ -15,7 +15,7 @@ namespace IzzyBlazor;
 [ModeSupport]
 public class Box : StyledComponentBase
 {
-    /// <summary>The element to render. Defaults to <c>div</c>.</summary>
+    /// <summary>The element to render: <c>div</c> on a Box; components built on it set their own (List a <c>ul</c>, Section a <c>section</c>).</summary>
     [Parameter] public string As { get; set; } = "div";
 
     /// <summary>The content.</summary>
