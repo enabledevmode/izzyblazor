@@ -15,7 +15,12 @@
     <HeadContent><meta name="description" content="@($"Parameters, events, methods and types of the IzzyBlazor {_component.Name} component.")" /></HeadContent>
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" Page="api" />
+        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" />
+
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            <Code>IzzyBlazor.@_api.DisplayName</Code> in the @_api.Package package, generated from the @Api.Version assembly
+            and its doc comments.
+        </TextBlock>
 
         <FilterForm Label="Filter members">
             <FilterSearch Placeholder="Filter members" Label="Filter members" />
