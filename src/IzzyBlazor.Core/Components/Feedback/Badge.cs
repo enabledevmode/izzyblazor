@@ -43,6 +43,16 @@ public enum BadgeSize
 /// &lt;Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill&gt;12&lt;/Badge&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>span</c> with no role: screen readers read its text and nothing more.</item>
+/// <item><see cref="Status"/>, <see cref="Accent"/> and <see cref="Dot"/> are color only, so the text must say what it means ("Overdue", not just a red dot).</item>
+/// <item>A count is read as just the number: put it next to text that says what it counts, as a <see cref="NavItem"/> or <see cref="Tab"/> badge is.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Tag"/>
+/// <seealso cref="Stat"/>
+/// <seealso cref="Alert"/>
 [ModeSupport]
 public class Badge : LayoutItemBase
 {

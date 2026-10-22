@@ -46,6 +46,17 @@ public enum AvatarVariant
 /// &lt;Avatar Name="Acme Corp" Square Accent="Accent.Primary" Variant="AvatarVariant.Solid" /&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>With a <see cref="Name"/>, it's an image (<c>role="img"</c>) named by the full name; the photo and initials aren't read.</item>
+/// <item>The status dot is hidden; its meaning is read only from <see cref="StatusLabel"/>, added to the name as "Ada Lovelace (Online)".</item>
+/// <item>Without a <see cref="Name"/>, it's hidden from screen readers, even with <see cref="Initials"/>.</item>
+/// <item>Set <see cref="Decorative"/> when the name is written beside it, so it isn't read twice.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="AvatarGroup"/>
+/// <seealso cref="Badge"/>
+/// <seealso cref="Image"/>
 [ModeSupport]
 public class Avatar : LayoutItemBase, IDisposable
 {

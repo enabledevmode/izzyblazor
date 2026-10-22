@@ -23,6 +23,22 @@
     Orientation="Orientation.Vertical" puts the tabs in a column beside the panels from 640px up
     (a scrolling row above them on phones). With TabLink children instead of Tab, it renders a
     nav of links to separate pages; see TabLink.
+
+    Accessibility:
+    - With script, the list is ARIA tabs (`tablist`, `tab`, `tabpanel`, `aria-selected`) with only
+      the selected tab in the tab order; with JavaScript off it's heard as a radio group.
+    - Arrow keys select the next or previous tab, skipping disabled ones; with script, Home and End
+      go to the first and last, and vertical tabs laid out as a column use Up and Down.
+    - In a form with JavaScript off, there are no tabs: every panel shows in order, each after its
+      tab's label as plain text, so every field can be filled in.
+    - With script, each panel is named by its tab and takes focus, so Tab moves from the tab to the
+      panel.
+    - `Label` names the tab list (or the `nav` of TabLinks); it has no default, so set it.
+    - In a form, with script, a tab whose fields have errors shows a count, read as part of its name ("Billing,
+      1 error").
+    - TabLinks render a `nav` of plain links that Tab moves between (no arrow keys); the current
+      page's link has `aria-current`, and a disabled one is text, not a link.
+    See also: SegmentedControl, NavMenu, Accordion.
 *@
 
 @if (_context.Links.Count > 0)

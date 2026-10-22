@@ -23,6 +23,18 @@ namespace IzzyBlazor;
 /// become links to themselves, with a "#" shown on hover, so a section can be linked.
 /// </para>
 /// </remarks>
+/// <accessibility>
+/// <list type="bullet">
+/// <item><see cref="Level"/> sets the element; <c>Size</c> changes only the look, so keep levels in order, with one <c>h1</c> per page.</item>
+/// <item>It doesn't take <c>As</c>, so the element always matches the level; for text that only looks like a heading, use <see cref="TextBlock"/>.</item>
+/// <item>An anchored heading's text is the link, so the link's name is the heading's text; the "#" is CSS with empty alt text and isn't read.</item>
+/// <item>Each anchored heading is a tab stop, and shows its focus ring and "#" on keyboard focus.</item>
+/// <item><c>Outline="false"</c> leaves a heading out of the <see cref="OnThisPage"/> and gives it no link; <c>Anchor="false"</c> removes only the link.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="TextBlock"/>
+/// <seealso cref="OnThisPage"/>
+/// <seealso cref="Prose"/>
 [ModeSupport]
 [RefusesParameter(nameof(As))]
 public class Heading : TextBase, IDisposable

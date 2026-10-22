@@ -10,6 +10,11 @@
         <BreadcrumbItem Href="/projects">Projects</BreadcrumbItem>
         <BreadcrumbItem>Website</BreadcrumbItem>
     </Breadcrumb>
+
+    Accessibility:
+    - It renders a `nav` named "Breadcrumb" (`Label`) around an ordered list.
+    - The item with no `Href`, or with `Current`, is text with `aria-current="page"`, not a link.
+    See also: NavMenu, PrevNext, Tabs.
 *@
 
 <nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Breadcrumb)" class="@_class" style="@_style">

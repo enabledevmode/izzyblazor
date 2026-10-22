@@ -13,6 +13,17 @@
     Several files: CodeExampleFile parts among the content, shown as tabs over the source (the
     radio-button Tabs, so switching needs no script). Collapsible hides the source behind a
     "Show code" toggle (a <details>).
+
+    Accessibility:
+    - The source is a Code block: a tab stop that scrolls from the keyboard, with a copy button
+      named "Copy code".
+    - Several files are Tabs named "Source files" (`FilesLabel`): radio buttons with JavaScript
+      off, ARIA tabs with it.
+    - `Collapsible` uses a native `details`, so the toggle works with Enter and Space and no
+      script; it reads "Show code" or "Hide code" (`ShowCodeText`, `HideCodeText`).
+    - Headings in the preview stay headings to screen readers, though they're left out of the
+      page's OnThisPage.
+    See also: Code, Tabs, Collapsible.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">

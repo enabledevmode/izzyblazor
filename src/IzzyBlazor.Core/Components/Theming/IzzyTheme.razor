@@ -18,6 +18,15 @@
     Radius, Density, Preset (shape, density and depth only) and ColorScheme; what it doesn't set
     comes from around it. Fonts, HeadingWeight and a hex Gray are app-wide only. For one exact value, use CSS:
     its variable in your stylesheet, or Style and Class on a nested IzzyTheme (docs/styling.md).
+
+    Accessibility:
+    - It renders nothing people interact with: tags in the `head`, or a `div` around its content.
+    - With `ColorScheme` unset the page follows the device's light or dark setting, and a choice
+      made with a ColorSchemeSwitch wins over the default.
+    - It sets CSS `color-scheme`, so the browser's own controls and scrollbars match the scheme.
+    - A hex `Brand` is adjusted until text on it, and the accent as text, reach 4.5:1 contrast; a
+      hex `Gray` keeps muted text at 4.5:1 or more on the page and surfaces.
+    See also: ColorSchemeSwitch, AppShell.
 *@
 
 @if (ChildContent is null)

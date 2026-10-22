@@ -5,6 +5,14 @@
 @*
     Multi-line text with label, hint and errors.
     <TextArea @bind-Value="Model.Message" Rows="5" AutoGrow ShowCount />
+
+    Accessibility:
+    - Label, hint and errors work as in `TextField`: a linked `label`, `aria-describedby` and
+      `aria-invalid`.
+    - With a maximum length, the browser stops typing at the limit (`maxlength`).
+    - The `ShowCount` counter isn't announced as it changes and isn't linked to the field, so put
+      the limit in the `Hint` when it matters.
+    See also: TextField, Form, FieldFrame.
 *@
 
 <FieldFrame Class="@WrapperClass("textarea")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

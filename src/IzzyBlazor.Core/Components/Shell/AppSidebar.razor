@@ -30,6 +30,21 @@
         <NavMenu>...</NavMenu>
         <SidebarFooter>...</SidebarFooter>
     </AppSidebar>
+
+    Accessibility:
+    - It renders a `nav` landmark named "Main" (`Label`). A closed drawer is hidden from keyboard
+      and screen readers.
+    - `SidebarToggle` is a link with `role="button"` named "Open menu" (its `Label`); with
+      JavaScript it also takes Space and keeps `aria-expanded` in step.
+    - With JavaScript, opening moves focus into the drawer, to its close button ("Close menu",
+      `CloseLabel`) when it has one, and makes the rest of the shell `inert` (a `Panel` sidebar
+      leaves the header usable).
+    - Escape, the close button or the backdrop closes it and puts focus back on the menu button.
+    - With JavaScript off the drawer still opens and closes, but focus doesn't move, Escape does
+      nothing and the menu button's `aria-expanded` stays "false".
+    - `Collapsible` adds a visually hidden checkbox named "Collapse sidebar" (`CollapseLabel`),
+      checked while collapsed; in the icon rail, link text stays for screen readers.
+    See also: AppShell, NavMenu, Drawer, SiteNav.
 *@
 
 @* "#ib-shell-closed" matches no element: it clears :target without scrolling to the top as "#" would. *@

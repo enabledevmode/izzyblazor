@@ -10,6 +10,18 @@
 
     <SegmentedControl @bind-Value="Model.View" HideLabel />
     <SegmentedControl @bind-Value="Model.Align" ItemIcon="AlignIcon" IconOnly />
+
+    Accessibility:
+    - Screen readers hear a radio group: a `fieldset` named by its `legend`, with a native radio
+      in each segment, so Tab reaches the group and the arrow keys move the choice.
+    - The focus ring is drawn around the focused segment.
+    - With `IconOnly`, each option's text stays for screen readers and shows as its hover
+      tooltip.
+    - A field with no visible label needs `HideLabel`, not an empty label, so the group keeps
+      its name.
+    - A read-only control is a `radiogroup` with `aria-readonly`: its radios can be focused, but
+      the script stops a click or arrow key from changing the choice.
+    See also: RadioGroup, Tabs, Switch, ButtonGroup.
 *@
 
 <FieldFrame Class="@WrapperClass("segmented")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group

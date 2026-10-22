@@ -7,6 +7,14 @@
     <Fieldset Label="Shipping address" Description="Where we send your order.">
         <TextField @bind-Value="Model.Street" /> ...
     </Fieldset>
+
+    Accessibility:
+    - It renders a native `fieldset` with `Label` as its `legend`, which screen readers announce as
+      the group's name when focus moves into it.
+    - The `Description` isn't linked to the fields, so screen readers reach it only by reading the
+      page; put what a field needs in its `Hint`.
+    - The `Icon` is decorative and hidden from screen readers.
+    See also: Form, Section, Card, CheckboxGroup.
 *@
 
 <fieldset @attributes="AdditionalAttributes" class="@_class" style="@_style">

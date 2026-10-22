@@ -17,6 +17,14 @@
     With script, <ib-on-this-page> marks the section in view (aria-current="location") and adds
     headings the server didn't see: ones in raw HTML (Prose, rendered Markdown) that have ids.
     With no headings it renders hidden, so the script can still fill it in.
+
+    Accessibility:
+    - It renders a `nav` named by its heading, an `h2` reading "On this page" (`Title`).
+    - Links to `Heading` components are in the server's response, so they work with JavaScript
+      off; headings inside raw HTML, such as `Prose`, are added by the script.
+    - With script, the link to the section in view has `aria-current="location"`.
+    - With no headings to list it's hidden, so there's no empty landmark.
+    See also: Heading, PrevNext, NavMenu.
 *@
 
 <ib-on-this-page @attributes="AdditionalAttributes" class="@_class" style="@_style" data-min="@MinLevel" data-max="@MaxLevel" hidden="@(_entries.Count == 0)">

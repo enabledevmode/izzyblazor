@@ -32,6 +32,22 @@
     Put forms inside the Dialog rather than the Dialog inside a form. When it has to be inside
     one (a confirmation for that form's own submit button, say), set InsideForm: forms can't
     nest, so it then closes with the native close command instead of its own form.
+
+    Accessibility:
+    - `Title` (an `h2`) or a DialogHeader names the dialog with `aria-labelledby`. Without either
+      it has no name: pass an `aria-label`.
+    - The close button is named "Close" (`CloseLabel`). Escape closes the dialog even when
+      `ShowCloseButton` and `CloseOnBackdrop` are off.
+    - DialogTrigger is a native `button` with `aria-haspopup="dialog"`, and focus comes back to
+      it when the dialog closes.
+    - Put `autofocus` on the field to start in. After an enhanced post that comes back with
+      errors, the dialog reopens with focus on the first invalid field.
+    - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal:
+      Escape doesn't close it and focus can leave it. DialogTrigger needs no script in current
+      browsers.
+    - DialogService's dialogs (shown by DialogHost) are named by the title passed to `OpenAsync`
+      or `ConfirmAsync`, so pass one: without it they have no name.
+    See also: Drawer, ConfirmButton, Popover, Alert.
 *@
 
 <ib-dialog data-open="@(IsOpen ? "" : null)"

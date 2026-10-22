@@ -9,6 +9,16 @@ namespace IzzyBlazor;
 /// Pure CSS: it spins on static pages too.
 /// </summary>
 /// <example><code>&lt;Spinner /&gt;  &lt;Spinner Size="IconSize.Xl2" Color="Color.Primary" Label="Loading orders" /&gt;</code></example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It has <c>role="status"</c> and visually hidden text, <see cref="Label"/> (default "Loading"); the ring itself is hidden from screen readers.</item>
+/// <item>With reduced motion it spins more slowly rather than stopping, since the motion says "still working".</item>
+/// <item>For a button that's working, use its <see cref="ButtonBase.Loading"/>, which sets <c>aria-busy</c>, rather than a spinner inside it.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Progress"/>
+/// <seealso cref="Skeleton"/>
+/// <seealso cref="Button"/>
 [ModeSupport]
 public class Spinner : LayoutItemBase
 {

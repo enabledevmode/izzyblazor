@@ -21,6 +21,16 @@ namespace IzzyBlazor;
 /// Put the avatars directly inside the group: <see cref="Max"/> hides the extra ones with CSS,
 /// counting the group's children.
 /// </remarks>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders <c>role="group"</c>, named by <see cref="Label"/>, such as "Project members".</item>
+/// <item>Avatars past <see cref="Max"/> are hidden with <c>display: none</c>, so screen readers skip them too.</item>
+/// <item>The "+N" avatar is an image named by <see cref="MoreLabel"/>, "3 more" by default.</item>
+/// <item>The "+N" avatar isn't focusable, so the hidden names can't be reached; list everyone elsewhere if they matter.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Avatar"/>
+/// <seealso cref="Popover"/>
 [ModeSupport]
 public class AvatarGroup : LayoutItemBase
 {

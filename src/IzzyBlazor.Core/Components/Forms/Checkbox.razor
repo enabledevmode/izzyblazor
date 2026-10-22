@@ -14,6 +14,18 @@
 
     Indeterminate shows a dash, for a "select all" box when only some are selected. It's display
     only: the box posts as unchecked ("false"), and choosing it clears the dash.
+
+    Accessibility:
+    - It renders a native checkbox inside its `label`, so Space toggles it and clicking the label
+      does too.
+    - The label text, or `ChildContent`, names it; the hint and errors are linked with
+      `aria-describedby`, and an `Icon` beside it is hidden from screen readers.
+    - With script, an unchecked indeterminate box is announced as "mixed"; with JavaScript off,
+      only the dash shows it and screen readers hear "not checked". A checked box is "checked"
+      either way, with no dash.
+    - A read-only box arrives disabled; the script enables it, so it can be focused and is
+      announced as read-only, and stops it from changing.
+    See also: Switch, CheckboxGroup, RadioGroup.
 *@
 
 <FieldFrame Class="@FrameClass" Style="@WrapperStyle" Id="@FieldId" LabelInControl

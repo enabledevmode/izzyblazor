@@ -13,6 +13,16 @@
         <NavDivider />
         <NavItem Href="/settings" Icon="Lucide.Settings">Settings</NavItem>
     </NavMenu>
+
+    Accessibility:
+    - It renders a `ul` of links, not a landmark: put it in an AppSidebar (a `nav` named "Main")
+      or in a `nav` with its own `aria-label`.
+    - The active item has `aria-current="page"`; an item above the current page (`Match` Prefix)
+      gets `aria-current="true"`, so screen readers hear one current page.
+    - A `NavGroup` is a native `details`, so Enter and Space open and close it with no script; with
+      script, a group holding the current page opens itself.
+    - `NavLabel` is plain text, not a heading or a group name; `NavDivider` is a `separator`.
+    See also: AppSidebar, SiteNav, Tabs, Breadcrumb.
 *@
 
 <ul @attributes="AdditionalAttributes" class="@_class" style="@_style">

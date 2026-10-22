@@ -8,6 +8,20 @@
       - Static page with JavaScript: Blazor's enhanced form handling (no full reload), native
         browser validation before posting, and a loading state on the submit button.
       - Interactive page: EditForm validation as usual.
+
+    Accessibility:
+    - It renders a native `form`. With `NativeValidation` (the default), the browser stops a submit
+      with a missing or malformed value, focuses that field and shows its own message.
+    - Each field links its errors with `aria-describedby` and sets `aria-invalid`; errors aren't
+      announced as they appear.
+    - Place a `FormErrors` at the top: it's announced when it appears (`role="alert"`) and takes
+      focus after a submit that fails validation, with JavaScript off too. Form moves no focus.
+    - The summary's messages are plain text, not links to their fields.
+    - `RequiredMark` changes only what's shown: the asterisk is hidden from screen readers, which
+      hear "required" from the control, and "(optional)" is read with the label.
+    - `Disabled` fields can't be focused; with `ReadOnly`, checkboxes, radios and sliders stay
+      focusable with `aria-readonly` once scripts run.
+    See also: Fieldset, TextField, Button, Alert.
 *@
 
 @* Pass Model or EditContext, never both: EditForm's EditContext setter stores the value it's given,

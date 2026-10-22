@@ -18,6 +18,17 @@
         <CardBody>...</CardBody>
         <CardFooter Justify="Justify.End">...</CardFooter>
     </Card>
+
+    Accessibility:
+    - `Title` renders a real heading, `h3` by default; set `TitleLevel` to fit the page's outline.
+    - With `Href`, the link is the title alone, so its name is the `Title` text, not the whole card.
+      It needs a `Title`: without one there's no link.
+    - Keyboard users tab to the title link, and the focus ring is drawn around the whole card.
+    - Links and buttons in CardActions, CardFooter and the body stay their own tab stops and stay
+      clickable above the stretched link.
+    - CardFooter is drawn last but stays where it's written in the DOM, which is the order screen
+      readers follow, so write it last.
+    See also: Section, Stat, DescriptionList.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">

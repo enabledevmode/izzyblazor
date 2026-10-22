@@ -5,6 +5,19 @@
 @*
     The shared frame around every field: label, control, hint, errors. Field components use it;
     custom fields can too, to match the built-in ones.
+
+    Accessibility:
+    - It renders a `label` whose `for` is `Id`, so the control needs that id; with `Group`, a
+      `fieldset` whose `legend` names the group.
+    - It renders the hint and errors with `HintId` and `ErrorId`; a custom control links them with
+      `aria-describedby` (with `Group`, the `fieldset` carries it) and sets `aria-invalid` itself.
+    - `HideLabel` keeps the label for screen readers; `LabelId` lets a control that isn't a native
+      input take its name with `aria-labelledby`.
+    - The required asterisk is hidden from screen readers, so mark the control `required` too.
+    - Add-on text from `FieldAddons` isn't part of the control's name.
+    - `FieldError`'s messages aren't linked to any control, so screen readers don't hear them on
+      focus; an IzzyBlazor field links its own.
+    See also: TextField, Fieldset, Form.
 *@
 
 @if (Group)

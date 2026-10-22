@@ -12,10 +12,16 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 /// A bulleted, numbered or icon list of <see cref="ListItem"/>s, spaced with <see cref="Gap"/>.
 /// <c>&lt;List Icon="Lucide.Check" IconColor="Color.SuccessText"&gt;</c> makes a check list.
 /// </summary>
-/// <remarks>
-/// Lists without bullets keep <c>role="list"</c>, which Safari otherwise drops from a list with no
-/// markers, so screen readers still announce the count.
-/// </remarks>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>ul</c>, or an <c>ol</c> when <see cref="Ordered"/>, of <c>li</c> items, so screen readers announce a list and its count.</item>
+/// <item>Lists without bullets (<see cref="Plain"/> or an <see cref="Icon"/>) keep <c>role="list"</c>, which Safari otherwise drops from a list with no markers.</item>
+/// <item>Item icons are decorative and hidden from screen readers, so the item's text must carry the meaning, such as "Included" or "Not included".</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="DescriptionList"/>
+/// <seealso cref="Prose"/>
+/// <seealso cref="Timeline"/>
 [ModeSupport]
 public class List : Box
 {

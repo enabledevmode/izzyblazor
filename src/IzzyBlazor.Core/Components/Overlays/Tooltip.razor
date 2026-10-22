@@ -7,11 +7,22 @@
     JavaScript it moves to the top layer (popover="hint"), so overflow never clips it, and
     links itself to the trigger with aria-describedby.
 
-    Tooltips never hold essential content: touch screens can't hover.
-
     <Tooltip Text="Copy to clipboard">
         <IconButton Icon="Lucide.Copy" Label="Copy" />
     </Tooltip>
+
+    Accessibility:
+    - It's a `tooltip` the script links to the first focusable element inside with
+      `aria-describedby`, unless that element's `aria-label` already says the same.
+    - It shows at once on keyboard focus, after `Delay` on hover, and Escape hides it.
+    - The trigger must be focusable, such as a button or link; text alone can't be reached from
+      the keyboard.
+    - It describes, it doesn't name: an icon-only button still needs its own `Label`.
+    - Never put essential content in it: touch screens can't hover, and it can't hold links or
+      buttons.
+    - With JavaScript off, it shows on hover and focus, but screen readers don't hear it and
+      Escape doesn't hide it.
+    See also: Popover, IconButton, Button.
 *@
 
 <ib-tooltip class="@_outerClass"

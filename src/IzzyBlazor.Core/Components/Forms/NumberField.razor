@@ -12,6 +12,17 @@
     <NumberField @bind-Value="Model.Price" Step="0.01">
         <StartAddon>$</StartAddon>
     </NumberField>
+
+    Accessibility:
+    - It renders a native number `input` (a spin button to screen readers): Up and Down arrows step
+      it within `Min` and `Max`, with or without script.
+    - The step buttons are named "Increase" and "Decrease" (`IncreaseLabel`, `DecreaseLabel`). They
+      aren't tab stops, since the arrow keys do the same, but screen readers can press them.
+    - Each step button is disabled at its end of the range, and both are disabled when the field
+      is disabled or read-only.
+    - Label, hint and errors work as in `TextField`; put a unit that matters in the label, since
+      add-on text isn't part of the name.
+    See also: Slider, TextField, Form.
 *@
 
 <FieldFrame Class="@WrapperClass("number")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

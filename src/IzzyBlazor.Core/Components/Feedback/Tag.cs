@@ -27,6 +27,17 @@ public enum TagVariant
 /// &lt;Tag Label="Status: Paid" Status="Status.Success" RemoveHref="/invoices" OnRemove="ClearStatus" /&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>span</c>; with <see cref="Href"/> its text is a link.</item>
+/// <item>The remove control is a <c>button</c> (<see cref="OnRemove"/> on an interactive page) or a link (<see cref="RemoveHref"/>), named "Remove" and the label, as in "Remove Blazor" (<see cref="RemoveLabel"/>).</item>
+/// <item>With only <see cref="ChildContent"/> and no <see cref="Label"/>, the remove control is named just "Remove", so give tags in a list a <see cref="Label"/>.</item>
+/// <item><see cref="Status"/> and <see cref="Accent"/> are color only: put the meaning in the text, as in "Status: Paid".</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Badge"/>
+/// <seealso cref="MultiSelect{TValue, TItem}"/>
+/// <seealso cref="FilterForm"/>
 [ModeSupport]
 public class Tag : LayoutItemBase
 {

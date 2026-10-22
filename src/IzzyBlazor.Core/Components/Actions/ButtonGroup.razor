@@ -9,6 +9,14 @@
         <IconButton Icon="Lucide.TextAlignStart" Label="Align left" />
         <IconButton Icon="Lucide.TextAlignCenter" Label="Center" />
     </ButtonGroup>
+
+    Accessibility:
+    - It renders a `div` with `role="group"`, named by `Label`, such as "Text alignment"; without
+      one, screen readers don't hear what the buttons share.
+    - Each button is its own tab stop; there's no arrow-key movement between them.
+    - It doesn't mark a pressed or selected button: for one choice among several, use
+      SegmentedControl or RadioGroup.
+    See also: SegmentedControl, IconButton, Button, Menu.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@Label">

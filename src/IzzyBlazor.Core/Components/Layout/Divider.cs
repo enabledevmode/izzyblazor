@@ -14,6 +14,14 @@ namespace IzzyBlazor;
 /// &lt;Row&gt;...&lt;Divider Orientation="Orientation.Vertical" /&gt;...&lt;/Row&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>A plain horizontal divider is an <c>hr</c>; a vertical one is a <c>div</c> with <c>role="separator"</c> and <c>aria-orientation="vertical"</c>.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Row"/>
+/// <seealso cref="Spacer"/>
 [ModeSupport]
 public class Divider : StyledComponentBase
 {

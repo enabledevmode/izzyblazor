@@ -18,6 +18,17 @@
     LineNumbers and HighlightLines put each line in its own span (a <mark> when highlighted), with
     its newline inside, so copying still gives the code as written; the numbers are CSS counters,
     never selected or copied. A Title turns the floating bar into a header row.
+
+    Accessibility:
+    - Inline code is a `code`; a block is a `pre` holding a `code`.
+    - A block is a tab stop, so a long line or a block with `MaxHeight` can be scrolled from the
+      keyboard.
+    - The copy button is named "Copy code" (`CopyLabel`); after copying, its name becomes "Copied"
+      (`CopiedLabel`) for a moment, and it shows a check.
+    - With JavaScript off there's no copy button; the code is still there to select.
+    - Line numbers are CSS with empty alt text, so they're never copied and screen readers skip
+      them where the browser supports it.
+    See also: CodeExample, CopyButton, Kbd.
 *@
 
 @if (Block)

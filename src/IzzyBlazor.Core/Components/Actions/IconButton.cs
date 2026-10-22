@@ -14,6 +14,19 @@ namespace IzzyBlazor;
 /// &lt;IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" /&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, so Enter, Space and focus work as the browser defines them.</item>
+/// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers.</item>
+/// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus.</item>
+/// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c>.</item>
+/// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Button"/>
+/// <seealso cref="ButtonGroup"/>
+/// <seealso cref="Tooltip"/>
+/// <seealso cref="CopyButton"/>
 [ModeSupport]
 public class IconButton : ButtonBase
 {

@@ -23,6 +23,16 @@ public enum ImageFit
 /// <example>
 /// <code>&lt;Image Src="/shots/console.png" Alt="The rules list" Ratio="16 / 9.0" Radius="Radius.Lg" /&gt;</code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a native <c>img</c> whose <c>alt</c> is <see cref="Alt"/>, a required parameter: say what the picture shows.</item>
+/// <item>Pass <c>Alt=""</c> for a purely decorative image, so screen readers skip it.</item>
+/// <item><see cref="Caption"/> wraps it in a <c>figure</c> with a <c>figcaption</c>; screen readers read both, so don't repeat the caption in <see cref="Alt"/>.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="AspectRatio"/>
+/// <seealso cref="Avatar"/>
+/// <seealso cref="VideoEmbed"/>
 [ModeSupport]
 public class Image : StyledComponentBase
 {
@@ -117,6 +127,17 @@ public class Image : StyledComponentBase
 /// in place, so pages don't load YouTube's player, and its cookies, until someone wants it.
 /// </summary>
 /// <example><code>&lt;VideoEmbed YouTubeId="dQw4w9WgXcQ" Label="Building a form in IzzyBlazor" /&gt;</code></example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>Before play, the poster is a link named "Play video: " and <see cref="Label"/> (<see cref="PlayLabel"/>); the poster image and play icon are hidden.</item>
+/// <item>With script, a click or Enter swaps in the player in place, titled with <see cref="Label"/>, and moves focus to it.</item>
+/// <item>With JavaScript off, or with a modifier key held, the link opens the video on YouTube.</item>
+/// <item>The player starts playing as it opens; its controls and captions are YouTube's.</item>
+/// <item>With no <see cref="YouTubeId"/>, it's a group named by <see cref="Label"/> with its "Coming soon" text, and nothing to focus.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Image"/>
+/// <seealso cref="AspectRatio"/>
 [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the play button opens the video on YouTube instead of playing it in place.")]
 public partial class VideoEmbed : StyledComponentBase
 {

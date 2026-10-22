@@ -12,6 +12,18 @@
     beside it, and the presets appear as swatches under the field (the menu is dropped, so the
     swatch opens the picker directly); both write into the native input, so the value posts and
     binds the same way.
+
+    Accessibility:
+    - The swatch is a native color `input`, which opens the browser's own color panel, from the
+      keyboard too, with no script.
+    - With script, the hex box beside it is named after the label and "hex" ("Brand color, hex";
+      `HexLabel`).
+    - Presets are buttons in a group named "Preset colors" (`PresetsLabel`). Each is named by its
+      hex value ("#2563eb"), not a color name, and pressed (`aria-pressed`) while it's the value.
+    - The hint and errors are linked to both the swatch and the hex box with `aria-describedby`.
+    - Read-only, the swatch and presets are disabled and can't be focused; the hex box stays
+      focusable and read-only.
+    See also: TextField, SegmentedControl, RadioGroup.
 *@
 
 <FieldFrame Class="@WrapperClass("color")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

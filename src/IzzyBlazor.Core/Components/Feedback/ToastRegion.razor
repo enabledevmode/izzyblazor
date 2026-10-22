@@ -11,6 +11,19 @@
       - With script: <ib-toasts> closes them after Duration (pausing while hovered or focused),
         and adds toasts that ToastService sends from interactive pages, from the templates below.
       - Interactive: ToastService.Show() adds a toast in the browser straight away.
+
+    Accessibility:
+    - It's a `region` landmark named "Notifications" (`Label`); every toast, errors included, is
+      read politely through one `aria-live="polite"` container.
+    - By default error toasts stay until closed (a toast's own `Duration` overrides it), a toast
+      with an action stays twice `Duration`, and `Duration="0"` keeps every toast open.
+    - With script, the timers pause while the mouse is over the region, while focus is in it, and
+      while the browser tab is hidden.
+    - With script, the close control is a `button` named "Dismiss" (`DismissLabel`); when a
+      focused toast closes, focus moves to the next open toast, or back to where it came from.
+    - A toast doesn't take focus when it appears, so an action in it should also be reachable
+      somewhere else.
+    See also: Alert, Banner, Dialog.
 *@
 
 <ib-toasts @attributes="AdditionalAttributes"

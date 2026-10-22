@@ -9,6 +9,13 @@
 
     <PrevNext PreviousHref="docs/install" PreviousTitle="Install"
               NextHref="docs/theming" NextTitle="Theming" />
+
+    Accessibility:
+    - It renders a `nav` named "More pages" (`Label`) holding plain links.
+    - Each link's name is its direction and the page title, as in "Next Theming"; a link needs its
+      `PreviousTitle` or `NextTitle`.
+    - With neither link it renders nothing, so there's no empty landmark.
+    See also: Pagination, Breadcrumb, OnThisPage.
 *@
 
 @if (PreviousHref is not null || NextHref is not null)

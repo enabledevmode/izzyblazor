@@ -12,6 +12,16 @@ namespace IzzyBlazor;
 /// &lt;Box As="section" Padding="6 md:10" Bg="surface-container" Radius="md"&gt;...&lt;/Box&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>div</c>; <see cref="As"/> makes it another element, such as <c>nav</c> or <c>ul</c>, so a landmark or list needs no extra wrapper.</item>
+/// <item>Attributes it doesn't take as parameters, such as <c>role</c> or <c>aria-label</c>, go on the element.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Grid"/>
+/// <seealso cref="Section"/>
+/// <seealso cref="Container"/>
 [ModeSupport]
 public class Box : StyledComponentBase
 {

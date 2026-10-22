@@ -28,6 +28,17 @@
 
     Inside an AppShell with an AppSidebar, the menu button and panel stay hidden: below the
     breakpoint the links show at the top of the sidebar (its drawer on phones), so there is one menu.
+
+    Accessibility:
+    - The links are in a `nav` landmark named "Site" (`Label`); in an AppShell with an AppSidebar,
+      the copy shown on small screens is in the sidebar's "Main" instead.
+    - The links render more than once, but only one copy shows at a time, so screen readers meet
+      them once.
+    - The menu button is a native `button` named "Menu" (`MenuLabel`) that opens a native popover:
+      the browser reports whether it's open, and Escape or a tap outside closes it, with no script.
+    - With JavaScript, opening moves focus to the first link, and following a link closes the panel.
+    - The panel doesn't trap focus: Tab can move past its last link to the rest of the page.
+    See also: NavMenu, AppSidebar, AppShell, Menu.
 *@
 
 <ib-site-nav @attributes="AdditionalAttributes" class="@_class" style="@_style">

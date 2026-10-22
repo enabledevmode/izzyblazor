@@ -14,6 +14,19 @@
     is themed and ItemTemplate's markup is shown in it and in the closed field. Elsewhere the
     browser's own list shows ItemText, so keep both.
     <Select @bind-Value="Model.Plan" ItemTemplate="plan => @<span>@plan <small class="ib-option-hint">@Prices[plan]</small></span>" />
+
+    Accessibility:
+    - It renders a native `select` with a `label` linked to it, so the keyboard, typing to jump
+      to an option and the screen reader's announcements are the browser's own.
+    - The hint and, when the field is invalid, its errors are linked with `aria-describedby`; an
+      invalid field sets `aria-invalid`.
+    - A read-only Select shows its value in a read-only text field, which can be focused and is
+      announced as read-only, where a disabled select would be skipped.
+    - The chosen text's hover tooltip is on the wrapper, not the select, so screen readers don't
+      hear the value twice.
+    - With `ItemTemplate`, keep `ItemText`: browsers without the customizable select show and
+      read it in place of the markup.
+    See also: Combobox, RadioGroup, SegmentedControl, MultiSelect.
 *@
 
 <FieldFrame Class="@WrapperClass("select")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
