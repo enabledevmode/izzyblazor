@@ -6,7 +6,8 @@
 @*
     A number field: a native number input, so it posts with the form, validates min, max and step
     in the browser, and brings up a number keyboard on phones. With JavaScript, increase and
-    decrease buttons appear (hold to repeat); the browser's own spin buttons are always hidden.
+    decrease buttons appear (hold to repeat) and the browser's own spin buttons are hidden; with
+    JavaScript off the browser's spin buttons show instead, unless StepButtons is None.
     <NumberField @bind-Value="Model.Quantity" Min="1" Max="99" />
     <NumberField @bind-Value="Model.Guests" StepButtons="StepButtons.Split" />
     <NumberField @bind-Value="Model.Price" Step="0.01">
@@ -102,8 +103,9 @@
 
     /// <summary>
     /// Increase and decrease buttons, shown once scripts run: stacked at the end (the default), split
-    /// across both ends, or none. The browser's own spin buttons are always hidden; arrow keys step
-    /// either way.
+    /// across both ends, or none. The browser's own spin buttons are hidden while these show; with
+    /// JavaScript off they show in their place, unless this is <see cref="StepButtons.None"/>. Arrow
+    /// keys step either way.
     /// </summary>
     [Parameter] public StepButtons StepButtons { get; set; } = IzzyBlazor.StepButtons.Stacked;
 

@@ -24,6 +24,15 @@ public class ShellRenderTests : BunitContext
         Assert.NotNull(badge.QuerySelector(".ib-badge-dot[aria-hidden=true]"));
     }
 
+    [Fact(Timeout = 10000)]
+    public async Task A_brand_with_an_icon_in_the_sidebar_header_renders_once()
+    {
+        // It used to tell the sidebar it had changed on every render, and the sidebar re-rendered it.
+        var shell = await Task.Run(() => Render<SidebarBrandProbe>());
+
+        Assert.Single(shell.FindAll("a.ib-shell-brand"));
+    }
+
     [Fact]
     public void SidebarToggle_links_to_the_sidebar()
     {

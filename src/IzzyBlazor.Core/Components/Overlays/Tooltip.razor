@@ -29,7 +29,8 @@
             style="@_outerStyle"
             data-placement="@Placement.Name()"
             data-delay="@Delay">
-    @ChildContent
+    @* An IconButton in here leaves out its own title, so hovering shows one tooltip. *@
+    <CascadingValue Value="TooltipScope.Instance" IsFixed="true">@ChildContent</CascadingValue>
     <span @attributes="AdditionalAttributes" id="@_id" role="tooltip" class="@_class" style="@_style">
         @if (Content is not null)
         {

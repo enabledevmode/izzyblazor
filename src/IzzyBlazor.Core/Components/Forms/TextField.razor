@@ -14,6 +14,9 @@
         <EndAddon><Button Submit>Search</Button></EndAddon>
     </TextField>
 
+    A password field on a static page is empty after a post: the page doesn't write the password
+    back into its HTML, so it has to be typed again when the form comes back with errors.
+
     Accessibility:
     - It renders a native `input` with a `label` linked to it, so clicking the label focuses the field.
     - The hint and, when the field is invalid, its errors are linked with `aria-describedby`; an
@@ -40,7 +43,8 @@
                class="ib-field-input"
                type="@InputType"
                name="@NameAttributeValue"
-               @bind="CurrentValueAsString"
+               value="@(EchoesValue ? CurrentValueAsString : null)"
+               @onchange="EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString)"
                placeholder="@Placeholder"
                autocomplete="@AutoComplete"
                required="@IsRequired"
@@ -66,6 +70,10 @@
 </FieldFrame>
 
 @code {
+    // A static page doesn't write a password back into its HTML: after a failed post the field is
+    // empty, as browsers and other frameworks leave it. Interactive pages keep it in the circuit.
+    private bool EchoesValue => ResolvedType != TextFieldType.Password || RendererInfo.IsInteractive;
+
     /// <summary>The kind of text. Defaults from the model: <c>[EmailAddress]</c>, <c>[Phone]</c>, <c>[Url]</c>, <c>[DataType(DataType.Password)]</c>; otherwise text.</summary>
     [Parameter] public TextFieldType? Type { get; set; }
 

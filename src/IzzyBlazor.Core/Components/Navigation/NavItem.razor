@@ -36,7 +36,8 @@
 
     /// <summary>
     /// How the current URL must match <see cref="Href"/> to be active. <c>Prefix</c> (the default) also
-    /// matches pages below it; <c>All</c> matches only the exact page. A root link ("/") always needs an exact match.
+    /// matches pages below it; <c>All</c> matches only the exact page. A root link ("/") always needs an exact match,
+    /// and so does a link with a query string, whose query must be the same too.
     /// </summary>
     [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
 

@@ -18,7 +18,7 @@ namespace IzzyBlazor;
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, so Enter, Space and focus work as the browser defines them.</item>
 /// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers.</item>
-/// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus.</item>
+/// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus. Inside a <see cref="Tooltip"/> it has none, and the Tooltip shows on hover and focus.</item>
 /// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c> and <c>aria-disabled</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/> before the label ("Loading Delete").</item>
 /// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
 /// </list>
@@ -35,6 +35,8 @@ public class IconButton : ButtonBase
 
     /// <summary>What the button does, for screen readers and the tooltip. Required.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    [CascadingParameter] private TooltipScope? InTooltip { get; set; }
 
     /// <summary>Renders a link to this URL instead of a button.</summary>
     [Parameter] public string? Href { get; set; }
@@ -103,7 +105,12 @@ public class IconButton : ButtonBase
 
         // Loading reads like Button's: "Loading Delete" (LoadingLabel, then the label).
         builder.AddAttribute(6, "aria-label", Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {Label}" : Label);
-        builder.AddAttribute(7, "title", Label);
+        // The native tooltip, unless a Tooltip around it shows one.
+        if (InTooltip is null)
+        {
+            builder.AddAttribute(7, "title", Label);
+        }
+
         if (Loading)
         {
             builder.AddAttribute(8, "aria-busy", "true");

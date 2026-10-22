@@ -166,6 +166,18 @@ public class ButtonRenderTests : BunitContext
     }
 
     [Fact]
+    public void IconButton_in_a_Tooltip_leaves_the_tooltip_to_it()
+    {
+        var tooltip = Render<Tooltip>(p => p
+            .Add(t => t.Text, "Bold (Ctrl+B)")
+            .AddChildContent<IconButton>(b => b.Add(x => x.Icon, Lucide.Bold).Add(x => x.Label, "Bold")));
+
+        var button = tooltip.Find("button");
+        Assert.Equal("Bold", button.GetAttribute("aria-label"));
+        Assert.False(button.HasAttribute("title"));
+    }
+
+    [Fact]
     public void IconButton_requires_a_label()
     {
         Assert.Throws<InvalidOperationException>(() =>
