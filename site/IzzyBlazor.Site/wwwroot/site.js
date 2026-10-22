@@ -68,6 +68,12 @@
     // doesn't move the controls under it.
     const viewer = frame.closest(".ex");
     if (viewer) {
+      // A height measured at another width doesn't count (the layout settling, a new width).
+      const width = String(frame.clientWidth);
+      if (viewer.dataset.width !== width) {
+        viewer.dataset.width = width;
+        forget(viewer);
+      }
       const tallest = Math.max(height, Number(viewer.dataset.tallest || 0));
       viewer.dataset.tallest = String(tallest);
       viewer.style.setProperty("--ex-tallest", `${tallest}px`);

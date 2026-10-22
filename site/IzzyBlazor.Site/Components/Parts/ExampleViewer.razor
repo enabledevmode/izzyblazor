@@ -11,90 +11,75 @@
               and in view, so a page of examples doesn't open a circuit for each.
 
     The page picks the mode, not each example: one ModeSwitch per page (the right column on docs
-    pages; this viewer's own strip with ModeSwitch, for a page that is one example), and CSS shows
-    each viewer's frame for the checked mode, so it works with no script. Under the preview is one
-    strip: Show source at the left, the example's note for the mode where it has one, and the width
-    switch and ModeSwitch where asked for. site.js sizes each frame to its content and keeps the
-    preview at the tallest mode's height; without script the frames keep the example's height from
-    components.json.
+    pages; this viewer's own row with ModeSwitch, for a page that is one example), and CSS shows
+    each viewer's frame for the checked mode, so it works with no script.
+
+    Above the box is one row: Preview · Code tabs at the left (a line Tabs: radios and CSS), and at
+    the right the example's note for the mode where it has one, and the width and mode switches
+    where asked for (on a page that is one example, the note goes under the box). The box itself
+    holds only the preview, or the code. With SourceOpen (demos)
+    there are no tabs: the code shows under the preview, with a Hide code toggle in the row. site.js sizes each frame to its content
+    and keeps the preview at the tallest mode's height; without script the frames keep the
+    example's height from components.json.
 *@
 
 @if (_example is not null)
 {
     <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
-        @if (!HideTitle)
+        @if (SourceOpen || _source is null)
         {
-            <span class="ex-title">@Title</span>
-        }
-        <div class="ex-stage">
-            @foreach (var mode in _example.Modes)
+            @if (!HideTitle)
             {
-                <div class="ex-mode" data-mode="@mode">
-                    @if (mode == "off")
-                    {
-                        <iframe class="ex-frame" src="@Src(mode)" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
-                                title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
-                    }
-                    else if (mode == "static")
-                    {
-                        <iframe class="ex-frame" src="@Src(mode)" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
-                    }
-                    else
-                    {
-                        <iframe class="ex-frame ex-frame-live" data-src="@Src(mode)" title="@($"{Title}, interactive page")" style="@_height"></iframe>
-                        <div class="ex-needs-js" style="@_height">
-                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
-                                Live examples run over a Blazor Server connection, which needs JavaScript. Turn it on to try this one.
-                            </TextBlock>
-                        </div>
-                    }
-                </div>
+                <span class="ex-title">@Title</span>
             }
-        </div>
-        <div class="ex-strip">
-            @if (_source is not null)
+            <div class="ex-panels">
+                @Preview
+                @if (_source is not null)
+                {
+                    @Source
+                }
+            </div>
+        }
+        else
+        {
+            <Tabs Label="@($"{Title}: preview or code")" Size="ControlSize.Sm" ContentPadding="0" Class="ex-tabs">
+                <Tab Label="Preview" Value="preview">@Preview</Tab>
+                <Tab Label="Code" Value="code">@Source</Tab>
+            </Tabs>
+        }
+        <div class="ex-tools">
+            @if (!ModeSwitch)
             {
-                <label class="ex-source-toggle">
-                    <input type="checkbox" class="ex-source-input" checked="@SourceOpen" />
+                @Notes
+            }
+            @if (SourceOpen && _source is not null)
+            {
+                @* Demos show the code under the preview; this hides it. It sits above both, so hiding
+                   the code doesn't move it. *@
+                <label class="ex-code-toggle">
+                    <input type="checkbox" class="ex-code-input" checked />
                     <Icon Name="Lucide.CodeXml" />
-                    @* One shows at a time (CSS, by the checkbox), so the name says what clicking does. *@
-                    <span class="ex-source-show">Show source</span>
-                    <span class="ex-source-hide">Hide source</span>
+                    <span class="ex-code-hide">Hide code</span>
+                    <span class="ex-code-show">Show code</span>
                 </label>
             }
-            @* The example's own note for each mode it has one for; CSS shows the current mode's. *@
-            @foreach (var mode in _example.Modes)
+            @if (WidthSwitch)
             {
-                @if (NoteFor(mode) is { } note)
-                {
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note" data-mode="@mode">
-                        <Icon Name="Lucide.Info" /> @note
-                    </TextBlock>
-                }
+                <fieldset class="ex-widths">
+                    <legend class="ib-visually-hidden">Preview width</legend>
+                    <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
+                    <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
+                </fieldset>
             }
-            @if (WidthSwitch || ModeSwitch)
+            @if (ModeSwitch)
             {
-                <div class="ex-tools">
-                    @if (WidthSwitch)
-                    {
-                        <fieldset class="ex-widths">
-                            <legend class="ib-visually-hidden">Preview width</legend>
-                            <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
-                            <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
-                        </fieldset>
-                    }
-                    @if (ModeSwitch)
-                    {
-                        <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="example" Compact />
-                    }
-                </div>
+                <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="example" Compact />
             }
         </div>
-        @if (_source is { } source)
+        @if (ModeSwitch)
         {
-            <div class="ex-source">
-                <Code Block Language="razor" Title="@source.FileName" HighlightLines="@HighlightLines" MaxHeight="Length.Rem(32)">@source.Source</Code>
-            </div>
+            @* Beside the mode switch the row has no room: the note goes under the box. *@
+            <div class="ex-below">@Notes</div>
         }
     </section>
 }
@@ -122,7 +107,7 @@
     /// </summary>
     [Parameter] public bool HideTitle { get; set; }
 
-    /// <summary>Starts with the source shown.</summary>
+    /// <summary>Shows the code under the preview, with no Preview · Code tabs, as on demos.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
     /// <summary>Adds a Desktop/Phone width switch, for demo scenarios.</summary>
@@ -170,4 +155,53 @@
     // A note shows only where the example has its own, for a mode that changes what it does: a note
     // on every example would say the same thing a page over.
     private string? NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : null;
+
+    // The box with a frame per mode; CSS shows the page's mode.
+    private RenderFragment Preview => __builder =>
+    {
+        <div class="ex-box ex-stage">
+            @foreach (var mode in _example!.Modes)
+            {
+                <div class="ex-mode" data-mode="@mode">
+                    @if (mode == "off")
+                    {
+                        <iframe class="ex-frame" src="@Src(mode)" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
+                                title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
+                    }
+                    else if (mode == "static")
+                    {
+                        <iframe class="ex-frame" src="@Src(mode)" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
+                    }
+                    else
+                    {
+                        <iframe class="ex-frame ex-frame-live" data-src="@Src(mode)" title="@($"{Title}, interactive page")" style="@_height"></iframe>
+                        <div class="ex-needs-js" style="@_height">
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+                                Live examples run over a Blazor Server connection, which needs JavaScript. Turn it on to try this one.
+                            </TextBlock>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    };
+
+    private RenderFragment Source => __builder =>
+    {
+        <div class="ex-box ex-source">
+            <Code Block Language="razor" Title="@_source!.Value.FileName" HighlightLines="@HighlightLines" MaxHeight="Length.Rem(32)">@_source.Value.Source</Code>
+        </div>
+    };
+
+    // The example's own note for each mode it has one for; CSS shows the current mode's.
+    private RenderFragment Notes => __builder =>
+    {
+        @foreach (var mode in _example!.Modes)
+        {
+            @if (NoteFor(mode) is { } note)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note" data-mode="@mode">@note</TextBlock>
+            }
+        }
+    };
 }

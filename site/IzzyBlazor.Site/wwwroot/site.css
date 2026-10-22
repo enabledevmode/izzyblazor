@@ -70,7 +70,7 @@
 .site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
 /* The hero's example is a near-black window set into the Ink band (its frame is on the same color,
    ?bg=deep), with a lighter edge and a shadow off the glow. */
-.site-hero .ex {
+.site-hero .ex-box {
   background: #0d0e11;
   border-color: #2c2f36;
   box-shadow: 0 1.5rem 4rem -1rem rgb(0 0 0 / 0.7);
@@ -301,32 +301,44 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-inherit { font-size: var(--ib-text-sm); }
 
 /*
- * The example viewer: an optional title, the preview, one strip (Show source, the example's note
- * for the mode, and the width and mode switches where a viewer has them), then the source.
+ * The example viewer: one row (Preview · Code tabs at the left; the example's note for the mode and
+ * any width or mode switch at the right), then a box holding only the preview or the code. On
+ * demos (no tabs) the row has the title, and the code box follows the preview.
  *
  * The page picks the mode: each viewer has a frame per mode, and the checked "site-mode" radio
  * (ModeSwitch) shows that one in every viewer, Static when none is checked. No script needed.
  */
 .ex {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  column-gap: var(--ib-space-4);
+  align-items: end;
+}
+.ex > .ex-tabs { display: contents; }
+.ex > .ex-tabs > .ib-tabs-list { grid-row: 1; grid-column: 1; justify-self: start; }
+.ex > .ex-tabs > .ib-tab-panel { grid-row: 2; grid-column: 1 / -1; min-width: 0; padding: var(--ib-space-3) 0 0; }
+.ex-title { grid-row: 1; grid-column: 1; font-size: var(--ib-text-sm); font-weight: 600; min-width: 0; padding-block-end: var(--ib-space-1); }
+.ex-panels { grid-row: 2; grid-column: 1 / -1; display: flex; flex-direction: column; gap: var(--ib-space-3); min-width: 0; padding-block-start: var(--ib-space-3); }
+.ex-tools {
+  grid-row: 1;
+  grid-column: 2;
   display: flex;
-  flex-direction: column;
+  align-items: center;
+  gap: var(--ib-space-3);
+  min-width: 0;
+  padding-block-end: var(--ib-space-1);
+}
+.ex-tools:not(:has(> *)) { display: none; }
+.ex-box {
   border: 1px solid var(--ib-color-border);
   border-radius: var(--ib-radius-lg);
-  background: var(--ib-color-surface);
   overflow: hidden;
-}
-.ex-title {
-  padding: var(--ib-space-2) var(--ib-space-4);
-  border-bottom: 1px solid var(--ib-color-border);
-  font-size: var(--ib-text-sm);
-  font-weight: 600;
   min-width: 0;
 }
 .ex-stage {
-  /* The tallest mode's height (site.js), so a shorter mode doesn't pull the strip up. */
+  /* The tallest mode's height (site.js), so switching modes doesn't move what follows. */
   min-height: var(--ex-tallest, 0);
   background: var(--ib-color-background);
-  border-bottom: 1px solid var(--ib-color-border);
 }
 .ex-mode, .ex-note { display: none; }
 body:has(.site-mode-input[value="off"]:checked) .ex-mode[data-mode="off"],
@@ -336,7 +348,10 @@ body:not(:has(.site-mode-input:checked)) .ex-mode[data-mode="static"] { display:
 body:has(.site-mode-input[value="off"]:checked) .ex-note[data-mode="off"],
 body:has(.site-mode-input[value="static"]:checked) .ex-note[data-mode="static"],
 body:has(.site-mode-input[value="live"]:checked) .ex-note[data-mode="live"],
-body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display: flex; }
+body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display: block; }
+.ex-note { max-width: 32rem; margin: 0; text-align: end; text-wrap: pretty; }
+.ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
+.ex-below .ex-note { max-width: none; text-align: start; }
 .ex-frame {
   display: block;
   width: 100%;
@@ -350,38 +365,14 @@ body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display:
   max-width: 100%;
   border-inline: 1px solid var(--ib-color-border);
 }
-.ex-strip {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  column-gap: var(--ib-space-4);
-  row-gap: var(--ib-space-1);
-  min-height: calc(var(--ib-control-h-sm) + 2 * var(--ib-space-1));
-  padding: var(--ib-space-1) var(--ib-space-2);
-}
-.ex-strip:empty { display: none; }
-.ex-note {
-  flex: 1 1 16rem;
-  align-items: flex-start;
-  gap: var(--ib-space-2);
-  min-width: 0;
-  margin: 0;
-  padding-block: var(--ib-space-1);
-}
-.ex-note .ib-icon { flex: none; margin-block-start: 0.2em; }
-.ex-tools {
-  display: flex;
-  align-items: center;
-  gap: var(--ib-space-2);
-  margin-inline-start: auto;
-}
-.ex-source {
-  display: none;
-  min-width: 0;
-  border-top: 1px solid var(--ib-color-border);
-}
-.ex:has(.ex-source-input:checked) .ex-source { display: block; }
 .ex-source .ib-code-block, .ex-source pre { margin: 0; border: 0; border-radius: 0; }
+/* Phones: the note and switches take their own row under the tabs. */
+@media (width < 640px) {
+  .ex-tools { grid-row: 2; grid-column: 1 / -1; justify-self: start; flex-wrap: wrap; padding-block: var(--ib-space-2) 0; }
+  .ex-note { text-align: start; }
+  .ex > .ex-tabs > .ib-tab-panel, .ex-panels { grid-row: 3; }
+  .ex-below { grid-row: 4; }
+}
 
 /* Live needs script: without it, a note takes the frame's place. A media query rather than a class
    on <html>, which enhanced navigation would drop. */
@@ -391,8 +382,13 @@ body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display:
   .ex-frame-live { display: none; }
 }
 
-/* The Source toggle and the width switch: buttons drawn around native inputs. */
-.ex-source-toggle, .ex-widths label {
+/* Demos: hiding the code under the preview. */
+.ex:has(.ex-code-input:not(:checked)) .ex-source { display: none; }
+.ex-code-show, .ex-code-toggle:has(input:not(:checked)) .ex-code-hide { display: none; }
+.ex-code-toggle:has(input:not(:checked)) .ex-code-show { display: inline; }
+
+/* The code toggle and the width switch: buttons drawn around native inputs. */
+.ex-code-toggle, .ex-widths label {
   position: relative;
   display: inline-flex;
   align-items: center;
@@ -406,25 +402,23 @@ body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display:
   cursor: pointer;
   user-select: none;
 }
-.ex-source-toggle input, .ex-widths input {
+.ex-code-toggle input, .ex-widths input {
   position: absolute;
   inset: 0;
   margin: 0;
   opacity: 0;
   cursor: pointer;
 }
-.ex-source-toggle:hover, .ex-widths label:hover { background: var(--ib-color-surface-container); color: var(--ib-color-on-surface); }
-.ex-source-toggle:has(input:checked), .ex-widths label:has(input:checked) {
+.ex-code-toggle:hover, .ex-widths label:hover { background: var(--ib-color-surface-container); color: var(--ib-color-on-surface); }
+.ex-widths label:has(input:checked) {
   background: var(--ib-color-surface-container-high);
   color: var(--ib-color-on-surface);
 }
-.ex-source-toggle:has(input:focus-visible), .ex-widths label:has(input:focus-visible) {
+.ex-code-toggle:has(input:focus-visible), .ex-widths label:has(input:focus-visible) {
   outline: 2px solid var(--ib-color-focus);
   outline-offset: 1px;
 }
 .ex-widths { display: inline-flex; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
-.ex-source-hide, .ex-source-toggle:has(input:checked) .ex-source-show { display: none; }
-.ex-source-toggle:has(input:checked) .ex-source-hide { display: inline; }
 
 /*
  * The page's mode switch (ModeSwitch): radios drawn as a segmented control, then a line on what the
