@@ -18,13 +18,13 @@ namespace IzzyBlazor;
 /// <item>It's a native modal <c>dialog</c>: the page behind it is inert, Escape closes it, and focus returns to the <see cref="DialogTrigger"/> that opened it.</item>
 /// <item><see cref="Dialog.Title"/> or a <see cref="DialogHeader"/> names it; without either, pass an <c>aria-label</c>.</item>
 /// <item>The close button is named "Close" (<see cref="Dialog.CloseLabel"/>).</item>
-/// <item>With JavaScript off, a drawer opened from the server isn't modal: Escape doesn't close it and focus can leave it.</item>
+/// <item>With JavaScript off, a drawer opened from the server isn't modal: the page behind stays usable and focus can leave it. Escape closes it in browsers with the <c>closedby</c> attribute (Chrome and Edge 134, Firefox 141), not in Safari.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="Dialog"/>
 /// <seealso cref="AppSidebar"/>
 /// <seealso cref="Popover"/>
-[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a drawer opened from the server isn't modal: Escape doesn't close it and focus can leave it.")]
+[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a drawer opened from the server isn't modal: focus can leave it, and Escape closes it only in browsers with closedby (not Safari).")]
 public class Drawer : Dialog
 {
     /// <summary>Creates a drawer on the end side.</summary>
