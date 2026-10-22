@@ -338,11 +338,12 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   min-width: 0;
 }
 .ex-stage {
-  /* The tallest mode's height (site.js), so switching modes doesn't move what follows. */
-  min-height: var(--ex-tallest, 0);
   background: var(--ib-color-background);
 }
 .ex-mode, .ex-note { display: none; }
+/* An example with one mode (components.json "modes") shows it whatever the page's. */
+.ex-fixed .ex-mode { display: block; }
+.ex-fixed-mode { margin: 0; white-space: nowrap; }
 body:has(.site-mode-input[value="off"]:checked) .ex-mode[data-mode="off"],
 body:has(.site-mode-input[value="static"]:checked) .ex-mode[data-mode="static"],
 body:has(.site-mode-input[value="live"]:checked) .ex-mode[data-mode="live"],
