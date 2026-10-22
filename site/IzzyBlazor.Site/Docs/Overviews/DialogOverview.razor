@@ -1,0 +1,133 @@
+@* Dialog's Overview, written by hand after Button's: the three ways to open it previewed in each
+   mode, a form inside one (what a post does to an open dialog), the parts, then size, closing,
+   a dialog inside a form, and DialogService (Live only). Accessibility and See also come from the
+   doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Opening it</Heading>
+<TextBlock>Use a <Code>DialogTrigger</Code> with the dialog's <Code>Id</Code>, a link that adds <Code>?dialog=</Code> and the id to the address, or <Code>@@bind-Open</Code> from C#. The trigger and the link work on static pages, with JavaScript off too.</TextBlock>
+<ExampleViewer Example="dialog-open" />
+<TextBlock><Code>QueryKey</Code> changes the key the link uses, and null turns links off. Set <Code>Open</Code> from the server to show a dialog when the page loads, such as a notice after a post.</TextBlock>
+
+<Heading Level="2">A form in a dialog</Heading>
+<TextBlock>Put a <Anchor Href="docs/components/form">Form</Anchor> in the dialog with its <Code>FormActions</Code> last: the buttons become the dialog's footer and still submit the form.</TextBlock>
+<ExampleViewer Example="dialog-rename" />
+<TextBlock>A post on a static page loads a new page, where the dialog is closed. IzzyBlazor's script opens it again when the response has errors in it; set <Code>Open</Code> yourself when the post fails, as here with <Code>OnInvalidSubmit</Code>, so the errors show with JavaScript off too.</TextBlock>
+
+<Heading Level="2">Header, body and footer</Heading>
+<TextBlock>Use <Code>Title</Code> for a plain heading, or a <Code>DialogHeader</Code> for one with an icon or a badge. <Code>DialogBody</Code> lays the body out with <Code>Gap</Code> and the other layout props, and <Code>DialogFooter</Code> holds the buttons at the bottom.</TextBlock>
+<ExampleViewer Example="dialog-parts" />
+<TextBlock>The footer stays in view when the body scrolls. <Code>ContentPadding="0"</Code> on the dialog, or <Code>Flush</Code> on its <Code>DialogBody</Code>, runs a table or list to the edges.</TextBlock>
+
+<Heading Level="2">Size and placement</Heading>
+<TextBlock>Use <Code>Size</Code> for the width (<Code>Sm</Code>, <Code>Md</Code>, <Code>Lg</Code>, <Code>Xl</Code> or <Code>Full</Code>) or <Code>Width</Code> for another, and <Code>Placement</Code> for a panel at an edge. A <Anchor Href="docs/components/drawer">Drawer</Anchor> is a dialog at the end edge.</TextBlock>
+<Code Block Language="razor">@Sizes</Code>
+
+<Heading Level="2">Closing</Heading>
+<TextBlock>Escape, the close button, a <Code>DialogClose</Code> and a click on the backdrop close it. Use <Code>CloseOnBackdrop="false"</Code> for a form someone could lose with a stray click, and <Code>ShowCloseButton="false"</Code> when the footer's buttons are enough; Escape still closes it.</TextBlock>
+
+<Heading Level="2">Inside a form</Heading>
+<TextBlock>Use <Code>InsideForm</Code> when the dialog has to sit in a form, such as a confirmation for that form's own submit button. Forms can't nest, so its close buttons then close it without submitting the form, and a submit button in it submits the form around it.</TextBlock>
+<Code Block Language="razor">@Inside</Code>
+<TextBlock><Anchor Href="docs/components/confirm-button">ConfirmButton</Anchor> does this in one component.</TextBlock>
+
+<Heading Level="2">Dialogs from code</Heading>
+<TextBlock>Use <Code>DialogService</Code> on an interactive page to open a dialog from C# and wait for how it ends: <Code>ConfirmAsync</Code> asks a question, and <Code>OpenAsync</Code> shows a component of yours. A <Code>DialogHost</Code> on the page or its layout shows them.</TextBlock>
+<ExampleViewer Example="dialog-service" />
+<TextBlock>The page awaits the result:</TextBlock>
+<Code Block Language="razor" Title="EditPage.razor">@FromCode</Code>
+<TextBlock>The component closes the dialog with it, through the <Code>DialogInstance</Code> it's given:</TextBlock>
+<Code Block Language="razor" Title="EditName.razor">@Content</Code>
+<TextBlock>Static pages can't open anything from code: use a trigger, a link or <Code>Open</Code> there.</TextBlock>
+
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <DialogTrigger For="invite">Invite people</DialogTrigger>
+
+        <Dialog Id="invite" Title="Invite people">
+            <Form Model="Invite" FormName="invite" OnValidSubmit="SendAsync">
+                <TextField @bind-Value="Invite!.Email" autofocus />
+                <FormActions>
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit>Send invite</Button>
+                </FormActions>
+            </Form>
+        </Dialog>
+        """;
+
+    private const string Sizes = """
+        <Dialog Id="terms" Title="Terms of service" Size="DialogSize.Lg">...</Dialog>
+        <Dialog Id="share" Title="Share" Placement="DialogPlacement.Bottom">...</Dialog>
+        """;
+
+    private const string Inside = """
+        <Form Model="Order" FormName="order" OnValidSubmit="PlaceAsync">
+            ...
+            <DialogTrigger For="confirm-order">Place order</DialogTrigger>
+            <Dialog Id="confirm-order" Title="Place this order?" Size="DialogSize.Sm" InsideForm>
+                Your card is charged $48.00.
+                <DialogFooter>
+                    <DialogClose>Cancel</DialogClose>
+                    <Button Submit>Place order</Button>
+                </DialogFooter>
+            </Dialog>
+        </Form>
+        """;
+
+    private const string FromCode = """
+        @inject DialogService Dialogs
+
+        @code {
+            private async Task EditAsync()
+            {
+                var result = await Dialogs.OpenAsync<EditName>("Edit name", new() { ["Name"] = _name });
+                if (!result.Canceled) _name = result.DataAs<string>();
+            }
+        }
+        """;
+
+    private const string Content = """
+        <form @onsubmit="() => Dialog.Close(_name)">
+            <input @bind="_name" aria-label="Name" autofocus />
+            <DialogFooter>
+                <Button OnClick="Dialog.Cancel" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Cancel</Button>
+                <Button Submit>Save</Button>
+            </DialogFooter>
+        </form>
+
+        @code {
+            [CascadingParameter] public DialogInstance Dialog { get; set; } = null!;
+
+            [Parameter] public string? Name { get; set; }
+
+            private string? _name;
+
+            protected override void OnInitialized() => _name = Name;
+        }
+        """;
+
+}

@@ -1,0 +1,33 @@
+@using System.ComponentModel.DataAnnotations
+
+@* NativeValidation="false" skips the browser's checks, so the server's messages show at once. *@
+<Form Model="Model" FormName="feedback" OnValidSubmit="Send" NativeValidation="false" MaxWidth="28.Rem" Grow>
+    <FormErrors />
+    <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+    <TextArea @bind-Value="Model!.Message" Rows="3" />
+    <FormActions Justify="Justify.Start"><Button Submit>Send</Button></FormActions>
+    @if (_sent)
+    {
+        <Alert Status="Status.Success">Thanks, we'll reply to @Model!.Email.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "feedback")]
+    private Feedback? Model { get; set; }
+
+    private bool _sent;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Send() => _sent = true;
+
+    public sealed class Feedback
+    {
+        [Required(ErrorMessage = "Enter your email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Write a message"), StringLength(500, MinimumLength = 10, ErrorMessage = "Use 10 to 500 characters")]
+        public string? Message { get; set; }
+    }
+}

@@ -1,0 +1,27 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="profile" Layout="FormLayout.Horizontal" RequiredMark="RequiredMark.Optional" Grow>
+    <TextField @bind-Value="Model!.Name" AutoComplete="name" />
+    <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+    <TextField @bind-Value="Model!.Website" AutoComplete="url" />
+    <FormActions><Button Submit>Save profile</Button></FormActions>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "profile")]
+    private Profile? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Profile
+    {
+        [Required]
+        public string? Name { get; set; } = "Ada Lovelace";
+
+        [Required, EmailAddress]
+        public string? Email { get; set; } = "ada@example.com";
+
+        [Url]
+        public string? Website { get; set; }
+    }
+}

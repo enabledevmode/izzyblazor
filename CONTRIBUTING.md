@@ -99,7 +99,9 @@ parameter tables and defaults are never written by hand.
   `allow-scripts`, so the browser really runs no script; Live renders it on Blazor Server and loads
   only when picked. Its source is embedded and shown under it; lines between `@* hide *@` and
   `@* /hide *@` are left out. Links in examples open in the whole window with script; in Off they
-  open in the frame.
+  open in the frame. An example that opens a dialog, menu or select list sets `"overlay": true`:
+  what opens isn't part of the frame's content height, so the frame keeps at least the example's
+  `height` and starts the content at the top.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its
@@ -108,7 +110,9 @@ parameter tables and defaults are never written by hand.
 - Accessibility and See also come from the doc comment, for hand-written Overviews too: an
   `<accessibility>` tag (a bullet `<list>`: what the component gives keyboard, screen reader and
   focus users, and what's left to the app) and top-level `<seealso cref="..."/>` tags for related
-  components, shown with their one-line summaries.
+  components, shown with their one-line summaries. A hand-written Overview renders them with
+  `ApiComponent.Accessibility` and `<OverviewSeeAlso />` (and its parts with `<OverviewParts />`),
+  as Dialog's does.
 - A parameter a component inherits but refuses (Heading's `As`, since `Level` sets its element)
   gets `[RefusesParameter(nameof(As))]` on the component, which keeps it off its pages. The
   component still has to refuse it at run time.

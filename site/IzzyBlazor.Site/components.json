@@ -105,7 +105,18 @@
           "notes": {
             "off": "The browser checks before posting, in its own words.",
             "static": "The browser checks before posting, in the model's words.",
-            "live": "Each field is checked when it changes, and Save runs C# without a page load." } }
+            "live": "Each field is checked when it changes, and Save runs C# without a page load." } },
+        { "id": "form-errors", "title": "Errors from the server", "height": 380,
+          "notes": {
+            "off": "Send posts and loads the page again with the messages, and the summary takes focus.",
+            "static": "Send posts without a reload, and the summary takes focus.",
+            "live": "Each field is checked when it changes, and Send runs C# without a page load."
+          } },
+        { "id": "form-horizontal", "title": "Labels beside fields", "height": 260 },
+        { "id": "form-read-only", "title": "Read-only", "height": 220,
+          "notes": {
+            "off": "The checkbox and switch show as disabled: only the script makes them read-only."
+          } }
       ]
     },
     { "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend." },
@@ -143,7 +154,20 @@
     { "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Forms", "summary": "The label, hint and errors around a control of your own.", "parts": ["FieldAddons", "FieldError"] },
     { "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "parts": ["FilterSearch", "FilterSelect", "FilterCheckbox"] },
 
-    { "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "A native select, themed where the browser allows." },
+    {
+      "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "A native select, themed where the browser allows.",
+      "examples": [
+        { "id": "select-options", "title": "Options", "height": 340, "overlay": true },
+        { "id": "select-rich", "title": "Rich options", "height": 260, "overlay": true },
+        { "id": "select-required", "title": "Required, with a placeholder", "height": 260, "overlay": true,
+          "notes": {
+            "off": "The browser stops the post until a plan is chosen, in its own words.",
+            "static": "The browser stops the post until a plan is chosen, in the model's words.",
+            "live": "The field is checked when it changes, and Continue runs C# without a page load."
+          } },
+        { "id": "select-states", "title": "Sizes, read-only and disabled", "height": 380 }
+      ]
+    },
     { "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Type to filter; server search on interactive pages." },
     { "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Several choices as chips you can type to filter." },
     { "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Selection", "summary": "A checkbox drawn to match the fields." },
@@ -152,9 +176,45 @@
     { "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Selection", "summary": "Several choices as checkboxes." },
     { "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "One choice from a few, as joined buttons." },
 
-    { "id": "dialog", "icon": "AppWindow", "name": "Dialog", "category": "Overlays", "summary": "A native modal dialog, opened by a trigger, a link or C#.", "parts": ["DialogTrigger", "DialogHeader", "DialogBody", "DialogFooter", "DialogClose", "DialogHost"] },
+    {
+      "id": "dialog", "icon": "AppWindow", "name": "Dialog", "category": "Overlays", "summary": "A native modal dialog, opened by a trigger, a link or C#.", "parts": ["DialogTrigger", "DialogHeader", "DialogBody", "DialogFooter", "DialogClose", "DialogHost"],
+      "examples": [
+        { "id": "dialog-open", "title": "Opening it", "height": 260, "overlay": true,
+          "notes": {
+            "off": "The trigger opens it as a modal. The link loads the page with it open but not modal, so the page behind stays usable.",
+            "static": "The link opens it as a modal too, and closing it takes ?dialog= off the address.",
+            "live": "Open from C# sets @bind-Open, which also follows the dialog closing."
+          } },
+        { "id": "dialog-rename", "title": "A form in a dialog", "height": 300, "overlay": true,
+          "notes": {
+            "off": "Rename posts and loads the page again. A slash, which only the server checks, opens the dialog again with its message.",
+            "static": "Rename posts without a reload. When the server finds an error, the dialog opens again at the field.",
+            "live": "The field is checked when it changes, and Rename runs C# and closes the dialog."
+          } },
+        { "id": "dialog-parts", "title": "Header, body and footer", "height": 340, "overlay": true },
+        { "id": "dialog-service", "title": "Dialogs from code", "height": 260, "overlay": true, "modes": ["live"] }
+      ]
+    },
     { "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "A dialog that slides in from an edge." },
-    { "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Links, form posts and actions in a popover menu.", "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"] },
+    {
+      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Links, form posts and actions in a popover menu.", "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
+      "examples": [
+        { "id": "menu-actions", "title": "Links, posts and actions", "height": 250, "overlay": true,
+          "notes": {
+            "off": "It opens and closes with no script, but arrow keys don't move through it. Settings is a link; Duplicate and Delete post the form.",
+            "static": "The script adds the menu roles and keys: arrows, Home, End and type-ahead. Posts go without a reload.",
+            "live": "Duplicate and Delete run the form's C# handler, and OnClick says which was chosen."
+          } },
+        { "id": "menu-groups", "title": "Groups, shortcuts and colors", "height": 280, "overlay": true },
+        { "id": "menu-trigger", "title": "Your own trigger", "height": 220, "overlay": true },
+        { "id": "menu-checked", "title": "Checked items", "height": 280, "overlay": true },
+        { "id": "menu-sub", "title": "Submenus", "height": 260, "overlay": true,
+          "notes": {
+            "off": "A click opens a submenu. Opening one on hover or with the arrow keys needs the script.",
+            "static": "The script opens a submenu on hover and with the right arrow, and closes it with the left."
+          } }
+      ]
+    },
     { "id": "popover", "icon": "MessageSquare", "name": "Popover", "category": "Overlays", "summary": "Non-modal content beside a trigger." },
     { "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus." },
 

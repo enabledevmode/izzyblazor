@@ -1,0 +1,105 @@
+@* Form's Overview, written by hand after Button's: fields, what posting needs, errors and columns
+   previewed in each mode, labels beside fields, read-only, then a validator of your own and files
+   as code. The Forms and validation article covers the model's attributes at more length.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Fields</Heading>
+<TextBlock>Bind each field to the model with <Code>@@bind-Value</Code>. Fields take their labels, required marks, types and limits from the model's attributes, and post with the form.</TextBlock>
+<ExampleViewer Example="home-settings" />
+<TextBlock><Anchor Href="docs/common/forms">Forms and validation</Anchor> lists what each attribute does.</TextBlock>
+
+<Heading Level="2">Posting and submitting</Heading>
+<TextBlock>Give the form a <Code>FormName</Code>, and the model property <Code>[SupplyParameterFromForm]</Code> with the same name, so a post on a static page fills it. <Code>OnValidSubmit</Code> runs once the model is valid, in every mode; <Code>OnInvalidSubmit</Code> runs when it isn't, and <Code>OnSubmit</Code> runs in place of both when you validate yourself.</TextBlock>
+<TextBlock>On a static page the post is a real one: Blazor's enhanced form handling sends it without a full reload, and with JavaScript off the browser posts and loads the page. <Code>Enhance="false"</Code> always loads the page. On an interactive page the form submits to C#, with no post.</TextBlock>
+
+<Heading Level="2">Errors</Heading>
+<TextBlock>Use a <Code>FormErrors</Code> at the top to list every message after a failed submit; it takes focus, so keyboard and screen reader users start there. <Code>NativeValidation="false"</Code> skips the browser's checks, so the server's messages show at once.</TextBlock>
+<ExampleViewer Example="form-errors" />
+<TextBlock>Each field shows its own messages under it too. <Code>FieldError For="() =&gt; Model.Email"</Code> shows one property's messages beside an input of your own.</TextBlock>
+
+<Heading Level="2">Columns</Heading>
+<TextBlock>Use <Code>Columns</Code>, up to 4, to lay fields out in columns that fit the form's own width, so one form works on a page, in a dialog and in a drawer. <Code>ColSpan="GridSpan.Full"</Code> gives a field the whole row.</TextBlock>
+<ExampleViewer Example="form-columns" />
+<TextBlock>Two columns start at 32rem, three at 48rem and four at 64rem. <Code>FormActions</Code>, <Code>FormErrors</Code> and anything else that isn't a field take the whole row.</TextBlock>
+
+<Heading Level="2">Labels beside fields</Heading>
+<TextBlock>Use <Code>Layout="FormLayout.Horizontal"</Code> to put the labels beside the fields from 640px up, and <Code>RequiredMark</Code> for the marks: an asterisk on required fields (the default), "(optional)" on the others, as here, or none.</TextBlock>
+<ExampleViewer Example="form-horizontal" />
+
+<Heading Level="2">Read-only and disabled</Heading>
+<TextBlock>Use <Code>ReadOnly</Code> to show a record that posts but can't change, and <Code>Disabled</Code> to turn every field off; disabled fields don't post. Neither touches the buttons, so show the ones that fit.</TextBlock>
+<ExampleViewer Example="form-read-only" />
+<TextBlock>HTML has no read-only select or checkbox, so a read-only select shows its value in a read-only text field, and checkboxes, switches and radios stay as they are but don't change.</TextBlock>
+
+<Heading Level="2">Your own validation</Heading>
+<TextBlock>Use <Code>Validator</Code> to replace the DataAnnotations validator, with FluentValidation, say. Pass an <Code>EditContext</Code> in place of <Code>Model</Code> to work with the edit context yourself.</TextBlock>
+<Code Block Language="razor">@Validation</Code>
+
+<Heading Level="2">Files</Heading>
+<TextBlock>Use <Code>Multipart</Code> with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor>, so a post on a static page sends the files and not only their names.</TextBlock>
+<Code Block Language="razor">@Files</Code>
+
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Form Model="Profile" FormName="profile" OnValidSubmit="SaveAsync">
+            <FormErrors />
+            <TextField @bind-Value="Profile!.Name" />
+            <TextField @bind-Value="Profile!.Email" />
+            <FormActions><Button Submit>Save</Button></FormActions>
+        </Form>
+
+        @code {
+            // A post on a static page fills it; the same name as FormName.
+            [SupplyParameterFromForm(FormName = "profile")]
+            private ProfileModel? Profile { get; set; }
+
+            protected override void OnInitialized() => Profile ??= new();
+        }
+        """;
+
+    private const string Validation = """
+        @* Blazored.FluentValidation's validator, in place of DataAnnotations. *@
+        <Form Model="Order" FormName="order" OnValidSubmit="PlaceAsync">
+            <Validator><FluentValidationValidator /></Validator>
+            ...
+        </Form>
+        """;
+
+    private const string Files = """
+        <Form Model="Model" FormName="profile" Multipart OnValidSubmit="SaveAsync">
+            <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
+            <FormActions><Button Submit>Save</Button></FormActions>
+        </Form>
+
+        @code {
+            // Named like the field.
+            [SupplyParameterFromForm(FormName = "profile")]
+            private IFormFile? Avatar { get; set; }
+        }
+        """;
+}

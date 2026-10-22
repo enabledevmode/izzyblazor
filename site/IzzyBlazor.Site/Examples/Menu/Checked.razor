@@ -1,0 +1,26 @@
+@inject NavigationManager Navigation
+
+<Row Gap="3" Wrap Align="Align.Center">
+    <Menu Label="View" StartIcon="Lucide.SlidersHorizontal">
+        @* Each option is a link that sets ?sort=; the URL says which is checked. *@
+        <MenuRadioGroup Label="Sort by" QueryKey="sort" Value="@Sort">
+            <MenuItem Value="name">Name</MenuItem>
+            <MenuItem Value="date">Date modified</MenuItem>
+            <MenuItem Value="size">Size</MenuItem>
+        </MenuRadioGroup>
+        <MenuDivider />
+        @* A link that turns ?compact= on or off. *@
+        <MenuItem Checked="Compact" Href="@Navigation.GetUriWithQueryParameter("compact", Compact ? null : "true")">Compact rows</MenuItem>
+    </Menu>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Sorted by @Sort@(Compact ? ", compact rows" : "")</TextBlock>
+</Row>
+
+@code {
+    [SupplyParameterFromQuery(Name = "sort")]
+    private string? SortQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "compact")]
+    private bool Compact { get; set; }
+
+    private string Sort => SortQuery ?? "name";
+}

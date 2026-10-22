@@ -1,0 +1,33 @@
+<Form Model="Model" FormName="rich" MaxWidth="24.Rem" Grow>
+    <Select @bind-Value="Model!.Plan" ItemText="plan => plan.ToString()">
+        <ItemTemplate>
+            <Icon Name="@Icons[context]" />
+            <span>@context</span>
+            <small class="ib-option-hint">@Prices[context]</small>
+        </ItemTemplate>
+    </Select>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "rich")]
+    private Signup? Model { get; set; }
+
+    private static readonly Dictionary<Plan, IconData> Icons = new()
+    {
+        [Plan.Free] = Lucide.Leaf, [Plan.Pro] = Lucide.Rocket, [Plan.Team] = Lucide.Users,
+    };
+
+    private static readonly Dictionary<Plan, string> Prices = new()
+    {
+        [Plan.Free] = "$0", [Plan.Pro] = "$12 a month", [Plan.Team] = "$40 a month",
+    };
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Signup
+    {
+        public Plan Plan { get; set; } = Plan.Pro;
+    }
+
+    public enum Plan { Free, Pro, Team }
+}

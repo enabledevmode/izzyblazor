@@ -172,6 +172,13 @@ public sealed record RegistryExample
     /// <summary>Lays the preview out as a page (no padding, top-aligned) rather than a centered sample.</summary>
     public bool Page { get; init; }
 
+    /// <summary>
+    /// The example opens an overlay (a dialog, a menu) that the content's height doesn't include:
+    /// its frame keeps at least <see cref="Height"/> and starts the content at the top, so what
+    /// opens has room.
+    /// </summary>
+    public bool Overlay { get; init; }
+
     public string StartMode => Mode ?? (Modes.Contains("static") ? "static" : Modes[0]);
 }
 

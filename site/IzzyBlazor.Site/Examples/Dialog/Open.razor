@@ -1,0 +1,22 @@
+@inject NavigationManager Navigation
+
+<Row Gap="3" Wrap Align="Align.Center">
+    <DialogTrigger For="whats-new" StartIcon="Lucide.Sparkles">What's new</DialogTrigger>
+    <Button Href="@Navigation.GetUriWithQueryParameter("dialog", "whats-new")"
+            Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Open with a link</Button>
+    @if (RendererInfo.IsInteractive)
+    {
+        <Button OnClick="() => _open = true" Variant="ButtonVariant.Ghost">Open from C#</Button>
+    }
+</Row>
+
+<Dialog Id="whats-new" Title="What's new in alpha.12" @bind-Open="_open">
+    <TextBlock>OnThisPage, PrevNext and CopyButton, for docs sites, and a quicker Table on large lists.</TextBlock>
+    <DialogFooter>
+        <DialogClose>Close</DialogClose>
+    </DialogFooter>
+</Dialog>
+
+@code {
+    private bool _open;
+}

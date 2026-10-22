@@ -1,0 +1,32 @@
+@inject Registry Registry
+@inject ApiMetadata Api
+
+@* An Overview's Parts section: the components written inside this one (components.json "parts"),
+   each linked to its place on the API page with its doc summary's first sentence. Nothing when
+   it has none. *@
+
+@if (_parts.Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+    <TextBlock>Written inside @Component.Name. The <Anchor Href="@($"{Registry.ApiPageHref(Component)}#parts")">API page</Anchor> lists their parameters.</TextBlock>
+    <List Gap="2">
+        @foreach (var part in _parts)
+        {
+            <ListItem>
+                <Anchor Href="@Registry.ApiHref(part.Name, null)"><Code>@part.DisplayName</Code></Anchor>@if (OverviewText.FirstSentence(part.Summary) is { } text)
+                {
+                    <text>: @OverviewText.Lower(Api, text)</text>
+                }
+            </ListItem>
+        }
+    </List>
+}
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    private List<ApiComponent> _parts = [];
+
+    protected override void OnParametersSet() =>
+        _parts = Component.Parts.Select(Api.Component).OfType<ApiComponent>().Where(p => p.Obsolete is null).ToList();
+}
