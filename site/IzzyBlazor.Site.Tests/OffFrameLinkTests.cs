@@ -10,6 +10,7 @@ public class OffFrameLinkTests
     [InlineData("<a class=\"x\" href=\"https://github.com\">GitHub</a>", "<a class=\"x\" href=\"https://github.com\" target=\"_top\">GitHub</a>")]
     [InlineData("<a href=\"frame/table-paging?mode=off&amp;page=2\">2</a>", "<a href=\"frame/table-paging?mode=off&amp;page=2\">2</a>")]
     [InlineData("<a href=\"#section\">Section</a>", "<a href=\"#section\">Section</a>")]
+    [InlineData("<a href=\"_izzy/scheme?value=dark&amp;return=frame%2Ftable-paging\">Dark</a>", "<a href=\"_izzy/scheme?value=dark&amp;return=frame%2Ftable-paging\">Dark</a>")]
     [InlineData("<a href=\"docs\" target=\"_blank\">Docs</a>", "<a href=\"docs\" target=\"_blank\">Docs</a>")]
     [InlineData("<a href=\"mailto:a@b.c\">Mail</a>", "<a href=\"mailto:a@b.c\">Mail</a>")]
     public void Links_that_leave_the_example_open_in_the_whole_window(string html, string expected) =>
