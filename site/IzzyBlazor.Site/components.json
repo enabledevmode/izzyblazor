@@ -185,7 +185,33 @@
     { "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content still loading." },
     { "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "What to show when there's nothing yet.", "parts": ["EmptyStateActions"] },
 
-    { "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Sort, filter, page and select, with state in the URL.", "parts": ["PropertyColumn", "TemplateColumn"] },
+    {
+      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Sort, filter, page and select, with state in the URL.", "parts": ["PropertyColumn", "TemplateColumn"],
+      "features": [
+        { "feature": "Sort, filter and page through the URL" },
+        { "feature": "Selected rows post with a form" },
+        { "feature": "Filters apply as you type", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Select-all checkbox", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Sort, page, filters and selection bound to C#", "off": "none", "static": "none", "live": "full" }
+      ],
+      "examples": [
+        { "id": "table-sort-page", "title": "Sorting and paging", "height": 330,
+          "notes": {
+            "off": "Headers and page numbers are links: each click loads the page again.",
+            "static": "The same links; Blazor's enhanced navigation swaps the page in without a full reload.",
+            "live": "The same links; the table follows the URL." } },
+        { "id": "table-filters", "title": "Column filters", "height": 330,
+          "notes": {
+            "off": "Press Enter or Apply in the filter to submit it.",
+            "static": "Filters apply as you type." } },
+        { "id": "table-selection", "title": "Selection and totals", "height": 320,
+          "notes": {
+            "off": "Checked rows post their keys with the form.",
+            "static": "The header checkbox selects every row on the page.",
+            "live": "@bind-SelectedKeys follows the checkboxes in C#." } },
+        { "id": "table-bound", "title": "State in the component", "height": 340, "modes": ["live"] }
+      ]
+    },
     { "id": "card", "icon": "SquareStack", "name": "Card", "category": "Data display", "summary": "Media, header, body sections, actions and footer.", "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"] },
     { "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Data display", "summary": "A figure with a trend read as words." },
     { "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Terms and their details.", "parts": ["DescriptionItem"] },

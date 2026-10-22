@@ -1,0 +1,11 @@
+@* Sorting and paging through the URL: headers and page numbers are links, so the table works with
+   JavaScript off, survives a reload and can be shared. *@
+<Table Items="Orders.All" PageSize="5" PageSizeOptions="[5, 10]" InitialSort="-date" Caption="Orders" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" />
+    <PropertyColumn Property="o => o.Customer" Sortable />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+        <Badge Status="Orders.StatusOf(context.Status)" Dot>@context.Status</Badge>
+    </TemplateColumn>
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+</Table>

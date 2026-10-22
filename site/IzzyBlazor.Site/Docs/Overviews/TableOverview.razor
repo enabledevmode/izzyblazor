@@ -1,0 +1,110 @@
+@* Table's Overview, written by hand after Button's: the URL-first behavior (sorting, paging,
+   filters) previewed in each mode, selection in a form, then state in the component (Live only),
+   data from a database, row links and the look as code. From docs/components.md (Table) and the
+   dev host's TableDemo. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Sorting and paging</Heading>
+<TextBlock>Use <Code>Sortable</Code> on a column and <Code>PageSize</Code> on the table. Headers and page numbers are links that set <Code>?sort=</Code> and <Code>?page=</Code>, so the table works with no script, survives a reload and can be shared.</TextBlock>
+<ExampleViewer Example="table-sort-page" />
+<TextBlock><Code>InitialSort</Code> sets the order before anyone picks one (<Code>"-date"</Code> for newest first), and <Code>PageSizeOptions</Code> adds a "Rows per page" menu.</TextBlock>
+
+<Heading Level="2">Column filters</Heading>
+<TextBlock>Use <Code>Filterable</Code> on a column for a filter in its header. Text matches anywhere, numbers exactly, a date its day, and enums and booleans get a menu.</TextBlock>
+<ExampleViewer Example="table-filters" />
+<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code>. <Code>FilterMultiple</Code> lets an enum column match several values, and <Code>FilterPlacement.Row</Code> puts the filters in a row under the headers. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor>.</TextBlock>
+
+<Heading Level="2">Selection</Heading>
+<TextBlock>Use <Code>Selectable</Code> with an <Code>ItemKey</Code> for a checkbox per row. In a form, the checked rows post their keys, so this works with JavaScript off.</TextBlock>
+<ExampleViewer Example="table-selection" />
+<TextBlock>Read the keys with <Code>[SupplyParameterFromForm(Name = "selected")]</Code> on a static page, or <Code>@@bind-SelectedKeys</Code> on an interactive one. Give columns <Code>FooterText</Code> for a totals row.</TextBlock>
+
+<Heading Level="2">State in the component</Heading>
+<TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filters</Code> on an interactive page to keep them in C# instead of the URL, like a client-side grid.</TextBlock>
+<ExampleViewer Example="table-bound" />
+<TextBlock>The table starts from the URL if it has values, and a new sort or filter goes back to page 1. Set the page back to 1 yourself when your own filters change.</TextBlock>
+
+<Heading Level="2">Data from a database</Heading>
+<TextBlock>Pass an EF Core <Code>IQueryable</Code> as <Code>Items</Code>, and the database sorts, filters and pages. For more control, use <Code>ItemsProvider</Code> to load each page yourself:</TextBlock>
+<Code Block Language="razor">@Provider</Code>
+
+<Heading Level="2">Row links</Heading>
+<TextBlock>Use <Code>RowHref</Code> to make each row a link, and <Code>RowLabel</Code> to name it. Links, buttons and checkboxes inside the row still work on their own.</TextBlock>
+<Code Block Language="razor">@RowLinks</Code>
+
+<Heading Level="2">Several tables on a page</Heading>
+<TextBlock>Use <Code>QueryPrefix</Code> to give each table its own keys in the URL, so they sort and page on their own.</TextBlock>
+<Code Block Language="razor">@Prefix</Code>
+
+<Heading Level="2">Lines, size and scrolling</Heading>
+<TextBlock>Use <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code> and <Code>Bordered</Code> for the look; turn <Code>Bordered</Code> off for a table in a card. <Code>MaxHeight</Code> scrolls the rows under a sticky header, and <Code>EmptyText</Code> shows when there are none.</TextBlock>
+<Code Block Language="razor">@Look</Code>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+<Heading Level="2">Accessibility</Heading>
+<List Gap="2">
+    <ListItem><Code>Caption</Code> names the table for screen readers; it isn't shown. It also names the scrolling area, which can be scrolled from the keyboard.</ListItem>
+    <ListItem>Sortable headers are links, and the sorted column has <Code>aria-sort</Code>.</ListItem>
+    <ListItem>Each filter button is named for its column ("Filter Customer"), and the active filters are a group named "Filters".</ListItem>
+    <ListItem>Row checkboxes are named "Select" and the row's <Code>RowLabel</Code> ("Select order 1001"); without one, the <Code>ItemKey</Code>.</ListItem>
+    <ListItem>The range under the table ("1–5 of 23") is read when it changes.</ListItem>
+</List>
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<Heading Level="2">See also</Heading>
+<List Gap="2">
+    <ListItem><Anchor Href="docs/components/filter-form">FilterForm</Anchor>: search and filters of your own, in the URL.</ListItem>
+    <ListItem><Anchor Href="docs/components/pagination">Pagination</Anchor>: page links for a list that isn't a table.</ListItem>
+    <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: state in the URL on static pages.</ListItem>
+</List>
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Table Items="orders" PageSize="10" Caption="Orders">
+            <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+            <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+            <TemplateColumn Title="Status">
+                <Badge>@context.Status</Badge>
+            </TemplateColumn>
+        </Table>
+        """;
+
+    private const string Provider = """
+        <Table TItem="Order" ItemsProvider="LoadOrders" PageSize="10">...</Table>
+
+        @code {
+            async ValueTask<TableResult<Order>> LoadOrders(TableRequest<Order> request)
+            {
+                var query = db.Orders.Where(o => o.Active);
+                var page = await request.Apply(query).ToListAsync();   // filters, sorts, pages
+                return new(page, await request.ApplyFiltering(query).CountAsync());
+            }
+        }
+        """;
+
+    private const string RowLinks = """
+        <Table Items="orders" RowHref='o => $"orders/{o.Id}"' RowLabel='o => $"order {o.Number}"'>...</Table>
+        """;
+
+    private const string Prefix = """
+        <Table Items="orders" QueryPrefix="o-" PageSize="10">...</Table>     @* ?o-sort=, ?o-page= *@
+        <Table Items="refunds" QueryPrefix="r-" PageSize="10">...</Table>
+        """;
+
+    private const string Look = """
+        <Table Items="orders" Size="ControlSize.Sm" Striped ColumnLines>...</Table>
+        <Table Items="orders" MaxHeight="Length.Rem(20)" EmptyText="No orders yet">...</Table>
+        """;
+}

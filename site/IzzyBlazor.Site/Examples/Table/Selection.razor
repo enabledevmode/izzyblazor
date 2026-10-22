@@ -1,0 +1,38 @@
+@* Selection in a form: each checked row posts its ItemKey, so Archive works with JavaScript off. A
+   footer row shows the total. *@
+<form method="post" @onsubmit="Archive" @formname="archive" style="width: 100%">
+    <AntiforgeryToken />
+    <Stack Gap="3">
+        <Table Items="Recent" Caption="Recent orders" Selectable ItemKey="o => o.Number.ToString()"
+               RowLabel='o => $"order {o.Number}"' @bind-SelectedKeys="_selected">
+            <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
+            <PropertyColumn Property="o => o.Customer" />
+            <PropertyColumn Property="o => o.Total" Format="C" FooterText="@Recent.Sum(o => o.Total).ToString("C")" />
+        </Table>
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive selected</Button>
+            @if (_archived is not null)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                    Archived: @(_archived.Count == 0 ? "nothing selected" : string.Join(", ", _archived.Select(k => "#" + k)))
+                </TextBlock>
+            }
+        </Row>
+    </Stack>
+</form>
+
+@code {
+    private static readonly IReadOnlyList<Order> Recent = Orders.All.Take(5).ToList();
+
+    // Static pages: the checked rows post as "selected".
+    [SupplyParameterFromForm(FormName = "archive", Name = "selected")]
+    private string[]? Posted { get; set; }
+
+    // Interactive pages: bound to the checkboxes.
+    private IReadOnlyCollection<string>? _selected;
+    private IReadOnlyCollection<string>? _archived;
+
+    protected override void OnInitialized() => _selected = Posted;
+
+    private void Archive() => _archived = (IReadOnlyCollection<string>?)Posted ?? _selected ?? [];
+}
