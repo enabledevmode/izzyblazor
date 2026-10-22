@@ -12,6 +12,19 @@ public sealed record ListContext(IconData? Icon, Color? IconColor);
 /// A bulleted, numbered or icon list of <see cref="ListItem"/>s, spaced with <see cref="Gap"/>.
 /// <c>&lt;List Icon="Lucide.Check" IconColor="Color.SuccessText"&gt;</c> makes a check list.
 /// </summary>
+/// <example>
+/// <code>
+/// &lt;List Icon="Lucide.Check" IconColor="Color.SuccessText"&gt;
+///     &lt;ListItem&gt;Unlimited projects&lt;/ListItem&gt;
+///     &lt;ListItem&gt;Priority support&lt;/ListItem&gt;
+/// &lt;/List&gt;
+///
+/// &lt;List Ordered&gt;
+///     &lt;ListItem&gt;Install the package.&lt;/ListItem&gt;
+///     &lt;ListItem&gt;Add IzzyTheme to App.razor.&lt;/ListItem&gt;
+/// &lt;/List&gt;
+/// </code>
+/// </example>
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>ul</c>, or an <c>ol</c> when <see cref="Ordered"/>, of <c>li</c> items, so screen readers announce a list and its count.</item>

@@ -6,6 +6,9 @@
     A message on the page: an icon, an optional title, the message and optional actions
     (AlertActions, written last in the message).
 
+    <Alert Status="Status.Success" Title="Saved">Your changes are live.</Alert>
+    <Alert Status="Status.Warning" Dismissible>Your trial ends in 3 days.</Alert>
+
     Dismissible adds a close button that works with no script: a visually hidden checkbox and
     its label, with CSS :has(:checked) hiding the alert. With the script it is a real button
     (<ib-dismiss>), and focus moves to the next control when the alert closes. On interactive pages @bind-Dismissed

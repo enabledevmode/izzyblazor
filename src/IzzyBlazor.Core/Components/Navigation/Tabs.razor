@@ -34,10 +34,11 @@
     - With script, each panel is named by its tab and takes focus, so Tab moves from the tab to the
       panel.
     - `Label` names the tab list (or the `nav` of TabLinks); it has no default, so set it.
-    - In a form, with script, a tab whose fields have errors shows a count, read as part of its name ("Billing,
-      1 error").
+    - In a form, with script, a tab whose fields have errors shows a count, read as part of its
+      name ("Billing, 1 error").
     - TabLinks render a `nav` of plain links that Tab moves between (no arrow keys); the current
-      page's link has `aria-current`, and a disabled one is text, not a link.
+      page's link has `aria-current`, and a disabled one is a link with no `href`, announced as
+      disabled (`aria-disabled`).
     See also: SegmentedControl, NavMenu, Accordion.
 *@
 
@@ -58,7 +59,8 @@
             {
                 @if (link.Disabled)
                 {
-                    <span class="ib-tab ib-tab-disabled" aria-disabled="true">@TabContent(link.Icon, link.Label, link.Badge)</span>
+                    @* A link without an href, as Button does: role="link" keeps it in the list of links, disabled. *@
+                    <span class="ib-tab ib-tab-disabled" role="link" aria-disabled="true">@TabContent(link.Icon, link.Label, link.Badge)</span>
                 }
                 else
                 {

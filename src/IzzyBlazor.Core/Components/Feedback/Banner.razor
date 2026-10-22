@@ -10,6 +10,8 @@
     that is ending, a license warning. Put it at the top of the page, or inside an AppShell, where
     it takes a row of its own above the header. For a message about part of a page, use Alert.
 
+    <Banner Status="Status.Warning" Dismissible>Maintenance on Saturday, 2 to 4 AM UTC.</Banner>
+
     Dismissible adds a close button that works with no script: a visually hidden checkbox and its
     label, with CSS :has(:checked) hiding the banner. With the script it is a real button
     (<ib-dismiss>), and focus moves to the next control when the banner closes. A dismissal is remembered, for the browser

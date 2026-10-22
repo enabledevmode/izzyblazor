@@ -6,6 +6,10 @@
     The shared frame around every field: label, control, hint, errors. Field components use it;
     custom fields can too, to match the built-in ones.
 
+    <FieldFrame Id="due" Label="Due date" Hint="A weekday." HintId="due-hint">
+        <input id="due" type="date" name="due" aria-describedby="due-hint" />
+    </FieldFrame>
+
     Accessibility:
     - It renders a `label` whose `for` is `Id`, so the control needs that id; with `Group`, a
       `fieldset` whose `legend` names the group.

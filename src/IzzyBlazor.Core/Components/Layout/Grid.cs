@@ -144,6 +144,13 @@ public class Container : Box
 }
 
 /// <summary>Centers its children both ways, such as an icon in a square or an empty state in a panel.</summary>
+/// <example>
+/// <code>
+/// &lt;Center Height="Length.Rem(12)"&gt;
+///     &lt;Spinner /&gt;
+/// &lt;/Center&gt;
+/// </code>
+/// </example>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Box"/>
 /// <seealso cref="EmptyState"/>
