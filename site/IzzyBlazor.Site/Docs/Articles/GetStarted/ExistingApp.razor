@@ -25,10 +25,10 @@
             components: button links turn blue on blue and headings change size.
         </TextBlock>
         <TextBlock>
-            Put Bootstrap in a layer of its own, declared before IzzyBlazor's. Remove its <Code>&lt;link&gt;</Code> from
-            <Code>App.razor</Code> and import it at the top of <Code>app.css</Code> instead, move rules that style bare elements
-            (<Code>body</Code>, <Code>a</Code>, <Code>h1</Code>) into the same layer, and link <Code>app.css</Code> before
-            IzzyBlazor's stylesheet. The order matters here because <Code>app.css</Code> now declares a layer:
+            Put Bootstrap in a layer of its own, declared before IzzyBlazor's. Remove its <Code>&lt;link&gt;</Code> and import
+            it at the top of your stylesheet instead, move rules that style bare elements (<Code>body</Code>, <Code>a</Code>,
+            <Code>h1</Code>) into the same layer, and link your stylesheet before IzzyBlazor's. The order matters here because
+            yours now declares a layer:
         </TextBlock>
         <Code Block Language="css" Title="wwwroot/app.css">@AppCss</Code>
         <Code Block Language="razor" Title="Components/App.razor" HighlightLines="1-2">@AppHead</Code>

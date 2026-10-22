@@ -22,10 +22,7 @@
         <Code Block Language="bash">dotnet add package IzzyBlazor --prerelease</Code>
 
         <Heading Level="2">Add the stylesheet and the theme</Heading>
-        <TextBlock>
-            In <Code>Components/App.razor</Code>, link the stylesheet before your own and put <Code>IzzyTheme</Code> in the
-            <Code>head</Code>:
-        </TextBlock>
+        <TextBlock>Link the stylesheet before your own, and put <Code>IzzyTheme</Code> in the <Code>head</Code>:</TextBlock>
         <Code Block Language="razor" Title="Components/App.razor" HighlightLines="6,9">@AppHead</Code>
         <TextBlock>
             <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> sets the preset, brand color and fonts, as in
@@ -35,7 +32,7 @@
         </TextBlock>
 
         <Heading Level="2">Import the components</Heading>
-        <TextBlock>Add one line to <Code>Components/_Imports.razor</Code>:</TextBlock>
+        <TextBlock>Add one line to your imports:</TextBlock>
         <Code Block Language="razor" Title="Components/_Imports.razor">@@using IzzyBlazor</Code>
         <TextBlock>
             Prefer this to a <Code>global using</Code>: it brings the components into <Code>.razor</Code> files only, so names
@@ -43,7 +40,7 @@
         </TextBlock>
 
         <Heading Level="2">Register the services</Heading>
-        <TextBlock>In <Code>Program.cs</Code>, add the services and map IzzyBlazor's endpoints after your components:</TextBlock>
+        <TextBlock>Add the services, and map IzzyBlazor's endpoints after your components:</TextBlock>
         <Code Block Language="csharp" Title="Program.cs" HighlightLines="2,10">@ProgramCs</Code>
         <TextBlock>
             <Code>AddIzzyBlazor</Code> adds the toast and dialog services, carries toasts over a redirect, and lets components
