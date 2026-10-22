@@ -2,7 +2,7 @@
 @inherits ToggleComponentBase
 @implements IDisposable
 @inject NavigationManager Navigation
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dialog opened from the server isn't modal: focus can leave it, and Escape closes it only in browsers with closedby (not Safari).")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dialog opened from the server isn't modal: focus can leave it, and Escape or a click outside closes it only in browsers with closedby (not Safari).")]
 
 @*
     A modal built on the native <dialog>: the browser traps focus, makes the page behind it
@@ -42,10 +42,10 @@
       it when the dialog closes.
     - Put `autofocus` on the field to start in. After an enhanced post that comes back with
       errors, the dialog reopens with focus on the first invalid field.
-    - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal: the
-      page behind stays usable and focus can leave it. Escape closes it in browsers with the
-      `closedby` attribute (Chrome and Edge 134, Firefox 141), not in Safari. DialogTrigger needs
-      no script in current browsers.
+    - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal:
+      focus can leave it for the page behind. In browsers with the `closedby` attribute (Chrome
+      and Edge 134, Firefox 141; not Safari), Escape closes it, and so does a click outside while
+      `CloseOnBackdrop` is on. DialogTrigger needs no script in current browsers.
     - DialogService's dialogs (shown by DialogHost) are named by the title passed to `OpenAsync`,
       or by `DialogOptions.Label` without one; `ConfirmAsync` without a title is named by its
       message.
@@ -53,6 +53,7 @@
 *@
 
 <ib-dialog data-open="@(IsOpen ? "" : null)"
+           data-query-key="@QueryKey"
            data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
            data-close-on-backdrop="@(CloseOnBackdrop ? "" : null)">
     <dialog @attributes="AdditionalAttributes"

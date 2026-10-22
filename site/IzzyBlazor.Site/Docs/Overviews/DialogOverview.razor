@@ -9,12 +9,12 @@
 <Heading Level="2">Opening it</Heading>
 <TextBlock>Use a <Code>DialogTrigger</Code> with the dialog's <Code>Id</Code>, a link that adds <Code>?dialog=</Code> and the id to the address, or <Code>@@bind-Open</Code> from C#. The trigger and the link work on static pages, with JavaScript off too.</TextBlock>
 <ExampleViewer Example="dialog-open" />
-<TextBlock><Code>QueryKey</Code> changes the key the link uses, and null turns links off. Set <Code>Open</Code> from the server to show a dialog when the page loads, such as a notice after a post.</TextBlock>
+<TextBlock><Code>QueryKey</Code> changes the key the link uses (closing takes it off the address), and null turns links off. Set <Code>Open</Code> from the server to show a dialog when the page loads, such as a notice after a post.</TextBlock>
 
 <Heading Level="2">A form in a dialog</Heading>
 <TextBlock>Put a <Anchor Href="docs/components/form">Form</Anchor> in the dialog with its <Code>FormActions</Code> last: the buttons become the dialog's footer and still submit the form.</TextBlock>
 <ExampleViewer Example="dialog-rename" />
-<TextBlock>A post on a static page loads a new page, where the dialog is closed. IzzyBlazor's script opens it again when the response has errors in it; set <Code>Open</Code> yourself when the post fails, as here with <Code>OnInvalidSubmit</Code>, so the errors show with JavaScript off too.</TextBlock>
+<TextBlock>A post on a static page closes the dialog: with JavaScript off the browser loads a new page, and with it the script closes the dialog as it posts. The script opens it again when the response has errors in it; set <Code>Open</Code> yourself when the post fails, as here with <Code>OnInvalidSubmit</Code>, so the errors show with JavaScript off too.</TextBlock>
 
 <Heading Level="2">Header, body and footer</Heading>
 <TextBlock>Use <Code>Title</Code> for a plain heading, or a <Code>DialogHeader</Code> for one with an icon or a badge. <Code>DialogBody</Code> lays the body out with <Code>Gap</Code> and the other layout props, and <Code>DialogFooter</Code> holds the buttons at the bottom.</TextBlock>
@@ -23,10 +23,10 @@
 
 <Heading Level="2">Size and placement</Heading>
 <TextBlock>Use <Code>Size</Code> for the width (<Code>Sm</Code>, <Code>Md</Code>, <Code>Lg</Code>, <Code>Xl</Code> or <Code>Full</Code>) or <Code>Width</Code> for another, and <Code>Placement</Code> for a panel at an edge. A <Anchor Href="docs/components/drawer">Drawer</Anchor> is a dialog at the end edge.</TextBlock>
-<Code Block Language="razor">@Sizes</Code>
+<ExampleViewer Example="dialog-placement" />
 
 <Heading Level="2">Closing</Heading>
-<TextBlock>Escape, the close button, a <Code>DialogClose</Code> and a click on the backdrop close it. Use <Code>CloseOnBackdrop="false"</Code> for a form someone could lose with a stray click, and <Code>ShowCloseButton="false"</Code> when the footer's buttons are enough; Escape still closes it.</TextBlock>
+<TextBlock>Use <Code>CloseOnBackdrop="false"</Code> to keep a dialog open when the backdrop is clicked, for a form someone could lose with a stray click, and <Code>ShowCloseButton="false"</Code> when the footer's buttons are enough. Escape, the close button and a <Code>DialogClose</Code> still close it.</TextBlock>
 
 <Heading Level="2">Inside a form</Heading>
 <TextBlock>Use <Code>InsideForm</Code> when the dialog has to sit in a form, such as a confirmation for that form's own submit button. Forms can't nest, so its close buttons then close it without submitting the form, and a submit button in it submits the form around it.</TextBlock>
@@ -79,10 +79,6 @@
         </Dialog>
         """;
 
-    private const string Sizes = """
-        <Dialog Id="terms" Title="Terms of service" Size="DialogSize.Lg">...</Dialog>
-        <Dialog Id="share" Title="Share" Placement="DialogPlacement.Bottom">...</Dialog>
-        """;
 
     private const string Inside = """
         <Form Model="Order" FormName="order" OnValidSubmit="PlaceAsync">

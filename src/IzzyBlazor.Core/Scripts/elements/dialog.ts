@@ -7,7 +7,8 @@ import { emitToggle } from "../toggle";
  *   - data-open: the server (?dialog=id, Open="true") or C# (@bind-Open) can open it as a
  *     real modal; the server's non-modal `open` is upgraded to showModal(),
  *   - closing on a backdrop click where the native closedby attribute isn't supported,
- *   - removing ?dialog=id from the address after closing, so a reload doesn't reopen it,
+ *   - removing ?dialog=id (or the dialog's own QueryKey) from the address after closing, so a
+ *     reload doesn't reopen it,
  *   - `ibtoggle` events, so @bind-Open follows the browser.
  */
 class DialogRoot extends IzzyElement {
@@ -111,9 +112,11 @@ class DialogRoot extends IzzyElement {
   }
 
   private clearQuery(dialog: HTMLDialogElement): void {
+    // data-query-key is the dialog's QueryKey; without one, no link opens it.
+    const key = this.dataset.queryKey;
     const url = new URL(location.href);
-    if (dialog.id && url.searchParams.get("dialog") === dialog.id) {
-      url.searchParams.delete("dialog");
+    if (key && dialog.id && url.searchParams.get(key) === dialog.id) {
+      url.searchParams.delete(key);
       history.replaceState(history.state, "", url);
     }
   }
