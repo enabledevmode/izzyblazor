@@ -46,7 +46,9 @@
 .site-hero-glow {
   position: absolute;
   z-index: 0;
-  top: 50%;
+  /* A fixed distance from the top, not the band's middle: the band grows when the example shows
+     its code, and the glow stays put. */
+  top: 22rem;
   right: -18rem;
   width: 52rem;
   height: 52rem;
