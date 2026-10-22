@@ -131,7 +131,6 @@
 .site-footer { width: 100%; }
 
 /* Scenario links under a component in the demos sidebar. */
-.site-nav-sub { padding-inline-start: var(--ib-space-6); }
 
 /* Pictograms: an icon on a tile tinted with the accent. */
 .site-picto {
