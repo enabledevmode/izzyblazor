@@ -161,7 +161,10 @@ public class AppHeader : AppShellPart
 /// <summary>The main content of an <see cref="AppShell"/>, usually <c>@Body</c>. The skip link targets it.</summary>
 public class AppMain : AppShellPart
 {
-    /// <summary>The element id. Defaults to the shell's <see cref="AppShell.MainId"/>.</summary>
+    /// <summary>
+    /// The element id. Defaults to the shell's <see cref="AppShell.MainId"/>; inside a shell, set
+    /// it there instead (a different one throws), so the skip link keeps pointing here.
+    /// </summary>
     [Parameter] public string? Id { get; set; }
 
     /// <summary>
@@ -196,6 +199,12 @@ public class AppMain : AppShellPart
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        var id = Id ?? (AdditionalAttributes?.TryGetValue("id", out var attribute) == true ? Convert.ToString(attribute, System.Globalization.CultureInfo.InvariantCulture) : null);
+        if (id is not null && Shell is not null && id != Shell.MainId)
+        {
+            throw new InvalidOperationException($"AppMain's Id ({id}) differs from its AppShell's MainId ({Shell.MainId}), which the skip link points to. Set MainId on the AppShell instead.");
+        }
+
         var (cssClass, style) = BuildRootAttributes();
         builder.OpenElement(0, "main");
         builder.AddAttribute(1, "id", Id ?? Shell?.MainId ?? "ib-main");

@@ -34,6 +34,12 @@ public sealed class DialogOptions
     public bool ShowCloseButton { get; init; } = true;
 
     /// <summary>
+    /// The dialog's name for screen readers when it's opened without a title. A dialog with neither
+    /// has no name.
+    /// </summary>
+    public string? Label { get; init; }
+
+    /// <summary>
     /// The dialog's color scheme. Dialogs from code are shown by the <see cref="DialogHost"/>, not
     /// where they were opened, so a part of the page with its own scheme passes it here to match.
     /// Defaults to <see cref="ColorScheme.Auto"/>: the page's.
@@ -169,7 +175,8 @@ public sealed class DialogService
             typeof(ConfirmDialogContent),
             title,
             new Dictionary<string, object?> { [nameof(ConfirmDialogContent.Message)] = message, [nameof(ConfirmDialogContent.Options)] = options ?? new ConfirmOptions() },
-            new DialogOptions { Size = DialogSize.Sm, CloseOnBackdrop = false, ShowCloseButton = false });
+            // Without a title, the question names the dialog.
+            new DialogOptions { Size = DialogSize.Sm, CloseOnBackdrop = false, ShowCloseButton = false, Label = title is null ? message : null });
         return !result.Canceled && result.Data is true;
     }
 

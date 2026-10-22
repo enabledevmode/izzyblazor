@@ -44,6 +44,11 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
 
     [Inject] private NavigationManager Navigation { get; set; } = default!;
 
+    [Inject] private IServiceProvider Services { get; set; } = default!;
+
+    /// <summary>The app's <see cref="IzzyText"/>, or English.</summary>
+    protected IzzyText TextDefaults => IzzyText.From(Services);
+
     [CascadingParameter] internal FilterFormContext? Form { get; set; }
 
     /// <summary>The control's id.</summary>
@@ -115,7 +120,7 @@ public sealed class FilterSearch : FilterFieldBase
     {
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", FieldClass("search"));
-        builder.AddContent(2, HiddenLabel(Label ?? "Search"));
+        builder.AddContent(2, HiddenLabel(Label ?? TextDefaults.Search));
         builder.OpenElement(10, "div");
         builder.AddAttribute(11, "class", "ib-field-control ib-has-start");
         builder.OpenComponent<Icon>(12);
@@ -128,7 +133,7 @@ public sealed class FilterSearch : FilterFieldBase
         builder.AddAttribute(23, "id", ControlId);
         builder.AddAttribute(24, "name", Name);
         builder.AddAttribute(25, "value", CurrentValue);
-        builder.AddAttribute(26, "placeholder", Placeholder ?? Label ?? "Search");
+        builder.AddAttribute(26, "placeholder", Placeholder ?? Label ?? TextDefaults.Search);
         builder.AddAttribute(27, "autocomplete", "off");
         builder.AddAttribute(28, "class", "ib-field-input");
         builder.CloseElement();

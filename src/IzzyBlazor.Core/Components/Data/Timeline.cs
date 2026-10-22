@@ -19,7 +19,7 @@ namespace IzzyBlazor;
 /// </example>
 /// <accessibility>
 /// <list type="bullet">
-/// <item>It renders an ordered list: an <c>ol</c>, with each <see cref="TimelineItem"/> an <c>li</c>, in the order written.</item>
+/// <item>It renders an ordered list: an <c>ol</c> with <c>role="list"</c> (which Safari otherwise drops from a list with no markers), with each <see cref="TimelineItem"/> an <c>li</c>, in the order written.</item>
 /// <item><see cref="TimelineItem.Current"/> sets <c>aria-current="true"</c> on its item.</item>
 /// <item>The marker and its icon are hidden, and its <see cref="TimelineItem.Status"/> color isn't read: put a status that matters in the title or content.</item>
 /// <item>With <see cref="TimelineItem.Href"/> the title is a link; with <see cref="TimelineItem.DateTime"/> the time is a <c>time</c> element.</item>
@@ -35,6 +35,18 @@ public class Timeline : Box
 
     /// <inheritdoc />
     protected override string BaseClass => "ib-timeline";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        // Its list has no markers, and Safari drops a list's role without them (as List does).
+        if (AdditionalAttributes?.ContainsKey("role") != true)
+        {
+            AdditionalAttributes = new Dictionary<string, object>(AdditionalAttributes ?? new Dictionary<string, object>()) { ["role"] = "list" };
+        }
+    }
 }
 
 /// <summary>One event in a <see cref="Timeline"/>.</summary>

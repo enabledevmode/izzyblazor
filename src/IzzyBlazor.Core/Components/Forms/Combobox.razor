@@ -28,6 +28,8 @@
       Tab closes it too.
     - Leaving the field takes an option whose text was typed in full, and clears the value when
       the text was emptied.
+    - When nothing matches, "No matches" (`EmptyText`) is announced politely, as is "Searching…"
+      while a server search runs.
     - The label names the input and the list; the chevron button is named "Show options"
       (`ToggleLabel`) and is left out of the Tab order.
     - With JavaScript off, it's a native `select`, with its own keys and announcements.
@@ -110,8 +112,10 @@
                     }
                 </div>
             }
-            <div class="ib-combobox-empty" role="status">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
+            @* Shown in the list, but read through the status below: a listbox holds only options. *@
+            <div class="ib-combobox-empty" aria-hidden="true">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
+        <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
     </ib-combobox>
     }
     @if (PostsReadOnlyValue)

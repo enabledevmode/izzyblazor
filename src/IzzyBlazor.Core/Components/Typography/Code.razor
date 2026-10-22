@@ -22,9 +22,9 @@
     Accessibility:
     - Inline code is a `code`; a block is a `pre` holding a `code`.
     - A block is a tab stop, so a long line or a block with `MaxHeight` can be scrolled from the
-      keyboard.
-    - The copy button is named "Copy code" (`CopyLabel`); after copying, its name becomes "Copied"
-      (`CopiedLabel`) for a moment, and it shows a check.
+      keyboard. It's a group named by its `Title`, or "Code" without one.
+    - The copy button is named "Copy code" (`CopyLabel`); after copying, it shows a check for a
+      moment and "Copied" (`CopiedLabel`) is announced politely.
     - With JavaScript off there's no copy button; the code is still there to select.
     - Line numbers are CSS with empty alt text, so they're never copied and screen readers skip
       them where the browser supports it.
@@ -51,7 +51,7 @@
                 @CopyControl
             </div>
         }
-        <pre class="ib-code-pre" tabindex="0" aria-labelledby="@(Title is null ? null : TitleId)"><code>@Content</code></pre>
+        <pre class="ib-code-pre" tabindex="0" role="group" aria-labelledby="@(Title is null ? null : TitleId)" aria-label="@(Title is null ? TextDefaults.CodeBlock : null)"><code>@Content</code></pre>
     </ib-code>
 }
 else
@@ -101,7 +101,8 @@ else
     /// </summary>
     [Parameter] public string? Title { get; set; }
 
-    // Names the scrolling block (a tab stop) after the title.
+    // Names the scrolling block (a tab stop) after the title, else "Code". A pre can't be named, so
+    // it's a group: not a region, since a docs page can hold dozens of blocks.
     private string? _titleId;
 
     private string TitleId => _titleId ??= IdGenerator.Next("ib-code-title");

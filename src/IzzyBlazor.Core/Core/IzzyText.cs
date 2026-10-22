@@ -66,6 +66,9 @@ public class IzzyText
     /// <summary>The confirm button in DialogService.ConfirmAsync.</summary>
     public virtual string Ok { get; set; } = "OK";
 
+    /// <summary>ConfirmButton's confirm button.</summary>
+    public virtual string Confirm { get; set; } = "Confirm";
+
     /// <summary>Cancel in ConfirmButton's dialog and DialogService.ConfirmAsync.</summary>
     public virtual string Cancel { get; set; } = "Cancel";
 
@@ -136,6 +139,9 @@ public class IzzyText
 
     /// <summary>FilterForm's name.</summary>
     public virtual string Filters { get; set; } = "Filters";
+
+    /// <summary>FilterSearch's hidden label.</summary>
+    public virtual string Search { get; set; } = "Search";
 
     /// <summary>FilterForm's apply button.</summary>
     public virtual string Apply { get; set; } = "Apply";
@@ -213,6 +219,9 @@ public class IzzyText
     /// <summary>Read after a finished step's label.</summary>
     public virtual string Completed { get; set; } = "(completed)";
 
+    /// <summary>AppShell's skip link, the first thing a keyboard reaches.</summary>
+    public virtual string SkipToContent { get; set; } = "Skip to content";
+
     /// <summary>The sidebar navigation's name.</summary>
     public virtual string MainNavigation { get; set; } = "Main";
 
@@ -247,6 +256,9 @@ public class IzzyText
 
     /// <summary>A code block's copy button.</summary>
     public virtual string CopyCode { get; set; } = "Copy code";
+
+    /// <summary>A code block's name for screen readers when it has no Title (it's a tab stop, so it can scroll).</summary>
+    public virtual string CodeBlock { get; set; } = "Code";
 
     /// <summary>CodeExample's toggle while its source is hidden.</summary>
     public virtual string ShowCode { get; set; } = "Show code";

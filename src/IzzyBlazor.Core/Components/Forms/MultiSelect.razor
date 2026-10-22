@@ -26,6 +26,7 @@
     - Backspace in the empty input removes the last chosen option. The chips' remove buttons,
       named "Remove" and the option ("Remove Design", `RemoveLabel`), are left out of the Tab
       order.
+    - When nothing matches, "No matches" (`EmptyText`) is announced politely.
     - The label names the input and the list, and the hint and errors are linked with
       `aria-describedby`.
     - With JavaScript off, it's a native multiple `select`, with the browser's own keys.
@@ -109,8 +110,10 @@
                     }
                 </div>
             }
-            <div class="ib-combobox-empty" role="status">@(EmptyText ?? TextDefaults.NoMatches)</div>
+            @* Shown in the list, but read through the status below: a listbox holds only options. *@
+            <div class="ib-combobox-empty" aria-hidden="true">@(EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
+        <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
     </ib-combobox>
     }
     @if (PostsReadOnlyValue)

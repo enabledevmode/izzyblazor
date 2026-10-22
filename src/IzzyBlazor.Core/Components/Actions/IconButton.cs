@@ -19,7 +19,7 @@ namespace IzzyBlazor;
 /// <item>It renders a native <c>button</c>, or an <c>a</c> with <see cref="Href"/>, so Enter, Space and focus work as the browser defines them.</item>
 /// <item><see cref="Label"/> is required and becomes its <c>aria-label</c>; the icon itself is hidden from screen readers.</item>
 /// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus.</item>
-/// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c>.</item>
+/// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c> and <c>aria-disabled</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/> before the label ("Loading Delete").</item>
 /// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
 /// </list>
 /// </accessibility>
@@ -101,11 +101,16 @@ public class IconButton : ButtonBase
             }
         }
 
-        builder.AddAttribute(6, "aria-label", Label);
+        // Loading reads like Button's: "Loading Delete" (LoadingLabel, then the label).
+        builder.AddAttribute(6, "aria-label", Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {Label}" : Label);
         builder.AddAttribute(7, "title", Label);
         if (Loading)
         {
             builder.AddAttribute(8, "aria-busy", "true");
+            if (!isLink)
+            {
+                builder.AddAttribute(17, "aria-disabled", "true");
+            }
         }
 
         builder.AddMultipleAttributes(9, AdditionalAttributes);

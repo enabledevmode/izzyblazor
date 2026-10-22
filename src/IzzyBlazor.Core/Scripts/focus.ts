@@ -8,3 +8,20 @@ export function focusMarked(): void {
   if (!target || target.contains(document.activeElement)) return;
   target.focus();
 }
+
+/**
+ * A skip link (AppShell's "Skip to content") moves focus to its target natively, but Blazor's
+ * enhanced navigation handles the click itself and only scrolls. Focus the target after it, so
+ * the next Tab starts in the main area. The target needs tabindex="-1" (AppMain has it).
+ */
+export function installSkipLinks(): void {
+  document.addEventListener("click", (event) => {
+    const link = (event.target as Element | null)?.closest?.<HTMLAnchorElement>("a.ib-skip-link");
+    const id = link?.hash.slice(1);
+    if (!id) return;
+    requestAnimationFrame(() => {
+      const target = document.getElementById(decodeURIComponent(id));
+      if (target && target !== document.activeElement) target.focus();
+    });
+  });
+}

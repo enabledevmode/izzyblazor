@@ -17,6 +17,7 @@ namespace IzzyBlazor;
 /// <accessibility>
 /// <list type="bullet">
 /// <item>A plain horizontal divider is an <c>hr</c>; a vertical one is a <c>div</c> with <c>role="separator"</c> and <c>aria-orientation="vertical"</c>.</item>
+/// <item>A divider with a <see cref="Label"/> is read as its text ("or"), with no separator role, since a separator's content isn't read.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="Stack"/>
@@ -60,11 +61,13 @@ public class Divider : StyledComponentBase
 
         builder.OpenElement(10, "div");
         builder.AddMultipleAttributes(11, AdditionalAttributes);
-        builder.AddAttribute(12, "role", "separator");
+        // A labeled line is its text: a separator's content isn't read, so it has no role.
+        var labeled = Orientation == Orientation.Horizontal && Label is not null;
+        builder.AddAttribute(12, "role", labeled ? null : "separator");
         builder.AddAttribute(13, "aria-orientation", Orientation == Orientation.Vertical ? "vertical" : null);
         builder.AddAttribute(14, "class", cssClass);
         builder.AddAttribute(15, "style", style);
-        if (Orientation == Orientation.Horizontal && Label is not null)
+        if (labeled)
         {
             builder.OpenElement(16, "span");
             builder.AddAttribute(17, "class", "ib-divider-text");

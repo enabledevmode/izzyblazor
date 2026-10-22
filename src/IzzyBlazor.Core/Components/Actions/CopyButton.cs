@@ -27,7 +27,7 @@ namespace IzzyBlazor;
 /// <list type="bullet">
 /// <item>It renders a native <c>button</c>, shown only once the script runs; with JavaScript off the text is still there to select.</item>
 /// <item>Without content it's named by <see cref="Label"/> ("Copy"); with content it's named by the content, and <see cref="Label"/> is only the tooltip.</item>
-/// <item>After copying, an icon-only button's name becomes <see cref="CopiedLabel"/> ("Copied") for a moment; a button with text keeps its name, and "Copied" is announced politely.</item>
+/// <item>After copying, the button keeps its name and <see cref="CopiedLabel"/> ("Copied") is announced politely.</item>
 /// <item>If the page has no clipboard access, the button stays as it was and nothing is announced.</item>
 /// </list>
 /// </accessibility>

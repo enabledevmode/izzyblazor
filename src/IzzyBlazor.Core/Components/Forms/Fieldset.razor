@@ -11,13 +11,13 @@
     Accessibility:
     - It renders a native `fieldset` with `Label` as its `legend`, which screen readers announce as
       the group's name when focus moves into it.
-    - The `Description` isn't linked to the fields, so screen readers reach it only by reading the
-      page; put what a field needs in its `Hint`.
+    - The `Description` describes the group (`aria-describedby`), so screen readers can read it
+      with the name; what one field needs still goes in its `Hint`.
     - The `Icon` is decorative and hidden from screen readers.
     See also: Form, Section, Card, CheckboxGroup.
 *@
 
-<fieldset @attributes="AdditionalAttributes" class="@_class" style="@_style">
+<fieldset aria-describedby="@(Description is null ? null : _descriptionId)" @attributes="AdditionalAttributes" class="@_class" style="@_style">
     <legend class="ib-fieldset-legend">@Label</legend>
     @if (Icon is { } icon)
     {
@@ -25,7 +25,7 @@
     }
     @if (Description is not null)
     {
-        <p class="ib-fieldset-description">@Description</p>
+        <p class="ib-fieldset-description" id="@_descriptionId">@Description</p>
     }
     <div class="@_bodyClass" style="@_bodyStyle">
         @ChildContent
@@ -33,6 +33,8 @@
 </fieldset>
 
 @code {
+    private readonly string _descriptionId = IdGenerator.Next("ib-fieldset-desc");
+
     /// <summary>The group's heading. Screen readers announce it with each field in the group.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
 
