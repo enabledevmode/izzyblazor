@@ -11,6 +11,15 @@
         <DescriptionItem Term="Status"><Badge Status="Status.Success" Dot>Paid</Badge></DescriptionItem>
         <DescriptionItem Term="Customer">Grace Hopper</DescriptionItem>
     </DescriptionList>
+
+    Accessibility:
+    - It renders a native `dl`; each DescriptionItem is a `dt` and a `dd` in a `div`, which HTML
+      allows, so the term and its detail stay paired.
+    - `Orientation` and `Columns` change only the layout: the reading order is always term, then
+      detail, item by item.
+    - `TermContent` goes inside the `dt`, so keep it to text and inline content: a heading isn't
+      allowed there.
+    See also: Table, Stat, Card.
 *@
 
 <dl @attributes="AdditionalAttributes" class="@_class" style="@_style">

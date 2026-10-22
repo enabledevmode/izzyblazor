@@ -15,10 +15,17 @@ namespace IzzyBlazor;
 /// &lt;Icon Role="IconRole.Close" /&gt;
 /// </code>
 /// </example>
-/// <remarks>
-/// Without a <see cref="Label"/> the icon is decorative and hidden from screen readers, which
-/// is right when visible text sits next to it. Give icons that stand alone a label.
-/// </remarks>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>Without a <see cref="Label"/> it's decorative: <c>aria-hidden="true"</c>, which is right when visible text sits next to it.</item>
+/// <item>With a <see cref="Label"/> it's <c>role="img"</c> named by the label; give one to an icon that stands alone and means something.</item>
+/// <item>It never takes focus. An action shown only as an icon needs a button with a name: use <see cref="IconButton"/>.</item>
+/// <item>With reduced motion set, <see cref="Spin"/> slows down rather than stops, since the spin says "still working".</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="IconButton"/>
+/// <seealso cref="Badge"/>
+/// <seealso cref="Image"/>
 [ModeSupport]
 public class Icon : IzzyComponentBase
 {

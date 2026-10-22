@@ -20,6 +20,17 @@
     sets the cookie and comes back, so it works with JavaScript off. With JavaScript the switch is
     instant: the script sets the cookie and the page's scheme without a request, moves the check,
     and tells other tabs.
+
+    Accessibility:
+    - The menu button is named "Color scheme" (`Label`). With JavaScript its items are radio menu
+      items with `aria-checked` and the menu's arrow keys; without it, links, the current one
+      marked with `aria-current`.
+    - `Toggle` is one link named for what it does, "Switch to dark mode" or "Switch to light mode";
+      with JavaScript, focus stays on the switch after a click.
+    - `Segmented` is a group named "Color scheme" whose current option has `aria-current`; with
+      `IconOnly` screen readers still hear each option's name.
+    - Every option is a link, so it works by keyboard with JavaScript off (the page reloads).
+    See also: IzzyTheme, SegmentedControl, Menu.
 *@
 
 <ib-scheme-switch @attributes="AdditionalAttributes" class="@_class" style="@_style"

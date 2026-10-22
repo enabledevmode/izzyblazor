@@ -53,6 +53,16 @@ public abstract class FlexBase : Box
 /// &lt;Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4" Align="Align.Center"&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>div</c> with no role; <c>As</c> makes it another element, such as <c>ul</c>.</item>
+/// <item><see cref="IzzyBlazor.Direction.RowReverse"/> and <see cref="IzzyBlazor.Direction.ColumnReverse"/> reverse only what people see: keyboard and screen-reader order stays the source order.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Row"/>
+/// <seealso cref="Column"/>
+/// <seealso cref="Grid"/>
+/// <seealso cref="Spacer"/>
 [ModeSupport]
 public class Stack : FlexBase
 {
@@ -64,6 +74,10 @@ public class Stack : FlexBase
 }
 
 /// <summary>Lays children out horizontally. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Column"/>
+/// <seealso cref="Spacer"/>
+/// <seealso cref="Grid"/>
 [ModeSupport]
 public class Row : FlexBase
 {
@@ -82,6 +96,9 @@ public class Row : FlexBase
 }
 
 /// <summary>Lays children out vertically. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Row"/>
+/// <seealso cref="Grid"/>
 [ModeSupport]
 public class Column : FlexBase
 {

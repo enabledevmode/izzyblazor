@@ -12,6 +12,15 @@ namespace IzzyBlazor;
 /// &lt;TextBlock As="span" Size="TextSize.Xs" Weight="FontWeight.Semibold" Transform="TextTransform.Uppercase" LetterSpacing="LetterSpacing.Wider"&gt;New&lt;/TextBlock&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>p</c>, so text styled to look like a heading is still a paragraph to screen readers; use <see cref="Heading"/> for a real one.</item>
+/// <item>Weight and size are only visual: for emphasis screen readers can hear, set <c>As</c> to <c>strong</c> or <c>em</c>.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Heading"/>
+/// <seealso cref="Prose"/>
+/// <seealso cref="Code"/>
 [ModeSupport]
 public class TextBlock : TextBase
 {

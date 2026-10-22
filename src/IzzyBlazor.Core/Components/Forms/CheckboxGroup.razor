@@ -14,6 +14,15 @@
 
     Posting: each checked box posts the field's name with its value, and Blazor binds the
     repeated values to the collection, so it works on static pages with no script.
+
+    Accessibility:
+    - It renders native checkboxes in a `fieldset` whose `legend` is the label; each box is a
+      Tab stop, toggled with Space.
+    - Each option's text is its `label`; the hint and errors are linked to the group with
+      `aria-describedby`, and each box sets `aria-invalid` when the field is invalid.
+    - Read-only boxes arrive disabled; the script enables them, so they can be focused and are
+      announced as read-only, and stops them from changing.
+    See also: MultiSelect, Checkbox, RadioGroup.
 *@
 
 <FieldFrame Class="@WrapperClass("checkboxes")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group

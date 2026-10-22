@@ -17,6 +17,16 @@ namespace IzzyBlazor;
 /// &lt;/Timeline&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders an ordered list: an <c>ol</c>, with each <see cref="TimelineItem"/> an <c>li</c>, in the order written.</item>
+/// <item><see cref="TimelineItem.Current"/> sets <c>aria-current="true"</c> on its item.</item>
+/// <item>The marker and its icon are hidden, and its <see cref="TimelineItem.Status"/> color isn't read: put a status that matters in the title or content.</item>
+/// <item>With <see cref="TimelineItem.Href"/> the title is a link; with <see cref="TimelineItem.DateTime"/> the time is a <c>time</c> element.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Stepper"/>
+/// <seealso cref="List"/>
 [ModeSupport]
 public class Timeline : Box
 {

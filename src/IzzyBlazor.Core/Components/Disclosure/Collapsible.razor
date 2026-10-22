@@ -7,6 +7,15 @@
     a FAQ entry. A native <details>, so it works with JavaScript off.
 
     <Collapsible Label="Advanced options">...</Collapsible>
+
+    Accessibility:
+    - The `summary` takes Enter and Space and is announced as expanded or collapsed by the browser,
+      with JavaScript off too.
+    - `Label` or `Trigger` is the trigger's name, and one is required; the chevron is hidden.
+    - `Trigger` content is drawn inside the `summary`, so keep it to inline content, with no links
+      or buttons.
+    - The trigger isn't a heading; put a Heading before it if the section needs one.
+    See also: Accordion, Popover.
 *@
 
 <details @attributes="AdditionalAttributes"

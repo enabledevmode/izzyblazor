@@ -6,6 +6,15 @@
 @*
     A group of radio buttons in a fieldset. Options come from Items, or automatically from an enum.
     <RadioGroup @bind-Value="Model.Contact" Orientation="Orientation.Horizontal" />
+
+    Accessibility:
+    - It renders native radio buttons in a `fieldset` whose `legend` is the label, so Tab
+      reaches the group and the arrow keys move the choice.
+    - Each option's text is its `label`; the hint and errors are linked to the group with
+      `aria-describedby`, and each radio sets `aria-invalid` when the field is invalid.
+    - A read-only group is a `radiogroup` with `aria-readonly`: the script lets its radios be
+      focused but stops a click or arrow key from changing the choice.
+    See also: SegmentedControl, Select, CheckboxGroup.
 *@
 
 <FieldFrame Class="@WrapperClass("radio")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group

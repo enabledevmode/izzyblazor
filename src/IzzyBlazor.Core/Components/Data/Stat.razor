@@ -3,11 +3,19 @@
 @attribute [ModeSupport]
 
 @*
-    A key figure: a label, a large value, and optionally how it changed and a note. A <dl>, so the
-    label names the value for screen readers. The trend arrow is hidden from them; the change is
-    read with TrendLabel ("Up", "Down") in front of it. No script.
+    A key figure: a label, a large value, and optionally how it changed and a note. No script.
 
     <Stat Label="Revenue" Value="$48,210" Change="12%" Trend="StatTrend.Up" Description="vs last month" />
+
+    Accessibility:
+    - It renders a `dl`: `Label` is the `dt`, the value a `dd`, and the change and note share a
+      second `dd`, so the label names the figure for screen readers.
+    - The trend arrow is hidden from screen readers; the change is read with `TrendLabel` in front
+      of it, "Up", "Down" or "No change" by default.
+    - The change's color isn't read, so when the color carries meaning (`ChangeStatus`), say it in
+      `Description` or `TrendLabel` too.
+    - The `Icon` is decorative and hidden from screen readers.
+    See also: Card, DescriptionList, Progress, Badge.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">

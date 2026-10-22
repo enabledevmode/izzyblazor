@@ -21,6 +21,17 @@
     Position="BarPosition.Sticky" keeps it at the top while the page scrolls. In an AppShell the
     sticky header and sidebar then sit below it: CSS assumes one line (37px), and <ib-banner>
     measures it when the message wraps.
+
+    Accessibility:
+    - It's a `region` landmark named "Announcement" (`Label`), so screen readers can find it.
+    - It isn't announced by default; `Announce` makes the message `role="alert"` (Danger,
+      Warning) or `role="status"`, for a banner shown after the page loads.
+    - Screen readers hear the status in words before the message ("Warning: "), from
+      `StatusLabel`.
+    - With script, the close control is a `button` named "Dismiss" (`DismissLabel`), and focus
+      moves to the next control when it closes the banner. With JavaScript off it's a visually
+      hidden checkbox, as on Alert, and focus isn't moved.
+    See also: Alert, ToastRegion, AppShell.
 *@
 
 @if (!_dismissed)

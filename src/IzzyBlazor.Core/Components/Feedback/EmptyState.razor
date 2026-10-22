@@ -9,6 +9,13 @@
     <EmptyState Icon="Lucide.Inbox" Title="No invoices yet" Description="Invoices you send appear here.">
         <EmptyStateActions><Button Href="/invoices/new">New invoice</Button></EmptyStateActions>
     </EmptyState>
+
+    Accessibility:
+    - `Title` is a heading, an `h3` by default; set `TitleLevel` to fit the page's outline.
+    - The icon is hidden from screen readers.
+    - It isn't a live region: when a search empties a list, screen readers aren't told, so
+      announce the result yourself if it matters.
+    See also: Alert, Skeleton, Table.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">

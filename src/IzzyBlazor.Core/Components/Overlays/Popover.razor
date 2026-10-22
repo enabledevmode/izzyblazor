@@ -1,6 +1,6 @@
 @namespace IzzyBlazor
 @inherits ToggleComponentBase
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, it opens and closes, but focus doesn't move into it, and Open from the server doesn't show it.")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, it opens and closes, but focus moves into it only to an autofocus element, and Open from the server doesn't show it.")]
 
 @*
     Floating, non-modal content next to its trigger: filters, a small form, an info card.
@@ -9,6 +9,18 @@
     <Popover Label="Filters" Title="Filter results">
         ...
     </Popover>
+
+    Accessibility:
+    - The panel is a non-modal `dialog` named by `Title`, or by its trigger without one; the
+      trigger has `aria-haspopup="dialog"`.
+    - With script, opening it moves focus to an element with `autofocus`, or to the panel, and
+      closing it puts focus back on the trigger. Focus isn't trapped: Tab can leave it.
+    - In `Auto` mode, Escape and a click outside close it. A `Manual` popover doesn't close on
+      Escape, so it shows a close button, named "Close" (`CloseLabel`).
+    - With JavaScript off, it opens and closes, and focus moves in only to an element with
+      `autofocus`.
+    - A custom `Trigger` must be a `button` with a name of its own.
+    See also: Dialog, Menu, Tooltip, Drawer.
 *@
 
 <ib-popover class="@_outerClass"

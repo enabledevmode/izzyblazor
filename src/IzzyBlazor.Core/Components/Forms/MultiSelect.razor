@@ -18,6 +18,18 @@
       to filter the list; choosing toggles an option and the list stays open.
     - Interactive: the same, and @bind-Value follows every change.
     For a short list, CheckboxGroup shows every option at once.
+
+    Accessibility:
+    - With script, the input is a `combobox` with a multi-select `listbox`: chosen options have
+      `aria-selected`, and focus stays in the input as Down and Up move through them.
+    - Enter toggles the highlighted option and the list stays open; Escape or Tab closes it.
+    - Backspace in the empty input removes the last chosen option. The chips' remove buttons,
+      named "Remove" and the option ("Remove Design", `RemoveLabel`), are left out of the Tab
+      order.
+    - The label names the input and the list, and the hint and errors are linked with
+      `aria-describedby`.
+    - With JavaScript off, it's a native multiple `select`, with the browser's own keys.
+    See also: CheckboxGroup, Combobox, Select.
 *@
 
 <FieldFrame Class="@WrapperClass("multiselect")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

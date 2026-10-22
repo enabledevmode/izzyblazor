@@ -5,8 +5,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// A shimmering placeholder in the shape of content that's still loading: lines of text, a
-/// block (an image, a card) or a circle (an avatar). Hidden from screen readers; announce the
-/// loading with a <see cref="Spinner"/> or the region's <c>aria-busy</c>.
+/// block (an image, a card) or a circle (an avatar).
 /// </summary>
 /// <example>
 /// <code>
@@ -16,6 +15,16 @@ namespace IzzyBlazor;
 /// &lt;Skeleton Loaded="_order is not null" Lines="2"&gt;@_order.Summary&lt;/Skeleton&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>The placeholder has <c>aria-hidden="true"</c>, so screen readers skip it.</item>
+/// <item>Nothing is announced while it loads or when <see cref="Loaded"/> swaps in the content: announce the loading with a <see cref="Spinner"/> or the region's <c>aria-busy</c>.</item>
+/// <item>With reduced motion the shimmer slows down.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Spinner"/>
+/// <seealso cref="Progress"/>
+/// <seealso cref="EmptyState"/>
 [ModeSupport]
 public class Skeleton : StyledComponentBase
 {

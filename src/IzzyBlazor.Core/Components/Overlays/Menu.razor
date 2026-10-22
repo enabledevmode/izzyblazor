@@ -20,6 +20,22 @@
         <Trigger><IconButton Icon="Lucide.Ellipsis" Label="More" @attributes="context" /></Trigger>
         ...
     </Menu>
+
+    Accessibility:
+    - With script, it's a `menu` named by its trigger, with `menuitem`, `menuitemcheckbox` and
+      `menuitemradio` items (`aria-checked`); a MenuGroup is a `group` named by its `Label`.
+    - Opening it focuses the first item; Down and Up on the trigger open it at the first or last.
+      Escape closes it, and focus goes back to the trigger.
+    - Down and Up move through the items and wrap, Home and End go to the ends, typing jumps to
+      the next item starting with those letters, and Tab closes the menu. Disabled items are
+      skipped.
+    - Right opens a MenuSub and focuses its first item; Left closes it (the other way round on
+      right-to-left pages).
+    - With JavaScript off, items are plain links and buttons with no menu roles; a checked one
+      has `aria-pressed` (buttons) or `aria-current` (links).
+    - A custom `Trigger` needs a name of its own, such as an IconButton's `Label`. A `Shortcut`
+      is display only: the app handles the keys.
+    See also: Popover, NavMenu, ButtonGroup, IconButton.
 *@
 
 <ib-popover class="@_outerClass"

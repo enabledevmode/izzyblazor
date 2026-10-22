@@ -28,6 +28,15 @@ public enum ProseSize
 /// The rules have the lowest weight (<c>:where()</c>), so library components inside keep their
 /// own look, and your own classes win. Only render HTML you trust or have sanitized.
 /// </remarks>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It only styles the HTML inside it: heading levels, alt text, table headers and link text come from that HTML, so check what your Markdown or CMS produces.</item>
+/// <item>Links are underlined, not marked by color alone.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Heading"/>
+/// <seealso cref="TextBlock"/>
+/// <seealso cref="Code"/>
 [ModeSupport]
 public class Prose : Box
 {

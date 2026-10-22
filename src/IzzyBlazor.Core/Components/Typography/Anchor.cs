@@ -26,6 +26,17 @@ public enum AnchorUnderline
 /// &lt;Anchor Href="https://github.com/..." External&gt;GitHub&lt;/Anchor&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a native <c>a</c> with an <c>href</c>, so Enter and focus work as the browser defines them.</item>
+/// <item>The link text is its name, so write text that makes sense on its own, not "Click here".</item>
+/// <item>An external link says it opens a new tab (<see cref="NewTabLabel"/>), even with <see cref="HideExternalIcon"/>.</item>
+/// <item><see cref="AnchorUnderline.Hover"/> and <see cref="AnchorUnderline.None"/> leave only color to mark the link in text; keep them for links whose place says "link", such as a nav.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Button"/>
+/// <seealso cref="IconButton"/>
+/// <seealso cref="Prose"/>
 [ModeSupport]
 public class Anchor : LayoutItemBase
 {

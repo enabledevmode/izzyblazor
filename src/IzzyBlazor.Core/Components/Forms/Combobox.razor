@@ -18,6 +18,20 @@
       @bind still go through it.
     - Interactive with Search: typing calls Search on the server (debounced) and the list shows
       its results. Without a circuit, Search("") fills the list once and it filters in the browser.
+
+    Accessibility:
+    - With script, the input is a `combobox` with a `listbox` of options: focus stays in the
+      input, and the highlighted option is its `aria-activedescendant`.
+    - Down and Up open the list and move through it, Page Down and Page Up move ten, Enter chooses,
+      and Alt+Up chooses and closes.
+    - Escape closes the list and puts the chosen text back, without closing a dialog around it;
+      Tab closes it too.
+    - Leaving the field takes an option whose text was typed in full, and clears the value when
+      the text was emptied.
+    - The label names the input and the list; the chevron button is named "Show options"
+      (`ToggleLabel`) and is left out of the Tab order.
+    - With JavaScript off, it's a native `select`, with its own keys and announcements.
+    See also: Select, MultiSelect, TextField.
 *@
 
 <FieldFrame Class="@WrapperClass("combobox")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

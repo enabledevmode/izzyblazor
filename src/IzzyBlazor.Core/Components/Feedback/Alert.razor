@@ -11,8 +11,16 @@
     (<ib-dismiss>), and focus moves to the next control when the alert closes. On interactive pages @bind-Dismissed
     follows it, and setting Dismissed from C# hides or shows it again.
 
-    Danger and Warning alerts are role="alert", so screen readers announce them when they
-    appear; the rest are role="status".
+    Accessibility:
+    - Danger and Warning alerts are `role="alert"`, so screen readers announce them at once when
+      they appear; the rest are `role="status"`, read politely. `Announce` turns this off.
+    - Screen readers hear the status in words before the message ("Error: "), from `StatusLabel`.
+    - With script, the close control is a `button` named "Dismiss" (`DismissLabel`); when it
+      closes the alert, focus moves to the next control after it, or else the one before.
+    - With JavaScript off, it's a visually hidden checkbox named "Dismiss": Tab reaches it (the
+      ring shows on the close icon), screen readers call it a checkbox, and Space checks it.
+      Focus isn't moved when the alert hides, so the browser drops it to the page.
+    See also: Banner, ToastRegion, EmptyState.
 *@
 
 @if (!_dismissed)

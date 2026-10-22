@@ -9,6 +9,17 @@
     value beside it follows as you drag.
     <Slider @bind-Value="Model.Volume" ShowValue />
     <Slider @bind-Value="Model.Discount" Min="0" Max="50" Step="5" ShowValue ValueFormat="{0}%" />
+
+    Accessibility:
+    - It renders a native range `input` (a slider to screen readers): arrow keys, Page Up/Down and
+      Home/End move it with no script.
+    - Screen readers hear the value as `ValueFormat` writes it ("20%", through `aria-valuetext`)
+      once scripts run or on interactive pages; on a static page without script, the bare number.
+    - The value `ShowValue` shows is hidden from screen readers, which hear the slider's own value.
+    - A read-only slider stays focusable with `aria-readonly` once scripts run, and keys and clicks
+      don't move it; without script it's disabled.
+    - Label, hint and errors work as in `TextField`.
+    See also: NumberField, SegmentedControl, Progress.
 *@
 
 <FieldFrame Class="@WrapperClass("slider")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

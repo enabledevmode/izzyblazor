@@ -13,6 +13,16 @@
         <Step Label="Profile" Description="Name and photo" />
         <Step Label="Done" />
     </Stepper>
+
+    Accessibility:
+    - It renders an ordered list named "Progress" (`Label`); the current step has
+      `aria-current="step"`.
+    - The markers are hidden from screen readers; a finished step's check mark is heard as
+      "(completed)" after its label (`CompletedLabel`).
+    - A step with `Href` is a plain link; the others are text and don't take focus.
+    - It doesn't move focus or announce anything when `Current` changes: a wizard moves focus
+      itself, such as to the new step's heading.
+    See also: Progress, Tabs, Timeline.
 *@
 
 <ol @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-label="@(Label ?? TextDefaults.Progress)">

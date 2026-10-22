@@ -17,6 +17,16 @@ namespace IzzyBlazor;
 /// &lt;Grid Template='new() { Base = "1fr", Md = "240px 1fr" }' Gap="6"&gt;...&lt;/Grid&gt;
 /// </code>
 /// </example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>div</c> with no role: a layout, not a data grid. For rows and columns of data, use <see cref="Table{TItem}"/>.</item>
+/// <item>Column counts and spans (<c>ColSpan</c>, <see cref="GridItem.RowSpan"/>) change only placement: keyboard and screen-reader order stays the source order.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Container"/>
+/// <seealso cref="Table{TItem}"/>
+/// <seealso cref="Card"/>
 [ModeSupport]
 public class Grid : Box
 {
@@ -112,6 +122,10 @@ public enum ContainerSize
 
 /// <summary>Centers content at a readable width, with side padding that grows on larger screens.</summary>
 /// <example><code>&lt;Container Size="ContainerSize.Lg"&gt;...&lt;/Container&gt;</code></example>
+/// <seealso cref="Section"/>
+/// <seealso cref="Box"/>
+/// <seealso cref="Center"/>
+/// <seealso cref="AppShell"/>
 [ModeSupport]
 public class Container : Box
 {
@@ -130,6 +144,10 @@ public class Container : Box
 }
 
 /// <summary>Centers its children both ways, such as an icon in a square or an empty state in a panel.</summary>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Box"/>
+/// <seealso cref="EmptyState"/>
+/// <seealso cref="AspectRatio"/>
 [ModeSupport]
 public class Center : Box
 {
@@ -149,6 +167,9 @@ public class Center : Box
 
 /// <summary>Takes up the free space in a <see cref="Stack"/> or <see cref="Row"/>, pushing what follows to the end.</summary>
 /// <example><code>&lt;Row&gt;&lt;Logo /&gt;&lt;Spacer /&gt;&lt;Button&gt;Sign in&lt;/Button&gt;&lt;/Row&gt;</code></example>
+/// <seealso cref="Row"/>
+/// <seealso cref="Stack"/>
+/// <seealso cref="Box"/>
 [ModeSupport]
 public class Spacer : Box
 {
@@ -161,6 +182,15 @@ public class Spacer : Box
 /// and videos inside fill it and are cropped to fit.
 /// </summary>
 /// <example><code>&lt;AspectRatio Ratio="16 / 9.0"&gt;&lt;img src="..." alt="..." /&gt;&lt;/AspectRatio&gt;</code></example>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It adds no name or role: an <c>img</c> inside still needs its <c>alt</c>, an <c>iframe</c> its <c>title</c>.</item>
+/// <item>What doesn't fit the shape is cut off, not scrolled, so text inside can be lost when people zoom in.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Image"/>
+/// <seealso cref="VideoEmbed"/>
+/// <seealso cref="Box"/>
 [ModeSupport]
 public class AspectRatio : Box
 {

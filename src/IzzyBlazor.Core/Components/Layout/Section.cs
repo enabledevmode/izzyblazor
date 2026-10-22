@@ -35,6 +35,15 @@ public enum SectionSpacing
 /// It works out the bleed from the main area and the column, so put it at the page's top level or
 /// in containers without side padding of their own. It works with no script.
 /// </remarks>
+/// <accessibility>
+/// <list type="bullet">
+/// <item>It renders a <c>section</c>, which screen readers list as a region only when it has a name: point <c>aria-labelledby</c> at its heading's <c>id</c>.</item>
+/// </list>
+/// </accessibility>
+/// <seealso cref="Container"/>
+/// <seealso cref="Heading"/>
+/// <seealso cref="Box"/>
+/// <seealso cref="AppShell"/>
 [ModeSupport]
 public class Section : Box
 {

@@ -13,6 +13,17 @@
 
     <Pagination PageCount="12" />                       reads and writes ?page=
     <Pagination @bind-Page="page" PageCount="12" />     interactive, no URL
+
+    Accessibility:
+    - It renders a `nav` named "Pagination" (`Label`); give each one on a page its own `Label`.
+    - Page numbers are read as "Page 3" (`PageLabel`), and the current page has
+      `aria-current="page"`.
+    - Previous and next are named "Previous page" and "Next page" (`PreviousLabel`, `NextLabel`);
+      at the ends they stay, with `aria-disabled`.
+    - With `@bind-Page` they're buttons: the current page and a disabled previous or next stay
+      buttons, so focus isn't lost when one is picked.
+    - The gaps ("…") are hidden from screen readers.
+    See also: Table, PrevNext, Breadcrumb.
 *@
 
 <nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Pagination)" class="@_class" style="@_style">

@@ -11,6 +11,17 @@
         <AccordionItem Title="Shipping">...</AccordionItem>
         <AccordionItem Title="Returns">...</AccordionItem>
     </Accordion>
+
+    Accessibility:
+    - Each item's `summary` takes Enter and Space and is announced as expanded or collapsed by the
+      browser, with JavaScript off too.
+    - Tab moves from item to item; there are no arrow-key or Home/End shortcuts.
+    - The title isn't a heading, so items don't appear in a screen reader's list of headings.
+      AccordionHeader is drawn inside the `summary`: keep it to inline content, with no links or
+      buttons.
+    - A `Disabled` item sets `aria-disabled` on its `summary` and leaves the tab order; the script
+      also stops it from toggling.
+    See also: Collapsible, Tabs.
 *@
 
 <div @attributes="AdditionalAttributes" class="@_class" style="@_style">

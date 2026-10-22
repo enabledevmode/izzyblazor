@@ -19,6 +19,21 @@
         <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
     </Form>
     @code { [SupplyParameterFromForm(FormName = "profile")] public IFormFile? Avatar { get; set; } }
+
+    Accessibility:
+    - It renders a real file `input`, out of sight but focusable once scripts run: Tab reaches it,
+      the zone shows the focus ring, and Enter or Space opens the picker.
+    - The input is named by `Label`; without one, by the "Choose a file" link ("Choose files" with
+      `Multiple`; `ChooseText`).
+    - The allowed types and size, the `Hint` and any `Errors` are linked with `aria-describedby`;
+      `Errors` also sets `aria-invalid`.
+    - With script, the chosen file's name and size (or "3 files") are announced politely; there's
+      no list of the files.
+    - With script, a file of the wrong type or over `MaxFileSize` gets the browser's validation
+      message, and the browser's own validation keeps the form from posting (not with
+      `NativeValidation="false"` on the Form).
+    - Dropping is a pointer-only extra: the picker does the same from the keyboard.
+    See also: Form, TextField, FieldFrame.
 *@
 
 <FieldFrame Class="@_class" Style="@_style" Id="@InputId" Label="@Label" LabelId="@LabelId" HideLabel="HideLabel"

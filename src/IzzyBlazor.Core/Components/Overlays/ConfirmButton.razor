@@ -18,6 +18,17 @@
     browsers). The dialog is rendered beside the trigger with InsideForm set, so it can live
     inside the form it submits. With script, the dialog closes as the form posts; without, the
     response is a new page.
+
+    Accessibility:
+    - The trigger is a native `button` with `aria-haspopup="dialog"`; it opens a modal `dialog`
+      with `role="alertdialog"`, named by `Title` and described by `Message` and `Body`.
+    - Cancel ("Cancel", `CancelText`) takes focus when it opens, so Enter doesn't confirm by
+      accident. DialogService's confirmation focuses Cancel first too.
+    - While it's open, focus stays in the dialog; Escape closes it and focus returns to the
+      trigger. A backdrop click doesn't close it, and there's no close button.
+    - With JavaScript off, the trigger opens the dialog only in browsers that support the native
+      `command` attribute.
+    See also: Dialog, Button, Form.
 *@
 
 <button type="button"
