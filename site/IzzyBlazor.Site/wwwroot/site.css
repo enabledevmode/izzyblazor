@@ -478,6 +478,22 @@ body:has(.site-mode-input[value="live"]:checked) .site-modeswitch-text[data-mode
 .site-modeswitch-top { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--ib-space-3); }
 .site-modeswitch-top .site-modeswitch-text { flex-basis: 100%; }
 body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display: none; }
+/* A page whose example carries its own switch (the docs home) shows that one only. */
+body:has(.site-modeswitch-example) :is(.site-modeswitch-aside, .site-modeswitch-top) { display: none; }
+
+/* The docs home: concepts, and the library by category. */
+.site-concept-title { margin: 0; font-weight: 600; }
+.site-box-category {
+  display: flex;
+  flex-direction: column;
+  gap: var(--ib-space-1);
+  padding: var(--ib-space-3) var(--ib-space-4);
+  border: 1px solid var(--ib-color-border);
+  border-radius: var(--ib-radius-lg);
+  background: var(--ib-color-surface);
+}
+.site-box-title { font-weight: 600; color: var(--ib-color-on-surface); }
+.site-box-count { margin-inline-start: var(--ib-space-1); font-weight: 400; color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 /* One place at a time: the right column shows from 1024px (AppAside's breakpoint). */
 @media (width >= 1024px) { .site-modeswitch-top { display: none; } }
 @media (width < 1024px) { .site-modeswitch-aside { display: none; } }

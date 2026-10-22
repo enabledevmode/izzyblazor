@@ -2,49 +2,117 @@
 @inject Registry Registry
 @inject ApiMetadata Api
 
+@*
+    The front door to the docs: what IzzyBlazor is, a first look at the code, one live example
+    under the page's mode switch, how it's built, what's in the box (from components.json), what it
+    needs, and where else to look. The sidebar covers the docs sections, so this page doesn't
+    repeat them as cards.
+*@
+
 <PageTitle>Docs · IzzyBlazor</PageTitle>
-<HeadContent><meta name="description" content="IzzyBlazor's documentation: SSR-first Blazor components, their API, style props and demos." /></HeadContent>
+<HeadContent><meta name="description" content="IzzyBlazor's documentation: SSR-first Blazor components, how they work in each render mode, what's in the library and how to start." /></HeadContent>
 
 <article class="site-article">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Documentation</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            IzzyBlazor @Api.Version: Blazor components built for static SSR. Pages arrive as real HTML, a small script
-            brings them to life without a circuit, and the same markup binds to C# on interactive pages. Every example on
-            this site runs all three ways, so you can see what each layer adds.
+            IzzyBlazor is a Blazor component library built for static SSR. Pages arrive as real HTML, a small script brings
+            them to life without a circuit, and the same markup binds to C# on the pages you make interactive.
         </TextBlock>
     </Stack>
 
-    <Heading Level="2">Off · Static · Live</Heading>
-    <Prose>
-        <p>Component pages have one switch for the three ways a page can run, and every example on the page follows it:</p>
-        <ul>
-            <li><strong>Off</strong>: JavaScript disabled. The frame is sandboxed without script, so you see exactly what the HTML and CSS do on their own.</li>
-            <li><strong>Static</strong>: a static SSR page with IzzyBlazor's script, which adds keyboard handling, live values and the like. No circuit.</li>
-            <li><strong>Live</strong>: an interactive page on Blazor Server, where C# event handlers and <code>@@bind</code> run.</li>
-        </ul>
-        <p>Component pages show the same thing as a table: what works in each mode, feature by feature.</p>
-    </Prose>
+    <Row Gap="2" Align="Align.Center" Class="site-install">
+        <TextBlock As="span" Color="Color.Muted" aria-hidden="true">$</TextBlock>
+        <Code>@Install</Code>
+        <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
+    </Row>
+    <TextBlock>One set of components for every page. This form posts and validates on a static page, with JavaScript off too, and runs over a circuit on an interactive one, with no change to the markup:</TextBlock>
+    <Code Block Language="razor">@FirstLook</Code>
+    <Row Gap="3" Wrap>
+        <Button Href="docs/get-started">Get started</Button>
+        <Button Href="docs/components" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
+    </Row>
 
-    <Heading Level="2">Where to go</Heading>
-    <Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="3">
-        <Card Title="Components" Href="docs/components" Description="@($"{Registry.ComponentCountLabel}, by category, each with an Overview and an API page.")" Size="ControlSize.Sm" Class="site-linkcard">
-            <CardHeader><Pictogram Icon="Lucide.LayoutGrid" /></CardHeader>
-        </Card>
-        <Card Title="Style props" Href="docs/common/style-props" Description="The item, surface and field props many components share." Size="ControlSize.Sm" Class="site-linkcard">
-            <CardHeader><Pictogram Icon="Lucide.Ruler" /></CardHeader>
-        </Card>
-        <Card Title="Demos" Href="demos" Description="Realistic scenarios in all three modes, with the source." Size="ControlSize.Sm" Class="site-linkcard">
-            <CardHeader><Pictogram Icon="Lucide.MonitorPlay" /></CardHeader>
-        </Card>
-        <Card Title="Get started" Href="docs/get-started" Description="Set up a new Blazor Web App, a WebAssembly or Auto app, or one you already have." Size="ControlSize.Sm" Class="site-linkcard">
-            <CardHeader><Pictogram Icon="Lucide.Rocket" /></CardHeader>
-        </Card>
-        <Card Title="Styling and themes" Href="https://github.com/enabledevmode/izzyblazor/blob/main/docs/styling.md" Description="Presets, brand colors, tokens, color schemes and customizing." Size="ControlSize.Sm" Class="site-linkcard">
-            <CardHeader><Pictogram Icon="Lucide.Palette" /></CardHeader>
-        </Card>
-        <Card Title="API metadata" Href="izzyblazor.api.json" Description="Every component's API as JSON, for tools and AI assistants." Size="ControlSize.Sm" Class="site-linkcard">
-            <CardHeader><Pictogram Icon="Lucide.Braces" /></CardHeader>
-        </Card>
+    <Heading Level="2">Off · Static · Live</Heading>
+    <TextBlock>Every example on this site runs three ways. Pick one with the switch, here and on each component page:</TextBlock>
+    <List Gap="2">
+        <ListItem><strong>Off</strong>: JavaScript disabled, so you see exactly what the HTML and CSS do on their own.</ListItem>
+        <ListItem><strong>Static</strong>: a static SSR page with IzzyBlazor's script, which adds keyboard handling, live values and the like. No circuit.</ListItem>
+        <ListItem><strong>Live</strong>: an interactive page on Blazor Server, where C# event handlers and <Code>@@bind</Code> run.</ListItem>
+    </List>
+    <ExampleViewer Example="home-settings" ModeSwitch />
+
+    <Heading Level="2">How it's built</Heading>
+    <Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Class="site-concepts">
+        <Stack Gap="1">
+            <TextBlock Class="site-concept-title">One set for every render mode</TextBlock>
+            <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages. Nearly all work with JavaScript off and do more with it. <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor></TextBlock>
+        </Stack>
+        <Stack Gap="1">
+            <TextBlock Class="site-concept-title">Forms that post</TextBlock>
+            <TextBlock Color="Color.Muted"><Code>Form</Code> and its fields bind on a static post and on an interactive page, with labels, limits and messages from your model's attributes. <Anchor Href="docs/components/form">Form</Anchor></TextBlock>
+        </Stack>
+        <Stack Gap="1">
+            <TextBlock Class="site-concept-title">State in the URL</TextBlock>
+            <TextBlock Color="Color.Muted">Table, FilterForm and Pagination keep sorting, filters and the page in the query string, so they work with no circuit and links keep them. <Anchor Href="docs/components/table">Table</Anchor></TextBlock>
+        </Stack>
+        <Stack Gap="1">
+            <TextBlock Class="site-concept-title">Style props and themes</TextBlock>
+            <TextBlock Color="Color.Muted">Spacing, sizes and colors as parameters, and <Code>IzzyTheme</Code> for the preset, brand and fonts, rendered on the server so the theme is there on first paint. <Anchor Href="docs/common/style-props">Style props</Anchor></TextBlock>
+        </Stack>
+        <Stack Gap="1">
+            <TextBlock Class="site-concept-title">Native elements first</TextBlock>
+            <TextBlock Color="Color.Muted">Buttons, dialogs, selects and disclosures are the browser's own, so focus, keyboard and screen readers work as the platform defines them; the script adds ARIA where it adds behavior.</TextBlock>
+        </Stack>
     </Grid>
+
+    <Heading Level="2">What's in the box</Heading>
+    <TextBlock>@Registry.ComponentCountLabel components in @Registry.Categories.Count categories. <Anchor Href="docs/components">See them all</Anchor>.</TextBlock>
+    <Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="3" Class="site-box">
+        @foreach (var category in Registry.Categories)
+        {
+            var components = Registry.InCategory(category).ToList();
+            <div class="site-box-category">
+                <Anchor Href="@($"docs/components#{ApiMetadata.Anchor(category).Replace(' ', '-')}")" Underline="AnchorUnderline.Hover" Class="site-box-title">@category <span class="site-box-count">@components.Count</span></Anchor>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                    @for (var i = 0; i < Math.Min(4, components.Count); i++)
+                    {
+                        var component = components[i];
+                        @(i == 0 ? "" : ", ")<Anchor Href="@Registry.OverviewHref(component)" Underline="AnchorUnderline.Hover">@component.Name</Anchor>
+                    }
+                    @if (components.Count > 4)
+                    {
+                        @($" and {components.Count - 4} more")
+                    }
+                </TextBlock>
+            </div>
+        }
+    </Grid>
+
+    <Heading Level="2">Requirements</Heading>
+    <List Gap="2">
+        <ListItem><strong>.NET 10</strong>, in a Blazor Web App: static pages, and Server, WebAssembly or Auto pages.</ListItem>
+        <ListItem><strong>Two packages</strong>: <Code>IzzyBlazor</Code> for the server project, and <Code>IzzyBlazor.Core</Code> for a <Code>.Client</Code> project. <Anchor Href="docs/get-started/webassembly-and-auto#packages">Packages</Anchor></ListItem>
+        <ListItem><strong>Current browsers</strong>: Chrome and Edge 123+, Firefox 125+, Safari 17.5+. Newer features, such as the customizable select, are used where the browser has them.</ListItem>
+        <ListItem><strong>MIT licensed</strong>. Pro components are planned.</ListItem>
+    </List>
+
+    <Heading Level="2">Resources</Heading>
+    <List Gap="2">
+        <ListItem><Anchor Href="demos">Demos</Anchor>: realistic scenarios in all three modes, with the source.</ListItem>
+        <ListItem><Anchor Href="https://github.com/enabledevmode/izzyblazor">GitHub</Anchor>: the source and issues.</ListItem>
+        <ListItem><Anchor Href="https://github.com/enabledevmode/izzyblazor/releases">Release notes</Anchor>: what changed in each version.</ListItem>
+        <ListItem><Anchor Href="izzyblazor.api.json">API metadata</Anchor>: every component's API as JSON, for tools and AI assistants.</ListItem>
+    </List>
 </article>
+
+@code {
+    private const string Install = "dotnet add package IzzyBlazor --prerelease";
+
+    private const string FirstLook = """
+        <Form Model="Signup" FormName="signup" OnValidSubmit="SaveAsync">
+            <TextField @bind-Value="Signup.Email" />
+            <Button Submit>Sign up</Button>
+        </Form>
+        """;
+}
