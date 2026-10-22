@@ -18,11 +18,11 @@ and the Popover API).
 | | With JavaScript off | With JavaScript | On interactive pages |
 | --- | --- | --- | --- |
 | **How** | Plain HTML, forms, links and CSS | Small custom elements add polish | Blazor events keep C# in sync |
-| **Dialog** | Opens from a link (`?dialog=id`), closes with a form | Focus handling, backdrop click | `@bind-Open` |
-| **Table** | Sort and page through links in the URL | Same, without full reloads | Navigates through Blazor |
+| **Dialog** | Opens from a trigger or a `?dialog=id` link; the browser traps focus | A dialog opened from the server becomes a real modal | `@bind-Open` |
+| **Table** | Sort, filter and page through the URL | Select-all checkbox; filters apply as you type | Sorting, paging, filters and selection bind to C# |
 | **Tabs** | Radio buttons and CSS switch panels | Proper ARIA tabs, roving focus | `@bind-Selected` |
 | **Combobox** | A native select that posts with the form | Type to filter, keyboard navigation | Server-side search as you type |
-| **FileUpload** | The file input posts with the form (`IFormFile`) | Drop files anywhere on the zone; type and size checked first | `OnChange` streams `IBrowserFile`s |
+| **FileUpload** | The file input posts with a `Multipart` form (`IFormFile`) | Drop files anywhere on the zone; type and size checked first | `OnChange` streams `IBrowserFile`s |
 
 ## Getting started
 

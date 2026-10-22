@@ -1415,7 +1415,7 @@ with classic ones, a page too short to scroll shows an empty strip where the scr
 ## Text and other languages
 
 Components name their buttons and announce states in English by default: "Close", "Loading",
-"Next page", "No matches". Each of these is a parameter on the component (`CloseLabel`,
+"Next page", "No matches". Most of these are also a parameter on the component (`CloseLabel`,
 `LoadingLabel`, `EmptyText`...), and all of them can be set app-wide by registering an `IzzyText`:
 
 ```csharp

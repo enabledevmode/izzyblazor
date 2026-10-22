@@ -104,7 +104,7 @@ Every style prop takes a single value or a breakpoint map:
 Breakpoints: `Sm` 640px, `Md` 768px, `Lg` 1024px, `Xl` 1280px. Only the values you set produce CSS,
 so `new() { Md = 6 }` keeps the component's default below 768px.
 
-`HiddenFrom="Breakpoint.Md"` and `VisibleFrom="Breakpoint.Md"` work on any component, fields included.
+`HiddenFrom="Breakpoint.Md"` and `VisibleFrom="Breakpoint.Md"` work on nearly every component, fields included.
 
 What's responsive and what isn't follows one rule: things that change with screen size (direction,
 gap, spacing, columns, sizes, alignment, visibility) take a breakpoint map; on/off switches (`Grow`,
@@ -201,7 +201,7 @@ buttons, links, focus rings, the field halo, selected rows, switches, sliders an
 From that one color IzzyBlazor derives the fill, the text on it, the accent as text and its soft
 tint, in light and dark (`BrandPalette.From`), and checks each pair: text on the fill holds 4.5:1
 (white or near-black, whichever reads better), the accent as text holds 4.5:1 on the surface, the
-gray fills and its tint, and in dark mode a dark brand color is lifted until it shows. The fill is
+gray fills and its tint, and in dark mode a dark brand color is lifted until it shows. The light fill is
 your color as given unless no text can reach 4.5:1 on it; then only its lightness moves. The server
 renders it as a small `<style>` block, so it's there on first paint with no script; pass `Nonce` for
 a strict Content-Security-Policy.
@@ -340,7 +340,7 @@ your own way, add a class with `Class`.
 
 | Component | Variables |
 | --- | --- |
-| Button, IconButton | `--ib-btn-px` (side padding, every size), `--ib-btn-radius`; heights are `--ib-control-h-*` |
+| Button, IconButton | `--ib-btn-px` (side padding, every size; not IconButton), `--ib-btn-radius`; heights are `--ib-control-h-*` |
 | Fields | `--ib-field-radius`; heights are `--ib-control-h-*` |
 | FileUpload | `--ib-upload-bg` (the zone's fill; container-low by default), `--ib-upload-border-color`, `--ib-upload-border-style` (dashed by default) |
 | Card | `--ib-card-padding` |

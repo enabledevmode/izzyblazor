@@ -22,11 +22,11 @@
             <table>
                 <thead><tr><th></th><th>JavaScript off</th><th>With IzzyBlazor's script</th><th>Interactive page</th></tr></thead>
                 <tbody>
-                    <tr><td>Dialog</td><td>Opens from a link (<code>?dialog=id</code>), closes with a form</td><td>Focus handling, backdrop click</td><td><code>@@bind-Open</code></td></tr>
-                    <tr><td>Table</td><td>Sorts and pages through links in the URL</td><td>The same, without full reloads</td><td>Navigates through Blazor</td></tr>
+                    <tr><td>Dialog</td><td>Opens from a trigger or a <code>?dialog=id</code> link; the browser traps focus and Escape closes it</td><td>A dialog opened from the server becomes a real modal; the URL is tidied after closing</td><td><code>@@bind-Open</code></td></tr>
+                    <tr><td>Table</td><td>Sorts, filters and pages through the URL</td><td>A select-all checkbox; filters apply as you type</td><td>Sorting, paging, filters and selection bind to C#</td></tr>
                     <tr><td>Tabs</td><td>Radio buttons and CSS switch panels</td><td>ARIA tabs, roving focus</td><td><code>@@bind-Selected</code></td></tr>
                     <tr><td>Combobox</td><td>A native select that posts with the form</td><td>Type to filter, keyboard navigation</td><td>Server-side search as you type</td></tr>
-                    <tr><td>FileUpload</td><td>The file posts with the form (<code>IFormFile</code>)</td><td>Drop files on the zone; type and size checked first</td><td><code>OnChange</code> streams <code>IBrowserFile</code>s</td></tr>
+                    <tr><td>FileUpload</td><td>The file posts with a <code>Multipart</code> form (<code>IFormFile</code>)</td><td>Drop files on the zone; type and size checked first</td><td><code>OnChange</code> streams <code>IBrowserFile</code>s</td></tr>
                 </tbody>
             </table>
         </Prose>

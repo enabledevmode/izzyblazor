@@ -2,7 +2,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// The text IzzyBlazor's components show or announce when you don't set it on the component:
-/// "Close", "Loading", "Next page" and so on. English by default. Each one is also a parameter on
+/// "Close", "Loading", "Next page" and so on. English by default. Most are also a parameter on
 /// the components that use it, which wins over this.
 /// </summary>
 /// <remarks>

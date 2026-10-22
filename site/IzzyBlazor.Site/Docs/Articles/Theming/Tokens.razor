@@ -24,13 +24,14 @@
 
         <Heading Level="2">Colors</Heading>
         <TextBlock>
-            Colors are <Code>light-dark()</Code> pairs, so one value covers both schemes. Each has an <Code>on-</Code> partner
-            for text on it, and most a <Code>-text</Code> version for text on surfaces; change them together so contrast holds.
+            Colors are <Code>light-dark()</Code> pairs, so one value covers both schemes. Each accent, such as primary or
+            danger, has an <Code>on-</Code> partner for text on it, and most a <Code>-text</Code> version for text on surfaces;
+            change them together so contrast holds.
         </TextBlock>
         <TextBlock>
-            Your own colors work the same way: define <Code>--ib-color-brand</Code> and <Code>--ib-color-on-brand</Code>, then
-            use <Code>Color.Token("brand")</Code> or <Code>Accent.Token("brand")</Code>. Text on it takes the
-            <Code>on-</Code> partner.
+            Add colors of your own the same way: define a new token such as <Code>--ib-color-promo</Code> and its
+            <Code>--ib-color-on-promo</Code>, then use <Code>Color.Token("promo")</Code> or <Code>Accent.Token("promo")</Code>.
+            Text on it takes the <Code>on-</Code> partner.
         </TextBlock>
         <Code Block Language="css">@OwnColor</Code>
 
@@ -78,14 +79,15 @@
         <Code Block Language="razor">@Part</Code>
         <TextBlock>
             Colors made from the part's own, such as the focus ring, selected rows, hover washes and scrollbars, are worked
-            out where they're used, so they follow it, and so does a plain CSS rule on the part. In plain HTML,
+            out where they're used, so they follow it. So does a plain CSS rule on the part. In plain HTML,
             <Code>data-ib-brand</Code>, <Code>data-ib-gray</Code>, <Code>data-ib-radius</Code>, <Code>data-ib-density</Code>
             and <Code>data-ib-preset</Code> do the same on any element.
         </TextBlock>
         <TextBlock>
-            Menus, popovers, tooltips and declared dialogs stay inside the part in the page, so they take its theme. A dialog
-            opened from code with <Code>DialogService</Code> doesn't: pass <Code>ColorScheme</Code>, <Code>Brand</Code> and
-            <Code>Density</Code> in its <Code>DialogOptions</Code> to match.
+            Menus, popovers, tooltips and a <Code>Dialog</Code> written in the page stay inside the part, so they take its
+            theme. A dialog opened from code with <Code>DialogService</Code> doesn't: pass <Code>ColorScheme</Code>,
+            <Code>Brand</Code> and <Code>Density</Code> in its <Code>DialogOptions</Code> to match. Its gray and radius stay
+            the app's.
         </TextBlock>
 
         <Heading Level="2">Every token</Heading>
@@ -119,7 +121,7 @@
             <table>
                 <thead><tr><th>Component</th><th>Variables</th></tr></thead>
                 <tbody>
-                    <tr><td>Button, IconButton</td><td><code>--ib-btn-px</code> (side padding), <code>--ib-btn-radius</code></td></tr>
+                    <tr><td>Button, IconButton</td><td><code>--ib-btn-px</code> (side padding; Button only), <code>--ib-btn-radius</code></td></tr>
                     <tr><td>Fields</td><td><code>--ib-field-radius</code></td></tr>
                     <tr><td>FileUpload</td><td><code>--ib-upload-bg</code>, <code>--ib-upload-border-color</code>, <code>--ib-upload-border-style</code></td></tr>
                     <tr><td>Card</td><td><code>--ib-card-padding</code></td></tr>
@@ -151,8 +153,8 @@
 
     private const string OwnColor = """
         :root {
-          --ib-color-brand: light-dark(#7c3aed, #a78bfa);
-          --ib-color-on-brand: light-dark(#ffffff, #1e1b4b);
+          --ib-color-promo: light-dark(#7c3aed, #a78bfa);
+          --ib-color-on-promo: light-dark(#ffffff, #1e1b4b);
         }
         """;
 

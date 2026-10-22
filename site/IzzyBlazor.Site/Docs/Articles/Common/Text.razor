@@ -6,12 +6,12 @@
 <ArticlePage Section="common" Slug="text">
     <Lead>
         Components name their buttons and announce states in English: "Close", "Loading", "Next page", "No matches". Change
-        any of them on one component, or all of them app-wide with <Code>IzzyText</Code>.
+        most of them on one component, or all of them app-wide with <Code>IzzyText</Code>.
     </Lead>
     <ChildContent>
         <Heading Level="2">On one component</Heading>
         <TextBlock>
-            Each string is a parameter on the components that use it, and that wins over the app's text:
+            Most strings are also a parameter on the components that use them, and that wins over the app's text:
         </TextBlock>
         <Code Block Language="razor">@One</Code>
 
@@ -52,8 +52,9 @@
             <Code>IzzyText.English</Code> is a fresh copy of the built-in text, to start from or compare with.
         </TextBlock>
         <Alert Status="Status.Info">
-            Validation messages come from your model's attributes, not from <Code>IzzyText</Code>: set
-            <Code>ErrorMessage</Code>, or localize them as you would for any Blazor form.
+            Validation messages come from your model's attributes: set <Code>ErrorMessage</Code>, or localize them as you would
+            for any Blazor form. Two come from IzzyBlazor: <Code>IzzyText.ColorInvalid</Code>, and an English "The {0} field is
+            not valid." for a value that can't be read, such as letters in a number field.
         </Alert>
 
         <Heading Level="2">Next steps</Heading>
@@ -85,6 +86,7 @@
             public override string NextPage => l["Next page"];
         }
 
+        builder.Services.AddLocalization();
         builder.Services.AddSingleton<IzzyText, AppText>();
         """;
 }

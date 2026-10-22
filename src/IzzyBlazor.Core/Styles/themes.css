@@ -14,7 +14,7 @@
  *              Teal on Neutral
  *   editorial  reading and docs: serif headings, large radius; Ink on Stone
  * A preset's accent and gray apply only to the whole page (on <html>, or IzzyTheme's meta tag). On
- * part of a page a preset changes density, shape and type only; colors change there only when
+ * part of a page a preset changes density, shape and depth only; colors change there only when
  * asked for (data-ib-brand, data-ib-gray).
  *
  * <IzzyTheme> sets the same choices from <head> with meta tags (<meta name="ib-preset"

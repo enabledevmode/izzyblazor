@@ -10,7 +10,8 @@
     {
       "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "A plain block that takes every style prop.",
       "examples": [
-        { "id": "box-borders", "title": "Bands, borders and a dashed card", "height": 220 }
+        { "id": "box-borders", "title": "Bands, borders and a dashed card", "height": 220 },
+        { "id": "box-scheme", "title": "A scheme for part of a page", "height": 200 }
       ]
     },
     { "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lays its children out in a row, always." },
@@ -32,7 +33,6 @@
       "examples": [
         { "id": "izzy-theme-presets", "title": "The four presets", "height": 380 },
         { "id": "izzy-theme-brands", "title": "Built-in brand colors", "height": 330 },
-        { "id": "izzy-theme-scheme", "title": "A scheme for part of a page", "height": 200 },
         { "id": "izzy-theme-part", "title": "Theming part of a page", "height": 200 }
       ]
     },
@@ -103,7 +103,8 @@
             "live": "The same markup binds to C#, and Save runs a C# handler." } },
         { "id": "form-columns", "title": "Two columns", "height": 330,
           "notes": {
-            "off": "The browser checks before posting, in its own words; the server lists its messages at the top.",
+            "off": "The browser checks before posting, in its own words.",
+            "static": "The browser checks before posting, in the model's words.",
             "live": "Each field is checked when it changes, and Save runs C# without a page load." } }
       ]
     },
