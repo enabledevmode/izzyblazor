@@ -2,7 +2,7 @@
 @inherits ToggleComponentBase
 @implements IDisposable
 @inject NavigationManager Navigation
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dialog opened from the server isn't modal: Escape doesn't close it and focus can leave it.")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dialog opened from the server isn't modal: focus can leave it, and Escape closes it only in browsers with closedby (not Safari).")]
 
 @*
     A modal built on the native <dialog>: the browser traps focus, makes the page behind it
@@ -42,9 +42,10 @@
       it when the dialog closes.
     - Put `autofocus` on the field to start in. After an enhanced post that comes back with
       errors, the dialog reopens with focus on the first invalid field.
-    - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal:
-      Escape doesn't close it and focus can leave it. DialogTrigger needs no script in current
-      browsers.
+    - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal: the
+      page behind stays usable and focus can leave it. Escape closes it in browsers with the
+      `closedby` attribute (Chrome and Edge 134, Firefox 141), not in Safari. DialogTrigger needs
+      no script in current browsers.
     - DialogService's dialogs (shown by DialogHost) are named by the title passed to `OpenAsync`,
       or by `DialogOptions.Label` without one; `ConfirmAsync` without a title is named by its
       message.
