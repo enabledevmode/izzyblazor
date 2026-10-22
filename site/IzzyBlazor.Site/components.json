@@ -7,7 +7,12 @@
 {
   "categories": ["Layout", "App shell", "Typography", "Actions", "Forms", "Selection", "Overlays", "Navigation", "Feedback", "Data display"],
   "components": [
-    { "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "A plain block that takes every style prop." },
+    {
+      "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "A plain block that takes every style prop.",
+      "examples": [
+        { "id": "box-borders", "title": "Bands, borders and a dashed card", "height": 220 }
+      ]
+    },
     { "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lays its children out in a row, always." },
     { "id": "column", "icon": "Rows3", "name": "Column", "category": "Layout", "summary": "Lays its children out in a column, always." },
     { "id": "stack", "icon": "Layers", "name": "Stack", "category": "Layout", "summary": "A row or a column, changing with the screen width." },
@@ -95,7 +100,11 @@
           "notes": {
             "off": "Every control still works, and Save posts, checks and shows the result.",
             "static": "The script adds the slider's live value and keyboard handling.",
-            "live": "The same markup binds to C#, and Save runs a C# handler." } }
+            "live": "The same markup binds to C#, and Save runs a C# handler." } },
+        { "id": "form-columns", "title": "Two columns", "height": 330,
+          "notes": {
+            "off": "The browser checks before posting, in its own words; the server lists its messages at the top.",
+            "live": "Each field is checked when it changes, and Save runs C# without a page load." } }
       ]
     },
     { "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend." },
@@ -149,7 +158,16 @@
     { "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus." },
 
     { "id": "nav-menu", "icon": "Navigation", "name": "NavMenu", "category": "Navigation", "summary": "A list of links that marks the current page.", "parts": ["NavItem", "NavGroup", "NavLabel", "NavDivider"] },
-    { "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Panels that switch with no script, or links to pages.", "parts": ["Tab", "TabLink"] },
+    {
+      "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Panels that switch with no script, or links to pages.", "parts": ["Tab", "TabLink"],
+      "examples": [
+        { "id": "tabs-modes", "title": "Tabs in each mode", "height": 200,
+          "notes": {
+            "off": "Radio buttons and CSS switch the panels; arrow keys work. C# isn't told.",
+            "static": "The script makes them ARIA tabs, with roving focus. C# still isn't told: there's no circuit.",
+            "live": "@bind-Selected tells C# each time the tab changes." } }
+      ]
+    },
     { "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "The path to the current page.", "parts": ["BreadcrumbItem"] },
     { "id": "pagination", "icon": "SquareChevronRight", "name": "Pagination", "category": "Navigation", "summary": "Page links that keep the rest of the URL." },
     { "id": "prev-next", "icon": "ArrowRightLeft", "name": "PrevNext", "category": "Navigation", "summary": "Links to the pages before and after." },

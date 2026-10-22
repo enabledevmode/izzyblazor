@@ -1,0 +1,52 @@
+@using System.ComponentModel.DataAnnotations
+
+@* A two-column form: labels and rules from the model, a field across the row, the errors listed
+   at the top after a failed submit, and the buttons at the end. *@
+<Form Model="Model" FormName="contact" Columns="2" OnValidSubmit="Save" Grow>
+    <FormErrors />
+    <TextField @bind-Value="Model!.FirstName" AutoComplete="given-name" />
+    <TextField @bind-Value="Model!.LastName" AutoComplete="family-name" />
+    <TextField @bind-Value="Model!.Email" AutoComplete="email" ColSpan="GridSpan.Full" />
+    <TextField @bind-Value="Model!.City" AutoComplete="address-level2" />
+    <Select @bind-Value="Model!.Country" />
+    <FormActions><Button Submit>Save contact</Button></FormActions>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Saved @Model!.FirstName @Model.LastName.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "contact")]
+    private Contact? Model { get; set; }
+
+    private bool _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = true;
+
+    public sealed class Contact
+    {
+        [Required(ErrorMessage = "Enter a first name")]
+        public string? FirstName { get; set; }
+
+        [Required(ErrorMessage = "Enter a last name")]
+        public string? LastName { get; set; }
+
+        [Required(ErrorMessage = "Enter an email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com")]
+        public string? Email { get; set; }
+
+        public string? City { get; set; }
+
+        public Country Country { get; set; } = Country.UnitedStates;
+    }
+
+    public enum Country
+    {
+        [Display(Name = "United States")] UnitedStates,
+        Canada,
+        Mexico,
+        [Display(Name = "United Kingdom")] UnitedKingdom,
+    }
+}

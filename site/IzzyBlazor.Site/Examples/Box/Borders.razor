@@ -1,0 +1,18 @@
+@* Surface props on boxes: a band with lines above and below, a bordered box, and a dashed card
+   for an "add new" tile. *@
+<Stack Gap="4" Grow>
+    <Box Bg="Color.SurfaceContainerLow" BorderY="1" PaddingX="4" PaddingY="3">
+        <TextBlock Size="TextSize.Sm">A band: <Code>Bg</Code>, <Code>BorderY="1"</Code>, padding.</TextBlock>
+    </Box>
+    <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
+        <Box Border="1" BorderColor="Color.Outline" Radius="Radius.Lg" Padding="4">
+            <TextBlock Size="TextSize.Sm">A box with <Code>Border</Code>, <Code>BorderColor</Code> and <Code>Radius</Code>.</TextBlock>
+        </Box>
+        <Card BorderStyle="BorderStyle.Dashed" Size="ControlSize.Sm">
+            <Row Gap="2" Align="Align.Center">
+                <Icon Name="Lucide.Plus" />
+                <TextBlock Size="TextSize.Sm">New project</TextBlock>
+            </Row>
+        </Card>
+    </Grid>
+</Stack>

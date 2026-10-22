@@ -2,55 +2,137 @@
 @inject ApiMetadata Api
 @inject Registry Registry
 
-@* The props many components share, documented once: generated from the shared bases. *@
+@* Style props: how they work (from docs/styling.md), then the shared sets as reference tables
+   generated from the shared bases. API pages link to these tables' anchors, so keep the ids. *@
 
-<PageTitle>Style props · IzzyBlazor</PageTitle>
-<HeadContent><meta name="description" content="The item, surface, field and common props IzzyBlazor components share." /></HeadContent>
-
-<article class="site-article">
-    <Stack Gap="3" Class="site-pagehead">
-        <Breadcrumb>
-            <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
-            <BreadcrumbItem>Common features</BreadcrumbItem>
-        </Breadcrumb>
-        <Heading Level="1" Size="TextSize.Xl3">Style props</Heading>
-        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            Props many components share, listed once here. A component's API page says which sets it takes.
-            Most take a single value or one per breakpoint: <Code>Padding="new() { Base = 4, Md = 8 }"</Code>.
+<ArticlePage Section="common" Slug="style-props">
+    <Lead>
+        Spacing, sizes, borders and colors are parameters on the components. Each value becomes a class and a CSS variable
+        on the server: nothing is worked out in the browser, and the values are typed, so a mistake fails at build time.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Typed values</Heading>
+        <TextBlock>
+            Closed sets are enums with IntelliSense: <Code>Align.Center</Code>, <Code>Justify.Between</Code>,
+            <Code>Radius.Md</Code>, <Code>Shadow.Sm</Code>, <Code>Color.SurfaceContainer</Code>. Sizes are a
+            <Code>Length</Code>: <Code>Length.Prose</Code>, <Code>Length.Full</Code>, <Code>Length.Rem(15)</Code>.
         </TextBlock>
-    </Stack>
 
-    @foreach (var group in _sections)
-    {
-        <Heading Level="2" id="@ApiMetadata.Anchor(group.Base)">@group.Title</Heading>
-        <TextBlock>@group.Description</TextBlock>
-        <Table Items="group.Members" Caption="@group.Title" Size="ControlSize.Sm" Class="site-params" Bordered="false">
-            <TemplateColumn Title="Name" Width="Length.Rem(11)">
-                <span id="@($"{ApiMetadata.Anchor(group.Base)}-{ApiMetadata.Anchor(context!.Name)}")"><code>@context.Name</code></span>
-            </TemplateColumn>
-            <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
-            <TemplateColumn Title="Responsive" Width="Length.Rem(7)">
-                @if (context!.Responsive)
+        <Heading Level="2">Spacing</Heading>
+        <TextBlock>
+            Use a step from the scale, 0 to 16: steps up to 12 go up 4px at a time (0 to 48px), and 13 to 16 are 56, 64, 80
+            and 96px. Margins also go down to -16, pulling the element outward.
+        </TextBlock>
+        <Code Block Language="razor">@Spacing</Code>
+        <TextBlock>
+            A side beats its axis, which beats all sides. <Code>Start</Code> and <Code>End</Code> follow the text direction,
+            so layouts flip in right-to-left languages.
+        </TextBlock>
+
+        <Heading Level="2">Borders, sizes and overflow</Heading>
+        <TextBlock>
+            Use <Code>Border</Code> in whole pixels, with an axis or a side like padding, <Code>BorderColor</Code>
+            and <Code>BorderStyle</Code>. On their own, <Code>BorderColor</Code> recolors a component's border and
+            <Code>BorderStyle</Code> restyles a card's.
+        </TextBlock>
+        <ExampleViewer Example="box-borders" />
+        <TextBlock>
+            <Code>Width</Code>, <Code>Height</Code> and their minimums and maximums take a <Code>Length</Code>.
+            <Code>Overflow</Code> says what happens to content that doesn't fit:
+            <Code>MaxHeight="Length.Rem(20)" Overflow="Overflow.Auto"</Code> scrolls it.
+        </TextBlock>
+
+        <Heading Level="2">Colors</Heading>
+        <TextBlock>
+            <Code>Color</Code> is the text color and <Code>Bg</Code> the background, as in CSS. A theme color as
+            <Code>Bg</Code> picks its text color: <Code>Bg="Color.Primary"</Code> gets <Code>OnPrimary</Code>, and
+            <Code>Bg="Color.DangerSoft"</Code> gets <Code>DangerText</Code>. Controls take an <Code>Accent</Code> instead,
+            a whole set of colors (fill, text on it, a soft tint): <Code>Primary</Code>, <Code>Neutral</Code> or
+            <Code>Danger</Code>, or any color:
+        </TextBlock>
+        <Code Block Language="razor">@Colors</Code>
+        <TextBlock>
+            Badges, alerts, banners and toasts take a <Code>Status</Code>, which also sets the icon and what screen readers
+            hear. See <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> for the colors themselves.
+        </TextBlock>
+
+        <Heading Level="2">Item props and surface props</Heading>
+        <TextBlock>
+            Item props say how a component sits in its parent: margins, widths, <Code>Grow</Code>, <Code>AlignSelf</Code>,
+            <Code>ColSpan</Code>. Nearly every component takes them. Surface props say how a box looks inside: padding,
+            background, radius, shadow, borders, heights. <Code>Box</Code> and everything built on it take both.
+        </TextBlock>
+        <TextBlock>
+            Item props go on the element the parent lays out. For a field, that's the wrapper around the label, control and
+            hint, so <Code>Grow</Code> widens all of it:
+        </TextBlock>
+        <Code Block Language="razor">@Items</Code>
+        <TextBlock>
+            <Code>Class</Code> and <Code>Style</Code> go on the same element, for anything the props don't cover. On
+            <Code>Menu</Code>, <Code>Popover</Code> and <Code>Tooltip</Code>, item props go on the trigger and
+            <Code>Class</Code> and <Code>Style</Code> on the panel.
+        </TextBlock>
+
+        <Heading Level="2">Your own values</Heading>
+        <TextBlock>
+            <Code>Color.Token("brand")</Code> uses a token of yours, <Code>Color.Of("#ff6600")</Code> a literal color, and
+            <Code>Length.Of("calc(100% - 2rem)")</Code> any CSS length. Raw values are checked for characters that could break
+            out of a style. Add <Code>@@using IzzyBlazor.Units</Code> to write <Code>Width="15.Rem"</Code> or
+            <Code>MinHeight="100.Dvh"</Code>; it's a separate namespace because it adds members to every number in files that
+            import it.
+        </TextBlock>
+
+        @foreach (var group in _sections)
+        {
+            <Heading Level="2" id="@ApiMetadata.Anchor(group.Base)">@group.Title</Heading>
+            <TextBlock>@group.Description</TextBlock>
+            <Table Items="group.Members" Caption="@group.Title" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+                <TemplateColumn Title="Name" Width="Length.Rem(11)">
+                    <span id="@($"{ApiMetadata.Anchor(group.Base)}-{ApiMetadata.Anchor(context!.Name)}")"><code>@context.Name</code></span>
+                </TemplateColumn>
+                <TemplateColumn Title="Type"><code class="site-type">@context!.Type</code></TemplateColumn>
+                <TemplateColumn Title="Responsive" Width="Length.Rem(7)">
+                    @if (context!.Responsive)
+                    {
+                        <ModeMark Level="ModeLevel.Full" />
+                    }
+                </TemplateColumn>
+                <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" Class="site-member-text" /></TemplateColumn>
+            </Table>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                Taken by @group.Components.Count components:
+                @for (var i = 0; i < group.Components.Count; i++)
                 {
-                    <ModeMark Level="ModeLevel.Full" />
+                    var component = group.Components[i];
+                    @(i == 0 ? "" : ", ")<Anchor Href="@Registry.ApiPageHref(component)">@component.Name</Anchor>
                 }
-            </TemplateColumn>
-            <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" Class="site-member-text" /></TemplateColumn>
-        </Table>
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            Taken by @group.Components.Count components:
-            @for (var i = 0; i < group.Components.Count; i++)
-            {
-                var component = group.Components[i];
-                @(i == 0 ? "" : ", ")<Anchor Href="@Registry.ApiPageHref(component)">@component.Name</Anchor>
-            }
-        </TextBlock>
-    }
-</article>
+            </TextBlock>
+        }
+    </ChildContent>
+</ArticlePage>
 
 @code {
     private List<(string Base, string Title, string Description, List<ApiMember> Members, List<RegistryComponent> Components)> _sections = [];
     private readonly ApiPageContext _context = new("docs/common/style-props", null, new HashSet<string>(), new HashSet<string>());
+
+    private const string Spacing = """
+        <Card Padding="6" PaddingTop="2">...</Card>        @* 24px, 8px on top *@
+        <Stack PaddingX="4" MarginBottom="8">...</Stack>
+        <Box MarginX="-4">...</Box>                       @* pulls 16px into the padding around it *@
+        """;
+
+    private const string Colors = """
+        <Box Bg="Color.SurfaceContainer" Color="Color.Muted" Padding="4">...</Box>
+        <Button Accent="Accent.Danger">Delete</Button>
+        <Button Accent='Accent.Of("#0f766e")'>Approve</Button>
+        """;
+
+    private const string Items = """
+        <Row Gap="2" Align="Align.End">
+            <TextField @bind-Value="Query" Label="Search" Grow />
+            <Button>Search</Button>
+        </Row>
+        """;
 
     protected override void OnParametersSet() =>
         _sections = SharedProps.Sections
