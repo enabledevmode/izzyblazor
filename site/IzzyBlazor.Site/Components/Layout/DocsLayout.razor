@@ -11,8 +11,8 @@
         @Body
     </AppMain>
     <AppAside>
-        @* The page's Off · Static · Live, for its examples; hidden on pages with none. *@
-        <ModeSwitch Placement="aside" />
+        @* The page's Off · Static · Live, from a component page with examples (SectionContent). *@
+        <SectionOutlet SectionName="@ModeSwitch.AsideSection" />
         <OnThisPage />
     </AppAside>
     <SiteFooter ContentWidth="Length.Rem(SiteWidths.Bars)" />

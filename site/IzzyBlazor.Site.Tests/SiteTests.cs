@@ -127,15 +127,48 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
     }
 
-    [Fact]
-    public async Task A_link_opens_a_page_in_its_mode()
+    [Theory]
+    [InlineData("docs/components/button?mode=off", null, "off")]
+    [InlineData("docs/components/button", null, "static")]
+    [InlineData("docs/components/button", "live", "live")]
+    [InlineData("docs/components/button?mode=off", "live", "off")]
+    [InlineData("docs/components/button?mode=nope", "nope", "static")]
+    public async Task A_page_opens_in_the_linked_then_remembered_mode(string path, string? cookie, string expected)
     {
-        // The page's mode switch starts on ?mode=, so a link can show the examples with JavaScript off.
-        var off = await site.Client.GetStringAsync("docs/components/button?mode=off");
-        var plain = await site.Client.GetStringAsync("docs/components/button");
+        // ?mode= (a link can open a page in Off), then the cookie the script sets, then Static. Each
+        // copy of the switch is its own radio group with that option checked, so the visible one is
+        // right for screen readers and the keyboard.
+        using var request = new HttpRequestMessage(HttpMethod.Get, path);
+        if (cookie is not null)
+        {
+            request.Headers.Add("Cookie", $"site-mode={cookie}");
+        }
 
-        Assert.Matches("value=\"off\" checked", off);
-        Assert.Matches("value=\"static\" checked", plain);
+        var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
+        var checkedRadios = ModeRadio().Matches(html).Where(m => m.Groups["checked"].Success).ToList();
+
+        Assert.Equal(["site-mode-aside", "site-mode-top"], checkedRadios.Select(m => m.Groups["name"].Value).Order());
+        Assert.All(checkedRadios, m => Assert.Equal(expected, m.Groups["value"].Value));
+    }
+
+    [Fact]
+    public async Task A_page_that_is_one_example_has_one_switch_in_it()
+    {
+        var html = await site.Client.GetStringAsync("docs");
+
+        Assert.Equal(["site-mode-example"], ModeRadio().Matches(html).Select(m => m.Groups["name"].Value).Distinct());
+    }
+
+    [Fact]
+    public async Task An_example_pinned_to_a_mode_has_only_that_frame()
+    {
+        // Button's OnClick example demonstrates Live behavior: Live whatever the page's mode.
+        var html = await site.Client.GetStringAsync("docs/components/button?mode=off");
+        var start = html.IndexOf("data-ex=\"button-on-click\"", StringComparison.Ordinal);
+        var example = html[start..html.IndexOf("</section>", start, StringComparison.Ordinal)];
+
+        Assert.Equal(["live"], Regex.Matches(example, "class=\"ex-mode\" data-mode=\"(\\w+)\"").Select(m => m.Groups[1].Value));
+        Assert.Contains("Always Live", example);
     }
 
     [Fact]
@@ -149,4 +182,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
 
     [GeneratedRegex("href=\"([^\"]*)\"")]
     private static partial Regex Href();
+
+    [GeneratedRegex("<input type=\"radio\" class=\"site-mode-input\" name=\"(?<name>[^\"]+)\" value=\"(?<value>\\w+)\"(?<checked> checked)?")]
+    private static partial Regex ModeRadio();
 }

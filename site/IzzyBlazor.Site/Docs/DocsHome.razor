@@ -26,7 +26,7 @@
         <Code>@Install</Code>
         <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
     </Row>
-    <TextBlock>One set of components for every page. This form posts and validates on a static page, with JavaScript off too, and runs over a circuit on an interactive one, with no change to the markup:</TextBlock>
+    <TextBlock>One set of components for every page. This form posts and validates on a static page, with JavaScript off too, and runs over a circuit on an interactive one, with no change to the markup. The model takes the post through <Code>[SupplyParameterFromForm]</Code>:</TextBlock>
     <Code Block Language="razor">@FirstLook</Code>
     <Row Gap="3" Wrap>
         <Button Href="docs/get-started">Get started</Button>
@@ -34,7 +34,7 @@
     </Row>
 
     <Heading Level="2">Off · Static · Live</Heading>
-    <TextBlock>Every example on this site runs three ways. Pick one with the switch, here and on each component page:</TextBlock>
+    <TextBlock>Examples on this site run three ways. Pick one with the switch, here and on component pages:</TextBlock>
     <List Gap="2">
         <ListItem><strong>Off</strong>: JavaScript disabled, so you see exactly what the HTML and CSS do on their own.</ListItem>
         <ListItem><strong>Static</strong>: a static SSR page with IzzyBlazor's script, which adds keyboard handling, live values and the like. No circuit.</ListItem>
@@ -45,23 +45,23 @@
     <Heading Level="2">How it's built</Heading>
     <Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Class="site-concepts">
         <Stack Gap="1">
-            <TextBlock Class="site-concept-title">One set for every render mode</TextBlock>
+            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">One set for every render mode</Heading>
             <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages. Nearly all work with JavaScript off and do more with it. <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <TextBlock Class="site-concept-title">Forms that post</TextBlock>
+            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Forms that post</Heading>
             <TextBlock Color="Color.Muted"><Code>Form</Code> and its fields bind on a static post and on an interactive page, with labels, limits and messages from your model's attributes. <Anchor Href="docs/components/form">Form</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <TextBlock Class="site-concept-title">State in the URL</TextBlock>
+            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">State in the URL</Heading>
             <TextBlock Color="Color.Muted">Table, FilterForm and Pagination keep sorting, filters and the page in the query string, so they work with no circuit and links keep them. <Anchor Href="docs/components/table">Table</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <TextBlock Class="site-concept-title">Style props and themes</TextBlock>
+            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Style props and themes</Heading>
             <TextBlock Color="Color.Muted">Spacing, sizes and colors as parameters, and <Code>IzzyTheme</Code> for the preset, brand and fonts, rendered on the server so the theme is there on first paint. <Anchor Href="docs/common/style-props">Style props</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
-            <TextBlock Class="site-concept-title">Native elements first</TextBlock>
+            <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Native elements first</Heading>
             <TextBlock Color="Color.Muted">Buttons, dialogs, selects and disclosures are the browser's own, so focus, keyboard and screen readers work as the platform defines them; the script adds ARIA where it adds behavior.</TextBlock>
         </Stack>
     </Grid>
@@ -73,7 +73,10 @@
         {
             var components = Registry.InCategory(category).ToList();
             <div class="site-box-category">
-                <Anchor Href="@($"docs/components#{ApiMetadata.Anchor(category).Replace(' ', '-')}")" Underline="AnchorUnderline.Hover" Class="site-box-title">@category <span class="site-box-count">@components.Count</span></Anchor>
+                <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-box-title">
+                    <Anchor Href="@($"docs/components#{ApiMetadata.Anchor(category).Replace(' ', '-')}")" Underline="AnchorUnderline.Hover">@category</Anchor>
+                    <span class="site-box-count">@components.Count<span class="ib-visually-hidden"> components</span></span>
+                </Heading>
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">
                     @for (var i = 0; i < Math.Min(4, components.Count); i++)
                     {
@@ -93,7 +96,7 @@
     <List Gap="2">
         <ListItem><strong>.NET 10</strong>, in a Blazor Web App: static pages, and Server, WebAssembly or Auto pages.</ListItem>
         <ListItem><strong>Two packages</strong>: <Code>IzzyBlazor</Code> for the server project, and <Code>IzzyBlazor.Core</Code> for a <Code>.Client</Code> project. <Anchor Href="docs/get-started/webassembly-and-auto#packages">Packages</Anchor></ListItem>
-        <ListItem><strong>Current browsers</strong>: Chrome and Edge 123+, Firefox 125+, Safari 17.5+. Newer features, such as the customizable select, are used where the browser has them.</ListItem>
+        <ListItem><strong>Current browsers</strong>: Chrome and Edge 123+, Firefox 128+, Safari 17.5+. Newer features, such as the customizable select, are used where the browser has them.</ListItem>
         <ListItem><strong>MIT licensed</strong>. Pro components are planned.</ListItem>
     </List>
 
@@ -114,5 +117,12 @@
             <TextField @bind-Value="Signup.Email" />
             <Button Submit>Sign up</Button>
         </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "signup")]
+            private SignupModel? Signup { get; set; }
+
+            protected override void OnInitialized() => Signup ??= new();
+        }
         """;
 }

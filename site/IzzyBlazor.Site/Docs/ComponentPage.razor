@@ -15,11 +15,12 @@
     <HeadContent><meta name="description" content="@(_api?.Summary is { } summary ? ApiMetadata.PlainText(summary) : _component.Summary)" /></HeadContent>
 
     <article class="site-article">
-        <ComponentHeader Component="_component" ApiComponent="_api" Context="_context" />
+        <ComponentHeader Component="_component" ApiComponent="_api" />
 
         @if (_overview is not null && _api is not null)
         {
-            @* Below 1024px, where the right column with its switch is hidden. *@
+            @* In the right column from 1024px, at the top of the content below that. *@
+            <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
             <ModeSwitch Placement="top" />
             <DynamicComponent Type="_overview" Parameters="_parameters" />
         }
