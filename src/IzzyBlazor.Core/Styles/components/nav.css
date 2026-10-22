@@ -112,18 +112,25 @@
     padding-inline-start: calc(1.125rem + var(--ib-space-2));
   }
 
+  /* More space above than below, so a heading sits with the items it labels, and in the text color,
+     so it ranks above them rather than below. */
   .ib-nav-heading {
-    margin-top: var(--ib-space-3);
-    padding: var(--ib-space-1) var(--ib-space-3);
+    margin-top: var(--ib-space-6);
+    padding: var(--ib-space-1) var(--ib-space-3) var(--ib-space-2);
     font-size: var(--ib-text-xs);
     font-weight: var(--ib-weight-semibold);
     letter-spacing: var(--ib-tracking-wider);
     text-transform: uppercase;
-    color: var(--ib-color-subtle);
+    color: var(--ib-color-on-surface);
   }
 
   .ib-nav-heading:first-child {
     margin-top: 0;
+  }
+
+  /* A divider already separates the groups. */
+  .ib-nav-divider + .ib-nav-heading {
+    margin-top: var(--ib-space-2);
   }
 
   .ib-nav-divider {
