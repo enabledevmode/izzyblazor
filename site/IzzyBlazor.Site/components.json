@@ -54,12 +54,7 @@
         { "id": "button-links", "title": "Links that look like buttons", "height": 96 },
         { "id": "button-sizes-icons", "title": "Sizes and icons", "height": 140 },
         { "id": "button-states", "title": "Loading and disabled", "height": 96 },
-        { "id": "button-on-click", "title": "Running C# on click", "height": 140, "mode": "live",
-          "notes": {
-            "off": "JavaScript is off: clicking does nothing, because there's no circuit to run OnClick over.",
-            "static": "A static page: still nothing. OnClick needs an interactive page; use Submit or Href here.",
-            "live": "An interactive page: each click runs C# on the server and the count updates."
-          } }
+        { "id": "button-on-click", "title": "Running C# on click", "height": 140, "modes": ["live"] }
       ],
       "scenarios": [
         { "id": "several-submit-buttons", "title": "Several submit buttons", "member": "Name",

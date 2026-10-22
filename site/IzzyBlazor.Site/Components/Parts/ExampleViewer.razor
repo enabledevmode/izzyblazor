@@ -17,10 +17,10 @@
     Above the box is one row: Preview · Code tabs at the left (a line Tabs: radios and CSS), and at
     the right the example's note for the mode where it has one, and the width and mode switches
     where asked for (on a page that is one example, the note goes under the box). The box itself
-    holds only the preview, or the code. With SourceOpen (demos)
-    there are no tabs: the code shows under the preview, with a Hide code toggle in the row. site.js sizes each frame to its content
-    and keeps the preview at the tallest mode's height; without script the frames keep the
-    example's height from components.json.
+    holds only the preview, or the code: it fits what it shows, and the controls above it don't
+    move when that changes. With SourceOpen (demos) there are no tabs: the code shows under the
+    preview, with a Hide code toggle in the row. site.js sizes each frame to its content; without
+    script the frames keep the example's height from components.json.
 *@
 
 @if (_example is not null)
@@ -48,6 +48,11 @@
             </Tabs>
         }
         <div class="ex-tools">
+            @if (_example.Modes.Count == 1)
+            {
+                @* Shown in its one mode whatever the page's (an example of Live-only behavior). *@
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-fixed-mode">Always @ModeChip.Name(_example.Modes[0])</TextBlock>
+            }
             @if (!ModeSwitch)
             {
                 @Notes
@@ -144,7 +149,7 @@
 
         _example = found.Example;
         _source = Catalog.SourceOf(Example);
-        _class = _example.Page ? "ex ex-page" : "ex";
+        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "");
         _height = $"height: {_example.Height}px";
         _uid = $"ex-{Example}";
     }
