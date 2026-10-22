@@ -128,6 +128,19 @@ public sealed partial class XmlDocs
         return string.IsNullOrWhiteSpace(html) ? null : html;
     }
 
+    /// <summary>The HTML for one <c>param</c> tag of a member's docs (a positional record's values), or null.</summary>
+    public static string? Param(XElement? member, string name)
+    {
+        var element = member?.Elements("param").FirstOrDefault(p => p.Attribute("name")?.Value == name);
+        if (element is null)
+        {
+            return null;
+        }
+
+        var html = Paragraphs(element);
+        return string.IsNullOrWhiteSpace(html) ? null : html;
+    }
+
     /// <summary>The code of the member's <c>example</c> tags, dedented, as plain text.</summary>
     public static List<string>? Examples(XElement? member)
     {

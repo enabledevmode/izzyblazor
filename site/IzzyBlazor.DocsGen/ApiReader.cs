@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Linq.Expressions;
+using System.Net;
 using System.Reflection;
+using System.Text.RegularExpressions;
 using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor.DocsGen;
@@ -9,8 +11,10 @@ namespace IzzyBlazor.DocsGen;
 /// Reads components from the library's assemblies and their XML docs. A component is a public,
 /// non-abstract <see cref="IComponent"/>; its API is its <c>[Parameter]</c> properties (minus the
 /// captured-attributes bag), with <c>EventCallback</c>s as events and public methods of its own.
+/// Members marked <c>[Obsolete]</c> are kept, with its message, so tools can say what replaced them;
+/// the site leaves them off its pages.
 /// </summary>
-public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? headers = null)
+public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders? headers = null)
 {
     /// <summary>Bases whose props many components share; they're listed once, not on each component.</summary>
     public static readonly string[] SharedBases = ["IzzyComponentBase", "LayoutItemBase", "StyledComponentBase", "FieldBase"];
@@ -25,6 +29,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
     };
 
     private readonly HashSet<Type> _usedTypes = [];
+    private readonly Dictionary<Type, object?> _instances = [];
 
     public ApiFile Read(IEnumerable<Assembly> assemblies)
     {
@@ -56,8 +61,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
     public static bool IsComponent(Type type) =>
         type is { IsPublic: true, IsAbstract: false, IsInterface: false } &&
         typeof(IComponent).IsAssignableFrom(type) &&
-        type.Namespace == "IzzyBlazor" &&
-        type.GetCustomAttribute<ObsoleteAttribute>() is not { IsError: true };
+        type.Namespace == "IzzyBlazor";
 
     // Types not worth a section: the icon catalogs (thousands of icons) and Responsive<T>, which
     // the Common features docs cover once.
@@ -66,7 +70,8 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
     private ApiComponent ReadComponent(Type type, Assembly assembly)
     {
         var doc = docs.ForType(type);
-        var instance = Instantiate(type);
+        var header = headers?.For(TypeNames.Plain(type));
+        var instance = InstanceOf(type);
         var parameters = Parameters(type).ToList();
         var names = parameters.Select(p => p.Name).ToHashSet();
 
@@ -114,29 +119,31 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
             Package = assembly.GetName().Name!,
             Tier = assembly.GetName().Name!.EndsWith(".Pro", StringComparison.Ordinal) ? "Pro" : "Free",
             // A .razor component has no XML doc comment: its header comment stands in.
-            Summary = XmlDocs.Html(doc, "summary") ?? headers?.For(TypeNames.Plain(type)).Summary,
-            Remarks = XmlDocs.Html(doc, "remarks"),
-            Examples = XmlDocs.Examples(doc) ?? (headers?.For(TypeNames.Plain(type)).Example is { } example ? [example] : null),
+            Summary = XmlDocs.Html(doc, "summary") ?? header?.Summary,
+            Remarks = XmlDocs.Html(doc, "remarks") ?? header?.Remarks,
+            Examples = XmlDocs.Examples(doc) ?? (header?.Example is { } example ? [example] : null),
             TypeParameters = type.IsGenericTypeDefinition ? type.GetGenericArguments().Select(a => a.Name).ToList() : null,
             Bases = componentBases,
-            // Not inherited: DialogClose derives from Button, but Button's modes aren't its.
+            // The attribute isn't inherited: DialogClose derives from Button, but Button's modes aren't its.
             Modes = Modes(type.GetCustomAttribute<ModeSupportAttribute>(inherit: false)),
             Properties = properties,
             Events = events,
             Methods = methods,
             Types = TypesOf(type, parameters, methods.Count > 0 ? type.GetMethods(Instance).Where(m => IsOwnMethod(m, type)) : []),
+            Obsolete = ObsoleteText(type),
         };
     }
 
     private List<string> TypesOf(Type component, IEnumerable<PropertyInfo> parameters, IEnumerable<MethodInfo> methods)
     {
         var found = new HashSet<Type>();
-        foreach (var property in parameters.Where(p => !SharedBases.Contains(TypeNames.Plain(p.DeclaringType!))))
+        // Not the types of obsolete members (Button.Type's ButtonType): they're on their way out.
+        foreach (var property in parameters.Where(p => !SharedBases.Contains(TypeNames.Plain(p.DeclaringType!)) && ObsoleteText(p) is null))
         {
             Collect(property.PropertyType, found);
         }
 
-        foreach (var method in methods)
+        foreach (var method in methods.Where(m => ObsoleteText(m) is null))
         {
             Collect(method.ReturnType, found);
             foreach (var parameter in method.GetParameters())
@@ -180,7 +187,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
     {
         var properties = type.GetProperties(Instance | BindingFlags.DeclaredOnly).Where(IsParameter).ToList();
         var found = new HashSet<Type>();
-        foreach (var property in properties)
+        foreach (var property in properties.Where(p => ObsoleteText(p) is null))
         {
             Collect(property.PropertyType, found);
         }
@@ -188,19 +195,31 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
         found.RemoveWhere(t => t.Namespace != "IzzyBlazor" || IsHidden(t) || IsComponent(t));
         _usedTypes.UnionWith(found);
 
-        // Defaults come from a component that takes these props without redeclaring them.
-        var sample = components
-            .Where(c => Ancestors(c).Any(a => a == type) && properties.All(p => c.GetProperties(Instance).Count(x => x.Name == p.Name) == 1))
-            .Select(Instantiate)
-            .FirstOrDefault(i => i is not null);
-
+        var takers = components.Where(c => Ancestors(c).Any(a => a == type)).ToList();
         return new ApiBase
         {
             Name = TypeNames.Plain(type),
             Summary = XmlDocs.Html(docs.ForType(type), "summary"),
-            Properties = properties.Select(p => ReadMember(p, sample, type, changed: null)).ToList(),
+            Properties = properties.Select(p => ReadMember(p, null, type, changed: null) with { Default = SharedDefault(p, takers) }).ToList(),
         };
     }
+
+    // A shared prop's default, from every component that takes it as declared on the base (not
+    // one that redeclares it): the value they all start with, or none when they differ.
+    private string? SharedDefault(PropertyInfo property, IEnumerable<Type> takers)
+    {
+        var summary = XmlDocs.Html(docs.ForProperty(property), "summary");
+        var values = takers
+            .Where(c => MostDerived(c, property.Name)?.DeclaringType is { } declaring && Generic(declaring) == Generic(property.DeclaringType!))
+            .Select(InstanceOf)
+            .OfType<object>()
+            .Select(i => DefaultOf(property, i, summary))
+            .Distinct()
+            .ToList();
+        return values.Count == 1 ? values[0] : null;
+    }
+
+    private static Type Generic(Type type) => type.IsGenericType ? type.GetGenericTypeDefinition() : type;
 
     /// <summary>A parameter; with its <paramref name="changed"/> callback, one bindable member.</summary>
     private ApiMember ReadMember(PropertyInfo property, object? instance, Type component, PropertyInfo? changed)
@@ -225,7 +244,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
             Required = property.GetCustomAttribute<EditorRequiredAttribute>() is not null,
             Responsive = property.PropertyType.IsGenericType && property.PropertyType.GetGenericTypeDefinition().Name == "Responsive`1",
             Modes = Modes(property.GetCustomAttribute<ModeSupportAttribute>()),
-            Obsolete = property.GetCustomAttribute<ObsoleteAttribute>()?.Message,
+            Obsolete = ObsoleteText(property),
             DeclaredOn = declaring != TypeNames.Plain(component) ? TypeNames.Display(property.DeclaringType!.IsGenericType ? property.DeclaringType.GetGenericTypeDefinition() : property.DeclaringType) : null,
         };
     }
@@ -242,8 +261,13 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
             Summary = XmlDocs.Html(doc, "summary"),
             Remarks = XmlDocs.Html(doc, "remarks"),
             Modes = Modes(method.GetCustomAttribute<ModeSupportAttribute>()),
+            Obsolete = ObsoleteText(method),
         };
     }
+
+    /// <summary>The <c>[Obsolete]</c> message, "Obsolete." when it has none, or null when it isn't obsolete.</summary>
+    private static string? ObsoleteText(MemberInfo member) =>
+        member.GetCustomAttribute<ObsoleteAttribute>() is { } obsolete ? obsolete.Message ?? "Obsolete." : null;
 
     private ApiType ReadType(Type type)
     {
@@ -259,8 +283,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
         if (type.IsEnum)
         {
             members = type.GetFields(BindingFlags.Public | BindingFlags.Static)
-                .Where(f => f.GetCustomAttribute<ObsoleteAttribute>() is not { IsError: true })
-                .Select(f => new ApiMember { Name = f.Name, Type = TypeNames.Plain(type), Summary = XmlDocs.Html(docs.ForField(f), "summary") })
+                .Select(f => new ApiMember { Name = f.Name, Type = TypeNames.Plain(type), Summary = XmlDocs.Html(docs.ForField(f), "summary"), Obsolete = ObsoleteText(f) })
                 .ToList();
         }
         else
@@ -272,7 +295,19 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
             var factories = type.IsGenericTypeDefinition ? [] : type.GetMethods(BindingFlags.Public | BindingFlags.Static)
                 .Where(m => m.ReturnType == type && !m.IsSpecialName)
                 .Select(ReadMethod);
-            members = statics.Concat(factories).ToList();
+
+            // Then what an instance has: an options class's settings (ConfirmOptions.Accent), a
+            // record's values and helpers (TableRequest.Page, ApplySorting).
+            var instance = InstanceOf(type);
+            var properties = type.GetProperties(Instance)
+                .Where(p => p.GetIndexParameters().Length == 0 && p.GetMethod is { IsPublic: true })
+                .OrderBy(p => p.MetadataToken)
+                .Select(p => ReadTypeProperty(p, doc, instance));
+            var methods = type.GetMethods(Instance)
+                .Where(m => !m.IsSpecialName && m.DeclaringType == type && !ObjectMethods.Contains(m.Name))
+                .OrderBy(m => m.Name, StringComparer.Ordinal)
+                .Select(ReadMethod);
+            members = statics.Concat(factories).Concat(properties).Concat(methods).ToList();
         }
 
         return new ApiType
@@ -282,6 +317,26 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
             Kind = kind,
             Summary = XmlDocs.Html(doc, "summary"),
             Members = members,
+            Obsolete = ObsoleteText(type),
+        };
+    }
+
+    // What every class or record has, which says nothing about this one.
+    private static readonly HashSet<string> ObjectMethods = ["Equals", "GetHashCode", "ToString", "Deconstruct", "PrintMembers", "<Clone>$", "GetType"];
+
+    // A property of a type: a positional record's are documented by the type's <param> tags.
+    private ApiMember ReadTypeProperty(PropertyInfo property, System.Xml.Linq.XElement? typeDoc, object? instance)
+    {
+        var summary = XmlDocs.Html(docs.ForProperty(property), "summary") ?? XmlDocs.Param(typeDoc, property.Name);
+        return new ApiMember
+        {
+            Name = property.Name,
+            Type = TypeNames.Of(property),
+            Default = DefaultOf(property, instance, summary),
+            Summary = summary,
+            Remarks = XmlDocs.Html(docs.ForProperty(property), "remarks"),
+            Modes = Modes(property.GetCustomAttribute<ModeSupportAttribute>()),
+            Obsolete = ObsoleteText(property),
         };
     }
 
@@ -312,8 +367,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
     }
 
     private static bool IsParameter(PropertyInfo property) =>
-        property.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false } &&
-        property.GetCustomAttribute<ObsoleteAttribute>() is not { IsError: true };
+        property.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false };
 
     private static bool IsEvent(Type type) =>
         type == typeof(EventCallback) || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>));
@@ -328,8 +382,7 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
         !SharedBases.Contains(TypeNames.Plain(declaring)) &&
         declaring.IsAssignableFrom(component) &&
         method.GetBaseDefinition().DeclaringType is { Namespace: "IzzyBlazor" } &&
-        !LifecycleMethods.Contains(method.Name) &&
-        method.GetCustomAttribute<ObsoleteAttribute>() is not { IsError: true };
+        !LifecycleMethods.Contains(method.Name);
 
     private static IEnumerable<Type> Ancestors(Type type)
     {
@@ -337,6 +390,16 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
         {
             yield return current.IsGenericType ? current.GetGenericTypeDefinition() : current;
         }
+    }
+
+    private object? InstanceOf(Type type)
+    {
+        if (!_instances.TryGetValue(type, out var instance))
+        {
+            _instances[type] = instance = Instantiate(type);
+        }
+
+        return instance;
     }
 
     // Defaults: read from a fresh instance. Generic components are made with a common argument.
@@ -410,13 +473,44 @@ public sealed class ApiReader(XmlDocs docs, string version, RazorHeaders? header
         }
 
         var formatted = Format(value, property.PropertyType);
-        if (formatted is null && summary?.Contains("Defaults to", StringComparison.Ordinal) == true)
+        if (formatted is null && summary is not null && StatedDefault().Match(summary) is { Success: true } stated)
         {
-            return "computed";
+            // Null on a fresh instance, filled in at render time: a constant when the docs name one
+            // ("Close", Color.Surface), else "computed" (the text color, the shell's position).
+            return Literal(stated.Groups[1].Value) ?? "computed";
         }
 
         return formatted;
     }
+
+    /// <summary>"Defaults to X." in a summary, when X is one value: a quoted string, a number, code or a link to an enum value.</summary>
+    public static string? Literal(string html)
+    {
+        if (QuotedLiteral().Match(html) is { Success: true } quoted)
+        {
+            return $"\"{WebUtility.HtmlDecode(quoted.Groups[1].Value)}\"";
+        }
+
+        if (CodeLiteral().Match(html) is { Success: true } code)
+        {
+            return WebUtility.HtmlDecode(code.Groups[1].Value);
+        }
+
+        return NumberLiteral().IsMatch(html) ? html : null;
+    }
+
+    [GeneratedRegex(@"Defaults to (.+?)\.(?:</p>|\s|$)")]
+    private static partial Regex StatedDefault();
+
+    [GeneratedRegex("^&quot;([^&]*)&quot;$")]
+    private static partial Regex QuotedLiteral();
+
+    // <code>Color.Surface</code>, or a link to an enum value: <a href="cref:F:..."><code>AvatarSize.Md</code></a>.
+    [GeneratedRegex("^(?:<a href=\"cref:F:[^\"]+\">)?<code>([^<]+)</code>(?:</a>)?$")]
+    private static partial Regex CodeLiteral();
+
+    [GeneratedRegex(@"^-?\d+(\.\d+)?$")]
+    private static partial Regex NumberLiteral();
 
     private static PropertyInfo? MostDerived(Type type, string name)
     {

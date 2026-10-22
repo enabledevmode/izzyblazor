@@ -102,6 +102,13 @@ parameter tables and defaults are never written by hand.
   open in the frame.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata. The API page is always generated.
+- A component written as a `.razor` file can't carry an XML doc comment, so DocsGen reads its
+  header comment (the `@* *@` block after the directives) instead: the text before the first
+  markup is its summary, that markup its example, and the rest its remarks. Lines starting `- `
+  are a list; markup starts after a blank line or a line ending in `.` or `:`.
+- `Api/released.api.json` is the last release's API (names only). The build compares with it to
+  mark what each release added ("Added in") and print what it removed; it's refreshed when a
+  release is cut (see Releasing).
 
 #### Writing an Overview
 
@@ -235,6 +242,17 @@ to main, then tag that commit with the same version:
 git tag v0.1.0-alpha.1
 git push origin v0.1.0-alpha.1
 ```
+
+In the same commit, refresh the docs site's record of the release, so the next one can tell what's
+new. Build the site with the new version, then write the file from the old one:
+
+```
+dotnet build site/IzzyBlazor.Site -c Release
+dotnet site/IzzyBlazor.DocsGen/bin/Release/net10.0/IzzyBlazor.DocsGen.dll --source src --out site/IzzyBlazor.Site/obj/Release/izzyblazor.api.json --previous site/IzzyBlazor.Site/Api/released.api.json --baseline site/IzzyBlazor.Site/Api/released.api.json
+```
+
+The build lists what was removed since the last release ("Removed since ..."); put those in the
+release notes too.
 
 For release notes, add `docs/releases/v<version>.md` in the same commit: it heads the GitHub
 release's notes, above the generated list of commits. List every rename, since Razor takes an old

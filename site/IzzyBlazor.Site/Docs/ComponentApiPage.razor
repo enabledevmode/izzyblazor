@@ -91,11 +91,11 @@
                         <Badge Variant="BadgeVariant.Outline" Size="BadgeSize.Sm">@type.Kind</Badge>
                     </Row>
                     <DocHtml Html="@type.Summary" Context="_context" />
-                    @if (type.Members.Count > 0)
+                    @if (type.Members.Any(m => m.Obsolete is null))
                     {
-                        <Table Items="type.Members" Caption="@($"{type.Name} {(type.Kind == "enum" ? "values" : "members")}")" Size="ControlSize.Sm">
+                        <Table Items="type.Members.Where(m => m.Obsolete is null).ToList()" Caption="@($"{type.Name} {(type.Kind == "enum" ? "values" : "members")}")" Size="ControlSize.Sm">
                             <TemplateColumn Title="@(type.Kind == "enum" ? "Value" : "Member")" Width="Length.Rem(14)">
-                                <code>@(context!.Type.Contains('(') ? context.Type[(context.Type.IndexOf(' ') + 1)..] : context.Name)</code>
+                                <code>@TypeMember(type, context!)</code>
                             </TemplateColumn>
                             <TemplateColumn Title="Description"><DocHtml Html="@context!.Summary" Context="_context" /></TemplateColumn>
                         </Table>
@@ -128,6 +128,23 @@
     private RegistryComponent? _previous;
     private RegistryComponent? _next;
 
+    // A type's member as code: a method's signature, a preset's name (Accent.Primary is an Accent),
+    // or an instance property as a declaration (Page int, Accent Accent = Accent.Primary).
+    private static string TypeMember(ApiType type, ApiMember member)
+    {
+        if (member.Type.Contains($" {member.Name}(", StringComparison.Ordinal) || member.Type.Contains($" {member.Name}<", StringComparison.Ordinal))
+        {
+            return member.Type[(member.Type.IndexOf(' ') + 1)..];
+        }
+
+        if (type.Kind == "enum" || member.Type == type.Name)
+        {
+            return member.Name;
+        }
+
+        return member.Default is { } value and not "computed" ? $"{member.Name} {member.Type} = {value}" : $"{member.Name} {member.Type}";
+    }
+
     private string? NoMatch => Query is null ? null : $"Nothing matches \"{Query}\".";
 
     private string ShowInheritedHref => Navigation.GetUriWithQueryParameter("inherited", true);
@@ -147,13 +164,13 @@
         _context = ApiMetadata.ContextFor(Registry.ApiPageHref(_component), _api, typeNames);
 
         _properties = Filter(_api.Properties.Where(p => p.Obsolete is null));
-        _events = Filter(_api.Events);
-        _methods = Filter(_api.Methods);
+        _events = Filter(_api.Events.Where(e => e.Obsolete is null));
+        _methods = Filter(_api.Methods.Where(m => m.Obsolete is null));
         _inherited = SharedProps.Sections
             .Where(s => _api.Bases.Contains(s.Base))
-            .Select(s => (Title: $"{s.Title} (from {s.Base})", Members: Filter(Api.Base(s.Base)?.Properties ?? []), Name: s.Base))
+            .Select(s => (Title: $"{s.Title} (from {s.Base})", Members: Filter((Api.Base(s.Base)?.Properties ?? []).Where(p => p.Obsolete is null)), Name: s.Base))
             .ToList();
-        _parts = parts.Select(p => (p, Filter(p.Properties.Where(m => m.Obsolete is null).Concat(p.Events)))).ToList();
+        _parts = parts.Select(p => (p, Filter(p.Properties.Concat(p.Events).Where(m => m.Obsolete is null)))).ToList();
         _types = typeNames.Select(Api.Type).OfType<ApiType>().OrderBy(t => t.Name, StringComparer.Ordinal).ToList();
         (_previous, _next) = Registry.Around(_component);
     }

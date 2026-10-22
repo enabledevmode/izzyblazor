@@ -1,9 +1,10 @@
 namespace IzzyBlazor;
 
 /// <summary>
-/// How well a component, or one of its parameters, works in each of the three ways a page can run:
-/// with JavaScript off, on a static page with IzzyBlazor's script, and on an interactive page. It
-/// changes nothing at run time; the documentation site and tools read it.
+/// How well a component, or one of its parameters or methods, works in each of the three ways a
+/// page can run: with JavaScript off, on a static page with IzzyBlazor's script, and on an
+/// interactive page. It changes nothing at run time; the documentation site and tools read it. It
+/// isn't inherited: a component derived from another (DialogClose from Button) states its own.
 /// </summary>
 /// <example>
 /// <code>
@@ -14,7 +15,7 @@ namespace IzzyBlazor;
 /// [Parameter] public EventCallback OnClick { get; set; }
 /// </code>
 /// </example>
-[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property, Inherited = true, AllowMultiple = false)]
+[AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 public sealed class ModeSupportAttribute : Attribute
 {
     /// <summary>With JavaScript off. Defaults to <see cref="ModeLevel.Full"/>.</summary>

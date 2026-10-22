@@ -1,0 +1,8786 @@
+{
+  "version": "0.1.0-alpha.12",
+  "components": [
+    {
+      "name": "Accordion",
+      "displayName": "Accordion",
+      "fullName": "IzzyBlazor.Accordion",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Exclusive",
+          "type": "bool"
+        },
+        {
+          "name": "Variant",
+          "type": "AccordionVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "ContentPadding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "ContentGap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "AccordionVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "AccordionHeader",
+      "displayName": "AccordionHeader",
+      "fullName": "IzzyBlazor.AccordionHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "AccordionItem",
+      "displayName": "AccordionItem",
+      "fullName": "IzzyBlazor.AccordionItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "Header",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ContentPadding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "ContentGap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Alert",
+      "displayName": "Alert",
+      "fullName": "IzzyBlazor.Alert",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Status",
+          "type": "Status"
+        },
+        {
+          "name": "Variant",
+          "type": "AlertVariant"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Actions",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "HideIcon",
+          "type": "bool"
+        },
+        {
+          "name": "Dismissible",
+          "type": "bool"
+        },
+        {
+          "name": "Dismissed",
+          "type": "bool"
+        },
+        {
+          "name": "Announce",
+          "type": "bool"
+        },
+        {
+          "name": "StatusLabel",
+          "type": "string?"
+        },
+        {
+          "name": "DismissLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "AlertVariant",
+        "Status"
+      ]
+    },
+    {
+      "name": "AlertActions",
+      "displayName": "AlertActions",
+      "fullName": "IzzyBlazor.AlertActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ]
+    },
+    {
+      "name": "Anchor",
+      "displayName": "Anchor",
+      "fullName": "IzzyBlazor.Anchor",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string"
+        },
+        {
+          "name": "External",
+          "type": "bool"
+        },
+        {
+          "name": "HideExternalIcon",
+          "type": "bool"
+        },
+        {
+          "name": "Underline",
+          "type": "AnchorUnderline"
+        },
+        {
+          "name": "Inherit",
+          "type": "bool"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "AnchorUnderline"
+      ]
+    },
+    {
+      "name": "AppAside",
+      "displayName": "AppAside",
+      "fullName": "IzzyBlazor.AppAside",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Width",
+          "type": "Length"
+        },
+        {
+          "name": "Breakpoint",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Bg",
+          "type": "Color?"
+        },
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Breakpoint",
+        "Color",
+        "ColorScheme",
+        "Length"
+      ]
+    },
+    {
+      "name": "AppBrand",
+      "displayName": "AppBrand",
+      "fullName": "IzzyBlazor.AppBrand",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Logo",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "HideLabel",
+          "type": "bool"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "AppFooter",
+      "displayName": "AppFooter",
+      "fullName": "IzzyBlazor.AppFooter",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "BarPosition"
+        },
+        {
+          "name": "ContentWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "Bg",
+          "type": "Color?"
+        },
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "BarPosition",
+        "Color",
+        "ColorScheme",
+        "Length"
+      ]
+    },
+    {
+      "name": "AppHeader",
+      "displayName": "AppHeader",
+      "fullName": "IzzyBlazor.AppHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "BarPosition"
+        },
+        {
+          "name": "ContentWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "Bg",
+          "type": "Color?"
+        },
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "BarPosition",
+        "Color",
+        "ColorScheme",
+        "Length"
+      ]
+    },
+    {
+      "name": "AppMain",
+      "displayName": "AppMain",
+      "fullName": "IzzyBlazor.AppMain",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Id",
+          "type": "string?"
+        },
+        {
+          "name": "ContentWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "Bg",
+          "type": "Color?"
+        },
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Color",
+        "ColorScheme",
+        "Length"
+      ]
+    },
+    {
+      "name": "AppShell",
+      "displayName": "AppShell",
+      "fullName": "IzzyBlazor.AppShell",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ScrollMode",
+          "type": "ShellScroll"
+        },
+        {
+          "name": "Variant",
+          "type": "ShellVariant"
+        },
+        {
+          "name": "Dividers",
+          "type": "bool"
+        },
+        {
+          "name": "ContentWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "MainId",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Length",
+        "ShellScroll",
+        "ShellVariant"
+      ]
+    },
+    {
+      "name": "AppSidebar",
+      "displayName": "AppSidebar",
+      "fullName": "IzzyBlazor.AppSidebar",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "SidebarPosition"
+        },
+        {
+          "name": "DrawerPosition",
+          "type": "SidebarPosition?"
+        },
+        {
+          "name": "SmallScreen",
+          "type": "SidebarSmallScreen"
+        },
+        {
+          "name": "FullHeight",
+          "type": "bool"
+        },
+        {
+          "name": "Width",
+          "type": "Length"
+        },
+        {
+          "name": "Breakpoint",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Id",
+          "type": "string"
+        },
+        {
+          "name": "Collapsible",
+          "type": "bool"
+        },
+        {
+          "name": "Collapsed",
+          "type": "bool"
+        },
+        {
+          "name": "CollapsedWidth",
+          "type": "Length"
+        },
+        {
+          "name": "RememberState",
+          "type": "bool"
+        },
+        {
+          "name": "CollapseButton",
+          "type": "bool?"
+        },
+        {
+          "name": "CollapseButtonPosition",
+          "type": "VerticalPosition"
+        },
+        {
+          "name": "Header",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Footer",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "CloseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "CollapseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Bg",
+          "type": "Color?"
+        },
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Breakpoint",
+        "Color",
+        "ColorScheme",
+        "Length",
+        "SidebarPosition",
+        "SidebarSmallScreen",
+        "VerticalPosition"
+      ]
+    },
+    {
+      "name": "AspectRatio",
+      "displayName": "AspectRatio",
+      "fullName": "IzzyBlazor.AspectRatio",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Ratio",
+          "type": "double"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Avatar",
+      "displayName": "Avatar",
+      "fullName": "IzzyBlazor.Avatar",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Src",
+          "type": "string?"
+        },
+        {
+          "name": "Initials",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Size",
+          "type": "AvatarSize?"
+        },
+        {
+          "name": "Square",
+          "type": "bool"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?"
+        },
+        {
+          "name": "Variant",
+          "type": "AvatarVariant"
+        },
+        {
+          "name": "Status",
+          "type": "Status?"
+        },
+        {
+          "name": "StatusLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Decorative",
+          "type": "bool"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "AvatarSize",
+        "AvatarVariant",
+        "Status"
+      ]
+    },
+    {
+      "name": "AvatarGroup",
+      "displayName": "AvatarGroup",
+      "fullName": "IzzyBlazor.AvatarGroup",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Max",
+          "type": "int?"
+        },
+        {
+          "name": "Size",
+          "type": "AvatarSize"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "MoreLabel",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "AvatarSize"
+      ]
+    },
+    {
+      "name": "Badge",
+      "displayName": "Badge",
+      "fullName": "IzzyBlazor.Badge",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Status",
+          "type": "Status"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?"
+        },
+        {
+          "name": "Variant",
+          "type": "BadgeVariant"
+        },
+        {
+          "name": "Size",
+          "type": "BadgeSize"
+        },
+        {
+          "name": "Pill",
+          "type": "bool"
+        },
+        {
+          "name": "Dot",
+          "type": "bool"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "BadgeSize",
+        "BadgeVariant",
+        "Status"
+      ]
+    },
+    {
+      "name": "Banner",
+      "displayName": "Banner",
+      "fullName": "IzzyBlazor.Banner",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Status",
+          "type": "Status"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?"
+        },
+        {
+          "name": "Variant",
+          "type": "AlertVariant"
+        },
+        {
+          "name": "Position",
+          "type": "BarPosition"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Actions",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "HideIcon",
+          "type": "bool"
+        },
+        {
+          "name": "Dismissible",
+          "type": "bool"
+        },
+        {
+          "name": "Remember",
+          "type": "DismissMemory"
+        },
+        {
+          "name": "RememberKey",
+          "type": "string?"
+        },
+        {
+          "name": "Dismissed",
+          "type": "bool"
+        },
+        {
+          "name": "Announce",
+          "type": "bool"
+        },
+        {
+          "name": "StatusLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "DismissLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "AlertVariant",
+        "BarPosition",
+        "DismissMemory",
+        "Status"
+      ]
+    },
+    {
+      "name": "BannerActions",
+      "displayName": "BannerActions",
+      "fullName": "IzzyBlazor.BannerActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Box",
+      "displayName": "Box",
+      "fullName": "IzzyBlazor.Box",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Breadcrumb",
+      "displayName": "Breadcrumb",
+      "fullName": "IzzyBlazor.Breadcrumb",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Separator",
+          "type": "BreadcrumbSeparator"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "BreadcrumbSeparator"
+      ]
+    },
+    {
+      "name": "BreadcrumbItem",
+      "displayName": "BreadcrumbItem",
+      "fullName": "IzzyBlazor.BreadcrumbItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Current",
+          "type": "bool"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Button",
+      "displayName": "Button",
+      "fullName": "IzzyBlazor.Button",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "External",
+          "type": "bool"
+        },
+        {
+          "name": "HideExternalIcon",
+          "type": "bool"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Submit",
+          "type": "bool"
+        },
+        {
+          "name": "Reset",
+          "type": "bool"
+        },
+        {
+          "name": "Type",
+          "type": "ButtonType"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?"
+        },
+        {
+          "name": "Form",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "ButtonGroup",
+      "displayName": "ButtonGroup",
+      "fullName": "IzzyBlazor.ButtonGroup",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize?"
+        },
+        {
+          "name": "Attached",
+          "type": "bool"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Orientation"
+      ]
+    },
+    {
+      "name": "Card",
+      "displayName": "Card",
+      "fullName": "IzzyBlazor.Card",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "TitleLevel",
+          "type": "int"
+        },
+        {
+          "name": "Description",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Dividers",
+          "type": "bool"
+        },
+        {
+          "name": "Variant",
+          "type": "CardVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "CardVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "CardActions",
+      "displayName": "CardActions",
+      "fullName": "IzzyBlazor.CardActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "CardBody",
+      "displayName": "CardBody",
+      "fullName": "IzzyBlazor.CardBody",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Direction",
+          "type": "Responsive\u003CDirection\u003E"
+        },
+        {
+          "name": "Flush",
+          "type": "bool"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Direction",
+        "Justify"
+      ]
+    },
+    {
+      "name": "CardFooter",
+      "displayName": "CardFooter",
+      "fullName": "IzzyBlazor.CardFooter",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ]
+    },
+    {
+      "name": "CardHeader",
+      "displayName": "CardHeader",
+      "fullName": "IzzyBlazor.CardHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "CardMedia",
+      "displayName": "CardMedia",
+      "fullName": "IzzyBlazor.CardMedia",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Center",
+      "displayName": "Center",
+      "fullName": "IzzyBlazor.Center",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Checkbox",
+      "displayName": "Checkbox",
+      "fullName": "IzzyBlazor.Checkbox",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Indeterminate",
+          "type": "bool"
+        },
+        {
+          "name": "ControlPosition",
+          "type": "ControlPosition"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Value",
+          "type": "bool"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlPosition"
+      ]
+    },
+    {
+      "name": "CheckboxGroup",
+      "displayName": "CheckboxGroup\u003CTValue, TItem\u003E",
+      "fullName": "IzzyBlazor.CheckboxGroup\u00602",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue",
+        "TItem"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTItem, string\u003E?"
+        },
+        {
+          "name": "ItemTemplate",
+          "type": "RenderFragment\u003CTItem\u003E?"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Orientation"
+      ]
+    },
+    {
+      "name": "Code",
+      "displayName": "Code",
+      "fullName": "IzzyBlazor.Code",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Block",
+          "type": "bool"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?"
+        },
+        {
+          "name": "Language",
+          "type": "string?"
+        },
+        {
+          "name": "Highlight",
+          "type": "bool"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "LineNumbers",
+          "type": "bool"
+        },
+        {
+          "name": "HighlightLines",
+          "type": "string?"
+        },
+        {
+          "name": "Copyable",
+          "type": "bool"
+        },
+        {
+          "name": "CopyLabel",
+          "type": "string?"
+        },
+        {
+          "name": "CopiedLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Length"
+      ]
+    },
+    {
+      "name": "CodeExample",
+      "displayName": "CodeExample",
+      "fullName": "IzzyBlazor.CodeExample",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Code",
+          "type": "string?"
+        },
+        {
+          "name": "Language",
+          "type": "string"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "HighlightLines",
+          "type": "string?"
+        },
+        {
+          "name": "LineNumbers",
+          "type": "bool"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?"
+        },
+        {
+          "name": "Collapsible",
+          "type": "bool"
+        },
+        {
+          "name": "SourceOpen",
+          "type": "bool"
+        },
+        {
+          "name": "Center",
+          "type": "bool"
+        },
+        {
+          "name": "ShowCodeText",
+          "type": "string?"
+        },
+        {
+          "name": "HideCodeText",
+          "type": "string?"
+        },
+        {
+          "name": "FilesLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Length"
+      ]
+    },
+    {
+      "name": "CodeExampleFile",
+      "displayName": "CodeExampleFile",
+      "fullName": "IzzyBlazor.CodeExampleFile",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string"
+        },
+        {
+          "name": "Code",
+          "type": "string"
+        },
+        {
+          "name": "Language",
+          "type": "string?"
+        },
+        {
+          "name": "HighlightLines",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Collapsible",
+      "displayName": "Collapsible",
+      "fullName": "IzzyBlazor.Collapsible",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Trigger",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "ColorPicker",
+      "displayName": "ColorPicker",
+      "fullName": "IzzyBlazor.ColorPicker",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Presets",
+          "type": "IEnumerable\u003Cstring\u003E?"
+        },
+        {
+          "name": "ShowHex",
+          "type": "bool"
+        },
+        {
+          "name": "HexLabel",
+          "type": "string?"
+        },
+        {
+          "name": "PresetsLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "ColorSchemeSwitch",
+      "displayName": "ColorSchemeSwitch",
+      "fullName": "IzzyBlazor.ColorSchemeSwitch",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Variant",
+          "type": "ColorSchemeSwitchVariant"
+        },
+        {
+          "name": "Value",
+          "type": "ColorScheme?"
+        },
+        {
+          "name": "IconOnly",
+          "type": "bool"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ColorScheme",
+        "ColorSchemeSwitchVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "Column",
+      "displayName": "Column",
+      "fullName": "IzzyBlazor.Column",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Direction",
+          "type": "Responsive\u003CDirection\u003E"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ]
+    },
+    {
+      "name": "Combobox",
+      "displayName": "Combobox\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.Combobox\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTValue\u003E?"
+        },
+        {
+          "name": "Search",
+          "type": "Func\u003Cstring, CancellationToken, Task\u003CIEnumerable\u003CTValue\u003E\u003E\u003E?"
+        },
+        {
+          "name": "Debounce",
+          "type": "int"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTValue, string\u003E?"
+        },
+        {
+          "name": "ItemTemplate",
+          "type": "RenderFragment\u003CTValue\u003E?"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?"
+        },
+        {
+          "name": "SearchingText",
+          "type": "string?"
+        },
+        {
+          "name": "ToggleLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "ConfirmButton",
+      "displayName": "ConfirmButton",
+      "fullName": "IzzyBlazor.ConfirmButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string"
+        },
+        {
+          "name": "Message",
+          "type": "string?"
+        },
+        {
+          "name": "Body",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ConfirmText",
+          "type": "string?"
+        },
+        {
+          "name": "CancelText",
+          "type": "string?"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "Form",
+          "type": "string?"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnConfirm",
+          "type": "EventCallback"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "ConfirmDialogContent",
+      "displayName": "ConfirmDialogContent",
+      "fullName": "IzzyBlazor.ConfirmDialogContent",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Message",
+          "type": "string?"
+        },
+        {
+          "name": "Options",
+          "type": "ConfirmOptions"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ConfirmOptions"
+      ]
+    },
+    {
+      "name": "Container",
+      "displayName": "Container",
+      "fullName": "IzzyBlazor.Container",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Size",
+          "type": "ContainerSize"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ContainerSize"
+      ]
+    },
+    {
+      "name": "CopyButton",
+      "displayName": "CopyButton",
+      "fullName": "IzzyBlazor.CopyButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Text",
+          "type": "string?"
+        },
+        {
+          "name": "For",
+          "type": "string?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "CopiedLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "DescriptionItem",
+      "displayName": "DescriptionItem",
+      "fullName": "IzzyBlazor.DescriptionItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Term",
+          "type": "string?"
+        },
+        {
+          "name": "TermContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "DescriptionList",
+      "displayName": "DescriptionList",
+      "fullName": "IzzyBlazor.DescriptionList",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "Divided",
+          "type": "bool"
+        },
+        {
+          "name": "Columns",
+          "type": "int"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "Orientation"
+      ]
+    },
+    {
+      "name": "Dialog",
+      "displayName": "Dialog",
+      "fullName": "IzzyBlazor.Dialog",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "CloseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ContentPadding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Header",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Footer",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Size",
+          "type": "DialogSize"
+        },
+        {
+          "name": "Placement",
+          "type": "DialogPlacement"
+        },
+        {
+          "name": "CloseOnBackdrop",
+          "type": "bool"
+        },
+        {
+          "name": "ShowCloseButton",
+          "type": "bool"
+        },
+        {
+          "name": "InsideForm",
+          "type": "bool"
+        },
+        {
+          "name": "QueryKey",
+          "type": "string?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DialogPlacement",
+        "DialogSize"
+      ]
+    },
+    {
+      "name": "DialogActions",
+      "displayName": "DialogActions",
+      "fullName": "IzzyBlazor.DialogActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ],
+      "obsolete": "DialogActions is now \u003CDialogFooter\u003E. DialogActions goes in a later release."
+    },
+    {
+      "name": "DialogBody",
+      "displayName": "DialogBody",
+      "fullName": "IzzyBlazor.DialogBody",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Direction",
+          "type": "Responsive\u003CDirection\u003E"
+        },
+        {
+          "name": "Flush",
+          "type": "bool"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Direction",
+        "Justify"
+      ]
+    },
+    {
+      "name": "DialogClose",
+      "displayName": "DialogClose",
+      "fullName": "IzzyBlazor.DialogClose",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string?"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "External",
+          "type": "bool"
+        },
+        {
+          "name": "HideExternalIcon",
+          "type": "bool"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Submit",
+          "type": "bool"
+        },
+        {
+          "name": "Reset",
+          "type": "bool"
+        },
+        {
+          "name": "Type",
+          "type": "ButtonType"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?"
+        },
+        {
+          "name": "Form",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "DialogFooter",
+      "displayName": "DialogFooter",
+      "fullName": "IzzyBlazor.DialogFooter",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ]
+    },
+    {
+      "name": "DialogHeader",
+      "displayName": "DialogHeader",
+      "fullName": "IzzyBlazor.DialogHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "DialogHost",
+      "displayName": "DialogHost",
+      "fullName": "IzzyBlazor.DialogHost",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "DialogTrigger",
+      "displayName": "DialogTrigger",
+      "fullName": "IzzyBlazor.DialogTrigger",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "For",
+          "type": "string"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "External",
+          "type": "bool"
+        },
+        {
+          "name": "HideExternalIcon",
+          "type": "bool"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Submit",
+          "type": "bool"
+        },
+        {
+          "name": "Reset",
+          "type": "bool"
+        },
+        {
+          "name": "Type",
+          "type": "ButtonType"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?"
+        },
+        {
+          "name": "Form",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "Divider",
+      "displayName": "Divider",
+      "fullName": "IzzyBlazor.Divider",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Dashed",
+          "type": "bool"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Orientation"
+      ]
+    },
+    {
+      "name": "Drawer",
+      "displayName": "Drawer",
+      "fullName": "IzzyBlazor.Drawer",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "CloseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ContentPadding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Header",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Footer",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Size",
+          "type": "DialogSize"
+        },
+        {
+          "name": "Placement",
+          "type": "DialogPlacement"
+        },
+        {
+          "name": "CloseOnBackdrop",
+          "type": "bool"
+        },
+        {
+          "name": "ShowCloseButton",
+          "type": "bool"
+        },
+        {
+          "name": "InsideForm",
+          "type": "bool"
+        },
+        {
+          "name": "QueryKey",
+          "type": "string?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DialogPlacement",
+        "DialogSize"
+      ]
+    },
+    {
+      "name": "EmptyState",
+      "displayName": "EmptyState",
+      "fullName": "IzzyBlazor.EmptyState",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "TitleLevel",
+          "type": "int"
+        },
+        {
+          "name": "Description",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Actions",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Bordered",
+          "type": "bool"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "EmptyStateActions",
+      "displayName": "EmptyStateActions",
+      "fullName": "IzzyBlazor.EmptyStateActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "FieldAddons",
+      "displayName": "FieldAddons",
+      "fullName": "IzzyBlazor.FieldAddons",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "StartAddon",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "EndAddon",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "FieldError",
+      "displayName": "FieldError\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.FieldError\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "For",
+          "type": "Expression\u003CFunc\u003CTValue\u003E\u003E"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "FieldFrame",
+      "displayName": "FieldFrame",
+      "fullName": "IzzyBlazor.FieldFrame",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Class",
+          "type": "string?"
+        },
+        {
+          "name": "Style",
+          "type": "string?"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        },
+        {
+          "name": "LabelId",
+          "type": "string?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "HideLabel",
+          "type": "bool"
+        },
+        {
+          "name": "Required",
+          "type": "bool"
+        },
+        {
+          "name": "Hint",
+          "type": "string?"
+        },
+        {
+          "name": "HintId",
+          "type": "string?"
+        },
+        {
+          "name": "Errors",
+          "type": "IReadOnlyList\u003Cstring\u003E?"
+        },
+        {
+          "name": "ErrorId",
+          "type": "string?"
+        },
+        {
+          "name": "Group",
+          "type": "bool"
+        },
+        {
+          "name": "LabelInControl",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Fieldset",
+      "displayName": "Fieldset",
+      "fullName": "IzzyBlazor.Fieldset",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Description",
+          "type": "string?"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Columns",
+          "type": "int"
+        },
+        {
+          "name": "Dividers",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "FileUpload",
+      "displayName": "FileUpload",
+      "fullName": "IzzyBlazor.FileUpload",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "HideLabel",
+          "type": "bool"
+        },
+        {
+          "name": "Hint",
+          "type": "string?"
+        },
+        {
+          "name": "Required",
+          "type": "bool"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "Accept",
+          "type": "string?"
+        },
+        {
+          "name": "Multiple",
+          "type": "bool"
+        },
+        {
+          "name": "MaxFileSize",
+          "type": "long?"
+        },
+        {
+          "name": "MaxFiles",
+          "type": "int"
+        },
+        {
+          "name": "TooLargeText",
+          "type": "string?"
+        },
+        {
+          "name": "WrongTypeText",
+          "type": "string?"
+        },
+        {
+          "name": "ChooseText",
+          "type": "string?"
+        },
+        {
+          "name": "DragText",
+          "type": "string?"
+        },
+        {
+          "name": "AcceptText",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Errors",
+          "type": "IReadOnlyList\u003Cstring\u003E?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnChange",
+          "type": "EventCallback\u003CIReadOnlyList\u003CIBrowserFile\u003E\u003E"
+        }
+      ],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "FilterCheckbox",
+      "displayName": "FilterCheckbox",
+      "fullName": "IzzyBlazor.FilterCheckbox",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "FilterForm",
+      "displayName": "FilterForm",
+      "fullName": "IzzyBlazor.FilterForm",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Live",
+          "type": "bool"
+        },
+        {
+          "name": "Fields",
+          "type": "IReadOnlyList\u003Cstring\u003E?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "ApplyText",
+          "type": "string?"
+        },
+        {
+          "name": "ClearText",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "FilterSearch",
+      "displayName": "FilterSearch",
+      "fullName": "IzzyBlazor.FilterSearch",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "FilterSelect",
+      "displayName": "FilterSelect",
+      "fullName": "IzzyBlazor.FilterSelect",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003Cstring\u003E?"
+        },
+        {
+          "name": "EnumType",
+          "type": "Type?"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003Cstring, string\u003E?"
+        },
+        {
+          "name": "AllText",
+          "type": "string?"
+        },
+        {
+          "name": "Name",
+          "type": "string"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "Form",
+      "displayName": "Form",
+      "fullName": "IzzyBlazor.Form",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Model",
+          "type": "object?"
+        },
+        {
+          "name": "EditContext",
+          "type": "EditContext?"
+        },
+        {
+          "name": "FormName",
+          "type": "string?"
+        },
+        {
+          "name": "Multipart",
+          "type": "bool"
+        },
+        {
+          "name": "Enhance",
+          "type": "bool"
+        },
+        {
+          "name": "NativeValidation",
+          "type": "bool"
+        },
+        {
+          "name": "Validator",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Layout",
+          "type": "FormLayout"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Columns",
+          "type": "int"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ReadOnly",
+          "type": "bool"
+        },
+        {
+          "name": "RequiredMark",
+          "type": "RequiredMark"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnValidSubmit",
+          "type": "EventCallback\u003CEditContext\u003E"
+        },
+        {
+          "name": "OnInvalidSubmit",
+          "type": "EventCallback\u003CEditContext\u003E"
+        },
+        {
+          "name": "OnSubmit",
+          "type": "EventCallback\u003CEditContext\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "FormLayout",
+        "RequiredMark"
+      ]
+    },
+    {
+      "name": "FormActions",
+      "displayName": "FormActions",
+      "fullName": "IzzyBlazor.FormActions",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Justify"
+      ]
+    },
+    {
+      "name": "FormErrors",
+      "displayName": "FormErrors",
+      "fullName": "IzzyBlazor.FormErrors",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Grid",
+      "displayName": "Grid",
+      "fullName": "IzzyBlazor.Grid",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Columns",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Template",
+          "type": "Responsive\u003Cstring\u003E"
+        },
+        {
+          "name": "MinChildWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "Stretch",
+          "type": "bool"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Length"
+      ]
+    },
+    {
+      "name": "GridItem",
+      "displayName": "GridItem",
+      "fullName": "IzzyBlazor.GridItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "RowSpan",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "HeaderNav",
+      "displayName": "HeaderNav",
+      "fullName": "IzzyBlazor.HeaderNav",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Breakpoint",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "MenuLabel",
+          "type": "string?"
+        },
+        {
+          "name": "MenuButtonAtEnd",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Breakpoint"
+      ],
+      "obsolete": "HeaderNav is now \u003CSiteNav\u003E, its PanelFooter \u003CSiteNavFooter\u003E; the panel opens under the header, so PanelHeader is gone. HeaderNav goes in a later release."
+    },
+    {
+      "name": "Heading",
+      "displayName": "Heading",
+      "fullName": "IzzyBlazor.Heading",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Level",
+          "type": "int"
+        },
+        {
+          "name": "Outline",
+          "type": "bool"
+        },
+        {
+          "name": "Anchor",
+          "type": "bool?"
+        },
+        {
+          "name": "Size",
+          "type": "Responsive\u003CTextSize\u003E"
+        },
+        {
+          "name": "Weight",
+          "type": "FontWeight?"
+        },
+        {
+          "name": "Family",
+          "type": "FontFamily?"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CTextAlign\u003E"
+        },
+        {
+          "name": "LineHeight",
+          "type": "LineHeight?"
+        },
+        {
+          "name": "LetterSpacing",
+          "type": "LetterSpacing?"
+        },
+        {
+          "name": "Transform",
+          "type": "TextTransform?"
+        },
+        {
+          "name": "Decoration",
+          "type": "TextDecoration?"
+        },
+        {
+          "name": "Italic",
+          "type": "bool"
+        },
+        {
+          "name": "Wrap",
+          "type": "TextWrap?"
+        },
+        {
+          "name": "Truncate",
+          "type": "bool"
+        },
+        {
+          "name": "LineClamp",
+          "type": "int?"
+        },
+        {
+          "name": "TabularNums",
+          "type": "bool"
+        },
+        {
+          "name": "MinSize",
+          "type": "TextSize?"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "FontFamily",
+        "FontWeight",
+        "LetterSpacing",
+        "LineHeight",
+        "TextAlign",
+        "TextDecoration",
+        "TextSize",
+        "TextTransform",
+        "TextWrap"
+      ]
+    },
+    {
+      "name": "Icon",
+      "displayName": "Icon",
+      "fullName": "IzzyBlazor.Icon",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Name",
+          "type": "IconData?"
+        },
+        {
+          "name": "Role",
+          "type": "IconRole?"
+        },
+        {
+          "name": "Size",
+          "type": "IconSize"
+        },
+        {
+          "name": "Color",
+          "type": "Responsive\u003CColor\u003E"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "StrokeWidth",
+          "type": "double?"
+        },
+        {
+          "name": "Spin",
+          "type": "bool"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Color",
+        "IconRole",
+        "IconSize"
+      ]
+    },
+    {
+      "name": "IconButton",
+      "displayName": "IconButton",
+      "fullName": "IzzyBlazor.IconButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Icon",
+          "type": "IconData"
+        },
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Submit",
+          "type": "bool"
+        },
+        {
+          "name": "Reset",
+          "type": "bool"
+        },
+        {
+          "name": "Type",
+          "type": "ButtonType"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "Image",
+      "displayName": "Image",
+      "fullName": "IzzyBlazor.Image",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Src",
+          "type": "string"
+        },
+        {
+          "name": "Alt",
+          "type": "string"
+        },
+        {
+          "name": "IntrinsicWidth",
+          "type": "int?"
+        },
+        {
+          "name": "IntrinsicHeight",
+          "type": "int?"
+        },
+        {
+          "name": "Ratio",
+          "type": "double?"
+        },
+        {
+          "name": "Fit",
+          "type": "ImageFit"
+        },
+        {
+          "name": "Lazy",
+          "type": "bool"
+        },
+        {
+          "name": "Caption",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ImageFit"
+      ]
+    },
+    {
+      "name": "IzzyTheme",
+      "displayName": "IzzyTheme",
+      "fullName": "IzzyBlazor.IzzyTheme",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Preset",
+          "type": "ThemePreset?"
+        },
+        {
+          "name": "Brand",
+          "type": "string?"
+        },
+        {
+          "name": "Gray",
+          "type": "string?"
+        },
+        {
+          "name": "Radius",
+          "type": "ThemeRadius?"
+        },
+        {
+          "name": "Density",
+          "type": "ThemeDensity?"
+        },
+        {
+          "name": "BodyFont",
+          "type": "string?"
+        },
+        {
+          "name": "HeadingFont",
+          "type": "string?"
+        },
+        {
+          "name": "MonoFont",
+          "type": "string?"
+        },
+        {
+          "name": "HeadingWeight",
+          "type": "int?"
+        },
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme?"
+        },
+        {
+          "name": "Scrollbars",
+          "type": "ThemeScrollbars?"
+        },
+        {
+          "name": "Nonce",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Class",
+          "type": "string?"
+        },
+        {
+          "name": "Style",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ColorScheme",
+        "ThemeDensity",
+        "ThemePreset",
+        "ThemeRadius",
+        "ThemeScrollbars"
+      ]
+    },
+    {
+      "name": "Kbd",
+      "displayName": "Kbd",
+      "fullName": "IzzyBlazor.Kbd",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Keys",
+          "type": "string?"
+        },
+        {
+          "name": "Separator",
+          "type": "string"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "LinkButton",
+      "displayName": "LinkButton",
+      "fullName": "IzzyBlazor.LinkButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "External",
+          "type": "bool"
+        },
+        {
+          "name": "HideExternalIcon",
+          "type": "bool"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Submit",
+          "type": "bool"
+        },
+        {
+          "name": "Reset",
+          "type": "bool"
+        },
+        {
+          "name": "Type",
+          "type": "ButtonType"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?"
+        },
+        {
+          "name": "Form",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ],
+      "obsolete": "LinkButton is now \u003CButton Href=\u0022...\u0022\u003E. LinkButton goes in a later release."
+    },
+    {
+      "name": "List",
+      "displayName": "List",
+      "fullName": "IzzyBlazor.List",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Ordered",
+          "type": "bool"
+        },
+        {
+          "name": "Plain",
+          "type": "bool"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "IconColor",
+          "type": "Color?"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Color"
+      ]
+    },
+    {
+      "name": "ListItem",
+      "displayName": "ListItem",
+      "fullName": "IzzyBlazor.ListItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "IconColor",
+          "type": "Color?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Color"
+      ]
+    },
+    {
+      "name": "Menu",
+      "displayName": "Menu",
+      "fullName": "IzzyBlazor.Menu",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Trigger",
+          "type": "RenderFragment\u003CIReadOnlyDictionary\u003Cstring, object\u003E\u003E?"
+        },
+        {
+          "name": "Placement",
+          "type": "Placement"
+        },
+        {
+          "name": "PanelWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Length",
+        "Placement"
+      ]
+    },
+    {
+      "name": "MenuDivider",
+      "displayName": "MenuDivider",
+      "fullName": "IzzyBlazor.MenuDivider",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "MenuGroup",
+      "displayName": "MenuGroup",
+      "fullName": "IzzyBlazor.MenuGroup",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "MenuItem",
+      "displayName": "MenuItem",
+      "fullName": "IzzyBlazor.MenuItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Submit",
+          "type": "bool"
+        },
+        {
+          "name": "Type",
+          "type": "ButtonType"
+        },
+        {
+          "name": "Checked",
+          "type": "bool?"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?"
+        },
+        {
+          "name": "Form",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Shortcut",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "KeepOpen",
+          "type": "bool"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent"
+      ]
+    },
+    {
+      "name": "MenuRadioGroup",
+      "displayName": "MenuRadioGroup",
+      "fullName": "IzzyBlazor.MenuRadioGroup",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "QueryKey",
+          "type": "string?"
+        },
+        {
+          "name": "Name",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "MenuSub",
+      "displayName": "MenuSub",
+      "fullName": "IzzyBlazor.MenuSub",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "MultiSelect",
+      "displayName": "MultiSelect\u003CTValue, TItem\u003E",
+      "fullName": "IzzyBlazor.MultiSelect\u00602",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue",
+        "TItem"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTItem, string\u003E?"
+        },
+        {
+          "name": "ItemTemplate",
+          "type": "RenderFragment\u003CTItem\u003E?"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?"
+        },
+        {
+          "name": "ToggleLabel",
+          "type": "string?"
+        },
+        {
+          "name": "RemoveLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "NavDivider",
+      "displayName": "NavDivider",
+      "fullName": "IzzyBlazor.NavDivider",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "NavGroup",
+      "displayName": "NavGroup",
+      "fullName": "IzzyBlazor.NavGroup",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "ActivePrefix",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "NavItem",
+      "displayName": "NavItem",
+      "fullName": "IzzyBlazor.NavItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Match",
+          "type": "NavLinkMatch"
+        },
+        {
+          "name": "Badge",
+          "type": "string?"
+        },
+        {
+          "name": "BadgeStatus",
+          "type": "Status"
+        },
+        {
+          "name": "BadgeAccent",
+          "type": "Accent?"
+        },
+        {
+          "name": "BadgeVariant",
+          "type": "BadgeVariant"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "BadgeVariant",
+        "Status"
+      ]
+    },
+    {
+      "name": "NavLabel",
+      "displayName": "NavLabel",
+      "fullName": "IzzyBlazor.NavLabel",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "NavMenu",
+      "displayName": "NavMenu",
+      "fullName": "IzzyBlazor.NavMenu",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Orientation"
+      ]
+    },
+    {
+      "name": "NumberField",
+      "displayName": "NumberField\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.NumberField\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Min",
+          "type": "double?"
+        },
+        {
+          "name": "Max",
+          "type": "double?"
+        },
+        {
+          "name": "Step",
+          "type": "double?"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "StartAddon",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "EndAddon",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "StepButtons",
+          "type": "StepButtons"
+        },
+        {
+          "name": "IncreaseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "DecreaseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "StepButtons"
+      ]
+    },
+    {
+      "name": "OnThisPage",
+      "displayName": "OnThisPage",
+      "fullName": "IzzyBlazor.OnThisPage",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "MinLevel",
+          "type": "int"
+        },
+        {
+          "name": "MaxLevel",
+          "type": "int"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Pagination",
+      "displayName": "Pagination",
+      "fullName": "IzzyBlazor.Pagination",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Page",
+          "type": "int?"
+        },
+        {
+          "name": "PageCount",
+          "type": "int?"
+        },
+        {
+          "name": "TotalItems",
+          "type": "int?"
+        },
+        {
+          "name": "PageSize",
+          "type": "int"
+        },
+        {
+          "name": "QueryKey",
+          "type": "string"
+        },
+        {
+          "name": "Siblings",
+          "type": "int"
+        },
+        {
+          "name": "Boundaries",
+          "type": "int"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "PreviousLabel",
+          "type": "string?"
+        },
+        {
+          "name": "NextLabel",
+          "type": "string?"
+        },
+        {
+          "name": "PageLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "Popover",
+      "displayName": "Popover",
+      "fullName": "IzzyBlazor.Popover",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "CloseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Trigger",
+          "type": "RenderFragment\u003CIReadOnlyDictionary\u003Cstring, object\u003E\u003E?"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "ShowCloseButton",
+          "type": "bool?"
+        },
+        {
+          "name": "Mode",
+          "type": "PopoverMode"
+        },
+        {
+          "name": "Placement",
+          "type": "Placement"
+        },
+        {
+          "name": "PanelWidth",
+          "type": "Length?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Open",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Length",
+        "Placement",
+        "PopoverMode"
+      ]
+    },
+    {
+      "name": "PrevNext",
+      "displayName": "PrevNext",
+      "fullName": "IzzyBlazor.PrevNext",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "PreviousHref",
+          "type": "string?"
+        },
+        {
+          "name": "PreviousTitle",
+          "type": "string?"
+        },
+        {
+          "name": "NextHref",
+          "type": "string?"
+        },
+        {
+          "name": "NextTitle",
+          "type": "string?"
+        },
+        {
+          "name": "PreviousText",
+          "type": "string?"
+        },
+        {
+          "name": "NextText",
+          "type": "string?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Progress",
+      "displayName": "Progress",
+      "fullName": "IzzyBlazor.Progress",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Value",
+          "type": "double?"
+        },
+        {
+          "name": "Max",
+          "type": "double"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "ShowValue",
+          "type": "bool"
+        },
+        {
+          "name": "ValueText",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ControlSize"
+      ]
+    },
+    {
+      "name": "PropertyColumn",
+      "displayName": "PropertyColumn\u003CTItem, TValue\u003E",
+      "fullName": "IzzyBlazor.PropertyColumn\u00602",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem",
+        "TValue"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "Property",
+          "type": "Expression\u003CFunc\u003CTItem, TValue\u003E\u003E"
+        },
+        {
+          "name": "Format",
+          "type": "string?"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "Sortable",
+          "type": "bool"
+        },
+        {
+          "name": "SortKey",
+          "type": "string?"
+        },
+        {
+          "name": "Filterable",
+          "type": "bool"
+        },
+        {
+          "name": "FilterMultiple",
+          "type": "bool"
+        },
+        {
+          "name": "Align",
+          "type": "CellAlign?"
+        },
+        {
+          "name": "Width",
+          "type": "Length?"
+        },
+        {
+          "name": "Class",
+          "type": "string?"
+        },
+        {
+          "name": "FooterText",
+          "type": "string?"
+        },
+        {
+          "name": "Footer",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "CellAlign",
+        "Length"
+      ]
+    },
+    {
+      "name": "Prose",
+      "displayName": "Prose",
+      "fullName": "IzzyBlazor.Prose",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Size",
+          "type": "ProseSize"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ProseSize"
+      ]
+    },
+    {
+      "name": "RadioGroup",
+      "displayName": "RadioGroup\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.RadioGroup\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTValue\u003E?"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTValue, string\u003E?"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Orientation"
+      ]
+    },
+    {
+      "name": "Row",
+      "displayName": "Row",
+      "fullName": "IzzyBlazor.Row",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Direction",
+          "type": "Responsive\u003CDirection\u003E"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ]
+    },
+    {
+      "name": "Section",
+      "displayName": "Section",
+      "fullName": "IzzyBlazor.Section",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Spacing",
+          "type": "SectionSpacing"
+        },
+        {
+          "name": "FullBleed",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "SectionSpacing"
+      ]
+    },
+    {
+      "name": "SegmentedControl",
+      "displayName": "SegmentedControl\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.SegmentedControl\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTValue\u003E?"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTValue, string\u003E?"
+        },
+        {
+          "name": "ItemIcon",
+          "type": "Func\u003CTValue, IconData?\u003E?"
+        },
+        {
+          "name": "IconOnly",
+          "type": "bool"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Select",
+      "displayName": "Select\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.Select\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTValue\u003E?"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTValue, string\u003E?"
+        },
+        {
+          "name": "ItemTemplate",
+          "type": "RenderFragment\u003CTValue\u003E?"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "SidebarBody",
+      "displayName": "SidebarBody",
+      "fullName": "IzzyBlazor.SidebarBody",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Justify"
+      ]
+    },
+    {
+      "name": "SidebarFooter",
+      "displayName": "SidebarFooter",
+      "fullName": "IzzyBlazor.SidebarFooter",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "SidebarHeader",
+      "displayName": "SidebarHeader",
+      "fullName": "IzzyBlazor.SidebarHeader",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "SidebarToggle",
+      "displayName": "SidebarToggle",
+      "fullName": "IzzyBlazor.SidebarToggle",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "For",
+          "type": "string"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "CloseLabel",
+          "type": "string?"
+        },
+        {
+          "name": "CollapseLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ButtonVariant"
+      ]
+    },
+    {
+      "name": "SiteNav",
+      "displayName": "SiteNav",
+      "fullName": "IzzyBlazor.SiteNav",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Breakpoint",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "MenuLabel",
+          "type": "string?"
+        },
+        {
+          "name": "MenuButtonAtEnd",
+          "type": "bool"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Breakpoint"
+      ]
+    },
+    {
+      "name": "SiteNavFooter",
+      "displayName": "SiteNavFooter",
+      "fullName": "IzzyBlazor.SiteNavFooter",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Skeleton",
+      "displayName": "Skeleton",
+      "fullName": "IzzyBlazor.Skeleton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Lines",
+          "type": "int"
+        },
+        {
+          "name": "Circle",
+          "type": "bool"
+        },
+        {
+          "name": "Loaded",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Slider",
+      "displayName": "Slider\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.Slider\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Min",
+          "type": "double?"
+        },
+        {
+          "name": "Max",
+          "type": "double?"
+        },
+        {
+          "name": "Step",
+          "type": "double?"
+        },
+        {
+          "name": "ShowValue",
+          "type": "bool"
+        },
+        {
+          "name": "ValueFormat",
+          "type": "string"
+        },
+        {
+          "name": "Live",
+          "type": "bool"
+        },
+        {
+          "name": "Value",
+          "type": "TValue"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Spacer",
+      "displayName": "Spacer",
+      "fullName": "IzzyBlazor.Spacer",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Spinner",
+      "displayName": "Spinner",
+      "fullName": "IzzyBlazor.Spinner",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Size",
+          "type": "IconSize"
+        },
+        {
+          "name": "Color",
+          "type": "Color?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Color",
+        "IconSize"
+      ]
+    },
+    {
+      "name": "Stack",
+      "displayName": "Stack",
+      "fullName": "IzzyBlazor.Stack",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Direction",
+          "type": "Responsive\u003CDirection\u003E"
+        },
+        {
+          "name": "Gap",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "Justify",
+          "type": "Responsive\u003CJustify\u003E"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool"
+        },
+        {
+          "name": "Inline",
+          "type": "bool"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Align",
+        "Direction",
+        "Justify"
+      ]
+    },
+    {
+      "name": "Stat",
+      "displayName": "Stat",
+      "fullName": "IzzyBlazor.Stat",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Change",
+          "type": "string?"
+        },
+        {
+          "name": "Trend",
+          "type": "StatTrend"
+        },
+        {
+          "name": "ChangeStatus",
+          "type": "Status?"
+        },
+        {
+          "name": "TrendLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Description",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "StatTrend",
+        "Status"
+      ]
+    },
+    {
+      "name": "Step",
+      "displayName": "Step",
+      "fullName": "IzzyBlazor.Step",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "Description",
+          "type": "string?"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Hidden",
+          "type": "bool"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Stepper",
+      "displayName": "Stepper",
+      "fullName": "IzzyBlazor.Stepper",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Current",
+          "type": "int"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "CompletedLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "Orientation"
+      ]
+    },
+    {
+      "name": "Switch",
+      "displayName": "Switch",
+      "fullName": "IzzyBlazor.Switch",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Indeterminate",
+          "type": "bool"
+        },
+        {
+          "name": "ControlPosition",
+          "type": "ControlPosition"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Value",
+          "type": "bool"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlPosition"
+      ]
+    },
+    {
+      "name": "Tab",
+      "displayName": "Tab",
+      "fullName": "IzzyBlazor.Tab",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Badge",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ContentPadding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "TabLink",
+      "displayName": "TabLink",
+      "fullName": "IzzyBlazor.TabLink",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Href",
+          "type": "string"
+        },
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Badge",
+          "type": "string?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "Match",
+          "type": "NavLinkMatch"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "Table",
+      "displayName": "Table\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.Table\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?"
+        },
+        {
+          "name": "ItemsProvider",
+          "type": "Func\u003CTableRequest\u003CTItem\u003E, ValueTask\u003CTableResult\u003CTItem\u003E\u003E\u003E?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "PageSize",
+          "type": "int?"
+        },
+        {
+          "name": "PageSizeOptions",
+          "type": "IReadOnlyList\u003Cint\u003E?"
+        },
+        {
+          "name": "InitialSort",
+          "type": "string?"
+        },
+        {
+          "name": "Sort",
+          "type": "string?"
+        },
+        {
+          "name": "Page",
+          "type": "int?"
+        },
+        {
+          "name": "FilterPlacement",
+          "type": "FilterPlacement"
+        },
+        {
+          "name": "Filters",
+          "type": "IReadOnlyDictionary\u003Cstring, string\u003E?"
+        },
+        {
+          "name": "QueryPrefix",
+          "type": "string"
+        },
+        {
+          "name": "Caption",
+          "type": "string?"
+        },
+        {
+          "name": "EmptyContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?"
+        },
+        {
+          "name": "RowClass",
+          "type": "Func\u003CTItem, string?\u003E?"
+        },
+        {
+          "name": "Striped",
+          "type": "bool"
+        },
+        {
+          "name": "RowLines",
+          "type": "bool"
+        },
+        {
+          "name": "ColumnLines",
+          "type": "bool"
+        },
+        {
+          "name": "Bordered",
+          "type": "bool"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?"
+        },
+        {
+          "name": "Selectable",
+          "type": "bool"
+        },
+        {
+          "name": "SelectionName",
+          "type": "string?"
+        },
+        {
+          "name": "SelectedKeys",
+          "type": "IReadOnlyCollection\u003Cstring\u003E?"
+        },
+        {
+          "name": "RowHref",
+          "type": "Func\u003CTItem, string?\u003E?"
+        },
+        {
+          "name": "RowLabel",
+          "type": "Func\u003CTItem, string\u003E?"
+        },
+        {
+          "name": "Loading",
+          "type": "bool"
+        },
+        {
+          "name": "SelectAllLabel",
+          "type": "string?"
+        },
+        {
+          "name": "SelectRowLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "FilterPlacement",
+        "Length",
+        "TableRequest",
+        "TableResult"
+      ]
+    },
+    {
+      "name": "Tabs",
+      "displayName": "Tabs",
+      "fullName": "IzzyBlazor.Tabs",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Selected",
+          "type": "string?"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "QueryKey",
+          "type": "string?"
+        },
+        {
+          "name": "Variant",
+          "type": "TabsVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool"
+        },
+        {
+          "name": "ContentPadding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation"
+        },
+        {
+          "name": "Id",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "Orientation",
+        "TabsVariant"
+      ]
+    },
+    {
+      "name": "Tag",
+      "displayName": "Tag",
+      "fullName": "IzzyBlazor.Tag",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Status",
+          "type": "Status"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?"
+        },
+        {
+          "name": "Variant",
+          "type": "TagVariant"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "RemoveHref",
+          "type": "string?"
+        },
+        {
+          "name": "RemoveLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnRemove",
+          "type": "EventCallback"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ControlSize",
+        "Status",
+        "TagVariant"
+      ]
+    },
+    {
+      "name": "TemplateColumn",
+      "displayName": "TemplateColumn\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.TemplateColumn\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment\u003CTItem\u003E?"
+        },
+        {
+          "name": "SortBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?"
+        },
+        {
+          "name": "FilterBy",
+          "type": "Expression\u003CFunc\u003CTItem, string?\u003E\u003E?"
+        },
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "Sortable",
+          "type": "bool"
+        },
+        {
+          "name": "SortKey",
+          "type": "string?"
+        },
+        {
+          "name": "Filterable",
+          "type": "bool"
+        },
+        {
+          "name": "FilterMultiple",
+          "type": "bool"
+        },
+        {
+          "name": "Align",
+          "type": "CellAlign?"
+        },
+        {
+          "name": "Width",
+          "type": "Length?"
+        },
+        {
+          "name": "Class",
+          "type": "string?"
+        },
+        {
+          "name": "FooterText",
+          "type": "string?"
+        },
+        {
+          "name": "Footer",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "CellAlign",
+        "Length"
+      ]
+    },
+    {
+      "name": "TextArea",
+      "displayName": "TextArea",
+      "fullName": "IzzyBlazor.TextArea",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Rows",
+          "type": "int"
+        },
+        {
+          "name": "AutoGrow",
+          "type": "bool"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "MaxLength",
+          "type": "int?"
+        },
+        {
+          "name": "MinLength",
+          "type": "int?"
+        },
+        {
+          "name": "ShowCount",
+          "type": "bool"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "TextBlock",
+      "displayName": "TextBlock",
+      "fullName": "IzzyBlazor.TextBlock",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Size",
+          "type": "Responsive\u003CTextSize\u003E"
+        },
+        {
+          "name": "Weight",
+          "type": "FontWeight?"
+        },
+        {
+          "name": "Family",
+          "type": "FontFamily?"
+        },
+        {
+          "name": "Align",
+          "type": "Responsive\u003CTextAlign\u003E"
+        },
+        {
+          "name": "LineHeight",
+          "type": "LineHeight?"
+        },
+        {
+          "name": "LetterSpacing",
+          "type": "LetterSpacing?"
+        },
+        {
+          "name": "Transform",
+          "type": "TextTransform?"
+        },
+        {
+          "name": "Decoration",
+          "type": "TextDecoration?"
+        },
+        {
+          "name": "Italic",
+          "type": "bool"
+        },
+        {
+          "name": "Wrap",
+          "type": "TextWrap?"
+        },
+        {
+          "name": "Truncate",
+          "type": "bool"
+        },
+        {
+          "name": "LineClamp",
+          "type": "int?"
+        },
+        {
+          "name": "TabularNums",
+          "type": "bool"
+        },
+        {
+          "name": "MinSize",
+          "type": "TextSize?"
+        },
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "FontFamily",
+        "FontWeight",
+        "LetterSpacing",
+        "LineHeight",
+        "TextAlign",
+        "TextDecoration",
+        "TextSize",
+        "TextTransform",
+        "TextWrap"
+      ]
+    },
+    {
+      "name": "TextField",
+      "displayName": "TextField",
+      "fullName": "IzzyBlazor.TextField",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Type",
+          "type": "TextFieldType?"
+        },
+        {
+          "name": "Placeholder",
+          "type": "string?"
+        },
+        {
+          "name": "AutoComplete",
+          "type": "string?"
+        },
+        {
+          "name": "MaxLength",
+          "type": "int?"
+        },
+        {
+          "name": "MinLength",
+          "type": "int?"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?"
+        },
+        {
+          "name": "StartAddon",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "EndAddon",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Reveal",
+          "type": "bool"
+        },
+        {
+          "name": "ShowPasswordLabel",
+          "type": "string?"
+        },
+        {
+          "name": "Value",
+          "type": "string?"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "TextFieldType"
+      ]
+    },
+    {
+      "name": "Timeline",
+      "displayName": "Timeline",
+      "fullName": "IzzyBlazor.Timeline",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "As",
+          "type": "string"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    },
+    {
+      "name": "TimelineItem",
+      "displayName": "TimelineItem",
+      "fullName": "IzzyBlazor.TimelineItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?"
+        },
+        {
+          "name": "Href",
+          "type": "string?"
+        },
+        {
+          "name": "Time",
+          "type": "string?"
+        },
+        {
+          "name": "DateTime",
+          "type": "string?"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData?"
+        },
+        {
+          "name": "Status",
+          "type": "Status"
+        },
+        {
+          "name": "Current",
+          "type": "bool"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Status"
+      ]
+    },
+    {
+      "name": "ToastRegion",
+      "displayName": "ToastRegion",
+      "fullName": "IzzyBlazor.ToastRegion",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Placement",
+          "type": "ToastPlacement"
+        },
+        {
+          "name": "Duration",
+          "type": "int"
+        },
+        {
+          "name": "Variant",
+          "type": "AlertVariant"
+        },
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "DismissLabel",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "AlertVariant",
+        "ToastPlacement"
+      ]
+    },
+    {
+      "name": "Tooltip",
+      "displayName": "Tooltip",
+      "fullName": "IzzyBlazor.Tooltip",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Text",
+          "type": "string?"
+        },
+        {
+          "name": "Content",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "Placement",
+          "type": "Placement"
+        },
+        {
+          "name": "Delay",
+          "type": "int"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Placement"
+      ]
+    },
+    {
+      "name": "VideoEmbed",
+      "displayName": "VideoEmbed",
+      "fullName": "IzzyBlazor.VideoEmbed",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "StyledComponentBase",
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "YouTubeId",
+          "type": "string?"
+        },
+        {
+          "name": "Label",
+          "type": "string"
+        },
+        {
+          "name": "Poster",
+          "type": "string?"
+        },
+        {
+          "name": "Ratio",
+          "type": "double"
+        },
+        {
+          "name": "PlayLabel",
+          "type": "string?"
+        },
+        {
+          "name": "EmptyContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": []
+    }
+  ],
+  "bases": [
+    {
+      "name": "IzzyComponentBase",
+      "properties": [
+        {
+          "name": "Class",
+          "type": "string?"
+        },
+        {
+          "name": "Style",
+          "type": "string?"
+        },
+        {
+          "name": "HiddenFrom",
+          "type": "Breakpoint?"
+        },
+        {
+          "name": "VisibleFrom",
+          "type": "Breakpoint?"
+        }
+      ]
+    },
+    {
+      "name": "LayoutItemBase",
+      "properties": [
+        {
+          "name": "Margin",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginX",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginY",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginTop",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginBottom",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginStart",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginEnd",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Width",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "MinWidth",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "MaxWidth",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "Grow",
+          "type": "bool"
+        },
+        {
+          "name": "Shrink",
+          "type": "bool"
+        },
+        {
+          "name": "Basis",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "AlignSelf",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "ColSpan",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "NewRow",
+          "type": "bool"
+        }
+      ]
+    },
+    {
+      "name": "StyledComponentBase",
+      "properties": [
+        {
+          "name": "ColorScheme",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "Padding",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "PaddingX",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "PaddingY",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "PaddingTop",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "PaddingBottom",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "PaddingStart",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "PaddingEnd",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Bg",
+          "type": "Responsive\u003CColor\u003E"
+        },
+        {
+          "name": "Color",
+          "type": "Responsive\u003CColor\u003E"
+        },
+        {
+          "name": "Radius",
+          "type": "Responsive\u003CRadius\u003E"
+        },
+        {
+          "name": "Shadow",
+          "type": "Responsive\u003CShadow\u003E"
+        },
+        {
+          "name": "MinHeight",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "Height",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "Overflow",
+          "type": "Responsive\u003COverflow\u003E"
+        },
+        {
+          "name": "Border",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderX",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderY",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderTop",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderBottom",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderStart",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderEnd",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "BorderColor",
+          "type": "Responsive\u003CColor\u003E"
+        },
+        {
+          "name": "BorderStyle",
+          "type": "Responsive\u003CBorderStyle\u003E"
+        }
+      ]
+    },
+    {
+      "name": "FieldBase",
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?"
+        },
+        {
+          "name": "HideLabel",
+          "type": "bool"
+        },
+        {
+          "name": "Hint",
+          "type": "string?"
+        },
+        {
+          "name": "Required",
+          "type": "bool?"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool"
+        },
+        {
+          "name": "ReadOnly",
+          "type": "bool"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize"
+        },
+        {
+          "name": "Class",
+          "type": "string?"
+        },
+        {
+          "name": "Style",
+          "type": "string?"
+        },
+        {
+          "name": "HiddenFrom",
+          "type": "Breakpoint?"
+        },
+        {
+          "name": "VisibleFrom",
+          "type": "Breakpoint?"
+        },
+        {
+          "name": "Margin",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginX",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginY",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginTop",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginBottom",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginStart",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "MarginEnd",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "Width",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "MinWidth",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "MaxWidth",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "Grow",
+          "type": "bool"
+        },
+        {
+          "name": "Shrink",
+          "type": "bool"
+        },
+        {
+          "name": "Basis",
+          "type": "Responsive\u003CLength\u003E"
+        },
+        {
+          "name": "AlignSelf",
+          "type": "Responsive\u003CAlign\u003E"
+        },
+        {
+          "name": "ColSpan",
+          "type": "Responsive\u003Cint\u003E"
+        },
+        {
+          "name": "NewRow",
+          "type": "bool"
+        }
+      ]
+    }
+  ],
+  "types": [
+    {
+      "name": "Accent",
+      "fullName": "IzzyBlazor.Accent",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Primary",
+          "type": "Accent"
+        },
+        {
+          "name": "Neutral",
+          "type": "Accent"
+        },
+        {
+          "name": "Danger",
+          "type": "Accent"
+        },
+        {
+          "name": "Of",
+          "type": "Accent Of(string css)"
+        },
+        {
+          "name": "Token",
+          "type": "Accent Token(string name)"
+        },
+        {
+          "name": "From",
+          "type": "Accent From(Color color)"
+        }
+      ]
+    },
+    {
+      "name": "AccordionVariant",
+      "fullName": "IzzyBlazor.AccordionVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Separated",
+          "type": "AccordionVariant"
+        },
+        {
+          "name": "Bordered",
+          "type": "AccordionVariant"
+        },
+        {
+          "name": "Flush",
+          "type": "AccordionVariant"
+        }
+      ]
+    },
+    {
+      "name": "AlertVariant",
+      "fullName": "IzzyBlazor.AlertVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Soft",
+          "type": "AlertVariant"
+        },
+        {
+          "name": "Outline",
+          "type": "AlertVariant"
+        },
+        {
+          "name": "Solid",
+          "type": "AlertVariant"
+        }
+      ]
+    },
+    {
+      "name": "Align",
+      "fullName": "IzzyBlazor.Align",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Stretch",
+          "type": "Align"
+        },
+        {
+          "name": "Start",
+          "type": "Align"
+        },
+        {
+          "name": "Center",
+          "type": "Align"
+        },
+        {
+          "name": "End",
+          "type": "Align"
+        },
+        {
+          "name": "Baseline",
+          "type": "Align"
+        }
+      ]
+    },
+    {
+      "name": "AnchorUnderline",
+      "fullName": "IzzyBlazor.AnchorUnderline",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Always",
+          "type": "AnchorUnderline"
+        },
+        {
+          "name": "Hover",
+          "type": "AnchorUnderline"
+        },
+        {
+          "name": "None",
+          "type": "AnchorUnderline"
+        }
+      ]
+    },
+    {
+      "name": "AvatarSize",
+      "fullName": "IzzyBlazor.AvatarSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Xs",
+          "type": "AvatarSize"
+        },
+        {
+          "name": "Sm",
+          "type": "AvatarSize"
+        },
+        {
+          "name": "Md",
+          "type": "AvatarSize"
+        },
+        {
+          "name": "Lg",
+          "type": "AvatarSize"
+        },
+        {
+          "name": "Xl",
+          "type": "AvatarSize"
+        },
+        {
+          "name": "Xl2",
+          "type": "AvatarSize"
+        }
+      ]
+    },
+    {
+      "name": "AvatarVariant",
+      "fullName": "IzzyBlazor.AvatarVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Soft",
+          "type": "AvatarVariant"
+        },
+        {
+          "name": "Solid",
+          "type": "AvatarVariant"
+        }
+      ]
+    },
+    {
+      "name": "BadgeSize",
+      "fullName": "IzzyBlazor.BadgeSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "BadgeSize"
+        },
+        {
+          "name": "Md",
+          "type": "BadgeSize"
+        }
+      ]
+    },
+    {
+      "name": "BadgeVariant",
+      "fullName": "IzzyBlazor.BadgeVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Soft",
+          "type": "BadgeVariant"
+        },
+        {
+          "name": "Solid",
+          "type": "BadgeVariant"
+        },
+        {
+          "name": "Outline",
+          "type": "BadgeVariant"
+        },
+        {
+          "name": "Plain",
+          "type": "BadgeVariant"
+        }
+      ]
+    },
+    {
+      "name": "BarPosition",
+      "fullName": "IzzyBlazor.BarPosition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Static",
+          "type": "BarPosition"
+        },
+        {
+          "name": "Sticky",
+          "type": "BarPosition"
+        }
+      ]
+    },
+    {
+      "name": "BorderStyle",
+      "fullName": "IzzyBlazor.BorderStyle",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Solid",
+          "type": "BorderStyle"
+        },
+        {
+          "name": "Dashed",
+          "type": "BorderStyle"
+        },
+        {
+          "name": "Dotted",
+          "type": "BorderStyle"
+        },
+        {
+          "name": "None",
+          "type": "BorderStyle"
+        }
+      ]
+    },
+    {
+      "name": "BreadcrumbSeparator",
+      "fullName": "IzzyBlazor.BreadcrumbSeparator",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Chevron",
+          "type": "BreadcrumbSeparator"
+        },
+        {
+          "name": "Slash",
+          "type": "BreadcrumbSeparator"
+        }
+      ]
+    },
+    {
+      "name": "Breakpoint",
+      "fullName": "IzzyBlazor.Breakpoint",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Md",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Lg",
+          "type": "Breakpoint"
+        },
+        {
+          "name": "Xl",
+          "type": "Breakpoint"
+        }
+      ]
+    },
+    {
+      "name": "ButtonVariant",
+      "fullName": "IzzyBlazor.ButtonVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Solid",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Soft",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Outline",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Ghost",
+          "type": "ButtonVariant"
+        },
+        {
+          "name": "Link",
+          "type": "ButtonVariant"
+        }
+      ]
+    },
+    {
+      "name": "CardVariant",
+      "fullName": "IzzyBlazor.CardVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Outline",
+          "type": "CardVariant"
+        },
+        {
+          "name": "Elevated",
+          "type": "CardVariant"
+        },
+        {
+          "name": "Filled",
+          "type": "CardVariant"
+        }
+      ]
+    },
+    {
+      "name": "CellAlign",
+      "fullName": "IzzyBlazor.CellAlign",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "CellAlign"
+        },
+        {
+          "name": "Center",
+          "type": "CellAlign"
+        },
+        {
+          "name": "End",
+          "type": "CellAlign"
+        }
+      ]
+    },
+    {
+      "name": "Color",
+      "fullName": "IzzyBlazor.Color",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "Primary",
+          "type": "Color"
+        },
+        {
+          "name": "OnPrimary",
+          "type": "Color"
+        },
+        {
+          "name": "Success",
+          "type": "Color"
+        },
+        {
+          "name": "OnSuccess",
+          "type": "Color"
+        },
+        {
+          "name": "Warning",
+          "type": "Color"
+        },
+        {
+          "name": "OnWarning",
+          "type": "Color"
+        },
+        {
+          "name": "Danger",
+          "type": "Color"
+        },
+        {
+          "name": "OnDanger",
+          "type": "Color"
+        },
+        {
+          "name": "Info",
+          "type": "Color"
+        },
+        {
+          "name": "OnInfo",
+          "type": "Color"
+        },
+        {
+          "name": "Neutral",
+          "type": "Color"
+        },
+        {
+          "name": "OnNeutral",
+          "type": "Color"
+        },
+        {
+          "name": "Background",
+          "type": "Color"
+        },
+        {
+          "name": "Surface",
+          "type": "Color"
+        },
+        {
+          "name": "SurfaceContainerLow",
+          "type": "Color"
+        },
+        {
+          "name": "SurfaceContainer",
+          "type": "Color"
+        },
+        {
+          "name": "SurfaceContainerHigh",
+          "type": "Color"
+        },
+        {
+          "name": "SurfaceRaised",
+          "type": "Color"
+        },
+        {
+          "name": "OnSurface",
+          "type": "Color"
+        },
+        {
+          "name": "Muted",
+          "type": "Color"
+        },
+        {
+          "name": "Subtle",
+          "type": "Color"
+        },
+        {
+          "name": "Disabled",
+          "type": "Color"
+        },
+        {
+          "name": "PrimaryText",
+          "type": "Color"
+        },
+        {
+          "name": "SuccessText",
+          "type": "Color"
+        },
+        {
+          "name": "WarningText",
+          "type": "Color"
+        },
+        {
+          "name": "DangerText",
+          "type": "Color"
+        },
+        {
+          "name": "InfoText",
+          "type": "Color"
+        },
+        {
+          "name": "PrimarySoft",
+          "type": "Color"
+        },
+        {
+          "name": "SuccessSoft",
+          "type": "Color"
+        },
+        {
+          "name": "WarningSoft",
+          "type": "Color"
+        },
+        {
+          "name": "DangerSoft",
+          "type": "Color"
+        },
+        {
+          "name": "InfoSoft",
+          "type": "Color"
+        },
+        {
+          "name": "Focus",
+          "type": "Color"
+        },
+        {
+          "name": "Border",
+          "type": "Color"
+        },
+        {
+          "name": "Outline",
+          "type": "Color"
+        },
+        {
+          "name": "Transparent",
+          "type": "Color"
+        },
+        {
+          "name": "CurrentColor",
+          "type": "Color"
+        },
+        {
+          "name": "Token",
+          "type": "Color Token(string name)"
+        },
+        {
+          "name": "Of",
+          "type": "Color Of(string css)"
+        },
+        {
+          "name": "Css",
+          "type": "string"
+        },
+        {
+          "name": "TokenName",
+          "type": "string?"
+        },
+        {
+          "name": "ContrastText",
+          "type": "Color?"
+        }
+      ]
+    },
+    {
+      "name": "ColorScheme",
+      "fullName": "IzzyBlazor.ColorScheme",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "Light",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "Dark",
+          "type": "ColorScheme"
+        },
+        {
+          "name": "Inverse",
+          "type": "ColorScheme"
+        }
+      ]
+    },
+    {
+      "name": "ColorSchemeSwitchVariant",
+      "fullName": "IzzyBlazor.ColorSchemeSwitchVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Menu",
+          "type": "ColorSchemeSwitchVariant"
+        },
+        {
+          "name": "Toggle",
+          "type": "ColorSchemeSwitchVariant"
+        },
+        {
+          "name": "Segmented",
+          "type": "ColorSchemeSwitchVariant"
+        }
+      ]
+    },
+    {
+      "name": "ConfirmOptions",
+      "fullName": "IzzyBlazor.ConfirmOptions",
+      "kind": "class",
+      "members": [
+        {
+          "name": "ConfirmText",
+          "type": "string?"
+        },
+        {
+          "name": "CancelText",
+          "type": "string?"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent"
+        }
+      ]
+    },
+    {
+      "name": "ContainerSize",
+      "fullName": "IzzyBlazor.ContainerSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "ContainerSize"
+        },
+        {
+          "name": "Md",
+          "type": "ContainerSize"
+        },
+        {
+          "name": "Lg",
+          "type": "ContainerSize"
+        },
+        {
+          "name": "Xl",
+          "type": "ContainerSize"
+        },
+        {
+          "name": "Full",
+          "type": "ContainerSize"
+        }
+      ]
+    },
+    {
+      "name": "ControlPosition",
+      "fullName": "IzzyBlazor.ControlPosition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "ControlPosition"
+        },
+        {
+          "name": "End",
+          "type": "ControlPosition"
+        }
+      ]
+    },
+    {
+      "name": "ControlSize",
+      "fullName": "IzzyBlazor.ControlSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "ControlSize"
+        },
+        {
+          "name": "Md",
+          "type": "ControlSize"
+        },
+        {
+          "name": "Lg",
+          "type": "ControlSize"
+        }
+      ]
+    },
+    {
+      "name": "DialogPlacement",
+      "fullName": "IzzyBlazor.DialogPlacement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Center",
+          "type": "DialogPlacement"
+        },
+        {
+          "name": "Start",
+          "type": "DialogPlacement"
+        },
+        {
+          "name": "End",
+          "type": "DialogPlacement"
+        },
+        {
+          "name": "Top",
+          "type": "DialogPlacement"
+        },
+        {
+          "name": "Bottom",
+          "type": "DialogPlacement"
+        }
+      ]
+    },
+    {
+      "name": "DialogSize",
+      "fullName": "IzzyBlazor.DialogSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "DialogSize"
+        },
+        {
+          "name": "Md",
+          "type": "DialogSize"
+        },
+        {
+          "name": "Lg",
+          "type": "DialogSize"
+        },
+        {
+          "name": "Xl",
+          "type": "DialogSize"
+        },
+        {
+          "name": "Full",
+          "type": "DialogSize"
+        }
+      ]
+    },
+    {
+      "name": "Direction",
+      "fullName": "IzzyBlazor.Direction",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Row",
+          "type": "Direction"
+        },
+        {
+          "name": "Column",
+          "type": "Direction"
+        },
+        {
+          "name": "RowReverse",
+          "type": "Direction"
+        },
+        {
+          "name": "ColumnReverse",
+          "type": "Direction"
+        }
+      ]
+    },
+    {
+      "name": "DismissMemory",
+      "fullName": "IzzyBlazor.DismissMemory",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Session",
+          "type": "DismissMemory"
+        },
+        {
+          "name": "Persistent",
+          "type": "DismissMemory"
+        },
+        {
+          "name": "None",
+          "type": "DismissMemory"
+        }
+      ]
+    },
+    {
+      "name": "FilterPlacement",
+      "fullName": "IzzyBlazor.FilterPlacement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Header",
+          "type": "FilterPlacement"
+        },
+        {
+          "name": "Row",
+          "type": "FilterPlacement"
+        }
+      ]
+    },
+    {
+      "name": "FontFamily",
+      "fullName": "IzzyBlazor.FontFamily",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Body",
+          "type": "FontFamily"
+        },
+        {
+          "name": "Heading",
+          "type": "FontFamily"
+        },
+        {
+          "name": "Mono",
+          "type": "FontFamily"
+        }
+      ]
+    },
+    {
+      "name": "FontWeight",
+      "fullName": "IzzyBlazor.FontWeight",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Light",
+          "type": "FontWeight"
+        },
+        {
+          "name": "Normal",
+          "type": "FontWeight"
+        },
+        {
+          "name": "Medium",
+          "type": "FontWeight"
+        },
+        {
+          "name": "Semibold",
+          "type": "FontWeight"
+        },
+        {
+          "name": "Bold",
+          "type": "FontWeight"
+        },
+        {
+          "name": "Extrabold",
+          "type": "FontWeight"
+        }
+      ]
+    },
+    {
+      "name": "FormLayout",
+      "fullName": "IzzyBlazor.FormLayout",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Vertical",
+          "type": "FormLayout"
+        },
+        {
+          "name": "Horizontal",
+          "type": "FormLayout"
+        }
+      ]
+    },
+    {
+      "name": "IconRole",
+      "fullName": "IzzyBlazor.IconRole",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Close",
+          "type": "IconRole"
+        },
+        {
+          "name": "ChevronDown",
+          "type": "IconRole"
+        },
+        {
+          "name": "ChevronUp",
+          "type": "IconRole"
+        },
+        {
+          "name": "ChevronLeft",
+          "type": "IconRole"
+        },
+        {
+          "name": "ChevronRight",
+          "type": "IconRole"
+        },
+        {
+          "name": "Check",
+          "type": "IconRole"
+        },
+        {
+          "name": "Minus",
+          "type": "IconRole"
+        },
+        {
+          "name": "Plus",
+          "type": "IconRole"
+        },
+        {
+          "name": "Menu",
+          "type": "IconRole"
+        },
+        {
+          "name": "Search",
+          "type": "IconRole"
+        },
+        {
+          "name": "MoreHorizontal",
+          "type": "IconRole"
+        },
+        {
+          "name": "Info",
+          "type": "IconRole"
+        },
+        {
+          "name": "Success",
+          "type": "IconRole"
+        },
+        {
+          "name": "Warning",
+          "type": "IconRole"
+        },
+        {
+          "name": "Error",
+          "type": "IconRole"
+        },
+        {
+          "name": "ExternalLink",
+          "type": "IconRole"
+        },
+        {
+          "name": "Copy",
+          "type": "IconRole"
+        },
+        {
+          "name": "Copied",
+          "type": "IconRole"
+        },
+        {
+          "name": "Calendar",
+          "type": "IconRole"
+        },
+        {
+          "name": "Clock",
+          "type": "IconRole"
+        },
+        {
+          "name": "Show",
+          "type": "IconRole"
+        },
+        {
+          "name": "Hide",
+          "type": "IconRole"
+        },
+        {
+          "name": "Loading",
+          "type": "IconRole"
+        },
+        {
+          "name": "SortAscending",
+          "type": "IconRole"
+        },
+        {
+          "name": "SortDescending",
+          "type": "IconRole"
+        },
+        {
+          "name": "Sortable",
+          "type": "IconRole"
+        },
+        {
+          "name": "TrendUp",
+          "type": "IconRole"
+        },
+        {
+          "name": "TrendDown",
+          "type": "IconRole"
+        },
+        {
+          "name": "TrendFlat",
+          "type": "IconRole"
+        },
+        {
+          "name": "Filter",
+          "type": "IconRole"
+        },
+        {
+          "name": "SchemeLight",
+          "type": "IconRole"
+        },
+        {
+          "name": "SchemeDark",
+          "type": "IconRole"
+        },
+        {
+          "name": "SchemeSystem",
+          "type": "IconRole"
+        },
+        {
+          "name": "Person",
+          "type": "IconRole"
+        },
+        {
+          "name": "Play",
+          "type": "IconRole"
+        },
+        {
+          "name": "Upload",
+          "type": "IconRole"
+        }
+      ]
+    },
+    {
+      "name": "IconSize",
+      "fullName": "IzzyBlazor.IconSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Xs",
+          "type": "IconSize"
+        },
+        {
+          "name": "Sm",
+          "type": "IconSize"
+        },
+        {
+          "name": "Md",
+          "type": "IconSize"
+        },
+        {
+          "name": "Lg",
+          "type": "IconSize"
+        },
+        {
+          "name": "Xl",
+          "type": "IconSize"
+        },
+        {
+          "name": "Xl2",
+          "type": "IconSize"
+        },
+        {
+          "name": "Xl3",
+          "type": "IconSize"
+        }
+      ]
+    },
+    {
+      "name": "ImageFit",
+      "fullName": "IzzyBlazor.ImageFit",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Cover",
+          "type": "ImageFit"
+        },
+        {
+          "name": "Contain",
+          "type": "ImageFit"
+        }
+      ]
+    },
+    {
+      "name": "Justify",
+      "fullName": "IzzyBlazor.Justify",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "Justify"
+        },
+        {
+          "name": "Center",
+          "type": "Justify"
+        },
+        {
+          "name": "End",
+          "type": "Justify"
+        },
+        {
+          "name": "Between",
+          "type": "Justify"
+        },
+        {
+          "name": "Around",
+          "type": "Justify"
+        },
+        {
+          "name": "Evenly",
+          "type": "Justify"
+        }
+      ]
+    },
+    {
+      "name": "Length",
+      "fullName": "IzzyBlazor.Length",
+      "kind": "struct",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "Length"
+        },
+        {
+          "name": "Md",
+          "type": "Length"
+        },
+        {
+          "name": "Lg",
+          "type": "Length"
+        },
+        {
+          "name": "Xl",
+          "type": "Length"
+        },
+        {
+          "name": "Prose",
+          "type": "Length"
+        },
+        {
+          "name": "Full",
+          "type": "Length"
+        },
+        {
+          "name": "Auto",
+          "type": "Length"
+        },
+        {
+          "name": "FitContent",
+          "type": "Length"
+        },
+        {
+          "name": "MinContent",
+          "type": "Length"
+        },
+        {
+          "name": "MaxContent",
+          "type": "Length"
+        },
+        {
+          "name": "Px",
+          "type": "Length Px(double value)"
+        },
+        {
+          "name": "Rem",
+          "type": "Length Rem(double value)"
+        },
+        {
+          "name": "Percent",
+          "type": "Length Percent(double value)"
+        },
+        {
+          "name": "Ch",
+          "type": "Length Ch(double value)"
+        },
+        {
+          "name": "Vw",
+          "type": "Length Vw(double value)"
+        },
+        {
+          "name": "Dvh",
+          "type": "Length Dvh(double value)"
+        },
+        {
+          "name": "Of",
+          "type": "Length Of(string css)"
+        },
+        {
+          "name": "Css",
+          "type": "string"
+        }
+      ]
+    },
+    {
+      "name": "LetterSpacing",
+      "fullName": "IzzyBlazor.LetterSpacing",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Tighter",
+          "type": "LetterSpacing"
+        },
+        {
+          "name": "Tight",
+          "type": "LetterSpacing"
+        },
+        {
+          "name": "Normal",
+          "type": "LetterSpacing"
+        },
+        {
+          "name": "Wide",
+          "type": "LetterSpacing"
+        },
+        {
+          "name": "Wider",
+          "type": "LetterSpacing"
+        },
+        {
+          "name": "Widest",
+          "type": "LetterSpacing"
+        }
+      ]
+    },
+    {
+      "name": "LineHeight",
+      "fullName": "IzzyBlazor.LineHeight",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "LineHeight"
+        },
+        {
+          "name": "Tight",
+          "type": "LineHeight"
+        },
+        {
+          "name": "Snug",
+          "type": "LineHeight"
+        },
+        {
+          "name": "Normal",
+          "type": "LineHeight"
+        },
+        {
+          "name": "Relaxed",
+          "type": "LineHeight"
+        },
+        {
+          "name": "Loose",
+          "type": "LineHeight"
+        }
+      ]
+    },
+    {
+      "name": "Orientation",
+      "fullName": "IzzyBlazor.Orientation",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Vertical",
+          "type": "Orientation"
+        },
+        {
+          "name": "Horizontal",
+          "type": "Orientation"
+        }
+      ]
+    },
+    {
+      "name": "Overflow",
+      "fullName": "IzzyBlazor.Overflow",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Visible",
+          "type": "Overflow"
+        },
+        {
+          "name": "Hidden",
+          "type": "Overflow"
+        },
+        {
+          "name": "Auto",
+          "type": "Overflow"
+        },
+        {
+          "name": "Scroll",
+          "type": "Overflow"
+        },
+        {
+          "name": "Clip",
+          "type": "Overflow"
+        }
+      ]
+    },
+    {
+      "name": "Placement",
+      "fullName": "IzzyBlazor.Placement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "BottomStart",
+          "type": "Placement"
+        },
+        {
+          "name": "Bottom",
+          "type": "Placement"
+        },
+        {
+          "name": "BottomEnd",
+          "type": "Placement"
+        },
+        {
+          "name": "TopStart",
+          "type": "Placement"
+        },
+        {
+          "name": "Top",
+          "type": "Placement"
+        },
+        {
+          "name": "TopEnd",
+          "type": "Placement"
+        },
+        {
+          "name": "Start",
+          "type": "Placement"
+        },
+        {
+          "name": "End",
+          "type": "Placement"
+        }
+      ]
+    },
+    {
+      "name": "PopoverMode",
+      "fullName": "IzzyBlazor.PopoverMode",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "PopoverMode"
+        },
+        {
+          "name": "Manual",
+          "type": "PopoverMode"
+        }
+      ]
+    },
+    {
+      "name": "ProseSize",
+      "fullName": "IzzyBlazor.ProseSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sm",
+          "type": "ProseSize"
+        },
+        {
+          "name": "Md",
+          "type": "ProseSize"
+        },
+        {
+          "name": "Lg",
+          "type": "ProseSize"
+        }
+      ]
+    },
+    {
+      "name": "Radius",
+      "fullName": "IzzyBlazor.Radius",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "Radius"
+        },
+        {
+          "name": "Sm",
+          "type": "Radius"
+        },
+        {
+          "name": "Md",
+          "type": "Radius"
+        },
+        {
+          "name": "Lg",
+          "type": "Radius"
+        },
+        {
+          "name": "Xl",
+          "type": "Radius"
+        },
+        {
+          "name": "Full",
+          "type": "Radius"
+        }
+      ]
+    },
+    {
+      "name": "RequiredMark",
+      "fullName": "IzzyBlazor.RequiredMark",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Required",
+          "type": "RequiredMark"
+        },
+        {
+          "name": "Optional",
+          "type": "RequiredMark"
+        },
+        {
+          "name": "None",
+          "type": "RequiredMark"
+        }
+      ]
+    },
+    {
+      "name": "SectionSpacing",
+      "fullName": "IzzyBlazor.SectionSpacing",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "SectionSpacing"
+        },
+        {
+          "name": "Sm",
+          "type": "SectionSpacing"
+        },
+        {
+          "name": "Md",
+          "type": "SectionSpacing"
+        },
+        {
+          "name": "Lg",
+          "type": "SectionSpacing"
+        }
+      ]
+    },
+    {
+      "name": "Shadow",
+      "fullName": "IzzyBlazor.Shadow",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "Shadow"
+        },
+        {
+          "name": "Sm",
+          "type": "Shadow"
+        },
+        {
+          "name": "Md",
+          "type": "Shadow"
+        },
+        {
+          "name": "Lg",
+          "type": "Shadow"
+        }
+      ]
+    },
+    {
+      "name": "ShellScroll",
+      "fullName": "IzzyBlazor.ShellScroll",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Page",
+          "type": "ShellScroll"
+        },
+        {
+          "name": "Main",
+          "type": "ShellScroll"
+        }
+      ]
+    },
+    {
+      "name": "ShellVariant",
+      "fullName": "IzzyBlazor.ShellVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Tinted",
+          "type": "ShellVariant"
+        },
+        {
+          "name": "Inset",
+          "type": "ShellVariant"
+        },
+        {
+          "name": "Flat",
+          "type": "ShellVariant"
+        },
+        {
+          "name": "Canvas",
+          "type": "ShellVariant"
+        }
+      ]
+    },
+    {
+      "name": "SidebarPosition",
+      "fullName": "IzzyBlazor.SidebarPosition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "SidebarPosition"
+        },
+        {
+          "name": "End",
+          "type": "SidebarPosition"
+        }
+      ]
+    },
+    {
+      "name": "SidebarSmallScreen",
+      "fullName": "IzzyBlazor.SidebarSmallScreen",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Drawer",
+          "type": "SidebarSmallScreen"
+        },
+        {
+          "name": "Panel",
+          "type": "SidebarSmallScreen"
+        }
+      ]
+    },
+    {
+      "name": "StatTrend",
+      "fullName": "IzzyBlazor.StatTrend",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "StatTrend"
+        },
+        {
+          "name": "Up",
+          "type": "StatTrend"
+        },
+        {
+          "name": "Down",
+          "type": "StatTrend"
+        },
+        {
+          "name": "Flat",
+          "type": "StatTrend"
+        }
+      ]
+    },
+    {
+      "name": "Status",
+      "fullName": "IzzyBlazor.Status",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Neutral",
+          "type": "Status"
+        },
+        {
+          "name": "Info",
+          "type": "Status"
+        },
+        {
+          "name": "Success",
+          "type": "Status"
+        },
+        {
+          "name": "Warning",
+          "type": "Status"
+        },
+        {
+          "name": "Danger",
+          "type": "Status"
+        }
+      ]
+    },
+    {
+      "name": "StepButtons",
+      "fullName": "IzzyBlazor.StepButtons",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Stacked",
+          "type": "StepButtons"
+        },
+        {
+          "name": "Split",
+          "type": "StepButtons"
+        },
+        {
+          "name": "None",
+          "type": "StepButtons"
+        }
+      ]
+    },
+    {
+      "name": "TableRequest",
+      "fullName": "IzzyBlazor.TableRequest\u00601",
+      "kind": "record",
+      "members": [
+        {
+          "name": "SortKey",
+          "type": "string?"
+        },
+        {
+          "name": "Descending",
+          "type": "bool"
+        },
+        {
+          "name": "Page",
+          "type": "int"
+        },
+        {
+          "name": "PageSize",
+          "type": "int?"
+        },
+        {
+          "name": "Filters",
+          "type": "IReadOnlyDictionary\u003Cstring, string\u003E"
+        },
+        {
+          "name": "Skip",
+          "type": "int"
+        },
+        {
+          "name": "Apply",
+          "type": "IQueryable\u003CTItem\u003E Apply(IQueryable\u003CTItem\u003E source)"
+        },
+        {
+          "name": "ApplyFiltering",
+          "type": "IQueryable\u003CTItem\u003E ApplyFiltering(IQueryable\u003CTItem\u003E source)"
+        },
+        {
+          "name": "ApplySorting",
+          "type": "IQueryable\u003CTItem\u003E ApplySorting(IQueryable\u003CTItem\u003E source)"
+        }
+      ]
+    },
+    {
+      "name": "TableResult",
+      "fullName": "IzzyBlazor.TableResult\u00601",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Items",
+          "type": "IReadOnlyList\u003CTItem\u003E"
+        },
+        {
+          "name": "TotalItems",
+          "type": "int"
+        }
+      ]
+    },
+    {
+      "name": "TabsVariant",
+      "fullName": "IzzyBlazor.TabsVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Line",
+          "type": "TabsVariant"
+        },
+        {
+          "name": "Soft",
+          "type": "TabsVariant"
+        },
+        {
+          "name": "Segmented",
+          "type": "TabsVariant"
+        }
+      ]
+    },
+    {
+      "name": "TagVariant",
+      "fullName": "IzzyBlazor.TagVariant",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Soft",
+          "type": "TagVariant"
+        },
+        {
+          "name": "Solid",
+          "type": "TagVariant"
+        },
+        {
+          "name": "Outline",
+          "type": "TagVariant"
+        }
+      ]
+    },
+    {
+      "name": "TextAlign",
+      "fullName": "IzzyBlazor.TextAlign",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "TextAlign"
+        },
+        {
+          "name": "Center",
+          "type": "TextAlign"
+        },
+        {
+          "name": "End",
+          "type": "TextAlign"
+        },
+        {
+          "name": "Justify",
+          "type": "TextAlign"
+        }
+      ]
+    },
+    {
+      "name": "TextDecoration",
+      "fullName": "IzzyBlazor.TextDecoration",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "TextDecoration"
+        },
+        {
+          "name": "Underline",
+          "type": "TextDecoration"
+        },
+        {
+          "name": "LineThrough",
+          "type": "TextDecoration"
+        }
+      ]
+    },
+    {
+      "name": "TextFieldType",
+      "fullName": "IzzyBlazor.TextFieldType",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Text",
+          "type": "TextFieldType"
+        },
+        {
+          "name": "Email",
+          "type": "TextFieldType"
+        },
+        {
+          "name": "Password",
+          "type": "TextFieldType"
+        },
+        {
+          "name": "Search",
+          "type": "TextFieldType"
+        },
+        {
+          "name": "Tel",
+          "type": "TextFieldType"
+        },
+        {
+          "name": "Url",
+          "type": "TextFieldType"
+        }
+      ]
+    },
+    {
+      "name": "TextSize",
+      "fullName": "IzzyBlazor.TextSize",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Xs",
+          "type": "TextSize"
+        },
+        {
+          "name": "Sm",
+          "type": "TextSize"
+        },
+        {
+          "name": "Md",
+          "type": "TextSize"
+        },
+        {
+          "name": "Lg",
+          "type": "TextSize"
+        },
+        {
+          "name": "Xl",
+          "type": "TextSize"
+        },
+        {
+          "name": "Xl2",
+          "type": "TextSize"
+        },
+        {
+          "name": "Xl3",
+          "type": "TextSize"
+        },
+        {
+          "name": "Xl4",
+          "type": "TextSize"
+        },
+        {
+          "name": "Xl5",
+          "type": "TextSize"
+        },
+        {
+          "name": "Xl6",
+          "type": "TextSize"
+        }
+      ]
+    },
+    {
+      "name": "TextTransform",
+      "fullName": "IzzyBlazor.TextTransform",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "TextTransform"
+        },
+        {
+          "name": "Uppercase",
+          "type": "TextTransform"
+        },
+        {
+          "name": "Lowercase",
+          "type": "TextTransform"
+        },
+        {
+          "name": "Capitalize",
+          "type": "TextTransform"
+        }
+      ]
+    },
+    {
+      "name": "TextWrap",
+      "fullName": "IzzyBlazor.TextWrap",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Wrap",
+          "type": "TextWrap"
+        },
+        {
+          "name": "NoWrap",
+          "type": "TextWrap"
+        },
+        {
+          "name": "Balance",
+          "type": "TextWrap"
+        },
+        {
+          "name": "Pretty",
+          "type": "TextWrap"
+        }
+      ]
+    },
+    {
+      "name": "ThemeDensity",
+      "fullName": "IzzyBlazor.ThemeDensity",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Compact",
+          "type": "ThemeDensity"
+        },
+        {
+          "name": "Standard",
+          "type": "ThemeDensity"
+        },
+        {
+          "name": "Comfortable",
+          "type": "ThemeDensity"
+        }
+      ]
+    },
+    {
+      "name": "ThemePreset",
+      "fullName": "IzzyBlazor.ThemePreset",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Standard",
+          "type": "ThemePreset"
+        },
+        {
+          "name": "Compact",
+          "type": "ThemePreset"
+        },
+        {
+          "name": "Soft",
+          "type": "ThemePreset"
+        },
+        {
+          "name": "Editorial",
+          "type": "ThemePreset"
+        }
+      ]
+    },
+    {
+      "name": "ThemeRadius",
+      "fullName": "IzzyBlazor.ThemeRadius",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "ThemeRadius"
+        },
+        {
+          "name": "Sm",
+          "type": "ThemeRadius"
+        },
+        {
+          "name": "Md",
+          "type": "ThemeRadius"
+        },
+        {
+          "name": "Lg",
+          "type": "ThemeRadius"
+        },
+        {
+          "name": "Full",
+          "type": "ThemeRadius"
+        }
+      ]
+    },
+    {
+      "name": "ThemeScrollbars",
+      "fullName": "IzzyBlazor.ThemeScrollbars",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "ThemeScrollbars"
+        },
+        {
+          "name": "Themed",
+          "type": "ThemeScrollbars"
+        },
+        {
+          "name": "Native",
+          "type": "ThemeScrollbars"
+        }
+      ]
+    },
+    {
+      "name": "ToastPlacement",
+      "fullName": "IzzyBlazor.ToastPlacement",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "TopStart",
+          "type": "ToastPlacement"
+        },
+        {
+          "name": "TopCenter",
+          "type": "ToastPlacement"
+        },
+        {
+          "name": "TopEnd",
+          "type": "ToastPlacement"
+        },
+        {
+          "name": "BottomStart",
+          "type": "ToastPlacement"
+        },
+        {
+          "name": "BottomCenter",
+          "type": "ToastPlacement"
+        },
+        {
+          "name": "BottomEnd",
+          "type": "ToastPlacement"
+        }
+      ]
+    },
+    {
+      "name": "VerticalPosition",
+      "fullName": "IzzyBlazor.VerticalPosition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Top",
+          "type": "VerticalPosition"
+        },
+        {
+          "name": "Bottom",
+          "type": "VerticalPosition"
+        }
+      ]
+    }
+  ]
+}
