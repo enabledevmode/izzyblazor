@@ -1,13 +1,18 @@
 @inject NavigationManager Navigation
 
 @*
-    The page's Off · Static · Live switch: every example on the page shows the checked mode. It's
-    a group of radios named "site-mode", and CSS picks each example's frame from whichever is
-    checked (body:has(...)), so it works with no script. Copies on one page (the right column on
-    wide screens, the top of the content on narrow ones) share the name, so they're one group.
+    The page's Off · Static · Live switch: every example on the page shows the checked mode. CSS
+    picks each example's frame from the checked radio (body:has(...)), so it works with no script.
 
-    The mode comes from ?mode= (a link can open a page in Off), then the "site-mode" cookie the
-    script sets when it changes, then Static.
+    A component page has two copies, the right column's on wide screens and one at the top of the
+    content on narrow ones. Each is its own radio group (site-mode-aside, site-mode-top), so the
+    one you can see always has its option checked for screen readers and the keyboard, and CSS
+    reads the visible one's by width. The script keeps them in step. A page that is one example
+    (demos, the home hero, the docs overview) has one copy, in the example's row.
+
+    The mode comes from ?mode=, then the "site-mode" cookie, then Static. The script stores the
+    mode in the cookie when it changes or a link carries ?mode=, so the next page opens in the same
+    mode, and updates ?mode= in the address if it's there.
 *@
 
 <div class="@($"site-modeswitch site-modeswitch-{Placement}")">
@@ -19,7 +24,7 @@
         @foreach (var mode in Modes)
         {
             <label class="site-modeswitch-option">
-                <input type="radio" class="site-mode-input" name="site-mode" value="@mode" checked="@(mode == _mode)" />
+                <input type="radio" class="site-mode-input" name="@($"site-mode-{Placement}")" value="@mode" checked="@(mode == _mode)" />
                 <span>@ModeChip.Name(mode)</span>
             </label>
         }
@@ -36,10 +41,13 @@
 @code {
     public static readonly string[] Modes = ["off", "static", "live"];
 
+    /// <summary>The docs layout's right-column section a component page puts its switch in.</summary>
+    public const string AsideSection = "site-mode-aside";
+
     /// <summary>Where it sits, for CSS: <c>aside</c> (wide screens), <c>top</c> (narrow) or <c>example</c>.</summary>
     [Parameter] public string Placement { get; set; } = "top";
 
-    /// <summary>Only the three options, for an example's own strip.</summary>
+    /// <summary>Only the three options, for an example's own row.</summary>
     [Parameter] public bool Compact { get; set; }
 
     [CascadingParameter] private HttpContext? HttpContext { get; set; }

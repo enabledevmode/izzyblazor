@@ -119,7 +119,7 @@ For each section, pick how to show it by what the reader needs:
 
 | Show | When | Such as |
 | --- | --- | --- |
-| A preview (`<ExampleViewer HideTitle />`), source a click away | It looks or behaves differently, or Off · Static · Live changes the result | Sizes, variants, states, interactions, OnClick |
+| A preview (`<ExampleViewer />`), source a click away | It looks or behaves differently, or Off · Static · Live changes the result | Sizes, variants, states, interactions, OnClick |
 | Code only (`<Code Block>`) | There's something to copy, and a preview would show nothing new | Usage, setup, a pattern to paste, behavior seen only after a post |
 | Prose only | Nothing renders | Accessibility, gotchas |
 

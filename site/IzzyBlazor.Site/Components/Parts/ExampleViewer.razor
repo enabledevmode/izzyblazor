@@ -28,25 +28,10 @@
     <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
         @if (SourceOpen || _source is null)
         {
-            @if (!HideTitle)
-            {
-                <span class="ex-title">@Title</span>
-            }
-            <div class="ex-panels">
-                @Preview
-                @if (_source is not null)
-                {
-                    @Source
-                }
-            </div>
+            <span class="ex-title">@Title</span>
         }
-        else
-        {
-            <Tabs Label="@($"{Title}: preview or code")" Size="ControlSize.Sm" ContentPadding="0" Class="ex-tabs">
-                <Tab Label="Preview" Value="preview">@Preview</Tab>
-                <Tab Label="Code" Value="code">@Source</Tab>
-            </Tabs>
-        }
+        @* Before the preview in reading order ("Always Live", the switches); the grid puts it at the
+           right of the row. *@
         <div class="ex-tools">
             @if (_example.Modes.Count == 1)
             {
@@ -57,11 +42,13 @@
             {
                 @* Demos show the code under the preview; this hides it. It sits above both, so hiding
                    the code doesn't move it. *@
+                @* One name for screen readers, "Show code", checked while it shows; the visible text
+                   says what clicking does. *@
                 <label class="ex-code-toggle">
-                    <input type="checkbox" class="ex-code-input" checked />
+                    <input type="checkbox" class="ex-code-input" checked aria-label="Show code" />
                     <Icon Name="Lucide.CodeXml" />
-                    <span class="ex-code-hide">Hide code</span>
-                    <span class="ex-code-show">Show code</span>
+                    <span class="ex-code-hide" aria-hidden="true">Hide code</span>
+                    <span class="ex-code-show" aria-hidden="true">Show code</span>
                 </label>
             }
             @if (WidthSwitch)
@@ -77,6 +64,23 @@
                 <IzzyBlazor.Site.Components.Parts.ModeSwitch Placement="example" Compact />
             }
         </div>
+        @if (SourceOpen || _source is null)
+        {
+            <div class="ex-panels">
+                @Preview
+                @if (_source is not null)
+                {
+                    @Source
+                }
+            </div>
+        }
+        else
+        {
+            <Tabs Label="@($"{Title}: preview or code")" Size="ControlSize.Sm" ContentPadding="0" Class="ex-tabs">
+                <Tab Label="Preview" Value="preview">@Preview</Tab>
+                <Tab Label="Code" Value="code">@Source</Tab>
+            </Tabs>
+        }
         @if (_example.Notes.Count > 0)
         {
             @* Under the box, labeled with its mode, so it reads as what that mode does here. *@
@@ -102,12 +106,6 @@
     /// </summary>
     [Parameter] public bool Deep { get; set; }
 
-    /// <summary>
-    /// Leaves the title out of the bar, for an example under a heading that already names it. Screen
-    /// readers still hear it, from the section's label.
-    /// </summary>
-    [Parameter] public bool HideTitle { get; set; }
-
     /// <summary>Shows the code under the preview, with no Preview · Code tabs, as on demos.</summary>
     [Parameter] public bool SourceOpen { get; set; }
 
@@ -115,7 +113,7 @@
     [Parameter] public bool WidthSwitch { get; set; }
 
     /// <summary>
-    /// Puts the page's mode switch in this viewer's strip, for a page that is this one example (a
+    /// Puts the page's mode switch in this viewer's row, for a page that is this one example (a
     /// demo, the home page's hero). Elsewhere the page has its own.
     /// </summary>
     [Parameter] public bool ModeSwitch { get; set; }
@@ -201,7 +199,7 @@
         {
             @if (NoteFor(mode) is { } note)
             {
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note" data-mode="@mode"><span class="ex-note-mode">@ModeChip.Name(mode)</span> @note</TextBlock>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note" data-mode="@mode"><span class="ex-note-mode">@ModeChip.Name(mode)<span class="ib-visually-hidden">:</span></span> @note</TextBlock>
             }
         }
     };

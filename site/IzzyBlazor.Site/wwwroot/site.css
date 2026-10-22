@@ -127,7 +127,6 @@
 .site-article > h2 { margin-block-start: var(--ib-space-6); }
 .site-article > .ib-prevnext, .site-article > nav:last-child { margin-block-start: var(--ib-space-8); }
 .site-pagehead { margin-block-end: var(--ib-space-2); }
-.site-lead p { margin: 0; }
 
 .site-footer { width: 100%; }
 
@@ -303,12 +302,13 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .site-inherit { font-size: var(--ib-text-sm); }
 
 /*
- * The example viewer: one row (Preview · Code tabs at the left; the example's note for the mode and
- * any width or mode switch at the right), then a box holding only the preview or the code. On
- * demos (no tabs) the row has the title, and the code box follows the preview.
+ * The example viewer: one row (Preview · Code tabs at the left; "Always Live" and any width or
+ * mode switch at the right), then a box holding only the preview or the code, then the example's
+ * note for the mode. On demos (no tabs) the row has the title, and the code box follows the
+ * preview.
  *
- * The page picks the mode: each viewer has a frame per mode, and the checked "site-mode" radio
- * (ModeSwitch) shows that one in every viewer, Static when none is checked. No script needed.
+ * The page picks the mode: each viewer has a frame per mode, and the visible ModeSwitch's checked
+ * radio shows that one in every viewer, Static when none is checked. No script needed.
  */
 .ex {
   display: grid;
@@ -342,16 +342,21 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 }
 .ex-mode, .ex-note { display: none; }
 /* An example with one mode (components.json "modes") shows it whatever the page's. */
-.ex-fixed .ex-mode { display: block; }
+.ex-fixed :is(.ex-mode, .ex-note) { display: block; }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
-body:has(.site-mode-input[value="off"]:checked) .ex-mode[data-mode="off"],
-body:has(.site-mode-input[value="static"]:checked) .ex-mode[data-mode="static"],
-body:has(.site-mode-input[value="live"]:checked) .ex-mode[data-mode="live"],
-body:not(:has(.site-mode-input:checked)) .ex-mode[data-mode="static"] { display: block; }
-body:has(.site-mode-input[value="off"]:checked) .ex-note[data-mode="off"],
-body:has(.site-mode-input[value="static"]:checked) .ex-note[data-mode="static"],
-body:has(.site-mode-input[value="live"]:checked) .ex-note[data-mode="live"],
-body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display: block; }
+/* The visible switch picks the mode: the right column's from 1024px, the top one below that, and
+   an example's own at any width. Static when there's none. */
+@media (width >= 1024px) {
+  body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
+  body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
+  body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
+}
+@media (width < 1024px) {
+  body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
+  body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
+  body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
+}
+body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="static"] { display: block; }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
 .ex-note { margin: 0; text-wrap: pretty; }
 /* The mode's name, drawn like the mode switch's selected option, so the note reads as about it. */
@@ -434,7 +439,7 @@ body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display:
 /*
  * The page's mode switch (ModeSwitch): radios drawn as a segmented control, then a line on what the
  * checked mode means. In the right column on wide screens, at the top of the content below that,
- * and in an example's strip on a page that is one example. Hidden on pages with no example.
+ * and in an example's row on a page that is one example. Hidden on pages with no example.
  */
 .site-modeswitch { display: flex; flex-direction: column; gap: var(--ib-space-2); }
 .site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
@@ -462,27 +467,22 @@ body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display:
 }
 .site-modeswitch-option input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .site-modeswitch-option:hover { color: var(--ib-color-on-surface); }
-/* Every copy shows the page's mode, wherever its checked radio is (copies are one radio group). */
-body:has(.site-mode-input[value="off"]:checked) .site-modeswitch-option:has(input[value="off"]),
-body:has(.site-mode-input[value="static"]:checked) .site-modeswitch-option:has(input[value="static"]),
-body:has(.site-mode-input[value="live"]:checked) .site-modeswitch-option:has(input[value="live"]) {
+.site-modeswitch-option:has(input:checked) {
   background: var(--ib-color-surface-container-high);
   color: var(--ib-color-on-surface);
 }
 .site-modeswitch-option:has(input:focus-visible) { outline: 2px solid var(--ib-color-focus); outline-offset: 1px; }
 .site-modeswitch-text { display: none; margin: 0; }
-body:has(.site-mode-input[value="off"]:checked) .site-modeswitch-text[data-mode="off"],
-body:has(.site-mode-input[value="static"]:checked) .site-modeswitch-text[data-mode="static"],
-body:has(.site-mode-input[value="live"]:checked) .site-modeswitch-text[data-mode="live"] { display: block; }
+.site-modeswitch:has(.site-mode-input[value="off"]:checked) .site-modeswitch-text[data-mode="off"],
+.site-modeswitch:has(.site-mode-input[value="static"]:checked) .site-modeswitch-text[data-mode="static"],
+.site-modeswitch:has(.site-mode-input[value="live"]:checked) .site-modeswitch-text[data-mode="live"] { display: block; }
 .site-modeswitch-aside { margin-block-end: var(--ib-space-6); }
 .site-modeswitch-top { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--ib-space-3); }
 .site-modeswitch-top .site-modeswitch-text { flex-basis: 100%; }
 body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display: none; }
-/* A page whose example carries its own switch (the docs home) shows that one only. */
-body:has(.site-modeswitch-example) :is(.site-modeswitch-aside, .site-modeswitch-top) { display: none; }
 
 /* The docs home: concepts, and the library by category. */
-.site-concept-title { margin: 0; font-weight: 600; }
+.site-concept-title { margin: 0; }
 .site-box-category {
   display: flex;
   flex-direction: column;
@@ -492,7 +492,8 @@ body:has(.site-modeswitch-example) :is(.site-modeswitch-aside, .site-modeswitch-
   border-radius: var(--ib-radius-lg);
   background: var(--ib-color-surface);
 }
-.site-box-title { font-weight: 600; color: var(--ib-color-on-surface); }
+.site-box-title { margin: 0; }
+.site-box-title a { color: var(--ib-color-on-surface); }
 .site-box-count { margin-inline-start: var(--ib-space-1); font-weight: 400; color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 /* One place at a time: the right column shows from 1024px (AppAside's breakpoint). */
 @media (width >= 1024px) { .site-modeswitch-top { display: none; } }

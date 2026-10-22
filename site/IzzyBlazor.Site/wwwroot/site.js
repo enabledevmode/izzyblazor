@@ -2,8 +2,10 @@
 //   - each example frame is sized to its content (Off frames too: they're same-origin, so this
 //     page can measure them although they run no script); the controls sit above the box, so
 //     a frame changing height moves nothing of the example's,
-//   - a Live frame loads only when the page's mode is Live and the example is in view, so a page
-//     of examples doesn't open a circuit for each, and the mode is remembered in a cookie,
+//   - a Live frame loads only while it's shown and its example is near the screen, so a page of
+//     examples doesn't open a circuit for each, and closes when the page leaves Live,
+//   - the page's mode is remembered (a cookie the server reads), kept the same in every copy of
+//     the switch, and kept in the address when it carries ?mode=,
 //   - frames follow the page's color scheme when it changes,
 //   - inside a frame, links to other pages open in the whole window rather than the frame.
 (() => {
@@ -107,12 +109,19 @@
         if (entry.isIntersecting) {
           near.add(entry.target);
           wake(entry.target);
+        } else {
+          near.delete(entry.target);
         }
       }
     }, { rootMargin: "200px" })
     : null;
 
   function init() {
+    // A link that opens the page in a mode (?mode=off) sets the remembered mode too, as picking it
+    // with the switch would: the next page stays in it.
+    const linked = new URLSearchParams(location.search).get("mode");
+    if (linked === "off" || linked === "static" || linked === "live") remember(linked);
+
     for (const viewer of document.querySelectorAll(".ex")) {
       if (visibility) visibility.observe(viewer);
       else near.add(viewer);
@@ -120,14 +129,37 @@
     }
   }
 
-  // Picking the page's mode (ModeSwitch) shows another frame in every example; the server reads
-  // the cookie, so the next page opens in the same mode.
+  function remember(mode) {
+    const path = new URL(document.baseURI).pathname;
+    document.cookie = `site-mode=${mode}; path=${path}; max-age=31536000; samesite=lax`;
+  }
+
+  // Picking the page's mode (ModeSwitch) shows another frame in every example. The other copies of
+  // the switch follow (each is its own radio group), the cookie remembers it for the next page,
+  // and an address that carries ?mode= follows too, so reloading keeps it.
   document.addEventListener("change", (event) => {
     if (!(event.target instanceof HTMLInputElement) || !event.target.matches(".site-mode-input")) return;
-    const path = new URL(document.baseURI).pathname;
-    document.cookie = `site-mode=${event.target.value}; path=${path}; max-age=31536000; samesite=lax`;
+    const mode = event.target.value;
+    for (const input of document.querySelectorAll(`.site-mode-input[value="${mode}"]`)) input.checked = true;
+    remember(mode);
+    const url = new URL(location.href);
+    if (url.searchParams.has("mode")) {
+      url.searchParams.set("mode", mode);
+      history.replaceState(history.state, "", url);
+    }
+
     requestAnimationFrame(() => {
-      for (const viewer of document.querySelectorAll(".ex")) wake(viewer);
+      for (const viewer of document.querySelectorAll(".ex")) {
+        // A Live frame that's no longer shown closes its circuit; it loads again when shown.
+        for (const frame of viewer.querySelectorAll("iframe.ex-frame-live")) {
+          if (!shown(frame) && frame.getAttribute("src")) {
+            frame.dataset.src = frame.getAttribute("src");
+            frame.removeAttribute("src");
+          }
+        }
+
+        wake(viewer);
+      }
     });
   });
 
