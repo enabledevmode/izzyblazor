@@ -19,7 +19,7 @@ public class DocsGenTests
         Assert.Contains("Submit", names);
         Assert.Contains("Accent", names); // From ButtonBase, listed as its own.
         Assert.DoesNotContain("Margin", names); // Item props are listed once, under LayoutItemBase.
-        Assert.Contains("Buttons take a bare Submit", button.Properties.Single(p => p.Name == "Type").Obsolete); // Kept, marked.
+        Assert.DoesNotContain("Type", names); // Not a parameter any more.
         Assert.Equal(["LayoutItemBase", "IzzyComponentBase"], button.Bases);
 
         var accent = button.Properties.Single(p => p.Name == "Accent");
@@ -235,11 +235,11 @@ public class DocsGenTests
     }
 
     [Fact]
-    public void Removed_names_are_kept_with_their_message()
+    public void Build_error_guards_are_not_part_of_the_API()
     {
-        Assert.Contains("<Button Href", Api.Component("LinkButton")!.Obsolete);
-        Assert.Null(Api.Component("Button")!.Obsolete);
-        Assert.DoesNotContain("ButtonType", Api.Component("Button")!.Types); // Only obsolete members use it.
+        // Row's Direction is [Obsolete] as an error only so <Row Direction=...> fails to build.
+        Assert.DoesNotContain(Api.Component("Row")!.Properties, p => p.Name == "Direction");
+        Assert.Contains(Api.Component("Stack")!.Properties, p => p.Name == "Direction");
     }
 
     [Fact]

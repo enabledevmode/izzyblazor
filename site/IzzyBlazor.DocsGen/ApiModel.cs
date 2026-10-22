@@ -56,7 +56,7 @@ public sealed record ApiComponent
     public required List<string> Types { get; init; }
     public string? AddedIn { get; init; }
 
-    /// <summary>The <c>[Obsolete]</c> message: a removed name kept for a release (<c>LinkButton</c>). The site doesn't list these.</summary>
+    /// <summary>A deprecation's <c>[Obsolete]</c> message (a warning; errors aren't in the file). The site doesn't list these.</summary>
     public string? Obsolete { get; init; }
 }
 
@@ -104,7 +104,7 @@ public sealed record ApiMember
     public ApiModes? Modes { get; init; }
     public string? AddedIn { get; init; }
 
-    /// <summary>The <c>[Obsolete]</c> message (the site doesn't list these).</summary>
+    /// <summary>A deprecation's <c>[Obsolete]</c> message (a warning; errors aren't in the file). The site doesn't list these.</summary>
     public string? Obsolete { get; init; }
 
     /// <summary>For a member a component inherits from a non-shared base, that base's name.</summary>
@@ -139,6 +139,6 @@ public sealed record ApiType
     public required List<ApiMember> Members { get; init; }
     public string? AddedIn { get; init; }
 
-    /// <summary>The <c>[Obsolete]</c> message.</summary>
+    /// <summary>A deprecation's <c>[Obsolete]</c> message (a warning; errors aren't in the file).</summary>
     public string? Obsolete { get; init; }
 }

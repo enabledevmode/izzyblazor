@@ -13,8 +13,7 @@ public class RegistryTests
     public void Every_public_component_is_documented_as_a_component_or_a_part()
     {
         var listed = Registry.Components.SelectMany(c => c.Parts.Prepend(c.Name)).ToHashSet();
-        // Removed names (LinkButton) stay in the metadata, marked obsolete, but aren't documented.
-        var missing = Api.File.Components.Where(c => c.Obsolete is null).Select(c => c.Name).Where(n => !listed.Contains(n)).ToList();
+        var missing = Api.File.Components.Select(c => c.Name).Where(n => !listed.Contains(n)).ToList();
         var unknown = listed.Where(n => Api.Component(n) is null).ToList();
 
         Assert.True(missing.Count == 0, $"Add to components.json: {string.Join(", ", missing)}");
