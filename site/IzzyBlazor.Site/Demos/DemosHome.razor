@@ -21,16 +21,17 @@
         }
 
         <Heading Level="2">@category</Heading>
-        @foreach (var component in components)
-        {
-            <Grid MinChildWidth="Length.Rem(16)" Gap="3">
+        @* One grid per category, so its demos fill the row whichever component they're under. *@
+        <Grid MinChildWidth="Length.Rem(16)" Gap="3">
+            @foreach (var component in components)
+            {
                 @foreach (var scenario in component.Scenarios)
                 {
                     <Card Title="@scenario.Title" Href="@Registry.ScenarioHref(component, scenario)" Description="@scenario.Description" Size="ControlSize.Sm">
                         <CardMedia><div class="site-media"><ComponentPicture Id="@component.Id" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm">@component.Name</Badge></span></div></CardMedia>
                     </Card>
                 }
-            </Grid>
-        }
+            }
+        </Grid>
     }
 </article>
