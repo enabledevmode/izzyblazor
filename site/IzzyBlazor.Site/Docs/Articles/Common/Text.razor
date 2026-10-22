@@ -1,0 +1,90 @@
+@page "/docs/common/text"
+
+@* The words components use: per component, app-wide with IzzyText, and several languages with a
+   subclass. From docs/components.md ("Text and other languages") and IzzyText.cs. *@
+
+<ArticlePage Section="common" Slug="text">
+    <Lead>
+        Components name their buttons and announce states in English: "Close", "Loading", "Next page", "No matches". Change
+        any of them on one component, or all of them app-wide with <Code>IzzyText</Code>.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">On one component</Heading>
+        <TextBlock>
+            Each string is a parameter on the components that use it, and that wins over the app's text:
+        </TextBlock>
+        <Code Block Language="razor">@One</Code>
+
+        <Heading Level="2">App-wide</Heading>
+        <TextBlock>Register an <Code>IzzyText</Code> with the strings you want to change; the rest stay English:</TextBlock>
+        <Code Block Language="csharp" Title="Program.cs">@AppWide</Code>
+
+        <Heading Level="2">Several languages</Heading>
+        <TextBlock>
+            Subclass <Code>IzzyText</Code> and read your resources. The strings are read on every render, so each request gets
+            its own culture.
+        </TextBlock>
+        <Code Block Language="csharp">@Localized</Code>
+        <TextBlock>
+            On WebAssembly or Auto pages, register it in the <Code>.Client</Code> project's <Code>Program.cs</Code> too:
+            components in the browser use the English text unless that project has one.
+        </TextBlock>
+
+        <Heading Level="2">What's in it</Heading>
+        <TextBlock>
+            About 85 strings, each named for what it says, so IntelliSense lists them. A few, by where they're used:
+        </TextBlock>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Where</th><th>Strings</th></tr></thead>
+                <tbody>
+                    <tr><td>Buttons and dialogs</td><td><code>Close</code>, <code>Dismiss</code>, <code>Ok</code>, <code>Cancel</code>, <code>Loading</code>, <code>Remove</code></td></tr>
+                    <tr><td>Forms</td><td><code>Optional</code>, <code>FormErrorsTitle</code>, <code>OneError</code>, <code>ErrorCount</code>, <code>ShowPassword</code>, <code>NoMatches</code>, <code>Searching</code></td></tr>
+                    <tr><td>File upload</td><td><code>ChooseFile</code>, <code>DragFilesHere</code>, <code>FileTooLarge</code>, <code>FileWrongType</code></td></tr>
+                    <tr><td>Tables and filters</td><td><code>RowsPerPage</code>, <code>NoItems</code>, <code>SelectRow</code>, <code>Filters</code>, <code>Apply</code>, <code>Clear</code></td></tr>
+                    <tr><td>Navigation</td><td><code>Breadcrumb</code>, <code>Pagination</code>, <code>PreviousPage</code>, <code>NextPage</code>, <code>MainNavigation</code>, <code>Menu</code></td></tr>
+                    <tr><td>Status</td><td><code>StatusInfo</code>, <code>StatusSuccess</code>, <code>StatusWarning</code>, <code>StatusError</code>, <code>Notifications</code></td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            Strings with <Code>{0}</Code>, such as <Code>MoreAvatars</Code> ("{0} more"), are format strings.
+            <Code>IzzyText.English</Code> is a fresh copy of the built-in text, to start from or compare with.
+        </TextBlock>
+        <Alert Status="Status.Info">
+            Validation messages come from your model's attributes, not from <Code>IzzyText</Code>: set
+            <Code>ErrorMessage</Code>, or localize them as you would for any Blazor form.
+        </Alert>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: labels and messages from your model.</ListItem>
+            <ListItem><Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor>: the <Code>.Client</Code> project's setup.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string One = """
+        <Dialog Id="confirm" CloseLabel="Schließen">...</Dialog>
+        <Table Items="Orders" EmptyText="No orders yet">...</Table>
+        """;
+
+    private const string AppWide = """
+        builder.Services.AddSingleton(new IzzyText
+        {
+            Close = "Schließen",
+            Loading = "Wird geladen",
+        });
+        """;
+
+    private const string Localized = """
+        public sealed class AppText(IStringLocalizer<AppText> l) : IzzyText
+        {
+            public override string Close => l["Close"];
+            public override string NextPage => l["Next page"];
+        }
+
+        builder.Services.AddSingleton<IzzyText, AppText>();
+        """;
+}

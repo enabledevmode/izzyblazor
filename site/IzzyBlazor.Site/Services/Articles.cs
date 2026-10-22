@@ -27,6 +27,19 @@ public static class Articles
             new("tokens", "Tokens and customizing", "SlidersHorizontal",
                 "CSS variables for exact values, the surface ladder, and theming part of a page."),
         ]),
+        new("common", "Common features", "Blocks",
+        [
+            new("style-props", "Style props", "Ruler",
+                "Spacing, sizes, borders and colors as parameters, and which components take which."),
+            new("responsive", "Responsive values", "MonitorSmartphone",
+                "One value per breakpoint, hiding by screen size, and fluid text."),
+            new("render-modes", "Render modes", "Layers",
+                "What components do on static pages, with IzzyBlazor's script, and on interactive pages."),
+            new("forms", "Forms and validation", "ClipboardCheck",
+                "Forms that post on static pages, rules from your model, columns, read-only forms and errors."),
+            new("text", "Text and other languages", "Languages",
+                "The words components use, changed app-wide or per component, in one language or several."),
+        ]),
     ];
 
     public static ArticleSection? Section(string slug) => Sections.FirstOrDefault(s => s.Slug == slug);

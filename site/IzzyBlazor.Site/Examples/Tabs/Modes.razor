@@ -1,0 +1,20 @@
+@* The same Tabs in each mode: radios and CSS with no script, ARIA tabs with IzzyBlazor's script,
+   and C# told of the change on an interactive page. *@
+<Stack Gap="3" Grow>
+    <Tabs @bind-Selected="_tab" Label="Account">
+        <Tab Label="Profile" Icon="Lucide.User">
+            <TextBlock Color="Color.Muted">Your name, photo and the email people see.</TextBlock>
+        </Tab>
+        <Tab Label="Billing" Icon="Lucide.CreditCard">
+            <TextBlock Color="Color.Muted">Your plan, payment method and invoices.</TextBlock>
+        </Tab>
+        <Tab Label="Security" Icon="Lucide.Shield">
+            <TextBlock Color="Color.Muted">Your password, passkeys and sessions.</TextBlock>
+        </Tab>
+    </Tabs>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">C# has the tab as <Code>@(_tab ?? "profile")</Code></TextBlock>
+</Stack>
+
+@code {
+    private string? _tab;
+}

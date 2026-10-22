@@ -1,0 +1,127 @@
+@page "/docs/common/forms"
+
+@* Forms and validation: one form for static and interactive pages, what fields take from the
+   model, checks before and after posting, columns, read-only and disabled forms, and errors.
+   From docs/components.md ("Forms") and getting-started.md. *@
+
+<ArticlePage Section="common" Slug="forms">
+    <Lead>
+        <Code>Form</Code> wraps Blazor's <Code>EditForm</Code>, so one form works everywhere: a real post on a static page,
+        even with JavaScript off, and live validation on an interactive one. Fields take their labels and rules from your
+        model.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">A form that posts</Heading>
+        <TextBlock>
+            Give the form a <Code>FormName</Code>, and the model property <Code>[SupplyParameterFromForm]</Code> with the same
+            name, so the post fills it on a static page:
+        </TextBlock>
+        <Code Block Language="razor" HighlightLines="1,9-10">@Basic</Code>
+        <TextBlock>
+            <Code>OnValidSubmit</Code> runs on the server once the model is valid, in every mode. On an interactive page the
+            same form validates as people type and submits without a page load.
+        </TextBlock>
+
+        <Heading Level="2">Labels and rules from the model</Heading>
+        <TextBlock>
+            Each field reads the property's attributes: its label from <Code>[Display(Name)]</Code> (or the property name in
+            words), the required mark from <Code>[Required]</Code>, the input type from <Code>[EmailAddress]</Code>,
+            <Code>[Phone]</Code> or <Code>[Url]</Code>, and limits from <Code>[StringLength]</Code> and <Code>[Range]</Code>.
+        </TextBlock>
+        <Code Block Language="csharp">@Model</Code>
+        <TextBlock>
+            Validation messages use the name as written, not the label: "The ZipCode field is required." Give a property
+            <Code>[Display(Name)]</Code> when its messages should read like its label.
+        </TextBlock>
+
+        <Heading Level="2">Checked before and after posting</Heading>
+        <TextBlock>
+            The browser checks required fields, lengths, ranges, emails and URLs before posting. With IzzyBlazor's script it
+            uses your attribute's <Code>ErrorMessage</Code>, so it says what the server would; without it, its own words. The server checks every rule after
+            posting and shows its messages under each field. Rules the browser can't check, such as a custom attribute, run
+            only on the server.
+        </TextBlock>
+        <TextBlock>
+            <Code>Required</Code> on a field marks it and asks the browser to check it, but the server only reads
+            <Code>[Required]</Code> on the model: put rules that must hold there.
+        </TextBlock>
+
+        <Heading Level="2">Columns</Heading>
+        <TextBlock>
+            Use <Code>Columns</Code>, up to 4, to lay fields out in columns sized by the form's own width, so one form fits a
+            page, a dialog and a drawer. Each field takes a column; <Code>ColSpan="GridSpan.Full"</Code> gives it the row.
+        </TextBlock>
+        <ExampleViewer Example="form-columns" />
+        <TextBlock>
+            Two columns start at 32rem, three at 48rem and four at 64rem; below that it's one. Anything that isn't a field,
+            such as text, <Code>FormErrors</Code> or <Code>FormActions</Code>, takes the whole row. <Code>NewRow</Code>
+            starts a field on a new row.
+        </TextBlock>
+
+        <Heading Level="2">Groups, actions and errors</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/fieldset">Fieldset</Anchor> groups related fields under a <Code>Label</Code>, with its own <Code>Columns</Code> or <Code>Dividers</Code> between rows.</ListItem>
+            <ListItem><Code>FormActions</Code> is the row of buttons at the end. Last in a dialog or drawer, it becomes the footer and stays in view.</ListItem>
+            <ListItem><Code>FormErrors</Code> lists every message under "Please fix the following", and takes focus after a failed submit, with JavaScript off too.</ListItem>
+            <ListItem><Code>FieldError For="() =&gt; Model.Email"</Code> shows one property's messages, for an input of your own.</ListItem>
+        </List>
+
+        <Heading Level="2">Read-only and disabled</Heading>
+        <TextBlock>
+            <Code>ReadOnly</Code> on the form makes every field read-only: the values show and post, but don't change, as on a
+            page that shows a record before editing it. HTML has no read-only select or checkbox, so selects show their value
+            in a read-only text field, and checkboxes, switches and radios stay as they are but don't change. Without
+            JavaScript those are disabled instead.
+        </TextBlock>
+        <TextBlock>
+            <Code>Disabled</Code> on the form disables every field, and disabled fields post nothing. Neither touches buttons,
+            so show the ones that fit. A field's own <Code>ReadOnly</Code> and <Code>Disabled</Code> work the same way.
+        </TextBlock>
+
+        <Heading Level="2">Labels and marks</Heading>
+        <TextBlock>
+            <Code>RequiredMark</Code> on the form picks the marks: an asterisk on required fields (the default),
+            "(optional)" on the others, which reads better when most fields are required, or none.
+            <Code>Layout="FormLayout.Horizontal"</Code> puts labels to the left of the fields from 640px up.
+            <Code>HideLabel</Code> keeps a field's label for screen readers only, as in a one-field search form.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/form">Form</Anchor>: every parameter, and <Code>Validator</Code> to replace DataAnnotations.</ListItem>
+            <ListItem><Anchor Href="docs/components/text-field">TextField</Anchor>: types, add-ons, passwords and validation.</ListItem>
+            <ListItem><Anchor Href="docs/common/text">Text and other languages</Anchor>: the words forms use, such as "(optional)".</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Basic = """
+        <Form Model="Signup" FormName="signup" OnValidSubmit="SaveAsync">
+            <FormErrors />
+            <TextField @bind-Value="Signup.Email" />
+            <Select @bind-Value="Signup.Plan" Placeholder="Choose a plan" />
+            <Button Submit>Create account</Button>
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "signup")]
+            public SignupModel? Signup { get; set; }
+
+            protected override void OnInitialized() => Signup ??= new();
+        }
+        """;
+
+    private const string Model = """
+        public sealed class SignupModel
+        {
+            [Required(ErrorMessage = "Enter your email"), EmailAddress]
+            public string? Email { get; set; }      // "Email", type="email", required
+
+            [Display(Name = "Zip code"), StringLength(10)]
+            public string? ZipCode { get; set; }    // "Zip code", maxlength="10"
+
+            public Plan Plan { get; set; }          // a select of the enum's values
+        }
+        """;
+}

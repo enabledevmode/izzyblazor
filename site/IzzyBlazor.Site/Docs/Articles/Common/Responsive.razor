@@ -1,0 +1,91 @@
+@page "/docs/common/responsive"
+
+@* Responsive values: breakpoint maps, the rule for what's responsive, hiding by width, fluid
+   text, and form columns that follow the form's width. From docs/styling.md. *@
+
+<ArticlePage Section="common" Slug="responsive">
+    <Lead>
+        Every style prop takes one value, or one per breakpoint. The server writes the CSS for the breakpoints you set and
+        nothing else, so a page fits a phone with no script.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">One value per breakpoint</Heading>
+        <Code Block Language="razor">@Maps</Code>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Breakpoint</th><th>From</th></tr></thead>
+                <tbody>
+                    <tr><td><code>Base</code></td><td>0, every screen</td></tr>
+                    <tr><td><code>Sm</code></td><td>640px</td></tr>
+                    <tr><td><code>Md</code></td><td>768px</td></tr>
+                    <tr><td><code>Lg</code></td><td>1024px</td></tr>
+                    <tr><td><code>Xl</code></td><td>1280px</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+        <TextBlock>
+            Each value holds from its breakpoint up, until a larger one replaces it. Only what you set produces CSS, so
+            <Code>new() { Md = 6 }</Code> keeps the component's own value below 768px.
+        </TextBlock>
+
+        <Heading Level="2">What's responsive</Heading>
+        <TextBlock>
+            What changes with screen size takes a map: direction, gap, spacing, columns, sizes, alignment. Switches don't:
+            <Code>Grow</Code>, <Code>Shrink</Code>, <Code>Wrap</Code>, <Code>Inline</Code> and the rest are plain booleans, so
+            you can write them bare, as in <Code>&lt;Row Wrap&gt;</Code>. Each component's API page marks its responsive
+            parameters.
+        </TextBlock>
+
+        <Heading Level="2">Hide or show by width</Heading>
+        <TextBlock>
+            Use <Code>HiddenFrom</Code> or <Code>VisibleFrom</Code> on any component, fields included:
+        </TextBlock>
+        <Code Block Language="razor">@Hidden</Code>
+
+        <Heading Level="2">Fluid text</Heading>
+        <TextBlock>
+            Use <Code>MinSize</Code> on <Anchor Href="docs/components/heading">Heading</Anchor> or
+            <Anchor Href="docs/components/text-block">TextBlock</Anchor> for text that grows smoothly instead of in steps: the
+            text is <Code>MinSize</Code> on a 360px screen and <Code>Size</Code> at 1280px.
+        </TextBlock>
+        <Code Block Language="razor">@Fluid</Code>
+
+        <Heading Level="2">Sized by the container</Heading>
+        <TextBlock>
+            A <Anchor Href="docs/components/form">Form</Anchor> or <Anchor Href="docs/components/fieldset">Fieldset</Anchor>
+            with <Code>Columns</Code> follows its own width, not the screen's, so the same form fits a page, a dialog and a
+            drawer with no breakpoints. A <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code>
+            fits as many columns as there's room for.
+        </TextBlock>
+        <Code Block Language="razor">@Container</Code>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/style-props">Style props</Anchor>: every prop that takes a map.</ListItem>
+            <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: columns in a form.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Maps = """
+        <Stack Gap="4">...</Stack>
+        <Stack Gap="new() { Base = 2, Md = 6 }">...</Stack>
+        <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }">...</Stack>
+        <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }">...</Grid>
+        """;
+
+    private const string Hidden = """
+        <Button HiddenFrom="Breakpoint.Md" StartIcon="Lucide.Menu">Menu</Button>
+        <NavMenu VisibleFrom="Breakpoint.Md">...</NavMenu>
+        """;
+
+    private const string Fluid = """
+        <Heading Size="TextSize.Xl5" MinSize="TextSize.Xl3">Ship on Friday</Heading>
+        """;
+
+    private const string Container = """
+        <Form Model="Model" FormName="contact" Columns="2">...</Form>   @* two columns from 32rem of form *@
+        <Grid MinChildWidth="Length.Rem(15)" Gap="4">...</Grid>
+        """;
+}

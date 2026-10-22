@@ -1,0 +1,80 @@
+@page "/docs/common/render-modes"
+
+@* Render modes: the three layers every component has, one example under its own mode switch,
+   choosing a page's mode, mode support on component pages, and state on static pages. From
+   docs/nuget-readme.md, components.md and the [ModeSupport] metadata. *@
+
+<ArticlePage Section="common" Slug="render-modes">
+    <Lead>
+        The same components work on every page. On a static page they render HTML that works on its own, IzzyBlazor's
+        script adds what HTML can't, and on an interactive page the same markup binds to C#.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Three layers</Heading>
+        <List Gap="2">
+            <ListItem><strong>HTML first.</strong> Every component renders real elements: forms that post, links, radio buttons, native dialogs and selects, with CSS doing the switching. This is all a page has with JavaScript off.</ListItem>
+            <ListItem><strong>IzzyBlazor's script.</strong> Small custom elements add keyboard handling, ARIA roles, live values and checks before posting, with no circuit.</ListItem>
+            <ListItem><strong>Interactive pages.</strong> On a Server, WebAssembly or Auto page, <Code>@@bind</Code> and event handlers keep C# in step.</ListItem>
+        </List>
+        <TextBlock>Switch the mode to see one component in each:</TextBlock>
+        <ExampleViewer Example="tabs-modes" ModeSwitch />
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th></th><th>JavaScript off</th><th>With IzzyBlazor's script</th><th>Interactive page</th></tr></thead>
+                <tbody>
+                    <tr><td>Dialog</td><td>Opens from a link (<code>?dialog=id</code>), closes with a form</td><td>Focus handling, backdrop click</td><td><code>@@bind-Open</code></td></tr>
+                    <tr><td>Table</td><td>Sorts and pages through links in the URL</td><td>The same, without full reloads</td><td>Navigates through Blazor</td></tr>
+                    <tr><td>Tabs</td><td>Radio buttons and CSS switch panels</td><td>ARIA tabs, roving focus</td><td><code>@@bind-Selected</code></td></tr>
+                    <tr><td>Combobox</td><td>A native select that posts with the form</td><td>Type to filter, keyboard navigation</td><td>Server-side search as you type</td></tr>
+                    <tr><td>FileUpload</td><td>The file posts with the form (<code>IFormFile</code>)</td><td>Drop files on the zone; type and size checked first</td><td><code>OnChange</code> streams <code>IBrowserFile</code>s</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+
+        <Heading Level="2">Choose a page's mode</Heading>
+        <TextBlock>
+            A Blazor Web App's pages are static unless you say otherwise. Make a page interactive where it needs C# on every
+            click, and keep the rest static: they need no circuit, so they scale and deploy like plain pages.
+        </TextBlock>
+        <Code Block Language="razor">@Interactive</Code>
+        <TextBlock>
+            WebAssembly and Auto pages live in the <Code>.Client</Code> project, with <Code>IzzyBlazor.Core</Code>; see
+            <Anchor Href="docs/get-started/webassembly-and-auto">WebAssembly or Auto</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">What each component does</Heading>
+        <TextBlock>
+            Each component's Overview has a Mode support table, and its API page labels the parameters that need more than
+            HTML: <strong>Needs JavaScript</strong>, or <strong>Interactive only</strong> for C# events and
+            <Code>@@bind</Code>. Working with JavaScript off and doing more with it isn't labeled: that's every component.
+        </TextBlock>
+
+        <Heading Level="2">State on static pages</Heading>
+        <TextBlock>
+            With no circuit, C# runs only when the page is requested, so a static page keeps its state where the browser does:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem><strong>In a form.</strong> <Anchor Href="docs/common/forms">Form</Anchor> posts and validates on the server, and its fields bind to your model.</ListItem>
+            <ListItem><strong>In the URL.</strong> <Anchor Href="docs/components/table">Table</Anchor>, <Code>FilterForm</Code> and <Code>Pagination</Code> keep sorting, filters and the page in the query string; <Code>Tabs</Code> takes <Code>QueryKey</Code>, and a dialog opens from <Code>?dialog=id</Code>.</ListItem>
+            <ListItem><strong>In the element.</strong> Disclosures, menus, popovers and dialogs open and close in the browser. On an interactive page, <Code>@@bind-Open</Code> reports it to C#, and setting <Code>Open</Code> opens or closes it.</ListItem>
+            <ListItem><strong>In a cookie.</strong> The color scheme and the sidebar's state, read on the server so pages arrive right.</ListItem>
+        </List>
+        <TextBlock>
+            Events such as a button's <Code>OnClick</Code> run only on interactive pages. On a static page, use a submit button
+            in a form or a link.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: one form for static and interactive pages.</ListItem>
+            <ListItem><Anchor Href="docs/components">All components</Anchor>: each one's mode support.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Interactive = """
+        @page "/orders/{Id:int}/edit"
+        @rendermode InteractiveServer
+        """;
+}
