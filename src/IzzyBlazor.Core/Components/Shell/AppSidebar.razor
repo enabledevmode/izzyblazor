@@ -173,20 +173,11 @@
     /// <summary>Where the chevron goes: <see cref="VerticalPosition.Bottom"/> (the default, in the footer row) or <see cref="VerticalPosition.Top"/>.</summary>
     [Parameter] public VerticalPosition CollapseButtonPosition { get; set; } = VerticalPosition.Bottom;
 
-    /// <summary>Replaced by <see cref="SidebarHeader"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Write <SidebarHeader> in the sidebar instead. Header goes in a later release.", error: true)]
-    public RenderFragment? Header { get; set; }
-
-    /// <summary>Replaced by <see cref="SidebarFooter"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Write <SidebarFooter> in the sidebar instead. Footer goes in a later release.", error: true)]
-    public RenderFragment? Footer { get; set; }
-
     /// <summary>The drawer's close button name. Defaults to "Close menu".</summary>
     [Parameter] public string? CloseLabel { get; set; }
 
     /// <summary>The collapse control's accessible name. Defaults to "Collapse sidebar".</summary>
     [Parameter] public string? CollapseLabel { get; set; }
-
 
     private string? _class;
     private string? _style;
@@ -214,13 +205,6 @@
     private string ClosedHref => PageLinks.ToFragment(Navigation, "ib-shell-closed");
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
-
-    /// <inheritdoc />
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        RemovedSlots.Check(parameters, nameof(AppSidebar), ("Header", "SidebarHeader"), ("Footer", "SidebarFooter"));
-        return base.SetParametersAsync(parameters);
-    }
 
     private RenderFragment CloseControl => __builder =>
     {

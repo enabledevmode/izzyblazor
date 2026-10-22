@@ -53,10 +53,6 @@ public class Button : ButtonBase
     /// <summary>Resets the form it's in, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
     [Parameter] public bool Reset { get; set; }
 
-    /// <summary>Replaced by <see cref="Submit"/> and <see cref="Reset"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Buttons take a bare Submit or Reset now: <Button Submit>. Type and ButtonType go in a later release.", error: true)]
-    public ButtonType Type { get; set; }
-
     /// <summary>
     /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
     /// which of several submit buttons was pressed. Not <c>action</c>, <c>method</c> or <c>target</c>:
@@ -212,18 +208,4 @@ internal static class ButtonTypes
         (_, true) => "reset",
         _ => "button",
     };
-}
-
-/// <summary>Replaced by the <c>Submit</c> and <c>Reset</c> parameters. Kept for one release so old markup fails to build.</summary>
-[Obsolete("Buttons take a bare Submit or Reset now: <Button Submit>. Type and ButtonType go in a later release.", error: true)]
-public enum ButtonType
-{
-    /// <summary>Replaced: a button does nothing by itself without <c>Submit</c> or <c>Reset</c>.</summary>
-    Button,
-
-    /// <summary>Replaced by <c>Submit</c>.</summary>
-    Submit,
-
-    /// <summary>Replaced by <c>Reset</c>.</summary>
-    Reset,
 }
