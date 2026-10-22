@@ -343,20 +343,36 @@
     inset: calc(var(--ib-tooltip-gap) * -1);
   }
 
+  /*
+   * Without script (no popover), a hidden tooltip is out of the layout, so one placed past the
+   * page's edge doesn't make the page scroll sideways. It still fades: display switches with the
+   * transition, and @starting-style gives the fade a start.
+   */
+  .ib-tooltip:not([popover]) {
+    display: none;
+    transition: opacity var(--ib-duration-fast) var(--ib-ease), visibility var(--ib-duration-fast), display var(--ib-duration-fast) allow-discrete;
+  }
+
   /* Hover only where there's a real pointer: on touch screens :hover sticks after a tap. */
   @media (hover: hover) {
     .ib-tooltip-root:hover > .ib-tooltip:not([popover]) {
+      display: block;
       opacity: 1;
       visibility: visible;
       pointer-events: auto;
       transition-delay: var(--ib-tooltip-delay, 300ms);
+
+      @starting-style { opacity: 0; }
     }
   }
 
   .ib-tooltip-root:has(:focus-visible) > .ib-tooltip:not([popover]) {
+    display: block;
     opacity: 1;
     visibility: visible;
     pointer-events: auto;
+
+    @starting-style { opacity: 0; }
   }
 
   .ib-tooltip-root:has(:focus-visible) > .ib-tooltip:not([popover]) {

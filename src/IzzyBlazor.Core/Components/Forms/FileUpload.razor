@@ -12,7 +12,7 @@
         IFormFile? (or IFormFileCollection), named like the field, and set Multipart on the Form.
       - With JavaScript: files can also be dropped on the zone; dropped files that don't match
         Accept are refused, and files over MaxFileSize are flagged before posting. The chosen file's
-        name and size replace the hint.
+        name and size replace the line of allowed types and size; the Hint stays.
       - Interactive page: OnChange gets the chosen files as IBrowserFile, to read as streams.
 
     <Form Model="Model" FormName="profile" Multipart>

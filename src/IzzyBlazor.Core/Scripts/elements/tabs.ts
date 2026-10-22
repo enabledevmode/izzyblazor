@@ -190,5 +190,12 @@ defineElement("ib-tabs", Tabs);
 
 /** Re-applies tab roles after enhanced navigation reset the attributes. */
 export function syncTabs(): void {
-  document.querySelectorAll<HTMLElement & { sync?: () => void }>("ib-tabs").forEach((tabs) => tabs.sync?.());
+  document.querySelectorAll<HTMLElement & { sync?: () => void }>("ib-tabs").forEach((tabs) => {
+    // Enhanced navigation patches the checked attribute to the server's choice, but a radio the
+    // user has clicked no longer follows its attribute, which could leave none checked and every
+    // panel hidden. The new page's markup is the selection.
+    const marked = tabs.querySelector<HTMLInputElement>(":scope > .ib-tabs-list .ib-tab-input[checked]");
+    if (marked && !marked.checked) marked.checked = true;
+    tabs.sync?.();
+  });
 }

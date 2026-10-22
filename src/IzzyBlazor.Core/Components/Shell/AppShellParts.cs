@@ -45,7 +45,9 @@ internal sealed class ShellBrand
 
     internal void Set(AppBrand brand)
     {
-        if (Brand is not null && Brand != brand)
+        // Only a new brand is news. The brand calls this on every render, and the sidebar re-renders
+        // on Changed: a brand in the sidebar's own header would otherwise render it forever.
+        if (Brand is not null)
         {
             return;
         }

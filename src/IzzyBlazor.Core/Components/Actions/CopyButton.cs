@@ -13,7 +13,7 @@ namespace IzzyBlazor;
 /// &lt;Code&gt;dotnet add package IzzyBlazor&lt;/Code&gt;
 /// &lt;CopyButton Text="dotnet add package IzzyBlazor" Label="Copy the command" /&gt;
 ///
-/// &lt;TextField id="api-key" Label="API key" Value="@key" ReadOnly&gt;
+/// &lt;TextField id="api-key" Label="API key" @bind-Value="key" ReadOnly&gt;
 ///     &lt;EndAddon&gt;&lt;CopyButton For="api-key" Variant="ButtonVariant.Outline"&gt;Copy&lt;/CopyButton&gt;&lt;/EndAddon&gt;
 /// &lt;/TextField&gt;
 /// </code>

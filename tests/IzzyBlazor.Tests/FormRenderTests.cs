@@ -77,6 +77,7 @@ public class FormRenderTests : BunitContext
     [Fact]
     public void Input_type_comes_from_annotations()
     {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         Assert.Equal("email", TextFieldFor(() => _model.Email).Find("input").GetAttribute("type"));
         Assert.Equal("password", TextFieldFor(() => _model.Password).Find("input").GetAttribute("type"));
         Assert.Equal("text", TextFieldFor(() => _model.FavoriteColor).Find("input").GetAttribute("type"));
@@ -85,6 +86,7 @@ public class FormRenderTests : BunitContext
     [Fact]
     public void Password_gets_a_hidden_reveal_button()
     {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var button = TextFieldFor(() => _model.Password).Find("[data-ib-reveal]");
 
         Assert.True(button.HasAttribute("hidden"));
@@ -190,6 +192,19 @@ public class FormRenderTests : BunitContext
             .Add(c => c.ValueExpression, () => _model.Accept)
             .Add(c => c.Disabled, true)).FindAll("input");
         Assert.Single(disabled);
+    }
+
+    [Theory]
+    [InlineData(false, null)]
+    [InlineData(true, "secret123")]
+    public void A_static_page_does_not_write_a_posted_password_back(bool interactive, string? shown)
+    {
+        SetRendererInfo(new RendererInfo(interactive ? "Server" : "Static", interactive));
+        _model.Password = "secret123";
+        _model.Name = "Ada";
+
+        Assert.Equal(shown, TextFieldFor(() => _model.Password, p => p.Add(f => f.Value, _model.Password)).Find("input").GetAttribute("value"));
+        Assert.Equal("Ada", TextFieldFor(() => _model.Name, p => p.Add(f => f.Value, _model.Name)).Find("input").GetAttribute("value"));
     }
 
     [Fact]
