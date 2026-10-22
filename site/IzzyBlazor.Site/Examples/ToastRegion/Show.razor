@@ -1,0 +1,21 @@
+@inject ToastService Toasts
+
+@* Once per app, in the layout. *@
+<ToastRegion />
+
+<Row Gap="2" Wrap Justify="Justify.Center">
+    <form method="post" @formname="toast-save" @onsubmit="Save" data-enhance>
+        <AntiforgeryToken />
+        <Button Submit StartIcon="Lucide.Save">Save</Button>
+    </form>
+    <form method="post" @formname="toast-publish" @onsubmit="Publish" data-enhance>
+        <AntiforgeryToken />
+        <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Danger" StartIcon="Lucide.Send">Publish</Button>
+    </form>
+</Row>
+
+@code {
+    private void Save() => Toasts.Success("Your changes are live.", "Saved");
+
+    private void Publish() => Toasts.Error("The server didn't respond. Try again in a moment.", "Couldn't publish");
+}

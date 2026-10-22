@@ -1,0 +1,18 @@
+<Stack Gap="3" Grow MaxWidth="36.Rem">
+    <Alert Status="Status.Warning" Title="Unverified email" Dismissible @bind-Dismissed="_dismissed">
+        Check your inbox for the link we sent to ada@example.com.
+        <AlertActions>
+            <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Resend email</Button>
+        </AlertActions>
+    </Alert>
+    @if (_dismissed && RendererInfo.IsInteractive)
+    {
+        <Row>
+            <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" OnClick="() => _dismissed = false">Show the reminder again</Button>
+        </Row>
+    }
+</Stack>
+
+@code {
+    private bool _dismissed;
+}

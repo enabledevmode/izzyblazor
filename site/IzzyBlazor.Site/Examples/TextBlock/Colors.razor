@@ -1,0 +1,16 @@
+@* Four levels of emphasis, and accent text tuned for 4.5:1 contrast on any surface. *@
+<Stack Gap="4" Grow>
+    <Stack Gap="1">
+        <TextBlock>Deploy finished in 42 seconds</TextBlock>
+        <TextBlock Color="Color.Muted">main · 3f9a2c7 by Ada Lovelace</TextBlock>
+        <TextBlock Color="Color.Subtle">Started 2 minutes ago</TextBlock>
+        <TextBlock Color="Color.Disabled">Rollback unavailable</TextBlock>
+    </Stack>
+    <Row Gap="6" Wrap>
+        <TextBlock As="span" Color="Color.PrimaryText" Weight="FontWeight.Medium">Beta</TextBlock>
+        <TextBlock As="span" Color="Color.SuccessText" Weight="FontWeight.Medium">Healthy</TextBlock>
+        <TextBlock As="span" Color="Color.WarningText" Weight="FontWeight.Medium">Degraded</TextBlock>
+        <TextBlock As="span" Color="Color.DangerText" Weight="FontWeight.Medium">Payment failed</TextBlock>
+        <TextBlock As="span" Color="Color.InfoText" Weight="FontWeight.Medium">Scheduled</TextBlock>
+    </Row>
+</Stack>

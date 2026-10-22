@@ -1,0 +1,74 @@
+@inject NavigationManager Navigation
+
+@* A docs site: Flat makes it one white page. The article's headings list themselves in OnThisPage,
+   in the aside, from 1024px up. On phones the drawer opens from the right, where the menu button
+   moves. *@
+<AppShell Variant="ShellVariant.Flat">
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.BookOpen" Label="Acme Docs" />
+        <Box Grow />
+        <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    </AppHeader>
+
+    <AppSidebar Label="Docs" DrawerPosition="SidebarPosition.End">
+        <NavMenu>
+            <NavLabel>Get started</NavLabel>
+            <NavItem Href="@To(null)">Install</NavItem>
+            <NavItem Href='@To("guide/first-page")'>Your first page</NavItem>
+            <NavItem Href='@To("guide/existing-layout")'>Add it to an app that already has its own layout</NavItem>
+            <NavLabel>Components</NavLabel>
+            <NavItem Href='@To("guide/forms")' Badge="12" BadgeVariant="BadgeVariant.Plain">Forms</NavItem>
+            <NavItem Href='@To("guide/overlays")' Badge="7" BadgeVariant="BadgeVariant.Plain">Overlays</NavItem>
+            <NavItem Href='@To("guide/data")' Badge="9" BadgeVariant="BadgeVariant.Plain">Data display</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 10 }" MaxWidth="Length.Prose">
+            <Breadcrumb>
+                <BreadcrumbItem Href='@To("guide")'>Get started</BreadcrumbItem>
+                <BreadcrumbItem>Install</BreadcrumbItem>
+            </Breadcrumb>
+            <Heading Level="1" Size="TextSize.Xl3">Install Acme</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Add the package, register its services, and you're ready to write your first rule.</TextBlock>
+
+            <Heading Level="2" Size="TextSize.Xl">Add the package</Heading>
+            <TextBlock>Add it from NuGet. It brings its CSS and script with it.</TextBlock>
+            <Code Block Language="text">dotnet add package Acme.Rules</Code>
+
+            <Heading Level="2" Size="TextSize.Xl">Register the services</Heading>
+            <TextBlock>Call <Code>AddAcmeRules</Code> with your other services, and map its endpoints after the components.</TextBlock>
+            <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,6">@ProgramSample</Code>
+
+            <Heading Level="3" Size="TextSize.Lg">What the endpoints are for</Heading>
+            <TextBlock>They receive decisions from your services and send back an outcome in a few milliseconds.</TextBlock>
+
+            <PrevNext NextHref='@To("guide/first-page")' NextTitle="Your first page" />
+        </Stack>
+    </AppMain>
+
+    <AppAside>
+        <OnThisPage />
+    </AppAside>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
+@* hide *@
+
+@code {
+    private const string ProgramSample = """
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddAcmeRules();
+
+        var app = builder.Build();
+        app.MapRazorComponents<App>();
+        app.MapAcmeRules();
+        app.Run();
+        """;
+}
+@* /hide *@

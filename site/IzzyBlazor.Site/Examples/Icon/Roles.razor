@@ -1,0 +1,10 @@
+@* The library's own components ask for a role, so one IconSet changes every icon they draw. *@
+<Grid Columns="new() { Base = 2, Sm = 3, Md = 4 }" Gap="3" Grow>
+    @foreach (var role in Enum.GetValues<IconRole>())
+    {
+        <Row Gap="2" Align="Align.Center">
+            <Icon Role="role" />
+            <TextBlock As="span" Size="TextSize.Sm">@role</TextBlock>
+        </Row>
+    }
+</Grid>

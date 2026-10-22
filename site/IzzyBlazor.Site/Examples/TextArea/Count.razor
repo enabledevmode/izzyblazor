@@ -1,0 +1,18 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="text-area-count" MaxWidth="28.Rem" Grow>
+    <TextArea @bind-Value="Model!.Bio" Rows="2" AutoGrow ShowCount Hint="Shown on your public profile." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "text-area-count")]
+    private Profile? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Profile
+    {
+        [StringLength(160)]
+        public string? Bio { get; set; } = "Designer at Acme. I draw interfaces, then delete half of them.";
+    }
+}

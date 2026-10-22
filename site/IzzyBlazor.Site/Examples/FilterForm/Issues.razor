@@ -1,0 +1,55 @@
+@* The page reads the filters from the URL and filters its own list. *@
+<Stack Gap="4" MaxWidth="34.Rem" Grow>
+    <FilterForm Label="Filter issues">
+        <FilterSearch Placeholder="Search issues" />
+        <FilterSelect Name="label" Label="Label" Items="Labels" />
+        <FilterCheckbox Name="mine" Label="Assigned to me" />
+    </FilterForm>
+    @* A live region: screen readers hear the new count after each filter. *@
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" aria-live="polite">@Matches.Count() of @All.Length issues</TextBlock>
+    @if (Matches.Any())
+    {
+        <List Plain Gap="3">
+            @foreach (var issue in Matches)
+            {
+                <ListItem>
+                    <Row Gap="2" Align="Align.Center">
+                        <TextBlock As="span">@issue.Title</TextBlock>
+                        <Badge Size="BadgeSize.Sm">@issue.Label</Badge>
+                    </Row>
+                </ListItem>
+            }
+        </List>
+    }
+    else
+    {
+        <TextBlock Color="Color.Muted">No issues match.</TextBlock>
+    }
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
+    [SupplyParameterFromQuery(Name = "label")] private string? LabelFilter { get; set; }
+    [SupplyParameterFromQuery(Name = "mine")] private bool Mine { get; set; }
+
+    private IEnumerable<Issue> Matches => All
+        .Where(i => string.IsNullOrWhiteSpace(Search) || i.Title.Contains(Search, StringComparison.OrdinalIgnoreCase))
+        .Where(i => string.IsNullOrEmpty(LabelFilter) || i.Label == LabelFilter)
+        .Where(i => !Mine || i.Mine);
+
+    @* hide *@
+    private static readonly string[] Labels = ["Bug", "Feature", "Docs"];
+
+    private static readonly Issue[] All =
+    [
+        new("Export to CSV drops the last row", "Bug", true),
+        new("Dark mode for the billing page", "Feature", false),
+        new("Document the webhook retry policy", "Docs", true),
+        new("Search ignores accented letters", "Bug", false),
+        new("Keyboard shortcut for new project", "Feature", true),
+        new("Invite email shows the wrong workspace", "Bug", false),
+    ];
+
+    private sealed record Issue(string Title, string Label, bool Mine);
+    @* /hide *@
+}

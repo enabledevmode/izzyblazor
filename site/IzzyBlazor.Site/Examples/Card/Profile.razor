@@ -1,0 +1,35 @@
+<Card Grow MaxWidth="26.Rem">
+    <CardMedia>
+        <svg viewBox="0 0 400 100" preserveAspectRatio="xMidYMid slice" style="height: 5rem" aria-hidden="true">
+            <defs><linearGradient id="profile-cover" x1="0" x2="1"><stop offset="0" stop-color="#0f766e" /><stop offset="1" stop-color="#4f46e5" /></linearGradient></defs>
+            <rect width="400" height="100" fill="url(#profile-cover)" />
+        </svg>
+    </CardMedia>
+    <CardBody Gap="5">
+        <Row Gap="4" Align="Align.Center">
+            <Avatar Name="Ada Lovelace" Size="AvatarSize.Xl" Status="Status.Success" StatusLabel="Online" />
+            <Stack Gap="1" Grow>
+                <Row Gap="2" Align="Align.Center" Wrap>
+                    <Heading Level="2" Size="TextSize.Lg">Ada Lovelace</Heading>
+                    <Badge Accent="Accent.Primary">Admin</Badge>
+                </Row>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Staff engineer, Platform</TextBlock>
+            </Stack>
+        </Row>
+        <DescriptionList Size="ControlSize.Sm" Divided>
+            <DescriptionItem Term="Email"><Anchor Href="mailto:ada@example.com">ada@example.com</Anchor></DescriptionItem>
+            <DescriptionItem Term="Location">London, UK</DescriptionItem>
+            <DescriptionItem Term="Local time">4:12 PM (GMT)</DescriptionItem>
+            <DescriptionItem Term="Joined">March 2024</DescriptionItem>
+        </DescriptionList>
+        <Row Gap="2" Wrap>
+            <Tag Label="Compilers" Size="ControlSize.Sm" />
+            <Tag Label="Blazor" Size="ControlSize.Sm" />
+            <Tag Label="Accessibility" Size="ControlSize.Sm" />
+        </Row>
+    </CardBody>
+    <CardFooter>
+        <Button Href="mailto:ada@example.com" StartIcon="Lucide.Mail" Grow>Message</Button>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Calendar" Grow>Schedule a call</Button>
+    </CardFooter>
+</Card>

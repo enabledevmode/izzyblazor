@@ -1,0 +1,29 @@
+<Card Title="Order #1042" Grow MaxWidth="22.Rem">
+    <Skeleton Loaded="_order is not null" Lines="3">
+        <DescriptionList Size="ControlSize.Sm">
+            <DescriptionItem Term="Customer">@_order!.Customer</DescriptionItem>
+            <DescriptionItem Term="Items">@_order!.Items</DescriptionItem>
+            <DescriptionItem Term="Total">@_order!.Total</DescriptionItem>
+        </DescriptionList>
+    </Skeleton>
+    <CardFooter>
+        <Button OnClick="LoadAsync" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.RefreshCw">Reload</Button>
+    </CardFooter>
+</Card>
+
+@code {
+    private Order? _order;
+
+    protected override Task OnAfterRenderAsync(bool firstRender) => firstRender ? LoadAsync() : Task.CompletedTask;
+
+    private async Task LoadAsync()
+    {
+        _order = null;
+        StateHasChanged();
+        await Task.Delay(1500);
+        _order = new("Grace Hopper", "3 items", "$128.00");
+        StateHasChanged();
+    }
+
+    private sealed record Order(string Customer, string Items, string Total);
+}

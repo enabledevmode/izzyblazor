@@ -1,0 +1,41 @@
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+<ToastRegion />
+
+<Row Gap="3" Align="Align.Center" Wrap Justify="Justify.Center">
+    <form method="post" @formname="toast-archive" @onsubmit="Archive" data-enhance>
+        <AntiforgeryToken />
+        <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+    </form>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@State</TextBlock>
+</Row>
+
+@code {
+    // Undo's link: this page with ?restored=1.
+    [SupplyParameterFromQuery(Name = "restored")]
+    private int? Restored { get; set; }
+
+    private bool _archived;
+    private bool _restored;
+
+    private string State => _archived ? "Invoice INV-1042 is archived" : _restored || Restored == 1 ? "Restored to the inbox" : "Invoice INV-1042 is in the inbox";
+
+    private void Archive()
+    {
+        _archived = true;
+        _restored = false;
+
+        // Static pages use the link; interactive pages run OnClick.
+        Toasts.Info("Invoice INV-1042 archived.", action: new("Undo", Href: Navigation.GetUriWithQueryParameter("restored", 1))
+        {
+            OnClick = () =>
+            {
+                _archived = false;
+                _restored = true;
+                StateHasChanged();
+                return Task.CompletedTask;
+            },
+        });
+    }
+}

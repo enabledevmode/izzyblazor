@@ -105,7 +105,7 @@ parameter tables and defaults are never written by hand.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its
-  title, the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
+  title and `lead` (one sentence leading with the prop; backticks mark code), the remarks as Details, its parts, Mode support, Accessibility, Parameters and See also.
   The API page is always generated.
 - Accessibility and See also come from the doc comment, for hand-written Overviews too: an
   `<accessibility>` tag (a bullet `<list>`: what the component gives keyboard, screen reader and

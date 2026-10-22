@@ -1,0 +1,13 @@
+<AvatarGroup Max="4" Label="Project members">
+    @foreach (var name in Members)
+    {
+        <Avatar Name="@name" />
+    }
+</AvatarGroup>
+
+@code {
+    @* hide *@
+    private static readonly string[] Members =
+        ["Grace Hopper", "Alan Turing", "Ada Lovelace", "Margaret Hamilton", "Katherine Johnson", "Dennis Ritchie", "Barbara Liskov"];
+    @* /hide *@
+}

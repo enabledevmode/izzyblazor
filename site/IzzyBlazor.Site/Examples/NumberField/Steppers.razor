@@ -1,0 +1,26 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="number-field-steppers" MaxWidth="20.Rem" Grow>
+    <NumberField @bind-Value="Model!.Nights" />
+    <NumberField @bind-Value="Model!.Guests" StepButtons="StepButtons.Split" />
+    <NumberField @bind-Value="Model!.Room" StepButtons="StepButtons.None" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "number-field-steppers")]
+    private Booking? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Booking
+    {
+        [Range(1, 30)]
+        public int Nights { get; set; } = 3;
+
+        [Range(1, 8)]
+        public int Guests { get; set; } = 2;
+
+        [Display(Name = "Room number")]
+        public int? Room { get; set; } = 214;
+    }
+}

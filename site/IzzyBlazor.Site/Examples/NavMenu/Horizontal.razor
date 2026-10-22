@@ -1,0 +1,16 @@
+@inject NavigationManager Navigation
+
+@* Orientation.Horizontal lays the items in a row, for a bar of section links. *@
+<nav aria-label="Project">
+    <NavMenu Orientation="Orientation.Horizontal">
+        <NavItem Href="@To(null)">Overview</NavItem>
+        <NavItem Href='@To("deploys")'>Deploys</NavItem>
+        <NavItem Href='@To("logs")' Badge="3" BadgeStatus="Status.Danger">Logs</NavItem>
+        <NavItem Href='@To("settings")'>Settings</NavItem>
+    </NavMenu>
+</nav>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

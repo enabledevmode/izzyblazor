@@ -1,0 +1,12 @@
+<Stack Direction="new() { Base = Direction.Column, Sm = Direction.Row }"
+       Align="new() { Base = Align.Stretch, Sm = Align.Center }"
+       Justify="Justify.Between" Gap="4" Grow>
+    <Column Gap="1">
+        <Heading Level="2">Invoices</Heading>
+        <TextBlock Color="Color.Muted">42 invoices, 3 overdue</TextBlock>
+    </Column>
+    <Row Gap="2">
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download">Export</Button>
+        <Button StartIcon="Lucide.Plus">New invoice</Button>
+    </Row>
+</Stack>

@@ -1,0 +1,40 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="segmented-control-icons" Grow>
+    <SegmentedControl @bind-Value="Model!.Theme" ItemIcon="ThemeIcon" />
+    <SegmentedControl @bind-Value="Model!.Align" ItemIcon="AlignIcon" IconOnly />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "segmented-control-icons")]
+    private Editor? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static IconData? ThemeIcon(Theme theme) => theme switch
+    {
+        Theme.Light => Lucide.Sun,
+        Theme.Dark => Lucide.Moon,
+        _ => Lucide.Monitor,
+    };
+
+    private static IconData? AlignIcon(TextAlignment align) => align switch
+    {
+        TextAlignment.Left => Lucide.TextAlignStart,
+        TextAlignment.Center => Lucide.TextAlignCenter,
+        TextAlignment.Right => Lucide.TextAlignEnd,
+        _ => Lucide.TextAlignJustify,
+    };
+
+    public sealed class Editor
+    {
+        public Theme Theme { get; set; } = Theme.System;
+
+        [Display(Name = "Text alignment")]
+        public TextAlignment Align { get; set; } = TextAlignment.Left;
+    }
+
+    public enum Theme { Light, Dark, System }
+
+    public enum TextAlignment { Left, Center, Right, Justify }
+}

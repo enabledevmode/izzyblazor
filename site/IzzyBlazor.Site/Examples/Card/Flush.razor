@@ -1,0 +1,25 @@
+<Card Title="Recent orders" Description="Last 7 days" Grow MaxWidth="32.Rem">
+    <CardActions>
+        <Button Href="docs/components/table" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm">View all</Button>
+    </CardActions>
+    <CardBody Flush>
+        <Table Items="RecentOrders" Caption="Recent orders" QueryPrefix="recent-">
+            <PropertyColumn Property="o => o.Number" Title="Order" />
+            <PropertyColumn Property="o => o.Customer" />
+            <PropertyColumn Property="o => o.Total" Format="C0" />
+        </Table>
+    </CardBody>
+</Card>
+
+@code {
+    @* hide *@
+    private sealed record RecentOrder(string Number, string Customer, decimal Total);
+
+    private static readonly RecentOrder[] RecentOrders =
+    [
+        new("#1042", "Ada Lovelace", 128m),
+        new("#1041", "Grace Hopper", 64m),
+        new("#1040", "Alan Turing", 312m),
+    ];
+    @* /hide *@
+}

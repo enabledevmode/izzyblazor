@@ -1,0 +1,46 @@
+@using System.ComponentModel.DataAnnotations
+
+<Row Gap="3" Wrap Align="Align.Center">
+    <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues">
+        <Form Model="Model" FormName="issue-filters" OnValidSubmit="Apply" Gap="3">
+            <Checkbox @bind-Value="Model!.Open" />
+            <Checkbox @bind-Value="Model!.Closed" />
+            <Checkbox @bind-Value="Model!.Mine" />
+            <FormActions><Button Submit Size="ControlSize.Sm">Apply</Button></FormActions>
+        </Form>
+    </Popover>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_summary</TextBlock>
+</Row>
+
+@code {
+    [SupplyParameterFromForm(FormName = "issue-filters")]
+    private IssueFilters? Model { get; set; }
+
+    private string _summary = "Showing open issues";
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Apply()
+    {
+        var states = (Model!.Open, Model.Closed) switch
+        {
+            (true, true) => "all issues",
+            (false, true) => "closed issues",
+            (true, false) => "open issues",
+            _ => "no issues",
+        };
+        _summary = $"Showing {states}" + (Model.Mine ? " assigned to you" : "");
+    }
+
+    public sealed class IssueFilters
+    {
+        [Display(Name = "Open issues")]
+        public bool Open { get; set; } = true;
+
+        [Display(Name = "Closed issues")]
+        public bool Closed { get; set; }
+
+        [Display(Name = "Assigned to me")]
+        public bool Mine { get; set; }
+    }
+}

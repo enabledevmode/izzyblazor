@@ -1,0 +1,20 @@
+<Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,9" Grow>@Startup</Code>
+
+@* hide *@
+@code {
+    private const string Startup =
+        """
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddIzzyBlazor();
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        var app = builder.Build();
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+        app.MapIzzyBlazor();
+
+        app.Run();
+        """;
+}
+@* /hide *@

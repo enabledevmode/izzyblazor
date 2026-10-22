@@ -1,0 +1,23 @@
+@* Each CodeExampleFile is a tab over the source; the tabs switch with no script. *@
+<CodeExample Center Grow>
+    <Button StartIcon="Lucide.Save">Save</Button>
+    <CodeExampleFile Title="SaveButton.razor" Code="@Markup" />
+    <CodeExampleFile Title="SaveButton.razor.cs" Language="csharp" Code="@CodeBehind" HighlightLines="3" />
+</CodeExample>
+
+@* hide *@
+@code {
+    private const string Markup =
+        """
+        <Button StartIcon="Lucide.Save" OnClick="Save">Save</Button>
+        """;
+
+    private const string CodeBehind =
+        """
+        public partial class SaveButton(DraftStore store)
+        {
+            private Task Save() => store.SaveAsync();
+        }
+        """;
+}
+@* /hide *@

@@ -1,0 +1,20 @@
+<Grid Columns="new() { Base = 1, Sm = 2, Lg = 3 }" Gap="4" Grow>
+    @foreach (var project in Projects)
+    {
+        <Card Title="@project.Name" Description="@project.Updated" Size="ControlSize.Sm" />
+    }
+</Grid>
+
+@* hide *@
+@code {
+    private static readonly (string Name, string Updated)[] Projects =
+    [
+        ("Marketing site", "Updated 2 hours ago"),
+        ("Billing API", "Updated yesterday"),
+        ("Mobile app", "Updated 3 days ago"),
+        ("Design system", "Updated last week"),
+        ("Data warehouse", "Updated last week"),
+        ("Status page", "Updated last month"),
+    ];
+}
+@* /hide *@

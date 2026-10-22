@@ -1,0 +1,37 @@
+@inject NavigationManager Navigation
+
+@* On an interactive page @bind-Collapsed follows the icon rail, and C# can collapse or expand it,
+   here from a focus-mode button. *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.NotebookPen" Label="Field notes" />
+    </AppHeader>
+
+    <AppSidebar Collapsible @bind-Collapsed="_collapsed">
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.FileText">All notes</NavItem>
+            <NavItem Href='@To("starred")' Icon="Lucide.Star">Starred</NavItem>
+            <NavItem Href='@To("archive")' Icon="Lucide.Archive">Archive</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="4" Padding="new() { Base = 4, Md = 8 }" MaxWidth="Length.Prose">
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Heading Level="1" Size="TextSize.Xl2" Grow>Site visit, October 14</Heading>
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                        OnClick="() => _collapsed = !_collapsed">@(_collapsed ? "Show sidebar" : "Focus mode")</Button>
+            </Row>
+            <TextBlock>Sensor 4 reads two degrees high against the handheld. Recalibrate before the next run, and check whether the casing was opened during transport.</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Sidebar: @(_collapsed ? "collapsed" : "expanded")</TextBlock>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    private bool _collapsed;
+
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

@@ -1,0 +1,17 @@
+<Stack Gap="3" Align="Align.Start" Grow>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Showing orders @(First)–@(Last) of @Total</TextBlock>
+    <Pagination TotalItems="Total" PageSize="PageSize" Label="Orders pages" />
+</Stack>
+
+@code {
+    private const int Total = 237;
+    private const int PageSize = 10;
+
+    // The page's links set ?page=; read it here to show the right rows.
+    [SupplyParameterFromQuery(Name = "page")]
+    private int? CurrentPage { get; set; }
+
+    private int Page => Math.Clamp(CurrentPage ?? 1, 1, (Total + PageSize - 1) / PageSize);
+    private int First => (Page - 1) * PageSize + 1;
+    private int Last => Math.Min(Page * PageSize, Total);
+}

@@ -1,0 +1,20 @@
+@inject NavigationManager Navigation
+
+<Stack Gap="3" Grow>
+    <Banner @key="Key" Status="Status.Warning" Dismissible RememberKey="@Key">
+        Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
+    </Banner>
+    <Row>
+        <Anchor Href="@Navigation.GetUriWithQueryParameter("notice", Notice + 1)">Show it again</Anchor>
+    </Row>
+</Stack>
+
+@code {
+    // A dismissal is remembered under its key, so a new key shows the banner again.
+    [SupplyParameterFromQuery(Name = "notice")]
+    private int? NoticeQuery { get; set; }
+
+    private int Notice => NoticeQuery ?? 1;
+
+    private string Key => $"maintenance-{Notice}";
+}

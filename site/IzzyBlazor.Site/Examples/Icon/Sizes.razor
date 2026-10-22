@@ -1,0 +1,9 @@
+<Row Gap="5" Align="Align.End" Wrap>
+    @foreach (var size in Enum.GetValues<IconSize>())
+    {
+        <Stack Gap="1" Align="Align.Center">
+            <Icon Name="Lucide.Rocket" Size="size" />
+            <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">@size</TextBlock>
+        </Stack>
+    }
+</Row>

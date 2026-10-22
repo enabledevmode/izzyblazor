@@ -1,0 +1,52 @@
+@using System.ComponentModel.DataAnnotations
+
+<Row Gap="3" Wrap Align="Align.Center">
+    <DialogTrigger For="order-filters" StartIcon="Lucide.SlidersHorizontal" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Filters</DialogTrigger>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_summary</TextBlock>
+</Row>
+
+<Drawer Id="order-filters" Title="Filters" Size="DialogSize.Sm" @bind-Open="_open">
+    <Form Model="Model" FormName="order-filters" OnValidSubmit="Apply">
+        @* DialogBody fills the drawer's height, so the footer after it sits at the bottom. *@
+        <DialogBody Gap="5">
+            <RadioGroup @bind-Value="Model!.Status" />
+            <Checkbox @bind-Value="Model!.PaidOnly" />
+            <Checkbox @bind-Value="Model!.Archived" />
+        </DialogBody>
+        @* Last in the form, the buttons are the drawer's footer and still submit it. *@
+        <FormActions>
+            <DialogClose>Cancel</DialogClose>
+            <Button Submit>Show orders</Button>
+        </FormActions>
+    </Form>
+</Drawer>
+
+@code {
+    [SupplyParameterFromForm(FormName = "order-filters")]
+    private OrderFilters? Model { get; set; }
+
+    private bool _open;
+    private string _summary = "Showing all orders";
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Apply()
+    {
+        var status = Model!.Status == OrderStatus.Any ? "all" : Model.Status.ToString().ToLowerInvariant();
+        _summary = $"Showing {status} orders" + (Model.PaidOnly ? ", paid only" : "") + (Model.Archived ? ", archived too" : "");
+        _open = false;
+    }
+
+    public sealed class OrderFilters
+    {
+        public OrderStatus Status { get; set; }
+
+        [Display(Name = "Paid orders only")]
+        public bool PaidOnly { get; set; }
+
+        [Display(Name = "Include archived orders")]
+        public bool Archived { get; set; }
+    }
+
+    public enum OrderStatus { [Display(Name = "Any status")] Any, Pending, Shipped, Delivered }
+}

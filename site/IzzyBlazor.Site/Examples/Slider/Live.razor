@@ -1,0 +1,18 @@
+@using System.Globalization
+
+<Form Model="Model" FormName="slider-live" MaxWidth="24.Rem" Grow>
+    <Slider @bind-Value="Model!.Opacity" Min="0" Max="1" Step="0.05" ShowValue Live />
+    <Box Bg="Color.Primary" Radius="Radius.Md" Height="3.Rem" Style="@($"opacity: {Model!.Opacity.ToString(CultureInfo.InvariantCulture)}")" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "slider-live")]
+    private Overlay? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Overlay
+    {
+        public double Opacity { get; set; } = 0.8;
+    }
+}

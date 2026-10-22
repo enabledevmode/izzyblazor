@@ -1,0 +1,29 @@
+<Form Model="Model" FormName="combobox-filtering" MaxWidth="24.Rem" Grow>
+    <Combobox @bind-Value="Model!.Country" Items="Countries.Keys" ItemText="code => Countries[code!]"
+              Placeholder="Search countries" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "combobox-filtering")]
+    private Shipping? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Shipping
+    {
+        public string? Country { get; set; }
+    }
+
+    @* hide *@
+    private static readonly Dictionary<string, string> Countries = new()
+    {
+        ["AR"] = "Argentina", ["AU"] = "Australia", ["AT"] = "Austria", ["BE"] = "Belgium", ["BR"] = "Brazil",
+        ["CA"] = "Canada", ["CL"] = "Chile", ["CO"] = "Colombia", ["CI"] = "Côte d'Ivoire", ["CZ"] = "Czechia",
+        ["DK"] = "Denmark", ["FI"] = "Finland", ["FR"] = "France", ["DE"] = "Germany", ["GR"] = "Greece",
+        ["IN"] = "India", ["IE"] = "Ireland", ["IT"] = "Italy", ["JP"] = "Japan", ["KE"] = "Kenya",
+        ["MX"] = "Mexico", ["NL"] = "Netherlands", ["NZ"] = "New Zealand", ["NO"] = "Norway", ["PL"] = "Poland",
+        ["PT"] = "Portugal", ["RE"] = "Réunion", ["KR"] = "South Korea", ["ES"] = "Spain", ["SE"] = "Sweden",
+        ["CH"] = "Switzerland", ["TR"] = "Türkiye", ["GB"] = "United Kingdom", ["US"] = "United States",
+    };
+    @* /hide *@
+}

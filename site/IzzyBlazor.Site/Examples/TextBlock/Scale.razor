@@ -1,0 +1,9 @@
+<Stack Gap="2" Grow>
+    @foreach (var size in Enum.GetValues<TextSize>())
+    {
+        <Row Gap="4" Align="Align.Baseline">
+            <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted" Width="3.Rem" TabularNums>@size</TextBlock>
+            <TextBlock As="span" Size="size" Truncate>Invoice paid</TextBlock>
+        </Row>
+    }
+</Stack>

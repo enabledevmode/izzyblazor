@@ -1,0 +1,24 @@
+@* On an interactive page ValueChanged tells C# what was picked, and setting Value applies a scheme
+   to the page, the cookie and other open tabs, as a click would. Value starts unset, so the
+   switch shows the choice saved in the cookie. *@
+<Stack Gap="3" Align="Align.Start">
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <ColorSchemeSwitch Variant="ColorSchemeSwitchVariant.Segmented"
+                           Value="_scheme" ValueChanged="(ColorScheme picked) => _scheme = picked" />
+        <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+                OnClick="() => _scheme = ColorScheme.Auto">Reset to system</Button>
+    </Row>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Picked here: @Picked</TextBlock>
+</Stack>
+
+@code {
+    private ColorScheme? _scheme;
+
+    private string Picked => _scheme switch
+    {
+        ColorScheme.Light => "Light",
+        ColorScheme.Dark => "Dark",
+        ColorScheme.Auto => "System",
+        _ => "nothing yet",
+    };
+}

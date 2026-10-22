@@ -1,0 +1,39 @@
+@* A changelog post: the page's own heading and byline as components, the body as HTML from
+   Markdown, styled by Prose. *@
+<Stack Gap="6" MaxWidth="Length.Prose" Grow>
+    <Anchor Href="https://example.com/releases" Underline="AnchorUnderline.Hover">← All releases</Anchor>
+    <Stack Gap="2">
+        <Heading Level="1" Size="TextSize.Xl4">Version 2.4: offline drafts</Heading>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">October 14, 2026 · Ada Lovelace · 4 min read</TextBlock>
+    </Stack>
+    <Prose Size="ProseSize.Lg" As="article">@((MarkupString)Html)</Prose>
+    <Row Justify="Justify.Between" Gap="4" Wrap>
+        <Anchor Href="https://example.com/releases/2.3">← Version 2.3</Anchor>
+        <Anchor Href="https://example.com/forum" External>Discuss in the forum</Anchor>
+    </Row>
+</Stack>
+
+@* hide *@
+@code {
+    private const string Html =
+        """
+        <p>Drafts now save on your device as you type, so a dropped connection never costs you a paragraph. When you're back online they sync, and you pick up where you left off on any device.</p>
+        <h2>What's new</h2>
+        <ul>
+          <li><strong>Offline drafts.</strong> Everything you write is kept until it syncs.</li>
+          <li><strong>Conflict view.</strong> When two devices edit the same draft, you see both and choose.</li>
+          <li><strong>Faster search.</strong> Results show as you type, even in archives with thousands of posts.</li>
+        </ul>
+        <h2>Upgrading</h2>
+        <p>Nothing to do for most teams. If you call the API directly, the <code>drafts</code> endpoint now returns a <code>syncedAt</code> field:</p>
+        <pre><code>{ "id": "d_812", "title": "Q4 plan", "syncedAt": "2026-10-14T09:12:00Z" }</code></pre>
+        <blockquote>We moved our own team to offline drafts a month ago, and nobody has lost a draft since.</blockquote>
+        <h2>Fixed</h2>
+        <ol>
+          <li>Pasting a table from a spreadsheet keeps its header row.</li>
+          <li>The editor no longer jumps to the top after an image upload.</li>
+        </ol>
+        <p>Read the full list in the <a href="https://example.com/changelog">changelog</a>.</p>
+        """;
+}
+@* /hide *@

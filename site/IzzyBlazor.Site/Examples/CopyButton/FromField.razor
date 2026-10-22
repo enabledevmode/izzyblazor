@@ -1,0 +1,8 @@
+@* For copies the value of the element with that id, here the field's input. *@
+<TextField Label="API key" @bind-Value="_apiKey" id="api-key" ReadOnly MaxWidth="24.Rem" Grow>
+    <EndAddon><CopyButton For="api-key" Variant="ButtonVariant.Outline">Copy</CopyButton></EndAddon>
+</TextField>
+
+@code {
+    private string? _apiKey = "ib_live_4f9a2c7d1e8b";
+}

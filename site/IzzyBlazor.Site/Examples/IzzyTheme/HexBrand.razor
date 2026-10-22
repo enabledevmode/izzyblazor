@@ -1,0 +1,54 @@
+@inject NavigationManager Navigation
+
+@* A hex Brand: the server derives the fill, the text on it, the accent as text and the soft tint,
+   in light and dark, each pair checked for 4.5:1. A light color like yellow gets dark text. *@
+<Stack Gap="5" Grow>
+    <Row Gap="2" Wrap>
+        @foreach (var (name, hex) in Colors)
+        {
+            <IzzyTheme Brand="@hex">
+                <Button Href="@Navigation.GetUriWithQueryParameter("brand", hex)" Size="ControlSize.Sm"
+                        Variant="@(hex == Chosen ? ButtonVariant.Solid : ButtonVariant.Soft)">@name</Button>
+            </IzzyTheme>
+        }
+    </Row>
+    <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4">
+        @foreach (var scheme in new[] { ColorScheme.Light, ColorScheme.Dark })
+        {
+            <IzzyTheme Brand="@Chosen" ColorScheme="scheme">
+                <Card Title="@(scheme == ColorScheme.Light ? "Light" : "Dark")" Description="@Chosen">
+                    <Stack Gap="4">
+                        <Row Gap="2" Wrap>
+                            <Button>Save</Button>
+                            <Button Variant="ButtonVariant.Soft">Preview</Button>
+                            <Button Variant="ButtonVariant.Outline">Share</Button>
+                        </Row>
+                        <Row Gap="3" Align="Align.Center" Wrap>
+                            <Anchor Href="@Navigation.Uri">A link in the accent</Anchor>
+                            <Badge Accent="Accent.Primary">New</Badge>
+                        </Row>
+                        <Progress Value="64" Label="Upload" />
+                    </Stack>
+                </Card>
+            </IzzyTheme>
+        }
+    </Grid>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "brand")]
+    private string? Picked { get; set; }
+
+    // Only the colors offered here, whatever the address says.
+    private string Chosen => Colors.Any(c => c.Hex == Picked) ? Picked! : Colors[0].Hex;
+}
+@* hide *@
+
+@code {
+    private static readonly (string Name, string Hex)[] Colors =
+    [
+        ("Green", "#0a7d5a"), ("Purple", "#7c3aed"), ("Red", "#e11d48"), ("Navy", "#1e3a8a"),
+        ("Sky", "#0ea5e9"), ("Yellow", "#facc15"), ("Orange", "#ff6a00"), ("Black", "#000000"),
+    ];
+}
+@* /hide *@

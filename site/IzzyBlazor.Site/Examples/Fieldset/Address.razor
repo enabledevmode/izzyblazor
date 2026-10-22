@@ -1,0 +1,30 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="fieldset-address" MaxWidth="28.Rem" Grow>
+    <Fieldset Label="Shipping address" Description="Where we send your order.">
+        <TextField @bind-Value="Model!.Street" AutoComplete="street-address" />
+        <Row Gap="3">
+            <TextField @bind-Value="Model!.City" AutoComplete="address-level2" Grow />
+            <TextField @bind-Value="Model!.PostalCode" AutoComplete="postal-code" MaxWidth="9.Rem" />
+        </Row>
+    </Fieldset>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "fieldset-address")]
+    private Order? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Order
+    {
+        [Required]
+        public string? Street { get; set; } = "221B Baker Street";
+
+        [Required]
+        public string? City { get; set; } = "London";
+
+        [Required, Display(Name = "Postal code"), StringLength(10)]
+        public string? PostalCode { get; set; } = "NW1 6XE";
+    }
+}

@@ -1,0 +1,31 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="fieldset-columns" Grow>
+    <TextField @bind-Value="Model!.Company" AutoComplete="organization" />
+    <Fieldset Label="Billing address" Columns="3">
+        <TextField @bind-Value="Model!.Street" AutoComplete="street-address" ColSpan="GridSpan.Full" />
+        <TextField @bind-Value="Model!.City" AutoComplete="address-level2" />
+        <TextField @bind-Value="Model!.Region" AutoComplete="address-level1" />
+        <TextField @bind-Value="Model!.PostalCode" AutoComplete="postal-code" />
+    </Fieldset>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "fieldset-columns")]
+    private Billing? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Billing
+    {
+        public string? Company { get; set; } = "Acme Robotics";
+        public string? Street { get; set; } = "500 Market Street";
+        public string? City { get; set; } = "San Francisco";
+
+        [Display(Name = "State or region")]
+        public string? Region { get; set; } = "CA";
+
+        [Display(Name = "Postal code")]
+        public string? PostalCode { get; set; } = "94105";
+    }
+}

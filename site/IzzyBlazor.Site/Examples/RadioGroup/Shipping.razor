@@ -1,0 +1,31 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="radio-group-shipping" MaxWidth="24.Rem" Grow>
+    <RadioGroup @bind-Value="Model!.Rate" Items="Rates.Keys" ItemText="RateText" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "radio-group-shipping")]
+    private Checkout? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static readonly Dictionary<string, (string Name, decimal Price)> Rates = new()
+    {
+        ["standard"] = ("Standard, 3 to 5 days", 4.99m),
+        ["express"] = ("Express, 1 to 2 days", 12.99m),
+        ["pickup"] = ("Pick up in store", 0m),
+    };
+
+    private static string RateText(string? key)
+    {
+        var (name, price) = Rates[key!];
+        return price == 0 ? $"{name}: free" : $"{name}: ${price}";
+    }
+
+    public sealed class Checkout
+    {
+        [Display(Name = "Shipping")]
+        public string? Rate { get; set; } = "standard";
+    }
+}

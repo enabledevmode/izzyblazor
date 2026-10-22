@@ -1,0 +1,26 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="switch-icons" MaxWidth="32.Rem" Grow>
+    <Fieldset Label="Email notifications" Dividers Gap="3">
+        <Switch @bind-Value="Model!.NewDevice" Icon="Lucide.KeyRound" ControlPosition="ControlPosition.End"
+                Hint="An email each time, with a link to sign that device out." />
+        <Switch @bind-Value="Model!.Mentions" Icon="Lucide.MessageSquareCheck" ControlPosition="ControlPosition.End"
+                Hint="When someone mentions you or replies to you." />
+        <Switch @bind-Value="Model!.ProductUpdates" Icon="Lucide.LayersPlus" ControlPosition="ControlPosition.End"
+                Hint="A short email when something new ships, about once a month." />
+    </Fieldset>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "switch-icons")]
+    private Notifications? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Notifications
+    {
+        [Display(Name = "Sign-in from a new device")] public bool NewDevice { get; set; } = true;
+        [Display(Name = "Mentions and comments")] public bool Mentions { get; set; } = true;
+        [Display(Name = "Product updates")] public bool ProductUpdates { get; set; }
+    }
+}

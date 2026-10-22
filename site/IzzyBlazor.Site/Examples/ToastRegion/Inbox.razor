@@ -1,0 +1,91 @@
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+<ToastRegion />
+
+<Card Title="Inbox" Description="@($"{Shown.Count} conversations")" Grow MaxWidth="40.Rem">
+    <CardBody Flush>
+        @if (Shown.Count == 0)
+        {
+            <EmptyState Icon="Lucide.Inbox" Title="All caught up" Description="Archived conversations stay in Archive for 30 days." Size="ControlSize.Sm" />
+        }
+        else
+        {
+            <form method="post" @formname="inbox" @onsubmit="Archive" data-enhance>
+                <AntiforgeryToken />
+                @foreach (var message in Shown)
+                {
+                    <Row Gap="3" Align="Align.Center" PaddingX="4" PaddingY="3" BorderTop="1">
+                        <Avatar Name="@message.From" Decorative />
+                        <Stack Gap="0" Grow MinWidth="0.Rem">
+                            <TextBlock Weight="FontWeight.Medium" Truncate>@message.From</TextBlock>
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@message.Subject</TextBlock>
+                        </Stack>
+                        <Button Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id"
+                                Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+                    </Row>
+                }
+            </form>
+        }
+    </CardBody>
+</Card>
+
+@code {
+    // Static pages: the archived ids live in the address (?archived=…), so each page load knows them.
+    [SupplyParameterFromQuery(Name = "archived")]
+    private string[]? ArchivedQuery { get; set; }
+
+    // The pressed button's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "inbox", Name = "archive")]
+    private string? Posted { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which button it was.
+    private string? _clicked;
+    private HashSet<string> _archived = [];
+
+    private List<Conversation> Shown => Conversations.Where(c => !_archived.Contains(c.Id)).ToList();
+
+    protected override void OnParametersSet() => _archived = [.. ArchivedQuery ?? []];
+
+    private void Archive()
+    {
+        var conversation = Conversations.FirstOrDefault(c => c.Id == (Posted ?? _clicked));
+        if (conversation is null)
+        {
+            return;
+        }
+
+        var undo = UrlWith(_archived.Where(id => id != conversation.Id));
+        _archived.Add(conversation.Id);
+        Toasts.Info($"Archived \"{conversation.Subject}\".", action: new("Undo", Href: undo)
+        {
+            OnClick = () =>
+            {
+                _archived.Remove(conversation.Id);
+                StateHasChanged();
+                return Task.CompletedTask;
+            },
+        });
+
+        // A static post redirects to the new address, and the toast follows it.
+        if (!RendererInfo.IsInteractive)
+        {
+            Navigation.NavigateTo(UrlWith(_archived));
+        }
+    }
+
+    private string UrlWith(IEnumerable<string> archived) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["archived"] = archived.ToArray() });
+
+    @* hide *@
+    private sealed record Conversation(string Id, string From, string Subject);
+
+    private static readonly Conversation[] Conversations =
+    [
+        new("c1", "Grace Hopper", "Invoice INV-1042 for October"),
+        new("c2", "Alan Turing", "Notes from Tuesday's design review"),
+        new("c3", "Katherine Johnson", "Launch checklist, final pass"),
+        new("c4", "Linus Torvalds", "Re: The staging server is full again"),
+    ];
+    @* /hide *@
+}

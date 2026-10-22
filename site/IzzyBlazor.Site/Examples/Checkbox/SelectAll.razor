@@ -1,0 +1,44 @@
+<Form Model="Model" FormName="checkbox-select-all" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <Column Gap="2">
+        <Checkbox Value="AllOn" ValueChanged="SetAll" ValueExpression="() => Model!.Everything"
+                  Indeterminate="SomeOn" Label="Notify me about everything" />
+        <Column Gap="2" PaddingStart="6">
+            <Checkbox @bind-Value="Model!.Comments" />
+            <Checkbox @bind-Value="Model!.Mentions" />
+            <Checkbox @bind-Value="Model!.Releases" />
+        </Column>
+    </Column>
+    <Row><Button Submit>Save</Button></Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-select-all")]
+    private Notifications? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // The top box is worked out from the three below.
+    private bool AllOn => Model!.Comments && Model.Mentions && Model.Releases;
+    private bool SomeOn => !AllOn && (Model!.Comments || Model.Mentions || Model.Releases);
+
+    // Interactive pages: checking the top box sets all three.
+    private void SetAll(bool on) => Model!.Comments = Model.Mentions = Model.Releases = on;
+
+    // Static pages: the top box posts as Everything; when it disagrees with the three, it was changed.
+    // (Interactive pages have already applied it.)
+    private void Save()
+    {
+        if (!RendererInfo.IsInteractive && Model!.Everything != AllOn)
+        {
+            SetAll(Model.Everything);
+        }
+    }
+
+    public sealed class Notifications
+    {
+        public bool Everything { get; set; }
+        public bool Comments { get; set; } = true;
+        public bool Mentions { get; set; }
+        public bool Releases { get; set; }
+    }
+}

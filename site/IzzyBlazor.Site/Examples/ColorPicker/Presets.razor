@@ -1,0 +1,20 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="color-picker-presets" MaxWidth="20.Rem" Grow>
+    <ColorPicker @bind-Value="Model!.Brand" Presets="BrandColors" Hint="Used for buttons, links and focus rings." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "color-picker-presets")]
+    private Branding? Model { get; set; }
+
+    private static readonly string[] BrandColors = ["#2563eb", "#4f46e5", "#7c3aed", "#0f766e", "#15803d", "#be123c", "#ea580c", "#18181b"];
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Branding
+    {
+        [Display(Name = "Brand color")]
+        public string? Brand { get; set; } = "#2563eb";
+    }
+}

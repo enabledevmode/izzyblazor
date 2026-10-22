@@ -1,0 +1,207 @@
+@using System.ComponentModel.DataAnnotations
+@using System.Globalization
+@inject NavigationManager Navigation
+
+<Grid Template='new() { Base = "1fr", Md = "1fr 18rem" }' Gap="8" Align="Align.Start" Grow>
+    <Stack Gap="6">
+        @* Finished steps link back; the step itself is ?step= in the address. *@
+        <Stepper Current="Current" Label="Checkout progress">
+            <Step Label="Cart" Href="@BackTo(1)" />
+            <Step Label="Shipping" Href="@BackTo(2)" />
+            <Step Label="Payment" Href="@BackTo(3)" />
+            <Step Label="Review" />
+        </Stepper>
+
+        @switch (Current)
+        {
+            case 1:
+                <Stack Gap="4">
+                    <Heading Level="2" Size="TextSize.Xl">Your cart</Heading>
+                    <TextBlock Color="Color.Muted">Both items are in stock and ready to ship.</TextBlock>
+                    <Row><Button Href="@StepUrl(2)" EndIcon="Lucide.ArrowRight">Continue to shipping</Button></Row>
+                </Stack>
+                break;
+
+            case 2:
+                <Form Model="Shipping" FormName="checkout-shipping" OnValidSubmit="ToPayment" Columns="2">
+                    <TextField @bind-Value="Shipping!.FullName" AutoComplete="name" ColSpan="GridSpan.Full" />
+                    <TextField @bind-Value="Shipping!.Street" AutoComplete="street-address" ColSpan="GridSpan.Full" />
+                    <TextField @bind-Value="Shipping!.City" AutoComplete="address-level2" />
+                    <TextField @bind-Value="Shipping!.PostalCode" AutoComplete="postal-code" />
+                    <RadioGroup @bind-Value="Shipping!.Delivery" ColSpan="GridSpan.Full" />
+                    <FormActions Justify="Justify.Between">
+                        <Button Href="@StepUrl(1)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
+                        <Button Submit EndIcon="Lucide.ArrowRight">Continue to payment</Button>
+                    </FormActions>
+                </Form>
+                break;
+
+            case 3:
+                <Form Model="Payment" FormName="checkout-payment" OnValidSubmit="ToReview" Columns="2">
+                    <TextField @bind-Value="Payment!.NameOnCard" AutoComplete="cc-name" ColSpan="GridSpan.Full" />
+                    <TextField @bind-Value="Payment!.CardNumber" AutoComplete="cc-number" Placeholder="4242 4242 4242 4242" ColSpan="GridSpan.Full" />
+                    <TextField @bind-Value="Payment!.Expiry" AutoComplete="cc-exp" Placeholder="MM/YY" />
+                    <TextField @bind-Value="Payment!.SecurityCode" AutoComplete="cc-csc" />
+                    <FormActions Justify="Justify.Between">
+                        <Button Href="@StepUrl(2)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
+                        <Button Submit EndIcon="Lucide.ArrowRight">Review order</Button>
+                    </FormActions>
+                </Form>
+                break;
+
+            case 4:
+                <Stack Gap="4">
+                    <Heading Level="2" Size="TextSize.Xl">Review your order</Heading>
+                    <DescriptionList Divided>
+                        <DescriptionItem Term="Delivery">@(Express ? "Express, next day" : "Standard, 3 to 5 days")</DescriptionItem>
+                        <DescriptionItem Term="Payment">Card, charged when the order ships</DescriptionItem>
+                    </DescriptionList>
+                    @* Placing the order is a post, not a link. *@
+                    <form method="post" @formname="checkout-place" @onsubmit="Place">
+                        <AntiforgeryToken />
+                        <Row Gap="2" Justify="Justify.Between">
+                            <Button Href="@StepUrl(3)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
+                            <Button Submit StartIcon="Lucide.Lock">Place order</Button>
+                        </Row>
+                    </form>
+                </Stack>
+                break;
+
+            default:
+                <Alert Status="Status.Success" Title="Order placed">
+                    Order #10482 is confirmed. We've emailed your receipt.
+                </Alert>
+                <Row><Button Href="@NewOrderUrl" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Start a new order</Button></Row>
+                break;
+        }
+    </Stack>
+
+    <Card Title="Order summary" TitleLevel="2">
+        <Stack Gap="3">
+            @foreach (var line in Lines)
+            {
+                <Row Gap="3" Justify="Justify.Between">
+                    <TextBlock As="span">@line.Name <TextBlock As="span" Color="Color.Muted">× @line.Quantity</TextBlock></TextBlock>
+                    <TextBlock As="span" TabularNums>@Money(line.Price * line.Quantity)</TextBlock>
+                </Row>
+            }
+            <Divider />
+            <Row Gap="3" Justify="Justify.Between">
+                <TextBlock As="span" Color="Color.Muted">Delivery</TextBlock>
+                <TextBlock As="span" TabularNums>@(Express ? Money(ExpressCost) : "Free")</TextBlock>
+            </Row>
+            <Row Gap="3" Justify="Justify.Between">
+                <TextBlock As="span" Weight="FontWeight.Semibold">Total</TextBlock>
+                <TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@Money(Total)</TextBlock>
+            </Row>
+        </Stack>
+    </Card>
+</Grid>
+
+@code {
+    private const int Steps = 4;
+
+    [SupplyParameterFromQuery(Name = "step")]
+    private int? StepQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "delivery")]
+    private string? DeliveryQuery { get; set; }
+
+    [SupplyParameterFromForm(FormName = "checkout-shipping")]
+    private ShippingDetails? Shipping { get; set; }
+
+    [SupplyParameterFromForm(FormName = "checkout-payment")]
+    private PaymentDetails? Payment { get; set; }
+
+    // Past the last step (5), every step shows as done.
+    private int Current => Math.Clamp(StepQuery ?? 1, 1, Steps + 1);
+
+    private bool Express => DeliveryQuery == "express";
+
+    // A real checkout keeps the order on the server. This one keeps only the delivery choice, in
+    // the address, so going back to Shipping shows it.
+    protected override void OnInitialized()
+    {
+        Shipping ??= new() { Delivery = Express ? DeliveryOption.Express : DeliveryOption.Standard };
+        Payment ??= new();
+    }
+
+    private string StepUrl(int step) => Navigation.GetUriWithQueryParameter("step", step);
+
+    private string? BackTo(int step) => step < Current && Current <= Steps ? StepUrl(step) : null;
+
+    // On a static page this redirects after the post; on an interactive one it navigates.
+    private void ToPayment() => Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+    {
+        ["step"] = 3,
+        ["delivery"] = Shipping!.Delivery == DeliveryOption.Express ? "express" : "standard",
+    }));
+
+    private void ToReview() => Navigation.NavigateTo(StepUrl(4));
+
+    private void Place() => Navigation.NavigateTo(StepUrl(Steps + 1));
+
+    private string NewOrderUrl => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["step"] = 1, ["delivery"] = null });
+
+    @* hide *@
+    private const decimal ExpressCost = 12m;
+
+    private static readonly (string Name, int Quantity, decimal Price)[] Lines =
+    [
+        ("Linen shirt", 2, 48m),
+        ("Canvas tote", 1, 24m),
+    ];
+
+    private decimal Total => Lines.Sum(l => l.Price * l.Quantity) + (Express ? ExpressCost : 0m);
+
+    private static string Money(decimal amount) => "$" + amount.ToString("0.00", CultureInfo.InvariantCulture);
+
+    public sealed class ShippingDetails
+    {
+        [Required(ErrorMessage = "Enter the name to ship to")]
+        [Display(Name = "Full name")]
+        public string? FullName { get; set; }
+
+        [Required(ErrorMessage = "Enter a street address")]
+        [Display(Name = "Street address")]
+        public string? Street { get; set; }
+
+        [Required(ErrorMessage = "Enter a city")]
+        public string? City { get; set; }
+
+        [Required(ErrorMessage = "Enter a postal code")]
+        [Display(Name = "Postal code")]
+        public string? PostalCode { get; set; }
+
+        public DeliveryOption Delivery { get; set; }
+    }
+
+    public sealed class PaymentDetails
+    {
+        [Required(ErrorMessage = "Enter the name on the card")]
+        [Display(Name = "Name on card")]
+        public string? NameOnCard { get; set; }
+
+        [Required(ErrorMessage = "Enter the card number")]
+        [RegularExpression(@"^[\d ]{12,23}$", ErrorMessage = "Enter the 16 digits on the front of the card")]
+        [Display(Name = "Card number")]
+        public string? CardNumber { get; set; }
+
+        [Required(ErrorMessage = "Enter the expiry date")]
+        [RegularExpression(@"^(0[1-9]|1[0-2])/\d{2}$", ErrorMessage = "Enter it as MM/YY")]
+        [Display(Name = "Expiry date")]
+        public string? Expiry { get; set; }
+
+        [Required(ErrorMessage = "Enter the 3 digits on the back")]
+        [RegularExpression(@"^\d{3,4}$", ErrorMessage = "Enter the 3 digits on the back")]
+        [Display(Name = "Security code")]
+        public string? SecurityCode { get; set; }
+    }
+
+    public enum DeliveryOption
+    {
+        [Display(Name = "Standard, 3 to 5 days (free)")] Standard,
+        [Display(Name = "Express, next day ($12.00)")] Express,
+    }
+    @* /hide *@
+}

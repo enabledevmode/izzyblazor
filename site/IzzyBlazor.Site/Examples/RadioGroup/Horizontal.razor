@@ -1,0 +1,31 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="radio-group-horizontal" MaxWidth="28.Rem" Grow>
+    <RadioGroup @bind-Value="Model!.Digest" Hint="A summary of the week's activity." />
+    <RadioGroup @bind-Value="Model!.Contact" Orientation="Orientation.Horizontal" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "radio-group-horizontal")]
+    private Preferences? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Preferences
+    {
+        [Display(Name = "Email digest")]
+        public Digest Digest { get; set; } = Digest.Weekly;
+
+        [Display(Name = "Preferred contact")]
+        public ContactMethod Contact { get; set; } = ContactMethod.Email;
+    }
+
+    public enum Digest { Daily, Weekly, Never }
+
+    public enum ContactMethod
+    {
+        Email,
+        Phone,
+        [Display(Name = "Don't contact me")] None,
+    }
+}
