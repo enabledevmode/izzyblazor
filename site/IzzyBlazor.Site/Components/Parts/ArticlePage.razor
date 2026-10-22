@@ -1,5 +1,8 @@
+@inject Registry Registry
+
 @* An article's frame: the title and description for the head, breadcrumb, heading and lead, the
-   article's own content, then links to the articles before and after it in its section. *@
+   article's own content, then links to the articles before and after it in its section. A
+   troubleshooting article also lists the components it's about and the modes it happens in. *@
 
 @if (_found is { } found)
 {
@@ -14,6 +17,23 @@
             </Breadcrumb>
             <Heading Level="1" Size="TextSize.Xl3">@found.Article.Title</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted">@Lead</TextBlock>
+            @if (found.Article.Components.Count > 0 || found.Article.Modes.Count > 0)
+            {
+                <Row Gap="2" Wrap Align="Align.Center" Class="site-article-tags">
+                    @foreach (var name in found.Article.Components)
+                    {
+                        <Tag Size="ControlSize.Sm" Href="@(Registry.ByName(name) is { } component ? Registry.OverviewHref(component) : null)">@name</Tag>
+                    }
+                    @if (found.Article.Modes.Count > 0)
+                    {
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Happens in</TextBlock>
+                        @foreach (var mode in found.Article.Modes)
+                        {
+                            <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" title="@ModeChip.Describe(mode)">@ModeChip.Name(mode)</Badge>
+                        }
+                    }
+                </Row>
+            }
         </Stack>
 
         @ChildContent

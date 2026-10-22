@@ -1,0 +1,35 @@
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+<Stack Gap="4" MaxWidth="28.Rem" Grow>
+    @if (Saved is not null)
+    {
+        <Alert Status="Status.Success">Renamed to "@Saved". Reloading the page doesn't post it again.</Alert>
+    }
+    <Form Model="Model" FormName="rename-project" OnValidSubmit="Save">
+        <TextField @bind-Value="Model!.Name" />
+        <Button Submit>Rename</Button>
+    </Form>
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "rename-project")]
+    private Project? Model { get; set; }
+
+    [SupplyParameterFromQuery(Name = "saved")]
+    private string? Saved { get; set; }
+
+    protected override void OnInitialized() => Model ??= new() { Name = Saved ?? "Website refresh" };
+
+    private void Save()
+    {
+        // Save Model here, then answer with a redirect, as the last thing the handler does.
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("saved", Model!.Name));
+    }
+
+    public sealed class Project
+    {
+        [Required, StringLength(40), Display(Name = "Project name")]
+        public string? Name { get; set; }
+    }
+}

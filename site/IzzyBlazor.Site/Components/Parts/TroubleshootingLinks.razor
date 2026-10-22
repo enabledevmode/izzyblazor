@@ -1,0 +1,26 @@
+@* One See also item linking the troubleshooting articles about a component, or nothing when
+   there are none. Used by OverviewSeeAlso and by the hand-written See also lists. *@
+
+@if (_articles.Count > 0)
+{
+    <ListItem>
+        Troubleshooting:
+        @for (var i = 0; i < _articles.Count; i++)
+        {
+            var (group, article) = _articles[i];
+            <Anchor Href="@group.HrefOf(article)">@article.Title</Anchor>@(i < _articles.Count - 1 ? "; " : ".")
+        }
+    </ListItem>
+}
+
+@code {
+    /// <summary>The component's type name, as articles list it.</summary>
+    [Parameter, EditorRequired] public string Component { get; set; } = "";
+
+    private List<(ArticleSection, Article)> _articles = [];
+
+    /// <summary>Whether there's anything to list, for a See also that would otherwise be empty.</summary>
+    public static bool Any(string component) => Articles.About(component).Any();
+
+    protected override void OnParametersSet() => _articles = Articles.About(Component).ToList();
+}

@@ -3,10 +3,10 @@
 
 @* An Overview's See also section, from the doc comment's See also: each documented component
    linked to its Overview with its components.json summary, a part to its place on its owner's
-   API page with its doc summary, then a link to each of the component's demos. Nothing when
+   API page with its doc summary, then a link to each of the component's demos and the troubleshooting articles about it. Nothing when
    there's nothing to list. *@
 
-@if (_entries.Count > 0 || Component.Scenarios.Count > 0)
+@if (_entries.Count > 0 || Component.Scenarios.Count > 0 || TroubleshootingLinks.Any(Component.Name))
 {
     <Heading Level="2">See also</Heading>
     <List Gap="2">
@@ -38,6 +38,7 @@
                 }
             </ListItem>
         }
+        <TroubleshootingLinks Component="@Component.Name" />
     </List>
 }
 

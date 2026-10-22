@@ -42,7 +42,35 @@ public static class Articles
             new("accessibility", "Accessibility", "Accessibility",
                 "What the components do for keyboard and screen reader users, and what's left to your app."),
         ]),
+        new("troubleshooting", "Troubleshooting", "LifeBuoy",
+        [
+            new("empty-selection", "An empty selection comes back with its defaults", "ListChecks",
+                "Unchecked boxes post nothing, so after a static post the model gets its defaults back, or null.")
+                { Components = ["CheckboxGroup", "MultiSelect", "Form"], Modes = ["off", "static"] },
+            new("form-name", "A form's post fails or arrives empty", "ClipboardX",
+                "A static post finds its form and model by name: FormName on the form, the same name on the model.")
+                { Components = ["Form"], Modes = ["off", "static"] },
+            new("onclick", "OnClick does nothing on a static page", "MousePointerClick",
+                "A static page has no connection to run C# on a click: post a form or follow a link instead.")
+                { Components = ["Button", "IconButton", "Menu"], Modes = ["off", "static"] },
+            new("state-between-requests", "A value resets on the next request", "RotateCcw",
+                "A static page is built afresh for every request: keep what it needs in the address, or post it.")
+                { Modes = ["off", "static"] },
+            new("password-after-post", "The password is empty after a failed post", "KeyRound",
+                "A static page doesn't write a password back into its HTML, so the reader types it again.")
+                { Components = ["TextField"], Modes = ["off", "static"] },
+            new("redirect-after-post", "NavigateTo after a post runs on or doesn't redirect", "CornerDownRight",
+                "On a static page NavigateTo answers the post with a redirect: return after it, and keep it out of try/catch.")
+                { Components = ["Form"], Modes = ["off", "static"] },
+            new("control-named-action", "A form posts to [object RadioNodeList]", "TriangleAlert",
+                "A control named action, method or target hides the form's own property from Blazor's script.")
+                { Components = ["Button", "Form"], Modes = ["static"] },
+        ]),
     ];
+
+    /// <summary>The troubleshooting articles about a component, for its Overview's See also.</summary>
+    public static IEnumerable<(ArticleSection Section, Article Article)> About(string component) =>
+        Sections.SelectMany(s => s.Articles.Where(a => a.Components.Contains(component)).Select(a => (s, a)));
 
     public static ArticleSection? Section(string slug) => Sections.FirstOrDefault(s => s.Slug == slug);
 
@@ -67,4 +95,14 @@ public sealed record ArticleSection(string Slug, string Title, string Icon, IRea
 }
 
 /// <summary>An article: its URL segment, title, pictogram (a Lucide name) and one-line summary.</summary>
-public sealed record Article(string Slug, string Title, string Icon, string Summary);
+public sealed record Article(string Slug, string Title, string Icon, string Summary)
+{
+    /// <summary>
+    /// The components a troubleshooting article is about, by type name: shown as tags under its
+    /// title, and the article is listed in their Overviews' See also.
+    /// </summary>
+    public IReadOnlyList<string> Components { get; init; } = [];
+
+    /// <summary>The modes the problem happens in (<c>off</c>, <c>static</c>, <c>live</c>), shown under its title.</summary>
+    public IReadOnlyList<string> Modes { get; init; } = [];
+}

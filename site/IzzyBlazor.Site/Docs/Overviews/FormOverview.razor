@@ -12,7 +12,7 @@
 <TextBlock><Anchor Href="docs/common/forms">Forms and validation</Anchor> lists what each attribute does.</TextBlock>
 
 <Heading Level="2">Posting and submitting</Heading>
-<TextBlock>Give the form a <Code>FormName</Code>, and the model property <Code>[SupplyParameterFromForm]</Code> with the same name, so a post on a static page fills it. <Code>OnValidSubmit</Code> runs once the model is valid, in every mode; <Code>OnInvalidSubmit</Code> runs when it isn't, and <Code>OnSubmit</Code> runs in place of both when you validate yourself.</TextBlock>
+<TextBlock>Give the form a <Code>FormName</Code>, and the model property <Code>[SupplyParameterFromForm]</Code> with the same name, so a post on a static page fills it (<Anchor Href="docs/troubleshooting/form-name">what goes wrong without it</Anchor>). <Code>OnValidSubmit</Code> runs once the model is valid, in every mode; <Code>OnInvalidSubmit</Code> runs when it isn't, and <Code>OnSubmit</Code> runs in place of both when you validate yourself.</TextBlock>
 <TextBlock>On a static page the post is a real one: Blazor's enhanced form handling sends it without a full reload, and with JavaScript off the browser posts and loads the page. <Code>Enhance="false"</Code> always loads the page. On an interactive page the form submits to C#, with no post.</TextBlock>
 
 <Heading Level="2">Errors</Heading>

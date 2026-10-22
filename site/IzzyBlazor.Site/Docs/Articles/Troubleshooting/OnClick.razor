@@ -1,0 +1,83 @@
+@page "/docs/troubleshooting/onclick"
+
+@* OnClick, @bind reactions and other C# events need an interactive page; on a static one a button
+   renders type="button" and nothing runs. Fixes: a Submit button in a form (Name/Value say which),
+   a link, or an interactive page. Checked in a scratch page; button-multi-submit in all modes. *@
+
+<ArticlePage Section="troubleshooting" Slug="onclick">
+    <Lead>
+        A static page has no connection to the server once it's loaded, so C# can't run on a click. Post a form or follow
+        a link instead, or make the page interactive.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            A button with <Code>OnClick</Code> does nothing on a static page: no error, no request, and the page doesn't
+            change. The same goes for other C# events, such as a menu item's <Code>OnClick</Code> or a tag's
+            <Code>OnRemove</Code>, and for code that runs when a bound value changes (<Code>ValueChanged</Code>,
+            <Code>@@bind-Value:after</Code>).
+        </TextBlock>
+        <Code Block Language="razor" Title="Article.razor">@Broken</Code>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            C# event handlers run over an interactive page's circuit (or in WebAssembly). A static page renders once per
+            request and sends HTML, with nothing left on the server to call, so the button renders as a plain
+            <Code>&lt;button type="button"&gt;</Code>. The API pages label these parameters <strong>Interactive only</strong>.
+        </TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>Pick by what the click should do:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Change data:</strong> make it a <Code>Submit</Code> button in a <Code>Form</Code>. The post runs
+                <Code>OnValidSubmit</Code> on the server, in every mode. With several buttons, give each a <Code>Name</Code>
+                and <Code>Value</Code>; the pressed one posts with the form.
+            </ListItem>
+            <ListItem>
+                <strong>Show something else:</strong> make it a link with <Code>Href</Code>, carrying any choice in the query
+                string.
+            </ListItem>
+            <ListItem>
+                <strong>React to every change:</strong> make the page interactive with <Code>@@rendermode InteractiveServer</Code>
+                (or WebAssembly or Auto). For filters, <Code>FilterForm</Code> applies them through the address, on a
+                static page too.
+            </ListItem>
+        </List>
+        <Code Block Language="razor" Title="Article.razor" HighlightLines="3-4,11-12">@Fixed</Code>
+        <TextBlock>
+            Here each button posts its <Code>intent</Code> on a static page; on an interactive page the form doesn't post,
+            so <Code>OnClick</Code> records which button it was:
+        </TextBlock>
+        <ExampleViewer Example="button-multi-submit" ModeSwitch />
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/button">Button</Anchor>: submit buttons, links and <Code>OnClick</Code>.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: choosing a page's mode, and state on static pages.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/control-named-action">A form posts to [object RadioNodeList]</Anchor>: names to avoid for a button.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Broken = """
+        <Button OnClick="PublishAsync">Publish</Button>
+        """;
+
+    private const string Fixed = """
+        <Form Model="Model" FormName="article" OnValidSubmit="SaveAsync">
+            <TextField @bind-Value="Model!.Title" />
+            <Button Submit Name="intent" Value="publish">Publish</Button>
+            <Button Submit Name="intent" Value="draft">Save draft</Button>
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "article")]
+            private Article? Model { get; set; }
+
+            [SupplyParameterFromForm(FormName = "article", Name = "intent")]
+            private string? Intent { get; set; }
+        }
+        """;
+}

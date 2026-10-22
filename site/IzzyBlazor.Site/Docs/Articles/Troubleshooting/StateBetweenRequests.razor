@@ -1,0 +1,89 @@
+@page "/docs/troubleshooting/state-between-requests"
+
+@* A static page is a new component instance per request: fields start over. Keep state in the
+   address ([SupplyParameterFromQuery], links built with GetUriWithQueryParameter) or in posted
+   fields. button-state-in-address checked in all three modes. *@
+
+<ArticlePage Section="troubleshooting" Slug="state-between-requests">
+    <Lead>
+        A static page is built afresh for every request, so a field in the component starts over each time. Keep what the
+        page needs in the address, or post it.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            A value set in one request is gone in the next: a count goes back to its first value, a chosen step resets, a
+            list loaded on the first visit is loaded again. Here every post shows 3 guests, however many times it's
+            pressed; on an interactive page the same code counts up.
+        </TextBlock>
+        <Code Block Language="razor" Title="Booking.razor" HighlightLines="8">@Broken</Code>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            On an interactive page one component instance lives as long as the circuit, so its fields keep their values. On
+            a static page, each request (a link followed, a form posted, a reload) creates new components, renders them and
+            throws them away. Nothing is kept on the server between requests unless you store it.
+        </TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>Keep the state where the next request carries it:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>In the address.</strong> Read it with <Code>[SupplyParameterFromQuery]</Code>, and make each change a
+                link that sets it with <Code>NavigationManager.GetUriWithQueryParameter</Code>, which keeps the rest of the
+                query string. It survives a reload, and the page can be shared or bookmarked as it is.
+            </ListItem>
+            <ListItem>
+                <strong>In the form.</strong> Fields post their values, and the page reads them with
+                <Code>[SupplyParameterFromForm]</Code>. A value with no field of its own can post in a hidden
+                <Code>&lt;input&gt;</Code>.
+            </ListItem>
+            <ListItem>
+                <strong>On the server.</strong> A database, or a cookie for a reader's preferences, read on each request.
+            </ListItem>
+        </List>
+        <Code Block Language="razor" Title="Booking.razor" HighlightLines="3,8-9">@Fixed</Code>
+        <ExampleViewer Example="button-state-in-address" ModeSwitch />
+        <TextBlock>
+            IzzyBlazor's components that keep state on static pages work the same way: <Code>Table</Code>,
+            <Code>Pagination</Code> and <Code>FilterForm</Code> keep theirs in the query string, <Code>Tabs</Code> takes a
+            <Code>QueryKey</Code>, and a dialog opens from <Code>?dialog=id</Code>.
+        </TextBlock>
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: state on static pages.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor>: links and posts instead of events.</ListItem>
+            <ListItem><Anchor Href="docs/components/table">Table</Anchor>: sorting, filters and pages in the address.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Broken = """
+        <form method="post" @formname="guests" @onsubmit="() => _guests++">
+            <AntiforgeryToken />
+            <Button Submit>Add a guest</Button>
+        </form>
+        <TextBlock>@_guests guests</TextBlock>
+
+        @code {
+            private int _guests = 2;
+        }
+        """;
+
+    private const string Fixed = """
+        @inject NavigationManager Navigation
+
+        <Button Href="@Navigation.GetUriWithQueryParameter("guests", Guests + 1)">
+            Add a guest
+        </Button>
+
+        @code {
+            [SupplyParameterFromQuery(Name = "guests")]
+            private int? GuestsQuery { get; set; }
+
+            private int Guests => GuestsQuery ?? 2;
+        }
+        """;
+}
