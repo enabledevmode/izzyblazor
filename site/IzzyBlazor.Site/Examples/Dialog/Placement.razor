@@ -1,0 +1,18 @@
+<Row Gap="3" Wrap Justify="Justify.Center">
+    <DialogTrigger For="leave" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Small</DialogTrigger>
+    <DialogTrigger For="filters" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.PanelRight">At the end</DialogTrigger>
+    <DialogTrigger For="share" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.PanelBottom">Bottom sheet</DialogTrigger>
+</Row>
+
+<Dialog Id="leave" Title="Leave this page?" Size="DialogSize.Sm">
+    Your changes aren't saved.
+    <DialogFooter><DialogClose>Stay</DialogClose></DialogFooter>
+</Dialog>
+
+<Dialog Id="filters" Title="Filters" Size="DialogSize.Sm" Placement="DialogPlacement.End">
+    A full-height panel at the end edge, like a Drawer.
+</Dialog>
+
+<Dialog Id="share" Title="Share" Placement="DialogPlacement.Bottom">
+    A sheet along the bottom, as tall as its content. Suits phones.
+</Dialog>

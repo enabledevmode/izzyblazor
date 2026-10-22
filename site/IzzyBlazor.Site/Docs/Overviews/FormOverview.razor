@@ -32,7 +32,7 @@
 <Heading Level="2">Read-only and disabled</Heading>
 <TextBlock>Use <Code>ReadOnly</Code> to show a record that posts but can't change, and <Code>Disabled</Code> to turn every field off; disabled fields don't post. Neither touches the buttons, so show the ones that fit.</TextBlock>
 <ExampleViewer Example="form-read-only" />
-<TextBlock>HTML has no read-only select or checkbox, so a read-only select shows its value in a read-only text field, and checkboxes, switches and radios stay as they are but don't change.</TextBlock>
+<TextBlock>HTML has no read-only select or checkbox, so a read-only select shows its value in a read-only text field, and checkboxes, switches and radios don't change; with JavaScript off they're disabled instead.</TextBlock>
 
 <Heading Level="2">Your own validation</Heading>
 <TextBlock>Use <Code>Validator</Code> to replace the DataAnnotations validator, with FluentValidation, say. Pass an <Code>EditContext</Code> in place of <Code>Model</Code> to work with the edit context yourself.</TextBlock>
@@ -91,15 +91,20 @@
         """;
 
     private const string Files = """
-        <Form Model="Model" FormName="profile" Multipart OnValidSubmit="SaveAsync">
+        <Form Model="Profile" FormName="profile" Multipart OnValidSubmit="SaveAsync">
             <FileUpload Name="Avatar" Label="Profile photo" Accept=".png,.jpg" MaxFileSize="2_000_000" />
             <FormActions><Button Submit>Save</Button></FormActions>
         </Form>
 
         @code {
-            // Named like the field.
+            [SupplyParameterFromForm(FormName = "profile")]
+            private ProfileModel? Profile { get; set; }
+
+            // The file, named like the field.
             [SupplyParameterFromForm(FormName = "profile")]
             private IFormFile? Avatar { get; set; }
+
+            protected override void OnInitialized() => Profile ??= new();
         }
         """;
 }

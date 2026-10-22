@@ -157,15 +157,18 @@
     {
       "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "A native select, themed where the browser allows.",
       "examples": [
-        { "id": "select-options", "title": "Options", "height": 340, "overlay": true },
-        { "id": "select-rich", "title": "Rich options", "height": 260, "overlay": true },
+        { "id": "select-options", "title": "Options", "height": 380, "overlay": true },
+        { "id": "select-rich", "title": "Rich options", "height": 260, "overlay": true,
+          "notes": {
+            "off": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"); the script puts ItemText in its place."
+          } },
         { "id": "select-required", "title": "Required, with a placeholder", "height": 260, "overlay": true,
           "notes": {
             "off": "The browser stops the post until a plan is chosen, in its own words.",
             "static": "The browser stops the post until a plan is chosen, in the model's words.",
-            "live": "The field is checked when it changes, and Continue runs C# without a page load."
+            "live": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
           } },
-        { "id": "select-states", "title": "Sizes, read-only and disabled", "height": 380 }
+        { "id": "select-states", "title": "Sizes, read-only and disabled", "height": 380, "overlay": true }
       ]
     },
     { "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Type to filter; server search on interactive pages." },
@@ -181,7 +184,7 @@
       "examples": [
         { "id": "dialog-open", "title": "Opening it", "height": 260, "overlay": true,
           "notes": {
-            "off": "The trigger opens it as a modal. The link loads the page with it open but not modal, so the page behind stays usable.",
+            "off": "The trigger opens it as a modal. The link loads the page with it open but not modal, so focus can leave it.",
             "static": "The link opens it as a modal too, and closing it takes ?dialog= off the address.",
             "live": "Open from C# sets @bind-Open, which also follows the dialog closing."
           } },
@@ -192,6 +195,7 @@
             "live": "The field is checked when it changes, and Rename runs C# and closes the dialog."
           } },
         { "id": "dialog-parts", "title": "Header, body and footer", "height": 340, "overlay": true },
+        { "id": "dialog-placement", "title": "Size and placement", "height": 300, "overlay": true },
         { "id": "dialog-service", "title": "Dialogs from code", "height": 260, "overlay": true, "modes": ["live"] }
       ]
     },
@@ -202,7 +206,7 @@
         { "id": "menu-actions", "title": "Links, posts and actions", "height": 250, "overlay": true,
           "notes": {
             "off": "It opens and closes with no script, but arrow keys don't move through it. Settings is a link; Duplicate and Delete post the form.",
-            "static": "The script adds the menu roles and keys: arrows, Home, End and type-ahead. Posts go without a reload.",
+            "static": "The script adds the menu roles and keys: arrows, Home, End and type-ahead. Posts go without a full reload.",
             "live": "Duplicate and Delete run the form's C# handler, and OnClick says which was chosen."
           } },
         { "id": "menu-groups", "title": "Groups, shortcuts and colors", "height": 280, "overlay": true },
@@ -211,7 +215,7 @@
         { "id": "menu-sub", "title": "Submenus", "height": 260, "overlay": true,
           "notes": {
             "off": "A click opens a submenu. Opening one on hover or with the arrow keys needs the script.",
-            "static": "The script opens a submenu on hover and with the right arrow, and closes it with the left."
+            "static": "Hover and the right arrow open a submenu and the left arrow closes it, as on interactive pages."
           } }
       ]
     },

@@ -509,8 +509,9 @@ html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body 
   justify-content: center;
   padding: var(--ib-space-6);
 }
-/* Not over an example's own MaxWidth: an unlayered max-width here would beat the library's. */
-.frame-sample > :not([class*="ib-maxw"]) { max-width: 100%; }
+/* Not over an example's own MaxWidth: an unlayered max-width here would beat the library's. One
+   set only from a breakpoint (no base .ib-maxw) still gets this cap below it. */
+.frame-sample > :not(.ib-maxw) { max-width: 100%; }
 .frame-page { padding: var(--ib-space-4); }
 /* An example that opens a dialog or menu: at least its height, content at the top. */
 .frame-overlay { box-sizing: border-box; align-items: flex-start; }

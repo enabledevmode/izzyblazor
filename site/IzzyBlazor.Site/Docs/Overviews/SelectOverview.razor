@@ -9,12 +9,12 @@
 <Heading Level="2">Options</Heading>
 <TextBlock>Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>. For anything else, pass <Code>Items</Code> and the <Code>ItemText</Code> for each. <Code>Placeholder</Code> adds a first, empty option.</TextBlock>
 <ExampleViewer Example="select-options" />
-<TextBlock>The label, hint and required mark come from the model as they do for a <Anchor Href="docs/components/text-field">TextField</Anchor>: <Code>[Display(Name)]</Code> or the property name in words, and <Code>[Required]</Code>. <Code>Label</Code> and <Code>Hint</Code> set them on the field.</TextBlock>
+<TextBlock>The label and required mark come from the model as they do for a <Anchor Href="docs/components/text-field">TextField</Anchor>: <Code>[Display(Name)]</Code> or the property name in words, and <Code>[Required]</Code>. <Code>Label</Code> replaces the label, and <Code>Hint</Code> adds help under the field.</TextBlock>
 
 <Heading Level="2">Rich options</Heading>
 <TextBlock>Use <Code>ItemTemplate</Code> for markup in each option, such as an icon and a price. Text with the class <Code>ib-option-hint</Code> shows in the list but not in the closed field.</TextBlock>
 <ExampleViewer Example="select-rich" />
-<TextBlock>The markup shows where the browser has the customizable select (Chrome and Edge 135, Safari 27). Other browsers show <Code>ItemText</Code> in their own list, so keep both. Options can't hold links or buttons.</TextBlock>
+<TextBlock>The markup shows where the browser has the customizable select (Chrome and Edge 135, Safari 27). Elsewhere IzzyBlazor's script shows <Code>ItemText</Code> in the browser's own list, so keep both; with JavaScript off those browsers show the markup's text run together.</TextBlock>
 
 <Heading Level="2">Required, with a placeholder</Heading>
 <TextBlock>Use a nullable property with <Code>[Required]</Code> and a <Code>Placeholder</Code>: nothing is chosen until someone picks an option, and the placeholder can't be picked again.</TextBlock>
@@ -26,7 +26,7 @@
 <TextBlock>HTML has no read-only select, so a read-only one shows its choice in a read-only text field and posts it from a hidden input.</TextBlock>
 
 <Heading Level="2">Filtering a page</Heading>
-<TextBlock>A select doesn't post when it changes. To filter a list as soon as someone picks, use a <Code>FilterSelect</Code> in a <Anchor Href="docs/components/filter-form">FilterForm</Anchor>: it applies on change with the script and has an Apply button without it. On an interactive page, <Code>@@bind-Value:after</Code> runs C# after each change.</TextBlock>
+<TextBlock>Use a <Code>FilterSelect</Code> in a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> to filter a list as soon as someone picks, since a select doesn't post when it changes: it applies on change with the script and has an Apply button without it. On an interactive page, <Code>@@bind-Value:after</Code> runs C# after each change.</TextBlock>
 <Code Block Language="razor">@Filter</Code>
 
 <Heading Level="2">Mode support</Heading>
