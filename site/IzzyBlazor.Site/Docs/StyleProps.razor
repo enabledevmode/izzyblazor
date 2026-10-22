@@ -137,7 +137,7 @@
     protected override void OnParametersSet() =>
         _sections = SharedProps.Sections
             .Select(s => (s.Base, s.Title, s.Description,
-                Members: Api.Base(s.Base)?.Properties ?? [],
+                Members: (Api.Base(s.Base)?.Properties ?? []).Where(p => p.Obsolete is null).ToList(),
                 Components: Registry.Components.Where(c => Api.Component(c.Name)?.Bases.Contains(s.Base) == true).ToList()))
             .Where(s => s.Members.Count > 0)
             .ToList();

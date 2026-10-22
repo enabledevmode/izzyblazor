@@ -55,6 +55,8 @@ public sealed record ApiComponent
     /// <summary>Names of the types its members use (see <see cref="ApiFile.Types"/>).</summary>
     public required List<string> Types { get; init; }
     public string? AddedIn { get; init; }
+
+    /// <summary>The <c>[Obsolete]</c> message: a removed name kept for a release (<c>LinkButton</c>). The site doesn't list these.</summary>
     public string? Obsolete { get; init; }
 }
 
@@ -76,7 +78,10 @@ public sealed record ApiMember
     /// <summary>The type as C# writes it (<c>string?</c>, <c>EventCallback&lt;MouseEventArgs&gt;</c>), or a method's signature.</summary>
     public required string Type { get; init; }
 
-    /// <summary>The default as C#, or "computed" when it's worked out at render time.</summary>
+    /// <summary>
+    /// The default as C#: from a fresh instance, or the constant the summary names ("Defaults to
+    /// "Close"."); "computed" when it's worked out at render time from something else.
+    /// </summary>
     public string? Default { get; init; }
 
     /// <summary>html</summary>
@@ -98,6 +103,8 @@ public sealed record ApiMember
     public bool Responsive { get; init; }
     public ApiModes? Modes { get; init; }
     public string? AddedIn { get; init; }
+
+    /// <summary>The <c>[Obsolete]</c> message (the site doesn't list these).</summary>
     public string? Obsolete { get; init; }
 
     /// <summary>For a member a component inherits from a non-shared base, that base's name.</summary>
@@ -125,7 +132,13 @@ public sealed record ApiType
     /// <summary>html</summary>
     public string? Summary { get; init; }
 
-    /// <summary>Enum values, or the public static members of a class (presets such as <c>Accent.Primary</c>).</summary>
+    /// <summary>
+    /// Enum values; or the presets and factories that give the type itself (<c>Accent.Primary</c>,
+    /// <c>Accent.Of</c>), then its instance properties and methods (<c>ConfirmOptions.Accent</c>).
+    /// </summary>
     public required List<ApiMember> Members { get; init; }
     public string? AddedIn { get; init; }
+
+    /// <summary>The <c>[Obsolete]</c> message.</summary>
+    public string? Obsolete { get; init; }
 }

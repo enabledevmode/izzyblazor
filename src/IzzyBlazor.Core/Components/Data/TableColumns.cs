@@ -372,6 +372,8 @@ public enum FilterPlacement
 }
 
 /// <summary>What an <c>ItemsProvider</c> returns: one page of items and the total count.</summary>
+/// <param name="Items">The items on this page.</param>
+/// <param name="TotalItems">How many items match in all, for the pager.</param>
 public sealed record TableResult<TItem>(IReadOnlyList<TItem> Items, int TotalItems);
 
 /// <summary>Tells a table its columns have registered. Rendered after the columns, so its

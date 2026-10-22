@@ -34,6 +34,6 @@
         _bases = ApiComponent.Bases
             .Select(b => (Name: b, Base: Api.Base(b)))
             .Where(b => b.Base is not null)
-            .Select(b => (b.Name, b.Base!.Properties.Count, SharedProps.Label(b.Name)))
+            .Select(b => (b.Name, b.Base!.Properties.Count(p => p.Obsolete is null), SharedProps.Label(b.Name)))
             .ToList();
 }

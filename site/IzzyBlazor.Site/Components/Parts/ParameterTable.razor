@@ -94,5 +94,5 @@
     }
 
     protected override void OnParametersSet() =>
-        _members = ApiComponent.Properties.Where(p => p.Obsolete is null).Concat(ApiComponent.Events).ToList();
+        _members = ApiComponent.Properties.Concat(ApiComponent.Events).Where(p => p.Obsolete is null).ToList();
 }

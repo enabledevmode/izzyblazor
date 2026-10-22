@@ -4,17 +4,19 @@ using IzzyBlazor.DocsGen;
 
 // Writes izzyblazor.api.json from the built library and its XML docs.
 //
-//   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous last-release.api.json] [--source src]
+//   dotnet run --project site/IzzyBlazor.DocsGen -- --out izzyblazor.api.json [--previous released.api.json] [--source src] [--baseline released.api.json]
 //
 // With --source (the library's source folder), components written as .razor files take their
 // summary and example from their header comment, since they can't carry an XML doc comment.
 //
 // With --previous (the last release's file), members new since then get this version as
-// "addedIn", and anything removed is listed for the Upgrade page.
+// "addedIn", and anything removed is listed for the Upgrade page. The site's build passes
+// Api/released.api.json; --baseline writes that file (names only) when a release is cut.
 
 var output = Arg("--out") ?? "izzyblazor.api.json";
 var previousPath = Arg("--previous");
 var sourceRoot = Arg("--source");
+var baselinePath = Arg("--baseline");
 
 var assemblies = new[]
 {
@@ -43,6 +45,18 @@ if (previousPath is not null)
     {
         Console.WriteLine($"Removed since {previous.Version}: {name}");
     }
+
+    if (previous.Version == version)
+    {
+        Console.WriteLine($"DocsGen: the version is still {version}, the last release's; new members get \"added in\" once it's bumped.");
+    }
+}
+
+if (baselinePath is not null)
+{
+    Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(baselinePath))!);
+    var options = new JsonSerializerOptions(ApiFile.JsonOptions) { DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.WhenWritingDefault };
+    File.WriteAllText(baselinePath, JsonSerializer.Serialize(ReleaseComparer.Baseline(file), options).Replace("\r\n", "\n") + "\n");
 }
 
 Directory.CreateDirectory(Path.GetDirectoryName(Path.GetFullPath(output))!);
