@@ -1,0 +1,92 @@
+@page "/docs/common/accessibility"
+
+@* Accessibility across the library: native elements, names, keyboard and focus, announcements,
+   color, motion, JavaScript off, and what the app still owns. Checked against the source
+   (base.css focus and forced-colors, focus.ts, Icon.cs, Image.cs, Alert/Banner/ToastRegion,
+   AppShell's skip link). Each component's Overview has its own Accessibility section. *@
+
+<ArticlePage Section="common" Slug="accessibility">
+    <Lead>
+        IzzyBlazor builds on the browser's own elements, so keyboard, focus and screen readers work as the platform defines
+        them, and the script adds ARIA only where it adds behavior. This page covers what the components do for you, and
+        what's left to your app.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Native elements first</Heading>
+        <TextBlock>
+            Buttons are <Code>button</Code> or <Code>a</Code>, dialogs are <Code>dialog</Code>, selects are
+            <Code>select</Code>, disclosures are <Code>details</Code>, and checkboxes, radios and switches are real inputs.
+            Enter, Space, Escape and the arrow keys do what people expect, with no script.
+        </TextBlock>
+        <TextBlock>
+            Where the script adds behavior, it adds the roles that go with it. Tabs are a radio group with JavaScript off and
+            become ARIA tabs with roving focus once the script runs; a dialog opened by the server becomes a real modal. Each
+            component's Overview says what changes in its Mode support table.
+        </TextBlock>
+
+        <Heading Level="2">Names and labels</Heading>
+        <List Gap="2">
+            <ListItem>Fields render a <Code>label</Code> linked to the control, and link their hint and errors with <Code>aria-describedby</Code>. <Code>HideLabel</Code> keeps the label for screen readers when it isn't shown.</ListItem>
+            <ListItem>Anything shown only as an icon needs a name: <Anchor Href="docs/components/icon-button">IconButton</Anchor>'s <Code>Label</Code> is required.</ListItem>
+            <ListItem>An <Anchor Href="docs/components/icon">Icon</Anchor> is hidden from screen readers unless you give it a <Code>Label</Code>, so it never repeats the text beside it.</ListItem>
+            <ListItem><Anchor Href="docs/components/image">Image</Anchor> requires <Code>Alt</Code>; pass <Code>Alt=""</Code> for a picture that only decorates.</ListItem>
+            <ListItem>Components that hold a region, such as a table, a menu or pagination, take a <Code>Label</Code> or <Code>Caption</Code> for their name, with a default from <Anchor Href="docs/common/text">IzzyText</Anchor>.</ListItem>
+        </List>
+
+        <Heading Level="2">Keyboard and focus</Heading>
+        <List Gap="2">
+            <ListItem>The focus ring shows for keyboard focus only, in the focus color (<Code>--ib-color-focus</Code>, your brand color by default).</ListItem>
+            <ListItem>After a failed submit, <Code>FormErrors</Code> takes focus, with JavaScript off too, so people start from the list of problems.</ListItem>
+            <ListItem>Dialogs and drawers trap focus and return it to the trigger when they close; a popover opened by the user takes focus and gives it back.</ListItem>
+            <ListItem><Anchor Href="docs/components/app-shell">AppShell</Anchor> starts with a "Skip to content" link to the main area.</ListItem>
+            <ListItem>When Blazor's <Code>FocusOnNavigate</Code> moves focus to the page's heading, or the skip link to the main area, no ring is drawn there: screen readers still announce it, and sighted users don't see a box they didn't ask for.</ListItem>
+        </List>
+
+        <Heading Level="2">Announcements</Heading>
+        <List Gap="2">
+            <ListItem>Danger and warning alerts are announced as soon as they appear; the others politely. A <Code>Banner</Code> isn't announced, since it's there when the page loads; set <Code>Announce</Code> when one appears later.</ListItem>
+            <ListItem>Toasts are read politely, and stay until dismissed when they're errors.</ListItem>
+            <ListItem>A loading button sets <Code>aria-busy</Code> and is heard as its <Code>LoadingLabel</Code>; a <Code>Spinner</Code> is heard as its <Code>Label</Code>.</ListItem>
+            <ListItem>A table's "1–10 of 50" and a combobox's "No matches" are read when they change.</ListItem>
+            <ListItem>A status, such as a badge's or an alert's, comes with an icon and words as well as a color, and screen readers hear its name.</ListItem>
+        </List>
+
+        <Heading Level="2">Color and contrast</Heading>
+        <TextBlock>
+            Text holds 4.5:1 on what it sits on, in light and dark (disabled text, as WCAG allows, is lighter), and a brand or gray color of your own is checked the same
+            way. In Windows high-contrast mode, controls switch to the system's colors, and checkboxes and switches fall back
+            to the browser's own. When you set colors yourself, see
+            <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor> for the pairs to keep together.
+        </TextBlock>
+
+        <Heading Level="2">Motion</Heading>
+        <TextBlock>
+            With reduced motion set, dialogs, drawers, popovers, tooltips, disclosures, tabs and the sidebar stop moving, and
+            spinners slow down
+            rather than stop, since the motion says "still working". There's no page-wide reset, so your own animations are
+            yours to handle.
+        </TextBlock>
+
+        <Heading Level="2">With JavaScript off</Heading>
+        <TextBlock>
+            Everything stays usable, but a few things are plainer: tabs are heard as radio buttons, a dialog opened by the
+            server isn't modal, and read-only checkboxes and radios are disabled, so they can't be focused. Each component's
+            Overview lists what changes; see <Anchor Href="docs/common/render-modes">Render modes</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">What's left to your app</Heading>
+        <List Gap="2">
+            <ListItem>A <Code>lang</Code> on the <Code>html</Code> element, and a <Code>PageTitle</Code> on every page.</ListItem>
+            <ListItem>One <Code>h1</Code> per page and headings in order; <Code>Heading</Code>'s <Code>Size</Code> changes the look, not the level.</ListItem>
+            <ListItem>Link and button text that makes sense on its own, not "Click here".</ListItem>
+            <ListItem>Alt text that says what a picture shows, and a unit in a field's label when it matters, as in "Price (USD)".</ListItem>
+            <ListItem>Contrast for colors you set yourself, and testing with a keyboard and a screen reader.</ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: labels, hints and errors.</ListItem>
+            <ListItem><Anchor Href="docs/components">All components</Anchor>: what each one does in each mode.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>

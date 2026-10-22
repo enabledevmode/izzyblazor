@@ -39,6 +39,8 @@ public static class Articles
                 "Forms that post on static pages, rules from your model, columns, read-only forms and errors."),
             new("text", "Text and other languages", "Languages",
                 "The words components use, changed app-wide or per component, in one language or several."),
+            new("accessibility", "Accessibility", "Accessibility",
+                "What the components do for keyboard and screen reader users, and what's left to your app."),
         ]),
     ];
 
