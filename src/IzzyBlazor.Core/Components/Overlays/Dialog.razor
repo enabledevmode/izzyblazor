@@ -34,8 +34,8 @@
     nest, so it then closes with the native close command instead of its own form.
 
     Accessibility:
-    - `Title` (an `h2`) or a DialogHeader names the dialog with `aria-labelledby`. Without either
-      it has no name: pass an `aria-label`.
+    - `Title` (an `h2`) or a DialogHeader (a level-2 heading) names the dialog with
+      `aria-labelledby`. Without either it has no name: pass an `aria-label`.
     - The close button is named "Close" (`CloseLabel`). Escape closes the dialog even when
       `ShowCloseButton` and `CloseOnBackdrop` are off.
     - DialogTrigger is a native `button` with `aria-haspopup="dialog"`, and focus comes back to
@@ -45,8 +45,9 @@
     - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal:
       Escape doesn't close it and focus can leave it. DialogTrigger needs no script in current
       browsers.
-    - DialogService's dialogs (shown by DialogHost) are named by the title passed to `OpenAsync`
-      or `ConfirmAsync`, so pass one: without it they have no name.
+    - DialogService's dialogs (shown by DialogHost) are named by the title passed to `OpenAsync`,
+      or by `DialogOptions.Label` without one; `ConfirmAsync` without a title is named by its
+      message.
     See also: Drawer, ConfirmButton, Popover, Alert.
 *@
 
@@ -76,7 +77,8 @@
                 <header class="ib-dialog-header">
                     @if (ShownHeader is not null)
                     {
-                        <div class="ib-dialog-title" id="@TitleId">@_scope.Outlet(ShownHeader!)</div>
+                        @* A heading, but a div: a DialogHeader may hold layout (a Row) that an h2 can't. *@
+                        <div class="ib-dialog-title" id="@TitleId" role="heading" aria-level="2">@_scope.Outlet(ShownHeader!)</div>
                     }
                     else if (Title is not null)
                     {

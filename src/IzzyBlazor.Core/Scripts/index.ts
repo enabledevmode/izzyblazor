@@ -27,7 +27,7 @@ import { installSelects, syncSelects } from "./select";
 import { openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
 import { installIndeterminate, syncIndeterminate } from "./checkbox";
-import { focusMarked } from "./focus";
+import { focusMarked, installSkipLinks } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
 
 installLazyElements();
@@ -45,6 +45,7 @@ installIndeterminate();
 installToggleBridge();
 installCommandFallback();
 installDialogAutoClose();
+installSkipLinks();
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => openActiveNavGroups());
 } else {

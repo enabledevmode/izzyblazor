@@ -14,13 +14,14 @@
     Accessibility:
     - It renders `role="progressbar"` with `aria-valuenow`, `aria-valuemin` and `aria-valuemax`;
       screen readers hear `ValueText` or the percentage.
-    - `Label` is the bar's accessible name (through `aria-labelledby`), so set it.
+    - `Label` is the bar's accessible name (through `aria-labelledby`); without one, an `aria-label`
+      on the component names the bar.
     - Without a `Value` it has no value attributes, which marks it as indeterminate.
     - With reduced motion, the indeterminate bar moves more slowly.
     See also: Spinner, Stepper, Skeleton.
 *@
 
-<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+<div @attributes="_rootAttributes" class="@_class" style="@_style">
     @if (Label is not null || ShowValue || ValueText is not null)
     {
         <div class="ib-progress-head">
@@ -36,7 +37,8 @@
     }
     <div class="ib-progress-track"
          role="progressbar"
-         aria-labelledby="@(Label is not null ? LabelId : null)"
+         aria-labelledby="@(Label is not null ? LabelId : _labelledBy)"
+         aria-label="@(Label is null ? _ariaLabel : null)"
          aria-valuemin="@(Value is null ? null : "0")"
          aria-valuemax="@(Value is null ? null : Max.ToString(System.Globalization.CultureInfo.InvariantCulture))"
          aria-valuenow="@(Value is null ? null : Clamped.ToString(System.Globalization.CultureInfo.InvariantCulture))"
@@ -50,6 +52,9 @@
     private readonly string _labelId = $"ib-progress-{Interlocked.Increment(ref _ids)}";
     private string? _class;
     private string? _style;
+    private string? _ariaLabel;
+    private string? _labelledBy;
+    private IReadOnlyDictionary<string, object>? _rootAttributes;
 
     /// <summary>How far along, from 0 to <see cref="Max"/>. Leave it out for an indeterminate bar.</summary>
     [Parameter] public double? Value { get; set; }
@@ -57,7 +62,7 @@
     /// <summary>The value that means done. Defaults to 100.</summary>
     [Parameter] public double Max { get; set; } = 100;
 
-    /// <summary>A label above the bar, and its accessible name: set it, since attributes such as <c>aria-label</c> go on the wrapper, not the bar.</summary>
+    /// <summary>A label above the bar, also its accessible name. Without one, give the component an <c>aria-label</c>, which goes on the bar.</summary>
     [Parameter] public string? Label { get; set; }
 
     /// <summary>Shows the percentage above the bar, at the end.</summary>
@@ -101,5 +106,18 @@
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+
+        // A name given as an attribute belongs to the bar, not the wrapper around it and its label.
+        _ariaLabel = Attribute("aria-label");
+        _labelledBy = Attribute("aria-labelledby");
+        _rootAttributes = _ariaLabel is null && _labelledBy is null
+            ? AdditionalAttributes
+            : AdditionalAttributes!.Where(a => a.Key is not ("aria-label" or "aria-labelledby")).ToDictionary(a => a.Key, a => a.Value);
+    }
+
+    private string? Attribute(string name) =>
+        AdditionalAttributes?.TryGetValue(name, out var value) == true ? Convert.ToString(value, System.Globalization.CultureInfo.InvariantCulture) : null;
 }

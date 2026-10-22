@@ -40,8 +40,8 @@
         aria-disabled="@(Loading ? "true" : null)"
         aria-busy="@(Loading ? "true" : null)"
         aria-haspopup="dialog"
-        commandfor="@DialogId"
-        command="show-modal">
+        commandfor="@(Loading ? null : DialogId)"
+        command="@(Loading ? null : "show-modal")">
     @{ RenderContent(__builder); }
 </button>
 <Dialog Id="@DialogId"
@@ -133,7 +133,7 @@
 
     private string MessageId => $"{BaseId}-message";
 
-    private string ResolvedConfirmText => ConfirmText ?? "Confirm";
+    private string ResolvedConfirmText => ConfirmText ?? TextDefaults.Confirm;
 
     /// <inheritdoc />
     protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();

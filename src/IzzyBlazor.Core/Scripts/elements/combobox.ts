@@ -190,6 +190,7 @@ class Combobox extends IzzyElement {
     if (this.isOpen) this.#list.hidePopover();
     this.#input?.setAttribute("aria-expanded", "false");
     this.activate(null);
+    this.announceEmpty(false);
   }
 
   /** After Blazor changed the options: filter again and keep a sensible active option. */
@@ -209,6 +210,16 @@ class Combobox extends IzzyElement {
       if (match) shown++;
     }
     this.#list.toggleAttribute("data-empty", shown === 0);
+    this.announceEmpty(shown === 0);
+  }
+
+  /** Says "No matches" (or "Searching…") through the status beside the list, once per change. */
+  private announceEmpty(empty: boolean): void {
+    const status = this.querySelector<HTMLElement>(":scope > .ib-combobox-status");
+    if (!status) return;
+    const busy = this.#list.getAttribute("aria-busy") === "true";
+    const text = empty || busy ? (this.#list.querySelector(".ib-combobox-empty")?.textContent ?? "").trim() : "";
+    if (status.textContent !== text) status.textContent = text;
   }
 
   private onInput(): void {

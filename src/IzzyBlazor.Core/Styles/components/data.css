@@ -240,7 +240,7 @@
     outline-offset: 2px;
   }
 
-  .ib-card-linked :is(.ib-card-actions, .ib-card-footer, .ib-card-body) :is(a, button, input, select, textarea, label, summary, [tabindex]) {
+  .ib-card-linked :is(.ib-card-heading, .ib-card-actions, .ib-card-footer, .ib-card-body) :is(a, button, input, select, textarea, label, summary, [tabindex]):not(.ib-card-link) {
     position: relative;
     z-index: 1;
   }

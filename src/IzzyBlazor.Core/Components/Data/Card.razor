@@ -22,10 +22,10 @@
     Accessibility:
     - `Title` renders a real heading, `h3` by default; set `TitleLevel` to fit the page's outline.
     - With `Href`, the link is the title alone, so its name is the `Title` text, not the whole card.
-      It needs a `Title`: without one there's no link.
+      It needs a `Title`, and throws without one.
     - Keyboard users tab to the title link, and the focus ring is drawn around the whole card.
-    - Links and buttons in CardActions, CardFooter and the body stay their own tab stops and stay
-      clickable above the stretched link.
+    - Links and buttons in the header, CardActions, CardFooter and the body stay their own tab stops
+      and stay clickable above the stretched link.
     - CardFooter is drawn last but stays where it's written in the DOM, which is the order screen
       readers follow, so write it last.
     See also: Section, Stat, DescriptionList.
@@ -86,7 +86,7 @@
     /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Makes the whole card a link to this address, through its title. Needs a <see cref="Title"/>.</summary>
+    /// <summary>Makes the whole card a link to this address, through its title. Needs a <see cref="Title"/> (it throws without one).</summary>
     [Parameter] public string? Href { get; set; }
 
     /// <summary>
@@ -147,5 +147,14 @@
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        // The link is the title: without one there'd be nothing to click and nothing to name it.
+        if (Href is not null && Title is null)
+        {
+            throw new InvalidOperationException("A Card with Href needs a Title: the title is the link, and names it for screen readers.");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
 }

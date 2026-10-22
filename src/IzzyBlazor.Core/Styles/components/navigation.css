@@ -33,7 +33,7 @@
   }
 
   .ib-breadcrumb-slash .ib-breadcrumb-item + .ib-breadcrumb-item::before {
-    content: "/";
+    content: "/" / "";
     width: auto;
     height: auto;
     mask: none;

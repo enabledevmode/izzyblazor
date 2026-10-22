@@ -20,7 +20,8 @@
       `HexLabel`).
     - Presets are buttons in a group named "Preset colors" (`PresetsLabel`). Each is named by its
       hex value ("#2563eb"), not a color name, and pressed (`aria-pressed`) while it's the value.
-    - The hint and errors are linked to both the swatch and the hex box with `aria-describedby`.
+    - The hint and errors are linked to both the swatch and the hex box with `aria-describedby`,
+      and both set `aria-invalid` when the field is invalid.
     - Read-only, the swatch and presets are disabled and can't be focused; the hex box stays
       focusable and read-only.
     See also: TextField, SegmentedControl, RadioGroup.
@@ -51,6 +52,7 @@
                        disabled="@IsDisabled"
                        readonly="@IsReadOnly"
                        aria-label="@($"{ResolvedLabel}, {HexLabel ?? TextDefaults.ColorHex}")"
+                       aria-invalid="@(Invalid ? "true" : null)"
                        aria-describedby="@DescribedBy" />
             }
         </span>

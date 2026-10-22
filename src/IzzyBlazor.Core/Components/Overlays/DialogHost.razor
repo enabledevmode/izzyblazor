@@ -31,7 +31,8 @@
                 Class="@entry.Options.ColorScheme.ClassName()"
                 Style="@BrandStyle(entry.Options)"
                 data-ib-brand="@BrandName(entry.Options)"
-                data-ib-density="@(entry.Options.Density?.ToString().ToLowerInvariant())">
+                data-ib-density="@(entry.Options.Density?.ToString().ToLowerInvariant())"
+                aria-label="@(entry.Title is null ? entry.Options.Label : null)">
             <CascadingValue Value="entry.Instance" IsFixed="true">
                 <DynamicComponent Type="entry.Component" Parameters="entry.Parameters" />
             </CascadingValue>
