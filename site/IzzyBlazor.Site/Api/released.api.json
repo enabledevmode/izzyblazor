@@ -81,10 +81,6 @@
           "type": "string?"
         },
         {
-          "name": "Header",
-          "type": "RenderFragment?"
-        },
-        {
           "name": "Icon",
           "type": "IconData?"
         },
@@ -142,10 +138,6 @@
         },
         {
           "name": "ChildContent",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Actions",
           "type": "RenderFragment?"
         },
         {
@@ -587,14 +579,6 @@
           "type": "VerticalPosition"
         },
         {
-          "name": "Header",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Footer",
-          "type": "RenderFragment?"
-        },
-        {
           "name": "CloseLabel",
           "type": "string?"
         },
@@ -848,10 +832,6 @@
           "type": "RenderFragment?"
         },
         {
-          "name": "Actions",
-          "type": "RenderFragment?"
-        },
-        {
           "name": "Icon",
           "type": "IconData?"
         },
@@ -1043,10 +1023,6 @@
         {
           "name": "Reset",
           "type": "bool"
-        },
-        {
-          "name": "Type",
-          "type": "ButtonType"
         },
         {
           "name": "Name",
@@ -1783,10 +1759,6 @@
       ],
       "properties": [
         {
-          "name": "Direction",
-          "type": "Responsive\u003CDirection\u003E"
-        },
-        {
           "name": "Gap",
           "type": "Responsive\u003Cint\u003E"
         },
@@ -2218,14 +2190,6 @@
           "type": "Responsive\u003Cint\u003E"
         },
         {
-          "name": "Header",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Footer",
-          "type": "RenderFragment?"
-        },
-        {
           "name": "Size",
           "type": "DialogSize"
         },
@@ -2264,55 +2228,6 @@
         "DialogPlacement",
         "DialogSize"
       ]
-    },
-    {
-      "name": "DialogActions",
-      "displayName": "DialogActions",
-      "fullName": "IzzyBlazor.DialogActions",
-      "package": "IzzyBlazor.Core",
-      "tier": "Free",
-      "bases": [
-        "StyledComponentBase",
-        "LayoutItemBase",
-        "IzzyComponentBase"
-      ],
-      "properties": [
-        {
-          "name": "Gap",
-          "type": "Responsive\u003Cint\u003E"
-        },
-        {
-          "name": "Align",
-          "type": "Responsive\u003CAlign\u003E"
-        },
-        {
-          "name": "Justify",
-          "type": "Responsive\u003CJustify\u003E"
-        },
-        {
-          "name": "Wrap",
-          "type": "bool"
-        },
-        {
-          "name": "Inline",
-          "type": "bool"
-        },
-        {
-          "name": "As",
-          "type": "string"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?"
-        }
-      ],
-      "events": [],
-      "methods": [],
-      "types": [
-        "Align",
-        "Justify"
-      ],
-      "obsolete": "DialogActions is now \u003CDialogFooter\u003E. DialogActions goes in a later release."
     },
     {
       "name": "DialogBody",
@@ -2409,10 +2324,6 @@
         {
           "name": "Reset",
           "type": "bool"
-        },
-        {
-          "name": "Type",
-          "type": "ButtonType"
         },
         {
           "name": "Name",
@@ -2601,10 +2512,6 @@
           "type": "bool"
         },
         {
-          "name": "Type",
-          "type": "ButtonType"
-        },
-        {
           "name": "Name",
           "type": "string?"
         },
@@ -2733,14 +2640,6 @@
           "type": "Responsive\u003Cint\u003E"
         },
         {
-          "name": "Header",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Footer",
-          "type": "RenderFragment?"
-        },
-        {
           "name": "Size",
           "type": "DialogSize"
         },
@@ -2810,10 +2709,6 @@
         },
         {
           "name": "ChildContent",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Actions",
           "type": "RenderFragment?"
         },
         {
@@ -3450,49 +3345,6 @@
       "types": []
     },
     {
-      "name": "HeaderNav",
-      "displayName": "HeaderNav",
-      "fullName": "IzzyBlazor.HeaderNav",
-      "package": "IzzyBlazor.Core",
-      "tier": "Free",
-      "bases": [
-        "LayoutItemBase",
-        "IzzyComponentBase"
-      ],
-      "properties": [
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "Breakpoint",
-          "type": "Breakpoint"
-        },
-        {
-          "name": "Label",
-          "type": "string?"
-        },
-        {
-          "name": "MenuLabel",
-          "type": "string?"
-        },
-        {
-          "name": "MenuButtonAtEnd",
-          "type": "bool"
-        },
-        {
-          "name": "Id",
-          "type": "string?"
-        }
-      ],
-      "events": [],
-      "methods": [],
-      "types": [
-        "Breakpoint"
-      ],
-      "obsolete": "HeaderNav is now \u003CSiteNav\u003E, its PanelFooter \u003CSiteNavFooter\u003E; the panel opens under the header, so PanelHeader is gone. HeaderNav goes in a later release."
-    },
-    {
       "name": "Heading",
       "displayName": "Heading",
       "fullName": "IzzyBlazor.Heading",
@@ -3672,10 +3524,6 @@
         {
           "name": "Reset",
           "type": "bool"
-        },
-        {
-          "name": "Type",
-          "type": "ButtonType"
         },
         {
           "name": "Accent",
@@ -3890,116 +3738,6 @@
       "types": []
     },
     {
-      "name": "LinkButton",
-      "displayName": "LinkButton",
-      "fullName": "IzzyBlazor.LinkButton",
-      "package": "IzzyBlazor.Core",
-      "tier": "Free",
-      "bases": [
-        "LayoutItemBase",
-        "IzzyComponentBase"
-      ],
-      "properties": [
-        {
-          "name": "Href",
-          "type": "string?"
-        },
-        {
-          "name": "External",
-          "type": "bool"
-        },
-        {
-          "name": "HideExternalIcon",
-          "type": "bool"
-        },
-        {
-          "name": "NewTabLabel",
-          "type": "string?"
-        },
-        {
-          "name": "Submit",
-          "type": "bool"
-        },
-        {
-          "name": "Reset",
-          "type": "bool"
-        },
-        {
-          "name": "Type",
-          "type": "ButtonType"
-        },
-        {
-          "name": "Name",
-          "type": "string?"
-        },
-        {
-          "name": "Value",
-          "type": "string?"
-        },
-        {
-          "name": "FormAction",
-          "type": "string?"
-        },
-        {
-          "name": "Form",
-          "type": "string?"
-        },
-        {
-          "name": "Accent",
-          "type": "Accent"
-        },
-        {
-          "name": "Variant",
-          "type": "ButtonVariant"
-        },
-        {
-          "name": "Size",
-          "type": "ControlSize"
-        },
-        {
-          "name": "StartIcon",
-          "type": "IconData?"
-        },
-        {
-          "name": "EndIcon",
-          "type": "IconData?"
-        },
-        {
-          "name": "FullWidth",
-          "type": "bool"
-        },
-        {
-          "name": "Loading",
-          "type": "bool"
-        },
-        {
-          "name": "LoadingLabel",
-          "type": "string?"
-        },
-        {
-          "name": "Disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ChildContent",
-          "type": "RenderFragment?"
-        }
-      ],
-      "events": [
-        {
-          "name": "OnClick",
-          "type": "EventCallback\u003CMouseEventArgs\u003E"
-        }
-      ],
-      "methods": [],
-      "types": [
-        "Accent",
-        "ButtonVariant",
-        "ControlSize"
-      ],
-      "obsolete": "LinkButton is now \u003CButton Href=\u0022...\u0022\u003E. LinkButton goes in a later release."
-    },
-    {
       "name": "List",
       "displayName": "List",
       "fullName": "IzzyBlazor.List",
@@ -4193,10 +3931,6 @@
         {
           "name": "Submit",
           "type": "bool"
-        },
-        {
-          "name": "Type",
-          "type": "ButtonType"
         },
         {
           "name": "Checked",
@@ -5005,10 +4739,6 @@
         "IzzyComponentBase"
       ],
       "properties": [
-        {
-          "name": "Direction",
-          "type": "Responsive\u003CDirection\u003E"
-        },
         {
           "name": "Gap",
           "type": "Responsive\u003Cint\u003E"

@@ -11,8 +11,9 @@ namespace IzzyBlazor.DocsGen;
 /// Reads components from the library's assemblies and their XML docs. A component is a public,
 /// non-abstract <see cref="IComponent"/>; its API is its <c>[Parameter]</c> properties (minus the
 /// captured-attributes bag), with <c>EventCallback</c>s as events and public methods of its own.
-/// Members marked <c>[Obsolete]</c> are kept, with its message, so tools can say what replaced them;
-/// the site leaves them off its pages.
+/// Anything marked <c>[Obsolete]</c> as an error is left out: it's gone from the API, kept only so
+/// old markup fails to build (Row's Direction). A deprecation that still works (a warning) is listed
+/// with its message; the site leaves those off its pages.
 /// </summary>
 public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders? headers = null)
 {
@@ -61,7 +62,11 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
     public static bool IsComponent(Type type) =>
         type is { IsPublic: true, IsAbstract: false, IsInterface: false } &&
         typeof(IComponent).IsAssignableFrom(type) &&
-        type.Namespace == "IzzyBlazor";
+        type.Namespace == "IzzyBlazor" &&
+        !Removed(type);
+
+    /// <summary>Marked <c>[Obsolete]</c> as an error: not part of the API.</summary>
+    private static bool Removed(MemberInfo member) => member.GetCustomAttribute<ObsoleteAttribute>() is { IsError: true };
 
     // Types not worth a section: the icon catalogs (thousands of icons) and Responsive<T>, which
     // the Common features docs cover once.
@@ -137,7 +142,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
     private List<string> TypesOf(Type component, IEnumerable<PropertyInfo> parameters, IEnumerable<MethodInfo> methods)
     {
         var found = new HashSet<Type>();
-        // Not the types of obsolete members (Button.Type's ButtonType): they're on their way out.
+        // Not the types of deprecated members: they're on their way out.
         foreach (var property in parameters.Where(p => !SharedBases.Contains(TypeNames.Plain(p.DeclaringType!)) && ObsoleteText(p) is null))
         {
             Collect(property.PropertyType, found);
@@ -283,6 +288,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
         if (type.IsEnum)
         {
             members = type.GetFields(BindingFlags.Public | BindingFlags.Static)
+                .Where(f => !Removed(f))
                 .Select(f => new ApiMember { Name = f.Name, Type = TypeNames.Plain(type), Summary = XmlDocs.Html(docs.ForField(f), "summary"), Obsolete = ObsoleteText(f) })
                 .ToList();
         }
@@ -300,11 +306,11 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
             // record's values and helpers (TableRequest.Page, ApplySorting).
             var instance = InstanceOf(type);
             var properties = type.GetProperties(Instance)
-                .Where(p => p.GetIndexParameters().Length == 0 && p.GetMethod is { IsPublic: true })
+                .Where(p => p.GetIndexParameters().Length == 0 && p.GetMethod is { IsPublic: true } && !Removed(p))
                 .OrderBy(p => p.MetadataToken)
                 .Select(p => ReadTypeProperty(p, doc, instance));
             var methods = type.GetMethods(Instance)
-                .Where(m => !m.IsSpecialName && m.DeclaringType == type && !ObjectMethods.Contains(m.Name))
+                .Where(m => !m.IsSpecialName && m.DeclaringType == type && !ObjectMethods.Contains(m.Name) && !Removed(m))
                 .OrderBy(m => m.Name, StringComparer.Ordinal)
                 .Select(ReadMethod);
             members = statics.Concat(factories).Concat(properties).Concat(methods).ToList();
@@ -367,7 +373,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
     }
 
     private static bool IsParameter(PropertyInfo property) =>
-        property.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false };
+        property.GetCustomAttribute<ParameterAttribute>() is { CaptureUnmatchedValues: false } && !Removed(property);
 
     private static bool IsEvent(Type type) =>
         type == typeof(EventCallback) || (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(EventCallback<>));
@@ -382,7 +388,8 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
         !SharedBases.Contains(TypeNames.Plain(declaring)) &&
         declaring.IsAssignableFrom(component) &&
         method.GetBaseDefinition().DeclaringType is { Namespace: "IzzyBlazor" } &&
-        !LifecycleMethods.Contains(method.Name);
+        !LifecycleMethods.Contains(method.Name) &&
+        !Removed(method);
 
     private static IEnumerable<Type> Ancestors(Type type)
     {
