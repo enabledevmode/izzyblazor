@@ -60,12 +60,12 @@ public class TabsExtrasRenderTests : BunitContext
     }
 
     [Fact]
-    public void Disabled_link_tab_is_not_a_link()
+    public void Disabled_link_tab_has_no_href_and_reads_as_a_disabled_link()
     {
         var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, Links(disableLast: true)));
         var disabled = cut.Find("span.ib-tab-disabled");
 
-        Assert.Equal("true", disabled.GetAttribute("aria-disabled"));
+        Assert.Equal(("link", "true"), (disabled.GetAttribute("role"), disabled.GetAttribute("aria-disabled")));
         Assert.Contains("Security", disabled.TextContent);
         Assert.Equal(2, cut.FindAll("a.ib-tab").Count);
     }

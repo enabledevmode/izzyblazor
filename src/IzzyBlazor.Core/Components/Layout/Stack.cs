@@ -74,6 +74,16 @@ public class Stack : FlexBase
 }
 
 /// <summary>Lays children out horizontally. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
+/// <example>
+/// <code>
+/// &lt;Row Gap="2" Align="Align.Center"&gt;
+///     &lt;Avatar Name="Ada Lovelace" /&gt;
+///     &lt;TextBlock&gt;Ada Lovelace&lt;/TextBlock&gt;
+///     &lt;Spacer /&gt;
+///     &lt;Button Size="ControlSize.Sm"&gt;Follow&lt;/Button&gt;
+/// &lt;/Row&gt;
+/// </code>
+/// </example>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Column"/>
 /// <seealso cref="Spacer"/>
@@ -96,6 +106,14 @@ public class Row : FlexBase
 }
 
 /// <summary>Lays children out vertically. For a direction that changes by screen size, use <see cref="Stack"/>.</summary>
+/// <example>
+/// <code>
+/// &lt;Column Gap="1"&gt;
+///     &lt;Heading Level="3"&gt;Pro plan&lt;/Heading&gt;
+///     &lt;TextBlock Color="Color.Muted"&gt;Billed yearly.&lt;/TextBlock&gt;
+/// &lt;/Column&gt;
+/// </code>
+/// </example>
 /// <seealso cref="Stack"/>
 /// <seealso cref="Row"/>
 /// <seealso cref="Grid"/>

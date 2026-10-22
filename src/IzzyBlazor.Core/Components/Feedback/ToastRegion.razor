@@ -12,6 +12,10 @@
         and adds toasts that ToastService sends from interactive pages, from the templates below.
       - Interactive: ToastService.Show() adds a toast in the browser straight away.
 
+    <ToastRegion Placement="ToastPlacement.BottomEnd" />
+
+    Then, in a page with `@inject ToastService Toasts`, call `Toasts.Success("Saved.")`.
+
     Accessibility:
     - It's a `region` landmark named "Notifications" (`Label`); every toast, errors included, is
       read politely through one `aria-live="polite"` container.
