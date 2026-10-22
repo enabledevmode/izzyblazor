@@ -7,7 +7,8 @@ namespace IzzyBlazor.Site.Services;
 /// In an Off example frame, sends links to other pages to the whole window. With script, site.js
 /// does this; an Off frame runs none, so the server marks those links <c>target="_top"</c> (the
 /// frame's sandbox allows top navigation on a click). Links within the example (its own path,
-/// such as a pager's <c>?page=2</c>, or an <c>#anchor</c>) stay in the frame.
+/// such as a pager's <c>?page=2</c>, an <c>#anchor</c>, or IzzyBlazor's <c>/_izzy/</c> endpoints) stay
+/// in the frame.
 /// </summary>
 public static partial class OffFrameLinks
 {
@@ -54,7 +55,9 @@ public static partial class OffFrameLinks
             return tag;
         }
 
-        var leaves = url.Host != "site" || !string.Equals(url.AbsolutePath, path, StringComparison.Ordinal);
+        // IzzyBlazor's own endpoints (/_izzy/scheme) redirect back to the frame, so they stay in it.
+        var leaves = url.Host != "site"
+            || !(string.Equals(url.AbsolutePath, path, StringComparison.Ordinal) || url.AbsolutePath.StartsWith("/_izzy/", StringComparison.Ordinal));
         return leaves && url.Scheme is "http" or "https" ? tag[..^1].TrimEnd('/').TrimEnd() + " target=\"_top\"" + (tag.EndsWith("/>", StringComparison.Ordinal) ? " />" : ">") : tag;
     });
 

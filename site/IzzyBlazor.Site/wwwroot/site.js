@@ -34,6 +34,9 @@
       const url = new URL(link.href, location.href);
       if (url.protocol !== "http:" && url.protocol !== "https:") return;
       if (url.origin === location.origin && url.pathname === location.pathname) return;
+      // IzzyBlazor's own endpoints (the scheme switch's links) belong to the example: its script
+      // handles them, and without it they return to the frame.
+      if (url.origin === location.origin && url.pathname.startsWith("/_izzy/")) return;
       event.preventDefault();
       event.stopPropagation();
       try {
