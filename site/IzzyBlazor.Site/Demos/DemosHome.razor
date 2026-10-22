@@ -27,8 +27,9 @@
             {
                 @foreach (var scenario in component.Scenarios)
                 {
+                    @* Text only: a component's picture would repeat on each of its demos' cards. *@
                     <Card Title="@scenario.Title" Href="@Registry.ScenarioHref(component, scenario)" Description="@scenario.Description" Size="ControlSize.Sm">
-                        <CardMedia><div class="site-media"><ComponentPicture Id="@component.Id" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm">@component.Name</Badge></span></div></CardMedia>
+                        <CardHeader><Badge Size="BadgeSize.Sm">@component.Name</Badge></CardHeader>
                     </Card>
                 }
             }
