@@ -26,8 +26,11 @@ namespace IzzyBlazor;
 [ModeSupport]
 public class Heading : TextBase, IDisposable
 {
-    /// <summary>The heading level, 1 to 6. Defaults to 2.</summary>
+    /// <summary>The heading level, 1 to 6, which sets the element (<c>h1</c> to <c>h6</c>). Defaults to 2.</summary>
     [Parameter] public int Level { get; set; } = 2;
+
+    /// <summary>Creates a heading at the default level.</summary>
+    public Heading() => As = $"h{Level}";
 
     /// <summary>
     /// Lists the heading in the page's <see cref="OnThisPage"/> (when its level is one it lists).

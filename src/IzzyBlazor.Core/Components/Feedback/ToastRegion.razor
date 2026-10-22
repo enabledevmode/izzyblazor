@@ -2,7 +2,7 @@
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, toasts stay until closed instead of closing by themselves.")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, toasts stay until closed instead of closing by themselves, and their close buttons are checkboxes to screen readers.")]
 
 @*
     Where toasts appear. Put one in the layout. Toasts come from ToastService:

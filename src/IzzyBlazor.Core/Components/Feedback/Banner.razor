@@ -3,7 +3,7 @@
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dismissed banner comes back on the next page.")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a dismissed banner comes back on the next page, its close button is a checkbox to screen readers, and focus doesn't move on when it closes.")]
 
 @*
     A full-width strip for a message about the whole app or site: planned maintenance, a trial
