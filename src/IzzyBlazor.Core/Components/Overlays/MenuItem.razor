@@ -67,10 +67,6 @@ else
     /// <summary>For button items: posts the surrounding form (or <c>Form</c>), optionally to <c>FormAction</c>.</summary>
     [Parameter] public bool Submit { get; set; }
 
-    /// <summary>Replaced by <see cref="Submit"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Buttons take a bare Submit now: <MenuItem Submit>. Type and ButtonType go in a later release.", error: true)]
-    public ButtonType Type { get; set; }
-
     /// <summary>
     /// Makes this a checkbox item that shows a check when true, with <c>@bind-Checked</c> on
     /// interactive pages. Null (the default) is an ordinary item.

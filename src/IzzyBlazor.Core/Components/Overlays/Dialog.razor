@@ -103,14 +103,6 @@
     /// </summary>
     [Parameter] public Responsive<int> ContentPadding { get; set; }
 
-    /// <summary>Replaced by <see cref="DialogHeader"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Write <DialogHeader> in the dialog instead. Header goes in a later release.", error: true)]
-    public RenderFragment? Header { get; set; }
-
-    /// <summary>Replaced by <see cref="DialogFooter"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Write <DialogFooter> last in the dialog instead. Footer goes in a later release.", error: true)]
-    public RenderFragment? Footer { get; set; }
-
     /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
     [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
 
@@ -150,14 +142,6 @@
     private string? _bodyStyle;
 
     private string TitleId => $"{ElementId}-title";
-
-    /// <inheritdoc />
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        RemovedSlots.Check(parameters, GetType().Name, ("Header", "DialogHeader"), ("Footer", "DialogFooter"));
-        return base.SetParametersAsync(parameters);
-    }
-
 
     /// <inheritdoc />
     protected override string IdPrefix => "ib-dialog";

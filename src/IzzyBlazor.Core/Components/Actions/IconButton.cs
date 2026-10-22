@@ -32,10 +32,6 @@ public class IconButton : ButtonBase
     /// <summary>Resets the form it's in, when it's a button, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
     [Parameter] public bool Reset { get; set; }
 
-    /// <summary>Replaced by <see cref="Submit"/> and <see cref="Reset"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Buttons take a bare Submit or Reset now: <Button Submit>. Type and ButtonType go in a later release.", error: true)]
-    public ButtonType Type { get; set; }
-
     /// <summary>Runs on click on interactive pages (a link still navigates).</summary>
     [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }

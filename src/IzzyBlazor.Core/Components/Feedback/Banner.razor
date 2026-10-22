@@ -97,14 +97,9 @@
     /// <summary>The message. Keep it to a line or two.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    /// <summary>Replaced by <see cref="BannerActions"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Write <BannerActions> in the banner instead. Actions goes in a later release.", error: true)]
-    public RenderFragment? Actions { get; set; }
-
     private PartScope _scope = null!;
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
-
 
     /// <summary>An icon in place of the status's own.</summary>
     [Parameter] public IconData? Icon { get; set; }
@@ -216,13 +211,6 @@
 
     internal static bool IsValidKey(string key) =>
         key.Length > 0 && key.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_' or '.');
-
-    /// <inheritdoc />
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        RemovedSlots.Check(parameters, nameof(Banner), ("Actions", "BannerActions"));
-        return base.SetParametersAsync(parameters);
-    }
 
     /// <inheritdoc />
     protected override async Task OnInitializedAsync()

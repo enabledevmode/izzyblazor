@@ -41,20 +41,9 @@
     /// <summary>The heading text. Use an <see cref="AccordionHeader"/> for richer content.</summary>
     [Parameter] public string? Title { get; set; }
 
-    /// <summary>Replaced by <see cref="AccordionHeader"/>. Kept for one release so old markup fails to build.</summary>
-    [Parameter, Obsolete("Write <AccordionHeader> in the item instead. Header goes in a later release.", error: true)]
-    public RenderFragment? Header { get; set; }
-
     private PartScope _scope = null!;
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
-
-    /// <inheritdoc />
-    public override Task SetParametersAsync(ParameterView parameters)
-    {
-        RemovedSlots.Check(parameters, nameof(AccordionItem), ("Header", "AccordionHeader"));
-        return base.SetParametersAsync(parameters);
-    }
 
     /// <inheritdoc />
     protected override void OnInitialized()
