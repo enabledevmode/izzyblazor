@@ -1,0 +1,46 @@
+@using Microsoft.AspNetCore.Http
+
+<Form Model="Model" FormName="file-upload-photo" Multipart OnValidSubmit="Save" MaxWidth="26.Rem" Grow>
+    <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg" MaxFileSize="MaxSize"
+                Hint="Square images work best." OnChange="Chosen" />
+    <Row><Button Submit StartIcon="Lucide.Upload">Upload</Button></Row>
+    @if (_result is not null)
+    {
+        <Alert Status="_status">@_result</Alert>
+    }
+</Form>
+
+@code {
+    private const long MaxSize = 2_000_000;
+
+    [SupplyParameterFromForm(FormName = "file-upload-photo")]
+    private Upload? Model { get; set; }
+
+    // Static pages: the file posts with the form, bound by its Name.
+    [SupplyParameterFromForm(FormName = "file-upload-photo")]
+    private IFormFile? Avatar { get; set; }
+
+    // Interactive pages: OnChange gets the file as it's chosen.
+    private IBrowserFile? _chosen;
+    private string? _result;
+    private Status _status;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Chosen(IReadOnlyList<IBrowserFile> files) => _chosen = files.FirstOrDefault();
+
+    // Accept and MaxFileSize only guide the browser: check the type and size here too.
+    private void Save()
+    {
+        var (name, size, type) = Avatar is { Length: > 0 } posted ? (posted.FileName, posted.Length, posted.ContentType)
+            : _chosen is { } chosen ? (chosen.Name, chosen.Size, chosen.ContentType)
+            : (null, 0L, "");
+        (_status, _result) = name is null ? (Status.Warning, "Choose a photo first.")
+            : type is not ("image/png" or "image/jpeg") ? (Status.Danger, $"{name} isn't a PNG or JPEG.")
+            : size > MaxSize ? (Status.Danger, $"{name} is larger than 2 MB.")
+            : (Status.Success, $"Uploaded {name} ({size:N0} bytes).");
+    }
+
+    // The form's model; the file itself binds to Avatar above.
+    public sealed class Upload;
+}

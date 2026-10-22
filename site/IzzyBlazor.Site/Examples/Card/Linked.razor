@@ -1,0 +1,25 @@
+@inject NavigationManager Navigation
+
+<Row Gap="4" Wrap Align="Align.Stretch" Grow>
+    <Card Title="Website" Description="izzyblazor.dev" Href="@Navigation.GetUriWithQueryParameter("project", "website")" Grow Basis="16.Rem">
+        <CardActions>
+            <IconButton Icon="Lucide.Star" Label="Add to favorites" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+        </CardActions>
+        <Row Gap="2" Wrap>
+            <Badge Status="Status.Success" Dot>Deployed</Badge>
+            <Badge>Blazor</Badge>
+        </Row>
+        <CardFooter>
+            <TextBlock As="span" Size="TextSize.Xs" Color="Color.Muted">3 contributors</TextBlock>
+        </CardFooter>
+    </Card>
+    <Card Variant="CardVariant.Elevated" Title="Course app" Description="Lessons and progress" Href="@Navigation.GetUriWithQueryParameter("project", "course")" Grow Basis="16.Rem">
+        <CardMedia>
+            <svg viewBox="0 0 400 140" preserveAspectRatio="xMidYMid slice" style="height: 8rem" role="img" aria-label="Course cover">
+                <defs><linearGradient id="course-cover" x1="0" x2="1"><stop offset="0" stop-color="#4f46e5" /><stop offset="1" stop-color="#0ea5e9" /></linearGradient></defs>
+                <rect width="400" height="140" fill="url(#course-cover)" />
+            </svg>
+        </CardMedia>
+        <TextBlock Color="Color.Muted">12 lessons · 3 hours</TextBlock>
+    </Card>
+</Row>

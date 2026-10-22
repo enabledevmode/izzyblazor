@@ -1,0 +1,13 @@
+<Row Gap="1" Align="Align.Center">
+    <TextBlock As="span" Weight="FontWeight.Medium">Billing period</TextBlock>
+    <Popover Title="Billing period" Placement="Placement.Bottom" PanelWidth="Length.Rem(18)">
+        <Trigger>
+            <IconButton Icon="Lucide.Info" Label="About the billing period" Size="ControlSize.Sm"
+                        Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" @attributes="context" />
+        </Trigger>
+        <ChildContent>
+            <TextBlock Size="TextSize.Sm">You're billed on the 1st of each month for the seats in use that day.</TextBlock>
+            <Button Href="docs" Variant="ButtonVariant.Link" Size="ControlSize.Sm">Read about billing</Button>
+        </ChildContent>
+    </Popover>
+</Row>

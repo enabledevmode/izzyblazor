@@ -1,0 +1,19 @@
+<Grid MinChildWidth="12.Rem" Gap="3" Grow>
+    @foreach (var person in People)
+    {
+        <Row Gap="3" Align="Align.Center" Padding="3" Border="1" Radius="Radius.Lg">
+            <Avatar Name="@person" Size="AvatarSize.Sm" />
+            <TextBlock As="span" Size="TextSize.Sm">@person</TextBlock>
+        </Row>
+    }
+</Grid>
+
+@* hide *@
+@code {
+    private static readonly string[] People =
+    [
+        "Ada Lovelace", "Grace Hopper", "Alan Turing",
+        "Katherine Johnson", "Edsger Dijkstra", "Margaret Hamilton",
+    ];
+}
+@* /hide *@

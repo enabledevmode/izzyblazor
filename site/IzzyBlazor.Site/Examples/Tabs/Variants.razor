@@ -1,0 +1,20 @@
+<Stack Gap="6" Grow>
+    @foreach (var variant in Enum.GetValues<TabsVariant>())
+    {
+        <Stack Gap="2">
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@variant</TextBlock>
+            <Tabs Variant="variant" Label="@($"Project ({variant})")">
+                <Tab Label="Overview" Icon="Lucide.LayoutDashboard">
+                    <TextBlock>Builds, traffic and errors at a glance.</TextBlock>
+                </Tab>
+                <Tab Label="Activity" Badge="3">
+                    <TextBlock>Three new deploys since yesterday.</TextBlock>
+                </Tab>
+                <Tab Label="Settings" Icon="Lucide.Settings">
+                    <TextBlock>Domains, environment variables and members.</TextBlock>
+                </Tab>
+                <Tab Label="Billing" Disabled>Available on paid plans.</Tab>
+            </Tabs>
+        </Stack>
+    }
+</Stack>

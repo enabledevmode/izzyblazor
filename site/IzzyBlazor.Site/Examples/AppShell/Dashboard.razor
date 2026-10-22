@@ -1,0 +1,83 @@
+@inject NavigationManager Navigation
+
+@* A dashboard made of cards: Canvas tints the main area so each white card has an edge, while the
+   header and sidebar stay plain. Below 768px the sidebar is a drawer behind the menu button. *@
+<AppShell Variant="ShellVariant.Canvas">
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.LayoutDashboard">Overview</NavItem>
+            <NavItem Href='@To("rules")' Icon="Lucide.ListChecks" Badge="57">Rules</NavItem>
+            <NavItem Href='@To("guide")' Icon="Lucide.BookOpen">Guide</NavItem>
+            <NavDivider />
+            <NavLabel>Workspace</NavLabel>
+            <NavItem Href='@To("settings")' Icon="Lucide.Settings">Settings</NavItem>
+            <NavItem Href='@To("billing")' Icon="Lucide.CreditCard">Billing</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="6" Padding="new() { Base = 4, Md = 8 }">
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Stack Gap="1" Grow>
+                    <Heading Level="1" Size="TextSize.Xl2">Overview</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Decisions across all projects, last 30 days.</TextBlock>
+                </Stack>
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Download">Export</Button>
+            </Row>
+            <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="4">
+                <Card><Stat Label="Decisions" Value="48,210" Change="12%" Trend="StatTrend.Up" Icon="Lucide.Activity" /></Card>
+                <Card><Stat Label="Held for review" Value="1,284" Change="3%" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Lucide.Hand" /></Card>
+                <Card><Stat Label="Median latency" Value="18 ms" Change="2 ms" Trend="StatTrend.Down" ChangeStatus="Status.Success" Icon="Lucide.Timer" /></Card>
+                <Card><Stat Label="Rules live" Value="57" Change="+4" Trend="StatTrend.Up" Icon="Lucide.ListChecks" /></Card>
+            </Grid>
+            <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
+                <Card Title="Busiest rules" Description="By decisions, last 7 days." ColSpan="new() { Lg = 2 }">
+                    <Stack Gap="4">
+                        @foreach (var (rule, hits) in Busiest)
+                        {
+                            <Stack Gap="1">
+                                <Row Justify="Justify.Between">
+                                    <TextBlock Size="TextSize.Sm">@rule</TextBlock>
+                                    <TextBlock Size="TextSize.Sm" Color="Color.Muted" TabularNums>@hits.ToString("N0")</TextBlock>
+                                </Row>
+                                <Progress Value="hits" Max="9000" aria-label="@rule" />
+                            </Stack>
+                        }
+                    </Stack>
+                </Card>
+                <Card Title="Project">
+                    <DescriptionList>
+                        <DescriptionItem Term="Owner">Ada Lovelace</DescriptionItem>
+                        <DescriptionItem Term="Region">EU (Frankfurt)</DescriptionItem>
+                        <DescriptionItem Term="Plan"><Badge Status="Status.Info">Team</Badge></DescriptionItem>
+                    </DescriptionList>
+                </Card>
+            </Grid>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
+@* hide *@
+
+@code {
+    private static readonly (string Rule, int Hits)[] Busiest =
+    [
+        ("Hold large refunds", 8412),
+        ("Score repeat buyers", 6230),
+        ("Flag mismatched country", 4105),
+        ("Velocity check", 2987),
+    ];
+}
+@* /hide *@

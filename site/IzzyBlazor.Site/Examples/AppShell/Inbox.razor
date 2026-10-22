@@ -1,0 +1,70 @@
+@inject NavigationManager Navigation
+
+@* A mail client that behaves like a desktop app: ScrollMode.Main fills the window and scrolls only
+   the message list, so the header, the folders and the footer never move. *@
+<AppShell ScrollMode="ShellScroll.Main">
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Mail" Label="Acme Mail" />
+        <Box Grow />
+        <Button StartIcon="Lucide.Send" Size="ControlSize.Sm">Compose</Button>
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppSidebar Width="Length.Rem(14)">
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>
+            <NavItem Href='@To("starred")' Icon="Lucide.Star">Starred</NavItem>
+            <NavItem Href='@To("sent")' Icon="Lucide.Send">Sent</NavItem>
+            <NavItem Href='@To("archive")' Icon="Lucide.Archive">Archive</NavItem>
+            <NavItem Href='@To("trash")' Icon="Lucide.Trash">Trash</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="0">
+            @foreach (var (sender, subject, time, unread) in Messages)
+            {
+                <Row Gap="3" Align="Align.Center" PaddingX="5" PaddingY="3" BorderBottom="1">
+                    <Avatar Name="@sender" Size="AvatarSize.Sm" />
+                    <Stack Gap="0" Grow MinWidth="Length.Px(0)">
+                        <TextBlock Size="TextSize.Sm" Weight="@(unread ? FontWeight.Semibold : FontWeight.Normal)">@sender</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@subject</TextBlock>
+                    </Stack>
+                    <TextBlock Size="TextSize.Xs" Color="Color.Muted">@time</TextBlock>
+                </Row>
+            }
+        </Stack>
+    </AppMain>
+
+    <AppFooter>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">3.2 GB of 15 GB used · Synced 2 minutes ago</TextBlock>
+    </AppFooter>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
+@* hide *@
+
+@code {
+    private static readonly (string From, string Subject, string Time, bool Unread)[] Messages =
+    [
+        ("Grace Hopper", "Dry run for \"Hold large refunds\" is ready", "9:41", true),
+        ("Alan Turing", "Re: Velocity check thresholds", "9:12", true),
+        ("Katherine Johnson", "Q4 review: held decisions by region", "8:55", true),
+        ("Linus Torvalds", "Build 2.14 is out", "8:03", true),
+        ("Margaret Hamilton", "Incident notes from Tuesday", "Yesterday", false),
+        ("Barbara Liskov", "Rule groups: naming guide draft", "Yesterday", false),
+        ("Grace Hopper", "Shadow mode results", "Yesterday", false),
+        ("Billing", "Your October invoice", "Oct 20", false),
+        ("Alan Turing", "Lunch on Thursday?", "Oct 19", false),
+        ("Katherine Johnson", "New dashboard for the ops team", "Oct 18", false),
+        ("Security", "New sign-in from Firefox on Linux", "Oct 17", false),
+        ("Margaret Hamilton", "Re: Retry limits", "Oct 16", false),
+        ("Barbara Liskov", "Two approvals for large changes", "Oct 15", false),
+        ("Linus Torvalds", "Re: Export to CSV", "Oct 14", false),
+    ];
+}
+@* /hide *@

@@ -1,0 +1,72 @@
+@using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
+
+@* A reading site with no sidebar. ContentWidth puts the header, the article and the footer on one
+   centered column, so their edges line up, while the bars and their lines stay full width. *@
+<AppShell Variant="ShellVariant.Flat" ContentWidth="Length.Rem(42)">
+    <AppHeader>
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme Journal" />
+        <Box Grow />
+        <SiteNav Label="Sections" Breakpoint="Breakpoint.Sm">
+            <NavItem Href='@To("articles")'>Articles</NavItem>
+            <NavItem Href='@To("guides")'>Guides</NavItem>
+        </SiteNav>
+        <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Gap="5" PaddingY="new() { Base = 8, Md = 12 }">
+            <TextBlock Size="TextSize.Xs" Weight="FontWeight.Semibold" Color="Color.Muted">ENGINEERING</TextBlock>
+            <Heading Level="1" Size="TextSize.Xl3">How we review a rule before it goes live</Heading>
+            <Row Gap="3" Align="Align.Center">
+                <Avatar Name="Grace Hopper" Size="AvatarSize.Sm" />
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Grace Hopper · Oct 9, 2026 · 6 min read</TextBlock>
+            </Row>
+            <TextBlock>Every rule we ship decides real money. A wrong condition can hold a thousand honest refunds before anyone notices, so no rule goes live on one person's say-so.</TextBlock>
+            <Heading Level="2" Size="TextSize.Xl">Start with a dry run</Heading>
+            <TextBlock>A dry run replays last week's decisions through the new rule and lists what would have changed. Reviewers read that list before they read the rule: outcomes are what customers feel.</TextBlock>
+            <Alert Title="One reviewer is not enough">Rules that change more than 1% of last week's outcomes need two approvals.</Alert>
+        </Stack>
+        @* A full-bleed band: the color spans the main area, the content stays on the column. *@
+        <Section Bg="Color.SurfaceContainerLow">
+            <Stack Gap="3">
+                <Heading Level="2" Size="TextSize.Xl">Get the next article by email</Heading>
+                <Form Model="Model" FormName="reading-newsletter" OnValidSubmit="() => _subscribed = true">
+                    <TextField @bind-Value="Model!.Email" Type="TextFieldType.Email" Placeholder="you@example.com" HideLabel>
+                        <EndAddon><Button Submit>Subscribe</Button></EndAddon>
+                    </TextField>
+                </Form>
+                @if (_subscribed)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Thanks, @Model!.Email is on the list.</TextBlock>
+                }
+            </Stack>
+        </Section>
+    </AppMain>
+
+    <AppFooter>
+        <Row Gap="4" Align="Align.Center" Wrap>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Grow>© 2026 Acme</TextBlock>
+            <TextBlock As="span" Size="TextSize.Sm"><Anchor Href='@To("rss")'>RSS</Anchor></TextBlock>
+            <TextBlock As="span" Size="TextSize.Sm"><Anchor Href='@To("privacy")'>Privacy</Anchor></TextBlock>
+        </Row>
+    </AppFooter>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+
+    [SupplyParameterFromForm(FormName = "reading-newsletter")]
+    private Newsletter? Model { get; set; }
+
+    private bool _subscribed;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Newsletter
+    {
+        [Required(ErrorMessage = "Enter your email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com"), Display(Name = "Email")]
+        public string? Email { get; set; }
+    }
+}

@@ -1,0 +1,29 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="color-picker-states" MaxWidth="20.Rem" Grow>
+    <ColorPicker @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+    <ColorPicker @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    <ColorPicker @bind-Value="Model!.Highlight" ShowHex="false" Hint="Swatch only, with no hex box." />
+    <ColorPicker @bind-Value="Model!.Brand" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <ColorPicker @bind-Value="Model!.Accent" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "color-picker-states")]
+    private Palette? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Palette
+    {
+        public string? Small { get; set; } = "#0f766e";
+        public string? Large { get; set; } = "#be123c";
+        public string? Highlight { get; set; } = "#fde68a";
+
+        [Display(Name = "Brand color")]
+        public string? Brand { get; set; } = "#2563eb";
+
+        [Display(Name = "Accent color")]
+        public string? Accent { get; set; } = "#64748b";
+    }
+}

@@ -22,6 +22,10 @@
 @foreach (var example in Component.Examples)
 {
     <Heading Level="2">@example.Title</Heading>
+    @if (example.Lead is { } lead)
+    {
+        <TextBlock><InlineCode Text="@lead" /></TextBlock>
+    }
     <ExampleViewer Example="@example.Id" />
 }
 

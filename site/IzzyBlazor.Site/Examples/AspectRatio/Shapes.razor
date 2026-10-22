@@ -1,0 +1,27 @@
+<Grid Columns="3" Gap="4" Grow>
+    <Column Gap="2">
+        <AspectRatio Radius="Radius.Lg">@Photo</AspectRatio>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">16:9, the default</TextBlock>
+    </Column>
+    <Column Gap="2">
+        <AspectRatio Ratio="1" Radius="Radius.Lg">@Photo</AspectRatio>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">1:1</TextBlock>
+    </Column>
+    <Column Gap="2">
+        <AspectRatio Ratio="4 / 5.0" Radius="Radius.Lg">@Photo</AspectRatio>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">4:5</TextBlock>
+    </Column>
+</Grid>
+
+@* hide *@
+@code {
+    // A landscape picture; preserveAspectRatio="xMidYMid slice" crops it like an img with object-fit: cover.
+    private readonly RenderFragment Photo =
+        @<svg viewBox="0 0 300 200" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Mountains at sunrise">
+            <rect width="300" height="200" fill="#c7d2fe" />
+            <circle cx="205" cy="70" r="26" fill="#fcd34d" />
+            <path d="M0 200 L95 85 L150 150 L210 105 L300 200 Z" fill="#6366f1" />
+            <path d="M0 200 L55 140 L125 200 Z" fill="#4338ca" />
+        </svg>;
+}
+@* /hide *@

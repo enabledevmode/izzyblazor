@@ -157,6 +157,12 @@ public sealed record RegistryExample
     public required string Id { get; init; }
     public required string Title { get; init; }
 
+    /// <summary>
+    /// One sentence a generated Overview shows above the example, leading with the prop ("Use
+    /// `Status` for the meaning."). Backticks mark code. Hand-written Overviews write their own.
+    /// </summary>
+    public string? Lead { get; init; }
+
     /// <summary>The preview's height in pixels when the page can't measure it (JavaScript off).</summary>
     public int Height { get; init; } = 160;
 

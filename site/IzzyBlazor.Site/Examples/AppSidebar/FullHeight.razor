@@ -1,0 +1,59 @@
+@inject NavigationManager Navigation
+
+@* FullHeight runs the sidebar from the top of the window to the bottom, with the header beside it.
+   The brand moves into SidebarHeader, which lines up with the header, and ColorScheme makes the
+   sidebar dark in a light app. *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <Breadcrumb>
+            <BreadcrumbItem Href='@To("projects")'>Projects</BreadcrumbItem>
+            <BreadcrumbItem>Website</BreadcrumbItem>
+        </Breadcrumb>
+        <Box Grow />
+        <Button StartIcon="Lucide.Rocket" Size="ControlSize.Sm">Deploy</Button>
+    </AppHeader>
+
+    <AppSidebar FullHeight ColorScheme="ColorScheme.Dark">
+        <SidebarHeader>
+            <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme Cloud" />
+        </SidebarHeader>
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.FolderGit2">Projects</NavItem>
+            <NavItem Href='@To("deploys")' Icon="Lucide.Rocket">Deploys</NavItem>
+            <NavItem Href='@To("domains")' Icon="Lucide.Globe">Domains</NavItem>
+            <NavItem Href='@To("logs")' Icon="Lucide.FileText">Logs</NavItem>
+            <NavDivider />
+            <NavItem Href='@To("team")' Icon="Lucide.Users">Team</NavItem>
+            <NavItem Href='@To("settings")' Icon="Lucide.Settings">Settings</NavItem>
+        </NavMenu>
+        <SidebarFooter>
+            <NavMenu aria-label="Account">
+                <NavItem Href='@To("account")' Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
+            </NavMenu>
+        </SidebarFooter>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 8 }">
+            <Heading Level="1" Size="TextSize.Xl2">Website</Heading>
+            <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="4">
+                <Card><Stat Label="Requests today" Value="182,400" Change="8%" Trend="StatTrend.Up" /></Card>
+                <Card><Stat Label="Error rate" Value="0.04%" Change="0.01%" Trend="StatTrend.Down" ChangeStatus="Status.Success" /></Card>
+                <Card><Stat Label="P95 response" Value="212 ms" /></Card>
+            </Grid>
+            <Card Title="Recent deploys">
+                <DescriptionList>
+                    <DescriptionItem Term="12 min ago"><Badge Status="Status.Success" Dot>Ready</Badge> main · Fix footer links</DescriptionItem>
+                    <DescriptionItem Term="2 h ago"><Badge Status="Status.Success" Dot>Ready</Badge> main · Add pricing page</DescriptionItem>
+                    <DescriptionItem Term="Yesterday"><Badge Status="Status.Danger" Dot>Failed</Badge> feature/search · Type error in search.ts</DescriptionItem>
+                </DescriptionList>
+            </Card>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

@@ -1,0 +1,31 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="fieldset-dividers" MaxWidth="32.Rem" Grow>
+    <Fieldset Label="Privacy" Description="Who can see your profile and activity." Dividers Gap="3">
+        <Switch @bind-Value="Model!.PublicProfile" ControlPosition="ControlPosition.End"
+                Hint="Anyone with the link can see your name, photo and bio." />
+        <Switch @bind-Value="Model!.ShowActivity" ControlPosition="ControlPosition.End"
+                Hint="Your recent comments and reviews, on your profile." />
+        <Switch @bind-Value="Model!.Searchable" ControlPosition="ControlPosition.End"
+                Hint="Teammates can find you by email address." />
+    </Fieldset>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "fieldset-dividers")]
+    private Privacy? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Privacy
+    {
+        [Display(Name = "Public profile")]
+        public bool PublicProfile { get; set; } = true;
+
+        [Display(Name = "Show my activity")]
+        public bool ShowActivity { get; set; }
+
+        [Display(Name = "Findable by email")]
+        public bool Searchable { get; set; } = true;
+    }
+}

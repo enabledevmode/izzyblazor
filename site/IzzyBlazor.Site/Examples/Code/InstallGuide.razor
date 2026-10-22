@@ -1,0 +1,72 @@
+@* A setup guide: numbered steps, a command with its own copy button, and files with the lines
+   to change highlighted. *@
+<Stack Gap="8" MaxWidth="Length.Prose" Grow>
+    <Stack Gap="2">
+        <Heading Level="1" Size="TextSize.Xl3">Add IzzyBlazor to your app</Heading>
+        <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
+            Four steps in a Blazor Web App on .NET 10. No script tag to add: Blazor loads IzzyBlazor's script by itself.
+        </TextBlock>
+    </Stack>
+
+    <Stack Gap="3">
+        <Heading Level="2" Size="TextSize.Xl">1. Install the package</Heading>
+        <Row Gap="2" Align="Align.Center" Wrap>
+            <Code>dotnet add package IzzyBlazor --prerelease</Code>
+            <CopyButton Text="dotnet add package IzzyBlazor --prerelease" Label="Copy the command" Size="ControlSize.Sm" />
+        </Row>
+    </Stack>
+
+    <Stack Gap="3">
+        <Heading Level="2" Size="TextSize.Xl">2. Add the stylesheet and the theme</Heading>
+        <TextBlock>Link the stylesheet before your own, and put <Code>IzzyTheme</Code> in the <Code>head</Code>:</TextBlock>
+        <Code Block Language="razor" Title="Components/App.razor" HighlightLines="3,6">@AppHead</Code>
+    </Stack>
+
+    <Stack Gap="3">
+        <Heading Level="2" Size="TextSize.Xl">3. Import the components</Heading>
+        <Code Block Language="razor" Title="Components/_Imports.razor">@Imports</Code>
+    </Stack>
+
+    <Stack Gap="3">
+        <Heading Level="2" Size="TextSize.Xl">4. Register the services</Heading>
+        <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,9">@Startup</Code>
+        <TextBlock Color="Color.Muted">
+            Run it with <Code>dotnet watch</Code>, then read the
+            <Anchor Href="docs/get-started/blazor-web-app">full guide</Anchor> for toasts, dialogs and a first page.
+        </TextBlock>
+    </Stack>
+</Stack>
+
+@* hide *@
+@code {
+    private const string AppHead =
+        """
+        <head>
+            <base href="/" />
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+            <link rel="stylesheet" href="@Assets["app.css"]" />
+            <link rel="stylesheet" href="@Assets["MyApp.styles.css"]" />
+            <IzzyTheme />
+            <ImportMap />
+            <HeadOutlet />
+        </head>
+        """;
+
+    private const string Imports = "@using IzzyBlazor";
+
+    private const string Startup =
+        """
+        var builder = WebApplication.CreateBuilder(args);
+        builder.Services.AddIzzyBlazor();
+        builder.Services.AddRazorComponents()
+            .AddInteractiveServerComponents();
+
+        var app = builder.Build();
+        app.MapRazorComponents<App>()
+            .AddInteractiveServerRenderMode();
+        app.MapIzzyBlazor();
+
+        app.Run();
+        """;
+}
+@* /hide *@

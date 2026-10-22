@@ -1,0 +1,27 @@
+@* HTML from Markdown or a CMS, styled in the library's type: headings, links, lists, quotes,
+   code, tables and rules. *@
+<Prose MaxWidth="Length.Prose" Grow>@((MarkupString)Html)</Prose>
+
+@* hide *@
+@code {
+    private const string Html =
+        """
+        <h2>Getting started</h2>
+        <p>IzzyBlazor renders on the server, so pages work before any script loads. Read the <a href="docs/get-started/blazor-web-app">install guide</a>, then add the package:</p>
+        <pre><code>dotnet add package IzzyBlazor</code></pre>
+        <h3>What you get</h3>
+        <ul>
+          <li>Forms that post with <strong>JavaScript off</strong></li>
+          <li>Tables with sorting, paging and filters in the URL</li>
+          <li>Dialogs, menus and toasts, using <code>popover</code> and <code>dialog</code></li>
+        </ul>
+        <blockquote>The best component is the one that still works when everything else fails.</blockquote>
+        <table>
+          <thead><tr><th>Mode</th><th>Script</th><th>Circuit</th></tr></thead>
+          <tbody><tr><td>Static</td><td>Optional</td><td>No</td></tr><tr><td>Server</td><td>Yes</td><td>Yes</td></tr></tbody>
+        </table>
+        <hr>
+        <p>Press <kbd>Ctrl</kbd> + <kbd>K</kbd> to search.</p>
+        """;
+}
+@* /hide *@

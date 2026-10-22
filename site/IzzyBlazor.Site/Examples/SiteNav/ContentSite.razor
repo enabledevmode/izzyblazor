@@ -1,0 +1,54 @@
+@inject NavigationManager Navigation
+
+@* A content site with no sidebar. SiteNav is a row of links in the header from 768px up; below it
+   a menu button opens the same links in a panel under the header, with SiteNavFooter's button
+   at the bottom. *@
+<AppShell Variant="ShellVariant.Flat" ContentWidth="Length.Rem(72)">
+    <AppHeader>
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme Labs" />
+        <Box Grow />
+        <SiteNav>
+            <NavItem Href="@To(null)">Projects</NavItem>
+            <NavItem Href='@To("articles")'>Articles</NavItem>
+            <NavItem Href='@To("guides")'>Guides</NavItem>
+            <SiteNavFooter>
+                <Button Href='@To("watch")' StartIcon="Lucide.Play" FullWidth>Watch the series</Button>
+            </SiteNavFooter>
+        </SiteNav>
+        <IconButton Icon="Brands.GitHub" Label="GitHub" Href="https://github.com" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    </AppHeader>
+
+    <AppMain>
+        <Section Spacing="SectionSpacing.Lg">
+            <Stack Gap="5" MaxWidth="Length.Rem(40)">
+                <Row><Badge Status="Status.Info">New series</Badge></Row>
+                <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3">Build real apps, one commit at a time</Heading>
+                <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every episode ships a working feature. Watch the change, read the diff, and run the code at that exact step.</TextBlock>
+                <Row Gap="3" Wrap>
+                    <Button Href='@To("watch")' StartIcon="Lucide.Play" Size="ControlSize.Lg">Watch the series</Button>
+                    <Button Href="@To(null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</Button>
+                </Row>
+            </Stack>
+        </Section>
+        <Section Bg="Color.SurfaceContainerLow">
+            <Grid MinChildWidth="Length.Rem(16)" Gap="4">
+                <Card Title="Rulebook console" Description="A rules engine admin, from empty repo to deployed." Href='@To("projects/rulebook")' />
+                <Card Title="Invoice kit" Description="Billing with PDFs, email and a customer portal." Href='@To("projects/invoices")' />
+                <Card Title="Field notes" Description="An offline-first notes app with sync." Href='@To("projects/field-notes")' />
+            </Grid>
+        </Section>
+    </AppMain>
+
+    <AppFooter>
+        <Row Gap="4" Align="Align.Center" Wrap>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Grow>© 2026 Acme Labs</TextBlock>
+            <TextBlock As="span" Size="TextSize.Sm"><Anchor Href='@To("about")'>About</Anchor></TextBlock>
+            <TextBlock As="span" Size="TextSize.Sm"><Anchor Href='@To("sponsors")'>Sponsors</Anchor></TextBlock>
+        </Row>
+    </AppFooter>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

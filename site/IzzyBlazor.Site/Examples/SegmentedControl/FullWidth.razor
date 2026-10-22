@@ -1,0 +1,25 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="segmented-control-full-width" MaxWidth="24.Rem" Grow>
+    <Heading Level="3" Size="TextSize.Lg">Upgrade to Pro</Heading>
+    <SegmentedControl @bind-Value="Model!.Billing" FullWidth HideLabel />
+    <FormActions><Button Submit>Continue to payment</Button></FormActions>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "segmented-control-full-width")]
+    private Plan? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Plan
+    {
+        public Billing Billing { get; set; } = Billing.Yearly;
+    }
+
+    public enum Billing
+    {
+        Monthly,
+        [Display(Name = "Yearly (save 20%)")] Yearly,
+    }
+}

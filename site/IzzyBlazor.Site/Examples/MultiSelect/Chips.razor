@@ -1,0 +1,44 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Http
+
+<Form Model="Model" FormName="multi-select-chips" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+    <MultiSelect @bind-Value="Model!.Skills" Items="AllSkills" Placeholder="Add skills" Hint="Up to 5." />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Button Submit>Save</Button>
+        @if (_saved)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @string.Join(", ", Model!.Skills)</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-select-chips")]
+    private Profile? Model { get; set; }
+
+    private bool _saved;
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // A post with nothing chosen sends nothing for the field, so the model isn't filled from it:
+    // give the defaults only on the first load, not after a post.
+    protected override void OnInitialized() =>
+        Model ??= HttpContext?.Request.Method == "POST" ? new() : new() { Skills = ["Blazor", "C#"] };
+
+    private void Save() => _saved = true;
+
+    public sealed class Profile
+    {
+        [MaxLength(5, ErrorMessage = "Pick up to 5 skills.")]
+        public string[] Skills { get; set; } = [];
+    }
+
+    @* hide *@
+    private static readonly string[] AllSkills =
+    [
+        "Accessibility", "ASP.NET Core", "Azure", "Blazor", "C#", "CSS", "Docker", "Entity Framework",
+        "F#", "Git", "GraphQL", "HTML", "JavaScript", "Kubernetes", "Playwright", "PostgreSQL",
+        "React", "Rust", "SignalR", "SQL Server", "TypeScript", "Vue",
+    ];
+    @* /hide *@
+}

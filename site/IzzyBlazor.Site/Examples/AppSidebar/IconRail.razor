@@ -1,0 +1,58 @@
+@inject NavigationManager Navigation
+
+@* Collapsible shrinks the sidebar to an icon rail on wide screens: the menu button collapses it,
+   labels show as tooltips, and opening a group expands it again. Inset raises the work area as
+   one panel in a tinted frame. *@
+<AppShell Variant="ShellVariant.Inset">
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    </AppHeader>
+
+    <AppSidebar Collapsible>
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.LayoutDashboard">Dashboard</NavItem>
+            <NavItem Href='@To("inbox")' Icon="Lucide.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>
+            <NavGroup Label="Projects" Icon="Lucide.Folder">
+                <NavItem Href='@To("projects/website")'>Website</NavItem>
+                <NavItem Href='@To("projects/course")'>Course app</NavItem>
+            </NavGroup>
+            <NavDivider />
+            <NavItem Href='@To("settings")' Icon="Lucide.Settings">Settings</NavItem>
+            <NavItem Href='@To("billing")' Icon="Lucide.CreditCard">Billing</NavItem>
+        </NavMenu>
+        <SidebarFooter>
+            <NavMenu aria-label="Account">
+                <NavItem Href='@To("account")' Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
+            </NavMenu>
+        </SidebarFooter>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="6" Padding="new() { Base = 4, Md = 8 }">
+            <Stack Gap="1">
+                <Heading Level="1" Size="TextSize.Xl2">Dashboard</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Deploys and checks across your projects.</TextBlock>
+            </Stack>
+            <Grid MinChildWidth="Length.Rem(16)" Gap="4">
+                <Card Title="Website" Description="Deployed 12 minutes ago from main.">
+                    <Row Gap="2"><Badge Status="Status.Success" Dot>Healthy</Badge></Row>
+                </Card>
+                <Card Title="Course app" Description="Build failed on feature/quizzes.">
+                    <Row Gap="2"><Badge Status="Status.Danger" Dot>Failing</Badge></Row>
+                </Card>
+                <Card Title="Status page" Description="Deployed yesterday from main.">
+                    <Row Gap="2"><Badge Status="Status.Success" Dot>Healthy</Badge></Row>
+                </Card>
+            </Grid>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

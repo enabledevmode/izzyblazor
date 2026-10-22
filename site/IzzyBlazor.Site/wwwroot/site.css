@@ -512,7 +512,11 @@ html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body 
 /* Not over an example's own MaxWidth: an unlayered max-width here would beat the library's. One
    set only from a breakpoint (no base .ib-maxw) still gets this cap below it. */
 .frame-sample > :not(.ib-maxw) { max-width: 100%; }
+.frame-sample > .ib-maxw { max-width: min(100%, var(--ib-maxw)); }
 .frame-page { padding: var(--ib-space-4); }
+/* A whole app (AppShell) fills its frame: no padding, or its 100dvh would grow the frame with
+   every resize. */
+.frame-page:has(> .ib-shell) { padding: 0; }
 /* An example that opens a dialog or menu: at least its height, content at the top. */
 .frame-overlay { box-sizing: border-box; align-items: flex-start; }
 

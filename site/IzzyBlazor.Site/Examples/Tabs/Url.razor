@@ -1,0 +1,19 @@
+@inject NavigationManager Navigation
+
+<Stack Gap="3" Grow>
+    <Tabs QueryKey="tab" Label="Account">
+        <Tab Label="Profile" Icon="Lucide.User">
+            <TextBlock Color="Color.Muted">Your name, photo and the email people see.</TextBlock>
+        </Tab>
+        <Tab Label="Billing" Icon="Lucide.CreditCard">
+            <TextBlock Color="Color.Muted">Your plan, payment method and invoices.</TextBlock>
+        </Tab>
+        <Tab Label="Security" Icon="Lucide.ShieldCheck">
+            <TextBlock Color="Color.Muted">Your password, passkeys and sessions.</TextBlock>
+        </Tab>
+    </Tabs>
+    <Row>
+        <Button Href="@Navigation.GetUriWithQueryParameter("tab", "billing")" Size="ControlSize.Sm"
+                Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Link">Link to Billing</Button>
+    </Row>
+</Stack>

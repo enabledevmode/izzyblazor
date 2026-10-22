@@ -1,0 +1,57 @@
+@inject NavigationManager Navigation
+
+<Stack Gap="6" Grow>
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Heading Level="2" Size="TextSize.Xl">Store overview</Heading>
+        <Spacer />
+        <ButtonGroup Label="Period" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">
+            @foreach (var period in Periods)
+            {
+                <Button Href="@Navigation.GetUriWithQueryParameter("period", period.Id)"
+                        Variant="@(period == Current ? ButtonVariant.Soft : ButtonVariant.Outline)"
+                        aria-current="@(period == Current ? "page" : null)">@period.Name</Button>
+            }
+        </ButtonGroup>
+    </Row>
+
+    <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="4">
+        <Card><Stat Label="Revenue" Value="@Current.Revenue" Change="12%" Trend="StatTrend.Up" Description="@Current.Versus" Icon="Lucide.DollarSign" /></Card>
+        <Card><Stat Label="Orders" Value="@Current.Orders" Change="8%" Trend="StatTrend.Up" Description="@Current.Versus" Icon="Lucide.ShoppingCart" /></Card>
+        <Card><Stat Label="Refunds" Value="@Current.Refunds" Change="2" Trend="StatTrend.Down" ChangeStatus="Status.Success" Description="@Current.Versus" Icon="Lucide.Undo2" /></Card>
+        <Card><Stat Label="Conversion" Value="3.4%" Change="0%" Trend="StatTrend.Flat" Description="@Current.Versus" Icon="Lucide.Percent" /></Card>
+    </Grid>
+
+    <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+        <Card Title="Monthly goal" Description="October">
+            <CardBody Gap="3">
+                <Stat Label="Revenue so far" Value="$31,800" Description="of $40,000" Size="ControlSize.Lg" />
+                <Progress Value="79.5" aria-label="Monthly goal" Accent="Accent.From(Color.Success)" />
+            </CardBody>
+        </Card>
+        <Card Title="Top products">
+            <DescriptionList Divided Size="ControlSize.Sm">
+                <DescriptionItem Term="Linen shirt">412 sold</DescriptionItem>
+                <DescriptionItem Term="Canvas tote">298 sold</DescriptionItem>
+                <DescriptionItem Term="Wool beanie">187 sold</DescriptionItem>
+            </DescriptionList>
+        </Card>
+    </Grid>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "period")]
+    private string? PeriodId { get; set; }
+
+    private Period Current => Periods.FirstOrDefault(p => p.Id == PeriodId) ?? Periods[1];
+
+    @* hide *@
+    private sealed record Period(string Id, string Name, string Revenue, string Orders, string Refunds, string Versus);
+
+    private static readonly Period[] Periods =
+    [
+        new("7d", "7 days", "$11,240", "342", "4", "vs previous 7 days"),
+        new("30d", "30 days", "$48,210", "1,436", "17", "vs previous 30 days"),
+        new("90d", "90 days", "$139,880", "4,102", "51", "vs previous 90 days"),
+    ];
+    @* /hide *@
+}

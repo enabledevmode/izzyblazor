@@ -1,0 +1,60 @@
+@using System.ComponentModel.DataAnnotations
+
+@* Every panel is inside the form, so every field posts. NativeValidation="false" lets the
+   server check, so Save opens the first tab with errors and each tab counts its own. *@
+<Form Model="Model" FormName="tabs-account-form" OnValidSubmit="Save" NativeValidation="false" MaxWidth="36.Rem">
+    <Heading Level="2" Size="TextSize.Xl">Account details</Heading>
+    <FormErrors />
+    <Tabs Label="Account details">
+        <Tab Label="Profile" Icon="Lucide.User">
+            <Stack Gap="4">
+                <TextField @bind-Value="Model!.Name" AutoComplete="name" />
+                <TextField @bind-Value="Model!.Email" AutoComplete="email" />
+            </Stack>
+        </Tab>
+        <Tab Label="Address" Icon="Lucide.MapPin">
+            <Stack Gap="4">
+                <TextField @bind-Value="Model!.Street" AutoComplete="street-address" />
+                <Row Gap="3">
+                    <TextField @bind-Value="Model!.City" AutoComplete="address-level2" Grow />
+                    <TextField @bind-Value="Model!.PostalCode" AutoComplete="postal-code" MaxWidth="9.Rem" />
+                </Row>
+            </Stack>
+        </Tab>
+    </Tabs>
+    <FormActions><Button Submit>Save</Button></FormActions>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Saved: @Model!.Name, @Model.City.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "tabs-account-form")]
+    private Account? Model { get; set; }
+
+    private bool _saved;
+
+    // The profile is filled in and the address isn't, so Save opens the Address tab.
+    protected override void OnInitialized() => Model ??= new() { Name = "Ada Lovelace", Email = "ada@example.com" };
+
+    private void Save() => _saved = true;
+
+    public sealed class Account
+    {
+        [Required(ErrorMessage = "Enter your name")]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Enter your email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Enter a street address")]
+        public string? Street { get; set; }
+
+        [Required(ErrorMessage = "Enter a city")]
+        public string? City { get; set; }
+
+        [Required(ErrorMessage = "Enter a postal code"), Display(Name = "Postal code")]
+        public string? PostalCode { get; set; }
+    }
+}

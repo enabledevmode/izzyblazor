@@ -1,0 +1,54 @@
+@inject NavigationManager Navigation
+
+<Stack Gap="0" Grow>
+    @* Closed once, it stays closed for a year on every page, until the key changes. *@
+    <Banner @key="Key" Status="Status.Warning" Dismissible Remember="DismissMemory.Persistent" RememberKey="@Key">
+        Scheduled maintenance on Sunday from 02:00 to 04:00 UTC. Exports pause during the window.
+        <BannerActions><Anchor Href="https://status.example.com" External>Status page</Anchor></BannerActions>
+    </Banner>
+    <Stack Gap="5" Padding="6">
+        <Row Gap="1" Wrap>
+            @foreach (var tab in Pages)
+            {
+                <Button Href="@Navigation.GetUriWithQueryParameter("page", tab.Id)" Size="ControlSize.Sm" Accent="Accent.Neutral"
+                        Variant="@(tab.Id == Current.Id ? ButtonVariant.Soft : ButtonVariant.Ghost)"
+                        aria-current="@(tab.Id == Current.Id ? "page" : null)">@tab.Title</Button>
+            }
+        </Row>
+        <Stack Gap="2">
+            <Heading Level="2" Size="TextSize.Xl">@Current.Title</Heading>
+            <TextBlock Color="Color.Muted">@Current.Text</TextBlock>
+        </Stack>
+        <Divider />
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            Notice <Code>@Key</Code> ·
+            <Anchor Href="@Navigation.GetUriWithQueryParameter("notice", Notice + 1)">Post a new notice</Anchor>
+        </TextBlock>
+    </Stack>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "page")]
+    private string? PageId { get; set; }
+
+    [SupplyParameterFromQuery(Name = "notice")]
+    private int? NoticeQuery { get; set; }
+
+    private int Notice => NoticeQuery ?? 1;
+
+    // The cookie is ib-banner-{key}: a new key shows the banner to everyone again.
+    private string Key => $"maintenance-2026-11-v{Notice}";
+
+    private AppPage Current => Pages.FirstOrDefault(p => p.Id == PageId) ?? Pages[0];
+
+    @* hide *@
+    private sealed record AppPage(string Id, string Title, string Text);
+
+    private static readonly AppPage[] Pages =
+    [
+        new("overview", "Overview", "Revenue, orders and sign-ups for the last 30 days."),
+        new("exports", "Exports", "Scheduled CSV exports of orders and customers, sent every Monday."),
+        new("billing", "Billing", "Your plan, payment method and the last 12 invoices."),
+    ];
+    @* /hide *@
+}

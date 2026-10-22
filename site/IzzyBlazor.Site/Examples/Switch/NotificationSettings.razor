@@ -1,0 +1,53 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="switch-notification-settings" OnValidSubmit="Save" MaxWidth="40.Rem" Grow>
+    <Column Gap="1">
+        <Heading Level="2" Size="TextSize.Xl">Notifications</Heading>
+        <TextBlock Color="Color.Muted">Choose what we tell you about, and where.</TextBlock>
+    </Column>
+
+    <Fieldset Label="Email" Description="Sent to your account's email address." Icon="Lucide.Mail" Dividers Gap="3">
+        <Switch @bind-Value="Model!.NewDevice" ControlPosition="ControlPosition.End"
+                Hint="An email each time, with a link to sign that device out." />
+        <Switch @bind-Value="Model!.Mentions" ControlPosition="ControlPosition.End"
+                Hint="When someone mentions you or replies to you." />
+        <Switch @bind-Value="Model!.ProductUpdates" ControlPosition="ControlPosition.End"
+                Hint="A short email when something new ships, about once a month." />
+        <Checkbox @bind-Value="Model!.Digest" ControlPosition="ControlPosition.End"
+                  Hint="Everything above in one email, on Monday mornings." />
+    </Fieldset>
+
+    <Fieldset Label="Mobile" Description="On the phones you're signed in on." Icon="Lucide.Smartphone" Dividers Gap="3">
+        <Switch @bind-Value="Model!.Push" ControlPosition="ControlPosition.End"
+                Hint="Mentions, replies and failed deploys." />
+        <Switch @bind-Value="Model!.Quiet" ControlPosition="ControlPosition.End"
+                Hint="Hold notifications from 10 pm to 7 am." />
+    </Fieldset>
+
+    <FormActions><Button Submit>Save changes</Button></FormActions>
+    @if (_saved)
+    {
+        <Alert Status="Status.Success">Your notification settings are saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "switch-notification-settings")]
+    private Notifications? Model { get; set; }
+
+    private bool _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = true;
+
+    public sealed class Notifications
+    {
+        [Display(Name = "Sign-in from a new device")] public bool NewDevice { get; set; } = true;
+        [Display(Name = "Mentions and comments")] public bool Mentions { get; set; } = true;
+        [Display(Name = "Product updates")] public bool ProductUpdates { get; set; }
+        [Display(Name = "Weekly digest instead")] public bool Digest { get; set; }
+        [Display(Name = "Push notifications")] public bool Push { get; set; } = true;
+        [Display(Name = "Quiet hours")] public bool Quiet { get; set; } = true;
+    }
+}

@@ -1,0 +1,54 @@
+@inject NavigationManager Navigation
+
+@* A guide with site links in the header and chapters in the sidebar. On phones the sidebar opens
+   as a panel under the header (SmallScreen.Panel) with the header's links at its top, so there is
+   one menu, and the menu button turns into its close button. *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <SiteNav>
+            <NavItem Href="@To(null)">Guide</NavItem>
+            <NavItem Href='@To("blog")'>Blog</NavItem>
+            <NavItem Href='@To("videos")'>Videos</NavItem>
+        </SiteNav>
+    </AppHeader>
+
+    <AppSidebar SmallScreen="SidebarSmallScreen.Panel" Label="Guide">
+        <NavMenu>
+            <NavLabel>Basics</NavLabel>
+            <NavItem Href="@To(null)" Icon="Lucide.BookOpen">Writing your first rule</NavItem>
+            <NavItem Href='@To("guide/outcomes")' Icon="Lucide.ListChecks">Outcomes</NavItem>
+            <NavItem Href='@To("guide/dry-runs")' Icon="Lucide.Play">Dry runs</NavItem>
+            <NavLabel>Going live</NavLabel>
+            <NavItem Href='@To("guide/reviews")' Icon="Lucide.Users">Reviews</NavItem>
+            <NavItem Href='@To("guide/shadow-mode")' Icon="Lucide.ShieldCheck">Shadow mode</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 10 }" MaxWidth="Length.Prose">
+            <Heading Level="1" Size="TextSize.Xl2">Writing your first rule</Heading>
+            <TextBlock Color="Color.Muted">A rule reads a decision's inputs and returns an outcome. Start small: one condition, one outcome, and a dry run before it goes live.</TextBlock>
+            <Heading Level="2" Size="TextSize.Lg">Conditions</Heading>
+            <TextBlock>Each condition compares an input to a value. Conditions in a group must all match; groups are tried in order, and the first group that matches decides the outcome.</TextBlock>
+            <Code Block Language="text">@Sample</Code>
+            <Alert Title="Run it dry first">A dry run replays last week's decisions through the new rule and shows what would change, without changing anything.</Alert>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
+@* hide *@
+
+@code {
+    private const string Sample = """
+        when amount > 500 and customer.age_days < 30
+          then hold for review
+        """;
+}
+@* /hide *@

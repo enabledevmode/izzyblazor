@@ -1,0 +1,16 @@
+<Stack Gap="6" Grow>
+    @foreach (var variant in Enum.GetValues<AccordionVariant>())
+    {
+        <Stack Gap="2">
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@variant</TextBlock>
+            <Accordion Variant="variant">
+                <AccordionItem Title="How do refunds work?" Icon="Lucide.CreditCard">
+                    Refunds go back to the original card within 5 business days.
+                </AccordionItem>
+                <AccordionItem Title="Can I change my plan later?">
+                    Yes. Changes apply from your next billing date.
+                </AccordionItem>
+            </Accordion>
+        </Stack>
+    }
+</Stack>

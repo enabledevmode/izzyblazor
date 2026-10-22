@@ -1,0 +1,24 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="switch-control-end" MaxWidth="32.Rem" Grow>
+    <Switch @bind-Value="Model!.AutoDeploy" ControlPosition="ControlPosition.End"
+            Hint="Deploy main to production when its checks pass." />
+    <Switch @bind-Value="Model!.Previews" ControlPosition="ControlPosition.End"
+            Hint="A preview URL on every pull request." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "switch-control-end")]
+    private Project? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Project
+    {
+        [Display(Name = "Automatic deploys")]
+        public bool AutoDeploy { get; set; } = true;
+
+        [Display(Name = "Preview deployments")]
+        public bool Previews { get; set; }
+    }
+}

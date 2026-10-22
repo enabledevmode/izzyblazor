@@ -1,0 +1,14 @@
+<Grid Columns="new() { Base = 1, Sm = 2 }" Gap="6" Grow>
+    <Prose Size="ProseSize.Sm">@((MarkupString)Html)</Prose>
+    <Prose Size="ProseSize.Lg">@((MarkupString)Html)</Prose>
+</Grid>
+
+@* hide *@
+@code {
+    private const string Html =
+        """
+        <h3>Refunds</h3>
+        <p>Cancel within <strong>14 days</strong> for a full refund. After that, we refund the unused part of your plan.</p>
+        """;
+}
+@* /hide *@

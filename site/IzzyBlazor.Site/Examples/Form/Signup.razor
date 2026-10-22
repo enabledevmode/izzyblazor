@@ -1,0 +1,83 @@
+@using System.ComponentModel.DataAnnotations
+
+@if (_created)
+{
+    <Alert Status="Status.Success" Title="@($"Welcome, {Model!.Name}")" MaxWidth="32.Rem">
+        We sent a link to @Model!.Email to confirm your address. Your @Model.Plan plan starts today.
+    </Alert>
+}
+else
+{
+    <Form Model="Model" FormName="form-signup" OnValidSubmit="Create" MaxWidth="32.Rem">
+        <Stack Gap="1">
+            <Heading Level="2" Size="TextSize.Xl">Create your account</Heading>
+            <TextBlock Color="Color.Muted">Free for 14 days, no card needed.</TextBlock>
+        </Stack>
+        <FormErrors />
+        <TextField @bind-Value="Model!.Name" AutoComplete="name" StartIcon="Lucide.User" />
+        <TextField @bind-Value="Model!.Email" AutoComplete="email" StartIcon="Lucide.Mail" Hint="We'll never share your email." />
+        <TextField @bind-Value="Model!.Password" AutoComplete="new-password" Hint="At least 8 characters." />
+        <Select @bind-Value="Model!.Plan" Placeholder="Choose a plan" />
+        <RadioGroup @bind-Value="Model!.Contact" Orientation="Orientation.Horizontal" />
+        <TextArea @bind-Value="Model!.Bio" Rows="2" AutoGrow ShowCount Placeholder="Your role, your team, what you're building" />
+        <Switch @bind-Value="Model!.Newsletter" />
+        <Checkbox @bind-Value="Model!.AcceptTerms" />
+        <FormActions Justify="Justify.Start">
+            <Button Submit StartIcon="Lucide.UserPlus">Create account</Button>
+        </FormActions>
+    </Form>
+}
+
+@code {
+    [SupplyParameterFromForm(FormName = "form-signup")]
+    private NewAccount? Model { get; set; }
+
+    private bool _created;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Create() => _created = true;
+
+    public sealed class NewAccount
+    {
+        [Required(ErrorMessage = "Enter your name"), Display(Name = "Full name"), StringLength(80)]
+        public string? Name { get; set; }
+
+        [Required(ErrorMessage = "Enter your email"), EmailAddress(ErrorMessage = "Enter an email like name@example.com")]
+        public string? Email { get; set; }
+
+        [Required(ErrorMessage = "Choose a password"), DataType(DataType.Password)]
+        [StringLength(64, MinimumLength = 8, ErrorMessage = "Use 8 to 64 characters")]
+        public string? Password { get; set; }
+
+        [Required(ErrorMessage = "Choose a plan")]
+        public Plan? Plan { get; set; }
+
+        [Display(Name = "Preferred contact")]
+        public ContactMethod Contact { get; set; } = ContactMethod.Email;
+
+        [StringLength(200), Display(Name = "About you")]
+        public string? Bio { get; set; }
+
+        [Display(Name = "Email me product updates")]
+        public bool Newsletter { get; set; }
+
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Accept the terms to continue")]
+        [Display(Name = "I agree to the terms of service")]
+        public bool AcceptTerms { get; set; }
+    }
+
+    public enum Plan
+    {
+        Free,
+        [Display(Name = "Pro ($12/month)")] Pro,
+        [Display(Name = "Team ($10/user/month)")] Team,
+    }
+
+    public enum ContactMethod
+    {
+        Email,
+        Phone,
+        [Display(Name = "Don't contact me")] None,
+    }
+}

@@ -1,0 +1,34 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="checkbox-group-descriptions" MaxWidth="28.Rem" Grow>
+    <CheckboxGroup @bind-Value="Model!.Channels" Items="Enum.GetValues<Channel>()">
+        <ItemTemplate Context="channel">
+            <Column As="span" Gap="0">
+                <span>@(Details[channel].Name)</span>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@(Details[channel].Detail)</TextBlock>
+            </Column>
+        </ItemTemplate>
+    </CheckboxGroup>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-group-descriptions")]
+    private Alerts? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static readonly Dictionary<Channel, (string Name, string Detail)> Details = new()
+    {
+        [Channel.Email] = ("Email", "To ada@example.com, within a minute."),
+        [Channel.Sms] = ("SMS", "To your phone, for failed deploys only."),
+        [Channel.Slack] = ("Slack", "To #deploys in the Acme workspace."),
+    };
+
+    public sealed class Alerts
+    {
+        [Display(Name = "Send alerts by")]
+        public HashSet<Channel> Channels { get; set; } = [Channel.Email, Channel.Slack];
+    }
+
+    public enum Channel { Email, Sms, Slack }
+}

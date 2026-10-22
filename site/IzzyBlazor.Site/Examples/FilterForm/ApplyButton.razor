@@ -1,0 +1,37 @@
+<Stack Gap="4" MaxWidth="34.Rem" Grow>
+    <FilterForm Label="Find people" Live="false" ApplyText="Search">
+        <FilterSearch Label="Name" Placeholder="Search by name" />
+        <FilterSelect Name="team" Label="Team" Items="Teams" />
+    </FilterForm>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" aria-live="polite">@Found.Count() of @People.Length people</TextBlock>
+    <List Plain Gap="2">
+        @foreach (var person in Found)
+        {
+            <ListItem>@person.Name, @person.Team</ListItem>
+        }
+    </List>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] private string? Query { get; set; }
+    [SupplyParameterFromQuery(Name = "team")] private string? Team { get; set; }
+
+    private IEnumerable<Person> Found => People
+        .Where(p => string.IsNullOrWhiteSpace(Query) || p.Name.Contains(Query, StringComparison.OrdinalIgnoreCase))
+        .Where(p => string.IsNullOrEmpty(Team) || p.Team == Team);
+
+    @* hide *@
+    private static readonly string[] Teams = ["Design", "Engineering", "Research"];
+
+    private static readonly Person[] People =
+    [
+        new("Ada Lovelace", "Engineering"),
+        new("Grace Hopper", "Engineering"),
+        new("Alan Turing", "Research"),
+        new("Katherine Johnson", "Research"),
+        new("Susan Kare", "Design"),
+    ];
+
+    private sealed record Person(string Name, string Team);
+    @* /hide *@
+}

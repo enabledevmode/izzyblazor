@@ -1,0 +1,30 @@
+<Form Model="Model" FormName="multi-select-enum-icons" MaxWidth="24.Rem" Grow>
+    <MultiSelect @bind-Value="Model!.Labels" Items="Enum.GetValues<IssueLabel>()" Placeholder="Add labels">
+        <ItemTemplate Context="label">
+            <Icon Name="LabelIcon(label)" />
+            <span>@label</span>
+        </ItemTemplate>
+    </MultiSelect>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-select-enum-icons")]
+    private Issue? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static IconData LabelIcon(IssueLabel label) => label switch
+    {
+        IssueLabel.Bug => Lucide.Bug,
+        IssueLabel.Feature => Lucide.Sparkles,
+        IssueLabel.Docs => Lucide.BookOpen,
+        _ => Lucide.Gauge,
+    };
+
+    public sealed class Issue
+    {
+        public List<IssueLabel> Labels { get; set; } = [IssueLabel.Bug];
+    }
+
+    public enum IssueLabel { Bug, Feature, Docs, Performance }
+}

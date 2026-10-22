@@ -1,0 +1,24 @@
+<Stack Gap="4" Grow MaxWidth="28.Rem">
+    <Progress Value="_done" Max="Files" Label="Uploading" ValueText="@($"{_done} of {Files} files")" />
+    <Row>
+        <Button OnClick="UploadAsync" Loading="_uploading" StartIcon="Lucide.Upload">Upload</Button>
+    </Row>
+</Stack>
+
+@code {
+    private const int Files = 8;
+    private int _done;
+    private bool _uploading;
+
+    private async Task UploadAsync()
+    {
+        _uploading = true;
+        for (_done = 0; _done < Files; _done++)
+        {
+            StateHasChanged();
+            await Task.Delay(400);
+        }
+
+        _uploading = false;
+    }
+}

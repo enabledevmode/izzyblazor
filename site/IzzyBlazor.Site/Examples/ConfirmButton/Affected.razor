@@ -1,0 +1,29 @@
+<form method="post" @onsubmit="() => _deleted = Intent is not null" @formname="delete-files" data-enhance>
+    <AntiforgeryToken />
+    <Row Gap="3" Wrap Align="Align.Center">
+        <TextBlock As="span">3 files selected</TextBlock>
+        <ConfirmButton Title="Delete 3 files?" ConfirmText="Delete files" Name="intent" Value="delete"
+                       OnConfirm="() => _deleted = true" Accent="Accent.Danger" StartIcon="Lucide.Trash" Size="ControlSize.Sm">
+            <Body>
+                <ul>
+                    <li>q3-report.pdf</li>
+                    <li>budget-2026.xlsx</li>
+                    <li>team-photo.jpg</li>
+                </ul>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">They stay in the trash for 30 days.</TextBlock>
+            </Body>
+            <ChildContent>Delete</ChildContent>
+        </ConfirmButton>
+        @if (_deleted)
+        {
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Moved 3 files to the trash.</TextBlock>
+        }
+    </Row>
+</form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "delete-files", Name = "intent")]
+    private string? Intent { get; set; }
+
+    private bool _deleted;
+}

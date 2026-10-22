@@ -1,0 +1,36 @@
+@inject NavigationManager Navigation
+
+<Row Gap="2" Wrap Align="Align.Center" Justify="Justify.Center">
+    @foreach (var filter in Filters.Where(f => !_removed.Contains(f)))
+    {
+        <Tag Label="@filter" RemoveHref="@UrlWithout(filter)" OnRemove="() => _removed.Add(filter)" />
+    }
+    @if (_removed.Count > 0)
+    {
+        @if (RendererInfo.IsInteractive)
+        {
+            <Button Variant="ButtonVariant.Link" Size="ControlSize.Sm" OnClick="() => _removed.Clear()">Reset</Button>
+        }
+        else
+        {
+            <Button Href="@Navigation.GetUriWithQueryParameter("removed", (string?)null)" Variant="ButtonVariant.Link" Size="ControlSize.Sm">Reset</Button>
+        }
+    }
+</Row>
+
+@code {
+    // Static pages: the remove links point here with the filter added to ?removed=…
+    [SupplyParameterFromQuery(Name = "removed")]
+    private string[]? RemovedQuery { get; set; }
+
+    private HashSet<string> _removed = [];
+
+    protected override void OnInitialized() => _removed = [.. RemovedQuery ?? []];
+
+    private string UrlWithout(string filter) =>
+        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["removed"] = _removed.Append(filter).ToArray() });
+
+    @* hide *@
+    private static readonly string[] Filters = ["Status: Paid", "Region: Europe", "Over $100", "This quarter"];
+    @* /hide *@
+}

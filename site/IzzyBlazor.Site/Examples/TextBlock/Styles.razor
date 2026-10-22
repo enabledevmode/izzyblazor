@@ -1,0 +1,16 @@
+<Stack Gap="4" Grow>
+    <Row Gap="6" Wrap>
+        @foreach (var weight in Enum.GetValues<FontWeight>())
+        {
+            <TextBlock As="span" Weight="weight">@weight</TextBlock>
+        }
+    </Row>
+    <Row Gap="6" Wrap>
+        <TextBlock As="span" Family="FontFamily.Body">Body</TextBlock>
+        <TextBlock As="span" Family="FontFamily.Heading">Heading</TextBlock>
+        <TextBlock As="span" Family="FontFamily.Mono">Mono</TextBlock>
+        <TextBlock As="span" Italic>Italic</TextBlock>
+        <TextBlock As="span" Decoration="TextDecoration.Underline">Underline</TextBlock>
+        <TextBlock As="span" Decoration="TextDecoration.LineThrough" Color="Color.Muted">$49 a month</TextBlock>
+    </Row>
+</Stack>

@@ -1,0 +1,49 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="combobox-server-search" MaxWidth="24.Rem" Grow>
+    <Combobox @bind-Value="Model!.OwnerId" Search="FindPeople" ItemText="id => People[id!.Value].Name"
+              Placeholder="Search people">
+        <ItemTemplate Context="id">
+            <Avatar Name="@(People[id!.Value].Name)" Size="AvatarSize.Xs" Decorative />
+            <span>@(People[id!.Value].Name) <span class="ib-option-hint">@(People[id!.Value].Team)</span></span>
+        </ItemTemplate>
+    </Combobox>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "combobox-server-search")]
+    private Issue? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // Called with "" for the first list, then with what's typed on interactive pages.
+    private static async Task<IEnumerable<int?>> FindPeople(string text, CancellationToken token)
+    {
+        await Task.Delay(text.Length == 0 ? 0 : 300, token); // a database query
+        return People.Where(p => p.Value.Name.Contains(text, StringComparison.OrdinalIgnoreCase))
+                     .Take(8)
+                     .Select(p => (int?)p.Key);
+    }
+
+    public sealed class Issue
+    {
+        [Display(Name = "Owner")]
+        public int? OwnerId { get; set; }
+    }
+
+    @* hide *@
+    private sealed record Person(string Name, string Team);
+
+    private static readonly Dictionary<int, Person> People = new()
+    {
+        [1] = new("Ada Lovelace", "Engineering"), [2] = new("Alan Turing", "Research"),
+        [3] = new("Grace Hopper", "Engineering"), [4] = new("Katherine Johnson", "Mathematics"),
+        [5] = new("Linus Torvalds", "Kernel"), [6] = new("Margaret Hamilton", "Flight software"),
+        [7] = new("Tim Berners-Lee", "Web"), [8] = new("Barbara Liskov", "Research"),
+        [9] = new("Donald Knuth", "Typesetting"), [10] = new("Edsger Dijkstra", "Algorithms"),
+        [11] = new("Frances Allen", "Compilers"), [12] = new("Hedy Lamarr", "Radio"),
+        [13] = new("John von Neumann", "Architecture"), [14] = new("Ken Thompson", "Systems"),
+        [15] = new("Radia Perlman", "Networking"), [16] = new("Sophie Wilson", "Chips"),
+    };
+    @* /hide *@
+}

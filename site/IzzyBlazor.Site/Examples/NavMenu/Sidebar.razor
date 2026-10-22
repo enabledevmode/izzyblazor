@@ -1,0 +1,24 @@
+@inject NavigationManager Navigation
+
+@* A sidebar's links: NavLabel names a section, NavGroup folds items away (a details element, so it
+   opens with no script), NavDivider separates, and Badge adds a count. The item for the current
+   page is marked on the server. *@
+<Box As="nav" aria-label="Main" Width="Length.Rem(16)" MaxWidth="Length.Full">
+    <NavMenu>
+        <NavLabel>Workspace</NavLabel>
+        <NavItem Href="@To(null)" Icon="Lucide.LayoutDashboard">Dashboard</NavItem>
+        <NavItem Href='@To("inbox")' Icon="Lucide.Inbox" Badge="12" BadgeAccent="Accent.Primary">Inbox</NavItem>
+        <NavGroup Label="Projects" Icon="Lucide.Folder" Open>
+            <NavItem Href='@To("projects/website")'>Website</NavItem>
+            <NavItem Href='@To("projects/course")'>Course app</NavItem>
+        </NavGroup>
+        <NavDivider />
+        <NavItem Href='@To("billing")' Icon="Lucide.CreditCard" Badge="New" BadgeStatus="Status.Success">Billing</NavItem>
+        <NavItem Href='@To("settings")' Icon="Lucide.Settings">Settings</NavItem>
+    </NavMenu>
+</Box>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

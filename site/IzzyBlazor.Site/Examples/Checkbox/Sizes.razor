@@ -1,0 +1,27 @@
+<Form Model="Model" FormName="checkbox-sizes" Grow>
+    <Row Gap="5" Wrap>
+        <Checkbox @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+        <Checkbox @bind-Value="Model!.Medium" Label="Medium" />
+        <Checkbox @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    </Row>
+    <Row Gap="5" Wrap>
+        <Checkbox @bind-Value="Model!.Locked" Label="Disabled" Disabled />
+        <Checkbox @bind-Value="Model!.LockedOn" Label="Disabled, checked" Disabled />
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-sizes")]
+    private Options? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Options
+    {
+        public bool Small { get; set; } = true;
+        public bool Medium { get; set; } = true;
+        public bool Large { get; set; } = true;
+        public bool Locked { get; set; }
+        public bool LockedOn { get; set; } = true;
+    }
+}

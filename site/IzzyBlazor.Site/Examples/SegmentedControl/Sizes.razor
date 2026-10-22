@@ -1,0 +1,23 @@
+<Form Model="Model" FormName="segmented-control-sizes" Grow>
+    <Row Gap="4" Wrap Align="Align.End">
+        <SegmentedControl @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+        <SegmentedControl @bind-Value="Model!.Medium" Label="Medium" />
+        <SegmentedControl @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "segmented-control-sizes")]
+    private Views? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Views
+    {
+        public Period Small { get; set; } = Period.Week;
+        public Period Medium { get; set; } = Period.Week;
+        public Period Large { get; set; } = Period.Week;
+    }
+
+    public enum Period { Day, Week, Month }
+}

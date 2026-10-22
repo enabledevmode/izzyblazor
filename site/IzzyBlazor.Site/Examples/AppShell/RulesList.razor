@@ -1,0 +1,78 @@
+@inject NavigationManager Navigation
+
+@* A table that is the whole page. In Tinted, the default, the sidebar takes the page tint and the
+   table sits on white with no card around it. *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href='@To("overview")' Icon="Lucide.LayoutDashboard">Overview</NavItem>
+            <NavItem Href="@To(null)" Icon="Lucide.ListChecks" Badge="57">Rules</NavItem>
+            <NavItem Href='@To("guide")' Icon="Lucide.BookOpen">Guide</NavItem>
+            <NavDivider />
+            <NavLabel>Workspace</NavLabel>
+            <NavItem Href='@To("settings")' Icon="Lucide.Settings">Settings</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 8 }">
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Stack Gap="1" Grow>
+                    <Heading Level="1" Size="TextSize.Xl2">Rules</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Every rule in this project, most recently changed first.</TextBlock>
+                </Stack>
+                <Button StartIcon="Lucide.Plus">New rule</Button>
+            </Row>
+            <Table Items="Rules" PageSize="6" InitialSort="-updated" Caption="Rules">
+                <PropertyColumn Property="r => r.Name" Sortable />
+                <TemplateColumn Title="Status" SortBy="r => r.Status" SortKey="status" Sortable>
+                    <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                </TemplateColumn>
+                <PropertyColumn Property="r => r.Owner" Sortable />
+                <PropertyColumn Property="r => r.Updated" Format="MMM d" Sortable />
+                <PropertyColumn Property="r => r.Hits" Title="Hits (7 days)" Format="N0" Sortable />
+            </Table>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
+@* hide *@
+
+@code {
+    public sealed record Rule(string Name, string Status, string Owner, DateOnly Updated, int Hits);
+
+    private static readonly string[] Owners = ["Ada Lovelace", "Grace Hopper", "Alan Turing", "Katherine Johnson"];
+    private static readonly string[] Statuses = ["Live", "Draft", "Paused", "Failing"];
+    private static readonly string[] Names =
+        ["Hold large refunds", "Band new customers", "Score repeat buyers", "Flag mismatched country", "Limit gift cards", "Review high-risk BINs", "Fast-track trusted", "Velocity check"];
+
+    private static readonly IReadOnlyList<Rule> Rules = Enumerable.Range(1, 24)
+        .Select(i => new Rule(
+            $"{Names[i % Names.Length]}{(i >= Names.Length ? $" {i / Names.Length + 1}" : "")}",
+            Statuses[i * 3 % 7 % Statuses.Length],
+            Owners[i * 5 % Owners.Length],
+            new DateOnly(2026, 10, 12).AddDays(-(i * 3 % 90)),
+            120 + i * 977 % 9000))
+        .ToList();
+
+    private static Status StatusOf(string status) => status switch
+    {
+        "Live" => Status.Success,
+        "Paused" => Status.Warning,
+        "Failing" => Status.Danger,
+        _ => Status.Neutral,
+    };
+}
+@* /hide *@

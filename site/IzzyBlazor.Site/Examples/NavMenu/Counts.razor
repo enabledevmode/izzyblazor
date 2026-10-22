@@ -1,0 +1,20 @@
+@inject NavigationManager Navigation
+
+@* BadgeVariant.Plain shows quiet totals with no fill, as docs and mail sidebars do. Long labels
+   wrap rather than being cut off. *@
+<Box As="nav" aria-label="Docs" Width="Length.Rem(16)" MaxWidth="Length.Full">
+    <NavMenu>
+        <NavLabel>Get started</NavLabel>
+        <NavItem Href="@To(null)">Install</NavItem>
+        <NavItem Href='@To("guide/existing-layout")'>Add it to an app that already has its own layout</NavItem>
+        <NavLabel>Components</NavLabel>
+        <NavItem Href='@To("guide/forms")' Badge="12" BadgeVariant="BadgeVariant.Plain">Forms</NavItem>
+        <NavItem Href='@To("guide/overlays")' Badge="7" BadgeVariant="BadgeVariant.Plain">Overlays</NavItem>
+        <NavItem Href='@To("guide/data")' Badge="9" BadgeVariant="BadgeVariant.Plain">Data display</NavItem>
+    </NavMenu>
+</Box>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

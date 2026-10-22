@@ -1,0 +1,18 @@
+@inject ToastService Toasts
+@inject NavigationManager Navigation
+
+<ToastRegion />
+
+<form method="post" @formname="toast-redirect" @onsubmit="Send" data-enhance>
+    <AntiforgeryToken />
+    <Button Submit StartIcon="Lucide.Send">Send invoice</Button>
+</form>
+
+@code {
+    private void Send()
+    {
+        // Post, then redirect: the toast follows in a short-lived cookie.
+        Toasts.Success("INV-1042 is on its way to Ada Lovelace.", "Invoice sent");
+        Navigation.NavigateTo(Navigation.GetUriWithQueryParameter("sent", "INV-1042"));
+    }
+}

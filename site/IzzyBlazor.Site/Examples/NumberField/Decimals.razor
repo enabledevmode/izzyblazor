@@ -1,0 +1,26 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="number-field-decimals" MaxWidth="20.Rem" Grow>
+    <NumberField @bind-Value="Model!.Price" Step="0.01" Placeholder="0.00">
+        <StartAddon>$</StartAddon>
+    </NumberField>
+    <NumberField @bind-Value="Model!.Discount" Step="5">
+        <EndAddon>%</EndAddon>
+    </NumberField>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "number-field-decimals")]
+    private Product? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Product
+    {
+        [Range(typeof(decimal), "0", "10000")]
+        public decimal? Price { get; set; } = 49.99m;
+
+        [Range(0, 100), Display(Name = "Discount (%)")]
+        public int Discount { get; set; } = 10;
+    }
+}

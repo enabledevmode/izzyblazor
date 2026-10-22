@@ -1,0 +1,13 @@
+@* The item opens and closes in every mode; on an interactive page C# follows it. *@
+<Stack Gap="3" Grow>
+    <Accordion>
+        <AccordionItem Title="Release notes" @bind-Open="_notesOpen">
+            Version 2.4 adds dark mode to the dashboard and speeds up search.
+        </AccordionItem>
+    </Accordion>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">C# has it <Code>@(_notesOpen ? "open" : "closed")</Code></TextBlock>
+</Stack>
+
+@code {
+    private bool _notesOpen;
+}

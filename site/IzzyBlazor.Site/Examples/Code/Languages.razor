@@ -1,0 +1,31 @@
+<Stack Gap="4" Grow>
+    <Code Block Language="csharp">@CSharp</Code>
+    <Code Block Language="css">@Css</Code>
+    <Code Block Language="json">@Json</Code>
+</Stack>
+
+@* hide *@
+@code {
+    private const string CSharp =
+        """
+        public sealed record Order(string Customer, decimal Total)
+        {
+            // Large orders need a second approval.
+            public bool IsLarge => Total > 500m;
+        }
+        """;
+
+    private const string Css =
+        """
+        :root {
+          --ib-color-focus: #7c3aed;
+          --ib-radius-xl: 0.5rem;
+        }
+        """;
+
+    private const string Json =
+        """
+        { "Logging": { "LogLevel": { "Default": "Information" } }, "AllowedHosts": "*" }
+        """;
+}
+@* /hide *@

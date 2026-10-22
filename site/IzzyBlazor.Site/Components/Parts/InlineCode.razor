@@ -1,0 +1,23 @@
+@* Plain text with `backticks` shown as Code, for one-line text kept in components.json. *@
+
+@for (var i = 0; i < _parts.Length; i++)
+{
+    // A copy: Code reads its content later, after the loop has moved on.
+    var part = _parts[i];
+    if (i % 2 == 1)
+    {
+        <Code>@part</Code>
+    }
+    else
+    {
+        @part
+    }
+}
+
+@code {
+    [Parameter, EditorRequired] public string Text { get; set; } = "";
+
+    private string[] _parts = [];
+
+    protected override void OnParametersSet() => _parts = Text.Split('`');
+}

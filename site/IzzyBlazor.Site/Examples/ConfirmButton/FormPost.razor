@@ -1,0 +1,34 @@
+<form method="post" @onsubmit="Posted" @formname="project-actions" data-enhance>
+    <AntiforgeryToken />
+    <Row Gap="3" Wrap Align="Align.Center">
+        <TextBlock As="span" Weight="FontWeight.Medium">Website redesign</TextBlock>
+        <ConfirmButton Title="Archive this project?" Message="It moves to Archived, where you can restore it."
+                       ConfirmText="Archive" Name="intent" Value="archive" OnConfirm='() => Done("archive")'
+                       Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm">Archive</ConfirmButton>
+        <ConfirmButton Title="Delete this project?" Message="This removes the project and its history. It can't be undone."
+                       ConfirmText="Delete" Name="intent" Value="delete" OnConfirm='() => Done("delete")'
+                       Variant="ButtonVariant.Outline" Accent="Accent.Danger" Size="ControlSize.Sm" StartIcon="Lucide.Trash">Delete</ConfirmButton>
+    </Row>
+    @if (_result is not null)
+    {
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="3">@_result</TextBlock>
+    }
+</form>
+
+@code {
+    // Static pages: confirming posts the form with the button's Name=Value.
+    [SupplyParameterFromForm(FormName = "project-actions", Name = "intent")]
+    private string? Intent { get; set; }
+
+    private string? _result;
+
+    private void Posted() => Done(Intent);
+
+    // Interactive pages: confirming runs OnConfirm instead.
+    private void Done(string? intent) => _result = intent switch
+    {
+        "archive" => "Archived Website redesign.",
+        "delete" => "Deleted Website redesign.",
+        _ => null,
+    };
+}
