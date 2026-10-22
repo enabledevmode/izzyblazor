@@ -1,21 +1,15 @@
-@inject ApiMetadata Api
-
-@* The top of a component's pages: breadcrumb, name with tier and version, the summary from its
-   doc comment, and Overview · API · Demos as links. *@
+@* The top of a component's pages, the same on each: breadcrumb, name with tier and version, the
+   summary, and Overview · API · Demos as links. *@
 
 <Stack Gap="4" Class="site-pagehead">
     <Breadcrumb>
         <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
         <BreadcrumbItem Href="docs/components">Components</BreadcrumbItem>
         <BreadcrumbItem Href="@($"docs/components#{ApiMetadata.Anchor(Component.Category).Replace(' ', '-')}")">@Component.Category</BreadcrumbItem>
-        @if (Page == "api")
-        {
-            <BreadcrumbItem Href="@Registry.OverviewHref(Component)">@Component.Name</BreadcrumbItem>
-        }
     </Breadcrumb>
     <Row Gap="3" Align="Align.Center" Wrap>
         <Pictogram Name="@Component.Icon" Size="ControlSize.Lg" />
-        <Heading Level="1" Size="TextSize.Xl3">@(Page == "api" ? $"{Component.Name} API" : Component.Name)</Heading>
+        <Heading Level="1" Size="TextSize.Xl3">@Component.Name</Heading>
         @if (ApiComponent is not null)
         {
             @* Only Pro is marked: nearly everything is free, so "Free" would say nothing. *@
@@ -29,25 +23,10 @@
             }
         }
     </Row>
-    @if (Page == "api" && ApiComponent is not null)
-    {
-        <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            <Code>IzzyBlazor.@ApiComponent.DisplayName</Code> in the @ApiComponent.Package package. Generated from the
-            @Api.Version assembly and its doc comments.
-        </TextBlock>
-    }
-    else if (Lead is not null)
-    {
-        <div class="site-lead">@Lead</div>
-    }
-    else if (ApiComponent?.Summary is not null)
-    {
-        <DocHtml Html="@ApiComponent.Summary" Context="Context" Size="ProseSize.Lg" Class="site-lead" />
-    }
-    else
-    {
-        <TextBlock Size="TextSize.Lg">@Component.Summary</TextBlock>
-    }
+    @* The registry's one-line summary, the same on every tab, so switching between Overview and
+       API changes only what's below. A generated Overview shows the doc comment's fuller summary
+       in its body. *@
+    <div class="site-lead">@Component.Summary</div>
     <Tabs Label="@($"{Component.Name} pages")">
         <TabLink Href="@Registry.OverviewHref(Component)" Label="Overview" Match="NavLinkMatch.All" />
         <TabLink Href="@Registry.ApiPageHref(Component)" Label="API" Match="NavLinkMatch.All" />
@@ -65,9 +44,4 @@
 
     [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
 
-    /// <summary>"overview" or "api".</summary>
-    [Parameter] public string Page { get; set; } = "overview";
-
-    /// <summary>A hand-written lead in place of the doc comment's summary.</summary>
-    [Parameter] public RenderFragment? Lead { get; set; }
 }
