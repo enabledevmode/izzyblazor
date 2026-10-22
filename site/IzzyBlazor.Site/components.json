@@ -319,7 +319,13 @@
         { "id": "button-links", "title": "Links that look like buttons", "height": 96 },
         { "id": "button-sizes-icons", "title": "Sizes and icons", "height": 140 },
         { "id": "button-states", "title": "Loading and disabled", "height": 96 },
-        { "id": "button-on-click", "title": "Running C# on click", "height": 140, "modes": ["live"] }
+        { "id": "button-on-click", "title": "Running C# on click", "height": 140, "modes": ["live"] },
+        { "id": "button-state-in-address", "title": "A count in the address", "height": 96,
+          "notes": {
+            "off": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
+            "static": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
+            "live": "The same links: the page follows the address without a reload."
+          } }
       ],
       "scenarios": [
         { "id": "several-submit-buttons", "title": "Several submit buttons", "member": "Name",
@@ -402,6 +408,23 @@
         { "id": "form-read-only", "title": "Read-only", "height": 220,
           "notes": {
             "off": "The checkbox and switch show as disabled: only the script makes them read-only."
+          } },
+        { "id": "form-two-forms", "title": "Two forms on a page", "height": 320,
+          "notes": {
+            "off": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
+            "static": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again."
+          } },
+        { "id": "form-empty-selection", "title": "An empty selection", "height": 210,
+          "notes": {
+            "off": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
+            "static": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
+            "live": "Nothing posts on an interactive page: the list is just empty."
+          } },
+        { "id": "form-redirect-after-save", "title": "A redirect after saving", "height": 240,
+          "notes": {
+            "off": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
+            "static": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
+            "live": "NavigateTo changes the address without a page load."
           } }
       ],
       "scenarios": [
@@ -447,7 +470,13 @@
             "static": "The browser checks before posting, in the model's words; the server's messages show after.",
             "live": "Each field is checked when it changes, and submitting runs C# without a page load."
           } },
-        { "id": "text-field-states", "title": "Sizes, read-only and disabled", "height": 380 }
+        { "id": "text-field-states", "title": "Sizes, read-only and disabled", "height": 380 },
+        { "id": "text-field-sign-in", "title": "A password after a failed post", "height": 340,
+          "notes": {
+            "off": "After the failed post, the email comes back and the password field is empty.",
+            "static": "After the failed post, the email comes back and the password field is empty.",
+            "live": "Nothing reloads, so the password stays in the field."
+          } }
       ]
     },
     {

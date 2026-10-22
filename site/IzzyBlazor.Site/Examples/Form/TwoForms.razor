@@ -1,0 +1,55 @@
+@using System.ComponentModel.DataAnnotations
+
+<Stack Gap="8" MaxWidth="28.Rem" Grow>
+    <Form Model="Search" FormName="docs-search" OnValidSubmit="() => _searched = true">
+        <TextField @bind-Value="Search!.Query" Type="TextFieldType.Search" />
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Button Submit Variant="ButtonVariant.Outline">Search</Button>
+            @if (_searched)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Searching for "@Search.Query".</TextBlock>
+            }
+        </Row>
+    </Form>
+
+    <Form Model="Signup" FormName="newsletter-signup" OnValidSubmit="() => _subscribed = true">
+        <TextField @bind-Value="Signup!.Email" AutoComplete="email" />
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Button Submit>Subscribe</Button>
+            @if (_subscribed)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Subscribed @Signup.Email.</TextBlock>
+            }
+        </Row>
+    </Form>
+</Stack>
+
+@code {
+    // Each form's FormName, and the same name on its model: a post fills only its own form's model.
+    [SupplyParameterFromForm(FormName = "docs-search")]
+    private SearchModel? Search { get; set; }
+
+    [SupplyParameterFromForm(FormName = "newsletter-signup")]
+    private SignupModel? Signup { get; set; }
+
+    private bool _searched;
+    private bool _subscribed;
+
+    protected override void OnInitialized()
+    {
+        Search ??= new();
+        Signup ??= new();
+    }
+
+    public sealed class SearchModel
+    {
+        [Required, Display(Name = "Search the docs")]
+        public string? Query { get; set; }
+    }
+
+    public sealed class SignupModel
+    {
+        [Required, EmailAddress]
+        public string? Email { get; set; }
+    }
+}

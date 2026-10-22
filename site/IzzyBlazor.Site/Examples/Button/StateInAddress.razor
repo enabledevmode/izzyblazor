@@ -1,0 +1,23 @@
+@inject NavigationManager Navigation
+
+<Row Gap="3" Align="Align.Center">
+    <IconButton Icon="Lucide.Minus" Label="Fewer guests" Href="@To(Guests - 1)" Disabled="@(Guests <= Min)"
+                Variant="ButtonVariant.Outline" Accent="Accent.Neutral" />
+    <TextBlock Weight="FontWeight.Medium">@Guests @(Guests == 1 ? "guest" : "guests")</TextBlock>
+    <IconButton Icon="Lucide.Plus" Label="More guests" Href="@To(Guests + 1)" Disabled="@(Guests >= Max)"
+                Variant="ButtonVariant.Outline" Accent="Accent.Neutral" />
+</Row>
+
+@code {
+    private const int Min = 1;
+    private const int Max = 8;
+
+    // The count lives in the address (?guests=3), so each request knows it. A field would start
+    // over at every request on a static page.
+    [SupplyParameterFromQuery(Name = "guests")]
+    private int? GuestsQuery { get; set; }
+
+    private int Guests => Math.Clamp(GuestsQuery ?? 2, Min, Max);
+
+    private string To(int guests) => Navigation.GetUriWithQueryParameter("guests", guests);
+}

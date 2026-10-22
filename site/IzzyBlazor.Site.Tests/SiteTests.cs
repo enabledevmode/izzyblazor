@@ -106,6 +106,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Contains("/docs/components/button/api", seen);
         Assert.Contains("/demos/button/toolbar", seen);
         Assert.Contains("/docs/get-started/existing-app", seen);
+        Assert.All(Articles.Sections.SelectMany(s => s.Articles.Select(a => "/" + s.HrefOf(a))), href => Assert.Contains(href, seen));
     }
 
     [Fact]

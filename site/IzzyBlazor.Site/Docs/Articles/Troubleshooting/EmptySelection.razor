@@ -1,0 +1,97 @@
+@page "/docs/troubleshooting/empty-selection"
+
+@* An empty CheckboxGroup or MultiSelect posts nothing: the model isn't bound and the page's
+   defaults come back, or the list is null when other fields post. Checked against Blazor's form
+   binding (.NET 10) and in form-empty-selection in all three modes. *@
+
+<ArticlePage Section="troubleshooting" Slug="empty-selection">
+    <Lead>
+        Set default choices only on the first load, not after a post, and read a missing list as empty.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            On a static page, a reader unchecks every box in a <Code>CheckboxGroup</Code> and saves. The page comes back
+            with the default boxes checked again, as if they'd never been unchecked. In a form with other fields, the list
+            arrives as <Code>null</Code> instead, and code that reads <Code>.Count</Code> throws. A
+            <Code>MultiSelect</Code> with nothing selected does the same.
+        </TextBlock>
+        <Code Block Language="razor" Title="Newsletter.razor" HighlightLines="9-10">@Broken</Code>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            Browsers post nothing for an unchecked box or an empty multiple select, so the post has no field for the list
+            at all. What Blazor does next depends on the rest of the form:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Nothing else posts.</strong> Blazor doesn't bind the model, so the property stays <Code>null</Code>, and
+                <Code>OnInitialized</Code> sets the defaults again.
+            </ListItem>
+            <ListItem>
+                <strong>Other fields post.</strong> Blazor creates the model and sets the missing list to <Code>null</Code>,
+                replacing any list the class starts with.
+            </ListItem>
+        </List>
+        <TextBlock>
+            <Code>Checkbox</Code> and <Code>Switch</Code> don't have this problem: a hidden "false" follows each box, so an
+            unchecked one still posts. A disabled field posts nothing, like any disabled control.
+        </TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>
+            Give the defaults only when the request isn't a post, and treat <Code>null</Code> as an empty list wherever you
+            read it:
+        </TextBlock>
+        <Code Block Language="razor" Title="Newsletter.razor" HighlightLines="11-14,16">@Fixed</Code>
+        <TextBlock>Uncheck every box and save, in each mode:</TextBlock>
+        <ExampleViewer Example="form-empty-selection" ModeSwitch />
+        <TextBlock>
+            On an interactive page nothing is posted: the list is empty rather than <Code>null</Code>, and the defaults
+            apply on the first render. The same code works in every mode.
+        </TextBlock>
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> and <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>: what each one posts.</ListItem>
+            <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: forms that post on static pages.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/form-name">A form's post fails or arrives empty</Anchor>: how a post finds its model.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Broken = """
+        <Form Model="Model" FormName="newsletter" OnValidSubmit="Save">
+            <CheckboxGroup @bind-Value="Model!.Topics" Items="Enum.GetValues<Topic>()" />
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "newsletter")]
+            private Subscription? Model { get; set; }
+
+            protected override void OnInitialized() =>
+                Model ??= new() { Topics = [Topic.Releases] };
+        }
+        """;
+
+    private const string Fixed = """
+        <Form Model="Model" FormName="newsletter" OnValidSubmit="Save">
+            <CheckboxGroup @bind-Value="Model!.Topics" Items="Enum.GetValues<Topic>()" />
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "newsletter")]
+            private Subscription? Model { get; set; }
+
+            [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+            protected override void OnInitialized() =>
+                Model ??= HttpContext?.Request.Method == "POST"
+                    ? new()
+                    : new() { Topics = [Topic.Releases] };
+
+            private IReadOnlyList<Topic> Chosen => Model!.Topics ?? [];
+        }
+        """;
+}

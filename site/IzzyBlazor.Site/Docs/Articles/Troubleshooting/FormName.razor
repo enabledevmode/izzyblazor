@@ -1,0 +1,88 @@
+@page "/docs/troubleshooting/form-name"
+
+@* A static post finds its form by FormName and its model by [SupplyParameterFromForm]'s FormName:
+   no name is a 400, a different name binds nothing, a form that isn't rendered for the post is a
+   400. Each checked against the site in Development; the fix in form-two-forms in all three modes. *@
+
+<ArticlePage Section="troubleshooting" Slug="form-name">
+    <Lead>
+        Give each form a <Code>FormName</Code>, put the same name on its model's <Code>[SupplyParameterFromForm]</Code>,
+        and render the form when the post comes in.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>A form works on an interactive page, but on a static page submitting it goes wrong in one of three ways:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                The post fails with 400 Bad Request: "The POST request does not specify which form is being submitted."
+            </ListItem>
+            <ListItem>
+                The post succeeds, but the fields come back empty and validation says required fields are missing, though
+                they were filled in.
+            </ListItem>
+            <ListItem>
+                The post fails with 400 Bad Request: "Cannot submit the form 'profile' because no form on the page currently
+                has that name."
+            </ListItem>
+        </List>
+        <TextBlock>In production the 400 has no message; run in Development to see it.</TextBlock>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            On a static page, a post is a new request. Blazor renders the page again, finds the form the post names, and
+            fills the model from the posted fields. Each step goes by name:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>No <Code>FormName</Code>.</strong> The form posts no name, so Blazor can't tell which form was
+                submitted. An interactive page doesn't post, so it never needed one.
+            </ListItem>
+            <ListItem>
+                <strong>Different names.</strong> <Code>[SupplyParameterFromForm(FormName = "...")]</Code> fills the model
+                only from the form with that name. With another name, the model isn't filled and the page creates an empty
+                one.
+            </ListItem>
+            <ListItem>
+                <strong>The form isn't there.</strong> The form is shown only after something the post doesn't carry, such as
+                a field set by a click, so the page Blazor renders for the post has no form with that name.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>
+            Name the form, and give its model the same name. A page with two forms gives each its own name, and each post
+            fills only its own model:
+        </TextBlock>
+        <Code Block Language="razor" Title="Profile.razor" HighlightLines="1,7">@Fixed</Code>
+        <ExampleViewer Example="form-two-forms" ModeSwitch />
+        <TextBlock>
+            When a form appears only in some states, keep that state where the post can see it: in the address (the form
+            posts back to the same address, query string included), or in the posted fields. Without
+            <Code>FormName</Code>, <Code>[SupplyParameterFromForm]</Code> takes a post from any form on the page, so name
+            it whenever the page has more than one.
+        </TextBlock>
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/form">Form</Anchor>: posting and submitting.</ListItem>
+            <ListItem><Anchor Href="docs/common/forms">Forms and validation</Anchor>: a form that posts.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/state-between-requests">A value resets on the next request</Anchor>: where a static page keeps its state.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Fixed = """
+        <Form Model="Model" FormName="profile" OnValidSubmit="SaveAsync">
+            <TextField @bind-Value="Model!.Name" />
+            <Button Submit>Save</Button>
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "profile")]
+            private ProfileModel? Model { get; set; }
+
+            protected override void OnInitialized() => Model ??= new();
+        }
+        """;
+}

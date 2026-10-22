@@ -52,6 +52,29 @@ public class RegistryTests
     }
 
     [Fact]
+    public void Every_article_has_a_Lucide_icon_and_tags_known_components_and_modes()
+    {
+        var problems = new List<string>();
+        foreach (var section in Articles.Sections)
+        {
+            if (IzzyBlazor.Site.Components.Parts.Pictogram.Lookup(section.Icon) is null)
+            {
+                problems.Add($"{section.Slug}: icon {section.Icon}");
+            }
+
+            foreach (var article in section.Articles)
+            {
+                var at = $"{section.Slug}/{article.Slug}";
+                problems.AddRange(new[] { article.Icon }.Where(i => IzzyBlazor.Site.Components.Parts.Pictogram.Lookup(i) is null).Select(i => $"{at}: icon {i}"));
+                problems.AddRange(article.Components.Where(c => Registry.ByName(c) is null).Select(c => $"{at}: component {c}"));
+                problems.AddRange(article.Modes.Where(m => m is not ("off" or "static" or "live")).Select(m => $"{at}: mode {m}"));
+            }
+        }
+
+        Assert.True(problems.Count == 0, string.Join(", ", problems));
+    }
+
+    [Fact]
     public void Every_component_has_a_picture()
     {
         Assert.Empty(Registry.Components.Select(c => c.Id).Except(Pictures.ById.Keys));

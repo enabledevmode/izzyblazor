@@ -1,0 +1,112 @@
+@page "/docs/troubleshooting/redirect-after-post"
+
+@* NavigateTo during a static post: with BlazorDisableThrowNavigationException (set by the .NET 10
+   templates) it records a redirect and code after it runs; without it, it throws a
+   NavigationException that a catch-all swallows. Both checked in a scratch page; the fix in
+   form-redirect-after-save in all three modes. *@
+
+<ArticlePage Section="troubleshooting" Slug="redirect-after-post">
+    <Lead>
+        On a static page, <Code>NavigateTo</Code> answers the post with a redirect. Make it the last thing the handler
+        does, and keep it out of <Code>try</Code>/<Code>catch</Code>.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            After saving a form, the handler calls <Code>NavigateTo</Code> so that reloading the page doesn't post the form
+            again. On a static page one of two things goes wrong:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>The browser is redirected, but code after <Code>NavigateTo</Code> still runs, such as a save that should have been skipped.</ListItem>
+            <ListItem>The page doesn't redirect at all, and the form shows again as if nothing happened.</ListItem>
+        </List>
+        <Code Block Language="csharp" Title="Rename.razor" HighlightLines="6,13,15">@Broken</Code>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            On a static page, the post's response hasn't started when your handler runs, so <Code>NavigateTo</Code> can turn
+            it into a redirect. How it stops your code depends on a project setting:
+        </TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Apps from the .NET 10 templates</strong> set <Code>BlazorDisableThrowNavigationException</Code> to
+                <Code>true</Code>. <Code>NavigateTo</Code> records the redirect and returns, so the code after it runs.
+            </ListItem>
+            <ListItem>
+                <strong>Without that setting</strong> (an app from an older template, say), <Code>NavigateTo</Code> throws a
+                <Code>NavigationException</Code> that Blazor turns into the redirect. A <Code>catch (Exception)</Code> around
+                it catches that too, and the redirect is lost.
+            </ListItem>
+        </List>
+        <TextBlock>On an interactive page, <Code>NavigateTo</Code> changes the address in place and neither happens.</TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>
+            Call <Code>NavigateTo</Code> last, after the <Code>try</Code>/<Code>catch</Code> that guards your work, and
+            <Code>return</Code> on any path that shouldn't redirect. That works with the setting on or off:
+        </TextBlock>
+        <Code Block Language="csharp" Title="Rename.razor" HighlightLines="6,16,19">@Fixed</Code>
+        <TextBlock>
+            Rename the project, then reload: the page shows the saved name from <Code>?saved=</Code> and doesn't post
+            again.
+        </TextBlock>
+        <ExampleViewer Example="form-redirect-after-save" ModeSwitch />
+        <TextBlock>
+            <Code>GetUriWithQueryParameter</Code> keeps the rest of the address. A message that shouldn't be in the address
+            can go in a cookie or in your own store instead, read on the next request.
+        </TextBlock>
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/form">Form</Anchor>: posting and submitting.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/state-between-requests">A value resets on the next request</Anchor>: why the saved name goes in the address.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Broken = """
+        private async Task SaveAsync()
+        {
+            if (!Model!.Changed)
+            {
+                // With the setting, this returns, and the save below runs.
+                Navigation.NavigateTo("projects");
+            }
+
+            try
+            {
+                await Projects.RenameAsync(Model.Id, Model.Name);
+                // Without it, this throws, and the catch takes the exception.
+                Navigation.NavigateTo($"projects/{Model.Id}?saved=1");
+            }
+            catch (Exception)
+            {
+                _error = "Couldn't save the project.";
+            }
+        }
+        """;
+
+    private const string Fixed = """
+        private async Task SaveAsync()
+        {
+            if (!Model!.Changed)
+            {
+                Navigation.NavigateTo("projects");
+                return;
+            }
+
+            try
+            {
+                await Projects.RenameAsync(Model.Id, Model.Name);
+            }
+            catch (DbUpdateException)
+            {
+                _error = "Couldn't save the project.";
+                return;
+            }
+
+            Navigation.NavigateTo($"projects/{Model.Id}?saved=1");
+        }
+        """;
+}

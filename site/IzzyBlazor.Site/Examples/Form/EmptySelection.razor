@@ -1,0 +1,45 @@
+@using Microsoft.AspNetCore.Http
+
+<Form Model="Model" FormName="newsletter" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+    <CheckboxGroup @bind-Value="Model!.Topics" Items="Enum.GetValues<Topic>()" Label="Email me about" />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Button Submit>Save</Button>
+        @if (_saved)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                Saved: @(Chosen.Count == 0 ? "no emails" : string.Join(", ", Chosen)).
+            </TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "newsletter")]
+    private Subscription? Model { get; set; }
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private bool _saved;
+
+    // Defaults on the first load only: a post with no box checked sends nothing, so Blazor leaves
+    // Model null, and defaults set here would check the box again.
+    protected override void OnInitialized() =>
+        Model ??= HttpContext?.Request.Method == "POST" ? new() : new() { Topics = [Topic.Releases] };
+
+    // Null when nothing was checked: after an empty post, and when other fields post without it.
+    private IReadOnlyList<Topic> Chosen => Model!.Topics ?? [];
+
+    private void Save() => _saved = true;
+
+    public sealed class Subscription
+    {
+        public List<Topic>? Topics { get; set; }
+    }
+
+    public enum Topic
+    {
+        Releases,
+        Tips,
+        Events,
+    }
+}

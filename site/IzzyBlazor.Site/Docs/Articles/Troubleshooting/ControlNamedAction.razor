@@ -1,0 +1,72 @@
+@page "/docs/troubleshooting/control-named-action"
+
+@* A control named action (or method, target, ...) shadows the form element's property; Blazor's
+   enhanced form handling reads form.action and posts to "[object RadioNodeList]". Checked in a
+   scratch page (404 with script, fine with JavaScript off); button-multi-submit in all modes. A
+   site test keeps examples clear of these names. *@
+
+<ArticlePage Section="troubleshooting" Slug="control-named-action">
+    <Lead>
+        A control named <Code>action</Code>, <Code>method</Code> or <Code>target</Code> hides the form's own property
+        from Blazor's script. Give it another name.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            On a static page, a form whose submit buttons are named <Code>action</Code> posts to an address like
+            <Code>/[object RadioNodeList]</Code>, or <Code>/[object HTMLButtonElement]</Code> with one button, and shows a
+            "not found" page. With JavaScript off, or on an interactive
+            page, the same form works.
+        </TextBlock>
+        <Code Block Language="razor" Title="Article.razor" HighlightLines="3-4">@Broken</Code>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            In the browser, a form's controls are also properties of the form element, by name. A control named
+            <Code>action</Code> replaces <Code>form.action</Code>, the address the form posts to, with the control
+            itself, or with a list when several share the name. As an address, that becomes text such as
+            "[object RadioNodeList]". Blazor's enhanced form handling reads
+            <Code>form.action</Code> to send the post, so it sends it there. The browser's own post, with JavaScript off,
+            reads the attribute instead and isn't affected.
+        </TextBlock>
+        <TextBlock>
+            The same goes for other names the form element has: <Code>method</Code>, <Code>target</Code>,
+            <Code>enctype</Code>, <Code>elements</Code> and <Code>submit</Code> among them.
+        </TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>Name the buttons something the form element doesn't have, such as <Code>intent</Code>, and read it under that name:</TextBlock>
+        <Code Block Language="razor" Title="Article.razor" HighlightLines="3-4,8">@Fixed</Code>
+        <ExampleViewer Example="button-multi-submit" ModeSwitch />
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components/button">Button</Anchor>: <Code>Name</Code> and <Code>Value</Code> on submit buttons.</ListItem>
+            <ListItem><Anchor Href="demos/button/several-submit-buttons">Several submit buttons</Anchor>: the demo above, with its source.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor>: why the buttons post at all.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Broken = """
+        <Form Model="Model" FormName="article" OnValidSubmit="SaveAsync">
+            <TextField @bind-Value="Model!.Title" />
+            <Button Submit Name="action" Value="publish">Publish</Button>
+            <Button Submit Name="action" Value="draft">Save draft</Button>
+        </Form>
+        """;
+
+    private const string Fixed = """
+        <Form Model="Model" FormName="article" OnValidSubmit="SaveAsync">
+            <TextField @bind-Value="Model!.Title" />
+            <Button Submit Name="intent" Value="publish">Publish</Button>
+            <Button Submit Name="intent" Value="draft">Save draft</Button>
+        </Form>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "article", Name = "intent")]
+            private string? Intent { get; set; }
+        }
+        """;
+}
