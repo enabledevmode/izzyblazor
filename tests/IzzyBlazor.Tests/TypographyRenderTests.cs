@@ -73,6 +73,14 @@ public class TypographyRenderTests : BunitContext
     }
 
     [Fact]
+    public void Heading_refuses_As_since_Level_sets_the_element()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Render<Heading>(p => p.Add(h => h.As, "div")));
+
+        Assert.Contains("Level", error.Message);
+    }
+
+    [Fact]
     public void Heading_size_overrides_the_level_default()
     {
         var cut = Render<Heading>(p => p
