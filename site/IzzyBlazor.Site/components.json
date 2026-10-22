@@ -47,9 +47,9 @@
         { "id": "button-variants", "title": "Accents and variants", "height": 120 },
         { "id": "button-submit-reset", "title": "Submit and reset", "height": 260,
           "notes": {
-            "off": "JavaScript is off in this frame. Save posts the form to the server, which renders the page again with the result.",
-            "static": "A static page with IzzyBlazor's script: Blazor's enhanced form handling posts without a full reload. No circuit.",
-            "live": "An interactive page: the same form validates and runs OnValidSubmit over the circuit."
+            "off": "Save posts the form, and the server renders the page again with the result.",
+            "static": "Blazor's enhanced form handling posts it without a full reload.",
+            "live": "The same form validates and runs OnValidSubmit over the circuit."
           } },
         { "id": "button-links", "title": "Links that look like buttons", "height": 96 },
         { "id": "button-sizes-icons", "title": "Sizes and icons", "height": 140 },
@@ -75,9 +75,9 @@
       "examples": [
         { "id": "home-settings", "title": "A settings form, three modes", "height": 440, "mode": "static",
           "notes": {
-            "off": "JavaScript is off in this frame. Every control still works, and Save posts, checks and shows the result.",
-            "static": "IzzyBlazor's script adds the slider's live value and keyboard handling. Save still posts.",
-            "live": "An interactive page: the same markup binds to C#, and Save runs a C# handler." } }
+            "off": "Every control still works, and Save posts, checks and shows the result.",
+            "static": "The script adds the slider's live value and keyboard handling.",
+            "live": "The same markup binds to C#, and Save runs a C# handler." } }
       ]
     },
     { "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend." },
@@ -93,17 +93,16 @@
         { "id": "text-field-labels", "title": "Labels and hints", "height": 300 },
         { "id": "text-field-password", "title": "Passwords", "height": 120,
           "notes": {
-            "off": "JavaScript is off: the field is a plain password input, with no show/hide button.",
-            "static": "IzzyBlazor's script adds the show/hide button. No circuit.",
-            "live": "The same button, on an interactive page."
+            "off": "A plain password input, with no show/hide button.",
+            "static": "The script adds the show/hide button."
           } },
         { "id": "text-field-icons", "title": "Icons", "height": 230 },
         { "id": "text-field-addons", "title": "Add-ons", "height": 250 },
         { "id": "text-field-validation", "title": "Validation", "height": 260,
           "notes": {
-            "off": "JavaScript is off: the browser checks the fields before posting, in its own words. The server's messages show after the post.",
-            "static": "The browser checks before posting, in the model's words (its ErrorMessage). The server's messages show after the post.",
-            "live": "An interactive page: each field is checked over the circuit when it changes, and submitting runs C# without a page load."
+            "off": "The browser checks before posting, in its own words; the server's messages show after.",
+            "static": "The browser checks before posting, in the model's words; the server's messages show after.",
+            "live": "Each field is checked when it changes, and submitting runs C# without a page load."
           } },
         { "id": "text-field-states", "title": "Sizes, read-only and disabled", "height": 380 }
       ]

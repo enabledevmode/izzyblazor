@@ -352,9 +352,18 @@ body:has(.site-mode-input[value="off"]:checked) .ex-note[data-mode="off"],
 body:has(.site-mode-input[value="static"]:checked) .ex-note[data-mode="static"],
 body:has(.site-mode-input[value="live"]:checked) .ex-note[data-mode="live"],
 body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display: block; }
-.ex-note { max-width: 32rem; margin: 0; text-align: end; text-wrap: pretty; }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
-.ex-below .ex-note { max-width: none; text-align: start; }
+.ex-note { margin: 0; text-wrap: pretty; }
+/* The mode's name, drawn like the mode switch's selected option, so the note reads as about it. */
+.ex-note-mode {
+  display: inline-block;
+  margin-inline-end: var(--ib-space-1);
+  padding: 0 var(--ib-space-2);
+  border-radius: var(--ib-radius-sm);
+  background: var(--ib-color-surface-container-high);
+  color: var(--ib-color-on-surface);
+  font-weight: 500;
+}
 .ex-frame {
   display: block;
   width: 100%;
@@ -372,7 +381,6 @@ body:not(:has(.site-mode-input:checked)) .ex-note[data-mode="static"] { display:
 /* Phones: the note and switches take their own row under the tabs. */
 @media (width < 640px) {
   .ex-tools { grid-row: 2; grid-column: 1 / -1; justify-self: start; flex-wrap: wrap; padding-block: var(--ib-space-2) 0; }
-  .ex-note { text-align: start; }
   .ex > .ex-tabs > .ib-tab-panel, .ex-panels { grid-row: 3; }
   .ex-below { grid-row: 4; }
 }
