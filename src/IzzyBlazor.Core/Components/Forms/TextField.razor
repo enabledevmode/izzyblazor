@@ -13,6 +13,18 @@
     <TextField @bind-Value="Model.Query" Type="TextFieldType.Search">
         <EndAddon><Button Submit>Search</Button></EndAddon>
     </TextField>
+
+    Accessibility:
+    - It renders a native `input` with a `label` linked to it, so clicking the label focuses the field.
+    - The hint and, when the field is invalid, its errors are linked with `aria-describedby`; an
+      invalid field sets `aria-invalid`.
+    - A field with no visible label, such as a search box in a toolbar, needs `HideLabel`, not an
+      empty label: screen readers still hear the label.
+    - A placeholder isn't a label: it's gone once there's text, and screen readers may not read it.
+    - Add-on text isn't part of the field's name, so put a unit that matters in the label too, as
+      in "Price (USD)".
+    - The show/hide button is a toggle named "Show password" (`ShowPasswordLabel`), pressed while
+      the password shows.
 *@
 
 <FieldFrame Class="@WrapperClass("text")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"

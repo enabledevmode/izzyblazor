@@ -55,6 +55,7 @@ public sealed class Registry
             ?? throw new InvalidOperationException("components.json isn't embedded.");
         var registry = new Registry(JsonSerializer.Deserialize<RegistryFile>(stream, Options)!);
         api.ApiHref = registry.ApiHref;
+        api.OverviewHref = name => registry.ByName(name) is { } component ? OverviewHref(component) : null;
         return registry;
     }
 

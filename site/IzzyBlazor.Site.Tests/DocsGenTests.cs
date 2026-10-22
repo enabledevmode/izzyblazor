@@ -243,6 +243,50 @@ public class DocsGenTests
     }
 
     [Fact]
+    public void A_refused_parameter_is_not_listed()
+    {
+        // Heading takes Box's As only to throw: Level sets its element.
+        Assert.DoesNotContain(Api.Component("Heading")!.Properties, p => p.Name == "As");
+        Assert.Contains(Api.Component("TextBlock")!.Properties, p => p.Name == "As");
+    }
+
+    [Fact]
+    public void Accessibility_comes_from_the_doc_comment_or_the_header()
+    {
+        Assert.StartsWith("<ul><li>It renders a native <code>button</code>", Api.Component("Button")!.Accessibility);
+        Assert.Contains("cref:P:IzzyBlazor.ButtonBase.LoadingLabel", Api.Component("Button")!.Accessibility);
+        Assert.Contains("<code>aria-describedby</code>", Api.Component("TextField")!.Accessibility);
+        Assert.DoesNotContain("Accessibility", Api.Component("TextField")!.Remarks);
+    }
+
+    [Fact]
+    public void Header_sections_for_accessibility_and_related_components()
+    {
+        var root = Directory.CreateTempSubdirectory().FullName;
+        File.WriteAllText(Path.Combine(root, "Sample.razor"), """
+            @*
+                A sample.
+                <Sample />
+
+                More about it.
+
+                Accessibility:
+                - It's a native `input`,
+                  labeled.
+                - Errors are announced.
+                See also: Select, `Combobox`,
+                  MultiSelect.
+            *@
+            """);
+
+        var header = new RazorHeaders(root).For("Sample")!;
+
+        Assert.Equal("<p>More about it.</p>", header.Remarks);
+        Assert.Equal("<ul><li>It&#39;s a native <code>input</code>, labeled.</li><li>Errors are announced.</li></ul>", header.Accessibility);
+        Assert.Equal(["Select", "Combobox", "MultiSelect"], header.SeeAlso);
+    }
+
+    [Fact]
     public void Mode_support_is_not_inherited()
     {
         var usage = typeof(ModeSupportAttribute).GetCustomAttributes(typeof(AttributeUsageAttribute), false).Cast<AttributeUsageAttribute>().Single();

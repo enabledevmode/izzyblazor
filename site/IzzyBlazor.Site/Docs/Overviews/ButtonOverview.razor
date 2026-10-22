@@ -36,15 +36,11 @@
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
 
-<Heading Level="2">Accessibility</Heading>
-<List Gap="2">
-    <ListItem>It renders a native <Code>button</Code> or <Code>a</Code>, so Enter, Space and focus work as the browser defines them.</ListItem>
-    <ListItem>The focus ring shows for keyboard focus only.</ListItem>
-    <ListItem>An action shown only as an icon needs a name: use <Anchor Href="docs/components/icon-button">IconButton</Anchor>, whose <Code>Label</Code> is required.</ListItem>
-    <ListItem>A loading button keeps focus and sets <Code>aria-busy</Code>; screen readers hear <Code>LoadingLabel</Code>.</ListItem>
-    <ListItem>A disabled or loading link loses its <Code>href</Code>, keeps <Code>role="link"</Code> and sets <Code>aria-disabled</Code>.</ListItem>
-    <ListItem>An external link says it opens a new tab (<Code>NewTabLabel</Code>), not just with its icon.</ListItem>
-</List>
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
 
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />

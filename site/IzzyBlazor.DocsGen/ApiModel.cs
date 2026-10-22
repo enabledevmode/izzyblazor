@@ -43,6 +43,18 @@ public sealed record ApiComponent
 
     /// <summary>Code from the doc comment's <c>example</c>, as plain text.</summary>
     public List<string>? Examples { get; init; }
+
+    /// <summary>
+    /// html: what the component does for keyboard, screen reader and focus, and what's left to the
+    /// app, from the doc comment's <c>accessibility</c> tag (a .razor header's "Accessibility:").
+    /// </summary>
+    public string? Accessibility { get; init; }
+
+    /// <summary>
+    /// Related components, from the doc comment's top-level <c>seealso</c> tags (a .razor header's
+    /// "See also:" line), by name.
+    /// </summary>
+    public List<string>? SeeAlso { get; init; }
     public List<string>? TypeParameters { get; init; }
 
     /// <summary>Shared bases whose props it takes (see <see cref="ApiFile.Bases"/>).</summary>

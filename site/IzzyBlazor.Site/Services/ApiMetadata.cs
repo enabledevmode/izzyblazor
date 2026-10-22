@@ -36,6 +36,9 @@ public sealed partial class ApiMetadata
     /// </summary>
     public Func<string, string?, string?>? ApiHref { get; set; }
 
+    /// <summary>The Overview link for a documented component's name, or null; set by the registry.</summary>
+    public Func<string, string?>? OverviewHref { get; set; }
+
     public static ApiMetadata Load()
     {
         using var stream = typeof(ApiMetadata).Assembly.GetManifestResourceStream("izzyblazor.api.json")
@@ -103,7 +106,7 @@ public sealed partial class ApiMetadata
             var name = parts[^1];
             if (_components.ContainsKey(name))
             {
-                return ApiHref?.Invoke(name, null);
+                return (context.Overview ? OverviewHref?.Invoke(name) : null) ?? ApiHref?.Invoke(name, null);
             }
 
             if (context.Types.Contains(name))
@@ -204,4 +207,11 @@ public sealed partial class ApiMetadata
 /// <param name="Component">The component the page is about.</param>
 /// <param name="DeclaredOn">Bases whose members the page lists as the component's own (<c>ButtonBase</c>).</param>
 /// <param name="Types">Types the page has a section for.</param>
-public sealed record ApiPageContext(string Page, string? Component, IReadOnlySet<string> DeclaredOn, IReadOnlySet<string> Types);
+public sealed record ApiPageContext(string Page, string? Component, IReadOnlySet<string> DeclaredOn, IReadOnlySet<string> Types)
+{
+    /// <summary>
+    /// Prose on an Overview: another component's name links to its Overview rather than its API
+    /// page. Members still link to the API page.
+    /// </summary>
+    public bool Overview { get; init; }
+}
