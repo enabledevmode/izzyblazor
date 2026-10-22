@@ -1,0 +1,20 @@
+@* A nested IzzyTheme themes what's inside: here a compact, rose, small-radius panel next to one
+   in the page's theme. What it doesn't set comes from the theme around it. *@
+<Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4" Grow>
+    <Card Title="The page's theme" Description="Standard, blue, medium radius.">
+        <Row Gap="2" Wrap Align="Align.Center">
+            <Button>Approve</Button>
+            <Button Variant="ButtonVariant.Soft">Comment</Button>
+            <Badge Accent="Accent.Primary">Draft</Badge>
+        </Row>
+    </Card>
+    <IzzyTheme Density="ThemeDensity.Compact" Brand="rose" Radius="ThemeRadius.Sm">
+        <Card Title="A nested IzzyTheme" Description="Compact, rose, small radius.">
+            <Row Gap="2" Wrap Align="Align.Center">
+                <Button>Approve</Button>
+                <Button Variant="ButtonVariant.Soft">Comment</Button>
+                <Badge Accent="Accent.Primary">Draft</Badge>
+            </Row>
+        </Card>
+    </IzzyTheme>
+</Grid>

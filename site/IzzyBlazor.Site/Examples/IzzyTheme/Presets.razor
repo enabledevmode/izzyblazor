@@ -1,0 +1,26 @@
+@* The same card under each preset. On part of a page a preset sets density, shape and depth only,
+   so each card also takes its preset's brand and gray; the Editorial fonts are app-wide. *@
+<Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4" Grow>
+    @foreach (var (preset, brand, gray) in Sets)
+    {
+        <IzzyTheme Preset="preset" Brand="@brand" Gray="@gray">
+            <Card Title="@preset.ToString()" Description="Invite people to your workspace.">
+                <Row Gap="2" Wrap>
+                    <Button>Invite</Button>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Later</Button>
+                    <Badge Status="Status.Success">Active</Badge>
+                </Row>
+            </Card>
+        </IzzyTheme>
+    }
+</Grid>
+
+@code {
+    private static readonly (ThemePreset, string, string)[] Sets =
+    [
+        (ThemePreset.Standard, "blue", "neutral"),
+        (ThemePreset.Compact, "indigo", "slate"),
+        (ThemePreset.Soft, "teal", "neutral"),
+        (ThemePreset.Editorial, "ink", "stone"),
+    ];
+}

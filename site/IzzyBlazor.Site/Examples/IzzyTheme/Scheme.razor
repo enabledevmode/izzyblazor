@@ -1,0 +1,18 @@
+@* A dark part of a light page, and one that's always the opposite of the page (Inverse). Every
+   token switches inside, so text, buttons and badges keep their contrast. *@
+<Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4" Grow>
+    <Card Title="Dark" Description="ColorScheme.Dark" ColorScheme="ColorScheme.Dark">
+        <Row Gap="2" Wrap>
+            <Button>Deploy</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Logs</Button>
+            <Badge Status="Status.Warning">Pending</Badge>
+        </Row>
+    </Card>
+    <Card Title="Inverse" Description="ColorScheme.Inverse, the opposite of the page" ColorScheme="ColorScheme.Inverse">
+        <Row Gap="2" Wrap>
+            <Button>Deploy</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Logs</Button>
+            <Badge Status="Status.Success">Live</Badge>
+        </Row>
+    </Card>
+</Grid>

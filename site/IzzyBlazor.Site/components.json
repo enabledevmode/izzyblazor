@@ -22,8 +22,26 @@
     { "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "App shell", "summary": "Header, sidebar, main area, aside and footer, arranged by CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AppFooter"] },
     { "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "App shell", "summary": "A sidebar that becomes a drawer or panel on small screens.", "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"] },
     { "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "App shell", "summary": "Header links that fold into a menu on phones.", "parts": ["SiteNavFooter"] },
-    { "id": "izzy-theme", "icon": "Palette", "name": "IzzyTheme", "category": "App shell", "summary": "The preset, brand color, fonts and scheme, set on the server." },
-    { "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark." },
+    {
+      "id": "izzy-theme", "icon": "Palette", "name": "IzzyTheme", "category": "App shell", "summary": "The preset, brand color, fonts and scheme, set on the server.",
+      "examples": [
+        { "id": "izzy-theme-presets", "title": "The four presets", "height": 380 },
+        { "id": "izzy-theme-brands", "title": "Built-in brand colors", "height": 330 },
+        { "id": "izzy-theme-scheme", "title": "A scheme for part of a page", "height": 200 },
+        { "id": "izzy-theme-part", "title": "Theming part of a page", "height": 200 }
+      ]
+    },
+    {
+      "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.",
+      "examples": [
+        { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented", "height": 220,
+          "notes": {
+            "off": "Each option is a link: the server saves the choice and sends you back.",
+            "static": "The scheme changes at once, and other open tabs follow.",
+            "live": "The same, and @bind-Value gives you the choice in C#."
+          } }
+      ]
+    },
 
     { "id": "heading", "icon": "Heading", "name": "Heading", "category": "Typography", "summary": "Headings 1 to 6, with fluid sizes and section links." },
     { "id": "text-block", "icon": "Type", "name": "TextBlock", "category": "Typography", "summary": "Body text with every text style." },
