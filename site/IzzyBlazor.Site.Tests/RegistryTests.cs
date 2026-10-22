@@ -21,6 +21,18 @@ public class RegistryTests
     }
 
     [Fact]
+    public void A_feature_row_that_names_a_member_finds_its_modes()
+    {
+        var broken = Registry.Components
+            .SelectMany(c => c.Features.Where(f => f.Member is not null).Select(f => (c.Name, f.Member!)))
+            .Where(x => Api.Component(x.Name) is not { } api || IzzyBlazor.Site.Components.Parts.ModeSupportTable.ModesOf(api, x.Item2) is null)
+            .Select(x => $"{x.Name}.{x.Item2}")
+            .ToList();
+
+        Assert.True(broken.Count == 0, $"No [ModeSupport] on: {string.Join(", ", broken)}");
+    }
+
+    [Fact]
     public void Every_example_has_a_file_and_every_file_is_registered()
     {
         var registered = Registry.AllExamples.Select(e => e.Example.Id).ToHashSet();

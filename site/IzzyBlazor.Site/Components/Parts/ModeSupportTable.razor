@@ -1,5 +1,6 @@
-@* What works in each mode, a row per feature (from components.json), or one row for the whole
-   component (from its [ModeSupport]). *@
+@* What works in each mode, a row per feature (from components.json, with a member's [ModeSupport]
+   where the row names one), or one row for the whole component (from its [ModeSupport], with its
+   notes: feature rows already say what the notes would). *@
 
 @if (_rows.Count > 0)
 {
@@ -24,14 +25,24 @@
 
     private List<RegistryFeature> _rows = [];
 
-    private string? Notes => ApiComponent?.Modes?.Notes;
+    private string? Notes => Component.Features.Count == 0 ? ApiComponent?.Modes?.Notes : null;
 
     protected override void OnParametersSet()
     {
         _rows = Component.Features.Count > 0
-            ? Component.Features
+            ? Component.Features.Select(FromMember).ToList()
             : ApiComponent?.Modes is { } modes
                 ? [new RegistryFeature { Feature = "Everything", Off = ModeChip.Parse(modes.Off), Static = ModeChip.Parse(modes.Static), Live = ModeChip.Parse(modes.Live) }]
                 : [];
     }
+
+    private RegistryFeature FromMember(RegistryFeature feature) =>
+        feature.Member is { } name && ApiComponent is not null && ModesOf(ApiComponent, name) is { } modes
+            ? feature with { Off = ModeChip.Parse(modes.Off), Static = ModeChip.Parse(modes.Static), Live = ModeChip.Parse(modes.Live) }
+            : feature;
+
+    /// <summary>The modes a member records: a bindable's <c>@bind</c>, else its own.</summary>
+    internal static ApiModes? ModesOf(ApiComponent component, string name) =>
+        component.Properties.Concat(component.Events).Concat(component.Methods)
+            .Where(m => m.Name == name).Select(m => m.BindModes ?? m.Modes).FirstOrDefault();
 }
