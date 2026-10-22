@@ -18,6 +18,15 @@ public static class Articles
             new("existing-app", "Add to an existing app", "PackagePlus",
                 "Bring IzzyBlazor into an app that already has pages, a layout and Bootstrap."),
         ]),
+        new("theming", "Theming", "Palette",
+        [
+            new("themes", "Themes and presets", "Palette",
+                "A preset, your brand color, grays, radius, density and fonts, set once in IzzyTheme."),
+            new("color-scheme", "Light and dark", "SunMoon",
+                "The default scheme, a switch for readers, and a scheme for part of a page."),
+            new("tokens", "Tokens and customizing", "SlidersHorizontal",
+                "CSS variables for exact values, the surface ladder, and theming part of a page."),
+        ]),
     ];
 
     public static ArticleSection? Section(string slug) => Sections.FirstOrDefault(s => s.Slug == slug);

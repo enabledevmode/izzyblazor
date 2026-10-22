@@ -1,0 +1,93 @@
+@page "/docs/theming/color-scheme"
+
+@* Light and dark: the app's default, the reader's choice (ColorSchemeSwitch and the ib-scheme
+   cookie), a scheme for part of a page, and your own colors in both. From docs/styling.md
+   ("Tokens", "A color scheme for part of a page") and components.md (ColorSchemeSwitch). *@
+
+<ArticlePage Section="theming" Slug="color-scheme">
+    <Lead>
+        Every color comes in a light and a dark version. Pages follow the device's setting until your app or your reader
+        picks one, and any part of a page can have its own scheme.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The app's default</Heading>
+        <TextBlock>
+            Use <Code>ColorScheme</Code> on the <Code>IzzyTheme</Code> in the <Code>head</Code>: <Code>Auto</Code> (the
+            default) follows the device, and <Code>Light</Code> or <Code>Dark</Code> holds one until the reader picks another.
+        </TextBlock>
+        <Code Block Language="razor">@Default</Code>
+        <TextBlock>
+            Without an <Code>IzzyTheme</Code>, <Code>data-ib-color-scheme="light"</Code> or <Code>"dark"</Code> on the
+            <Code>html</Code> element does the same.
+        </TextBlock>
+
+        <Heading Level="2">Let readers choose</Heading>
+        <TextBlock>
+            Use <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> for System, Light and Dark: a
+            menu for headers, a toggle, or all three side by side for a settings page.
+        </TextBlock>
+        <ExampleViewer Example="color-scheme-switch-variants" />
+        <TextBlock>
+            The choice is kept in the <Code>ib-scheme</Code> cookie, and <Code>IzzyTheme</Code> reads it on the server, so
+            pages arrive in the reader's scheme with no flash. That takes <Code>AddIzzyBlazor()</Code> in
+            <Code>Program.cs</Code>; with JavaScript off, each option is a link to an endpoint that
+            <Code>MapIzzyBlazor()</Code> adds, which saves the cookie and sends the reader back.
+        </TextBlock>
+        <Code Block Language="csharp">@Services</Code>
+        <TextBlock>
+            On an interactive page, <Code>@@bind-Value</Code> gives you the choice as a <Code>ColorScheme</Code>:
+            <Code>Auto</Code> for System, <Code>Light</Code> or <Code>Dark</Code>.
+        </TextBlock>
+
+        <Heading Level="2">A scheme for part of a page</Heading>
+        <TextBlock>
+            Use <Code>ColorScheme</Code> on a <Code>Box</Code>, anything built on it such as <Code>Stack</Code> and
+            <Code>Card</Code>, or a part of the <Anchor Href="docs/components/app-shell">app layout</Anchor>: <Code>Dark</Code>
+            for a dark sidebar or header in a light app, <Code>Light</Code>, or <Code>Inverse</Code> for the opposite of the
+            page, even when the page follows the device.
+        </TextBlock>
+        <ExampleViewer Example="izzy-theme-scheme" />
+        <TextBlock>
+            Every color switches inside it, so text, links, buttons, badges, fields, focus rings and menus opened from it keep
+            their contrast. <Code>Bg</Code> still applies on top: <Code>Bg="Color.SurfaceContainer"</Code> is that scheme's
+            container shade. On your own elements, <Code>data-ib-color-scheme="dark"</Code>, <Code>"light"</Code> or
+            <Code>"inverse"</Code> does the same.
+        </TextBlock>
+
+        <Heading Level="2">Your colors in both schemes</Heading>
+        <TextBlock>
+            Write a color as a <Code>light-dark()</Code> pair and one value covers both schemes, including parts of a page
+            with their own:
+        </TextBlock>
+        <Code Block Language="css">@LightDark</Code>
+        <TextBlock>
+            Give a color the same value twice, or a plain color, if it shouldn't change with the scheme. Keep text at 4.5:1
+            on what it sits on in both.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: every color as a CSS variable.</ListItem>
+            <ListItem><Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor>: variants, sizes and the full API.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Default = """
+        <IzzyTheme Preset="ThemePreset.Standard" ColorScheme="ColorScheme.Dark" />
+        """;
+
+    private const string Services = """
+        builder.Services.AddIzzyBlazor();
+        // ...
+        app.MapIzzyBlazor();
+        """;
+
+    private const string LightDark = """
+        .release-band {
+          background: light-dark(#fff7ed, #2a1a0c);
+          border-color: light-dark(#fed7aa, #7c2d12);
+        }
+        """;
+}

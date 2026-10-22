@@ -1,0 +1,107 @@
+@page "/docs/theming/themes"
+
+@* Setting the app's look with IzzyTheme: preset, brand, grays, radius, density, fonts. From
+   docs/styling.md ("Presets and colors", "Customizing"); values checked against ThemeValues.cs. *@
+
+<ArticlePage Section="theming" Slug="themes">
+    <Lead>
+        Set the whole app's look in one place: <Code>IzzyTheme</Code> in <Code>App.razor</Code>'s <Code>head</Code> takes a
+        preset, then your brand color, grays, radius, density and fonts over it. It renders on the server, so the theme is
+        there on first paint, with no script and in every render mode.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Set the theme</Heading>
+        <TextBlock>Put one <Code>IzzyTheme</Code> in the <Code>head</Code>, after the stylesheet:</TextBlock>
+        <Code Block Language="razor" Title="Components/App.razor">@SetTheme</Code>
+        <TextBlock>
+            Each setting beats the preset's own; leave it unset to take the preset's. With none at all you get the Standard
+            preset in blue on neutral grays.
+        </TextBlock>
+
+        <Heading Level="2">Presets</Heading>
+        <TextBlock>Use <Code>Preset</Code> for a starting set of defaults: density, shape, type and colors that suit a kind of app.</TextBlock>
+        <ExampleViewer Example="izzy-theme-presets" />
+        <TextBlock>Each card here is a part of the page with its preset's brand and gray. The Editorial fonts don't show: fonts are app-wide.</TextBlock>
+        <Prose Class="site-table ib-scroll">
+            <table>
+                <thead><tr><th>Preset</th><th>For</th><th>Controls</th><th>Shape</th><th>Type</th><th>Brand</th><th>Gray</th></tr></thead>
+                <tbody>
+                    <tr><td><code>Standard</code></td><td>Internal tools, line-of-business</td><td>36px</td><td>Medium radius, hairline shadow</td><td>Inter</td><td>Blue</td><td>Neutral</td></tr>
+                    <tr><td><code>Compact</code></td><td>Admin, ERP, finance, data grids</td><td>32px, tight rows</td><td>Small radius, borders only</td><td>Inter</td><td>Indigo</td><td>Slate</td></tr>
+                    <tr><td><code>Soft</code></td><td>Consumer apps, education, health</td><td>40px, roomy</td><td>Large radius, gentle shadow</td><td>Inter</td><td>Teal</td><td>Neutral</td></tr>
+                    <tr><td><code>Editorial</code></td><td>Docs, publishing, knowledge bases</td><td>36px</td><td>Large radius</td><td>IBM Plex Sans, Newsreader headings</td><td>Ink</td><td>Stone</td></tr>
+                </tbody>
+            </table>
+        </Prose>
+
+        <Heading Level="2">Your brand color</Heading>
+        <TextBlock>
+            Use <Code>Brand</Code> with a hex color, or the name of a built-in one. It becomes the primary accent: primary
+            buttons, links, focus rings, the field halo, selected rows, switches and sliders.
+        </TextBlock>
+        <ExampleViewer Example="izzy-theme-brands" />
+        <TextBlock>
+            From a hex color IzzyBlazor works out the fill, the text on it, the color as text and a soft tint, in light and
+            dark, and checks each for 4.5:1 contrast. The fill stays your color unless no text can reach 4.5:1 on it; then
+            only its lightness moves. To set the shades yourself, see
+            <Anchor Href="docs/theming/tokens#brand-shades-by-hand">Brand shades by hand</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Grays</Heading>
+        <TextBlock>
+            Use <Code>Gray</Code> with <Code>neutral</Code> (the default), <Code>slate</Code> (cool) or <Code>stone</Code>
+            (warm, for serif headings), or a hex color for your page background. From a hex color the surfaces, fills, borders
+            and text are worked out in its hue, each checked for contrast, with a dark set to match.
+        </TextBlock>
+        <Code Block Language="razor">@Grays</Code>
+
+        <Heading Level="2">Radius and density</Heading>
+        <TextBlock>
+            Use <Code>Radius</Code> to round everything in proportion: <Code>None</Code>, <Code>Sm</Code>, <Code>Md</Code> (the
+            default), <Code>Lg</Code>, or <Code>Full</Code> for pill-shaped controls. Use <Code>Density</Code> for control
+            heights, table rows and card padding: <Code>Compact</Code> (32px), <Code>Standard</Code> (36px) or
+            <Code>Comfortable</Code> (40px).
+        </TextBlock>
+
+        <Heading Level="2">Fonts</Heading>
+        <TextBlock>
+            Body text is Inter, served with IzzyBlazor: browsers download only the characters a page uses, and nothing once
+            you name another font. Use <Code>BodyFont</Code>, <Code>HeadingFont</Code>, <Code>MonoFont</Code> and
+            <Code>HeadingWeight</Code> for your own, and load any font other than Inter yourself:
+        </TextBlock>
+        <Code Block Language="razor">@Fonts</Code>
+
+        <Heading Level="2">App-wide or part of a page</Heading>
+        <TextBlock>
+            Fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are app-wide: set them on
+            the <Code>IzzyTheme</Code> in the <Code>head</Code>. The rest also work on part of a page; see
+            <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>. For a strict
+            Content-Security-Policy, pass your nonce as <Code>Nonce</Code>: the theme's colors and fonts come in a small
+            <Code>style</Code> block.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/theming/color-scheme">Light and dark</Anchor>: the default scheme and a switch for readers.</ListItem>
+            <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: exact values with CSS variables.</ListItem>
+            <ListItem><Anchor Href="docs/components/izzy-theme/api">IzzyTheme API</Anchor>: every parameter.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string SetTheme = """
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+        <IzzyTheme Preset="ThemePreset.Soft" Brand="#0a7d5a" Radius="ThemeRadius.Lg" />
+        """;
+
+    private const string Grays = """
+        <IzzyTheme Gray="slate" />
+        <IzzyTheme Gray="#f4efe6" />   @* your page color; app-wide *@
+        """;
+
+    private const string Fonts = """
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&display=swap" />
+        <IzzyTheme BodyFont="Sora, system-ui, sans-serif" HeadingWeight="700" />
+        """;
+}

@@ -511,3 +511,8 @@ html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body 
 }
 .frame-sample > * { max-width: 100%; }
 .frame-page { padding: var(--ib-space-4); }
+
+/* Reference tables in articles scroll sideways on phones rather than widening the page. */
+.site-table { overflow-x: auto; }
+.site-table table { min-width: 32rem; }
+.site-table code { white-space: nowrap; }

@@ -1,0 +1,19 @@
+@* The built-in brand colors, each tuned so text holds 4.5:1 on its fill and on every gray. *@
+<Stack Gap="3" Grow>
+    @foreach (var brand in Names)
+    {
+        <IzzyTheme Brand="@brand">
+            <Row Gap="3" Align="Align.Center" Wrap>
+                <Code Width="4.Rem">@brand</Code>
+                <Button Size="ControlSize.Sm">Save</Button>
+                <Button Size="ControlSize.Sm" Variant="ButtonVariant.Soft">Preview</Button>
+                <Anchor Href="#">A link</Anchor>
+                <Badge Accent="Accent.Primary">New</Badge>
+            </Row>
+        </IzzyTheme>
+    }
+</Stack>
+
+@code {
+    private static readonly string[] Names = ["blue", "ink", "indigo", "violet", "teal", "green", "rose"];
+}
