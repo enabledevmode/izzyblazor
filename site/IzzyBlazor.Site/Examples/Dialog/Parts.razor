@@ -1,0 +1,29 @@
+<DialogTrigger For="members" StartIcon="Lucide.Users">Members</DialogTrigger>
+
+<Dialog Id="members">
+    <DialogHeader>
+        <Row Gap="2" Align="Align.Center">Members <Badge Pill>3</Badge></Row>
+    </DialogHeader>
+    <DialogBody Gap="3">
+        @foreach (var (name, role) in Members)
+        {
+            <Row Gap="3" Align="Align.Center">
+                <Avatar Name="@name" Size="AvatarSize.Sm" />
+                <TextBlock As="span" Grow>@name</TextBlock>
+                <Badge>@role</Badge>
+            </Row>
+        }
+    </DialogBody>
+    <DialogFooter>
+        <DialogClose>Close</DialogClose>
+    </DialogFooter>
+</Dialog>
+
+@code {
+    private static readonly (string Name, string Role)[] Members =
+    [
+        ("Ada Lovelace", "Owner"),
+        ("Grace Hopper", "Editor"),
+        ("Alan Turing", "Viewer"),
+    ];
+}

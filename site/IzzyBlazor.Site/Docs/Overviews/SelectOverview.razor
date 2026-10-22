@@ -1,0 +1,71 @@
+@* Select's Overview, written by hand after TextField's: options from an enum or a list, rich
+   options where the browser allows, a required select with a placeholder previewed in each mode,
+   sizes and states, and what to use when a change should filter the page. Accessibility and See
+   also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Options</Heading>
+<TextBlock>Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>. For anything else, pass <Code>Items</Code> and the <Code>ItemText</Code> for each. <Code>Placeholder</Code> adds a first, empty option.</TextBlock>
+<ExampleViewer Example="select-options" />
+<TextBlock>The label, hint and required mark come from the model as they do for a <Anchor Href="docs/components/text-field">TextField</Anchor>: <Code>[Display(Name)]</Code> or the property name in words, and <Code>[Required]</Code>. <Code>Label</Code> and <Code>Hint</Code> set them on the field.</TextBlock>
+
+<Heading Level="2">Rich options</Heading>
+<TextBlock>Use <Code>ItemTemplate</Code> for markup in each option, such as an icon and a price. Text with the class <Code>ib-option-hint</Code> shows in the list but not in the closed field.</TextBlock>
+<ExampleViewer Example="select-rich" />
+<TextBlock>The markup shows where the browser has the customizable select (Chrome and Edge 135, Safari 27). Other browsers show <Code>ItemText</Code> in their own list, so keep both. Options can't hold links or buttons.</TextBlock>
+
+<Heading Level="2">Required, with a placeholder</Heading>
+<TextBlock>Use a nullable property with <Code>[Required]</Code> and a <Code>Placeholder</Code>: nothing is chosen until someone picks an option, and the placeholder can't be picked again.</TextBlock>
+<ExampleViewer Example="select-required" />
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="select-states" />
+<TextBlock>HTML has no read-only select, so a read-only one shows its choice in a read-only text field and posts it from a hidden input.</TextBlock>
+
+<Heading Level="2">Filtering a page</Heading>
+<TextBlock>A select doesn't post when it changes. To filter a list as soon as someone picks, use a <Code>FilterSelect</Code> in a <Anchor Href="docs/components/filter-form">FilterForm</Anchor>: it applies on change with the script and has an Apply button without it. On an interactive page, <Code>@@bind-Value:after</Code> runs C# after each change.</TextBlock>
+<Code Block Language="razor">@Filter</Code>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* An enum: its values are the options. *@
+        <Select @bind-Value="Model!.Plan" />
+
+        @* Your own list, with the text for each. *@
+        <Select @bind-Value="Model!.Country" Items="CountryCodes" ItemText="code => CountryNames[code!]"
+                Placeholder="Choose a country" />
+        """;
+
+    private const string Filter = """
+        @* Any page: sets ?status= *@
+        <FilterForm>
+            <FilterSelect Name="status" Label="Status" EnumType="typeof(OrderStatus)" />
+        </FilterForm>
+
+        @* Interactive page: C# after each change. *@
+        <Select @bind-Value="Model!.Status" @bind-Value:after="ReloadAsync" />
+        """;
+}

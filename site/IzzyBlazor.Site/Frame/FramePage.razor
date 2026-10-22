@@ -15,7 +15,7 @@
 
 @if (_type is not null)
 {
-    <div class="@_class" data-mode="@_mode">
+    <div class="@_class" style="@_style" data-mode="@_mode">
         @if (_mode == "live")
         {
             <ExampleHost ExampleId="@ExampleId" @rendermode="InteractiveServer" />
@@ -39,6 +39,7 @@
     private string _mode = "static";
     private string _class = "frame";
     private string _title = "";
+    private string? _style;
 
     protected override void OnParametersSet()
     {
@@ -53,5 +54,7 @@
         _mode = Mode is "off" or "static" or "live" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
         _class = entry.Value.Example.Page ? "frame frame-page" : "frame frame-sample";
         _title = $"{entry.Value.Example.Title} ({ModeChip.Name(_mode)})";
+        _class += entry.Value.Example.Overlay ? " frame-overlay" : "";
+        _style = entry.Value.Example.Overlay ? $"min-height: {entry.Value.Example.Height}px" : null;
     }
 }

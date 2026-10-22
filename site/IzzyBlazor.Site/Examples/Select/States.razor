@@ -1,0 +1,23 @@
+<Form Model="Model" FormName="select-states" MaxWidth="24.Rem" Grow>
+    <Select @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+    <Select @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    <Select @bind-Value="Model!.Region" Label="Region" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <Select @bind-Value="Model!.Backup" Label="Backup region" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "select-states")]
+    private Settings? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Settings
+    {
+        public Region Small { get; set; }
+        public Region Large { get; set; }
+        public Region Region { get; set; } = Region.Europe;
+        public Region Backup { get; set; } = Region.Asia;
+    }
+
+    public enum Region { Americas, Europe, Asia }
+}

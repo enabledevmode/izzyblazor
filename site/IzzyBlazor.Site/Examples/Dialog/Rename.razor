@@ -1,0 +1,41 @@
+@using System.ComponentModel.DataAnnotations
+
+<Row Gap="3" Wrap Align="Align.Center">
+    <DialogTrigger For="rename" StartIcon="Lucide.Pencil" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Rename</DialogTrigger>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">Project: <strong>@_name</strong></TextBlock>
+</Row>
+
+<Dialog Id="rename" Title="Rename project" Size="DialogSize.Sm" @bind-Open="_open">
+    <Form Model="Model" FormName="rename" OnValidSubmit="Save" OnInvalidSubmit="() => _open = true">
+        <TextField @bind-Value="Model!.Name" Hint="3 to 40 characters, no slashes." autofocus />
+        @* Last in the form, the buttons are the dialog's footer and submit the form. *@
+        <FormActions>
+            <DialogClose>Cancel</DialogClose>
+            <Button Submit>Rename</Button>
+        </FormActions>
+    </Form>
+</Dialog>
+
+@code {
+    [SupplyParameterFromForm(FormName = "rename")]
+    private Project? Model { get; set; }
+
+    private string _name = "Website";
+    private bool _open;
+
+    protected override void OnInitialized() => Model ??= new() { Name = _name };
+
+    // Open again when the server finds an error, so it's seen; close when saved.
+    private void Save()
+    {
+        _name = Model!.Name!;
+        _open = false;
+    }
+
+    public sealed class Project
+    {
+        [Required(ErrorMessage = "Enter a name"), StringLength(40, MinimumLength = 3, ErrorMessage = "Use 3 to 40 characters")]
+        [RegularExpression("[^/]*", ErrorMessage = "Leave out the slash")]
+        public string? Name { get; set; }
+    }
+}

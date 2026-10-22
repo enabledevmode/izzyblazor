@@ -1,0 +1,67 @@
+@* Menu's Overview, written by hand after Button's: the three kinds of item previewed in each mode
+   (links and posts work on static pages), groups, a custom trigger, checked items kept in the
+   address, and submenus. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Links, posts and actions</Heading>
+<TextBlock>Give each <Code>MenuItem</Code> an <Code>Href</Code> to go somewhere, <Code>Submit</Code> to post the form the menu is in, or <Code>OnClick</Code> to run C# on interactive pages. Links and posts work on static pages, with JavaScript off too.</TextBlock>
+<ExampleViewer Example="menu-actions" />
+<TextBlock>A submit item posts its <Code>Name</Code> and <Code>Value</Code>, so one form tells its items apart. <Code>FormAction</Code> posts to another address, and <Code>Form</Code> names a form the menu isn't in. <Code>Disabled</Code> shows an item that can't be chosen.</TextBlock>
+
+<Heading Level="2">Groups, shortcuts and colors</Heading>
+<TextBlock>Use <Code>MenuGroup</Code> for a labeled section and <Code>MenuDivider</Code> for a line between items. <Code>Icon</Code> adds an icon, <Code>Shortcut</Code> shows a key, and <Code>Accent="Accent.Danger"</Code> marks an item that destroys something.</TextBlock>
+<ExampleViewer Example="menu-groups" />
+<TextBlock>A shortcut is only shown: the app handles the keys.</TextBlock>
+
+<Heading Level="2">Your own trigger</Heading>
+<TextBlock>Use <Code>Trigger</Code> for a button of your own, such as an <Anchor Href="docs/components/icon-button">IconButton</Anchor>, and give it the menu's attributes with <Code>@@attributes="context"</Code>. <Code>Placement</Code> sets where the menu opens.</TextBlock>
+<ExampleViewer Example="menu-trigger" />
+<TextBlock>The panel fits its items, from 10rem to 24rem wide; <Code>PanelWidth</Code> sets a width of your own. Without a <Code>Trigger</Code>, <Code>Label</Code>, <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style the default button.</TextBlock>
+
+<Heading Level="2">Checked items</Heading>
+<TextBlock>Use a <Code>MenuRadioGroup</Code> with a <Code>QueryKey</Code> for options kept in the address, such as a sort, and <Code>Checked</Code> with an <Code>Href</Code> for an on/off item. Both are links, so they work on static pages.</TextBlock>
+<ExampleViewer Example="menu-checked" />
+<TextBlock>On an interactive page, <Code>@@bind-Value</Code> on the group and <Code>@@bind-Checked</Code> on an item keep them in C# instead. <Code>Name</Code> on the group makes its options submit buttons that post with a form, and <Code>KeepOpen</Code> on an item leaves the menu open, to tick several in a row.</TextBlock>
+
+<Heading Level="2">Submenus</Heading>
+<TextBlock>Use <Code>MenuSub</Code> for an item that opens another menu beside it. Choosing an item in it closes the whole menu.</TextBlock>
+<ExampleViewer Example="menu-sub" />
+
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Menu Label="Project" StartIcon="Lucide.Folder">
+            @* A link, on any page. *@
+            <MenuItem Href="settings" Icon="Lucide.Settings">Settings</MenuItem>
+
+            @* Posts the form the menu is in, on any page. *@
+            <MenuItem Submit Name="intent" Value="archive" Icon="Lucide.Archive">Archive</MenuItem>
+
+            @* C# on click, on interactive pages. *@
+            <MenuItem OnClick="Duplicate" Icon="Lucide.Copy">Duplicate</MenuItem>
+        </Menu>
+        """;
+}

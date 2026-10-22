@@ -1,0 +1,25 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="member" ReadOnly Columns="2" Grow>
+    <TextField @bind-Value="Model!.Name" />
+    <Select @bind-Value="Model!.Role" />
+    <Checkbox @bind-Value="Model!.Billing" Label="Can see billing" ColSpan="GridSpan.Full" />
+    <Switch @bind-Value="Model!.Active" Label="Active" ColSpan="GridSpan.Full" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "member")]
+    private Member? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Member
+    {
+        public string? Name { get; set; } = "Grace Hopper";
+        public Role Role { get; set; } = Role.Editor;
+        public bool Billing { get; set; } = true;
+        public bool Active { get; set; } = true;
+    }
+
+    public enum Role { Viewer, Editor, Owner }
+}

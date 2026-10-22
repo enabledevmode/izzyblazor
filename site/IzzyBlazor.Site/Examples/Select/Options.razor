@@ -1,0 +1,36 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="options" MaxWidth="24.Rem" Grow>
+    @* An enum: its values are the options, named by [Display(Name)]. *@
+    <Select @bind-Value="Model!.Plan" />
+    @* A list of your own, with the text for each. *@
+    <Select @bind-Value="Model!.Country" Items="Countries.Keys" ItemText="code => Countries[code!]"
+            Placeholder="Choose a country" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "options")]
+    private Signup? Model { get; set; }
+
+    private static readonly Dictionary<string, string> Countries = new()
+    {
+        ["CA"] = "Canada", ["MX"] = "Mexico", ["GB"] = "United Kingdom", ["US"] = "United States",
+    };
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Signup
+    {
+        public Plan Plan { get; set; } = Plan.Pro;
+
+        // A country code: "CA", "MX", ...
+        public string? Country { get; set; }
+    }
+
+    public enum Plan
+    {
+        Free,
+        Pro,
+        [Display(Name = "Team (5 seats)")] Team,
+    }
+}

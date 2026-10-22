@@ -1,0 +1,42 @@
+@inject NavigationManager Navigation
+
+<form method="post" @onsubmit="Posted" @formname="project">
+    <AntiforgeryToken />
+    <Row Gap="3" Wrap Align="Align.Center">
+        <Menu Label="Project" StartIcon="Lucide.Folder">
+            <MenuItem Href="@Navigation.GetUriWithQueryParameter("open", "settings")" Icon="Lucide.Settings">Settings</MenuItem>
+            <MenuItem Submit Name="intent" Value="duplicate" OnClick='() => _pressed = "duplicate"' Icon="Lucide.Copy">Duplicate</MenuItem>
+            <MenuItem Icon="Lucide.Share2" Disabled>Share</MenuItem>
+            <MenuDivider />
+            <MenuItem Submit Name="intent" Value="delete" OnClick='() => _pressed = "delete"' Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+        </Menu>
+        <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+    </Row>
+</form>
+
+@code {
+    // Settings is a link: ?open=settings.
+    [SupplyParameterFromQuery(Name = "open")]
+    private string? Opened { get; set; }
+
+    // Static pages: the chosen item's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "project", Name = "intent")]
+    private string? Intent { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which item it was.
+    private string? _pressed;
+    private string _result = "Nothing chosen yet";
+    private string? _opened;
+
+    protected override void OnParametersSet()
+    {
+        if (Opened != _opened && Opened is not null)
+        {
+            _result = $"Opened: {Opened}";
+        }
+
+        _opened = Opened;
+    }
+
+    private void Posted() => _result = $"Posted: {Intent ?? _pressed}";
+}

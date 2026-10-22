@@ -1,0 +1,20 @@
+@inject DialogService Dialogs
+
+@* One DialogHost per interactive page or layout shows the service's dialogs. *@
+<DialogHost />
+
+<Row Gap="3" Wrap Align="Align.Center">
+    <Button OnClick="RemoveAsync" Accent="Accent.Danger" Variant="ButtonVariant.Outline" StartIcon="Lucide.UserMinus">Remove member</Button>
+    <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+</Row>
+
+@code {
+    private string _result = "Ada Lovelace is a member.";
+
+    private async Task RemoveAsync()
+    {
+        var yes = await Dialogs.ConfirmAsync("Ada Lovelace loses access to this project.", "Remove member?",
+            new() { ConfirmText = "Remove", Accent = Accent.Danger });
+        _result = yes ? "Removed Ada Lovelace." : "Kept Ada Lovelace.";
+    }
+}
