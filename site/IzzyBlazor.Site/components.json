@@ -64,7 +64,7 @@
         { "feature": "Submit or reset a form, follow a link" },
         { "feature": "Several submit buttons told apart by Name and Value" },
         { "feature": "Loading and disabled states" },
-        { "feature": "OnClick runs C#", "off": "none", "static": "none", "live": "full" }
+        { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
         { "id": "button-variants", "title": "Accents and variants", "height": 120 },
@@ -192,7 +192,7 @@
         { "feature": "Selected rows post with a form" },
         { "feature": "Filters apply as you type", "off": "none", "static": "full", "live": "full" },
         { "feature": "Select-all checkbox", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Sort, page, filters and selection bound to C#", "off": "none", "static": "none", "live": "full" }
+        { "feature": "Sort, page, filters and selection bound to C#", "member": "Page" }
       ],
       "examples": [
         { "id": "table-sort-page", "title": "Sorting and paging", "height": 330,

@@ -24,7 +24,7 @@
     <!-- Built first, run by GenerateApiMetadata below; not referenced as code. It runs on the build
          machine, so it's built without the site's runtime (dotnet publish -r linux-x64 on Windows). -->
     <ProjectReference Include="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false"
-                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" />
+                      GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
   </ItemGroup>
 
   <ItemGroup>

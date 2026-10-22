@@ -138,6 +138,13 @@ public sealed record RegistryComponent
 public sealed record RegistryFeature
 {
     public required string Feature { get; init; }
+
+    /// <summary>
+    /// A member whose <c>[ModeSupport]</c> gives the row's levels (<c>OnClick</c>, or a bindable's
+    /// <c>@bind</c>), so they aren't written twice. Without one, the row's own levels.
+    /// </summary>
+    public string? Member { get; init; }
+
     public ModeLevel Off { get; init; } = ModeLevel.Full;
     public ModeLevel Static { get; init; } = ModeLevel.Full;
     public ModeLevel Live { get; init; } = ModeLevel.Full;
