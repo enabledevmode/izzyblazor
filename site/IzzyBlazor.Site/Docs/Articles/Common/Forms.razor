@@ -14,12 +14,12 @@
         <Heading Level="2">A form that posts</Heading>
         <TextBlock>
             Give the form a <Code>FormName</Code>, and the model property <Code>[SupplyParameterFromForm]</Code> with the same
-            name, so the post fills it on a static page:
+            <Code>FormName</Code>, so the post fills it on a static page:
         </TextBlock>
         <Code Block Language="razor" HighlightLines="1,9-10">@Basic</Code>
         <TextBlock>
             <Code>OnValidSubmit</Code> runs on the server once the model is valid, in every mode. On an interactive page the
-            same form validates as people type and submits without a page load.
+            same form checks each field as it changes and submits without a page load.
         </TextBlock>
 
         <Heading Level="2">Labels and rules from the model</Heading>
@@ -30,14 +30,16 @@
         </TextBlock>
         <Code Block Language="csharp">@Model</Code>
         <TextBlock>
-            Validation messages use the name as written, not the label: "The ZipCode field is required." Give a property
-            <Code>[Display(Name)]</Code> when its messages should read like its label.
+            Without <Code>[Display(Name)]</Code>, the label splits the property name into words ("Zip code"), but validation
+            messages use it as written ("The ZipCode field is required."). Add <Code>[Display(Name)]</Code> when the messages
+            should read like the label.
         </TextBlock>
 
         <Heading Level="2">Checked before and after posting</Heading>
         <TextBlock>
             The browser checks required fields, lengths, ranges, emails and URLs before posting. With IzzyBlazor's script it
-            uses your attribute's <Code>ErrorMessage</Code>, so it says what the server would; without it, its own words. The server checks every rule after
+            uses your attribute's <Code>ErrorMessage</Code>, so it says what the server would; without the script, the
+            browser uses its own words. The server checks every rule after
             posting and shows its messages under each field. Rules the browser can't check, such as a custom attribute, run
             only on the server.
         </TextBlock>
@@ -61,7 +63,7 @@
         <Heading Level="2">Groups, actions and errors</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components/fieldset">Fieldset</Anchor> groups related fields under a <Code>Label</Code>, with its own <Code>Columns</Code> or <Code>Dividers</Code> between rows.</ListItem>
-            <ListItem><Code>FormActions</Code> is the row of buttons at the end. Last in a dialog or drawer, it becomes the footer and stays in view.</ListItem>
+            <ListItem><Code>FormActions</Code> is the row of buttons at the end. Last in a form that fills a dialog or drawer, it becomes the footer and stays in view.</ListItem>
             <ListItem><Code>FormErrors</Code> lists every message under "Please fix the following", and takes focus after a failed submit, with JavaScript off too.</ListItem>
             <ListItem><Code>FieldError For="() =&gt; Model.Email"</Code> shows one property's messages, for an input of your own.</ListItem>
         </List>
@@ -82,7 +84,8 @@
         <TextBlock>
             <Code>RequiredMark</Code> on the form picks the marks: an asterisk on required fields (the default),
             "(optional)" on the others, which reads better when most fields are required, or none.
-            <Code>Layout="FormLayout.Horizontal"</Code> puts labels to the left of the fields from 640px up.
+            <Code>Layout="FormLayout.Horizontal"</Code> puts labels beside the fields, at the start, from 640px up; with
+            <Code>Columns</Code> they stay on top.
             <Code>HideLabel</Code> keeps a field's label for screen readers only, as in a one-field search form.
         </TextBlock>
 
@@ -118,10 +121,11 @@
             [Required(ErrorMessage = "Enter your email"), EmailAddress]
             public string? Email { get; set; }      // "Email", type="email", required
 
-            [Display(Name = "Zip code"), StringLength(10)]
+            [StringLength(10)]
             public string? ZipCode { get; set; }    // "Zip code", maxlength="10"
 
-            public Plan Plan { get; set; }          // a select of the enum's values
+            [Required(ErrorMessage = "Choose a plan")]
+            public Plan? Plan { get; set; }         // a select of the enum's values
         }
         """;
 }

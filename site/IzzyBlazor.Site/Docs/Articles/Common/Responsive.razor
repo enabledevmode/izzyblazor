@@ -5,8 +5,8 @@
 
 <ArticlePage Section="common" Slug="responsive">
     <Lead>
-        Every style prop takes one value, or one per breakpoint. The server writes the CSS for the breakpoints you set and
-        nothing else, so a page fits a phone with no script.
+        Style props that change with screen size take one value, or one per breakpoint. The server writes classes and CSS
+        variables for the breakpoints you set and nothing else, so a page fits a phone with no script.
     </Lead>
     <ChildContent>
         <Heading Level="2">One value per breakpoint</Heading>
@@ -38,7 +38,7 @@
 
         <Heading Level="2">Hide or show by width</Heading>
         <TextBlock>
-            Use <Code>HiddenFrom</Code> or <Code>VisibleFrom</Code> on any component, fields included:
+            Use <Code>HiddenFrom</Code> or <Code>VisibleFrom</Code> on nearly any component, fields included:
         </TextBlock>
         <Code Block Language="razor">@Hidden</Code>
 
@@ -53,7 +53,7 @@
         <Heading Level="2">Sized by the container</Heading>
         <TextBlock>
             A <Anchor Href="docs/components/form">Form</Anchor> or <Anchor Href="docs/components/fieldset">Fieldset</Anchor>
-            with <Code>Columns</Code> follows its own width, not the screen's, so the same form fits a page, a dialog and a
+            with <Code>Columns</Code> (a plain number) follows its own width, not the screen's, so the same form fits a page, a dialog and a
             drawer with no breakpoints. A <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code>
             fits as many columns as there's room for.
         </TextBlock>

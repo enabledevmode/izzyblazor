@@ -21,7 +21,7 @@
         <Heading Level="2">Presets</Heading>
         <TextBlock>Use <Code>Preset</Code> for a starting set of defaults: density, shape, type and colors that suit a kind of app.</TextBlock>
         <ExampleViewer Example="izzy-theme-presets" />
-        <TextBlock>Each card here is a part of the page with its preset's brand and gray. The Editorial fonts don't show: fonts are app-wide.</TextBlock>
+        <TextBlock>On part of a page a preset doesn't bring its brand and gray, so each card sets them too. Fonts are app-wide, so Editorial's don't show here.</TextBlock>
         <Prose Class="site-table ib-scroll">
             <table>
                 <thead><tr><th>Preset</th><th>For</th><th>Controls</th><th>Shape</th><th>Type</th><th>Brand</th><th>Gray</th></tr></thead>
@@ -33,6 +33,7 @@
                 </tbody>
             </table>
         </Prose>
+        <TextBlock>Editorial's fonts aren't served with IzzyBlazor: load them yourself, as under <Anchor Href="docs/theming/themes#fonts">Fonts</Anchor>.</TextBlock>
 
         <Heading Level="2">Your brand color</Heading>
         <TextBlock>
@@ -42,16 +43,17 @@
         <ExampleViewer Example="izzy-theme-brands" />
         <TextBlock>
             From a hex color IzzyBlazor works out the fill, the text on it, the color as text and a soft tint, in light and
-            dark, and checks each for 4.5:1 contrast. The fill stays your color unless no text can reach 4.5:1 on it; then
-            only its lightness moves. To set the shades yourself, see
+            dark, each checked for contrast. In light mode the fill is your color, unless no text can reach 4.5:1 on it; then
+            only its lightness moves. In dark mode a dark color is lifted so controls still show. To set the shades yourself, see
             <Anchor Href="docs/theming/tokens#brand-shades-by-hand">Brand shades by hand</Anchor>.
         </TextBlock>
 
         <Heading Level="2">Grays</Heading>
         <TextBlock>
             Use <Code>Gray</Code> with <Code>neutral</Code> (the default), <Code>slate</Code> (cool) or <Code>stone</Code>
-            (warm, for serif headings), or a hex color for your page background. From a hex color the surfaces, fills, borders
-            and text are worked out in its hue, each checked for contrast, with a dark set to match.
+            (warm, for serif headings), or a hex color for your light page. From a hex color the surfaces, fills, borders and
+            text are worked out in its hue, with the text checked for contrast and a dark set to match. A very light or dark
+            page color is kept light enough for text to read.
         </TextBlock>
         <Code Block Language="razor">@Grays</Code>
 
@@ -65,18 +67,22 @@
 
         <Heading Level="2">Fonts</Heading>
         <TextBlock>
-            Body text is Inter, served with IzzyBlazor: browsers download only the characters a page uses, and nothing once
-            you name another font. Use <Code>BodyFont</Code>, <Code>HeadingFont</Code>, <Code>MonoFont</Code> and
-            <Code>HeadingWeight</Code> for your own, and load any font other than Inter yourself:
+            Body text is Inter, served with IzzyBlazor: browsers download only the character sets a page uses, and nothing
+            once you name another font. Use <Code>BodyFont</Code>, <Code>HeadingFont</Code> and <Code>MonoFont</Code> for your
+            own fonts, and <Code>HeadingWeight</Code> for the headings' weight. Load any font other than Inter yourself:
         </TextBlock>
         <Code Block Language="razor">@Fonts</Code>
+        <TextBlock>The Editorial preset uses IBM Plex Sans and Newsreader:</TextBlock>
+        <Code Block Language="razor">@EditorialFonts</Code>
 
         <Heading Level="2">App-wide or part of a page</Heading>
         <TextBlock>
-            Fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are app-wide: set them on
-            the <Code>IzzyTheme</Code> in the <Code>head</Code>. The rest also work on part of a page; see
-            <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>. For a strict
-            Content-Security-Policy, pass your nonce as <Code>Nonce</Code>: the theme's colors and fonts come in a small
+            Fonts, <Code>HeadingWeight</Code>, a hex <Code>Gray</Code> and <Code>Scrollbars</Code> (whether the page's own
+            scrollbar is themed too) are app-wide: set them on the <Code>IzzyTheme</Code> in the <Code>head</Code>. The rest
+            also work on part of a page; see <Anchor Href="docs/theming/tokens#theme-part-of-a-page">Theme part of a page</Anchor>.
+        </TextBlock>
+        <TextBlock>
+            For a strict Content-Security-Policy, pass your nonce as <Code>Nonce</Code>: hex colors and fonts come in a small
             <Code>style</Code> block.
         </TextBlock>
 
@@ -92,12 +98,17 @@
 @code {
     private const string SetTheme = """
         <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
-        <IzzyTheme Preset="ThemePreset.Soft" Brand="#0a7d5a" Radius="ThemeRadius.Lg" />
+        <IzzyTheme Preset="ThemePreset.Soft" Brand="#0a7d5a" Radius="ThemeRadius.Full" />
         """;
 
     private const string Grays = """
         <IzzyTheme Gray="slate" />
-        <IzzyTheme Gray="#f4efe6" />   @* your page color; app-wide *@
+        @* or your light page color; app-wide *@
+        <IzzyTheme Gray="#f4efe6" />
+        """;
+
+    private const string EditorialFonts = """
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600&family=Newsreader:opsz,wght@6..72,500..600&display=swap" />
         """;
 
     private const string Fonts = """

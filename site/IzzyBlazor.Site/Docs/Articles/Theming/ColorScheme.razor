@@ -17,21 +17,24 @@
         </TextBlock>
         <Code Block Language="razor">@Default</Code>
         <TextBlock>
-            Without an <Code>IzzyTheme</Code>, <Code>data-ib-color-scheme="light"</Code> or <Code>"dark"</Code> on the
-            <Code>html</Code> element does the same.
+            In plain HTML, <Code>data-ib-color-scheme="light"</Code> or <Code>"dark"</Code> on the <Code>html</Code> element
+            holds one too, but it also overrides the reader's choice below, so use <Code>IzzyTheme</Code> when readers can pick.
         </TextBlock>
 
         <Heading Level="2">Let readers choose</Heading>
         <TextBlock>
-            Use <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> for System, Light and Dark: a
-            menu for headers, a toggle, or all three side by side for a settings page.
+            Use <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor>: a menu of System, Light and
+            Dark for headers, a light/dark toggle, or all three side by side for a settings page.
         </TextBlock>
         <ExampleViewer Example="color-scheme-switch-variants" />
         <TextBlock>
-            The choice is kept in the <Code>ib-scheme</Code> cookie, and <Code>IzzyTheme</Code> reads it on the server, so
-            pages arrive in the reader's scheme with no flash. That takes <Code>AddIzzyBlazor()</Code> in
-            <Code>Program.cs</Code>; with JavaScript off, each option is a link to an endpoint that
-            <Code>MapIzzyBlazor()</Code> adds, which saves the cookie and sends the reader back.
+            The choice is kept in the <Code>ib-scheme</Code> cookie. The <Code>IzzyTheme</Code> in the <Code>head</Code> reads
+            it on the server, so pages arrive in the reader's scheme with no flash: keep one there, even an empty
+            <Code>&lt;IzzyTheme /&gt;</Code>. Reading the cookie takes <Code>AddIzzyBlazor()</Code>.
+        </TextBlock>
+        <TextBlock>
+            With JavaScript off, each option is a link to an endpoint that <Code>MapIzzyBlazor()</Code> adds. It saves the
+            cookie and sends the reader back.
         </TextBlock>
         <Code Block Language="csharp">@Services</Code>
         <TextBlock>
@@ -41,12 +44,12 @@
 
         <Heading Level="2">A scheme for part of a page</Heading>
         <TextBlock>
-            Use <Code>ColorScheme</Code> on a <Code>Box</Code>, anything built on it such as <Code>Stack</Code> and
-            <Code>Card</Code>, or a part of the <Anchor Href="docs/components/app-shell">app layout</Anchor>: <Code>Dark</Code>
+            Use <Code>ColorScheme</Code> on <Code>Box</Code>, <Code>Stack</Code>, <Code>Card</Code> and the other layout
+            components, or a part of the <Anchor Href="docs/components/app-shell">app layout</Anchor>: <Code>Dark</Code>
             for a dark sidebar or header in a light app, <Code>Light</Code>, or <Code>Inverse</Code> for the opposite of the
             page, even when the page follows the device.
         </TextBlock>
-        <ExampleViewer Example="izzy-theme-scheme" />
+        <ExampleViewer Example="box-scheme" />
         <TextBlock>
             Every color switches inside it, so text, links, buttons, badges, fields, focus rings and menus opened from it keep
             their contrast. <Code>Bg</Code> still applies on top: <Code>Bg="Color.SurfaceContainer"</Code> is that scheme's
@@ -68,7 +71,7 @@
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: every color as a CSS variable.</ListItem>
-            <ListItem><Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor>: variants, sizes and the full API.</ListItem>
+            <ListItem><Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor>: the full API.</ListItem>
         </List>
     </ChildContent>
 </ArticlePage>
