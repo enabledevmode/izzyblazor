@@ -2,7 +2,8 @@
 @inject Registry Registry
 
 @* /demos: scenarios by category, then component. A sidebar of its own so the area reads as
-   separate from the docs. A component is a group, not a page: /demos lists every scenario. *@
+   separate from the docs. One level: each category's demos, whatever component they're under
+   (each demo's page and card name its component). *@
 
 <AppShell Variant="ShellVariant.Flat" Class="site-shell site-shell-demos">
     <SiteHeader Sidebar Demos ContentWidth="Length.Rem(SiteWidths.Bars)" />
@@ -20,12 +21,10 @@
                 <NavLabel>@category</NavLabel>
                 @foreach (var component in components)
                 {
-                    <NavGroup Label="@component.Name" Open>
-                        @foreach (var scenario in component.Scenarios)
-                        {
-                            <NavItem Href="@Registry.ScenarioHref(component, scenario)">@scenario.Title</NavItem>
-                        }
-                    </NavGroup>
+                    @foreach (var scenario in component.Scenarios)
+                    {
+                        <NavItem Href="@Registry.ScenarioHref(component, scenario)">@scenario.Title</NavItem>
+                    }
                 }
             }
         </NavMenu>
