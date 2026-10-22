@@ -64,6 +64,19 @@ public class Heading : TextBase, IDisposable
     protected override string BaseClass => "ib-heading";
 
     /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // As comes from Box, but Level sets a heading's element: say so rather than ignore it.
+        if (parameters.TryGetValue<string>(nameof(As), out _))
+        {
+            throw new InvalidOperationException(
+                "A Heading's element comes from Level (h1 to h6), so it doesn't take As. For text that looks like a heading but isn't one, use TextBlock with Size and Weight.");
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (Level is < 1 or > 6)
