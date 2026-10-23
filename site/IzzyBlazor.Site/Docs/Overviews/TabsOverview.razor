@@ -1,0 +1,78 @@
+@* Tabs' Overview, written by hand after Button's: picking a tab previewed in each mode, the looks,
+   vertical tabs, the tab in the address, tabs in a form, panel padding and tabs that are links.
+   Parts, Accessibility and See also come from the doc comments and components.json. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Picking a tab</Heading>
+<TextBlock>Use <Code>Selected</Code> for the tab that opens first, and <Code>@@bind-Selected</Code> to follow it from C# on interactive pages. A tab's value is its <Code>Value</Code>, or its label in lower case with dashes (<Code>billing-history</Code>).</TextBlock>
+<ExampleViewer Example="tabs-modes" />
+<TextBlock>Every panel is rendered with the page, and picking a tab only shows another, so it's instant and keeps what's typed. Content that's slow to build or rarely opened is better on a page of its own, behind a <Anchor Href="docs/components/tabs#tabs-as-links">TabLink</Anchor>.</TextBlock>
+
+<Heading Level="2">Variants, icons and badges</Heading>
+<TextBlock>Use <Code>Variant</Code> for an underline (the default), soft tabs or a segmented control. Each <Code>Tab</Code> can have an <Code>Icon</Code> and a <Code>Badge</Code>, or be <Code>Disabled</Code>.</TextBlock>
+<ExampleViewer Example="tabs-variants" />
+
+<Heading Level="2">Sizes and full width</Heading>
+<TextBlock>Use <Code>Size</Code> to match the buttons and fields around the tabs, and <Code>FullWidth</Code> to share the row between them.</TextBlock>
+<ExampleViewer Example="tabs-sizes" />
+
+<Heading Level="2">Vertical</Heading>
+<TextBlock>Use <Code>Orientation="Orientation.Vertical"</Code> to put the tabs in a column beside the panels from 640px up; on phones they stay a row above, which scrolls when it doesn't fit.</TextBlock>
+<ExampleViewer Example="tabs-vertical" />
+
+<Heading Level="2">In the address</Heading>
+<TextBlock>Use <Code>QueryKey</Code> to keep the selected tab in the query string, so a link to <Code>?tab=billing</Code> opens Billing and a copied address keeps the tab. The address wins over <Code>Selected</Code>.</TextBlock>
+<ExampleViewer Example="tabs-url" />
+
+<Heading Level="2">In a form</Heading>
+<TextBlock>Put <Code>Tabs</Code> inside a <Anchor Href="docs/components/form">Form</Anchor> to split a long form: every panel is part of it, so every field posts. When the server finds errors, as here with <Code>NativeValidation="false"</Code>, the first tab with errors opens, unless the open one has some, and each tab shows how many it has.</TextBlock>
+<ExampleViewer Example="tabs-account-form" />
+<TextBlock>With the browser's own checks on (the default), the post waits until they pass, and the script opens the tab of the first field the browser stops at, so its message shows.</TextBlock>
+
+<Heading Level="2">Panel padding</Heading>
+<TextBlock>Use <Code>ContentPadding</Code> to pad every panel on all sides, and a <Code>Tab</Code>'s own <Code>ContentPadding="0"</Code> to run a table edge to edge.</TextBlock>
+<ExampleViewer Example="tabs-padding" />
+
+<Heading Level="2">Tabs as links</Heading>
+<TextBlock>Use <Code>TabLink</Code> in place of <Code>Tab</Code> for sections that are pages of their own: the tabs are a <Code>nav</Code> of plain links, and the one for the current address is marked on the server.</TextBlock>
+<ExampleViewer Example="tabs-links" />
+<TextBlock>A tab stays current on the pages below its link, so a <Code>settings</Code> tab is current on <Code>settings/billing</Code> too; <Code>Match="NavLinkMatch.All"</Code> stops that. Tabs for one page told apart by the query, as here, mark one at a time.</TextBlock>
+
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Tabs Label="Account">
+            <Tab Label="Profile" Icon="Lucide.User">...</Tab>
+            <Tab Label="Billing" Badge="2">...</Tab>
+        </Tabs>
+
+        @* Links to pages of their own. *@
+        <Tabs Label="Settings">
+            <TabLink Href="settings/profile" Label="Profile" />
+            <TabLink Href="settings/billing" Label="Billing" />
+        </Tabs>
+        """;
+}

@@ -1,0 +1,30 @@
+@* ContentPadding pads every panel on all sides (the tab list keeps its place), so the text sits
+   clear of the border; the History tab sets its own 0, so the table, without its own border,
+   runs edge to edge. *@
+<Box Border="1" Radius="Radius.Lg" Grow MaxWidth="34.Rem">
+    <Tabs Label="Deploys" ContentPadding="4">
+        <Tab Label="Summary" Icon="Lucide.Activity">
+            <TextBlock>Three deploys today, all healthy. The last one finished 12 minutes ago.</TextBlock>
+        </Tab>
+        <Tab Label="History" Icon="Lucide.Clock" ContentPadding="0">
+            <Table Items="Deploys" Caption="Deploys today" Bordered="false">
+                <PropertyColumn Property="d => d.Commit" />
+                <PropertyColumn Property="d => d.Author" />
+                <PropertyColumn Property="d => d.Time" />
+            </Table>
+        </Tab>
+    </Tabs>
+</Box>
+
+@* hide *@
+@code {
+    private sealed record Deploy(string Commit, string Author, string Time);
+
+    private static readonly Deploy[] Deploys =
+    [
+        new("a1f9c3e", "Ada Lovelace", "14:02"),
+        new("7be20d4", "Grace Hopper", "11:47"),
+        new("c03e8a1", "Alan Turing", "09:15"),
+    ];
+}
+@* /hide *@
