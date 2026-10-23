@@ -1,49 +1,55 @@
 @page "/docs/troubleshooting/redirect-after-post"
 
 @* NavigateTo during a static post: with BlazorDisableThrowNavigationException (set by the .NET 10
-   templates) it records a redirect and code after it runs; without it, it throws a
-   NavigationException that a catch-all swallows. Both checked in a scratch page; the fix in
-   form-redirect-after-save in all three modes. *@
+   Blazor Web App template) it records a redirect and code after it runs; without it, it throws a
+   NavigationException that a catch-all swallows. On an interactive page it never throws and code
+   after it runs. All checked in scratch pages; the fix in form-redirect-after-save in all three
+   modes. *@
 
 <ArticlePage Section="troubleshooting" Slug="redirect-after-post">
     <Lead>
-        On a static page, <Code>NavigateTo</Code> answers the post with a redirect. Make it the last thing the handler
-        does, and keep it out of <Code>try</Code>/<Code>catch</Code>.
+        <Code>NavigateTo</Code> doesn't always stop your code. Make it the last thing the handler does, or
+        <Code>return</Code> right after it, and keep it out of <Code>try</Code>/<Code>catch</Code>.
     </Lead>
     <ChildContent>
         <Heading Level="2">Problem</Heading>
         <TextBlock>
             After saving a form, the handler calls <Code>NavigateTo</Code> so that reloading the page doesn't post the form
-            again. On a static page one of two things goes wrong:
+            again. One of two things goes wrong:
         </TextBlock>
         <List Gap="2">
             <ListItem>The browser is redirected, but code after <Code>NavigateTo</Code> still runs, such as a save that should have been skipped.</ListItem>
-            <ListItem>The page doesn't redirect at all, and the form shows again as if nothing happened.</ListItem>
+            <ListItem>On a static page, it doesn't redirect, and shows your error message although the save worked.</ListItem>
         </List>
         <Code Block Language="csharp" Title="Rename.razor" HighlightLines="6,13,15">@Broken</Code>
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
-            On a static page, the post's response hasn't started when your handler runs, so <Code>NavigateTo</Code> can turn
-            it into a redirect. How it stops your code depends on a project setting:
+            On a static page, the post's response hasn't started when your handler runs, so <Code>NavigateTo</Code> turns
+            it into a redirect. Whether it stops your code depends on a project setting:
         </TextBlock>
         <List Gap="2">
             <ListItem>
-                <strong>Apps from the .NET 10 templates</strong> set <Code>BlazorDisableThrowNavigationException</Code> to
+                <strong>The .NET 10 Blazor Web App template</strong> sets <Code>BlazorDisableThrowNavigationException</Code> to
                 <Code>true</Code>. <Code>NavigateTo</Code> records the redirect and returns, so the code after it runs.
             </ListItem>
             <ListItem>
-                <strong>Without that setting</strong> (an app from an older template, say), <Code>NavigateTo</Code> throws a
+                <strong>Without that setting</strong> (an app from an older template, or one that added Blazor to an existing
+                project), <Code>NavigateTo</Code> throws a
                 <Code>NavigationException</Code> that Blazor turns into the redirect. A <Code>catch (Exception)</Code> around
                 it catches that too, and the redirect is lost.
             </ListItem>
         </List>
-        <TextBlock>On an interactive page, <Code>NavigateTo</Code> changes the address in place and neither happens.</TextBlock>
+        <TextBlock>
+            On an interactive page, <Code>NavigateTo</Code> never throws: it starts the navigation and returns, so the code
+            after it runs there too, whatever the setting.
+        </TextBlock>
 
         <Heading Level="2">Fix</Heading>
         <TextBlock>
-            Call <Code>NavigateTo</Code> last, after the <Code>try</Code>/<Code>catch</Code> that guards your work, and
-            <Code>return</Code> on any path that shouldn't redirect. That works with the setting on or off:
+            Call <Code>NavigateTo</Code> last, after the <Code>try</Code>/<Code>catch</Code> that guards your work.
+            <Code>return</Code> right after any <Code>NavigateTo</Code> that isn't the last line, and on any path that
+            shouldn't redirect. That works in every mode, with the setting on or off:
         </TextBlock>
         <Code Block Language="csharp" Title="Rename.razor" HighlightLines="6,16,19">@Fixed</Code>
         <TextBlock>

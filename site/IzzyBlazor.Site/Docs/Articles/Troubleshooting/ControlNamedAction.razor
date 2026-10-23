@@ -1,13 +1,15 @@
 @page "/docs/troubleshooting/control-named-action"
 
-@* A control named action (or method, target, ...) shadows the form element's property; Blazor's
-   enhanced form handling reads form.action and posts to "[object RadioNodeList]". Checked in a
-   scratch page (404 with script, fine with JavaScript off); button-multi-submit in all modes. A
-   site test keeps examples clear of these names. *@
+@* A control named action, method or enctype shadows the form element's property, and Blazor's
+   enhanced form handling reads it: action posts to "[object RadioNodeList]" (a 405), method throws,
+   enctype posts text/plain (a 400). target only loses the enhanced post; elements and submit only
+   break scripts that read them (FilterForm's reads form.elements). Each checked in a scratch page,
+   all fine with JavaScript off; button-multi-submit in all modes. A site test keeps examples
+   clear of these names. *@
 
 <ArticlePage Section="troubleshooting" Slug="control-named-action">
     <Lead>
-        A control named <Code>action</Code>, <Code>method</Code> or <Code>target</Code> hides the form's own property
+        A control named <Code>action</Code>, <Code>method</Code> or <Code>enctype</Code> hides the form's own property
         from Blazor's script. Give it another name.
     </Lead>
     <ChildContent>
@@ -15,10 +17,9 @@
         <TextBlock>
             On a static page, a form whose submit buttons are named <Code>action</Code> posts to an address like
             <Code>/[object RadioNodeList]</Code>, or <Code>/[object HTMLButtonElement]</Code> with one button, and shows a
-            "not found" page. With JavaScript off, or on an interactive
-            page, the same form works.
+            page that doesn't exist. With JavaScript off, or on an interactive page, the same form works.
         </TextBlock>
-        <Code Block Language="razor" Title="Article.razor" HighlightLines="3-4">@Broken</Code>
+        <Code Block Language="razor" Title="Post.razor" HighlightLines="3-4">@Broken</Code>
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
@@ -29,14 +30,22 @@
             <Code>form.action</Code> to send the post, so it sends it there. The browser's own post, with JavaScript off,
             reads the attribute instead and isn't affected.
         </TextBlock>
-        <TextBlock>
-            The same goes for other names the form element has: <Code>method</Code>, <Code>target</Code>,
-            <Code>enctype</Code>, <Code>elements</Code> and <Code>submit</Code> among them.
-        </TextBlock>
+        <TextBlock>Other names the form element has go wrong in their own ways, with JavaScript on:</TextBlock>
+        <List Gap="2">
+            <ListItem><Code>method</Code>: nothing posts, and the console shows that "[object RadioNodeList]" isn't a valid HTTP method.</ListItem>
+            <ListItem><Code>enctype</Code>: the form posts as plain text, and the server answers 400 Bad Request.</ListItem>
+            <ListItem><Code>target</Code>: Blazor leaves the post to the browser, so it loads the whole page instead of an enhanced post.</ListItem>
+            <ListItem><Code>elements</Code> and <Code>submit</Code>: Blazor's post works, but scripts that read <Code>form.elements</Code> or call <Code>form.submit()</Code> break; <Code>FilterForm</Code>'s script reads <Code>form.elements</Code>.</ListItem>
+        </List>
 
         <Heading Level="2">Fix</Heading>
         <TextBlock>Name the buttons something the form element doesn't have, such as <Code>intent</Code>, and read it under that name:</TextBlock>
-        <Code Block Language="razor" Title="Article.razor" HighlightLines="3-4,8">@Fixed</Code>
+        <Code Block Language="razor" Title="Post.razor" HighlightLines="3-4,8">@Fixed</Code>
+        <TextBlock>
+            An interactive page doesn't post, so <Code>Intent</Code> is <Code>null</Code> there: give each button an
+            <Code>OnClick</Code> too, as the example does and
+            <Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor> shows.
+        </TextBlock>
         <ExampleViewer Example="button-multi-submit" ModeSwitch />
 
         <Heading Level="2">Related</Heading>

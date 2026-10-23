@@ -324,13 +324,13 @@
           "notes": {
             "off": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
             "static": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
-            "live": "The same links: the page follows the address without a reload."
+            "live": "The same links: the component follows the address and keeps no count of its own."
           } }
       ],
       "scenarios": [
         { "id": "several-submit-buttons", "title": "Several submit buttons", "member": "Name",
           "description": "One form, three actions: each submit button posts its own Name and Value, so a single handler knows which was pressed. Works with JavaScript off.",
-          "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 300, "page": true } },
+          "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 390, "page": true } },
         { "id": "toolbar", "title": "Editor toolbar", "member": "Variant",
           "description": "A document toolbar: a joined group of formatting buttons, icon buttons with labels, and the main action on the right, wrapping at phone width.",
           "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 220, "page": true } }
@@ -412,7 +412,8 @@
         { "id": "form-two-forms", "title": "Two forms on a page", "height": 320,
           "notes": {
             "off": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
-            "static": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again."
+            "static": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
+            "live": "Nothing posts, so the search keeps its value after Subscribe."
           } },
         { "id": "form-empty-selection", "title": "An empty selection", "height": 210,
           "notes": {
@@ -420,7 +421,7 @@
             "static": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
             "live": "Nothing posts on an interactive page: the list is just empty."
           } },
-        { "id": "form-redirect-after-save", "title": "A redirect after saving", "height": 240,
+        { "id": "form-redirect-after-save", "title": "A redirect after saving", "height": 270,
           "notes": {
             "off": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
             "static": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
@@ -471,7 +472,7 @@
             "live": "Each field is checked when it changes, and submitting runs C# without a page load."
           } },
         { "id": "text-field-states", "title": "Sizes, read-only and disabled", "height": 380 },
-        { "id": "text-field-sign-in", "title": "A password after a failed post", "height": 340,
+        { "id": "text-field-sign-in", "title": "A password after a failed post", "height": 360,
           "notes": {
             "off": "After the failed post, the email comes back and the password field is empty.",
             "static": "After the failed post, the email comes back and the password field is empty.",

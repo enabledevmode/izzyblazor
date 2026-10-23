@@ -20,7 +20,7 @@
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
-            On an interactive page one component instance lives as long as the circuit, so its fields keep their values. On
+            On an interactive page a component instance lives as long as it stays on the page, so its fields keep their values. On
             a static page, each request (a link followed, a form posted, a reload) creates new components, renders them and
             throws them away. Nothing is kept on the server between requests unless you store it.
         </TextBlock>
@@ -39,15 +39,16 @@
                 <Code>&lt;input&gt;</Code>.
             </ListItem>
             <ListItem>
-                <strong>On the server.</strong> A database, or a cookie for a reader's preferences, read on each request.
+                <strong>Elsewhere.</strong> A database on the server, or a cookie in the browser for a reader's preferences,
+                read on each request.
             </ListItem>
         </List>
-        <Code Block Language="razor" Title="Booking.razor" HighlightLines="3,8-9">@Fixed</Code>
+        <Code Block Language="razor" Title="Booking.razor" HighlightLines="3,9-10,12">@Fixed</Code>
         <ExampleViewer Example="button-state-in-address" ModeSwitch />
         <TextBlock>
-            IzzyBlazor's components that keep state on static pages work the same way: <Code>Table</Code>,
-            <Code>Pagination</Code> and <Code>FilterForm</Code> keep theirs in the query string, <Code>Tabs</Code> takes a
-            <Code>QueryKey</Code>, and a dialog opens from <Code>?dialog=id</Code>.
+            IzzyBlazor's components use the address the same way: <Code>Table</Code>, <Code>Pagination</Code> and
+            <Code>FilterForm</Code> keep their state in the query string, <Code>Tabs</Code> with a <Code>QueryKey</Code>
+            opens the tab the address names, and a dialog opens from <Code>?dialog=id</Code>.
         </TextBlock>
 
         <Heading Level="2">Related</Heading>
@@ -78,6 +79,7 @@
         <Button Href="@Navigation.GetUriWithQueryParameter("guests", Guests + 1)">
             Add a guest
         </Button>
+        <TextBlock>@Guests guests</TextBlock>
 
         @code {
             [SupplyParameterFromQuery(Name = "guests")]

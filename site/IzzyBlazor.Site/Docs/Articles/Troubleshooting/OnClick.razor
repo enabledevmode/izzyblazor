@@ -17,7 +17,7 @@
             <Code>OnRemove</Code>, and for code that runs when a bound value changes (<Code>ValueChanged</Code>,
             <Code>@@bind-Value:after</Code>).
         </TextBlock>
-        <Code Block Language="razor" Title="Article.razor">@Broken</Code>
+        <Code Block Language="razor" Title="Post.razor">@Broken</Code>
 
         <Heading Level="2">Cause</Heading>
         <TextBlock>
@@ -30,9 +30,10 @@
         <TextBlock>Pick by what the click should do:</TextBlock>
         <List Gap="2">
             <ListItem>
-                <strong>Change data:</strong> make it a <Code>Submit</Code> button in a <Code>Form</Code>. The post runs
-                <Code>OnValidSubmit</Code> on the server, in every mode. With several buttons, give each a <Code>Name</Code>
-                and <Code>Value</Code>; the pressed one posts with the form.
+                <strong>Change data:</strong> make it a <Code>Submit</Code> button in a <Code>Form</Code>. On a static page
+                the post runs <Code>OnValidSubmit</Code>; on an interactive page the same handler runs without a post. With
+                several buttons, give each a <Code>Name</Code> and <Code>Value</Code>, which post with the form on a static
+                page, and an <Code>OnClick</Code> for interactive pages, where nothing posts.
             </ListItem>
             <ListItem>
                 <strong>Show something else:</strong> make it a link with <Code>Href</Code>, carrying any choice in the query
@@ -44,10 +45,10 @@
                 static page too.
             </ListItem>
         </List>
-        <Code Block Language="razor" Title="Article.razor" HighlightLines="3-4,11-12">@Fixed</Code>
+        <Code Block Language="razor" Title="Post.razor" HighlightLines="3-6,14-15,18,24">@Fixed</Code>
         <TextBlock>
-            Here each button posts its <Code>intent</Code> on a static page; on an interactive page the form doesn't post,
-            so <Code>OnClick</Code> records which button it was:
+            Here each button posts its <Code>intent</Code> on a static page, and <Code>OnClick</Code> records it on an
+            interactive one:
         </TextBlock>
         <ExampleViewer Example="button-multi-submit" ModeSwitch />
 
@@ -66,18 +67,32 @@
         """;
 
     private const string Fixed = """
-        <Form Model="Model" FormName="article" OnValidSubmit="SaveAsync">
+        <Form Model="Model" FormName="post" OnValidSubmit="SaveAsync">
             <TextField @bind-Value="Model!.Title" />
-            <Button Submit Name="intent" Value="publish">Publish</Button>
-            <Button Submit Name="intent" Value="draft">Save draft</Button>
+            <Button Submit Name="intent" Value="publish"
+                    OnClick='() => _pressed = "publish"'>Publish</Button>
+            <Button Submit Name="intent" Value="draft"
+                    OnClick='() => _pressed = "draft"'>Save draft</Button>
         </Form>
 
         @code {
-            [SupplyParameterFromForm(FormName = "article")]
-            private Article? Model { get; set; }
+            [SupplyParameterFromForm(FormName = "post")]
+            private PostDraft? Model { get; set; }
 
-            [SupplyParameterFromForm(FormName = "article", Name = "intent")]
+            // Static pages: the pressed button posts its Name and Value.
+            [SupplyParameterFromForm(FormName = "post", Name = "intent")]
             private string? Intent { get; set; }
+
+            // Interactive pages don't post: OnClick says which button it was.
+            private string? _pressed;
+
+            protected override void OnInitialized() => Model ??= new();
+
+            private async Task SaveAsync()
+            {
+                var publish = (Intent ?? _pressed) == "publish";
+                await Posts.SaveAsync(Model!, publish);
+            }
         }
         """;
 }

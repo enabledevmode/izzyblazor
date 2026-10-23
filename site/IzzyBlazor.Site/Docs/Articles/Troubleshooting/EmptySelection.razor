@@ -11,8 +11,8 @@
     <ChildContent>
         <Heading Level="2">Problem</Heading>
         <TextBlock>
-            On a static page, a reader unchecks every box in a <Code>CheckboxGroup</Code> and saves. The page comes back
-            with the default boxes checked again, as if they'd never been unchecked. In a form with other fields, the list
+            On a static page, a reader unchecks every box in a <Code>CheckboxGroup</Code> and saves. The save handler
+            gets the defaults instead, so they're saved and the page comes back with those boxes checked again. In a form with other fields, the list
             arrives as <Code>null</Code> instead, and code that reads <Code>.Count</Code> throws. A
             <Code>MultiSelect</Code> with nothing selected does the same.
         </TextBlock>
@@ -43,7 +43,12 @@
             Give the defaults only when the request isn't a post, and treat <Code>null</Code> as an empty list wherever you
             read it:
         </TextBlock>
-        <Code Block Language="razor" Title="Newsletter.razor" HighlightLines="11-14,16">@Fixed</Code>
+        <Code Block Language="razor" Title="Newsletter.razor" HighlightLines="9,11-14,16">@Fixed</Code>
+        <TextBlock>
+            On a page with more than one form, a post from another form is a POST too, and this one would come back with
+            nothing checked. Check that the post is this form's: Blazor posts the form's name as <Code>_handler</Code>.
+        </TextBlock>
+        <Code Block Language="csharp">@ThisForm</Code>
         <TextBlock>Uncheck every box and save, in each mode:</TextBlock>
         <ExampleViewer Example="form-empty-selection" ModeSwitch />
         <TextBlock>
@@ -93,5 +98,11 @@
 
             private IReadOnlyList<Topic> Chosen => Model!.Topics ?? [];
         }
+        """;
+
+    private const string ThisForm = """
+        var posted = HttpContext?.Request.HasFormContentType == true
+            && HttpContext.Request.Form["_handler"] == "newsletter";
+        Model ??= posted ? new() : new() { Topics = [Topic.Releases] };
         """;
 }

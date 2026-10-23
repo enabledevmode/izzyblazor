@@ -20,6 +20,10 @@
             @if (found.Article.Components.Count > 0 || found.Article.Modes.Count > 0)
             {
                 <Row Gap="2" Wrap Align="Align.Center" Class="site-article-tags">
+                    @if (found.Article.Components.Count > 0)
+                    {
+                        <span class="ib-visually-hidden">About:</span>
+                    }
                     @foreach (var name in found.Article.Components)
                     {
                         <Tag Size="ControlSize.Sm" Href="@(Registry.ByName(name) is { } component ? Registry.OverviewHref(component) : null)">@name</Tag>
@@ -29,7 +33,7 @@
                         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Happens in</TextBlock>
                         @foreach (var mode in found.Article.Modes)
                         {
-                            <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" title="@ModeChip.Describe(mode)">@ModeChip.Name(mode)</Badge>
+                            <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">@ModeChip.Name(mode)<span class="ib-visually-hidden">: @(char.ToLowerInvariant(ModeChip.Describe(mode)[0]) + ModeChip.Describe(mode)[1..])</span></Badge>
                         }
                     }
                 </Row>

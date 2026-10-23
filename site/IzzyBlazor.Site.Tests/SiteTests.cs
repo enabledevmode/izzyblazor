@@ -153,6 +153,29 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
+    public async Task A_troubleshooting_article_is_linked_from_each_component_it_is_about()
+    {
+        // Hand-written See also lists need TroubleshootingLinks added by hand: this catches one that doesn't.
+        var missing = new List<string>();
+        foreach (var section in Articles.Sections)
+        {
+            foreach (var article in section.Articles)
+            {
+                foreach (var name in article.Components)
+                {
+                    var html = await site.Client.GetStringAsync(Registry.OverviewHref(site.Registry.ByName(name)!));
+                    if (!html.Contains($"href=\"{section.HrefOf(article)}\"", StringComparison.Ordinal))
+                    {
+                        missing.Add($"{name}: {section.HrefOf(article)}");
+                    }
+                }
+            }
+        }
+
+        Assert.True(missing.Count == 0, string.Join(", ", missing));
+    }
+
+    [Fact]
     public async Task A_page_that_is_one_example_has_one_switch_in_it()
     {
         var html = await site.Client.GetStringAsync("docs");
