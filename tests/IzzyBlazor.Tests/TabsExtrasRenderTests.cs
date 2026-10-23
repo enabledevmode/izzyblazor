@@ -59,6 +59,29 @@ public class TabsExtrasRenderTests : BunitContext
         Assert.Null(cut.FindAll("a.ib-tab")[0].GetAttribute("aria-current"));
     }
 
+    [Theory]
+    [InlineData("settings", 0)]
+    [InlineData("settings?view=billing", 1)]
+    [InlineData("settings?view=team", 2)]
+    [InlineData("settings?view=other", 0)]
+    public void Link_tabs_told_apart_by_the_query_mark_one(string uri, int current)
+    {
+        GoTo(uri);
+        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, builder =>
+        {
+            foreach (var (href, label) in new[] { ("settings", "Profile"), ("settings?view=billing", "Billing"), ("settings?view=team", "Team") })
+            {
+                builder.OpenComponent<TabLink>(0);
+                builder.AddComponentParameter(1, nameof(TabLink.Href), href);
+                builder.AddComponentParameter(2, nameof(TabLink.Label), label);
+                builder.CloseComponent();
+            }
+        }));
+
+        var marked = cut.FindAll("a.ib-tab").Select(a => a.GetAttribute("aria-current")).ToArray();
+        Assert.Equal(Enumerable.Range(0, 3).Select(i => i == current ? "page" : null).ToArray(), marked);
+    }
+
     [Fact]
     public void Disabled_link_tab_has_no_href_and_reads_as_a_disabled_link()
     {

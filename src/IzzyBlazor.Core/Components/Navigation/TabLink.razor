@@ -33,7 +33,8 @@
     /// <summary>
     /// How the current URL must match <see cref="Href"/> for the tab to be selected. <c>Prefix</c>
     /// (the default) also selects it on pages below it. A link with a query string (<c>?tab=billing</c>)
-    /// is selected only when the current query string is the same.
+    /// is selected only when the current query string is the same, and then a tab whose link has no
+    /// query isn't, so tabs for one page told apart by the query select one at a time.
     /// </summary>
     [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
 
