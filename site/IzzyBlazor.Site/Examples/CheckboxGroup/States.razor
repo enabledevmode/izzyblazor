@@ -1,0 +1,25 @@
+<Form Model="Model" FormName="checkbox-group-states" MaxWidth="32.Rem" Grow>
+    <CheckboxGroup @bind-Value="Model!.Small" Items="Sizes" Label="Small" Size="ControlSize.Sm" Orientation="Orientation.Horizontal" />
+    <CheckboxGroup @bind-Value="Model!.Large" Items="Sizes" Label="Large" Size="ControlSize.Lg" Orientation="Orientation.Horizontal" />
+    <CheckboxGroup @bind-Value="Model!.Stocked" Items="Sizes" Label="In stock" ReadOnly Orientation="Orientation.Horizontal"
+                   Hint="Read-only: posted, but can't be changed." />
+    <CheckboxGroup @bind-Value="Model!.OnSale" Items="Sizes" Label="On sale" Disabled Orientation="Orientation.Horizontal"
+                   Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-group-states")]
+    private Product? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static readonly string[] Sizes = ["S", "M", "L", "XL"];
+
+    public sealed class Product
+    {
+        public string[] Small { get; set; } = ["M"];
+        public string[] Large { get; set; } = ["M"];
+        public string[] Stocked { get; set; } = ["S", "M", "L"];
+        public string[] OnSale { get; set; } = ["XL"];
+    }
+}

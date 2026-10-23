@@ -4,6 +4,10 @@
         <SegmentedControl @bind-Value="Model!.Medium" Label="Medium" />
         <SegmentedControl @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
     </Row>
+    <Row Gap="4" Wrap>
+        <SegmentedControl @bind-Value="Model!.Kept" Label="Read-only" ReadOnly />
+        <SegmentedControl @bind-Value="Model!.Locked" Label="Disabled" Disabled />
+    </Row>
 </Form>
 
 @code {
@@ -17,6 +21,8 @@
         public Period Small { get; set; } = Period.Week;
         public Period Medium { get; set; } = Period.Week;
         public Period Large { get; set; } = Period.Week;
+        public Period Kept { get; set; } = Period.Month;
+        public Period Locked { get; set; } = Period.Day;
     }
 
     public enum Period { Day, Week, Month }

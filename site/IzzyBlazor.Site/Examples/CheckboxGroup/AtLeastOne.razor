@@ -1,0 +1,37 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="checkbox-group-at-least-one" OnValidSubmit="Save" MaxWidth="32.Rem" Grow>
+    <CheckboxGroup @bind-Value="Model!.Days" Items="Weekdays" Orientation="Orientation.Horizontal" />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Saved: @_saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-group-at-least-one")]
+    private Availability? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // What was saved, not the field: on an interactive page it changes as boxes are checked.
+    private void Save() => _saved = string.Join(", ", Model!.Days!.Distinct());
+
+    public sealed class Availability
+    {
+        // [Required] catches an empty choice on a static page, where nothing posts and the list
+        // is null; [MinLength] on an interactive page, where it's an empty list.
+        [Required(ErrorMessage = "Choose at least one day")]
+        [MinLength(1, ErrorMessage = "Choose at least one day")]
+        [Display(Name = "Days you can work")]
+        public List<DayOfWeek>? Days { get; set; }
+    }
+
+    private static readonly DayOfWeek[] Weekdays =
+    [
+        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday, DayOfWeek.Friday,
+    ];
+}

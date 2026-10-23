@@ -1,0 +1,57 @@
+@* RadioGroup's Overview, written by hand after Button's, Card's and MultiSelect's: an enum's
+   options stacked or in a row, options from a list, a required choice that starts empty, and
+   states. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>For two to five short options, a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> takes less room; for a long list, use a <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
+
+<Heading Level="2">Stacked or in a row</Heading>
+<TextBlock>Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>. Options stack; use <Code>Orientation.Horizontal</Code> to put a few short ones in a row, wrapping when there isn't room.</TextBlock>
+<ExampleViewer Example="radio-group-horizontal" />
+
+<Heading Level="2">Options from a list</Heading>
+<TextBlock>Use <Code>Items</Code> for options that aren't an enum, and <Code>ItemText</Code> for how each one reads.</TextBlock>
+<ExampleViewer Example="radio-group-shipping" />
+<TextBlock>Each radio posts its value as text and Blazor turns it back into the property's type, so use values that do that, such as strings, numbers or enums, and look the text up by value.</TextBlock>
+
+<Heading Level="2">Required, with nothing chosen</Heading>
+<TextBlock>Bind a nullable property with <Code>[Required]</Code> to start with nothing chosen and need a choice.</TextBlock>
+<ExampleViewer Example="radio-group-required-choice" />
+<TextBlock>A property that isn't nullable always has a value, so one option is chosen from the start (the enum's first, unless the model sets another) and <Code>[Required]</Code> never fails.</TextBlock>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a choice that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="radio-group-states" />
+<TextBlock>HTML has no read-only radio, so read-only radios arrive disabled, outside the form, and a hidden field posts the value; the script then lets them take focus and keeps the choice from changing.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* An enum: its values are the options, named by their [Display(Name)]. *@
+        <RadioGroup @bind-Value="Model!.Digest" />
+
+        @* Other values, with ItemText for each one's text. *@
+        <RadioGroup @bind-Value="Model!.Rate" Items="Rates.Keys" ItemText="RateText"
+                    Orientation="Orientation.Horizontal" />
+        """;
+}

@@ -1,0 +1,29 @@
+<Form Model="Model" FormName="radio-group-states" MaxWidth="32.Rem" Grow>
+    <RadioGroup @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" Orientation="Orientation.Horizontal" />
+    <RadioGroup @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" Orientation="Orientation.Horizontal" />
+    <RadioGroup @bind-Value="Model!.Plan" Label="Plan" ReadOnly Orientation="Orientation.Horizontal"
+                Hint="Read-only: posted, but can't be changed." />
+    <RadioGroup @bind-Value="Model!.Region" Label="Region" Disabled Orientation="Orientation.Horizontal"
+                Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "radio-group-states")]
+    private Account? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Account
+    {
+        public Priority Small { get; set; } = Priority.Normal;
+        public Priority Large { get; set; } = Priority.Normal;
+        public Plan Plan { get; set; } = Plan.Team;
+        public Region Region { get; set; } = Region.Europe;
+    }
+
+    public enum Priority { Low, Normal, High }
+
+    public enum Plan { Free, Team, Enterprise }
+
+    public enum Region { Americas, Europe, Asia }
+}

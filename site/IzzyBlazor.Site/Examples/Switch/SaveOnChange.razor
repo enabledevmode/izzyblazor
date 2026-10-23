@@ -1,0 +1,35 @@
+<Form Model="Model" FormName="switch-save-on-change" OnValidSubmit="Save" MaxWidth="32.Rem" Grow>
+    <Switch @bind-Value="Model!.Maintenance" @bind-Value:after="Save" ControlPosition="ControlPosition.End"
+            Label="Maintenance mode" Hint="Visitors see a maintenance page until you turn it off." />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        @* An interactive page saves on each change, so it needs no button. *@
+        @if (!Interactive)
+        {
+            <Button Submit Size="ControlSize.Sm">Save</Button>
+        }
+        @if (_saved is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "switch-save-on-change")]
+    private SiteStatus? Model { get; set; }
+
+    private string? _saved;
+
+    // True from the prerender of an interactive page on, so the button never shows and goes.
+    private bool Interactive => RendererInfo.IsInteractive || AssignedRenderMode is not null;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // Runs after each change on an interactive page, and on a static page's post.
+    private void Save() => _saved = Model!.Maintenance ? "Saved: the site is in maintenance mode." : "Saved: the site is live.";
+
+    public sealed class SiteStatus
+    {
+        public bool Maintenance { get; set; }
+    }
+}

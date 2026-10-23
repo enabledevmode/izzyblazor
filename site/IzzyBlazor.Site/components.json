@@ -660,20 +660,38 @@
     {
       "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Selection", "summary": "A checkbox drawn to match the fields.",
       "examples": [
+        { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "Use `ChildContent` for a label with a link, and `[Required]` with `[Range]` on the bool for a box that must be checked.",
+          "notes": {
+            "off": "The browser stops the post until the box is checked, in its own words.",
+            "static": "The browser stops the post until the box is checked, in the model's words."
+          } },
         { "id": "checkbox-select-all", "title": "Select all", "lead": "Use `Indeterminate` to show a dash on a box when only some of what it stands for is checked.",
           "notes": {
             "off": "Checking the top box doesn't check the others until Save: the server then checks or clears all three. Screen readers hear the dash as \"not checked\".",
             "static": "The same, but screen readers hear the dash as \"mixed\".",
             "live": "Checking the top box checks all three, and it follows them as they change."
           } },
-        { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`; a `Disabled` box doesn't post." }
+        { "id": "checkbox-sizes", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`, `ReadOnly` for one that posts but can't change, and `Disabled` for one that doesn't post.",
+          "notes": {
+            "off": "The read-only box looks disabled and can't be focused, but it still posts."
+          } }
       ]
     },
     {
       "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Selection", "summary": "An on/off switch that posts like a checkbox.",
       "examples": [
         { "id": "switch-control-end", "title": "At the end of the row", "lead": "Use `ControlPosition.End` to put the switch at the end of the row, with the hint under the label, as in a list of settings." },
-        { "id": "switch-icons", "title": "Icons on rows", "lead": "Use `Icon` to put a decorative icon at the start of the row; give every row in a group one, or none." }
+        { "id": "switch-icons", "title": "Icons on rows", "lead": "Use `Icon` to put a decorative icon at the start of the row; give every row in a group one, or none." },
+        { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "Use `@bind-Value:after` to save each change on an interactive page, and a Save button on a static one.",
+          "notes": {
+            "off": "Switching changes nothing until Save posts the form.",
+            "static": "Switching changes nothing until Save posts the form; the page doesn't reload.",
+            "live": "Each switch saves at once, with no button."
+          } },
+        { "id": "switch-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a switch that posts but can't change, and `Disabled` for one that doesn't post.",
+          "notes": {
+            "off": "The read-only switch looks disabled and can't be focused, but it still posts."
+          } }
       ],
       "scenarios": [
         { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
@@ -685,14 +703,28 @@
       "id": "radio-group", "icon": "CircleDot", "name": "RadioGroup", "category": "Selection", "summary": "One choice from a list of radios.",
       "examples": [
         { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default; use `Orientation.Horizontal` to put a few short ones in a row, wrapping when space runs out." },
-        { "id": "radio-group-shipping", "title": "Options from a list", "lead": "Use `Items` for options that aren't an enum, and `ItemText` for how each one reads." }
+        { "id": "radio-group-shipping", "title": "Options from a list", "lead": "Use `Items` for options that aren't an enum, and `ItemText` for how each one reads." },
+        { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "Bind a nullable property with `[Required]` to start with nothing chosen and need a choice.",
+          "notes": {
+            "off": "The browser stops the post until an option is chosen, in its own words.",
+            "static": "The browser stops the post until an option is chosen, in the model's words."
+          } },
+        { "id": "radio-group-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a choice that posts but can't change, and `Disabled` for one that doesn't post.",
+          "notes": {
+            "off": "The read-only group looks disabled and can't be focused, but it still posts."
+          } }
       ]
     },
     {
       "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Selection", "summary": "Several choices as checkboxes.",
       "examples": [
         { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "Bind `CheckboxGroup` to a collection (an array, `List` or `HashSet`) and pass the options to `Items`; each checked box posts its value, so it works with JavaScript off." },
-        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name." }
+        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name." },
+        { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "Use `[Required]` and `[MinLength(1)]` together to need at least one checked box." },
+        { "id": "checkbox-group-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for choices that post but can't change, and `Disabled` for ones that don't post.",
+          "notes": {
+            "off": "The read-only boxes look disabled and can't be focused, but they still post."
+          } }
       ]
     },
     {
@@ -700,7 +732,10 @@
       "examples": [
         { "id": "segmented-control-icons", "title": "Icons", "lead": "Use `ItemIcon` to put an icon before each option's text, and `IconOnly` to show just the icons, with the text as a tooltip and for screen readers." },
         { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "Use `FullWidth` to share the width equally between the segments, and `HideLabel` to keep the label for screen readers only." },
-        { "id": "segmented-control-sizes", "title": "Sizes", "lead": "Use `Size` to match the control to fields and buttons of the same `ControlSize`." }
+        { "id": "segmented-control-sizes", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match the control to fields and buttons of the same `ControlSize`, `ReadOnly` for a choice that posts but can't change, and `Disabled` for one that doesn't post.",
+          "notes": {
+            "off": "The read-only control looks disabled and can't be focused, but it still posts."
+          } }
       ]
     },
 

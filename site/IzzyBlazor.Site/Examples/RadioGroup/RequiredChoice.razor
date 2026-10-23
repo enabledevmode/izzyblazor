@@ -1,0 +1,44 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="radio-group-required-choice" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+    <RadioGroup @bind-Value="Model!.Source" />
+    <Row><Button Submit>Send</Button></Row>
+    @if (_sent is not null)
+    {
+        <Alert Status="Status.Success">Thanks: you heard about us from @_sent.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "radio-group-required-choice")]
+    private Survey? Model { get; set; }
+
+    private string? _sent;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // What was sent, not the field: on an interactive page it changes as people choose.
+    private void Save() => _sent = Model!.Source switch
+    {
+        Source.Friend => "a friend or colleague",
+        Source.Search => "a search",
+        Source.Social => "social media",
+        _ => "a talk",
+    };
+
+    public sealed class Survey
+    {
+        // Nullable, so nothing is chosen until someone chooses.
+        [Required(ErrorMessage = "Choose how you heard about us")]
+        [Display(Name = "How did you hear about us?")]
+        public Source? Source { get; set; }
+    }
+
+    public enum Source
+    {
+        [Display(Name = "A friend or colleague")] Friend,
+        Search,
+        [Display(Name = "Social media")] Social,
+        [Display(Name = "A conference talk")] Talk,
+    }
+}
