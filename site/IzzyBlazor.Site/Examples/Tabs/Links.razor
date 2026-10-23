@@ -1,6 +1,28 @@
-<Tabs Label="Tabs documentation" Grow>
-    <TabLink Href="docs/components/tabs" Label="Overview" Icon="Lucide.BookOpen" Match="NavLinkMatch.All" />
-    <TabLink Href="docs/components/tabs/api" Label="API" Icon="Lucide.Blocks" />
-    <TabLink Href="demos/tabs" Label="Demos" Icon="Lucide.LayoutDashboard" />
-    <TabLink Href="docs/components/tabs/changelog" Label="Changelog" Disabled />
-</Tabs>
+@inject NavigationManager Navigation
+
+@* Each TabLink is a link, here to this page with ?view= (in an app, usually its own route), and
+   the one for the current address is marked on the server. Profile's link has no view: it's
+   current until a link with one matches. *@
+<Stack Gap="2" Grow>
+    <Tabs Label="Settings">
+        <TabLink Href="@To(null)" Label="Profile" Icon="Lucide.User" />
+        <TabLink Href="@To("billing")" Label="Billing" Icon="Lucide.CreditCard" />
+        <TabLink Href="@To("audit")" Label="Audit" Disabled />
+        <TabLink Href="@To("team")" Label="Team" Icon="Lucide.UsersRound" Badge="4" />
+    </Tabs>
+    <TextBlock Color="Color.Muted">
+        @(View switch
+        {
+            "billing" => "The billing page: your plan, payment method and invoices.",
+            "team" => "The team page: four people have access.",
+            _ => "The profile page: your name, photo and email.",
+        })
+    </TextBlock>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "view")]
+    private string? View { get; set; }
+
+    private string To(string? view) => Navigation.GetUriWithQueryParameter("view", view);
+}

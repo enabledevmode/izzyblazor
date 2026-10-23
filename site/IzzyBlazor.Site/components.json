@@ -763,6 +763,15 @@
     },
     {
       "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Panels that switch with no script, or links to pages.", "parts": ["Tab", "TabLink"],
+      "features": [
+        { "feature": "Switch panels, keeping what's typed" },
+        { "feature": "Heard as tabs, with Home and End", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Open a tab from a ?tab= link" },
+        { "feature": "The address follows the picked tab", "off": "none", "static": "full", "live": "full" },
+        { "feature": "In a form: error counts, the tab with errors opens", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Selected bound to C#", "member": "Selected" },
+        { "feature": "Tabs as links (TabLink)" }
+      ],
       "examples": [
         { "id": "tabs-modes", "title": "Tabs in each mode", "height": 200,
           "notes": {
@@ -770,20 +779,21 @@
             "static": "The script makes them ARIA tabs, with roving focus. C# still isn't told: there's no circuit.",
             "live": "@bind-Selected tells C# each time the tab changes."
           } },
-        { "id": "tabs-variants", "title": "Variants, icons and badges", "lead": "Use `Variant` for an underline (the default), soft tabs or a segmented control; each `Tab` can have an `Icon`, a `Badge`, or be `Disabled`.", "height": 440 },
-        { "id": "tabs-sizes", "title": "Sizes and full width", "lead": "Use `Size` to match buttons and fields, and `FullWidth` to stretch the tabs across the row.", "height": 330 },
+        { "id": "tabs-variants", "title": "Variants, icons and badges", "lead": "Use `Variant` for an underline (the default), soft tabs or a segmented control; each `Tab` can have an `Icon`, a `Badge`, or be `Disabled`.", "height": 460 },
+        { "id": "tabs-sizes", "title": "Sizes and full width", "lead": "Use `Size` to match buttons and fields, and `FullWidth` to stretch the tabs across the row.", "height": 370 },
         { "id": "tabs-vertical", "title": "Vertical", "lead": "Use `Orientation` `Orientation.Vertical` to put the tabs in a column beside the panels from 640px up; on phones they stay a row above.", "height": 260 },
-        { "id": "tabs-url", "title": "In the URL", "lead": "Use `QueryKey` to keep the selected tab in the query string, so a link to `?tab=billing` opens Billing.", "height": 180,
+        { "id": "tabs-url", "title": "In the URL", "lead": "Use `QueryKey` to keep the selected tab in the query string, so a link to `?tab=billing` opens Billing.", "height": 210,
           "notes": {
             "off": "The link opens Billing, but picking a tab doesn't change the address.",
             "static": "Picking a tab also updates the address, so it can be copied and shared."
           } },
-        { "id": "tabs-links", "title": "Tabs as links", "lead": "Use `TabLink` in place of `Tab` for tabs that are links to their own pages: a `nav` of plain links, with the tab for the current page marked from the URL (none here, since the example is a page of its own). `Match=\"NavLinkMatch.All\"` keeps Overview from matching the pages below it.", "height": 80 }
+        { "id": "tabs-links", "title": "Tabs as links", "lead": "Use `TabLink` in place of `Tab` for tabs that are links to their own pages: a `nav` of plain links, with the tab for the current address marked on the server.", "height": 140 },
+        { "id": "tabs-padding", "title": "Panel padding", "lead": "Use `ContentPadding` to pad every panel on all sides, and a `Tab`'s own `ContentPadding=\"0\"` to run a table edge to edge.", "height": 280 }
       ],
       "scenarios": [
         { "id": "form-tabs", "title": "Tabs in a form", "member": "Selected",
           "description": "Account details split across two tabs that still post as one form: after a failed save, the first tab with errors opens and each tab counts its own. With JavaScript off there are no tabs, and both sections show, one under the other.",
-          "example": { "id": "tabs-account-form", "title": "Account details", "height": 640, "page": true,
+          "example": { "id": "tabs-account-form", "title": "Account details", "height": 730, "page": true,
             "notes": {
               "off": "There are no tabs: both sections show, one under the other. Save posts, and the page loads again with the server's messages.",
               "static": "Save posts without a full reload, and the Address tab opens with a count of its errors.",
