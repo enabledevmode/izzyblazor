@@ -42,18 +42,18 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="stone"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="stone"])) {
-    --ib-color-background: light-dark(#f7f6f3, #151618);
-    --ib-color-surface: light-dark(#ffffff, #1d1f22);
-    --ib-color-surface-container-low: light-dark(#f3f2ee, #26282b);
-    --ib-color-surface-container: light-dark(#eae8e2, #2b2d31);
-    --ib-color-surface-container-high: light-dark(#e0ddd5, #323438);
-    --ib-color-surface-raised: light-dark(#ffffff, #25272b);
+    --ib-color-background: light-dark(#f7f6f3, #0d0e10);
+    --ib-color-surface: light-dark(#ffffff, #151618);
+    --ib-color-surface-container-low: light-dark(#f3f2ee, #1d1f22);
+    --ib-color-surface-container: light-dark(#eae8e2, #232529);
+    --ib-color-surface-container-high: light-dark(#e0ddd5, #2b2d31);
+    --ib-color-surface-raised: light-dark(#ffffff, #1e2023);
     --ib-color-on-surface: light-dark(#1b1d1f, #ecebe6);
     --ib-color-muted: light-dark(#5b6168, #a3a7ad);
     --ib-color-subtle: light-dark(#646970, #92969c);
     --ib-color-disabled: light-dark(#8a8f95, #6d7176);
-    --ib-color-border: light-dark(#dedbd3, #383b40);
-    --ib-color-outline: light-dark(#bdb9b0, #56595f);
+    --ib-color-border: light-dark(#dedbd3, #2d3034);
+    --ib-color-outline: light-dark(#bdb9b0, #4e5157);
   }
 
   :root[data-ib-preset="compact"],
