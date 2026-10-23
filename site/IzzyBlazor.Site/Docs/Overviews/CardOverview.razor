@@ -1,0 +1,85 @@
+@* Card's Overview, written by hand after Button's and Form's: the header and variants, sizes, a
+   linked card with media, a heading of your own, the body and footer, flush content, sections, a
+   form in a card (each mode posts it differently) and a grid of cards. Accessibility, Parts and
+   See also come from the doc comment and components.json. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A card frames one thing people look at or act on, such as a project, a person or a plan, and often sits in a grid with others like it. For a band across the page, such as a hero, use a <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
+
+<Heading Level="2">Variants</Heading>
+<TextBlock>Use <Code>Variant</Code> for <Code>Outline</Code> (the default), <Code>Elevated</Code> or <Code>Filled</Code>, and <Code>Title</Code> and <Code>Description</Code> for the header.</TextBlock>
+<ExampleViewer Example="card-variants" />
+<TextBlock>The title is an <Code>h3</Code>; set <Code>TitleLevel</Code> to fit the page's outline. Content between the tags is the body.</TextBlock>
+
+<Heading Level="2">Sizes</Heading>
+<TextBlock>Use <Code>Size</Code> for the padding and the title's size (<Code>Md</Code> by default): <Code>Sm</Code> for dense grids, <Code>Lg</Code> for a card on its own.</TextBlock>
+<ExampleViewer Example="card-sizes" />
+
+<Heading Level="2">A linked card</Heading>
+<TextBlock>Use <Code>Href</Code> to make the whole card a link through its title; buttons in <Code>CardActions</Code>, <Code>CardFooter</Code> and the body stay clickable on their own.</TextBlock>
+<ExampleViewer Example="card-linked" />
+<TextBlock>The link is the title, so a linked card needs a <Code>Title</Code>. <Code>CardMedia</Code> draws an image, video or SVG across the top, edge to edge; one that only decorates gets <Code>alt=""</Code> on an <Code>img</Code> or <Code>aria-hidden="true"</Code> on an <Code>svg</Code>. On a linked card the media is part of the link, so a video's controls can't be used there.</TextBlock>
+
+<Heading Level="2">Your own heading</Heading>
+<TextBlock>Use <Code>CardHeader</Code> for content above the title, such as who wrote it, and <Code>CardActions</Code> for buttons or a <Anchor Href="docs/components/menu">Menu</Anchor> at the end of the heading row.</TextBlock>
+<ExampleViewer Example="card-post" />
+
+<Heading Level="2">Body and footer</Heading>
+<TextBlock>Use <Code>CardBody</Code> for the body's layout, with <Code>Gap</Code>, <Code>Align</Code> and <Code>Direction</Code>, and <Code>CardFooter</Code> for a row of buttons at the bottom, with <Code>Justify</Code>.</TextBlock>
+<ExampleViewer Example="card-footer" />
+<TextBlock>Write the footer last, directly in the card: inside a <Code>CardBody</Code> or a form it's an ordinary row, not the card's footer.</TextBlock>
+
+<Heading Level="2">Flush content</Heading>
+<TextBlock>Use <Code>Flush</Code> on a <Code>CardBody</Code> to run a <Anchor Href="docs/components/table">Table</Anchor> or a divided list to the card's edges.</TextBlock>
+<ExampleViewer Example="card-flush" />
+
+<Heading Level="2">Sections and a footer bar</Heading>
+<TextBlock>Use <Code>Dividers</Code> to make each <Code>CardBody</Code> a section with a line between, and give the <Code>CardFooter</Code> a <Code>Bg</Code> or <Code>BorderTop</Code> to make it a bar across the bottom.</TextBlock>
+<ExampleViewer Example="card-sections" />
+
+<Heading Level="2">A form in a card</Heading>
+<TextBlock>Put the <Anchor Href="docs/components/form">Form</Anchor> around the card, so the submit button in its <Code>CardFooter</Code> is inside the form.</TextBlock>
+<ExampleViewer Example="card-settings" />
+<TextBlock>A <Code>CardFooter</Code> inside a form isn't drawn as the card's footer, and <Code>CardMedia</Code>, <Code>CardHeader</Code> and <Code>CardActions</Code> are drawn at the card's level, so a form inside the card reaches none of them. A form whose buttons are in its own <Code>FormActions</Code> can go inside.</TextBlock>
+
+<Heading Level="2">Cards in a grid</Heading>
+<TextBlock>Use a <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code> to fit as many cards to a row as there's room for. Cards in a row take its height, and a <Code>CardFooter</Code> stays at the bottom.</TextBlock>
+<ExampleViewer Example="card-projects" />
+<TextBlock>Put the body's text in an element, such as a <Code>TextBlock</Code>: a body of bare text and a footer keeps the footer right under the text.</TextBlock>
+
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Card Title="Website" Description="Updated 2 hours ago">
+            <TextBlock>Marketing pages and the docs, deployed from main.</TextBlock>
+            <CardFooter Justify="Justify.End">
+                <Button Href="projects/website" Size="ControlSize.Sm">Open</Button>
+            </CardFooter>
+        </Card>
+
+        @* The whole card is a link, through its title. *@
+        <Card Title="Course app" Description="12 lessons" Href="courses/app" />
+        """;
+}

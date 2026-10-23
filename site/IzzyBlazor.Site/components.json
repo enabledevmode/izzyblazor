@@ -1012,10 +1012,18 @@
       "id": "card", "icon": "SquareStack", "name": "Card", "category": "Data display", "summary": "Media, header, body sections, actions and footer.", "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
       "examples": [
         { "id": "card-variants", "title": "Variants", "lead": "Use `Variant` for `Outline` (the default), `Elevated` or `Filled`; `Title` and `Description` make the header." },
+        { "id": "card-sizes", "title": "Sizes", "lead": "Use `Size` for the padding and the title's size." },
         { "id": "card-linked", "title": "A linked card", "lead": "Use `Href` to make the whole card a link through its title; buttons in `CardActions` stay clickable, and `CardMedia` goes on top." },
+        { "id": "card-post", "title": "Your own heading", "lead": "Use `CardHeader` for content above the title, such as who wrote it, and `CardActions` for a menu at the end of the heading row." },
         { "id": "card-footer", "title": "Body and footer", "lead": "Use `CardBody` for the body's layout and `CardFooter` for a row of buttons at the bottom." },
         { "id": "card-flush", "title": "Flush content", "lead": "Use `Flush` on `CardBody` to run a table or list to the card's edges." },
-        { "id": "card-sections", "title": "Sections and a footer bar", "lead": "Use `Dividers` to make each `CardBody` a section, and a `CardFooter` with a `Bg` for a bar across the bottom." }
+        { "id": "card-sections", "title": "Sections and a footer bar", "lead": "Use `Dividers` to make each `CardBody` a section, and a `CardFooter` with a `Bg` for a bar across the bottom." },
+        { "id": "card-settings", "title": "A form in a card", "lead": "Put the `Form` around the `Card`, so a submit button in the `CardFooter` is inside the form.",
+          "notes": {
+            "off": "Save posts the form and the page loads again, with the result under the card.",
+            "static": "Save posts the form without a reload.",
+            "live": "Save runs C# on the server, with no post." } },
+        { "id": "card-projects", "title": "Cards in a grid", "lead": "Use a `Grid` with `MinChildWidth` to fit as many cards to a row as there's room for; cards in a row take its height, and each `CardFooter` stays at the bottom." }
       ],
       "scenarios": [
         { "id": "profile-card", "title": "Profile card",

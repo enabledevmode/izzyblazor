@@ -1,0 +1,44 @@
+@using System.ComponentModel.DataAnnotations
+
+@* The Form goes around the Card, so the Save button in the CardFooter is inside the form. *@
+<Form Model="Model" FormName="card-settings" OnValidSubmit="Save" Grow MaxWidth="32.Rem">
+    <Card Dividers Title="Workspace" Description="Seen by everyone in it">
+        <CardBody>
+            <TextField @bind-Value="Model!.Name" />
+        </CardBody>
+        <CardBody>
+            <Switch @bind-Value="Model!.WeeklySummary" ControlPosition="ControlPosition.End" Hint="Every Monday, to each member." />
+        </CardBody>
+        <CardFooter Justify="Justify.End" Bg="Color.SurfaceContainerLow" BorderTop="1">
+            <Button Submit Size="ControlSize.Sm">Save</Button>
+        </CardFooter>
+    </Card>
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success">Saved: @_saved</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "card-settings")]
+    private WorkspaceSettings? Model { get; set; }
+
+    private string? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // What was saved, not the fields: on an interactive page they change as people type.
+    private void Save() => _saved = $"{Model!.Name}, {(Model.WeeklySummary ? "with" : "without")} the weekly summary.";
+    @* hide *@
+    public sealed class WorkspaceSettings
+    {
+        [Required(ErrorMessage = "Enter a workspace name")]
+        [StringLength(40, ErrorMessage = "Use 40 characters or fewer")]
+        [Display(Name = "Workspace name")]
+        public string? Name { get; set; } = "Platform team";
+
+        [Display(Name = "Email a weekly summary")]
+        public bool WeeklySummary { get; set; } = true;
+    }
+    @* /hide *@
+}

@@ -1,0 +1,25 @@
+<Card Title="The Q3 roadmap is ready" Grow MaxWidth="28.Rem">
+    <CardHeader>
+        <Row Gap="2" Align="Align.Center">
+            <Avatar Name="Maya Reyes" Size="AvatarSize.Sm" Decorative />
+            <TextBlock As="span" Size="TextSize.Sm" Weight="FontWeight.Medium">Maya Reyes</TextBlock>
+            <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">2 hours ago</TextBlock>
+        </Row>
+    </CardHeader>
+    <CardActions>
+        <Menu Placement="Placement.BottomEnd">
+            <Trigger>
+                <IconButton Icon="Lucide.Ellipsis" Label="Post actions" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="context" />
+            </Trigger>
+            <ChildContent>
+                <MenuItem Icon="Lucide.Pin">Pin to the top</MenuItem>
+                <MenuItem Icon="Lucide.Link">Copy link</MenuItem>
+            </ChildContent>
+        </Menu>
+    </CardActions>
+    <TextBlock>Three themes this quarter: faster builds, a calmer on-call week and the new billing pages. Comments are open until Friday.</TextBlock>
+    <CardFooter>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.MessageCircle">Comment</Button>
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.Share2">Share</Button>
+    </CardFooter>
+</Card>
