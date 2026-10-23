@@ -555,3 +555,42 @@ html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body 
 .site-table { overflow-x: auto; }
 .site-table table { min-width: 32rem; }
 .site-table code { white-space: nowrap; }
+
+/* The components index: categories flowing down columns as one dense list of links (after the
+   indexes on Telerik's and DevExtreme's sites), so the library fits on a screen or two. */
+.site-index {
+  columns: 9.5rem;
+  column-gap: var(--ib-space-6);
+  margin-block-start: var(--ib-space-2);
+}
+.site-index-group {
+  break-inside: avoid;
+  padding-block-end: var(--ib-space-6);
+}
+.site-index-heading {
+  margin: 0 0 var(--ib-space-2);
+  font-size: var(--ib-text-xs);
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ib-color-on-surface);
+  scroll-margin-top: 5rem;
+}
+.site-index-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.site-index-list > li {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--ib-space-1) var(--ib-space-2);
+  padding-block: 0.3125rem;
+}
+.site-index-list a {
+  color: var(--ib-color-primary-text);
+  font-size: var(--ib-text-sm);
+  text-decoration: none;
+}
+.site-index-list a:hover { text-decoration: underline; }
