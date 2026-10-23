@@ -15,4 +15,12 @@ public class OffFrameLinkTests
     [InlineData("<a href=\"mailto:a@b.c\">Mail</a>", "<a href=\"mailto:a@b.c\">Mail</a>")]
     public void Links_that_leave_the_example_open_in_the_whole_window(string html, string expected) =>
         Assert.Equal(expected, OffFrameLinks.Rewrite(html, "/frame/table-paging"));
+
+    [Theory]
+    // GetUriWithQueryParameter gives an absolute URL on the request's own host: still the example.
+    [InlineData("<a href=\"http://localhost:5190/frame/table-paging?mode=off&amp;page=2\">2</a>", "<a href=\"http://localhost:5190/frame/table-paging?mode=off&amp;page=2\">2</a>")]
+    [InlineData("<a href=\"http://localhost:5190/docs\">Docs</a>", "<a href=\"http://localhost:5190/docs\" target=\"_top\">Docs</a>")]
+    [InlineData("<a href=\"http://example.com/frame/table-paging\">Elsewhere</a>", "<a href=\"http://example.com/frame/table-paging\" target=\"_top\">Elsewhere</a>")]
+    public void An_absolute_link_on_the_same_host_stays_in_the_frame(string html, string expected) =>
+        Assert.Equal(expected, OffFrameLinks.Rewrite(html, "/frame/table-paging", "localhost:5190"));
 }

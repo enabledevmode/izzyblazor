@@ -52,18 +52,18 @@ public static class Articles
                 { Components = ["Form"], Modes = ["off", "static"] },
             new("onclick", "OnClick does nothing on a static page", "MousePointerClick",
                 "A static page has no connection to run C# on a click: post a form or follow a link instead.")
-                { Components = ["Button", "IconButton", "Menu"], Modes = ["off", "static"] },
+                { Components = ["Button", "IconButton", "Menu", "Tag"], Modes = ["off", "static"] },
             new("state-between-requests", "A value resets on the next request", "RotateCcw",
                 "A static page is built afresh for every request: keep what it needs in the address, or post it.")
                 { Modes = ["off", "static"] },
             new("password-after-post", "The password is empty after a failed post", "KeyRound",
                 "A static page doesn't write a password back into its HTML, so the reader types it again.")
                 { Components = ["TextField"], Modes = ["off", "static"] },
-            new("redirect-after-post", "NavigateTo after a post runs on or doesn't redirect", "CornerDownRight",
-                "On a static page NavigateTo answers the post with a redirect: return after it, and keep it out of try/catch.")
-                { Components = ["Form"], Modes = ["off", "static"] },
+            new("redirect-after-post", "Code runs after NavigateTo, or the post doesn't redirect", "CornerDownRight",
+                "NavigateTo doesn't always stop your code: make it the last line or return after it, and keep it out of try/catch.")
+                { Components = ["Form"], Modes = ["off", "static", "live"] },
             new("control-named-action", "A form posts to [object RadioNodeList]", "TriangleAlert",
-                "A control named action, method or target hides the form's own property from Blazor's script.")
+                "A control named action, method or enctype hides the form's own property from Blazor's script.")
                 { Components = ["Button", "Form"], Modes = ["static"] },
         ]),
     ];
