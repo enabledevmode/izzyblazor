@@ -80,18 +80,18 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="neutral"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="neutral"])) {
-    --ib-color-background: light-dark(#fafafa, #141416);
-    --ib-color-surface: light-dark(#ffffff, #1b1b1e);
-    --ib-color-surface-container-low: light-dark(#f3f3f5, #252528);
-    --ib-color-surface-container: light-dark(#e9e9ec, #2a2a2d);
-    --ib-color-surface-container-high: light-dark(#dfdfe3, #313135);
-    --ib-color-surface-raised: light-dark(#ffffff, #232327);
+    --ib-color-background: light-dark(#fafafa, #0c0c0e);
+    --ib-color-surface: light-dark(#ffffff, #141416);
+    --ib-color-surface-container-low: light-dark(#f3f3f5, #1b1b1e);
+    --ib-color-surface-container: light-dark(#e9e9ec, #212124);
+    --ib-color-surface-container-high: light-dark(#dfdfe3, #29292d);
+    --ib-color-surface-raised: light-dark(#ffffff, #1c1c20);
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
     --ib-color-subtle: light-dark(#66666d, #929299);
     --ib-color-disabled: light-dark(#8c8c93, #6c6c73);
-    --ib-color-border: light-dark(#dcdce0, #38383d);
-    --ib-color-outline: light-dark(#b8b8bf, #525258);
+    --ib-color-border: light-dark(#dcdce0, #2c2c31);
+    --ib-color-outline: light-dark(#b8b8bf, #4c4c52);
   }
 
   /* Accents: fill, text on it, the accent as text, and its soft tint (16% of the fill on white). */

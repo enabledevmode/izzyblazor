@@ -146,25 +146,25 @@
        are white surfaces on it. Containers are quiet fills (table heads, code), a step darker
        than the page so they show on it and on a card; the high container is the stronger fill (tracks, chips,
        skeletons). */
-    --ib-color-background: light-dark(#fafafa, #141416);
-    --ib-color-surface: light-dark(#ffffff, #1b1b1e);
+    --ib-color-background: light-dark(#fafafa, #0c0c0e);
+    --ib-color-surface: light-dark(#ffffff, #141416);
     /* Low: large quiet fills (a filled card). Container: small fills that must show (header cells,
        code, wells, tracks). High: selected and pressed fills. */
-    --ib-color-surface-container-low: light-dark(#f3f3f5, #252528);
-    --ib-color-surface-container: light-dark(#e9e9ec, #2a2a2d);
-    --ib-color-surface-container-high: light-dark(#dfdfe3, #313135);
+    --ib-color-surface-container-low: light-dark(#f3f3f5, #1b1b1e);
+    --ib-color-surface-container: light-dark(#e9e9ec, #212124);
+    --ib-color-surface-container-high: light-dark(#dfdfe3, #29292d);
     /* Floating surfaces (dialogs, menus, popovers): a step lighter than cards in dark mode, since
        shadows barely show there; the border does most of the separating. */
-    --ib-color-surface-raised: light-dark(#ffffff, #232327);
+    --ib-color-surface-raised: light-dark(#ffffff, #1c1c20);
     --ib-color-raised-border: light-dark(transparent, rgb(255 255 255 / 0.08));
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
     --ib-color-subtle: light-dark(#66666d, #929299);
     --ib-color-disabled: light-dark(#8c8c93, #6c6c73);
-    --ib-color-border: light-dark(#dcdce0, #38383d);
+    --ib-color-border: light-dark(#dcdce0, #2c2c31);
     /* Control edges: about 2:1 against the surface, darker than decorative borders so an empty
        field reads as a box, without outweighing the labels. */
-    --ib-color-outline: light-dark(#b8b8bf, #525258);
+    --ib-color-outline: light-dark(#b8b8bf, #4c4c52);
 
     --ib-color-backdrop: light-dark(rgb(27 29 31 / 0.38), rgb(0 0 0 / 0.6));
 
