@@ -1,6 +1,7 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using IzzyBlazor.Site.Components;
+using IzzyBlazor.Site.Components.Parts;
 using IzzyBlazor.Site.Services;
 
 namespace IzzyBlazor.Site;
@@ -33,7 +34,7 @@ public static class SiteApp
         var api = ApiMetadata.Load();
         builder.Services.AddSingleton(api);
         builder.Services.AddSingleton(Registry.Load(api));
-        builder.Services.AddSingleton(FrameHeights.Load());
+        builder.Services.AddSingleton<NoScriptCss>();
         builder.Services.AddSingleton<ExampleCatalog>();
 
         var app = builder.Build();
@@ -45,6 +46,29 @@ public static class SiteApp
 
         app.UseStatusCodePagesWithReExecute("/not-found");
         app.UseAntiforgery();
+
+        // A link that opens a page in a mode (?mode=off, the mode switch) keeps it for the next
+        // pages, with JavaScript off too: an example's own links and forms drop ?mode= from the
+        // address, and the page has to stay in its mode.
+        app.Use((context, next) =>
+        {
+            if (context.Request.Query["mode"].ToString() is "off" or "static" or "live" && !context.Request.Path.StartsWithSegments("/frame"))
+            {
+                var mode = context.Request.Query["mode"].ToString();
+                if (context.Request.Cookies[ModeSwitch.Cookie] != mode)
+                {
+                    context.Response.Cookies.Append(ModeSwitch.Cookie, mode, new CookieOptions
+                    {
+                        Path = context.Request.PathBase.HasValue ? context.Request.PathBase.Value + "/" : "/",
+                        MaxAge = TimeSpan.FromDays(365),
+                        SameSite = SameSiteMode.Lax,
+                        IsEssential = true,
+                    });
+                }
+            }
+
+            return next(context);
+        });
         app.UseOffFrameLinks();
 
         // Tests run the app from their own folder, without the static assets manifest.
@@ -54,6 +78,20 @@ public static class SiteApp
             app.MapStaticAssets();
         }
 
+        app.MapMethods("/" + NoScriptCss.Path, ["GET", "HEAD"], (NoScriptCss css, HttpContext context) =>
+        {
+            if (css.File is not { } file)
+            {
+                return Results.NotFound();
+            }
+
+            if (context.Request.Query["v"] == file.Version)
+            {
+                context.Response.Headers.CacheControl = "public, max-age=31536000, immutable";
+            }
+
+            return Results.Text(file.Css, "text/css");
+        });
         app.MapGet("/izzyblazor.api.json", (ApiMetadata api) => Results.Text(api.Json, "application/json"));
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();

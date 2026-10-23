@@ -17,7 +17,7 @@ tests/IzzyBlazor.TestHost/   dev host: every demo at /static/{demo} and /interac
 tests/IzzyBlazor.Tests/      xUnit and bUnit tests
 site/IzzyBlazor.Site/        the documentation site: /docs and /demos (see "The docs site" below)
 site/IzzyBlazor.DocsGen/     writes izzyblazor.api.json, the API metadata, from the built library
-site/IzzyBlazor.Site.Tests/  checks the registry, every example's frames and the site's links
+site/IzzyBlazor.Site.Tests/  checks the registry, every example in each mode and the site's links
 build/                       asset build and dev scripts
 docs/                        documentation and README images
 ```
@@ -95,18 +95,20 @@ parameter tables and defaults are never written by hand.
   and its demo scenarios.
 - An example is a component in `Examples/{Folder}/{Name}.razor`, known by the id
   `{folder}-{name}` (`Examples/Button/MultiSubmit.razor` is `button-multi-submit`). The viewer
-  shows it in three frames of `/frame/{id}?mode=off|static|live`: Off is sandboxed without
-  `allow-scripts`, so the browser really runs no script; Live renders it on Blazor Server and loads
-  only when picked. Its source is embedded and shown under it; lines between `@* hide *@` and
-  `@* /hide *@` are left out. Links in examples open in the whole window with script; in Off they
-  open in the frame. An example that opens a dialog, menu or select list sets `"overlay": true`:
-  what opens isn't part of the frame's content height, so the frame keeps at least the example's
-  `height` and starts the content at the top.
-- Each frame starts at its content's height for its width, from `frame-heights.json`, so a page
-  doesn't move as its examples load. After adding or changing an example, run the site and
-  `npm run measure-frames` (`-- --only <id>` for one; `-- --browser <path>` to pick Chrome or
-  Chromium): it loads each example in each mode at frame widths from 256px to 1120px and writes the
-  heights where they change. A site test fails on an example with none.
+  renders it into the page itself, in the page's mode (the Off · Static · Live switch, kept in
+  `?mode=` and a cookie): Static as part of the page; Live as an interactive island, prerendered
+  with the page; Off on a page that sends no Blazor and no IzzyBlazor script and reads the
+  library's stylesheet with its `@media (scripting: ...)` rules as JavaScript off would. So an
+  example arrives with the page at its own size, with nothing to measure. Its source is embedded
+  and shown under it; lines between `@* hide *@` and `@* /hide *@` are left out.
+- Examples on a page share it, so give each its own ids, `FormName` and keys in the address: two
+  examples reading `?page=` would page together (use `QueryKey`, `QueryPrefix` or a field's
+  `Name`). Site tests check ids and address keys on every page. A link or form in an example that
+  loads the page again brings the reader back to that example (`site.js`). An app-wide part such
+  as `ToastRegion` is in the docs layout, not in an example.
+- A demo scenario (`"page": true`) is a page of its own, sized by the window: it shows in a frame
+  of `/frame/{id}?mode=` that is `height` pixels tall and scrolls inside, with a phone width.
+  Off frames are sandboxed without `allow-scripts`; links in them open in the frame.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its

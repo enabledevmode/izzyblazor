@@ -1,11 +1,11 @@
 <Stack Gap="3" Align="Align.Start" Grow>
-    <Pagination @bind-Page="_page" PageCount="8" Label="Results pages" />
+    <Pagination @bind-Page="_page" PageCount="8" QueryKey="p" Label="Results pages" />
     <TextBlock Size="TextSize.Sm" Color="Color.Muted">C# has page <Code>@_page</Code></TextBlock>
 </Stack>
 
 @code {
-    // Static pages have no C# to update, so the pages stay links that set ?page=: start from it.
-    [SupplyParameterFromQuery(Name = "page")]
+    // Static pages have no C# to update, so the pages stay links that set ?p= (QueryKey): start from it.
+    [SupplyParameterFromQuery(Name = "p")]
     private int? QueryPage { get; set; }
 
     private int _page;

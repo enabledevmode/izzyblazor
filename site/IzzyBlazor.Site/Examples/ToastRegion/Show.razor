@@ -1,7 +1,6 @@
 @inject ToastService Toasts
 
-@* Once per app, in the layout. *@
-<ToastRegion />
+@* Once per app, in the layout (the docs layout has it): <ToastRegion /> *@
 
 <Row Gap="2" Wrap Justify="Justify.Center">
     <form method="post" @formname="toast-save" @onsubmit="Save" data-enhance>

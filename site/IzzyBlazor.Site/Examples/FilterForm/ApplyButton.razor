@@ -1,6 +1,6 @@
 <Stack Gap="4" MaxWidth="34.Rem" Grow>
     <FilterForm Label="Find people" Live="false" ApplyText="Search">
-        <FilterSearch Label="Name" Placeholder="Search by name" />
+        <FilterSearch Name="name" Label="Name" Placeholder="Search by name" />
         <FilterSelect Name="team" Label="Team" Items="Teams" />
     </FilterForm>
     <TextBlock Size="TextSize.Sm" Color="Color.Muted" aria-live="polite">@Found.Count() of @People.Length people</TextBlock>
@@ -13,7 +13,7 @@
 </Stack>
 
 @code {
-    [SupplyParameterFromQuery(Name = "q")] private string? Query { get; set; }
+    [SupplyParameterFromQuery(Name = "name")] private string? Query { get; set; }
     [SupplyParameterFromQuery(Name = "team")] private string? Team { get; set; }
 
     private IEnumerable<Person> Found => People

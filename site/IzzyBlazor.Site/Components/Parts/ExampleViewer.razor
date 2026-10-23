@@ -1,41 +1,35 @@
 @inject Registry Registry
 @inject ExampleCatalog Catalog
-@inject FrameHeights Heights
 @inject NavigationManager Navigation
 
 @*
-    One example, three ways. Each mode is a frame of /frame/{example}:
+    One example, in the page's mode (ModeSwitch), rendered into the page itself:
 
-      Off     the static page in an iframe sandboxed without allow-scripts, so the browser really
-              runs no script in it;
-      Static  the static page, with IzzyBlazor's script;
-      Live    the example in an interactive render mode (Blazor Server), loaded only when shown
-              and in view, so a page of examples doesn't open a circuit for each.
+      Off     the page sends no Blazor and no IzzyBlazor script, and reads the library's
+              stylesheet as JavaScript off would (App, NoScriptCss);
+      Static  rendered with the page, which has IzzyBlazor's script;
+      Live    an interactive island (Blazor Server), prerendered with the page.
 
-    The page picks the mode, not each example: one ModeSwitch per page (the right column on docs
-    pages; this viewer's own row with ModeSwitch, for a page that is one example), and CSS shows
-    each viewer's frame for the checked mode, so it works with no script.
+    So an example arrives with the page at its own size: nothing to measure, nothing that moves.
+    An example pinned to one mode (components.json "modes") shows in it whatever the page's; a
+    Live-only one on an Off page, which has no Blazor, shows a link to the page in Live instead.
 
-    Above the box is one row: Preview · Code tabs at the left (a line Tabs: radios and CSS), and at
-    the right the width and mode switches where asked for. Under the box, the example's note for
-    the page's mode, where it has one, starting with the mode's name. The box itself
-    holds only the preview, or the code: it fits what it shows, and the controls above it don't
-    move when that changes. With SourceOpen (demos) there are no tabs: the code shows under the
-    preview, with a Hide code toggle in the row.
+    A demo scenario (components.json "page") is a page of its own, sized by the window: it shows in
+    a frame of /frame/{example} at a fixed height, scrolling inside like a window, with a phone
+    width when WidthSwitch is on. Off frames are sandboxed without allow-scripts.
 
-    Each frame starts at its content's measured height for its width (frame-heights.json, as
-    container queries on .ex-mode), so the page doesn't move as frames load, with JavaScript off
-    too; an example not measured yet starts at its components.json height. site.js then sizes
-    each frame to its content, for anything that changes after load.
+    Around the preview: one row (Preview · Code tabs at the left; "Always Live" and any width or
+    mode switch at the right), the box, then the example's note for its mode. With SourceOpen
+    (demos) there are no tabs: the code shows under the preview, with a Hide code toggle.
+
+    The preview is a CodeExample with no source: it keeps the example's headings out of the page's
+    "On this page". A nested IzzyTheme gives it the library's default accent inside the site's
+    monochrome chrome.
 *@
 
 @if (_example is not null)
 {
-    @if (_css is not null)
-    {
-        <style>@((MarkupString)_css)</style>
-    }
-    <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
+    <section class="@_class" id="@_uid" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
         @if (SourceOpen || _source is null)
         {
             <span class="ex-title">@Title</span>
@@ -91,7 +85,7 @@
                 <Tab Label="Code" Value="code">@Source</Tab>
             </Tabs>
         }
-        @if (_example.Notes.Count > 0)
+        @if (Note is not null)
         {
             @* Under the box, labeled with its mode, so it reads as what that mode does here. *@
             <div class="ex-below">@Notes</div>
@@ -105,7 +99,8 @@
 
     /// <summary>
     /// Shows the example in this scheme ("light" or "dark") whatever the page's, for a viewer on a
-    /// band of its own scheme, such as the home page's dark hero.
+    /// band of its own scheme, such as the home page's dark hero. Not for demos, whose frame follows
+    /// the page.
     /// </summary>
     [Parameter] public string? Scheme { get; set; }
 
@@ -135,10 +130,11 @@
 
     private RegistryExample? _example;
     private (string FileName, string Source)? _source;
+    private Type? _type;
     private string _class = "";
-    private string? _height;
-    private string? _css;
     private string _uid = "";
+    private string _pageMode = "static";
+    private string _mode = "static";
 
     private string Title => _example!.Title;
 
@@ -149,73 +145,77 @@
             throw new InvalidOperationException($"No example \"{Example}\" in components.json.");
         }
 
-        if (Catalog.TypeOf(Example) is null)
-        {
-            throw new InvalidOperationException($"Example \"{Example}\" is in components.json but has no Examples/.../*.razor file.");
-        }
-
+        _type = Catalog.TypeOf(Example)
+            ?? throw new InvalidOperationException($"Example \"{Example}\" is in components.json but has no Examples/.../*.razor file.");
         _example = found.Example;
         _source = Catalog.SourceOf(Example);
-        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "");
-        _css = Heights.Css(Example, _example.Modes);
-        // Measured frames take their height from _css; an inline height would beat it.
-        _height = _css is null ? $"height: {_example.Height}px" : null;
+        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "") + (Deep ? " ex-deep" : "");
         _uid = $"ex-{Example}";
-        _pageMode = IzzyBlazor.Site.Components.Parts.ModeSwitch.Current(Navigation, HttpContext);
+        // A page with the switch shows its mode (?mode=, then the cookie); any other page, Static.
+        _pageMode = FollowsModeSwitchAttribute.PageMode(HttpContext, Registry);
+        // The page's mode where the example has it, else its own (one pinned to Live, say).
+        _mode = _example.Modes.Contains(_pageMode) ? _pageMode : _example.StartMode;
     }
 
-    // Chrome loads hidden iframes at once, whatever loading="lazy" says, so a frame per mode made
-    // every example load two or three pages. Only the page's mode (and Static, which shows where a
-    // page has no switch) loads with the page; site.js loads another when its mode is picked.
-    private string _pageMode = "static";
+    // An Off page runs no Blazor, so a Live-only example can't run on it.
+    private bool NeedsLivePage => _mode == "live" && _pageMode == "off" && !_example!.Page;
 
-    private bool Eager(string mode) => _example!.Modes.Count == 1 || mode == "static" || mode == _pageMode;
-
-    // With JavaScript off nothing loads a waiting frame, so its mode's link reloads the page in it.
-    private RenderFragment? LoadLink(string mode) => Eager(mode) ? null : __builder =>
+    private IzzyBlazor.ColorScheme? FixedScheme => Scheme switch
     {
-        <div class="ex-load-mode" style="@_height">
-            <Anchor Href="@Navigation.GetUriWithQueryParameter("mode", mode)">Show this example @(mode == "off" ? "with JavaScript off" : "on a static page")</Anchor>
-        </div>
+        "light" => IzzyBlazor.ColorScheme.Light,
+        "dark" => IzzyBlazor.ColorScheme.Dark,
+        _ => null,
     };
 
-    private string Src(string mode) =>
-        $"frame/{Example}?mode={mode}" + (Scheme is "light" or "dark" ? $"&scheme={Scheme}" : "") + (Deep ? "&bg=deep" : "");
+    private string Src => $"frame/{Example}?mode={_mode}";
 
     // A note shows only where the example has its own, for a mode that changes what it does: a note
     // on every example would say the same thing a page over.
-    private string? NoteFor(string mode) => _example!.Notes.TryGetValue(mode, out var note) ? note : null;
+    private string? Note => !NeedsLivePage && _example!.Notes.TryGetValue(_mode, out var note) ? note : null;
 
-    // The box with a frame per mode; CSS shows the page's mode.
     private RenderFragment Preview => __builder =>
     {
-        <div class="ex-box ex-stage">
-            @foreach (var mode in _example!.Modes)
-            {
-                <div class="ex-mode" data-mode="@mode">
-                    @if (mode == "off")
+        @if (_example!.Page)
+        {
+            @* A page of its own: a window onto it, a fixed height that scrolls inside. *@
+            <div class="ex-box ex-stage ex-window">
+                @if (_mode == "off")
+                {
+                    <iframe class="ex-frame" src="@Src" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
+                            title="@($"{Title}, JavaScript off")" style="@($"height: {_example.Height}px")"></iframe>
+                }
+                else
+                {
+                    <iframe class="ex-frame" src="@Src" title="@($"{Title}, {(_mode == "live" ? "interactive page" : "static page")}")" style="@($"height: {_example.Height}px")"></iframe>
+                }
+            </div>
+        }
+        else if (NeedsLivePage)
+        {
+            <div class="ex-box ex-stage ex-needs-live">
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
+                    This example runs C# over a Blazor Server connection, which an Off page doesn't have.
+                    <Anchor Href="@Navigation.GetUriWithQueryParameter("mode", "live")">Show this page Live</Anchor>
+                </TextBlock>
+            </div>
+        }
+        else
+        {
+            <IzzyTheme Brand="blue" ColorScheme="FixedScheme" Class="ex-theme">
+                <CodeExample Center Class="ex-box ex-stage">
+                    @if (_mode == "live")
                     {
-                        <iframe class="ex-frame" src="@(Eager(mode) ? Src(mode) : null)" data-src="@(Eager(mode) ? null : Src(mode))" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
-                                title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
-                        @LoadLink(mode)
-                    }
-                    else if (mode == "static")
-                    {
-                        <iframe class="ex-frame" src="@(Eager(mode) ? Src(mode) : null)" data-src="@(Eager(mode) ? null : Src(mode))" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
-                        @LoadLink(mode)
+                        @* Keyed by the example: enhanced navigation would otherwise keep the last page's island in
+                           this place, showing its example until this one rendered over it. *@
+                        <IzzyBlazor.Site.Frame.ExampleHost @key="Example" ExampleId="@Example" @rendermode="InteractiveServer" />
                     }
                     else
                     {
-                        <iframe class="ex-frame ex-frame-live" data-src="@Src(mode)" title="@($"{Title}, interactive page")" style="@_height"></iframe>
-                        <div class="ex-needs-js" style="@_height">
-                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
-                                Live examples run over a Blazor Server connection, which needs JavaScript. Turn it on to try this one.
-                            </TextBlock>
-                        </div>
+                        <DynamicComponent Type="_type" />
                     }
-                </div>
-            }
-        </div>
+                </CodeExample>
+            </IzzyTheme>
+        }
     };
 
     private RenderFragment Source => __builder =>
@@ -225,15 +225,12 @@
         </div>
     };
 
-    // The example's own note for each mode it has one for; CSS shows the current mode's.
+    // The example's own note for its mode, labeled with the mode.
     private RenderFragment Notes => __builder =>
     {
-        @foreach (var mode in _example!.Modes)
+        @if (Note is { } note)
         {
-            @if (NoteFor(mode) is { } note)
-            {
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note" data-mode="@mode"><span class="ex-note-mode">@ModeChip.Name(mode)<span class="ib-visually-hidden">:</span></span> @note</TextBlock>
-            }
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-note"><span class="ex-note-mode">@ModeChip.Name(_mode)<span class="ib-visually-hidden">:</span></span> @note</TextBlock>
         }
     };
 }

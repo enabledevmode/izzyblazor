@@ -1,18 +1,20 @@
 @inject NavigationManager Navigation
 
 @*
-    The page's Off · Static · Live switch: every example on the page shows the checked mode. CSS
-    picks each example's frame from the checked radio (body:has(...)), so it works with no script.
+    The page's Off · Static · Live switch: three links that load the page in that mode, the current
+    one marked. Every example on the page renders in the page's mode (ExampleViewer), so picking
+    another loads the page again in it; site.js keeps the scroll position.
 
     A component page has two copies, the right column's on wide screens and one at the top of the
-    content on narrow ones. Each is its own radio group (site-mode-aside, site-mode-top), so the
-    one you can see always has its option checked for screen readers and the keyboard, and CSS
-    reads the visible one's by width. The script keeps them in step. A page that is one example
-    (demos, the home hero, the docs overview) has one copy, in the example's row.
+    content on narrow ones. A page that is one example (demos, the home hero, the docs overview)
+    has one copy, in the example's row.
 
-    The mode comes from ?mode=, then the "site-mode" cookie, then Static. The script stores the
-    mode in the cookie when it changes or a link carries ?mode=, so the next page opens in the same
-    mode, and updates ?mode= in the address if it's there.
+    The mode comes from ?mode=, then the "site-mode" cookie, then Static. The server stores ?mode=
+    in the cookie (SiteApp), so the next page opens in the same mode, with JavaScript off too, and
+    an example's own links and forms, which drop ?mode= from the address, keep it.
+
+    Off pages run no Blazor (App), so the link into Off is a full page load: enhanced navigation
+    would patch the Off page into a page that's still running script.
 *@
 
 <div class="@($"site-modeswitch site-modeswitch-{Placement}")">
@@ -20,21 +22,16 @@
     {
         <span class="site-modeswitch-label" id="@_labelId">Examples run</span>
     }
-    <div class="site-modeswitch-options" role="radiogroup" aria-labelledby="@(Compact ? null : _labelId)" aria-label="@(Compact ? "Examples run" : null)">
+    <nav class="site-modeswitch-options" aria-labelledby="@(Compact ? null : _labelId)" aria-label="@(Compact ? "Examples run" : null)">
         @foreach (var mode in Modes)
         {
-            <label class="site-modeswitch-option">
-                <input type="radio" class="site-mode-input" name="@($"site-mode-{Placement}")" value="@mode" checked="@(mode == _mode)" />
-                <span>@ModeChip.Name(mode)</span>
-            </label>
+            <a class="site-modeswitch-option site-mode-link" href="@Href(mode)" aria-current="@(mode == _mode ? "true" : null)"
+               data-mode="@mode" data-enhance-nav="@(mode == "off" || _mode == "off" ? "false" : null)">@ModeChip.Name(mode)</a>
         }
-    </div>
+    </nav>
     @if (!Compact)
     {
-        @foreach (var mode in Modes)
-        {
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-modeswitch-text" data-mode="@mode">@Meaning(mode)</TextBlock>
-        }
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-modeswitch-text">@Meaning(_mode)</TextBlock>
     }
 </div>
 
@@ -43,6 +40,9 @@
 
     /// <summary>The docs layout's right-column section a component page puts its switch in.</summary>
     public const string AsideSection = "site-mode-aside";
+
+    /// <summary>The cookie that remembers the mode.</summary>
+    public const string Cookie = "site-mode";
 
     /// <summary>Where it sits, for CSS: <c>aside</c> (wide screens), <c>top</c> (narrow) or <c>example</c>.</summary>
     [Parameter] public string Placement { get; set; } = "top";
@@ -57,6 +57,9 @@
 
     protected override void OnInitialized() => _mode = Current(Navigation, HttpContext);
 
+    // The same page in that mode, keeping the rest of its address (an example's ?q=, say).
+    private string Href(string mode) => Navigation.GetUriWithQueryParameter("mode", mode);
+
     /// <summary>The page's mode: <c>?mode=</c>, then the cookie, then Static.</summary>
     public static string Current(NavigationManager navigation, HttpContext? context)
     {
@@ -66,7 +69,18 @@
             return value.ToString();
         }
 
-        return context?.Request.Cookies["site-mode"] is { } cookie && Modes.Contains(cookie) ? cookie : "static";
+        return Current(context);
+    }
+
+    /// <summary>The mode from a request alone: <c>?mode=</c>, then the cookie, then Static.</summary>
+    public static string Current(HttpContext? context)
+    {
+        if (context?.Request.Query["mode"].ToString() is { } linked && Modes.Contains(linked))
+        {
+            return linked;
+        }
+
+        return context?.Request.Cookies[Cookie] is { } cookie && Modes.Contains(cookie) ? cookie : "static";
     }
 
     private static string Meaning(string mode) => mode switch

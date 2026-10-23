@@ -70,8 +70,8 @@
 }
 
 .site-hero .site-install { background: #1b1d22; border-color: #2c2f36; }
-/* The hero's example is a near-black window set into the Ink band (its frame is on the same color,
-   ?bg=deep), with a lighter edge and a shadow off the glow. */
+/* The hero's example is a near-black window set into the Ink band (ExampleViewer Deep), with a
+   lighter edge and a shadow off the glow. */
 .site-hero .ex-box {
   background: #0d0e11;
   border-color: #2c2f36;
@@ -310,17 +310,20 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 /*
  * The example viewer: one row (Preview · Code tabs at the left; "Always Live" and any width or
  * mode switch at the right), then a box holding only the preview or the code, then the example's
- * note for the mode. On demos (no tabs) the row has the title, and the code box follows the
- * preview.
- *
- * The page picks the mode: each viewer has a frame per mode, and the visible ModeSwitch's checked
- * radio shows that one in every viewer, Static when none is checked. No script needed.
+ * note for its mode. On demos (no tabs) the row has the title, and the code box follows the
+ * preview. The preview renders in the page, in the page's mode (ExampleViewer).
  */
 .ex {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
   column-gap: var(--ib-space-4);
   align-items: end;
+  /* Under the sticky header when the address names it; where it was on the screen when its own
+     link or form loaded the page again (App's script in <head>, site.js). */
+  scroll-margin-top: 5rem;
+}
+.ex:target {
+  scroll-margin-top: var(--site-return-top, 5rem);
 }
 .ex > .ex-tabs { display: contents; }
 .ex > .ex-tabs > .ib-tabs-list { grid-row: 1; grid-column: 1; justify-self: start; }
@@ -347,32 +350,16 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
    background, a different gray, read as a brighter panel in dark mode. */
 .ex-stage {
   background: var(--ib-color-surface);
+  --ib-example-padding: var(--ib-space-6);
 }
-.ex-mode, .ex-note { display: none; }
-/* A frame's height follows its width (frame-heights.json, through ExampleViewer's container
-   queries), so the box around it is the container. */
-.ex-mode { container-type: inline-size; }
-/* An example with one mode (components.json "modes") shows it whatever the page's. */
-.ex-fixed :is(.ex-mode, .ex-note) { display: block; }
+/* Each top-level part of a sample at most as wide as the box; not over an example's own
+   MaxWidth (an unlayered max-width here would beat the library's). */
+.ex-stage > .ib-example-preview > :not(.ib-maxw) { max-width: 100%; }
+.ex-stage > .ib-example-preview > .ib-maxw { max-width: min(100%, var(--ib-maxw)); }
+/* The home hero's window: the site's near-black inside the dark band. */
+.ex-deep .ex-stage { background: #0d0e11; }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
-/* The visible switch picks the mode: the right column's from 1024px, the top one below that, and
-   an example's own at any width. Static when there's none. */
-@media (width >= 1024px) {
-  body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
-  body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
-  body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
-  /* The right column comes last in the HTML, and the browser paints before it arrives: until
-     then, the top copy (the same choice from the server) picks, so examples show at once. */
-  body:not(:has(.site-modeswitch-aside)):has(.site-modeswitch-top .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
-  body:not(:has(.site-modeswitch-aside)):has(.site-modeswitch-top .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
-  body:not(:has(.site-modeswitch-aside)):has(.site-modeswitch-top .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
-}
-@media (width < 1024px) {
-  body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
-  body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
-  body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
-}
-body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="static"] { display: block; }
+.ex-needs-live { display: flex; align-items: center; justify-content: center; padding: var(--ib-space-6); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
 .ex-note { margin: 0; text-wrap: pretty; }
 /* The mode's name, drawn like the mode switch's selected option, so the note reads as about it. */
@@ -392,14 +379,11 @@ body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="stat
   background: transparent;
   color-scheme: normal;
 }
-.ex-page .ex-frame { margin-inline: auto; }
-/* The phone width narrows the frame's box, not the frame, so its container queries see it. */
-.ex:has(.ex-widths input[value="phone"]:checked) .ex-mode {
-  box-sizing: border-box;
+/* A demo's phone width: the window narrows, so the page in it lays out as on a phone. */
+.ex:has(.ex-widths input[value="phone"]:checked) .ex-window {
   width: 390px;
   max-width: 100%;
   margin-inline: auto;
-  border-inline: 1px solid var(--ib-color-border);
 }
 .ex-source .ib-code-block, .ex-source pre { margin: 0; border: 0; border-radius: 0; }
 /* Phones: the note and switches take their own row under the tabs. */
@@ -407,21 +391,6 @@ body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="stat
   .ex-tools { grid-row: 2; grid-column: 1 / -1; justify-self: start; flex-wrap: wrap; padding-block: var(--ib-space-2) 0; }
   .ex > .ex-tabs > .ib-tab-panel, .ex-panels { grid-row: 3; }
   .ex-below { grid-row: 4; }
-}
-
-/* Live needs script: without it, a note takes the frame's place. A media query rather than a class
-   on <html>, which enhanced navigation would drop. */
-.ex-needs-js { display: none; align-items: center; justify-content: center; padding: var(--ib-space-4); }
-@media (scripting: none) {
-  .ex-needs-js { display: flex; }
-  .ex-frame-live { display: none; }
-}
-/* A frame for a mode the page didn't open in waits until that mode is picked (ExampleViewer);
-   without JavaScript nothing loads it, so a link reloads the page in that mode instead. */
-.ex-load-mode { display: none; align-items: center; justify-content: center; padding: var(--ib-space-4); }
-@media (scripting: none) {
-  .ex-frame[data-src]:not(.ex-frame-live) { display: none; }
-  .ex-load-mode { display: flex; }
 }
 
 /* Demos: hiding the code under the preview. */
@@ -488,20 +457,15 @@ body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="stat
   font-size: var(--ib-text-sm);
   font-weight: 500;
   color: var(--ib-color-muted);
-  cursor: pointer;
-  user-select: none;
+  text-decoration: none;
 }
-.site-modeswitch-option input { position: absolute; inset: 0; margin: 0; opacity: 0; cursor: pointer; }
 .site-modeswitch-option:hover { color: var(--ib-color-on-surface); }
-.site-modeswitch-option:has(input:checked) {
+.site-modeswitch-option[aria-current="true"] {
   background: var(--ib-color-surface-container-high);
   color: var(--ib-color-on-surface);
 }
-.site-modeswitch-option:has(input:focus-visible) { outline: 2px solid var(--ib-color-focus); outline-offset: 1px; }
-.site-modeswitch-text { display: none; margin: 0; }
-.site-modeswitch:has(.site-mode-input[value="off"]:checked) .site-modeswitch-text[data-mode="off"],
-.site-modeswitch:has(.site-mode-input[value="static"]:checked) .site-modeswitch-text[data-mode="static"],
-.site-modeswitch:has(.site-mode-input[value="live"]:checked) .site-modeswitch-text[data-mode="live"] { display: block; }
+.site-modeswitch-option:focus-visible { outline: 2px solid var(--ib-color-focus); outline-offset: 1px; }
+.site-modeswitch-text { margin: 0; }
 .site-modeswitch-aside { margin-block-end: var(--ib-space-6); }
 .site-modeswitch-top { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--ib-space-3); }
 .site-modeswitch-top .site-modeswitch-text { flex-basis: 100%; }
@@ -525,31 +489,15 @@ body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display:
 @media (width >= 1024px) { .site-modeswitch-top { display: none; } }
 @media (width < 1024px) { .site-modeswitch-aside { display: none; } }
 
-/* An example frame's own page. */
+/* A demo's frame: a page of its own, scrolling inside its window. */
 /* The docs page's background (its --ib-color-surface), so an example sits on the page; the
    frame has the library's own theme, which would put its own gray here. */
 html:has(> body > .frame), html:has(> body > .frame) body { background: light-dark(#ffffff, #0d0e11); }
-/* A frame is sized to its content, so its page never scrolls: a scrollbar would only show for a
-   moment before the frame grew, and look like the example's own. */
-html:has(> body > .frame) { overflow: hidden; }
 html:has(> body > .frame) body { margin: 0; }
-html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body { background: #0d0e11; }
-.frame-sample {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: var(--ib-space-6);
-}
-/* Not over an example's own MaxWidth: an unlayered max-width here would beat the library's. One
-   set only from a breakpoint (no base .ib-maxw) still gets this cap below it. */
-.frame-sample > :not(.ib-maxw) { max-width: 100%; }
-.frame-sample > .ib-maxw { max-width: min(100%, var(--ib-maxw)); }
 .frame-page { padding: var(--ib-space-4); }
 /* A whole app (AppShell) fills its frame: no padding, or its 100dvh would grow the frame with
    every resize. */
 .frame-page:has(> .ib-shell) { padding: 0; }
-/* An example that opens a dialog or menu: at least its height, content at the top. */
-.frame-overlay { box-sizing: border-box; align-items: flex-start; }
 
 /* Reference tables in articles scroll sideways on phones rather than widening the page. */
 .site-table { overflow-x: auto; }
