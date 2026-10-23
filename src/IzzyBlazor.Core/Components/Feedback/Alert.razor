@@ -58,7 +58,7 @@
             <label for="@($"{ElementId}-dismiss")" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-hidden="true" title="@(DismissLabel ?? TextDefaults.Dismiss)">
                 <Icon Role="IconRole.Close" />
             </label>
-            @* With the script: a real button in place of the checkbox (CSS swaps them on :defined). *@
+            @* With the script: a real button in place of the checkbox (CSS swaps them where the browser runs script). *@
             <ib-dismiss>
                 <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-alert-close" aria-label="@(DismissLabel ?? TextDefaults.Dismiss)" title="@(DismissLabel ?? TextDefaults.Dismiss)">
                     <Icon Role="IconRole.Close" />

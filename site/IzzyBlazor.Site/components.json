@@ -970,7 +970,7 @@
       "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content still loading.",
       "examples": [
         { "id": "skeleton-shapes", "title": "Lines, blocks and circles", "lead": "Use `Lines` for text, `Height` for a block such as an image, and `Circle` for an avatar." },
-        { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives.", "modes": ["live"] }
+        { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives; a placeholder as tall as what it stands for keeps the page still.", "modes": ["live"] }
       ]
     },
     {

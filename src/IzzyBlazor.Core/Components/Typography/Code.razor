@@ -8,8 +8,9 @@
 
 @*
     Code: inline (a <code> in running text) or a Block (<pre><code>) that scrolls sideways.
-    A block's copy button needs script, so it only appears once <ib-code> is defined; with no
-    script the code is still there to select and copy by hand.
+    A block's copy button needs script, so it shows only where the browser runs script (from the
+    first paint, so the block doesn't change when IzzyBlazor's script arrives; it copies once that
+    has loaded); with JavaScript off the code is still there to select and copy by hand.
 
     <Code>dotnet run</Code>
     <Code Block Language="csharp" Title="Program.cs">builder.Services.AddIzzyBlazor();</Code>

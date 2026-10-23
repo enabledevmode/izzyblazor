@@ -1,11 +1,11 @@
+@* The labels are known up front: only the values wait, each a line as tall as its text, so the
+   card keeps its size when they arrive. *@
 <Card Title="Order #1042" Grow MaxWidth="22.Rem">
-    <Skeleton Loaded="_order is not null" Lines="3">
-        <DescriptionList Size="ControlSize.Sm">
-            <DescriptionItem Term="Customer">@_order!.Customer</DescriptionItem>
-            <DescriptionItem Term="Items">@_order!.Items</DescriptionItem>
-            <DescriptionItem Term="Total">@_order!.Total</DescriptionItem>
-        </DescriptionList>
-    </Skeleton>
+    <DescriptionList Size="ControlSize.Sm">
+        <DescriptionItem Term="Customer"><Skeleton Loaded="_order is not null" Width="8.Rem">@_order?.Customer</Skeleton></DescriptionItem>
+        <DescriptionItem Term="Items"><Skeleton Loaded="_order is not null" Width="4.Rem">@_order?.Items</Skeleton></DescriptionItem>
+        <DescriptionItem Term="Total"><Skeleton Loaded="_order is not null" Width="5.Rem">@_order?.Total</Skeleton></DescriptionItem>
+    </DescriptionList>
     <CardFooter>
         <Button OnClick="LoadAsync" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" StartIcon="Lucide.RefreshCw">Reload</Button>
     </CardFooter>

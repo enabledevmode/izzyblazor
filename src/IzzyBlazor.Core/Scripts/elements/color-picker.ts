@@ -4,7 +4,8 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * <ib-color-picker> adds the hex box and preset swatches to a ColorPicker. The native color input
  * holds the value (it posts with the form and Blazor binds it); the hex box and the presets write
  * into it and raise its input and change events, so binding sees them as a pick. CSS shows the
- * extras only once this element is defined.
+ * extras where the browser runs script, from the first paint, so the field doesn't change when
+ * this arrives; they work once it has.
  */
 const HEX = /^#?([0-9a-f]{3}|[0-9a-f]{6})$/i;
 

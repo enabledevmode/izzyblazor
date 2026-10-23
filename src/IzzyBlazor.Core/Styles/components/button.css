@@ -271,7 +271,7 @@
 }
 
 /* CopyButton: <ib-copy> takes no box (the button is the item its parent lays out). Copying needs
-   script, so the button is hidden until <ib-copy> is defined. */
+   script, so the button shows only where the browser runs it. */
 @layer izzy.components {
   ib-copy {
     display: contents;
@@ -283,8 +283,12 @@
     display: none;
   }
 
-  ib-copy:defined > .ib-copy-btn {
-    display: inline-flex;
+  /* With script, from the first paint: the page doesn't change when IzzyBlazor's script arrives
+     (the button copies once it has). Not where its code couldn't load (data-ib-failed). */
+  @media (scripting: enabled) {
+    ib-copy:not([data-ib-failed]) > .ib-copy-btn {
+      display: inline-flex;
+    }
   }
 
   .ib-copy-btn[data-copied] .ib-copied-icon {

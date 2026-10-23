@@ -6,8 +6,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * With no script the close button is a visually hidden checkbox and its label: checking it hides
  * the message with CSS, but screen readers call it a checkbox, and focus falls to the page when
  * the message disappears. The server also renders this element around a real <button>; CSS shows
- * it, and hides the checkbox and label, only once the element is defined (:defined). So the
- * button appears only when this script has loaded, and the markup Blazor renders never changes.
+ * it, and hides the checkbox and label, where the browser runs script (@media (scripting:
+ * enabled)), from the first paint, so the message doesn't change when this arrives; the button
+ * works once it has. The markup Blazor renders never changes.
  *
  * A click checks the hidden checkbox and raises its change event, so everything that listens for
  * a dismissal still hears one (the CSS that hides the message, Banner's cookie, @bind-Dismissed on

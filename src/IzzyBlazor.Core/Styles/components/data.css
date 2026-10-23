@@ -480,8 +480,11 @@
     justify-content: flex-end;
   }
 
-  ib-table:defined .ib-table-filter-panel-actions {
-    display: none;
+  /* With script the filters apply as they change: no Apply button, from the first paint. */
+  @media (scripting: enabled) {
+    ib-table:not([data-ib-failed]) .ib-table-filter-panel-actions {
+      display: none;
+    }
   }
 
   /* The active header filters, as removable tags above the table. */
@@ -553,8 +556,10 @@
     gap: var(--ib-space-2);
   }
 
-  ib-table:defined .ib-table-filter-actions {
-    display: none;
+  @media (scripting: enabled) {
+    ib-table:not([data-ib-failed]) .ib-table-filter-actions {
+      display: none;
+    }
   }
 
   .ib-table-empty > td {

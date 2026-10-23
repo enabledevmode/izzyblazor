@@ -2,8 +2,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
 import { copyWithFeedback } from "../copy-feedback";
 
 /**
- * <ib-code> adds a working copy button to a Code block. The button is hidden by CSS until the
- * element is defined, so pages with no script never show a button that does nothing.
+ * <ib-code> adds a working copy button to a Code block. CSS shows the button where the browser
+ * runs script, from the first paint, so the block doesn't change when this arrives; with
+ * JavaScript off there's no button that does nothing.
  */
 class CodeBlock extends IzzyElement {
   protected setup(signal: AbortSignal): void {

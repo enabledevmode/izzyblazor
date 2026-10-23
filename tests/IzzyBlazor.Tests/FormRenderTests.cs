@@ -397,6 +397,7 @@ public class FormRenderTests : BunitContext
     [Fact]
     public void MultiSelect_renders_a_posting_multiple_select_and_binds_its_values()
     {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         string[] all = ["a", "b", "c"];
         var cut = Render<MultiSelect<string[], string>>(p => p
             .AddCascadingValue(_context)
@@ -409,13 +410,47 @@ public class FormRenderTests : BunitContext
         Assert.True(select.HasAttribute("multiple"));
         Assert.Equal(new[] { false, true, false }, cut.FindAll("select option").Select(o => o.HasAttribute("selected")));
         Assert.Equal("true", cut.Find("[role=listbox]").GetAttribute("aria-multiselectable"));
-        Assert.Empty(cut.Find(".ib-multiselect-chips").Children);
+        // On a static page the server draws the chips, as the script would, so the field doesn't
+        // change when the script arrives.
+        var chip = Assert.Single(cut.Find(".ib-multiselect-chips").Children);
+        Assert.Equal("b", chip.GetAttribute("data-value"));
+        Assert.Equal("Remove b", chip.QuerySelector(".ib-chip-remove")!.GetAttribute("aria-label"));
 
         // A multiple select's change carries the chosen values as a string[] (Blazor's
         // ChangeEventArgs reader turns the browser's array into one). Raised directly, since
         // bUnit's Change() helper may not pass an array through as-is.
         select.TriggerEvent("onchange", new ChangeEventArgs { Value = new[] { "c", "a" } });
         Assert.Equal(new[] { "a", "c" }, _model.Tags);
+    }
+
+    [Fact]
+    public void The_prerender_of_an_interactive_MultiSelect_draws_its_chips()
+    {
+        // The interactive render replaces the prerender's DOM, so drawing them is safe, and the
+        // field is its final size before the script and the circuit arrive.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<MultiSelect<string[], string>>(p => p
+            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+            .AddCascadingValue(_context)
+            .Add(c => c.Value, _model.Tags)
+            .Add(c => c.ValueExpression, () => _model.Tags)
+            .Add(c => c.Items, new[] { "a", "b" }));
+
+        Assert.Equal("b", Assert.Single(cut.Find(".ib-multiselect-chips").Children).GetAttribute("data-value"));
+    }
+
+    [Fact]
+    public void An_interactive_MultiSelect_leaves_its_chips_to_the_script()
+    {
+        // A re-render would undo the script's chips: Blazor leaves them alone.
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<MultiSelect<string[], string>>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.Value, _model.Tags)
+            .Add(c => c.ValueExpression, () => _model.Tags)
+            .Add(c => c.Items, new[] { "a", "b" }));
+
+        Assert.Empty(cut.Find(".ib-multiselect-chips").Children);
     }
 
     [Fact]
@@ -548,6 +583,7 @@ public class FormRenderTests : BunitContext
     [InlineData(true)]
     public void Read_only_choices_post_their_values_once_and_nothing_when_also_disabled(bool alsoDisabled)
     {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var options = new FormOptions(Disabled: alsoDisabled, ReadOnly: true, RequiredMark.Required);
         List<string> Posts<TComponent>(Action<ComponentParameterCollectionBuilder<TComponent>> parameters) where TComponent : IComponent =>
             Posted(Render<TComponent>(p =>

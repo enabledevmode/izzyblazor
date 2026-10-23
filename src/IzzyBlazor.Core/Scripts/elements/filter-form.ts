@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { TypingGuard, isPageKey, navigateTo } from "../filtering";
+import { TypingGuard, changedFromServer, isPageKey, navigateTo } from "../filtering";
 
 /**
  * <ib-filter-form> makes a FilterForm live: the search box applies after a pause in typing,
@@ -67,6 +67,14 @@ class FilterForm extends IzzyElement {
 
     form.addEventListener("focusout", (event) => this.#typing.forget(event.target as HTMLInputElement), { signal });
     signal.addEventListener("abort", () => clearTimeout(this.#timer));
+
+    // A filter changed before this script arrived (the page shows no Apply button where script
+    // runs): apply it now rather than drop it. Not while it's still being typed in.
+    if (this.live && changedFromServer(form.elements)) {
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement && form.contains(active) && active.matches("input[type=search], input[type=text]")) this.typed(active);
+      else this.apply(false);
+    }
   }
 
   private typed(input: HTMLInputElement): void {

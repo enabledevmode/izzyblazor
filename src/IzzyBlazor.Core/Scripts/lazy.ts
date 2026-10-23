@@ -1,7 +1,10 @@
 /**
  * Elements whose code loads only on pages that have one. Each module calls defineElement when it
  * loads, and the browser then upgrades the elements already on the page (connectedCallback runs
- * as usual). Until then they show their server-rendered markup, which works without script.
+ * as usual). Until then they show their server-rendered markup laid out as it will be with script
+ * (CSS decides by @media (scripting), not by the element being defined), so nothing moves when
+ * the code arrives; their controls are inert for that moment. If the code can't load, the elements
+ * get data-ib-failed, and CSS lays them out as with no script, which works on its own.
  *
  * Everything else (fields, popovers, menus, dialogs, tabs, the shell) is in the main module,
  * since nearly every page has one. Each import() below is a file of its own in wwwroot/elements,
@@ -37,12 +40,19 @@ export function load<T = unknown>(tag: string): Promise<T> {
       (error: unknown) => {
         loading.delete(tag);
         failures.set(tag, retry + 1);
+        mark(tag, true);
         throw error;
       }
     );
+    module.then(() => mark(tag, false), () => {});
     loading.set(tag, module);
   }
   return module as Promise<T>;
+}
+
+/** Marks a tag's elements as without their code (or clears it, once a retry loads). */
+function mark(tag: string, failed: boolean): void {
+  for (const element of document.querySelectorAll(tag)) element.toggleAttribute("data-ib-failed", failed);
 }
 
 /** Loads the code for the elements in a part of the page (the whole page by default). */
@@ -50,7 +60,7 @@ export function loadElementsIn(root: Element | Document = document): void {
   for (const tag in loaders) {
     if (loading.has(tag)) continue;
     if (root instanceof Element ? root.localName === tag || root.querySelector(tag) : root.querySelector(tag)) {
-      load(tag).catch((error: unknown) => console.warn(`IzzyBlazor: couldn't load <${tag}>; it works without script until it loads.`, error));
+      load(tag).catch((error: unknown) => console.warn(`IzzyBlazor: couldn't load <${tag}>; it works as without script until it loads.`, error));
     }
   }
 }

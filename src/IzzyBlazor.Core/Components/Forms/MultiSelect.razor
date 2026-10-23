@@ -61,8 +61,20 @@
             }
         </select>
         <div class="ib-field-input ib-multiselect-box">
-            @* Chips are drawn by the script from the select's chosen options; Blazor leaves this empty. *@
-            <span class="ib-multiselect-chips"></span>
+            @* The chips: drawn here on a static page and in a prerender (which the interactive render
+               replaces), so the field is the same before IzzyBlazor's script arrives as after; the
+               script keeps them in step with the select (and leaves them when they match). An
+               interactive render leaves them to the script, as a re-render would undo its changes. *@
+            <span class="ib-multiselect-chips">
+                @if (!RendererInfo.IsInteractive)
+                {
+                    @foreach (var item in ItemList.Where(IsChosen))
+                    {
+                        var text = ChoiceOptions.Text(item, ItemText);
+                        <span class="ib-chip" data-value="@ChoiceOptions.Value(item)"><span class="ib-chip-text">@text</span><button type="button" class="ib-chip-remove" tabindex="-1" aria-label="@($"{RemoveLabel ?? TextDefaults.Remove} {text}")"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12" /></svg></button></span>
+                    }
+                }
+            </span>
             <input type="text"
                    id="@InputId"
                    class="ib-combobox-input ib-multiselect-input"

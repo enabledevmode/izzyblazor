@@ -217,6 +217,17 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
+    public async Task The_library_lays_out_by_whether_the_browser_runs_script_not_by_its_script_arriving()
+    {
+        // IzzyBlazor's script arrives after the first paint: a rule on :defined would change the
+        // page when it does. @media (scripting: ...) decides from the first paint (CONTRIBUTING).
+        var css = await site.Client.GetStringAsync(NoScriptCss.LibraryPath);
+
+        Assert.Contains(".ib-btn", css);
+        Assert.DoesNotContain(":defined", css);
+    }
+
+    [Fact]
     public async Task A_page_follows_off_exactly_when_it_has_the_switch()
     {
         // Picking Off is about the examples on pages with the switch: any other page keeps its

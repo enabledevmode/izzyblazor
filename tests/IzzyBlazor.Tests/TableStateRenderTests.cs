@@ -35,6 +35,31 @@ public class TableStateRenderTests : BunitContext
         cut.FindAll(".ib-table-footer button").First(b => b.TextContent.Trim().EndsWith(page.ToString(), StringComparison.Ordinal));
 
     [Fact]
+    public void The_prerender_of_a_bound_table_has_no_filter_apply_row_and_keeps_working_links()
+    {
+        // The interactive table has no filters' GET form: drawn in the prerender, its Apply row
+        // would go when the circuit connects and the table would jump. Sort links still work.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        RenderFragment filterable = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Row, string>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
+            builder.AddComponentParameter(2, "Sortable", true);
+            builder.AddComponentParameter(3, "Filterable", true);
+            builder.CloseComponent();
+        };
+        var cut = Render<Table<Row>>(p => p
+            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+            .Add(t => t.Items, Rows)
+            .Add(t => t.QueryPrefix, "bound-")
+            .Add(t => t.SortChanged, (string? _) => { })
+            .Add(t => t.ChildContent, filterable));
+
+        Assert.Empty(cut.FindAll(".ib-table-filter-actions, form.ib-table-filter-form"));
+        Assert.Contains("bound-sort=", cut.Find("thead a.ib-table-sort").GetAttribute("href"));
+    }
+
+    [Fact]
     public void Bound_sort_sorts_in_place_and_reports()
     {
         var reported = new List<string?>();

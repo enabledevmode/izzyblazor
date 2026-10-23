@@ -211,7 +211,7 @@
             }
         </table>
     </div>
-    @if (HasFilters && !UseState)
+    @if (HasFilters && !StateLayout)
     {
         @* The filters' GET form. Its fields join it through form="", not by nesting, so a table
            inside another form (a selection form) still works: if the browser drops this nested
@@ -439,7 +439,14 @@
     private bool IsLoading => Loading || _providerLoading;
 
     // Sort and page live in the component (not the URL) on interactive pages that bind them.
-    private bool UseState => RendererInfo.IsInteractive && (SortChanged.HasDelegate || PageChanged.HasDelegate || FiltersChanged.HasDelegate || PageSizeChanged.HasDelegate);
+    private bool Bound => SortChanged.HasDelegate || PageChanged.HasDelegate || FiltersChanged.HasDelegate || PageSizeChanged.HasDelegate;
+
+    private bool UseState => RendererInfo.IsInteractive && Bound;
+
+    // The prerender of a bound interactive table leaves out the filters' GET form and its Apply
+    // row, as the interactive render will: drawn, they'd go when the circuit connects and the
+    // table would jump. Its links (sort, pages) still work until then.
+    private bool StateLayout => WillBeInteractive && Bound;
 
     private IReadOnlyDictionary<string, string> _stateFilters = new Dictionary<string, string>();
     private IReadOnlyDictionary<string, string>? _lastFiltersParam;
