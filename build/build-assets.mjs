@@ -191,6 +191,9 @@ if (lazyElements.length === 0) throw new Error("No on-demand elements found in S
 const builds = [
   {
     ...common,
+    // No map for the CSS, even in Debug: inline, it made the stylesheet 1.1 MB, which every
+    // page and every docs example frame downloads. The JS keeps its inline map.
+    sourcemap: false,
     entryPoints: [join(lib, "Styles", "izzyblazor.css")],
     outfile: join(lib, "wwwroot", "izzyblazor.css"),
     // Font files are served beside the stylesheet (wwwroot/fonts), so their URLs stay as written.
