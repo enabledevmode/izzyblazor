@@ -199,7 +199,11 @@
     min-width: 0;
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-color-surface-container);
+    /* A block is a large fill: the quiet container in light mode (the strong one read heavy on
+       white); dark mode keeps the container, already quiet on the darker page. Inline code keeps
+       the container in both. */
+    --ib-code-fill: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface-container));
+    background-color: var(--ib-code-fill);
   }
 
   /* The label and copy button float over the code: a long first line scrolls under them, so they
@@ -217,8 +221,8 @@
     padding-inline-start: var(--ib-space-2);
     border-start-end-radius: calc(var(--ib-radius-lg) - 1px);
     border-end-start-radius: var(--ib-radius-md);
-    background-color: var(--ib-color-surface-container);
-    box-shadow: calc(-1 * var(--ib-space-3)) 0 var(--ib-space-2) calc(-1 * var(--ib-space-1)) var(--ib-color-surface-container);
+    background-color: var(--ib-code-fill);
+    box-shadow: calc(-1 * var(--ib-space-3)) 0 var(--ib-space-2) calc(-1 * var(--ib-space-1)) var(--ib-code-fill);
   }
 
   .ib-code-language {
@@ -507,7 +511,7 @@
     padding: var(--ib-space-4);
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-color-surface-container);
+    background-color: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface-container));
     font-family: var(--ib-font-mono);
     font-size: var(--ib-text-sm);
     line-height: 1.375rem;
@@ -626,7 +630,7 @@
   /* The source is the recessed part: its tabs and code on the container color. A toggle row stays
      on the example's surface, as a control of the example rather than part of the code. */
   .ib-example-files > .ib-tabs-list {
-    background-color: var(--ib-color-surface-container);
+    background-color: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface-container));
   }
 
   .ib-example-source .ib-code-block {
