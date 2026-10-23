@@ -1,0 +1,24 @@
+<Grid MinChildWidth="14.Rem" Gap="4" Grow>
+    @foreach (var project in AllProjects)
+    {
+        <Card Title="@project.Name" Description="@project.Updated" Size="ControlSize.Sm">
+            <TextBlock Color="Color.Muted">@project.Summary</TextBlock>
+            <CardFooter>
+                <Badge Status="@project.Status" Dot>@project.StatusText</Badge>
+            </CardFooter>
+        </Card>
+    }
+</Grid>
+
+@* hide *@
+@code {
+    private sealed record Project(string Name, string Updated, string Summary, Status Status, string StatusText);
+
+    private static readonly Project[] AllProjects =
+    [
+        new("Website", "Updated 2 hours ago", "Marketing pages and the docs.", Status.Success, "Deployed"),
+        new("Mobile app", "Updated yesterday", "The iOS and Android apps, released every two weeks from the release branch.", Status.Warning, "In review"),
+        new("Billing API", "Updated Oct 12", "Invoices, payments and refunds.", Status.Danger, "Failing"),
+    ];
+}
+@* /hide *@
