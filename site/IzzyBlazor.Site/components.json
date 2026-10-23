@@ -663,12 +663,13 @@
         { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "Use `ChildContent` for a label with a link, and `[Required]` with `[Range]` on the bool for a box that must be checked.",
           "notes": {
             "off": "The browser stops the post until the box is checked, in its own words.",
-            "static": "The browser stops the post until the box is checked, in the model's words."
+            "static": "The browser stops the post until the box is checked, in the model's words.",
+            "live": "The browser stops the post in the model's words, and clearing a checked box shows them under it at once."
           } },
         { "id": "checkbox-select-all", "title": "Select all", "lead": "Use `Indeterminate` to show a dash on a box when only some of what it stands for is checked.",
           "notes": {
             "off": "Checking the top box doesn't check the others until Save: the server then checks or clears all three. Screen readers hear the dash as \"not checked\".",
-            "static": "The same, but screen readers hear the dash as \"mixed\".",
+            "static": "Checking the top box doesn't check the others until Save. Screen readers hear the dash as \"mixed\".",
             "live": "Checking the top box checks all three, and it follows them as they change."
           } },
         { "id": "checkbox-sizes", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`, `ReadOnly` for one that posts but can't change, and `Disabled` for one that doesn't post.",
@@ -707,7 +708,8 @@
         { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "Bind a nullable property with `[Required]` to start with nothing chosen and need a choice.",
           "notes": {
             "off": "The browser stops the post until an option is chosen, in its own words.",
-            "static": "The browser stops the post until an option is chosen, in the model's words."
+            "static": "The browser stops the post until an option is chosen, in the model's words.",
+            "live": "The browser stops the post in the model's words, as on static pages, and Send runs C# without a page load."
           } },
         { "id": "radio-group-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a choice that posts but can't change, and `Disabled` for one that doesn't post.",
           "notes": {
@@ -720,7 +722,12 @@
       "examples": [
         { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "Bind `CheckboxGroup` to a collection (an array, `List` or `HashSet`) and pass the options to `Items`; each checked box posts its value, so it works with JavaScript off." },
         { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name." },
-        { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "Use `[Required]` and `[MinLength(1)]` together to need at least one checked box." },
+        { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "Use `[Required]` and `[MinLength(1)]` together to need at least one checked box.",
+          "notes": {
+            "off": "Saving with no box checked reloads the page with the message under the group; it stays until the next Save.",
+            "static": "Saving with no box checked shows the message under the group without a reload; it stays until the next Save.",
+            "live": "Save checks it without a post, and the message comes and goes as boxes are checked and cleared."
+          } },
         { "id": "checkbox-group-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for choices that post but can't change, and `Disabled` for ones that don't post.",
           "notes": {
             "off": "The read-only boxes look disabled and can't be focused, but they still post."

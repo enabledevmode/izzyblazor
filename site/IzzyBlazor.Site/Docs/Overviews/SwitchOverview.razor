@@ -18,12 +18,12 @@
 <Heading Level="2">Saving as it changes</Heading>
 <TextBlock>Use <Code>@@bind-Value:after</Code> to save each change on an interactive page; a static page saves when the form posts, so it needs a Save button.</TextBlock>
 <ExampleViewer Example="switch-save-on-change" />
-<TextBlock><Code>RendererInfo.IsInteractive</Code> is false while an interactive page prerenders, so the example also checks <Code>AssignedRenderMode</Code>: the button never shows and goes away.</TextBlock>
+<TextBlock>To hide the button on an interactive page, check <Code>AssignedRenderMode</Code> as well as <Code>RendererInfo.IsInteractive</Code>, which is false while the page prerenders, so the button doesn't show and then disappear.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
 <TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a switch that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
 <ExampleViewer Example="switch-states" />
-<TextBlock>HTML has no read-only checkbox, so a read-only switch arrives disabled, outside the form, and a hidden field posts its value; the script then lets it take focus and keeps it from changing.</TextBlock>
+<TextBlock>HTML has no read-only checkbox, so a hidden field posts a read-only switch's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (<Code>false</Code>): keep its value on the server rather than saving it from the post.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

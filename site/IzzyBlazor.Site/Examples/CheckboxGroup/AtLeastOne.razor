@@ -1,11 +1,16 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="checkbox-group-at-least-one" OnValidSubmit="Save" MaxWidth="32.Rem" Grow>
-    <CheckboxGroup @bind-Value="Model!.Days" Items="Weekdays" Orientation="Orientation.Horizontal" />
+<Form Model="Model" FormName="checkbox-group-at-least-one" OnValidSubmit="Save" OnInvalidSubmit="() => _saved = null" MaxWidth="32.Rem" Grow>
+    <CheckboxGroup @bind-Value="Model!.Days" Items="Weekdays" Orientation="Orientation.Horizontal"
+                   Hint="Choose at least one." />
     <Row><Button Submit>Save</Button></Row>
-    @if (_saved is not null)
+    @if (_saved is { Length: > 0 })
     {
         <Alert Status="Status.Success">Saved: @_saved.</Alert>
+    }
+    else if (_saved is not null)
+    {
+        <Alert Status="Status.Danger">Choose days from the list.</Alert>
     }
 </Form>
 
@@ -18,7 +23,8 @@
     protected override void OnInitialized() => Model ??= new();
 
     // What was saved, not the field: on an interactive page it changes as boxes are checked.
-    private void Save() => _saved = string.Join(", ", Model!.Days!.Distinct());
+    // Posted values can be anything: keep the weekdays, once each.
+    private void Save() => _saved = string.Join(", ", Weekdays.Where(Model!.Days!.Contains));
 
     public sealed class Availability
     {

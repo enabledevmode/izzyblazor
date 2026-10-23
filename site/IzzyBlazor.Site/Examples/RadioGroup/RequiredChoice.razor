@@ -7,6 +7,10 @@
     {
         <Alert Status="Status.Success">Thanks: you heard about us from @_sent.</Alert>
     }
+    else if (_unknown)
+    {
+        <Alert Status="Status.Danger">Choose one of the options.</Alert>
+    }
 </Form>
 
 @code {
@@ -14,17 +18,24 @@
     private Survey? Model { get; set; }
 
     private string? _sent;
+    private bool _unknown;
 
     protected override void OnInitialized() => Model ??= new();
 
-    // What was sent, not the field: on an interactive page it changes as people choose.
-    private void Save() => _sent = Model!.Source switch
+    // What was sent, not the field: on an interactive page it changes as people choose. A post
+    // can carry any number for an enum, so anything else is turned away.
+    private void Save()
     {
-        Source.Friend => "a friend or colleague",
-        Source.Search => "a search",
-        Source.Social => "social media",
-        _ => "a talk",
-    };
+        _sent = Model!.Source switch
+        {
+            Source.Friend => "a friend or colleague",
+            Source.Search => "a search",
+            Source.Social => "social media",
+            Source.Talk => "a talk",
+            _ => null,
+        };
+        _unknown = _sent is null;
+    }
 
     public sealed class Survey
     {

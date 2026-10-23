@@ -4,22 +4,20 @@
 
 <Heading Level="2">Usage</Heading>
 <Code Block Language="razor">@Usage</Code>
-<TextBlock>It's a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> drawn as joined buttons: it posts the same way and works with JavaScript off. Use it for two to five short options; for more, or longer ones, use a radio group or a <Anchor Href="docs/components/select">Select</Anchor>, and to switch between panels of content, <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
+<TextBlock>It's a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> drawn as joined buttons: it posts the same way and works with JavaScript off, and a post can carry a value that isn't among the options, so check it on the server. Use it for two to five short options; for more, or longer ones, use a radio group or a <Anchor Href="docs/components/select">Select</Anchor>, and to switch between panels of content, <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
 
 <Heading Level="2">Icons</Heading>
 <TextBlock>Use <Code>ItemIcon</Code> to put an icon before each option's text, and <Code>IconOnly</Code> to show only the icons.</TextBlock>
 <ExampleViewer Example="segmented-control-icons" />
-<TextBlock>With <Code>IconOnly</Code>, each option's text is still read by screen readers and shows as a tooltip on hover.</TextBlock>
 
 <Heading Level="2">Full width, no visible label</Heading>
 <TextBlock>Use <Code>FullWidth</Code> to share the width equally between the segments, and <Code>HideLabel</Code> when something near it, such as a heading, already says what it's for.</TextBlock>
 <ExampleViewer Example="segmented-control-full-width" />
-<TextBlock><Code>HideLabel</Code> keeps the label for screen readers; an empty <Code>Label</Code> would leave the group without a name.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
 <TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a choice that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
 <ExampleViewer Example="segmented-control-sizes" />
-<TextBlock>HTML has no read-only radio, so a read-only control arrives disabled, outside the form, and a hidden field posts the value; the script then lets its segments take focus and keeps the choice from changing.</TextBlock>
+<TextBlock>HTML has no read-only radio, so a hidden field posts a read-only control's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (an enum's <Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
@@ -46,7 +44,7 @@
         @* An enum: each value is a segment, named by its [Display(Name)]. *@
         <SegmentedControl @bind-Value="Model!.View" />
 
-        @* Icons only: each option's text is read out and shows on hover. *@
+        @* Icons only. *@
         <SegmentedControl @bind-Value="Model!.Align" ItemIcon="AlignIcon" IconOnly />
 
         @* Other values, with ItemText for each one's text. *@
