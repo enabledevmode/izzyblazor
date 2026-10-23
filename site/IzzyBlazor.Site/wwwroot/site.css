@@ -416,6 +416,13 @@ body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="stat
   .ex-needs-js { display: flex; }
   .ex-frame-live { display: none; }
 }
+/* A frame for a mode the page didn't open in waits until that mode is picked (ExampleViewer);
+   without JavaScript nothing loads it, so a link reloads the page in that mode instead. */
+.ex-load-mode { display: none; align-items: center; justify-content: center; padding: var(--ib-space-4); }
+@media (scripting: none) {
+  .ex-frame[data-src]:not(.ex-frame-live) { display: none; }
+  .ex-load-mode { display: flex; }
+}
 
 /* Demos: hiding the code under the preview. */
 .ex:has(.ex-code-input:not(:checked)) .ex-source { display: none; }
