@@ -96,7 +96,8 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
 
     /// <summary>
     /// Whether hidden inputs post the value. Selects, checkboxes and radios can't be read-only in
-    /// HTML, so a read-only one shows its value without posting it (<see cref="ShowsReadOnly"/>).
+    /// HTML, so a read-only one shows its value outside the form (<see cref="ShowsReadOnly"/>) and
+    /// these post it.
     /// </summary>
     protected bool PostsReadOnlyValue => ShowsReadOnly && !string.IsNullOrEmpty(NameAttributeValue);
 

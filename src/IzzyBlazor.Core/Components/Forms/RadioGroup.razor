@@ -12,8 +12,9 @@
       reaches the group and the arrow keys move the choice.
     - Each option's text is its `label`; the hint and errors are linked to the group with
       `aria-describedby`, and each radio sets `aria-invalid` when the field is invalid.
-    - A read-only group is a `radiogroup` with `aria-readonly`: the script lets its radios be
-      focused but stops a click or arrow key from changing the choice.
+    - Read-only radios arrive disabled; the script enables them, so they can be focused, and
+      the group is a `radiogroup` with `aria-readonly`, where a click or arrow key doesn't change
+      the choice.
     See also: SegmentedControl, Select, CheckboxGroup.
 *@
 
