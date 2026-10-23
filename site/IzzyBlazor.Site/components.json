@@ -632,16 +632,29 @@
     },
     {
       "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Several choices as chips you can type to filter.",
+      "features": [
+        { "feature": "Choose several options, posted with the form" },
+        { "feature": "Chips, and typing to filter, ignoring case and accents", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Markup in each option (ItemTemplate)", "off": "none", "static": "full", "live": "full" },
+        { "feature": "@bind-Value follows each choice", "off": "none", "static": "none", "live": "full" }
+      ],
       "examples": [
         { "id": "multi-select-chips", "title": "Chips", "lead": "Bind `MultiSelect` to a collection and pass the options to `Items`: each chosen option posts as a repeated form field.",
           "notes": {
             "off": "A plain multiple-select list, without chips or typing to filter. Save posts every chosen skill.",
             "static": "Chosen skills show as chips, typing filters the list, choosing keeps it open, and Backspace removes the last chip."
           } },
+        { "id": "multi-select-reviewers", "title": "At least one, with a placeholder", "lead": "Use `[Required]` and `[MinLength(1)]` to need at least one choice, and `ItemText` to name options whose values are ids.",
+          "notes": {
+            "off": "A plain multiple-select list: the browser stops the post until someone is chosen, in its own words.",
+            "static": "The browser stops the post until someone is chosen, in the model's words, on the field.",
+            "live": "The browser stops the post in the model's words, as on static pages, and Request review runs C# without a page load."
+          } },
         { "id": "multi-select-enum-icons", "title": "Enum options with icons", "lead": "For an enum, pass its values to `Items`; `ItemTemplate` adds an icon to each option, and the chips show its text.",
           "notes": {
             "off": "A plain multiple-select list, showing each option's text without its icon."
-          } }
+          } },
+        { "id": "multi-select-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for choices that post but can't change, and `Disabled` for ones that don't post." }
       ]
     },
     {

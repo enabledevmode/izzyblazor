@@ -1,0 +1,31 @@
+<Form Model="Model" FormName="multi-select-states" MaxWidth="24.Rem" Grow>
+    <MultiSelect @bind-Value="Model!.Small" Items="Days" Label="Small" Size="ControlSize.Sm" />
+    <MultiSelect @bind-Value="Model!.Large" Items="Days" Label="Large" Size="ControlSize.Lg" />
+    <MultiSelect @bind-Value="Model!.Office" Items="Days" Label="Office days"
+                 ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <MultiSelect @bind-Value="Model!.OnCall" Items="Days" Label="On-call days"
+                 Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-select-states")]
+    private Schedule? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Schedule
+    {
+        public DayOfWeek[] Small { get; set; } = [DayOfWeek.Monday];
+        public DayOfWeek[] Large { get; set; } = [DayOfWeek.Monday, DayOfWeek.Friday];
+        public DayOfWeek[] Office { get; set; } = [DayOfWeek.Tuesday, DayOfWeek.Thursday];
+        public DayOfWeek[] OnCall { get; set; } = [DayOfWeek.Saturday];
+    }
+
+    @* hide *@
+    private static readonly DayOfWeek[] Days =
+    [
+        DayOfWeek.Monday, DayOfWeek.Tuesday, DayOfWeek.Wednesday, DayOfWeek.Thursday,
+        DayOfWeek.Friday, DayOfWeek.Saturday, DayOfWeek.Sunday,
+    ];
+    @* /hide *@
+}
