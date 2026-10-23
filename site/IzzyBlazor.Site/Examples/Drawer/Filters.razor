@@ -13,9 +13,9 @@
             <Checkbox @bind-Value="Model!.PaidOnly" />
             <Checkbox @bind-Value="Model!.Archived" />
         </DialogBody>
-        @* Last in the form, the buttons are the drawer's footer and still submit it. *@
+        @* Last in the form, the button is the drawer's footer and still submits it. Choices stay in
+           the drawer until it's pressed; the close button leaves the shown orders as they are. *@
         <FormActions>
-            <DialogClose>Cancel</DialogClose>
             <Button Submit>Show orders</Button>
         </FormActions>
     </Form>
@@ -34,6 +34,7 @@
     {
         var status = Model!.Status == OrderStatus.Any ? "all" : Model.Status.ToString().ToLowerInvariant();
         _summary = $"Showing {status} orders" + (Model.PaidOnly ? ", paid only" : "") + (Model.Archived ? ", archived too" : "");
+        // On an interactive page C# closes the drawer; a post on a static page closes it anyway.
         _open = false;
     }
 

@@ -717,9 +717,10 @@
         { "id": "drawer-filters", "title": "A form in a drawer", "lead": "Put a `Form` in a `Drawer` and end it with `FormActions`: the buttons become the drawer's footer. Put the fields in a `DialogBody`, which fills the drawer, to keep the footer at its bottom.", "height": 380, "overlay": true,
           "notes": {
             "off": "Show orders posts the form and loads the page again, with the drawer closed.",
-            "static": "Show orders posts without a reload.",
+            "static": "Show orders posts without a reload, and the drawer closes.",
             "live": "Show orders runs C# and closes the drawer through @bind-Open."
           } },
+        { "id": "drawer-edges", "title": "Edges and widths", "lead": "Use `Size` for the width at the end edge, and `Placement` `DialogPlacement.Bottom` for a sheet along the bottom.", "height": 300, "overlay": true },
         { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "Use `Placement` `DialogPlacement.Start` with a small `Size` for navigation that slides in from the start edge.", "height": 300, "overlay": true }
       ]
     },

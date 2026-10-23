@@ -1,0 +1,66 @@
+@* Drawer's Overview, written by hand after Dialog's, which it is: opening it (as a dialog), a form in
+   a drawer previewed in each mode, edges and widths, a menu from the start edge, then what it
+   shares with Dialog. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Opening it</Heading>
+<TextBlock>A drawer is a <Anchor Href="docs/components/dialog">Dialog</Anchor>, so it opens the same three ways: a <Code>DialogTrigger</Code> with its <Code>Id</Code>, a link that adds <Code>?dialog=</Code> and the id to the address, or <Code>@@bind-Open</Code> from C#. The trigger and the link work on static pages, with JavaScript off too; <Anchor Href="docs/components/dialog#opening-it">Dialog's Overview</Anchor> shows each in every mode.</TextBlock>
+
+<Heading Level="2">A form in a drawer</Heading>
+<TextBlock>Put a <Anchor Href="docs/components/form">Form</Anchor> in the drawer with its fields in a <Code>DialogBody</Code> and its <Code>FormActions</Code> last: the body fills the drawer's height, so the buttons sit at its bottom as the footer and still submit the form.</TextBlock>
+<ExampleViewer Example="drawer-filters" />
+<TextBlock>A post on a static page closes the drawer. On an interactive page the submit runs C# instead, so close it there with <Code>@@bind-Open</Code>, as this example does. When a post can fail, reopen it with the errors as <Anchor Href="docs/components/dialog#a-form-in-a-dialog">Dialog's form example</Anchor> does.</TextBlock>
+
+<Heading Level="2">Edges and widths</Heading>
+<TextBlock>Use <Code>Size</Code> for the width (<Code>Sm</Code> 20rem, <Code>Md</Code> 24rem by default, <Code>Lg</Code> 32rem, <Code>Xl</Code> 40rem, or <Code>Full</Code>) or <Code>Width</Code> for another, and <Code>Placement</Code> for another edge: <Code>Start</Code>, or <Code>Bottom</Code> and <Code>Top</Code> for a full-width sheet as tall as its content.</TextBlock>
+<ExampleViewer Example="drawer-edges" />
+
+<Heading Level="2">A menu from the start edge</Heading>
+<TextBlock>Use <Code>Placement="DialogPlacement.Start"</Code> with <Code>Size="DialogSize.Sm"</Code> for navigation that slides in, such as a site's menu on phones.</TextBlock>
+<ExampleViewer Example="drawer-nav" />
+<TextBlock>An app's navigation doesn't need one: in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, the <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> becomes a drawer below its breakpoint by itself, opened by a <Code>SidebarToggle</Code>, with JavaScript off too.</TextBlock>
+
+<Heading Level="2">Header, footer and closing</Heading>
+<TextBlock>Use a <Code>DialogBody</Code> for the content and a <Code>DialogFooter</Code> after it: the body fills the drawer's height, so the footer sits at its bottom. Without a body, the footer follows the content partway down.</TextBlock>
+<TextBlock>Everything else is the dialog's: <Code>Title</Code> or a <Code>DialogHeader</Code>, <Code>DialogBody</Code>, <Code>DialogFooter</Code> and <Code>DialogClose</Code>, <Code>CloseOnBackdrop</Code> and <Code>ShowCloseButton</Code>, and <Code>InsideForm</Code>. <Anchor Href="docs/components/dialog">Dialog's Overview</Anchor> covers each.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <DialogTrigger For="filters">Filters</DialogTrigger>
+
+        <Drawer Id="filters" Title="Filters" Size="DialogSize.Sm" @bind-Open="_open">
+            <Form Model="Filters" FormName="filters" OnValidSubmit="ApplyAsync">
+                <DialogBody Gap="5">
+                    <RadioGroup @bind-Value="Filters!.Status" />
+                </DialogBody>
+                <FormActions>
+                    <Button Submit>Apply</Button>
+                </FormActions>
+            </Form>
+        </Drawer>
+
+        @* ApplyAsync ends with _open = false, which closes it on an interactive page. *@
+        """;
+}
