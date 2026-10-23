@@ -21,10 +21,15 @@
 
     private bool _saved;
 
-    // Defaults on the first load only: a post with no box checked sends nothing, so Blazor leaves
+    // Defaults unless this form posted: a post with no box checked sends nothing, so Blazor leaves
     // Model null, and defaults set here would check the box again.
-    protected override void OnInitialized() =>
-        Model ??= HttpContext?.Request.Method == "POST" ? new() : new() { Topics = [Topic.Releases] };
+    protected override void OnInitialized()
+    {
+        // This form's own post: another form on the page posts too.
+        var posted = HttpContext?.Request.HasFormContentType == true
+            && HttpContext.Request.Form["_handler"] == "newsletter";
+        Model ??= posted ? new() : new() { Topics = [Topic.Releases] };
+    }
 
     // Null when nothing was checked: after an empty post, and when other fields post without it.
     private IReadOnlyList<Topic> Chosen => Model!.Topics ?? [];

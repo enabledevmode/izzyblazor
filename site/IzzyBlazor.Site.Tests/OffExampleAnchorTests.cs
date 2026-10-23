@@ -15,13 +15,20 @@ public class OffExampleAnchorTests
     [InlineData("<a href=\"docs/components/table\">Table</a>", "<a href=\"docs/components/table\">Table</a>")]
     [InlineData("<a href=\"docs/components/card#usage\">Usage</a>", "<a href=\"docs/components/card#usage\">Usage</a>")]
     [InlineData("<a href=\"mailto:a@b.c\">Mail</a>", "<a href=\"mailto:a@b.c\">Mail</a>")]
-    [InlineData("<a class=\"site-mode-link\" href=\"docs/components/card?mode=live\">Live</a>", "<a class=\"site-mode-link\" href=\"docs/components/card?mode=live\">Live</a>")]
+    [InlineData("<a class=\"site-mode-link\" href=\"docs/components/card?mode=live\">Live</a>", "<a class=\"site-mode-link\" href=\"docs/components/card?mode=live#ex-card-settings\">Live</a>")]
     [InlineData("<a href=\"http://example.com/docs/components/card\">Elsewhere</a>", "<a href=\"http://example.com/docs/components/card\">Elsewhere</a>")]
+    [InlineData("<a data-href=\"x\" href=\"docs/components/card?p=2\">2</a>", "<a data-href=\"x\" href=\"docs/components/card?p=2#ex-card-settings\">2</a>")]
+    [InlineData("<button type=\"submit\" formaction=\"/docs/components/card?x=1\">Go</button>", "<button type=\"submit\" formaction=\"/docs/components/card?x=1#ex-card-settings\">Go</button>")]
     public void Links_and_forms_to_the_page_go_to_the_example(string inside, string expected)
     {
         var html = $"<section class=\"ex\" id=\"ex-card-settings\" data-ex=\"card-settings\">{inside}</section>";
         Assert.Equal($"<section class=\"ex\" id=\"ex-card-settings\" data-ex=\"card-settings\">{expected}</section>", OffExampleAnchors.Rewrite(html, Path, "localhost:5190"));
     }
+
+    [Fact]
+    public void The_id_can_come_after_data_ex() =>
+        Assert.Equal("<section data-ex=\"a\" class=\"ex\" id=\"ex-a\"><a href=\"docs/components/card?p=2#ex-a\">2</a></section>",
+            OffExampleAnchors.Rewrite("<section data-ex=\"a\" class=\"ex\" id=\"ex-a\"><a href=\"docs/components/card?p=2\">2</a></section>", Path, "localhost:5190"));
 
     [Fact]
     public void Only_inside_an_example_up_to_its_own_end()

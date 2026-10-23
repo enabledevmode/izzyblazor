@@ -5,9 +5,13 @@
                  ItemText="id => People.GetValueOrDefault(id, id.ToString())"
                  Placeholder="Add reviewers" />
     <Row><Button Submit>Request review</Button></Row>
-    @if (_requested is not null)
+    @if (_requested is { Count: > 0 })
     {
-        <Alert Status="Status.Success">Review requested from @_requested.</Alert>
+        <Alert Status="Status.Success">Review requested from @string.Join(", ", _requested).</Alert>
+    }
+    else if (_requested is not null)
+    {
+        <Alert Status="Status.Danger">Choose reviewers from the list.</Alert>
     }
 </Form>
 
@@ -15,12 +19,12 @@
     [SupplyParameterFromForm(FormName = "multi-select-reviewers")]
     private ReviewRequest? Model { get; set; }
 
-    private string? _requested;
+    private List<string>? _requested;
 
     protected override void OnInitialized() => Model ??= new();
 
-    // Posted values can be anything: keep the ones that are people.
-    private void Save() => _requested = string.Join(", ", Model!.ReviewerIds!.Where(People.ContainsKey).Select(id => People[id]));
+    // Posted values can be anything: keep the people, once each.
+    private void Save() => _requested = Model!.ReviewerIds!.Distinct().Where(People.ContainsKey).Select(id => People[id]).ToList();
 
     public sealed class ReviewRequest
     {

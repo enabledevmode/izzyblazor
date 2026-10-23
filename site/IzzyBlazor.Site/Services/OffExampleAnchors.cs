@@ -8,8 +8,11 @@ namespace IzzyBlazor.Site.Services;
 /// (<c>#ex-{id}</c>), so a post or a pager link lands on it rather than at the top of the page.
 /// site.js does this when script runs; with JavaScript truly off, the server writes the fragment
 /// into the link's <c>href</c> or the form's <c>action</c>. Only links and forms inside an example
-/// (<c>section[data-ex]</c>) to the page's own path, with no fragment of their own, and not an
-/// example's own mode switch.
+/// (<c>section[data-ex]</c>) to the page's own path, with no fragment of their own; an example's
+/// own mode switch too (site.js drops the fragment when it runs, and keeps the example where it
+/// was on the screen). Links resolve against the site's <c>&lt;base href="/"&gt;</c>, as the
+/// browser resolves them. Not covered: a redirect after a post (its <c>Location</c> has no
+/// fragment), and a form with an empty <c>action</c> (Blazor always writes one).
 /// </summary>
 public static partial class OffExampleAnchors
 {
@@ -37,7 +40,8 @@ public static partial class OffExampleAnchors
         }
 
         buffer.Position = 0;
-        if (context.Response.ContentType?.StartsWith("text/html", StringComparison.Ordinal) != true)
+        if (context.Response.ContentType?.StartsWith("text/html", StringComparison.Ordinal) != true
+            || context.Response.Headers.ContentEncoding.Count > 0)
         {
             await buffer.CopyToAsync(original);
             return;
@@ -45,7 +49,14 @@ public static partial class OffExampleAnchors
 
         var html = await new StreamReader(buffer, Encoding.UTF8).ReadToEndAsync();
         // A page that ignores the mode (an article, Home) renders Static with its script: leave it.
-        var rewritten = !html.Contains(NoScriptCss.Path, StringComparison.Ordinal) ? html : Rewrite(html, context.Request.Path, context.Request.Host.Value ?? "site");
+        var rewritten = html.Contains(NoScriptCss.Path, StringComparison.Ordinal) ? Rewrite(html, context.Request.Path, context.Request.Host.Value ?? "site") : html;
+        if (ReferenceEquals(rewritten, html) || rewritten == html)
+        {
+            buffer.Position = 0;
+            await buffer.CopyToAsync(original);
+            return;
+        }
+
         context.Response.ContentLength = null;
         await original.WriteAsync(Encoding.UTF8.GetBytes(rewritten));
     });
@@ -67,7 +78,12 @@ public static partial class OffExampleAnchors
 
             var end = SectionEnd(html, start.Index + start.Length);
             output.Append(html, at, start.Index - at);
-            var id = start.Groups["id"].Value;
+            if (Id().Match(start.Value) is not { Success: true } idMatch)
+            {
+                continue;
+            }
+
+            var id = idMatch.Groups["id"].Value;
             output.Append(Targets().Replace(html[start.Index..end], tag => Anchor(tag, id, path, host)));
             at = end;
         }
@@ -81,9 +97,7 @@ public static partial class OffExampleAnchors
         var value = tag.Groups["url"];
         var url = System.Net.WebUtility.HtmlDecode(value.Value);
         var site = new Uri($"http://{host}/");
-        // An example's own mode switch: site.js keeps the example where it was on the screen, which
-        // a fragment would undo by putting it at the top.
-        if (tag.Value.Contains("site-mode-link", StringComparison.Ordinal) || url.StartsWith('#') || url.Contains('#') || !Uri.TryCreate(site, url, out var target)
+        if (url.StartsWith('#') || url.Contains('#') || !Uri.TryCreate(site, url, out var target)
             || !string.Equals(target.Authority, site.Authority, StringComparison.OrdinalIgnoreCase)
             || !string.Equals(target.AbsolutePath, path, StringComparison.Ordinal))
         {
@@ -110,12 +124,15 @@ public static partial class OffExampleAnchors
         return html.Length;
     }
 
-    [GeneratedRegex("<section\\b[^>]*?\\bid=\"(?<id>[^\"]+)\"[^>]*?\\bdata-ex=\"[^\"]*\"[^>]*>", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("<section\\b[^>]*?\\sdata-ex=\"[^\"]*\"[^>]*>", RegexOptions.IgnoreCase)]
     private static partial Regex Examples();
+
+    [GeneratedRegex("\\sid=\"(?<id>[^\"]+)\"", RegexOptions.IgnoreCase)]
+    private static partial Regex Id();
 
     [GeneratedRegex("</?section\\b[^>]*>", RegexOptions.IgnoreCase)]
     private static partial Regex SectionTags();
 
-    [GeneratedRegex("<(?:a\\b[^>]*?\\bhref|form\\b[^>]*?\\baction)=\"(?<url>[^\"]*)\"[^>]*>", RegexOptions.IgnoreCase)]
+    [GeneratedRegex("<(?:a\\b[^>]*?\\shref|form\\b[^>]*?\\saction|(?:button|input)\\b[^>]*?\\sformaction)=\"(?<url>[^\"]*)\"[^>]*>", RegexOptions.IgnoreCase)]
     private static partial Regex Targets();
 }
