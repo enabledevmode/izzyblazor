@@ -35,6 +35,12 @@ export function place(floating: HTMLElement, anchor: Element, placement: string)
   if (room[side] < need && room[opposite[side]] > room[side]) {
     side = opposite[side];
   }
+  // Beside it with no room on either side (a phone): below it, or above, centered.
+  let centered = false;
+  if (!vertical && room[side] < need) {
+    side = room.bottom >= f.height + GAP + EDGE || room.bottom >= room.top ? "bottom" : "top";
+    centered = true;
+  }
 
   let top: number;
   let left: number;
@@ -42,7 +48,7 @@ export function place(floating: HTMLElement, anchor: Element, placement: string)
     top = side === "bottom" ? a.bottom + GAP : a.top - GAP - f.height;
     const startEdge = rtl ? a.right - f.width : a.left;
     const endEdge = rtl ? a.left : a.right - f.width;
-    left = align === "start" ? startEdge : align === "end" ? endEdge : a.left + (a.width - f.width) / 2;
+    left = centered || align === "center" ? a.left + (a.width - f.width) / 2 : align === "start" ? startEdge : endEdge;
   } else {
     left = side === "right" ? a.right + GAP : a.left - GAP - f.width;
     // "end-start" (submenus): the top lines up with the anchor's, less the panel's padding.
