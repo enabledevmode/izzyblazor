@@ -133,6 +133,13 @@
     if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
     if (link.matches(".site-mode-link")) {
+      // An Off page points an example's own switch at the example for JavaScript off
+      // (OffExampleAnchors); here the saved place puts it back where it was instead.
+      const target = new URL(link.href, location.href);
+      if (target.hash) {
+        target.hash = "";
+        link.href = target.href;
+      }
       // event.detail is 0 when Enter or Space followed the link.
       save({ ...(reading() ?? { y: window.scrollY }), focus: event.detail === 0 });
       return;

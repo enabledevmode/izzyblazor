@@ -9,17 +9,17 @@
 <Heading Level="2">Choosing several</Heading>
 <TextBlock>Bind <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>: chosen options show as chips, typing filters the list, ignoring case and accents, and the list stays open as people choose.</TextBlock>
 <ExampleViewer Example="multi-select-chips" />
-<TextBlock>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code> or an interface they implement. Each choice posts as a repeated form field, and an empty choice posts nothing: on a static page the property is then null, or the model isn't bound at all, so set defaults only when the request isn't a post, as the example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>). <Code>[MaxLength]</Code> limits how many, checked on the server.</TextBlock>
+<TextBlock>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code> or an interface they implement. Each choice posts as a repeated form field, and an empty choice posts nothing: on a static page the property is then null, or the model isn't bound at all, so set defaults only when the request isn't this form's post, as the example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>). <Code>[MaxLength]</Code> limits how many, checked by the validator, not the browser.</TextBlock>
 
 <Heading Level="2">At least one, with a placeholder</Heading>
 <TextBlock>Use <Code>[Required]</Code> and <Code>[MinLength(1)]</Code> together to need at least one choice, and <Code>ItemText</Code> to name options whose values are ids.</TextBlock>
 <ExampleViewer Example="multi-select-reviewers" />
-<TextBlock>The browser checks <Code>[Required]</Code> before posting. On the server, <Code>[Required]</Code> catches an empty choice on a static page, where the property is null, and <Code>[MinLength(1)]</Code> catches it on an interactive page, where it's an empty list. A post can carry values that aren't among the options, and they reach the model, so check them on the server, as the example does.</TextBlock>
+<TextBlock>The browser checks <Code>[Required]</Code> before posting. On the server, <Code>[Required]</Code> catches an empty choice on a static page, where the property is null, and <Code>[MinLength(1)]</Code> catches it on an interactive page after the last choice is removed, when it's an empty list. A post can carry values that aren't among the options, and they reach the model, so check them on the server, as the example does.</TextBlock>
 
 <Heading Level="2">Enum options with icons</Heading>
-<TextBlock>For an enum, pass its values to <Code>Items</Code> (<Code>Enum.GetValues&lt;IssueLabel&gt;()</Code>), and use <Code>ItemTemplate</Code> to add markup to each option, such as an icon; chips show <Code>ItemText</Code>.</TextBlock>
+<TextBlock>Use <Code>ItemTemplate</Code> to add markup to each option in the list, such as an icon, and pass an enum's values to <Code>Items</Code> (<Code>Enum.GetValues&lt;IssueLabel&gt;()</Code>).</TextBlock>
 <ExampleViewer Example="multi-select-enum-icons" />
-<TextBlock>Options are named by the enum's <Code>[Display(Name)]</Code> when it has one.</TextBlock>
+<TextBlock>Chips, typing and the plain list with JavaScript off use the option's text, not the template: <Code>ItemText</Code>, or else the enum's <Code>[Display(Name)]</Code> or its name. The template writes its own text, so show the same there.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
 <TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for choices that post but can't change, and <Code>Disabled</Code> for ones that don't post.</TextBlock>

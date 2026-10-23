@@ -7,7 +7,7 @@
         <Button Submit>Save</Button>
         @if (_saved)
         {
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @string.Join(", ", Model!.Skills)</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Saved: @(Model!.Skills is { Length: > 0 } skills ? string.Join(", ", skills) : "no skills")</TextBlock>
         }
     </Row>
 </Form>
@@ -21,9 +21,14 @@
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
     // A post with nothing chosen sends nothing for the field, so the model isn't filled from it:
-    // give the defaults only on the first load, not after a post.
-    protected override void OnInitialized() =>
-        Model ??= HttpContext?.Request.Method == "POST" ? new() : new() { Skills = ["Blazor", "C#"] };
+    // give the defaults only when this form didn't post.
+    protected override void OnInitialized()
+    {
+        // This form's own post: another form on the page posts too.
+        var posted = HttpContext?.Request.HasFormContentType == true
+            && HttpContext.Request.Form["_handler"] == "multi-select-chips";
+        Model ??= posted ? new() : new() { Skills = ["Blazor", "C#"] };
+    }
 
     private void Save() => _saved = true;
 

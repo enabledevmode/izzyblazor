@@ -23,9 +23,14 @@
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
     // A post with no box checked sends nothing for the group, so the model isn't filled from it:
-    // give the defaults only on the first load, not after a post.
-    protected override void OnInitialized() =>
-        Model ??= HttpContext?.Request.Method == "POST" ? new() : new() { Toppings = [Topping.Cheese] };
+    // give the defaults only when this form didn't post.
+    protected override void OnInitialized()
+    {
+        // This form's own post: another form on the page posts too.
+        var posted = HttpContext?.Request.HasFormContentType == true
+            && HttpContext.Request.Form["_handler"] == "checkbox-group-toppings";
+        Model ??= posted ? new() : new() { Toppings = [Topping.Cheese] };
+    }
 
     private void Save() => _saved = true;
 
