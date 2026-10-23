@@ -1,5 +1,6 @@
 @inject Registry Registry
 @inject ExampleCatalog Catalog
+@inject FrameHeights Heights
 
 @*
     One example, three ways. Each mode is a frame of /frame/{example}:
@@ -19,12 +20,20 @@
     the page's mode, where it has one, starting with the mode's name. The box itself
     holds only the preview, or the code: it fits what it shows, and the controls above it don't
     move when that changes. With SourceOpen (demos) there are no tabs: the code shows under the
-    preview, with a Hide code toggle in the row. site.js sizes each frame to its content; without
-    script the frames keep the example's height from components.json.
+    preview, with a Hide code toggle in the row.
+
+    Each frame starts at its content's measured height for its width (frame-heights.json, as
+    container queries on .ex-mode), so the page doesn't move as frames load, with JavaScript off
+    too; an example not measured yet starts at its components.json height. site.js then sizes
+    each frame to its content, for anything that changes after load.
 *@
 
 @if (_example is not null)
 {
+    @if (_css is not null)
+    {
+        <style>@((MarkupString)_css)</style>
+    }
     <section class="@_class" data-ex="@_example.Id" aria-label="@($"Example: {Title}")">
         @if (SourceOpen || _source is null)
         {
@@ -124,7 +133,8 @@
     private RegistryExample? _example;
     private (string FileName, string Source)? _source;
     private string _class = "";
-    private string _height = "";
+    private string? _height;
+    private string? _css;
     private string _uid = "";
 
     private string Title => _example!.Title;
@@ -144,7 +154,9 @@
         _example = found.Example;
         _source = Catalog.SourceOf(Example);
         _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "");
-        _height = $"height: {_example.Height}px";
+        _css = Heights.Css(Example, _example.Modes);
+        // Measured frames take their height from _css; an inline height would beat it.
+        _height = _css is null ? $"height: {_example.Height}px" : null;
         _uid = $"ex-{Example}";
     }
 

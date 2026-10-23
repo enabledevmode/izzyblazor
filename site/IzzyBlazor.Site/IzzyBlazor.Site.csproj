@@ -30,6 +30,7 @@
   <ItemGroup>
     <Compile Include="..\IzzyBlazor.DocsGen\ApiModel.cs" Link="Api\ApiModel.cs" />
     <EmbeddedResource Include="components.json" LogicalName="components.json" />
+    <EmbeddedResource Include="frame-heights.json" LogicalName="frame-heights.json" Condition="Exists('frame-heights.json')" />
     <!-- Read by the build, not served. -->
     <Content Remove="Api\released.api.json" />
     <None Include="Api\released.api.json" />

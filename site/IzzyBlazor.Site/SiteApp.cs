@@ -33,6 +33,7 @@ public static class SiteApp
         var api = ApiMetadata.Load();
         builder.Services.AddSingleton(api);
         builder.Services.AddSingleton(Registry.Load(api));
+        builder.Services.AddSingleton(FrameHeights.Load());
         builder.Services.AddSingleton<ExampleCatalog>();
 
         var app = builder.Build();

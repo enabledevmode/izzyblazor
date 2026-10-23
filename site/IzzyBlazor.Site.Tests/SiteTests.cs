@@ -18,6 +18,8 @@ public sealed class SiteFixture : IAsyncLifetime
 
     public Registry Registry { get; private set; } = null!;
 
+    public FrameHeights Heights { get; private set; } = null!;
+
     public async Task InitializeAsync()
     {
         _app = SiteApp.Build([], b => b.WebHost.UseUrls("http://127.0.0.1:0"));
@@ -25,6 +27,7 @@ public sealed class SiteFixture : IAsyncLifetime
         var address = _app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
         Client = new HttpClient { BaseAddress = new Uri(address) };
         Registry = _app.Services.GetRequiredService<Registry>();
+        Heights = _app.Services.GetRequiredService<FrameHeights>();
     }
 
     public async Task DisposeAsync()
@@ -126,6 +129,15 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
                 }
             }
         }
+    }
+
+    [Fact]
+    public void Every_example_has_measured_frame_heights()
+    {
+        // A new example without them starts at its components.json height and jumps when it
+        // loads: run `npm run measure-frames` with the site running (CONTRIBUTING).
+        var missing = site.Registry.AllExamples.Select(e => e.Example.Id).Where(id => !site.Heights.Has(id)).ToList();
+        Assert.True(missing.Count == 0, $"No frame-heights.json entry for {string.Join(", ", missing)}.");
     }
 
     [Theory]
