@@ -32,6 +32,9 @@ class Combobox extends IzzyElement {
   #typed = false;
   #multiple = false;
   #chips: HTMLElement | null = null;
+  // Server search: typed text whose results haven't come yet, and what to do once they have.
+  #pending = false;
+  #after: "choose" | "commit" | null = null;
 
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
@@ -98,11 +101,14 @@ class Combobox extends IzzyElement {
       { signal }
     );
 
-    // Blazor replaces the options (server search, or new Items).
-    const observer = new MutationObserver(() => {
+    // Blazor replaces the options (server search, or new Items). A server search has finished
+    // when the list stops being busy (aria-busy goes), whether or not its options changed.
+    const observer = new MutationObserver((records) => {
+      const done = records.some((r) => r.type === "attributes" && r.attributeName === "aria-busy") && list.getAttribute("aria-busy") !== "true";
       if (this.isOpen) this.refresh();
+      if (done && this.#pending) this.onResults();
     });
-    observer.observe(list, { childList: true, subtree: true, characterData: true });
+    observer.observe(list, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-busy"] });
 
     let selectObserver: MutationObserver | null = null;
     if (this.#multiple) {
@@ -225,7 +231,22 @@ class Combobox extends IzzyElement {
   private onInput(): void {
     this.#typed = true;
     this.#input.setCustomValidity("");
+    this.#after = null;
+    if (this.hasAttribute("data-server") && !this.#multiple) this.#pending = true;
     this.open(false);
+  }
+
+  /** A server search's results are in: do what Enter or leaving the field asked for meanwhile. */
+  private onResults(): void {
+    this.#pending = false;
+    const after = this.#after;
+    this.#after = null;
+    if (after === "choose") {
+      const first = this.visible[0];
+      if (first) this.choose(first);
+    } else if (after === "commit") {
+      this.commit();
+    }
   }
 
   private onKey(event: KeyboardEvent): void {
@@ -262,10 +283,11 @@ class Combobox extends IzzyElement {
         this.activate(options[Math.max(0, Math.min(index + (event.key === "PageDown" ? 10 : -10), options.length - 1))] ?? null);
         break;
       case "Enter":
-        if (this.isOpen && this.#active) {
-          event.preventDefault();
-          this.choose(this.#active);
-        }
+        // With the list open, Enter chooses, never submits the form.
+        if (!this.isOpen) break;
+        event.preventDefault();
+        if (this.#pending) this.#after = "choose";
+        else if (this.#active) this.choose(this.#active);
         break;
       case "Backspace":
         if (this.#multiple && this.#input.value === "") {
@@ -277,6 +299,7 @@ class Combobox extends IzzyElement {
         }
         break;
       case "Escape":
+        this.#after = null;
         if (this.isOpen) {
           // Don't let a surrounding dialog close too.
           event.preventDefault();
@@ -376,6 +399,11 @@ class Combobox extends IzzyElement {
   /** On leaving the field: take an exact match, clear when emptied, otherwise put the chosen text back. */
   private commit(): void {
     this.close();
+    // The typed text's results are still coming: decide once they're in.
+    if (this.#pending && this.#typed) {
+      this.#after = "commit";
+      return;
+    }
     if (this.#multiple) {
       // Typing only searches; leaving drops the search text.
       this.#input.value = "";
