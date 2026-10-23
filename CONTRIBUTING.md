@@ -74,8 +74,21 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
    renders. An element most pages won't have (a table, a combobox, a color picker) loads on
    demand instead: add it to the loaders in `Scripts/lazy.ts` and to `lazyElements` in
    `build/build-assets.mjs`, not to `index.ts`. Every page loads the main module (15 KB gzip
-   budget); each on-demand element is its own file (5 KB each). Until its code loads, an
-   element shows its server-rendered markup, so it must work without script anyway.
+   budget); each on-demand element is its own file (5 KB each). Its server-rendered markup must
+   work without script: with JavaScript off, and where its code can't load (lazy.ts then marks
+   it `data-ib-failed`, and its CSS lays it out as with no script).
+   **The script adds behavior, never layout.** IzzyBlazor's script arrives after the page first
+   paints, and an on-demand element later still, so anything whose size differs with script (a
+   copy button, a hex box, a chip box in place of a list box, no Apply button) is decided in CSS
+   by `@media (scripting: enabled)` and `(scripting: none)`, which the browser knows at the
+   first paint, not by `:defined` or `[data-ready]`, and drawn by the server, not added by the
+   script. Until the script arrives those parts are visible but inert; anything that would take
+   keystrokes invisibly is hidden until ready (MultiSelect's list box). A swap that changes no
+   size (Combobox's select for its input) can wait for `[data-ready]`, so the working control
+   shows until then. Likewise, a layout choice made on `IsInteractive` uses `WillBeInteractive`
+   where a prerender would otherwise be drawn another size (Table's filter Apply row, Tag's
+   remove button), keeping links that work before the circuit connects. A site test fails on a
+   `:defined` rule.
 4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
 5. **Tests** in `tests/IzzyBlazor.Tests/`, for its behavior (see [Tests](#tests)).
 6. **Docs:** an entry in `site/IzzyBlazor.Site/components.json` (or a part on its parent's entry;

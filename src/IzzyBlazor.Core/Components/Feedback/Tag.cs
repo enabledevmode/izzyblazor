@@ -72,8 +72,9 @@ public class Tag : LayoutItemBase
     [Parameter] public string? RemoveHref { get; set; }
 
     /// <summary>
-    /// Adds a remove button that runs this on interactive pages. Static and prerendered pages need
-    /// <see cref="RemoveHref"/> to show a remove control.
+    /// Adds a remove button that runs this on interactive pages. Static pages need
+    /// <see cref="RemoveHref"/> to show a remove control; a prerender shows that link where there is
+    /// one, else the button, inert until the page is interactive, so the tag keeps its width.
     /// </summary>
     [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback OnRemove { get; set; }
@@ -85,7 +86,9 @@ public class Tag : LayoutItemBase
     /// </summary>
     [Parameter] public string? RemoveLabel { get; set; }
 
-    private bool RemoveButton => OnRemove.HasDelegate && RendererInfo.IsInteractive;
+    // In the prerender of an interactive tag with no link to show, the button (inert until the
+    // circuit connects), so the tag doesn't widen when it does.
+    private bool RemoveButton => OnRemove.HasDelegate && (IsInteractive || (RemoveHref is null && WillBeInteractive));
 
     private string RemoveName => string.IsNullOrWhiteSpace(Label) ? RemoveLabel ?? TextDefaults.Remove : $"{RemoveLabel ?? TextDefaults.Remove} {Label}";
 

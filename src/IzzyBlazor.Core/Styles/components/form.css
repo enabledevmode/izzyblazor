@@ -813,18 +813,35 @@
     flex: 1 0 auto;
   }
 
-  /* An add-on holding only a CopyButton, before its script runs (or with none): no empty box, and
-     the input keeps its rounded corner. */
-  .ib-field-addon:has(> ib-copy:only-child:not(:defined)) {
+  /* An add-on holding only a CopyButton, with JavaScript off (or where its code couldn't load):
+     no empty box, and the input keeps its rounded corner. With script the button shows from the
+     first paint. */
+  @media (scripting: none) {
+    .ib-field-addon:has(> ib-copy:only-child) {
+      display: none;
+    }
+
+    .ib-field-group:has(> .ib-field-addon-start > ib-copy:only-child) > .ib-field-control .ib-field-input {
+      border-start-start-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+      border-end-start-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    }
+
+    .ib-field-group:has(> .ib-field-addon-end > ib-copy:only-child) > .ib-field-control .ib-field-input {
+      border-start-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+      border-end-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    }
+  }
+
+  .ib-field-addon:has(> ib-copy:only-child[data-ib-failed]) {
     display: none;
   }
 
-  .ib-field-group:has(> .ib-field-addon-start > ib-copy:only-child:not(:defined)) > .ib-field-control .ib-field-input {
+  .ib-field-group:has(> .ib-field-addon-start > ib-copy:only-child[data-ib-failed]) > .ib-field-control .ib-field-input {
     border-start-start-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
     border-end-start-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
-  .ib-field-group:has(> .ib-field-addon-end > ib-copy:only-child:not(:defined)) > .ib-field-control .ib-field-input {
+  .ib-field-group:has(> .ib-field-addon-end > ib-copy:only-child[data-ib-failed]) > .ib-field-control .ib-field-input {
     border-start-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
     border-end-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
@@ -1025,9 +1042,11 @@
   }
 
   /*
-   * Combobox. Without script (or where it can't upgrade) the select shows. Once <ib-combobox>
-   * is ready, the input shows and the select sits invisibly under it, still posting the value,
-   * taking focus from the label (passed on to the input) and anchoring validation messages.
+   * Combobox. Without script (or until <ib-combobox> is ready, or where it can't load) the select
+   * shows and works. Once ready, the input shows and the select sits invisibly under it, still
+   * posting the value, taking focus from the label (passed on to the input) and anchoring
+   * validation messages. The two are the same height, so the swap changes nothing around them;
+   * swapping earlier would leave an invisible select taking keystrokes until the script came.
    */
   .ib-combobox-input {
     display: none;
@@ -1071,12 +1090,23 @@
     cursor: pointer;
   }
 
-  /* A MultiSelect without script is a list box, not a dropdown: no chevron, and no room kept for it. */
-  .ib-multiselect:not([data-ready]) > .ib-combobox-toggle {
+  /* A MultiSelect without script (or whose code couldn't load) is a list box, not a dropdown: no
+     chevron, and no room kept for it. */
+  @media (scripting: none) {
+    .ib-multiselect > .ib-combobox-toggle {
+      display: none;
+    }
+
+    .ib-multiselect > select.ib-multiselect-select {
+      padding-inline-end: var(--ib-field-px);
+    }
+  }
+
+  .ib-multiselect[data-ib-failed] > .ib-combobox-toggle {
     display: none;
   }
 
-  .ib-multiselect:not([data-ready]) > select.ib-multiselect-select {
+  .ib-multiselect[data-ib-failed] > select.ib-multiselect-select {
     padding-inline-end: var(--ib-field-px);
   }
 
@@ -1159,8 +1189,11 @@
   }
 
   /*
-   * MultiSelect: without script a native multi-line select; once ready, a box of chips and an
-   * input (the select sits invisibly under it, as for Combobox).
+   * MultiSelect: without script a native multi-line select; with script, from the first paint, a
+   * box of chips and an input, which the server draws (the interactive render leaves the chips to
+   * the script, which keeps them in step with the select). Until <ib-combobox> is ready the list
+   * box is hidden and out of the tab order, so nothing invisible takes keystrokes; once ready it
+   * sits invisibly under the box, as for Combobox. Where its code couldn't load, the list box.
    */
   select.ib-multiselect-select {
     height: auto;
@@ -1171,16 +1204,24 @@
     display: none;
   }
 
-  .ib-combobox[data-ready] > .ib-multiselect-box {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--ib-space-1);
-    height: auto;
-    min-height: var(--ib-field-h);
-    padding-block: calc(var(--ib-space-1) - 1px);
-    padding-inline-start: var(--ib-space-1);
-    cursor: text;
+  @media (scripting: enabled) {
+    .ib-multiselect:not([data-ib-failed]) > select.ib-multiselect-select:not(.ib-combobox[data-ready] > *) {
+      position: absolute;
+      inset: 0;
+      visibility: hidden;
+    }
+
+    .ib-multiselect:not([data-ib-failed]) > .ib-multiselect-box {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: var(--ib-space-1);
+      height: auto;
+      min-height: var(--ib-field-h);
+      padding-block: calc(var(--ib-space-1) - 1px);
+      padding-inline-start: var(--ib-space-1);
+      cursor: text;
+    }
   }
 
   .ib-combobox[data-ready] > .ib-multiselect-box:focus-within {
@@ -1997,9 +2038,11 @@
     cursor: pointer;
   }
 
-  /* With script, live filters apply themselves. */
-  ib-filter-form:defined[data-live] .ib-filter-apply {
-    display: none;
+  /* With script, live filters apply themselves: no Apply button, from the first paint. */
+  @media (scripting: enabled) {
+    ib-filter-form[data-live]:not([data-ib-failed]) .ib-filter-apply {
+      display: none;
+    }
   }
 }
 
@@ -2254,34 +2297,38 @@
     display: none;
   }
 
-  ib-color-picker:defined .ib-color-input {
-    flex: none;
-    width: calc(var(--ib-field-h) - 8px);
-  }
+  /* With script, from the first paint, so the field doesn't change when IzzyBlazor's script
+     arrives (the hex box and presets work once it has). */
+  @media (scripting: enabled) {
+    ib-color-picker:not([data-ib-failed]) .ib-color-input {
+      flex: none;
+      width: calc(var(--ib-field-h) - 8px);
+    }
 
-  ib-color-picker:defined .ib-color-hex {
-    display: block;
-    flex: 1 1 auto;
-    min-width: 0;
-    height: 100%;
-    padding: 0 var(--ib-space-1);
-    border: 0;
-    background: none;
-    color: var(--ib-color-on-surface);
-    font-family: var(--ib-font-mono);
-    font-size: var(--ib-field-font);
-    text-transform: lowercase;
-    outline: none;
+    ib-color-picker:not([data-ib-failed]) .ib-color-hex {
+      display: block;
+      flex: 1 1 auto;
+      min-width: 0;
+      height: 100%;
+      padding: 0 var(--ib-space-1);
+      border: 0;
+      background: none;
+      color: var(--ib-color-on-surface);
+      font-family: var(--ib-font-mono);
+      font-size: var(--ib-field-font);
+      text-transform: lowercase;
+      outline: none;
+    }
+
+    ib-color-picker:not([data-ib-failed]) .ib-color-presets {
+      display: flex;
+      flex-wrap: wrap;
+      gap: var(--ib-space-2);
+    }
   }
 
   .ib-color-hex:disabled {
     color: var(--ib-color-disabled);
-  }
-
-  ib-color-picker:defined .ib-color-presets {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ib-space-2);
   }
 
   /* Swatches a little smaller than the field, round, with a hairline so white shows on white. */

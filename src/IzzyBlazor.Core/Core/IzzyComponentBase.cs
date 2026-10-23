@@ -41,6 +41,14 @@ public abstract partial class IzzyComponentBase : ComponentBase
     /// </summary>
     protected bool IsInteractive => RendererInfo.IsInteractive;
 
+    /// <summary>
+    /// Whether this render is interactive or is the prerender of a component that will be. For
+    /// choices that change the layout: a prerender drawn as the static page would jump when the
+    /// interactive render replaces it. Behavior that needs the circuit still checks
+    /// <see cref="IsInteractive"/>; until it connects, the interactive markup is inert.
+    /// </summary>
+    protected bool WillBeInteractive => RendererInfo.IsInteractive || AssignedRenderMode is not null;
+
     [Inject] private IServiceProvider IzzyServices { get; set; } = default!;
 
     /// <summary>

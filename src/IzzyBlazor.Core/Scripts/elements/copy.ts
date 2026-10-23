@@ -3,8 +3,9 @@ import { copyWithFeedback } from "../copy-feedback";
 
 /**
  * <ib-copy> makes a CopyButton work: it copies data-copy-text, or the value or text of the
- * element whose id is data-copy-for. The button is hidden by CSS until the element is defined,
- * so pages with no script never show a button that does nothing.
+ * element whose id is data-copy-for. CSS shows the button where the browser runs script, from the
+ * first paint, so the page doesn't change when this arrives; with JavaScript off there's no
+ * button that does nothing.
  */
 class CopyButton extends IzzyElement {
   protected setup(signal: AbortSignal): void {

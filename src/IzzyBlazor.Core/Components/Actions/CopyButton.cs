@@ -19,13 +19,14 @@ namespace IzzyBlazor;
 /// </code>
 /// </example>
 /// <remarks>
-/// Copying needs JavaScript (and a secure page), so the button appears only once the script runs;
-/// with it off, the text is still there to select. A ghost neutral icon button by default; with
+/// Copying needs JavaScript (and a secure page), so the button shows only where the browser runs
+/// script, from the first paint (it copies once IzzyBlazor's script has loaded); with JavaScript
+/// off, the text is still there to select. A ghost neutral icon button by default; with
 /// content it shows the text after the icon.
 /// </remarks>
 /// <accessibility>
 /// <list type="bullet">
-/// <item>It renders a native <c>button</c>, shown only once the script runs; with JavaScript off the text is still there to select.</item>
+/// <item>It renders a native <c>button</c>, shown only where the browser runs script; with JavaScript off the text is still there to select.</item>
 /// <item>Without content it's named by <see cref="Label"/> ("Copy"); with content it's named by the content, and <see cref="Label"/> is only the tooltip.</item>
 /// <item>After copying, the button keeps its name and <see cref="CopiedLabel"/> ("Copied") is announced politely.</item>
 /// <item>If the page has no clipboard access, the button stays as it was and nothing is announced.</item>

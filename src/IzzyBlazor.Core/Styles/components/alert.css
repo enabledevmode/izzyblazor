@@ -91,17 +91,26 @@
   }
 
   /*
-   * Close buttons with the script: <ib-dismiss> wraps a real button, shown only once the element
-   * is defined; the checkbox and its label (the no-script close) are hidden then. The wrapper
-   * takes no box, so the button lays out like the label it replaces.
+   * Close buttons with the script: <ib-dismiss> wraps a real button; the checkbox and its label
+   * (the no-script close) are hidden. Decided by whether the browser runs script, not by the
+   * element being defined: IzzyBlazor's script arrives after the page first paints, and the page
+   * shouldn't change when it does (the button works once it has). The wrapper takes no box, so
+   * the button lays out like the label it replaces.
    */
   ib-dismiss {
     display: contents;
   }
 
-  ib-dismiss:not(:defined),
-  :is(.ib-alert, .ib-banner):has(> ib-dismiss:defined) > :is(input.ib-alert-dismiss, input.ib-banner-dismiss, label.ib-alert-close, label.ib-banner-close) {
-    display: none;
+  @media (scripting: none) {
+    ib-dismiss {
+      display: none;
+    }
+  }
+
+  @media (scripting: enabled) {
+    :is(.ib-alert, .ib-banner):has(> ib-dismiss) > :is(input.ib-alert-dismiss, input.ib-banner-dismiss, label.ib-alert-close, label.ib-banner-close) {
+      display: none;
+    }
   }
 
   /* Dismissed with no script: the checkbox is checked. */

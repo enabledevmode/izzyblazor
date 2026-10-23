@@ -58,6 +58,23 @@ export function navigateTo(url: URL, replace: boolean): boolean {
   return true;
 }
 
+/**
+ * Whether someone changed any of these controls from what the server rendered (their default
+ * value, checked or selected state): before the script arrived, say, when nothing applied it.
+ */
+export function changedFromServer(controls: Iterable<Element>): boolean {
+  for (const control of controls) {
+    if (control instanceof HTMLSelectElement) {
+      if ([...control.options].some((o) => o.selected !== o.defaultSelected)) return true;
+    } else if (control instanceof HTMLInputElement) {
+      if (control.type === "checkbox" || control.type === "radio" ? control.checked !== control.defaultChecked : control.value !== control.defaultValue) return true;
+    } else if (control instanceof HTMLTextAreaElement && control.value !== control.defaultValue) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /** Page-number keys: "page", or a table's prefixed one ("orders-page", "p_page"). Mirrors FilterForm.IsPage. */
 export function isPageKey(key: string): boolean {
   return /^(.*[-_.])?page$/i.test(key);

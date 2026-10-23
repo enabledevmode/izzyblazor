@@ -1298,7 +1298,8 @@ Headers and page numbers become buttons, filters apply after a pause in typing, 
 change. The table starts from the URL's `?sort=`, `?page=` and filters if they're there, and a new
 sort or filter goes back to page 1. `Filters` is a dictionary of column key to value. Set
 `page = 1` yourself when your own filters change. Static pages, and the prerender before the page
-is interactive, still use the URL.
+is interactive, still use the URL (the prerender without the filters' Apply row, which the
+interactive table doesn't have).
 
 - `PropertyColumn` takes its title from the property (or `[Display(Name)]`), right-aligns numbers and
   formats values (`Format="C"`).

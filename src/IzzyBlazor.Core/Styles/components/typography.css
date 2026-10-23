@@ -339,16 +339,19 @@
   .ib-tok-attr { color: var(--ib-code-attr); }
   .ib-tok-meta { color: var(--ib-code-meta); }
 
-  /* The copy button needs script: hidden until <ib-code> is defined. The icons are scoped to the
-     button so these rules outrank the general .ib-icon display, which comes later. */
+  /* The copy button needs script: shown where the browser runs it, from the first paint, so the
+     block doesn't change when IzzyBlazor's script arrives. The icons are scoped to the button so
+     these rules outrank the general .ib-icon display, which comes later. */
   .ib-code-bar > .ib-code-copy,
   .ib-code-copy .ib-code-copied-icon,
   .ib-code-copy[data-copied] .ib-code-copy-icon {
     display: none;
   }
 
-  ib-code:defined .ib-code-bar > .ib-code-copy {
-    display: inline-flex;
+  @media (scripting: enabled) {
+    ib-code:not([data-ib-failed]) .ib-code-bar > .ib-code-copy {
+      display: inline-flex;
+    }
   }
 
   .ib-code-copy[data-copied] .ib-code-copied-icon {

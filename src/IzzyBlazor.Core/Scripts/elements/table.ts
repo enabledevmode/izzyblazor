@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { TypingGuard, navigateTo } from "../filtering";
+import { TypingGuard, changedFromServer, navigateTo } from "../filtering";
 
 /**
  * <ib-table> adds two things to a Table:
@@ -101,6 +101,15 @@ class Table extends IzzyElement {
       { signal }
     );
     signal.addEventListener("abort", () => clearTimeout(this.#timer));
+
+    // A filter changed before this script arrived (the table shows no Apply button where script
+    // runs): apply it now rather than drop it; one still being typed in, after the usual pause.
+    const filters = [...this.querySelectorAll("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this);
+    if (changedFromServer(filters)) {
+      const active = document.activeElement;
+      if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date") this.#typed(active);
+      else this.#apply(false);
+    }
   }
 
   #typed(input: HTMLInputElement): void {

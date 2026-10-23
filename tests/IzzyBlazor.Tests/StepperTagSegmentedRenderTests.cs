@@ -171,6 +171,26 @@ public class StepperTagSegmentedRenderTests : BunitContext
     }
 
     [Fact]
+    public void The_prerender_of_an_interactive_tag_keeps_its_link_or_draws_the_button()
+    {
+        // Before the circuit connects a link still works; with none, the (inert) button keeps the
+        // tag's width, so it doesn't widen when the page becomes interactive.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var withLink = Render<Tag>(p => p
+            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+            .Add(t => t.Label, "Blazor")
+            .Add(t => t.RemoveHref, "/x")
+            .Add(t => t.OnRemove, () => { }));
+        var withoutLink = Render<Tag>(p => p
+            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
+            .Add(t => t.Label, "Blazor")
+            .Add(t => t.OnRemove, () => { }));
+
+        Assert.Equal("/x", withLink.Find("a.ib-tag-remove").GetAttribute("href"));
+        Assert.Equal("button", withoutLink.Find("button.ib-tag-remove").GetAttribute("type"));
+    }
+
+    [Fact]
     public void Tag_without_a_remove_option_has_no_remove_control()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
