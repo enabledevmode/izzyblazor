@@ -6,7 +6,15 @@
 
 @if (Label is { } label)
 {
-    <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@(Subject is null ? label : $"{Subject}: {label}")</Badge>
+    @if (Compact && Short(label) is { } brief)
+    {
+        @* A dense list (the components index): the short form shows, the full one is read. *@
+        <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)"><span aria-hidden="true">@brief</span><span class="ib-visually-hidden">@label</span></Badge>
+    }
+    else
+    {
+        <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline" Class="site-modes" title="@(Modes!.Notes ?? label)">@(Subject is null ? label : $"{Subject}: {label}")</Badge>
+    }
 }
 
 @code {
@@ -14,6 +22,16 @@
 
     /// <summary>What the label is about when it isn't the whole member, such as <c>@bind</c>.</summary>
     [Parameter] public string? Subject { get; set; }
+
+    /// <summary>Shows "JS" for "Needs JavaScript" and "Live" for "Interactive only", for dense lists.</summary>
+    [Parameter] public bool Compact { get; set; }
+
+    private static string? Short(string label) => label switch
+    {
+        "Needs JavaScript" => "JS",
+        "Interactive only" => "Live",
+        _ => null,
+    };
 
     private string? Label
     {

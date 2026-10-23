@@ -588,9 +588,11 @@ html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body 
   gap: var(--ib-space-1) var(--ib-space-2);
   padding-block: 0.3125rem;
 }
+/* Names in the muted gray under strong group headings, as in the docs sidebar; full color on
+   hover and focus. */
 .site-index-list a {
-  color: var(--ib-color-primary-text);
+  color: var(--ib-color-muted);
   font-size: var(--ib-text-sm);
   text-decoration: none;
 }
-.site-index-list a:hover { text-decoration: underline; }
+.site-index-list a:is(:hover, :focus-visible) { color: var(--ib-color-on-surface); text-decoration: underline; }
