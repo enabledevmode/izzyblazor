@@ -54,7 +54,10 @@ public enum PopoverMode
     Manual,
 }
 
-/// <summary>The width of a <see cref="Dialog"/>.</summary>
+/// <summary>
+/// The width of a <see cref="Dialog"/>. A <see cref="Drawer"/>, or a dialog at the start or end edge, is
+/// narrower: Sm 20rem, Md 24rem, Lg 32rem, Xl 40rem.
+/// </summary>
 public enum DialogSize
 {
     /// <summary>24rem. Confirmations.</summary>

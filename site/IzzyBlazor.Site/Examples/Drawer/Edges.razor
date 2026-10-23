@@ -1,0 +1,25 @@
+<Row Gap="3" Wrap Justify="Justify.Center">
+    <DialogTrigger For="order-details" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.PanelRight">End</DialogTrigger>
+    <DialogTrigger For="order-history" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.PanelRight">End, large</DialogTrigger>
+    <DialogTrigger For="order-share" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.PanelBottom">Bottom</DialogTrigger>
+</Row>
+
+@* The default: the end edge, Size Md (24rem). *@
+<Drawer Id="order-details" Title="Order #1042">
+    <TextBlock>Two items, paid by card, shipping to London.</TextBlock>
+</Drawer>
+
+@* Lg, 32rem: room for a table or a longer form. On phones every size stops 3rem short of the
+   screen's width. *@
+<Drawer Id="order-history" Title="Order history" Size="DialogSize.Lg">
+    <DescriptionList>
+        <DescriptionItem Term="Oct 20">Placed, two items</DescriptionItem>
+        <DescriptionItem Term="Oct 21">Paid by card ending 4242</DescriptionItem>
+        <DescriptionItem Term="Oct 22">Shipped from Leeds</DescriptionItem>
+    </DescriptionList>
+</Drawer>
+
+@* A sheet along the bottom, as tall as its content: suits phones. *@
+<Drawer Id="order-share" Title="Share this order" Placement="DialogPlacement.Bottom">
+    <TextBlock>Anyone with the link can see the order's items and status.</TextBlock>
+</Drawer>

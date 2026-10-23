@@ -126,7 +126,10 @@
     /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
     [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
 
-    /// <summary>Center (the default), or a full-height drawer on the start or end side.</summary>
+    /// <summary>
+    /// Center (the default), a full-height drawer on the start or end side, or a full-width sheet along
+    /// the top or bottom. A <see cref="Drawer"/> defaults to <see cref="DialogPlacement.End"/>.
+    /// </summary>
     [Parameter] public DialogPlacement Placement { get; set; } = DialogPlacement.Center;
 
     /// <summary>Closes when the backdrop is clicked. Defaults to true. Escape always closes it.</summary>
