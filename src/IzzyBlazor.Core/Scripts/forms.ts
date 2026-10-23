@@ -40,7 +40,7 @@ export function installSubmitFeedback(): void {
   });
 
   // Read-only checkboxes, radios and sliders arrive disabled, so without script nothing can change
-  // them. Enable them, so they can be focused and are announced as read-only; the handlers below
+  // them. Enable them, so they can be focused (they carry aria-readonly); the handlers below
   // keep them from changing. Watched, since Blazor and enhanced navigation can render them later.
   const unlock = () =>
     document
