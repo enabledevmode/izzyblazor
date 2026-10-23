@@ -13,14 +13,14 @@
         <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
             @Registry.Components.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
-            a card says so where one needs an interactive page.
+            a label says so where one needs JavaScript or an interactive page.
         </TextBlock>
     </Stack>
 
     <Row Gap="4" Align="Align.Center" Wrap>
         <FilterForm Label="Filter components" Grow>
-            <FilterSearch Placeholder="Filter components" Label="Filter components" />
-            <FilterCheckbox Name="static" Label="Fully works without a circuit" />
+            <FilterSearch Placeholder="Filter by name or what it does" Label="Filter components" />
+            <FilterCheckbox Name="nojs" Label="Fully works with JavaScript off" />
         </FilterForm>
     </Row>
 
@@ -30,36 +30,45 @@
             <EmptyStateActions><Button Href="docs/components" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Clear the filter</Button></EmptyStateActions>
         </EmptyState>
     }
-
-    @foreach (var (category, components) in _groups)
+    else
     {
-        <Heading Level="2">@category</Heading>
-        <Grid MinChildWidth="Length.Rem(15)" Gap="3">
-            @foreach (var component in components)
+        @* Categories flow down columns as one list, so the whole library fits on a screen or two and
+           a name can be found by eye; each link's title is the component's one-line summary. *@
+        <div class="site-index">
+            @foreach (var (category, components) in _groups)
             {
-                var api = Api.Component(component.Name);
-                <Card Title="@component.Name" Href="@Registry.OverviewHref(component)" Description="@component.Summary" Size="ControlSize.Sm">
-                    <CardMedia>
-                        <div class="site-media">
-                            <ComponentPicture Id="@component.Id" />
-                            @if (api?.Modes is { } modes)
-                            {
-                                <span class="site-media-tag"><ModeChips Modes="modes" /></span>
-                            }
-                        </div>
-                    </CardMedia>
-                </Card>
+                <section class="site-index-group" aria-labelledby="@Anchor(category)">
+                    <h2 class="site-index-heading" id="@Anchor(category)">@category</h2>
+                    <ul class="site-index-list">
+                        @foreach (var component in components)
+                        {
+                            var api = Api.Component(component.Name);
+                            <li>
+                                <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.Name</a>
+                                @if (api?.Modes is { } modes)
+                                {
+                                    <ModeChips Modes="modes" />
+                                }
+                            </li>
+                        }
+                    </ul>
+                </section>
             }
-        </Grid>
+        </div>
     }
 </article>
 
 @code {
     [SupplyParameterFromQuery(Name = "q")] public string? Query { get; set; }
 
-    [SupplyParameterFromQuery(Name = "static")] public bool FullyStatic { get; set; }
+    // Every component fully works on a static page (no circuit), so the useful split is what
+    // fully works with JavaScript off too.
+    [SupplyParameterFromQuery(Name = "nojs")] public bool FullyWithoutScript { get; set; }
 
     private List<(string Category, List<RegistryComponent> Components)> _groups = [];
+
+    // The breadcrumb links to docs/components#forms; "App shell" is app-shell.
+    private static string Anchor(string category) => category.ToLowerInvariant().Replace(' ', '-');
 
     protected override void OnParametersSet()
     {
@@ -74,6 +83,6 @@
              || component.Name.Contains(query, StringComparison.OrdinalIgnoreCase)
              || component.Summary.Contains(query, StringComparison.OrdinalIgnoreCase)
              || component.Parts.Any(p => p.Contains(query, StringComparison.OrdinalIgnoreCase)))
-            && (!FullyStatic || Api.Component(component.Name)?.Modes?.Static == "full");
+            && (!FullyWithoutScript || Api.Component(component.Name)?.Modes?.Off == "full");
     }
 }
