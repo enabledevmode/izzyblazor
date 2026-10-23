@@ -19,8 +19,9 @@
       tooltip.
     - A field with no visible label needs `HideLabel`, not an empty label, so the group keeps
       its name.
-    - A read-only control is a `radiogroup` with `aria-readonly`: its radios can be focused, but
-      the script stops a click or arrow key from changing the choice.
+    - A read-only control's radios arrive disabled; the script enables them, so they can be
+      focused, and the group is a `radiogroup` with `aria-readonly`, where a click or arrow key
+      doesn't change the choice.
     See also: RadioGroup, Tabs, Switch, ButtonGroup.
 *@
 

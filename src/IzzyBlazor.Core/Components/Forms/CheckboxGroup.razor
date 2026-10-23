@@ -20,6 +20,8 @@
       Tab stop, toggled with Space.
     - Each option's text is its `label`; the hint and errors are linked to the group with
       `aria-describedby`, and each box sets `aria-invalid` when the field is invalid.
+    - A required group shows an asterisk, which screen readers skip, and its boxes aren't
+      marked required (HTML can't require one of several): say so in the label or `Hint`.
     - Read-only boxes arrive disabled; the script enables them, so they can be focused and are
       announced as read-only, and stops them from changing.
     See also: MultiSelect, Checkbox, RadioGroup.
