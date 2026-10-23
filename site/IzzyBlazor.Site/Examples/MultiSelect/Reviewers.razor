@@ -1,0 +1,43 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="multi-select-reviewers" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+    <MultiSelect @bind-Value="Model!.ReviewerIds" Items="People.Keys"
+                 ItemText="id => People.GetValueOrDefault(id, id.ToString())"
+                 Placeholder="Add reviewers" />
+    <Row><Button Submit>Request review</Button></Row>
+    @if (_requested is not null)
+    {
+        <Alert Status="Status.Success">Review requested from @_requested.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-select-reviewers")]
+    private ReviewRequest? Model { get; set; }
+
+    private string? _requested;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // Posted values can be anything: keep the ones that are people.
+    private void Save() => _requested = string.Join(", ", Model!.ReviewerIds!.Where(People.ContainsKey).Select(id => People[id]));
+
+    public sealed class ReviewRequest
+    {
+        // [Required] catches an empty choice on a static page, where it posts nothing and the
+        // list is null; [MinLength] on an interactive page, where it's an empty list.
+        [Required(ErrorMessage = "Add at least one reviewer")]
+        [MinLength(1, ErrorMessage = "Add at least one reviewer")]
+        [Display(Name = "Reviewers")]
+        public List<int>? ReviewerIds { get; set; }
+    }
+
+    @* hide *@
+    private static readonly Dictionary<int, string> People = new()
+    {
+        [101] = "Ada Lovelace", [102] = "Alan Turing", [103] = "Barbara Liskov", [104] = "Edsger Dijkstra",
+        [105] = "Grace Hopper", [106] = "José Valim", [107] = "Katherine Johnson", [108] = "Linus Torvalds",
+        [109] = "Margaret Hamilton", [110] = "Zoë Morgan",
+    };
+    @* /hide *@
+}
