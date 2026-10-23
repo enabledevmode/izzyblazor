@@ -1,0 +1,17 @@
+@* Each opens where its Placement says, and moves to the other side when there's no room (beside it
+   with no room on either side, below it). Opening one closes another: Auto popovers close each
+   other. The Stack only gives the panels room in this frame. *@
+<Stack Justify="Justify.Center" MinHeight="16.Rem" Grow>
+    <Row Gap="3" Wrap Justify="Justify.Center">
+        <Popover Label="Below" Title="Below, from the start" StartIcon="Lucide.PanelBottom">
+            <TextBlock Size="TextSize.Sm">BottomStart, the default: under the trigger, lined up with its start.</TextBlock>
+        </Popover>
+        <Popover Label="Above" Title="Above, centered" Placement="Placement.Top" StartIcon="Lucide.PanelTop">
+            <TextBlock Size="TextSize.Sm">Top: above the trigger, centered on it.</TextBlock>
+        </Popover>
+        <Popover Label="Beside" Title="Beside, a set width" Placement="Placement.End" PanelWidth="Length.Rem(14)"
+                 StartIcon="Lucide.PanelRight">
+            <TextBlock Size="TextSize.Sm">End with PanelWidth 14rem: after the trigger, the same width whatever it holds.</TextBlock>
+        </Popover>
+    </Row>
+</Stack>

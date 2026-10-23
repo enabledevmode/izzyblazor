@@ -1,0 +1,80 @@
+@* Popover's Overview, written by hand after Button's and Menu's: a form in a popover previewed in
+   each mode, placement and width, staying open, your own trigger, and opening it from the server
+   or C# (code). Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A popover is for content beside its trigger that people can leave without choosing: filters, a small form, an explanation. For a list of actions use a <Anchor Href="docs/components/menu">Menu</Anchor>, for a task that needs an answer a <Anchor Href="docs/components/dialog">Dialog</Anchor>, and for a short label on hover a <Anchor Href="docs/components/tooltip">Tooltip</Anchor>.</TextBlock>
+
+<Heading Level="2">A form in a popover</Heading>
+<TextBlock>Use <Code>Title</Code> to head the panel and name it for screen readers; anything can go inside, such as a <Anchor Href="docs/components/form">Form</Anchor> that filters the page.</TextBlock>
+<ExampleViewer Example="popover-filters" />
+
+<Heading Level="2">Placement and width</Heading>
+<TextBlock>Use <Code>Placement</Code> for the side it opens on (<Code>BottomStart</Code> by default) and <Code>PanelWidth</Code> for a set width; otherwise it's as wide as its content, up to 24rem.</TextBlock>
+<ExampleViewer Example="popover-sides" />
+<TextBlock>It moves to the other side when there's no room, and below the trigger when a panel beside it fits on neither side. Where the browser has no CSS anchor positioning the script places it; with JavaScript off there too, it opens in the middle of the screen.</TextBlock>
+
+<Heading Level="2">Staying open</Heading>
+<TextBlock>Use <Code>Mode="PopoverMode.Manual"</Code> for a panel that stays open while people work elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button.</TextBlock>
+<ExampleViewer Example="popover-manual" />
+<TextBlock><Code>ShowCloseButton</Code> adds the close button to an <Code>Auto</Code> popover too, or takes it off a manual one.</TextBlock>
+
+<Heading Level="2">Your own trigger</Heading>
+<TextBlock>Use <Code>Trigger</Code> for a button of your own, such as an info icon, and pass it <Code>context</Code> with <Code>@@attributes</Code>, which connects it to the panel.</TextBlock>
+<ExampleViewer Example="popover-info-button" />
+<TextBlock>The trigger must be a <Code>button</Code> with a name of its own. Without <Code>Trigger</Code>, the built-in button needs a <Code>Label</Code>, and <Code>StartIcon</Code>, <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> style it.</TextBlock>
+
+<Heading Level="2">Opening it from the server or C#</Heading>
+<TextBlock>Use <Code>Open</Code> to show it when the page loads, and <Code>@@bind-Open</Code> on an interactive page to open and close it from C# and follow what people do.</TextBlock>
+<Code Block Language="razor">@FromCode</Code>
+<TextBlock>A popover opened this way leaves focus where it is. <Code>Open</Code> from the server needs the script: with JavaScript off the panel stays closed until its trigger is pressed.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Popover Label="Filters" StartIcon="Lucide.ListFilter" Title="Filter issues">
+            <Form Model="Filters" FormName="filters" OnValidSubmit="ApplyAsync">
+                <Checkbox @bind-Value="Filters!.Mine" />
+                <FormActions><Button Submit Size="ControlSize.Sm">Apply</Button></FormActions>
+            </Form>
+        </Popover>
+
+        @code {
+            [SupplyParameterFromForm(FormName = "filters")]
+            private IssueFilters? Filters { get; set; }
+
+            protected override void OnInitialized() => Filters ??= new();
+        }
+        """;
+
+    private const string FromCode = """
+        @* Interactive page: opens when C# sets _tipOpen, and follows the user. *@
+        <Popover Label="What's new" Title="What's new" @bind-Open="_tipOpen">
+            Saved filters are here: pick one from the list.
+        </Popover>
+
+        @code {
+            private bool _tipOpen = true;
+        }
+        """;
+}
