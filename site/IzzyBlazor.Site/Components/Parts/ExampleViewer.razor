@@ -1,6 +1,7 @@
 @inject Registry Registry
 @inject ExampleCatalog Catalog
 @inject FrameHeights Heights
+@inject NavigationManager Navigation
 
 @*
     One example, three ways. Each mode is a frame of /frame/{example}:
@@ -127,6 +128,8 @@
     /// </summary>
     [Parameter] public bool ModeSwitch { get; set; }
 
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
     /// <summary>Lines of the source to highlight, such as <c>"3-5"</c>.</summary>
     [Parameter] public string? HighlightLines { get; set; }
 
@@ -158,7 +161,23 @@
         // Measured frames take their height from _css; an inline height would beat it.
         _height = _css is null ? $"height: {_example.Height}px" : null;
         _uid = $"ex-{Example}";
+        _pageMode = IzzyBlazor.Site.Components.Parts.ModeSwitch.Current(Navigation, HttpContext);
     }
+
+    // Chrome loads hidden iframes at once, whatever loading="lazy" says, so a frame per mode made
+    // every example load two or three pages. Only the page's mode (and Static, which shows where a
+    // page has no switch) loads with the page; site.js loads another when its mode is picked.
+    private string _pageMode = "static";
+
+    private bool Eager(string mode) => _example!.Modes.Count == 1 || mode == "static" || mode == _pageMode;
+
+    // With JavaScript off nothing loads a waiting frame, so its mode's link reloads the page in it.
+    private RenderFragment? LoadLink(string mode) => Eager(mode) ? null : __builder =>
+    {
+        <div class="ex-load-mode" style="@_height">
+            <Anchor Href="@Navigation.GetUriWithQueryParameter("mode", mode)">Show this example @(mode == "off" ? "with JavaScript off" : "on a static page")</Anchor>
+        </div>
+    };
 
     private string Src(string mode) =>
         $"frame/{Example}?mode={mode}" + (Scheme is "light" or "dark" ? $"&scheme={Scheme}" : "") + (Deep ? "&bg=deep" : "");
@@ -176,12 +195,14 @@
                 <div class="ex-mode" data-mode="@mode">
                     @if (mode == "off")
                     {
-                        <iframe class="ex-frame" src="@Src(mode)" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
+                        <iframe class="ex-frame" src="@(Eager(mode) ? Src(mode) : null)" data-src="@(Eager(mode) ? null : Src(mode))" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation" loading="lazy"
                                 title="@($"{Title}, JavaScript off")" style="@_height"></iframe>
+                        @LoadLink(mode)
                     }
                     else if (mode == "static")
                     {
-                        <iframe class="ex-frame" src="@Src(mode)" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
+                        <iframe class="ex-frame" src="@(Eager(mode) ? Src(mode) : null)" data-src="@(Eager(mode) ? null : Src(mode))" loading="lazy" title="@($"{Title}, static page")" style="@_height"></iframe>
+                        @LoadLink(mode)
                     }
                     else
                     {

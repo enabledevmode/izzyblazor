@@ -63,7 +63,7 @@ public sealed class FrameHeights
                     continue;
                 }
 
-                var target = $".ex[data-ex=\"{exampleId}\"] .ex-mode[data-mode=\"{mode}\"] > :is(.ex-frame, .ex-needs-js)";
+                var target = $".ex[data-ex=\"{exampleId}\"] .ex-mode[data-mode=\"{mode}\"] > :is(.ex-frame, .ex-needs-js, .ex-load-mode)";
                 foreach (var (width, height) in steps)
                 {
                     var rule = $"{target}{{height:{height.ToString(CultureInfo.InvariantCulture)}px}}";
