@@ -10,86 +10,86 @@
     {
       "id": "box", "icon": "Square", "name": "Box", "category": "Layout", "summary": "A plain block that takes every style prop.",
       "examples": [
-        { "id": "box-borders", "title": "Bands, borders and a dashed card", "height": 220 },
-        { "id": "box-scheme", "title": "A scheme for part of a page", "height": 200 },
-        { "id": "box-surfaces", "title": "Surfaces", "lead": "Use `Bg` with the surface colors to raise or sink part of a page: `SurfaceRaised` for menus and popovers (with a `Shadow`), then three container fills, each a step stronger.", "height": 200 },
-        { "id": "box-contrast", "title": "Text on a color", "lead": "Set `Bg` to a theme color and the text takes its matching on-color by itself; set `Color` to choose your own, as on the soft box.", "height": 200 },
-        { "id": "box-element", "title": "Element and reading width", "lead": "Use `As` to render another element, here an `article`, and `MaxWidth=\"Length.Prose\"` to stop at a comfortable line length (68ch).", "height": 250 },
-        { "id": "box-visibility", "title": "Showing by breakpoint", "lead": "Use `HiddenFrom` and `VisibleFrom` to swap content at a breakpoint: from Sm (640px), the button shows its label; on phones it's an icon button.", "height": 120 }
+        { "id": "box-borders", "title": "Bands, borders and a dashed card" },
+        { "id": "box-scheme", "title": "A scheme for part of a page" },
+        { "id": "box-surfaces", "title": "Surfaces", "lead": "Use `Bg` with the surface colors to raise or sink part of a page: `SurfaceRaised` for menus and popovers (with a `Shadow`), then three container fills, each a step stronger." },
+        { "id": "box-contrast", "title": "Text on a color", "lead": "Set `Bg` to a theme color and the text takes its matching on-color by itself; set `Color` to choose your own, as on the soft box." },
+        { "id": "box-element", "title": "Element and reading width", "lead": "Use `As` to render another element, here an `article`, and `MaxWidth=\"Length.Prose\"` to stop at a comfortable line length (68ch)." },
+        { "id": "box-visibility", "title": "Showing by breakpoint", "lead": "Use `HiddenFrom` and `VisibleFrom` to swap content at a breakpoint: from Sm (640px), the button shows its label; on phones it's an icon button." }
       ]
     },
     {
       "id": "row", "icon": "Columns3", "name": "Row", "category": "Layout", "summary": "Lays its children out in a row, always.",
       "examples": [
-        { "id": "row-alignment", "title": "Alignment", "lead": "Use `Align` for where children sit across the row: `Align.Center` puts the avatar, the text and the button on one center line, where the default would stretch the button to the row's height.", "height": 140 },
-        { "id": "row-distribute", "title": "Spreading out", "lead": "Use `Justify` to share the free space along the row: `Justify.Between` puts the count at the start and the buttons at the end.", "height": 100 },
-        { "id": "row-wrapping", "title": "Wrapping", "lead": "Set `Wrap` to let children flow onto more lines when they don't fit; without it they stay on one line.", "height": 160 },
-        { "id": "row-stats", "title": "Sharing the width", "lead": "Give children `Grow` and a `Basis` in a wrapping row to share the width: each stat is at least 10rem and stretches to fill its line, and one that doesn't fit wraps to the next.", "height": 250 }
+        { "id": "row-alignment", "title": "Alignment", "lead": "Use `Align` for where children sit across the row: `Align.Center` puts the avatar, the text and the button on one center line, where the default would stretch the button to the row's height." },
+        { "id": "row-distribute", "title": "Spreading out", "lead": "Use `Justify` to share the free space along the row: `Justify.Between` puts the count at the start and the buttons at the end." },
+        { "id": "row-wrapping", "title": "Wrapping", "lead": "Set `Wrap` to let children flow onto more lines when they don't fit; without it they stay on one line." },
+        { "id": "row-stats", "title": "Sharing the width", "lead": "Give children `Grow` and a `Basis` in a wrapping row to share the width: each stat is at least 10rem and stretches to fill its line, and one that doesn't fit wraps to the next." }
       ]
     },
     {
       "id": "column", "icon": "Rows3", "name": "Column", "category": "Layout", "summary": "Lays its children out in a column, always.",
       "examples": [
-        { "id": "column-spacing", "title": "Gap", "lead": "Use `Gap` for the space between children, and nest a column for a tighter group: the plan's name and description are 4px apart (`Gap=\"1\"`), the groups 20px (`Gap=\"5\"`).", "height": 280 },
-        { "id": "column-alignment", "title": "Alignment", "lead": "Children stretch to the column's width by default; use `Align=\"Align.Start\"` to keep each at its own width, as the button here.", "height": 200 }
+        { "id": "column-spacing", "title": "Gap", "lead": "Use `Gap` for the space between children, and nest a column for a tighter group: the plan's name and description are 4px apart (`Gap=\"1\"`), the groups 20px (`Gap=\"5\"`)." },
+        { "id": "column-alignment", "title": "Alignment", "lead": "Children stretch to the column's width by default; use `Align=\"Align.Start\"` to keep each at its own width, as the button here." }
       ]
     },
     {
       "id": "stack", "icon": "Layers", "name": "Stack", "category": "Layout", "summary": "A row or a column, changing with the screen width.",
       "examples": [
-        { "id": "stack-breakpoints", "title": "Direction by breakpoint", "lead": "Use `Direction` with a breakpoint map to change direction with the screen: these features sit side by side from Sm (640px), and stack in a column on phones.", "height": 200 },
-        { "id": "stack-page-header", "title": "Page header", "lead": "Give `Align` a breakpoint map too: from Sm the title and actions share a line, spread apart by `Justify.Between`; on phones they stack, with the actions under the title.", "height": 140 }
+        { "id": "stack-breakpoints", "title": "Direction by breakpoint", "lead": "Use `Direction` with a breakpoint map to change direction with the screen: these features sit side by side from Sm (640px), and stack in a column on phones." },
+        { "id": "stack-page-header", "title": "Page header", "lead": "Give `Align` a breakpoint map too: from Sm the title and actions share a line, spread apart by `Justify.Between`; on phones they stack, with the actions under the title." }
       ]
     },
     {
       "id": "grid", "icon": "LayoutGrid", "name": "Grid", "category": "Layout", "summary": "Columns by breakpoint, by minimum width, or by template.", "parts": ["GridItem"],
       "examples": [
-        { "id": "grid-breakpoints", "title": "Columns by breakpoint", "lead": "Use `Columns` with a breakpoint map for a set number of equal columns: one on phones, two from Sm (640px), and three from Lg (1024px).", "height": 360 },
-        { "id": "grid-min-width", "title": "As many columns as fit", "lead": "Use `MinChildWidth` to fit as many columns as there's room for, each at least that wide, with no breakpoints to pick.", "height": 200 },
-        { "id": "grid-few-items", "title": "A short row", "lead": "With `MinChildWidth`, a row with fewer items keeps its empty columns so every item is the same width (top); add `Stretch` to let them fill the row (bottom).", "height": 260 },
-        { "id": "grid-side-column", "title": "Your own column sizes", "lead": "Use `Template` for CSS column sizes per breakpoint: from Sm, a 12rem side column beside the results; on phones, one column.", "height": 250 },
-        { "id": "grid-spans", "title": "Spanning cells", "lead": "Set `ColSpan` on any child to span columns, and wrap one in a `GridItem` for `RowSpan`: from Sm the revenue card takes two columns and two rows, and the activity card spans the row with `GridSpan.Full`.", "height": 330 }
+        { "id": "grid-breakpoints", "title": "Columns by breakpoint", "lead": "Use `Columns` with a breakpoint map for a set number of equal columns: one on phones, two from Sm (640px), and three from Lg (1024px)." },
+        { "id": "grid-min-width", "title": "As many columns as fit", "lead": "Use `MinChildWidth` to fit as many columns as there's room for, each at least that wide, with no breakpoints to pick." },
+        { "id": "grid-few-items", "title": "A short row", "lead": "With `MinChildWidth`, a row with fewer items keeps its empty columns so every item is the same width (top); add `Stretch` to let them fill the row (bottom)." },
+        { "id": "grid-side-column", "title": "Your own column sizes", "lead": "Use `Template` for CSS column sizes per breakpoint: from Sm, a 12rem side column beside the results; on phones, one column." },
+        { "id": "grid-spans", "title": "Spanning cells", "lead": "Set `ColSpan` on any child to span columns, and wrap one in a `GridItem` for `RowSpan`: from Sm the revenue card takes two columns and two rows, and the activity card spans the row with `GridSpan.Full`." }
       ]
     },
     {
       "id": "container", "icon": "RectangleHorizontal", "name": "Container", "category": "Layout", "summary": "Centers content at a readable width.",
       "examples": [
-        { "id": "container-reading", "title": "Width", "lead": "Use `Size` to cap the width, from Sm (40rem) for forms and short text to Xl (80rem, the default); narrower than that it fills its parent, with 16px of side padding (24px from 768px).", "height": 200 }
+        { "id": "container-reading", "title": "Width", "lead": "Use `Size` to cap the width, from Sm (40rem) for forms and short text to Xl (80rem, the default); narrower than that it fills its parent, with 16px of side padding (24px from 768px)." }
       ]
     },
     {
       "id": "section", "icon": "PanelTop", "name": "Section", "category": "Layout", "summary": "A full-width band of a page, such as a hero.",
       "examples": [
-        { "id": "section-hero", "title": "A hero", "lead": "Use `Spacing=\"SectionSpacing.Lg\"` and a `Bg` for a hero or a closing call to action (64px of padding, 96px from 768px), with a `Container` to keep its content at a readable width.", "height": 400 },
-        { "id": "section-bands", "title": "Spacing", "lead": "Use `Spacing` for a band's vertical padding: Md, the default, is 48px (64px from 768px), and Sm is 32px, for a slimmer band like this sign-up.", "height": 340 }
+        { "id": "section-hero", "title": "A hero", "lead": "Use `Spacing=\"SectionSpacing.Lg\"` and a `Bg` for a hero or a closing call to action (64px of padding, 96px from 768px), with a `Container` to keep its content at a readable width." },
+        { "id": "section-bands", "title": "Spacing", "lead": "Use `Spacing` for a band's vertical padding: Md, the default, is 48px (64px from 768px), and Sm is 32px, for a slimmer band like this sign-up." }
       ]
     },
     {
       "id": "center", "icon": "Crosshair", "name": "Center", "category": "Layout", "summary": "Centers its content both ways.",
       "examples": [
-        { "id": "center-icon-tiles", "title": "Icon tiles", "lead": "Give `Center` a `Width` and `Height` to put an icon in the middle of a square tile; `Bg` and `Radius` style the tile.", "height": 120 },
-        { "id": "center-loading", "title": "In a panel", "lead": "Give `Center` a `Height` to center content in a panel, such as a spinner while a report loads.", "height": 250 }
+        { "id": "center-icon-tiles", "title": "Icon tiles", "lead": "Give `Center` a `Width` and `Height` to put an icon in the middle of a square tile; `Bg` and `Radius` style the tile." },
+        { "id": "center-loading", "title": "In a panel", "lead": "Give `Center` a `Height` to center content in a panel, such as a spinner while a report loads." }
       ]
     },
     {
       "id": "spacer", "icon": "MoveHorizontal", "name": "Spacer", "category": "Layout", "summary": "Pushes the rest of a row to the end.",
       "examples": [
-        { "id": "spacer-app-bar", "title": "In a row", "lead": "Put a `Spacer` between groups in a `Row` to push everything after it to the end, here the header's buttons.", "height": 130 },
-        { "id": "spacer-plans", "title": "In a column", "lead": "In a `Column` it takes the free height instead, so both buttons sit at the bottom of their cards however long the text above them.", "height": 290 }
+        { "id": "spacer-app-bar", "title": "In a row", "lead": "Put a `Spacer` between groups in a `Row` to push everything after it to the end, here the header's buttons." },
+        { "id": "spacer-plans", "title": "In a column", "lead": "In a `Column` it takes the free height instead, so both buttons sit at the bottom of their cards however long the text above them." }
       ]
     },
     {
       "id": "aspect-ratio", "icon": "Ratio", "name": "AspectRatio", "category": "Layout", "summary": "Keeps media at a shape, 16:9 by default.",
       "examples": [
-        { "id": "aspect-ratio-shapes", "title": "Shapes", "lead": "Use `Ratio` for the shape, width over height: the same picture at 16:9 (the default), 1:1 and 4:5, cropped to fill each.", "height": 350 }
+        { "id": "aspect-ratio-shapes", "title": "Shapes", "lead": "Use `Ratio` for the shape, width over height: the same picture at 16:9 (the default), 1:1 and 4:5, cropped to fill each." }
       ]
     },
     {
       "id": "divider", "icon": "SeparatorHorizontal", "name": "Divider", "category": "Layout", "summary": "A line: plain, dashed, labeled or vertical.",
       "examples": [
-        { "id": "divider-receipt", "title": "Plain and dashed", "lead": "A `Divider` is an `hr` line; set `Dashed` for a lighter break, as before the total.", "height": 260 },
-        { "id": "divider-labeled", "title": "With a label", "lead": "Use `Label` to put text in the middle of the line, such as `or` between two ways to sign in.", "height": 170 },
-        { "id": "divider-vertical", "title": "Vertical", "lead": "Set `Orientation=\"Orientation.Vertical\"` for a separator between items in a `Row`; it takes the row's height.", "height": 100 }
+        { "id": "divider-receipt", "title": "Plain and dashed", "lead": "A `Divider` is an `hr` line; set `Dashed` for a lighter break, as before the total." },
+        { "id": "divider-labeled", "title": "With a label", "lead": "Use `Label` to put text in the middle of the line, such as `or` between two ways to sign in." },
+        { "id": "divider-vertical", "title": "Vertical", "lead": "Set `Orientation=\"Orientation.Vertical\"` for a separator between items in a `Row`; it takes the row's height." }
       ]
     },
 
@@ -178,54 +178,54 @@
     {
       "id": "izzy-theme", "icon": "Palette", "name": "IzzyTheme", "category": "App shell", "summary": "The preset, brand color, fonts and scheme, set on the server.",
       "examples": [
-        { "id": "izzy-theme-presets", "title": "The four presets", "height": 380 },
-        { "id": "izzy-theme-brands", "title": "Built-in brand colors", "height": 330 },
-        { "id": "izzy-theme-part", "title": "Theming part of a page", "height": 200 },
-        { "id": "izzy-theme-hex-brand", "title": "Your own brand color", "lead": "Use a hex `Brand` for your own color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, keeping text at 4.5:1 contrast.", "height": 380 }
+        { "id": "izzy-theme-presets", "title": "The four presets" },
+        { "id": "izzy-theme-brands", "title": "Built-in brand colors" },
+        { "id": "izzy-theme-part", "title": "Theming part of a page" },
+        { "id": "izzy-theme-hex-brand", "title": "Your own brand color", "lead": "Use a hex `Brand` for your own color: the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark, keeping text at 4.5:1 contrast." }
       ]
     },
     {
       "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.",
       "examples": [
-        { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented", "height": 220,
+        { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented",
           "notes": {
             "off": "Each option is a link: the server saves the choice and sends you back.",
             "static": "The scheme changes at once, and other open tabs follow.",
             "live": "The same, and @bind-Value gives you the choice in C#."
           } },
-        { "id": "color-scheme-switch-bound", "title": "Following it from C#", "lead": "Use `ValueChanged` to learn the choice in C#, and set `Value` to apply a scheme to the page, the cookie and other open tabs.", "height": 140, "modes": ["live"] }
+        { "id": "color-scheme-switch-bound", "title": "Following it from C#", "lead": "Use `ValueChanged` to learn the choice in C#, and set `Value` to apply a scheme to the page, the cookie and other open tabs.", "modes": ["live"] }
       ]
     },
 
     {
       "id": "heading", "icon": "Heading", "name": "Heading", "category": "Typography", "summary": "Headings 1 to 6, with fluid sizes and section links.",
       "examples": [
-        { "id": "heading-levels", "title": "Levels", "lead": "Use `Level` to set the element, `h1` to `h6`, and its default size.", "height": 300 },
-        { "id": "heading-size-level", "title": "Size apart from level", "lead": "Use `Size` to change how a heading looks without changing its level, per breakpoint or fluid with `MinSize`.", "height": 260 }
+        { "id": "heading-levels", "title": "Levels", "lead": "Use `Level` to set the element, `h1` to `h6`, and its default size." },
+        { "id": "heading-size-level", "title": "Size apart from level", "lead": "Use `Size` to change how a heading looks without changing its level, per breakpoint or fluid with `MinSize`." }
       ]
     },
     {
       "id": "text-block", "icon": "Type", "name": "TextBlock", "category": "Typography", "summary": "Body text with every text style.",
       "examples": [
-        { "id": "text-block-scale", "title": "Size scale", "lead": "Use `Size` to pick a step on the type scale, from `Xs` to `Xl6`.", "height": 520 },
-        { "id": "text-block-styles", "title": "Weight, family and decoration", "lead": "Use `Weight`, `Family`, `Italic` and `Decoration` to style text without CSS.", "height": 150 },
-        { "id": "text-block-colors", "title": "Text colors", "lead": "Use `Color` with `Muted`, `Subtle` and `Disabled` for less emphasis, and the `*Text` accents for status text that stays readable.", "height": 210 },
-        { "id": "text-block-overflow", "title": "Truncate and line clamp", "lead": "Use `Truncate` to keep text on one line, or `LineClamp` to stop it after a number of lines, ending with an ellipsis.", "height": 160 },
-        { "id": "text-block-numbers", "title": "Tabular numbers", "lead": "Use `TabularNums` to give digits equal widths, so numbers line up in columns.", "height": 160 }
+        { "id": "text-block-scale", "title": "Size scale", "lead": "Use `Size` to pick a step on the type scale, from `Xs` to `Xl6`." },
+        { "id": "text-block-styles", "title": "Weight, family and decoration", "lead": "Use `Weight`, `Family`, `Italic` and `Decoration` to style text without CSS." },
+        { "id": "text-block-colors", "title": "Text colors", "lead": "Use `Color` with `Muted`, `Subtle` and `Disabled` for less emphasis, and the `*Text` accents for status text that stays readable." },
+        { "id": "text-block-overflow", "title": "Truncate and line clamp", "lead": "Use `Truncate` to keep text on one line, or `LineClamp` to stop it after a number of lines, ending with an ellipsis." },
+        { "id": "text-block-numbers", "title": "Tabular numbers", "lead": "Use `TabularNums` to give digits equal widths, so numbers line up in columns." }
       ]
     },
     {
       "id": "list", "icon": "List", "name": "List", "category": "Typography", "summary": "Bulleted, numbered, plain or icon lists.", "parts": ["ListItem"],
       "examples": [
-        { "id": "list-kinds", "title": "Bulleted, numbered and plain", "lead": "Use `Ordered` for a numbered list and `Plain` for one with no bullets or indent.", "height": 180 },
-        { "id": "list-checklist", "title": "Icon lists", "lead": "Use `Icon` and `IconColor` to put an icon in place of each bullet; an item's own `Icon` wins.", "height": 210 }
+        { "id": "list-kinds", "title": "Bulleted, numbered and plain", "lead": "Use `Ordered` for a numbered list and `Plain` for one with no bullets or indent." },
+        { "id": "list-checklist", "title": "Icon lists", "lead": "Use `Icon` and `IconColor` to put an icon in place of each bullet; an item's own `Icon` wins." }
       ]
     },
     {
       "id": "prose", "icon": "FileText", "name": "Prose", "category": "Typography", "summary": "Styles plain HTML, such as rendered Markdown.",
       "examples": [
-        { "id": "prose-markdown", "title": "HTML from Markdown", "lead": "Use `Prose` around HTML you trust, such as rendered Markdown, to style its headings, links, lists, quotes, code and tables.", "height": 760 },
-        { "id": "prose-sizes", "title": "Sizes", "lead": "Use `Size` to set the text to `Sm` for asides, `Md` (the default) or `Lg` for long reading.", "height": 280 }
+        { "id": "prose-markdown", "title": "HTML from Markdown", "lead": "Use `Prose` around HTML you trust, such as rendered Markdown, to style its headings, links, lists, quotes, code and tables." },
+        { "id": "prose-sizes", "title": "Sizes", "lead": "Use `Size` to set the text to `Sm` for asides, `Md` (the default) or `Lg` for long reading." }
       ],
       "scenarios": [
         { "id": "release-notes", "title": "Release notes", "member": "Size",
@@ -236,22 +236,22 @@
     {
       "id": "anchor", "icon": "Link", "name": "Anchor", "category": "Typography", "summary": "A text link, internal or external.",
       "examples": [
-        { "id": "anchor-new-tab", "title": "Internal and external links", "lead": "Use `External` to open a link in a new tab, with an icon and a note for screen readers.", "height": 120 },
-        { "id": "anchor-link-styles", "title": "Underline and color", "lead": "Use `Underline` for links whose place already says \"link\", and `Inherit` to take the color of the text around it.", "height": 150 }
+        { "id": "anchor-new-tab", "title": "Internal and external links", "lead": "Use `External` to open a link in a new tab, with an icon and a note for screen readers." },
+        { "id": "anchor-link-styles", "title": "Underline and color", "lead": "Use `Underline` for links whose place already says \"link\", and `Inherit` to take the color of the text around it." }
       ]
     },
     {
       "id": "code", "icon": "Code", "name": "Code", "category": "Typography", "summary": "Inline code or a block, highlighted on the server.",
       "examples": [
-        { "id": "code-inline-block", "title": "Inline and block", "lead": "Use `Code` alone for names in running text, and `Block` for code on its own lines that scrolls sideways.", "height": 190,
+        { "id": "code-inline-block", "title": "Inline and block", "lead": "Use `Code` alone for names in running text, and `Block` for code on its own lines that scrolls sideways.",
           "notes": {
             "off": "The block has no copy button; the command is still there to select."
           } },
-        { "id": "code-languages", "title": "Syntax highlighting", "lead": "Use `Language` to color the code on the server: C#, Razor, HTML, CSS, JavaScript, TypeScript, JSON and shell.", "height": 480,
+        { "id": "code-languages", "title": "Syntax highlighting", "lead": "Use `Language` to color the code on the server: C#, Razor, HTML, CSS, JavaScript, TypeScript, JSON and shell.",
           "notes": {
             "off": "The colors are the same, since the server draws them; only the copy buttons are missing."
           } },
-        { "id": "code-lines", "title": "File name, line numbers and highlights", "lead": "Use `Title` for a file name, `LineNumbers` to number the lines and `HighlightLines` to mark some, such as \"2,9\".", "height": 370,
+        { "id": "code-lines", "title": "File name, line numbers and highlights", "lead": "Use `Title` for a file name, `LineNumbers` to number the lines and `HighlightLines` to mark some, such as \"2,9\".",
           "notes": {
             "off": "There's no copy button; selecting the code still leaves the line numbers out."
           } }
@@ -268,15 +268,15 @@
     {
       "id": "code-example", "icon": "SquareCode", "name": "CodeExample", "category": "Typography", "summary": "A live example with its source under it.", "parts": ["CodeExampleFile"],
       "examples": [
-        { "id": "code-example-source", "title": "Preview and source", "lead": "Use `Code` to show an example's source under its live preview, colored and with a copy button.", "height": 280,
+        { "id": "code-example-source", "title": "Preview and source", "lead": "Use `Code` to show an example's source under its live preview, colored and with a copy button.",
           "notes": {
             "off": "The source has no copy button."
           } },
-        { "id": "code-example-files", "title": "Several files", "lead": "Use `CodeExampleFile` parts to show each file of an example as a tab over its source.", "height": 340,
+        { "id": "code-example-files", "title": "Several files", "lead": "Use `CodeExampleFile` parts to show each file of an example as a tab over its source.",
           "notes": {
             "off": "The file tabs still switch, as radio buttons; the source has no copy button."
           } },
-        { "id": "code-example-show-code", "title": "Hidden source", "lead": "Use `Collapsible` to hide the source behind a \"Show code\" toggle.", "height": 200,
+        { "id": "code-example-show-code", "title": "Hidden source", "lead": "Use `Collapsible` to hide the source behind a \"Show code\" toggle.",
           "notes": {
             "off": "Show code still opens the source (a native `details`); it has no copy button."
           } }
@@ -285,18 +285,18 @@
     {
       "id": "kbd", "icon": "Keyboard", "name": "Kbd", "category": "Typography", "summary": "A key or a key combination.",
       "examples": [
-        { "id": "kbd-combinations", "title": "Keys and combinations", "lead": "Use `Keys` for a combination such as \"Ctrl+K\": each key gets its own box.", "height": 150 },
-        { "id": "kbd-sequence", "title": "Separator", "lead": "Use `Separator` to change what's shown between the keys: a word for a sequence, or nothing for a Mac shortcut.", "height": 120 }
+        { "id": "kbd-combinations", "title": "Keys and combinations", "lead": "Use `Keys` for a combination such as \"Ctrl+K\": each key gets its own box." },
+        { "id": "kbd-sequence", "title": "Separator", "lead": "Use `Separator` to change what's shown between the keys: a word for a sequence, or nothing for a Mac shortcut." }
       ]
     },
     {
       "id": "icon", "icon": "Shapes", "name": "Icon", "category": "Typography", "summary": "Inline SVG icons from Lucide, rendered on the server.",
       "examples": [
-        { "id": "icon-beside-text", "title": "Beside text", "lead": "Use `Icon` with a `Name` such as `Lucide.House`: it's sized in em and takes the text color, so it matches the text it sits in.", "height": 190 },
-        { "id": "icon-sizes", "title": "Sizes", "lead": "Use `Size` to scale an icon relative to the text around it.", "height": 130 },
-        { "id": "icon-color-stroke", "title": "Color, stroke width and spin", "lead": "Use `Color`, `StrokeWidth` and `Spin` to style an icon, and `Label` to name one that stands alone.", "height": 110 },
-        { "id": "icon-roles", "title": "Semantic roles", "lead": "Use `Role` to ask for a purpose rather than a drawing, so one icon set can change every icon the library draws.", "height": 460 },
-        { "id": "icon-logos", "title": "Brand logos", "lead": "Use `Brands` for the logos sites link to most, drawn to match Lucide.", "height": 90 }
+        { "id": "icon-beside-text", "title": "Beside text", "lead": "Use `Icon` with a `Name` such as `Lucide.House`: it's sized in em and takes the text color, so it matches the text it sits in." },
+        { "id": "icon-sizes", "title": "Sizes", "lead": "Use `Size` to scale an icon relative to the text around it." },
+        { "id": "icon-color-stroke", "title": "Color, stroke width and spin", "lead": "Use `Color`, `StrokeWidth` and `Spin` to style an icon, and `Label` to name one that stands alone." },
+        { "id": "icon-roles", "title": "Semantic roles", "lead": "Use `Role` to ask for a purpose rather than a drawing, so one icon set can change every icon the library draws." },
+        { "id": "icon-logos", "title": "Brand logos", "lead": "Use `Brands` for the logos sites link to most, drawn to match Lucide." }
       ]
     },
 
@@ -309,18 +309,18 @@
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
-        { "id": "button-variants", "title": "Accents and variants", "height": 120 },
-        { "id": "button-submit-reset", "title": "Submit and reset", "height": 260,
+        { "id": "button-variants", "title": "Accents and variants" },
+        { "id": "button-submit-reset", "title": "Submit and reset",
           "notes": {
             "off": "Save posts the form, and the server renders the page again with the result.",
             "static": "Blazor's enhanced form handling posts it without a full reload.",
             "live": "The same form validates and runs OnValidSubmit over the circuit."
           } },
-        { "id": "button-links", "title": "Links that look like buttons", "height": 96 },
-        { "id": "button-sizes-icons", "title": "Sizes and icons", "height": 140 },
-        { "id": "button-states", "title": "Loading and disabled", "height": 96 },
-        { "id": "button-on-click", "title": "Running C# on click", "height": 140, "modes": ["live"] },
-        { "id": "button-state-in-address", "title": "A count in the address", "height": 96,
+        { "id": "button-links", "title": "Links that look like buttons" },
+        { "id": "button-sizes-icons", "title": "Sizes and icons" },
+        { "id": "button-states", "title": "Loading and disabled" },
+        { "id": "button-on-click", "title": "Running C# on click", "modes": ["live"] },
+        { "id": "button-state-in-address", "title": "A count in the address",
           "notes": {
             "off": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
             "static": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
@@ -339,29 +339,29 @@
     {
       "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "A square button with a required label.",
       "examples": [
-        { "id": "icon-button-variants", "title": "Labels and variants", "lead": "Use `Label` for the button's name and tooltip; it takes `Variant`, `Accent` and `Href` as Button does.", "height": 96 },
-        { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Use `Size`, `Loading` and `Disabled` as on Button.", "height": 100 }
+        { "id": "icon-button-variants", "title": "Labels and variants", "lead": "Use `Label` for the button's name and tooltip; it takes `Variant`, `Accent` and `Href` as Button does." },
+        { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Use `Size`, `Loading` and `Disabled` as on Button." }
       ]
     },
     {
       "id": "button-group", "icon": "Group", "name": "ButtonGroup", "category": "Actions", "summary": "Joined or spaced buttons with shared defaults.",
       "examples": [
-        { "id": "button-group-joined", "title": "Joined buttons", "lead": "Use `Label` to name the group for screen readers; the buttons and icon buttons inside are joined into one control.", "height": 120 },
-        { "id": "button-group-defaults", "title": "Shared defaults", "lead": "Use `Variant`, `Accent` and `Size` on the group as its buttons' defaults; a button's own setting wins.", "height": 110 },
-        { "id": "button-group-spaced", "title": "Spaced apart", "lead": "Use `Attached=\"false\"` to space the buttons apart instead of joining them.", "height": 96 },
-        { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "Use `Orientation` to stack the buttons, and `FullWidth` to share the container's width among them.", "height": 150 }
+        { "id": "button-group-joined", "title": "Joined buttons", "lead": "Use `Label` to name the group for screen readers; the buttons and icon buttons inside are joined into one control." },
+        { "id": "button-group-defaults", "title": "Shared defaults", "lead": "Use `Variant`, `Accent` and `Size` on the group as its buttons' defaults; a button's own setting wins." },
+        { "id": "button-group-spaced", "title": "Spaced apart", "lead": "Use `Attached=\"false\"` to space the buttons apart instead of joining them." },
+        { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "Use `Orientation` to stack the buttons, and `FullWidth` to share the container's width among them." }
       ]
     },
     {
       "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Actions", "summary": "Asks in an alert dialog before acting.", "parts": ["ConfirmDialogContent"],
       "examples": [
-        { "id": "confirm-button-form-post", "title": "Confirming a form post", "lead": "Use `Name` and `Value` on a `ConfirmButton` in a form to post which action was confirmed, and `OnConfirm` to run C# instead on interactive pages.", "height": 260, "overlay": true,
+        { "id": "confirm-button-form-post", "title": "Confirming a form post", "lead": "Use `Name` and `Value` on a `ConfirmButton` in a form to post which action was confirmed, and `OnConfirm` to run C# instead on interactive pages.",
           "notes": {
             "off": "Confirming posts the form with intent=archive or intent=delete. The buttons open the dialog only in browsers with the native command attribute.",
             "static": "Confirming posts the form without a reload, and the dialog closes as it goes.",
             "live": "Confirming runs OnConfirm in C#, and nothing is posted."
           } },
-        { "id": "confirm-button-affected", "title": "Showing what's affected", "lead": "Use `Body` for more than a one-line `Message`, such as a list of what will be deleted.", "height": 340, "overlay": true,
+        { "id": "confirm-button-affected", "title": "Showing what's affected", "lead": "Use `Body` for more than a one-line `Message`, such as a list of what will be deleted.",
           "notes": {
             "off": "Confirming posts the form. The button opens the dialog only in browsers with the native command attribute.",
             "static": "Confirming posts the form without a reload, and the dialog closes as it goes.",
@@ -372,11 +372,11 @@
     {
       "id": "copy-button", "icon": "Copy", "name": "CopyButton", "category": "Actions", "summary": "Copies text, such as an install command.",
       "examples": [
-        { "id": "copy-button-command", "title": "Copy text", "lead": "Use `Text` to copy a fixed value, such as an install command.", "height": 90,
+        { "id": "copy-button-command", "title": "Copy text", "lead": "Use `Text` to copy a fixed value, such as an install command.",
           "notes": {
             "off": "The button doesn't appear; the command is still there to select."
           } },
-        { "id": "copy-button-from-field", "title": "Copy from a field", "lead": "Use `For` to copy the value or text of the element with that id, such as a read-only field.", "height": 130,
+        { "id": "copy-button-from-field", "title": "Copy from a field", "lead": "Use `For` to copy the value or text of the element with that id, such as a read-only field.",
           "notes": {
             "off": "The button doesn't appear and the field takes its space; the key is still there to select."
           } }
@@ -386,42 +386,42 @@
     {
       "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts on static pages, validates live on interactive ones.", "parts": ["FormActions", "FormErrors"],
       "examples": [
-        { "id": "home-settings", "title": "A settings form, three modes", "height": 440,
+        { "id": "home-settings", "title": "A settings form, three modes",
           "notes": {
             "off": "Every control still works, and Save posts, checks and shows the result.",
             "static": "The script adds the slider's live value and keyboard handling.",
             "live": "The same markup binds to C#, and Save runs a C# handler."
           } },
-        { "id": "form-columns", "title": "Two columns", "height": 330,
+        { "id": "form-columns", "title": "Two columns",
           "notes": {
             "off": "The browser checks before posting, in its own words.",
             "static": "The browser checks before posting, in the model's words.",
             "live": "Each field is checked when it changes, and Save runs C# without a page load."
           } },
-        { "id": "form-errors", "title": "Errors from the server", "height": 380,
+        { "id": "form-errors", "title": "Errors from the server",
           "notes": {
             "off": "Send posts and loads the page again with the messages, and the summary takes focus.",
             "static": "Send posts without a reload, and the summary takes focus.",
             "live": "Each field is checked when it changes, and Send runs C# without a page load."
           } },
-        { "id": "form-horizontal", "title": "Labels beside fields", "height": 260 },
-        { "id": "form-read-only", "title": "Read-only", "height": 220,
+        { "id": "form-horizontal", "title": "Labels beside fields" },
+        { "id": "form-read-only", "title": "Read-only",
           "notes": {
             "off": "The checkbox and switch show as disabled: only the script makes them read-only."
           } },
-        { "id": "form-two-forms", "title": "Two forms on a page", "height": 320,
+        { "id": "form-two-forms", "title": "Two forms on a page",
           "notes": {
             "off": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
             "static": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
             "live": "Nothing posts, so the search keeps its value after Subscribe."
           } },
-        { "id": "form-empty-selection", "title": "An empty selection", "height": 210,
+        { "id": "form-empty-selection", "title": "An empty selection",
           "notes": {
             "off": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
             "static": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
             "live": "Nothing posts on an interactive page: the list is just empty."
           } },
-        { "id": "form-redirect-after-save", "title": "A redirect after saving", "height": 270,
+        { "id": "form-redirect-after-save", "title": "A redirect after saving",
           "notes": {
             "off": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
             "static": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
@@ -442,10 +442,10 @@
     {
       "id": "fieldset", "icon": "SquareDashed", "name": "Fieldset", "category": "Forms", "summary": "Groups related fields under a legend.",
       "examples": [
-        { "id": "fieldset-address", "title": "Label and description", "lead": "Use `Label` for the group's heading and `Description` for a line under it, which screen readers can read with the group's name.", "height": 240 },
-        { "id": "fieldset-columns", "title": "Columns", "lead": "Use `Columns` to lay the group's fields out side by side, by the group's own width.", "height": 320 },
-        { "id": "fieldset-dividers", "title": "A list of settings", "lead": "Use `Dividers` to draw a line between rows, as in a list of settings.", "height": 310 },
-        { "id": "fieldset-icons", "title": "Icons on sections", "lead": "Use `Icon` to tell sections apart at a glance; it's decorative.", "height": 370 }
+        { "id": "fieldset-address", "title": "Label and description", "lead": "Use `Label` for the group's heading and `Description` for a line under it, which screen readers can read with the group's name." },
+        { "id": "fieldset-columns", "title": "Columns", "lead": "Use `Columns` to lay the group's fields out side by side, by the group's own width." },
+        { "id": "fieldset-dividers", "title": "A list of settings", "lead": "Use `Dividers` to draw a line between rows, as in a list of settings." },
+        { "id": "fieldset-icons", "title": "Icons on sections", "lead": "Use `Icon` to tell sections apart at a glance; it's decorative." }
       ]
     },
     {
@@ -457,22 +457,22 @@
         { "feature": "Show/hide button on passwords", "off": "none", "static": "full", "live": "full" }
       ],
       "examples": [
-        { "id": "text-field-labels", "title": "Labels and hints", "height": 300 },
-        { "id": "text-field-password", "title": "Passwords", "height": 120,
+        { "id": "text-field-labels", "title": "Labels and hints" },
+        { "id": "text-field-password", "title": "Passwords",
           "notes": {
             "off": "A plain password input, with no show/hide button.",
             "static": "The script adds the show/hide button."
           } },
-        { "id": "text-field-icons", "title": "Icons", "height": 230 },
-        { "id": "text-field-addons", "title": "Add-ons", "height": 250 },
-        { "id": "text-field-validation", "title": "Validation", "height": 260,
+        { "id": "text-field-icons", "title": "Icons" },
+        { "id": "text-field-addons", "title": "Add-ons" },
+        { "id": "text-field-validation", "title": "Validation",
           "notes": {
             "off": "The browser checks before posting, in its own words; the server's messages show after.",
             "static": "The browser checks before posting, in the model's words; the server's messages show after.",
             "live": "Each field is checked when it changes, and submitting runs C# without a page load."
           } },
-        { "id": "text-field-states", "title": "Sizes, read-only and disabled", "height": 380 },
-        { "id": "text-field-sign-in", "title": "A password after a failed post", "height": 360,
+        { "id": "text-field-states", "title": "Sizes, read-only and disabled" },
+        { "id": "text-field-sign-in", "title": "A password after a failed post",
           "notes": {
             "off": "After the failed post, the email comes back and the password field is empty.",
             "static": "After the failed post, the email comes back and the password field is empty.",
@@ -483,8 +483,8 @@
     {
       "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Multi-line text that can grow and count.",
       "examples": [
-        { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "Use `Rows` to set how many lines show; longer text scrolls.", "height": 220 },
-        { "id": "text-area-count", "title": "Growing, with a count", "lead": "Use `AutoGrow` to grow with the text, and `ShowCount` to count against the limit from `[StringLength]`.", "height": 190,
+        { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "Use `Rows` to set how many lines show; longer text scrolls." },
+        { "id": "text-area-count", "title": "Growing, with a count", "lead": "Use `AutoGrow` to grow with the text, and `ShowCount` to count against the limit from `[StringLength]`.",
           "notes": {
             "off": "The count shows the length the page loaded with; it doesn't follow your typing.",
             "static": "The script keeps the count current as you type."
@@ -494,9 +494,9 @@
     {
       "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Forms", "summary": "A number input with stepper buttons.",
       "examples": [
-        { "id": "number-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, and the browser checks them before the form posts.", "height": 300 },
-        { "id": "number-field-decimals", "title": "Decimals and units", "lead": "Use `Step` for the allowed increments, such as `0.01` for cents, and `StartAddon` or `EndAddon` for a currency or unit.", "height": 190 },
-        { "id": "number-field-steppers", "title": "Step buttons", "lead": "Use `StepButtons` to stack the buttons at the end (the default), split them across both ends, or leave them out.", "height": 260,
+        { "id": "number-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, and the browser checks them before the form posts." },
+        { "id": "number-field-decimals", "title": "Decimals and units", "lead": "Use `Step` for the allowed increments, such as `0.01` for cents, and `StartAddon` or `EndAddon` for a currency or unit." },
+        { "id": "number-field-steppers", "title": "Step buttons", "lead": "Use `StepButtons` to stack the buttons at the end (the default), split them across both ends, or leave them out.",
           "notes": {
             "off": "The browser's own spin buttons show in place of the step buttons, except on Room number, which has none.",
             "static": "The script adds the buttons; hold one to repeat, and each stops at its end of the range."
@@ -506,13 +506,13 @@
     {
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.",
       "examples": [
-        { "id": "slider-value", "title": "Showing the value", "lead": "Use `ShowValue` to show the value beside the slider, and `ValueFormat` for how it reads, shown and announced; `[Range]` sets the ends.", "height": 190,
+        { "id": "slider-value", "title": "Showing the value", "lead": "Use `ShowValue` to show the value beside the slider, and `ValueFormat` for how it reads, shown and announced; `[Range]` sets the ends.",
           "notes": {
             "off": "A plain range input: no fill, and no value beside it.",
             "static": "The script fills the track to the thumb, and the value follows as you drag."
           } },
-        { "id": "slider-live", "title": "Following the value live", "lead": "Use `Live` on interactive pages to update the bound value while dragging, for something on the page that follows it.", "height": 150, "modes": ["live"] },
-        { "id": "slider-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match other fields, `ReadOnly` to post a value that can't be moved, and `Disabled` to post nothing.", "height": 340,
+        { "id": "slider-live", "title": "Following the value live", "lead": "Use `Live` on interactive pages to update the bound value while dragging, for something on the page that follows it.", "modes": ["live"] },
+        { "id": "slider-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match other fields, `ReadOnly` to post a value that can't be moved, and `Disabled` to post nothing.",
           "notes": {
             "off": "Plain range inputs with no values beside them, and the read-only slider shows as disabled: only the script makes it focusable and read-only."
           } }
@@ -521,12 +521,12 @@
     {
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "A color field with a hex box and presets.",
       "examples": [
-        { "id": "color-picker-presets", "title": "Presets", "lead": "Use `Presets` to offer a set of colors; the value is a hex string such as `#2563eb`.", "height": 170,
+        { "id": "color-picker-presets", "title": "Presets", "lead": "Use `Presets` to offer a set of colors; the value is a hex string such as `#2563eb`.",
           "notes": {
             "off": "The swatch fills the field and opens the browser's picker, where Chrome and Edge list the presets first. There's no hex box.",
             "static": "The script adds the hex box and shows the presets as swatches under the field."
           } },
-        { "id": "color-picker-states", "title": "Sizes, swatch only and locked", "lead": "Use `Size` to match other fields, `ShowHex=\"false\"` for the swatch alone, and `ReadOnly` or `Disabled` to lock the value.", "height": 450,
+        { "id": "color-picker-states", "title": "Sizes, swatch only and locked", "lead": "Use `Size` to match other fields, `ShowHex=\"false\"` for the swatch alone, and `ReadOnly` or `Disabled` to lock the value.",
           "notes": {
             "off": "There's no hex box, so the read-only field shows only its swatch, disabled.",
             "static": "The read-only field's hex box can be focused and selected, but not changed."
@@ -536,13 +536,13 @@
     {
       "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Forms", "summary": "A drop zone around a real file input.",
       "examples": [
-        { "id": "file-upload-photo", "title": "Types, size and posting", "lead": "Use `Accept` and `MaxFileSize` for the files allowed (they write the hint), and `Multipart` on the Form so the file posts.", "height": 300,
+        { "id": "file-upload-photo", "title": "Types, size and posting", "lead": "Use `Accept` and `MaxFileSize` for the files allowed (they write the hint), and `Multipart` on the Form so the file posts.",
           "notes": {
             "off": "Choose a file opens the picker, and Upload posts the photo. Dropping a file and the size check need the script.",
             "static": "You can also drop a photo on the zone; one over 2 MB is flagged before posting, and the chosen file's name and size replace the types and size line.",
             "live": "OnChange gets the photo as an IBrowserFile when it's chosen, to read as a stream."
           } },
-        { "id": "file-upload-multiple", "title": "Several files and disabled", "lead": "Use `Multiple` to take several files at once, and `Disabled` to turn the zone off.", "height": 400,
+        { "id": "file-upload-multiple", "title": "Several files and disabled", "lead": "Use `Multiple` to take several files at once, and `Disabled` to turn the zone off.",
           "notes": {
             "off": "Choose files opens the picker; dropping files needs the script.",
             "static": "Files can be dropped on the zone too (other types are refused), and the chosen files replace the types and size line."
@@ -552,20 +552,20 @@
     {
       "id": "field-frame", "icon": "Frame", "name": "FieldFrame", "category": "Forms", "summary": "The label, hint and errors around a control of your own.", "parts": ["FieldAddons", "FieldError"],
       "examples": [
-        { "id": "field-frame-custom", "title": "A control of your own", "lead": "Use `FieldFrame` to give your own control the label, hint, required mark and messages of the built-in fields; the control points at the hint and messages with `aria-describedby`.", "height": 200 },
-        { "id": "field-frame-addons", "title": "Add-ons", "lead": "Use `FieldAddons` to attach text or a button to the start or end of your own control.", "height": 120 }
+        { "id": "field-frame-custom", "title": "A control of your own", "lead": "Use `FieldFrame` to give your own control the label, hint, required mark and messages of the built-in fields; the control points at the hint and messages with `aria-describedby`." },
+        { "id": "field-frame-addons", "title": "Add-ons", "lead": "Use `FieldAddons` to attach text or a button to the start or end of your own control." }
       ]
     },
     {
       "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "parts": ["FilterSearch", "FilterSelect", "FilterCheckbox"],
       "examples": [
-        { "id": "filter-form-issues", "title": "Search, select and checkbox", "lead": "Use `FilterSearch`, `FilterSelect` and `FilterCheckbox` for the filters; the page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.", "height": 340,
+        { "id": "filter-form-issues", "title": "Search, select and checkbox", "lead": "Use `FilterSearch`, `FilterSelect` and `FilterCheckbox` for the filters; the page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.",
           "notes": {
             "off": "Press Enter or Apply to filter; Clear is a link that removes every filter.",
             "static": "Filters apply as you type and when a choice changes, without a full reload.",
             "live": "The same, through Blazor's navigation: the page's query parameters update."
           } },
-        { "id": "filter-form-apply-button", "title": "Filtering on demand", "lead": "Use `Live=\"false\"` to keep the Apply button, so filters wait until it's pressed; `ApplyText` renames it.", "height": 300,
+        { "id": "filter-form-apply-button", "title": "Filtering on demand", "lead": "Use `Live=\"false\"` to keep the Apply button, so filters wait until it's pressed; `ApplyText` renames it.",
           "notes": {
             "off": "Search loads the page again with the filters in the URL.",
             "static": "Filters wait for Search or Enter, then apply without a full reload."
@@ -586,18 +586,18 @@
     {
       "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "A native select, themed where the browser allows.",
       "examples": [
-        { "id": "select-options", "title": "Options", "height": 380, "overlay": true },
-        { "id": "select-rich", "title": "Rich options", "height": 260, "overlay": true,
+        { "id": "select-options", "title": "Options" },
+        { "id": "select-rich", "title": "Rich options",
           "notes": {
             "off": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"); the script puts ItemText in its place."
           } },
-        { "id": "select-required", "title": "Required, with a placeholder", "height": 260, "overlay": true,
+        { "id": "select-required", "title": "Required, with a placeholder",
           "notes": {
             "off": "The browser stops the post until a plan is chosen, in its own words.",
             "static": "The browser stops the post until a plan is chosen, in the model's words.",
             "live": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
           } },
-        { "id": "select-states", "title": "Sizes, read-only and disabled", "height": 380, "overlay": true }
+        { "id": "select-states", "title": "Sizes, read-only and disabled" }
       ]
     },
     {
@@ -610,35 +610,35 @@
         { "feature": "Search as you type", "off": "none", "static": "none", "live": "full" }
       ],
       "examples": [
-        { "id": "combobox-filtering", "title": "Typing to filter", "lead": "Use `Items` and `ItemText` for a long list people find by typing: what's typed filters the options, ignoring case and accents.", "height": 440, "overlay": true,
+        { "id": "combobox-filtering", "title": "Typing to filter", "lead": "Use `Items` and `ItemText` for a long list people find by typing: what's typed filters the options, ignoring case and accents.",
           "notes": {
             "off": "A plain dropdown of every country, with no typing to filter.",
             "static": "The script makes it a text field: typing filters the list, so \"cote\" finds Côte d'Ivoire."
           } },
-        { "id": "combobox-server-search", "title": "Searching on the server", "lead": "Use `Search` for a list too long to send whole: it gets what's typed and returns the first matches, and `ItemTemplate` adds markup to each, such as an avatar.", "height": 380, "overlay": true,
+        { "id": "combobox-server-search", "title": "Searching on the server", "lead": "Use `Search` for a list too long to send whole: it gets what's typed and returns the first matches, and `ItemTemplate` adds markup to each, such as an avatar.",
           "notes": {
             "off": "A plain dropdown of what Search returns for an empty string: the first eight people.",
             "static": "Search fills the list once, and typing filters those eight people in the browser.",
             "live": "Typing calls Search after a short pause, so anyone in the directory can be found."
           } },
-        { "id": "combobox-required", "title": "Required, with a placeholder", "lead": "Use `[Required]` on a nullable property and a `Placeholder`: nothing is chosen until someone picks an option.", "height": 440, "overlay": true,
+        { "id": "combobox-required", "title": "Required, with a placeholder", "lead": "Use `[Required]` on a nullable property and a `Placeholder`: nothing is chosen until someone picks an option.",
           "notes": {
             "off": "A plain dropdown: the browser stops the post until a country is chosen, in its own words.",
             "static": "The browser stops the post until a country is chosen, in the model's words, on the text field.",
             "live": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
           } },
-        { "id": "combobox-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a value that posts but can't change, and `Disabled` for one that doesn't post.", "height": 410, "overlay": true }
+        { "id": "combobox-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a value that posts but can't change, and `Disabled` for one that doesn't post." }
       ]
     },
     {
       "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Several choices as chips you can type to filter.",
       "examples": [
-        { "id": "multi-select-chips", "title": "Chips", "lead": "Bind `MultiSelect` to a collection and pass the options to `Items`: each chosen option posts as a repeated form field.", "height": 340, "overlay": true,
+        { "id": "multi-select-chips", "title": "Chips", "lead": "Bind `MultiSelect` to a collection and pass the options to `Items`: each chosen option posts as a repeated form field.",
           "notes": {
             "off": "A plain multiple-select list, without chips or typing to filter. Save posts every chosen skill.",
             "static": "Chosen skills show as chips, typing filters the list, choosing keeps it open, and Backspace removes the last chip."
           } },
-        { "id": "multi-select-enum-icons", "title": "Enum options with icons", "lead": "For an enum, pass its values to `Items`; `ItemTemplate` adds an icon to each option, and the chips show its text.", "height": 280, "overlay": true,
+        { "id": "multi-select-enum-icons", "title": "Enum options with icons", "lead": "For an enum, pass its values to `Items`; `ItemTemplate` adds an icon to each option, and the chips show its text.",
           "notes": {
             "off": "A plain multiple-select list, showing each option's text without its icon."
           } }
@@ -647,20 +647,20 @@
     {
       "id": "checkbox", "icon": "SquareCheck", "name": "Checkbox", "category": "Selection", "summary": "A checkbox drawn to match the fields.",
       "examples": [
-        { "id": "checkbox-select-all", "title": "Select all", "lead": "Use `Indeterminate` to show a dash on a box when only some of what it stands for is checked.", "height": 230,
+        { "id": "checkbox-select-all", "title": "Select all", "lead": "Use `Indeterminate` to show a dash on a box when only some of what it stands for is checked.",
           "notes": {
             "off": "Checking the top box doesn't check the others until Save: the server then checks or clears all three. Screen readers hear the dash as \"not checked\".",
             "static": "The same, but screen readers hear the dash as \"mixed\".",
             "live": "Checking the top box checks all three, and it follows them as they change."
           } },
-        { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`; a `Disabled` box doesn't post.", "height": 110 }
+        { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`; a `Disabled` box doesn't post." }
       ]
     },
     {
       "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Selection", "summary": "An on/off switch that posts like a checkbox.",
       "examples": [
-        { "id": "switch-control-end", "title": "At the end of the row", "lead": "Use `ControlPosition.End` to put the switch at the end of the row, with the hint under the label, as in a list of settings.", "height": 170 },
-        { "id": "switch-icons", "title": "Icons on rows", "lead": "Use `Icon` to put a decorative icon at the start of the row; give every row in a group one, or none.", "height": 290 }
+        { "id": "switch-control-end", "title": "At the end of the row", "lead": "Use `ControlPosition.End` to put the switch at the end of the row, with the hint under the label, as in a list of settings." },
+        { "id": "switch-icons", "title": "Icons on rows", "lead": "Use `Icon` to put a decorative icon at the start of the row; give every row in a group one, or none." }
       ],
       "scenarios": [
         { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
@@ -671,72 +671,72 @@
     {
       "id": "radio-group", "icon": "CircleDot", "name": "RadioGroup", "category": "Selection", "summary": "One choice from a list of radios.",
       "examples": [
-        { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default; use `Orientation.Horizontal` to put a few short ones in a row, wrapping when space runs out.", "height": 230 },
-        { "id": "radio-group-shipping", "title": "Options from a list", "lead": "Use `Items` for options that aren't an enum, and `ItemText` for how each one reads.", "height": 150 }
+        { "id": "radio-group-horizontal", "title": "Stacked or in a row", "lead": "Options stack by default; use `Orientation.Horizontal` to put a few short ones in a row, wrapping when space runs out." },
+        { "id": "radio-group-shipping", "title": "Options from a list", "lead": "Use `Items` for options that aren't an enum, and `ItemText` for how each one reads." }
       ]
     },
     {
       "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Selection", "summary": "Several choices as checkboxes.",
       "examples": [
-        { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "Bind `CheckboxGroup` to a collection (an array, `List` or `HashSet`) and pass the options to `Items`; each checked box posts its value, so it works with JavaScript off.", "height": 140 },
-        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name.", "height": 230 }
+        { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "Bind `CheckboxGroup` to a collection (an array, `List` or `HashSet`) and pass the options to `Items`; each checked box posts its value, so it works with JavaScript off." },
+        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name." }
       ]
     },
     {
       "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "One choice from a few, as joined buttons.",
       "examples": [
-        { "id": "segmented-control-icons", "title": "Icons", "lead": "Use `ItemIcon` to put an icon before each option's text, and `IconOnly` to show just the icons, with the text as a tooltip and for screen readers.", "height": 180 },
-        { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "Use `FullWidth` to share the width equally between the segments, and `HideLabel` to keep the label for screen readers only.", "height": 190 },
-        { "id": "segmented-control-sizes", "title": "Sizes", "lead": "Use `Size` to match the control to fields and buttons of the same `ControlSize`.", "height": 120 }
+        { "id": "segmented-control-icons", "title": "Icons", "lead": "Use `ItemIcon` to put an icon before each option's text, and `IconOnly` to show just the icons, with the text as a tooltip and for screen readers." },
+        { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "Use `FullWidth` to share the width equally between the segments, and `HideLabel` to keep the label for screen readers only." },
+        { "id": "segmented-control-sizes", "title": "Sizes", "lead": "Use `Size` to match the control to fields and buttons of the same `ControlSize`." }
       ]
     },
 
     {
       "id": "dialog", "icon": "AppWindow", "name": "Dialog", "category": "Overlays", "summary": "A native modal dialog, opened by a trigger, a link or C#.", "parts": ["DialogTrigger", "DialogHeader", "DialogBody", "DialogFooter", "DialogClose", "DialogHost"],
       "examples": [
-        { "id": "dialog-open", "title": "Opening it", "height": 260, "overlay": true,
+        { "id": "dialog-open", "title": "Opening it",
           "notes": {
             "off": "The trigger opens it as a modal. The link loads the page with it open but not modal, so focus can leave it.",
             "static": "The link opens it as a modal too, and closing it takes ?dialog= off the address.",
             "live": "Open from C# sets @bind-Open, which also follows the dialog closing."
           } },
-        { "id": "dialog-rename", "title": "A form in a dialog", "height": 300, "overlay": true,
+        { "id": "dialog-rename", "title": "A form in a dialog",
           "notes": {
             "off": "Rename posts and loads the page again. A slash, which only the server checks, opens the dialog again with its message.",
             "static": "Rename posts without a reload. When the server finds an error, the dialog opens again at the field.",
             "live": "The field is checked when it changes, and Rename runs C# and closes the dialog."
           } },
-        { "id": "dialog-parts", "title": "Header, body and footer", "height": 340, "overlay": true },
-        { "id": "dialog-placement", "title": "Size and placement", "height": 300, "overlay": true },
-        { "id": "dialog-service", "title": "Dialogs from code", "height": 260, "overlay": true, "modes": ["live"] }
+        { "id": "dialog-parts", "title": "Header, body and footer" },
+        { "id": "dialog-placement", "title": "Size and placement" },
+        { "id": "dialog-service", "title": "Dialogs from code", "modes": ["live"] }
       ]
     },
     {
       "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "A dialog that slides in from an edge.",
       "examples": [
-        { "id": "drawer-filters", "title": "A form in a drawer", "lead": "Put a `Form` in a `Drawer` and end it with `FormActions`: the buttons become the drawer's footer. Put the fields in a `DialogBody`, which fills the drawer, to keep the footer at its bottom.", "height": 380, "overlay": true,
+        { "id": "drawer-filters", "title": "A form in a drawer", "lead": "Put a `Form` in a `Drawer` and end it with `FormActions`: the buttons become the drawer's footer. Put the fields in a `DialogBody`, which fills the drawer, to keep the footer at its bottom.",
           "notes": {
             "off": "Show orders posts the form and loads the page again, with the drawer closed.",
             "static": "Show orders posts without a reload, and the drawer closes.",
             "live": "Show orders runs C# and closes the drawer through @bind-Open."
           } },
-        { "id": "drawer-edges", "title": "Edges and widths", "lead": "Use `Size` for the width at the end edge, and `Placement` `DialogPlacement.Bottom` for a sheet along the bottom.", "height": 300, "overlay": true },
-        { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "Use `Placement` `DialogPlacement.Start` with a small `Size` for navigation that slides in from the start edge.", "height": 300, "overlay": true }
+        { "id": "drawer-edges", "title": "Edges and widths", "lead": "Use `Size` for the width at the end edge, and `Placement` `DialogPlacement.Bottom` for a sheet along the bottom." },
+        { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "Use `Placement` `DialogPlacement.Start` with a small `Size` for navigation that slides in from the start edge." }
       ]
     },
     {
       "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Links, form posts and actions in a popover menu.", "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "examples": [
-        { "id": "menu-actions", "title": "Links, posts and actions", "height": 250, "overlay": true,
+        { "id": "menu-actions", "title": "Links, posts and actions",
           "notes": {
             "off": "It opens and closes with no script, but arrow keys don't move through it. Settings is a link; Duplicate and Delete post the form.",
             "static": "The script adds the menu roles and keys: arrows, Home, End and type-ahead. Posts go without a full reload.",
             "live": "Duplicate and Delete run the form's C# handler, and OnClick says which was chosen."
           } },
-        { "id": "menu-groups", "title": "Groups, shortcuts and colors", "height": 280, "overlay": true },
-        { "id": "menu-trigger", "title": "Your own trigger", "height": 220, "overlay": true },
-        { "id": "menu-checked", "title": "Checked items", "height": 280, "overlay": true },
-        { "id": "menu-sub", "title": "Submenus", "height": 260, "overlay": true,
+        { "id": "menu-groups", "title": "Groups, shortcuts and colors" },
+        { "id": "menu-trigger", "title": "Your own trigger" },
+        { "id": "menu-checked", "title": "Checked items" },
+        { "id": "menu-sub", "title": "Submenus",
           "notes": {
             "off": "A click opens a submenu. Opening one on hover or with the arrow keys needs the script.",
             "static": "Hover and the right arrow open a submenu and the left arrow closes it, as on interactive pages."
@@ -753,22 +753,22 @@
         { "feature": "Open bound to C#", "member": "Open" }
       ],
       "examples": [
-        { "id": "popover-filters", "title": "A form in a popover", "lead": "Use `Title` to head the panel and name it for screen readers; anything can go inside, such as a small filter form.", "height": 300, "overlay": true,
+        { "id": "popover-filters", "title": "A form in a popover", "lead": "Use `Title` to head the panel and name it for screen readers; anything can go inside, such as a small filter form.",
           "notes": {
             "off": "It opens and closes with no script, but focus stays on the button until you Tab into the panel. Apply posts the form and the page loads again, with the panel closed.",
             "static": "Opening it moves focus into the panel, and closing it from inside puts focus back on the button. Apply posts without a reload, and the panel stays open.",
             "live": "Apply runs C# with nothing posted, and the panel stays open."
           } },
-        { "id": "popover-sides", "title": "Placement and width", "lead": "Use `Placement` for the side it opens on (`BottomStart` by default) and `PanelWidth` for a set width; otherwise it's as wide as its content, up to 24rem.", "height": 310, "overlay": true },
-        { "id": "popover-manual", "title": "Staying open", "lead": "Use `Mode` `PopoverMode.Manual` for a panel that stays open while people work elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button.", "height": 230, "overlay": true },
-        { "id": "popover-info-button", "title": "Your own trigger", "lead": "Use `Trigger` for a button of your own, such as an info icon, passing it `context` with `@attributes`.", "height": 220, "overlay": true }
+        { "id": "popover-sides", "title": "Placement and width", "lead": "Use `Placement` for the side it opens on (`BottomStart` by default) and `PanelWidth` for a set width; otherwise it's as wide as its content, up to 24rem." },
+        { "id": "popover-manual", "title": "Staying open", "lead": "Use `Mode` `PopoverMode.Manual` for a panel that stays open while people work elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button." },
+        { "id": "popover-info-button", "title": "Your own trigger", "lead": "Use `Trigger` for a button of your own, such as an info icon, passing it `context` with `@attributes`." }
       ]
     },
     {
       "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus.",
       "examples": [
-        { "id": "tooltip-sides", "title": "Placement", "lead": "Use `Placement` to show the tooltip below, before or after its trigger; it's above by default.", "height": 140, "overlay": true },
-        { "id": "tooltip-icon-buttons", "title": "Icon buttons and shortcuts", "lead": "Use `Content` for more than plain text, such as a keyboard shortcut, and `Delay` for how long a hover waits.", "height": 140, "overlay": true,
+        { "id": "tooltip-sides", "title": "Placement", "lead": "Use `Placement` to show the tooltip below, before or after its trigger; it's above by default." },
+        { "id": "tooltip-icon-buttons", "title": "Icon buttons and shortcuts", "lead": "Use `Content` for more than plain text, such as a keyboard shortcut, and `Delay` for how long a hover waits.",
           "notes": {
             "off": "It's CSS alone: it shows on hover and focus, but Escape doesn't hide it and screen readers don't hear it.",
             "static": "The script links it to its button with aria-describedby and moves it to the top layer, where nothing can clip it. Escape hides it."
@@ -779,9 +779,9 @@
     {
       "id": "nav-menu", "icon": "Navigation", "name": "NavMenu", "category": "Navigation", "summary": "A list of links that marks the current page.", "parts": ["NavItem", "NavGroup", "NavLabel", "NavDivider"],
       "examples": [
-        { "id": "nav-menu-sidebar", "title": "Labels, groups and badges", "lead": "Use `NavLabel`, `NavGroup` and `NavDivider` to organize a sidebar's links, and `Badge` on an item for a count or a label.", "height": 380 },
-        { "id": "nav-menu-horizontal", "title": "Horizontal", "lead": "Use `Orientation.Horizontal` for a row of section links.", "height": 100 },
-        { "id": "nav-menu-counts", "title": "Quiet counts", "lead": "Use `BadgeVariant.Plain` for totals with no fill, as docs and mail sidebars show them; long labels wrap.", "height": 320 }
+        { "id": "nav-menu-sidebar", "title": "Labels, groups and badges", "lead": "Use `NavLabel`, `NavGroup` and `NavDivider` to organize a sidebar's links, and `Badge` on an item for a count or a label." },
+        { "id": "nav-menu-horizontal", "title": "Horizontal", "lead": "Use `Orientation.Horizontal` for a row of section links." },
+        { "id": "nav-menu-counts", "title": "Quiet counts", "lead": "Use `BadgeVariant.Plain` for totals with no fill, as docs and mail sidebars show them; long labels wrap." }
       ]
     },
     {
@@ -796,22 +796,22 @@
         { "feature": "Tabs as links (TabLink)" }
       ],
       "examples": [
-        { "id": "tabs-modes", "title": "Tabs in each mode", "height": 200,
+        { "id": "tabs-modes", "title": "Tabs in each mode",
           "notes": {
             "off": "Radio buttons and CSS switch the panels; arrow keys work. C# isn't told.",
             "static": "The script makes them ARIA tabs, with roving focus. C# still isn't told: there's no circuit.",
             "live": "@bind-Selected tells C# each time the tab changes."
           } },
-        { "id": "tabs-variants", "title": "Variants, icons and badges", "lead": "Use `Variant` for an underline (the default), soft tabs or a segmented control; each `Tab` can have an `Icon`, a `Badge`, or be `Disabled`.", "height": 460 },
-        { "id": "tabs-sizes", "title": "Sizes and full width", "lead": "Use `Size` to match buttons and fields, and `FullWidth` to stretch the tabs across the row.", "height": 370 },
-        { "id": "tabs-vertical", "title": "Vertical", "lead": "Use `Orientation` `Orientation.Vertical` to put the tabs in a column beside the panels from 640px up; on phones they stay a row above.", "height": 260 },
-        { "id": "tabs-url", "title": "In the URL", "lead": "Use `QueryKey` to keep the selected tab in the query string, so a link to `?tab=billing` opens Billing.", "height": 210,
+        { "id": "tabs-variants", "title": "Variants, icons and badges", "lead": "Use `Variant` for an underline (the default), soft tabs or a segmented control; each `Tab` can have an `Icon`, a `Badge`, or be `Disabled`." },
+        { "id": "tabs-sizes", "title": "Sizes and full width", "lead": "Use `Size` to match buttons and fields, and `FullWidth` to stretch the tabs across the row." },
+        { "id": "tabs-vertical", "title": "Vertical", "lead": "Use `Orientation` `Orientation.Vertical` to put the tabs in a column beside the panels from 640px up; on phones they stay a row above." },
+        { "id": "tabs-url", "title": "In the URL", "lead": "Use `QueryKey` to keep the selected tab in the query string, so a link to `?tab=billing` opens Billing.",
           "notes": {
             "off": "The link opens Billing, but picking a tab doesn't change the address.",
             "static": "Picking a tab also updates the address, so it can be copied and shared."
           } },
-        { "id": "tabs-links", "title": "Tabs as links", "lead": "Use `TabLink` in place of `Tab` for tabs that are links to their own pages: a `nav` of plain links, with the tab for the current address marked on the server.", "height": 140 },
-        { "id": "tabs-padding", "title": "Panel padding", "lead": "Use `ContentPadding` to pad every panel on all sides, and a `Tab`'s own `ContentPadding=\"0\"` to run a table edge to edge.", "height": 280 }
+        { "id": "tabs-links", "title": "Tabs as links", "lead": "Use `TabLink` in place of `Tab` for tabs that are links to their own pages: a `nav` of plain links, with the tab for the current address marked on the server." },
+        { "id": "tabs-padding", "title": "Panel padding", "lead": "Use `ContentPadding` to pad every panel on all sides, and a `Tab`'s own `ContentPadding=\"0\"` to run a table edge to edge." }
       ],
       "scenarios": [
         { "id": "form-tabs", "title": "Tabs in a form", "member": "Selected",
@@ -827,16 +827,16 @@
     {
       "id": "breadcrumb", "icon": "ChevronsRight", "name": "Breadcrumb", "category": "Navigation", "summary": "The path to the current page.", "parts": ["BreadcrumbItem"],
       "examples": [
-        { "id": "breadcrumb-path", "title": "Links and the current page", "lead": "Give each `BreadcrumbItem` an `Href` and leave it off the last, which is the current page; `Icon` adds an icon, such as a house for Home.", "height": 60 },
-        { "id": "breadcrumb-slash", "title": "Slashes", "lead": "Use `Separator` `BreadcrumbSeparator.Slash` for slashes between items in place of chevrons.", "height": 60 }
+        { "id": "breadcrumb-path", "title": "Links and the current page", "lead": "Give each `BreadcrumbItem` an `Href` and leave it off the last, which is the current page; `Icon` adds an icon, such as a house for Home." },
+        { "id": "breadcrumb-slash", "title": "Slashes", "lead": "Use `Separator` `BreadcrumbSeparator.Slash` for slashes between items in place of chevrons." }
       ]
     },
     {
       "id": "pagination", "icon": "SquareChevronRight", "name": "Pagination", "category": "Navigation", "summary": "Page links that keep the rest of the URL.",
       "examples": [
-        { "id": "pagination-url", "title": "Pages in the URL", "lead": "Use `TotalItems` and `PageSize`, or `PageCount`, and read the page with `[SupplyParameterFromQuery]`: each page is a link that sets `?page=`, so paging survives a reload and can be shared.", "height": 110 },
-        { "id": "pagination-sizes", "title": "Sizes and how many pages show", "lead": "Use `Size` to match buttons and fields, `Siblings` for the pages on each side of the current one, and `Boundaries` for the pages always shown at each end.", "height": 200 },
-        { "id": "pagination-bound", "title": "Bound to C#", "lead": "Use `@bind-Page` on an interactive page to page in C#, with buttons in place of links.", "height": 110,
+        { "id": "pagination-url", "title": "Pages in the URL", "lead": "Use `TotalItems` and `PageSize`, or `PageCount`, and read the page with `[SupplyParameterFromQuery]`: each page is a link that sets `?page=`, so paging survives a reload and can be shared." },
+        { "id": "pagination-sizes", "title": "Sizes and how many pages show", "lead": "Use `Size` to match buttons and fields, `Siblings` for the pages on each side of the current one, and `Boundaries` for the pages always shown at each end." },
+        { "id": "pagination-bound", "title": "Bound to C#", "lead": "Use `@bind-Page` on an interactive page to page in C#, with buttons in place of links.",
           "notes": {
             "off": "The pages are links that set ?page= and load the page again.",
             "static": "The pages are still links that set ?page=; the page reads it as it loads, as with JavaScript off.",
@@ -847,15 +847,15 @@
     {
       "id": "prev-next", "icon": "ArrowRightLeft", "name": "PrevNext", "category": "Navigation", "summary": "Links to the pages before and after.",
       "examples": [
-        { "id": "prev-next-pages", "title": "Previous and next pages", "lead": "Use `PreviousHref` and `NextHref`, each with its page's title, to end an article; leave out a side on the first or last page.", "height": 130 }
+        { "id": "prev-next-pages", "title": "Previous and next pages", "lead": "Use `PreviousHref` and `NextHref`, each with its page's title, to end an article; leave out a side on the first or last page." }
       ]
     },
     { "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "The page's sections, listed on the server." },
     {
       "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Where someone is in a process.", "parts": ["Step"],
       "examples": [
-        { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "Use `Orientation` `Orientation.Vertical` to keep the steps in a column on every screen; a `Step` can have a `Description` and an `Icon` that shows until it's done.", "height": 240 },
-        { "id": "stepper-sizes", "title": "Sizes", "lead": "Use `Size` to scale the markers and text.", "height": 300 }
+        { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "Use `Orientation` `Orientation.Vertical` to keep the steps in a column on every screen; a `Step` can have a `Description` and an `Icon` that shows until it's done." },
+        { "id": "stepper-sizes", "title": "Sizes", "lead": "Use `Size` to scale the markers and text." }
       ],
       "scenarios": [
         { "id": "checkout", "title": "Checkout", "member": "Current",
@@ -867,9 +867,9 @@
     {
       "id": "alert", "icon": "TriangleAlert", "name": "Alert", "category": "Feedback", "summary": "A status message about part of a page.", "parts": ["AlertActions"],
       "examples": [
-        { "id": "alert-statuses", "title": "Status", "lead": "Use `Status` for what the message means: it sets the color, the icon and what screen readers hear.", "height": 420 },
-        { "id": "alert-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Outline` or `Solid`.", "height": 300 },
-        { "id": "alert-dismiss", "title": "Actions and dismissing", "lead": "Use `Dismissible` for a close button that works without script, and `AlertActions` for buttons under the message.", "height": 180,
+        { "id": "alert-statuses", "title": "Status", "lead": "Use `Status` for what the message means: it sets the color, the icon and what screen readers hear." },
+        { "id": "alert-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Outline` or `Solid`." },
+        { "id": "alert-dismiss", "title": "Actions and dismissing", "lead": "Use `Dismissible` for a close button that works without script, and `AlertActions` for buttons under the message.",
           "notes": {
             "off": "The close button is a checkbox and CSS: the alert hides, but focus isn't moved on.",
             "static": "The close button is a real button. When the alert closes, focus moves to the control after it, or to the page when there's none, as here.",
@@ -880,8 +880,8 @@
     {
       "id": "banner", "icon": "Megaphone", "name": "Banner", "category": "Feedback", "summary": "A full-width message about the whole app.", "parts": ["BannerActions"],
       "examples": [
-        { "id": "banner-statuses", "title": "Status and color", "lead": "Use `Status` for what the message means, or `Accent` and `Icon` for an announcement in your brand's color.", "height": 280 },
-        { "id": "banner-dismiss", "title": "Dismissing", "lead": "Use `Dismissible` for a close button; the banner then stays closed on later pages, remembered under its `RememberKey`.", "height": 140,
+        { "id": "banner-statuses", "title": "Status and color", "lead": "Use `Status` for what the message means, or `Accent` and `Icon` for an announcement in your brand's color." },
+        { "id": "banner-dismiss", "title": "Dismissing", "lead": "Use `Dismissible` for a close button; the banner then stays closed on later pages, remembered under its `RememberKey`.",
           "notes": {
             "off": "The close button hides the banner on this page only: with no script, nothing is remembered. Closed in another mode first, the cookie keeps it out of this one too.",
             "static": "Closing writes a cookie, and the server leaves the banner out of later pages until the browser closes."
@@ -900,19 +900,19 @@
     {
       "id": "toast-region", "icon": "BellRing", "name": "ToastRegion", "category": "Feedback", "summary": "Toasts from any render mode, even across a redirect.",
       "examples": [
-        { "id": "toast-region-show", "title": "Showing a toast", "lead": "Use `ToastService` to show a toast from a form post or a C# handler; the `ToastRegion` in your layout shows it.", "height": 260, "overlay": true,
+        { "id": "toast-region-show", "title": "Showing a toast", "lead": "Use `ToastService` to show a toast from a form post or a C# handler; the `ToastRegion` in your layout shows it.",
           "notes": {
             "off": "Each button posts its form, and the page comes back with the toast, which stays until closed.",
             "static": "The post updates the page without a reload; the success toast closes after 5 seconds, the error stays until closed.",
             "live": "ToastService adds the toast in the browser straight away, with no post."
           } },
-        { "id": "toast-region-undo", "title": "An action on the toast", "lead": "Use a `ToastAction` for a button on the toast: its `Href` on static pages, its `OnClick` on interactive ones.", "height": 260, "overlay": true,
+        { "id": "toast-region-undo", "title": "An action on the toast", "lead": "Use a `ToastAction` for a button on the toast: its `Href` on static pages, its `OnClick` on interactive ones.",
           "notes": {
             "off": "Undo is a link to this page with ?restored=1, since there's no connection to run C# over.",
             "static": "Undo is the same link, and the toast stays 10 seconds, twice as long as one without an action.",
             "live": "Undo runs C# over the connection and closes the toast."
           } },
-        { "id": "toast-region-redirect", "title": "After a redirect", "lead": "Use `ToastService` before a redirect: the toast follows to the next page, so post-redirect-get works.", "height": 220, "overlay": true, "modes": ["off", "static"],
+        { "id": "toast-region-redirect", "title": "After a redirect", "lead": "Use `ToastService` before a redirect: the toast follows to the next page, so post-redirect-get works.", "modes": ["off", "static"],
           "notes": {
             "off": "The post redirects, and the toast follows to the next page in a short-lived cookie.",
             "static": "The same, and the toast closes itself after 5 seconds."
@@ -921,7 +921,7 @@
       "scenarios": [
         { "id": "inbox-undo", "title": "Inbox with undo",
           "description": "An inbox where each Archive button posts a form and a toast offers Undo. On static pages the post redirects with the archived ids in the address, the toast follows, and Undo is a link; on interactive pages Undo runs C#. Works with JavaScript off.",
-          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 420, "overlay": true, "page": true,
+          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 420, "page": true,
             "notes": {
               "off": "Archive posts and redirects; Undo is a link to the address without that conversation.",
               "static": "Archive posts without a reload, and the toast closes itself after a few seconds.",
@@ -932,18 +932,18 @@
     {
       "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Feedback", "summary": "A small label for a status, category or count.",
       "examples": [
-        { "id": "badge-statuses", "title": "Status", "lead": "Use `Status` for what the badge means, or `Accent` for a color of your own.", "height": 90 },
-        { "id": "badge-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Solid`, `Outline` or `Plain`.", "height": 90 },
-        { "id": "badge-dots-counts", "title": "Dots, counts and icons", "lead": "Use `Dot` for a status, `Pill` for a count and `StartIcon` for an icon before the text.", "height": 90 },
-        { "id": "badge-inline", "title": "In headings and buttons", "lead": "Use `Size=\"BadgeSize.Sm\"` for a count inside a button; a badge sits inline, so it fits a heading too.", "height": 150 }
+        { "id": "badge-statuses", "title": "Status", "lead": "Use `Status` for what the badge means, or `Accent` for a color of your own." },
+        { "id": "badge-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Solid`, `Outline` or `Plain`." },
+        { "id": "badge-dots-counts", "title": "Dots, counts and icons", "lead": "Use `Dot` for a status, `Pill` for a count and `StartIcon` for an icon before the text." },
+        { "id": "badge-inline", "title": "In headings and buttons", "lead": "Use `Size=\"BadgeSize.Sm\"` for a count inside a button; a badge sits inline, so it fits a heading too." }
       ]
     },
     {
       "id": "tag", "icon": "Tag", "name": "Tag", "category": "Feedback", "summary": "A keyword or filter, linked or removable.",
       "examples": [
-        { "id": "tag-variants", "title": "Status and variants", "lead": "Use `Status` or `Accent` for the color and `Variant` for the weight.", "height": 130 },
-        { "id": "tag-links-sizes", "title": "Links, icons and sizes", "lead": "Use `Href` to make a tag a link, `StartIcon` for an icon and `Size` for 20, 24 or 28px tall.", "height": 130 },
-        { "id": "tag-remove", "title": "Removable", "lead": "Use `RemoveHref` for a remove link that works on any page, and `OnRemove` for C# on interactive ones.", "height": 100,
+        { "id": "tag-variants", "title": "Status and variants", "lead": "Use `Status` or `Accent` for the color and `Variant` for the weight." },
+        { "id": "tag-links-sizes", "title": "Links, icons and sizes", "lead": "Use `Href` to make a tag a link, `StartIcon` for an icon and `Size` for 20, 24 or 28px tall." },
+        { "id": "tag-remove", "title": "Removable", "lead": "Use `RemoveHref` for a remove link that works on any page, and `OnRemove` for C# on interactive ones.",
           "notes": {
             "off": "Each remove control is a link to this page without that filter.",
             "live": "Each remove control is a button that runs OnRemove in C#, with no page load."
@@ -953,31 +953,31 @@
     {
       "id": "spinner", "icon": "LoaderCircle", "name": "Spinner", "category": "Feedback", "summary": "A loading ring sized like an icon.",
       "examples": [
-        { "id": "spinner-sizes", "title": "Sizes and color", "lead": "Use `Size` on the icon scale and `Color` for the ring; `Label` is what screen readers hear.", "height": 110 },
-        { "id": "spinner-beside-text", "title": "Beside text", "lead": "Leave `Size` at its default, 1em, to match the text beside it.", "height": 140 }
+        { "id": "spinner-sizes", "title": "Sizes and color", "lead": "Use `Size` on the icon scale and `Color` for the ring; `Label` is what screen readers hear." },
+        { "id": "spinner-beside-text", "title": "Beside text", "lead": "Leave `Size` at its default, 1em, to match the text beside it." }
       ]
     },
     {
       "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "A progress bar, determinate or not.",
       "examples": [
-        { "id": "progress-values", "title": "Value and label", "lead": "Use `Value` and `Max` for how far along it is, `Label` to name it, and `ShowValue` or `ValueText` to show the amount.", "height": 150 },
-        { "id": "progress-sizes", "title": "Sizes and colors", "lead": "Use `Size` for the bar's thickness and `Accent` for its color.", "height": 210 },
-        { "id": "progress-indeterminate", "title": "Indeterminate", "lead": "Leave out `Value` for a bar that sweeps while the work has no known length.", "height": 130 },
-        { "id": "progress-from-code", "title": "Updating from C#", "lead": "Change `Value` from C# on an interactive page and the bar follows.", "height": 150, "modes": ["live"] }
+        { "id": "progress-values", "title": "Value and label", "lead": "Use `Value` and `Max` for how far along it is, `Label` to name it, and `ShowValue` or `ValueText` to show the amount." },
+        { "id": "progress-sizes", "title": "Sizes and colors", "lead": "Use `Size` for the bar's thickness and `Accent` for its color." },
+        { "id": "progress-indeterminate", "title": "Indeterminate", "lead": "Leave out `Value` for a bar that sweeps while the work has no known length." },
+        { "id": "progress-from-code", "title": "Updating from C#", "lead": "Change `Value` from C# on an interactive page and the bar follows.", "modes": ["live"] }
       ]
     },
     {
       "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content still loading.",
       "examples": [
-        { "id": "skeleton-shapes", "title": "Lines, blocks and circles", "lead": "Use `Lines` for text, `Height` for a block such as an image, and `Circle` for an avatar.", "height": 320 },
-        { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives.", "height": 260, "modes": ["live"] }
+        { "id": "skeleton-shapes", "title": "Lines, blocks and circles", "lead": "Use `Lines` for text, `Height` for a block such as an image, and `Circle` for an avatar." },
+        { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives.", "modes": ["live"] }
       ]
     },
     {
       "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "What to show when there's nothing yet.", "parts": ["EmptyStateActions"],
       "examples": [
-        { "id": "empty-state-actions", "title": "Icon, title and actions", "lead": "Use `Icon`, `Title` and `Description` to say why it's empty, and `EmptyStateActions` for what fills it.", "height": 280 },
-        { "id": "empty-state-bordered", "title": "Bordered and small", "lead": "Use `Bordered` for an empty area inside a page, and `Size` for a smaller one.", "height": 300 }
+        { "id": "empty-state-actions", "title": "Icon, title and actions", "lead": "Use `Icon`, `Title` and `Description` to say why it's empty, and `EmptyStateActions` for what fills it." },
+        { "id": "empty-state-bordered", "title": "Bordered and small", "lead": "Use `Bordered` for an empty area inside a page, and `Size` for a smaller one." }
       ]
     },
 
@@ -991,31 +991,31 @@
         { "feature": "Sort, page, filters and selection bound to C#", "member": "Page" }
       ],
       "examples": [
-        { "id": "table-sort-page", "title": "Sorting and paging", "height": 330,
+        { "id": "table-sort-page", "title": "Sorting and paging",
           "notes": {
             "off": "Headers and page numbers are links: each click loads the page again.",
             "static": "The same links; Blazor's enhanced navigation swaps the page in without a full reload.",
             "live": "The same links; the table follows the URL." } },
-        { "id": "table-filters", "title": "Column filters", "height": 330,
+        { "id": "table-filters", "title": "Column filters",
           "notes": {
             "off": "Press Enter or Apply in the filter to submit it.",
             "static": "Filters apply as you type." } },
-        { "id": "table-selection", "title": "Selection and totals", "height": 320,
+        { "id": "table-selection", "title": "Selection and totals",
           "notes": {
             "off": "Checked rows post their keys with the form.",
             "static": "The header checkbox selects every row on the page.",
             "live": "@bind-SelectedKeys follows the checkboxes in C#." } },
-        { "id": "table-bound", "title": "State in the component", "height": 340, "modes": ["live"] }
+        { "id": "table-bound", "title": "State in the component", "modes": ["live"] }
       ]
     },
     {
       "id": "card", "icon": "SquareStack", "name": "Card", "category": "Data display", "summary": "Media, header, body sections, actions and footer.", "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
       "examples": [
-        { "id": "card-variants", "title": "Variants", "lead": "Use `Variant` for `Outline` (the default), `Elevated` or `Filled`; `Title` and `Description` make the header.", "height": 220 },
-        { "id": "card-linked", "title": "A linked card", "lead": "Use `Href` to make the whole card a link through its title; buttons in `CardActions` stay clickable, and `CardMedia` goes on top.", "height": 320 },
-        { "id": "card-footer", "title": "Body and footer", "lead": "Use `CardBody` for the body's layout and `CardFooter` for a row of buttons at the bottom.", "height": 260 },
-        { "id": "card-flush", "title": "Flush content", "lead": "Use `Flush` on `CardBody` to run a table or list to the card's edges.", "height": 300 },
-        { "id": "card-sections", "title": "Sections and a footer bar", "lead": "Use `Dividers` to make each `CardBody` a section, and a `CardFooter` with a `Bg` for a bar across the bottom.", "height": 360 }
+        { "id": "card-variants", "title": "Variants", "lead": "Use `Variant` for `Outline` (the default), `Elevated` or `Filled`; `Title` and `Description` make the header." },
+        { "id": "card-linked", "title": "A linked card", "lead": "Use `Href` to make the whole card a link through its title; buttons in `CardActions` stay clickable, and `CardMedia` goes on top." },
+        { "id": "card-footer", "title": "Body and footer", "lead": "Use `CardBody` for the body's layout and `CardFooter` for a row of buttons at the bottom." },
+        { "id": "card-flush", "title": "Flush content", "lead": "Use `Flush` on `CardBody` to run a table or list to the card's edges." },
+        { "id": "card-sections", "title": "Sections and a footer bar", "lead": "Use `Dividers` to make each `CardBody` a section, and a `CardFooter` with a `Bg` for a bar across the bottom." }
       ],
       "scenarios": [
         { "id": "profile-card", "title": "Profile card",
@@ -1026,8 +1026,8 @@
     {
       "id": "stat", "icon": "TrendingUp", "name": "Stat", "category": "Data display", "summary": "A figure with a trend read as words.",
       "examples": [
-        { "id": "stat-trends", "title": "Trends", "lead": "Use `Trend` and `Change` for how the figure moved; `ChangeStatus` colors a drop that's good news.", "height": 200 },
-        { "id": "stat-sizes", "title": "Sizes", "lead": "Use `Size` for the label's and figure's text size.", "height": 150 }
+        { "id": "stat-trends", "title": "Trends", "lead": "Use `Trend` and `Change` for how the figure moved; `ChangeStatus` colors a drop that's good news." },
+        { "id": "stat-sizes", "title": "Sizes", "lead": "Use `Size` for the label's and figure's text size." }
       ],
       "scenarios": [
         { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
@@ -1038,59 +1038,59 @@
     {
       "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Terms and their details.", "parts": ["DescriptionItem"],
       "examples": [
-        { "id": "description-list-divided", "title": "Terms beside details", "lead": "Use `Divided` for lines between items; terms sit beside their details from 640px up and above them on phones.", "height": 340 },
-        { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "Use `Orientation.Vertical` to put each term above its detail, and `Columns` to flow the items into columns.", "height": 200 }
+        { "id": "description-list-divided", "title": "Terms beside details", "lead": "Use `Divided` for lines between items; terms sit beside their details from 640px up and above them on phones." },
+        { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "Use `Orientation.Vertical` to put each term above its detail, and `Columns` to flow the items into columns." }
       ]
     },
     {
       "id": "avatar", "icon": "CircleUserRound", "name": "Avatar", "category": "Data display", "summary": "A photo, initials or an icon.",
       "examples": [
-        { "id": "avatar-basics", "title": "Initials and icons", "lead": "Use `Name` for the initials and their color; without one it shows a person icon, and `Square` suits teams and companies.", "height": 100 },
-        { "id": "avatar-variants", "title": "Colors and variants", "lead": "Use `Variant` for `Soft` or `Solid`, and `Accent` for a color other than the one picked from `Name`.", "height": 150 },
-        { "id": "avatar-sizes", "title": "Sizes and status", "lead": "Use `Size` from `Xs` to `Xl2`, and `Status` with a `StatusLabel` for a dot in the corner.", "height": 190 },
-        { "id": "avatar-beside-name", "title": "Beside a name", "lead": "Use `Decorative` when the name is written beside the avatar, so screen readers don't hear it twice.", "height": 100 }
+        { "id": "avatar-basics", "title": "Initials and icons", "lead": "Use `Name` for the initials and their color; without one it shows a person icon, and `Square` suits teams and companies." },
+        { "id": "avatar-variants", "title": "Colors and variants", "lead": "Use `Variant` for `Soft` or `Solid`, and `Accent` for a color other than the one picked from `Name`." },
+        { "id": "avatar-sizes", "title": "Sizes and status", "lead": "Use `Size` from `Xs` to `Xl2`, and `Status` with a `StatusLabel` for a dot in the corner." },
+        { "id": "avatar-beside-name", "title": "Beside a name", "lead": "Use `Decorative` when the name is written beside the avatar, so screen readers don't hear it twice." }
       ]
     },
     {
       "id": "avatar-group", "icon": "Users", "name": "AvatarGroup", "category": "Data display", "summary": "Overlapping avatars with a count of the rest.",
       "examples": [
-        { "id": "avatar-group-max", "title": "Counting the rest", "lead": "Use `Max` to show the first few avatars and count the rest in a +N avatar.", "height": 100 },
-        { "id": "avatar-group-sizes", "title": "Sizes", "lead": "Use `Size` on the group to size every avatar in it.", "height": 150 }
+        { "id": "avatar-group-max", "title": "Counting the rest", "lead": "Use `Max` to show the first few avatars and count the rest in a +N avatar." },
+        { "id": "avatar-group-sizes", "title": "Sizes", "lead": "Use `Size` on the group to size every avatar in it." }
       ]
     },
     {
       "id": "image", "icon": "Image", "name": "Image", "category": "Data display", "summary": "A lazy image that keeps its space.",
       "examples": [
-        { "id": "image-fit", "title": "Ratio and fit", "lead": "Use `Ratio` for the shape and `Fit` for whether the image fills it (`Cover`) or fits inside it (`Contain`).", "height": 340 },
-        { "id": "image-intrinsic", "title": "Its own size", "lead": "Use `IntrinsicWidth` and `IntrinsicHeight` so the browser keeps the image's space before it loads.", "height": 330 }
+        { "id": "image-fit", "title": "Ratio and fit", "lead": "Use `Ratio` for the shape and `Fit` for whether the image fills it (`Cover`) or fits inside it (`Contain`)." },
+        { "id": "image-intrinsic", "title": "Its own size", "lead": "Use `IntrinsicWidth` and `IntrinsicHeight` so the browser keeps the image's space before it loads." }
       ]
     },
     {
       "id": "video-embed", "icon": "Clapperboard", "name": "VideoEmbed", "category": "Data display", "summary": "A YouTube video that loads on play.",
       "examples": [
-        { "id": "video-embed-play", "title": "Playing a video", "lead": "Use `YouTubeId` and `Label`: the poster shows first, and YouTube's player loads only on play.", "height": 340,
+        { "id": "video-embed-play", "title": "Playing a video", "lead": "Use `YouTubeId` and `Label`: the poster shows first, and YouTube's player loads only on play.",
           "notes": {
             "off": "The play button is a link that opens the video on YouTube.",
             "static": "Clicking plays the video in place, from youtube-nocookie.com."
           } },
-        { "id": "video-embed-upcoming", "title": "Not out yet", "lead": "Leave out `YouTubeId` to keep the space for a video that isn't out yet, with `EmptyText` in the middle.", "height": 340 }
+        { "id": "video-embed-upcoming", "title": "Not out yet", "lead": "Leave out `YouTubeId` to keep the space for a video that isn't out yet, with `EmptyText` in the middle." }
       ]
     },
     {
       "id": "timeline", "icon": "GitCommitVertical", "name": "Timeline", "category": "Data display", "summary": "Events on a rail, such as an order's history.", "parts": ["TimelineItem"],
       "examples": [
-        { "id": "timeline-commits", "title": "Links and the current item", "lead": "Use `Href` for a title that links, `Time` and `DateTime` for when it happened, and `Current` for where things stand.", "height": 260 },
-        { "id": "timeline-icons", "title": "Icons and status", "lead": "Use `Icon` and `Status` to change an item's marker.", "height": 300 }
+        { "id": "timeline-commits", "title": "Links and the current item", "lead": "Use `Href` for a title that links, `Time` and `DateTime` for when it happened, and `Current` for where things stand." },
+        { "id": "timeline-icons", "title": "Icons and status", "lead": "Use `Icon` and `Status` to change an item's marker." }
       ]
     },
     {
       "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Sections that open and close with no script.", "parts": ["AccordionItem", "AccordionHeader"],
       "examples": [
-        { "id": "accordion-variants", "title": "Variants", "lead": "Use `Variant` to draw the items as separate cards (the default), as one bordered box, or flush with the page.", "height": 480 },
-        { "id": "accordion-exclusive", "title": "One open at a time", "lead": "Use `Exclusive` to keep one item open: opening another closes it, by the browser, with no script; `Disabled` stops an item opening.", "height": 260 },
-        { "id": "accordion-content", "title": "Rich headers and content", "lead": "Use `AccordionHeader` for a title with more than text, such as a badge; the content is a column with a gap, so text, buttons and lists need no wrapper.", "height": 300 },
-        { "id": "accordion-sizes", "title": "Sizes", "lead": "Use `Size` to scale the titles and spacing together: `Sm` for sidebars and dense pages, `Lg` for FAQ pages.", "height": 300 },
-        { "id": "accordion-bound", "title": "Following it from C#", "lead": "Use `@bind-Open` on an `AccordionItem` to know in C# whether it's open, and to open it from C#.", "height": 160,
+        { "id": "accordion-variants", "title": "Variants", "lead": "Use `Variant` to draw the items as separate cards (the default), as one bordered box, or flush with the page." },
+        { "id": "accordion-exclusive", "title": "One open at a time", "lead": "Use `Exclusive` to keep one item open: opening another closes it, by the browser, with no script; `Disabled` stops an item opening." },
+        { "id": "accordion-content", "title": "Rich headers and content", "lead": "Use `AccordionHeader` for a title with more than text, such as a badge; the content is a column with a gap, so text, buttons and lists need no wrapper." },
+        { "id": "accordion-sizes", "title": "Sizes", "lead": "Use `Size` to scale the titles and spacing together: `Sm` for sidebars and dense pages, `Lg` for FAQ pages." },
+        { "id": "accordion-bound", "title": "Following it from C#", "lead": "Use `@bind-Open` on an `AccordionItem` to know in C# whether it's open, and to open it from C#.",
           "notes": {
             "off": "The item opens and closes; C# isn't told.",
             "static": "The item opens and closes, but there's no circuit, so C# still isn't told.",
@@ -1101,8 +1101,8 @@
     {
       "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Data display", "summary": "One \"show more\" section.",
       "examples": [
-        { "id": "collapsible-show-more", "title": "Show more", "lead": "Use `Label` for the text beside the chevron, for advanced options or details most people can skip.", "height": 220 },
-        { "id": "collapsible-custom-trigger", "title": "Your own trigger", "lead": "Use `Trigger` for inline content of your own in place of the label and chevron.", "height": 140 }
+        { "id": "collapsible-show-more", "title": "Show more", "lead": "Use `Label` for the text beside the chevron, for advanced options or details most people can skip." },
+        { "id": "collapsible-custom-trigger", "title": "Your own trigger", "lead": "Use `Trigger` for inline content of your own in place of the label and chevron." }
       ]
     }
   ]

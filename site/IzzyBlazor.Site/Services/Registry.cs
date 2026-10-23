@@ -164,8 +164,8 @@ public sealed record RegistryExample
     /// </summary>
     public string? Lead { get; init; }
 
-    /// <summary>The preview's height in pixels when the page can't measure it (JavaScript off).</summary>
-    public int Height { get; init; } = 160;
+    /// <summary>A demo's (<see cref="Page"/>) window height in pixels; it scrolls inside past that.</summary>
+    public int Height { get; init; } = 600;
 
     /// <summary>The modes it's shown in. Defaults to all three.</summary>
     public List<string> Modes { get; init; } = ["off", "static", "live"];
@@ -176,15 +176,11 @@ public sealed record RegistryExample
     /// <summary>Notes under the preview per mode, in place of the general ones.</summary>
     public Dictionary<string, string> Notes { get; init; } = [];
 
-    /// <summary>Lays the preview out as a page (no padding, top-aligned) rather than a centered sample.</summary>
-    public bool Page { get; init; }
-
     /// <summary>
-    /// The example opens an overlay (a dialog, a menu) that the content's height doesn't include:
-    /// its frame keeps at least <see cref="Height"/> and starts the content at the top, so what
-    /// opens has room.
+    /// A page of its own (a demo scenario), sized by the window: shown in a frame <see cref="Height"/>
+    /// tall, rather than in the docs page as a centered sample.
     /// </summary>
-    public bool Overlay { get; init; }
+    public bool Page { get; init; }
 
     public string StartMode => Mode ?? (Modes.Contains("static") ? "static" : Modes[0]);
 }

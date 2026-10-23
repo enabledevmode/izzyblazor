@@ -5,9 +5,10 @@
 @inject NavigationManager Navigation
 
 @*
-    One example on a bare page, for the example viewer's frames. Off and Static render it in
-    static SSR (Off is the same page in a sandbox without script, and App leaves the script tags
-    out); Live renders it in an interactive render mode from this static page.
+    A demo scenario (components.json "page") on a bare page, for the example viewer's frame: a page
+    of its own, sized by the window. Off and Static render it in static SSR (Off is the same page
+    in a sandbox without script, and App leaves the script tags out); Live renders it in an
+    interactive render mode from this static page. Other examples render in the docs page itself.
 *@
 
 <PageTitle>@_title</PageTitle>
@@ -15,7 +16,7 @@
 
 @if (_type is not null)
 {
-    <div class="@_class" style="@_style" data-mode="@_mode">
+    <div class="@_class" data-mode="@_mode">
         @if (_mode == "live")
         {
             <ExampleHost ExampleId="@ExampleId" @rendermode="InteractiveServer" />
@@ -32,29 +33,24 @@
 
     [SupplyParameterFromQuery(Name = "mode")] public string? Mode { get; set; }
 
-    // Read by App (the <html> scheme); declared so the query value is part of the page's parameters.
-    [SupplyParameterFromQuery(Name = "scheme")] public string? Scheme { get; set; }
-
     private Type? _type;
     private string _mode = "static";
     private string _class = "frame";
     private string _title = "";
-    private string? _style;
 
     protected override void OnParametersSet()
     {
         _type = Catalog.TypeOf(ExampleId);
         var entry = Registry.Example(ExampleId);
-        if (_type is null || entry is null)
+        // Only demos have a frame; other examples render in the docs page (ExampleViewer).
+        if (_type is null || entry is null || !entry.Value.Example.Page)
         {
             Navigation.NotFound();
             return;
         }
 
         _mode = Mode is "off" or "static" or "live" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
-        _class = entry.Value.Example.Page ? "frame frame-page" : "frame frame-sample";
+        _class = "frame frame-page";
         _title = $"{entry.Value.Example.Title} ({ModeChip.Name(_mode)})";
-        _class += entry.Value.Example.Overlay ? " frame-overlay" : "";
-        _style = entry.Value.Example.Overlay ? $"min-height: {entry.Value.Example.Height}px" : null;
     }
 }

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en" data-ib-color-scheme="@FrameScheme" class="@(IsFrame ? (Deep ? "frame-deep" : null) : "site")">
+<html lang="en" class="@(IsFrame ? null : "site")">
 
 <head>
     <meta charset="utf-8" />
@@ -12,24 +12,41 @@
     <meta property="og:image" content="@($"{Navigation.BaseUri}og-image.png")" />
     <meta property="og:site_name" content="IzzyBlazor" />
     <meta name="twitter:card" content="summary_large_image" />
-    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+    @* An Off page reads the library's stylesheet as JavaScript off would (NoScriptCss). *@
+    <link rel="stylesheet" href="@(OffPage ? NoScript.Href : Assets[NoScriptCss.LibraryPath])" />
     <link rel="stylesheet" href="@Assets["site.css"]" />
     @* The site's chrome is Ink (monochrome): the brand's Ember is kept for brand moments (the logo,
-       the hero, its call to action, the pictograms), and example frames keep the component default
-       (Blue), so the examples are the docs' only colored accent and show what the library gives. *@
+       the hero, its call to action, the pictograms), and examples keep the component default (Blue:
+       ExampleViewer's nested IzzyTheme, and a demo's frame), so the examples are the docs' only
+       colored accent and show what the library gives. *@
     <IzzyTheme Brand="@(IsFrame ? null : "ink")" />
-    @if (Scripts)
+    @if (Blazor)
     {
         <ImportMap />
     }
     <HeadOutlet />
+    @if (!IsFrame)
+    {
+        @* Before the page is parsed: an example whose link or form loaded this page again
+           (site.js) gets a scroll margin of where it was on the screen, so the browser's jump to
+           its #id puts it back there rather than at the top. *@
+        <script>try{var r=JSON.parse(sessionStorage.getItem("site-return")||"null");if(r&&r.path===location.pathname&&Date.now()-r.at<15000&&typeof r.top==="number"&&location.hash==="#"+r.id)document.documentElement.style.setProperty("--site-return-top",r.top+"px")}catch(e){}</script>
+    }
 </head>
 
 <body>
     <Routes />
-    @if (Scripts)
+    @if (OffPage)
+    {
+        @* site.js reloads a page that enhanced navigation patched in from a page running Blazor. *@
+        <div hidden data-site-off></div>
+    }
+    @if (Blazor)
     {
         <script src="_framework/blazor.web.js"></script>
+    }
+    @if (!OffFrame)
+    {
         <script src="@Assets["site.js"]"></script>
     }
 </body>
@@ -37,22 +54,23 @@
 </html>
 
 @inject NavigationManager Navigation
+@inject NoScriptCss NoScript
+@inject Registry Registry
 
 @code {
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
     private bool IsFrame => HttpContext?.Request.Path.StartsWithSegments("/frame") == true;
 
-    // An example frame on the site's near-black (?bg=deep), for the hero's viewer.
-    private bool Deep => IsFrame && HttpContext?.Request.Query["bg"].ToString() == "deep";
-
-    private string? FrameScheme =>
-        HttpContext?.Request.Path.StartsWithSegments("/frame") == true && HttpContext.Request.Query["scheme"].ToString() is "light" or "dark"
-            ? HttpContext.Request.Query["scheme"].ToString()
-            : null;
-
-    // An example frame in Off mode sends no script at all: the frame is sandboxed without
+    // A demo's frame in Off mode sends no script at all: the frame is sandboxed without
     // allow-scripts anyway, and leaving the tags out keeps the console quiet.
-    private bool Scripts =>
-        !(HttpContext?.Request.Path.StartsWithSegments("/frame") == true && HttpContext.Request.Query["mode"] == "off");
+    private bool OffFrame => IsFrame && HttpContext?.Request.Query["mode"].ToString() == "off";
+
+    // A page in Off mode renders its examples in the page with no Blazor and no IzzyBlazor script,
+    // so they do what the HTML and CSS do on their own. The site's own script still runs (it never
+    // touches an example), and the stylesheet's scripting rules apply as with JavaScript off. Only
+    // a page with the mode switch ([FollowsModeSwitch]) is ever Off.
+    private bool OffPage => !IsFrame && FollowsModeSwitchAttribute.PageMode(HttpContext, Registry) == "off";
+
+    private bool Blazor => !OffFrame && !OffPage;
 }

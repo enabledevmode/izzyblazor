@@ -18,16 +18,17 @@ public sealed class SiteFixture : IAsyncLifetime
 
     public Registry Registry { get; private set; } = null!;
 
-    public FrameHeights Heights { get; private set; } = null!;
+    public ExampleCatalog Catalog { get; private set; } = null!;
 
     public async Task InitializeAsync()
     {
         _app = SiteApp.Build([], b => b.WebHost.UseUrls("http://127.0.0.1:0"));
         await _app.StartAsync();
         var address = _app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
-        Client = new HttpClient { BaseAddress = new Uri(address) };
+        // No cookie jar: the site remembers the mode in a cookie, and each test sends its own.
+        Client = new HttpClient(new HttpClientHandler { UseCookies = false }) { BaseAddress = new Uri(address) };
         Registry = _app.Services.GetRequiredService<Registry>();
-        Heights = _app.Services.GetRequiredService<FrameHeights>();
+        Catalog = _app.Services.GetRequiredService<ExampleCatalog>();
     }
 
     public async Task DisposeAsync()
@@ -112,10 +113,74 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.All(Articles.Sections.SelectMany(s => s.Articles.Select(a => "/" + s.HrefOf(a))), href => Assert.Contains(href, seen));
     }
 
-    [Fact]
-    public async Task Every_example_renders_in_each_mode_it_claims()
+    public static readonly TheoryData<string> Modes = new() { "off", "static", "live" };
+
+    // Every page that shows examples: component pages, articles, the docs overview and home.
+    private IEnumerable<string> ExamplePages =>
+        site.Registry.Components.Select(Registry.OverviewHref)
+            .Concat(Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf)))
+            .Concat(["docs", ""]);
+
+    [Theory]
+    [MemberData(nameof(Modes))]
+    public async Task Every_example_renders_in_a_page_in_each_mode(string mode)
     {
-        foreach (var (_, example) in site.Registry.AllExamples)
+        // Examples render in the page itself, in its mode; only demos have a frame.
+        var shown = new HashSet<string>();
+        foreach (var page in ExamplePages)
+        {
+            var html = await site.Client.GetStringAsync($"{page}?mode={mode}");
+            shown.UnionWith(Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value));
+            // A demo (components.json "page") is a page of its own, in a window: the only frames.
+            Assert.Equal(Regex.Count(html, "<iframe"), Regex.Count(html, "ex-window\"><iframe"));
+            var ids = Id().Matches(Template().Replace(html, "")).Select(m => m.Groups[1].Value);
+            var repeated = ids.GroupBy(id => id).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            Assert.True(repeated.Count == 0, $"/{page} ({mode}) repeats ids: {string.Join(", ", repeated)}");
+
+            // Forms on one page post to it: two with one FormName fail the post ("more than one
+            // named submit event").
+            var handlers = Regex.Matches(html, "name=\"_handler\" value=\"([^\"]+)\"").Select(m => m.Groups[1].Value);
+            var shared = handlers.GroupBy(h => h).Where(g => g.Count() > 1).Select(g => g.Key).ToList();
+            Assert.True(shared.Count == 0, $"/{page} ({mode}) has two forms named {string.Join(", ", shared)}");
+
+            // A page without the switch shows its examples in Static.
+            var pageMode = html.Contains("class=\"site-modeswitch ", StringComparison.Ordinal) ? mode : "static";
+            foreach (var id in Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value).Distinct())
+            {
+                AssertRendered(Example(html, id), site.Registry.Example(id)!.Value.Example, pageMode, page);
+            }
+        }
+
+        var missing = site.Registry.AllExamples.Select(e => e.Example).Where(e => !e.Page && !shown.Contains(e.Id)).Select(e => e.Id).ToList();
+        Assert.True(missing.Count == 0, $"Not on any page: {string.Join(", ", missing)}");
+    }
+
+    // The preview holds the example: rendered with the page, a prerendered island in Live, or on an
+    // Off page a Live-only example's link to Live.
+    private static void AssertRendered(string section, RegistryExample example, string pageMode, string page)
+    {
+        if (example.Page)
+        {
+            Assert.Contains($"src=\"frame/{example.Id}?mode=", section);
+            return;
+        }
+
+        var mode = example.Modes.Contains(pageMode) ? pageMode : example.StartMode;
+        if (mode == "live" && pageMode == "off")
+        {
+            Assert.Contains("an Off page doesn't have", section);
+            return;
+        }
+
+        var preview = Regex.Match(section, "ib-example-preview[^\"]*\">(?<content>.*)", RegexOptions.Singleline).Groups["content"].Value;
+        Assert.True(Regex.IsMatch(preview, "^\\s*(<!--Blazor:[^>]*-->\\s*)?<(?!/)"), $"/{page} ({pageMode}): {example.Id} renders nothing");
+        Assert.True((mode == "live") == section.Contains("<!--Blazor:", StringComparison.Ordinal), $"/{page} ({pageMode}): {example.Id} should {(mode == "live" ? "" : "not ")}be a Live island");
+    }
+
+    [Fact]
+    public async Task Every_demo_renders_in_its_frame_in_each_mode_it_claims()
+    {
+        foreach (var (_, example) in site.Registry.AllExamples.Where(e => e.Example.Page))
         {
             foreach (var mode in example.Modes)
             {
@@ -132,12 +197,123 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
-    public void Every_example_has_measured_frame_heights()
+    public async Task An_off_page_sends_no_blazor_and_no_library_script()
     {
-        // A new example without them starts at its components.json height and jumps when it
-        // loads: run `npm run measure-frames` with the site running (CONTRIBUTING).
-        var missing = site.Registry.AllExamples.Select(e => e.Example.Id).Where(id => !site.Heights.Has(id)).ToList();
-        Assert.True(missing.Count == 0, $"No frame-heights.json entry for {string.Join(", ", missing)}.");
+        var off = await site.Client.GetStringAsync("docs/components/button?mode=off");
+        var live = await site.Client.GetStringAsync("docs/components/button?mode=live");
+
+        Assert.DoesNotContain("blazor.web.js", off);
+        Assert.DoesNotContain("importmap", off);
+        Assert.Contains("data-site-off", off);
+        Assert.Contains("blazor.web.js", live);
+        Assert.DoesNotContain("data-site-off", live);
+
+        // Its stylesheet: the library's with the scripting rules as JavaScript off reads them.
+        var href = Regex.Match(off, "href=\"(_content/IzzyBlazor.Core/izzyblazor-noscript.css\\?v=\\w+)\"").Groups[1].Value;
+        Assert.NotEmpty(href);
+        var css = await site.Client.GetStringAsync(href);
+        Assert.Contains(".ib-btn", css);
+        Assert.DoesNotContain("scripting", css);
+    }
+
+    [Fact]
+    public async Task A_page_follows_off_exactly_when_it_has_the_switch()
+    {
+        // Picking Off is about the examples on pages with the switch: any other page keeps its
+        // script, since it has no switch to turn it back on. Those pages are [FollowsModeSwitch].
+        foreach (var page in ExamplePages.Concat(["docs/components/button/api", "docs/components", "docs/get-started", "docs/components/app-shell"]))
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, page);
+            request.Headers.Add("Cookie", "site-mode=off");
+            var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
+            var hasSwitch = html.Contains("class=\"site-modeswitch ", StringComparison.Ordinal);
+
+            Assert.True(hasSwitch == html.Contains("data-site-off", StringComparison.Ordinal),
+                $"/{page}: {(hasSwitch ? "has the switch but isn't [FollowsModeSwitch]" : "is Off with no switch")}");
+        }
+    }
+
+    [Fact]
+    public void The_off_stylesheet_reads_the_scripting_media_feature_as_javascript_off()
+    {
+        var css = NoScriptCss.Transform("""
+            @media (scripting: none) { a { b: c } }
+            @media (pointer: coarse), (scripting:none) { d { e: f } }
+            @media (scripting: enabled) { g { h: i } }
+            """);
+
+        Assert.DoesNotContain("scripting", css);
+        Assert.Contains("@media all {", css);
+        Assert.Contains("@media (pointer: coarse), all {", css);
+        Assert.Contains("@media not all {", css);
+    }
+
+    [Fact]
+    public async Task Examples_on_one_page_read_different_keys_from_the_address()
+    {
+        // In the page, examples share its address: two reading ?page= would page together. Rename
+        // one (QueryKey, QueryPrefix, a field's Name).
+        var clashes = new List<string>();
+        foreach (var page in ExamplePages)
+        {
+            var html = await site.Client.GetStringAsync($"{page}?mode=static");
+            var readers = Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value)
+                .Distinct()
+                .SelectMany(id => QueryKeys(id).Distinct().Select(key => (key, id)))
+                .GroupBy(r => r.key)
+                .Where(g => g.Count() > 1);
+            clashes.AddRange(readers.Select(g => $"/{page}: ?{g.Key}= in {string.Join(", ", g.Select(r => r.id))}"));
+        }
+
+        Assert.True(clashes.Count == 0, string.Join("; ", clashes));
+    }
+
+    // The keys an example reads from the address, from its source: its own query parameters and
+    // the library components that keep state there.
+    private IEnumerable<string> QueryKeys(string id)
+    {
+        var source = site.Catalog.SourceOf(id)?.Source ?? "";
+        foreach (Match m in Regex.Matches(source, "SupplyParameterFromQuery\\(Name\\s*=\\s*\"([^\"]+)\""))
+        {
+            yield return m.Groups[1].Value;
+        }
+
+        foreach (Match m in Regex.Matches(source, "GetUriWithQueryParameter\\(\"([^\"]+)\""))
+        {
+            yield return m.Groups[1].Value;
+        }
+
+        if (Regex.IsMatch(source, "Sortable|PageSize|Filterable"))
+        {
+            foreach (Match m in Regex.Matches(source, "<Table\\b[^>]*>"))
+            {
+                var prefix = Regex.Match(m.Value, "QueryPrefix=\"([^\"]*)\"").Groups[1].Value;
+                yield return prefix + "sort";
+                yield return prefix + "page";
+            }
+        }
+
+        foreach (Match m in Regex.Matches(source, "<Pagination\\b[^>]*>"))
+        {
+            var key = Regex.Match(m.Value, "QueryKey=\"([^\"]*)\"");
+            yield return key.Success ? key.Groups[1].Value : "page";
+        }
+
+        foreach (Match m in Regex.Matches(source, "<(?:Tabs|MenuRadioGroup)\\b[^>]*QueryKey=\"([^\"]*)\""))
+        {
+            yield return m.Groups[1].Value;
+        }
+
+        foreach (Match m in Regex.Matches(source, "<FilterSearch\\b[^>]*>"))
+        {
+            var name = Regex.Match(m.Value, "\\bName=\"([^\"]*)\"");
+            yield return name.Success ? name.Groups[1].Value : "q";
+        }
+
+        foreach (Match m in Regex.Matches(source, "<Filter(?!Search|Form)\\w+\\b[^>]*\\bName=\"([^\"]*)\""))
+        {
+            yield return m.Groups[1].Value;
+        }
     }
 
     [Theory]
@@ -148,9 +324,8 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("docs/components/button?mode=nope", "nope", "static")]
     public async Task A_page_opens_in_the_linked_then_remembered_mode(string path, string? cookie, string expected)
     {
-        // ?mode= (a link can open a page in Off), then the cookie the script sets, then Static. Each
-        // copy of the switch is its own radio group with that option checked, so the visible one is
-        // right for screen readers and the keyboard.
+        // ?mode= (a link can open a page in Off), then the cookie, then Static. Both copies of the
+        // switch mark it.
         using var request = new HttpRequestMessage(HttpMethod.Get, path);
         if (cookie is not null)
         {
@@ -158,10 +333,18 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
 
         var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
-        var checkedRadios = ModeRadio().Matches(html).Where(m => m.Groups["checked"].Success).ToList();
+        var current = ModeLink().Matches(html).Where(m => m.Groups["current"].Success).Select(m => m.Groups["mode"].Value).ToList();
 
-        Assert.Equal(["site-mode-aside", "site-mode-top"], checkedRadios.Select(m => m.Groups["name"].Value).Order());
-        Assert.All(checkedRadios, m => Assert.Equal(expected, m.Groups["value"].Value));
+        Assert.Equal([expected, expected], current);
+    }
+
+    [Fact]
+    public async Task A_link_with_a_mode_remembers_it_for_the_next_page()
+    {
+        // With JavaScript off too: an example's own links and forms drop ?mode= from the address.
+        var response = await site.Client.GetAsync("docs/components/button?mode=live");
+
+        Assert.Contains(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith("site-mode=live;", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -192,19 +375,27 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     {
         var html = await site.Client.GetStringAsync("docs");
 
-        Assert.Equal(["site-mode-example"], ModeRadio().Matches(html).Select(m => m.Groups["name"].Value).Distinct());
+        Assert.Equal(["example"], Regex.Matches(html, "site-modeswitch site-modeswitch-(\\w+)").Select(m => m.Groups[1].Value));
     }
 
     [Fact]
-    public async Task An_example_pinned_to_a_mode_has_only_that_frame()
+    public async Task An_example_pinned_to_live_runs_live_on_a_static_page_and_links_to_live_from_off()
     {
-        // Button's OnClick example demonstrates Live behavior: Live whatever the page's mode.
-        var html = await site.Client.GetStringAsync("docs/components/button?mode=off");
-        var start = html.IndexOf("data-ex=\"button-on-click\"", StringComparison.Ordinal);
-        var example = html[start..html.IndexOf("</section>", start, StringComparison.Ordinal)];
+        // Button's OnClick example demonstrates Live behavior: Live whatever the page's mode, and an
+        // Off page has no Blazor to run it.
+        var onStatic = Example(await site.Client.GetStringAsync("docs/components/button?mode=static"), "button-on-click");
+        var onOff = Example(await site.Client.GetStringAsync("docs/components/button?mode=off"), "button-on-click");
 
-        Assert.Equal(["live"], Regex.Matches(example, "class=\"ex-mode\" data-mode=\"(\\w+)\"").Select(m => m.Groups[1].Value));
-        Assert.Contains("Always Live", example);
+        Assert.Contains("Always Live", onStatic);
+        Assert.Contains("<!--Blazor:", onStatic);
+        Assert.Contains("an Off page doesn't have", onOff);
+        Assert.DoesNotContain("<!--Blazor:", onOff);
+    }
+
+    private static string Example(string html, string id)
+    {
+        var start = html.IndexOf($"data-ex=\"{id}\"", StringComparison.Ordinal);
+        return html[start..html.IndexOf("</section>", start, StringComparison.Ordinal)];
     }
 
     [Fact]
@@ -219,6 +410,13 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [GeneratedRegex("href=\"([^\"]*)\"")]
     private static partial Regex Href();
 
-    [GeneratedRegex("<input type=\"radio\" class=\"site-mode-input\" name=\"(?<name>[^\"]+)\" value=\"(?<value>\\w+)\"(?<checked> checked)?")]
-    private static partial Regex ModeRadio();
+    [GeneratedRegex("<a class=\"site-modeswitch-option site-mode-link\" href=\"[^\"]*\"(?<current> aria-current=\"true\")? data-mode=\"(?<mode>\\w+)\"")]
+    private static partial Regex ModeLink();
+
+    [GeneratedRegex("\\sid=\"([^\"]+)\"")]
+    private static partial Regex Id();
+
+    // Ids in a <template> aren't in the document.
+    [GeneratedRegex("(?s)<template.*?</template>")]
+    private static partial Regex Template();
 }

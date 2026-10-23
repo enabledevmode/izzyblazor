@@ -11,6 +11,7 @@
 </nav>
 
 @code {
-    // Links within this example: ?view= in its own address, so they stay here.
-    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+    // Links that stay on this page: ?tab= in its address (a key of its own: the other examples on
+    // the page use others).
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("tab", page);
 }

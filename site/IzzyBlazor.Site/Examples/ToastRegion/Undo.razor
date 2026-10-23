@@ -1,7 +1,7 @@
 @inject ToastService Toasts
 @inject NavigationManager Navigation
 
-<ToastRegion />
+@* Once per app, in the layout (the docs layout has it): <ToastRegion /> *@
 
 <Row Gap="3" Align="Align.Center" Wrap Justify="Justify.Center">
     <form method="post" @formname="toast-archive" @onsubmit="Archive" data-enhance>
