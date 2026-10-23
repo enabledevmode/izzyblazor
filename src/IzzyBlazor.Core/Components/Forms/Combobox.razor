@@ -17,7 +17,8 @@
       The select stays in the form, hidden under the input, so posting, required validation and
       @bind still go through it.
     - Interactive with Search: typing calls Search on the server (debounced) and the list shows
-      its results. Without a circuit, Search("") fills the list once and it filters in the browser.
+      its results; Enter or leaving the field before they come waits for them. Without a circuit,
+      Search("") fills the list once and it filters in the browser.
 
     Accessibility:
     - With script, the input is a `combobox` with a `listbox` of options: focus stays in the
@@ -60,7 +61,8 @@
             <option value="" disabled="@IsRequired" selected="@string.IsNullOrEmpty(CurrentValueAsString)">@Placeholder</option>
             @foreach (var item in SelectOptions)
             {
-                <option value="@FormatValueAsString(item)">@TextFor(item)</option>
+                @* Keyed: when the choice changes, the option for the old one goes, not the chosen one. *@
+                <option @key="FormatValueAsString(item)" value="@FormatValueAsString(item)">@TextFor(item)</option>
             }
         </select>
         <input type="text"
@@ -93,10 +95,11 @@
              aria-labelledby="@LabelId"
              aria-busy="@(_searching ? "true" : null)">
             @{ var index = 0; }
-            @foreach (var item in ListOptions)
+            @foreach (var item in ListOptions.DistinctBy(FormatValueAsString))
             {
                 var value = FormatValueAsString(item);
-                <div role="option"
+                <div @key="value"
+                     role="option"
                      id="@($"{ListId}-{index++}")"
                      class="ib-combobox-option"
                      data-value="@value"
@@ -205,7 +208,7 @@
     {
         get
         {
-            var options = ListOptions.ToList();
+            var options = ListOptions.DistinctBy(FormatValueAsString).ToList();
             if (HasValue && !options.Any(o => FormatValueAsString(o) == CurrentValueAsString))
             {
                 options.Insert(0, CurrentValue!);
