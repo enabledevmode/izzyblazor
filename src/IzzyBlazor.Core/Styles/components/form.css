@@ -1260,7 +1260,9 @@
 
   /* Disabled: the box is a div, so it takes a disabled field's look here, and the chips lose
      their remove buttons (the script ignores them anyway). */
-  .ib-field-disabled .ib-multiselect > .ib-multiselect-box {
+  .ib-field-disabled .ib-multiselect > .ib-multiselect-box,
+  .ib-field-disabled .ib-multiselect > .ib-multiselect-box:hover {
+    border-color: var(--ib-field-border);
     color: var(--ib-color-disabled);
     background-color: var(--ib-color-surface-container);
     cursor: not-allowed;
@@ -1273,6 +1275,10 @@
 
   .ib-field-disabled .ib-multiselect .ib-chip-remove {
     display: none;
+  }
+
+  .ib-field-disabled .ib-multiselect-input {
+    cursor: not-allowed;
   }
 
   /* A chip: the chosen option's text and a remove button. Also the base for Tag. */

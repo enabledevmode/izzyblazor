@@ -1,4 +1,6 @@
+using System.ComponentModel.DataAnnotations;
 using Microsoft.AspNetCore.Components;
+using Microsoft.AspNetCore.Components.Forms;
 
 namespace IzzyBlazor.Tests;
 
@@ -95,5 +97,29 @@ public class AccessibleNameTests : BunitContext
         var error = Assert.Throws<InvalidOperationException>(() => Render<AppShell>(p => p.AddChildContent<AppMain>(m => m.Add(x => x.Id, "content"))));
 
         Assert.Contains("MainId", error.Message);
+    }
+
+    private sealed class Picks
+    {
+        [Required] public string? Country { get; set; }
+        [Required] public string[]? Tags { get; set; }
+        public string[]? Optional { get; set; }
+    }
+
+    [Fact]
+    public void A_required_Combobox_or_MultiSelect_says_so_on_its_text_input()
+    {
+        var model = new Picks();
+        var context = new EditContext(model);
+        var combobox = Render<Combobox<string?>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Country).Add(c => c.ValueExpression, () => model.Country).Add(c => c.Items, ["a", "b"]));
+        var multi = Render<MultiSelect<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Tags).Add(c => c.ValueExpression, () => model.Tags).Add(c => c.Items, ["a", "b"]));
+        var optional = Render<MultiSelect<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Optional).Add(c => c.ValueExpression, () => model.Optional).Add(c => c.Items, ["a", "b"]));
+
+        Assert.Equal("true", combobox.Find("input[role=combobox]").GetAttribute("aria-required"));
+        Assert.Equal("true", multi.Find("input[role=combobox]").GetAttribute("aria-required"));
+        Assert.Null(optional.Find("input[role=combobox]").GetAttribute("aria-required"));
     }
 }
