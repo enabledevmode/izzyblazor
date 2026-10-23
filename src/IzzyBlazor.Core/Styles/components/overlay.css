@@ -85,13 +85,41 @@
     }
 
     .ib-place-bottom-start { position-area: block-end span-inline-end; margin-block-start: var(--ib-pop-gap); }
-    .ib-place-bottom { position-area: block-end center; margin-block-start: var(--ib-pop-gap); }
+    /* Centered: the whole row (or column) around the trigger, centered on it. "center" alone
+       would hold the panel to the trigger's own width. */
+    .ib-place-bottom { position-area: block-end span-all; justify-self: anchor-center; margin-block-start: var(--ib-pop-gap); }
     .ib-place-bottom-end { position-area: block-end span-inline-start; margin-block-start: var(--ib-pop-gap); }
     .ib-place-top-start { position-area: block-start span-inline-end; margin-block-end: var(--ib-pop-gap); }
-    .ib-place-top { position-area: block-start center; margin-block-end: var(--ib-pop-gap); }
+    .ib-place-top { position-area: block-start span-all; justify-self: anchor-center; margin-block-end: var(--ib-pop-gap); }
     .ib-place-top-end { position-area: block-start span-inline-start; margin-block-end: var(--ib-pop-gap); }
-    .ib-place-start { position-area: center inline-start; margin-inline-end: var(--ib-pop-gap); }
-    .ib-place-end { position-area: center inline-end; margin-inline-start: var(--ib-pop-gap); }
+    .ib-place-start { position-area: span-all inline-start; align-self: anchor-center; margin-inline-end: var(--ib-pop-gap); }
+    .ib-place-end { position-area: span-all inline-end; align-self: anchor-center; margin-inline-start: var(--ib-pop-gap); }
+
+    /* Beside the trigger with no room on either side (a phone): below it, or above, centered. */
+    .ib-pop:is(.ib-place-start, .ib-place-end) {
+      position-try-fallbacks: flip-inline, --ib-pop-below, --ib-pop-above;
+    }
+
+    @position-try --ib-pop-below {
+      position-area: block-end span-all;
+      justify-self: anchor-center;
+      align-self: normal;
+      margin: var(--ib-pop-gap) 0 0;
+    }
+
+    @position-try --ib-pop-above {
+      position-area: block-start span-all;
+      justify-self: anchor-center;
+      align-self: normal;
+      margin: 0 0 var(--ib-pop-gap);
+    }
+
+    /* A popover is as wide as its content (up to its max-width), not the room its side leaves:
+       shrinking to the gap beside a trigger squeezed it to a column of words, and never let it
+       overflow, so it never tried another side. */
+    .ib-popover:not(.ib-pop-sized) {
+      width: max-content;
+    }
 
     /* Submenus: beside their item, top edges lined up (less the panel's padding and border). */
     .ib-place-end-start {

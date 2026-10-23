@@ -46,6 +46,9 @@ class PopoverRoot extends IzzyElement {
   #syncTarget: boolean | null = null;
   // The user's latest open or close, so a render that was already on its way can't undo it.
   #userState: boolean | null = null;
+  // The data-open sync() last acted on: only a change opens or closes the panel, so a render or
+  // enhanced post that leaves it as it was doesn't close a panel the user opened.
+  #lastWant: boolean | null = null;
   #userAt = 0;
   // Opened by hovering: don't move focus into it.
   #hoverOpen = false;
@@ -146,6 +149,7 @@ class PopoverRoot extends IzzyElement {
     const panel = this.panel;
     if (!panel || typeof panel.showPopover !== "function") return;
     const want = this.hasAttribute("data-open");
+    if (want === this.#lastWant) return;
     const open = panel.matches(":popover-open");
     // Until the server has caught up with the user's last open or close, a render that left
     // before it mustn't undo it. Once data-open matches what the user did, C# is in charge again.
@@ -153,6 +157,7 @@ class PopoverRoot extends IzzyElement {
       if (want === this.#userState || Date.now() - this.#userAt >= 2000) this.#userState = null;
       else return;
     }
+    this.#lastWant = want;
     this.#syncTarget = want;
     if (want && !open) {
       try {
