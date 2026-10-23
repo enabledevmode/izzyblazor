@@ -1,5 +1,6 @@
 <Form Model="Model" FormName="combobox-filtering" MaxWidth="24.Rem" Grow>
-    <Combobox @bind-Value="Model!.Country" Items="Countries.Keys" ItemText="code => Countries[code!]"
+    <Combobox @bind-Value="Model!.Country" Items="Countries.Keys"
+              ItemText="code => Countries.GetValueOrDefault(code!, code!)"
               Placeholder="Search countries" />
 </Form>
 
