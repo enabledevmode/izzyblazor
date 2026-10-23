@@ -23,8 +23,9 @@
     - With script, an unchecked indeterminate box is announced as "mixed"; with JavaScript off,
       only the dash shows it and screen readers hear "not checked". A checked box is "checked"
       either way, with no dash.
-    - A read-only box arrives disabled; the script enables it, so it can be focused and is
-      announced as read-only, and stops it from changing.
+    - A read-only box arrives disabled; the script enables it, so it can be focused, and stops it
+      from changing. It carries `aria-readonly`, but most screen readers don't announce that on a
+      checkbox, so say it's read-only in the label or `Hint`.
     See also: Switch, CheckboxGroup, RadioGroup.
 *@
 

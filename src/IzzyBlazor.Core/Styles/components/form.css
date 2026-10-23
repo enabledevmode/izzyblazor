@@ -1919,7 +1919,7 @@
   }
 
   /* Read-only checkboxes, switches, radios, segments and sliders arrive disabled and outside the
-     form; hidden inputs post the value. The script enables them (focusable, read as read-only).
+     form; hidden inputs post the value. The script enables them (focusable, with aria-readonly).
      Clicks do nothing here, and the script cancels the keys that would change them. Read-only selects show as a read-only text
      field (.ib-field-input[readonly]). */
   .ib-field-readonly :is(.ib-check, .ib-segment, .ib-slider-input) {

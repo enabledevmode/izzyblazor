@@ -14,7 +14,8 @@
       `aria-describedby`, and each radio sets `aria-invalid` when the field is invalid.
     - Read-only radios arrive disabled; the script enables them, so they can be focused, and
       the group is a `radiogroup` with `aria-readonly`, where a click or arrow key doesn't change
-      the choice.
+      the choice. Screen readers don't announce `aria-readonly` on a radio group, so say it's
+      read-only in the label or `Hint`.
     See also: SegmentedControl, Select, CheckboxGroup.
 *@
 

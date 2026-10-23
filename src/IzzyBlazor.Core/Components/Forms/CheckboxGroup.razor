@@ -22,8 +22,9 @@
       `aria-describedby`, and each box sets `aria-invalid` when the field is invalid.
     - A required group shows an asterisk, which screen readers skip, and its boxes aren't
       marked required (HTML can't require one of several): say so in the label or `Hint`.
-    - Read-only boxes arrive disabled; the script enables them, so they can be focused and are
-      announced as read-only, and stops them from changing.
+    - Read-only boxes arrive disabled; the script enables them, so they can be focused, and stops
+      them from changing. They carry `aria-readonly`, but most screen readers don't announce that
+      on a checkbox, so say it's read-only in the label or `Hint`.
     See also: MultiSelect, Checkbox, RadioGroup.
 *@
 

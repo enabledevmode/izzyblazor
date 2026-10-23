@@ -107,7 +107,7 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// MultiSelect shows its value in a read-only text field (<see cref="ReadOnlyControl"/>).
     /// Checkboxes, radios and sliders are rendered disabled, with <c>aria-readonly</c> and outside
     /// the form (<c>form=""</c>), so without script they can't change; the script enables them
-    /// (focusable, announced as read-only) and keeps them from changing.
+    /// (focusable, with <c>aria-readonly</c>, which most screen readers don't announce on these) and keeps them from changing.
     /// </summary>
     protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
 
