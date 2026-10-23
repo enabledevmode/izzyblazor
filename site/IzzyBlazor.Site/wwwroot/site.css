@@ -1,6 +1,6 @@
 /* Dark mode, after Chakra: a near-black page with cards one step up on the brand's Ink (the hero's
    and the picture tiles' color) and a quiet border. Light mode keeps the library's Neutral, and
-   example frames keep the library's grays in both schemes. */
+   examples keep the library's grays in both schemes, on the page's own background (below). */
 :root.site {
   /* The brand's Ember for pictograms, which keep it while the chrome is Ink. */
   --site-ember-soft: light-dark(#fdebdf, rgb(242 106 27 / 0.18));
@@ -343,8 +343,10 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   overflow: hidden;
   min-width: 0;
 }
+/* An example sits on the page's own background, marked off by the border: the library's
+   background, a different gray, read as a brighter panel in dark mode. */
 .ex-stage {
-  background: var(--ib-color-background);
+  background: var(--ib-color-surface);
 }
 .ex-mode, .ex-note { display: none; }
 /* A frame's height follows its width (frame-heights.json, through ExampleViewer's container
@@ -517,7 +519,12 @@ body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display:
 @media (width < 1024px) { .site-modeswitch-aside { display: none; } }
 
 /* An example frame's own page. */
-html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-background); }
+/* The docs page's background (its --ib-color-surface), so an example sits on the page; the
+   frame has the library's own theme, which would put its own gray here. */
+html:has(> body > .frame), html:has(> body > .frame) body { background: light-dark(#ffffff, #0d0e11); }
+/* A frame is sized to its content, so its page never scrolls: a scrollbar would only show for a
+   moment before the frame grew, and look like the example's own. */
+html:has(> body > .frame) { overflow: hidden; }
 html:has(> body > .frame) body { margin: 0; }
 html.frame-deep:has(> body > .frame), html.frame-deep:has(> body > .frame) body { background: #0d0e11; }
 .frame-sample {
