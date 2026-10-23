@@ -26,7 +26,7 @@
     protected override void OnInitialized() => Model ??= new();
 
     // Runs after each change on an interactive page, and on a static page's post.
-    private void Save() => _saved = Model!.Maintenance ? "Saved: the site is in maintenance mode." : "Saved: the site is live.";
+    private void Save() => _saved = Model!.Maintenance ? "Last saved: in maintenance mode." : "Last saved: live.";
 
     public sealed class SiteStatus
     {

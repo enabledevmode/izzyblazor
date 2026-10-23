@@ -363,11 +363,11 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
 .ex-needs-live { display: flex; align-items: center; justify-content: center; padding: var(--ib-space-6); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
-.ex-note { margin: 0; text-wrap: pretty; }
+/* The note's lines line up after the mode's name, not under it. */
+.ex-note { display: flex; align-items: baseline; gap: var(--ib-space-2); margin: 0; text-wrap: pretty; }
 /* The mode's name, drawn like the mode switch's selected option, so the note reads as about it. */
 .ex-note-mode {
-  display: inline-block;
-  margin-inline-end: var(--ib-space-1);
+  flex: none;
   padding: 0 var(--ib-space-2);
   border-radius: var(--ib-radius-sm);
   background: var(--ib-color-surface-container-high);

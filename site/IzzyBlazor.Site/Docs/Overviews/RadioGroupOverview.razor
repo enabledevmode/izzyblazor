@@ -7,23 +7,23 @@
 <TextBlock>For two to five short options, a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> takes less room; for a long list, use a <Anchor Href="docs/components/select">Select</Anchor>.</TextBlock>
 
 <Heading Level="2">Stacked or in a row</Heading>
-<TextBlock>Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>. Options stack; use <Code>Orientation.Horizontal</Code> to put a few short ones in a row, wrapping when there isn't room.</TextBlock>
+<TextBlock>Use <Code>Orientation.Horizontal</Code> to put a few short options in a row, wrapping when there isn't room; they stack by default. An enum's values are the options, named by their <Code>[Display(Name)]</Code>.</TextBlock>
 <ExampleViewer Example="radio-group-horizontal" />
 
 <Heading Level="2">Options from a list</Heading>
 <TextBlock>Use <Code>Items</Code> for options that aren't an enum, and <Code>ItemText</Code> for how each one reads.</TextBlock>
 <ExampleViewer Example="radio-group-shipping" />
-<TextBlock>Each radio posts its value as text and Blazor turns it back into the property's type, so use values that do that, such as strings, numbers or enums, and look the text up by value.</TextBlock>
+<TextBlock>Each radio posts its value as text and Blazor turns it back into the property's type, so use values that do that, such as strings, numbers or enums. A post can carry a value that isn't among the options, and it reaches the model, so check it on the server.</TextBlock>
 
 <Heading Level="2">Required, with nothing chosen</Heading>
 <TextBlock>Bind a nullable property with <Code>[Required]</Code> to start with nothing chosen and need a choice.</TextBlock>
 <ExampleViewer Example="radio-group-required-choice" />
-<TextBlock>A property that isn't nullable always has a value, so one option is chosen from the start (the enum's first, unless the model sets another) and <Code>[Required]</Code> never fails.</TextBlock>
+<TextBlock>A property that isn't nullable always has a value, so <Code>[Required]</Code> never fails: the option for its starting value (an enum's <Code>0</Code>, unless the model sets another) is chosen from the start. The example also turns away a posted number that isn't one of the enum's values.</TextBlock>
 
 <Heading Level="2">Sizes, read-only and disabled</Heading>
 <TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a choice that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
 <ExampleViewer Example="radio-group-states" />
-<TextBlock>HTML has no read-only radio, so read-only radios arrive disabled, outside the form, and a hidden field posts the value; the script then lets them take focus and keeps the choice from changing.</TextBlock>
+<TextBlock>HTML has no read-only radio, so a hidden field posts a read-only group's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (an enum's <Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
