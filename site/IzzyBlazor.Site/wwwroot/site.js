@@ -1,7 +1,9 @@
 // The docs site's script. Everything works without it; with it:
-//   - each example frame is sized to its content (Off frames too: they're same-origin, so this
-//     page can measure them although they run no script); the controls sit above the box, so
-//     a frame changing height moves nothing of the example's,
+//   - each example frame is sized to its content once loaded (Off frames too: they're
+//     same-origin, so this page can measure them although they run no script). Frames already
+//     start at their measured height (frame-heights.json), so this only corrects one whose
+//     content changed; the controls sit above the box, so a frame changing height moves nothing
+//     of the example's,
 //   - a Live frame loads only while it's shown and its example is near the screen, so a page of
 //     examples doesn't open a circuit for each, and closes when the page leaves Live,
 //   - the page's mode is remembered (a cookie the server reads), kept the same in every copy of
@@ -49,6 +51,7 @@
   }
 
   const measured = new WeakSet();
+  const settled = new WeakSet();
   const observed = new WeakSet();
   const near = new WeakSet();
 
@@ -59,7 +62,10 @@
   function size(frame) {
     let root;
     try {
-      root = frame.contentDocument && frame.contentDocument.querySelector(".frame");
+      // Only a loaded frame: while its page is still arriving its styles may not apply yet, and
+      // the unstyled content would size the frame many times too tall for a moment.
+      if (!settled.has(frame) || !frame.contentDocument || frame.contentDocument.readyState !== "complete") return;
+      root = frame.contentDocument.querySelector(".frame");
     } catch {
       return;
     }
@@ -74,19 +80,38 @@
     if (measured.has(frame)) return;
     measured.add(frame);
     const settle = () => {
-      size(frame);
       scheme(frame);
-      // Fonts, the library's script and Live rendering can change the height after load.
-      for (const delay of [100, 400, 1200, 3000]) setTimeout(() => size(frame), delay);
+      let root;
       try {
-        const root = frame.contentDocument.querySelector(".frame");
-        if (root && !observed.has(root) && "ResizeObserver" in window) {
+        root = frame.contentDocument.querySelector(".frame");
+      } catch {
+        return; // Not same-origin (shouldn't happen): keep the fixed height.
+      }
+      if (!root) return;
+      // The frame already has its measured height. The library's script, fonts and Live rendering
+      // change the content just after load, so correct it only once the content has held its
+      // height for 400ms (3s at most), then follow it as people use the example. Sizing at once
+      // would shrink a frame and grow it back as the script finished.
+      let last = -1;
+      let steady = 0;
+      let waited = 0;
+      const wait = () => {
+        const height = Math.ceil(root.getBoundingClientRect().height);
+        steady = height === last ? steady + 100 : 0;
+        last = height;
+        waited += 100;
+        if (steady < 400 && waited < 3000) {
+          setTimeout(wait, 100);
+          return;
+        }
+        settled.add(frame);
+        size(frame);
+        if (!observed.has(root) && "ResizeObserver" in window) {
           observed.add(root);
           new ResizeObserver(() => size(frame)).observe(root);
         }
-      } catch {
-        // Not same-origin (shouldn't happen): keep the fixed height.
-      }
+      };
+      wait();
     };
 
     frame.addEventListener("load", settle);

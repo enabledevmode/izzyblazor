@@ -102,6 +102,11 @@ parameter tables and defaults are never written by hand.
   open in the frame. An example that opens a dialog, menu or select list sets `"overlay": true`:
   what opens isn't part of the frame's content height, so the frame keeps at least the example's
   `height` and starts the content at the top.
+- Each frame starts at its content's height for its width, from `frame-heights.json`, so a page
+  doesn't move as its examples load. After adding or changing an example, run the site and
+  `npm run measure-frames` (`-- --only <id>` for one; `-- --browser <path>` to pick Chrome or
+  Chromium): it loads each example in each mode at frame widths from 256px to 1120px and writes the
+  heights where they change. A site test fails on an example with none.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its

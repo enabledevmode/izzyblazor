@@ -109,6 +109,13 @@
     padding-inline: max(var(--ib-space-6), round(down, var(--ib-shell-measure-pad), 1px));
   }
   .site-shell-demos .site-article { padding-inline-end: var(--ib-space-6); }
+  /* The outline column comes last in the HTML, after the content; the browser paints before it
+     arrives, so an auto track would start empty and the whole group would slide over when it
+     came. Docs pages always have it from 1024px (AppAside's breakpoint): keep its 15rem
+     (SiteWidths.Aside) from the start. */
+  @media (min-width: 64rem) {
+    .ib-shell.site-shell-docs { grid-template-columns: minmax(0, 1fr) auto minmax(0, 58rem) 15rem minmax(0, 1fr); }
+  }
   /* Demos have no outline: the frame gets its width. */
   .ib-shell.site-shell-demos { grid-template-columns: minmax(0, 1fr) auto minmax(0, 73rem) minmax(0, 1fr); grid-template-areas: "banner banner banner banner" "header header header header" ". sidebar main ." "footer footer footer footer"; }
 }
@@ -340,6 +347,9 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   background: var(--ib-color-background);
 }
 .ex-mode, .ex-note { display: none; }
+/* A frame's height follows its width (frame-heights.json, through ExampleViewer's container
+   queries), so the box around it is the container. */
+.ex-mode { container-type: inline-size; }
 /* An example with one mode (components.json "modes") shows it whatever the page's. */
 .ex-fixed :is(.ex-mode, .ex-note) { display: block; }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
@@ -349,6 +359,11 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
   body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
   body:has(:is(.site-modeswitch-aside, .site-modeswitch-example) .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
+  /* The right column comes last in the HTML, and the browser paints before it arrives: until
+     then, the top copy (the same choice from the server) picks, so examples show at once. */
+  body:not(:has(.site-modeswitch-aside)):has(.site-modeswitch-top .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
+  body:not(:has(.site-modeswitch-aside)):has(.site-modeswitch-top .site-mode-input[value="static"]:checked) :is(.ex-mode, .ex-note)[data-mode="static"],
+  body:not(:has(.site-modeswitch-aside)):has(.site-modeswitch-top .site-mode-input[value="live"]:checked) :is(.ex-mode, .ex-note)[data-mode="live"] { display: block; }
 }
 @media (width < 1024px) {
   body:has(:is(.site-modeswitch-top, .site-modeswitch-example) .site-mode-input[value="off"]:checked) :is(.ex-mode, .ex-note)[data-mode="off"],
@@ -376,9 +391,12 @@ body:not(:has(.site-mode-input:checked)) :is(.ex-mode, .ex-note)[data-mode="stat
   color-scheme: normal;
 }
 .ex-page .ex-frame { margin-inline: auto; }
-.ex:has(.ex-widths input[value="phone"]:checked) .ex-frame {
+/* The phone width narrows the frame's box, not the frame, so its container queries see it. */
+.ex:has(.ex-widths input[value="phone"]:checked) .ex-mode {
+  box-sizing: border-box;
   width: 390px;
   max-width: 100%;
+  margin-inline: auto;
   border-inline: 1px solid var(--ib-color-border);
 }
 .ex-source .ib-code-block, .ex-source pre { margin: 0; border: 0; border-radius: 0; }
