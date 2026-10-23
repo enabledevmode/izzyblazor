@@ -11,7 +11,7 @@
   --ib-color-surface-container: light-dark(#e9e9ec, #1b1d22);
   --ib-color-surface-container-high: light-dark(#dfdfe3, #23252b);
   --ib-color-surface-raised: light-dark(#ffffff, #17191d);
-  --ib-color-border: light-dark(#dcdce0, #25282e);
+  --ib-color-border: light-dark(#dcdce0, #2e3138);
   --ib-color-outline: light-dark(#b8b8bf, #44474f);
 }
 /* Not in examples: they keep the library's card on the surface, so a footer bar or a filled card
