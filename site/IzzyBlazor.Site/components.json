@@ -745,14 +745,22 @@
     },
     {
       "id": "popover", "icon": "MessageSquare", "name": "Popover", "category": "Overlays", "summary": "Non-modal content beside a trigger.",
+      "features": [
+        { "feature": "Opens and closes; Escape and a click outside close it" },
+        { "feature": "Focus moves in when opened and back when closed", "off": "partial", "static": "full", "live": "full" },
+        { "feature": "Placed next to its trigger where CSS can't place it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Open from the server shows it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Open bound to C#", "member": "Open" }
+      ],
       "examples": [
         { "id": "popover-filters", "title": "A form in a popover", "lead": "Use `Title` to head the panel and name it for screen readers; anything can go inside, such as a small filter form.", "height": 300, "overlay": true,
           "notes": {
-            "off": "It opens and closes with no script, but focus stays on the button until you Tab into the panel. Apply posts the form.",
+            "off": "It opens and closes with no script, but focus stays on the button until you Tab into the panel. Apply posts the form and the page loads again, with the panel closed.",
             "static": "Opening it moves focus into the panel, and closing it from inside puts focus back on the button. Apply posts without a reload, and the panel stays open.",
             "live": "Apply runs C# with nothing posted, and the panel stays open."
           } },
-        { "id": "popover-manual", "title": "Staying open", "lead": "Use `Mode` `PopoverMode.Manual` for a panel that stays open while people work elsewhere on the page: Escape and clicks outside don't close it, so it shows a close button.", "height": 200, "overlay": true },
+        { "id": "popover-sides", "title": "Placement and width", "lead": "Use `Placement` for the side it opens on (`BottomStart` by default) and `PanelWidth` for a set width; otherwise it's as wide as its content, up to 24rem.", "height": 310, "overlay": true },
+        { "id": "popover-manual", "title": "Staying open", "lead": "Use `Mode` `PopoverMode.Manual` for a panel that stays open while people work elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button.", "height": 230, "overlay": true },
         { "id": "popover-info-button", "title": "Your own trigger", "lead": "Use `Trigger` for a button of your own, such as an info icon, passing it `context` with `@attributes`.", "height": 220, "overlay": true }
       ]
     },
