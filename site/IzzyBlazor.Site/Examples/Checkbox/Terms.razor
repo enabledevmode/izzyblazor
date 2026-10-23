@@ -1,0 +1,33 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="checkbox-terms" OnValidSubmit="Save" MaxWidth="28.Rem" Grow>
+    <Checkbox @bind-Value="Model!.AcceptLicense">
+        Publish under the <Anchor Href="https://opensource.org/license/mit" External>MIT license</Anchor>
+    </Checkbox>
+    <Row><Button Submit>Publish package</Button></Row>
+    @if (_published)
+    {
+        <Alert Status="Status.Success">Published under the MIT license.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-terms")]
+    private Package? Model { get; set; }
+
+    private bool _published;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _published = true;
+
+    public sealed class Package
+    {
+        // [Required] has the browser stop the post until it's checked. A bool is never null, so
+        // [Required] alone passes on the server: [Range] is the server's check.
+        [Required(ErrorMessage = "Agree to the license to publish")]
+        [Range(typeof(bool), "true", "true", ErrorMessage = "Agree to the license to publish")]
+        [Display(Name = "License")]
+        public bool AcceptLicense { get; set; }
+    }
+}

@@ -1,0 +1,57 @@
+@* Switch's Overview, written by hand after Button's, Card's and MultiSelect's: settings rows (at
+   the end, with icons), saving as it changes on an interactive page, and states. Accessibility
+   and See also come from the doc comment; See also adds the notification settings demo. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A switch is a <Anchor Href="docs/components/checkbox">Checkbox</Anchor> that reads as on or off, and it posts the same way, <Code>true</Code> or <Code>false</Code>, so it works on static pages with JavaScript off. Use it for settings; for agreeing to something or choosing an item, use a checkbox.</TextBlock>
+
+<Heading Level="2">At the end of the row</Heading>
+<TextBlock>Use <Code>ControlPosition.End</Code> to put the switch at the end of the row, with the hint under the label, as in a list of settings.</TextBlock>
+<ExampleViewer Example="switch-control-end" />
+
+<Heading Level="2">Icons on rows</Heading>
+<TextBlock>Use <Code>Icon</Code> for an icon at the start of each row, and a <Anchor Href="docs/components/fieldset">Fieldset</Anchor> with <Code>Dividers</Code> to group the rows under a heading.</TextBlock>
+<ExampleViewer Example="switch-icons" />
+<TextBlock>The icon is decorative, so give every row in a group one, or none.</TextBlock>
+
+<Heading Level="2">Saving as it changes</Heading>
+<TextBlock>Use <Code>@@bind-Value:after</Code> to save each change on an interactive page; a static page saves when the form posts, so it needs a Save button.</TextBlock>
+<ExampleViewer Example="switch-save-on-change" />
+<TextBlock><Code>RendererInfo.IsInteractive</Code> is false while an interactive page prerenders, so the example also checks <Code>AssignedRenderMode</Code>: the button never shows and goes away.</TextBlock>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a switch that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="switch-states" />
+<TextBlock>HTML has no read-only checkbox, so a read-only switch arrives disabled, outside the form, and a hidden field posts its value; the script then lets it take focus and keeps it from changing.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* The label comes from the property's [Display(Name)], or Label. *@
+        <Switch @bind-Value="Model!.EmailNotifications" />
+
+        @* A settings row: the switch at the end, the hint under the label. *@
+        <Switch @bind-Value="Model!.AutoDeploy" Label="Automatic deploys"
+                ControlPosition="ControlPosition.End" Hint="Deploy main when its checks pass." />
+        """;
+}

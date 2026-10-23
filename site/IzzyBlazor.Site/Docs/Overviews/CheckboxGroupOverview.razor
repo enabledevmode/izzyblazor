@@ -1,0 +1,56 @@
+@* CheckboxGroup's Overview, written by hand after MultiSelect's, which binds the same way:
+   several choices (and what an empty one posts), descriptions, at least one, and states.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>For a long list, a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor> takes less room; for one yes-or-no choice, use a <Anchor Href="docs/components/checkbox">Checkbox</Anchor>.</TextBlock>
+
+<Heading Level="2">Several choices</Heading>
+<TextBlock>Bind <Code>@@bind-Value</Code> to a collection and pass the options to <Code>Items</Code>: each checked box posts its value, so it works with JavaScript off.</TextBlock>
+<ExampleViewer Example="checkbox-group-toppings" />
+<TextBlock>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code> or an interface they implement. With no box checked the group posts nothing: on a static page the property is then null, or the model isn't bound at all, so set defaults only when the request isn't this form's post, as the example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>).</TextBlock>
+
+<Heading Level="2">Descriptions</Heading>
+<TextBlock>Use <Code>ItemTemplate</Code> for markup in each option's label, such as a description under its name.</TextBlock>
+<ExampleViewer Example="checkbox-group-descriptions" />
+
+<Heading Level="2">At least one</Heading>
+<TextBlock>Use <Code>[Required]</Code> and <Code>[MinLength(1)]</Code> together to need at least one checked box.</TextBlock>
+<ExampleViewer Example="checkbox-group-at-least-one" />
+<TextBlock>The browser can't check a group, so the message comes from the server when the form posts. <Code>[Required]</Code> catches an empty choice on a static page, where the property is null, and <Code>[MinLength(1)]</Code> on an interactive page, where it's an empty list once the last box is cleared.</TextBlock>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for choices that post but can't change, and <Code>Disabled</Code> for ones that don't post.</TextBlock>
+<ExampleViewer Example="checkbox-group-states" />
+<TextBlock>HTML has no read-only checkbox, so read-only boxes arrive disabled, outside the form, and hidden fields post the checked values; the script then lets them take focus and keeps them from changing.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* An enum's values. *@
+        <CheckboxGroup @bind-Value="Model!.Toppings" Items="Enum.GetValues<Topping>()" />
+
+        @* Strings, in a row. *@
+        <CheckboxGroup @bind-Value="Model!.Sizes" Items="AllSizes" Orientation="Orientation.Horizontal" />
+        """;
+}

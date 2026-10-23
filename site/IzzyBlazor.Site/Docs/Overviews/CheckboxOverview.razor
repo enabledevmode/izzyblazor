@@ -1,0 +1,61 @@
+@* Checkbox's Overview, written by hand after Button's, Card's and MultiSelect's: what it posts,
+   a box that must be checked, select all, the row's layout (shown on Switch's page) and states.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>Use a checkbox for one yes-or-no choice, such as agreeing to something; a <Anchor Href="docs/components/switch">Switch</Anchor> for a setting that reads as on or off, and a <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> for several choices from a list.</TextBlock>
+
+<Heading Level="2">What it posts</Heading>
+<TextBlock>A checked box posts <Code>true</Code> and an unchecked one <Code>false</Code>, from a hidden field that follows it, so a property that defaults to true can be turned off on a static page. A disabled box posts nothing.</TextBlock>
+
+<Heading Level="2">Agreeing to terms</Heading>
+<TextBlock>Use <Code>ChildContent</Code> for a label with markup, such as a link, and <Code>[Required]</Code> with <Code>[Range(typeof(bool), "true", "true")]</Code> for a box that must be checked.</TextBlock>
+<ExampleViewer Example="checkbox-terms" />
+<TextBlock><Code>[Required]</Code> has the browser stop the post until the box is checked, but a bool is never null, so on the server it always passes: <Code>[Range]</Code> is the check there. Give both the same <Code>ErrorMessage</Code>, and with script the browser shows it too.</TextBlock>
+
+<Heading Level="2">Select all</Heading>
+<TextBlock>Use <Code>Indeterminate</Code> to show a dash when only some of what a box stands for is checked.</TextBlock>
+<ExampleViewer Example="checkbox-select-all" />
+<TextBlock>The dash is display only: the box posts as unchecked, and checking it clears the dash. On a static page, work out what the box meant when the form posts, as the example's <Code>Save</Code> does; on an interactive page, its <Code>ValueChanged</Code> can set the others at once.</TextBlock>
+
+<Heading Level="2">Hints, icons and the end of the row</Heading>
+<TextBlock>Use <Code>Hint</Code> for help under the label, <Code>ControlPosition.End</Code> to put the box at the end of the row and <Code>Icon</Code> for an icon at its start, as on a Switch (<Anchor Href="docs/components/switch#at-the-end-of-the-row">see them there</Anchor>).</TextBlock>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a box that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="checkbox-sizes" />
+<TextBlock>HTML has no read-only checkbox, so a read-only box arrives disabled, outside the form, and a hidden field posts its value; the script then lets it take focus and keeps it from changing.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* The label comes from the property's [Display(Name)], or Label. *@
+        <Checkbox @bind-Value="Model!.Subscribe" />
+        <Checkbox @bind-Value="Model!.RememberMe" Label="Keep me signed in" />
+
+        @* A label with markup. *@
+        <Checkbox @bind-Value="Model!.AcceptTerms">
+            I agree to the <Anchor Href="terms">terms of service</Anchor>
+        </Checkbox>
+        """;
+}

@@ -5,6 +5,7 @@
         <Checkbox @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
     </Row>
     <Row Gap="5" Wrap>
+        <Checkbox @bind-Value="Model!.Kept" Label="Read-only" ReadOnly />
         <Checkbox @bind-Value="Model!.Locked" Label="Disabled" Disabled />
         <Checkbox @bind-Value="Model!.LockedOn" Label="Disabled, checked" Disabled />
     </Row>
@@ -21,6 +22,7 @@
         public bool Small { get; set; } = true;
         public bool Medium { get; set; } = true;
         public bool Large { get; set; } = true;
+        public bool Kept { get; set; } = true;
         public bool Locked { get; set; }
         public bool LockedOn { get; set; } = true;
     }
