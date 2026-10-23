@@ -1,3 +1,4 @@
+@inject ApiMetadata Api
 @inject Registry Registry
 
 @* The Overview of a component without a hand-written one, built from its doc comment and
@@ -35,6 +36,10 @@
     <DocHtml Html="@ApiComponent.Remarks" Context="_prose" Size="ProseSize.Md" />
 }
 
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
 <OverviewParts Component="Component" />
 
 <Heading Level="2">Mode support</Heading>

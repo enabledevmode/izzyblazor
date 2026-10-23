@@ -1,3 +1,4 @@
+@inject ApiMetadata Api
 @* Card's Overview, written by hand after Button's and Form's: the header and variants, sizes, a
    linked card with media, a heading of your own, the body and footer, flush content, sections, a
    form in a card (each mode posts it differently) and a grid of cards. Accessibility, Parts and
@@ -48,6 +49,10 @@
 <ExampleViewer Example="card-projects" />
 <TextBlock>Put the body's text in an element, such as a <Code>TextBlock</Code>: a body of bare text and a footer keeps the footer right under the text.</TextBlock>
 
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
 <OverviewParts Component="Component" />
 
 <Heading Level="2">Mode support</Heading>

@@ -1,3 +1,4 @@
+@inject ApiMetadata Api
 @* Tabs' Overview, written by hand after Button's: picking a tab previewed in each mode, the looks,
    vertical tabs, the tab in the address, tabs in a form, panel padding and tabs that are links.
    Parts, Accessibility and See also come from the doc comments and components.json. *@
@@ -40,6 +41,10 @@
 <ExampleViewer Example="tabs-links" />
 <TextBlock>A tab stays current on the pages below its link, so a <Code>settings</Code> tab is current on <Code>settings/billing</Code> too; <Code>Match="NavLinkMatch.All"</Code> stops that. Tabs for one page told apart by the query, as here, mark one at a time.</TextBlock>
 
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
 <OverviewParts Component="Component" />
 
 <Heading Level="2">Mode support</Heading>

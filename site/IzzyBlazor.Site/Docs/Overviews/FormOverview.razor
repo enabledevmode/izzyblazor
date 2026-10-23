@@ -1,3 +1,4 @@
+@inject ApiMetadata Api
 @* Form's Overview, written by hand after Button's: fields, what posting needs, errors and columns
    previewed in each mode, labels beside fields, read-only, then a validator of your own and files
    as code. The Forms and validation article covers the model's attributes at more length.
@@ -42,6 +43,10 @@
 <TextBlock>Use <Code>Multipart</Code> with a <Anchor Href="docs/components/file-upload">FileUpload</Anchor>, so a post on a static page sends the files and not only their names.</TextBlock>
 <Code Block Language="razor">@Files</Code>
 
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
 <OverviewParts Component="Component" />
 
 <Heading Level="2">Mode support</Heading>
