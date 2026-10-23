@@ -1,0 +1,40 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="combobox-required" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <Combobox @bind-Value="Model!.Country" Items="Countries.Keys"
+              ItemText="code => Countries.GetValueOrDefault(code!, code!)"
+              Placeholder="Search countries" />
+    <Row><Button Submit>Continue</Button></Row>
+    @if (_shippingTo is not null)
+    {
+        <Alert Status="Status.Success">Shipping to @_shippingTo.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "combobox-required")]
+    private Shipping? Model { get; set; }
+
+    private string? _shippingTo;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // A posted value can be anything: check it's one of the options.
+    private void Save() => _shippingTo = Countries.GetValueOrDefault(Model!.Country!);
+
+    public sealed class Shipping
+    {
+        [Required(ErrorMessage = "Choose a country to ship to"), Display(Name = "Ship to")]
+        public string? Country { get; set; }
+    }
+
+    @* hide *@
+    private static readonly Dictionary<string, string> Countries = new()
+    {
+        ["AU"] = "Australia", ["BR"] = "Brazil", ["CA"] = "Canada", ["CI"] = "Côte d'Ivoire", ["FR"] = "France",
+        ["DE"] = "Germany", ["IN"] = "India", ["JP"] = "Japan", ["KE"] = "Kenya", ["MX"] = "Mexico",
+        ["NZ"] = "New Zealand", ["RE"] = "Réunion", ["ES"] = "Spain", ["TR"] = "Türkiye",
+        ["GB"] = "United Kingdom", ["US"] = "United States",
+    };
+    @* /hide *@
+}

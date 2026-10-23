@@ -1,0 +1,63 @@
+@* Combobox's Overview, written by hand after Select's: typing to filter, searching on the
+   server previewed in each mode, a required combobox with a placeholder, sizes
+   and states, and its own words. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+
+<Heading Level="2">Typing to filter</Heading>
+<TextBlock>Use <Code>Items</Code> and <Code>ItemText</Code> for a long list people find by typing: what's typed filters the options, ignoring case and accents.</TextBlock>
+<ExampleViewer Example="combobox-filtering" />
+<TextBlock>Typing an option's whole text and leaving the field chooses it, so keep each <Code>ItemText</Code> unique. Bind an enum and its values are the options, named by their <Code>[Display(Name)]</Code>, with no <Code>Items</Code>. For a short list, a <Anchor Href="docs/components/select">Select</Anchor> is simpler; for several choices, use a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
+
+<Heading Level="2">Searching a long list</Heading>
+<TextBlock>Use <Code>Search</Code> for a list too long to send whole: it gets what's typed and returns the first matching values, of the bound type, and <Code>ItemTemplate</Code> adds markup to each option, such as an avatar.</TextBlock>
+<ExampleViewer Example="combobox-server-search" />
+<TextBlock><Code>Search</Code> is called with "" to fill the list on every page, and on interactive pages again as someone types, <Code>Debounce</Code> milliseconds after the last key (250 by default). On a static page the browser filters that first list, so return what people are most likely to want, or put the page in an interactive render mode. <Code>Search</Code> runs where the component does: on the server, or in the browser on WebAssembly, where it calls your API.</TextBlock>
+<TextBlock>The field shows <Code>ItemText</Code> for the chosen value even when the results don't include it, so <Code>ItemText</Code> gets any value that's bound or posted: look it up without throwing, as the examples do, and check on the server that a posted value is allowed.</TextBlock>
+
+<Heading Level="2">Required, with a placeholder</Heading>
+<TextBlock>Use a nullable property with <Code>[Required]</Code> and a <Code>Placeholder</Code>: nothing is chosen until someone picks an option, and the form doesn't post without one.</TextBlock>
+<ExampleViewer Example="combobox-required" />
+<TextBlock>Bind a nullable type: an <Code>int</Code> or an enum always has a value (0 or the first member), so the placeholder never shows and emptying the field is an error.</TextBlock>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="combobox-states" />
+<TextBlock>HTML has no read-only select, so a read-only combobox shows its choice in a read-only text field and posts it from a hidden input.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>EmptyText</Code> for "No matches", <Code>SearchingText</Code> for "Searching…" and <Code>ToggleLabel</Code> for the name of the button that opens the list, or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>. Type "zzz" in the first example to see "No matches".</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* A list people filter by typing. *@
+        <Combobox @bind-Value="Model!.Country" Items="Countries.Keys"
+                  ItemText="code => Countries.GetValueOrDefault(code!, code!)"
+                  Placeholder="Search countries" />
+
+        @* A list searched as you type, by your code. *@
+        <Combobox @bind-Value="Model!.OwnerId" Search="FindPeople"
+                  ItemText="id => People.GetValueOrDefault(id!.Value)?.Name ?? id.ToString()!" />
+        """;
+}

@@ -1,7 +1,8 @@
 @using System.ComponentModel.DataAnnotations
 
 <Form Model="Model" FormName="combobox-server-search" MaxWidth="24.Rem" Grow>
-    <Combobox @bind-Value="Model!.OwnerId" Search="FindPeople" ItemText="id => People[id!.Value].Name"
+    <Combobox @bind-Value="Model!.OwnerId" Search="FindPeople"
+              ItemText="id => People.GetValueOrDefault(id!.Value)?.Name ?? id.ToString()!"
               Placeholder="Search people">
         <ItemTemplate Context="id">
             <Avatar Name="@(People[id!.Value].Name)" Size="AvatarSize.Xs" Decorative />

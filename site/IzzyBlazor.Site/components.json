@@ -602,18 +602,32 @@
     },
     {
       "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Type to filter; server search on interactive pages.",
+      "features": [
+        { "feature": "Choose an option, posted with the form" },
+        { "feature": "Type to filter, ignoring case and accents", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Markup in each option (ItemTemplate)", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Search fills the list" },
+        { "feature": "Search as you type", "off": "none", "static": "none", "live": "full" }
+      ],
       "examples": [
-        { "id": "combobox-filtering", "title": "Typing to filter", "lead": "Use `Items` and `ItemText` for a long list people find by typing: what's typed filters the options, ignoring case and accents.", "height": 320, "overlay": true,
+        { "id": "combobox-filtering", "title": "Typing to filter", "lead": "Use `Items` and `ItemText` for a long list people find by typing: what's typed filters the options, ignoring case and accents.", "height": 440, "overlay": true,
           "notes": {
             "off": "A plain dropdown of every country, with no typing to filter.",
             "static": "The script makes it a text field: typing filters the list, so \"cote\" finds Côte d'Ivoire."
           } },
-        { "id": "combobox-server-search", "title": "Searching on the server", "lead": "Use `Search` for a list too long to send whole: it gets what's typed and returns the first matches, and `ItemTemplate` adds an avatar to each.", "height": 340, "overlay": true,
+        { "id": "combobox-server-search", "title": "Searching on the server", "lead": "Use `Search` for a list too long to send whole: it gets what's typed and returns the first matches, and `ItemTemplate` adds markup to each, such as an avatar.", "height": 380, "overlay": true,
           "notes": {
             "off": "A plain dropdown of what Search returns for an empty string: the first eight people.",
             "static": "Search fills the list once, and typing filters those eight people in the browser.",
-            "live": "Typing calls Search on the server after a short pause, so anyone in the directory can be found."
-          } }
+            "live": "Typing calls Search after a short pause, so anyone in the directory can be found."
+          } },
+        { "id": "combobox-required", "title": "Required, with a placeholder", "lead": "Use `[Required]` on a nullable property and a `Placeholder`: nothing is chosen until someone picks an option.", "height": 440, "overlay": true,
+          "notes": {
+            "off": "A plain dropdown: the browser stops the post until a country is chosen, in its own words.",
+            "static": "The browser stops the post until a country is chosen, in the model's words, on the text field.",
+            "live": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
+          } },
+        { "id": "combobox-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a value that posts but can't change, and `Disabled` for one that doesn't post.", "height": 410, "overlay": true }
       ]
     },
     {
