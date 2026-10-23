@@ -1,3 +1,4 @@
+@inject ApiMetadata Api
 @* Menu's Overview, written by hand after Button's: the three kinds of item previewed in each mode
    (links and posts work on static pages), groups, a custom trigger, checked items kept in the
    address, and submenus. Accessibility and See also come from the doc comment. *@
@@ -29,6 +30,10 @@
 <TextBlock>Use <Code>MenuSub</Code> for an item that opens another menu beside it. Choosing an item in it closes the whole menu.</TextBlock>
 <ExampleViewer Example="menu-sub" />
 
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
 <OverviewParts Component="Component" />
 
 <Heading Level="2">Mode support</Heading>

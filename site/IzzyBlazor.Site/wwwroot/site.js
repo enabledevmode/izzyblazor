@@ -142,8 +142,9 @@
     if (!example) return;
     const url = new URL(link.href, location.href);
     if (url.origin !== location.origin || url.pathname !== location.pathname) return;
-    // A link with its own #fragment goes there.
-    if (url.hash) return;
+    // A link with its own #fragment goes there; on an Off page the server already points the
+    // example's links at the example (OffExampleAnchors), which is ours.
+    if (url.hash && url.hash !== `#${example.id}`) return;
     link.href = anchor(example, url, !blazor() || !!link.closest('[data-enhance-nav="false"]')).href;
   }, true);
 
@@ -156,7 +157,7 @@
     const submitter = event.submitter;
     const own = submitter && submitter.hasAttribute("formaction");
     const url = new URL((own ? submitter.getAttribute("formaction") : form.getAttribute("action")) || location.href, location.href);
-    if (url.origin !== location.origin || url.pathname !== location.pathname || url.hash) return;
+    if (url.origin !== location.origin || url.pathname !== location.pathname || (url.hash && url.hash !== `#${example.id}`)) return;
     const enhanced = blazor() && form.hasAttribute("data-enhance");
     const href = anchor(example, url, !enhanced).href;
     if (own) submitter.setAttribute("formaction", href);

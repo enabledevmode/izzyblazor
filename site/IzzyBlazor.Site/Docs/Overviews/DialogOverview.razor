@@ -1,3 +1,4 @@
+@inject ApiMetadata Api
 @* Dialog's Overview, written by hand after Button's: the three ways to open it previewed in each
    mode, a form inside one (what a post does to an open dialog), the parts, then size, closing,
    a dialog inside a form, and DialogService (Live only). Accessibility and See also come from the
@@ -42,6 +43,10 @@
 <Code Block Language="razor" Title="EditName.razor">@Content</Code>
 <TextBlock>Static pages can't open anything from code: use a trigger, a link or <Code>Open</Code> there.</TextBlock>
 
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
 <OverviewParts Component="Component" />
 
 <Heading Level="2">Mode support</Heading>

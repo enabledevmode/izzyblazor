@@ -3,11 +3,14 @@
 
 @* An Overview's Parts section: the components written inside this one (components.json "parts"),
    each linked to its place on the API page with its doc summary's first sentence. Nothing when
-   it has none. *@
+   it has none.
+
+   The Overview writes the "Parts" heading itself, when Of(...) has any: a Heading registers with
+   "On this page" when it's set up, and one inside this component would be set up after the
+   Overview's own headings, so without script the list would show Parts last. *@
 
 @if (_parts.Count > 0)
 {
-    <Heading Level="2">Parts</Heading>
     <TextBlock>Written inside @Component.Name. The <Anchor Href="@($"{Registry.ApiPageHref(Component)}#parts")">API page</Anchor> lists their parameters.</TextBlock>
     <List Gap="2">
         @foreach (var part in _parts)
@@ -27,6 +30,9 @@
 
     private List<ApiComponent> _parts = [];
 
-    protected override void OnParametersSet() =>
-        _parts = Component.Parts.Select(Api.Component).OfType<ApiComponent>().Where(p => p.Obsolete is null).ToList();
+    protected override void OnParametersSet() => _parts = Of(Component, Api);
+
+    /// <summary>The parts listed: those in the API metadata that aren't obsolete.</summary>
+    public static List<ApiComponent> Of(RegistryComponent component, ApiMetadata api) =>
+        component.Parts.Select(api.Component).OfType<ApiComponent>().Where(p => p.Obsolete is null).ToList();
 }
