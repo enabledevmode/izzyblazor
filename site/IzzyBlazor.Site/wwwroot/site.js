@@ -95,8 +95,15 @@
       let last = -1;
       let steady = 0;
       let waited = 0;
+      let shortFor = 0;
       const wait = () => {
         const height = Math.ceil(root.getBoundingClientRect().height);
+        // Too short (a height measured a few pixels off, a font that loaded late): grow as soon as
+        // it's been too short twice running (200ms), so nothing stays cut off. Not at the first
+        // look: a script may be about to shrink the content (a filter form hides its button).
+        const short = shown(frame) && height > Math.round(frame.getBoundingClientRect().height);
+        shortFor = short ? shortFor + 1 : 0;
+        if (shortFor >= 2) frame.style.height = `${height}px`;
         steady = height === last ? steady + 100 : 0;
         last = height;
         waited += 100;
