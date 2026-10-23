@@ -22,7 +22,8 @@
 
     Orientation="Orientation.Vertical" puts the tabs in a column beside the panels from 640px up
     (a scrolling row above them on phones). With TabLink children instead of Tab, it renders a
-    nav of links to separate pages; see TabLink.
+    nav of links to separate pages; see TabLink. Up to 30 tabs show their panels: the CSS has a
+    rule for each position.
 
     Accessibility:
     - With script, the list is ARIA tabs (`tablist`, `tab`, `tabpanel`, `aria-selected`) with only
@@ -55,8 +56,10 @@
          style="@_style"
          aria-label="@Label">
         <div class="ib-tabs-list">
-            @foreach (var link in _context.Links)
+            @{ var current = CurrentLinks(); }
+            @for (var i = 0; i < _context.Links.Count; i++)
             {
+                var link = _context.Links[i];
                 @if (link.Disabled)
                 {
                     @* A link without an href, as Button does: role="link" keeps it in the list of links, disabled. *@
@@ -67,7 +70,7 @@
                     <a @attributes="link.AdditionalAttributes"
                        class="ib-tab"
                        href="@link.Href"
-                       aria-current="@LinkMatch.AriaCurrent(LinkMatch.Of(Navigation, link.Href, Navigation.Uri, link.Match))">@TabContent(link.Icon, link.Label, link.Badge)</a>
+                       aria-current="@LinkMatch.AriaCurrent(current[i])">@TabContent(link.Icon, link.Label, link.Badge)</a>
                 }
             }
         </div>
@@ -337,6 +340,28 @@ else
 
     // A field registered with a tab: its errors may need showing.
     internal void FieldsChanged() => Refresh();
+
+    // Each link's match. Tabs on one page told apart by the query (?view=billing): a link without
+    // a query matches its page whatever the query, so when a link with one matches, the one
+    // without gives way, and only one tab is current.
+    private (bool Active, bool Exact)[] CurrentLinks()
+    {
+        var links = _context.Links;
+        var states = links.Select(l => l.Disabled ? (Active: false, Exact: false) : LinkMatch.Of(Navigation, l.Href, Navigation.Uri, l.Match)).ToArray();
+        var queried = links.Select(l => !l.Disabled && Navigation.ToAbsoluteUri(l.Href).Query.Length > 1).ToArray();
+        if (states.Where((state, i) => state.Active && queried[i]).Any())
+        {
+            for (var i = 0; i < states.Length; i++)
+            {
+                if (!queried[i])
+                {
+                    states[i] = (false, false);
+                }
+            }
+        }
+
+        return states;
+    }
 
     private RenderFragment TabContent(IconData? icon, string label, string? badge, int errors = 0) => __builder =>
     {
