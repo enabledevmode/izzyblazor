@@ -1415,7 +1415,10 @@ that scrolls.
 On a page that `AppShell` scrolls, room for the page's scrollbar is kept even when the page can't
 scroll (`scrollbar-gutter: stable`), so opening the sidebar drawer or panel, which stops the page
 scrolling, doesn't widen the page and shift it sideways. With overlay scrollbars that room is zero;
-with classic ones, a page too short to scroll shows an empty strip where the scrollbar would be.
+with classic ones, a page too short to scroll shows an empty strip where the scrollbar would be. While
+the page is locked, IzzyBlazor's script swaps that room for padding of the same width, so a dialog,
+drawer or panel and its backdrop reach the window's edge (browsers draw the reserved strip above
+them); with JavaScript off the strip stays.
 
 ## Text and other languages
 

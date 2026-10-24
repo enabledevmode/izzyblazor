@@ -521,6 +521,14 @@
     overflow: hidden;
   }
 
+  /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+     and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+  html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-dialog:modal),
+  html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-dialog[open]:not(:modal)) {
+    scrollbar-gutter: auto;
+    padding-inline-end: var(--ib-scrollbar-w);
+  }
+
   .ib-dialog-sm { --ib-dialog-w: 24rem; }
   .ib-dialog-lg { --ib-dialog-w: 48rem; }
   .ib-dialog-xl { --ib-dialog-w: 64rem; }
