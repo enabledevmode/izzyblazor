@@ -12,7 +12,9 @@
     Dismissible adds a close button that works with no script: a visually hidden checkbox and
     its label, with CSS :has(:checked) hiding the alert. With the script it is a real button
     (<ib-dismiss>), and focus moves to the next control when the alert closes. On interactive pages @bind-Dismissed
-    follows it, and setting Dismissed from C# hides or shows it again.
+    follows it, and setting Dismissed from C# hides or shows it again. On a static page the script
+    keeps it closed through an enhanced post or navigation to the same page, unless it's in the
+    form that posted or its text changed (dismiss.ts).
 
     Accessibility:
     - Danger and Warning alerts are `role="alert"`, so screen readers announce them at once when

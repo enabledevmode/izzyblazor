@@ -19,6 +19,10 @@ public class OffExampleAnchorTests
     [InlineData("<a href=\"http://example.com/docs/components/card\">Elsewhere</a>", "<a href=\"http://example.com/docs/components/card\">Elsewhere</a>")]
     [InlineData("<a data-href=\"x\" href=\"docs/components/card?p=2\">2</a>", "<a data-href=\"x\" href=\"docs/components/card?p=2#ex-card-settings\">2</a>")]
     [InlineData("<button type=\"submit\" formaction=\"/docs/components/card?x=1\">Go</button>", "<button type=\"submit\" formaction=\"/docs/components/card?x=1#ex-card-settings\">Go</button>")]
+    // A ColorSchemeSwitch link: the endpoint redirects to its return path, keeping the fragment.
+    [InlineData("<a href=\"_izzy/scheme?value=dark&amp;return=docs%2Fcomponents%2Fcard%3Fmode%3Doff\">Dark</a>", "<a href=\"_izzy/scheme?value=dark&amp;return=docs%2Fcomponents%2Fcard%3Fmode%3Doff#ex-card-settings\">Dark</a>")]
+    [InlineData("<a href=\"_izzy/scheme?value=dark&amp;return=docs%2Fcomponents%2Ftable\">Dark</a>", "<a href=\"_izzy/scheme?value=dark&amp;return=docs%2Fcomponents%2Ftable\">Dark</a>")]
+    [InlineData("<a href=\"_izzy/scheme?value=dark\">Dark</a>", "<a href=\"_izzy/scheme?value=dark\">Dark</a>")]
     public void Links_and_forms_to_the_page_go_to_the_example(string inside, string expected)
     {
         var html = $"<section class=\"ex\" id=\"ex-card-settings\" data-ex=\"card-settings\">{inside}</section>";

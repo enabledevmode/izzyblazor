@@ -112,13 +112,32 @@ class DialogRoot extends IzzyElement {
   }
 
   private clearQuery(dialog: HTMLDialogElement): void {
-    // data-query-key is the dialog's QueryKey; without one, no link opens it.
-    const key = this.dataset.queryKey;
-    const url = new URL(location.href);
-    if (key && dialog.id && url.searchParams.get(key) === dialog.id) {
-      url.searchParams.delete(key);
-      history.replaceState(history.state, "", url);
-    }
+    clearDialogQuery(this, dialog);
+  }
+}
+
+/** Removes the key that names this dialog (?dialog=id, or its own QueryKey) from the address. */
+function clearDialogQuery(root: HTMLElement, dialog: HTMLDialogElement): void {
+  // data-query-key is the dialog's QueryKey; without one, no link opens it.
+  const key = root.dataset.queryKey;
+  const url = new URL(location.href);
+  if (key && dialog.id && url.searchParams.get(key) === dialog.id) {
+    url.searchParams.delete(key);
+    history.replaceState(history.state, "", url);
+  }
+}
+
+/**
+ * After an enhanced load: a dialog that was opened by ?dialog=id and closed by a post from it
+ * was taken out of the address when it closed, but the enhanced load puts back the form's
+ * action, the address it was posted from. Take it out again for any dialog the page now shows
+ * closed, so a reload doesn't reopen it. One that came back open (errors) keeps it. Not an
+ * interactive dialog: C# opens it from the address after this runs, and closing clears it.
+ */
+export function clearClosedDialogQuery(): void {
+  for (const root of document.querySelectorAll<HTMLElement>("ib-dialog[data-query-key]:not([data-ib-interactive])")) {
+    const dialog = root.querySelector<HTMLDialogElement>(":scope > dialog");
+    if (dialog && !dialog.open && !root.hasAttribute("data-open")) clearDialogQuery(root, dialog);
   }
 }
 
