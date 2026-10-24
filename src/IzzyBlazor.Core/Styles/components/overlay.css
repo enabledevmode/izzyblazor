@@ -433,14 +433,17 @@
   }
 
   @supports (anchor-name: --a) {
-    .ib-tooltip-top[popover] { position-area: block-start center; margin-block-end: var(--ib-tooltip-gap); }
+    /* Centered: the whole row (or column) around the trigger, centered on it. "center" alone holds
+       the tooltip to the trigger's width, so a wider one overflowed every fallback and was shifted
+       over its trigger instead of flipping. */
+    .ib-tooltip-top[popover] { position-area: block-start span-all; justify-self: anchor-center; margin-block-end: var(--ib-tooltip-gap); }
     .ib-tooltip-top-start[popover] { position-area: block-start span-inline-end; margin-block-end: var(--ib-tooltip-gap); }
     .ib-tooltip-top-end[popover] { position-area: block-start span-inline-start; margin-block-end: var(--ib-tooltip-gap); }
-    .ib-tooltip-bottom[popover] { position-area: block-end center; margin-block-start: var(--ib-tooltip-gap); }
+    .ib-tooltip-bottom[popover] { position-area: block-end span-all; justify-self: anchor-center; margin-block-start: var(--ib-tooltip-gap); }
     .ib-tooltip-bottom-start[popover] { position-area: block-end span-inline-end; margin-block-start: var(--ib-tooltip-gap); }
     .ib-tooltip-bottom-end[popover] { position-area: block-end span-inline-start; margin-block-start: var(--ib-tooltip-gap); }
-    .ib-tooltip-start[popover] { position-area: center inline-start; margin-inline-end: var(--ib-tooltip-gap); }
-    .ib-tooltip-end[popover] { position-area: center inline-end; margin-inline-start: var(--ib-tooltip-gap); }
+    .ib-tooltip-start[popover] { position-area: span-all inline-start; align-self: anchor-center; margin-inline-end: var(--ib-tooltip-gap); }
+    .ib-tooltip-end[popover] { position-area: span-all inline-end; align-self: anchor-center; margin-inline-start: var(--ib-tooltip-gap); }
   }
 
   /* Dialog */
