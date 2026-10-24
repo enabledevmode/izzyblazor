@@ -20,7 +20,7 @@
 <Heading Level="2">A linked card</Heading>
 <TextBlock>Use <Code>Href</Code> to make the whole card a link through its title; buttons in <Code>CardActions</Code>, <Code>CardFooter</Code> and the body stay clickable on their own.</TextBlock>
 <ExampleViewer Example="card-linked" />
-<TextBlock>The link is the title, so a linked card needs a <Code>Title</Code>. <Code>CardMedia</Code> draws an image, video or SVG across the top, edge to edge; one that only decorates gets <Code>alt=""</Code> on an <Code>img</Code> or <Code>aria-hidden="true"</Code> on an <Code>svg</Code>. On a linked card the media is part of the link, so a video's controls can't be used there.</TextBlock>
+<TextBlock>The link is the title, so a linked card needs a <Code>Title</Code>. <Code>CardMedia</Code> draws an image, video or SVG across the top, edge to edge; one that only decorates gets <Code>alt=""</Code> on an <Code>img</Code> or <Code>aria-hidden="true"</Code> on an <Code>svg</Code>. On a linked card an image is part of the link, and a video's controls stay usable above it.</TextBlock>
 
 <Heading Level="2">Your own heading</Heading>
 <TextBlock>Use <Code>CardHeader</Code> for content above the title, such as who wrote it, and <Code>CardActions</Code> for buttons or a <Anchor Href="docs/components/menu">Menu</Anchor> at the end of the heading row.</TextBlock>
@@ -47,7 +47,7 @@
 <Heading Level="2">Cards in a grid</Heading>
 <TextBlock>Use a <Anchor Href="docs/components/grid">Grid</Anchor> with <Code>MinChildWidth</Code> to fit as many cards to a row as there's room for. Cards in a row take its height, and a <Code>CardFooter</Code> stays at the bottom.</TextBlock>
 <ExampleViewer Example="card-projects" />
-<TextBlock>Put the body's text in an element, such as a <Code>TextBlock</Code>: a body of bare text and a footer keeps the footer right under the text.</TextBlock>
+<TextBlock>Put the body's text in an element, such as a <Code>TextBlock</Code>: above a footer, bare text gets the body's gap, not a section's space.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

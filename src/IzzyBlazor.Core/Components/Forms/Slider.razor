@@ -169,7 +169,7 @@
             return true;
         }
 
-        validationErrorMessage = $"The {ResolvedLabel ?? FieldIdentifier.FieldName} field must be a number.";
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.NumberInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
         return false;
     }
 

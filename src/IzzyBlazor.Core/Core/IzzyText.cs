@@ -104,6 +104,12 @@ public class IzzyText
     /// <summary>For screen readers, after a tab's label when fields in it have errors: "{0} errors".</summary>
     public virtual string ErrorCount { get; set; } = "{0} errors";
 
+    /// <summary>A field's message for a value it can't read as its type. {0} is the field's label.</summary>
+    public virtual string ValueInvalid { get; set; } = "The {0} field is not valid.";
+
+    /// <summary>NumberField's and Slider's message for a value that isn't a number. {0} is the field's label.</summary>
+    public virtual string NumberInvalid { get; set; } = "The {0} field must be a number.";
+
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
 

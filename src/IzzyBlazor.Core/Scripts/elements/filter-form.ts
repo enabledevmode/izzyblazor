@@ -74,6 +74,36 @@ class FilterForm extends IzzyElement {
       { signal }
     );
 
+    // Clear: what's waiting to apply, or to be put back while typing, is for the old filter.
+    // Clear goes once nothing is filtered, so focus would fall to the next control on the page:
+    // send it to the first filter instead, before the link navigates (not after a tap, which
+    // would open the on-screen keyboard).
+    form.addEventListener(
+      "click",
+      (event) => {
+        if (event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
+        if (!(event.target as Element).closest?.(".ib-filter-clear")) return;
+        clearTimeout(this.#timer);
+        this.#typing.clear();
+        if ((event as PointerEvent).pointerType === "touch") return;
+        const first =
+          [...form.querySelectorAll<HTMLElement>("input:not([type=hidden], :disabled), select:not(:disabled), textarea:not(:disabled)")].find(
+            (el) => el.checkVisibility?.() ?? true
+          ) ?? null;
+        first?.focus({ preventScroll: true });
+        // A search box shows the old filter until the page updates: empty it, so typing starts a
+        // new one, and keep what's typed from being reset by the cleared page arriving.
+        if (typedIn(first)) {
+          first.value = "";
+          this.#typing.typed(first);
+          // A live form records typing itself; without Live, record it until the page arrives.
+          if (!this.live) first.addEventListener("input", () => this.#typing.typed(first), { signal: AbortSignal.timeout(3000) });
+          this.#typing.guard();
+        }
+      },
+      { signal }
+    );
+
     form.addEventListener("focusout", (event) => this.#typing.forget(event.target as HTMLInputElement), { signal });
     signal.addEventListener("abort", () => clearTimeout(this.#timer));
 

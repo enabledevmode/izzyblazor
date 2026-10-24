@@ -334,9 +334,18 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// (<c>[Display(Name)]</c>, or the property name), or null when it has the default message.
     /// </summary>
     private string? Message(ValidationAttribute? attribute) =>
-        attribute is { ErrorMessage: not null } or { ErrorMessageResourceName: not null }
+        attribute is { ErrorMessageResourceName: not null } || (attribute is { ErrorMessage: not null } && !HasDefaultMessage(attribute))
             ? attribute!.FormatErrorMessage(Attribute<DisplayAttribute>()?.GetName() ?? FieldIdentifier.FieldName)
             : null;
+
+    // [EmailAddress] and [Url] report their built-in English text as ErrorMessage when none is
+    // set: compare with a new one (made now, as its text follows the culture).
+    private static bool HasDefaultMessage(ValidationAttribute attribute) => attribute switch
+    {
+        EmailAddressAttribute => attribute.ErrorMessage == new EmailAddressAttribute().ErrorMessage,
+        UrlAttribute => attribute.ErrorMessage == new UrlAttribute().ErrorMessage,
+        _ => false,
+    };
 
     /// <summary>
     /// A name for a group of radios: the field's form name, or its id where Blazor gives none
@@ -391,7 +400,7 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             return true;
         }
 
-        validationErrorMessage = $"The {ResolvedLabel ?? FieldIdentifier.FieldName} field is not valid.";
+        validationErrorMessage = string.Format(CultureInfo.CurrentCulture, TextDefaults.ValueInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
         return false;
     }
 

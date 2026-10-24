@@ -1255,6 +1255,18 @@
     outline: none;
   }
 
+  /* Chips follow the field's Size and density: its text size, and a height that leaves the box's
+     padding and border inside the field's height (at least 20px). */
+  .ib-multiselect-box .ib-chip {
+    min-height: max(1.25rem, calc(var(--ib-field-h) - 0.75rem));
+    font-size: var(--ib-field-font);
+  }
+
+  .ib-field-lg .ib-multiselect-box .ib-chip-remove {
+    width: 1.5rem;
+    height: 1.5rem;
+  }
+
   .ib-multiselect:has(.ib-chip) .ib-multiselect-input::placeholder {
     color: transparent;
   }

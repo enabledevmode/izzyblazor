@@ -716,6 +716,12 @@ public class FormRenderTests : BunitContext
 
         [StringLength(80)]
         public string? Plain { get; set; }
+
+        [EmailAddress]
+        public string? Email { get; set; }
+
+        [Url(ErrorMessage = "Enter a link like https://example.com.")]
+        public string? Site { get; set; }
     }
 
     [Fact]
@@ -734,6 +740,9 @@ public class FormRenderTests : BunitContext
         Assert.Equal("Enter your nickname.", Input(() => model.Nickname).GetAttribute("data-ib-required"));
         Assert.Equal("At least 3 letters.", Input(() => model.Code).GetAttribute("data-ib-length"));
         Assert.False(Input(() => model.Plain).HasAttribute("data-ib-length")); // the browser's own text
+        // [EmailAddress] reports .NET's English text as its ErrorMessage; that's not the model's own.
+        Assert.False(Input(() => model.Email).HasAttribute("data-ib-type"));
+        Assert.Equal("Enter a link like https://example.com.", Input(() => model.Site).GetAttribute("data-ib-type"));
         Assert.Equal("Say who you are.", Input(() => model.Nickname, "Say who you are.").GetAttribute("data-ib-required"));
     }
 

@@ -39,7 +39,7 @@
                 <thead><tr><th>Where</th><th>Strings</th></tr></thead>
                 <tbody>
                     <tr><td>Buttons and dialogs</td><td><code>Close</code>, <code>Dismiss</code>, <code>Ok</code>, <code>Confirm</code>, <code>Cancel</code>, <code>Loading</code>, <code>Remove</code></td></tr>
-                    <tr><td>Forms</td><td><code>Optional</code>, <code>FormErrorsTitle</code>, <code>OneError</code>, <code>ErrorCount</code>, <code>ShowPassword</code>, <code>NoMatches</code>, <code>Searching</code>, <code>SelectAll</code></td></tr>
+                    <tr><td>Forms</td><td><code>Optional</code>, <code>FormErrorsTitle</code>, <code>OneError</code>, <code>ErrorCount</code>, <code>ShowPassword</code>, <code>NoMatches</code>, <code>Searching</code>, <code>SelectAll</code>, <code>ValueInvalid</code>, <code>NumberInvalid</code></td></tr>
                     <tr><td>File upload</td><td><code>ChooseFile</code>, <code>DragFilesHere</code>, <code>FileTooLarge</code>, <code>FileWrongType</code></td></tr>
                     <tr><td>Tables and filters</td><td><code>RowsPerPage</code>, <code>NoItems</code>, <code>SelectRow</code>, <code>Filters</code>, <code>Search</code>, <code>Apply</code>, <code>Clear</code></td></tr>
                     <tr><td>Navigation</td><td><code>Breadcrumb</code>, <code>Pagination</code>, <code>PreviousPage</code>, <code>NextPage</code>, <code>SkipToContent</code>, <code>MainNavigation</code>, <code>Menu</code></td></tr>
@@ -53,8 +53,8 @@
         </TextBlock>
         <Alert Status="Status.Info">
             Validation messages come from your model's attributes: set <Code>ErrorMessage</Code>, or localize them as you would
-            for any Blazor form. Two come from IzzyBlazor: <Code>IzzyText.ColorInvalid</Code>, and an English "The {0} field is
-            not valid." for a value that can't be read, such as letters in a number field.
+            for any Blazor form. Three come from IzzyBlazor, for a value that can't be read: <Code>IzzyText.NumberInvalid</Code>
+            (letters in a number field), <Code>ColorInvalid</Code>, and <Code>ValueInvalid</Code> for any other type.
         </Alert>
 
         <Heading Level="2">Next steps</Heading>
