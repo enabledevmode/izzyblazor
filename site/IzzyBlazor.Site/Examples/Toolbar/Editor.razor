@@ -1,0 +1,31 @@
+<Card Size="ControlSize.Sm" Width="Length.Full">
+    <CardBody Gap="4">
+        <Toolbar Label="Editor">
+            <ButtonGroup Label="History">
+                <IconButton Icon="Lucide.Undo2" Label="Undo" />
+                <IconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ButtonGroup>
+            <ToolbarItem Priority="1">
+                <ButtonGroup Label="Text style" Variant="ButtonVariant.Outline">
+                    <IconButton Icon="Lucide.Bold" Label="Bold" />
+                    <IconButton Icon="Lucide.Italic" Label="Italic" />
+                    <IconButton Icon="Lucide.Underline" Label="Underline" />
+                </ButtonGroup>
+            </ToolbarItem>
+            <ToolbarSeparator />
+            <Button StartIcon="Lucide.Link">Link</Button>
+            <Button StartIcon="Lucide.Image">Image</Button>
+            <ToolbarEnd>
+                <Button StartIcon="Lucide.Eye">Preview</Button>
+                <ToolbarItem Overflow="ToolbarOverflow.Never">
+                    <Button StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
+                </ToolbarItem>
+            </ToolbarEnd>
+        </Toolbar>
+        <Divider />
+        <Stack Gap="2">
+            <Heading Level="2" Size="TextSize.Xl">Release notes</Heading>
+            <TextBlock Color="Color.Muted">Start writing, or paste the notes from the changelog.</TextBlock>
+        </Stack>
+    </CardBody>
+</Card>
