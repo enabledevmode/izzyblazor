@@ -25,22 +25,16 @@
 <FieldFrame Class="@WrapperClass("slider")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-field-control class="ib-field-control ib-slider" style="@FillStyle">
-        <input @attributes="InputAttributes"
-               id="@FieldId"
-               class="ib-slider-input"
-               type="range"
-               name="@NameAttributeValue"
-               value="@CurrentValueAsString"
-               min="@Format(ResolvedMin)"
-               max="@Format(ResolvedMax)"
-               step="@ResolvedStep"
-               disabled="@(IsDisabled || ShowsReadOnly)"
-               form="@(ShowsReadOnly ? "" : null)"
-               aria-readonly="@(ShowsReadOnly ? "true" : null)"
-               aria-valuetext="@(RendererInfo.IsInteractive ? ValueText : null)"
-               data-ib-format="@ValueFormat"
-               aria-invalid="@(Invalid ? "true" : null)"
-               aria-describedby="@DescribedBy" />
+        @* @bind (not a plain value) so a render that answers an earlier key press doesn't move the
+           thumb back while later ones are on their way. *@
+        @if (Live)
+        {
+            <input @attributes="InputAttributes" @bind="CurrentValueAsString" @bind:event="oninput" />
+        }
+        else
+        {
+            <input @attributes="InputAttributes" @bind="CurrentValueAsString" />
+        }
         @if (ShowValue)
         {
             @* The script shows the live value through data-current; this text stays Blazor's. *@
@@ -124,11 +118,25 @@
                 foreach (var attribute in attributes) yield return attribute;
             }
 
-            yield return new("onchange", EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString));
-            if (Live)
+            yield return new("id", FieldId);
+            yield return new("class", "ib-slider-input");
+            yield return new("type", "range");
+            if (NameAttributeValue is { Length: > 0 } name) yield return new("name", name);
+            yield return new("min", Format(ResolvedMin));
+            yield return new("max", Format(ResolvedMax));
+            if (ResolvedStep is { } step) yield return new("step", step);
+            if (IsDisabled || ShowsReadOnly) yield return new("disabled", true);
+            if (ShowsReadOnly)
             {
-                yield return new("oninput", EventCallback.Factory.CreateBinder<string?>(this, value => CurrentValueAsString = value, CurrentValueAsString));
+                // Outside the form (form=""), so the hidden input below posts its value.
+                yield return new("form", "");
+                yield return new("aria-readonly", "true");
             }
+
+            if (RendererInfo.IsInteractive) yield return new("aria-valuetext", ValueText);
+            yield return new("data-ib-format", ValueFormat);
+            if (Invalid) yield return new("aria-invalid", "true");
+            if (DescribedBy is { } describedBy) yield return new("aria-describedby", describedBy);
         }
     }
 
