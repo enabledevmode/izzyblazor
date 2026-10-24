@@ -29,17 +29,29 @@
 
     private void Chosen(IReadOnlyList<IBrowserFile> files) => _chosen = files.FirstOrDefault();
 
-    // Accept and MaxFileSize only guide the browser: check the type and size here too.
-    private void Save()
+    // Accept and MaxFileSize only guide the browser, and the name and type come from it too:
+    // check the size, then the file's first bytes.
+    private async Task Save()
     {
-        var (name, size, type) = Avatar is { Length: > 0 } posted ? (posted.FileName, posted.Length, posted.ContentType)
-            : _chosen is { } chosen ? (chosen.Name, chosen.Size, chosen.ContentType)
-            : (null, 0L, "");
-        (_status, _result) = name is null ? (Status.Warning, "Choose a photo first.")
-            : type is not ("image/png" or "image/jpeg") ? (Status.Danger, $"{name} isn't a PNG or JPEG.")
-            : size > MaxSize ? (Status.Danger, $"{name} is larger than 2 MB.")
-            : (Status.Success, $"Uploaded {name} ({size:N0} bytes).");
+        var (name, size) = Avatar is { Length: > 0 } posted ? (posted.FileName, posted.Length)
+            : _chosen is { } chosen ? (chosen.Name, chosen.Size)
+            : (null, 0L);
+        if (name is null) (_status, _result) = (Status.Warning, "Choose a photo first.");
+        else if (size > MaxSize) (_status, _result) = (Status.Danger, $"{name} is larger than 2 MB.");
+        else
+        {
+            await using var stream = Avatar is { Length: > 0 } ? Avatar.OpenReadStream() : _chosen!.OpenReadStream(MaxSize);
+            var head = new byte[4];
+            var read = await stream.ReadAtLeastAsync(head, head.Length, throwOnEndOfStream: false);
+            (_status, _result) = IsPngOrJpeg(head.AsSpan(0, read))
+                ? (Status.Success, $"Uploaded {name} ({size:N0} bytes).")
+                : (Status.Danger, $"{name} isn't a PNG or JPEG.");
+        }
     }
+
+    // PNG files start with 89 50 4E 47, JPEG files with FF D8 FF.
+    private static bool IsPngOrJpeg(ReadOnlySpan<byte> head) =>
+        head.StartsWith((byte[])[0x89, 0x50, 0x4E, 0x47]) || head.StartsWith((byte[])[0xFF, 0xD8, 0xFF]);
 
     // The form's model; the file itself binds to Avatar above.
     public sealed class Upload;

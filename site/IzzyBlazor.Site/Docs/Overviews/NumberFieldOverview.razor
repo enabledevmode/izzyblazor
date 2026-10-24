@@ -1,0 +1,85 @@
+@* NumberField's Overview, written by hand after TextField's and the selection Overviews: limits
+   from the model (previewed in each mode), decimals and units, step buttons, empty values, and
+   states. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>It's a native number input, so it posts with the form, the browser checks the limits before posting, and phones show a number keyboard. For a value people judge by eye rather than type, such as a volume, use a <Anchor Href="docs/components/slider">Slider</Anchor>.</TextBlock>
+
+<Heading Level="2">Limits from the model</Heading>
+<TextBlock>Use <Code>[Range]</Code> on the property for the lowest and highest values, or <Code>Min</Code> and <Code>Max</Code> to set them on the field.</TextBlock>
+<ExampleViewer Example="number-field-limits" />
+<TextBlock>The browser checks the range before posting, in the words of the attribute's <Code>ErrorMessage</Code> once the script runs, and the validator checks it again on the server. Without an <Code>ErrorMessage</Code>, as on Seats per license, the browser uses its own words. On a static page, a posted value that isn't a number (only a crafted post can send one) binds as empty, null or 0, with no message of its own.</TextBlock>
+
+<Heading Level="2">Decimals and units</Heading>
+<TextBlock>Use <Code>Step</Code> for the allowed increments, such as <Code>0.01</Code> for cents, and <Code>StartAddon</Code> or <Code>EndAddon</Code> for a currency or unit.</TextBlock>
+<ExampleViewer Example="number-field-decimals" />
+<TextBlock>Whole-number types step by 1 and decimal types allow any value unless you set <Code>Step</Code>; the browser turns away a value between steps in its own words. The value is written and read with a dot (<Code>49.99</Code>) whatever the page's culture, as the browser expects. Add-on text isn't part of the field's name, so put a unit that matters in the label, as Discount (%) does.</TextBlock>
+
+<Heading Level="2">Step buttons</Heading>
+<TextBlock>Use <Code>StepButtons</Code> to stack the increase and decrease buttons at the end (the default), split them across both ends, or leave them out.</TextBlock>
+<ExampleViewer Example="number-field-steppers" />
+<TextBlock>The script adds the buttons and hides the browser's own spin buttons. They stop at each end of the range, and holding one repeats. Up and Down arrows step the field with or without them.</TextBlock>
+
+<Heading Level="2">Empty values</Heading>
+<TextBlock>Bind a nullable type, such as <Code>int?</Code>, when the field can be left empty: an empty field posts as null, and <Code>[Required]</Code> makes it needed. A field bound to <Code>int</Code> can't hold nothing: emptied on a static page, it binds as 0, and on an interactive page it shows "The Quantity field must be a number."</TextBlock>
+<Code Block Language="razor">@Empty</Code>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a value that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="number-field-states" />
+<TextBlock>A read-only value posts like any other, so a crafted post can change it: check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (<Code>0</Code>, or null): keep its value on the server rather than saving it from the post. Use <Code>IncreaseLabel</Code> and <Code>DecreaseLabel</Code> to rename the step buttons for screen readers, or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* Label from [Display(Name)], limits from [Range]. *@
+        <NumberField @bind-Value="Model!.Quantity" />
+
+        @* Cents, with the currency attached. *@
+        <NumberField @bind-Value="Model!.Price" Step="0.01">
+            <StartAddon>$</StartAddon>
+        </NumberField>
+
+        @* Buttons at both ends, for a small count. *@
+        <NumberField @bind-Value="Model!.Guests" StepButtons="StepButtons.Split" />
+        """;
+
+    private const string Empty = """
+        @* Empty means "no limit": null when it posts empty. *@
+        <NumberField @bind-Value="Model!.Seats" Placeholder="No limit" />
+
+        @* Needed: a nullable type starts empty, and [Required] asks for it. *@
+        <NumberField @bind-Value="Model!.Quantity" />
+
+        @code {
+            public sealed class Order
+            {
+                [Range(1, 500)]
+                public int? Seats { get; set; }
+
+                [Required, Range(1, 99)]
+                public int? Quantity { get; set; }
+            }
+        }
+        """;
+}

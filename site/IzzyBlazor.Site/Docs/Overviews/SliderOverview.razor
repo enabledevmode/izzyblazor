@@ -1,0 +1,60 @@
+@* Slider's Overview, written by hand after NumberField's: showing the value, saving one (previewed
+   in each mode), following it live on an interactive page, empty values and states.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>It's a native range input, so it posts with the form and moves with the arrow keys, Page Up and Page Down, and Home and End, with or without the script. Use it for a value people judge by eye, such as a volume; when the exact number matters, use a <Anchor Href="docs/components/number-field">NumberField</Anchor>, or both side by side.</TextBlock>
+
+<Heading Level="2">Showing the value</Heading>
+<TextBlock>Use <Code>ShowValue</Code> to show the value beside the slider, and <Code>ValueFormat</Code> for how it reads, such as <Code>"{0}%"</Code>; <Code>[Range]</Code>, or <Code>Min</Code> and <Code>Max</Code>, set the ends (0 to 100 by default) and <Code>Step</Code> the increments.</TextBlock>
+<ExampleViewer Example="slider-value" />
+
+<Heading Level="2">Saving a value</Heading>
+<TextBlock>Bind it like any field: the value posts as a number when the form does.</TextBlock>
+<ExampleViewer Example="slider-budget" />
+<TextBlock>The browser keeps the value on a step between the ends, so a post from the page is always in range. A crafted post can send any number: the validator checks <Code>[Range]</Code> on the server, but not the step, so round the value yourself if it must be a multiple.</TextBlock>
+
+<Heading Level="2">Following the value live</Heading>
+<TextBlock>Use <Code>Live</Code> on an interactive page to update the bound value as the thumb moves, rather than when it's let go, for something on the page that follows it.</TextBlock>
+<ExampleViewer Example="slider-live" />
+<TextBlock>Each move is a round trip to the server, so use it only when something follows the value. On a static page the value posts when the form does, either way.</TextBlock>
+
+<Heading Level="2">Empty values</Heading>
+<TextBlock>A range input always has a value: bound to a nullable type that's null, it shows the thumb at the midpoint (snapped to the step) and posts that value. Use a <Anchor Href="docs/components/number-field">NumberField</Anchor> when "not set" must stay possible.</TextBlock>
+
+<Heading Level="2">Sizes, read-only and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with other fields, <Code>ReadOnly</Code> for a value that posts but can't be moved, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="slider-states" />
+<TextBlock>HTML has no read-only range input, so a hidden field posts a read-only slider's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (<Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* 0 to 100, the value shown beside it. *@
+        <Slider @bind-Value="Model!.Volume" ShowValue />
+
+        @* Its own ends and steps, read as a percentage. *@
+        <Slider @bind-Value="Model!.Discount" Min="0" Max="50" Step="5"
+                ShowValue ValueFormat="{0}%" />
+        """;
+}

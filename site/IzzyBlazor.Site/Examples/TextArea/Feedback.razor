@@ -1,0 +1,30 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="text-area-feedback" OnValidSubmit="Send" MaxWidth="28.Rem" Grow>
+    <TextArea @bind-Value="Model!.Message" Label="What could be better?" Rows="3" AutoGrow ShowCount
+              Hint="20 to 500 characters." />
+    <Row><Button Submit>Send feedback</Button></Row>
+    @if (_sent is not null)
+    {
+        <Alert Status="Status.Success">Thanks: we got your @_sent.Length characters.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "text-area-feedback")]
+    private Suggestion? Model { get; set; }
+
+    // What was sent, not the field: on an interactive page the field follows typing.
+    private string? _sent;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Send() => _sent = Model!.Message;
+
+    public sealed class Suggestion
+    {
+        [Required(ErrorMessage = "Tell us what could be better.")]
+        [StringLength(500, MinimumLength = 20, ErrorMessage = "Write 20 to 500 characters.")]
+        public string? Message { get; set; }
+    }
+}

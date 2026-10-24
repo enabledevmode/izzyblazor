@@ -1,0 +1,29 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="slider-budget" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <Slider @bind-Value="Model!.Monthly" Step="100" ShowValue ValueFormat="${0}"
+            Hint="Ads stop for the month once it's spent." />
+    <Row><Button Submit>Save budget</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Saved: up to $@saved a month.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "slider-budget")]
+    private Campaign? Model { get; set; }
+
+    // What was saved, not the slider: on an interactive page the slider follows each move.
+    private int? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Monthly;
+
+    public sealed class Campaign
+    {
+        [Range(0, 5000), Display(Name = "Monthly budget")]
+        public int Monthly { get; set; } = 1200;
+    }
+}

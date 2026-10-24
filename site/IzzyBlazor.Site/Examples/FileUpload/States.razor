@@ -1,0 +1,39 @@
+@using Microsoft.AspNetCore.Http
+
+<Form Model="Model" FormName="file-upload-states" Multipart OnValidSubmit="Apply" MaxWidth="26.Rem" Grow>
+    <FileUpload Name="Resume" Label="Résumé" Required Accept=".pdf" MaxFileSize="5_000_000" OnChange="Chosen" />
+    <FileUpload Name="Logo" Label="Company logo" Accept="image/svg+xml" Disabled
+                Hint="Disabled: only the workspace owner can change it." />
+    <Row><Button Submit>Apply</Button></Row>
+    @if (_result is not null)
+    {
+        <Alert Status="_status">@_result</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "file-upload-states")]
+    private Application? Model { get; set; }
+
+    [SupplyParameterFromForm(FormName = "file-upload-states")]
+    private IFormFile? Resume { get; set; }
+
+    private IBrowserFile? _chosen;
+    private string? _result;
+    private Status _status;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Chosen(IReadOnlyList<IBrowserFile> files) => _chosen = files.FirstOrDefault();
+
+    // Required and Accept are the browser's checks: a crafted post can leave the file out or send
+    // another type. A disabled field posts nothing, so Logo never arrives.
+    private void Apply() => (_status, _result) = (Resume is { Length: > 0 } ? Resume.FileName : _chosen?.Name) switch
+    {
+        null => (Status.Warning, "Choose a résumé first."),
+        var name when !name.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase) => (Status.Danger, $"{name} isn't a PDF."),
+        var name => (Status.Success, $"Sent {name}."),
+    };
+
+    public sealed class Application;
+}
