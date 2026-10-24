@@ -324,6 +324,13 @@
     html:has(.ib-site-nav-bp-sm > .ib-site-nav-panel:popover-open) {
       overflow: hidden;
     }
+
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-site-nav-bp-sm > .ib-site-nav-panel:popover-open) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
   }
 
   @media (width >= 768px) {
@@ -342,6 +349,13 @@
     /* While the panel is open the page doesn't scroll (only below the breakpoint, where it shows). */
     html:has(.ib-site-nav-bp-md > .ib-site-nav-panel:popover-open) {
       overflow: hidden;
+    }
+
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-site-nav-bp-md > .ib-site-nav-panel:popover-open) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
     }
   }
 
@@ -362,6 +376,13 @@
     html:has(.ib-site-nav-bp-lg > .ib-site-nav-panel:popover-open) {
       overflow: hidden;
     }
+
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-site-nav-bp-lg > .ib-site-nav-panel:popover-open) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
   }
 
   @media (width >= 1280px) {
@@ -380,6 +401,13 @@
     /* While the panel is open the page doesn't scroll (only below the breakpoint, where it shows). */
     html:has(.ib-site-nav-bp-xl > .ib-site-nav-panel:popover-open) {
       overflow: hidden;
+    }
+
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-site-nav-bp-xl > .ib-site-nav-panel:popover-open) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
     }
   }
 

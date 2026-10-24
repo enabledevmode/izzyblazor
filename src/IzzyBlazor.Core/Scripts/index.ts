@@ -29,6 +29,7 @@ import { installToggleBridge, type ToggleDetail } from "./toggle";
 import { installIndeterminate, installSelectAll, syncIndeterminate } from "./checkbox";
 import { focusMarked, installSkipLinks } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
+import { installScrollbarWidth, measureScrollbar } from "./scrollbar";
 
 installLazyElements();
 installSubmitFeedback();
@@ -36,6 +37,7 @@ installValidityMessages();
 installSelects();
 installIndeterminate();
 installSelectAll();
+installScrollbarWidth();
 
 // ToastService calls this through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {
@@ -98,6 +100,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     reopenAfterPost();
     focusMarked();
     applySavedScheme();
+    measureScrollbar();
     // Enhanced navigation can keep an element in place whose code failed to load: try again.
     loadElementsIn();
     reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-popover, ib-dialog, ib-banner, ib-on-this-page");

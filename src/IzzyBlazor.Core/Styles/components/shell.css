@@ -551,6 +551,14 @@
       overflow: hidden;
     }
 
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-sm:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-sm) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
+
     .ib-shell:has(> .ib-shell-sidebar-bp-sm:target) > .ib-shell-backdrop,
     .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-sm) > .ib-shell-backdrop {
       display: block;
@@ -637,6 +645,14 @@
     html:has(.ib-shell > .ib-shell-sidebar-bp-md:target),
     html:has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-md) {
       overflow: hidden;
+    }
+
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-md:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-md) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
     }
 
     .ib-shell:has(> .ib-shell-sidebar-bp-md:target) > .ib-shell-backdrop,
@@ -727,6 +743,14 @@
       overflow: hidden;
     }
 
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-lg:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-lg) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
+
     .ib-shell:has(> .ib-shell-sidebar-bp-lg:target) > .ib-shell-backdrop,
     .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-lg) > .ib-shell-backdrop {
       display: block;
@@ -813,6 +837,14 @@
     html:has(.ib-shell > .ib-shell-sidebar-bp-xl:target),
     html:has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-xl) {
       overflow: hidden;
+    }
+
+    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
+       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-xl:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-xl) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
     }
 
     .ib-shell:has(> .ib-shell-sidebar-bp-xl:target) > .ib-shell-backdrop,
