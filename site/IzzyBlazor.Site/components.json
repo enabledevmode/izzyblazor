@@ -666,12 +666,7 @@
             "static": "The browser stops the post until the box is checked, in the model's words.",
             "live": "The browser stops the post in the model's words, and clearing a checked box shows them under it at once."
           } },
-        { "id": "checkbox-select-all", "title": "Select all", "lead": "Use `Indeterminate` to show a dash on a box when only some of what it stands for is checked.",
-          "notes": {
-            "off": "Checking the top box doesn't check the others until Save: the server then checks or clears all three. Screen readers hear the dash as \"not checked\".",
-            "static": "Checking the top box doesn't check the others until Save. Screen readers hear the dash as \"mixed\".",
-            "live": "Checking the top box checks all three, and it follows them as they change."
-          } },
+        { "id": "checkbox-select-all", "title": "A dash of your own", "modes": ["live"], "lead": "Use `Indeterminate` to show a dash when only some of what a box stands for is checked, and set the others from its `ValueChanged`." },
         { "id": "checkbox-sizes", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`, `ReadOnly` for one that posts but can't change, and `Disabled` for one that doesn't post.",
           "notes": {
             "off": "The read-only box looks disabled and can't be focused, but it still posts."
@@ -722,6 +717,10 @@
       "examples": [
         { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "Bind `CheckboxGroup` to a collection (an array, `List` or `HashSet`) and pass the options to `Items`; each checked box posts its value, so it works with JavaScript off." },
         { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name." },
+        { "id": "checkbox-group-everything", "title": "Select all", "lead": "Use `SelectAll` for a box above the options that checks or clears them all at once.",
+          "notes": {
+            "off": "The Everything box isn't shown, since it needs the script: check each topic."
+          } },
         { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "Use `[Required]` and `[MinLength(1)]` together to need at least one checked box.",
           "notes": {
             "off": "Saving with no box checked reloads the page with the message under the group; it stays until the next Save.",

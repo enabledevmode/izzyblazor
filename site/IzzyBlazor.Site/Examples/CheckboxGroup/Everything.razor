@@ -1,0 +1,43 @@
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Http
+
+<Form Model="Model" FormName="checkbox-group-everything" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <CheckboxGroup @bind-Value="Model!.Topics" Items="Enum.GetValues<Topic>()" SelectAll="Everything" />
+    <Row Gap="3" Align="Align.Center" Wrap>
+        <Button Submit>Save</Button>
+        @if (_saved is not null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Last saved: @_saved</TextBlock>
+        }
+    </Row>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "checkbox-group-everything")]
+    private Notifications? Model { get; set; }
+
+    private string? _saved;
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    // With nothing checked the group posts nothing: give the defaults only when this form didn't post.
+    protected override void OnInitialized()
+    {
+        var posted = HttpContext?.Request.HasFormContentType == true
+            && HttpContext.Request.Form["_handler"] == "checkbox-group-everything";
+        Model ??= posted ? new() : new() { Topics = [Topic.Comments] };
+    }
+
+    // What was saved, not the field: on an interactive page it changes as boxes are checked.
+    private void Save() => _saved = Model!.Topics is { Count: > 0 } topics
+        ? string.Join(", ", Enum.GetValues<Topic>().Where(topics.Contains)) + "."
+        : "nothing.";
+
+    public sealed class Notifications
+    {
+        [Display(Name = "Notify me about")]
+        public List<Topic>? Topics { get; set; } = [];
+    }
+
+    public enum Topic { Comments, Mentions, Releases }
+}

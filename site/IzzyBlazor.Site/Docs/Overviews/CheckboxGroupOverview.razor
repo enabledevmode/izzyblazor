@@ -1,5 +1,6 @@
 @* CheckboxGroup's Overview, written by hand after MultiSelect's, which binds the same way:
-   several choices (and what an empty one posts), descriptions, at least one, and states.
+   several choices (and what an empty one posts), descriptions, select all, at least one, and
+   states.
    Accessibility and See also come from the doc comment. *@
 
 <Heading Level="2">Usage</Heading>
@@ -14,6 +15,11 @@
 <Heading Level="2">Descriptions</Heading>
 <TextBlock>Use <Code>ItemTemplate</Code> for markup in each option's label, such as a description under its name.</TextBlock>
 <ExampleViewer Example="checkbox-group-descriptions" />
+
+<Heading Level="2">Select all</Heading>
+<TextBlock>Use <Code>SelectAll</Code> for a box above the options that checks or clears them all at once, and shows a dash when only some are checked.</TextBlock>
+<ExampleViewer Example="checkbox-group-everything" />
+<TextBlock>The box doesn't post: the options do, as before. It works through the script on static pages, so with JavaScript off it isn't shown and people check each option.</TextBlock>
 
 <Heading Level="2">At least one</Heading>
 <TextBlock>Use <Code>[Required]</Code> and <Code>[MinLength(1)]</Code> together to need at least one checked box.</TextBlock>

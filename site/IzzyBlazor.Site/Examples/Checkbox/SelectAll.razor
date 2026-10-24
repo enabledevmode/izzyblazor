@@ -1,16 +1,15 @@
-<Form Model="Model" FormName="checkbox-select-all" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+@* Interactive pages only: C# sets the dash and all three. On a static page, use a CheckboxGroup's
+   SelectAll, which the script runs. *@
+<Form Model="Model" FormName="checkbox-select-all" MaxWidth="24.Rem" Grow>
     <Column Gap="2">
         <Checkbox Value="AllOn" ValueChanged="SetAll" ValueExpression="() => Model!.Everything"
                   Indeterminate="SomeOn" Label="Notify me about everything" />
-        @* What the top box showed, so Save can tell whether it was changed. *@
-        <input type="hidden" name="Model.WasAll" value="@(AllOn ? "true" : "false")" />
         <Column Gap="2" PaddingStart="6">
             <Checkbox @bind-Value="Model!.Comments" />
             <Checkbox @bind-Value="Model!.Mentions" />
             <Checkbox @bind-Value="Model!.Releases" />
         </Column>
     </Column>
-    <Row><Button Submit>Save</Button></Row>
 </Form>
 
 @code {
@@ -23,23 +22,12 @@
     private bool AllOn => Model!.Comments && Model.Mentions && Model.Releases;
     private bool SomeOn => !AllOn && (Model!.Comments || Model.Mentions || Model.Releases);
 
-    // Interactive pages: checking the top box sets all three.
+    // Checking the top box sets all three.
     private void SetAll(bool on) => Model!.Comments = Model.Mentions = Model.Releases = on;
-
-    // Static pages: the top box posts as Everything; when it differs from what it showed, it was
-    // changed, so it sets all three. (Interactive pages have already applied it.)
-    private void Save()
-    {
-        if (!RendererInfo.IsInteractive && Model!.Everything != Model.WasAll)
-        {
-            SetAll(Model.Everything);
-        }
-    }
 
     public sealed class Notifications
     {
         public bool Everything { get; set; }
-        public bool WasAll { get; set; }
         public bool Comments { get; set; } = true;
         public bool Mentions { get; set; }
         public bool Releases { get; set; }
