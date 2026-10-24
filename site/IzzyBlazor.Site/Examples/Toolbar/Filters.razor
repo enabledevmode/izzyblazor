@@ -1,0 +1,84 @@
+<Card Size="ControlSize.Sm" Width="Length.Full">
+    <CardBody Gap="3">
+        <Form Model="Model" FormName="toolbar-filters" OnValidSubmit="Apply">
+            <Toolbar Label="Filters">
+                <ToolbarItem Overflow="ToolbarOverflow.Never" Width="Length.Rem(9)">
+                    <TextField @bind-Value="Model!.Search" Label="Search issues" HideLabel Placeholder="Search issues"
+                               StartIcon="Lucide.Search" Size="ControlSize.Sm" />
+                </ToolbarItem>
+                @* In the … menu, the same choice as menu items: posting state=closed, or binding on interactive pages. *@
+                <ToolbarItem Priority="1" Width="Length.Rem(9.5)">
+                    <ChildContent>
+                        <SegmentedControl @bind-Value="Model!.State" Label="State" HideLabel Size="ControlSize.Sm" FullWidth />
+                    </ChildContent>
+                    <MenuContent>
+                        <MenuRadioGroup Label="State" Name="state" Value="@Model!.State.ToString()" ValueChanged="Choose">
+                            <MenuItem Value="Open">Open</MenuItem>
+                            <MenuItem Value="Closed">Closed</MenuItem>
+                            <MenuItem Value="All">All</MenuItem>
+                        </MenuRadioGroup>
+                    </MenuContent>
+                </ToolbarItem>
+                <ToolbarEnd>
+                    <Menu Label="Export" StartIcon="Lucide.Download">
+                        <MenuItem Submit Name="export" Value="csv" OnClick='() => _export = "csv"'>CSV</MenuItem>
+                        <MenuItem Submit Name="export" Value="xlsx" OnClick='() => _export = "xlsx"'>Excel</MenuItem>
+                    </Menu>
+                    <ToolbarItem Overflow="ToolbarOverflow.Never">
+                        <Button Submit Accent="Accent.Primary" Variant="ButtonVariant.Solid">Apply</Button>
+                    </ToolbarItem>
+                </ToolbarEnd>
+            </Toolbar>
+        </Form>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+    </CardBody>
+</Card>
+
+@code {
+    [SupplyParameterFromForm(FormName = "toolbar-filters")]
+    private Filter? Model { get; set; }
+
+    // Static pages: a menu item posts export=csv; interactive pages say it with OnClick.
+    [SupplyParameterFromForm(FormName = "toolbar-filters", Name = "export")]
+    private string? Export { get; set; }
+
+    // The state chosen in the … menu, posted under its own name so it doesn't clash with the
+    // SegmentedControl's radios, which post too.
+    [SupplyParameterFromForm(FormName = "toolbar-filters", Name = "state")]
+    private IssueState? MenuState { get; set; }
+
+    private string? _export;
+    private string _result = "Showing open issues.";
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Choose(string value) => Model!.State = Enum.Parse<IssueState>(value);
+
+    private void Apply()
+    {
+        if (MenuState is { } state)
+        {
+            Model!.State = state;
+        }
+
+        var search = string.IsNullOrWhiteSpace(Model!.Search) ? "" : $" matching \"{Model.Search}\"";
+        _result = (Export ?? _export) is { } format
+            ? $"Exported {Model.State.ToString().ToLowerInvariant()} issues{search} as {(format == "csv" ? "CSV" : "Excel")}."
+            : $"Showing {Model.State.ToString().ToLowerInvariant()} issues{search}.";
+        _export = null;
+    }
+
+    public enum IssueState
+    {
+        Open,
+        Closed,
+        All,
+    }
+
+    public sealed class Filter
+    {
+        public string? Search { get; set; }
+
+        public IssueState State { get; set; }
+    }
+}

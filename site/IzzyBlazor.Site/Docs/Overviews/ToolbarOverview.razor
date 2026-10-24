@@ -1,0 +1,115 @@
+@inject ApiMetadata Api
+@* Toolbar's Overview, written by hand after Button's: the editor toolbar first, then what moves and
+   when, the regions, form posts, other content, OnClick, wrapping, and how it works without script.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A Toolbar stays one row: what doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. It works with JavaScript off, so a phone with a slow connection gets the same toolbar.</TextBlock>
+
+<Heading Level="2">An editor toolbar</Heading>
+<TextBlock>Put <Anchor Href="docs/components/button">Buttons</Anchor>, <Anchor Href="docs/components/icon-button">IconButtons</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroups</Anchor> and <Anchor Href="docs/components/menu">Menus</Anchor> in it, and narrow the window: they move into the … menu, a ButtonGroup as one.</TextBlock>
+<ExampleViewer Example="toolbar-editor" />
+<TextBlock>Its buttons are <Code>Ghost</Code>, <Code>Neutral</Code> and small unless they set their own <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code>, so one solid button stands out.</TextBlock>
+
+<Heading Level="2">What moves first</Heading>
+<TextBlock>Wrap a control in a <Code>ToolbarItem</Code> to set its <Code>Priority</Code> (higher stays longer) and its <Code>Overflow</Code>: <Code>Never</Code> for the main action, <Code>Always</Code> for what only the menu needs.</TextBlock>
+<ExampleViewer Example="toolbar-priority" />
+<TextBlock>With the same priority, controls move from the middle of the toolbar outward: the start from its end, then the end from its start, so the main action at the far end goes last. A <Code>ToolbarSeparator</Code> goes when there's nothing left on one side of it.</TextBlock>
+
+<Heading Level="2">Start, center and end</Heading>
+<TextBlock>Use <Code>ToolbarCenter</Code> and <Code>ToolbarEnd</Code> for the middle and the end; content outside them is the start.</TextBlock>
+<ExampleViewer Example="toolbar-regions" />
+<TextBlock>The center stays centered, so the start and the end each get half of the room around it.</TextBlock>
+
+<Heading Level="2">Posting a form</Heading>
+<TextBlock>Use <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code> on its buttons as anywhere else: in the … menu they post the same, with JavaScript off too.</TextBlock>
+<ExampleViewer Example="toolbar-bulk-actions" />
+
+<Heading Level="2">Fields, a SegmentedControl and a Menu</Heading>
+<TextBlock>Wrap other content in a <Code>ToolbarItem</Code> with a <Code>Width</Code>, and give it <Code>MenuContent</Code> for what stands in for it in the menu; without that, it stays in the bar.</TextBlock>
+<ExampleViewer Example="toolbar-filters" />
+<TextBlock>A <Anchor Href="docs/components/menu">Menu</Anchor> becomes a submenu. The state's <Code>MenuRadioGroup</Code> posts under its own name, <Code>state</Code>: the <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor>'s radios post with the form too, even while it's in the menu.</TextBlock>
+
+<Heading Level="2">Running C# on click</Heading>
+<TextBlock>Use <Code>OnClick</Code> on its buttons on interactive pages; it runs from the bar or the menu.</TextBlock>
+<ExampleViewer Example="toolbar-on-click" />
+
+<Heading Level="2">Wrapping instead</Heading>
+<TextBlock>Use <Code>Wrap</Code> for a toolbar where everything must show: it wraps onto more rows, with no menu.</TextBlock>
+<ExampleViewer Example="toolbar-wrap" />
+
+<Heading Level="2">In an app header</Heading>
+<TextBlock>Put the header's actions in a Toolbar with <Code>Grow</Code>, after the brand: on phones they move into the … menu. <Anchor Href="demos/toolbar/app-header">See it run</Anchor>.</TextBlock>
+<Code Block Language="razor">@InHeader</Code>
+<TextBlock>The header stays the page's banner, and its navigation links belong in a <Anchor Href="docs/components/site-nav">SiteNav</Anchor>: a toolbar is for controls.</TextBlock>
+
+<Heading Level="2">Without script</Heading>
+<TextBlock>The server works out the width at which each control moves, from its label and icons in Inter, the library's font, and the toolbar shows the result with container queries. The script measures and corrects it: for Inter the two agree, so nothing moves when it arrives.</TextBlock>
+<List Gap="2">
+    <ListItem>Give content that isn't a button a <Code>ToolbarItem</Code> with a <Code>Width</Code>, so the server can allow for it.</ListItem>
+    <ListItem>A theme with another font can be a few pixels out until the script measures.</ListItem>
+    <ListItem>A toolbar takes its width from its container, as a container query needs: in a row, or in a box that takes its width from its content, give it <Code>Grow</Code> or a width.</ListItem>
+    <ListItem>On interactive pages, show and hide controls with <Code>HiddenFrom</Code> or <Code>Disabled</Code> rather than <Code>@@if</Code>: one that appears later goes to the end of its region in the menu.</ListItem>
+</List>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Toolbar Label="Editor">
+            <ButtonGroup Label="History">
+                <IconButton Icon="Lucide.Undo2" Label="Undo" />
+                <IconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ButtonGroup>
+            <ToolbarSeparator />
+            <Button StartIcon="Lucide.Link">Link</Button>
+            <ToolbarEnd>
+                @* The main action never moves into the … menu. *@
+                <ToolbarItem Overflow="ToolbarOverflow.Never">
+                    <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
+                </ToolbarItem>
+            </ToolbarEnd>
+        </Toolbar>
+        """;
+
+    private const string InHeader = """
+        <AppHeader>
+            <SidebarToggle />
+            <AppBrand Href="/" Icon="Lucide.Mail" Label="Acme Mail" />
+            <Toolbar Label="Mail actions" Grow>
+                <ToolbarEnd>
+                    <IconButton Icon="Lucide.Search" Label="Search mail" />
+                    <IconButton Icon="Lucide.Bell" Label="Notifications" />
+                    <ToolbarItem Priority="1">
+                        <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Compose</Button>
+                    </ToolbarItem>
+                </ToolbarEnd>
+            </Toolbar>
+        </AppHeader>
+        """;
+}

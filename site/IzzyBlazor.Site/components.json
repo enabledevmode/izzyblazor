@@ -366,7 +366,7 @@
           "description": "One form, three actions: each submit button posts its own Name and Value, so a single handler knows which was pressed. Works with JavaScript off.",
           "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 390, "page": true } },
         { "id": "toolbar", "title": "Editor toolbar", "member": "Variant",
-          "description": "A document toolbar: a joined group of formatting buttons, icon buttons with labels, and the main action on the right, wrapping at phone width.",
+          "description": "A document toolbar in a Toolbar: a joined group of formatting buttons, icon buttons with labels, and the main action on the right. At phone width what doesn't fit moves into the … menu, with JavaScript off too.",
           "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 220, "page": true } }
       ]
     },
@@ -395,6 +395,39 @@
         { "id": "button-group-defaults", "title": "Shared defaults", "lead": "Use `Variant`, `Accent` and `Size` on the group as its buttons' defaults; a button's own setting wins." },
         { "id": "button-group-spaced", "title": "Spaced apart", "lead": "Use `Attached=\"false\"` to space the buttons apart instead of joining them." },
         { "id": "button-group-stacked", "title": "Stacked and full width", "lead": "Use `Orientation` to stack the buttons, and `FullWidth` to share the container's width among them." }
+      ]
+    },
+    {
+      "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "One row of controls; what doesn't fit moves into a … menu.",
+      "parts": ["ToolbarItem", "ToolbarSeparator", "ToolbarCenter", "ToolbarEnd"],
+      "features": [
+        { "feature": "What doesn't fit moves into the … menu, which opens and posts with no script", "off": "full", "static": "full", "live": "full" },
+        { "feature": "Widths measured in the browser (without script, worked out on the server)", "off": "none", "static": "full", "live": "full" },
+        { "feature": "One tab stop, with arrow keys between its controls", "off": "none", "static": "full", "live": "full" },
+        { "feature": "OnClick runs from the bar or the menu", "off": "none", "static": "none", "live": "full" }
+      ],
+      "examples": [
+        { "id": "toolbar-editor", "title": "Editor toolbar",
+          "notes": {
+            "off": "Widths worked out on the server choose what moves into the … menu; each control is its own tab stop.",
+            "static": "The script measures and adds the keys: Tab reaches the toolbar once, and the arrows move along it."
+          } },
+        { "id": "toolbar-regions", "title": "Start, center and end" },
+        { "id": "toolbar-priority", "title": "What moves first" },
+        { "id": "toolbar-bulk-actions", "title": "Posting a form",
+          "notes": {
+            "off": "Each button, in the bar or the … menu, posts intent=archive, read or delete with the form.",
+            "static": "The same posts, without a full reload.",
+            "live": "OnClick says which was pressed, from the bar or the menu; nothing is posted."
+          } },
+        { "id": "toolbar-filters", "title": "Fields, a SegmentedControl and a Menu" },
+        { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["live"] },
+        { "id": "toolbar-wrap", "title": "Wrapping instead" }
+      ],
+      "scenarios": [
+        { "id": "app-header", "title": "In an app header",
+          "description": "An app header's actions in a Toolbar that takes the free space: on phones they move into the … menu, and Compose, with the highest priority, stays longest.",
+          "example": { "id": "toolbar-app-header", "title": "Mail app header", "height": 320, "page": true } }
       ]
     },
     {

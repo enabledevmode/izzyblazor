@@ -1,0 +1,41 @@
+@inject NavigationManager Navigation
+
+@* An app header: the brand and the sidebar toggle, then a Toolbar that takes the free space with
+   Grow, so its actions move into "…" on phones and Compose, the highest priority, stays longest. *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Mail" Label="Acme Mail" />
+        <Toolbar Label="Mail actions" Grow>
+            <ToolbarEnd>
+                <IconButton Icon="Lucide.Search" Label="Search mail" />
+                <IconButton Icon="Lucide.Bell" Label="Notifications" />
+                <IconButton Icon="Lucide.CircleQuestionMark" Label="Help" Href='@To("help")' />
+                <IconButton Icon="Lucide.Settings" Label="Settings" Href='@To("settings")' />
+                <ToolbarItem Priority="1">
+                    <Button StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Compose</Button>
+                </ToolbarItem>
+            </ToolbarEnd>
+        </Toolbar>
+    </AppHeader>
+
+    <AppSidebar Width="Length.Rem(14)">
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.Inbox">Inbox</NavItem>
+            <NavItem Href='@To("sent")' Icon="Lucide.Send">Sent</NavItem>
+            <NavItem Href='@To("archive")' Icon="Lucide.Archive">Archive</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="2" Padding="5">
+            <Heading Level="1" Size="TextSize.Xl">Inbox</Heading>
+            <TextBlock Color="Color.Muted">Narrow the window, or open this on a phone: Search, Notifications, Help and Settings move into the … menu, and Compose stays until there's no room for it either.</TextBlock>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

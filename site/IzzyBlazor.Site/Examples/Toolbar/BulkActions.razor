@@ -1,0 +1,37 @@
+<Card Size="ControlSize.Sm" Width="Length.Full">
+    <CardBody Gap="3">
+        <form method="post" @formname="toolbar-bulk-actions" @onsubmit="Apply" data-enhance>
+            <AntiforgeryToken />
+            <Toolbar Label="Selected messages">
+                <ToolbarItem Overflow="ToolbarOverflow.Never" Width="Length.Rem(6.5)">
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">3 selected</TextBlock>
+                </ToolbarItem>
+                <Button Submit Name="intent" Value="archive" StartIcon="Lucide.Archive" OnClick='() => _pressed = "archive"'>Archive</Button>
+                <Button Submit Name="intent" Value="read" StartIcon="Lucide.MailOpen" OnClick='() => _pressed = "read"'>Mark read</Button>
+                <Button Submit Name="intent" Value="delete" StartIcon="Lucide.Trash" Accent="Accent.Danger" OnClick='() => _pressed = "delete"'>Delete</Button>
+            </Toolbar>
+        </form>
+        @if (_result is not null)
+        {
+            <Alert Status="Status.Success">@_result</Alert>
+        }
+    </CardBody>
+</Card>
+
+@code {
+    // Static pages: the pressed button's (or menu item's) Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "toolbar-bulk-actions", Name = "intent")]
+    private string? Intent { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which it was.
+    private string? _pressed;
+    private string? _result;
+
+    private void Apply() => _result = (Intent ?? _pressed) switch
+    {
+        "archive" => "Archived 3 messages.",
+        "read" => "Marked 3 messages as read.",
+        "delete" => "Deleted 3 messages.",
+        _ => null,
+    };
+}
