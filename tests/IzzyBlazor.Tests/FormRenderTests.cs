@@ -397,28 +397,39 @@ public class FormRenderTests : BunitContext
     [Fact]
     public void CheckboxGroup_select_all_posts_nothing_and_follows_the_options()
     {
-        var cut = Render<CheckboxGroup<List<Plan>, Plan>>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.Value, _model.Plans)
-            .Add(c => c.ValueChanged, (List<Plan> v) => _model.Plans = v)
-            .Add(c => c.ValueExpression, () => _model.Plans)
-            .Add(c => c.Items, Enum.GetValues<Plan>())
-            .Add(c => c.SelectAll, "All plans"));
+        IRenderedComponent<CheckboxGroup<List<Plan>, Plan>> Group(Plan[] items, bool selectAll = true, FormOptions? options = null) =>
+            Render<CheckboxGroup<List<Plan>, Plan>>(p =>
+            {
+                p.AddCascadingValue(_context);
+                if (options is not null) p.AddCascadingValue(options);
+                p.Add(c => c.Value, _model.Plans)
+                    .Add(c => c.ValueChanged, (List<Plan> v) => _model.Plans = v)
+                    .Add(c => c.ValueExpression, () => _model.Plans)
+                    .Add(c => c.Items, items)
+                    .Add(c => c.SelectAll, selectAll);
+            });
+        AngleSharp.Dom.IElement? Box(IRenderedComponent<CheckboxGroup<List<Plan>, Plan>> cut) =>
+            cut.FindAll("label").FirstOrDefault(l => l.TextContent.Trim() == "Select all")?.QuerySelector("input");
 
-        // One of two checked: a dash, not checked, and only the options post.
-        var all = cut.Find("input[data-ib-select-all]");
-        Assert.Equal("All plans", all.ParentElement!.TextContent.Trim());
-        Assert.False(all.HasAttribute("checked"));
-        Assert.True(all.HasAttribute("data-indeterminate"));
+        // One of two checked: not checked, and only the options post.
+        var cut = Group(Enum.GetValues<Plan>());
+        Assert.False(Box(cut)!.HasAttribute("checked"));
         Assert.Equal(["Plans=Pro"], Posted(cut.FindAll("input")));
-        var options = cut.FindAll(".ib-radio-options input");
-        Assert.Equal(string.Join(" ", options.Select(o => o.Id)), all.GetAttribute("aria-controls"));
 
-        // Both checked: checked, no dash.
-        options[0].Change(true);
-        all = cut.Find("input[data-ib-select-all]");
-        Assert.True(all.HasAttribute("checked"));
-        Assert.False(all.HasAttribute("data-indeterminate"));
+        // Both checked: checked.
+        cut.FindAll("input[type=checkbox]").Single(o => o.GetAttribute("value") == "Free").Change(true);
+        Assert.True(Box(cut)!.HasAttribute("checked"));
+        Assert.Equal(["Plans=Free", "Plans=Pro"], Posted(cut.FindAll("input")));
+
+        // Read-only: it doesn't change and still posts nothing; the options post from hidden inputs.
+        _model.Plans = [Plan.Pro];
+        cut = Group(Enum.GetValues<Plan>(), options: new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required));
+        Assert.Equal("true", Box(cut)!.GetAttribute("aria-readonly"));
+        Assert.Equal(["Plans=Pro"], Posted(cut.FindAll("input")));
+
+        // No options, or not asked for: no box.
+        Assert.Null(Box(Group([])));
+        Assert.Null(Box(Group(Enum.GetValues<Plan>(), selectAll: false)));
     }
 
     [Fact]

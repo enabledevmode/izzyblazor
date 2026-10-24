@@ -17,9 +17,9 @@
 <ExampleViewer Example="checkbox-group-descriptions" />
 
 <Heading Level="2">Select all</Heading>
-<TextBlock>Use <Code>SelectAll</Code> for a box above the options that checks or clears them all at once, and shows a dash when only some are checked.</TextBlock>
+<TextBlock>Use <Code>SelectAll</Code> for a box above the options that checks or clears them all at once, and <Code>SelectAllText</Code> for its text ("Select all" by default).</TextBlock>
 <ExampleViewer Example="checkbox-group-everything" />
-<TextBlock>The box doesn't post: the options do, as before. It works through the script on static pages, so with JavaScript off it isn't shown and people check each option.</TextBlock>
+<TextBlock>The box doesn't post: the options do, as before. It works through the script on static pages, so with JavaScript off it isn't shown and people check each option. On an interactive page, <Code>ValueChanged</Code> runs once for each option it flips, so code that saves on every change sees the steps between.</TextBlock>
 
 <Heading Level="2">At least one</Heading>
 <TextBlock>Use <Code>[Required]</Code> and <Code>[MinLength(1)]</Code> together to need at least one checked box.</TextBlock>

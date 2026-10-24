@@ -86,6 +86,9 @@ public class IzzyText
     /// <summary>Combobox and MultiSelect when nothing matches.</summary>
     public virtual string NoMatches { get; set; } = "No matches";
 
+    /// <summary>The box above a CheckboxGroup's options that checks or clears them all (<c>SelectAll</c>).</summary>
+    public virtual string SelectAll { get; set; } = "Select all";
+
     /// <summary>Combobox while searching on the server.</summary>
     public virtual string Searching { get; set; } = "Searching…";
 
