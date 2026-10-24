@@ -4,11 +4,11 @@
    here from a focus-mode button. *@
 <AppShell>
     <AppHeader>
-        <SidebarToggle />
+        <SidebarToggle For="notes" />
         <AppBrand Href="@To(null)" Icon="Lucide.NotebookPen" Label="Field notes" />
     </AppHeader>
 
-    <AppSidebar Collapsible @bind-Collapsed="_collapsed">
+    <AppSidebar Id="notes" Collapsible @bind-Collapsed="_collapsed">
         <NavMenu>
             <NavItem Href="@To(null)" Icon="Lucide.FileText">All notes</NavItem>
             <NavItem Href='@To("starred")' Icon="Lucide.Star">Starred</NavItem>

@@ -9,9 +9,9 @@
         <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
         <Box Grow />
         <SiteNav>
-            <NavItem Href="@To(null)">Guide</NavItem>
-            <NavItem Href='@To("blog")'>Blog</NavItem>
-            <NavItem Href='@To("videos")'>Videos</NavItem>
+            <NavItem Href="@Site(null)">Guide</NavItem>
+            <NavItem Href='@Site("blog")'>Blog</NavItem>
+            <NavItem Href='@Site("videos")'>Videos</NavItem>
         </SiteNav>
     </AppHeader>
 
@@ -40,7 +40,10 @@
 </AppShell>
 
 @code {
-    // Links within this example: ?view= in its own address, so they stay here.
+    // Links within this example, in its own address so they stay here: ?site= for the site's
+    // sections, ?view= for the guide's chapters, so each list marks its own current page.
+    private string Site(string? section) => Navigation.GetUriWithQueryParameter("site", section);
+
     private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
 }
 @* hide *@

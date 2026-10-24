@@ -1,0 +1,27 @@
+@inject NavigationManager Navigation
+
+@* A step that only sometimes applies keeps its place with Hidden: here the gift message step
+   shows only for a gift (?gift=true in this example's address), and the steps after it are
+   numbered to match. *@
+<Stack Gap="5" Grow>
+    <Stepper Current="@(Gift ? 3 : 2)" Label="Order progress">
+        <Step Label="Cart" />
+        <Step Label="Gift message" Hidden="!Gift" />
+        <Step Label="Shipping" />
+        <Step Label="Payment" />
+    </Stepper>
+    <Row>
+        <Button Href="@Toggle" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Gift">
+            @(Gift ? "Not a gift" : "Send as a gift")
+        </Button>
+    </Row>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "gift")]
+    private bool? GiftQuery { get; set; }
+
+    private bool Gift => GiftQuery == true;
+
+    private string Toggle => Navigation.GetUriWithQueryParameter("gift", Gift ? null : "true");
+}

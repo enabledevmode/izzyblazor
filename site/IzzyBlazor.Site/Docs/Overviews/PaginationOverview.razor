@@ -1,0 +1,73 @@
+@* Pagination's Overview, written by hand after the selection Overviews: pages in the address, more
+   than one on a page (code), sizes and how many pages show, and bound to C#. Accessibility and See
+   also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>Each page is a link that sets <Code>?page=</Code> and keeps the rest of the address, so paging works on static pages with JavaScript off, survives a reload and can be shared. Pagination only draws the links: the page reads the number and shows its own rows. A <Anchor Href="docs/components/table">Table</Anchor> pages itself with the same links.</TextBlock>
+
+<Heading Level="2">Pages in the address</Heading>
+<TextBlock>Use <Code>TotalItems</Code> and <Code>PageSize</Code>, or <Code>PageCount</Code>, for how many pages there are, and read the page with <Code>[SupplyParameterFromQuery]</Code> to show its rows.</TextBlock>
+<ExampleViewer Example="pagination-url" />
+<TextBlock>Page 1 leaves the key out of the address. Pagination treats a number past the last page as the last, so clamp your own the same way, as the example does; at the ends, previous or next stays in place, marked unavailable.</TextBlock>
+
+<Heading Level="2">More than one on a page</Heading>
+<TextBlock>Use <Code>QueryKey</Code> to give each pagination on a page its own key in the address, so they page apart, and <Code>Label</Code> to name each one for screen readers.</TextBlock>
+<Code Block Language="razor">@Several</Code>
+<TextBlock>A <Anchor Href="docs/components/filter-form">FilterForm</Anchor> drops a <Code>page</Code> key, or one ending in <Code>-page</Code>, when the filters change, so filtering starts again at page 1.</TextBlock>
+
+<Heading Level="2">Sizes and how many pages show</Heading>
+<TextBlock>Use <Code>Size</Code> to match the buttons and fields around it, <Code>Siblings</Code> for the pages on each side of the current one, and <Code>Boundaries</Code> for the pages always shown at each end.</TextBlock>
+<ExampleViewer Example="pagination-sizes" />
+<TextBlock>The row keeps the same number of slots as the page moves, so the controls don't jump about. Below 640px only the current page's neighbors and the ends show, so it fits a phone.</TextBlock>
+
+<Heading Level="2">Bound to C#</Heading>
+<TextBlock>Use <Code>@@bind-Page</Code> on an interactive page to page in C#: the pages become buttons that update the bound value, and the address stays as it is.</TextBlock>
+<ExampleViewer Example="pagination-bound" />
+<TextBlock>A static page has no C# to update, so there the pages stay links that set the key; start the bound value from the address, as the example does with <Code>?p=</Code>, so both work.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the navigation landmark's name ("Pagination"), <Code>PreviousLabel</Code> and <Code>NextLabel</Code> for the arrows ("Previous page", "Next page"), and <Code>PageLabel</Code> for the word read before each number ("Page").</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @foreach (var order in Orders.Skip((Page - 1) * 20).Take(20))
+        {
+            <OrderRow Order="order" />
+        }
+        <Pagination TotalItems="Orders.Count" PageSize="20" Label="Orders pages" />
+
+        @code {
+            [SupplyParameterFromQuery(Name = "page")]
+            private int? CurrentPage { get; set; }
+
+            private int PageCount => Math.Max(1, (Orders.Count + 19) / 20);
+            private int Page => Math.Clamp(CurrentPage ?? 1, 1, PageCount);
+        }
+        """;
+
+    private const string Several = """
+        <Pagination TotalItems="Orders.Count" QueryKey="orders-page" Label="Orders pages" />
+        <Pagination TotalItems="Returns.Count" QueryKey="returns-page" Label="Returns pages" />
+        """;
+}

@@ -18,7 +18,8 @@
     - It renders a `ul` of links, not a landmark: put it in an AppSidebar (a `nav` named "Main")
       or in a `nav` with its own `aria-label`.
     - The active item has `aria-current="page"`; an item above the current page (`Match` Prefix)
-      gets `aria-current="true"`, so screen readers hear one current page.
+      gets `aria-current="true"`, so screen readers hear one current page. Of links to one page
+      told apart by the query (`?view=starred`), only one is current.
     - A `NavGroup` is a native `details`, so Enter and Space open and close it with no script; with
       script, a group holding the current page opens itself.
     - `NavLabel` is plain text, not a heading or a group name; `NavDivider` is a `separator`.
@@ -26,7 +27,7 @@
 *@
 
 <ul @attributes="AdditionalAttributes" class="@_class" style="@_style">
-    @ChildContent
+    <CascadingValue Value="_links" IsFixed="true">@ChildContent</CascadingValue>
 </ul>
 
 @code {
@@ -38,6 +39,9 @@
 
     private string? _class;
     private string? _style;
+
+    // Of its links to one page told apart by the query, only one is current (NavLinks).
+    private readonly NavLinks _links = new();
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

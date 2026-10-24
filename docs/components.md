@@ -666,7 +666,9 @@ drawer, the `SidebarHeader` row is the top bar, with the close button in it.
 **Navigation.** `NavMenu` is a list of links, vertical by default (`Orientation.Horizontal` for a
 header). `NavItem`s work out their active state on the server: `Match` is `Prefix` by default, so
 pages below the link count too (`NavLinkMatch.All` for an exact match; a root link always needs
-one). An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeAccent`, `BadgeVariant`;
+one). A link with a query string is current only with the same query, and of links to one page
+told apart by the query (`?view=starred`), one is current: the link without a query gives way when
+one with a query matches, in a `NavMenu` or a `SiteNav`. An item takes an `Icon` and a `Badge` (`BadgeStatus`, `BadgeAccent`, `BadgeVariant`;
 `BadgeVariant.Plain` is a quiet count with no fill, as docs and mail sidebars show totals). Long
 titles wrap in a vertical menu, keeping the space a one-line item has above and below; a horizontal
 menu keeps them on one line. `NavLabel` is a small
@@ -948,7 +950,8 @@ languages) or `Slash`.
 `[SupplyParameterFromQuery]` and paging works with no script. `Siblings` and `Boundaries` (1 each)
 set how many numbers show around the current page and at the ends. On phones it shows only the
 neighbors and the ends. With `@bind-Page` on an interactive page, the pages
-become buttons that update C# without touching the URL.
+become buttons that update C# without touching the URL; the button that was picked keeps focus as
+it becomes the current page, and previous and next stay buttons at the ends.
 
 `PrevNext` ends an article with links to the pages around it: two cards with "Previous" and "Next"
 over the page titles (`PreviousHref` and `PreviousTitle`, `NextHref` and `NextTitle`), side by side

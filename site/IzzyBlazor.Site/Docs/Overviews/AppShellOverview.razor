@@ -1,0 +1,119 @@
+@inject ApiMetadata Api
+
+@* AppShell's Overview, written by hand after the selection and form field Overviews: the parts,
+   variants, a reading column and desktop-app scrolling, each a page of its own in a frame with a
+   phone width; the aside, bar colors and the brand as code. Parts, Accessibility and See also come from
+   the metadata and the doc comments; See also adds the demos. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor" Title="MainLayout.razor">@Usage</Code>
+<TextBlock>An app shell goes in your layout, around <Code>@@Body</Code>. The parts you put in it arrange themselves with CSS alone, so a static page arrives laid out and works with JavaScript off. It starts with a "Skip to content" link to <Code>AppMain</Code>, whose id is <Code>ib-main</Code>; set <Code>MainId</Code> on the shell to change it.</TextBlock>
+
+<Heading Level="2">The parts</Heading>
+<TextBlock>Use <Code>AppHeader</Code>, <Code>AppSidebar</Code>, <Code>AppMain</Code>, <Code>AppAside</Code> and <Code>AppFooter</Code> in any order: each takes its own place, and a part you leave out leaves no gap.</TextBlock>
+<ExampleViewer Example="app-shell-parts" WidthSwitch />
+<TextBlock>At phone width the sidebar becomes a drawer behind the menu button (<Code>SidebarToggle</Code>) and the aside hides, each below its own <Code>Breakpoint</Code>: 768px for both here. The <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> page covers the drawer, an icon rail and a panel under the header.</TextBlock>
+
+<Heading Level="2">Variants</Heading>
+<TextBlock>Use <Code>Variant</Code> to layer the parts: <Code>Tinted</Code> (the default) tints the sidebar, <Code>Inset</Code> raises the main area as a panel in a tinted frame, <Code>Flat</Code> makes one surface with lines between the parts, and <Code>Canvas</Code> tints the main area so cards stand out.</TextBlock>
+<ExampleViewer Example="app-shell-variants" WidthSwitch />
+<TextBlock>Put a <Code>Canvas</Code> page's content in <Anchor Href="docs/components/card">Cards</Anchor>: fills placed straight on the tint read as holes. Use <Code>Dividers="false"</Code> to drop the lines between the parts when their colors already tell them apart.</TextBlock>
+
+<Heading Level="2">A reading column</Heading>
+<TextBlock>Use <Code>ContentWidth</Code> to center the content of the header, the main area and the footer on one column, such as <Code>Length.Rem(42)</Code> for articles, while the bars and their lines stay full width.</TextBlock>
+<ExampleViewer Example="app-shell-reading" WidthSwitch />
+<TextBlock>A part's own <Code>ContentWidth</Code> wins over the shell's, for a wider header over a narrow article, and a <Anchor Href="docs/components/section">Section</Anchor> in the main area still spans it, for a band of color from edge to edge.</TextBlock>
+
+<Heading Level="2">Scrolling like a desktop app</Heading>
+<TextBlock>Use <Code>ScrollMode="ShellScroll.Main"</Code> to fill the window and scroll only the main area, so the header, the sidebar and the footer never move.</TextBlock>
+<ExampleViewer Example="app-shell-inbox" WidthSwitch />
+<TextBlock>With the default, <Code>ShellScroll.Page</Code>, the window scrolls as on any web page: the header stays at the top and the sidebar's and aside's content stays in view beside the page.</TextBlock>
+
+<Heading Level="2">An aside</Heading>
+<TextBlock>Use <Code>AppAside</Code> for a column on the side opposite the sidebar, such as an outline with <Anchor Href="docs/components/on-this-page">OnThisPage</Anchor>, which lists the main area's headings from the server. It shows from <Code>Breakpoint</Code> up, 1024px by default, and is <Code>Width</Code> wide, 15rem.</TextBlock>
+<Code Block Language="razor">@Aside</Code>
+<TextBlock>An aside has no name of its own, so give one that holds something other than an outline an <Code>aria-label</Code>, as the parts example does ("Details"). The <Anchor Href="demos/app-shell/docs-outline">docs demo</Anchor> has an outline beside an article.</TextBlock>
+
+<Heading Level="2">Bars and colors</Heading>
+<TextBlock>Use <Code>Bg</Code> and <Code>ColorScheme</Code> on a part for its own background or scheme, and <Code>Position</Code> on <Code>AppHeader</Code> and <Code>AppFooter</Code> for whether the bar stays in view (the header does by default; the footer doesn't).</TextBlock>
+<Code Block Language="razor">@Bars</Code>
+<TextBlock>Text on a <Code>Bg</Code> takes the color's matching text color when it has one, and everything inside a part with a <Code>ColorScheme</Code>, its menus included, follows that scheme. The <Anchor Href="demos/app-sidebar/full-height">full-height sidebar demo</Anchor> has a dark sidebar in a light app.</TextBlock>
+
+<Heading Level="2">The brand</Heading>
+<TextBlock>Use <Code>AppBrand</Code> for the app's name in the header, with an <Code>Icon</Code> or a <Code>Logo</Code> before it and <Code>Href</Code> to link home; <Code>HideLabel</Code> shows only a logo that already spells the name.</TextBlock>
+<Code Block Language="razor">@Brand</Code>
+<TextBlock>The name stays on one line: on a narrow screen it's cut short with an ellipsis rather than pushing the header's buttons off. A sidebar with no <Code>SidebarHeader</Code> shows the brand in its drawer's top row too.</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @inherits LayoutComponentBase
+
+        <AppShell>
+            <AppHeader>
+                <SidebarToggle />
+                <AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" />
+            </AppHeader>
+            <AppSidebar>
+                <NavMenu>
+                    <NavItem Href="/" Icon="Lucide.House">Home</NavItem>
+                    <NavItem Href="/projects" Icon="Lucide.Folder">Projects</NavItem>
+                </NavMenu>
+            </AppSidebar>
+            <AppMain>@Body</AppMain>
+        </AppShell>
+        """;
+
+    private const string Aside = """
+        <AppShell>
+            ...
+            <AppMain>@Body</AppMain>
+            <AppAside>
+                <OnThisPage />
+            </AppAside>
+        </AppShell>
+        """;
+
+    private const string Bars = """
+        <AppShell>
+            <AppHeader Bg="Color.SurfaceContainerLow">...</AppHeader>
+            <AppSidebar ColorScheme="ColorScheme.Dark">...</AppSidebar>
+            <AppMain>@Body</AppMain>
+            <AppFooter Position="BarPosition.Sticky">...</AppFooter>
+        </AppShell>
+        """;
+
+    private const string Brand = """
+        <AppHeader>
+            <SidebarToggle />
+            <AppBrand Href="/" Label="Acme" HideLabel>
+                <Logo><img src="logo.svg" alt="" width="96" height="24" /></Logo>
+            </AppBrand>
+        </AppHeader>
+        """;
+}

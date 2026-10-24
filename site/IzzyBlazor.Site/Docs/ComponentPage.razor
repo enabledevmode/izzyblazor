@@ -20,10 +20,11 @@
 
         @if (_api is not null)
         {
-            @if (_component.Examples.Any(e => !e.Page))
+            @if (FollowsSwitch(_component))
             {
                 @* In the right column from 1024px, at the top of the content below that. Only with
-                   examples in the page (FollowsModeSwitchAttribute.PageMode): demos have their own. *@
+                   examples of its own (FollowsModeSwitchAttribute.PageMode): demos have their own
+                   switch. An example of a whole page (AppShell's) is a frame in the picked mode. *@
                 <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
                 <ModeSwitch Placement="top" />
             }
@@ -53,6 +54,17 @@
     private RegistryComponent? _previous;
     private RegistryComponent? _next;
 
+    /// <summary>
+    /// Whether the page has previews, so it shows and follows the mode switch: examples of its own,
+    /// or demos that its hand-written Overview shows (SiteNav's, in frames).
+    /// </summary>
+    public static bool FollowsSwitch(RegistryComponent component) =>
+        component.Examples.Count > 0
+        || (component.Scenarios.Count > 0 && OverviewType(component) is not null);
+
+    private static Type? OverviewType(RegistryComponent component) =>
+        typeof(ComponentPage).Assembly.GetType($"IzzyBlazor.Site.Docs.Overviews.{component.Name}Overview");
+
     protected override void OnParametersSet()
     {
         _component = Registry.ById(Id);
@@ -65,7 +77,7 @@
         _api = Api.Component(_component.Name);
         var page = Registry.ApiPageHref(_component);
         _context = _api is null ? new ApiPageContext(page, _component.Name, new HashSet<string>(), new HashSet<string>()) : ApiMetadata.ContextFor(page, _api);
-        _overview = typeof(ComponentPage).Assembly.GetType($"IzzyBlazor.Site.Docs.Overviews.{_component.Name}Overview");
+        _overview = OverviewType(_component);
         _parameters = new()
         {
             ["Component"] = _component,

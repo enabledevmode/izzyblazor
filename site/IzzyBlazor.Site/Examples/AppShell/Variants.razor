@@ -1,0 +1,51 @@
+@inject NavigationManager Navigation
+
+@* Variant layers the parts: Tinted tints the sidebar, Inset raises the main area as a panel in a
+   tinted frame, Flat is one surface with lines between the parts, and Canvas tints the main area
+   so cards stand out. The links above the cards set ?variant= in this example's address. *@
+<AppShell Variant="Variant">
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@View(null)" Icon="Lucide.Zap" Label="Acme" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href="@View(null)" Icon="Lucide.LayoutDashboard">Overview</NavItem>
+            <NavItem Href='@View("reports")' Icon="Lucide.ChartColumn">Reports</NavItem>
+            <NavItem Href='@View("settings")' Icon="Lucide.Settings">Settings</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 8 }">
+            <Heading Level="1" Size="TextSize.Xl2">@Variant</Heading>
+            <nav aria-label="Variant">
+                <NavMenu Orientation="Orientation.Horizontal">
+                    <NavItem Href="@To(null)">Tinted</NavItem>
+                    <NavItem Href='@To("inset")'>Inset</NavItem>
+                    <NavItem Href='@To("flat")'>Flat</NavItem>
+                    <NavItem Href='@To("canvas")'>Canvas</NavItem>
+                </NavMenu>
+            </nav>
+            <Grid MinChildWidth="Length.Rem(12)" Gap="4">
+                <Card Title="Visitors" Description="12,480 this week" />
+                <Card Title="Sign-ups" Description="342 this week" />
+            </Grid>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    [SupplyParameterFromQuery(Name = "variant")]
+    private string? Picked { get; set; }
+
+    private ShellVariant Variant =>
+        Enum.TryParse<ShellVariant>(Picked, ignoreCase: true, out var variant) && Enum.IsDefined(variant) ? variant : ShellVariant.Tinted;
+
+    // Links within this example, in its own address so they stay here: ?variant= for the look,
+    // ?view= for the sidebar's pages.
+    private string To(string? variant) => Navigation.GetUriWithQueryParameter("variant", variant);
+
+    private string View(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

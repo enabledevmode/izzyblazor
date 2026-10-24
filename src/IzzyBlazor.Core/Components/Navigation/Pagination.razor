@@ -29,27 +29,29 @@
 <nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Pagination)" class="@_class" style="@_style">
     <ul class="ib-pagination-list">
         <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel ?? TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
+        @{ var gaps = 0; }
         @foreach (var item in Items())
         {
             if (item == 0)
             {
-                <li class="ib-pagination-gap" aria-hidden="true">…</li>
+                <li @key="@($"gap-{++gaps}")" class="ib-pagination-gap" aria-hidden="true">…</li>
+            }
+            else if (UseButtons)
+            {
+                @* Keyed by its number, and one button whether it's the current page or not, so the button
+                   that was picked keeps focus as it becomes the current page and the row moves. *@
+                var number = item;
+                <li @key="number" class="@FarClass(number)">
+                    <button type="button" class="@ItemClass(number == _page ? "ib-pagination-current" : "")" aria-current="@(number == _page ? "page" : null)" @onclick="() => Pick(number)"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@number</button>
+                </li>
             }
             else if (item == _page)
             {
-                @if (UseButtons)
-                {
-                    @* A button, so focus stays on it after it becomes the current page. *@
-                    <li><button type="button" class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@item</button></li>
-                }
-                else
-                {
-                    <li><span class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@item</span></li>
-                }
+                <li><span class="@ItemClass("ib-pagination-current")" aria-current="page"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@item</span></li>
             }
             else
             {
-                <li class="@(Math.Abs(item - _page) > 1 ? "ib-pagination-far" : null)">@PageLink(item)</li>
+                <li class="@FarClass(item)">@PageLink(item)</li>
             }
         }
         <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel ?? TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
@@ -176,32 +178,26 @@
     private static string ItemClass(string extra) =>
         extra.Length == 0 ? "ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item" : $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item {extra}";
 
+    private string? FarClass(int number) => Math.Abs(number - _page) > 1 ? "ib-pagination-far" : null;
+
+    private Task Pick(int number) => number == _page ? Task.CompletedTask : PageChanged.InvokeAsync(number);
+
     private RenderFragment PageLink(int number) => __builder =>
     {
-        if (UseButtons)
-        {
-            <button type="button" class="@ItemClass("")" @onclick="() => PageChanged.InvokeAsync(number)"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@(number)</button>
-        }
-        else
-        {
-            <a href="@Href(number)" class="@ItemClass("")"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@(number)</a>
-        }
+        <a href="@Href(number)" class="@ItemClass("")"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@(number)</a>
     };
 
     private RenderFragment PageControl(int target, bool disabled, string label, IconRole icon, string extra) => __builder =>
     {
-        if (disabled && UseButtons)
+        if (UseButtons)
         {
-            @* Still a button (focusable, announced as unavailable), so focus isn't lost at the ends. *@
-            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="true" aria-label="@label"><Icon Role="icon" /></button>
+            @* One button, unavailable at the ends but still focusable (announced as unavailable), so
+               focus isn't lost when it reaches the first or last page. *@
+            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="@(disabled ? "true" : null)" aria-label="@label" @onclick="() => disabled ? Task.CompletedTask : Pick(target)"><Icon Role="icon" /></button>
         }
         else if (disabled)
         {
             <span class="@ItemClass($"ib-btn-icon-only {extra}")" aria-disabled="true" aria-label="@label" role="link"><Icon Role="icon" /></span>
-        }
-        else if (UseButtons)
-        {
-            <button type="button" class="@ItemClass($"ib-btn-icon-only {extra}")" aria-label="@label" @onclick="() => PageChanged.InvokeAsync(target)"><Icon Role="icon" /></button>
         }
         else
         {
