@@ -1,0 +1,91 @@
+@inject ApiMetadata Api
+@* Banner's Overview, written by hand after Alert's: status and color, dismissing (previewed in each
+   mode) and how long it's remembered, the stays-dismissed demo, its place in an app (code) and a
+   banner shown later. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A banner is about the whole app or site: planned maintenance, a trial that's ending, an expired license. Put it at the top of the page, or in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, where it takes a row of its own above the header. For a message about part of a page, use an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+
+<Heading Level="2">Status and color</Heading>
+<TextBlock>Use <Code>Status</Code> for what the message means, or <Code>Accent</Code> and <Code>Icon</Code> for an announcement in your brand's color; <Code>Title</Code> is a bold lead-in on the same line, and a <Code>BannerActions</Code> holds a link or button after the text.</TextBlock>
+<ExampleViewer Example="banner-statuses" />
+<TextBlock>With <Code>Accent</Code>, the status still sets the icon and the word screen readers hear. <Code>Variant</Code> takes <Code>Soft</Code> (the default), <Code>Outline</Code> or <Code>Solid</Code>, as on Alert.</TextBlock>
+
+<Heading Level="2">Dismissing</Heading>
+<TextBlock>Use <Code>Dismissible</Code> for a close button; the banner then stays closed on later pages, remembered in a cookie named by <Code>RememberKey</Code>.</TextBlock>
+<ExampleViewer Example="banner-dismiss" />
+<TextBlock>The script writes the cookie as the banner closes, and the server reads it and leaves the banner out of every later page, static or interactive. Give a new message a new key to show it to everyone again; without a <Code>RememberKey</Code> the key comes from the title, text and links, so changing the message does the same. Where the server can't read cookies (WebAssembly), the script hides a remembered banner as the page loads.</TextBlock>
+
+<Heading Level="2">How long it stays closed</Heading>
+<TextBlock>Use <Code>Remember</Code> for how long a dismissal lasts: <Code>Session</Code> (the default) until the browser closes, <Code>Persistent</Code> for a year, or <Code>None</Code> for this page only.</TextBlock>
+<ExampleViewer Example="banner-remembered" WidthSwitch />
+<TextBlock>The server reads the cookie through <Code>AddIzzyBlazor()</Code>, from the IzzyBlazor package. On an interactive page, <Code>@@bind-Dismissed</Code> also hears about a dismissal found in the cookie.</TextBlock>
+
+<Heading Level="2">In an app</Heading>
+<TextBlock>Put it in an AppShell to give it the row above the header, and use <Code>Position="BarPosition.Sticky"</Code> to keep it in view as the page scrolls.</TextBlock>
+<Code Block Language="razor" Title="MainLayout.razor">@InShell</Code>
+<TextBlock>A sticky banner pushes the sticky header and sidebar down by its height, measured by the script when the message wraps to a second line; with JavaScript off it keeps one line of room.</TextBlock>
+
+<Heading Level="2">Shown after the page loads</Heading>
+<TextBlock>Use <Code>Announce</Code> for a banner that appears in response to something, such as a lost connection on an interactive page, so screen readers read it out; one that's there when the page loads is found as a labeled region instead.</TextBlock>
+<Code Block Language="razor">@Later</Code>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the region's name ("Announcement"), <Code>StatusLabel</Code> for the word read before the message, and <Code>DismissLabel</Code> for the close button's name ("Dismiss"), or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Banner Status="Status.Warning" Dismissible RememberKey="maintenance-2026-11">
+            Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
+            <BannerActions><Anchor Href="/status">Details</Anchor></BannerActions>
+        </Banner>
+        """;
+
+    private const string InShell = """
+        <AppShell>
+            <Banner Status="Status.Warning" Position="BarPosition.Sticky" Dismissible
+                    RememberKey="maintenance-2026-11">
+                Scheduled maintenance on Sunday from 02:00 to 04:00 UTC.
+            </Banner>
+            <AppHeader>…</AppHeader>
+            <AppSidebar>…</AppSidebar>
+            <AppMain>@Body</AppMain>
+        </AppShell>
+        """;
+
+    private const string Later = """
+        @if (_offline)
+        {
+            <Banner Status="Status.Danger" Announce>
+                You're offline. Changes are saved when the connection comes back.
+            </Banner>
+        }
+        """;
+}

@@ -1,0 +1,84 @@
+@* ToastRegion's Overview, written by hand after Alert's and Banner's: showing a toast, an action on
+   it and toasts after a redirect (each previewed in each mode), the inbox demo, how long they stay
+   and where they go, and what an interactive page changes. Accessibility and See also come from
+   the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>The region goes in the layout once, and <Code>ToastService</Code> shows toasts in it from anywhere: a form post on a static page, or a C# handler on an interactive one. <Code>AddIzzyBlazor()</Code> registers the service. A toast is for news that needs no place on the page, such as "Saved"; for a message beside what it's about, use an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+
+<Heading Level="2">Showing a toast</Heading>
+<TextBlock>Use <Code>Success</Code>, <Code>Info</Code>, <Code>Warning</Code> or <Code>Error</Code> on the injected <Code>ToastService</Code>, with an optional title after the message.</TextBlock>
+<ExampleViewer Example="toast-region-show" />
+<TextBlock>On a static page the toast is rendered in the response, so it needs no script; on an interactive page it's added in the browser at once. Show toasts in response to an action rather than in <Code>OnInitialized</Code>, which runs twice on a prerendered interactive page.</TextBlock>
+
+<Heading Level="2">An action on the toast</Heading>
+<TextBlock>Use a <Code>ToastAction</Code> for a button such as Undo or View: its <Code>Href</Code> is followed on static pages, and its <Code>OnClick</Code> runs C# on interactive ones.</TextBlock>
+<ExampleViewer Example="toast-region-undo" />
+<TextBlock>A static page has no connection to run C# over, so a toast shown there needs an <Code>Href</Code>: one with only <Code>OnClick</Code> throws.</TextBlock>
+
+<Heading Level="2">After a redirect</Heading>
+<TextBlock>Use <Code>ToastService</Code> before <Code>NavigateTo</Code> in a static post's handler: the toast follows to the next page in a short-lived cookie, so post-redirect-get works.</TextBlock>
+<ExampleViewer Example="toast-region-redirect" />
+<TextBlock>On an interactive page the toast goes to the browser at once, before <Code>NavigateTo</Code> loads the next page. When that page comes from the server (an interactive part of a static page, as in these examples, or <Code>forceLoad</Code>), the region is drawn again and the toast is lost: stay on the page, or show it from the page you land on.</TextBlock>
+<TextBlock>The inbox below posts each Archive, redirects with the archived ids in the address, and offers Undo as a link back to the address without that conversation:</TextBlock>
+<ExampleViewer Example="toast-region-inbox" WidthSwitch />
+
+<Heading Level="2">How long it stays</Heading>
+<TextBlock>Use <Code>Duration</Code> on the region for how long toasts stay, in milliseconds (5000; <Code>0</Code> keeps them open), or a toast's own <Code>Duration</Code> for one of them.</TextBlock>
+<Code Block Language="razor">@Durations</Code>
+<TextBlock>By default an error stays until it's closed, and a toast with an action stays twice as long. With JavaScript off nothing closes by itself: every toast stays until its close button is used, or the next page loads.</TextBlock>
+
+<Heading Level="2">Where they go</Heading>
+<TextBlock>Use <Code>Placement</Code> for the corner or edge toasts stack in: <Code>BottomEnd</Code> by default, or <Code>TopStart</Code>, <Code>TopCenter</Code>, <Code>TopEnd</Code>, <Code>BottomStart</Code> or <Code>BottomCenter</Code>. <Code>Variant</Code> draws them as alerts are drawn (<Code>Outline</Code> by default, a raised card).</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the region's name ("Notifications") and <Code>DismissLabel</Code> for the close buttons' name ("Dismiss"), or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* MainLayout.razor, once for the app *@
+        <ToastRegion />
+
+        @* A page *@
+        @inject ToastService Toasts
+
+        <form method="post" @formname="save" @onsubmit="Save">
+            <AntiforgeryToken />
+            <Button Submit>Save</Button>
+        </form>
+
+        @code {
+            private void Save() => Toasts.Success("Your changes are live.", "Saved");
+        }
+        """;
+
+    private const string Durations = """
+        @* Toasts stay 8 seconds, 16 with an action; errors stay until closed. *@
+        <ToastRegion Duration="8000" />
+
+        @* This one stays until it's closed. *@
+        Toasts.Show(new ToastMessage("Export ready.", Status.Success, Duration: 0,
+            Action: new("Download", Href: "/exports/42")));
+        """;
+}

@@ -1,0 +1,41 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="alert-saved" OnValidSubmit="Save" Grow MaxWidth="28.Rem">
+    @if (_saved is not null)
+    {
+        <Alert Status="Status.Success" Title="Saved" Dismissible @bind-Dismissed="_dismissed">
+            The project is now called @_saved.
+        </Alert>
+    }
+    <TextField @bind-Value="Model!.Name" />
+    <FormActions>
+        <Button Submit>Save</Button>
+    </FormActions>
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "alert-saved")]
+    private ProjectName? Model { get; set; }
+
+    private string? _saved;
+    private bool _dismissed;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // What was saved, not the field: on an interactive page it changes as people type.
+    // A new save shows the alert again, even if the last one was closed.
+    private void Save()
+    {
+        _saved = Model!.Name;
+        _dismissed = false;
+    }
+    @* hide *@
+    public sealed class ProjectName
+    {
+        [Required(ErrorMessage = "Enter a project name")]
+        [StringLength(40, ErrorMessage = "Use 40 characters or fewer")]
+        [Display(Name = "Project name")]
+        public string? Name { get; set; } = "Website redesign";
+    }
+    @* /hide *@
+}
