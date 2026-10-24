@@ -86,6 +86,75 @@ public class ShellRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal("page", cut.Find("a").GetAttribute("aria-current")));
     }
 
+    [Theory]
+    [InlineData("inbox", 0)]
+    [InlineData("inbox?view=starred", 1)]
+    [InlineData("inbox?view=archive", 2)]
+    [InlineData("inbox?view=other", 0)]
+    public void Nav_links_told_apart_by_the_query_mark_one(string uri, int current)
+    {
+        // The links with a query are in a group, rendered after the one without.
+        GoTo(uri);
+        var cut = Render<NavMenu>(p => p.Add(n => n.ChildContent, InboxLinks));
+
+        Assert.Equal(Enumerable.Range(0, 3).Select(i => i == current ? "page" : null).ToArray(), CurrentOf(cut));
+    }
+
+    [Fact]
+    public void Nav_links_told_apart_by_the_query_follow_the_location()
+    {
+        GoTo("inbox");
+        var cut = Render<NavMenu>(p => p.Add(n => n.ChildContent, InboxLinks));
+
+        GoTo("inbox?view=starred");
+        cut.WaitForAssertion(() => Assert.Equal(new[] { null, "page", null }, CurrentOf(cut)));
+
+        GoTo("inbox");
+        cut.WaitForAssertion(() => Assert.Equal(new[] { "page", null, null }, CurrentOf(cut)));
+    }
+
+    [Fact]
+    public void A_link_gives_way_only_to_a_link_to_the_same_page()
+    {
+        // A section link stays current above a page whose link has a query.
+        GoTo("projects/42?tab=files");
+        var cut = Render<NavMenu>(p => p.Add(n => n.ChildContent, builder =>
+        {
+            builder.OpenComponent<NavItem>(0);
+            builder.AddComponentParameter(1, nameof(NavItem.Href), "projects");
+            builder.CloseComponent();
+            builder.OpenComponent<NavItem>(2);
+            builder.AddComponentParameter(3, nameof(NavItem.Href), "projects/42?tab=files");
+            builder.CloseComponent();
+        }));
+
+        Assert.Equal(new[] { "true", "page" }, CurrentOf(cut));
+    }
+
+    private static readonly RenderFragment InboxLinks = builder =>
+    {
+        builder.OpenComponent<NavItem>(0);
+        builder.AddComponentParameter(1, nameof(NavItem.Href), "inbox");
+        builder.AddComponentParameter(2, nameof(NavItem.ChildContent), (RenderFragment)(b => b.AddContent(0, "Inbox")));
+        builder.CloseComponent();
+        builder.OpenComponent<NavGroup>(3);
+        builder.AddComponentParameter(4, nameof(NavGroup.Label), "Views");
+        builder.AddComponentParameter(5, nameof(NavGroup.ChildContent), (RenderFragment)(group =>
+        {
+            foreach (var view in new[] { "starred", "archive" })
+            {
+                group.OpenComponent<NavItem>(0);
+                group.AddComponentParameter(1, nameof(NavItem.Href), $"inbox?view={view}");
+                group.AddComponentParameter(2, nameof(NavItem.ChildContent), (RenderFragment)(b => b.AddContent(0, view)));
+                group.CloseComponent();
+            }
+        }));
+        builder.CloseComponent();
+    };
+
+    private static string?[] CurrentOf(IRenderedComponent<NavMenu> cut) =>
+        cut.FindAll("a.ib-nav-item").Select(a => a.GetAttribute("aria-current")).ToArray();
+
     [Fact]
     public void NavGroup_opens_for_its_active_prefix()
     {

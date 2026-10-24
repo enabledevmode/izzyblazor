@@ -263,13 +263,15 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     public async Task Examples_on_one_page_read_different_keys_from_the_address()
     {
         // In the page, examples share its address: two reading ?page= would page together. Rename
-        // one (QueryKey, QueryPrefix, a field's Name).
+        // one (QueryKey, QueryPrefix, a field's Name). A page of its own (AppShell's) is in a frame
+        // with its own address.
         var clashes = new List<string>();
         foreach (var page in ExamplePages)
         {
             var html = await site.Client.GetStringAsync($"{page}?mode=static");
             var readers = Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value)
                 .Distinct()
+                .Where(id => site.Registry.Example(id)?.Example.Page != true)
                 .SelectMany(id => QueryKeys(id).Distinct().Select(key => (key, id)))
                 .GroupBy(r => r.key)
                 .Where(g => g.Count() > 1);

@@ -1,0 +1,112 @@
+@inject ApiMetadata Api
+
+@* AppSidebar's Overview, written by hand after AppShell's: the drawer on phones, what's pinned at
+   the top and bottom, a panel under the header, the icon rail (and from C#) and a full-height
+   sidebar, each a page of its own in a frame with a phone width. Parts, Accessibility and See also
+   come from the metadata and the doc comments; See also adds the demos. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A sidebar is a part of an <Anchor Href="docs/components/app-shell">AppShell</Anchor>: a column of links beside the page on wide screens and, on phones, a drawer that the <Code>SidebarToggle</Code> in the header opens. Both work with JavaScript off.</TextBlock>
+
+<Heading Level="2">A drawer on phones</Heading>
+<TextBlock>Use <Code>Breakpoint</Code> for the width below which the sidebar becomes a drawer, 768px by default; the menu button shows only below it.</TextBlock>
+<ExampleViewer Example="app-sidebar-drawer" WidthSwitch />
+<TextBlock>Use <Code>DrawerPosition="SidebarPosition.End"</Code> to open the drawer from the right, with the menu button at the right of the header, as content sites do; <Code>Position</Code> moves the whole sidebar there, and <Code>Width</Code> sets its width, 16rem by default.</TextBlock>
+<Code Block Language="razor">@FromTheRight</Code>
+
+<Heading Level="2">Pinned at the top and bottom</Heading>
+<TextBlock>Use <Code>SidebarHeader</Code> for what stays at the top, such as a workspace, and <Code>SidebarFooter</Code> for what stays at the bottom, such as the account, while the links between them scroll; write both directly in the sidebar, as the drawer example does.</TextBlock>
+<Code Block Language="razor">@Pinned</Code>
+<TextBlock>In the drawer the header shares the top row with the close button. With no <Code>SidebarHeader</Code>, the drawer's top row shows the shell's <Code>AppBrand</Code>. Use <Code>SidebarBody</Code> only for spacing, such as a <Code>Gap</Code> between two lists: links written straight in the sidebar are its body too.</TextBlock>
+
+<Heading Level="2">A panel under the header</Heading>
+<TextBlock>Use <Code>SmallScreen="SidebarSmallScreen.Panel"</Code> to open the sidebar under the header on phones, full width, with the header still in view and the menu button turned into its close button.</TextBlock>
+<ExampleViewer Example="app-sidebar-panel" WidthSwitch />
+<TextBlock>A <Anchor Href="docs/components/site-nav">SiteNav</Anchor> in the header, as here, puts its links at the top of the panel on phones, or at the top of the drawer, so a phone has one menu rather than two.</TextBlock>
+
+<Heading Level="2">An icon rail</Heading>
+<TextBlock>Use <Code>Collapsible</Code> to let people shrink the sidebar to an icon rail on wide screens: the menu button collapses and expands it, and each link's text shows as a tooltip.</TextBlock>
+<ExampleViewer Example="app-sidebar-icon-rail" WidthSwitch />
+<TextBlock>With the script, the choice is kept in a cookie named after the sidebar's <Code>Id</Code> (<Code>rail-collapsed</Code> here, <Code>ib-sidebar-collapsed</Code> by default), which the server reads, so the next page arrives collapsed; <Code>RememberState="false"</Code> turns that off. <Code>Collapsed</Code> sets how it starts when nothing is remembered. In a shell with no menu button, a chevron in the sidebar's footer row does the collapsing; <Code>CollapseButton</Code> shows or hides that chevron whatever the header has.</TextBlock>
+
+<Heading Level="2">Collapsing from C#</Heading>
+<TextBlock>Use <Code>@@bind-Collapsed</Code> on an interactive page to follow the rail in C# and to collapse or expand it, as the focus-mode button does here.</TextBlock>
+<ExampleViewer Example="app-sidebar-bound-collapse" WidthSwitch />
+
+<Heading Level="2">Full height</Heading>
+<TextBlock>Use <Code>FullHeight</Code> to run the sidebar the full height of the window, with the header and footer beside it, and <Code>ColorScheme="ColorScheme.Dark"</Code> for a dark sidebar in a light app.</TextBlock>
+<ExampleViewer Example="app-sidebar-full-height" WidthSwitch />
+<TextBlock>A brand in the <Code>SidebarHeader</Code> lines up with the header beside it.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the navigation landmark's name ("Main"), <Code>CloseLabel</Code> for the drawer's close button ("Close menu") and <Code>CollapseLabel</Code> for the collapse control ("Collapse sidebar"). <Code>SidebarToggle</Code> has its own <Code>Label</Code> ("Open menu"), <Code>CloseLabel</Code> and <Code>CollapseLabel</Code>.</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <AppShell>
+            <AppHeader>
+                <SidebarToggle />
+                <AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" />
+            </AppHeader>
+            <AppSidebar>
+                <NavMenu>
+                    <NavItem Href="/" Icon="Lucide.House">Home</NavItem>
+                    <NavItem Href="/projects" Icon="Lucide.Folder">Projects</NavItem>
+                </NavMenu>
+            </AppSidebar>
+            <AppMain>@Body</AppMain>
+        </AppShell>
+        """;
+
+    private const string FromTheRight = """
+        @* On the left on wide screens; on phones the drawer opens from the right,
+           and the menu button sits at the right of the header. *@
+        <AppSidebar DrawerPosition="SidebarPosition.End" Breakpoint="Breakpoint.Lg">
+            <NavMenu>...</NavMenu>
+        </AppSidebar>
+        """;
+
+    private const string Pinned = """
+        <AppSidebar>
+            <SidebarHeader>
+                <AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" />
+            </SidebarHeader>
+            <SidebarBody Gap="4">
+                <NavMenu>...</NavMenu>
+                <NavMenu aria-label="Projects">...</NavMenu>
+            </SidebarBody>
+            <SidebarFooter>
+                <NavMenu aria-label="Account">
+                    <NavItem Href="/account" Icon="Lucide.CircleUser">Ada Lovelace</NavItem>
+                </NavMenu>
+            </SidebarFooter>
+        </AppSidebar>
+        """;
+}

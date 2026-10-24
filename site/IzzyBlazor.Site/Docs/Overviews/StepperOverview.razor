@@ -1,0 +1,70 @@
+@inject ApiMetadata Api
+
+@* Stepper's Overview, written by hand after the selection Overviews: a checkout (the demo, in a
+   frame with a phone width), vertical with descriptions, a step that only sometimes applies, sizes,
+   and the ends. Parts, Accessibility and See also come from the metadata and the doc
+   comments. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A stepper shows where someone is in a process, such as a checkout or a setup wizard. It's an ordered list with no script, so it looks the same on every page; the page decides what <Code>Current</Code> is.</TextBlock>
+
+<Heading Level="2">Steps of a checkout</Heading>
+<TextBlock>Use <Code>Current</Code> for the step someone is on, counting from 1: the steps before it show as done. A <Code>Step</Code>'s <Code>Href</Code> makes its label a link, such as back to a finished step.</TextBlock>
+<ExampleViewer Example="stepper-checkout" WidthSwitch />
+<TextBlock>Here the step is <Code>?step=</Code> in the address, and each step's form moves on to the next step once it's valid, posting on a static page and running C# on an interactive one, so it works with JavaScript off too. Below 640px the steps stack in a column.</TextBlock>
+
+<Heading Level="2">Vertical, with descriptions</Heading>
+<TextBlock>Use <Code>Orientation="Orientation.Vertical"</Code> to keep the steps in a column on every screen. A <Code>Step</Code>'s <Code>Description</Code> adds a line under its label, and its <Code>Icon</Code> shows in the marker until the step is done.</TextBlock>
+<ExampleViewer Example="stepper-vertical" />
+
+<Heading Level="2">A step that only sometimes applies</Heading>
+<TextBlock>Use <Code>Hidden</Code> to leave out a step that doesn't apply this time, such as a gift message: the steps after it are numbered to match.</TextBlock>
+<ExampleViewer Example="stepper-optional" />
+<TextBlock>Use <Code>Hidden</Code> rather than <Code>@@if</Code>: on an interactive page, Blazor renders a step that appears later after the others, so it would be numbered last.</TextBlock>
+
+<Heading Level="2">Sizes</Heading>
+<TextBlock>Use <Code>Size</Code> to scale the markers and the text with the buttons and fields around them.</TextBlock>
+<ExampleViewer Example="stepper-sizes" />
+
+<Heading Level="2">Before the first step and after the last</Heading>
+<TextBlock>Use <Code>Current="0"</Code> when no step has started, and a number past the last step to show every step done, such as on an order's confirmation.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the list's name ("Progress"), and <Code>CompletedLabel</Code> for what screen readers hear after a finished step's label in place of its check mark ("(completed)").</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Stepper Current="2" Label="Sign-up progress">
+            <Step Label="Account" Href="/signup/account" />
+            <Step Label="Profile" Description="Name and photo" />
+            <Step Label="Done" />
+        </Stepper>
+        """;
+}

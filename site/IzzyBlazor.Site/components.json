@@ -95,27 +95,35 @@
 
     {
       "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "App shell", "summary": "Header, sidebar, main area, aside and footer, arranged by CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AppFooter"],
+      "examples": [
+        { "id": "app-shell-parts", "title": "The parts", "height": 600, "page": true,
+          "notes": {
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
+            } },
+        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true }
+      ],
       "scenarios": [
         { "id": "dashboard", "title": "Dashboard on a tinted canvas", "member": "Variant",
           "description": "An analytics overview made of stat cards and panels. Canvas tints the main area so each white card has an edge; at phone width the sidebar becomes a drawer behind the menu button.",
           "example": { "id": "app-shell-dashboard", "title": "Dashboard", "height": 600, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a link closes it, and focus goes back to the menu button."
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "full-width-table", "title": "Full-width table", "member": "Variant",
           "description": "A list page where the table is the page. In Tinted, the default, the sidebar takes the page tint and the table sits on white with no card around it. Sorting and paging are links, so they work with JavaScript off.",
           "example": { "id": "app-shell-rules-list", "title": "Rules", "height": 620, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a link closes it, and focus goes back to the menu button."
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "docs-outline", "title": "Docs with an outline", "member": "Variant",
           "description": "A documentation article on one white page (Flat). Its headings list themselves in OnThisPage in the AppAside from 1024px up, and on phones the sidebar's drawer opens from the right, where the menu button moves.",
           "example": { "id": "app-shell-docs", "title": "Docs article", "height": 640, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a link closes it, and focus goes back to the menu button."
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "reading-column", "title": "Reading column", "member": "ContentWidth",
           "description": "A blog article with no sidebar. ContentWidth centers the header, the article and the footer on one column so their edges line up, while the bars, their lines and a full-bleed band stay full width.",
@@ -129,13 +137,28 @@
           "description": "A mail client. ScrollMode.Main makes the shell fill the window and scrolls only the message list, so the header, the folders and the footer never move.",
           "example": { "id": "app-shell-inbox", "title": "Inbox", "height": 520, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a link closes it, and focus goes back to the menu button."
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } }
       ]
     },
     {
       "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "App shell", "summary": "A sidebar that becomes a drawer or panel on small screens.", "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"],
+      "features": [
+        { "feature": "A column beside the page, from its breakpoint up" },
+        { "feature": "A drawer or panel on phones, opened and closed by the menu button" },
+        { "feature": "Focus moves into the drawer and back; Escape closes it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Collapse to an icon rail" },
+        { "feature": "The collapsed rail remembered on the next page", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Collapsed bound to C#", "member": "Collapsed" }
+      ],
+      "examples": [
+        { "id": "app-sidebar-drawer", "title": "A drawer on phones", "height": 460, "page": true,
+          "notes": {
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
+            } }
+      ],
       "scenarios": [
         { "id": "icon-rail", "title": "Collapsible icon rail", "member": "Collapsible",
           "description": "On wide screens the menu button shrinks the sidebar to an icon rail, with labels as tooltips and the account pinned in SidebarFooter. Inset raises the work area as one panel in a tinted frame.",
@@ -148,8 +171,8 @@
           "description": "A hosting dashboard whose sidebar runs the full height of the window, with the brand in SidebarHeader lined up with the header beside it. ColorScheme makes the sidebar dark in a light app.",
           "example": { "id": "app-sidebar-full-height", "title": "Full-height sidebar", "height": 600, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS. Escape doesn't close it, and focus doesn't move.",
-              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a link closes it, and focus goes back to the menu button."
+              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "menu-panel", "title": "Menu panel with header links", "member": "SmallScreen",
           "description": "A guide with site links in the header and chapters in the sidebar. At phone width the sidebar opens as a panel under the header, with the header's links at its top so there is one menu, and the menu button becomes its close button.",
@@ -165,6 +188,12 @@
     },
     {
       "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "App shell", "summary": "Header links that fold into a menu on phones.", "parts": ["SiteNavFooter"],
+      "features": [
+        { "feature": "A row of links from the breakpoint up" },
+        { "feature": "A menu button on phones; Escape or a tap outside closes the panel" },
+        { "feature": "Focus moves to the first link when the panel opens", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The links move into an AppSidebar on phones" }
+      ],
       "scenarios": [
         { "id": "content-site", "title": "Content site", "member": "Breakpoint",
           "description": "A site with no sidebar: a hero and a band of project cards on a 72rem column. From 768px up SiteNav is a row of links in the header; below it a menu button opens the same links in a panel, with SiteNavFooter's button under them.",
@@ -959,6 +988,10 @@
     },
     {
       "id": "pagination", "icon": "SquareChevronRight", "name": "Pagination", "category": "Navigation", "summary": "Page links that keep the rest of the URL.",
+      "features": [
+        { "feature": "Page links that set ?page= and keep the rest of the address" },
+        { "feature": "Page bound to C#, with buttons in place of links", "member": "Page" }
+      ],
       "examples": [
         { "id": "pagination-url", "title": "Pages in the URL", "lead": "Use `TotalItems` and `PageSize`, or `PageCount`, and read the page with `[SupplyParameterFromQuery]`: each page is a link that sets `?page=`, so paging survives a reload and can be shared." },
         { "id": "pagination-sizes", "title": "Sizes and how many pages show", "lead": "Use `Size` to match buttons and fields, `Siblings` for the pages on each side of the current one, and `Boundaries` for the pages always shown at each end." },
@@ -981,7 +1014,8 @@
       "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Where someone is in a process.", "parts": ["Step"],
       "examples": [
         { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "Use `Orientation` `Orientation.Vertical` to keep the steps in a column on every screen; a `Step` can have a `Description` and an `Icon` that shows until it's done." },
-        { "id": "stepper-sizes", "title": "Sizes", "lead": "Use `Size` to scale the markers and text." }
+        { "id": "stepper-sizes", "title": "Sizes", "lead": "Use `Size` to scale the markers and text." },
+        { "id": "stepper-optional", "title": "A step that only sometimes applies", "lead": "Use `Hidden` to leave out a step that doesn't apply this time, such as a gift message, while the steps after it keep their numbers in order." }
       ],
       "scenarios": [
         { "id": "checkout", "title": "Checkout", "member": "Current",

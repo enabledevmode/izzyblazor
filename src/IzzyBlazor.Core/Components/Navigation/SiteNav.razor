@@ -42,6 +42,8 @@
 *@
 
 <ib-site-nav @attributes="AdditionalAttributes" class="@_class" style="@_style">
+@* One list for both copies: of links to one page told apart by the query, one is current (NavLinks). *@
+<CascadingValue Value="_links" IsFixed="true">
     <nav class="ib-site-nav-bar" aria-label="@NavLabel">
         <ul class="ib-nav ib-nav-horizontal">
             @* The row's copy: its parts are the panel's, so they're discarded here. *@
@@ -71,6 +73,7 @@
             }
         </div>
     </div>
+</CascadingValue>
 </ib-site-nav>
 
 @code {
@@ -93,6 +96,7 @@
     [Parameter] public bool MenuButtonAtEnd { get; set; } = true;
 
     private PartScope _scope = null!;
+    private readonly NavLinks _links = new();
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
 

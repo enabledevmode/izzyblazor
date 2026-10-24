@@ -2,7 +2,7 @@
 @using System.Globalization
 @inject NavigationManager Navigation
 
-<Grid Template='new() { Base = "1fr", Md = "1fr 18rem" }' Gap="8" Align="Align.Start" Grow>
+<Grid Template='new() { Base = "1fr", Lg = "1fr 18rem" }' Gap="8" Align="Align.Start" Grow>
     <Stack Gap="6">
         @* Finished steps link back; the step itself is ?step= in the address. *@
         <Stepper Current="Current" Label="Checkout progress">
@@ -120,8 +120,16 @@
 
     // A real checkout keeps the order on the server. This one keeps only the delivery choice, in
     // the address, so going back to Shipping shows it.
-    protected override void OnInitialized()
+    // On an interactive page the component stays between steps, so the cart (step 1) starts a
+    // new order.
+    protected override void OnParametersSet()
     {
+        if (Current == 1)
+        {
+            Shipping = null;
+            Payment = null;
+        }
+
         Shipping ??= new() { Delivery = Express ? DeliveryOption.Express : DeliveryOption.Standard };
         Payment ??= new();
     }

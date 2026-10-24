@@ -6,9 +6,11 @@
 
 @*
     One navigation link. The active state is worked out on the server from the current URL,
-    so it is right on static pages and after enhanced navigation.
+    so it is right on static pages and after enhanced navigation. In a list of links (NavMenu,
+    SiteNav), of links to one page told apart by the query, only one is current (NavLinks).
 *@
 
+@{ UpdateState(Navigation.Uri); }
 <li class="@LiClass">
     <a @attributes="AdditionalAttributes"
        class="@_class"
@@ -37,7 +39,10 @@
     /// <summary>
     /// How the current URL must match <see cref="Href"/> to be active. <c>Prefix</c> (the default) also
     /// matches pages below it; <c>All</c> matches only the exact page. A root link ("/") always needs an exact match,
-    /// and so does a link with a query string, whose query must be the same too.
+    /// and so does a link with a query string, whose query must be the same too. A link without a
+    /// query is current on its page whatever the query, unless another link in the same
+    /// <see cref="NavMenu"/> or <see cref="SiteNav"/> with a query matches, so of links told apart by
+    /// the query (<c>?view=starred</c>) only one is current.
     /// </summary>
     [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
 
@@ -63,15 +68,67 @@
     private string? _class;
     private string? _style;
 
+    // The list this link is in, which tells it when a link with a query is current.
+    [CascadingParameter] private NavLinks? Links { get; set; }
+
+    private NavLinks? _links;
+
     /// <inheritdoc />
     protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        _active = IsActive(Navigation.Uri);
-        _exact = IsExact(Navigation.Uri);
+        if (!ReferenceEquals(_links, Links))
+        {
+            Leave();
+            _links = Links;
+            if (_links is not null)
+            {
+                // A link with a query in the same list may be rendered after this one (in a NavGroup,
+                // say): when one joins, this link checks again.
+                _links.Changed += OnLinksChanged;
+                _links.Add(this);
+            }
+        }
+
+        UpdateState(Navigation.Uri);
+    }
+
+    // Worked out again as it renders, when every link in the list has joined it.
+    private void UpdateState(string uri)
+    {
+        (_active, _exact) = State(uri);
         (_class, _style) = BuildRootAttributes();
+    }
+
+    private (bool Active, bool Exact) State(string uri)
+    {
+        var state = LinkMatch.Of(Navigation, Href, uri, Match);
+        return state.Active && !HasQuery && _links?.QueriedLinkIsCurrent(uri, Path) == true ? (false, false) : state;
+    }
+
+    /// <summary>The path the link points to, without its query.</summary>
+    internal string Path => string.IsNullOrEmpty(Href) ? "" : Navigation.ToAbsoluteUri(Href).AbsolutePath.TrimEnd('/');
+
+    /// <summary>Whether the link has a query string, such as <c>?view=starred</c>.</summary>
+    internal bool HasQuery => !string.IsNullOrEmpty(Href) && Navigation.ToAbsoluteUri(Href).Query.Length > 1;
+
+    private void OnLinksChanged()
+    {
+        if (State(Navigation.Uri) != (_active, _exact))
+        {
+            _ = InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void Leave()
+    {
+        if (_links is not null)
+        {
+            _links.Changed -= OnLinksChanged;
+            _links.Remove(this);
+        }
     }
 
     // HiddenFrom and VisibleFrom hide the whole list item, not just the link inside it.
@@ -89,13 +146,8 @@
 
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
     {
-        var active = IsActive(e.Location);
-        var exact = IsExact(e.Location);
-        if (active != _active || exact != _exact)
+        if (State(e.Location) != (_active, _exact))
         {
-            _active = active;
-            _exact = exact;
-            (_class, _style) = BuildRootAttributes();
             InvokeAsync(StateHasChanged);
         }
     }
@@ -104,11 +156,13 @@
     // screen reader hears one current page.
     private bool _exact;
 
-    private bool IsExact(string currentUri) => LinkMatch.Of(Navigation, Href, currentUri, Match).Exact;
-
-    /// <summary>Whether <paramref name="currentUri"/> matches this item's link.</summary>
+    /// <summary>Whether <paramref name="currentUri"/> matches this item's link, on its own.</summary>
     internal bool IsActive(string currentUri) => LinkMatch.Of(Navigation, Href, currentUri, Match).Active;
 
     /// <inheritdoc />
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+    public void Dispose()
+    {
+        Navigation.LocationChanged -= OnLocationChanged;
+        Leave();
+    }
 }

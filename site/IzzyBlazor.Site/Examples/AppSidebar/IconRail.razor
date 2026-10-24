@@ -5,14 +5,15 @@
    one panel in a tinted frame. *@
 <AppShell Variant="ShellVariant.Inset">
     <AppHeader>
-        <SidebarToggle />
+        <SidebarToggle For="rail" />
         <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
         <Box Grow />
         <IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
         <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
     </AppHeader>
 
-    <AppSidebar Collapsible>
+    @* Its own Id, so its remembered state (the rail-collapsed cookie) is its own. *@
+    <AppSidebar Id="rail" Collapsible>
         <NavMenu>
             <NavItem Href="@To(null)" Icon="Lucide.LayoutDashboard">Dashboard</NavItem>
             <NavItem Href='@To("inbox")' Icon="Lucide.Inbox" Badge="4" BadgeAccent="Accent.Primary">Inbox</NavItem>

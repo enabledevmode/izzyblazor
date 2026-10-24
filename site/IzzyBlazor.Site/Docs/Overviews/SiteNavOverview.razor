@@ -1,0 +1,102 @@
+@inject ApiMetadata Api
+
+@* SiteNav's Overview, written by hand after AppShell's and AppSidebar's: links that fold into a
+   menu, what goes under them, and SiteNav beside a sidebar, each a page of its own in a frame with a
+   phone width. Parts, Accessibility and See also come from the metadata and the doc comments; See
+   also adds the content site demo. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A site nav is a row of links in an <Anchor Href="docs/components/app-shell">AppShell</Anchor>'s header, for a site with no sidebar. Its links are <Code>NavItem</Code>s, marked current on the server as in a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor>.</TextBlock>
+
+<Heading Level="2">Links that fold into a menu</Heading>
+<TextBlock>Use <Code>Breakpoint</Code> for the width below which the links fold into a menu button that opens them in a panel under the header, 768px by default; the same button closes it, so the header with the site's name stays in view.</TextBlock>
+<ExampleViewer Example="site-nav-content-site" WidthSwitch />
+<TextBlock>The panel is a native popover, so it opens and closes with JavaScript off, and Escape or a tap outside closes it. With the script, opening it moves focus to the first link, and following a link closes it.</TextBlock>
+
+<Heading Level="2">Under the links</Heading>
+<TextBlock>Use <Code>SiteNavFooter</Code> for what goes under the links in the panel, such as the content site's "Watch the series" button; it shows on phones only, in the panel.</TextBlock>
+<Code Block Language="razor">@Footer</Code>
+<TextBlock>On wide screens the footer isn't shown, so put anything people need there too elsewhere on the page as well, as the content site's hero repeats its button.</TextBlock>
+
+<Heading Level="2">With a sidebar</Heading>
+<TextBlock>Put a site nav in the header of a shell with an <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor> for links to the rest of the site beside the app's own: on phones its menu button stays hidden and the links show at the top of the sidebar's drawer or panel instead, so there's one menu.</TextBlock>
+<Code Block Language="razor">@WithSidebar</Code>
+<TextBlock>The <Anchor Href="demos/app-sidebar/menu-panel">guide demo</Anchor> has site links over a sidebar of chapters.</TextBlock>
+
+<Heading Level="2">Where the menu button goes</Heading>
+<TextBlock>On phones the menu button sits at the end of the header, where people look for it, whatever comes after the links; use <Code>MenuButtonAtEnd="false"</Code> to leave it where the links are.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the navigation landmark's name ("Site", so it differs from a sidebar's "Main") and <Code>MenuLabel</Code> for the menu button's ("Menu").</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <AppShell Variant="ShellVariant.Flat">
+            <AppHeader>
+                <AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" />
+                <Box Grow />
+                <SiteNav>
+                    <NavItem Href="/projects">Projects</NavItem>
+                    <NavItem Href="/articles">Articles</NavItem>
+                    <NavItem Href="/about">About</NavItem>
+                </SiteNav>
+            </AppHeader>
+            <AppMain>@Body</AppMain>
+        </AppShell>
+        """;
+
+    private const string WithSidebar = """
+        <AppShell>
+            <AppHeader>
+                <SidebarToggle />
+                <AppBrand Href="/" Icon="Lucide.Zap" Label="Acme" />
+                <Box Grow />
+                <SiteNav>
+                    <NavItem Href="/guide">Guide</NavItem>
+                    <NavItem Href="/blog">Blog</NavItem>
+                </SiteNav>
+            </AppHeader>
+            <AppSidebar>
+                <NavMenu>...</NavMenu>
+            </AppSidebar>
+            <AppMain>@Body</AppMain>
+        </AppShell>
+        """;
+
+    private const string Footer = """
+        <SiteNav>
+            <NavItem Href="/projects">Projects</NavItem>
+            <NavItem Href="/articles">Articles</NavItem>
+            <SiteNavFooter>
+                <Button Href="/signup" FullWidth>Sign up</Button>
+            </SiteNavFooter>
+        </SiteNav>
+        """;
+}

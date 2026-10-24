@@ -16,8 +16,9 @@ public sealed class FollowsModeSwitchAttribute : Attribute
 {
     /// <summary>
     /// The mode a request's page shows its examples in: the switch's (<see cref="ModeSwitch.Current(HttpContext?)"/>)
-    /// on a page that follows it, else Static. A component page follows it when its component has
-    /// examples that aren't demos (AppShell's are all demos, in frames of their own).
+    /// on a page that follows it, else Static. A component page follows it when it has previews
+    /// (<see cref="Docs.ComponentPage.FollowsSwitch"/>): examples of its own, in the page or, for a
+    /// whole page such as an AppShell, in a frame, or demos its hand-written Overview shows.
     /// </summary>
     public static string PageMode(HttpContext? context, Registry registry)
     {
@@ -27,10 +28,13 @@ public sealed class FollowsModeSwitchAttribute : Attribute
             return "static";
         }
 
-        if (page == typeof(Docs.ComponentPage)
-            && registry.ById(context!.GetRouteValue("Id") as string ?? "")?.Examples.Any(e => !e.Page) != true)
+        if (page == typeof(Docs.ComponentPage))
         {
-            return "static";
+            var component = registry.ById(context!.GetRouteValue("Id") as string ?? "");
+            if (component is null || !Docs.ComponentPage.FollowsSwitch(component))
+            {
+                return "static";
+            }
         }
 
         return ModeSwitch.Current(context);

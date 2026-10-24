@@ -1,0 +1,46 @@
+@inject NavigationManager Navigation
+
+@* The five parts in their places: the header across the top, the sidebar beside the main area,
+   the aside on the other side and the footer at the bottom. Below 768px the sidebar becomes a
+   drawer behind the menu button, and the aside hides (its Breakpoint, Md here; Lg by default). *@
+<AppShell>
+    <AppHeader>
+        <SidebarToggle />
+        <AppBrand Href="@To(null)" Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <IconButton Icon="Lucide.Bell" Label="Notifications" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+    </AppHeader>
+
+    <AppSidebar>
+        <NavMenu>
+            <NavItem Href="@To(null)" Icon="Lucide.Folder">Projects</NavItem>
+            <NavItem Href='@To("team")' Icon="Lucide.Users">Team</NavItem>
+            <NavItem Href='@To("settings")' Icon="Lucide.Settings">Settings</NavItem>
+        </NavMenu>
+    </AppSidebar>
+
+    <AppMain>
+        <Stack Gap="4" Padding="new() { Base = 4, Md = 8 }">
+            <Heading Level="1" Size="TextSize.Xl2">Projects</Heading>
+            <TextBlock Color="Color.Muted">The main area holds the page. It scrolls with the window, while the header stays at the top and the sidebar's links stay in view.</TextBlock>
+            <Card Title="Website" Description="Deployed 12 minutes ago from main." />
+            <Card Title="Course app" Description="Build failed on feature/quizzes." />
+        </Stack>
+    </AppMain>
+
+    <AppAside Breakpoint="Breakpoint.Md" aria-label="Details">
+        <Stack Gap="2">
+            <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold">Details</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">The aside sits on the side opposite the sidebar, and stays in view while the page scrolls.</TextBlock>
+        </Stack>
+    </AppAside>
+
+    <AppFooter>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">© 2026 Acme</TextBlock>
+    </AppFooter>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}

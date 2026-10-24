@@ -1,0 +1,85 @@
+@inject ApiMetadata Api
+
+@* NavMenu's Overview, written by hand after the selection Overviews: organizing a sidebar, the
+   current page (code), badges and counts, a row of links, and the landmark around it. Parts,
+   Accessibility and See also come from the metadata and the doc comments. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A nav menu is a list of links that marks the one for the current page. It works the same on static and interactive pages, with or without JavaScript: the server works out the current page from the address.</TextBlock>
+
+<Heading Level="2">Organizing a sidebar</Heading>
+<TextBlock>Use <Code>NavLabel</Code> to name a section of links, <Code>NavGroup</Code> to fold some away, <Code>NavDivider</Code> for a line between sections, and <Code>Badge</Code> on an item for a count or a label.</TextBlock>
+<ExampleViewer Example="nav-menu-sidebar" />
+<TextBlock>A group is a native <Code>details</Code> element, so it opens and closes with no script. <Code>Open</Code> starts it open, and <Code>ActivePrefix</Code> opens it on the pages at or below a path, such as <Code>/projects</Code>; with the script, a group holding the current page opens itself too.</TextBlock>
+
+<Heading Level="2">The current page</Heading>
+<TextBlock>Use <Code>Match</Code> to say how the address must match an item's <Code>Href</Code>: by default an item is current on its page and the pages below it, and <Code>NavLinkMatch.All</Code> makes it current on its own page only.</TextBlock>
+<Code Block Language="razor">@Current</Code>
+<TextBlock>A link to the app's root (<Code>/</Code>) is only ever current on the home page, and a link with a query string only when the query is the same. Of links to one page told apart by the query, as Inbox and Starred are, one is current at a time: the link without a query gives way when one with a query matches, as Dashboard does in the sidebar example when another item is picked.</TextBlock>
+
+<Heading Level="2">Badges and counts</Heading>
+<TextBlock>Use <Code>BadgeVariant.Plain</Code> for quiet totals with no fill, as docs and mail sidebars show them; <Code>BadgeAccent</Code> gives a badge a color of its own, such as <Code>Accent.Primary</Code> for an unread count, and <Code>BadgeStatus</Code> a status's color.</TextBlock>
+<ExampleViewer Example="nav-menu-counts" />
+<TextBlock>Long labels wrap rather than being cut off.</TextBlock>
+
+<Heading Level="2">A row of links</Heading>
+<TextBlock>Use <Code>Orientation="Orientation.Horizontal"</Code> for a row of section links, such as a project's pages; when they don't fit, as on a phone, the row scrolls sideways.</TextBlock>
+<ExampleViewer Example="nav-menu-horizontal" />
+<TextBlock>For a site's main links in the header, which fold into a menu on phones, use a <Anchor Href="docs/components/site-nav">SiteNav</Anchor>: it takes the same <Code>NavItem</Code>s.</TextBlock>
+
+<Heading Level="2">In a landmark</Heading>
+<TextBlock>A nav menu is a list, not a landmark: put it in an <Anchor Href="docs/components/app-sidebar">AppSidebar</Anchor>, which is a <Code>nav</Code> named "Main", or in a <Code>nav</Code> element with its own <Code>aria-label</Code>, as the examples do. Use <Code>HiddenFrom</Code> or <Code>VisibleFrom</Code> on an item to show it only on some screens; they hide the whole list item.</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <AppSidebar>
+            <NavMenu>
+                <NavItem Href="/" Icon="Lucide.House">Home</NavItem>
+                <NavItem Href="/projects" Icon="Lucide.Folder">Projects</NavItem>
+                <NavItem Href="/inbox" Icon="Lucide.Inbox" Badge="4">Inbox</NavItem>
+                <NavDivider />
+                <NavItem Href="/settings" Icon="Lucide.Settings">Settings</NavItem>
+            </NavMenu>
+        </AppSidebar>
+        """;
+
+    private const string Current = """
+        @* Current on /projects and on /projects/42 *@
+        <NavItem Href="/projects">Projects</NavItem>
+
+        @* Current on /reports only *@
+        <NavItem Href="/reports" Match="NavLinkMatch.All">Reports</NavItem>
+
+        @* Current on /inbox, unless Starred is *@
+        <NavItem Href="/inbox">Inbox</NavItem>
+        @* Current on /inbox?view=starred *@
+        <NavItem Href="/inbox?view=starred">Starred</NavItem>
+        """;
+}
