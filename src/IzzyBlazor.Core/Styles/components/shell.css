@@ -551,8 +551,8 @@
       overflow: hidden;
     }
 
-    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
-       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    /* The locked page has no scrollbar: it's padded by the scrollbar's width instead
+       (scrollbar.ts), so nothing shifts and the overlay reaches the edge. */
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-sm:target),
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-sm) {
       scrollbar-gutter: auto;
@@ -647,8 +647,8 @@
       overflow: hidden;
     }
 
-    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
-       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    /* The locked page has no scrollbar: it's padded by the scrollbar's width instead
+       (scrollbar.ts), so nothing shifts and the overlay reaches the edge. */
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-md:target),
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-md) {
       scrollbar-gutter: auto;
@@ -743,8 +743,8 @@
       overflow: hidden;
     }
 
-    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
-       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    /* The locked page has no scrollbar: it's padded by the scrollbar's width instead
+       (scrollbar.ts), so nothing shifts and the overlay reaches the edge. */
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-lg:target),
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-lg) {
       scrollbar-gutter: auto;
@@ -839,8 +839,8 @@
       overflow: hidden;
     }
 
-    /* The page gives up its reserved scrollbar strip, which browsers draw above the top layer,
-       and is padded by its width instead (scrollbar.ts), so the overlay reaches the edge. */
+    /* The locked page has no scrollbar: it's padded by the scrollbar's width instead
+       (scrollbar.ts), so nothing shifts and the overlay reaches the edge. */
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-sidebar-bp-xl:target),
     html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-sidebar-open] > .ib-shell-sidebar-bp-xl) {
       scrollbar-gutter: auto;

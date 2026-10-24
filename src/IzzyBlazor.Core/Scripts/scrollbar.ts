@@ -1,12 +1,11 @@
 /**
- * The width of the page's scrollbar, for pages that reserve room for it (AppShell's page scroll
- * sets `scrollbar-gutter: stable` on the root, so locking the page doesn't widen it).
+ * The width of the page's scrollbar while the page scrolls, for AppShell's page scroll.
  *
- * Browsers draw that reserved strip above the top layer, so an open dialog, drawer or panel and
- * its backdrop stopped one scrollbar short of the window's edge. While the page is locked, CSS
- * gives the strip up and pads the page by `--ib-scrollbar-w` instead, so nothing moves and the
- * overlay reaches the edge. This keeps that width current and marks the root with
- * `data-ib-scrollbar` while there is one; without script the strip stays.
+ * Locking the page (an open dialog, drawer or panel) takes its scrollbar away, which would widen
+ * the page and shift it sideways. While the page is locked, CSS pads it by `--ib-scrollbar-w`
+ * instead, so nothing moves. This keeps that width current and marks the root with
+ * `data-ib-scrollbar` while there is one: none on a page too short to scroll, or with overlay
+ * scrollbars. Without script the page reserves the strip with `scrollbar-gutter: stable`.
  */
 export function measureScrollbar(): void {
   const root = document.documentElement;

@@ -150,13 +150,17 @@
     }
   }
 
-  /* Room for the page's scrollbar is kept even when the page can't scroll, so locking the page
-     (an open sidebar drawer or panel, a dialog) doesn't widen it and shift everything sideways.
-     Overlay scrollbars take no room, so there it costs nothing. Browsers draw this strip above the
-     top layer, so while the page is locked it's given up and the page padded by its width instead
-     (scrollbar.ts, the lock rules in overlay, shell and nav CSS), and overlays reach the edge. */
-  :root:has(.ib-shell-scroll-page) {
-    scrollbar-gutter: stable;
+  /* With no script, room for the page's scrollbar is kept even when the page can't scroll, so
+     locking the page (an open sidebar drawer or panel, a dialog) doesn't widen it and shift
+     everything sideways. Overlay scrollbars take no room, so there it costs nothing. With script
+     the page has a scrollbar only while it scrolls, and while the page is locked the padding of
+     its width stands in for it (scrollbar.ts, the lock rules in overlay, shell and nav CSS), so
+     nothing shifts, overlays reach the edge (browsers draw a reserved strip above the top layer),
+     and a page too short to scroll has no empty strip. */
+  @media (scripting: none) {
+    :root:has(.ib-shell-scroll-page) {
+      scrollbar-gutter: stable;
+    }
   }
 
   /* High contrast: in the system's colors. */

@@ -1415,13 +1415,14 @@ that scrolls.
 <IzzyTheme Scrollbars="ThemeScrollbars.Native" />
 ```
 
-On a page that `AppShell` scrolls, room for the page's scrollbar is kept even when the page can't
-scroll (`scrollbar-gutter: stable`), so opening the sidebar drawer or panel, which stops the page
-scrolling, doesn't widen the page and shift it sideways. With overlay scrollbars that room is zero;
-with classic ones, a page too short to scroll shows an empty strip where the scrollbar would be. While
-the page is locked, IzzyBlazor's script swaps that room for padding of the same width, so a dialog,
-drawer or panel and its backdrop reach the window's edge (browsers draw the reserved strip above
-them); with JavaScript off the strip stays.
+On a page that `AppShell` scrolls, opening the sidebar drawer or panel, or a dialog, stops the page
+scrolling and takes its scrollbar away. So that the page doesn't widen and shift sideways,
+IzzyBlazor's script pads it by the scrollbar's width while it's locked, and a dialog, drawer or
+panel and its backdrop reach the window's edge. A page too short to scroll has no scrollbar and
+no padding. With JavaScript off, room for the scrollbar is kept instead, even when the page can't
+scroll (`scrollbar-gutter: stable`): with classic scrollbars a short page shows an empty strip
+where the scrollbar would be, and overlays stop short of it. Overlay scrollbars take no room, so
+there neither shows.
 
 ## Text and other languages
 

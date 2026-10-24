@@ -14,6 +14,8 @@ export interface ToastDetail {
 }
 
 interface Timer {
+  /** The toast's id when armed: a reused element gets a new toast with a new id. */
+  id: string;
   remaining: number;
   started: number;
   handle: number;
@@ -40,9 +42,10 @@ class Toasts extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     this.armAll();
 
-    // Toasts arriving with enhanced navigation or an enhanced form post.
+    // Toasts arriving with enhanced navigation or an enhanced form post. One that reuses an
+    // earlier toast's element of the same shape changes only its id and text, so ids are watched.
     const observer = new MutationObserver(() => this.armAll());
-    observer.observe(this, { childList: true, subtree: true });
+    observer.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ["id"] });
     signal.addEventListener("abort", () => {
       observer.disconnect();
       this.#timers.forEach((t) => clearTimeout(t.handle));
@@ -183,13 +186,19 @@ class Toasts extends IzzyElement {
     });
   }
 
-  // Armed by state, not identity: enhanced navigation can reuse a closed toast's element for a
-  // new one, resetting its checkbox, and that toast needs a timer of its own.
+  // Armed by state, not identity: enhanced navigation can reuse a toast's element for a new one
+  // (an earlier toast's, closed or still open), and that toast needs a timer of its own, not the
+  // one left from before: an error that stays until closed would close with the earlier toast.
   private arm(toast: HTMLElement): void {
+    const old = this.#timers.get(toast);
+    if (old && old.id !== toast.id) {
+      clearTimeout(old.handle);
+      this.#timers.delete(toast);
+    }
     if (this.#timers.has(toast) || this.dismissInput(toast)?.checked !== false) return;
     const duration = Number(toast.dataset.duration ?? this.dataset.duration ?? 5000);
     if (!(duration > 0)) return;
-    this.#timers.set(toast, { remaining: duration, started: Date.now(), handle: this.#paused ? 0 : this.start(toast, duration) });
+    this.#timers.set(toast, { id: toast.id, remaining: duration, started: Date.now(), handle: this.#paused ? 0 : this.start(toast, duration) });
   }
 
   // What a keyboard user lands on: the close button once <ib-dismiss> runs, else the checkbox.

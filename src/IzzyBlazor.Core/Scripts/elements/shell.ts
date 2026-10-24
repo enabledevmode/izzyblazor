@@ -174,13 +174,14 @@ class Shell extends IzzyElement {
   }
 
   /**
-   * While the drawer is open the rest of the shell is inert, so focus and screen readers stay in it.
-   * A panel leaves the header usable: its menu button has become the close button.
+   * While the drawer is open the rest of the shell is inert, so focus and screen readers stay in it;
+   * the skip link too, since the main area it leads to is inert. A panel leaves the header usable:
+   * its menu button has become the close button.
    */
   private setInert(on: boolean): void {
     const panel = this.isPanel;
     for (const child of this.children) {
-      if (child === this.sidebar || child.classList.contains("ib-shell-backdrop") || child.classList.contains("ib-skip-link")) continue;
+      if (child === this.sidebar || child.classList.contains("ib-shell-backdrop")) continue;
       if (panel && child.classList.contains("ib-shell-header")) continue;
       child.toggleAttribute("inert", on);
     }
