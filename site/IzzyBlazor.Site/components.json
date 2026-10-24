@@ -383,6 +383,12 @@
     },
     {
       "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Actions", "summary": "Asks in an alert dialog before acting.", "parts": ["ConfirmDialogContent"],
+      "features": [
+        { "feature": "Opens its dialog (with JavaScript off, in browsers with the command attribute)", "off": "partial", "static": "full", "live": "full" },
+        { "feature": "Confirming posts the form with Name and Value", "off": "full", "static": "full", "live": "none" },
+        { "feature": "Confirming follows Href" },
+        { "feature": "OnConfirm runs C#", "member": "OnConfirm" }
+      ],
       "examples": [
         { "id": "confirm-button-form-post", "title": "Confirming a form post", "lead": "Use `Name` and `Value` on a `ConfirmButton` in a form to post which action was confirmed, and `OnConfirm` to run C# instead on interactive pages.",
           "notes": {
@@ -921,6 +927,12 @@
     },
     {
       "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus.",
+      "features": [
+        { "feature": "Shows on hover and keyboard focus, on the side Placement picks" },
+        { "feature": "Heard by screen readers as the trigger's description", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Escape hides it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "In the top layer, where nothing clips it", "off": "none", "static": "full", "live": "full" }
+      ],
       "examples": [
         { "id": "tooltip-sides", "title": "Placement", "lead": "Use `Placement` to show the tooltip below, before or after its trigger; it's above by default." },
         { "id": "tooltip-icon-buttons", "title": "Icon buttons and shortcuts", "lead": "Use `Content` for more than plain text, such as a keyboard shortcut, and `Delay` for how long a hover waits.",
@@ -1026,19 +1038,38 @@
 
     {
       "id": "alert", "icon": "TriangleAlert", "name": "Alert", "category": "Feedback", "summary": "A status message about part of a page.", "parts": ["AlertActions"],
+      "features": [
+        { "feature": "Status, title, icon and actions" },
+        { "feature": "Closes with its close button" },
+        { "feature": "The close button is a button, and focus moves on when it closes", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Dismissed bound to C#", "member": "Dismissed" }
+      ],
       "examples": [
         { "id": "alert-statuses", "title": "Status", "lead": "Use `Status` for what the message means: it sets the color, the icon and what screen readers hear." },
         { "id": "alert-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Outline` or `Solid`." },
         { "id": "alert-dismiss", "title": "Actions and dismissing", "lead": "Use `Dismissible` for a close button that works without script, and `AlertActions` for buttons under the message.",
           "notes": {
-            "off": "The close button is a checkbox and CSS: the alert hides, but focus isn't moved on.",
-            "static": "The close button is a real button. When the alert closes, focus moves to the control after it, or to the page when there's none, as here.",
-            "live": "The same, and @bind-Dismissed tells C# it closed, so C# can show it again."
+            "off": "The close button is a checkbox and CSS: the alert hides, but focus isn't moved on, and a reload brings it back.",
+            "static": "The close button is a real button, and focus moves on to the next control on the page as the alert closes. A reload brings it back.",
+            "live": "The same, and @bind-Dismissed tells C# it closed: the switch below follows it, and turning it on shows the alert again."
+          } },
+        { "id": "alert-saved", "title": "After a post", "lead": "Use an `Alert` the handler renders to say what a post did, with `@bind-Dismissed` so a new save shows it again on interactive pages.",
+          "notes": {
+            "off": "Save reloads the page with the alert. Closing hides it until the next save renders it again; focus isn't moved.",
+            "static": "Save posts without a reload, and the alert comes back with each response, closed or not. Closing it moves focus to the name field.",
+            "live": "Save runs C# with no page load. Closing sets the example's flag through @bind-Dismissed, and the next save clears it, so the alert shows again."
           } }
       ]
     },
     {
       "id": "banner", "icon": "Megaphone", "name": "Banner", "category": "Feedback", "summary": "A full-width message about the whole app.", "parts": ["BannerActions"],
+      "features": [
+        { "feature": "Status, accent, icon and actions" },
+        { "feature": "Closes with its close button" },
+        { "feature": "Stays closed on later pages (a cookie)", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The close button is a button, and focus moves on when it closes", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Dismissed bound to C#", "member": "Dismissed" }
+      ],
       "examples": [
         { "id": "banner-statuses", "title": "Status and color", "lead": "Use `Status` for what the message means, or `Accent` and `Icon` for an announcement in your brand's color." },
         { "id": "banner-dismiss", "title": "Dismissing", "lead": "Use `Dismissible` for a close button; the banner then stays closed on later pages, remembered under its `RememberKey`.",
@@ -1059,6 +1090,13 @@
     },
     {
       "id": "toast-region", "icon": "BellRing", "name": "ToastRegion", "category": "Feedback", "summary": "Toasts from any render mode, even across a redirect.",
+      "features": [
+        { "feature": "Toasts from a static post or page, rendered with the response" },
+        { "feature": "Carried over a redirect (post-redirect-get)", "off": "full", "static": "full", "live": "none" },
+        { "feature": "Close themselves after Duration, pausing on hover and focus", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Added in the browser at once from C#, with no post", "off": "none", "static": "none", "live": "full" },
+        { "feature": "An action's OnClick runs C#", "off": "none", "static": "none", "live": "full" }
+      ],
       "examples": [
         { "id": "toast-region-show", "title": "Showing a toast", "lead": "Use `ToastService` to show a toast from a form post or a C# handler; the `ToastRegion` in your layout shows it.",
           "notes": {
@@ -1081,7 +1119,7 @@
       "scenarios": [
         { "id": "inbox-undo", "title": "Inbox with undo",
           "description": "An inbox where each Archive button posts a form and a toast offers Undo. On static pages the post redirects with the archived ids in the address, the toast follows, and Undo is a link; on interactive pages Undo runs C#. Works with JavaScript off.",
-          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 420, "page": true,
+          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 600, "page": true,
             "notes": {
               "off": "Archive posts and redirects; Undo is a link to the address without that conversation.",
               "static": "Archive posts without a reload, and the toast closes itself after a few seconds.",

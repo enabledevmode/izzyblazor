@@ -1,0 +1,50 @@
+@* Tooltip's Overview, written by hand after Popover's: placement, icon buttons with shortcuts
+   (previewed in each mode). Accessibility (what the trigger needs, what a tooltip can't hold) and
+   See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A tooltip is a short hint about a control, shown on hover and on keyboard focus: what an icon does, or its shortcut. For a panel people click to open, with links or a form, use a <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+
+<Heading Level="2">Placement</Heading>
+<TextBlock>Use <Code>Placement</Code> to show the tooltip below, before or after its trigger; it's above by default.</TextBlock>
+<ExampleViewer Example="tooltip-sides" />
+
+<Heading Level="2">Icon buttons and shortcuts</Heading>
+<TextBlock>Use <Code>Content</Code> for more than plain text, such as a keyboard shortcut in a <Anchor Href="docs/components/kbd">Kbd</Anchor>, and <Code>Delay</Code> for how long a hover waits (300 milliseconds; keyboard focus shows it at once).</TextBlock>
+<ExampleViewer Example="tooltip-icon-buttons" />
+<TextBlock>Inside a tooltip, an <Anchor Href="docs/components/icon-button">IconButton</Anchor> leaves out its own <Code>title</Code>, so hovering shows one tooltip, not two; it still needs its <Code>Label</Code>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Tooltip Text="Copy to clipboard">
+            <IconButton Icon="Lucide.Copy" Label="Copy" />
+        </Tooltip>
+
+        @* Below the trigger, with a shortcut. *@
+        <Tooltip Placement="Placement.Bottom">
+            <Content>Save <Kbd Keys="Ctrl+S" /></Content>
+            <ChildContent><Button>Save</Button></ChildContent>
+        </Tooltip>
+        """;
+}

@@ -5,14 +5,19 @@
             <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Resend email</Button>
         </AlertActions>
     </Alert>
-    @if (_dismissed && RendererInfo.IsInteractive)
+    @* Interactive pages only (and their prerender, so nothing moves): C# shows it again. *@
+    @if (RendererInfo.IsInteractive || AssignedRenderMode is not null)
     {
-        <Row>
-            <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" OnClick="() => _dismissed = false">Show the reminder again</Button>
-        </Row>
+        <Switch @bind-Value="ShowReminder" Label="Show the reminder" />
     }
 </Stack>
 
 @code {
     private bool _dismissed;
+
+    private bool ShowReminder
+    {
+        get => !_dismissed;
+        set => _dismissed = !value;
+    }
 }

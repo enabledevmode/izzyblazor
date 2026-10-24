@@ -1,0 +1,95 @@
+@inject ApiMetadata Api
+@* ConfirmButton's Overview, written by hand after Dialog's: confirming a form post and showing
+   what's affected (previewed in each mode), the other things confirming can do (code), and its
+   own words. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A ConfirmButton asks before an action that's hard to undo: it opens a small alert dialog, and only the dialog's confirm button carries the action out. Inside a form, confirming submits it, with JavaScript off too; the dialog sits beside the button, inside the form it submits. For a question asked from C#, use <Code>DialogService.ConfirmAsync</Code> on an interactive page (see <Anchor Href="docs/components/dialog#dialogs-from-code">Dialog</Anchor>).</TextBlock>
+
+<Heading Level="2">Confirming a form post</Heading>
+<TextBlock>Use <Code>Name</Code> and <Code>Value</Code> to post which action was confirmed, so one handler can tell them apart, and <Code>OnConfirm</Code> for the same action on an interactive page.</TextBlock>
+<ExampleViewer Example="confirm-button-form-post" />
+<TextBlock>Don't use <Code>action</Code>, <Code>method</Code> or <Code>target</Code> as the <Code>Name</Code>: a control with one of those names hides the form's own property, and the post goes to the wrong address. An interactive page handles the form in C# without posting it, so nothing fills <Code>[SupplyParameterFromForm]</Code> there: give each button an <Code>OnConfirm</Code>, as the example does. On a static page the confirm button submits the form whether or not <Code>OnConfirm</Code> is set.</TextBlock>
+
+<Heading Level="2">Showing what's affected</Heading>
+<TextBlock>Use <Code>Body</Code> for more than a one-line <Code>Message</Code>, such as a list of what will be deleted, and <Code>ConfirmText</Code> for the confirm button's words.</TextBlock>
+<ExampleViewer Example="confirm-button-affected" />
+<TextBlock>Name the action on the confirm button ("Delete files", not "OK"), so the choice reads on its own.</TextBlock>
+
+<Heading Level="2">Other ways to confirm</Heading>
+<TextBlock>Use <Code>Href</Code> to follow a link when confirmed, <Code>Form</Code> with a form's id to submit a form elsewhere on the page, or <Code>FormAction</Code> to post the form it's in to another address.</TextBlock>
+<Code Block Language="razor">@Others</Code>
+
+<Heading Level="2">Opening it</Heading>
+<TextBlock>The button opens its dialog with the browser's own <Code>command</Code> attribute, and IzzyBlazor's script does the same where the browser lacks it. That attribute arrived in Chrome and Edge 135, Firefox 144 and Safari 26.2; for older browsers with JavaScript off, keep a way to act without the dialog, such as a separate page for deleting. On an interactive page, set <Code>Loading</Code> while <Code>OnConfirm</Code>'s work runs: the button can't open the dialog again until it's done.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>ConfirmText</Code> for the confirm button ("Confirm") and <Code>CancelText</Code> for Cancel ("Cancel"), or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <form method="post" @formname="project" @onsubmit="Act">
+            <AntiforgeryToken />
+            <ConfirmButton Title="Delete this project?" Message="This can't be undone."
+                           ConfirmText="Delete" Accent="Accent.Danger"
+                           Name="intent" Value="delete" OnConfirm="Delete">Delete</ConfirmButton>
+        </form>
+
+        @code {
+            // Static pages: confirming posts intent=delete with the form.
+            [SupplyParameterFromForm(FormName = "project", Name = "intent")]
+            private string? Intent { get; set; }
+
+            private void Act()
+            {
+                if (Intent == "delete") Delete();
+            }
+
+            // Interactive pages: confirming runs OnConfirm, and nothing is posted.
+            private void Delete() { /* delete it */ }
+        }
+        """;
+
+    private const string Others = """
+        @* Follow a link. *@
+        <ConfirmButton Title="Sign out?" Href="/account/sign-out">Sign out</ConfirmButton>
+
+        @* Submit a form elsewhere on the page. *@
+        <ConfirmButton Title="Discard this draft?" Form="draft" Name="intent" Value="discard"
+                       Accent="Accent.Danger">Discard</ConfirmButton>
+
+        @* Post the form it's in to another address. *@
+        <form method="post" action="/orders/1042">
+            <AntiforgeryToken />
+            <ConfirmButton Title="Cancel this order?" FormAction="/orders/1042/cancel"
+                           Accent="Accent.Danger">Cancel order</ConfirmButton>
+        </form>
+        """;
+}
