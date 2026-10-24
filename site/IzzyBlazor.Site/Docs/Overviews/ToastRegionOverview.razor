@@ -20,7 +20,7 @@
 <Heading Level="2">After a redirect</Heading>
 <TextBlock>Use <Code>ToastService</Code> before <Code>NavigateTo</Code> in a static post's handler: the toast follows to the next page in a short-lived cookie, so post-redirect-get works.</TextBlock>
 <ExampleViewer Example="toast-region-redirect" />
-<TextBlock>On an interactive page the toast goes to the browser at once, before <Code>NavigateTo</Code> loads the next page. When that page comes from the server (an interactive part of a static page, as in these examples, or <Code>forceLoad</Code>), the region is drawn again and the toast is lost: stay on the page, or show it from the page you land on.</TextBlock>
+<TextBlock>On an interactive page the toast goes to the browser at once, before <Code>NavigateTo</Code> loads the next page, and stays on screen as it does. <Code>forceLoad</Code> loads a whole new page, which loses it: show it from the page you land on instead.</TextBlock>
 <TextBlock>The inbox below posts each Archive, redirects with the archived ids in the address, and offers Undo as a link back to the address without that conversation:</TextBlock>
 <ExampleViewer Example="toast-region-inbox" WidthSwitch />
 

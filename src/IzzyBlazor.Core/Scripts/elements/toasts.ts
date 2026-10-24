@@ -29,7 +29,10 @@ interface Timer {
  *
  * It also adds toasts sent from interactive pages (showToast), cloned from the region's
  * templates into its live container. It never removes toasts the server rendered; it only
- * removes the ones it added.
+ * removes the ones it added. The region is usually server markup, so the next page's render
+ * (NavigateTo from an interactive part of a static page) takes the toasts it added away: open
+ * ones are put back, so a toast shown just before navigating isn't lost. A full page load
+ * (forceLoad) still loses them.
  */
 class Toasts extends IzzyElement {
   #timers = new Map<HTMLElement, Timer>();
@@ -44,7 +47,10 @@ class Toasts extends IzzyElement {
 
     // Toasts arriving with enhanced navigation or an enhanced form post. One that reuses an
     // earlier toast's element of the same shape changes only its id and text, so ids are watched.
-    const observer = new MutationObserver(() => this.armAll());
+    const observer = new MutationObserver((records) => {
+      this.keepAdded(records);
+      this.armAll();
+    });
     observer.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ["id"] });
     signal.addEventListener("abort", () => {
       observer.disconnect();
@@ -147,7 +153,11 @@ class Toasts extends IzzyElement {
     if (duration != null) toast.dataset.duration = String(duration);
     toast.dataset.ibAdded = "";
 
-    live.append(toast);
+    // In an element of its own, which a render of the region's server markup can't reuse for a
+    // server toast (it would take this one's place), only remove; keepAdded puts it back.
+    const holder = document.createElement("ib-toast-added");
+    holder.append(toast);
+    live.append(holder);
     this.arm(toast);
   }
 
@@ -177,6 +187,21 @@ class Toasts extends IzzyElement {
       slot.replaceWith(link);
     } else {
       slot.closest(".ib-alert-actions")?.remove();
+    }
+  }
+
+  // Open toasts this element added, taken away by a render of the region's server markup, go back.
+  private keepAdded(records: MutationRecord[]): void {
+    const live = this.querySelector<HTMLElement>(":scope > .ib-toast-live");
+    if (!live) return;
+    for (const record of records) {
+      for (const node of record.removedNodes) {
+        const holders = node instanceof HTMLElement ? [node, ...node.querySelectorAll<HTMLElement>("ib-toast-added")] : [];
+        for (const holder of holders) {
+          const toast = holder.matches("ib-toast-added") ? holder.querySelector<HTMLElement>(":scope > .ib-toast") : null;
+          if (toast && !holder.isConnected && this.dismissInput(toast)?.checked === false) live.append(holder);
+        }
+      }
     }
   }
 
@@ -257,7 +282,7 @@ class Toasts extends IzzyElement {
     }
 
     // Only toasts this element added are removed; the server's stay in the DOM, hidden by CSS.
-    if (toast.hasAttribute("data-ib-added")) setTimeout(() => toast.remove(), 400);
+    if (toast.hasAttribute("data-ib-added")) setTimeout(() => (toast.closest("ib-toast-added") ?? toast).remove(), 400);
   }
 }
 

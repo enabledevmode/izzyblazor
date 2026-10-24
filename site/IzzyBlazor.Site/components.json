@@ -1108,7 +1108,7 @@
       "id": "toast-region", "icon": "BellRing", "name": "ToastRegion", "category": "Feedback", "summary": "Toasts from any render mode, even across a redirect.",
       "features": [
         { "feature": "Toasts from a static post or page, rendered with the response" },
-        { "feature": "Carried over a redirect (post-redirect-get)", "off": "full", "static": "full", "live": "none" },
+        { "feature": "Kept across a redirect or NavigateTo (not forceLoad on interactive pages)" },
         { "feature": "Close themselves after Duration, pausing on hover and focus", "off": "none", "static": "full", "live": "full" },
         { "feature": "Added in the browser at once from C#, with no post", "off": "none", "static": "none", "live": "full" },
         { "feature": "An action's OnClick runs C#", "off": "none", "static": "none", "live": "full" }

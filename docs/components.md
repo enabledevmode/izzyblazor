@@ -1004,13 +1004,17 @@ and `Variant` (`Outline`). They come from `ToastService` (`Toasts.Success("Saved
 With JavaScript, toasts close after `Duration`, pausing on hover and focus; error toasts stay until
 closed. Without JavaScript, they stay until closed.
 
-Two cases lose a toast, both rare:
+Three cases lose a toast, all rare:
 
 - **An interactive page whose connection drops** (Blazor Server) loses toasts that hadn't been shown
   yet; the page reconnects without them.
 - **A redirect after the response has started streaming** (a page with `[StreamRendering]` that
   redirects partway through) can't set the cookie that carries toasts, since the headers are already
   sent. Redirect before streaming starts, or show the message on the page.
+- **`NavigateTo(..., forceLoad: true)` on an interactive page** loads a whole new page, which the
+  toast shown just before it doesn't survive. A plain `NavigateTo` keeps it: when the next page's
+  render redraws the region (an interactive part of a static page), the script puts its open toasts
+  back.
 
 A toast can carry one action, such as "View" or "Undo", and choosing it closes the toast. Toasts
 with an action stay twice as long, so there's time to reach the button.
