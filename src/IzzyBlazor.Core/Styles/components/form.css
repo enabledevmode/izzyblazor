@@ -1809,6 +1809,28 @@
     column-gap: var(--ib-space-5);
   }
 
+  /* CheckboxGroup's SelectAll: a box above the options, which sit indented under it. It needs the
+     script, so with JavaScript off it isn't shown and the options aren't indented. */
+  .ib-check-all {
+    margin-top: var(--ib-space-1);
+  }
+
+  .ib-checks-under-all {
+    margin-top: var(--ib-space-2);
+    padding-inline-start: var(--ib-space-6);
+  }
+
+  @media (scripting: none) {
+    .ib-check-all {
+      display: none;
+    }
+
+    .ib-checks-under-all {
+      margin-top: var(--ib-space-1);
+      padding-inline-start: 0;
+    }
+  }
+
   .ib-field-invalid .ib-check-input:not(:checked),
   .ib-check-input:user-invalid {
     border-color: var(--ib-color-danger);

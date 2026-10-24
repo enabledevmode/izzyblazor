@@ -2,7 +2,7 @@
 @typeparam TValue
 @typeparam TItem
 @inherits FieldBase<TValue>
-@attribute [ModeSupport]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the SelectAll box isn't shown.")]
 
 @*
     A group of checkboxes for picking several options, bound to a collection: an array,
@@ -11,9 +11,14 @@
 
     <CheckboxGroup @bind-Value="Model.Toppings" Items="Toppings" />
     <CheckboxGroup @bind-Value="Model.Days" Items="Enum.GetValues<DayOfWeek>()" Orientation="Orientation.Horizontal" />
+    <CheckboxGroup @bind-Value="Model.Notify" Items="Topics" SelectAll="Everything" />
 
     Posting: each checked box posts the field's name with its value, and Blazor binds the
     repeated values to the collection, so it works on static pages with no script.
+
+    SelectAll adds a box above the options that checks or clears them all at once, on static
+    pages too: the script flips each option and fires its change, as if clicked, so an interactive
+    page hears each one. It has no name, so it doesn't post. With JavaScript off it isn't shown.
 
     Accessibility:
     - It renders native checkboxes in a `fieldset` whose `legend` is the label; each box is a
@@ -22,6 +27,8 @@
       `aria-describedby`, and each box sets `aria-invalid` when the field is invalid.
     - A required group shows an asterisk, which screen readers skip, and its boxes aren't
       marked required (HTML can't require one of several): say so in the label or `Hint`.
+    - A `SelectAll` box is named by its text and controls the options (`aria-controls`); it's
+      announced as "mixed" when only some are checked.
     - Read-only boxes arrive disabled; the script enables them, so they can be focused, and stops
       them from changing. They carry `aria-readonly`, but most screen readers don't announce that
       on a checkbox, so say it's read-only in the label or `Hint`.
@@ -30,6 +37,24 @@
 
 <FieldFrame Class="@WrapperClass("checkboxes")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (SelectAll is not null)
+    {
+        var allId = $"{FieldId}-all";
+        var (all, some) = SelectAllState;
+        @* No name: it doesn't post. The script checks or clears the options and follows them. *@
+        <label class="ib-check ib-check-all" for="@allId">
+            <input id="@allId"
+                   class="ib-check-input"
+                   type="checkbox"
+                   data-ib-select-all
+                   checked="@all"
+                   data-indeterminate="@(some ? "" : null)"
+                   aria-controls="@OptionIds"
+                   disabled="@(IsDisabled || ShowsReadOnly)"
+                   aria-readonly="@(ShowsReadOnly ? "true" : null)" />
+            <span class="ib-check-label">@SelectAll</span>
+        </label>
+    }
     <div class="@OptionsClass">
         @foreach (var (item, index) in ChoiceOptions.Of(Items).Select((o, i) => (o, i)))
         {
@@ -82,9 +107,32 @@
     /// <summary>Stack options vertically (the default) or in a row.</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
 
-    private string OptionsClass => Orientation == Orientation.Horizontal
-        ? "ib-radio-options ib-radio-horizontal"
-        : "ib-radio-options";
+    /// <summary>
+    /// Adds a box above the options, labeled with this text, that checks or clears them all at once
+    /// and shows a dash when only some are checked. It doesn't post; the options do. It works on
+    /// static pages through the script, and isn't shown with JavaScript off.
+    /// </summary>
+    [Parameter, ModeSupport(Off = ModeLevel.None, Notes = "With JavaScript off, the box isn't shown.")]
+    public string? SelectAll { get; set; }
+
+    private string OptionsClass => new ClassBuilder()
+        .Add("ib-radio-options")
+        .Add("ib-radio-horizontal", Orientation == Orientation.Horizontal)
+        .Add("ib-checks-under-all", SelectAll is not null)
+        .Build()!;
+
+    private string OptionIds => string.Join(" ", ChoiceOptions.Of(Items).Select((_, i) => $"{FieldId}-{i}"));
+
+    private (bool All, bool Some) SelectAllState
+    {
+        get
+        {
+            var options = ChoiceOptions.Of(Items).ToList();
+            var count = options.Count(IsChecked);
+            var all = count > 0 && count == options.Count;
+            return (all, count > 0 && !all);
+        }
+    }
 
     private bool IsChecked(TItem item) =>
         ChoiceCollection<TValue, TItem>.Items(CurrentValue).Contains(item);

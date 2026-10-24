@@ -395,6 +395,33 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
+    public void CheckboxGroup_select_all_posts_nothing_and_follows_the_options()
+    {
+        var cut = Render<CheckboxGroup<List<Plan>, Plan>>(p => p
+            .AddCascadingValue(_context)
+            .Add(c => c.Value, _model.Plans)
+            .Add(c => c.ValueChanged, (List<Plan> v) => _model.Plans = v)
+            .Add(c => c.ValueExpression, () => _model.Plans)
+            .Add(c => c.Items, Enum.GetValues<Plan>())
+            .Add(c => c.SelectAll, "All plans"));
+
+        // One of two checked: a dash, not checked, and only the options post.
+        var all = cut.Find("input[data-ib-select-all]");
+        Assert.Equal("All plans", all.ParentElement!.TextContent.Trim());
+        Assert.False(all.HasAttribute("checked"));
+        Assert.True(all.HasAttribute("data-indeterminate"));
+        Assert.Equal(["Plans=Pro"], Posted(cut.FindAll("input")));
+        var options = cut.FindAll(".ib-radio-options input");
+        Assert.Equal(string.Join(" ", options.Select(o => o.Id)), all.GetAttribute("aria-controls"));
+
+        // Both checked: checked, no dash.
+        options[0].Change(true);
+        all = cut.Find("input[data-ib-select-all]");
+        Assert.True(all.HasAttribute("checked"));
+        Assert.False(all.HasAttribute("data-indeterminate"));
+    }
+
+    [Fact]
     public void MultiSelect_renders_a_posting_multiple_select_and_binds_its_values()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
