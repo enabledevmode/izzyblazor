@@ -42,36 +42,36 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="stone"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="stone"])) {
-    --ib-color-background: light-dark(#f7f6f3, #0d0e10);
-    --ib-color-surface: light-dark(#ffffff, #151618);
-    --ib-color-surface-container-low: light-dark(#f3f2ee, #1d1f22);
-    --ib-color-surface-container: light-dark(#eae8e2, #232529);
-    --ib-color-surface-container-high: light-dark(#e0ddd5, #2b2d31);
-    --ib-color-surface-raised: light-dark(#ffffff, #1e2023);
+    --ib-color-background: light-dark(#f7f6f3, #08090a);
+    --ib-color-surface: light-dark(#ffffff, #0e0f10);
+    --ib-color-surface-container-low: light-dark(#f3f2ee, #161719);
+    --ib-color-surface-container: light-dark(#eae8e2, #1d1f22);
+    --ib-color-surface-container-high: light-dark(#e0ddd5, #25272a);
+    --ib-color-surface-raised: light-dark(#ffffff, #18191b);
     --ib-color-on-surface: light-dark(#1b1d1f, #ecebe6);
     --ib-color-muted: light-dark(#5b6168, #a3a7ad);
     --ib-color-subtle: light-dark(#646970, #92969c);
     --ib-color-disabled: light-dark(#8a8f95, #6d7176);
-    --ib-color-border: light-dark(#dedbd3, #2d3034);
-    --ib-color-outline: light-dark(#bdb9b0, #4e5157);
+    --ib-color-border: light-dark(#dedbd3, #2f3236);
+    --ib-color-outline: light-dark(#bdb9b0, #484b51);
   }
 
   :root[data-ib-preset="compact"],
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="slate"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="slate"])) {
-    --ib-color-background: light-dark(#f8fafc, #0f1218);
-    --ib-color-surface: light-dark(#ffffff, #161a21);
-    --ib-color-surface-container-low: light-dark(#f1f4f8, #20242c);
-    --ib-color-surface-container: light-dark(#e7ebf1, #242932);
-    --ib-color-surface-container-high: light-dark(#dce2ea, #29313a);
-    --ib-color-surface-raised: light-dark(#ffffff, #1e232c);
+    --ib-color-background: light-dark(#f8fafc, #090b10);
+    --ib-color-surface: light-dark(#ffffff, #0f1218);
+    --ib-color-surface-container-low: light-dark(#f1f4f8, #171b22);
+    --ib-color-surface-container: light-dark(#e7ebf1, #1e222a);
+    --ib-color-surface-container-high: light-dark(#dce2ea, #262b34);
+    --ib-color-surface-raised: light-dark(#ffffff, #191d24);
     --ib-color-on-surface: light-dark(#0f172a, #e7ebf0);
     --ib-color-muted: light-dark(#526072, #9aa4b2);
     --ib-color-subtle: light-dark(#5a6779, #8892a0);
     --ib-color-disabled: light-dark(#8794a6, #5f6978);
-    --ib-color-border: light-dark(#d9e0e9, #313844);
-    --ib-color-outline: light-dark(#b2bccb, #4d5664);
+    --ib-color-border: light-dark(#d9e0e9, #2f3540);
+    --ib-color-outline: light-dark(#b2bccb, #4a5361);
   }
 
   :root[data-ib-preset="standard"],
@@ -80,18 +80,18 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="neutral"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="neutral"])) {
-    --ib-color-background: light-dark(#fafafa, #0c0c0e);
-    --ib-color-surface: light-dark(#ffffff, #141416);
-    --ib-color-surface-container-low: light-dark(#f3f3f5, #1b1b1e);
-    --ib-color-surface-container: light-dark(#e9e9ec, #212124);
-    --ib-color-surface-container-high: light-dark(#dfdfe3, #29292d);
-    --ib-color-surface-raised: light-dark(#ffffff, #1c1c20);
+    --ib-color-background: light-dark(#fafafa, #08080a);
+    --ib-color-surface: light-dark(#ffffff, #0d0d0f);
+    --ib-color-surface-container-low: light-dark(#f3f3f5, #141416);
+    --ib-color-surface-container: light-dark(#e9e9ec, #1b1b1e);
+    --ib-color-surface-container-high: light-dark(#dfdfe3, #232326);
+    --ib-color-surface-raised: light-dark(#ffffff, #17171a);
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
     --ib-color-subtle: light-dark(#66666d, #929299);
     --ib-color-disabled: light-dark(#8c8c93, #6c6c73);
-    --ib-color-border: light-dark(#dcdce0, #2c2c31);
-    --ib-color-outline: light-dark(#b8b8bf, #4c4c52);
+    --ib-color-border: light-dark(#dcdce0, #2e2e33);
+    --ib-color-outline: light-dark(#b8b8bf, #47474d);
   }
 
   /* Accents: fill, text on it, the accent as text, and its soft tint (16% of the fill on white). */

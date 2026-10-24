@@ -358,6 +358,10 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
    MaxWidth (an unlayered max-width here would beat the library's). */
 .ex-stage > .ib-example-preview > :not(.ib-maxw) { max-width: 100%; }
 .ex-stage > .ib-example-preview > .ib-maxw { max-width: min(100%, var(--ib-maxw)); }
+/* The example's own theme (IzzyTheme) paints its scheme's background on a square box behind the
+   rounded one, and on a band of another color (the home hero) its corners showed outside the
+   curve: the box paints the background itself. */
+.ex-theme { background: none; }
 /* The home hero's window: the site's near-black inside the dark band. */
 .ex-deep .ex-stage { background: #0d0e11; }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
@@ -495,6 +499,9 @@ body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display:
 /* The docs page's background (its --ib-color-surface), so an example sits on the page; the
    frame has the library's own theme, which would put its own gray here. */
 html:has(> body > .frame), html:has(> body > .frame) body { background: light-dark(#ffffff, #0d0e11); }
+/* No strip kept for a scrollbar: AppShell keeps one on its page so locking it doesn't shift the
+   page, but a frame that doesn't scroll would show it as an empty band down the right edge. */
+html:has(> body > .frame) { scrollbar-gutter: auto; }
 html:has(> body > .frame) body { margin: 0; }
 .frame-page { padding: var(--ib-space-4); }
 /* A whole app (AppShell) fills its frame: no padding, or its 100dvh would grow the frame with

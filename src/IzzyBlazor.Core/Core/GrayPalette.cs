@@ -104,13 +104,13 @@ public sealed class GrayPalette
         Rgb Shade(double l, double factor, double cap = 0.03) => Snap(FromLch(l, Math.Min(c * factor, cap), hue));
         var dark = new Dictionary<string, Rgb>
         {
-            ["background"] = Shade(0.192, 0.5),
-            ["surface"] = Shade(0.223, 0.6),
-            ["surface-container-low"] = Shade(0.266, 0.6),
-            ["surface-container"] = Shade(0.286, 0.7),
-            ["surface-container-high"] = Shade(0.315, 0.8),
-            ["surface-raised"] = Shade(0.258, 0.6),
-            ["border"] = Shade(0.343, 0.8),
+            ["background"] = Shade(0.135, 0.5),
+            ["surface"] = Shade(0.160, 0.6),
+            ["surface-container-low"] = Shade(0.192, 0.6),
+            ["surface-container"] = Shade(0.223, 0.7),
+            ["surface-container-high"] = Shade(0.257, 0.8),
+            ["surface-raised"] = Shade(0.206, 0.6),
+            ["border"] = Shade(0.303, 0.8),
         };
 
         Rgb DarkText(double l, double factor, double cap, double target, params string[] on)
