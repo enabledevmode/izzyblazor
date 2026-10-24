@@ -79,10 +79,10 @@
         </Box>
     </Example>
 
-    <Example Title="Several choices" Note="CheckboxGroup shows a short list as checkboxes; MultiSelect suits a longer one. Both bind to a collection (an array, List or HashSet) and post repeated form fields, which Blazor binds back, so they work with JavaScript off. With it, MultiSelect becomes a field of chips you can type in: choosing toggles an option and the list stays open, and Backspace removes the last chip." Code="@ChoicesCode">
+    <Example Title="Several choices" Note="CheckboxGroup shows a short list as checkboxes (SelectAll adds a box that checks them all, with the script); MultiSelect suits a longer one. Both bind to a collection (an array, List or HashSet) and post repeated form fields, which Blazor binds back, so they work with JavaScript off. With it, MultiSelect becomes a field of chips you can type in: choosing toggles an option and the list stays open, and Backspace removes the last chip." Code="@ChoicesCode">
         <Box MaxWidth="32.Rem">
             <Form Model="Choices" FormName="choices" OnValidSubmit="() => _choicesSaved = true">
-                <CheckboxGroup @bind-Value="Choices!.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" />
+                <CheckboxGroup @bind-Value="Choices!.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" SelectAll SelectAllText="All toppings" />
                 <MultiSelect @bind-Value="Choices!.Skills" Items="Skills" Placeholder="Add skills" Hint="Up to 5." />
                 <Row Gap="2" Align="Align.Center">
                     <Button Submit>Save</Button>
@@ -834,7 +834,7 @@
 
     private const string ChoicesCode =
         """
-        <CheckboxGroup @bind-Value="Model.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" />
+        <CheckboxGroup @bind-Value="Model.Toppings" Items="Enum.GetValues<Topping>()" Orientation="Orientation.Horizontal" SelectAll SelectAllText="All toppings" />
         <MultiSelect @bind-Value="Model.Skills" Items="Skills" Placeholder="Add skills" />
 
         @code {

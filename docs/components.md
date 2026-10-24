@@ -507,6 +507,10 @@ Both types are inferred from `@bind-Value` and `Items`; for an enum, pass
 `Items="Enum.GetValues<Topping>()"`.
 
 - **CheckboxGroup** shows every option as a checkbox, for short lists (`Orientation` for a row).
+  `SelectAll` adds a box above the options that checks or clears them all at once and shows a dash
+  when only some are checked (`SelectAllText` for its text, "Select all" by default). It doesn't
+  post; the options do. The script runs it, on static pages too, so with JavaScript off it isn't
+  shown. On an interactive page `ValueChanged` runs once for each option it flips.
 - **MultiSelect** suits longer lists. Without script it's a native multi-line select. With script it
   becomes a field of chips you can type in to filter: choosing toggles an option and the list stays
   open, Backspace removes the last chip, and each chip has a remove button.

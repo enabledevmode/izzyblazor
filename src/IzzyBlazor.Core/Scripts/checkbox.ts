@@ -73,16 +73,24 @@ export function installIndeterminate(): void {
 }
 
 /**
- * CheckboxGroup's SelectAll: the box above the options checks or clears them all, firing `change`
- * on each one it flips (so an interactive page hears each, as if clicked), and follows them:
- * checked when all are, a dash when some are. It has no name, so it never posts. Read-only boxes
- * don't change (forms.ts cancels the click), and the server renders the starting state.
+ * CheckboxGroup's SelectAll: the box above the options checks or clears them all, then fires
+ * `change` on each one it flipped (so an interactive page hears each, as if clicked, and a
+ * FilterForm sees the finished choice from the first), and follows them: checked when all are, a
+ * dash when some are. Its options are the boxes it names in aria-controls, so boxes nested in an
+ * ItemTemplate aren't counted. It has no name, so it never posts. Read-only boxes don't change
+ * (forms.ts cancels the click), and the server renders the starting state.
  */
 const SELECT_ALL = "input[type=checkbox][data-ib-select-all]";
 
 function optionsOf(all: HTMLInputElement): HTMLInputElement[] {
-  const field = all.closest(".ib-field");
-  return field ? [...field.querySelectorAll<HTMLInputElement>(".ib-radio-options input[type=checkbox]")] : [];
+  return (all.getAttribute("aria-controls") ?? "")
+    .split(/\s+/)
+    .map((id) => (id ? document.getElementById(id) : null))
+    .filter((el): el is HTMLInputElement => el instanceof HTMLInputElement);
+}
+
+function boxFor(option: HTMLInputElement): HTMLInputElement | null {
+  return option.id ? document.querySelector<HTMLInputElement>(`${SELECT_ALL}[aria-controls~="${CSS.escape(option.id)}"]`) : null;
 }
 
 function followOptions(all: HTMLInputElement): void {
@@ -100,17 +108,25 @@ export function installSelectAll(): void {
     const target = event.target;
     if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
     if (target.matches(SELECT_ALL)) {
-      // Read once: each option's change below brings this box back in line with the options.
       const on = target.checked;
-      for (const box of optionsOf(target)) {
-        if (box.checked === on || box.disabled) continue;
-        box.checked = on;
-        box.dispatchEvent(new Event("change", { bubbles: true }));
-      }
+      const flipped = optionsOf(target).filter((box) => box.checked !== on && !box.disabled);
+      for (const box of flipped) box.checked = on;
       followOptions(target);
-    } else if (target.closest(".ib-radio-options")) {
-      const all = target.closest(".ib-field")?.querySelector<HTMLInputElement>(SELECT_ALL);
+      for (const box of flipped) box.dispatchEvent(new Event("change", { bubbles: true }));
+    } else {
+      const all = boxFor(target);
       if (all) followOptions(all);
     }
   });
+
+  // A form reset puts the options back after this event, and the box with them.
+  document.addEventListener(
+    "reset",
+    (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      setTimeout(() => form.querySelectorAll<HTMLInputElement>(SELECT_ALL).forEach(followOptions), 0);
+    },
+    true
+  );
 }
