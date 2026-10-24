@@ -26,7 +26,7 @@ import { installSubmitFeedback, installValidityMessages } from "./forms";
 import { installSelects, syncSelects } from "./select";
 import { openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
-import { installIndeterminate, syncIndeterminate } from "./checkbox";
+import { installIndeterminate, installSelectAll, syncIndeterminate } from "./checkbox";
 import { focusMarked, installSkipLinks } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
 
@@ -35,6 +35,7 @@ installSubmitFeedback();
 installValidityMessages();
 installSelects();
 installIndeterminate();
+installSelectAll();
 
 // ToastService calls this through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {

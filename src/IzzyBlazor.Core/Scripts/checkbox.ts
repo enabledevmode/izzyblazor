@@ -71,3 +71,46 @@ export function installIndeterminate(): void {
     syncIndeterminate();
   }
 }
+
+/**
+ * CheckboxGroup's SelectAll: the box above the options checks or clears them all, firing `change`
+ * on each one it flips (so an interactive page hears each, as if clicked), and follows them:
+ * checked when all are, a dash when some are. It has no name, so it never posts. Read-only boxes
+ * don't change (forms.ts cancels the click), and the server renders the starting state.
+ */
+const SELECT_ALL = "input[type=checkbox][data-ib-select-all]";
+
+function optionsOf(all: HTMLInputElement): HTMLInputElement[] {
+  const field = all.closest(".ib-field");
+  return field ? [...field.querySelectorAll<HTMLInputElement>(".ib-radio-options input[type=checkbox]")] : [];
+}
+
+function followOptions(all: HTMLInputElement): void {
+  const options = optionsOf(all);
+  const checked = options.filter((box) => box.checked).length;
+  const some = checked > 0 && checked < options.length;
+  all.checked = options.length > 0 && checked === options.length;
+  all.indeterminate = some;
+  // The server's dash (data-indeterminate) shows until this says otherwise.
+  all.toggleAttribute("data-indeterminate-cleared", !some);
+}
+
+export function installSelectAll(): void {
+  document.addEventListener("change", (event) => {
+    const target = event.target;
+    if (!(target instanceof HTMLInputElement) || target.type !== "checkbox") return;
+    if (target.matches(SELECT_ALL)) {
+      // Read once: each option's change below brings this box back in line with the options.
+      const on = target.checked;
+      for (const box of optionsOf(target)) {
+        if (box.checked === on || box.disabled) continue;
+        box.checked = on;
+        box.dispatchEvent(new Event("change", { bubbles: true }));
+      }
+      followOptions(target);
+    } else if (target.closest(".ib-radio-options")) {
+      const all = target.closest(".ib-field")?.querySelector<HTMLInputElement>(SELECT_ALL);
+      if (all) followOptions(all);
+    }
+  });
+}
