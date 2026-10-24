@@ -136,3 +136,65 @@ export function installValidityMessages(): void {
   );
   document.addEventListener("keydown", (event) => event.key === "Enter" && clear(), true);
 }
+
+/**
+ * On a static page a field's errors come from the last post, and nothing checks them again until
+ * the next one. Once the field is edited they may no longer be true, so the first edit hides them:
+ * the message, the field's invalid look, aria-invalid, and the error's id from aria-describedby.
+ * A form reset puts the posted values back, and with them their errors. An interactive page
+ * validates each change in C# and renders the errors itself.
+ *
+ * The form's FormErrors summary stays: it reports the last post.
+ */
+export function installStaleErrors(): void {
+  // How to show each hidden field's errors again.
+  const restore = new Map<HTMLElement, () => void>();
+  const edited = (event: Event) => {
+    const target = event.target;
+    if (!(target instanceof Element)) return;
+    // Typing in a Combobox or MultiSelect searches its list; choosing changes the value.
+    if (target.classList.contains("ib-combobox-input")) return;
+    const field = target.closest<HTMLElement>(".ib-field-invalid");
+    // Only static forms: Blazor owns an interactive form's markup.
+    if (!field || !field.closest("form")?.querySelector('input[name="_handler"]')) return;
+    const error = field.querySelector<HTMLElement>(":scope > .ib-field-error");
+    const saved: [Element, string | null, string | null][] = [];
+    field.classList.remove("ib-field-invalid");
+    for (const el of [field, ...field.querySelectorAll("[aria-invalid], [aria-describedby]")]) {
+      const invalid = el.getAttribute("aria-invalid");
+      const ids = el.getAttribute("aria-describedby");
+      saved.push([el, invalid, ids]);
+      el.removeAttribute("aria-invalid");
+      if (!error?.id || !ids) continue;
+      const rest = ids.split(/\s+/).filter((id) => id && id !== error.id);
+      if (rest.length) el.setAttribute("aria-describedby", rest.join(" "));
+      else el.removeAttribute("aria-describedby");
+    }
+    if (error) error.hidden = true;
+    // Only while the page still shows this post: an enhanced post since may have changed the
+    // field, removing the error or showing a new one.
+    restore.set(field, () => {
+      if (!error?.isConnected || !error.hidden || field.classList.contains("ib-field-invalid")) return;
+      field.classList.add("ib-field-invalid");
+      for (const [el, invalid, ids] of saved) {
+        if (invalid !== null) el.setAttribute("aria-invalid", invalid);
+        if (ids !== null) el.setAttribute("aria-describedby", ids);
+      }
+      error.hidden = false;
+    });
+  };
+  for (const type of ["input", "change"]) document.addEventListener(type, edited, true);
+  document.addEventListener(
+    "reset",
+    (event) => {
+      for (const [field, show] of restore) {
+        if (!field.isConnected) restore.delete(field);
+        else if (event.target instanceof Node && event.target.contains(field)) {
+          show();
+          restore.delete(field);
+        }
+      }
+    },
+    true
+  );
+}

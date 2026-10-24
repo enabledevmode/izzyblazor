@@ -17,8 +17,10 @@
       The select stays in the form, hidden under the input, so posting, required validation and
       @bind still go through it.
     - Interactive with Search: typing calls Search on the server (debounced) and the list shows
-      its results; Enter or leaving the field before they come waits for them. Without a circuit,
-      Search("") fills the list once and it filters in the browser.
+      its results; Enter or leaving the field before they come waits for them. Choosing, Escape
+      or leaving puts the chosen text back and, after a search, calls Search("") again, so the
+      list opens with the first results. Without a circuit, Search("") fills the list once and it filters in the
+      browser.
 
     Accessibility:
     - With script, the input is a `combobox` with a `listbox` of options: focus stays in the
@@ -94,7 +96,8 @@
              popover="manual"
              role="listbox"
              aria-labelledby="@LabelId"
-             aria-busy="@(_searching ? "true" : null)">
+             aria-busy="@(_searching ? "true" : null)"
+             data-query="@(ServerFiltered ? _resultsQuery : null)">
             @{ var index = 0; }
             @foreach (var item in ListOptions.DistinctBy(FormatValueAsString))
             {
@@ -120,6 +123,12 @@
             <div class="ib-combobox-empty" aria-hidden="true">@(_searching ? SearchingText ?? TextDefaults.Searching : EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
         <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
+        @if (ServerFiltered)
+        {
+            @* The script fires input here when it puts the chosen text back, so the list holds the
+               first results again, not the last search's. *@
+            <input type="hidden" class="ib-combobox-reset" value="" @attributes="SearchAttributes" />
+        }
     </ib-combobox>
     }
     @if (PostsReadOnlyValue)
@@ -132,6 +141,8 @@
 @code {
     private CancellationTokenSource? _searchCts;
     private IReadOnlyList<TValue>? _results;
+    // The text _results were found for, so the script knows which search they answer.
+    private string _resultsQuery = "";
     private bool _searching;
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically, or with <see cref="Search"/>.</summary>
@@ -191,7 +202,11 @@
         {
             if (Search is not null)
             {
-                return _results ?? [];
+                // The first results lead with the choice when they leave it out, so the list opens on it.
+                var results = _results ?? [];
+                return _resultsQuery.Length == 0 && HasValue && !results.Any(r => FormatValueAsString(r) == CurrentValueAsString)
+                    ? results.Prepend(CurrentValue!)
+                    : results;
             }
 
             if (Items is not null)
@@ -235,20 +250,25 @@
             return;
         }
 
+        // Cancel the last search but leave disposing it to its own call, which may still be
+        // about to read its token.
         _searchCts?.Cancel();
-        _searchCts?.Dispose();
         var cts = _searchCts = new CancellationTokenSource();
+        var token = cts.Token;
         var query = e.Value?.ToString() ?? "";
 
         try
         {
-            await Task.Delay(Debounce, cts.Token);
+            // Also for the first results after a choice: answered at once, they'd render in the same
+            // batch as the choice, and the select would fall back to the placeholder.
+            await Task.Delay(Debounce, token);
             _searching = true;
             StateHasChanged();
-            var results = (await Search(query, cts.Token)).ToList();
-            if (!cts.IsCancellationRequested)
+            var results = (await Search(query, token)).ToList();
+            if (!token.IsCancellationRequested)
             {
                 _results = results;
+                _resultsQuery = query;
             }
         }
         catch (OperationCanceledException)
@@ -260,7 +280,10 @@
             if (ReferenceEquals(_searchCts, cts))
             {
                 _searching = false;
+                _searchCts = null;
             }
+
+            cts.Dispose();
         }
     }
 

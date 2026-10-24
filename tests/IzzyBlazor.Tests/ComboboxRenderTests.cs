@@ -15,7 +15,7 @@ public class ComboboxRenderTests : BunitContext
     }
 
     private static readonly Dictionary<string, string> Countries = new() { ["CA"] = "Canada", ["FR"] = "France", ["JP"] = "Japan" };
-    private static readonly Dictionary<int, string> People = new() { [1] = "Ada Lovelace", [2] = "Grace Hopper", [3] = "Alan Turing" };
+    private static readonly Dictionary<int, string> People = new() { [1] = "Ada Lovelace", [2] = "Grace Hopper", [3] = "Alan Turing", [4] = "Linus Torvalds" };
 
     private readonly Model _model = new();
     private readonly EditContext _context;
@@ -30,7 +30,7 @@ public class ComboboxRenderTests : BunitContext
     private Task<IEnumerable<int?>> FindPeople(string text, CancellationToken token)
     {
         _searches.Add(text);
-        return Task.FromResult(People.Where(p => p.Value.Contains(text, StringComparison.OrdinalIgnoreCase)).Select(p => (int?)p.Key));
+        return Task.FromResult(People.Where(p => p.Value.Contains(text, StringComparison.OrdinalIgnoreCase)).Take(3).Select(p => (int?)p.Key));
     }
 
     private IRenderedComponent<Combobox<string?>> Countries_() => Render<Combobox<string?>>(p => p
@@ -106,6 +106,45 @@ public class ComboboxRenderTests : BunitContext
 
         cut.WaitForAssertion(() => Assert.Equal(new[] { "Grace Hopper" }, cut.FindAll("[role=option]").Select(o => o.GetAttribute("data-text"))));
         Assert.Equal(new[] { "", "grace" }, _searches);
+    }
+
+    [Fact]
+    public void Putting_the_chosen_text_back_searches_for_the_first_results_again()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = People_();
+
+        cut.Find("input").Input("grace");
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[role=option]")));
+        // The list says which text its results are for.
+        Assert.Equal("grace", cut.Find("[role=listbox]").GetAttribute("data-query"));
+
+        // The script fires input on the reset field when the text is put back.
+        cut.Find("input.ib-combobox-reset").Input("");
+
+        cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll("[role=option]").Count));
+        Assert.Equal("", cut.Find("[role=listbox]").GetAttribute("data-query"));
+        Assert.Equal(new[] { "", "grace", "" }, _searches);
+    }
+
+    [Fact]
+    public void First_results_lead_with_the_choice_when_they_leave_it_out()
+    {
+        _model.OwnerId = 4;
+        var cut = People_();
+
+        var options = cut.FindAll("[role=option]");
+        Assert.Equal(new[] { "4", "1", "2", "3" }, options.Select(o => o.GetAttribute("data-value")));
+        Assert.Equal("true", options[0].GetAttribute("aria-selected"));
+        Assert.Equal(new[] { "", "4", "1", "2", "3" }, cut.FindAll("select option").Select(o => o.GetAttribute("value")));
+    }
+
+    [Fact]
+    public void Without_a_circuit_there_is_no_reset_field()
+    {
+        var cut = People_();
+
+        Assert.Empty(cut.FindAll(".ib-combobox-reset"));
     }
 
     [Fact]

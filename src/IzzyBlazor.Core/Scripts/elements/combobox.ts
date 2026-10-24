@@ -35,6 +35,8 @@ class Combobox extends IzzyElement {
   // Server search: typed text whose results haven't come yet, and what to do once they have.
   #pending = false;
   #after: "choose" | "commit" | null = null;
+  // Server search: the text the list's results are for ("" for the first results).
+  #searched = "";
 
   protected setup(signal: AbortSignal): void {
     const input = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-input, :scope > .ib-multiselect-box > .ib-combobox-input");
@@ -102,13 +104,14 @@ class Combobox extends IzzyElement {
     );
 
     // Blazor replaces the options (server search, or new Items). A server search has finished
-    // when the list stops being busy (aria-busy goes), whether or not its options changed.
-    const observer = new MutationObserver((records) => {
-      const done = records.some((r) => r.type === "attributes" && r.attributeName === "aria-busy") && list.getAttribute("aria-busy") !== "true";
+    // when the list stops being busy (aria-busy goes), whether or not its options changed, and
+    // the typed text's when the list says it holds that text's results (data-query): an earlier
+    // search, such as the one for all results after choosing, can finish while it's on its way.
+    const observer = new MutationObserver(() => {
       if (this.isOpen) this.refresh();
-      if (done && this.#pending) this.onResults();
+      if (this.#pending && list.getAttribute("aria-busy") !== "true" && list.dataset.query === this.#searched) this.onResults();
     });
-    observer.observe(list, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-busy"] });
+    observer.observe(list, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ["aria-busy", "data-query"] });
 
     let selectObserver: MutationObserver | null = null;
     if (this.#multiple) {
@@ -232,7 +235,10 @@ class Combobox extends IzzyElement {
     this.#typed = true;
     this.#input.setCustomValidity("");
     this.#after = null;
-    if (this.hasAttribute("data-server") && !this.#multiple) this.#pending = true;
+    if (this.hasAttribute("data-server") && !this.#multiple) {
+      this.#pending = true;
+      this.#searched = this.#input.value;
+    }
     this.open(false);
   }
 
@@ -270,7 +276,8 @@ class Combobox extends IzzyElement {
           this.open();
           if (!this.#active) this.activate(this.visible.at(-1) ?? null);
         } else if (event.altKey) {
-          if (this.#active) this.choose(this.#active);
+          if (this.#pending) this.#after = "choose";
+          else if (this.#active) this.choose(this.#active);
           else this.close();
         } else {
           this.activate(options[Math.max(index - 1, 0)] ?? null);
@@ -384,11 +391,26 @@ class Combobox extends IzzyElement {
     for (const option of this.options) option.setAttribute("aria-selected", String(chosen.some((o) => o.value === option.dataset.value)));
   }
 
+  /**
+   * Server search, once the chosen text is back in the field: ask for the first results again,
+   * so the list doesn't open on the last search's ("No matches", or only the chosen option).
+   */
+  private searchAll(): void {
+    const reset = this.querySelector<HTMLInputElement>(":scope > .ib-combobox-reset");
+    if (!reset || this.#searched === "") return;
+    this.#searched = "";
+    // What was typed is gone, so no Enter or leaving waits for its results.
+    this.#pending = false;
+    this.#after = null;
+    reset.dispatchEvent(new Event("input", { bubbles: true }));
+  }
+
   private setValue(value: string, text: string): void {
     const select = this.#select;
     this.#typed = false;
     this.#input.value = text;
     this.#input.setCustomValidity("");
+    this.searchAll();
     if (select.value === value) return;
     select.value = value;
     for (const o of this.options) o.setAttribute("aria-selected", String(o.dataset.value === value));
@@ -432,6 +454,7 @@ class Combobox extends IzzyElement {
     const option = this.#select.selectedOptions[0];
     this.#input.value = option && option.value !== "" ? option.text : "";
     this.#input.setCustomValidity("");
+    this.searchAll();
   }
 }
 
