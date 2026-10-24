@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits LayoutItemBase
+@implements IDisposable
 @attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, it shows on hover and focus, but Escape doesn't hide it and screen readers don't announce it.")]
 
 @*
@@ -25,12 +26,15 @@
     See also: Popover, IconButton, Button.
 *@
 
-<ib-tooltip class="@_outerClass"
+@_toolbar.Wrap(@<ib-tooltip class="@_outerClass"
             style="@_outerStyle"
             data-placement="@Placement.Name()"
             data-delay="@Delay">
     @* An IconButton in here leaves out its own title, so hovering shows one tooltip. *@
-    <CascadingValue Value="TooltipScope.Instance" IsFixed="true">@ChildContent</CascadingValue>
+    @* In a toolbar the tooltip is the unit, and the control inside it reports to it. *@
+    <CascadingValue Value="TooltipScope.Instance" IsFixed="true">
+        <CascadingValue Value="_toolbar.Inner()">@ChildContent</CascadingValue>
+    </CascadingValue>
     <span @attributes="AdditionalAttributes" id="@_id" role="tooltip" class="@_class" style="@_style">
         @if (Content is not null)
         {
@@ -41,7 +45,7 @@
             @Text
         }
     </span>
-</ib-tooltip>
+</ib-tooltip>)
 
 @code {
     /// <summary>The tooltip text.</summary>
@@ -60,6 +64,12 @@
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     private readonly string _id = IdGenerator.Next("ib-tooltip");
+    private readonly ToolbarMember _toolbar;
+
+    /// <summary>Creates the tooltip.</summary>
+    public Tooltip() => _toolbar = new ToolbarMember(this);
+
+    [CascadingParameter] private ToolbarScope? ToolbarScope { get; set; }
     private string? _class;
     private string? _style;
     private string? _outerClass;
@@ -94,5 +104,9 @@
 
         (_class, _style) = BuildRootAttributes();
         (_outerClass, _outerStyle) = BuildOuterAttributes("ib-tooltip-root", $"anchor-name:{StyleValues.AnchorName(_id)}");
+        _toolbar.Update(ToolbarScope, entry: null);
     }
+
+    /// <inheritdoc />
+    public void Dispose() => _toolbar.Dispose();
 }

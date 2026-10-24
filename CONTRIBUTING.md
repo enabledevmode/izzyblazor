@@ -88,7 +88,11 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
    shows until then. Likewise, a layout choice made on `IsInteractive` uses `WillBeInteractive`
    where a prerender would otherwise be drawn another size (Table's filter Apply row, Tag's
    remove button), keeping links that work before the circuit connects. A site test fails on a
-   `:defined` rule.
+   `:defined` rule. Toolbar is the one place the script decides layout, since only it can measure
+   what fits: the server writes container queries from widths it estimates (button labels in
+   Inter, `build/measure-text.mjs`) for the first paint, and the script, which sets
+   `[data-ib-measured]`, keeps that layout on its first pass when it fits and the measurement
+   differs by no more than a few pixels.
 4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
 5. **Tests** in `tests/IzzyBlazor.Tests/`, for its behavior (see [Tests](#tests)).
 6. **Docs:** an entry in `site/IzzyBlazor.Site/components.json` (or a part on its parent's entry;

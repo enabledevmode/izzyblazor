@@ -21,6 +21,7 @@
 @import "./components/typography.css";
 @import "./components/icon.css";
 @import "./components/button.css";
+@import "./components/toolbar.css";
 @import "./components/form.css";
 @import "./components/badge.css";
 @import "./components/avatar.css";

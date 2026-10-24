@@ -1,0 +1,88 @@
+@* Toolbar. Drag a box's corner to narrow it: what doesn't fit moves into the … menu. *@
+
+<Stack Gap="8">
+
+    <Example Title="Editor" Note="Without script, widths worked out on the server choose what moves (container queries); with it, the toolbar measures, and Tab reaches it once with the arrows moving along it. Publish never moves; Text style (Priority 1) stays longest." Code="@EditorCode">
+        <Box Padding="3" Border="1" Radius="Radius.Md" Style="resize: horizontal; overflow: hidden; min-width: 12rem; max-width: 100%">
+            <Toolbar Label="Editor">
+                <ButtonGroup Label="History">
+                    <IconButton Icon="Lucide.Undo2" Label="Undo" />
+                    <IconButton Icon="Lucide.Redo2" Label="Redo" />
+                </ButtonGroup>
+                <ToolbarItem Priority="1">
+                    <ButtonGroup Label="Text style" Variant="ButtonVariant.Outline">
+                        <IconButton Icon="Lucide.Bold" Label="Bold" />
+                        <IconButton Icon="Lucide.Italic" Label="Italic" />
+                        <IconButton Icon="Lucide.Underline" Label="Underline" />
+                    </ButtonGroup>
+                </ToolbarItem>
+                <ToolbarSeparator />
+                <Button StartIcon="Lucide.Link">Link</Button>
+                <Button StartIcon="Lucide.Image">Image</Button>
+                <ToolbarEnd>
+                    <Button StartIcon="Lucide.Eye">Preview</Button>
+                    <ToolbarItem Overflow="ToolbarOverflow.Never">
+                        <Button StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
+                    </ToolbarItem>
+                </ToolbarEnd>
+            </Toolbar>
+        </Box>
+    </Example>
+
+    <Example Title="Posting from the menu" Note="Each button posts intent=… with the form, from the bar or the … menu, with JavaScript off too. Print is only ever in the menu (Overflow.Always)." Code="@PostCode">
+        <Stack Gap="3">
+            <Box Padding="3" Border="1" Radius="Radius.Md" Style="resize: horizontal; overflow: hidden; min-width: 12rem; max-width: 100%">
+                <form method="post" @formname="demo-toolbar" @onsubmit="Post" data-enhance>
+                    <AntiforgeryToken />
+                    <Toolbar Label="Selected messages">
+                        <Button Submit Name="intent" Value="archive" StartIcon="Lucide.Archive" OnClick='() => _pressed = "archive"'>Archive</Button>
+                        <Button Submit Name="intent" Value="read" StartIcon="Lucide.MailOpen" OnClick='() => _pressed = "read"'>Mark read</Button>
+                        <Button Submit Name="intent" Value="delete" StartIcon="Lucide.Trash" Accent="Accent.Danger" OnClick='() => _pressed = "delete"'>Delete</Button>
+                        <ToolbarItem Overflow="ToolbarOverflow.Always">
+                            <Button Submit Name="intent" Value="print" StartIcon="Lucide.Printer" OnClick='() => _pressed = "print"'>Print</Button>
+                        </ToolbarItem>
+                    </Toolbar>
+                </form>
+            </Box>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" data-testid="toolbar-posted">Posted: @(_posted ?? "nothing yet")</TextBlock>
+        </Stack>
+    </Example>
+
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "demo-toolbar", Name = "intent")]
+    private string? Intent { get; set; }
+
+    private string? _pressed;
+    private string? _posted;
+
+    private void Post() => _posted = Intent ?? _pressed;
+
+    private const string EditorCode =
+        """
+        <Toolbar Label="Editor">
+            <ButtonGroup Label="History">...</ButtonGroup>
+            <ToolbarItem Priority="1"><ButtonGroup Label="Text style">...</ButtonGroup></ToolbarItem>
+            <ToolbarSeparator />
+            <Button StartIcon="Lucide.Link">Link</Button>
+            <Button StartIcon="Lucide.Image">Image</Button>
+            <ToolbarEnd>
+                <Button StartIcon="Lucide.Eye">Preview</Button>
+                <ToolbarItem Overflow="ToolbarOverflow.Never"><Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button></ToolbarItem>
+            </ToolbarEnd>
+        </Toolbar>
+        """;
+
+    private const string PostCode =
+        """
+        <form method="post" @formname="mail" @onsubmit="Post">
+            <AntiforgeryToken />
+            <Toolbar Label="Selected messages">
+                <Button Submit Name="intent" Value="archive">Archive</Button>
+                <Button Submit Name="intent" Value="delete" Accent="Accent.Danger">Delete</Button>
+                <ToolbarItem Overflow="ToolbarOverflow.Always"><Button Submit Name="intent" Value="print">Print</Button></ToolbarItem>
+            </Toolbar>
+        </form>
+        """;
+}

@@ -72,6 +72,35 @@ public class IconButton : ButtonBase
     protected override bool IconOnly => true;
 
     /// <inheritdoc />
+    private protected override bool WrapsInToolbar => true;
+
+    /// <inheritdoc />
+    private protected override string? LabelText => Label;
+
+    /// <inheritdoc />
+    private protected override RenderFragment? ToolbarMenuItem(string? text) =>
+        GetType() != typeof(IconButton) || Reset || !CopiesToMenu ? null : builder =>
+        {
+            builder.OpenComponent<MenuItem>(0);
+            builder.AddComponentParameter(1, nameof(MenuItem.Href), Href);
+            builder.AddComponentParameter(2, nameof(MenuItem.Submit), Submit);
+            builder.AddComponentParameter(3, nameof(MenuItem.Name), Name);
+            builder.AddComponentParameter(4, nameof(MenuItem.Value), Value);
+            builder.AddComponentParameter(5, nameof(MenuItem.FormAction), FormAction);
+            builder.AddComponentParameter(6, nameof(MenuItem.Form), Form);
+            builder.AddComponentParameter(7, nameof(MenuItem.Icon), (IconData?)Icon);
+            builder.AddComponentParameter(8, nameof(MenuItem.Disabled), Disabled || Loading);
+            builder.AddComponentParameter(9, nameof(MenuItem.Accent), EffectiveAccent == Accent.Danger ? Accent.Danger : Accent.Neutral);
+            if (OnClick.HasDelegate)
+            {
+                builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
+            }
+
+            builder.AddComponentParameter(11, nameof(MenuItem.ChildContent), (RenderFragment)(b => b.AddContent(0, text ?? Label)));
+            builder.CloseComponent();
+        };
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         if (string.IsNullOrWhiteSpace(Label))
@@ -86,7 +115,9 @@ public class IconButton : ButtonBase
     }
 
     /// <inheritdoc />
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ToolbarPart.Wrap(RenderButton));
+
+    private void RenderButton(RenderTreeBuilder builder)
     {
         var (cssClass, style) = BuildRootAttributes();
         var isLink = Href is not null;

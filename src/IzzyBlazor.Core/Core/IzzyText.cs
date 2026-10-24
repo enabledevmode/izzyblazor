@@ -72,6 +72,9 @@ public class IzzyText
     /// <summary>Cancel in ConfirmButton's dialog and DialogService.ConfirmAsync.</summary>
     public virtual string Cancel { get; set; } = "Cancel";
 
+    /// <summary>A Toolbar's "…" button, which holds what doesn't fit.</summary>
+    public virtual string MoreActions { get; set; } = "More actions";
+
     /// <summary>Announced while busy. Button Loading, Spinner.</summary>
     public virtual string Loading { get; set; } = "Loading";
 

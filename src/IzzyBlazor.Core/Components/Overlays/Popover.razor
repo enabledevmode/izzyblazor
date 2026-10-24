@@ -62,9 +62,11 @@
                 }
             </div>
         }
-        @* Buttons in the panel don't take the style of a ButtonGroup around its trigger. *@
+        @* Buttons in the panel don't take the style of a ButtonGroup around its trigger, or become a toolbar's items. *@
         <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
-            @ChildContent
+            <CascadingValue Value="ToolbarScope.Blocked" IsFixed="true">
+                @ChildContent
+            </CascadingValue>
         </CascadingValue>
     </div>
 </ib-popover>
