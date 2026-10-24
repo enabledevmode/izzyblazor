@@ -193,7 +193,9 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--ib-space-2);
-    margin: 0 calc(var(--ib-card-p) * -1) calc(var(--ib-card-p) * -1);
+    /* auto above: still at the bottom of a stretched card when the spacer is missing (a body of
+       bare text, which :only-child doesn't see). */
+    margin: auto calc(var(--ib-card-p) * -1) calc(var(--ib-card-p) * -1);
     padding: 0 var(--ib-card-p) var(--ib-card-p);
     font-size: var(--ib-text-md);
   }
@@ -240,7 +242,14 @@
     outline-offset: 2px;
   }
 
-  .ib-card-linked :is(.ib-card-heading, .ib-card-actions, .ib-card-footer, .ib-card-body) :is(a, button, input, select, textarea, label, summary, [tabindex]):not(.ib-card-link) {
+  .ib-card-linked :is(.ib-card-heading, .ib-card-actions, .ib-card-footer, .ib-card-body) :is(a, button, input, select, textarea, label, summary, [tabindex]):not(.ib-card-link, .ib-video-poster) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* Media that plays sits above the link too. A VideoEmbed lifts as a whole: its poster is placed
+     inside it. */
+  .ib-card-linked :is(.ib-card-body, .ib-card-media) :is(.ib-video, video[controls], audio[controls], iframe) {
     position: relative;
     z-index: 1;
   }
