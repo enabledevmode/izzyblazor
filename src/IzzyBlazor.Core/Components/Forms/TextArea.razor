@@ -24,6 +24,7 @@
                   name="@NameAttributeValue"
                   @bind="CurrentValueAsString"
                   rows="@Rows"
+                  style="@(AutoGrow ? $"--ib-rows: {Rows}" : null)"
                   placeholder="@Placeholder"
                   required="@IsRequired"
                   maxlength="@Max"
@@ -43,7 +44,7 @@
     /// <summary>Visible lines. Defaults to 4.</summary>
     [Parameter] public int Rows { get; set; } = 4;
 
-    /// <summary>Grows with the text instead of scrolling.</summary>
+    /// <summary>Grows with the text instead of scrolling, from <see cref="Rows"/> lines up, where the browser supports CSS <c>field-sizing</c>.</summary>
     [Parameter] public bool AutoGrow { get; set; }
 
     /// <summary>Example text shown when empty.</summary>
