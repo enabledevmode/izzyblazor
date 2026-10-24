@@ -1092,7 +1092,10 @@ A keyword, category or applied filter: larger than a `Badge`, with the same `Sta
 variants (`Soft`, `Solid`, `Outline`), and `Size` (20, 24 or 28px). `Label` is the text (or content),
 `StartIcon` an icon, and `Href` makes the text a link. To make it removable, give it `RemoveHref` (a
 link, such as the current URL without that filter, for static pages) and/or `OnRemove` (C#, used on
-interactive pages). The remove control is named "Remove {Label}" (`RemoveLabel`).
+interactive pages). The remove control is named "Remove {Label}" (`RemoveLabel`). When it removes
+the tag, IzzyBlazor's script moves focus to the next control where it was (the next tag's remove
+control), else the one before it, as it does for any focused control a render or an enhanced post
+removes on the same page, so keyboard users don't land at the top of the page.
 
 ## Loading: Spinner, Progress, Skeleton
 
