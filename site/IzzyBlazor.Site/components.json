@@ -373,14 +373,14 @@
     {
       "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "A square button with a required label.",
       "features": [
-        { "feature": "Submit or reset a form, follow a link; name and value tell buttons apart" },
+        { "feature": "Submit or reset a form, follow a link; Name and Value tell buttons apart" },
         { "feature": "Loading and disabled states" },
         { "feature": "OnClick runs C#", "member": "OnClick" }
       ],
       "examples": [
         { "id": "icon-button-variants", "title": "Labels and variants", "lead": "Use `Label` for the button's name and tooltip; it takes `Variant`, `Accent` and `Href` as Button does." },
         { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Use `Size`, `Loading` and `Disabled` as on Button." },
-        { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "Use `Href` for a link and `Submit` with `name` and `value` attributes to post which row a button is on, with `OnClick` for the same on interactive pages.",
+        { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "Use `Href` for a link and `Submit` with `Name` and `Value` to post which row a button is on, with `OnClick` for the same on interactive pages.",
           "notes": {
             "off": "Delete posts the file's name and the page reloads without it; Restore is a link back.",
             "static": "Delete posts without a reload, and the response redirects to an address listing what's deleted.",

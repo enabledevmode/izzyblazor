@@ -16,9 +16,9 @@
 <ExampleViewer Example="icon-button-sizes-states" />
 
 <Heading Level="2">Actions on a row</Heading>
-<TextBlock>Use <Code>Href</Code> for a link and <Code>Submit</Code> with <Code>name</Code> and <Code>value</Code> attributes to post which row a button is on, with <Code>OnClick</Code> for the same on interactive pages.</TextBlock>
+<TextBlock>Use <Code>Href</Code> for a link and <Code>Submit</Code> with <Code>Name</Code> and <Code>Value</Code> to post which row a button is on, with <Code>OnClick</Code> for the same on interactive pages.</TextBlock>
 <ExampleViewer Example="icon-button-row-actions" />
-<TextBlock>IconButton passes <Code>name</Code> and <Code>value</Code> to its button as attributes; unlike Button, it has no <Code>Name</Code>, <Code>Value</Code>, <Code>Form</Code> or <Code>FormAction</Code> parameters. Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip say which one. <Code>OnClick</Code> runs only on interactive pages; on static ones the post is what happens, as with Button.</TextBlock>
+<TextBlock>Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip say which one. <Code>OnClick</Code> runs only on interactive pages; on static ones the post is what happens, as with Button.</TextBlock>
 
 <Heading Level="2">A tooltip on focus</Heading>
 <TextBlock>Wrap it in a <Anchor Href="docs/components/tooltip">Tooltip</Anchor> for a hint that shows on keyboard focus as well as hover, or for more than the label, such as a shortcut.</TextBlock>
@@ -52,7 +52,7 @@
         <IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" />
 
         @* In a form: posts delete=42 when pressed. *@
-        <IconButton Icon="Lucide.Trash" Label="Delete invoice 42" Submit name="delete" value="42"
+        <IconButton Icon="Lucide.Trash" Label="Delete invoice 42" Submit Name="delete" Value="42"
                     Accent="Accent.Danger" Variant="ButtonVariant.Ghost" />
         """;
 

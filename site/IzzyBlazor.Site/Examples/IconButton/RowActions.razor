@@ -1,6 +1,6 @@
 @inject NavigationManager Navigation
 
-@* A link and a post on each row. Static pages: Delete posts its name=value and redirects with the
+@* A link and a post on each row. Static pages: Delete posts its Name=Value and redirects with the
    deleted names in the address. Interactive pages: OnClick says which button it was. *@
 <form method="post" @formname="icon-button-files" @onsubmit="Delete" data-enhance class="ib-grow">
     <AntiforgeryToken />
@@ -12,7 +12,7 @@
                 <TextBlock As="span" Grow Truncate MarginLeft="1">@file</TextBlock>
                 <IconButton Icon="Lucide.Eye" Label="@($"Preview {file}")" Href="@Navigation.GetUriWithQueryParameter("preview", file)"
                             Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
-                <IconButton Icon="Lucide.Trash" Label="@($"Delete {file}")" Submit name="delete" value="@file"
+                <IconButton Icon="Lucide.Trash" Label="@($"Delete {file}")" Submit Name="delete" Value="@file"
                             OnClick="() => _clicked = file"
                             Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger" />
             </Row>
