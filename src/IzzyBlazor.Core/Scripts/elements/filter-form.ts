@@ -3,7 +3,8 @@ import { TypingGuard, changedFromServer, isPageKey, navigateTo } from "../filter
 
 /**
  * <ib-filter-form> makes a FilterForm live: the search box applies after a pause in typing,
- * selects and checkboxes apply when they change, and Enter applies at once. It builds the URL
+ * selects and checkboxes apply when they change, other inputs of your own (a date) after a pause,
+ * and Enter applies at once. It builds the URL
  * from the current one plus the form's fields (as a normal submit would), drops page numbers,
  * and navigates through Blazor, which keeps the page in place.
  *
@@ -59,8 +60,16 @@ class FilterForm extends IzzyElement {
     form.addEventListener(
       "change",
       (event) => {
+        // Text boxes apply as they're typed in. A select, checkbox or radio applies when it
+        // changes; any other input of your own (a date, a number) after a pause, since typing a
+        // date with the keyboard changes it once per part.
         const target = event.target as HTMLElement;
-        if (this.live && target.matches("select, input[type=checkbox], input[type=radio]")) this.apply(false);
+        if (!this.live || typedIn(target)) return;
+        if (target.matches("select, input[type=checkbox], input[type=radio]")) this.apply(false);
+        else if (target instanceof HTMLInputElement && target.type !== "hidden") {
+          clearTimeout(this.#timer);
+          this.#timer = window.setTimeout(() => this.apply(false), 350);
+        }
       },
       { signal }
     );
@@ -68,17 +77,29 @@ class FilterForm extends IzzyElement {
     form.addEventListener("focusout", (event) => this.#typing.forget(event.target as HTMLInputElement), { signal });
     signal.addEventListener("abort", () => clearTimeout(this.#timer));
 
+    // Back and Forward show another filter: what was being typed no longer applies.
+    window.addEventListener(
+      "popstate",
+      () => {
+        clearTimeout(this.#timer);
+        this.#typing.clear();
+      },
+      { signal }
+    );
+
     // A filter changed before this script arrived (the page shows no Apply button where script
-    // runs): apply it now rather than drop it. Not while it's still being typed in.
-    if (this.live && changedFromServer(form.elements)) {
+    // runs): apply it now rather than drop it. Not while it's still being typed in. An
+    // interactive render sets values as properties, not attributes, so the defaults it leaves
+    // can't tell a change; and it replaced whatever was changed before it.
+    if (this.live && !this.hasAttribute("data-ib-interactive") && changedFromServer(form.elements)) {
       const active = document.activeElement;
-      if (active instanceof HTMLInputElement && form.contains(active) && active.matches("input[type=search], input[type=text]")) this.typed(active);
+      if (active instanceof HTMLInputElement && form.contains(active) && typedIn(active)) this.typed(active);
       else this.apply(false);
     }
   }
 
   private typed(input: HTMLInputElement): void {
-    if (!this.live || !input.matches?.("input[type=search], input[type=text]")) return;
+    if (!this.live || !typedIn(input)) return;
     this.#typing.typed(input);
     clearTimeout(this.#timer);
     this.#timer = window.setTimeout(() => this.apply(true), 350);
@@ -119,6 +140,11 @@ class FilterForm extends IzzyElement {
 
     if (navigateTo(url, replace)) this.#typing.guard();
   }
+}
+
+/** Inputs that apply as they're typed in: text-like types (an input with no type is text). */
+function typedIn(target: EventTarget | null): target is HTMLInputElement {
+  return target instanceof HTMLInputElement && /^(text|search|email|tel|url)$/.test(target.type);
 }
 
 defineElement("ib-filter-form", FilterForm);

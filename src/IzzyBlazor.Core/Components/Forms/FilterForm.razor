@@ -10,8 +10,9 @@
     reads them with [SupplyParameterFromQuery] and filters its own data.
       - No script: a GET form. It keeps the rest of the query string (a table's sort, other
         tables' state) as hidden fields and drops page numbers, so filtering starts at page 1.
-      - With script: <ib-filter-form> applies as you type (after a pause) and when a select or
-        checkbox changes, without a full reload, and keeps focus in the search box.
+      - With script: <ib-filter-form> applies as you type in a search or text box (after a
+        pause), when a select or checkbox changes, and when another input of your own (a date)
+        changes, after a pause; without a full reload, and keeping focus where it was.
       - Interactive: the same navigation runs through Blazor; the page's query parameters update.
 
     <FilterForm>
@@ -25,14 +26,14 @@
       defaults to "Search"; a select without one is named by its `Name`, so give it a `Label`.
     - `FilterCheckbox` is a native checkbox with its `Label` shown beside it.
     - With script, filters apply as you type or change a value, without a reload, and focus stays
-      in the search box; Enter applies at once.
+      where it was; Enter applies at once.
     - The new results aren't announced, so say how many there are in a live region (a `Table`'s
       range under it is read when it changes).
     - Without script, or with `Live` false, an Apply button submits; "Clear" is a link.
     See also: Table, Pagination, TextField, Select.
 *@
 
-<ib-filter-form class="@_class" style="@_style" data-live="@(Live ? "" : null)">
+<ib-filter-form class="@_class" style="@_style" data-live="@(Live ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <form @attributes="AdditionalAttributes" method="get" action="@ActionPath" role="search" aria-label="@(Label ?? TextDefaults.Filters)" class="ib-filter-row">
         @foreach (var (key, value) in Kept())
         {
