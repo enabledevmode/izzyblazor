@@ -29,7 +29,7 @@
         </Box>
     </Example>
 
-    <Example Title="Posting from the menu" Note="Each button posts intent=… with the form, from the bar or the … menu, with JavaScript off too. Print is only ever in the menu (Overflow.Always)." Code="@PostCode">
+    <Example Title="Posting from the menu" Note="Each button posts intent=… with the form, from the bar or the … menu, with JavaScript off too. Print is only ever in the menu (Overflow.Always). Empty asks in a dialog first, which keeps its own Tab order inside the toolbar." Code="@PostCode">
         <Stack Gap="3">
             <Box Padding="3" Border="1" Radius="Radius.Md" Style="resize: horizontal; overflow: hidden; min-width: 12rem; max-width: 100%">
                 <form method="post" @formname="demo-toolbar" @onsubmit="Post" data-enhance>
@@ -38,6 +38,10 @@
                         <Button Submit Name="intent" Value="archive" StartIcon="Lucide.Archive" OnClick='() => _pressed = "archive"'>Archive</Button>
                         <Button Submit Name="intent" Value="read" StartIcon="Lucide.MailOpen" OnClick='() => _pressed = "read"'>Mark read</Button>
                         <Button Submit Name="intent" Value="delete" StartIcon="Lucide.Trash" Accent="Accent.Danger" OnClick='() => _pressed = "delete"'>Delete</Button>
+                        <ToolbarItem Overflow="ToolbarOverflow.Never" Width="Length.Rem(5.5)">
+                            <ConfirmButton Title="Empty the trash?" Message="Deleted messages can't be restored." Name="intent" Value="empty"
+                                           Accent="Accent.Danger" ConfirmText="Empty trash">Empty</ConfirmButton>
+                        </ToolbarItem>
                         <ToolbarItem Overflow="ToolbarOverflow.Always">
                             <Button Submit Name="intent" Value="print" StartIcon="Lucide.Printer" OnClick='() => _pressed = "print"'>Print</Button>
                         </ToolbarItem>

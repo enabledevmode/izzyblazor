@@ -1,0 +1,6 @@
+@* An app's own component around toolbar controls, for ToolbarTests. *@
+<div class="wrap-probe">@ChildContent</div>
+
+@code {
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+}

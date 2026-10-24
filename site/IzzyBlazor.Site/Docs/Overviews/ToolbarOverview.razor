@@ -20,7 +20,7 @@
 <Heading Level="2">Start, center and end</Heading>
 <TextBlock>Use <Code>ToolbarCenter</Code> and <Code>ToolbarEnd</Code> for the middle and the end; content outside them is the start.</TextBlock>
 <ExampleViewer Example="toolbar-regions" />
-<TextBlock>The center stays centered, so the start and the end each get half of the room around it.</TextBlock>
+<TextBlock>The center stays centered, so the start and the end each get half of the room around it, and the wider of the two gives up its controls first.</TextBlock>
 
 <Heading Level="2">Posting a form</Heading>
 <TextBlock>Use <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code> on its buttons as anywhere else: in the … menu they post the same, with JavaScript off too.</TextBlock>
@@ -50,7 +50,7 @@
     <ListItem>Give content that isn't a button a <Code>ToolbarItem</Code> with a <Code>Width</Code>, so the server can allow for it.</ListItem>
     <ListItem>A theme with another font can be a few pixels out until the script measures.</ListItem>
     <ListItem>A toolbar takes its width from its container, as a container query needs: in a row, or in a box that takes its width from its content, give it <Code>Grow</Code> or a width.</ListItem>
-    <ListItem>On interactive pages, show and hide controls with <Code>HiddenFrom</Code> or <Code>Disabled</Code> rather than <Code>@@if</Code>: one that appears later goes to the end of its region in the menu.</ListItem>
+    <ListItem>The menu lists controls in the order they reach the toolbar: one inside a component of your own (an <Code>AuthorizeView</Code>), or one an <Code>@@if</Code> adds on an interactive page, comes after the rest of its region. Wrap it in a <Code>ToolbarItem</Code>, which keeps its place.</ListItem>
 </List>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)

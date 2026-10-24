@@ -28,14 +28,21 @@ interface Layout {
   menuShown: Set<string>;
   width: number;
   more: boolean;
+  start: number;
+  end: number;
 }
 
 const REGIONS = [".ib-toolbar-start", ".ib-toolbar-center", ".ib-toolbar-end"];
 const CONTROLS = "a[href], button, input, select, textarea";
-const TEXT_INPUT = /^(text|search|url|tel|email|password|number|)$/;
+// Inputs that aren't typed into; every other input keeps its arrow keys (see #onKey).
+const NOT_TEXT = /^(button|submit|reset|checkbox|radio|image|file|color)$/;
 
-/** Units leave lowest priority first; ties from the middle outward (start from its end, center from its end, end from its start). */
-function dropOrder(units: Unit[]): Unit[] {
+/**
+ * Units leave lowest priority first; ties from the middle outward (start from its end, center from
+ * its end, end from its start). With a center the wider side sets the width, so a tie goes from
+ * whichever side is wider then.
+ */
+function dropOrder(units: Unit[], gap: number, moreWidth: number): Unit[] {
   const droppable = units.filter((u) => !u.separator && u.overflow === "auto");
   const rank = (u: Unit) => {
     const region = droppable.filter((d) => d.region === u.region);
@@ -43,10 +50,22 @@ function dropOrder(units: Unit[]): Unit[] {
     const before = droppable.filter((d) => d.region < u.region).length;
     return before + (u.region === 2 ? index : region.length - 1 - index);
   };
-  return droppable
+  const ranked = droppable
     .map((u) => ({ u, priority: u.priority, rank: rank(u) }))
     .sort((a, b) => a.priority - b.priority || a.rank - b.rank)
     .map((x) => x.u);
+  if (!units.some((u) => u.region === 1)) return ranked;
+
+  const order: Unit[] = [];
+  while (ranked.length > 0) {
+    // Once one has gone, the "…" shows at the end.
+    const { start, end } = layout(units, new Set(order.map((u) => u.id)), gap, moreWidth, true);
+    const side = start >= end ? 0 : 2;
+    const next = ranked.find((u) => u.priority === ranked[0].priority && u.region === side) ?? ranked[0];
+    order.push(next);
+    ranked.splice(ranked.indexOf(next), 1);
+  }
+  return order;
 }
 
 function hideStraySeparators(units: Unit[], shown: (u: Unit) => boolean, hide: (id: string) => void): void {
@@ -95,7 +114,7 @@ function layout(units: Unit[], dropped: Set<string>, gap: number, moreWidth: num
   let end = regionWidth(2);
   if (more) end += (end > 0 ? gap : 0) + moreWidth;
   const width = units.some((u) => u.region === 1) ? 2 * Math.max(start, end) + regionWidth(1) + 2 * gap : start + gap + end;
-  return { barHidden, menuShown, width, more };
+  return { barHidden, menuShown, width, more, start, end };
 }
 
 /**
@@ -105,7 +124,7 @@ function layout(units: Unit[], dropped: Set<string>, gap: number, moreWidth: num
  * estimates leave out kerning), so nothing moves when the script arrives.
  */
 function plan(units: Unit[], available: number, gap: number, moreWidth: number, cssDropped?: Set<string>): Layout {
-  const order = dropOrder(units);
+  const order = dropOrder(units, gap, moreWidth);
   const always = units.some((u) => !u.separator && u.overflow === "always");
   const at = (k: number) => layout(units, new Set(order.slice(0, k).map((u) => u.id)), gap, moreWidth, k > 0 || always);
   let k = 0;
@@ -148,7 +167,8 @@ class Toolbar extends IzzyElement {
       observeUnits();
       schedule();
     });
-    mutation.observe(this, { childList: true, subtree: true, characterData: true });
+    // Attributes too: a control turned off or on changes the tab stops (not the ones set here).
+    mutation.observe(this, { childList: true, subtree: true, characterData: true, attributeFilter: ["disabled", "hidden", "class", "href"] });
     signal.addEventListener("abort", () => {
       resize.disconnect();
       mutation.disconnect();
@@ -190,22 +210,46 @@ class Toolbar extends IzzyElement {
   /** Measures the units and shows the layout that fits. */
   #update(): void {
     const more = this.querySelector<HTMLElement>(":scope > .ib-toolbar-end > .ib-toolbar-more");
-    if (!more) return;
+    if (!more) {
+      this.#roving();
+      return;
+    }
     const elements = this.#barUnits();
     const menuIds = new Set([...this.querySelectorAll<HTMLElement>(".ib-toolbar-menu-unit")].map((m) => m.dataset.ibUnit));
+    const regionOf = (el: Element) => REGIONS.findIndex((r) => el.closest(r)?.parentElement === this) as Region;
 
-    // Every unit at full width for one read; no paint happens before the attributes below.
+    // Every unit as it is without the toolbar's own hiding, for one read; no paint happens before
+    // the attributes below. A unit that renders nothing then (HiddenFrom) stays out of the reckoning.
     this.toggleAttribute("data-ib-measuring", true);
-    const units: Unit[] = elements.map((el) => {
+    const units: Unit[] = [];
+    const absent = new Set<string>();
+    for (const el of elements) {
+      const id = el.dataset.ibUnit!;
+      const width = el.getBoundingClientRect().width;
+      if (!el.checkVisibility() || width === 0) {
+        absent.add(id);
+        continue;
+      }
       const overflow = el.dataset.ibOverflow;
-      return {
-        id: el.dataset.ibUnit!,
-        region: REGIONS.findIndex((r) => el.closest(r)?.parentElement === this) as Region,
-        width: el.getBoundingClientRect().width,
+      units.push({
+        id,
+        region: regionOf(el),
+        width,
         priority: Number(el.dataset.ibPriority) || 0,
-        overflow: !menuIds.has(el.dataset.ibUnit) || overflow === "never" ? "never" : overflow === "always" ? "always" : "auto",
+        overflow: !menuIds.has(id) || overflow === "never" ? "never" : overflow === "always" ? "always" : "auto",
         separator: el.classList.contains("ib-toolbar-sep"),
-      };
+      });
+    }
+    // The server lists units in the order they joined the toolbar (ids count up), which is page
+    // order unless a component of the app's holds some; the same order keeps the two in step.
+    units.sort((a, b) => a.region - b.region || Number(a.id) - Number(b.id));
+    // Other content in a region (not in a ToolbarItem) takes room too: it stays, at its width.
+    REGIONS.forEach((selector, region) => {
+      const container = this.querySelector(`:scope > ${selector}`);
+      for (const child of container?.children ?? []) {
+        if (child.matches(".ib-toolbar-unit, .ib-toolbar-more, style") || child.querySelector(".ib-toolbar-unit") || !child.checkVisibility()) continue;
+        units.push({ id: `other-${units.length}`, region: region as Region, width: child.getBoundingClientRect().width, priority: 0, overflow: "never", separator: false });
+      }
     });
     const moreWidth = more.getBoundingClientRect().width;
     this.toggleAttribute("data-ib-measuring", false);
@@ -215,22 +259,34 @@ class Toolbar extends IzzyElement {
     const available = this.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     // The first time (and after enhanced navigation resets the attributes), what the server's rules show.
     if (!this.hasAttribute("data-ib-measured")) {
-      this.#css = { dropped: new Set(elements.filter((el) => !el.checkVisibility()).map((el) => el.dataset.ibUnit!)), available };
+      this.#css = { dropped: new Set(elements.filter((el) => !el.checkVisibility() && !absent.has(el.dataset.ibUnit!)).map((el) => el.dataset.ibUnit!)), available };
     }
     const result = plan(units, available, gap, moreWidth, this.#css?.available === available ? this.#css.dropped : undefined);
 
-    // Focus in a unit that's leaving the bar goes to "…", as it would to nothing otherwise.
+    // Focus in a unit that's leaving the bar goes to "…", as it would to nothing otherwise; focus in
+    // the menu (or on "…") whose item comes back to the bar goes to that item in the bar.
     const active = document.activeElement as HTMLElement | null;
     const leaving = active && elements.some((el) => el.contains(active) && result.barHidden.has(el.dataset.ibUnit!));
+    const inMore = active && more.contains(active) ? active : null;
+    const fromMenu = inMore?.closest<HTMLElement>(".ib-toolbar-menu-unit")?.dataset.ibUnit;
 
     for (const el of elements) el.toggleAttribute("data-ib-out", result.barHidden.has(el.dataset.ibUnit!));
     for (const el of this.querySelectorAll<HTMLElement>(".ib-toolbar-menu-unit")) {
-      el.toggleAttribute("data-ib-show", result.menuShown.has(el.dataset.ibUnit!));
+      el.toggleAttribute("data-ib-show", result.menuShown.has(el.dataset.ibUnit!) && !absent.has(el.dataset.ibUnit!));
     }
     this.toggleAttribute("data-ib-more", result.more);
     this.toggleAttribute("data-ib-measured", true);
 
     if (leaving) this.#moreTrigger()?.focus();
+    const panel = more.querySelector<HTMLElement>("[popover]");
+    if (!result.more && panel?.matches(":popover-open")) panel.hidePopover();
+    if (inMore && !inMore.checkVisibility()) {
+      if (panel?.matches(":popover-open")) panel.hidePopover();
+      const unit = elements.find((el) => el.dataset.ibUnit === fromMenu && !result.barHidden.has(fromMenu!));
+      const stop = this.#stops().find((s) => (unit ? unit.contains(s[0]) : s[0] === this.#current)) ?? this.#stops()[0];
+      if (stop) this.#focus(stop);
+      return;
+    }
     this.#roving();
   }
 
@@ -239,7 +295,8 @@ class Toolbar extends IzzyElement {
     const stops: HTMLElement[][] = [];
     const groups = new Map<string, HTMLElement[]>();
     for (const el of this.querySelectorAll<HTMLElement>(CONTROLS)) {
-      if (el.closest("ib-toolbar") !== this || el.closest("[popover]") || el.matches(":disabled, [type='hidden']")) continue;
+      // Not in a menu panel or a dialog (a ConfirmButton's), which have keys of their own.
+      if (el.closest("ib-toolbar") !== this || el.closest("[popover], dialog") || el.matches(":disabled, [type='hidden']")) continue;
       if (!el.checkVisibility()) continue;
       if (el instanceof HTMLInputElement && el.type === "radio" && el.name) {
         const group = groups.get(el.name);
@@ -281,7 +338,7 @@ class Toolbar extends IzzyElement {
   #onKey(event: KeyboardEvent): void {
     if (event.altKey || event.ctrlKey || event.metaKey || event.defaultPrevented) return;
     const target = event.target as HTMLElement;
-    if (target.closest("[popover]")) return;
+    if (target.closest("[popover], dialog")) return;
     const stops = this.#stops();
     const index = stops.findIndex((s) => s.includes(target));
     if (index < 0) return;
@@ -292,15 +349,15 @@ class Toolbar extends IzzyElement {
     else if (event.key === "ArrowLeft") step = rtl ? 1 : -1;
 
     if (target instanceof HTMLInputElement && target.type === "range") return;
-    if ((target instanceof HTMLInputElement && TEXT_INPUT.test(target.type)) || target instanceof HTMLTextAreaElement) {
-      // A text field keeps the arrows until the caret reaches its start or end, and keeps Home and End.
+    if ((target instanceof HTMLInputElement && !NOT_TEXT.test(target.type)) || target instanceof HTMLTextAreaElement) {
+      // A text field keeps the arrows until the caret reaches its start (going back) or end (going
+      // on), and keeps Home and End. One whose caret can't be read (number, email, date) keeps them.
       if (step === 0) return;
       const { selectionStart: from, selectionEnd: to, value } = target;
-      if (from !== null && to !== null) {
-        const atStart = from === 0 && to === 0;
-        const atEnd = from === value.length && to === value.length;
-        if ((event.key === "ArrowLeft" && !atStart) || (event.key === "ArrowRight" && !atEnd)) return;
-      }
+      if (from === null || to === null) return;
+      const atStart = from === 0 && to === 0;
+      const atEnd = from === value.length && to === value.length;
+      if ((step < 0 && !atStart) || (step > 0 && !atEnd)) return;
     } else if (target instanceof HTMLInputElement && target.type === "radio") {
       // Radios keep the arrows until the first or last option.
       const group = stops[index];

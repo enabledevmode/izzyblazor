@@ -9,7 +9,7 @@
                 @* In the … menu, the same choice as menu items: posting state=closed, or binding on interactive pages. *@
                 <ToolbarItem Priority="1" Width="Length.Rem(9.5)">
                     <ChildContent>
-                        <SegmentedControl @bind-Value="Model!.State" Label="State" HideLabel Size="ControlSize.Sm" FullWidth />
+                        <SegmentedControl @bind-Value="Model!.State" Label="State" HideLabel Size="ControlSize.Sm" />
                     </ChildContent>
                     <MenuContent>
                         <MenuRadioGroup Label="State" Name="state" Value="@Model!.State.ToString()" ValueChanged="Choose">

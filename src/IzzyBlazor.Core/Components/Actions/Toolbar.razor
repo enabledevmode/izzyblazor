@@ -28,28 +28,31 @@
 
     Content outside the parts is the start; ToolbarCenter and ToolbarEnd hold the middle and the
     end. Each control at the top of a region moves on its own; a ButtonGroup moves as one, and a
-    ToolbarItem sets an item's Priority, Overflow and MenuText. Other content (a field, a
-    SegmentedControl) stays in the bar unless a ToolbarItem gives it MenuContent; give it a Width
-    too, so the widths without script allow for it. The toolbar fills its container's width; in a
-    row, give it Grow.
+    ToolbarItem sets an item's Priority, Overflow and MenuText. Put other content (a field, a
+    SegmentedControl) in a ToolbarItem with a Width, so the widths without script allow for it; it
+    stays in the bar unless the item gives it MenuContent. The toolbar fills its container's width;
+    in a row, give it Grow.
 
     Without script the widths are estimated from the button labels in Inter, the library's font; a
-    theme with another font can be a few pixels out until the script measures. On interactive pages,
-    show and hide items with HiddenFrom or Disabled rather than an @if: one that appears later goes to
-    the end of its region in the menu.
+    theme with another font can be a few pixels out until the script measures. The menu lists
+    controls in the order they reach the toolbar: one inside a component of your own (an
+    AuthorizeView), or one an @if adds on an interactive page, comes after the rest of its region.
+    Wrap it in a ToolbarItem, which keeps its place.
 
     Accessibility:
     - With script, it's a `toolbar` named by `Label`, with one tab stop: Left and Right move between
       its controls and wrap, Home and End go to the ends (reversed on right-to-left pages), and
       focus comes back to the control last used.
     - A text field keeps Left and Right until the caret reaches its start or end, and a
-      SegmentedControl until its first or last option; a Select keeps Up and Down. A Slider keeps
-      every arrow key, so put one last, or outside the toolbar.
+      SegmentedControl until its first or last option; a Select keeps Up and Down. A Slider, and a
+      number, email or date field (whose caret the script can't read), keep every arrow key, so
+      put one last, or outside the toolbar.
     - The "…" button is the last control, named by `MoreLabel`; Enter, Space or Down opens its menu
       of `menuitem`s (a ButtonGroup is a labeled group, a Menu a submenu), and Escape comes back.
     - If the focused control moves into the menu as the toolbar narrows, focus moves to "…".
     - With JavaScript off and until the script loads, it's a `group` named by `Label`, each
       control its own tab stop.
+    - A dialog it opens (a ConfirmButton's) keeps its own Tab order and keys.
     See also: ButtonGroup, Menu, IconButton, AppShell.
 *@
 

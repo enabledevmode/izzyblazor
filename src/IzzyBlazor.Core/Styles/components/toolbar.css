@@ -64,7 +64,7 @@
     display: none;
   }
 
-  .ib-toolbar[data-ib-measured] .ib-toolbar-unit[data-ib-out] {
+  .ib-toolbar[data-ib-measured]:not([data-ib-measuring]) .ib-toolbar-unit[data-ib-out] {
     display: none;
   }
 
@@ -76,9 +76,10 @@
     display: flex;
   }
 
-  /* For one synchronous read by the script, before any paint: every unit at its full width. */
-  .ib-toolbar[data-ib-measuring] :is(.ib-toolbar-unit, .ib-toolbar-more) {
-    display: flex !important;
+  /* For one synchronous read by the script, before any paint: every unit as it is without the
+     toolbar's own hiding (the server's rules and data-ib-out are off), and the "…" button. */
+  .ib-toolbar[data-ib-measuring] .ib-toolbar-more {
+    display: flex;
   }
 
   /* Wrap: more rows instead of a menu. */
