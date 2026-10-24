@@ -45,7 +45,7 @@
     - The range under the table ("1–5 of 23") is read when it changes.
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <CascadingValue Value="this" IsFixed="true">
         @ChildContent
         @ColumnsReadyNotifier

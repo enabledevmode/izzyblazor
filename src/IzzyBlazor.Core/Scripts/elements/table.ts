@@ -105,7 +105,8 @@ class Table extends IzzyElement {
     // A filter changed before this script arrived (the table shows no Apply button where script
     // runs): apply it now rather than drop it; one still being typed in, after the usual pause.
     const filters = [...this.querySelectorAll("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this);
-    if (changedFromServer(filters)) {
+    // Not on an interactive page, whose render sets values as properties (see filter-form.ts).
+    if (!this.hasAttribute("data-ib-interactive") && changedFromServer(filters)) {
       const active = document.activeElement;
       if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date") this.#typed(active);
       else this.#apply(false);

@@ -28,6 +28,11 @@ export class TypingGuard {
     this.#typed.delete(input);
   }
 
+  /** Forgets everything typed, so nothing is put back. */
+  clear(): void {
+    this.#typed.clear();
+  }
+
   restore(): void {
     if (this.composing) return;
     for (const [input, typed] of this.#typed) {
