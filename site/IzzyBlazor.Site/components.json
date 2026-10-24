@@ -215,6 +215,11 @@
     },
     {
       "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.",
+      "features": [
+        { "feature": "Picks a scheme, kept in a cookie for every later page" },
+        { "feature": "Changes the page at once, without a reload; other open tabs follow", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Value bound to C#", "member": "Value" }
+      ],
       "examples": [
         { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented",
           "notes": {
@@ -367,9 +372,20 @@
     },
     {
       "id": "icon-button", "icon": "SquareMousePointer", "name": "IconButton", "category": "Actions", "summary": "A square button with a required label.",
+      "features": [
+        { "feature": "Submit or reset a form, follow a link; name and value tell buttons apart" },
+        { "feature": "Loading and disabled states" },
+        { "feature": "OnClick runs C#", "member": "OnClick" }
+      ],
       "examples": [
         { "id": "icon-button-variants", "title": "Labels and variants", "lead": "Use `Label` for the button's name and tooltip; it takes `Variant`, `Accent` and `Href` as Button does." },
-        { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Use `Size`, `Loading` and `Disabled` as on Button." }
+        { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Use `Size`, `Loading` and `Disabled` as on Button." },
+        { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "Use `Href` for a link and `Submit` with `name` and `value` attributes to post which row a button is on, with `OnClick` for the same on interactive pages.",
+          "notes": {
+            "off": "Delete posts the file's name and the page reloads without it; Restore is a link back.",
+            "static": "Delete posts without a reload, and the response redirects to an address listing what's deleted.",
+            "live": "Delete runs OnClick in C#, and nothing is posted."
+          } }
       ]
     },
     {
@@ -1138,6 +1154,11 @@
     },
     {
       "id": "tag", "icon": "Tag", "name": "Tag", "category": "Feedback", "summary": "A keyword or filter, linked or removable.",
+      "features": [
+        { "feature": "Colors, sizes, icons and links" },
+        { "feature": "Removed by a link (RemoveHref)" },
+        { "feature": "Removed by C# (OnRemove)", "member": "OnRemove" }
+      ],
       "examples": [
         { "id": "tag-variants", "title": "Status and variants", "lead": "Use `Status` or `Accent` for the color and `Variant` for the weight." },
         { "id": "tag-links-sizes", "title": "Links, icons and sizes", "lead": "Use `Href` to make a tag a link, `StartIcon` for an icon and `Size` for 20, 24 or 28px tall." },
@@ -1291,6 +1312,10 @@
     },
     {
       "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Sections that open and close with no script.", "parts": ["AccordionItem", "AccordionHeader"],
+      "features": [
+        { "feature": "Items open and close, one at a time with Exclusive" },
+        { "feature": "An item's Open bound to C#", "off": "none", "static": "none", "live": "full" }
+      ],
       "examples": [
         { "id": "accordion-variants", "title": "Variants", "lead": "Use `Variant` to draw the items as separate cards (the default), as one bordered box, or flush with the page." },
         { "id": "accordion-exclusive", "title": "One open at a time", "lead": "Use `Exclusive` to keep one item open: opening another closes it, by the browser, with no script; `Disabled` stops an item opening." },
@@ -1301,11 +1326,21 @@
             "off": "The item opens and closes; C# isn't told.",
             "static": "The item opens and closes, but there's no circuit, so C# still isn't told.",
             "live": "@bind-Open tells C# each time the item opens or closes."
+          } },
+        { "id": "accordion-settings", "title": "Forms in sections",
+          "notes": {
+            "off": "Saving reloads the page: the section that posted, saved or with errors, opens again because the page sets its Open; any other section you opened closes.",
+            "static": "Saving posts without a reload, and the response closes the sections the page doesn't open: only the one that posted stays open.",
+            "live": "Saving runs C# with no page load, and every section stays as you left it."
           } }
       ]
     },
     {
       "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Data display", "summary": "One \"show more\" section.",
+      "features": [
+        { "feature": "Opens and closes" },
+        { "feature": "Open bound to C#", "member": "Open" }
+      ],
       "examples": [
         { "id": "collapsible-show-more", "title": "Show more", "lead": "Use `Label` for the text beside the chevron, for advanced options or details most people can skip." },
         { "id": "collapsible-custom-trigger", "title": "Your own trigger", "lead": "Use `Trigger` for inline content of your own in place of the label and chevron." }

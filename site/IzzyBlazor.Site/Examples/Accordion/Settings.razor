@@ -1,0 +1,65 @@
+@using System.ComponentModel.DataAnnotations
+
+@* Each section's form posts on its own. A static page renders the accordion again with every
+   post, so the section that posted, saved or not, is opened from the server with Open. *@
+<Accordion Variant="AccordionVariant.Bordered" Grow MaxWidth="32.Rem">
+    <AccordionItem Title="Profile" Open="_posted.Contains(Section.Profile)">
+        <Form Model="Profile" FormName="accordion-profile" OnValidSubmit="() => Saved(Section.Profile)" OnInvalidSubmit="() => _posted.Add(Section.Profile)">
+            <TextField @bind-Value="Profile!.DisplayName" />
+            <FormActions><Button Submit Size="ControlSize.Sm">Save profile</Button></FormActions>
+        </Form>
+    </AccordionItem>
+    <AccordionItem Title="Notifications" Open="_posted.Contains(Section.Notifications)">
+        <Form Model="Notifications" FormName="accordion-notifications" OnValidSubmit="() => Saved(Section.Notifications)" OnInvalidSubmit="() => _posted.Add(Section.Notifications)">
+            <Switch @bind-Value="Notifications!.WeeklySummary" />
+            <FormActions><Button Submit Size="ControlSize.Sm">Save notifications</Button></FormActions>
+        </Form>
+    </AccordionItem>
+</Accordion>
+@if (_saved is not null)
+{
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="3">@_saved</TextBlock>
+}
+
+@code {
+    [SupplyParameterFromForm(FormName = "accordion-profile")]
+    private ProfileSettings? Profile { get; set; }
+
+    [SupplyParameterFromForm(FormName = "accordion-notifications")]
+    private NotificationSettings? Notifications { get; set; }
+
+    // Sections that have posted. Only ever added to, so on an interactive page Open never turns
+    // false and closes a section the reader left open.
+    private readonly HashSet<Section> _posted = [];
+    private string? _saved;
+
+    protected override void OnInitialized()
+    {
+        Profile ??= new();
+        Notifications ??= new();
+    }
+
+    private void Saved(Section section)
+    {
+        _posted.Add(section);
+        _saved = section == Section.Profile
+            ? $"Saved your name as {Profile!.DisplayName}."
+            : $"Saved: {(Notifications!.WeeklySummary ? "with" : "without")} the weekly summary.";
+    }
+    @* hide *@
+    private enum Section { Profile, Notifications }
+
+    public sealed class ProfileSettings
+    {
+        [Required(ErrorMessage = "Enter a display name")]
+        [Display(Name = "Display name")]
+        public string? DisplayName { get; set; } = "Ada Lovelace";
+    }
+
+    public sealed class NotificationSettings
+    {
+        [Display(Name = "Email a weekly summary")]
+        public bool WeeklySummary { get; set; } = true;
+    }
+    @* /hide *@
+}

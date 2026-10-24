@@ -1,0 +1,74 @@
+@inject ApiMetadata Api
+@* Accordion's Overview, written by hand after the selection and feedback Overviews: variants, one
+   open at a time, rich headers and content, sizes, forms in sections (previewed in each mode) and
+   following an item from C#. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>Each item is a native <Code>details</Code> element, so the browser opens and closes it, with JavaScript off too. Use it for sections people open one by one, such as FAQs or settings; for a single "show more", use a <Anchor Href="docs/components/collapsible">Collapsible</Anchor>, and for views people switch between, <Anchor Href="docs/components/tabs">Tabs</Anchor>.</TextBlock>
+
+<Heading Level="2">Variants</Heading>
+<TextBlock>Use <Code>Variant</Code> to draw the items as separate cards (the default), as one bordered box, or flush with the page.</TextBlock>
+<ExampleViewer Example="accordion-variants" />
+
+<Heading Level="2">One open at a time</Heading>
+<TextBlock>Use <Code>Exclusive</Code> to keep one item open: opening another closes it, by the browser, with no script. <Code>Disabled</Code> stops an item opening.</TextBlock>
+<ExampleViewer Example="accordion-exclusive" />
+<TextBlock>Exclusive items share a <Code>name</Code>; set <Code>Name</Code> yourself to group several accordions, so one item is open across all of them.</TextBlock>
+
+<Heading Level="2">Rich headers and content</Heading>
+<TextBlock>Use an <Code>AccordionHeader</Code> for a title with more than text, such as a badge, and <Code>Icon</Code> for an icon before it; the content is a column with a gap, so text, buttons and lists need no wrapper.</TextBlock>
+<ExampleViewer Example="accordion-content" />
+<TextBlock><Code>ContentPadding</Code> and <Code>ContentGap</Code> change the content's spacing for every item, or on one item; <Code>ContentPadding="0"</Code> runs a table or image edge to edge.</TextBlock>
+
+<Heading Level="2">Sizes</Heading>
+<TextBlock>Use <Code>Size</Code> to scale the titles and spacing together: <Code>Sm</Code> for sidebars and dense pages, <Code>Lg</Code> for FAQ pages.</TextBlock>
+<ExampleViewer Example="accordion-sizes" />
+
+<Heading Level="2">Forms in sections</Heading>
+<TextBlock>Use <Code>Open</Code> on an item to open it from the server, such as the section whose form just posted.</TextBlock>
+<ExampleViewer Example="accordion-settings" />
+<TextBlock>The browser keeps which items are open, not the server, so on a static page every post or reload draws them as <Code>Open</Code> says and closes the rest. Open the section that posted, as here, whether it saved or not (<Code>OnInvalidSubmit</Code> too), so its message or errors are in view.</TextBlock>
+
+<Heading Level="2">Following it from C#</Heading>
+<TextBlock>Use <Code>@@bind-Open</Code> on an <Code>AccordionItem</Code> to know in C# whether it's open, and to open or close it from C#, on an interactive page.</TextBlock>
+<ExampleViewer Example="accordion-bound" />
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Accordion>
+            <AccordionItem Title="How do refunds work?" Open>
+                Refunds go back to the original card within 5 business days.
+            </AccordionItem>
+            <AccordionItem Title="Can I change my plan later?">
+                Yes. Changes apply from your next billing date.
+            </AccordionItem>
+        </Accordion>
+        """;
+}
