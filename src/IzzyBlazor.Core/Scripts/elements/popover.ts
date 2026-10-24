@@ -90,7 +90,8 @@ class PopoverRoot extends IzzyElement {
     const panel = this.panel;
     if (!panel) return [];
     return [...panel.querySelectorAll<HTMLElement>(ITEM)].filter(
-      (item) => !item.matches(":disabled, [aria-disabled='true']") && item.closest("[popover]") === panel
+      // Not one that isn't shown: a Toolbar's "…" menu holds a copy of every item, showing only some.
+      (item) => !item.matches(":disabled, [aria-disabled='true']") && item.closest("[popover]") === panel && item.checkVisibility()
     );
   }
 

@@ -1,0 +1,186 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@implements IDisposable
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, items move into the … menu at widths worked out on the server, and arrow keys don't move between them.")]
+
+@*
+    A row of controls that stays one row: what doesn't fit moves into a "…" menu at the end, lowest
+    priority first. Its Buttons, IconButtons, ButtonGroups and Menus become menu items there, with
+    the same links, form posts and OnClick, so it works with JavaScript off: the server works out
+    the widths at which each item moves, as container queries. The script measures the real widths
+    and corrects them, and adds arrow-key movement.
+
+    <Toolbar Label="Editor">
+        <ButtonGroup Label="History">
+            <IconButton Icon="Lucide.Undo2" Label="Undo" />
+            <IconButton Icon="Lucide.Redo2" Label="Redo" />
+        </ButtonGroup>
+        <ToolbarSeparator />
+        <Button StartIcon="Lucide.Link">Link</Button>
+        <ToolbarEnd>
+            <ToolbarItem Overflow="ToolbarOverflow.Never">
+                <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
+            </ToolbarItem>
+        </ToolbarEnd>
+    </Toolbar>
+
+    Content outside the parts is the start; ToolbarCenter and ToolbarEnd hold the middle and the
+    end. Each control at the top of a region moves on its own; a ButtonGroup moves as one, and a
+    ToolbarItem sets an item's Priority, Overflow and MenuText. Other content (a field, a
+    SegmentedControl) stays in the bar unless a ToolbarItem gives it MenuContent; give it a Width
+    too, so the widths without script allow for it. The toolbar fills its container's width; in a
+    row, give it Grow.
+
+    Without script the widths are estimated from the button labels in Inter, the library's font; a
+    theme with another font can be a few pixels out until the script measures. On interactive pages,
+    show and hide items with HiddenFrom or Disabled rather than an @if: one that appears later goes to
+    the end of its region in the menu.
+
+    Accessibility:
+    - With script, it's a `toolbar` named by `Label`, with one tab stop: Left and Right move between
+      its controls and wrap, Home and End go to the ends (reversed on right-to-left pages), and
+      focus comes back to the control last used.
+    - A text field keeps Left and Right until the caret reaches its start or end, and a
+      SegmentedControl until its first or last option; a Select keeps Up and Down. A Slider keeps
+      every arrow key, so put one last, or outside the toolbar.
+    - The "…" button is the last control, named by `MoreLabel`; Enter, Space or Down opens its menu
+      of `menuitem`s (a ButtonGroup is a labeled group, a Menu a submenu), and Escape comes back.
+    - If the focused control moves into the menu as the toolbar narrows, focus moves to "…".
+    - With JavaScript off and until the script loads, it's a `group` named by `Label`, each
+      control its own tab stop.
+    See also: ButtonGroup, Menu, IconButton, AppShell.
+*@
+
+@{ (_class, _style) = BuildRootAttributes(); }
+<ib-toolbar @attributes="AdditionalAttributes"
+            id="@_context.RootId"
+            class="@_class"
+            style="@_style"
+            role="@(RendererInfo.IsInteractive ? "toolbar" : "group")"
+            data-ib-role="@(RendererInfo.IsInteractive ? null : "toolbar")"
+            aria-label="@Label">
+    <CascadingValue Value="_defaults">
+        <CascadingValue Value="_parts" IsFixed="true">
+            <div class="ib-toolbar-start">
+                <CascadingValue Value="_start" IsFixed="true">@ChildContent</CascadingValue>
+            </div>
+        </CascadingValue>
+        @if (_parts.Shown<ToolbarCenter>() is { } center)
+        {
+            <div class="ib-toolbar-center">
+                <CascadingValue Value="_center" IsFixed="true">@_parts.Outlet(center)</CascadingValue>
+            </div>
+        }
+        <div class="ib-toolbar-end">
+            @if (_parts.Shown<ToolbarEnd>() is { } end)
+            {
+                <CascadingValue Value="_end" IsFixed="true">@_parts.Outlet(end)</CascadingValue>
+            }
+            @if (!Wrap)
+            {
+                @More
+            }
+        </div>
+    </CascadingValue>
+</ib-toolbar>
+
+@code {
+    /// <summary>What the toolbar is for, for screen readers: "Formatting", "Editor". Required.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>The buttons' accent, unless a button sets its own. Defaults to <see cref="Accent.Neutral"/>.</summary>
+    [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
+
+    /// <summary>The buttons' variant, unless a button sets its own. Defaults to <see cref="ButtonVariant.Ghost"/>.</summary>
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;
+
+    /// <summary>The buttons' size, unless a button sets its own, and the "…" button's. Defaults to <see cref="ControlSize.Sm"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Sm;
+
+    /// <summary>The space between items, in spacing steps (one step = 4px). Defaults to 2.</summary>
+    [Parameter] public int Gap { get; set; } = 2;
+
+    /// <summary>Wraps onto more rows instead of moving items into a "…" menu, for toolbars where everything must show.</summary>
+    [Parameter] public bool Wrap { get; set; }
+
+    /// <summary>The "…" button's name for screen readers and its tooltip. Defaults to "More actions".</summary>
+    [Parameter] public string? MoreLabel { get; set; }
+
+    /// <summary>
+    /// A CSP nonce for the style element that holds the toolbar's widths. Defaults to the
+    /// <see cref="IzzyTheme"/>'s <c>Nonce</c> on the page; set it on interactive pages, which don't
+    /// see the theme's.
+    /// </summary>
+    [Parameter] public string? Nonce { get; set; }
+
+    /// <summary>The controls of the start, and the <see cref="ToolbarCenter"/> and <see cref="ToolbarEnd"/> parts.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private PartScope? OuterScope { get; set; }
+
+    private ToolbarContext _context = null!;
+    private PartScope _parts = null!;
+    private ToolbarScope _start = null!;
+    private ToolbarScope _center = null!;
+    private ToolbarScope _end = null!;
+    private ButtonGroup _defaults = null!;
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        var id = AdditionalAttributes?.TryGetValue("id", out var given) == true ? Convert.ToString(given, System.Globalization.CultureInfo.InvariantCulture) : null;
+        _context = new ToolbarContext(id ?? IdGenerator.Next("ib-toolbar"));
+        _parts = new PartScope(this, OuterScope, StateHasChanged);
+        _start = new ToolbarScope(_context, ToolbarRegion.Start, null, null);
+        _center = new ToolbarScope(_context, ToolbarRegion.Center, null, null);
+        _end = new ToolbarScope(_context, ToolbarRegion.End, null, null);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException("Toolbar needs a Label: it names the toolbar for screen readers.");
+        }
+
+        _context.Gap = Gap * 4;
+        if (_defaults is null || _defaults.Accent != Accent || _defaults.Variant != Variant || _defaults.Size != Size)
+        {
+            _defaults = ButtonGroup.Defaults(Accent, Variant, Size);
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-toolbar");
+        classes.Add($"ib-toolbar-{Size.ToString().ToLowerInvariant()}");
+        classes.Add("ib-toolbar-centered", _parts.Shown<ToolbarCenter>() is not null);
+        classes.Add("ib-toolbar-wrap", Wrap);
+        if (Gap != 2)
+        {
+            styles.AddVar("toolbar-gap", $"var(--ib-space-{Gap})");
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    // The "…" menu and the widths without script, drawn last so every unit has joined.
+    private RenderFragment More => builder =>
+    {
+        builder.OpenComponent<ToolbarMore>(0);
+        builder.AddComponentParameter(1, nameof(ToolbarMore.Context), _context);
+        builder.AddComponentParameter(2, nameof(ToolbarMore.MoreLabel), MoreLabel ?? TextDefaults.MoreActions);
+        builder.AddComponentParameter(3, nameof(ToolbarMore.Size), Size);
+        builder.AddComponentParameter(4, nameof(ToolbarMore.Nonce), Nonce ?? Services.GetService<StyleNonce>()?.Value);
+        builder.CloseComponent();
+    };
+
+    /// <inheritdoc />
+    public void Dispose() => _context.OnChanged = null;
+}

@@ -1,0 +1,69 @@
+@* Toolbars for ToolbarTests, by Kind. *@
+@switch (Kind)
+{
+    case "controls":
+        <Toolbar Label="Editor">
+            <ButtonGroup Label="History">
+                <IconButton Icon="Lucide.Undo2" Label="Undo" />
+                <IconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ButtonGroup>
+            <ToolbarSeparator />
+            <Button Submit Name="intent" Value="archive" FormAction="/mail/archive" StartIcon="Lucide.Archive" id="archive">Archive</Button>
+            <Button Href="/help">Help</Button>
+            <ToolbarItem MenuText="Bold">
+                <IconButton Icon="Lucide.Bold" Label="B" />
+            </ToolbarItem>
+            <Tooltip Text="Copy the link">
+                <IconButton Icon="Lucide.Link" Label="Copy link" />
+            </Tooltip>
+            <ToolbarEnd>
+                <Menu Label="Export">
+                    <MenuItem Href="/export.csv">CSV</MenuItem>
+                </Menu>
+                <ToolbarItem Overflow="ToolbarOverflow.Always">
+                    <Button>Print</Button>
+                </ToolbarItem>
+            </ToolbarEnd>
+        </Toolbar>
+        break;
+    case "stays":
+        <Toolbar Label="Stays">
+            <Button Reset>Reset</Button>
+            <ToolbarItem Width="Length.Rem(10)">
+                <input name="q" />
+            </ToolbarItem>
+            <DialogTrigger For="d">Open</DialogTrigger>
+            <Popover Label="Filters">
+                <Button>Inside the popover</Button>
+            </Popover>
+            <Button>Plain</Button>
+        </Toolbar>
+        break;
+    case "defaults":
+        <Toolbar Label="Defaults">
+            <Button>Ghost</Button>
+            <Button Variant="ButtonVariant.Solid" Accent="Accent.Primary">Solid</Button>
+            <ButtonGroup Label="Group">
+                <Button>In a group</Button>
+            </ButtonGroup>
+            <Menu Label="Menu">
+                <MenuItem>One</MenuItem>
+            </Menu>
+        </Toolbar>
+        break;
+    case "wrap":
+        <Toolbar Label="Wrap" Wrap>
+            <Button>One</Button>
+            <Button>Two</Button>
+        </Toolbar>
+        break;
+    case "nonce":
+        <Toolbar Label="Nonce" Nonce="abc123">
+            <Button>One</Button>
+        </Toolbar>
+        break;
+}
+
+@code {
+    [Parameter] public string Kind { get; set; } = "controls";
+}

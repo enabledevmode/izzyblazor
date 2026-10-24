@@ -145,7 +145,7 @@ else
     /// </summary>
     [Parameter] public ThemeScrollbars? Scrollbars { get; set; }
 
-    /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one.</summary>
+    /// <summary>A CSP nonce for the style element, if your Content-Security-Policy needs one. Toolbars on the page use it too.</summary>
     [Parameter] public string? Nonce { get; set; }
 
     /// <summary>The part of the page to theme. Unset: the theme is the app's (put it in <c>&lt;head&gt;</c>).</summary>
@@ -188,6 +188,12 @@ else
         if (ColorScheme == IzzyBlazor.ColorScheme.Inverse)
         {
             throw new ArgumentException("The app's ColorScheme is Auto, Light or Dark; Inverse is for part of a page.", nameof(ColorScheme));
+        }
+
+        // A Toolbar in the same request writes its own style element with the same nonce.
+        if (Nonce is not null && Services.GetService<StyleNonce>() is { } nonce)
+        {
+            nonce.Value = Nonce;
         }
 
         // The user's choice from a ColorSchemeSwitch, read on the server (the IzzyBlazor package

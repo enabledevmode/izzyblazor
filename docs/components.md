@@ -231,8 +231,9 @@ plain HTML, including `Name`/`Value` to tell several submit buttons apart, and `
 screen readers. Its `Accent`, `Variant` and `Size` become the defaults for the buttons inside; a
 button's own setting wins, so one button can be `Danger` in a neutral group. `Attached="false"`
 spaces the buttons apart, `Orientation` stacks them, and `FullWidth` shares the width among them.
-A wrapper holding a button (a `Menu`'s trigger) joins the group too, but `Menu` sets its trigger's
-look itself, so give it the group's settings.
+A wrapper holding a button (a `Menu`'s trigger) joins the group too, and a `Menu`'s trigger takes
+the group's settings where the menu doesn't set its own. A group inside a group (or a `Toolbar`)
+takes the outer one's settings for what it doesn't set.
 
 ```razor
 <ButtonGroup Label="Calendar view" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
@@ -240,6 +241,35 @@ look itself, so give it the group's settings.
     <Button>Week</Button>
     <Button>Month</Button>
 </ButtonGroup>
+```
+
+**Toolbar.** One row of controls that stays one row: what doesn't fit moves into a "…" menu at the
+end, lowest `Priority` first. Its `Button`s, `IconButton`s, `ButtonGroup`s (as one) and `Menu`s (as
+submenus) become menu items there with the same `Href`, `Submit`/`Name`/`Value`/`FormAction`/`Form`
+and `OnClick`, so it works with JavaScript off: the server works out the widths at which each moves,
+from the labels in Inter, and writes them as container queries (with IzzyTheme's nonce, or
+`Nonce`). The script (an on-demand element) measures and corrects them, and makes it a `toolbar`
+with one tab stop and arrow keys. `ToolbarCenter` and `ToolbarEnd` hold the middle and the end;
+`ToolbarItem` sets a control's `Priority`, `Overflow` (`Never` for the main action, `Always` for
+menu-only actions) and `MenuText`, or holds other content with a `Width` and its `MenuContent`;
+`ToolbarSeparator` draws a line that goes with its neighbors. Buttons default to `Ghost`, `Neutral`
+and `Sm`. `Wrap` wraps onto more rows instead of a menu. It takes its width from its container, so
+in a row give it `Grow`.
+
+```razor
+<Toolbar Label="Editor">
+    <ButtonGroup Label="History">
+        <IconButton Icon="Lucide.Undo2" Label="Undo" />
+        <IconButton Icon="Lucide.Redo2" Label="Redo" />
+    </ButtonGroup>
+    <ToolbarSeparator />
+    <Button StartIcon="Lucide.Link">Link</Button>
+    <ToolbarEnd>
+        <ToolbarItem Overflow="ToolbarOverflow.Never">
+            <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
+        </ToolbarItem>
+    </ToolbarEnd>
+</Toolbar>
 ```
 
 ## Forms

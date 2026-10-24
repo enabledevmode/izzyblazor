@@ -1,5 +1,6 @@
 @namespace IzzyBlazor
 @inherits LayoutItemBase
+@implements IDisposable
 @attribute [ModeSupport]
 
 @*
@@ -13,22 +14,34 @@
     Accessibility:
     - It renders a `div` with `role="group"`, named by `Label`, such as "Text alignment"; without
       one, screen readers don't hear what the buttons share.
-    - Each button is its own tab stop; there's no arrow-key movement between them.
+    - Each button is its own tab stop; there's no arrow-key movement between them (in a Toolbar,
+      its arrow keys move between them).
     - It doesn't mark a pressed or selected button: for one choice among several, use
       SegmentedControl or RadioGroup.
-    See also: SegmentedControl, IconButton, Button, Menu.
+    See also: SegmentedControl, IconButton, Button, Menu, Toolbar.
 *@
 
-<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@Label">
+@_member.Wrap(@<div @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@Label">
     @* Not fixed: when the group's settings change, buttons inside other components follow. *@
     <CascadingValue Value="this">
-        @ChildContent
+        <CascadingValue Value="_member.Inner(_buttons)">
+            @ChildContent
+        </CascadingValue>
     </CascadingValue>
-</div>
+</div>)
 
 @code {
     private string? _class;
     private string? _style;
+    private readonly ToolbarMember _member;
+    private readonly ToolbarButtons _buttons;
+
+    /// <summary>Creates the group.</summary>
+    public ButtonGroup()
+    {
+        _member = new ToolbarMember(this);
+        _buttons = new ToolbarButtons(this);
+    }
 
     /// <summary>
     /// A group with no settings. Dialogs and popovers cascade it around their content, so the
@@ -36,6 +49,22 @@
     /// trigger.
     /// </summary>
     internal static readonly ButtonGroup Reset = new();
+
+    /// <summary>A group with these settings and nothing to draw: a Toolbar's defaults for its buttons.</summary>
+    internal static ButtonGroup Defaults(Accent accent, ButtonVariant variant, ControlSize size) => new() { Accent = accent, Variant = variant, Size = size };
+
+    [CascadingParameter] private ButtonGroup? Outer { get; set; }
+
+    [CascadingParameter] private ToolbarScope? ToolbarScope { get; set; }
+
+    /// <summary>The buttons' accent: this group's, else the one around it (a Toolbar's).</summary>
+    internal Accent? DefaultAccent => Accent ?? Outer?.DefaultAccent;
+
+    /// <summary>The buttons' variant: this group's, else the one around it.</summary>
+    internal ButtonVariant? DefaultVariant => Variant ?? Outer?.DefaultVariant;
+
+    /// <summary>The buttons' size: this group's, else the one around it.</summary>
+    internal ControlSize? DefaultSize => Size ?? Outer?.DefaultSize;
 
     /// <summary>What the buttons have in common, for screen readers: "Text alignment".</summary>
     [Parameter] public string? Label { get; set; }
@@ -72,5 +101,78 @@
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        Report();
+    }
+
+    /// <summary>Tells the toolbar it's in (if any) what the group is now: its buttons as a menu group, and its width.</summary>
+    private void Report()
+    {
+        var buttons = _buttons.Entries;
+        RenderFragment? menu = buttons.Count > 0 && buttons.TrueForAll(b => b.Menu is not null)
+            ? builder =>
+            {
+                var label = ToolbarScope?.MenuText ?? Label;
+                RenderFragment items = b =>
+                {
+                    foreach (var button in buttons)
+                    {
+                        b.AddContent(0, button.Menu);
+                    }
+                };
+                if (string.IsNullOrWhiteSpace(label))
+                {
+                    builder.AddContent(0, items);
+                    return;
+                }
+
+                builder.OpenComponent<MenuGroup>(1);
+                builder.AddComponentParameter(2, nameof(MenuGroup.Label), label);
+                builder.AddComponentParameter(3, nameof(MenuGroup.ChildContent), items);
+                builder.CloseComponent();
+            }
+            : null;
+
+        // Joined buttons share a 1px border; spaced ones are 8px apart.
+        double? width = buttons.Count > 0 && buttons.TrueForAll(b => b.Width is not null)
+            ? buttons.Sum(b => b.Width!.Value) + (buttons.Count - 1) * (Attached ? -1 : 8)
+            : null;
+        _member.Update(ToolbarScope, new ToolbarEntry(menu, width));
+    }
+
+    /// <inheritdoc />
+    public void Dispose() => _member.Dispose();
+
+    /// <summary>The group's buttons, as they report to a toolbar, in page order.</summary>
+    private sealed class ToolbarButtons(ButtonGroup group) : IToolbarSink
+    {
+        private readonly List<(object Owner, ToolbarEntry Entry)> _entries = [];
+
+        public List<ToolbarEntry> Entries => _entries.ConvertAll(e => e.Entry);
+
+        public void Set(object owner, ToolbarEntry entry)
+        {
+            var index = _entries.FindIndex(e => ReferenceEquals(e.Owner, owner));
+            if (index >= 0)
+            {
+                _entries[index] = (owner, entry);
+            }
+            else
+            {
+                _entries.Add((owner, entry));
+            }
+
+            group.Report();
+        }
+
+        public void Remove(object owner)
+        {
+            if (_entries.RemoveAll(e => ReferenceEquals(e.Owner, owner)) > 0)
+            {
+                group.Report();
+            }
+        }
+    }
 }

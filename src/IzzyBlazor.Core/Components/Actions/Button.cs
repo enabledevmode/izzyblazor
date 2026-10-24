@@ -94,7 +94,46 @@ public class Button : ButtonBase
     private protected virtual bool CanBeLink => true;
 
     /// <inheritdoc />
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    private protected override bool WrapsInToolbar => true;
+
+    /// <inheritdoc />
+    private protected override bool ExternalIcon => Href is not null && External && !HideExternalIcon;
+
+    /// <inheritdoc />
+    private protected override RenderFragment? ToolbarMenuItem(string? text) =>
+        // A derived button (a dialog's trigger) or one wired up by its attributes does more than a menu
+        // item can, and a menu item can't reset a form.
+        GetType() != typeof(Button) || Reset || !CopiesToMenu ? null : builder =>
+        {
+            builder.OpenComponent<MenuItem>(0);
+            builder.AddComponentParameter(1, nameof(MenuItem.Href), Href);
+            builder.AddComponentParameter(2, nameof(MenuItem.Submit), Submit);
+            builder.AddComponentParameter(3, nameof(MenuItem.Name), Name);
+            builder.AddComponentParameter(4, nameof(MenuItem.Value), Value);
+            builder.AddComponentParameter(5, nameof(MenuItem.FormAction), FormAction);
+            builder.AddComponentParameter(6, nameof(MenuItem.Form), Form);
+            builder.AddComponentParameter(7, nameof(MenuItem.Icon), StartIcon);
+            builder.AddComponentParameter(8, nameof(MenuItem.Disabled), Disabled || Loading);
+            builder.AddComponentParameter(9, nameof(MenuItem.Accent), EffectiveAccent == Accent.Danger ? Accent.Danger : Accent.Neutral);
+            if (OnClick.HasDelegate)
+            {
+                builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
+            }
+
+            if (External && Href is not null)
+            {
+                builder.AddAttribute(11, "target", "_blank");
+                builder.AddAttribute(12, "rel", "noopener noreferrer");
+            }
+
+            builder.AddComponentParameter(13, nameof(MenuItem.ChildContent), text is not null ? (RenderFragment)(b => b.AddContent(0, text)) : ChildContent);
+            builder.CloseComponent();
+        };
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => builder.AddContent(0, ToolbarPart.Wrap(RenderButton));
+
+    private void RenderButton(RenderTreeBuilder builder)
     {
         if (Href is not null)
         {

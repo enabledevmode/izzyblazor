@@ -348,8 +348,9 @@ else
     /// <summary>
     /// The code as plain text, when the content is only text: literal text, encoded text such as
     /// "&amp;lt;" (decoded), or string expressions. Null when it holds elements or components.
+    /// Also a button's label, for a Toolbar's width estimate.
     /// </summary>
-    private static string? ReadText(RenderFragment fragment)
+    internal static string? ReadText(RenderFragment fragment)
     {
 #pragma warning disable BL0006 // Reading render frames: the content is rendered here only to read its text.
         using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();

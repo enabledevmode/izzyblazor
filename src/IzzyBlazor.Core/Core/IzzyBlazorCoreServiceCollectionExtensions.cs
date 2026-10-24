@@ -23,6 +23,11 @@ public static class IzzyBlazorCoreServiceCollectionExtensions
             services.AddScoped<DialogService>();
         }
 
+        if (!services.Any(d => d.ServiceType == typeof(StyleNonce)))
+        {
+            services.AddScoped<StyleNonce>();
+        }
+
         return services;
     }
 }
