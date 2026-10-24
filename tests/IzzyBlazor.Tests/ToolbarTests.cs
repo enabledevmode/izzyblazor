@@ -55,6 +55,14 @@ public class ToolbarTests : BunitContext
     }
 
     [Fact]
+    public void A_ToolbarItem_keeps_the_place_of_a_control_in_a_component_of_the_apps()
+    {
+        var texts = MenuPanel(RenderToolbar("wrapped")).QuerySelectorAll(".ib-menu-label").Select(l => l.TextContent.Trim());
+
+        Assert.Equal(["Inside", "After"], texts);
+    }
+
+    [Fact]
     public void Ids_are_on_the_bar_copy_only()
     {
         var cut = RenderToolbar("controls");
@@ -162,5 +170,14 @@ public class ToolbarTests : BunitContext
         var units = Units("s", "c::never", "e");
         Assert.Equal("123", Bar(units, 316));
         Assert.Equal("2…", Bar(units, 315));
+    }
+
+    [Fact]
+    public void With_a_center_the_wider_side_goes_first()
+    {
+        // Start 100, end 208: dropping the start would leave the width as it is, so the end goes first.
+        var units = Units("s", "c::never", "e", "e");
+        Assert.Equal("1234", Bar(units, 532));
+        Assert.Equal("124…", Bar(units, 400));
     }
 }

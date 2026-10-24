@@ -299,9 +299,10 @@ internal static class ToolbarPlan
 
     /// <summary>
     /// The order units leave the bar: lowest priority first; ties from the middle outward (the start
-    /// region from its end, then the center from its end, then the end region from its start).
+    /// region from its end, then the center from its end, then the end region from its start). With
+    /// a center the wider side sets the width, so a tie goes from whichever side is wider then.
     /// </summary>
-    public static List<Unit> DropOrder(IReadOnlyList<Unit> units)
+    public static List<Unit> DropOrder(IReadOnlyList<Unit> units, double gap, double moreWidth)
     {
         var droppable = units.Where(u => !u.Separator && u.Overflow == ToolbarOverflow.Auto).ToList();
         int Rank(Unit u)
@@ -312,20 +313,37 @@ internal static class ToolbarPlan
             return before + (u.Region == ToolbarRegion.End ? index : region.Count - 1 - index);
         }
 
-        return [.. droppable.OrderBy(u => u.Priority).ThenBy(Rank)];
+        var ranked = droppable.OrderBy(u => u.Priority).ThenBy(Rank).ToList();
+        if (!units.Any(u => u.Region == ToolbarRegion.Center))
+        {
+            return ranked;
+        }
+
+        var order = new List<Unit>();
+        while (ranked.Count > 0)
+        {
+            // Once one has gone, the "…" shows at the end.
+            var (_, _, _, start, end) = Layout(units, [.. order.Select(u => u.Id)], gap, moreWidth, more: true);
+            var side = start >= end ? ToolbarRegion.Start : ToolbarRegion.End;
+            var next = ranked.Find(u => u.Priority == ranked[0].Priority && u.Region == side) ?? ranked[0];
+            order.Add(next);
+            ranked.Remove(next);
+        }
+
+        return order;
     }
 
     /// <summary>Every state the toolbar can be in, widest first. Empty ranges are left out.</summary>
     public static List<State> States(IReadOnlyList<Unit> units, double gap, double moreWidth)
     {
-        var order = DropOrder(units);
+        var order = DropOrder(units, gap, moreWidth);
         var always = units.Any(u => !u.Separator && u.Overflow == ToolbarOverflow.Always);
         var states = new List<State>();
         var max = double.PositiveInfinity;
         for (var k = 0; k <= order.Count; k++)
         {
             var dropped = order.Take(k).Select(u => u.Id).ToHashSet();
-            var (barHidden, menuShown, width) = Layout(units, dropped, gap, moreWidth, more: k > 0 || always);
+            var (barHidden, menuShown, width, _, _) = Layout(units, dropped, gap, moreWidth, more: k > 0 || always);
             var min = k == order.Count ? double.NegativeInfinity : width;
             if (min < max)
             {
@@ -338,8 +356,8 @@ internal static class ToolbarPlan
         return states;
     }
 
-    /// <summary>What's hidden and shown with <paramref name="dropped"/> in the menu, and the width the bar then needs.</summary>
-    private static (HashSet<int> BarHidden, HashSet<int> MenuShown, double Width) Layout(
+    /// <summary>What's hidden and shown with <paramref name="dropped"/> in the menu, the width the bar then needs, and its start's and end's.</summary>
+    private static (HashSet<int> BarHidden, HashSet<int> MenuShown, double Width, double Start, double End) Layout(
         IReadOnlyList<Unit> units, HashSet<int> dropped, double gap, double moreWidth, bool more)
     {
         bool InMenu(Unit u) => !u.Separator && (dropped.Contains(u.Id) || u.Overflow == ToolbarOverflow.Always);
@@ -379,7 +397,7 @@ internal static class ToolbarPlan
         var width = hasCenter
             ? 2 * Math.Max(start, end) + RegionWidth(ToolbarRegion.Center) + 2 * gap
             : start + gap + end;
-        return (barHidden, menuShown, width);
+        return (barHidden, menuShown, width, start, end);
     }
 
     private static void HideStraySeparators(IReadOnlyList<Unit> units, Func<Unit, bool> shown, Action<int> hide)
@@ -429,7 +447,8 @@ internal static class ToolbarPlan
         static string Rem(double px) => (px / 16).ToString("0.###", CultureInfo.InvariantCulture) + "rem";
         static string Ids(IEnumerable<int> ids) => string.Join(",", ids.Order().Select(id => $"[data-ib-unit=\"{id}\"]"));
 
-        var root = $"#{rootId}:not([data-ib-measured])";
+        // Off once the script has measured, and while it measures.
+        var root = $"#{rootId}:not([data-ib-measured], [data-ib-measuring])";
         var css = new StringBuilder("@layer izzy.components{");
         foreach (var state in states)
         {
