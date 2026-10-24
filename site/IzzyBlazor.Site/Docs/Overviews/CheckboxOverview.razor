@@ -1,5 +1,6 @@
 @* Checkbox's Overview, written by hand after Button's, Card's and MultiSelect's: what it posts,
-   a box that must be checked, select all, the row's layout (shown on Switch's page) and states.
+   a box that must be checked, select all (CheckboxGroup's SelectAll) and a dash of your own, the
+   row's layout (shown on Switch's page) and states.
    Accessibility and See also come from the doc comment. *@
 
 <Heading Level="2">Usage</Heading>
@@ -15,9 +16,13 @@
 <TextBlock><Code>[Required]</Code> has the browser stop the post until the box is checked, but a bool is never null, so on the server it always passes: <Code>[Range]</Code> is the check there. Give both the same <Code>ErrorMessage</Code>, and with script the browser shows it too.</TextBlock>
 
 <Heading Level="2">Select all</Heading>
-<TextBlock>Use <Code>Indeterminate</Code> to show a dash when only some of what a box stands for is checked.</TextBlock>
+<TextBlock>Use a <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> with <Code>SelectAll</Code> for a box that checks or clears a list of others at once; the script does it on static pages too.</TextBlock>
+<ExampleViewer Example="checkbox-group-everything" />
+
+<Heading Level="2">A dash of your own</Heading>
+<TextBlock>Use <Code>Indeterminate</Code> to show a dash when only some of what a box stands for is checked, and set the others from its <Code>ValueChanged</Code> on an interactive page.</TextBlock>
 <ExampleViewer Example="checkbox-select-all" />
-<TextBlock>On an interactive page, the top box's <Code>ValueChanged</Code> sets the others at once. On a static page nothing changes until the form posts, so the example also posts what the top box showed, and <Code>Save</Code> sets all three only when the top box was changed.</TextBlock>
+<TextBlock>Nothing links the boxes but your C#, so on a static page they change only when the form posts: use <Code>SelectAll</Code> there.</TextBlock>
 
 <Heading Level="2">Hints, icons and the end of the row</Heading>
 <TextBlock>Use <Code>Hint</Code> for help under the label, <Code>ControlPosition.End</Code> to put the box at the end of the row and <Code>Icon</Code> for an icon at its start, as on a Switch (<Anchor Href="docs/components/switch#at-the-end-of-the-row">see them there</Anchor>).</TextBlock>
