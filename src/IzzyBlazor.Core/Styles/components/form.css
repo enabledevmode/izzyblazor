@@ -1726,33 +1726,34 @@
    * not only the label's text. The label's own box is stretched over the field (a pseudo-element of
    * the <label>, so a click on it is a click on the label), which keeps the label alone as the
    * control's name and the hint as its description. A link in the hint stays clickable above it.
-   * (Not in a CheckboxGroup, whose boxes share one field.) The field is only as wide as its label
+   * (Not in a CheckboxGroup, whose boxes share one field, nor for its SelectAll box, which sits
+   * directly in the group's field.) The field is only as wide as its label
    * and hint, so blank space beside a short label doesn't toggle it; a settings row
    * (ControlPosition.End) is the full width it draws.
    */
-  .ib-field:has(> .ib-check) {
+  .ib-field:has(> .ib-check:not(.ib-check-all)) {
     position: relative;
   }
 
-  .ib-field:not(.ib-field-control-end):has(> .ib-check) {
+  .ib-field:not(.ib-field-control-end):has(> .ib-check:not(.ib-check-all)) {
     width: fit-content;
     max-width: 100%;
   }
 
-  .ib-field > .ib-check::after {
+  .ib-field > .ib-check:not(.ib-check-all)::after {
     content: "";
     position: absolute;
     inset: 0;
     cursor: pointer;
   }
 
-  .ib-field > .ib-check:has(:disabled)::after {
+  .ib-field > .ib-check:not(.ib-check-all):has(:disabled)::after {
     cursor: not-allowed;
   }
 
   /* Links and buttons in the label or hint sit above the row's click area. */
-  .ib-field:has(> .ib-check) > .ib-field-hint :is(a, button),
-  .ib-field > .ib-check .ib-check-label :is(a, button) {
+  .ib-field:has(> .ib-check:not(.ib-check-all)) > .ib-field-hint :is(a, button),
+  .ib-field > .ib-check:not(.ib-check-all) .ib-check-label :is(a, button) {
     position: relative;
     z-index: 1;
   }
