@@ -117,7 +117,7 @@ public class FourthReviewTests : BunitContext
     public void Derived_brand_colors_meet_their_ratios_as_written_on_every_built_in_gray()
     {
         string[] lightHigh = ["#dfdfe3", "#dce2ea", "#e0ddd5"];
-        string[] darkSurface = ["#141416", "#161a21", "#151618"];
+        string[] darkSurface = ["#0d0d0f", "#0f1218", "#0e0f10"];
         var random = new Random(7);
         for (var i = 0; i < 1500; i++)
         {
