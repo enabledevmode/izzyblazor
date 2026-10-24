@@ -1,0 +1,21 @@
+<Form Model="Model" FormName="number-field-states" MaxWidth="20.Rem" Grow>
+    <NumberField @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+    <NumberField @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    <NumberField @bind-Value="Model!.Cores" Label="CPU cores" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <NumberField @bind-Value="Model!.Replicas" Label="Replicas" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "number-field-states")]
+    private Server? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Server
+    {
+        public int Small { get; set; } = 2;
+        public int Large { get; set; } = 4;
+        public int Cores { get; set; } = 8;
+        public int Replicas { get; set; } = 3;
+    }
+}

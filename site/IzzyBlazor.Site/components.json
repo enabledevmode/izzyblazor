@@ -482,34 +482,73 @@
     },
     {
       "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Multi-line text that can grow and count.",
+      "features": [
+        { "feature": "Label, hint and length limits from the model" },
+        { "feature": "Checks before posting, server messages under the field" },
+        { "feature": "Grows with the text (AutoGrow)" },
+        { "feature": "The count follows typing (ShowCount)", "off": "none", "static": "full", "live": "full" }
+      ],
       "examples": [
         { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "Use `Rows` to set how many lines show; longer text scrolls." },
         { "id": "text-area-count", "title": "Growing, with a count", "lead": "Use `AutoGrow` to grow with the text, and `ShowCount` to count against the limit from `[StringLength]`.",
           "notes": {
             "off": "The count shows the length the page loaded with; it doesn't follow your typing.",
             "static": "The script keeps the count current as you type."
-          } }
+          } },
+        { "id": "text-area-feedback", "title": "Required, with a length",
+          "notes": {
+            "off": "The browser stops a post that's empty or too short, in its own words.",
+            "static": "The browser stops a post that's empty or too short, in the model's words.",
+            "live": "The browser checks in the model's words, as on static pages, and Send runs C# without a page load."
+          } },
+        { "id": "text-area-states", "title": "Sizes, read-only and disabled" }
       ]
     },
     {
       "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Forms", "summary": "A number input with stepper buttons.",
+      "features": [
+        { "feature": "Typing and arrow keys, with Min, Max and Step checked before posting" },
+        { "feature": "A number keyboard on phones" },
+        { "feature": "Increase and decrease buttons (hold to repeat)", "off": "none", "static": "full", "live": "full" }
+      ],
       "examples": [
-        { "id": "number-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, and the browser checks them before the form posts." },
+        { "id": "number-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, and the browser checks them before the form posts.",
+          "notes": {
+            "off": "The browser stops a quantity outside 1 to 99, in its own words.",
+            "static": "The browser stops a quantity outside 1 to 99, in the model's words.",
+            "live": "The browser checks in the model's words, as on static pages, and Update order runs C# without a page load."
+          } },
         { "id": "number-field-decimals", "title": "Decimals and units", "lead": "Use `Step` for the allowed increments, such as `0.01` for cents, and `StartAddon` or `EndAddon` for a currency or unit." },
         { "id": "number-field-steppers", "title": "Step buttons", "lead": "Use `StepButtons` to stack the buttons at the end (the default), split them across both ends, or leave them out.",
           "notes": {
             "off": "The browser's own spin buttons show in place of the step buttons, except on Room number, which has none.",
             "static": "The script adds the buttons; hold one to repeat, and each stops at its end of the range."
+          } },
+        { "id": "number-field-states", "title": "Sizes, read-only and disabled",
+          "notes": {
+            "off": "The browser's spin buttons show on every field, and do nothing on the read-only and disabled ones."
           } }
       ]
     },
     {
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.",
+      "features": [
+        { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },
+        { "feature": "The track fills to the thumb, and the shown value follows", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Screen readers hear the value as ValueFormat writes it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The bound value follows while dragging (Live)", "off": "none", "static": "none", "live": "full" }
+      ],
       "examples": [
         { "id": "slider-value", "title": "Showing the value", "lead": "Use `ShowValue` to show the value beside the slider, and `ValueFormat` for how it reads, shown and announced; `[Range]` sets the ends.",
           "notes": {
             "off": "A plain range input: no fill, and no value beside it.",
             "static": "The script fills the track to the thumb, and the value follows as you drag."
+          } },
+        { "id": "slider-budget", "title": "Saving a value",
+          "notes": {
+            "off": "Save budget posts the slider's number; the value beside it doesn't follow the thumb.",
+            "static": "The value follows the thumb, and Save budget posts it without a full reload.",
+            "live": "Save budget runs C# without a page load; the saved line keeps what was saved."
           } },
         { "id": "slider-live", "title": "Following the value live", "lead": "Use `Live` on interactive pages to update the bound value while dragging, for something on the page that follows it.", "modes": ["live"] },
         { "id": "slider-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match other fields, `ReadOnly` to post a value that can't be moved, and `Disabled` to post nothing.",
@@ -520,11 +559,21 @@
     },
     {
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "A color field with a hex box and presets.",
+      "features": [
+        { "feature": "Pick in the browser's color panel; posted with the form" },
+        { "feature": "A hex box to type or paste in, and preset swatches", "off": "none", "static": "full", "live": "full" }
+      ],
       "examples": [
         { "id": "color-picker-presets", "title": "Presets", "lead": "Use `Presets` to offer a set of colors; the value is a hex string such as `#2563eb`.",
           "notes": {
             "off": "The swatch fills the field and opens the browser's picker, where Chrome and Edge list the presets first. There's no hex box.",
             "static": "The script adds the hex box and shows the presets as swatches under the field."
+          } },
+        { "id": "color-picker-label-color", "title": "Saving a color",
+          "notes": {
+            "off": "The swatch opens the browser's panel, with the presets first in Chrome and Edge; Save label posts the color.",
+            "static": "Type a hex value or choose a swatch; Save label posts it without a full reload.",
+            "live": "Save label runs C# without a page load; the saved badge keeps what was saved."
           } },
         { "id": "color-picker-states", "title": "Sizes, swatch only and locked", "lead": "Use `Size` to match other fields, `ShowHex=\"false\"` for the swatch alone, and `ReadOnly` or `Disabled` to lock the value.",
           "notes": {
@@ -535,17 +584,29 @@
     },
     {
       "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Forms", "summary": "A drop zone around a real file input.",
+      "features": [
+        { "feature": "Choose files with the picker, posted with the form" },
+        { "feature": "Drop files on the zone; the wrong type refused", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The chosen file's name and size, too large flagged before posting", "off": "none", "static": "full", "live": "full" },
+        { "feature": "OnChange gets the files", "member": "OnChange" }
+      ],
       "examples": [
         { "id": "file-upload-photo", "title": "Types, size and posting", "lead": "Use `Accept` and `MaxFileSize` for the files allowed (they write the hint), and `Multipart` on the Form so the file posts.",
           "notes": {
-            "off": "Choose a file opens the picker, and Upload posts the photo. Dropping a file and the size check need the script.",
+            "off": "Choose a file opens the picker, the browser names the chosen file under the prompt, and Upload posts the photo. Dropping a file and the size check need the script.",
             "static": "You can also drop a photo on the zone; one over 2 MB is flagged before posting, and the chosen file's name and size replace the types and size line.",
             "live": "OnChange gets the photo as an IBrowserFile when it's chosen, to read as a stream."
           } },
-        { "id": "file-upload-multiple", "title": "Several files and disabled", "lead": "Use `Multiple` to take several files at once, and `Disabled` to turn the zone off.",
+        { "id": "file-upload-multiple", "title": "Several files", "lead": "Use `Multiple` to take several files at once; on a static page they bind to an `IReadOnlyList<IFormFile>`.",
           "notes": {
-            "off": "Choose files opens the picker; dropping files needs the script.",
-            "static": "Files can be dropped on the zone too (other types are refused), and the chosen files replace the types and size line."
+            "off": "Choose files opens the picker, and Attach posts every file chosen. Dropping files needs the script.",
+            "static": "Files can be dropped on the zone too (other types are refused), and \"2 files\" replaces the types and size line.",
+            "live": "OnChange gets the files as they're chosen; Attach lists them without a page load."
+          } },
+        { "id": "file-upload-states", "title": "Required and disabled",
+          "notes": {
+            "off": "The browser stops Apply until a résumé is chosen, in its own words.",
+            "live": "OnChange gets the résumé when it's chosen, and Apply runs C# without a page load."
           } }
       ]
     },
@@ -558,6 +619,11 @@
     },
     {
       "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "parts": ["FilterSearch", "FilterSelect", "FilterCheckbox"],
+      "features": [
+        { "feature": "Filters in the address, applied with Apply or Enter; Clear removes them" },
+        { "feature": "Keeps the rest of the address and goes back to page 1" },
+        { "feature": "Applies as you type and on each change, without a reload", "off": "none", "static": "full", "live": "full" }
+      ],
       "examples": [
         { "id": "filter-form-issues", "title": "Search, select and checkbox", "lead": "Use `FilterSearch`, `FilterSelect` and `FilterCheckbox` for the filters; the page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.",
           "notes": {
@@ -569,6 +635,12 @@
           "notes": {
             "off": "Search loads the page again with the filters in the URL.",
             "static": "Filters wait for Search or Enter, then apply without a full reload."
+          } },
+        { "id": "filter-form-books", "title": "With a table",
+          "notes": {
+            "off": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
+            "static": "Filters apply as you type, without a full reload; the sort stays and the table goes back to page 1.",
+            "live": "The same, through Blazor's navigation; the table follows the address."
           } }
       ],
       "scenarios": [

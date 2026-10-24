@@ -4,9 +4,9 @@
     <NumberField @bind-Value="Model!.Quantity" Hint="1 to 99 per order." />
     <NumberField @bind-Value="Model!.Seats" Placeholder="No limit" />
     <Row><Button Submit>Update order</Button></Row>
-    @if (_saved)
+    @if (_saved is { } saved)
     {
-        <Alert Status="Status.Success">@Model!.Quantity licenses, @(Model.Seats?.ToString() ?? "unlimited") seats.</Alert>
+        <Alert Status="Status.Success">@saved.Quantity licenses, @(saved.Seats?.ToString() ?? "unlimited") seats.</Alert>
     }
 </Form>
 
@@ -14,15 +14,16 @@
     [SupplyParameterFromForm(FormName = "number-field-limits")]
     private Order? Model { get; set; }
 
-    private bool _saved;
+    // What was saved, not the fields: on an interactive page they follow typing.
+    private (int Quantity, int? Seats)? _saved;
 
     protected override void OnInitialized() => Model ??= new();
 
-    private void Save() => _saved = true;
+    private void Save() => _saved = (Model!.Quantity, Model.Seats);
 
     public sealed class Order
     {
-        [Range(1, 99)]
+        [Range(1, 99, ErrorMessage = "Order 1 to 99 licenses.")]
         public int Quantity { get; set; } = 5;
 
         [Range(1, 500), Display(Name = "Seats per license")]

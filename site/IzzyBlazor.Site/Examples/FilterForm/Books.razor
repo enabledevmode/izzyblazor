@@ -1,0 +1,43 @@
+@* The filters and the table share the address: filtering keeps the sort and goes back to page 1. *@
+<Stack Gap="4" Grow>
+    <FilterForm Label="Filter books">
+        <FilterSearch Name="title" Label="Title" Placeholder="Search titles" />
+        <FilterSelect Name="genre" Label="Genre" Items="Genres" />
+    </FilterForm>
+    <Table Items="Found" PageSize="4" InitialSort="title" Caption="Books" QueryPrefix="books-"
+           EmptyText="No books match these filters" Grow>
+        <PropertyColumn Property="b => b.Title" Sortable />
+        <PropertyColumn Property="b => b.Author" Sortable />
+        <PropertyColumn Property="b => b.Year" Sortable />
+    </Table>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "title")] private string? Title { get; set; }
+    [SupplyParameterFromQuery(Name = "genre")] private string? Genre { get; set; }
+
+    // The page filters its own data; the table sorts and pages what it's given.
+    private IEnumerable<Book> Found => All
+        .Where(b => string.IsNullOrWhiteSpace(Title) || b.Title.Contains(Title, StringComparison.OrdinalIgnoreCase))
+        .Where(b => string.IsNullOrEmpty(Genre) || b.Genre == Genre);
+
+    @* hide *@
+    private static readonly string[] Genres = ["Fiction", "History", "Science"];
+
+    private static readonly Book[] All =
+    [
+        new("A Brief History of Time", "Stephen Hawking", 1988, "Science"),
+        new("Beloved", "Toni Morrison", 1987, "Fiction"),
+        new("Guns, Germs, and Steel", "Jared Diamond", 1997, "History"),
+        new("One Hundred Years of Solitude", "Gabriel García Márquez", 1967, "Fiction"),
+        new("Silent Spring", "Rachel Carson", 1962, "Science"),
+        new("SPQR", "Mary Beard", 2015, "History"),
+        new("The Left Hand of Darkness", "Ursula K. Le Guin", 1969, "Fiction"),
+        new("The Origin of Species", "Charles Darwin", 1859, "Science"),
+        new("The Guns of August", "Barbara W. Tuchman", 1962, "History"),
+        new("Things Fall Apart", "Chinua Achebe", 1958, "Fiction"),
+    ];
+
+    private sealed record Book(string Title, string Author, int Year, string Genre);
+    @* /hide *@
+}

@@ -1,0 +1,48 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="color-picker-label-color" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <TextField @bind-Value="Model!.Name" />
+    <ColorPicker @bind-Value="Model!.Color" Presets="Colors" />
+    <Row><Button Submit>Save label</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Row Gap="2" Align="Align.Center">
+            <TextBlock Size="TextSize.Sm">Saved:</TextBlock>
+            <Box Width="1.Rem" Height="1.Rem" Radius="Radius.Sm" Border="1" Style="@($"background: {saved.Color}")" />
+            <TextBlock Size="TextSize.Sm">@saved.Name, <Code>@saved.Color</Code></TextBlock>
+        </Row>
+    }
+    else if (_invalid)
+    {
+        <Alert Status="Status.Danger">That isn't a color.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "color-picker-label-color")]
+    private IssueLabel? Model { get; set; }
+
+    // What was saved, not the fields: on an interactive page they follow each change.
+    private (string Name, string Color)? _saved;
+    private bool _invalid;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    // The browser sends "#rrggbb", but a crafted post can send any text: normalize it, or turn it away.
+    private void Save()
+    {
+        _saved = ColorValues.NormalizeHex(Model!.Color) is { } color ? (Model.Name!, color) : null;
+        _invalid = _saved is null;
+    }
+
+    private static readonly string[] Colors = ["#be123c", "#ea580c", "#15803d", "#2563eb", "#7c3aed"];
+
+    public sealed class IssueLabel
+    {
+        [Required, StringLength(24), Display(Name = "Label name")]
+        public string? Name { get; set; } = "Needs review";
+
+        [Display(Name = "Label color")]
+        public string? Color { get; set; } = "#ea580c";
+    }
+}

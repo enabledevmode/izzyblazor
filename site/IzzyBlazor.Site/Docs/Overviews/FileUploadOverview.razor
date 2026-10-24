@@ -1,0 +1,103 @@
+@* FileUpload's Overview, written by hand after TextField's and the selection Overviews: one file
+   posted (previewed in each mode), several files, required and disabled, checking on the server,
+   interactive pages and its own words. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>The zone is a real file input with a label that opens the picker, so it works on static pages with JavaScript off: the file posts with the form, and the page binds it by its <Code>Name</Code>. Set <Code>Multipart</Code> on the <Anchor Href="docs/components/form">Form</Anchor>, or only the file's name posts.</TextBlock>
+
+<Heading Level="2">Types, size and posting</Heading>
+<TextBlock>Use <Code>Accept</Code> for the types offered and <Code>MaxFileSize</Code> for the largest file, in bytes; together they write the line under the prompt ("PNG or JPEG · up to 2 MB").</TextBlock>
+<ExampleViewer Example="file-upload-photo" />
+<TextBlock>On a static page, bind the file to an <Code>IFormFile</Code> property with <Code>[SupplyParameterFromForm]</Code>, named like the field. Both limits only guide the browser: the picker's "All files" choice gets past <Code>Accept</Code>, and with JavaScript off nothing checks the size, so check both on the server, as the example does by size and by the file's first bytes.</TextBlock>
+
+<Heading Level="2">Several files</Heading>
+<TextBlock>Use <Code>Multiple</Code> to take several files at once, and bind them to an <Code>IReadOnlyList&lt;IFormFile&gt;</Code> (or an <Code>IFormFileCollection</Code>) on a static page.</TextBlock>
+<ExampleViewer Example="file-upload-multiple" />
+<TextBlock>Every chosen file posts under the same name. A file dropped on the zone, or chosen again, replaces the earlier choice rather than adding to it, and the zone doesn't list the files, so show what arrived after the post.</TextBlock>
+
+<Heading Level="2">Required and disabled</Heading>
+<TextBlock>Use <Code>Required</Code> for a file the form can't post without, and <Code>Disabled</Code> to turn the zone off.</TextBlock>
+<ExampleViewer Example="file-upload-states" />
+<TextBlock><Code>Required</Code> is the browser's check, so a crafted post can still leave the file out: check that it arrived on the server too. A file can't be read-only, so a read-only <Anchor Href="docs/components/form">Form</Anchor> disables the zone. A disabled zone posts nothing, so keep its file on the server rather than clearing it after the post.</TextBlock>
+
+<Heading Level="2">Checking on the server</Heading>
+<TextBlock>Check every file's size and type where you save it, and set the server's request limits to match <Code>MaxFileSize</Code>: Kestrel turns away a request over 30,000,000 bytes (about 28.6 MB) by default, before your code runs.</TextBlock>
+<Code Block Language="csharp" Title="Program.cs">@Limits</Code>
+<TextBlock>The posted content type and file name come from the browser and can say anything, so don't trust either to name the saved file or to decide how it's served; check the file's first bytes for its type, as the photo example does. IIS has its own request limit (about 28.6 MB by default) when the app runs behind it.</TextBlock>
+
+<Heading Level="2">On an interactive page</Heading>
+<TextBlock>Use <Code>OnChange</Code> to get the chosen files as <Code>IBrowserFile</Code> as soon as they're chosen, and read each with <Code>OpenReadStream</Code>; nothing posts.</TextBlock>
+<Code Block Language="razor">@Interactive</Code>
+<TextBlock><Code>OnChange</Code> leaves out files over <Code>MaxFileSize</Code> and gives at most <Code>MaxFiles</Code> (10). <Code>OpenReadStream</Code> throws for a file over 512,000 bytes unless you pass a larger limit, so pass <Code>MaxFileSize</Code>.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>ChooseText</Code> and <Code>DragText</Code> for the prompt, <Code>AcceptText</Code> for the line under it (empty for none), and <Code>TooLargeText</Code> and <Code>WrongTypeText</Code> for the messages, or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Form Model="Model" FormName="profile" Multipart OnValidSubmit="Save">
+            <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg"
+                        MaxFileSize="2_000_000" />
+            <Button Submit>Save</Button>
+        </Form>
+
+        @code {
+            // The file binds by its Name; check its size and type in Save.
+            [SupplyParameterFromForm(FormName = "profile")]
+            private IFormFile? Avatar { get; set; }
+        }
+        """;
+
+    private const string Limits = """
+        using Microsoft.AspNetCore.Http.Features;
+
+        // Kestrel's limit for the whole request (30,000,000 bytes by default).
+        builder.WebHost.ConfigureKestrel(kestrel =>
+            kestrel.Limits.MaxRequestBodySize = 12_000_000);
+
+        // The limit for a form's files (128 MB by default).
+        builder.Services.Configure<FormOptions>(form =>
+            form.MultipartBodyLengthLimit = 12_000_000);
+        """;
+
+    private const string Interactive = """
+        <FileUpload Name="Avatar" Label="Profile photo" Accept="image/png,image/jpeg"
+                    MaxFileSize="MaxSize" OnChange="UploadAsync" />
+
+        @* PhotoStore is your own service. *@
+        @inject PhotoStore Photos
+
+        @code {
+            private const long MaxSize = 2_000_000;
+
+            private async Task UploadAsync(IReadOnlyList<IBrowserFile> files)
+            {
+                if (files is not [var file]) return;
+                await using var stream = file.OpenReadStream(MaxSize);
+                // Check the file's first bytes for its type before keeping it.
+                await Photos.SaveAsync(stream);
+            }
+        }
+        """;
+}

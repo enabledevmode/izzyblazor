@@ -1,0 +1,21 @@
+<Form Model="Model" FormName="text-area-states" MaxWidth="28.Rem" Grow>
+    <TextArea @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" Rows="2" />
+    <TextArea @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" Rows="2" />
+    <TextArea @bind-Value="Model!.Terms" Label="Terms" Rows="2" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <TextArea @bind-Value="Model!.Notes" Label="Internal notes" Rows="2" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "text-area-states")]
+    private Contract? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Contract
+    {
+        public string? Small { get; set; } = "Net 30.";
+        public string? Large { get; set; } = "Renews every year.";
+        public string? Terms { get; set; } = "Payment is due 30 days after the invoice date.";
+        public string? Notes { get; set; } = "Ask about a three-year term at renewal.";
+    }
+}

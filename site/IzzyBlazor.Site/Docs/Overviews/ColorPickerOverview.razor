@@ -1,0 +1,58 @@
+@* ColorPicker's Overview, written by hand after TextField's: presets, saving a color (previewed in
+   each mode), empty values, states and its own words. Accessibility and See also come from the doc
+   comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>The value is a hex string such as <Code>#2563eb</Code>. Underneath is a native color input, so it posts with the form and opens the browser's own color panel with or without the script; the script adds a hex box beside the swatch and the presets as swatches under it. For a few named choices, such as a label's color, a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> can be clearer.</TextBlock>
+
+<Heading Level="2">Presets</Heading>
+<TextBlock>Use <Code>Presets</Code> for the colors to offer first, as hex strings.</TextBlock>
+<ExampleViewer Example="color-picker-presets" />
+<TextBlock>Any color can still be picked or typed, so check the value on the server if it must be one of the presets.</TextBlock>
+
+<Heading Level="2">Saving a color</Heading>
+<TextBlock>Bind it to a string: the browser sends the color as <Code>#rrggbb</Code> in lowercase, whether it was picked, chosen from a preset or typed (<Code>#F60</Code> becomes <Code>#ff6600</Code>).</TextBlock>
+<ExampleViewer Example="color-picker-label-color" />
+<TextBlock>The hex box takes three or six hex digits, with or without the <Code>#</Code>; anything else is put back to the last good value when it loses focus. On a static page the property gets the posted text as it is, and a crafted post can send any text, so pass it through <Code>ColorValues.NormalizeHex</Code>, which gives <Code>#rrggbb</Code> or null, before you save or use it, as the example does.</TextBlock>
+
+<Heading Level="2">Empty values</Heading>
+<TextBlock>A color input always has a value: a property that's null or not a color shows black, and the form posts <Code>#000000</Code>. Start the property with a color, and treat black as a choice like any other.</TextBlock>
+
+<Heading Level="2">Sizes, swatch only and locked</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with other fields, <Code>ShowHex="false"</Code> for the swatch alone, <Code>ReadOnly</Code> for a color that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<ExampleViewer Example="color-picker-states" />
+<TextBlock>A read-only color posts from a hidden field, so a crafted post can change it: check it on the server if it matters. A disabled field posts nothing, so after a static post its property is null and the field shows black: keep its value on the server rather than saving it from the post.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>HexLabel</Code> for the end of the hex box's name ("Brand color, hex") and <Code>PresetsLabel</Code> for the presets group ("Preset colors"), or set them for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        @* A hex string, with a few colors offered first. *@
+        <ColorPicker @bind-Value="Model!.Brand" Presets="@(["#2563eb", "#0f766e", "#be123c"])" />
+
+        @* The swatch alone, for a compact row. *@
+        <ColorPicker @bind-Value="Model!.Highlight" ShowHex="false" />
+        """;
+}

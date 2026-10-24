@@ -1,5 +1,48 @@
-<Stack Gap="5" MaxWidth="26.Rem" Grow>
-    <FileUpload Name="attachments" Label="Attachments" Multiple Accept=".pdf,.docx" MaxFileSize="10_000_000"
-                Hint="Contracts and statements of work." />
-    <FileUpload Name="logo" Label="Company logo" Accept="image/svg+xml" Disabled Hint="Only the workspace owner can change it." />
-</Stack>
+@using Microsoft.AspNetCore.Http
+
+<Form Model="Model" FormName="file-upload-multiple" Multipart OnValidSubmit="Send" MaxWidth="26.Rem" Grow>
+    <FileUpload Name="Attachments" Label="Attachments" Multiple Accept=".pdf,.docx" MaxFileSize="MaxSize"
+                Hint="Contracts and statements of work." OnChange="Chosen" />
+    <Row><Button Submit StartIcon="Lucide.Paperclip">Attach</Button></Row>
+    @if (_result is not null)
+    {
+        <Alert Status="_status">@_result</Alert>
+    }
+</Form>
+
+@code {
+    private const long MaxSize = 10_000_000;
+
+    [SupplyParameterFromForm(FormName = "file-upload-multiple")]
+    private Message? Model { get; set; }
+
+    // Static pages: every chosen file posts under the same name.
+    [SupplyParameterFromForm(FormName = "file-upload-multiple")]
+    private IReadOnlyList<IFormFile>? Attachments { get; set; }
+
+    // Interactive pages: OnChange gets the files as they're chosen.
+    private IReadOnlyList<IBrowserFile> _chosen = [];
+    private string? _result;
+    private Status _status;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Chosen(IReadOnlyList<IBrowserFile> files) => _chosen = files;
+
+    private void Send()
+    {
+        var files = Attachments is { Count: > 0 } posted
+            ? posted.Where(f => f.Length > 0).Select(f => (f.FileName, f.Length)).ToList()
+            : _chosen.Select(f => (FileName: f.Name, Length: f.Size)).ToList();
+        // The picker's "All files" and a crafted post get past Accept: check here too.
+        var wrong = files.FirstOrDefault(f => !f.FileName.EndsWith(".pdf", StringComparison.OrdinalIgnoreCase)
+                                             && !f.FileName.EndsWith(".docx", StringComparison.OrdinalIgnoreCase));
+        (_status, _result) = files.Count == 0 ? (Status.Warning, "Choose a file first.")
+            : wrong.FileName is { } name ? (Status.Danger, $"{name} isn't a PDF or Word file.")
+            : files.Any(f => f.Length > MaxSize) ? (Status.Danger, "Each file must be 10 MB or less.")
+            : (Status.Success, $"Attached {string.Join(", ", files.Select(f => f.FileName))}.");
+    }
+
+    // The form's model; the files themselves bind to Attachments above.
+    public sealed class Message;
+}
