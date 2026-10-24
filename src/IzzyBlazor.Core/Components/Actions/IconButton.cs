@@ -41,11 +41,28 @@ public class IconButton : ButtonBase
     /// <summary>Renders a link to this URL instead of a button.</summary>
     [Parameter] public string? Href { get; set; }
 
-    /// <summary>Submits the form it's in, when it's a button (not a link), like <c>type="submit"</c>.</summary>
+    /// <summary>Submits the form it's in (or <see cref="Form"/>), when it's a button (not a link), like <c>type="submit"</c>.</summary>
     [Parameter] public bool Submit { get; set; }
 
     /// <summary>Resets the form it's in, when it's a button, like <c>type="reset"</c>. Can't be combined with <see cref="Submit"/>.</summary>
     [Parameter] public bool Reset { get; set; }
+
+    /// <summary>
+    /// Posted with the form as <c>Name=Value</c> when this button submits it, so one handler can tell
+    /// which button was pressed, such as which row's Delete. Not <c>action</c>, <c>method</c> or
+    /// <c>target</c>: a control with one of those names hides the form's own property, and Blazor's
+    /// enhanced form handling then posts to the wrong address.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The value posted with <see cref="Name"/>.</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>Submits to this URL instead of the form's own action (native <c>formaction</c>).</summary>
+    [Parameter] public string? FormAction { get; set; }
+
+    /// <summary>The id of a form elsewhere on the page that this button submits (native <c>form</c>).</summary>
+    [Parameter] public string? Form { get; set; }
 
     /// <summary>Runs on click on interactive pages (a link still navigates).</summary>
     [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
@@ -77,9 +94,9 @@ public class IconButton : ButtonBase
         builder.OpenElement(0, isLink ? "a" : "button");
         if (isLink)
         {
-            if (Submit || Reset)
+            if (Submit || Reset || Name is not null || Value is not null || FormAction is not null || Form is not null)
             {
-                throw new InvalidOperationException("IconButton with Href is a link, so Submit and Reset don't apply. Leave out Href for a button.");
+                throw new InvalidOperationException("IconButton with Href is a link, so Submit, Reset, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
             }
 
             // Like Button with Href: an inactive link has no href, so it keeps role="link" for its name.
@@ -97,6 +114,10 @@ public class IconButton : ButtonBase
             var type = ButtonTypes.Of(Submit, Reset, nameof(IconButton));
             builder.AddAttribute(3, "type", Loading ? "button" : type);
             builder.AddAttribute(4, "disabled", Disabled);
+            builder.AddAttribute(18, "name", Name);
+            builder.AddAttribute(19, "value", Value);
+            builder.AddAttribute(20, "formaction", FormAction);
+            builder.AddAttribute(21, "form", Form);
             if (OnClick.HasDelegate && !Loading)
             {
                 builder.AddAttribute(5, "onclick", OnClick);

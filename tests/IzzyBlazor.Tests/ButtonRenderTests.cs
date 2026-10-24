@@ -41,6 +41,28 @@ public class ButtonRenderTests : BunitContext
         Assert.Equal("/drafts", button.GetAttribute("formaction"));
     }
 
+    [Fact]
+    public void Icon_submit_button_posts_its_name_and_value()
+    {
+        var button = Render<IconButton>(p => p
+            .Add(b => b.Icon, Lucide.Trash)
+            .Add(b => b.Label, "Delete invoice 42")
+            .Add(b => b.Submit, true)
+            .Add(b => b.Name, "delete")
+            .Add(b => b.Value, "42")
+            .Add(b => b.Form, "invoices")).Find("button");
+
+        Assert.Equal("submit", button.GetAttribute("type"));
+        Assert.Equal("delete", button.GetAttribute("name"));
+        Assert.Equal("42", button.GetAttribute("value"));
+        Assert.Equal("invoices", button.GetAttribute("form"));
+        Assert.Throws<InvalidOperationException>(() => Render<IconButton>(p => p
+            .Add(b => b.Icon, Lucide.Trash)
+            .Add(b => b.Label, "Delete")
+            .Add(b => b.Href, "/x")
+            .Add(b => b.Name, "delete")));
+    }
+
     [Theory]
     [InlineData(false, false, "button")]
     [InlineData(true, false, "submit")]
