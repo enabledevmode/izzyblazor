@@ -251,6 +251,11 @@
     gap: inherit;
   }
 
+  /* A toast the script added, in an element of its own (toasts.ts). */
+  ib-toast-added {
+    display: contents;
+  }
+
   .ib-toast-top-start,
   .ib-toast-top-center,
   .ib-toast-top-end {
