@@ -19,7 +19,10 @@
         <Code Block Language="razor" HighlightLines="1,9-10">@Basic</Code>
         <TextBlock>
             <Code>OnValidSubmit</Code> runs on the server once the model is valid, in every mode. On an interactive page the
-            same form checks each field as it changes and submits without a page load.
+            same form checks each field as it changes and submits without a page load. On a static page the errors come
+            from the last post: once a field's value changes its errors go (in a Combobox or MultiSelect, when an option
+            is chosen, not as the search is typed), and the next post checks it again. A <Code>FormErrors</Code> summary
+            keeps listing them, and with JavaScript off they all stay until the next post.
         </TextBlock>
 
         <Heading Level="2">Labels and rules from the model</Heading>

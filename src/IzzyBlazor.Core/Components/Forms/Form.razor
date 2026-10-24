@@ -6,7 +6,9 @@
     A styled EditForm. Works three ways:
       - Static page, no JavaScript: a real POST, validated on the server, re-rendered with errors.
       - Static page with JavaScript: Blazor's enhanced form handling (no full reload), native
-        browser validation before posting, and a loading state on the submit button.
+        browser validation before posting, and a loading state on the submit button. A field's
+        errors from the last post go once its value changes (a form reset brings them back), and
+        the next post checks it again; a FormErrors summary keeps them.
       - Interactive page: EditForm validation as usual.
 
     <Form Model="Model" FormName="profile" OnValidSubmit="Save">
