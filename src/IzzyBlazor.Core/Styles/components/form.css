@@ -117,9 +117,10 @@
     resize: vertical;
   }
 
+  /* Grows from its Rows (--ib-rows), the text's lines plus padding and border. */
   .ib-field-autogrow {
     field-sizing: content;
-    min-height: calc(var(--ib-field-h) * 2);
+    min-height: calc(var(--ib-rows, 2) * 1lh + 2 * var(--ib-space-2) + 2px);
   }
 
   /* Where it grows on its own, a resize handle would fix its height; elsewhere keep the handle. */
