@@ -1,0 +1,60 @@
+@* ColorSchemeSwitch's Overview, written by hand after IzzyTheme's: the three looks (previewed in
+   each mode), where the choice is kept, following it from C# (Live) and its own words. The Light
+   and dark article has the rest. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>It lets people pick System, Light or Dark for the whole app. Put it in the header, once; the <Anchor Href="docs/components/izzy-theme">IzzyTheme</Anchor> in the <Code>head</Code> sets the scheme every page arrives in. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> covers the default scheme and a scheme for part of a page.</TextBlock>
+
+<Heading Level="2">Menu, toggle and segmented</Heading>
+<TextBlock>Use <Code>Variant</Code> for the look: <Code>Menu</Code> (an icon button with System, Light and Dark, the default), <Code>Toggle</Code> (one button between light and dark) or <Code>Segmented</Code> (the three side by side, <Code>IconOnly</Code> for icons alone).</TextBlock>
+<ExampleViewer Example="color-scheme-switch-variants" />
+<TextBlock>These three share the reader's choice with the site's own switch, so picking one here changes this site's scheme too. <Code>Toggle</Code> has no way back to System; use it where following the device isn't needed.</TextBlock>
+
+<Heading Level="2">Where the choice is kept</Heading>
+<TextBlock>The choice goes in the <Code>ib-scheme</Code> cookie, which IzzyTheme reads on the server, so every later page arrives in that scheme with no flash. <Code>AddIzzyBlazor()</Code> lets the server read it, and <Code>MapIzzyBlazor()</Code> adds the endpoint the options link to with JavaScript off.</TextBlock>
+<Code Block Language="csharp" Title="Program.cs">@Setup</Code>
+
+<Heading Level="2">Following it from C#</Heading>
+<TextBlock>Use <Code>ValueChanged</Code> to learn the choice in C#, and set <Code>Value</Code> to apply a scheme to the page, the cookie and other open tabs, on an interactive page.</TextBlock>
+<ExampleViewer Example="color-scheme-switch-bound" />
+<TextBlock>Leave <Code>Value</Code> unset to show the choice in the cookie; a bound value that starts null does the same until something is picked.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the menu button's or group's name ("Color scheme"); the options' words ("System", "Light", "Dark") and the toggle's ("Switch to dark mode") are set for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <AppHeader>
+            <AppBrand Label="Acme" Href="/" />
+            <Box Grow />
+            <ColorSchemeSwitch />
+        </AppHeader>
+        """;
+
+    private const string Setup = """
+        builder.Services.AddIzzyBlazor();
+        // …
+        app.MapIzzyBlazor();
+        """;
+}

@@ -1,0 +1,65 @@
+@* IconButton's Overview, written by hand after Button's: labels and variants, sizes and states,
+   actions on a row (previewed in each mode) and a tooltip on focus. Accessibility and See also
+   come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>An IconButton is a <Anchor Href="docs/components/button">Button</Anchor> with one icon and no visible text, for actions people know by their icon: edit, delete, more. <Code>Label</Code> is required: it's the button's name and its tooltip. When the icon alone isn't clear, use a Button with text.</TextBlock>
+
+<Heading Level="2">Labels and variants</Heading>
+<TextBlock>Use <Code>Label</Code> for what the button does, and <Code>Variant</Code>, <Code>Accent</Code> and <Code>Href</Code> as on Button.</TextBlock>
+<ExampleViewer Example="icon-button-variants" />
+<TextBlock><Code>Ghost</Code> with a <Code>Neutral</Code> accent suits rows of tools, where a filled button for each would be loud; keep a solid one for the action that matters most.</TextBlock>
+
+<Heading Level="2">Sizes and states</Heading>
+<TextBlock>Use <Code>Size</Code>, <Code>Loading</Code> and <Code>Disabled</Code> as on Button.</TextBlock>
+<ExampleViewer Example="icon-button-sizes-states" />
+
+<Heading Level="2">Actions on a row</Heading>
+<TextBlock>Use <Code>Href</Code> for a link and <Code>Submit</Code> with <Code>name</Code> and <Code>value</Code> attributes to post which row a button is on, with <Code>OnClick</Code> for the same on interactive pages.</TextBlock>
+<ExampleViewer Example="icon-button-row-actions" />
+<TextBlock>IconButton passes <Code>name</Code> and <Code>value</Code> to its button as attributes; unlike Button, it has no <Code>Name</Code>, <Code>Value</Code>, <Code>Form</Code> or <Code>FormAction</Code> parameters. Put the row in the label too ("Delete budget-2026.xlsx"), so screen readers and the tooltip say which one. <Code>OnClick</Code> runs only on interactive pages; on static ones the post is what happens, as with Button.</TextBlock>
+
+<Heading Level="2">A tooltip on focus</Heading>
+<TextBlock>Wrap it in a <Anchor Href="docs/components/tooltip">Tooltip</Anchor> for a hint that shows on keyboard focus as well as hover, or for more than the label, such as a shortcut.</TextBlock>
+<Code Block Language="razor">@WithTooltip</Code>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <IconButton Icon="Lucide.Pencil" Label="Edit" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+
+        @* A link. *@
+        <IconButton Icon="Lucide.ExternalLink" Label="Open the docs" Href="https://example.com/docs" />
+
+        @* In a form: posts delete=42 when pressed. *@
+        <IconButton Icon="Lucide.Trash" Label="Delete invoice 42" Submit name="delete" value="42"
+                    Accent="Accent.Danger" Variant="ButtonVariant.Ghost" />
+        """;
+
+    private const string WithTooltip = """
+        <Tooltip>
+            <Content>Bold <Kbd Keys="Ctrl+B" /></Content>
+            <ChildContent><IconButton Icon="Lucide.Bold" Label="Bold" Variant="ButtonVariant.Ghost" /></ChildContent>
+        </Tooltip>
+        """;
+}

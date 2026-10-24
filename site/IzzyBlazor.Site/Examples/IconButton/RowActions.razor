@@ -1,0 +1,84 @@
+@inject NavigationManager Navigation
+
+@* A link and a post on each row. Static pages: Delete posts its name=value and redirects with the
+   deleted names in the address. Interactive pages: OnClick says which button it was. *@
+<form method="post" @formname="icon-button-files" @onsubmit="Delete" data-enhance class="ib-grow">
+    <AntiforgeryToken />
+    <Stack Gap="0" MaxWidth="28.Rem" Grow Border="1" Radius="Radius.Md">
+        @foreach (var file in Shown)
+        {
+            <Row Gap="1" Align="Align.Center" PaddingX="3" PaddingY="2" BorderTop="@(file == Shown[0] ? 0 : 1)">
+                <Icon Name="Lucide.FileText" Color="Color.Muted" />
+                <TextBlock As="span" Grow Truncate MarginLeft="1">@file</TextBlock>
+                <IconButton Icon="Lucide.Eye" Label="@($"Preview {file}")" Href="@Navigation.GetUriWithQueryParameter("preview", file)"
+                            Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" />
+                <IconButton Icon="Lucide.Trash" Label="@($"Delete {file}")" Submit name="delete" value="@file"
+                            OnClick="() => _clicked = file"
+                            Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Danger" />
+            </Row>
+        }
+        @if (Shown.Count == 0)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Padding="3">No files.</TextBlock>
+        }
+    </Stack>
+</form>
+@if (Preview is not null && Shown.Contains(Preview))
+{
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="2">Previewing @Preview.</TextBlock>
+}
+@if (_deleted.Count > 0)
+{
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" MarginTop="2">
+        Deleted @string.Join(", ", _deleted).
+        @if (RendererInfo.IsInteractive)
+        {
+            <Button Variant="ButtonVariant.Link" Size="ControlSize.Sm" OnClick="() => _deleted.Clear()">Restore</Button>
+        }
+        else
+        {
+            <Anchor Href="@Navigation.GetUriWithQueryParameter("deleted", (string?)null)">Restore</Anchor>
+        }
+    </TextBlock>
+}
+
+@code {
+    // Static pages: the deleted names live in the address (?deleted=…), so each page load knows them.
+    [SupplyParameterFromQuery(Name = "deleted")]
+    private string[]? DeletedQuery { get; set; }
+
+    [SupplyParameterFromQuery(Name = "preview")]
+    private string? Preview { get; set; }
+
+    // The pressed button's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "icon-button-files", Name = "delete")]
+    private string? Posted { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which button it was.
+    private string? _clicked;
+    private List<string> _deleted = [];
+
+    private List<string> Shown => Files.Where(f => !_deleted.Contains(f)).ToList();
+
+    protected override void OnInitialized() => _deleted = [.. DeletedQuery ?? []];
+
+    private void Delete()
+    {
+        var file = Files.FirstOrDefault(f => f == (Posted ?? _clicked));
+        if (file is null || _deleted.Contains(file))
+        {
+            return;
+        }
+
+        _deleted.Add(file);
+
+        // A static post redirects to the new address, so a reload doesn't post again.
+        if (!RendererInfo.IsInteractive)
+        {
+            Navigation.NavigateTo(Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["deleted"] = _deleted.ToArray() }));
+        }
+    }
+    @* hide *@
+    private static readonly string[] Files = ["q3-report.pdf", "budget-2026.xlsx", "team-photo.jpg"];
+    @* /hide *@
+}

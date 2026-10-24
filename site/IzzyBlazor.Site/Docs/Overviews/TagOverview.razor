@@ -1,0 +1,54 @@
+@* Tag's Overview, written by hand after Alert's: colors and variants, links, icons
+   and sizes, removable filters (previewed in each mode). Accessibility and See also come from the
+   doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A tag is a keyword, a category or a filter that's applied, and can be a link or removed. For a small status label or a count, use a <Anchor Href="docs/components/badge">Badge</Anchor>; for choosing several values in a form, a <Anchor Href="docs/components/multi-select">MultiSelect</Anchor>.</TextBlock>
+
+<Heading Level="2">Status and variants</Heading>
+<TextBlock>Use <Code>Status</Code> or <Code>Accent</Code> for the color and <Code>Variant</Code> for the weight: <Code>Soft</Code> (the default), <Code>Solid</Code> or <Code>Outline</Code>.</TextBlock>
+<ExampleViewer Example="tag-variants" />
+
+<Heading Level="2">Links, icons and sizes</Heading>
+<TextBlock>Use <Code>Href</Code> to make a tag a link, <Code>StartIcon</Code> for an icon and <Code>Size</Code> for 20, 24 or 28px tall.</TextBlock>
+<ExampleViewer Example="tag-links-sizes" />
+
+<Heading Level="2">Removable</Heading>
+<TextBlock>Use <Code>RemoveHref</Code> for a remove link that works on any page, such as the current address without that filter, and <Code>OnRemove</Code> for C# on interactive ones.</TextBlock>
+<ExampleViewer Example="tag-remove" />
+<TextBlock>Give both, as here, when a tag may render in either: an interactive page uses <Code>OnRemove</Code>, and a static one the link. With only <Code>OnRemove</Code>, a static page shows no remove control at all. For a row of filters a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> applies, build each <Code>RemoveHref</Code> with <Code>Navigation.GetUriWithQueryParameter</Code> so the rest of the address stays.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>RemoveLabel</Code> for the word before the label in the remove control's name ("Remove", as in "Remove Blazor"), or set it for the whole app as in <Anchor Href="docs/common/text">Text and other languages</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Tag Label="Blazor" Href="/topics/blazor" />
+
+        @* An applied filter: a link on static pages, C# on interactive ones. *@
+        <Tag Label="Status: Paid" Status="Status.Success"
+             RemoveHref="@Navigation.GetUriWithQueryParameter("status", (string?)null)"
+             OnRemove="ClearStatus" />
+        """;
+}

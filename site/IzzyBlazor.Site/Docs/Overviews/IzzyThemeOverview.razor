@@ -1,0 +1,66 @@
+@* IzzyTheme's Overview, written by hand: presets, brand colors (built-in and hex), the rest of the
+   settings as code, the color scheme, and part of a page. The Theming articles have the detail;
+   this page points to them. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor" Title="App.razor">@Usage</Code>
+<TextBlock>One IzzyTheme in the <Code>head</Code> themes the app. It renders tags and a small style block on the server, so the theme is in place on the first paint, with no script, in every render mode. <Anchor Href="docs/theming/themes">Themes and presets</Anchor> covers each setting.</TextBlock>
+
+<Heading Level="2">Presets</Heading>
+<TextBlock>Use <Code>Preset</Code> for the starting density, shape and type: <Code>Standard</Code> (the default), <Code>Compact</Code>, <Code>Soft</Code> or <Code>Editorial</Code>; the other settings override its defaults.</TextBlock>
+<ExampleViewer Example="izzy-theme-presets" />
+
+<Heading Level="2">Brand color</Heading>
+<TextBlock>Use <Code>Brand</Code> for the color of buttons, links and focus rings: a built-in name, hand-tuned in light and dark,</TextBlock>
+<ExampleViewer Example="izzy-theme-brands" />
+<TextBlock>or a hex color of your own, from which the server derives the fill, the text on it, the accent as text and the soft tint, in light and dark:</TextBlock>
+<ExampleViewer Example="izzy-theme-hex-brand" />
+
+<Heading Level="2">Grays, shape and fonts</Heading>
+<TextBlock>Use <Code>Gray</Code> for the page, surfaces and text (<Code>neutral</Code>, <Code>slate</Code>, <Code>stone</Code>, or a hex page color), <Code>Radius</Code> and <Code>Density</Code> for shape and spacing, and <Code>BodyFont</Code>, <Code>HeadingFont</Code>, <Code>MonoFont</Code> and <Code>HeadingWeight</Code> for type.</TextBlock>
+<Code Block Language="razor">@Settings</Code>
+<TextBlock>Inter comes with IzzyBlazor; load any other font yourself, and end each list with a generic family so text shows while it loads.</TextBlock>
+
+<Heading Level="2">Light and dark</Heading>
+<TextBlock>Use <Code>ColorScheme</Code> for the scheme a page starts in: unset, it follows the device. A <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> lets people choose, and their choice wins over this default. <Anchor Href="docs/theming/color-scheme">Light and dark</Anchor> has more.</TextBlock>
+
+<Heading Level="2">Part of a page</Heading>
+<TextBlock>Put content inside an IzzyTheme to theme only that part: <Code>Brand</Code>, a built-in <Code>Gray</Code>, <Code>Radius</Code>, <Code>Density</Code>, <Code>Preset</Code> (shape, density and depth) and <Code>ColorScheme</Code>, which may be <Code>Inverse</Code> there.</TextBlock>
+<ExampleViewer Example="izzy-theme-part" />
+<TextBlock>What it doesn't set comes from the theme around it; fonts, <Code>HeadingWeight</Code>, <Code>Scrollbars</Code> and a hex <Code>Gray</Code> are app-wide only. For one exact value, set its CSS variable, as in <Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <head>
+            …
+            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+            <IzzyTheme Preset="ThemePreset.Compact" Brand="#0a7d5a" />
+            <HeadOutlet />
+        </head>
+        """;
+
+    private const string Settings = """
+        <IzzyTheme Brand="indigo" Gray="slate" Radius="ThemeRadius.Lg" Density="ThemeDensity.Compact"
+                   BodyFont="'Source Sans 3', system-ui, sans-serif" HeadingWeight="700" />
+        """;
+}

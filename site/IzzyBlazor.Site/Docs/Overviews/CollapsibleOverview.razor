@@ -1,0 +1,55 @@
+@* Collapsible's Overview, written by hand after Accordion's: show more, your own trigger, and open
+   from the server or C# (code). Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A native <Code>details</Code> element without an accordion's frame, so it opens and closes with JavaScript off too. Use it for one section most people can skip; for several, use an <Anchor Href="docs/components/accordion">Accordion</Anchor>, and for a panel over the page, a <Anchor Href="docs/components/popover">Popover</Anchor>.</TextBlock>
+
+<Heading Level="2">Show more</Heading>
+<TextBlock>Use <Code>Label</Code> for the text beside the chevron, for advanced options or details most people can skip.</TextBlock>
+<ExampleViewer Example="collapsible-show-more" />
+
+<Heading Level="2">Your own trigger</Heading>
+<TextBlock>Use <Code>Trigger</Code> for inline content of your own in place of the label and chevron.</TextBlock>
+<ExampleViewer Example="collapsible-custom-trigger" />
+
+<Heading Level="2">Open from the server or C#</Heading>
+<TextBlock>Use <Code>Open</Code> to start it open, such as when a post left an error inside it, and <Code>@@bind-Open</Code> on an interactive page to follow it or open it from C#.</TextBlock>
+<Code Block Language="razor">@OpenCode</Code>
+<TextBlock>The browser keeps it open or closed, not the server: on a static page a post or reload draws it as <Code>Open</Code> says.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Collapsible Label="Advanced options">
+            <TextField @bind-Value="Model!.BuildCommand" />
+        </Collapsible>
+        """;
+
+    private const string OpenCode = """
+        @* Open after a post that found a problem in the advanced options. *@
+        <Collapsible Label="Advanced options" Open="_advancedInvalid">…</Collapsible>
+
+        @* Interactive pages: follow it, or open it from C#. *@
+        <Collapsible Label="Details" @bind-Open="_detailsOpen">…</Collapsible>
+        """;
+}
