@@ -20,8 +20,8 @@ import type { ToastDetail } from "./elements/toasts";
 import { applySavedScheme } from "./elements/scheme-switch";
 import "./elements/site-nav";
 import "./elements/banner";
-import "./elements/dismiss";
-import { installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
+import { installDismissMemory, keepDismissed } from "./elements/dismiss";
+import { clearClosedDialogQuery, installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
 import { installSubmitFeedback, installValidityMessages } from "./forms";
 import { installSelects, syncSelects } from "./select";
 import { openActiveNavGroups } from "./nav";
@@ -48,6 +48,7 @@ installScrollbarWidth();
 installToggleBridge();
 installCommandFallback();
 installDialogAutoClose();
+installDismissMemory();
 installSkipLinks();
 installFocusRescue();
 if (document.readyState === "loading") {
@@ -99,6 +100,8 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncSelects();
     syncIndeterminate();
     reopenAfterPost();
+    clearClosedDialogQuery();
+    keepDismissed();
     focusMarked();
     applySavedScheme();
     measureScrollbar();

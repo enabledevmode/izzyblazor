@@ -18,12 +18,12 @@
 <Heading Level="2">Actions and dismissing</Heading>
 <TextBlock>Use <Code>Dismissible</Code> for a close button, which works with JavaScript off too, and an <Code>AlertActions</Code> written last in the message for buttons or links under it.</TextBlock>
 <ExampleViewer Example="alert-dismiss" />
-<TextBlock>Closing isn't remembered: on a static page the next load or post renders the alert again. For a message that should stay closed on every page, use a Banner, which keeps the choice in a cookie. On an interactive page, <Code>@@bind-Dismissed</Code> tells C# it closed, and setting <Code>Dismissed</Code> back to false shows it again.</TextBlock>
+<TextBlock>Closing lasts only while the reader stays on the page: a reload, another page or, with JavaScript off, any post renders the alert again. With script, a static page keeps it closed through a post, unless the alert is in the form that posted or its words changed, as an interactive page keeps it closed until <Code>Dismissed</Code> changes. So put an alert that answers a post inside that form, or say what the post did in its words ("Deleted Invoice 12"). For a message that should stay closed on every page, use a Banner, which keeps the choice in a cookie. On an interactive page, <Code>@@bind-Dismissed</Code> tells C# it closed, and setting <Code>Dismissed</Code> back to false shows it again.</TextBlock>
 
 <Heading Level="2">After a post</Heading>
 <TextBlock>Render an alert from the handler to say what a post did: it comes with the response, so it shows in every mode, with or without a reload.</TextBlock>
 <ExampleViewer Example="alert-saved" />
-<TextBlock>Show what was saved, not the field: on an interactive page the field changes as people type. There, an alert closed once stays closed until <Code>Dismissed</Code> changes, so the example binds it and clears it on each save. On a static page each response draws the alert afresh.</TextBlock>
+<TextBlock>Show what was saved, not the field: on an interactive page the field changes as people type. There, an alert closed once stays closed until <Code>Dismissed</Code> changes, so the example binds it and clears it on each save. On a static page each response draws the alert afresh, since it's in the form that posted.</TextBlock>
 
 <Heading Level="2">Its own words</Heading>
 <TextBlock>Use <Code>StatusLabel</Code> for the word read before the message ("Info", "Success", "Warning" or "Error"; nothing for Neutral; <Code>""</Code> leaves it out), and <Code>DismissLabel</Code> for the close button's name ("Dismiss"). <Anchor Href="docs/common/text">Text and other languages</Anchor> sets them for the whole app.</TextBlock>

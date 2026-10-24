@@ -11,7 +11,9 @@ namespace IzzyBlazor.Site.Services;
 /// (<c>section[data-ex]</c>) to the page's own path, with no fragment of their own; an example's
 /// own mode switch too (site.js drops the fragment when it runs, and keeps the example where it
 /// was on the screen). Links resolve against the site's <c>&lt;base href="/"&gt;</c>, as the
-/// browser resolves them. Not covered: a redirect after a post (its <c>Location</c> has no
+/// browser resolves them. A ColorSchemeSwitch's links go to IzzyBlazor's scheme endpoint, which
+/// redirects back here: they get the fragment too, which the browser keeps through the redirect.
+/// Not covered: a redirect after a post (its <c>Location</c> has no
 /// fragment), and a form with an empty <c>action</c> (Blazor always writes one).
 /// </summary>
 public static partial class OffExampleAnchors
@@ -99,7 +101,7 @@ public static partial class OffExampleAnchors
         var site = new Uri($"http://{host}/");
         if (url.StartsWith('#') || url.Contains('#') || !Uri.TryCreate(site, url, out var target)
             || !string.Equals(target.Authority, site.Authority, StringComparison.OrdinalIgnoreCase)
-            || !string.Equals(target.AbsolutePath, path, StringComparison.Ordinal))
+            || !(string.Equals(target.AbsolutePath, path, StringComparison.Ordinal) || ReturnsTo(target, site, path)))
         {
             return tag.Value;
         }
@@ -107,6 +109,17 @@ public static partial class OffExampleAnchors
         var offset = value.Index - tag.Index + value.Length;
         return string.Concat(tag.Value.AsSpan(0, offset), "#", id, tag.Value.AsSpan(offset));
     }
+
+    /// <summary>
+    /// A ColorSchemeSwitch link: the scheme endpoint, which redirects to its <c>return</c> path.
+    /// The redirect's <c>Location</c> has no fragment, so the browser keeps the link's.
+    /// </summary>
+    private static bool ReturnsTo(Uri target, Uri site, string path) =>
+        target.AbsolutePath == "/_izzy/scheme"
+        && Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(target.Query).TryGetValue("return", out var back)
+        && Uri.TryCreate(site, back.ToString(), out var page)
+        && string.Equals(page.Authority, site.Authority, StringComparison.OrdinalIgnoreCase)
+        && string.Equals(page.AbsolutePath, path, StringComparison.Ordinal);
 
     /// <summary>Where the section that starts before <paramref name="from"/> ends: after its own <c>&lt;/section&gt;</c>.</summary>
     private static int SectionEnd(string html, int from)

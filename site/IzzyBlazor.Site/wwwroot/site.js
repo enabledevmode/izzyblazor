@@ -1,7 +1,8 @@
 // The docs site's script. Everything works without it; with it:
 //   - picking another mode (ModeSwitch) keeps the reader's place and, from the keyboard, focus,
-//   - a link or form in an example that loads this page again (?page=2, a post) brings it back to
-//     that example, where it was on the screen, rather than to the top,
+//   - a link or form in an example that loads this page again (?page=2, a post, a scheme switch's
+//     link with JavaScript off) brings it back to that example, where it was on the screen, rather
+//     than to the top,
 //   - an Off page that enhanced navigation patched into a page still running Blazor is reloaded,
 //     so its examples really run without it,
 //   - a demo's frame follows the page's color scheme when it changes,
@@ -148,6 +149,16 @@
     const example = exampleOf(link);
     if (!example) return;
     const url = new URL(link.href, location.href);
+    if (url.origin === location.origin && url.pathname === "/_izzy/scheme") {
+      // A ColorSchemeSwitch's link, followed only without IzzyBlazor's script (an Off page): the
+      // endpoint redirects to its return path, and the browser keeps this link's fragment.
+      const back = new URL(url.searchParams.get("return") || "", document.baseURI);
+      if (blazor() || back.origin !== location.origin || back.pathname !== location.pathname) return;
+      if (url.hash && url.hash !== `#${example.id}`) return;
+      link.href = anchor(example, url, true).href;
+      return;
+    }
+
     if (url.origin !== location.origin || url.pathname !== location.pathname) return;
     // A link with its own #fragment goes there; on an Off page the server already points the
     // example's links at the example (OffExampleAnchors), which is ours.
