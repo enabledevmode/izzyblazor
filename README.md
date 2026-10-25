@@ -5,67 +5,39 @@
   </picture>
 </h1>
 
-<p align="center">Works in static SSR. No SignalR or WebAssembly needed.</p>
+<p align="center">Rich components for static SSR. C# interactivity when you need it.</p>
 
-IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static server rendering
-first. Every component renders complete, working HTML on the server, even with JavaScript off, gets
-better when scripts run, and binds to C# on interactive pages.
+IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static SSR. Components
+render as HTML on the server, gain browser behavior through lightweight custom elements, and
+support C# bindings and events on interactive pages.
+
+Build with forms, tables, dialogs, navigation, and responsive layouts—without requiring a SignalR
+circuit or WebAssembly runtime for static pages.
+
+[Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/images/showcase-dark.png">
   <img alt="An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table with status badges." src="docs/images/showcase-light.png">
 </picture>
 
-> **Status:** preview (`0.1.0-alpha.14`). The API will change before 0.1.
+> **Status:** preview (`0.1.0-alpha.14`). APIs may change during preview.
 
-**Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on. IzzyBlazor relies on CSS
-`:has()`, `light-dark()` and the Popover API; older browsers aren't supported.
+## Progressive by design
 
-## Every component works three ways
+Start with server-rendered HTML. Add lightweight browser behavior. Bring in C# interactivity where
+you need it.
 
-| | With JavaScript off | With JavaScript | On interactive pages |
+The same components support each layer, so you can add interactivity without switching libraries.
+
+| | HTML and CSS | With JavaScript | With Blazor interactivity |
 | --- | --- | --- | --- |
-| **How** | Plain HTML, forms, links and CSS | Small custom elements add polish | Blazor events keep C# in sync |
+| **How** | Plain HTML, forms, links and CSS | Custom elements add browser behavior | Blazor events keep C# in sync |
 | **Dialog** | Opens from a link (`?dialog=id`), closes with a form | Focus handling, backdrop click | `@bind-Open` |
 | **Table** | Sort and page through links in the URL | Same, without full reloads | Navigates through Blazor |
-| **Tabs** | Radio buttons and CSS switch panels | Proper ARIA tabs, roving focus | `@bind-Selected` |
+| **Tabs** | Radio buttons and CSS switch panels | ARIA tab semantics, arrow-key navigation | `@bind-Selected` |
 | **Combobox** | A native select that posts with the form | Type to filter, keyboard navigation | Server-side search as you type |
 | **FileUpload** | The file input posts with the form (`IFormFile`) | Drop files anywhere on the zone; type and size checked first | `OnChange` streams `IBrowserFile`s |
-
-The same component works on a static page, an enhanced one, or an interactive island, and you don't
-choose a different component for each.
-
-## What's included
-
-- **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio, Section
-- **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
-  SiteNav
-- **Typography:** TextBlock, Heading (with anchor links), Anchor, Code (with syntax highlighting,
-  line numbers and highlighted lines), CodeExample, Kbd, List, Prose, Icon (all of Lucide, plus
-  brand logos)
-- **Actions:** Button, IconButton, ButtonGroup, ConfirmButton, CopyButton
-- **Forms:** Form, TextField (with add-ons), TextArea, NumberField, Slider, Select, Combobox,
-  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
-  Fieldset, FilterForm
-- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
-- **Navigation:** Tabs, Stepper, Breadcrumb, Pagination, OnThisPage, PrevNext
-- **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
-- **Data and media:** Card, Table, Stat, DescriptionList, Timeline, Avatar, AvatarGroup, Image,
-  VideoEmbed
-- **Theming:** IzzyTheme (presets, brand color, grays, fonts), ColorSchemeSwitch
-
-Styling is typed and responsive, through props on the components, with no CSS to write and nothing
-computed at runtime. If you've used Chakra UI or Mantine, the layout props will feel familiar:
-
-```razor
-<Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4">
-    <Box Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow>...</Box>
-    <Button StartIcon="Lucide.Plus">New order</Button>
-</Stack>
-```
-
-Light and dark themes are built in, and a single part of the page (a dark sidebar, say) can use its
-own scheme.
 
 ## Getting started
 
@@ -92,18 +64,54 @@ builder.Services.AddIzzyBlazor();
 app.MapIzzyBlazor();
 ```
 
-The JavaScript loads itself. For toasts, add `<ToastRegion />` to your layout. For WebAssembly and
+IzzyBlazor loads its JavaScript automatically. For toasts, add `<ToastRegion />` to your layout. For WebAssembly and
 Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-started/webassembly-and-auto).
+
+## What's included
+
+- **Layout:** Box, Stack, Row, Column, Grid, Container, Center, Spacer, Divider, AspectRatio, Section
+- **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
+  SiteNav
+- **Typography:** TextBlock, Heading (with anchor links), Anchor, Code (with syntax highlighting,
+  line numbers and highlighted lines), CodeExample, Kbd, List, Prose, Icon (all of Lucide, plus
+  brand logos)
+- **Actions:** Button, IconButton, ButtonGroup, ConfirmButton, CopyButton
+- **Forms:** Form, TextField (with add-ons), TextArea, NumberField, Slider, Select, Combobox,
+  MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,
+  Fieldset, FilterForm
+- **Overlays and disclosure:** Menu, Popover, Tooltip, Dialog (and DialogService), Drawer, Accordion, Collapsible
+- **Navigation:** Tabs, Stepper, Breadcrumb, Pagination, OnThisPage, PrevNext
+- **Feedback:** Alert, Banner, Badge, Tag, Toast, Spinner, Progress, Skeleton, EmptyState
+- **Data and media:** Card, Table, Stat, DescriptionList, Timeline, Avatar, AvatarGroup, Image,
+  VideoEmbed
+- **Theming:** IzzyTheme (presets, brand color, grays, fonts), ColorSchemeSwitch
+
+Build responsive layouts and apply theme tokens through typed component props. If you've used
+Chakra UI or Mantine, the layout props will feel familiar:
+
+```razor
+<Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4">
+    <Box Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow>...</Box>
+    <Button StartIcon="Lucide.Plus">New order</Button>
+</Stack>
+```
+
+Light and dark themes are built in, and a single part of the page (a dark sidebar, say) can use its
+own scheme.
 
 ## Documentation
 
-**[izzyblazor.com](https://izzyblazor.com)** has live examples of every component with JavaScript
-off, on static pages and on interactive pages, and the API.
+**[izzyblazor.com](https://izzyblazor.com)** includes live component examples, render-mode guidance, and API documentation.
 
 - [Getting started](https://izzyblazor.com/docs/get-started): setup, packages and render modes
 - [Components](https://izzyblazor.com/docs/components): examples, mode support and API for each
 - [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming): responsive values, colors, tokens and themes
 - [Contributing](CONTRIBUTING.md): repository layout, the dev host and adding a component
+
+## Browser support
+
+IzzyBlazor requires a modern browser with support for CSS `:has()`, `light-dark()`, and the Popover
+API. Older browsers without these features are not supported.
 
 ## Issues and pull requests
 
