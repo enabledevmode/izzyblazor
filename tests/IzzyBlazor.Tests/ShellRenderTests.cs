@@ -321,6 +321,18 @@ public class ShellRenderTests : BunitContext
     }
 
     [Fact]
+    public void AppMain_is_a_tab_stop_only_when_it_scrolls_on_its_own()
+    {
+        var page = Render<AppShell>(p => p.Add(s => s.ChildContent, Parts((typeof(AppMain), [], "Body"))));
+        var main = Render<AppShell>(p => p
+            .Add(s => s.ScrollMode, ShellScroll.Main)
+            .Add(s => s.ChildContent, Parts((typeof(AppMain), [], "Body"))));
+
+        Assert.Equal("-1", page.Find("main").GetAttribute("tabindex"));
+        Assert.Equal("0", main.Find("main").GetAttribute("tabindex"));
+    }
+
+    [Fact]
     public void Collapsible_sidebar_renders_a_checkbox_and_its_label()
     {
         var nav = Render<AppSidebar>(p => p

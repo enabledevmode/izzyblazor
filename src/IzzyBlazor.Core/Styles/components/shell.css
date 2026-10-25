@@ -276,6 +276,12 @@
     outline: none;
   }
 
+  /* ScrollMode.Main: the main area is a tab stop, to scroll it from the keyboard. */
+  .ib-shell-scroll-main > .ib-shell-main:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
   /* Aside: same outer and inner arrangement as the sidebar, on the opposite side. */
   .ib-shell-aside {
     grid-area: aside;

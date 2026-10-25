@@ -111,6 +111,8 @@ public class DataRenderTests : BunitContext
         Assert.Equal(new[] { false, true, false }, boxes.Select(b => b.HasAttribute("checked")));
         Assert.Equal("Select a", boxes[1].GetAttribute("aria-label"));
         Assert.Equal("Select all rows", cut.Find("thead .ib-table-select-all").GetAttribute("aria-label"));
+        // Names the column while select-all is hidden (no script yet).
+        Assert.Equal("Select", cut.Find("thead .ib-table-select-heading").TextContent);
         Assert.Equal(4, cut.FindAll("thead th").Count);
     }
 

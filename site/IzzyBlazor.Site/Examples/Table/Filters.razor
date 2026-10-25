@@ -1,6 +1,6 @@
 @* Column filters: a funnel in each Filterable header opens the filter; active filters show as tags
    above the table. Text matches anywhere, enums get a menu, numbers match exactly. *@
-<Table Items="Orders.All" PageSize="5" InitialSort="-date" Caption="Orders" QueryPrefix="orders-" Grow>
+<Table Items="Orders.All" PageSize="5" InitialSort="-date" Caption="Filtered orders" QueryPrefix="orders-" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" />
     <PropertyColumn Property="o => o.Customer" Sortable Filterable />
     <PropertyColumn Property="o => o.Status" Sortable Filterable />
