@@ -557,3 +557,32 @@ html:has(> body > .frame) body { margin: 0; }
   text-decoration: none;
 }
 .site-index-list a:is(:hover, :focus-visible) { color: var(--ib-color-on-surface); text-decoration: underline; }
+
+/* Search (the /search page and the header's dialog): a heading per group, then a list of links,
+   each a title with the matched words marked and where it is, and a line about it below. */
+.site-search-count { margin: 0; min-height: 1lh; font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+.site-search-group { display: flex; flex-direction: column; gap: var(--ib-space-2); }
+.site-search-group + .site-search-group { margin-block-start: var(--ib-space-6); }
+.site-search-list { margin: 0; padding: 0; list-style: none; display: flex; flex-direction: column; }
+.site-search-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  padding-block: var(--ib-space-2);
+  border-block-end: 1px solid var(--ib-color-border);
+}
+.site-search-item:last-child { border-block-end: 0; }
+.site-search-link {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0 var(--ib-space-2);
+  width: fit-content;
+  color: var(--ib-color-on-surface);
+  font-weight: 500;
+  text-decoration: none;
+}
+.site-search-link:is(:hover, :focus-visible) .site-search-title { text-decoration: underline; }
+.site-search-context { font-size: var(--ib-text-sm); font-weight: 400; color: var(--ib-color-muted); }
+.site-search-summary { margin: 0; font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
+.site-search-all { width: fit-content; margin-block-start: var(--ib-space-4); }

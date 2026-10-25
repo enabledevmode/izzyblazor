@@ -20,6 +20,8 @@ public sealed class SiteFixture : IAsyncLifetime
 
     public ExampleCatalog Catalog { get; private set; } = null!;
 
+    public SearchIndex Search { get; private set; } = null!;
+
     public async Task InitializeAsync()
     {
         _app = SiteApp.Build([], b => b.WebHost.UseUrls("http://127.0.0.1:0"));
@@ -29,6 +31,7 @@ public sealed class SiteFixture : IAsyncLifetime
         Client = new HttpClient(new HttpClientHandler { UseCookies = false }) { BaseAddress = new Uri(address) };
         Registry = _app.Services.GetRequiredService<Registry>();
         Catalog = _app.Services.GetRequiredService<ExampleCatalog>();
+        Search = _app.Services.GetRequiredService<SearchIndex>();
     }
 
     public async Task DisposeAsync()
