@@ -1,65 +1,83 @@
 # IzzyBlazor
 
-**Blazor components. No circuit required.** Works in static SSR. No SignalR or WebAssembly needed.
+**Rich Blazor components. No circuit required.**
 
-IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static server rendering
-first. Every component renders complete, working HTML on the server, even with JavaScript off, gets
-better when scripts run, and binds to C# on interactive pages.
+IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static SSR. Components render as HTML on the server, gain browser behavior through lightweight custom elements, and support C# bindings and events when you choose an interactive render mode.
 
-![An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
+Build forms, tables, dialogs, and complete app layouts without requiring a SignalR circuit or WebAssembly runtime for static pages.
 
-> **Preview** (`0.1.0-alpha.14`). The API will change before 0.1.
+[Explore the components](https://izzyblazor.com/docs/components) · [Get started](https://izzyblazor.com/docs/get-started)
 
-**Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on (CSS `:has()`, `light-dark()`
-and the Popover API).
+![An orders screen built with IzzyBlazor, featuring sidebar navigation, stat cards, search filters, and a sortable, paged table.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
 
-## Every component works three ways
+> **Preview:** `0.1.0-alpha.14`. APIs may change during preview.
 
-| | With JavaScript off | With JavaScript | On interactive pages |
+## Progressive by design
+
+Start with server-rendered HTML. Add lightweight browser behavior. Bring in C# interactivity where you need it.
+
+The same components support each layer, so you can add interactivity without replacing your UI.
+
+| Component | HTML and CSS | With JavaScript | With Blazor interactivity |
 | --- | --- | --- | --- |
-| **How** | Plain HTML, forms, links and CSS | Small custom elements add polish | Blazor events keep C# in sync |
-| **Dialog** | Opens from a trigger or a `?dialog=id` link; the browser traps focus | A dialog opened from the server becomes a real modal | `@bind-Open` |
-| **Table** | Sort, filter and page through the URL | Select-all checkbox; filters apply as you type | Sorting, paging, filters and selection bind to C# |
-| **Tabs** | Radio buttons and CSS switch panels | Proper ARIA tabs, roving focus | `@bind-Selected` |
-| **Combobox** | A native select that posts with the form | Type to filter, keyboard navigation | Server-side search as you type |
-| **FileUpload** | The file input posts with a `Multipart` form (`IFormFile`) | Drop files anywhere on the zone; type and size checked first | `OnChange` streams `IBrowserFile`s |
+| **Dialog** | Opens from a trigger or a `?dialog=id` link, with browser-managed focus trapping | Promotes server-opened dialogs to modal dialogs | Bind open state with `@bind-Open` |
+| **Table** | Sort, filter, and page through URL parameters | Select all rows and apply filters as you type | Bind sorting, paging, filters, and selection to C# |
+| **Tabs** | Switch panels with radio buttons and CSS | Adds ARIA tab semantics and arrow-key navigation | Bind the selected tab with `@bind-Selected` |
+| **Combobox** | Uses a native select that submits with the form | Adds filtering and keyboard navigation | Search on the server as you type |
+| **FileUpload** | Submits files through a `Multipart` form as `IFormFile` | Adds drag and drop with file type and size checks | Stream `IBrowserFile` instances through `OnChange` |
 
 ## Getting started
+
+Install the package in your server project:
 
 ```bash
 dotnet add package IzzyBlazor --prerelease
 ```
 
-```razor
-@* App.razor, in <head> *@
-<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+Add the stylesheet in `App.razor`:
 
-@* _Imports.razor *@
+```razor
+@* Inside <head> *@
+<link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]" />
+```
+
+Add the namespace in `_Imports.razor`:
+
+```razor
 @using IzzyBlazor
 ```
 
+Register the services and map the endpoints in `Program.cs`:
+
 ```csharp
-// Program.cs
 builder.Services.AddIzzyBlazor();
-// after app.MapRazorComponents<App>():
+
+// After app.MapRazorComponents<App>():
 app.MapIzzyBlazor();
 ```
 
-The JavaScript loads itself. For toasts, add `<ToastRegion />` to your layout. `IzzyBlazor` is for
-server projects; WebAssembly (`.Client`) projects reference `IzzyBlazor.Core` and call
-`AddIzzyBlazorCore()`.
+IzzyBlazor loads its JavaScript automatically. To display toasts, add `<ToastRegion />` to your layout.
+
+For WebAssembly and Auto render modes, reference `IzzyBlazor.Core` in your `.Client` project and call `AddIzzyBlazorCore()`. See the [WebAssembly and Auto setup guide](https://izzyblazor.com/docs/get-started/webassembly-and-auto) for details.
 
 ## Documentation
 
-**[izzyblazor.com](https://izzyblazor.com)**: live examples of every component in each mode, and the API.
+Visit **[izzyblazor.com](https://izzyblazor.com)** for live component examples, render-mode guidance, and API documentation.
 
-- [Getting started](https://izzyblazor.com/docs/get-started)
-- [Components](https://izzyblazor.com/docs/components)
-- [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming)
-- [Source and issues](https://github.com/enabledevmode/izzyblazor)
+- [Getting started](https://izzyblazor.com/docs/get-started): installation and setup
+- [Components](https://izzyblazor.com/docs/components): examples, supported modes, and APIs
+- [Style props](https://izzyblazor.com/docs/common/style-props): typed, responsive styling
+- [Theming](https://izzyblazor.com/docs/theming): colors, fonts, and theme configuration
+- [Source and issues](https://github.com/enabledevmode/izzyblazor): browse the code and report bugs
 
-[MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE). Bundled Lucide icons are ISC
-licensed; the brand logos (from Tabler Icons, plus a few drawn for IzzyBlazor) are MIT licensed; the
-bundled Inter font is under the SIL Open Font License. See
-[THIRD-PARTY-NOTICES.md](https://github.com/enabledevmode/izzyblazor/blob/main/THIRD-PARTY-NOTICES.md).
+## Browser support
+
+Requires a modern browser with support for CSS `:has()`, `light-dark()`, and the Popover API.
+
+## License
+
+IzzyBlazor is [MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE).
+
+Bundled Lucide icons use the ISC license. Brand logos from Tabler Icons and those drawn for IzzyBlazor use the MIT license. The bundled Inter font uses the SIL Open Font License. See [third-party notices](https://github.com/enabledevmode/izzyblazor/blob/main/THIRD-PARTY-NOTICES.md) for details.
+
 IzzyBlazor is an independent project and is not affiliated with Microsoft.
