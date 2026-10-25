@@ -251,12 +251,17 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
             @media (scripting: none) { a { b: c } }
             @media (pointer: coarse), (scripting:none) { d { e: f } }
             @media (scripting: enabled) { g { h: i } }
+            @media(scripting:none){j{k:l}}@media(pointer:coarse),(scripting:none){m{n:o}}
             """);
 
         Assert.DoesNotContain("scripting", css);
-        Assert.Contains("@media all {", css);
-        Assert.Contains("@media (pointer: coarse), all {", css);
-        Assert.Contains("@media not all {", css);
+        Assert.Matches(@"@media\s+all \{ a", css);
+        Assert.Matches(@"@media \(pointer: coarse\),\s+all \{ d", css);
+        Assert.Matches(@"@media\s+not all \{ g", css);
+
+        // The minified stylesheet, as the site serves it in Release: still valid media queries.
+        Assert.Contains("@media all{j", css);
+        Assert.Contains("@media(pointer:coarse), all{m", css);
     }
 
     [Fact]

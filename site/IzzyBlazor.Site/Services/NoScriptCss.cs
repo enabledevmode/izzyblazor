@@ -59,10 +59,12 @@ public sealed partial class NoScriptCss(IWebHostEnvironment environment, ILogger
 
     /// <summary>
     /// Rewrites the scripting media features as JavaScript off reads them: the forms the library
-    /// uses, alone or in a comma list (a site test checks none is left in its stylesheet).
+    /// uses, alone or in a comma list (a site test checks none is left in its stylesheet). The
+    /// replacement starts with a space: the minified stylesheet writes <c>@media(scripting:none)</c>,
+    /// and <c>@mediaall</c> would drop the rule.
     /// </summary>
     public static string Transform(string css) =>
-        Scripting().Replace(css, match => match.Groups[1].Value == "none" ? "all" : "not all");
+        Scripting().Replace(css, match => match.Groups[1].Value == "none" ? " all" : " not all");
 
     private static (string, string) Read(IFileInfo info)
     {
