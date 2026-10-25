@@ -93,8 +93,10 @@ public sealed partial class SearchIndex
         int tier;
         if (entry.Standard)
         {
-            // "Accessibility" alone would list every Overview's section: these need the page's name too.
-            if (!terms.All(t => Matches(t, entry.TitleWords) || Matches(t, entry.ContextWords)) || !terms.Any(t => Matches(t, entry.ContextWords)))
+            // These need both their own name and their page's: "accessibility" alone would list every
+            // Overview's section, and "button" alone every section of every *Button page.
+            if (!terms.All(t => Matches(t, entry.TitleWords) || Matches(t, entry.ContextWords))
+                || !terms.Any(t => Matches(t, entry.ContextWords)) || !terms.Any(t => Matches(t, entry.TitleWords)))
             {
                 return null;
             }

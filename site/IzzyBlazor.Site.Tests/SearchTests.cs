@@ -106,13 +106,17 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.True(leaders.Contains(href), $"\"{query}\": expected {href} to lead a group, got {string.Join(", ", leaders)}");
     }
 
-    [Fact]
-    public void Standard_sections_need_their_page_s_name()
+    [Theory]
+    [InlineData("accessibility")]
+    [InlineData("button")]
+    [InlineData("parameters")]
+    public void Standard_sections_need_their_own_name_and_their_page_s(string query)
     {
-        var results = site.Search.Search("accessibility");
+        var results = site.Search.Search(query);
 
-        Assert.Equal("docs/common/accessibility", results.Groups[0].Entries[0].Href);
         Assert.DoesNotContain(results.Groups.SelectMany(g => g.Entries), e => e.Standard && e.Href.StartsWith("docs/components/", StringComparison.Ordinal));
+        Assert.Equal("docs/common/accessibility", site.Search.Search("accessibility").Groups[0].Entries[0].Href);
+        Assert.Equal("docs/components/button#parameters", site.Search.Search("button parameters").Groups[0].Entries[0].Href);
     }
 
     [Fact]
