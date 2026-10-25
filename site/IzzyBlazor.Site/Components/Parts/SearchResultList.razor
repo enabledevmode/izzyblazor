@@ -53,6 +53,16 @@
     /// <summary>Where all the results are, for a list cut short (the dialog's).</summary>
     [Parameter] public string? MoreHref { get; set; }
 
+    /// <summary>What the page and the dialog offer before anything is typed.</summary>
+    public static readonly (string Title, string Href, string Summary)[] StartingPoints =
+    [
+        ("Blazor Web App", "docs/get-started/blazor-web-app", "Install the package and set up a new app."),
+        ("Components", "docs/components", "Every component by category."),
+        ("Forms and validation", "docs/common/forms", "Forms that post on static pages, and their errors."),
+        ("Style props", "docs/common/style-props", "Spacing, sizes, borders and colors as parameters."),
+        ("Troubleshooting", "docs/troubleshooting", "Static SSR pitfalls, each with its fix."),
+    ];
+
     /// <summary>The line saying how many results there are, for the live region beside the field.</summary>
     public static string CountText(SearchResults results) => results.Query.Length == 0
         ? ""

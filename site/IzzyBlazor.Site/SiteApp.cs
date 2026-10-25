@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.AspNetCore.Http.HttpResults;
 using IzzyBlazor.Site.Components;
 using IzzyBlazor.Site.Components.Parts;
 using IzzyBlazor.Site.Services;
@@ -96,6 +97,12 @@ public static class SiteApp
             }
 
             return Results.Text(file.Css, "text/css");
+        });
+        // The search dialog's results as you type (site.js): the same markup the header renders.
+        app.MapGet("/search/results", (string? q, HttpContext context) =>
+        {
+            context.Response.Headers.CacheControl = "public, max-age=300";
+            return new RazorComponentResult<SearchDialogResults>(new { Q = q });
         });
         app.MapGet("/izzyblazor.api.json", (ApiMetadata api) => Results.Text(api.Json, "application/json"));
         app.MapRazorComponents<App>()

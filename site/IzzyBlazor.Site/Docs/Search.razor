@@ -24,7 +24,7 @@
     {
         <Heading Level="2" Size="TextSize.Md">Start here</Heading>
         <ul class="site-search-list" role="list">
-            @foreach (var (title, href, summary) in StartingPoints)
+            @foreach (var (title, href, summary) in SearchResultList.StartingPoints)
             {
                 <li class="site-search-item">
                     <a class="site-search-link" href="@href"><span class="site-search-title">@title</span></a>
@@ -51,16 +51,6 @@
 
 @code {
     [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
-
-    /// <summary>What the page and the dialog offer before anything is typed.</summary>
-    public static readonly (string Title, string Href, string Summary)[] StartingPoints =
-    [
-        ("Blazor Web App", "docs/get-started/blazor-web-app", "Install the package and set up a new app."),
-        ("Components", "docs/components", "Every component by category."),
-        ("Forms and validation", "docs/common/forms", "Forms that post on static pages, and their errors."),
-        ("Style props", "docs/common/style-props", "Spacing, sizes, borders and colors as parameters."),
-        ("Troubleshooting", "docs/troubleshooting", "Static SSR pitfalls, each with its fix."),
-    ];
 
     private SearchResults _results = new("", [], 0);
 

@@ -586,3 +586,51 @@ html:has(> body > .frame) body { margin: 0; }
 .site-search-context { font-size: var(--ib-text-sm); font-weight: 400; color: var(--ib-color-muted); }
 .site-search-summary { margin: 0; font-size: var(--ib-text-sm); color: var(--ib-color-muted); }
 .site-search-all { width: fit-content; margin-block-start: var(--ib-space-4); }
+
+/* The header's search button: room for the word and the shortcut, which shows only with script
+   (it needs site.js); its box stays without, so the button is one width either way. */
+.site-search-button { min-width: 12rem; justify-content: flex-start; color: var(--ib-color-muted); font-weight: 400; }
+.site-search-button .ib-btn-label { display: flex; flex: 1 1 auto; align-items: center; justify-content: space-between; gap: var(--ib-space-2); }
+@media (scripting: none) {
+  .site-search-key { visibility: hidden; }
+}
+
+/* The search dialog: one height whatever it shows, so typing never resizes it; the results
+   scroll between the field and the key hints. Full screen on phones. */
+.site-search-dialog { height: min(36rem, calc(100dvh - 4rem)); }
+.site-search-dialog .ib-dialog-body { display: flex; flex-direction: column; overflow: hidden; }
+.site-search-head {
+  display: flex;
+  align-items: center;
+  gap: var(--ib-space-2);
+  padding: var(--ib-space-4) var(--ib-space-4) var(--ib-space-2);
+}
+.site-search-form { display: flex; flex: 1 1 auto; align-items: flex-end; gap: var(--ib-space-2); min-width: 0; }
+.site-search-dialog-count { padding-inline: var(--ib-space-4); }
+.site-search-results {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: var(--ib-space-2) var(--ib-space-4) var(--ib-space-4);
+  border-block-start: 1px solid var(--ib-color-border);
+}
+.site-search-results .site-search-group + .site-search-group { margin-block-start: var(--ib-space-4); }
+.site-search-foot {
+  display: flex;
+  gap: var(--ib-space-4);
+  padding: var(--ib-space-2) var(--ib-space-4);
+  border-block-start: 1px solid var(--ib-color-border);
+  font-size: var(--ib-text-xs);
+  color: var(--ib-color-muted);
+}
+/* Without script there are no results as you type and no keys: a Search button submits. */
+@media (scripting: enabled) {
+  .site-search-submit { display: none; }
+}
+@media (scripting: none) {
+  .site-search-foot { display: none; }
+}
+@media (max-width: 639.98px) {
+  .site-search-dialog { width: 100%; height: 100dvh; max-height: none; border-radius: 0; }
+  .site-search-foot { display: none; }
+}

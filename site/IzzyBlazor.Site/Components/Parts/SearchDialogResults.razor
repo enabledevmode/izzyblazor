@@ -1,0 +1,39 @@
+@inject SearchIndex Index
+
+@* The search dialog's results: the starting points before anything is typed, then the best five
+   of each group and a link to all of them. Rendered with the header for the empty field, and by
+   /search/results for site.js as you type. data-count is the live region's text. *@
+
+<div class="site-search-dialog-results" data-count="@SearchResultList.CountText(_results)">
+    @if (_results.Query.Length == 0)
+    {
+        <ul class="site-search-list" role="list" aria-label="Start here">
+            @foreach (var (title, href, summary) in SearchResultList.StartingPoints)
+            {
+                <li class="site-search-item">
+                    <a class="site-search-link" href="@href"><span class="site-search-title">@title</span></a>
+                    <p class="site-search-summary">@summary</p>
+                </li>
+            }
+        </ul>
+    }
+    else if (_results.Count == 0)
+    {
+        <TextBlock Color="Color.Muted" Class="site-search-none">
+            No results for “@_results.Query”. Try a component's name or a shorter word, or see <Anchor Href="docs/components">all components</Anchor>.
+        </TextBlock>
+    }
+    else
+    {
+        <SearchResultList Results="_results" HeadingLevel="3" Outline="false" IdPrefix="site-search-" MoreHref="@($"search?q={Uri.EscapeDataString(_results.Query)}")" />
+    }
+</div>
+
+@code {
+    /// <summary>The query; none shows the starting points.</summary>
+    [Parameter] public string? Q { get; set; }
+
+    private SearchResults _results = new("", [], 0);
+
+    protected override void OnParametersSet() => _results = Index.Search(Q, perGroup: 5);
+}
