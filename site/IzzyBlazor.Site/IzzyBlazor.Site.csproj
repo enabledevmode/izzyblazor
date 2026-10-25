@@ -25,6 +25,8 @@
          machine, so it's built without the site's runtime (dotnet publish -r linux-x64 on Windows). -->
     <ProjectReference Include="..\IzzyBlazor.DocsGen\IzzyBlazor.DocsGen.csproj" ReferenceOutputAssembly="false"
                       GlobalPropertiesToRemove="RuntimeIdentifier;SelfContained" Private="false" />
+    <!-- The MCP server at /mcp (Services/Mcp). -->
+    <PackageReference Include="ModelContextProtocol.AspNetCore" Version="2.2.0" />
   </ItemGroup>
 
   <ItemGroup>

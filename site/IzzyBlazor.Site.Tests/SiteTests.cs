@@ -22,6 +22,10 @@ public sealed class SiteFixture : IAsyncLifetime
 
     public SearchIndex Search { get; private set; } = null!;
 
+    public ApiMetadata Api { get; private set; } = null!;
+
+    public IServiceProvider Services => _app!.Services;
+
     public async Task InitializeAsync()
     {
         _app = SiteApp.Build([], b => b.WebHost.UseUrls("http://127.0.0.1:0"));
@@ -32,6 +36,7 @@ public sealed class SiteFixture : IAsyncLifetime
         Registry = _app.Services.GetRequiredService<Registry>();
         Catalog = _app.Services.GetRequiredService<ExampleCatalog>();
         Search = _app.Services.GetRequiredService<SearchIndex>();
+        Api = _app.Services.GetRequiredService<ApiMetadata>();
     }
 
     public async Task DisposeAsync()

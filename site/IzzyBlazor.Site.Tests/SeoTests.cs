@@ -25,6 +25,7 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Contains("Sitemap: https://izzyblazor.com/sitemap.xml", robots);
         Assert.Contains("Disallow: /frame/", robots);
         Assert.Contains("Disallow: /search", robots);
+        Assert.Contains("Disallow: /mcp", robots);
         foreach (var file in new[] { "robots.txt", "sitemap.xml" })
         {
             using var head = new HttpRequestMessage(HttpMethod.Head, file);

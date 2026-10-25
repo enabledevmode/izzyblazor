@@ -1,0 +1,104 @@
+@page "/docs/get-started/ai-assistants"
+
+@* Connecting an AI assistant to IzzyBlazor's docs: the MCP server at /mcp (Services/Mcp), llms.txt
+   and the API metadata. The client settings were the documented ones for each client in Oct 2026. *@
+
+<ArticlePage Section="get-started" Slug="ai-assistants">
+    <Lead>
+        Assistants guess at a library they haven't seen, and IzzyBlazor is newer than their training. Connect yours to
+        IzzyBlazor's MCP server and it looks up components, parameters and working examples for the release on this site
+        instead.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">The server</Heading>
+        <TextBlock>
+            The server is at <Code>@Endpoint</Code>. It uses the Streamable HTTP transport and needs no sign-in or key. Its
+            tools only read the docs, and it answers for the release this site documents.
+        </TextBlock>
+
+        <Heading Level="2">Claude Code</Heading>
+        <Code Block Language="bash">claude mcp add --transport http izzyblazor @Endpoint</Code>
+        <TextBlock>Add <Code>--scope project</Code> to save it in the repository's <Code>.mcp.json</Code> for everyone on the project.</TextBlock>
+
+        <Heading Level="2">VS Code and Visual Studio</Heading>
+        <TextBlock>
+            Add the server to <Code>.vscode/mcp.json</Code> in VS Code, or <Code>.mcp.json</Code> next to the solution in
+            Visual Studio, then use it from Copilot's agent mode:
+        </TextBlock>
+        <Code Block Language="json" Title=".vscode/mcp.json">@VsCodeJson</Code>
+
+        <Heading Level="2">Cursor</Heading>
+        <Code Block Language="json" Title=".cursor/mcp.json">@CursorJson</Code>
+
+        <Heading Level="2">Claude apps</Heading>
+        <TextBlock>
+            In Claude's desktop app or on claude.ai, open Settings, then Connectors, add a custom connector and paste
+            <Code>@Endpoint</Code>. Any other client that supports Streamable HTTP takes the same address.
+        </TextBlock>
+
+        <Heading Level="2">Tools</Heading>
+        <Table Items="Tools" Caption="Tools" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="Tool" Width="Length.Rem(10)"><code>@context!.Name</code></TemplateColumn>
+            <TemplateColumn Title="Answers with">@context!.Answers</TemplateColumn>
+        </Table>
+        <TextBlock>
+            Answers are Markdown with links to this site. Ask for what you're building ("a settings form that posts on a
+            static page") and the assistant picks the tools; naming IzzyBlazor in the request helps it reach for them.
+        </TextBlock>
+
+        <Heading Level="2">Without MCP</Heading>
+        <List Gap="2">
+            <ListItem>
+                <Anchor Href="llms.txt">llms.txt</Anchor>: what IzzyBlazor is and a link to every article and component, for
+                assistants that read a site.
+            </ListItem>
+            <ListItem>
+                <Anchor Href="izzyblazor.api.json">API metadata</Anchor>: every component's parameters, events, methods and
+                types as one JSON file, for your own tools.
+            </ListItem>
+        </List>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/get-started/blazor-web-app">Blazor Web App</Anchor>: install the package and set up a new app.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what components do on static and interactive pages.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string Endpoint = "https://izzyblazor.com/mcp";
+
+    private sealed record Tool(string Name, string Answers);
+
+    private static readonly Tool[] Tools =
+    [
+        new("search", "Components, parameters, types, examples and articles that match some words"),
+        new("list_components", "Every component by category, with a summary and any mode limits"),
+        new("get_component", "A component's API: parameters with types and defaults, events, methods, mode support, parts, example ids and accessibility"),
+        new("get_type", "An enum's values, a type's members, or the shared style props"),
+        new("get_example", "An example's whole .razor source"),
+        new("get_article", "An article or a component's Overview, with its examples' source"),
+    ];
+
+    private const string VsCodeJson = """
+        {
+          "servers": {
+            "izzyblazor": {
+              "type": "http",
+              "url": "https://izzyblazor.com/mcp"
+            }
+          }
+        }
+        """;
+
+    private const string CursorJson = """
+        {
+          "mcpServers": {
+            "izzyblazor": {
+              "url": "https://izzyblazor.com/mcp"
+            }
+          }
+        }
+        """;
+}
