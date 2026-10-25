@@ -128,6 +128,9 @@ public sealed record RegistryComponent
     /// <summary>One line for cards and the index.</summary>
     public required string Summary { get; init; }
 
+    /// <summary>Other names people search for it by (<c>modal</c> for Dialog), matched like its name.</summary>
+    public List<string> Keywords { get; init; } = [];
+
     /// <summary>Components documented on this one's page (<c>CardHeader</c>, <c>CardFooter</c>).</summary>
     public List<string> Parts { get; init; } = [];
 

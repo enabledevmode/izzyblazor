@@ -1,0 +1,68 @@
+@page "/search"
+@inject SearchIndex Index
+
+@* Site search: a GET form (FilterForm), so a search is a link and works with JavaScript off; with
+   script it applies as you type. The count is a live region, read when the results change. *@
+
+<PageTitle>@(_results.Query.Length == 0 ? "Search" : $"{_results.Query} · Search") · IzzyBlazor</PageTitle>
+<HeadContent>
+    <meta name="robots" content="noindex" />
+    <meta name="description" content="Search the IzzyBlazor docs: components, parameters, articles and examples." />
+</HeadContent>
+
+<article class="site-article site-search-page">
+    <Stack Gap="4" Class="site-pagehead">
+        <Heading Level="1" Size="TextSize.Xl3">Search</Heading>
+    </Stack>
+
+    <FilterForm Label="Search the docs">
+        <FilterSearch Label="Search the docs" Placeholder="Components, parameters, articles" Grow autofocus="@(_results.Query.Length == 0)" />
+    </FilterForm>
+    <p role="status" class="site-search-count">@SearchResultList.CountText(_results)</p>
+
+    @if (_results.Query.Length == 0)
+    {
+        <Heading Level="2" Size="TextSize.Md">Start here</Heading>
+        <ul class="site-search-list" role="list">
+            @foreach (var (title, href, summary) in StartingPoints)
+            {
+                <li class="site-search-item">
+                    <a class="site-search-link" href="@href"><span class="site-search-title">@title</span></a>
+                    <p class="site-search-summary">@summary</p>
+                </li>
+            }
+        </ul>
+    }
+    else if (_results.Count == 0)
+    {
+        <EmptyState Icon="Lucide.SearchX" Title="@($"No results for “{_results.Query}”")" TitleLevel="2"
+                    Description="Check the spelling, or try a component's name or a shorter word." Bordered>
+            <EmptyStateActions>
+                <Button Href="docs/components" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">All components</Button>
+                <Button Href="docs/troubleshooting" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Troubleshooting</Button>
+            </EmptyStateActions>
+        </EmptyState>
+    }
+    else
+    {
+        <SearchResultList Results="_results" />
+    }
+</article>
+
+@code {
+    [SupplyParameterFromQuery(Name = "q")] public string? Q { get; set; }
+
+    /// <summary>What the page and the dialog offer before anything is typed.</summary>
+    public static readonly (string Title, string Href, string Summary)[] StartingPoints =
+    [
+        ("Blazor Web App", "docs/get-started/blazor-web-app", "Install the package and set up a new app."),
+        ("Components", "docs/components", "Every component by category."),
+        ("Forms and validation", "docs/common/forms", "Forms that post on static pages, and their errors."),
+        ("Style props", "docs/common/style-props", "Spacing, sizes, borders and colors as parameters."),
+        ("Troubleshooting", "docs/troubleshooting", "Static SSR pitfalls, each with its fix."),
+    ];
+
+    private SearchResults _results = new("", [], 0);
+
+    protected override void OnParametersSet() => _results = Index.Search(Q);
+}

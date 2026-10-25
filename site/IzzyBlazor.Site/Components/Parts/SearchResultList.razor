@@ -1,0 +1,65 @@
+@* Search results by group, best group first: a heading per group with its count, and a list of
+   links, each a title with the matched words marked and where it is, then a line about it. The
+   /search page shows them under h2s; the header's dialog under h3s, fewer per group, with a link
+   to all of them. *@
+
+@foreach (var group in Results.Groups)
+{
+    var id = $"{IdPrefix}{group.Group.ToString().ToLowerInvariant()}";
+    <section class="site-search-group" aria-labelledby="@id">
+        <Heading Level="HeadingLevel" Size="TextSize.Md" id="@id" Outline="Outline" Anchor="false">@group.Title (@group.Total)</Heading>
+        <ul class="site-search-list" role="list">
+            @foreach (var entry in group.Entries)
+            {
+                <li class="site-search-item">
+                    <a class="site-search-link" href="@entry.Href">
+                        <span class="site-search-title"><Highlight Text="@entry.Title" Query="@Results.Query" /></span>
+                        @if (entry.Context is { } context)
+                        {
+                            <span class="ib-visually-hidden">, </span>
+                            <span class="site-search-context">@context</span>
+                        }
+                    </a>
+                    @if (entry.Summary is { } summary)
+                    {
+                        <p class="site-search-summary"><Highlight Text="@summary" Query="@Results.Query" /></p>
+                    }
+                </li>
+            }
+        </ul>
+        @if (group.Total > group.Entries.Count && MoreHref is null)
+        {
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted">And @(group.Total - group.Entries.Count) more. Add a word to narrow them down.</TextBlock>
+        }
+    </section>
+}
+@if (MoreHref is not null && Results.Groups.Any(g => g.Total > g.Entries.Count))
+{
+    <Anchor Href="@MoreHref" Class="site-search-all">All @Results.Count results for “@Results.Query”</Anchor>
+}
+
+@code {
+    [Parameter, EditorRequired] public SearchResults Results { get; set; } = null!;
+
+    /// <summary>The groups' heading level: 2 on the page, 3 in the dialog.</summary>
+    [Parameter] public int HeadingLevel { get; set; } = 2;
+
+    /// <summary>Lists the groups in the page's On this page.</summary>
+    [Parameter] public bool Outline { get; set; } = true;
+
+    /// <summary>Starts the groups' ids, so the page and the dialog don't share them.</summary>
+    [Parameter] public string IdPrefix { get; set; } = "results-";
+
+    /// <summary>Where all the results are, for a list cut short (the dialog's).</summary>
+    [Parameter] public string? MoreHref { get; set; }
+
+    /// <summary>The line saying how many results there are, for the live region beside the field.</summary>
+    public static string CountText(SearchResults results) => results.Query.Length == 0
+        ? ""
+        : results.Count switch
+        {
+            0 => $"No results for “{results.Query}”",
+            1 => $"1 result for “{results.Query}”",
+            var n => $"{n} results for “{results.Query}”",
+        };
+}

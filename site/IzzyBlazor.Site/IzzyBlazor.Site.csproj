@@ -35,6 +35,8 @@
     <None Include="Api\released.api.json" />
     <!-- Each example's source, shown under its preview: example:{Folder}/{Name}. -->
     <EmbeddedResource Include="Examples\**\*.razor" LogicalName="example:%(RecursiveDir)%(Filename)" />
+    <!-- The docs pages' sources, where search reads the headings of articles and Overviews: page:{Path}/{Name}. -->
+    <EmbeddedResource Include="Docs\**\*.razor" LogicalName="page:%(RecursiveDir)%(Filename)" />
     <InternalsVisibleTo Include="IzzyBlazor.Site.Tests" />
   </ItemGroup>
 

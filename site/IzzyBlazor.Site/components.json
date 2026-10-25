@@ -85,7 +85,7 @@
       ]
     },
     {
-      "id": "divider", "icon": "SeparatorHorizontal", "name": "Divider", "category": "Layout", "summary": "A line: plain, dashed, labeled or vertical.",
+      "id": "divider", "icon": "SeparatorHorizontal", "name": "Divider", "category": "Layout", "summary": "A line: plain, dashed, labeled or vertical.", "keywords": ["separator", "rule"],
       "examples": [
         { "id": "divider-receipt", "title": "Plain and dashed", "lead": "A `Divider` is an `hr` line; set `Dashed` for a lighter break, as before the total." },
         { "id": "divider-labeled", "title": "With a label", "lead": "Use `Label` to put text in the middle of the line, such as `or` between two ways to sign in." },
@@ -143,7 +143,7 @@
       ]
     },
     {
-      "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "App shell", "summary": "A sidebar that becomes a drawer or panel on small screens.", "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"],
+      "id": "app-sidebar", "icon": "PanelLeft", "name": "AppSidebar", "category": "App shell", "summary": "A sidebar that becomes a drawer or panel on small screens.", "keywords": ["sidebar", "navigation drawer"], "parts": ["SidebarHeader", "SidebarBody", "SidebarFooter", "SidebarToggle"],
       "features": [
         { "feature": "A column beside the page, from its breakpoint up" },
         { "feature": "A drawer or panel on phones, opened and closed by the menu button" },
@@ -187,7 +187,7 @@
       ]
     },
     {
-      "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "App shell", "summary": "Header links that fold into a menu on phones.", "parts": ["SiteNavFooter"],
+      "id": "site-nav", "icon": "Menu", "name": "SiteNav", "category": "App shell", "summary": "Header links that fold into a menu on phones.", "keywords": ["navbar", "top navigation"], "parts": ["SiteNavFooter"],
       "features": [
         { "feature": "A row of links from the breakpoint up" },
         { "feature": "A menu button on phones; Escape or a tap outside closes the panel" },
@@ -214,7 +214,7 @@
       ]
     },
     {
-      "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.",
+      "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.", "keywords": ["dark mode", "theme toggle"],
       "features": [
         { "feature": "Picks a scheme, kept in a cookie for every later page" },
         { "feature": "Changes the page at once, without a reload; other open tabs follow", "off": "none", "static": "full", "live": "full" },
@@ -317,14 +317,14 @@
       ]
     },
     {
-      "id": "kbd", "icon": "Keyboard", "name": "Kbd", "category": "Typography", "summary": "A key or a key combination.",
+      "id": "kbd", "icon": "Keyboard", "name": "Kbd", "category": "Typography", "summary": "A key or a key combination.", "keywords": ["keyboard shortcut"],
       "examples": [
         { "id": "kbd-combinations", "title": "Keys and combinations", "lead": "Use `Keys` for a combination such as \"Ctrl+K\": each key gets its own box." },
         { "id": "kbd-sequence", "title": "Separator", "lead": "Use `Separator` to change what's shown between the keys: a word for a sequence, or nothing for a Mac shortcut." }
       ]
     },
     {
-      "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Text with the words of a search marked.",
+      "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Text with the words of a search marked.", "keywords": ["mark", "search results"],
       "examples": [
         { "id": "highlight-results", "title": "Search results", "lead": "Use `Query` for the search: each of its words is marked where a word of `Text` starts, inside PascalCase names too." },
         { "id": "highlight-anywhere", "title": "Matching anywhere", "lead": "Use `Match` set to `Anywhere` to mark a word wherever it appears, such as a code inside a part number." }
@@ -397,7 +397,7 @@
       ]
     },
     {
-      "id": "button-group", "icon": "Group", "name": "ButtonGroup", "category": "Actions", "summary": "Joined or spaced buttons with shared defaults.",
+      "id": "button-group", "icon": "Group", "name": "ButtonGroup", "category": "Actions", "summary": "Joined or spaced buttons with shared defaults.", "keywords": ["segmented buttons"],
       "examples": [
         { "id": "button-group-joined", "title": "Joined buttons", "lead": "Use `Label` to name the group for screen readers; the buttons and icon buttons inside are joined into one control." },
         { "id": "button-group-defaults", "title": "Shared defaults", "lead": "Use `Variant`, `Accent` and `Size` on the group as its buttons' defaults; a button's own setting wins." },
@@ -406,7 +406,7 @@
       ]
     },
     {
-      "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "One row of controls; what doesn't fit moves into a … menu.",
+      "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "One row of controls; what doesn't fit moves into a … menu.", "keywords": ["action bar"],
       "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
       "features": [
         { "feature": "What doesn't fit moves into the … menu, which opens and posts with no script", "off": "full", "static": "full", "live": "full" },
@@ -441,7 +441,7 @@
       ]
     },
     {
-      "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Actions", "summary": "Asks in an alert dialog before acting.", "parts": ["ConfirmDialogContent"],
+      "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Actions", "summary": "Asks in an alert dialog before acting.", "keywords": ["are you sure"], "parts": ["ConfirmDialogContent"],
       "features": [
         { "feature": "Opens its dialog (with JavaScript off, in browsers with the command attribute)", "off": "partial", "static": "full", "live": "full" },
         { "feature": "Confirming posts the form with Name and Value", "off": "full", "static": "full", "live": "none" },
@@ -464,7 +464,7 @@
       ]
     },
     {
-      "id": "copy-button", "icon": "Copy", "name": "CopyButton", "category": "Actions", "summary": "Copies text, such as an install command.",
+      "id": "copy-button", "icon": "Copy", "name": "CopyButton", "category": "Actions", "summary": "Copies text, such as an install command.", "keywords": ["clipboard"],
       "examples": [
         { "id": "copy-button-command", "title": "Copy text", "lead": "Use `Text` to copy a fixed value, such as an install command.",
           "notes": {
@@ -540,7 +540,7 @@
       ]
     },
     {
-      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "A labeled text input with add-ons and a password reveal.",
+      "id": "text-field", "icon": "TextCursorInput", "name": "TextField", "category": "Forms", "summary": "A labeled text input with add-ons and a password reveal.", "keywords": ["input", "textbox"],
       "features": [
         { "feature": "Label, hint, type and limits from the model" },
         { "feature": "Icons and add-ons" },
@@ -572,7 +572,7 @@
       ]
     },
     {
-      "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Multi-line text that can grow and count.",
+      "id": "text-area", "icon": "TextAlignStart", "name": "TextArea", "category": "Forms", "summary": "Multi-line text that can grow and count.", "keywords": ["textarea", "multiline"],
       "features": [
         { "feature": "Label, hint and length limits from the model" },
         { "feature": "Checks before posting, server messages under the field" },
@@ -596,7 +596,7 @@
       ]
     },
     {
-      "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Forms", "summary": "A number input with stepper buttons.",
+      "id": "number-field", "icon": "Hash", "name": "NumberField", "category": "Forms", "summary": "A number input with stepper buttons.", "keywords": ["numeric input"],
       "features": [
         { "feature": "Typing and arrow keys, with Min, Max and Step checked before posting" },
         { "feature": "A number keyboard on phones" },
@@ -622,7 +622,7 @@
       ]
     },
     {
-      "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.",
+      "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.", "keywords": ["range"],
       "features": [
         { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },
         { "feature": "The track fills to the thumb, and the shown value follows", "off": "none", "static": "full", "live": "full" },
@@ -674,7 +674,7 @@
       ]
     },
     {
-      "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Forms", "summary": "A drop zone around a real file input.",
+      "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Forms", "summary": "A drop zone around a real file input.", "keywords": ["dropzone", "file input"],
       "features": [
         { "feature": "Choose files with the picker, posted with the form" },
         { "feature": "Drop files on the zone; the wrong type refused", "off": "none", "static": "full", "live": "full" },
@@ -709,7 +709,7 @@
       ]
     },
     {
-      "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "parts": ["FilterSearch", "FilterSelect", "FilterCheckbox"],
+      "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterCheckbox"],
       "features": [
         { "feature": "Filters in the address, applied with Apply or Enter; Clear removes them" },
         { "feature": "Keeps the rest of the address and goes back to page 1" },
@@ -747,7 +747,7 @@
     },
 
     {
-      "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "A native select, themed where the browser allows.",
+      "id": "select", "icon": "ChevronsUpDown", "name": "Select", "category": "Selection", "summary": "A native select, themed where the browser allows.", "keywords": ["dropdown", "picker"],
       "examples": [
         { "id": "select-options", "title": "Options" },
         { "id": "select-rich", "title": "Rich options",
@@ -764,7 +764,7 @@
       ]
     },
     {
-      "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Type to filter; server search on interactive pages.",
+      "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Type to filter; server search on interactive pages.", "keywords": ["autocomplete", "typeahead"],
       "features": [
         { "feature": "Choose an option, posted with the form" },
         { "feature": "Type to filter, ignoring case and accents", "off": "none", "static": "full", "live": "full" },
@@ -794,7 +794,7 @@
       ]
     },
     {
-      "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Several choices as chips you can type to filter.",
+      "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Several choices as chips you can type to filter.", "keywords": ["tags input", "chips input"],
       "features": [
         { "feature": "Choose several options, posted with the form" },
         { "feature": "Chips, and typing to filter, ignoring case and accents", "off": "none", "static": "full", "live": "full" },
@@ -834,7 +834,7 @@
       ]
     },
     {
-      "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Selection", "summary": "An on/off switch that posts like a checkbox.",
+      "id": "switch", "icon": "ToggleRight", "name": "Switch", "category": "Selection", "summary": "An on/off switch that posts like a checkbox.", "keywords": ["toggle"],
       "examples": [
         { "id": "switch-control-end", "title": "At the end of the row", "lead": "Use `ControlPosition.End` to put the switch at the end of the row, with the hint under the label, as in a list of settings." },
         { "id": "switch-icons", "title": "Icons on rows", "lead": "Use `Icon` to put a decorative icon at the start of the row; give every row in a group one, or none." },
@@ -885,7 +885,7 @@
       ]
     },
     {
-      "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "One choice from a few, as joined buttons.",
+      "id": "segmented-control", "icon": "Columns2", "name": "SegmentedControl", "category": "Selection", "summary": "One choice from a few, as joined buttons.", "keywords": ["toggle group"],
       "examples": [
         { "id": "segmented-control-icons", "title": "Icons", "lead": "Use `ItemIcon` to put an icon before each option's text, and `IconOnly` to show just the icons, with the text as a tooltip and for screen readers." },
         { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "Use `FullWidth` to share the width equally between the segments, and `HideLabel` to keep the label for screen readers only." },
@@ -894,7 +894,7 @@
     },
 
     {
-      "id": "dialog", "icon": "AppWindow", "name": "Dialog", "category": "Overlays", "summary": "A native modal dialog, opened by a trigger, a link or C#.", "parts": ["DialogTrigger", "DialogHeader", "DialogBody", "DialogFooter", "DialogClose", "DialogHost"],
+      "id": "dialog", "icon": "AppWindow", "name": "Dialog", "category": "Overlays", "summary": "A native modal dialog, opened by a trigger, a link or C#.", "keywords": ["modal", "popup"], "parts": ["DialogTrigger", "DialogHeader", "DialogBody", "DialogFooter", "DialogClose", "DialogHost"],
       "examples": [
         { "id": "dialog-open", "title": "Opening it",
           "notes": {
@@ -914,7 +914,7 @@
       ]
     },
     {
-      "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "A dialog that slides in from an edge.",
+      "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "A dialog that slides in from an edge.", "keywords": ["sheet", "side panel"],
       "examples": [
         { "id": "drawer-filters", "title": "A form in a drawer", "lead": "Put a `Form` in a `Drawer` and end it with `FormActions`: the buttons become the drawer's footer. Put the fields in a `DialogBody`, which fills the drawer, to keep the footer at its bottom.",
           "notes": {
@@ -927,7 +927,7 @@
       ]
     },
     {
-      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Links, form posts and actions in a popover menu.", "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
+      "id": "menu", "icon": "EllipsisVertical", "name": "Menu", "category": "Overlays", "summary": "Links, form posts and actions in a popover menu.", "keywords": ["dropdown menu", "context menu"], "parts": ["MenuItem", "MenuGroup", "MenuDivider", "MenuRadioGroup", "MenuSub"],
       "examples": [
         { "id": "menu-actions", "title": "Links, posts and actions",
           "notes": {
@@ -946,7 +946,7 @@
       ]
     },
     {
-      "id": "popover", "icon": "MessageSquare", "name": "Popover", "category": "Overlays", "summary": "Non-modal content beside a trigger.",
+      "id": "popover", "icon": "MessageSquare", "name": "Popover", "category": "Overlays", "summary": "Non-modal content beside a trigger.", "keywords": ["popup", "flyout"],
       "features": [
         { "feature": "Opens and closes; Escape and a click outside close it" },
         { "feature": "Focus moves in when opened and back when closed", "off": "partial", "static": "full", "live": "full" },
@@ -967,7 +967,7 @@
       ]
     },
     {
-      "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus.",
+      "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus.", "keywords": ["hint"],
       "features": [
         { "feature": "Shows on hover and keyboard focus, on the side Placement picks" },
         { "feature": "Heard by screen readers as the trigger's description", "off": "none", "static": "full", "live": "full" },
@@ -985,7 +985,7 @@
     },
 
     {
-      "id": "nav-menu", "icon": "Navigation", "name": "NavMenu", "category": "Navigation", "summary": "A list of links that marks the current page.", "parts": ["NavItem", "NavGroup", "NavLabel", "NavDivider"],
+      "id": "nav-menu", "icon": "Navigation", "name": "NavMenu", "category": "Navigation", "summary": "A list of links that marks the current page.", "keywords": ["sidebar navigation"], "parts": ["NavItem", "NavGroup", "NavLabel", "NavDivider"],
       "examples": [
         { "id": "nav-menu-sidebar", "title": "Labels, groups and badges", "lead": "Use `NavLabel`, `NavGroup` and `NavDivider` to organize a sidebar's links, and `Badge` on an item for a count or a label." },
         { "id": "nav-menu-horizontal", "title": "Horizontal", "lead": "Use `Orientation.Horizontal` for a row of section links." },
@@ -993,7 +993,7 @@
       ]
     },
     {
-      "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Panels that switch with no script, or links to pages.", "parts": ["Tab", "TabLink"],
+      "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Panels that switch with no script, or links to pages.", "keywords": ["tab strip"], "parts": ["Tab", "TabLink"],
       "features": [
         { "feature": "Switch panels, keeping what's typed" },
         { "feature": "Heard as tabs, with Home and End", "off": "none", "static": "full", "live": "full" },
@@ -1040,7 +1040,7 @@
       ]
     },
     {
-      "id": "pagination", "icon": "SquareChevronRight", "name": "Pagination", "category": "Navigation", "summary": "Page links that keep the rest of the URL.",
+      "id": "pagination", "icon": "SquareChevronRight", "name": "Pagination", "category": "Navigation", "summary": "Page links that keep the rest of the URL.", "keywords": ["pager"],
       "features": [
         { "feature": "Page links that set ?page= and keep the rest of the address" },
         { "feature": "Page bound to C#, with buttons in place of links", "member": "Page" }
@@ -1062,9 +1062,9 @@
         { "id": "prev-next-pages", "title": "Previous and next pages", "lead": "Use `PreviousHref` and `NextHref`, each with its page's title, to end an article; leave out a side on the first or last page." }
       ]
     },
-    { "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "The page's sections, listed on the server." },
+    { "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "The page's sections, listed on the server.", "keywords": ["table of contents", "toc"] },
     {
-      "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Where someone is in a process.", "parts": ["Step"],
+      "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Where someone is in a process.", "keywords": ["wizard", "steps"], "parts": ["Step"],
       "examples": [
         { "id": "stepper-vertical", "title": "Vertical, with descriptions", "lead": "Use `Orientation` `Orientation.Vertical` to keep the steps in a column on every screen; a `Step` can have a `Description` and an `Icon` that shows until it's done." },
         { "id": "stepper-sizes", "title": "Sizes", "lead": "Use `Size` to scale the markers and text." },
@@ -1078,7 +1078,7 @@
     },
 
     {
-      "id": "alert", "icon": "TriangleAlert", "name": "Alert", "category": "Feedback", "summary": "A status message about part of a page.", "parts": ["AlertActions"],
+      "id": "alert", "icon": "TriangleAlert", "name": "Alert", "category": "Feedback", "summary": "A status message about part of a page.", "keywords": ["callout", "notice"], "parts": ["AlertActions"],
       "features": [
         { "feature": "Status, title, icon and actions" },
         { "feature": "Closes with its close button" },
@@ -1103,7 +1103,7 @@
       ]
     },
     {
-      "id": "banner", "icon": "Megaphone", "name": "Banner", "category": "Feedback", "summary": "A full-width message about the whole app.", "parts": ["BannerActions"],
+      "id": "banner", "icon": "Megaphone", "name": "Banner", "category": "Feedback", "summary": "A full-width message about the whole app.", "keywords": ["announcement"], "parts": ["BannerActions"],
       "features": [
         { "feature": "Status, accent, icon and actions" },
         { "feature": "Closes with its close button" },
@@ -1130,7 +1130,7 @@
       ]
     },
     {
-      "id": "toast-region", "icon": "BellRing", "name": "ToastRegion", "category": "Feedback", "summary": "Toasts from any render mode, even across a redirect.",
+      "id": "toast-region", "icon": "BellRing", "name": "ToastRegion", "category": "Feedback", "summary": "Toasts from any render mode, even across a redirect.", "keywords": ["toast", "snackbar", "notification"],
       "features": [
         { "feature": "Toasts from a static post or page, rendered with the response" },
         { "feature": "Kept across a redirect or NavigateTo (not forceLoad on interactive pages)" },
@@ -1169,7 +1169,7 @@
       ]
     },
     {
-      "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Feedback", "summary": "A small label for a status, category or count.",
+      "id": "badge", "icon": "BadgeCheck", "name": "Badge", "category": "Feedback", "summary": "A small label for a status, category or count.", "keywords": ["pill", "label"],
       "examples": [
         { "id": "badge-statuses", "title": "Status", "lead": "Use `Status` for what the badge means, or `Accent` for a color of your own." },
         { "id": "badge-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Solid`, `Outline` or `Plain`." },
@@ -1178,7 +1178,7 @@
       ]
     },
     {
-      "id": "tag", "icon": "Tag", "name": "Tag", "category": "Feedback", "summary": "A keyword or filter, linked or removable.",
+      "id": "tag", "icon": "Tag", "name": "Tag", "category": "Feedback", "summary": "A keyword or filter, linked or removable.", "keywords": ["chip"],
       "features": [
         { "feature": "Colors, sizes, icons and links" },
         { "feature": "Removed by a link (RemoveHref)" },
@@ -1195,14 +1195,14 @@
       ]
     },
     {
-      "id": "spinner", "icon": "LoaderCircle", "name": "Spinner", "category": "Feedback", "summary": "A loading ring sized like an icon.",
+      "id": "spinner", "icon": "LoaderCircle", "name": "Spinner", "category": "Feedback", "summary": "A loading ring sized like an icon.", "keywords": ["loader", "loading indicator"],
       "examples": [
         { "id": "spinner-sizes", "title": "Sizes and color", "lead": "Use `Size` on the icon scale and `Color` for the ring; `Label` is what screen readers hear." },
         { "id": "spinner-beside-text", "title": "Beside text", "lead": "Leave `Size` at its default, 1em, to match the text beside it." }
       ]
     },
     {
-      "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "A progress bar, determinate or not.",
+      "id": "progress", "icon": "Gauge", "name": "Progress", "category": "Feedback", "summary": "A progress bar, determinate or not.", "keywords": ["progress bar"],
       "examples": [
         { "id": "progress-values", "title": "Value and label", "lead": "Use `Value` and `Max` for how far along it is, `Label` to name it, and `ShowValue` or `ValueText` to show the amount." },
         { "id": "progress-sizes", "title": "Sizes and colors", "lead": "Use `Size` for the bar's thickness and `Accent` for its color." },
@@ -1211,14 +1211,14 @@
       ]
     },
     {
-      "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content still loading.",
+      "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content still loading.", "keywords": ["placeholder", "shimmer"],
       "examples": [
         { "id": "skeleton-shapes", "title": "Lines, blocks and circles", "lead": "Use `Lines` for text, `Height` for a block such as an image, and `Circle` for an avatar." },
         { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives; a placeholder as tall as what it stands for keeps the page still.", "modes": ["live"] }
       ]
     },
     {
-      "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "What to show when there's nothing yet.", "parts": ["EmptyStateActions"],
+      "id": "empty-state", "icon": "Inbox", "name": "EmptyState", "category": "Feedback", "summary": "What to show when there's nothing yet.", "keywords": ["no results", "blank slate"], "parts": ["EmptyStateActions"],
       "examples": [
         { "id": "empty-state-actions", "title": "Icon, title and actions", "lead": "Use `Icon`, `Title` and `Description` to say why it's empty, and `EmptyStateActions` for what fills it." },
         { "id": "empty-state-bordered", "title": "Bordered and small", "lead": "Use `Bordered` for an empty area inside a page, and `Size` for a smaller one." }
@@ -1226,7 +1226,7 @@
     },
 
     {
-      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Sort, filter, page and select, with state in the URL.", "parts": ["PropertyColumn", "TemplateColumn"],
+      "id": "table", "icon": "Table", "name": "Table", "category": "Data display", "summary": "Sort, filter, page and select, with state in the URL.", "keywords": ["data grid", "datagrid", "grid"], "parts": ["PropertyColumn", "TemplateColumn"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Selected rows post with a form" },
@@ -1253,7 +1253,7 @@
       ]
     },
     {
-      "id": "card", "icon": "SquareStack", "name": "Card", "category": "Data display", "summary": "Media, header, body sections, actions and footer.", "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
+      "id": "card", "icon": "SquareStack", "name": "Card", "category": "Data display", "summary": "Media, header, body sections, actions and footer.", "keywords": ["panel", "tile"], "parts": ["CardMedia", "CardHeader", "CardActions", "CardBody", "CardFooter"],
       "examples": [
         { "id": "card-variants", "title": "Variants", "lead": "Use `Variant` for `Outline` (the default), `Elevated` or `Filled`; `Title` and `Description` make the header." },
         { "id": "card-sizes", "title": "Sizes", "lead": "Use `Size` for the padding and the title's size." },
@@ -1288,7 +1288,7 @@
       ]
     },
     {
-      "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Terms and their details.", "parts": ["DescriptionItem"],
+      "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
         { "id": "description-list-divided", "title": "Terms beside details", "lead": "Use `Divided` for lines between items; terms sit beside their details from 640px up and above them on phones." },
         { "id": "description-list-columns", "title": "Vertical, in columns", "lead": "Use `Orientation.Vertical` to put each term above its detail, and `Columns` to flow the items into columns." }
@@ -1336,7 +1336,7 @@
       ]
     },
     {
-      "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Sections that open and close with no script.", "parts": ["AccordionItem", "AccordionHeader"],
+      "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Sections that open and close with no script.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
       "features": [
         { "feature": "Items open and close, one at a time with Exclusive" },
         { "feature": "An item's Open bound to C#", "off": "none", "static": "none", "live": "full" }
@@ -1361,7 +1361,7 @@
       ]
     },
     {
-      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Data display", "summary": "One \"show more\" section.",
+      "id": "collapsible", "icon": "ChevronDown", "name": "Collapsible", "category": "Data display", "summary": "One \"show more\" section.", "keywords": ["details", "disclosure"],
       "features": [
         { "feature": "Opens and closes" },
         { "feature": "Open bound to C#", "member": "Open" }

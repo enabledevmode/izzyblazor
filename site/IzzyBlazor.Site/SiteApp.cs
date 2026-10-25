@@ -33,7 +33,9 @@ public static class SiteApp
         builder.Services.AddIzzyBlazor();
         var api = ApiMetadata.Load();
         builder.Services.AddSingleton(api);
-        builder.Services.AddSingleton(Registry.Load(api));
+        var registry = Registry.Load(api);
+        builder.Services.AddSingleton(registry);
+        builder.Services.AddSingleton(new SearchIndex(registry, api));
         builder.Services.AddSingleton<NoScriptCss>();
         builder.Services.AddSingleton<ExampleCatalog>();
 
