@@ -66,6 +66,8 @@ public sealed partial class SearchIndex
             }
         }
 
+        // Entries that share a link (a type and its values) show once, the best of them.
+        hits = hits.GroupBy(h => h.Entry.Href).Select(g => g.MaxBy(h => h.Score)).ToList();
         var groups = hits
             .GroupBy(h => h.Entry.Group)
             .Select(g => g.OrderByDescending(h => h.Score).ThenBy(h => h.Entry.Order).ToList())
@@ -73,8 +75,14 @@ public sealed partial class SearchIndex
             .ThenBy(g => g[0].Entry.Group)
             .Select(g => new SearchResultGroup(g[0].Entry.Group, g.Take(perGroup).Select(h => h.Entry).ToList(), g.Count))
             .ToList();
-        return new SearchResults(query, groups, hits.Count);
+        return new SearchResults(query, groups, hits.Count) { Marks = string.Join(' ', terms.Concat(terms.Select(Singular)).Distinct()) };
     }
+
+    // "buttons" matches Button (Matches), so it marks "button" too.
+    private static string Singular(string term) =>
+        term.Length > 3 && term.EndsWith("es", StringComparison.Ordinal) ? term[..^2]
+        : term.Length > 3 && term[^1] == 's' ? term[..^1]
+        : term;
 
     // ---- Ranking ----
 
@@ -639,7 +647,11 @@ public sealed record SearchEntry(SearchKind Kind, string Title, string? Context,
 }
 
 /// <summary>A search's results: its query (trimmed and cut), the groups in order and the total count.</summary>
-public sealed record SearchResults(string Query, IReadOnlyList<SearchResultGroup> Groups, int Count);
+public sealed record SearchResults(string Query, IReadOnlyList<SearchResultGroup> Groups, int Count)
+{
+    /// <summary>The words to mark in the results: the query's, and their singulars ("button" for "buttons").</summary>
+    public string Marks { get; init; } = Query;
+}
 
 /// <summary>A group's results, best first, and how many matched in all.</summary>
 public sealed record SearchResultGroup(SearchGroup Group, IReadOnlyList<SearchEntry> Entries, int Total)

@@ -66,7 +66,7 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
 
             var html = await response.Content.ReadAsStringAsync();
             broken.AddRange(page.Select(e => e.Href).Where(h => h.Contains('#')).Distinct()
-                .Where(h => !html.Contains($"id=\"{h.Split('#')[1]}\"", StringComparison.Ordinal))
+                .Where(h => !Regex.IsMatch(html, $"\\sid=\"{Regex.Escape(h.Split('#')[1])}\""))
                 .Select(h => $"/{h}: no such id"));
         }
 
@@ -129,6 +129,9 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
         var empty = await site.Client.GetStringAsync("search");
         Assert.Contains("Start here", empty);
         Assert.Contains("autofocus", empty);
+
+        // "buttons" finds Button, and marks it.
+        Assert.Contains("<mark class=\"ib-mark\">Button</mark>", await site.Client.GetStringAsync("search?q=buttons"));
 
         var none = WebUtility.HtmlDecode(await site.Client.GetStringAsync("search?q=zqxjv"));
         Assert.Contains("No results for “zqxjv”", none);

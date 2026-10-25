@@ -1,7 +1,7 @@
 @* Search results by group, best group first: a heading per group with its count, and a list of
    links, each a title with the matched words marked and where it is, then a line about it. The
-   /search page shows them under h2s; the header's dialog under h3s, fewer per group, with a link
-   to all of them. *@
+   /search page and the header's dialog both show them under h2s (the dialog has no heading of its
+   own); the dialog shows fewer per group, with a link to all of them. *@
 
 @foreach (var group in Results.Groups)
 {
@@ -13,7 +13,7 @@
             {
                 <li class="site-search-item">
                     <a class="site-search-link" href="@entry.Href">
-                        <span class="site-search-title"><Highlight Text="@entry.Title" Query="@Results.Query" /></span>
+                        <span class="site-search-title"><Highlight Text="@entry.Title" Query="@Results.Marks" /></span>
                         @if (entry.Context is { } context)
                         {
                             <span class="ib-visually-hidden">, </span>
@@ -22,7 +22,7 @@
                     </a>
                     @if (entry.Summary is { } summary)
                     {
-                        <p class="site-search-summary"><Highlight Text="@summary" Query="@Results.Query" /></p>
+                        <p class="site-search-summary"><Highlight Text="@summary" Query="@Results.Marks" /></p>
                     }
                 </li>
             }
@@ -41,7 +41,7 @@
 @code {
     [Parameter, EditorRequired] public SearchResults Results { get; set; } = null!;
 
-    /// <summary>The groups' heading level: 2 on the page, 3 in the dialog.</summary>
+    /// <summary>The groups' heading level.</summary>
     [Parameter] public int HeadingLevel { get; set; } = 2;
 
     /// <summary>Lists the groups in the page's On this page.</summary>
