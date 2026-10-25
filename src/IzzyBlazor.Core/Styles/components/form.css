@@ -2163,6 +2163,12 @@
     box-shadow: inset 0 0 0 1px var(--ib-field-border, var(--ib-color-outline));
   }
 
+  /* The space above the options is for a shown legend: with HideLabel, they sit at the top, in
+     line with the controls beside them (in a toolbar or a row). */
+  .ib-field-label.ib-visually-hidden + :is(.ib-segmented, .ib-radio-options) {
+    margin-top: 0;
+  }
+
   /*
    * The chosen segment is raised off a filled track: the raised surface (lighter than the track in
    * dark, where shadows barely show), a soft edge and a small shadow. Shared by SegmentedControl,
