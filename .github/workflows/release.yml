@@ -56,6 +56,10 @@ jobs:
       - name: Build
         run: dotnet build izzyblazor.sln --configuration Release
 
+      # Chromium and its system libraries, for the site's browser test (ToolbarWidthTests).
+      - name: Install Chromium
+        run: pwsh site/IzzyBlazor.Site.Tests/bin/Release/net10.0/playwright.ps1 install --with-deps chromium
+
       - name: Unit and render tests
         run: dotnet test izzyblazor.sln --configuration Release --no-build
 
