@@ -9,6 +9,7 @@ name: Release
 # tools never run where a publishing token can be had; "publish" only takes the packages it made,
 # logs in to NuGet and pushes. Who may push v* tags, and approval for the "release" environment,
 # are repository settings: this file can't enforce them, since a tag runs its own copy of it.
+# A third, "docs", deploys the docs site to Fly.io after the packages are pushed.
 
 on:
   push:
@@ -146,3 +147,24 @@ jobs:
           if [ -f artifacts/release-notes.md ]; then notes=(--notes-file artifacts/release-notes.md); fi
           gh release create "$GITHUB_REF_NAME" artifacts/*.nupkg artifacts/*.snupkg \
             --repo "$GITHUB_REPOSITORY" --title "$GITHUB_REF_NAME" --generate-notes "${notes[@]}" $prerelease
+
+  docs:
+    # The docs site on Fly.io (fly.toml, Dockerfile), once the packages are out, so its "Added in"
+    # and API pages match the release. Fly's builder builds the image; this job only holds the token.
+    needs: publish
+    runs-on: ubuntu-latest
+    environment: release
+    permissions:
+      contents: read
+    concurrency: docs-deploy
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - uses: superfly/flyctl-actions/setup-flyctl@master
+
+      - name: Deploy
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
+        run: flyctl deploy --remote-only
