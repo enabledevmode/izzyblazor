@@ -29,6 +29,9 @@ internal interface IToolbarItem
 
     /// <summary>The estimated width in pixels at a 16px root, or null when unknown.</summary>
     double? Width { get; }
+
+    /// <summary>The estimated width with its labels collapsed (<see cref="Toolbar.CollapseLabels"/>), or null when unknown.</summary>
+    double? CollapsedWidth => Width;
 }
 
 /// <summary>
@@ -51,6 +54,9 @@ internal sealed class ToolbarContext(string rootId)
 
     /// <summary>The space between units, in pixels at a 16px root.</summary>
     public double Gap { get; set; } = 8;
+
+    /// <summary>Whether buttons with an icon drop their text before anything moves into the menu (<see cref="Toolbar.CollapseLabels"/>).</summary>
+    public bool CollapseLabels { get; set; }
 
     /// <summary>Re-renders the "…" menu and the toolbar's CSS. Set by the part that draws them.</summary>
     public Action? OnMenuChanged { get; set; }
@@ -189,14 +195,18 @@ internal static class ButtonWidth
 /// </summary>
 internal static class ToolbarPlan
 {
-    /// <summary>A unit as the plan sees it.</summary>
-    public sealed record Unit(int Id, ToolbarPosition Region, double Width, int Priority, ToolbarOverflow Overflow, bool Separator);
+    /// <summary>A unit as the plan sees it. <see cref="CollapsedWidth"/> is its width with labels collapsed.</summary>
+    public sealed record Unit(int Id, ToolbarPosition Region, double Width, int Priority, ToolbarOverflow Overflow, bool Separator, double? CollapsedWidth = null)
+    {
+        public double Collapsed => CollapsedWidth ?? Width;
+    }
 
     /// <summary>
     /// The toolbar's state from <see cref="Min"/> (inclusive) to <see cref="Max"/> (exclusive) pixels
-    /// wide: the units hidden from the bar, those shown in the menu, and whether the "…" shows.
+    /// wide: the units hidden from the bar, those shown in the menu, whether the "…" shows, and
+    /// whether labels are collapsed.
     /// </summary>
-    public sealed record State(double Min, double Max, IReadOnlySet<int> BarHidden, IReadOnlySet<int> MenuShown, bool More);
+    public sealed record State(double Min, double Max, IReadOnlySet<int> BarHidden, IReadOnlySet<int> MenuShown, bool More, bool Collapsed = false);
 
     /// <summary>
     /// The order units leave the bar: lowest priority first; ties from the middle outward (the start
@@ -234,13 +244,30 @@ internal static class ToolbarPlan
         return order;
     }
 
-    /// <summary>Every state the toolbar can be in, widest first. Empty ranges are left out.</summary>
-    public static List<State> States(IReadOnlyList<Unit> units, double gap, double moreWidth)
+    /// <summary>
+    /// Every state the toolbar can be in, widest first. Empty ranges are left out. With
+    /// <paramref name="collapse"/>, labels collapse (all at once) before anything moves into the
+    /// menu, and units then move as before, at their collapsed widths.
+    /// </summary>
+    public static List<State> States(IReadOnlyList<Unit> units, double gap, double moreWidth, bool collapse = false)
     {
-        var order = DropOrder(units, gap, moreWidth);
         var always = units.Any(u => !u.Separator && u.Overflow == ToolbarOverflow.Always);
         var states = new List<State>();
         var max = double.PositiveInfinity;
+        if (collapse && units.Any(u => u.Collapsed < u.Width))
+        {
+            // Everything with its labels; narrower than that, they collapse.
+            var (barHidden, menuShown, width, _, _) = Layout(units, [], gap, moreWidth, more: always);
+            states.Add(new State(width, max, barHidden, menuShown, always));
+            max = width;
+            units = [.. units.Select(u => u with { Width = u.Collapsed })];
+        }
+        else
+        {
+            collapse = false;
+        }
+
+        var order = DropOrder(units, gap, moreWidth);
         for (var k = 0; k <= order.Count; k++)
         {
             var dropped = order.Take(k).Select(u => u.Id).ToHashSet();
@@ -248,7 +275,7 @@ internal static class ToolbarPlan
             var min = k == order.Count ? double.NegativeInfinity : width;
             if (min < max)
             {
-                states.Add(new State(min, max, barHidden, menuShown, k > 0 || always));
+                states.Add(new State(min, max, barHidden, menuShown, k > 0 || always, collapse));
             }
 
             max = Math.Min(max, width);
@@ -385,6 +412,15 @@ internal static class ToolbarPlan
             css.Append(query is null ? rules.ToString() : $"@container {query}{{{rules}}}");
         }
 
+        // Collapsed below the widest state's width: one rule, as collapsing comes before any move.
+        if (states.FirstOrDefault(s => !s.Collapsed) is { } full && states.Any(s => s.Collapsed))
+        {
+            css.Append(CultureInfo.InvariantCulture, $"@container (width < {Rem(full.Min)}){{{root} .ib-toolbar-collapse>.ib-btn-label{{{CollapsedLabel}}}{root} .ib-toolbar-collapse-square{{width:var(--ib-btn-h);padding:0}}}}");
+        }
+
         return css.Append('}').ToString();
     }
+
+    // A collapsed label is still there for screen readers, as in .ib-visually-hidden.
+    private const string CollapsedLabel = "position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0";
 }

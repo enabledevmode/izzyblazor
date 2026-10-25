@@ -10,6 +10,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * marks units data-ib-out (bar) and data-ib-show (menu), and sets data-ib-measured, which switches
  * the server's rules off. For the library's font the two agree, so nothing moves when it arrives.
  * It only changes attributes; both copies of every unit are rendered by the server.
+ *
+ * With CollapseLabels (data-ib-collapse), buttons with an icon drop their text before anything
+ * moves (data-ib-collapsed), and show it as their tooltip.
  */
 
 type Region = 0 | 1 | 2;
@@ -18,6 +21,8 @@ interface Unit {
   id: string;
   region: Region;
   width: number;
+  /** The width with labels collapsed. */
+  collapsed: number;
   priority: number;
   overflow: "auto" | "never" | "always";
   separator: boolean;
@@ -30,6 +35,13 @@ interface Layout {
   more: boolean;
   start: number;
   end: number;
+  collapsed?: boolean;
+}
+
+/** What the server's rules showed when the script first measured. */
+interface CssState {
+  dropped: Set<string>;
+  collapsed: boolean;
 }
 
 const REGIONS = [".ib-toolbar-start", ".ib-toolbar-center", ".ib-toolbar-end"];
@@ -119,24 +131,38 @@ function layout(units: Unit[], dropped: Set<string>, gap: number, moreWidth: num
 
 /**
  * The layout for a toolbar this wide: the first, keeping the most in the bar, that fits (or the
- * last). Until the toolbar is resized, the layout the server's estimates chose (cssDropped)
- * stays when it fits and the one that keeps more is a tight fit (within a few pixels: the
- * estimates leave out kerning), so nothing moves when the script arrives.
+ * last). With collapse, the labels collapse before anything moves, and units then move at their
+ * collapsed widths (keep in step with ToolbarPlan.States). Until the toolbar is resized, the
+ * layout the server's estimates chose (css) stays when it fits and the one that keeps more is a
+ * tight fit (within a few pixels: the estimates leave out kerning), so nothing moves when the
+ * script arrives.
  */
-function plan(units: Unit[], available: number, gap: number, moreWidth: number, cssDropped?: Set<string>): Layout {
-  const order = dropOrder(units, gap, moreWidth);
+function plan(units: Unit[], available: number, gap: number, moreWidth: number, collapse: boolean, css?: CssState): Layout {
   const always = units.some((u) => !u.separator && u.overflow === "always");
-  const at = (k: number) => layout(units, new Set(order.slice(0, k).map((u) => u.id)), gap, moreWidth, k > 0 || always);
-  let k = 0;
-  let result = at(0);
+  const collapses = collapse && units.some((u) => u.collapsed < u.width);
+  const steps: (() => Layout)[] = [];
+  let shown = units;
+  if (collapses) {
+    steps.push(() => ({ ...layout(units, new Set(), gap, moreWidth, always), collapsed: false }));
+    shown = units.map((u) => ({ ...u, width: u.collapsed }));
+  }
+  const order = dropOrder(shown, gap, moreWidth);
+  for (let k = 0; k <= order.length; k++) {
+    const dropped = new Set(order.slice(0, k).map((u) => u.id));
+    steps.push(() => ({ ...layout(shown, dropped, gap, moreWidth, k > 0 || always), collapsed: collapses }));
+  }
+  let step = 0;
+  let result = steps[0]();
   // Half a pixel of slack for rounding, so a toolbar exactly as wide as its content keeps it.
-  while (result.width > available + 0.5 && k < order.length) result = at(++k);
+  while (result.width > available + 0.5 && step < steps.length - 1) result = steps[++step]();
 
-  if (cssDropped) {
-    const cssK = order.findIndex((u) => !cssDropped.has(u.id));
+  if (css && (collapses || !css.collapsed)) {
+    const cssK = order.findIndex((u) => !css.dropped.has(u.id));
     const kept = cssK < 0 ? order.length : cssK;
-    const matches = order.every((u, i) => cssDropped.has(u.id) === i < kept);
-    if (matches && kept > k && result.width > available - 4) return at(kept);
+    const matches = order.every((u, i) => css.dropped.has(u.id) === i < kept);
+    // The server's step: everything at full width, or collapsed with the first `kept` units gone.
+    const cssStep = !collapses ? kept : css.collapsed ? 1 + kept : kept === 0 ? 0 : -1;
+    if (matches && cssStep > step && result.width > available - 4) return steps[cssStep]();
   }
   return result;
 }
@@ -145,7 +171,7 @@ class Toolbar extends IzzyElement {
   #frame = 0;
   // What the server's rules had moved into the menu when the script first measured, and the width
   // then: until the width changes, that layout stays if it's a tight call.
-  #css: { dropped: Set<string>; available: number } | null = null;
+  #css: (CssState & { available: number }) | null = null;
   #current: HTMLElement | null = null;
   #touched = new Set<HTMLElement>();
 
@@ -197,6 +223,20 @@ class Toolbar extends IzzyElement {
   protected teardown(): void {
     for (const el of this.#touched) el.removeAttribute("tabindex");
     this.#touched.clear();
+    this.#titles(false);
+  }
+
+  /** A collapsed button's text is its tooltip; one with a title of its own keeps it. */
+  #titles(collapsed: boolean): void {
+    for (const button of this.querySelectorAll<HTMLElement>(".ib-toolbar-collapse")) {
+      if (collapsed && !button.hasAttribute("title")) {
+        button.title = button.querySelector(".ib-btn-label")?.textContent?.trim() ?? "";
+        button.dataset.ibTitle = "";
+      } else if (!collapsed && button.hasAttribute("data-ib-title")) {
+        button.removeAttribute("title");
+        delete button.dataset.ibTitle;
+      }
+    }
   }
 
   #barUnits(): HTMLElement[] {
@@ -218,6 +258,11 @@ class Toolbar extends IzzyElement {
     const menuIds = new Set([...this.querySelectorAll<HTMLElement>(".ib-toolbar-menu-unit")].map((m) => m.dataset.ibUnit));
     const regionOf = (el: Element) => REGIONS.findIndex((r) => el.closest(r)?.parentElement === this) as Region;
 
+    // Whether the server's rules have collapsed the labels, before measuring switches them off.
+    const collapse = this.hasAttribute("data-ib-collapse");
+    const label = collapse && !this.hasAttribute("data-ib-measured") ? this.querySelector(".ib-toolbar-collapse > .ib-btn-label") : null;
+    const cssCollapsed = !!label && getComputedStyle(label).position === "absolute";
+
     // Every unit as it is without the toolbar's own hiding, for one read; no paint happens before
     // the attributes below. A unit that renders nothing then (HiddenFrom) stays out of the reckoning.
     this.toggleAttribute("data-ib-measuring", true);
@@ -235,6 +280,7 @@ class Toolbar extends IzzyElement {
         id,
         region: regionOf(el),
         width,
+        collapsed: width,
         priority: Number(el.dataset.ibPriority) || 0,
         overflow: !menuIds.has(id) || overflow === "never" ? "never" : overflow === "always" ? "always" : "auto",
         separator: el.classList.contains("ib-toolbar-sep"),
@@ -248,10 +294,19 @@ class Toolbar extends IzzyElement {
       const container = this.querySelector(`:scope > ${selector}`);
       for (const child of container?.children ?? []) {
         if (child.matches(".ib-toolbar-unit, .ib-toolbar-more, style") || child.querySelector(".ib-toolbar-unit") || !child.checkVisibility()) continue;
-        units.push({ id: `other-${units.length}`, region: region as Region, width: child.getBoundingClientRect().width, priority: 0, overflow: "never", separator: false });
+        const width = child.getBoundingClientRect().width;
+        units.push({ id: `other-${units.length}`, region: region as Region, width, collapsed: width, priority: 0, overflow: "never", separator: false });
       }
     });
     const moreWidth = more.getBoundingClientRect().width;
+    // And again with the labels collapsed.
+    if (collapse && this.querySelector(".ib-toolbar-collapse")) {
+      this.setAttribute("data-ib-measuring", "collapsed");
+      for (const unit of units) {
+        const el = elements.find((e) => e.dataset.ibUnit === unit.id);
+        if (el) unit.collapsed = el.getBoundingClientRect().width;
+      }
+    }
     this.toggleAttribute("data-ib-measuring", false);
 
     const style = getComputedStyle(this);
@@ -259,9 +314,13 @@ class Toolbar extends IzzyElement {
     const available = this.clientWidth - parseFloat(style.paddingLeft) - parseFloat(style.paddingRight);
     // The first time (and after enhanced navigation resets the attributes), what the server's rules show.
     if (!this.hasAttribute("data-ib-measured")) {
-      this.#css = { dropped: new Set(elements.filter((el) => !el.checkVisibility() && !absent.has(el.dataset.ibUnit!)).map((el) => el.dataset.ibUnit!)), available };
+      this.#css = {
+        dropped: new Set(elements.filter((el) => !el.checkVisibility() && !absent.has(el.dataset.ibUnit!)).map((el) => el.dataset.ibUnit!)),
+        collapsed: cssCollapsed,
+        available,
+      };
     }
-    const result = plan(units, available, gap, moreWidth, this.#css?.available === available ? this.#css.dropped : undefined);
+    const result = plan(units, available, gap, moreWidth, collapse, this.#css?.available === available ? this.#css : undefined);
 
     // Focus in a unit that's leaving the bar goes to "…", as it would to nothing otherwise; focus in
     // the menu (or on "…") whose item comes back to the bar goes to that item in the bar.
@@ -275,7 +334,9 @@ class Toolbar extends IzzyElement {
       el.toggleAttribute("data-ib-show", result.menuShown.has(el.dataset.ibUnit!) && !absent.has(el.dataset.ibUnit!));
     }
     this.toggleAttribute("data-ib-more", result.more);
+    this.toggleAttribute("data-ib-collapsed", !!result.collapsed);
     this.toggleAttribute("data-ib-measured", true);
+    this.#titles(!!result.collapsed);
 
     if (leaving) this.#moreTrigger()?.focus();
     const panel = more.querySelector<HTMLElement>("[popover]");

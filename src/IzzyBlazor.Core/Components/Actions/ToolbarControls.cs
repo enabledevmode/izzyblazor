@@ -80,6 +80,21 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
 
     double? IToolbarItem.Width => EstimateWidth();
 
+    // With CollapseLabels, one with a start icon (and no end icon) shows only that icon, unless it
+    // never moves into the menu (in a group, the group's Overflow).
+    private bool Collapses => ToolbarControl.Of(Toolbar, Group)?.CollapseLabels == true
+        && ((Group as ToolbarButtonGroup)?.Overflow ?? Overflow) != ToolbarOverflow.Never
+        && StartIcon is not null && ChildContent is not null && EndIcon is null && !ExternalIcon;
+
+    double? IToolbarItem.CollapsedWidth => Collapses ? ButtonWidth.Estimate(EffectiveSize, iconOnly: true, hasLabel: false, null, startIcon: true, endIcon: false) : EstimateWidth();
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        base.BuildAttributes(classes, styles);
+        classes.Add("ib-toolbar-collapse ib-toolbar-collapse-square", Collapses);
+    }
+
     /// <inheritdoc />
     public override Task SetParametersAsync(ParameterView parameters)
     {
@@ -249,17 +264,14 @@ public sealed class ToolbarButtonGroup : ButtonGroup, IToolbarItem, IDisposable
         }
     }
 
+    double? IToolbarItem.Width => Sum(_buttons.ConvertAll(b => b.Width));
+
+    double? IToolbarItem.CollapsedWidth => Sum(_buttons.ConvertAll(b => b.CollapsedWidth));
+
     // Joined buttons share a 1px border; spaced ones are 8px apart.
-    double? IToolbarItem.Width
-    {
-        get
-        {
-            var widths = _buttons.ConvertAll(b => b.Width);
-            return widths.Count > 0 && widths.TrueForAll(w => w is not null)
-                ? widths.Sum(w => w!.Value) + (widths.Count - 1) * (Attached ? -1 : 8)
-                : null;
-        }
-    }
+    private double? Sum(List<double?> widths) => widths.Count > 0 && widths.TrueForAll(w => w is not null)
+        ? widths.Sum(w => w!.Value) + (widths.Count - 1) * (Attached ? -1 : 8)
+        : null;
 
     /// <summary>Adds or updates one of its buttons, which the toolbar draws inside it.</summary>
     internal void Set(IToolbarItem button)
@@ -347,6 +359,16 @@ public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
     double? IToolbarItem.Width => Trigger is not null ? null
         : ButtonWidth.Estimate(TriggerSize, iconOnly: false, hasLabel: true, Label, startIcon: StartIcon is not null, endIcon: true);
 
+    // With CollapseLabels, a default trigger with a start icon keeps the icon and the chevron,
+    // unless it never moves into the menu.
+    private bool Collapses => Toolbar?.CollapseLabels == true && Overflow != ToolbarOverflow.Never && Trigger is null && StartIcon is not null;
+
+    double? IToolbarItem.CollapsedWidth => Collapses
+        ? ButtonWidth.Estimate(TriggerSize, iconOnly: false, hasLabel: false, null, startIcon: true, endIcon: true)
+        : ((IToolbarItem)this).Width;
+
+    private protected override string? TriggerClass => Collapses ? "ib-toolbar-collapse" : null;
+
     /// <inheritdoc />
     public override Task SetParametersAsync(ParameterView parameters)
     {
@@ -405,6 +427,9 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
             _slot.Rendered();
         }
     }
+
+    /// <summary>The toolbar a button is in: the one around it, or for a group's button, the group's.</summary>
+    public static ToolbarContext? Of(ToolbarContext? toolbar, ButtonGroup? group) => group is ToolbarButtonGroup buttons ? buttons.Toolbar : toolbar;
 
     /// <summary>
     /// Whether its other attributes are only names and ids, which a menu copy can do without. One

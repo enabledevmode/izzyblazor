@@ -99,6 +99,27 @@
     display: flex;
   }
 
+  /* CollapseLabels: a collapsed button shows only its icon (a menu's trigger keeps its chevron),
+     and its text stays for screen readers. From the script's data-ib-collapsed, and while it
+     measures the collapsed widths; without script, the toolbar's own <style> collapses them below
+     the width everything needs. */
+  .ib-toolbar:is([data-ib-measured][data-ib-collapsed]:not([data-ib-measuring]), [data-ib-measuring="collapsed"]) .ib-toolbar-collapse > .ib-btn-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    padding: 0;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+  }
+
+  .ib-toolbar:is([data-ib-measured][data-ib-collapsed]:not([data-ib-measuring]), [data-ib-measuring="collapsed"]) .ib-toolbar-collapse-square {
+    width: var(--ib-btn-h);
+    padding: 0;
+  }
+
   /* Wrap: more rows instead of a menu. */
   .ib-toolbar-wrap,
   .ib-toolbar-wrap > :is(.ib-toolbar-start, .ib-toolbar-center, .ib-toolbar-end) {

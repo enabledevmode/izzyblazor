@@ -338,14 +338,16 @@ internal sealed class ToolbarMore : ComponentBase
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
         var items = Context.Items.ToList();
-        if (!items.Exists(i => !i.Item.Separator && Effective(i.Item) != ToolbarOverflow.Never))
+        // Nothing can move and no labels collapse: no "…" and no widths. (With CollapseLabels and
+        // nothing to move, the "…" is there but never shows.)
+        if (!Context.CollapseLabels && !items.Exists(i => !i.Item.Separator && Effective(i.Item) != ToolbarOverflow.Never))
         {
             return;
         }
 
-        var plan = items.ConvertAll(i => new ToolbarPlan.Unit(i.Id, i.Item.Position, i.Item.Width ?? 0, i.Item.Priority, Effective(i.Item), i.Item.Separator));
+        var plan = items.ConvertAll(i => new ToolbarPlan.Unit(i.Id, i.Item.Position, i.Item.Width ?? 0, i.Item.Priority, Effective(i.Item), i.Item.Separator, i.Item.CollapsedWidth));
         var moreWidth = Size switch { ControlSize.Sm => 32, ControlSize.Lg => 44, _ => 36 };
-        var states = ToolbarPlan.States(plan, Context.Gap, moreWidth);
+        var states = ToolbarPlan.States(plan, Context.Gap, moreWidth, Context.CollapseLabels);
 
         builder.OpenElement(0, "style");
         builder.AddAttribute(1, "nonce", Nonce);

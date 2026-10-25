@@ -39,6 +39,10 @@
 <TextBlock>Use <Code>@@bind-Pressed</Code> on its buttons for tools that turn on and off. In the … menu they're checkbox items that toggle the same.</TextBlock>
 <ExampleViewer Example="toolbar-toggles" />
 
+<Heading Level="2">Icons before the menu</Heading>
+<TextBlock>Use <Code>CollapseLabels</Code> to drop the text of buttons and menus with a <Code>StartIcon</Code> before anything moves into the … menu: they show only their icons, all at once, and the text stays for screen readers and as the tooltip. Narrow the window: once the icons alone don't fit, items move into the menu as before. One with <Code>Overflow="ToolbarOverflow.Never"</Code>, such as Publish here, keeps its text.</TextBlock>
+<ExampleViewer Example="toolbar-collapse-labels" />
+
 <Heading Level="2">Wrapping instead</Heading>
 <TextBlock>Use <Code>Wrap</Code> for a toolbar where everything must show: it wraps onto more rows, with no menu.</TextBlock>
 <ExampleViewer Example="toolbar-wrap" />

@@ -29,7 +29,8 @@
     ToolbarItem holds anything else (a field, a SegmentedControl, a Tooltip), with a Width so the
     widths without script allow for it, and MenuContent for what stands in for it in the menu
     (without that, it stays). The toolbar fills its container's width; in a row, give it Grow.
-    With Wrap, everything shows in the bar.
+    With Wrap, everything shows in the bar. With CollapseLabels, buttons with an icon drop their
+    text first, and items move into the menu only once that isn't enough.
 
     The toolbar draws its items itself, so a cascading value or form written around one inside the
     toolbar doesn't reach it (put the form around the toolbar). Items keep the order they reach the
@@ -50,6 +51,8 @@
       of `menuitem`s (a ToolbarButtonGroup is a labeled group, a ToolbarMenu a submenu), and
       Escape comes back.
     - If the focused control moves into the menu as the toolbar narrows, focus moves to "…".
+    - With `CollapseLabels`, a button that drops its text keeps it for screen readers, and with
+      script shows it as its tooltip.
     - With JavaScript off and until the script loads, it's a `group` named by `Label`, each
       control its own tab stop.
     - A dialog it opens (a ConfirmButton's) keeps its own Tab order and keys.
@@ -63,7 +66,8 @@
             style="@_style"
             role="@(RendererInfo.IsInteractive ? "toolbar" : "group")"
             data-ib-role="@(RendererInfo.IsInteractive ? null : "toolbar")"
-            aria-label="@Label">
+            aria-label="@Label"
+            data-ib-collapse="@(CollapseLabels && !Wrap ? "" : null)">
     <CascadingValue Value="_defaults">
         @* Only the items see the toolbar; what the toolbar draws (their bar and menu copies) doesn't. *@
         <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
@@ -107,6 +111,14 @@
     /// <summary>Wraps onto more rows instead of moving items into a "…" menu, for toolbars where everything must show.</summary>
     [Parameter] public bool Wrap { get; set; }
 
+    /// <summary>
+    /// Before anything moves into the "…" menu, buttons and menus with a <c>StartIcon</c> drop their
+    /// text, all at once, and show only the icon (a menu keeps its chevron). The text stays for screen
+    /// readers and, with script, is the tooltip. Items move into the menu only once that isn't enough.
+    /// One with <see cref="ToolbarOverflow.Never"/>, such as the main action, keeps its text.
+    /// </summary>
+    [Parameter] public bool CollapseLabels { get; set; }
+
     /// <summary>The "…" button's name for screen readers and its tooltip. Defaults to "More actions".</summary>
     [Parameter] public string? MoreLabel { get; set; }
 
@@ -144,6 +156,7 @@
     protected override void OnParametersSet()
     {
         _context.Gap = Gap * 4;
+        _context.CollapseLabels = CollapseLabels && !Wrap;
         if (_defaults is null || _defaults.Accent != Accent || _defaults.Variant != Variant || _defaults.Size != Size)
         {
             _defaults = ButtonGroup.Defaults(Accent, Variant, Size);

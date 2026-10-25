@@ -101,6 +101,26 @@
             <ToolbarButton StartIcon="Lucide.Eye" @bind-Pressed="Preview">Preview</ToolbarButton>
         </Toolbar>
         break;
+    case "collapse":
+        <Toolbar Label="Collapse" CollapseLabels>
+            <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
+            <ToolbarButton>Plain</ToolbarButton>
+            <ToolbarButtonGroup Label="Insert">
+                <ToolbarButton StartIcon="Lucide.Image">Image</ToolbarButton>
+                <ToolbarIconButton Icon="Lucide.Table" Label="Table" />
+            </ToolbarButtonGroup>
+            <ToolbarMenu Label="Export" StartIcon="Lucide.Download">
+                <MenuItem Href="/export.csv">CSV</MenuItem>
+            </ToolbarMenu>
+            <ToolbarButton StartIcon="Lucide.Send" Overflow="ToolbarOverflow.Never" Position="ToolbarPosition.End">Publish</ToolbarButton>
+        </Toolbar>
+        break;
+    case "collapse-only":
+        <Toolbar Label="Stays" CollapseLabels>
+            @* Wired up by an attribute, so it has no menu copy and can't move; it still collapses. *@
+            <ToolbarButton StartIcon="Lucide.Link" data-command="link">Link</ToolbarButton>
+        </Toolbar>
+        break;
     case "outside":
         <ToolbarButton>Alone</ToolbarButton>
         break;
