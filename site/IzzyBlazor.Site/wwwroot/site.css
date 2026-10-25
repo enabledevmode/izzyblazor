@@ -18,6 +18,8 @@
    shows against it as in an app. */
 :root.site .ib-card-outline:not(.ex-theme *) { --ib-card-bg: light-dark(#ffffff, #14161a); }
 .site-why-intro { max-inline-size: 44rem; margin-block-end: var(--ib-space-2); }
+/* Each point's heading and text share rows across the band, so a heading that wraps doesn't push its text below the others'. */
+.site-why > * { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: var(--ib-space-2); }
 
 /* The home page's band ("Why SSR first"): gray in light mode; in dark mode a shade above the hero's
    Ink, with a hairline, so the two read as separate bands. */
