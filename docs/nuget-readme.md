@@ -8,7 +8,7 @@ better when scripts run, and binds to C# on interactive pages.
 
 ![An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
 
-> **Preview** (`0.1.0-alpha.12`). The API will change before 0.1.
+> **Preview** (`0.1.0-alpha.13`). The API will change before 0.1.
 
 **Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on (CSS `:has()`, `light-dark()`
 and the Popover API).
@@ -51,9 +51,11 @@ server projects; WebAssembly (`.Client`) projects reference `IzzyBlazor.Core` an
 
 ## Documentation
 
-- [Getting started](https://github.com/enabledevmode/izzyblazor/blob/main/docs/getting-started.md)
-- [Components](https://github.com/enabledevmode/izzyblazor/blob/main/docs/components.md)
-- [Styling](https://github.com/enabledevmode/izzyblazor/blob/main/docs/styling.md)
+**[izzyblazor.com](https://izzyblazor.com)**: live examples of every component in each mode, and the API.
+
+- [Getting started](https://izzyblazor.com/docs/get-started)
+- [Components](https://izzyblazor.com/docs/components)
+- [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming)
 - [Source and issues](https://github.com/enabledevmode/izzyblazor)
 
 [MIT licensed](https://github.com/enabledevmode/izzyblazor/blob/main/LICENSE). Bundled Lucide icons are ISC
