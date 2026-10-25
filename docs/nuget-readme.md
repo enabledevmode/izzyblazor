@@ -8,7 +8,7 @@ better when scripts run, and binds to C# on interactive pages.
 
 ![An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
 
-> **Preview** (`0.1.0-alpha.13`). The API will change before 0.1.
+> **Preview** (`0.1.0-alpha.14`). The API will change before 0.1.
 
 **Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on (CSS `:has()`, `light-dark()`
 and the Popover API).
