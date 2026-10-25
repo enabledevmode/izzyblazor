@@ -35,8 +35,35 @@ public sealed class SearchDialogTests(SiteFixture site) : IClassFixture<SiteFixt
         await page.Keyboard.PressAsync("ArrowUp");
         Assert.Equal("q", await page.EvaluateAsync<string>(Focused));
 
+        // Escape closes at once, though the field has text (a search field would only clear it).
         await page.Keyboard.PressAsync("Escape");
         Assert.False(await page.EvaluateAsync<bool>(Open));
+
+        // Opened from its button, focus comes back to it.
+        await page.ClickAsync("button.site-search-button");
+        await page.Keyboard.PressAsync("Escape");
+        Assert.True(await page.EvaluateAsync<bool>("() => document.activeElement.matches('.site-search-button')"));
+    }
+
+    [Fact]
+    public async Task Back_with_search_open_leaves_the_page_usable()
+    {
+        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+
+        // An enhanced navigation, so Back is one too.
+        await page.ClickAsync("main a[href='docs/components/form']");
+        await page.WaitForURLAsync("**/docs/components/form");
+        await page.Keyboard.PressAsync("Control+k");
+        await page.Keyboard.TypeAsync("spin");
+        await page.GoBackAsync();
+        await page.WaitForURLAsync("**/docs/components/button");
+        await page.WaitForTimeoutAsync(500);
+
+        Assert.False(await page.EvaluateAsync<bool>("() => !!document.querySelector(':modal')"));
     }
 
     [Fact]

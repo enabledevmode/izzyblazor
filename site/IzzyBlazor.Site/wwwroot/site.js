@@ -242,8 +242,10 @@
     const parts = searchParts();
     if (!parts || !parts.results) return;
     query = query.trim();
-    if (query === searchShown) return;
+    // Drop a request still on its way first: backspacing to what's shown mustn't let it land.
     if (searchRequest) searchRequest.abort();
+    searchRequest = null;
+    if (query === searchShown) return;
     const request = (searchRequest = new AbortController());
     let html;
     try {
@@ -284,7 +286,7 @@
     }
 
     // Escape closes at once: in a search field the browser would only clear the text first.
-    if (event.key === "Escape" && parts.dialog.open && event.target === parts.field) {
+    if (event.key === "Escape" && !event.isComposing && parts.dialog.open && event.target === parts.field) {
       event.preventDefault();
       parts.dialog.close();
       return;
@@ -335,6 +337,22 @@
     }
   });
 
+  // Back or Forward with the dialog open: close it before enhanced navigation patches the page.
+  // The patch drops its open attribute without closing it, which would leave the page inert.
+  window.addEventListener("popstate", () => {
+    const parts = searchParts();
+    if (parts?.dialog.open) parts.dialog.close();
+  });
+
+  // A dialog the patch left modal without its open attribute: close it properly.
+  function settleSearch() {
+    const parts = searchParts();
+    if (parts && !parts.dialog.open && parts.dialog.matches(":modal")) {
+      parts.dialog.setAttribute("open", "");
+      parts.dialog.close();
+    }
+  }
+
   restore();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", frames);
   else frames();
@@ -353,6 +371,7 @@
       frames();
       // The header came back from the server with its empty results: show them again on opening.
       searchShown = "";
+      settleSearch();
     });
   }
 })();

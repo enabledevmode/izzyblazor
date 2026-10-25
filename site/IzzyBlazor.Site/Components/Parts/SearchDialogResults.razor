@@ -25,7 +25,7 @@
     }
     else
     {
-        <SearchResultList Results="_results" HeadingLevel="3" Outline="false" IdPrefix="site-search-" MoreHref="@($"search?q={Uri.EscapeDataString(_results.Query)}")" />
+        <SearchResultList Results="_results" Outline="false" IdPrefix="site-search-" MoreHref="@($"search?q={Uri.EscapeDataString(_results.Query)}")" />
     }
 </div>
 
