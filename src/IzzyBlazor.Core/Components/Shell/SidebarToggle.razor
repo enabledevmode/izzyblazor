@@ -7,7 +7,8 @@
 @*
     The menu button that opens an AppShell's sidebar below its breakpoint. Hidden above it.
     It is a link to the sidebar's id, so it works with no JavaScript; with JavaScript the shell
-    opens the drawer without changing the URL and keeps aria-expanded in sync.
+    opens the drawer without changing the URL, and makes it a button (role, Space, aria-expanded
+    kept in step). With no JavaScript it stays a link: it couldn't keep aria-expanded true.
 
     When the sidebar is Collapsible, a second button takes its place above the breakpoint: a
     label for the sidebar's collapse checkbox, so it works with no JavaScript too. The checkbox
@@ -19,9 +20,7 @@
    class="@_class"
    style="@_style"
    href="@PageLinks.ToFragment(Navigation, For)"
-   role="button"
    aria-controls="@For"
-   aria-expanded="false"
    aria-label="@(Label ?? TextDefaults.OpenMenu)"
    data-ib-shell-toggle>
     <Icon Role="IconRole.Menu" />
@@ -34,9 +33,7 @@
 <a class="@_closeClass"
    style="@_style"
    href="@PageLinks.ToFragment(Navigation, "ib-shell-closed")"
-   role="button"
    aria-controls="@For"
-   aria-expanded="true"
    aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)"
    data-ib-shell-close>
     <Icon Role="IconRole.Close" />

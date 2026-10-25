@@ -26,10 +26,11 @@ public class ToolbarTests : BunitContext
     }
 
     [Fact]
-    public void A_toolbar_needs_a_label()
+    public void A_toolbar_label_is_optional()
     {
         SetRendererInfo(new RendererInfo("Static", false));
-        Assert.Throws<InvalidOperationException>(() => Render<Toolbar>(p => p.AddChildContent("x")));
+        var cut = Render<Toolbar>(p => p.AddChildContent("x"));
+        Assert.Null(cut.Find("ib-toolbar").GetAttribute("aria-label"));
     }
 
     [Fact]

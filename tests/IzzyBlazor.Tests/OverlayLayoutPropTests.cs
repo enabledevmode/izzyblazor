@@ -140,7 +140,7 @@ public class OverlayLayoutPropTests : BunitContext
     [Fact]
     public void Tabs_ContentPadding_reaches_every_panel_and_a_tab_can_override_it()
     {
-        var panels = Render<Tabs>(p => p
+        var panels = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .Add(t => t.Id, "t")
             .Add(t => t.ContentPadding, 6)
             .Add(t => t.ChildContent, TwoTabs(secondPadding: 0))).FindAll(".ib-tab-panel");
@@ -153,7 +153,7 @@ public class OverlayLayoutPropTests : BunitContext
     [Fact]
     public void Changing_Tabs_ContentPadding_updates_every_panel()
     {
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .Add(t => t.Id, "t")
             .Add(t => t.ContentPadding, 6)
             .Add(t => t.ChildContent, TwoTabs()));
@@ -166,7 +166,7 @@ public class OverlayLayoutPropTests : BunitContext
     [Fact]
     public void Tab_panels_have_no_padding_props_by_default()
     {
-        var panel = Render<Tabs>(p => p.Add(t => t.Id, "t").Add(t => t.ChildContent, TwoTabs())).FindAll(".ib-tab-panel")[0];
+        var panel = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.Id, "t").Add(t => t.ChildContent, TwoTabs())).FindAll(".ib-tab-panel")[0];
 
         Assert.Equal("ib-tab-panel", panel.ClassName);
     }

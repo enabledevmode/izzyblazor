@@ -4,7 +4,11 @@
  * form post patches the page in place instead, so autofocus doesn't fire: this moves focus there.
  */
 export function focusMarked(): void {
-  const target = document.querySelector<HTMLElement>("[data-ib-autofocus]");
+  // The first one that can take focus, as native autofocus does: a group in a closed tab panel
+  // is skipped.
+  const target = [...document.querySelectorAll<HTMLElement>("[data-ib-autofocus]")].find((el) =>
+    el.checkVisibility ? el.checkVisibility() : el.offsetParent !== null
+  );
   if (!target || target.contains(document.activeElement)) return;
   target.focus();
 }

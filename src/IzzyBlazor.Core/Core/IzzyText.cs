@@ -101,6 +101,12 @@ public class IzzyText
     /// <summary>After the label of a field that isn't required, in a Form with <c>RequiredMark.Optional</c>.</summary>
     public virtual string Optional { get; set; } = "(optional)";
 
+    /// <summary>
+    /// For screen readers, after the label of a required group whose boxes can't be marked
+    /// required (a CheckboxGroup): its asterisk is hidden from them.
+    /// </summary>
+    public virtual string Required { get; set; } = "(required)";
+
     /// <summary>For screen readers, after a tab's label when one field in it has an error.</summary>
     public virtual string OneError { get; set; } = "1 error";
 

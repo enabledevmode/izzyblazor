@@ -104,6 +104,9 @@ public class AccessibleNameTests : BunitContext
         [Required] public string? Country { get; set; }
         [Required] public string[]? Tags { get; set; }
         public string[]? Optional { get; set; }
+        [Required] public string? Size { get; set; }
+        public string? Color { get; set; }
+        public string? Notes { get; set; }
     }
 
     [Fact]
@@ -165,5 +168,135 @@ public class AccessibleNameTests : BunitContext
         Assert.Null(label.GetAttribute("role"));
         Assert.Null(divider.GetAttribute("role"));
         Assert.Equal("true", divider.GetAttribute("aria-hidden"));
+    }
+
+    [Fact]
+    public void A_tab_isnt_a_label_element()
+    {
+        RenderFragment two = b =>
+        {
+            b.OpenComponent<Tab>(0);
+            b.AddAttribute(1, nameof(Tab.Label), "One");
+            b.CloseComponent();
+            b.OpenComponent<Tab>(2);
+            b.AddAttribute(3, nameof(Tab.Label), "Two");
+            b.CloseComponent();
+        };
+
+        Assert.Null(Render<Tabs>(p => p.Add(t => t.ChildContent, two)).Find(".ib-tabs-list").GetAttribute("aria-label"));
+
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Account").Add(t => t.ChildContent, two));
+        var tab = cut.Find(".ib-tab");
+        var input = tab.QuerySelector("input")!;
+        Assert.Equal("SPAN", tab.TagName);
+        Assert.Equal("Account", cut.Find(".ib-tabs-list").GetAttribute("aria-label"));
+        Assert.Equal(input.Id, tab.QuerySelector("label.ib-tab-label")!.GetAttribute("for"));
+        Assert.Equal("One", tab.QuerySelector("label")!.TextContent.Trim());
+    }
+
+    [Fact]
+    public void A_filter_select_or_checkbox_needs_a_label()
+    {
+        Assert.Throws<InvalidOperationException>(() => Render<FilterSelect>(p => p.Add(f => f.Name, "status")));
+        Assert.Throws<InvalidOperationException>(() => Render<FilterCheckbox>(p => p.Add(f => f.Name, "mine")));
+
+        var search = Render<FilterSearch>();
+        Assert.Equal("Search", search.Find("label").TextContent);
+    }
+
+    [Fact]
+    public void ColorPicker_presets_take_names_and_read_only_shows_the_hex_box()
+    {
+        var model = new Picks();
+        var context = new EditContext(model);
+        var cut = Render<ColorPicker>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Color).Add(c => c.ValueExpression, () => model.Color)
+            .Add(c => c.Presets, ["#2563EB", "#0f766e"])
+            .Add(c => c.PresetText, hex => hex == "#2563EB" ? "Ocean" : null)
+            .Add(c => c.ShowHex, false)
+            .Add(c => c.ReadOnly, true));
+
+        var presets = cut.FindAll(".ib-color-preset");
+        Assert.Equal(("Ocean", "Ocean"), (presets[0].GetAttribute("aria-label"), presets[0].GetAttribute("title")));
+        Assert.Equal("#0f766e", presets[1].GetAttribute("aria-label"));
+
+        var hex = cut.Find(".ib-color-hex");
+        Assert.True(hex.HasAttribute("readonly"));
+        Assert.False(hex.HasAttribute("disabled"));
+        Assert.Contains("ib-color-readonly", cut.Find("ib-color-picker").ClassName);
+    }
+
+    [Fact]
+    public void A_required_CheckboxGroup_says_so_in_its_legend()
+    {
+        var model = new Picks();
+        var context = new EditContext(model);
+        var required = Render<CheckboxGroup<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Tags).Add(c => c.ValueExpression, () => model.Tags).Add(c => c.Items, ["a", "b"]));
+        var optional = Render<CheckboxGroup<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Optional).Add(c => c.ValueExpression, () => model.Optional).Add(c => c.Items, ["a", "b"]));
+        var radios = Render<RadioGroup<string?>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Size).Add(c => c.ValueExpression, () => model.Size).Add(c => c.Items, ["S", "M"]));
+
+        Assert.Equal("(required)", required.Find("legend .ib-visually-hidden").TextContent);
+        Assert.Empty(optional.FindAll("legend .ib-visually-hidden"));
+        // Radios are marked required themselves.
+        Assert.Empty(radios.FindAll("legend .ib-visually-hidden"));
+    }
+
+    [Fact]
+    public void An_invalid_group_takes_focus_after_a_post()
+    {
+        var model = new Picks { Size = "M" };
+        var context = new EditContext(model);
+        var messages = new ValidationMessageStore(context);
+        messages.Add(context.Field(nameof(Picks.Tags)), "Pick one.");
+        messages.Add(context.Field(nameof(Picks.Size)), "Too big.");
+        var boxes = Render<CheckboxGroup<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Tags).Add(c => c.ValueExpression, () => model.Tags).Add(c => c.Items, ["a", "b"]));
+        var radios = Render<RadioGroup<string?>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Size).Add(c => c.ValueExpression, () => model.Size).Add(c => c.Items, ["S", "M"]));
+
+        var first = boxes.FindAll("input[type=checkbox]");
+        Assert.True(first[0].HasAttribute("autofocus") && first[0].HasAttribute("data-ib-autofocus"));
+        Assert.False(first[1].HasAttribute("autofocus"));
+        // The checked radio, where Tab lands.
+        var checkedRadio = radios.Find("input[value=M]");
+        Assert.True(checkedRadio.HasAttribute("autofocus") && checkedRadio.HasAttribute("data-ib-autofocus"));
+        Assert.False(radios.Find("input[value=S]").HasAttribute("autofocus"));
+
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var live = Render<CheckboxGroup<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Tags).Add(c => c.ValueExpression, () => model.Tags).Add(c => c.Items, ["a", "b"]));
+        Assert.Empty(live.FindAll("[autofocus], [data-ib-autofocus]"));
+    }
+
+    [Fact]
+    public void FieldError_takes_an_id_to_link()
+    {
+        var model = new Picks();
+        var context = new EditContext(model);
+        new ValidationMessageStore(context).Add(context.Field(nameof(Picks.Size)), "Pick a size.");
+        var cut = Render<FieldError<string?>>(p => p.AddCascadingValue(context).Add(f => f.For, () => model.Size).Add(f => f.Id, "size-error"));
+
+        Assert.Equal("size-error", cut.Find(".ib-field-error").Id);
+    }
+
+    [Fact]
+    public void A_TextArea_count_has_a_live_number_for_the_script_to_link()
+    {
+        var model = new Picks { Notes = "Hello" };
+        var context = new EditContext(model);
+        var cut = Render<TextArea>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Notes).Add(c => c.ValueExpression, () => model.Notes)
+            .Add(c => c.MaxLength, 200).Add(c => c.ShowCount, true).Add(c => c.Hint, "Short."));
+
+        var area = cut.Find("textarea");
+        var count = cut.Find(".ib-field-count");
+        // The script links it: with JavaScript off its number would be stale.
+        Assert.Equal($"{area.Id}-hint", area.GetAttribute("aria-describedby"));
+        Assert.Equal($"{area.Id}-count", count.Id);
+        Assert.Equal("5", cut.Find(".ib-field-count-current").TextContent);
+        Assert.Equal("5 / 200", count.TextContent);
     }
 }

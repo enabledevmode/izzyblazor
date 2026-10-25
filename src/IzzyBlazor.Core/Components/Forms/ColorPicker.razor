@@ -1,6 +1,6 @@
 @namespace IzzyBlazor
 @inherits FieldBase<string?>
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no hex box or preset swatches; the native picker still works.")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no hex box (unless it's read-only) or preset swatches; the native picker still works.")]
 
 @*
     A color field bound to a hex string ("#2563eb").
@@ -18,18 +18,19 @@
       keyboard too, with no script.
     - With script, the hex box beside it is named after the label and "hex" ("Brand color, hex";
       `HexLabel`).
-    - Presets are buttons in a group named "Preset colors" (`PresetsLabel`). Each is named by its
-      hex value ("#2563eb"), not a color name, and pressed (`aria-pressed`) while it's the value.
+    - Presets are buttons in a group named "Preset colors" (`PresetsLabel`). Each is named by
+      `PresetText` ("Ocean"), or else by its hex value ("#2563eb"), and pressed (`aria-pressed`)
+      while it's the value. Name them: a hex value means little to most people.
     - The hint and errors are linked to both the swatch and the hex box with `aria-describedby`,
       and both set `aria-invalid` when the field is invalid.
-    - Read-only, the swatch and presets are disabled and can't be focused; the hex box stays
-      focusable and read-only.
+    - Read-only, the swatch and presets are disabled and can't be focused; the hex box is shown,
+      with JavaScript off and with `ShowHex` false too, and stays focusable and read-only.
     See also: TextField, SegmentedControl, RadioGroup.
 *@
 
 <FieldFrame Class="@WrapperClass("color")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-color-picker class="ib-color-picker">
+    <ib-color-picker class="@(ShowsReadOnlyHex ? "ib-color-picker ib-color-readonly" : "ib-color-picker")">
         <span class="ib-color-box">
             <input @attributes="ControlAttributes"
                    id="@FieldId"
@@ -41,7 +42,7 @@
                    disabled="@(IsDisabled || IsReadOnly)"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
-            @if (ShowHex)
+            @if (ShowHex || ShowsReadOnlyHex)
             {
                 <input class="ib-color-hex"
                        type="text"
@@ -72,8 +73,9 @@
             <div class="ib-color-presets" role="group" aria-label="@(PresetsLabel ?? TextDefaults.ColorPresets)">
                 @foreach (var preset in _presets)
                 {
+                    var presetName = _presetNames.GetValueOrDefault(preset) ?? preset;
                     <button type="button" class="ib-color-preset" style="--ib-color-preset:@preset"
-                            data-ib-color="@preset" aria-label="@preset" title="@preset"
+                            data-ib-color="@preset" aria-label="@presetName" title="@presetName"
                             aria-pressed="@(preset == Hex ? "true" : "false")"
                             disabled="@(IsDisabled || IsReadOnly)"></button>
                 }
@@ -95,7 +97,10 @@
     /// </summary>
     [Parameter] public IEnumerable<string>? Presets { get; set; }
 
-    /// <summary>A hex text box beside the swatch (with script), for typing or pasting a value. Defaults to true.</summary>
+    /// <summary>
+    /// A hex text box beside the swatch (with script), for typing or pasting a value. Defaults to
+    /// true. A read-only field shows it anyway, as text that can be focused.
+    /// </summary>
     [Parameter] public bool ShowHex { get; set; } = true;
 
     /// <summary>The hex box's name after the label. Defaults to "hex".</summary>
@@ -104,7 +109,19 @@
     /// <summary>The presets' group name. Defaults to "Preset colors".</summary>
     [Parameter] public string? PresetsLabel { get; set; }
 
+    /// <summary>
+    /// A name for each preset, such as "Ocean", given the string from <see cref="Presets"/>. Screen
+    /// readers hear it instead of the hex value, and it's the swatch's tooltip. Return null to
+    /// keep the hex value.
+    /// </summary>
+    [Parameter] public Func<string, string?>? PresetText { get; set; }
+
     private string[] _presets = [];
+    private Dictionary<string, string> _presetNames = [];
+
+    // A read-only field shows its hex box, with no script too: the swatch and presets are
+    // disabled, so it's the one part that can be focused.
+    private bool ShowsReadOnlyHex => IsReadOnly && !IsDisabled;
 
     /// <summary>The name the value posts under: Blazor's for the bound field, or a <c>name</c> attribute (a plain GET form).</summary>
     private string? FormName => NameAttributeValue is { Length: > 0 } bound ? bound
@@ -121,7 +138,21 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        _presets = Presets is null ? [] : Presets.Select(ColorValues.NormalizeHex).OfType<string>().Distinct().ToArray();
+        // Read once: the swatches and their names must come from the same list.
+        var presets = Presets?.ToArray() ?? [];
+        _presets = presets.Select(ColorValues.NormalizeHex).OfType<string>().Distinct().ToArray();
+        _presetNames = [];
+        if (PresetText is not null)
+        {
+            foreach (var preset in presets)
+            {
+                if (ColorValues.NormalizeHex(preset) is { } hex && !_presetNames.ContainsKey(hex)
+                    && PresetText(preset) is { } name && !string.IsNullOrWhiteSpace(name))
+                {
+                    _presetNames[hex] = name;
+                }
+            }
+        }
     }
 
     /// <inheritdoc />

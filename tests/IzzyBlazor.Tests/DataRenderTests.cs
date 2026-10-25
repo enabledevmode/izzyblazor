@@ -326,6 +326,7 @@ public class DataRenderTests : BunitContext
         builder.CloseComponent();
         builder.OpenComponent<FilterCheckbox>(5);
         builder.AddComponentParameter(6, nameof(FilterCheckbox.Name), "large");
+        builder.AddComponentParameter(7, nameof(FilterCheckbox.Label), "Large orders");
         builder.CloseComponent();
     };
 

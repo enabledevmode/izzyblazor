@@ -7,7 +7,7 @@
 <TextBlock>The value is a hex string such as <Code>#2563eb</Code>. Underneath is a native color input, so it posts with the form and opens the browser's own color panel with or without the script; the script adds a hex box beside the swatch and the presets as swatches under it. For a few named choices, such as a label's color, a <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or a <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor> can be clearer.</TextBlock>
 
 <Heading Level="2">Presets</Heading>
-<TextBlock>Use <Code>Presets</Code> for the colors to offer first, as hex strings.</TextBlock>
+<TextBlock>Use <Code>Presets</Code> for the colors to offer first, as hex strings, and <Code>PresetText</Code> to name them: screen readers hear "Teal" rather than "#0f766e", and the name is the swatch's tooltip.</TextBlock>
 <ExampleViewer Example="color-picker-presets" />
 <TextBlock>Any color can still be picked or typed, so check the value on the server if it must be one of the presets.</TextBlock>
 
@@ -20,7 +20,7 @@
 <TextBlock>A color input always has a value: a property that's null or not a color shows black, and the form posts <Code>#000000</Code>. Start the property with a color, and treat black as a choice like any other.</TextBlock>
 
 <Heading Level="2">Sizes, swatch only and locked</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with other fields, <Code>ShowHex="false"</Code> for the swatch alone, <Code>ReadOnly</Code> for a color that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<TextBlock>Use <Code>Size</Code> to line up with other fields, <Code>ShowHex="false"</Code> for the swatch alone (a read-only picker still shows its hex box, the part that can be focused), <Code>ReadOnly</Code> for a color that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
 <ExampleViewer Example="color-picker-states" />
 <TextBlock>A read-only color posts from a hidden field, so a crafted post can change it: check it on the server if it matters. A disabled field posts nothing, so after a static post its property is null and the field shows black: keep its value on the server rather than saving it from the post.</TextBlock>
 

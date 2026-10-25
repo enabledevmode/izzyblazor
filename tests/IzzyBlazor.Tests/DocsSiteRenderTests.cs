@@ -185,7 +185,7 @@ public class DocsSiteRenderTests : BunitContext
     {
         var cut = Render<ExampleProbe>();
 
-        Assert.Equal(["Save.razor", "Save.razor.cs"], cut.FindAll(".ib-example-source label.ib-tab").Select(l => l.TextContent.Trim()));
+        Assert.Equal(["Save.razor", "Save.razor.cs"], cut.FindAll(".ib-example-source .ib-tab").Select(l => l.TextContent.Trim()));
         Assert.Equal(2, cut.FindAll(".ib-example-source ib-code").Count);
 
         // The parent re-renders (the files re-register): the example settles, and a changed file shows.

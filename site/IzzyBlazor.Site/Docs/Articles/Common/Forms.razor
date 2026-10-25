@@ -68,7 +68,7 @@
             <ListItem><Anchor Href="docs/components/fieldset">Fieldset</Anchor> groups related fields under a <Code>Label</Code>, with its own <Code>Columns</Code> or <Code>Dividers</Code> between rows.</ListItem>
             <ListItem><Code>FormActions</Code> is the row of buttons at the end. Last in a form that fills a dialog or drawer, it becomes the footer and stays in view.</ListItem>
             <ListItem><Code>FormErrors</Code> lists every message under "Please fix the following", and takes focus after a failed submit, with JavaScript off too.</ListItem>
-            <ListItem><Code>FieldError For="() =&gt; Model.Email"</Code> shows one property's messages, for an input of your own.</ListItem>
+            <ListItem><Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code> shows one property's messages, for an input of your own; point the input's <Code>aria-describedby</Code> at its <Code>Id</Code>.</ListItem>
         </List>
 
         <Heading Level="2">Read-only and disabled</Heading>

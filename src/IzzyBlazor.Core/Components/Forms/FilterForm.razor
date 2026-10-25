@@ -23,8 +23,8 @@
     Accessibility:
     - It renders a GET `form` with `role="search"`: a search landmark named "Filters" (`Label`).
     - `FilterSearch` and `FilterSelect` have a `Label` that's hidden but names them. The search
-      defaults to "Search"; a select without one is named by its `Name`, so give it a `Label`.
-    - `FilterCheckbox` is a native checkbox with its `Label` shown beside it.
+      defaults to "Search"; a select requires one.
+    - `FilterCheckbox` is a native checkbox with its `Label` (required) shown beside it.
     - With script, filters apply as you type or change a value, without a reload, and focus stays
       where it was; Enter applies at once.
     - The new results aren't announced, so say how many there are in a live region (a `Table`'s

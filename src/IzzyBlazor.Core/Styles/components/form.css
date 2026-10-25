@@ -1451,16 +1451,6 @@
     font-variant-numeric: tabular-nums;
   }
 
-  /* With script, the live count comes from data-current (the server's text is kept for Blazor). */
-  .ib-field-count[data-current] {
-    font-size: 0;
-  }
-
-  .ib-field-count[data-current]::after {
-    content: attr(data-current) " / " attr(data-ib-count);
-    font-size: var(--ib-text-xs);
-  }
-
   .ib-field-textarea:has(.ib-field-count) {
     padding-block-end: var(--ib-space-4);
   }
@@ -2440,6 +2430,20 @@
     display: none;
   }
 
+  .ib-color-hex {
+    flex: 1 1 auto;
+    min-width: 0;
+    height: 100%;
+    padding: 0 var(--ib-space-1);
+    border: 0;
+    background: none;
+    color: var(--ib-color-on-surface);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-field-font);
+    text-transform: lowercase;
+    outline: none;
+  }
+
   /* With script, from the first paint, so the field doesn't change when IzzyBlazor's script
      arrives (the hex box and presets work once it has). */
   @media (scripting: enabled) {
@@ -2450,17 +2454,6 @@
 
     ib-color-picker:not([data-ib-failed]) .ib-color-hex {
       display: block;
-      flex: 1 1 auto;
-      min-width: 0;
-      height: 100%;
-      padding: 0 var(--ib-space-1);
-      border: 0;
-      background: none;
-      color: var(--ib-color-on-surface);
-      font-family: var(--ib-font-mono);
-      font-size: var(--ib-field-font);
-      text-transform: lowercase;
-      outline: none;
     }
 
     ib-color-picker:not([data-ib-failed]) .ib-color-presets {
@@ -2468,6 +2461,17 @@
       flex-wrap: wrap;
       gap: var(--ib-space-2);
     }
+  }
+
+  /* Read-only, the hex box shows with no script too: the swatch is disabled, so the box is the
+     one part that can be focused. */
+  .ib-color-readonly .ib-color-input {
+    flex: none;
+    width: calc(var(--ib-field-h) - 8px);
+  }
+
+  .ib-color-readonly .ib-color-hex {
+    display: block;
   }
 
   .ib-color-hex:disabled {

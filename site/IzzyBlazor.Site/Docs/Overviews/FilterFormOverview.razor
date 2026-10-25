@@ -33,7 +33,7 @@
 <TextBlock>New results aren't announced, so show the count in a live region (<Code>aria-live="polite"</Code>) next to the list, as the examples do: screen readers read it each time it changes.</TextBlock>
 
 <Heading Level="2">Sizes and its own words</Heading>
-<TextBlock>Use <Code>Size</Code> on each filter field to match a compact toolbar (the buttons stay their own size), <Code>Label</Code> for the search landmark's name ("Filters"), and <Code>ApplyText</Code> and <Code>ClearText</Code> for the buttons. Each field's <Code>Label</Code> is hidden but names it, and a <Code>FilterSelect</Code>'s first option reads "Label: All" unless you set <Code>AllText</Code>.</TextBlock>
+<TextBlock>Use <Code>Size</Code> on each filter field to match a compact toolbar (the buttons stay their own size), <Code>Label</Code> for the search landmark's name ("Filters"), and <Code>ApplyText</Code> and <Code>ClearText</Code> for the buttons. A search box's and a select's <Code>Label</Code> is hidden but names it (a select requires one; the search defaults to "Search"), a <Code>FilterCheckbox</Code>'s is its required visible text, and a <Code>FilterSelect</Code>'s first option reads "Label: All" unless you set <Code>AllText</Code>.</TextBlock>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
 {

@@ -19,7 +19,7 @@
 <Heading Level="2">Errors</Heading>
 <TextBlock>Use a <Code>FormErrors</Code> at the top to list every message after a failed submit; it takes focus, so keyboard and screen reader users start there. <Code>NativeValidation="false"</Code> skips the browser's checks, so the server's messages show at once.</TextBlock>
 <ExampleViewer Example="form-errors" />
-<TextBlock>Each field shows its own messages under it too. <Code>FieldError For="() =&gt; Model.Email"</Code> shows one property's messages beside an input of your own.</TextBlock>
+<TextBlock>Each field shows its own messages under it too. <Code>FieldError For="() =&gt; Model.Email" Id="email-error"</Code> shows one property's messages beside an input of your own, whose <Code>aria-describedby</Code> names its <Code>Id</Code>.</TextBlock>
 
 <Heading Level="2">Columns</Heading>
 <TextBlock>Use <Code>Columns</Code>, up to 4, to lay fields out in columns that fit the form's own width, so one form works on a page, in a dialog and in a drawer. <Code>ColSpan="GridSpan.Full"</Code> gives a field the whole row.</TextBlock>

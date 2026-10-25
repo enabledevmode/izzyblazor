@@ -3,8 +3,8 @@ import { IzzyElement, defineElement } from "../izzy-element";
 /**
  * <ib-tabs> upgrades Tabs from a radio group to ARIA tabs. The radios stay the source of truth
  * (CSS shows the panel whose radio is checked); the element only adds roles, aria-selected and
- * roving focus to the labels, hides the radios from the tab order, and keeps the URL in step
- * when data-query-key is set.
+ * roving focus to the tabs (spans holding each radio and its label), hides the radios from the
+ * tab order, and keeps the URL in step when data-query-key is set.
  *
  * It re-syncs when a radio changes, when C# changes the selection (data-selected), and after
  * enhanced navigation, which resets attributes to the server's markup.
@@ -14,8 +14,8 @@ class Tabs extends IzzyElement {
     return this.querySelector<HTMLElement>(":scope > .ib-tabs-list");
   }
 
-  private get tabs(): HTMLLabelElement[] {
-    return [...this.querySelectorAll<HTMLLabelElement>(":scope > .ib-tabs-list > .ib-tab")];
+  private get tabs(): HTMLElement[] {
+    return [...this.querySelectorAll<HTMLElement>(":scope > .ib-tabs-list > .ib-tab")];
   }
 
   /** Whether the list is laid out as a column (vertical tabs, from 640px up). */
@@ -123,20 +123,28 @@ class Tabs extends IzzyElement {
   }
 
   private onKey(event: KeyboardEvent): void {
-    const tab = (event.target as Element).closest<HTMLLabelElement>(".ib-tab");
+    const tab = (event.target as Element).closest<HTMLElement>(".ib-tab");
     if (!tab || tab.parentElement !== this.list) return;
     // Alt+Arrow is the browser's Back and Forward; leave modified keys alone.
     if (event.altKey || event.ctrlKey || event.metaKey) return;
 
-    const enabled = this.tabs.filter((t) => !this.radio(t)?.disabled);
+    const all = this.tabs;
+    const enabled = all.filter((t) => !this.radio(t)?.disabled);
     const index = enabled.indexOf(tab);
     const rtl = getComputedStyle(this).direction === "rtl";
-    let next: HTMLLabelElement | undefined;
+    let next: HTMLElement | undefined;
 
     // In a row, Left and Right move between tabs (mirrored in right-to-left pages); in a column
     // (vertical tabs), Up and Down.
     const column = this.isColumn;
-    const step = (forward: boolean) => enabled[(index + (forward ? 1 : -1) + enabled.length) % enabled.length];
+    const step = (forward: boolean) => {
+      if (index >= 0) return enabled[(index + (forward ? 1 : -1) + enabled.length) % enabled.length];
+      // A disabled tab can have focus (clicked): the nearest enabled one that way, wrapping.
+      const at = all.indexOf(tab);
+      return forward
+        ? (enabled.find((t) => all.indexOf(t) > at) ?? enabled[0])
+        : ([...enabled].reverse().find((t) => all.indexOf(t) < at) ?? enabled[enabled.length - 1]);
+    };
 
     switch (event.key) {
       case "ArrowRight":
@@ -167,7 +175,7 @@ class Tabs extends IzzyElement {
     if (next) this.select(next);
   }
 
-  private select(tab: HTMLLabelElement): void {
+  private select(tab: HTMLElement): void {
     const radio = this.radio(tab);
     if (!radio || radio.disabled) return;
     if (!radio.checked) {

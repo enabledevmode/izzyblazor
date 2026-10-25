@@ -8,7 +8,7 @@
 
 @*
     A set of tabs, in three layers:
-      - No script: each tab is a label around a radio button, and CSS :has(:checked) shows the
+      - No script: each tab holds a radio button and its label, and CSS :has(:checked) shows the
         matching panel. Switching is instant and keeps form input; arrow keys move between tabs
         like any radio group.
       - With script: <ib-tabs> turns the list into ARIA tabs (tablist, tab, aria-selected,
@@ -34,7 +34,9 @@
       tab's label as plain text, so every field can be filled in.
     - With script, each panel is named by its tab and takes focus, so Tab moves from the tab to the
       panel.
-    - `Label` names the tab list (or the `nav` of TabLinks); it has no default, so set it.
+    - `Label` names the tab list (or the `nav` of TabLinks). It's optional, as in ARIA and other
+      libraries, with no default; set it when the tabs' purpose isn't clear from the heading
+      before them, and give each `nav` of TabLinks its own when a page has more than one.
     - In a form, with script, a tab whose fields have errors shows a count, read as part of its
       name ("Billing, 1 error").
     - TabLinks render a `nav` of plain links that Tab moves between (no arrow keys); the current
@@ -92,7 +94,9 @@ else
         {
             var selected = _context.IsSelected(tab);
             var key = _context.KeyOf(tab);
-            <label class="@(tab.Disabled ? "ib-tab ib-tab-disabled" : "ib-tab")" id="@_context.TabId(tab)" data-value="@key">
+            @* A span, not the label, takes role="tab" with script (a label can't have a role); the
+               label inside is stretched over it (CSS), so the whole tab checks the radio. *@
+            <span class="@(tab.Disabled ? "ib-tab ib-tab-disabled" : "ib-tab")" id="@_context.TabId(tab)" data-value="@key">
                 <input type="radio"
                        class="ib-tab-input ib-visually-hidden"
                        name="@RootId"
@@ -102,8 +106,8 @@ else
                        disabled="@tab.Disabled"
                        aria-controls="@_context.PanelId(tab)"
                        @onchange="() => SelectAsync(key)" />
-                @TabContent(tab.Icon, tab.Label, tab.Badge, _subscribed is null || tab.Disabled ? 0 : tab.ErrorCount(_subscribed))
-            </label>
+                <label class="ib-tab-label" for="@_context.InputId(tab)">@TabContent(tab.Icon, tab.Label, tab.Badge, _subscribed is null || tab.Disabled ? 0 : tab.ErrorCount(_subscribed))</label>
+            </span>
         }
     </div>
     <CascadingValue Value="_context" IsFixed="true">
@@ -120,7 +124,7 @@ else
     [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<string> SelectedChanged { get; set; }
 
-    /// <summary>The tab list's name for screen readers, such as "Account settings".</summary>
+    /// <summary>The tab list's (or the TabLinks' <c>nav</c>'s) name for screen readers, such as "Account settings".</summary>
     [Parameter] public string? Label { get; set; }
 
     /// <summary>

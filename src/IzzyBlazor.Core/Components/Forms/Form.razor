@@ -24,7 +24,10 @@
       announced as they appear.
     - Place a `FormErrors` at the top: it takes focus after a submit that fails validation, with
       JavaScript off too, and screen readers read its title and messages then (it isn't also a
-      live region, which would read it twice). Form moves no focus.
+      live region, which would read it twice). Form moves no focus itself. On static pages a
+      CheckboxGroup, RadioGroup or SegmentedControl with an error takes focus after the post too
+      (its error belongs to the group, so no one box reads it); whichever of these comes first
+      on the page keeps it.
     - The summary's messages are plain text, not links to their fields.
     - `RequiredMark` changes only what's shown: the asterisk is hidden from screen readers, which
       hear "required" from the control, and "(optional)" is read with the label.

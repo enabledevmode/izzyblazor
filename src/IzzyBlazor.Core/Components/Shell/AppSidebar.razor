@@ -34,14 +34,15 @@
     Accessibility:
     - It renders a `nav` landmark named "Main" (`Label`). A closed drawer is hidden from keyboard
       and screen readers.
-    - `SidebarToggle` is a link with `role="button"` named "Open menu" (its `Label`); with
-      JavaScript it also takes Space and keeps `aria-expanded` in step.
+    - `SidebarToggle` is a link named "Open menu" (its `Label`) to the sidebar; with JavaScript
+      it's a button (`role="button"`) that also takes Space and keeps `aria-expanded` in step.
     - With JavaScript, opening moves focus into the drawer, to its close button ("Close menu",
       `CloseLabel`) when it has one, and makes the rest of the shell `inert` (a `Panel` sidebar
       leaves the header usable).
     - Escape, the close button or the backdrop closes it and puts focus back on the menu button.
-    - With JavaScript off the drawer still opens and closes, but focus doesn't move, Escape does
-      nothing and the menu button's `aria-expanded` stays "false".
+    - With JavaScript off the drawer still opens and closes, but focus doesn't move and Escape does
+      nothing; the menu and close buttons are plain links, with no `aria-expanded`, which nothing
+      could keep in step.
     - `Collapsible` adds a visually hidden checkbox named "Collapse sidebar" (`CollapseLabel`),
       checked while collapsed; in the icon rail, link text stays for screen readers.
     See also: AppShell, NavMenu, Drawer, SiteNav.
@@ -227,7 +228,7 @@
     private RenderFragment CloseControl => __builder =>
     {
         <div class="ib-shell-sidebar-close">
-            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@ClosedHref" role="button" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
+            <a class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only" href="@ClosedHref" aria-label="@(CloseLabel ?? TextDefaults.CloseMenu)" data-ib-shell-close>
                 <Icon Role="IconRole.Close" />
             </a>
         </div>
