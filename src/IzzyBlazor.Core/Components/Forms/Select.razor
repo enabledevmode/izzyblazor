@@ -6,8 +6,9 @@
 @*
     Blazor marks the selected option itself when rendering statically, from the select's bound value.
 
-    A native select. Options come from Items, or automatically from an enum.
-    <Select @bind-Value="Model.Plan" />                                   (enum: options from its values)
+    A native select. Options come from Items, or from an enum's values when the bound property is
+    an enum (Model.Plan here).
+    <Select @bind-Value="Model.Plan" />
     <Select @bind-Value="Model.CountryId" Items="Countries" ItemText="c => Names[c]" Placeholder="Choose a country" />
 
     Where the browser supports the customizable select (appearance: base-select), the open list
