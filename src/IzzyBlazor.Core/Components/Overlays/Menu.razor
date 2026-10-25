@@ -48,7 +48,7 @@
     }
     else
     {
-        <Button Accent="TriggerAccent" Variant="TriggerVariant" Size="TriggerSize" StartIcon="StartIcon" EndIcon="IconSet.Current.Get(IconRole.ChevronDown)" @attributes="_triggerAttributes">@Label</Button>
+        <Button Accent="TriggerAccent" Variant="TriggerVariant" Size="TriggerSize" StartIcon="StartIcon" EndIcon="IconSet.Current.Get(IconRole.ChevronDown)" Class="@TriggerClass" @attributes="_triggerAttributes">@Label</Button>
     }
     <div @attributes="AdditionalAttributes"
          id="@ElementId"
@@ -115,6 +115,9 @@
     private Accent TriggerAccent => !_accentSet && Group?.DefaultAccent is { } accent ? accent : Accent;
 
     private ButtonVariant TriggerVariant => !_variantSet && Group?.DefaultVariant is { } variant ? variant : Variant;
+
+    /// <summary>A class for the default trigger: a ToolbarMenu's, when its label collapses.</summary>
+    private protected virtual string? TriggerClass => null;
 
     private protected ControlSize TriggerSize => !_sizeSet && Group?.DefaultSize is { } size ? size : Size;
 

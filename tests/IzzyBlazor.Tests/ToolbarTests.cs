@@ -229,6 +229,57 @@ public class ToolbarTests : BunitContext
         Assert.Equal(expected, Bar(Units(specs), width));
     }
 
+    // The bar at this width with labels collapsing first: units 1 and 2 collapse to 32px, and "c"
+    // marks a collapsed state.
+    private static string Collapsing(bool collapse, double width)
+    {
+        var units = Units("s", "s", "e").Select(u => u.Id < 3 ? u with { CollapsedWidth = 32 } : u).ToList();
+        var state = ToolbarPlan.States(units, 8, 32, collapse).Single(s => width >= s.Min && width < s.Max);
+        return string.Concat(units.Where(u => !state.BarHidden.Contains(u.Id)).Select(u => u.Id)) + (state.More ? "…" : "") + (state.Collapsed ? "c" : "");
+    }
+
+    [Theory]
+    // All three at full width need 316px; below that the labels collapse (72px of start) before
+    // anything moves, and then units move at their collapsed widths.
+    [InlineData(true, 316, "123")]
+    [InlineData(true, 315, "123c")]
+    [InlineData(true, 180, "123c")]
+    [InlineData(true, 179, "3…c")]
+    // Without CollapseLabels, a unit moves instead.
+    [InlineData(false, 315, "13…")]
+    public void Labels_collapse_before_units_move(bool collapse, double width, string expected)
+    {
+        Assert.Equal(expected, Collapsing(collapse, width));
+    }
+
+    [Fact]
+    public void Collapsing_buttons_are_marked_and_collapse_without_script()
+    {
+        var cut = RenderToolbar("collapse");
+        var toolbar = cut.Find("ib-toolbar");
+        Assert.True(toolbar.HasAttribute("data-ib-collapse"));
+
+        // Buttons with a start icon, in a group too, become squares; a menu keeps its chevron; a
+        // button without an icon, and an icon button, stay as they are.
+        string[] Marked(string selector) => [.. cut.FindAll(".ib-toolbar-unit " + selector).Select(b => b.TextContent.Trim())];
+        // Publish never moves, so it keeps its text.
+        Assert.Equal(["Link", "Image"], Marked(".ib-toolbar-collapse-square"));
+        Assert.Equal(["Link", "Image", "Export"], Marked(".ib-toolbar-collapse"));
+
+        // The server collapses them below the width everything needs, scoped to this toolbar.
+        var css = toolbar.QuerySelector("style")!.TextContent;
+        Assert.Matches(@"@container \(width < [\d.]+rem\)\{#ib-toolbar-\w+:not\(\[data-ib-measured\], \[data-ib-measuring\]\) \.ib-toolbar-collapse>\.ib-btn-label\{position:absolute", css);
+    }
+
+    [Fact]
+    public void A_toolbar_with_nothing_to_move_still_collapses()
+    {
+        var toolbar = RenderToolbar("collapse-only").Find("ib-toolbar");
+
+        Assert.Contains(".ib-toolbar-collapse>.ib-btn-label", toolbar.QuerySelector("style")!.TextContent, StringComparison.Ordinal);
+        Assert.NotNull(toolbar.QuerySelector(".ib-toolbar-more"));
+    }
+
     [Fact]
     public void A_center_stays_centered()
     {
