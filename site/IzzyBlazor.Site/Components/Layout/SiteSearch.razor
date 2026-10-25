@@ -1,0 +1,50 @@
+@* The header's search: a button that opens a dialog holding a GET form to /search. The buttons
+   open it with the native commandfor/command attributes, so in current browsers they need no
+   script; the form needs none either. With site.js, Ctrl+K (⌘K) opens it too and results show
+   as you type (from /search/results, SearchDialogResults). The shortcut's hint shows only with
+   script, and its keys are picked here from the browser's platform, so nothing changes once the
+   page has painted. *@
+
+<DialogTrigger For="@Id" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Search"
+               VisibleFrom="Breakpoint.Md" Class="site-search-button" aria-keyshortcuts="@(Mac ? "Meta+K" : "Control+K")" data-site-search-open>
+    <span>Search</span>
+    <Kbd Class="site-search-key" aria-hidden="true">@(Mac ? "⌘K" : "Ctrl K")</Kbd>
+</DialogTrigger>
+<IconButton Icon="Lucide.Search" Label="Search" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" HiddenFrom="Breakpoint.Md"
+            commandfor="@Id" command="show-modal" aria-haspopup="dialog" data-site-search-open />
+
+<Dialog Id="@Id" aria-label="Search the docs" Size="DialogSize.Lg" ShowCloseButton="false" ContentPadding="0" Class="site-search-dialog">
+    <div class="site-search-head">
+        <form method="get" action="search" role="search" aria-label="Search the docs" class="site-search-form">
+            <TextField @bind-Value="_query" name="q" Type="TextFieldType.Search" Label="Search the docs" HideLabel
+                       StartIcon="Lucide.Search" Placeholder="Components, parameters, articles" Grow
+                       autocomplete="off" autofocus data-site-search-field />
+            <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Class="site-search-submit">Search</Button>
+        </form>
+        <DialogClose Variant="ButtonVariant.Ghost">Close</DialogClose>
+    </div>
+    <p role="status" class="site-search-count site-search-dialog-count" data-site-search-count></p>
+    <div class="site-search-results" data-site-search-results>
+        <SearchDialogResults />
+    </div>
+    <footer class="site-search-foot" aria-hidden="true">
+        <span><Kbd>Enter</Kbd> all results</span>
+        <span><Kbd>↑</Kbd> <Kbd>↓</Kbd> move</span>
+        <span><Kbd>Esc</Kbd> close</span>
+    </footer>
+</Dialog>
+
+@code {
+    /// <summary>The dialog's id. <c>?dialog=site-search</c> opens it from a link, too.</summary>
+    public const string Id = "site-search";
+
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private string? _query;
+
+    // Chromium says the platform in a client hint; Safari and Firefox only in the user agent.
+    private bool Mac => HttpContext?.Request.Headers["Sec-CH-UA-Platform"].ToString() is { Length: > 0 } platform
+        ? platform.Contains("macOS", StringComparison.OrdinalIgnoreCase) || platform.Contains("iOS", StringComparison.OrdinalIgnoreCase)
+        : HttpContext?.Request.Headers.UserAgent.ToString() is { } agent
+          && (agent.Contains("Macintosh", StringComparison.Ordinal) || agent.Contains("iPhone", StringComparison.Ordinal) || agent.Contains("iPad", StringComparison.Ordinal));
+}

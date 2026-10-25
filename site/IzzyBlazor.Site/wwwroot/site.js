@@ -5,6 +5,7 @@
 //     than to the top,
 //   - an Off page that enhanced navigation patched into a page still running Blazor is reloaded,
 //     so its examples really run without it,
+//   - Ctrl+K opens the header's search, which shows results as you type,
 //   - a demo's frame follows the page's color scheme when it changes,
 //   - inside a demo's frame, links to other pages open in the whole window rather than the frame.
 (() => {
@@ -216,6 +217,124 @@
     for (const frame of document.querySelectorAll("iframe.ex-frame")) scheme(frame);
   }).observe(document.documentElement, { attributes: true, attributeFilter: ["data-ib-color-scheme"] });
 
+  // Search (SiteSearch in the header). Its buttons open the dialog without script; here Ctrl+K
+  // (⌘K) opens it too, results show as you type (the best of each group, rendered by the server
+  // at /search/results: the ranking is all in C#), and ↓ and ↑ move between the field and them.
+  const SEARCH = "site-search";
+  let searchShown = "";
+  let searchRequest = null;
+  let searchTimer = 0;
+
+  function searchParts() {
+    const dialog = document.getElementById(SEARCH);
+    if (!(dialog instanceof HTMLDialogElement)) return null;
+    return {
+      dialog,
+      field: dialog.querySelector("input[data-site-search-field]"),
+      results: dialog.querySelector("[data-site-search-results]"),
+      count: dialog.querySelector("[data-site-search-count]"),
+    };
+  }
+
+  // Shows the results for the field's text, unless they're already showing. A failed request
+  // changes nothing: Enter still goes to the search page.
+  async function searchFor(query) {
+    const parts = searchParts();
+    if (!parts || !parts.results) return;
+    query = query.trim();
+    if (query === searchShown) return;
+    if (searchRequest) searchRequest.abort();
+    const request = (searchRequest = new AbortController());
+    let html;
+    try {
+      const response = await fetch(new URL(`search/results?q=${encodeURIComponent(query)}`, document.baseURI), { signal: request.signal });
+      if (!response.ok) return;
+      html = await response.text();
+    } catch {
+      return;
+    }
+
+    if (request !== searchRequest) return;
+    searchShown = query;
+    parts.results.innerHTML = html;
+    parts.results.scrollTop = 0;
+    if (parts.count) parts.count.textContent = parts.results.firstElementChild?.getAttribute("data-count") ?? "";
+  }
+
+  function openSearch() {
+    const parts = searchParts();
+    if (!parts) return;
+    if (!parts.dialog.open) parts.dialog.showModal();
+    if (parts.field) {
+      parts.field.focus();
+      parts.field.select();
+      searchFor(parts.field.value);
+    }
+  }
+
+  document.addEventListener("keydown", (event) => {
+    const parts = searchParts();
+    if (!parts) return;
+    if ((event.ctrlKey || event.metaKey) && !event.altKey && !event.shiftKey && event.key.toLowerCase() === "k") {
+      // Not from inside an example, whose own controls may use the keys.
+      if (event.target instanceof Element && event.target.closest(".ex")) return;
+      event.preventDefault();
+      openSearch();
+      return;
+    }
+
+    // Escape closes at once: in a search field the browser would only clear the text first.
+    if (event.key === "Escape" && parts.dialog.open && event.target === parts.field) {
+      event.preventDefault();
+      parts.dialog.close();
+      return;
+    }
+
+    if (!parts.dialog.open || (event.key !== "ArrowDown" && event.key !== "ArrowUp") || !(event.target instanceof Element)) return;
+    const links = [...parts.dialog.querySelectorAll("[data-site-search-results] a[href]")];
+    if (links.length === 0) return;
+    if (event.target === parts.field) {
+      if (event.key === "ArrowDown") {
+        event.preventDefault();
+        links[0].focus();
+      }
+      return;
+    }
+
+    const index = links.indexOf(event.target);
+    if (index < 0) return;
+    event.preventDefault();
+    if (event.key === "ArrowDown") links[Math.min(index + 1, links.length - 1)].focus();
+    else if (index === 0) parts.field?.focus();
+    else links[index - 1].focus();
+  });
+
+  document.addEventListener("input", (event) => {
+    if (!(event.target instanceof HTMLInputElement) || !event.target.matches("[data-site-search-field]")) return;
+    const field = event.target;
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(() => searchFor(field.value), 150);
+  });
+
+  document.addEventListener("click", (event) => {
+    if (!(event.target instanceof Element)) return;
+    // A search button opened the dialog natively: bring its results up to date with the field.
+    if (event.target.closest("[data-site-search-open]")) {
+      setTimeout(() => {
+        const parts = searchParts();
+        if (parts?.dialog.open && parts.field) searchFor(parts.field.value);
+      });
+      return;
+    }
+
+    // Following a result closes the dialog: enhanced navigation keeps the header, and the open
+    // dialog with it. IzzyBlazor's script does this too, but an Off page doesn't load it.
+    const link = event.target.closest(`#${SEARCH} a[href]`);
+    if (link && event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
+      searchParts()?.dialog.close();
+    }
+  });
+
   restore();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", frames);
   else frames();
@@ -232,6 +351,8 @@
 
       restore();
       frames();
+      // The header came back from the server with its empty results: show them again on opening.
+      searchShown = "";
     });
   }
 })();
