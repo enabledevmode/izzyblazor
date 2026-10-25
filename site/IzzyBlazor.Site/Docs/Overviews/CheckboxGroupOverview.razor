@@ -13,7 +13,7 @@
 <TextBlock>The collection can be an array, a <Code>List&lt;T&gt;</Code>, a <Code>HashSet&lt;T&gt;</Code> or an interface they implement, and for an enum, <Code>Items</Code> takes its values (<Code>Enum.GetValues&lt;Topping&gt;()</Code>). With no box checked the group posts nothing: on a static page the property is then null, or the model isn't bound at all, so set defaults only when the request isn't this form's post, as the example does (<Anchor Href="docs/troubleshooting/empty-selection">why</Anchor>).</TextBlock>
 
 <Heading Level="2">Descriptions</Heading>
-<TextBlock>Use <Code>ItemTemplate</Code> for markup in each option's label, such as a description under its name.</TextBlock>
+<TextBlock>Use <Code>ItemDescription</Code> for a line under each option's name. Screen readers hear it after the name, as the box's description. <Code>ItemTemplate</Code> takes markup for the name itself, such as a badge beside it, and all of it names the box.</TextBlock>
 <ExampleViewer Example="checkbox-group-descriptions" />
 
 <Heading Level="2">Select all</Heading>

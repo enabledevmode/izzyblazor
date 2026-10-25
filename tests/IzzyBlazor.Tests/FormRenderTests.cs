@@ -224,6 +224,13 @@ public class FormRenderTests : BunitContext
         Assert.True(summary.HasAttribute("data-ib-autofocus"));
         Assert.Equal(summary.QuerySelector(".ib-form-errors-title")!.Id, summary.GetAttribute("aria-labelledby"));
         Assert.NotEmpty(summary.QuerySelectorAll("li"));
+
+        // Read on focus, as a group described by its messages: not a live region too, which reads it twice.
+        Assert.Equal("group", summary.GetAttribute("role"));
+        var description = summary.QuerySelector($"#{summary.GetAttribute("aria-describedby")}")!;
+        Assert.True(description.HasAttribute("hidden"));
+        Assert.All(summary.QuerySelectorAll("li"), li => Assert.Contains(li.TextContent.Trim(), description.TextContent));
+        Assert.Matches(@"[.!?]$", description.TextContent);
     }
 
     [Fact]
@@ -279,7 +286,14 @@ public class FormRenderTests : BunitContext
     public void Plain_checkbox_and_switch_have_no_indeterminate_mark()
     {
         Assert.False(Render<Checkbox>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept)).Find("input").HasAttribute("data-indeterminate"));
-        Assert.False(Render<Switch>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept).Add(c => c.Indeterminate, true)).Find("input").HasAttribute("data-indeterminate"));
+        Assert.False(Render<Switch>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept)).Find("input").HasAttribute("data-indeterminate"));
+    }
+
+    [Fact]
+    public void Switch_refuses_indeterminate()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Render<Switch>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept).Add(c => c.Indeterminate, false)));
+        Assert.Contains("doesn't take Indeterminate", error.Message);
     }
 
     [Fact]
@@ -491,6 +505,7 @@ public class FormRenderTests : BunitContext
             .Add(c => c.Items, new[] { "a", "b" }));
 
         Assert.Empty(cut.Find(".ib-multiselect-chips").Children);
+        Assert.Empty(cut.Find(".ib-multiselect-chosen").TextContent);
     }
 
     [Fact]

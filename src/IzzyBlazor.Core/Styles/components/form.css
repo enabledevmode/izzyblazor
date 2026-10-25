@@ -205,6 +205,12 @@
     pointer-events: none;
   }
 
+  /* A disabled control's icons (a Select's chevron, a TextField's icons) dim with its text, also
+     in an add-on; an enabled Select in a disabled field's add-on keeps its own. */
+  .ib-field-control:has(> .ib-field-input:disabled) > .ib-field-icon {
+    color: var(--ib-color-disabled);
+  }
+
   .ib-field-icon-start { inset-inline-start: var(--ib-field-px); }
   .ib-field-icon-end { inset-inline-end: var(--ib-field-px); }
   .ib-has-start .ib-field-input { padding-inline-start: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-2)); }
@@ -926,6 +932,11 @@
       color: var(--ib-color-subtle);
     }
 
+    /* Disabled, the placeholder dims with the chevron. */
+    select.ib-field-select:disabled:has(> option[value=""]:checked) {
+      color: var(--ib-color-disabled);
+    }
+
     select.ib-field-select::picker(select) {
       box-sizing: border-box;
       min-inline-size: anchor-size(inline);
@@ -1600,6 +1611,17 @@
   :is(.ib-check-input, .ib-switch-input):disabled ~ .ib-check-label {
     color: var(--ib-color-disabled);
     cursor: not-allowed;
+  }
+
+  /* CheckboxGroup's ItemDescription: under the option's name, in the hint's style. */
+  .ib-check-description {
+    display: block;
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-check-input:disabled ~ .ib-check-label .ib-check-description {
+    color: inherit;
   }
 
   /* Windows high contrast: the browser's own boxes, which follow the system colors. */
@@ -2489,11 +2511,16 @@
 }
 
 /* High contrast: a disabled field's boxes that aren't native inputs (MultiSelect's box,
-   ColorPicker's box, add-ons, the upload zone) take the system's disabled color, like the inputs. */
+   ColorPicker's box, add-ons, the upload zone) take the system's disabled color, like the inputs,
+   and so do a disabled control's icons. */
 @layer izzy.components {
   @media (forced-colors: active) {
     :is(.ib-field-disabled, fieldset:disabled) :is(.ib-multiselect > .ib-multiselect-box, .ib-color-box:has(:disabled), .ib-field-addon, .ib-file-zone) {
       border-color: GrayText;
+      color: GrayText;
+    }
+
+    .ib-field-control:has(> .ib-field-input:disabled) > .ib-field-icon {
       color: GrayText;
     }
   }

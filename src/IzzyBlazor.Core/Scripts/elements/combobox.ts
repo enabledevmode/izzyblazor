@@ -367,6 +367,10 @@ class Combobox extends IzzyElement {
     if (!this.#chips) return;
     const remove = this.dataset.removeLabel ?? "Remove";
     const chosen = [...this.#select.selectedOptions];
+    // The input's description: the chips' text without their remove buttons.
+    const summary = this.querySelector<HTMLElement>(".ib-multiselect-chosen");
+    const said = chosen.length ? (this.dataset.chosenLabel ?? "Chosen: {0}.").replace("{0}", () => chosen.map((o) => o.text).join(", ")) : "";
+    if (summary && summary.textContent !== said) summary.textContent = said;
     // Already right (most observer calls): leave the DOM alone.
     const now = [...this.#chips.children].map((c) => (c as HTMLElement).dataset.value).join("\n");
     if (now === chosen.map((o) => o.value).join("\n")) return;

@@ -22,8 +22,9 @@
       with a missing or malformed value, focuses that field and shows its own message.
     - Each field links its errors with `aria-describedby` and sets `aria-invalid`; errors aren't
       announced as they appear.
-    - Place a `FormErrors` at the top: it's announced when it appears (`role="alert"`) and takes
-      focus after a submit that fails validation, with JavaScript off too. Form moves no focus.
+    - Place a `FormErrors` at the top: it takes focus after a submit that fails validation, with
+      JavaScript off too, and screen readers read its title and messages then (it isn't also a
+      live region, which would read it twice). Form moves no focus.
     - The summary's messages are plain text, not links to their fields.
     - `RequiredMark` changes only what's shown: the asterisk is hidden from screen readers, which
       hear "required" from the control, and "(optional)" is read with the label.

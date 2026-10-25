@@ -86,6 +86,9 @@ public class IzzyText
     /// <summary>FormErrors' heading.</summary>
     public virtual string FormErrorsTitle { get; set; } = "Please fix the following";
 
+    /// <summary>For screen readers, MultiSelect's chosen options, read after its name: "Chosen: {0}." {0} is the options' text, joined with commas.</summary>
+    public virtual string Chosen { get; set; } = "Chosen: {0}.";
+
     /// <summary>Combobox and MultiSelect when nothing matches.</summary>
     public virtual string NoMatches { get; set; } = "No matches";
 

@@ -1,9 +1,10 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
 
-@* A line between groups of items in a NavMenu. *@
+@* A line between groups of items in a NavMenu. Hidden from screen readers: a list holds only
+   items, so it can't be a separator, and an empty item would be read as one. *@
 
-<li @attributes="AdditionalAttributes" class="@_class" style="@_style" role="separator"></li>
+<li @attributes="AdditionalAttributes" class="@_class" style="@_style" aria-hidden="true"></li>
 
 @code {
     private string? _class;

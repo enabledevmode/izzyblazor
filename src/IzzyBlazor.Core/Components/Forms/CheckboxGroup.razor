@@ -24,8 +24,9 @@
     Accessibility:
     - It renders native checkboxes in a `fieldset` whose `legend` is the label; each box is a
       Tab stop, toggled with Space.
-    - Each option's text is its `label`; the hint and errors are linked to the group with
-      `aria-describedby`, and each box sets `aria-invalid` when the field is invalid.
+    - Each option's text is its `label`; an `ItemDescription` is the box's description, not part of
+      its name. The hint and errors are linked to the group with `aria-describedby`, and each box
+      sets `aria-invalid` when the field is invalid.
     - A required group shows an asterisk, which screen readers skip, and its boxes aren't
       marked required (HTML can't require one of several): say so in the label or `Hint`.
     - A `SelectAll` box is named by its text, and the options under it are a group with the same
@@ -57,6 +58,7 @@
         @foreach (var (item, index) in ChoiceOptions.Of(Items).Select((o, i) => (o, i)))
         {
             var id = $"{FieldId}-{index}";
+            var description = ItemDescription?.Invoke(item) is { } text && !string.IsNullOrWhiteSpace(text) ? text : null;
             <label class="ib-check" for="@id">
                 <input id="@id"
                        class="ib-check-input"
@@ -66,15 +68,20 @@
                        checked="@IsChecked(item)"
                        @onchange="e => Toggle(item, e)"
                        disabled="@IsDisabled"
-                       aria-invalid="@(Invalid ? "true" : null)" />
+                       aria-invalid="@(Invalid ? "true" : null)"
+                       aria-labelledby="@(description is null ? null : $"{id}-text")"
+                       aria-describedby="@(description is null ? null : $"{id}-description")" />
                 <span class="ib-check-label">
-                    @if (ItemTemplate is not null)
+                    @if (description is null)
                     {
-                        @ItemTemplate(item)
+                        @OptionName(item)
                     }
                     else
                     {
-                        @ChoiceOptions.Text(item, ItemText)
+                        @* The name is only the text before the description: the label's whole
+                           content would name the box with the description too. *@
+                        <span class="ib-check-text" id="@($"{id}-text")">@OptionName(item)</span>
+                        <span class="ib-check-description" id="@($"{id}-description")">@description</span>
                     }
                 </span>
             </label>
@@ -101,14 +108,19 @@
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public bool ReadOnly { get; set; }
 
+    private RenderFragment OptionName(TItem item) => ItemTemplate is not null ? ItemTemplate(item) : builder => builder.AddContent(0, ChoiceOptions.Text(item, ItemText));
+
     /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Topping&gt;()"</c>.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
     /// <summary>The text for each option. Defaults to the enum value's <c>[Display(Name)]</c> or its string form.</summary>
     [Parameter] public Func<TItem, string>? ItemText { get; set; }
 
-    /// <summary>Markup for each option's label, such as a description under the name.</summary>
+    /// <summary>Markup for each option's label, such as an icon or a badge beside its name. All of it names the box; put a description in <c>ItemDescription</c>.</summary>
     [Parameter] public RenderFragment<TItem>? ItemTemplate { get; set; }
+
+    /// <summary>A line under each option's name, such as what choosing it does. Screen readers hear it as the box's description, after its name.</summary>
+    [Parameter] public Func<TItem, string?>? ItemDescription { get; set; }
 
     /// <summary>Stack options vertically (the default) or in a row.</summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
