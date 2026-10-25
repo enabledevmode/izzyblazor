@@ -275,7 +275,7 @@ One logical change per commit, with messages in the form `Area: what changed`, f
 
 ## Releasing
 
-Pushing a version tag publishes both packages. Set `<Version>` in `Directory.Build.props`, commit it
+Pushing a version tag publishes both packages. Set `<Version>` in `Directory.Build.props` and the version in the preview notes of `README.md` and `docs/nuget-readme.md`, commit it
 to main, then tag that commit with the same version:
 
 ```

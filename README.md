@@ -16,7 +16,7 @@ better when scripts run, and binds to C# on interactive pages.
   <img alt="An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table with status badges." src="docs/images/showcase-light.png">
 </picture>
 
-> **Status:** preview (`0.1.0-alpha.12`). The API will change before 0.1.
+> **Status:** preview (`0.1.0-alpha.13`). The API will change before 0.1.
 
 **Browsers:** current Chrome, Edge, Firefox and Safari, from 2024 on. IzzyBlazor relies on CSS
 `:has()`, `light-dark()` and the Popover API; older browsers aren't supported.
@@ -93,13 +93,16 @@ app.MapIzzyBlazor();
 ```
 
 The JavaScript loads itself. For toasts, add `<ToastRegion />` to your layout. For WebAssembly and
-Auto render modes, see [Getting started](docs/getting-started.md#webassembly-and-auto-render-modes).
+Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-started/webassembly-and-auto).
 
 ## Documentation
 
-- [Getting started](docs/getting-started.md): setup, packages and render modes
-- [Styling](docs/styling.md): style props, responsive values, colors, tokens and themes
-- [Components](docs/components.md): what each component does in each mode
+**[izzyblazor.com](https://izzyblazor.com)** has live examples of every component with JavaScript
+off, on static pages and on interactive pages, and the API.
+
+- [Getting started](https://izzyblazor.com/docs/get-started): setup, packages and render modes
+- [Components](https://izzyblazor.com/docs/components): examples, mode support and API for each
+- [Style props](https://izzyblazor.com/docs/common/style-props) and [Theming](https://izzyblazor.com/docs/theming): responsive values, colors, tokens and themes
 - [Contributing](CONTRIBUTING.md): repository layout, the dev host and adding a component
 
 ## Issues and pull requests
