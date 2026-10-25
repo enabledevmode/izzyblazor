@@ -84,6 +84,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: the chosen text shows in a read-only text field, and the value still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }
 

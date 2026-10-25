@@ -77,8 +77,8 @@ export function installIndeterminate(): void {
  * `change` on each one it flipped (so an interactive page hears each, as if clicked, and a
  * FilterForm sees the finished choice from the first), and follows them: checked when all are, a
  * dash when some are. Its options are the boxes it names in aria-controls, so boxes nested in an
- * ItemTemplate aren't counted. It has no name, so it never posts. Read-only boxes don't change
- * (forms.ts cancels the click), and the server renders the starting state.
+ * ItemTemplate aren't counted. It has no name, so it never posts, and the server renders the
+ * starting state.
  */
 const SELECT_ALL = "input[type=checkbox][data-ib-select-all]";
 

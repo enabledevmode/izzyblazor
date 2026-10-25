@@ -77,6 +77,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: it can be focused, its steppers are off, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     /// <summary>The lowest value. Defaults to <c>[Range]</c>'s minimum.</summary>
     [Parameter] public double? Min { get; set; }
 

@@ -41,6 +41,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: it can be focused and its text selected, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     /// <summary>Visible lines. Defaults to 4.</summary>
     [Parameter] public int Rows { get; set; } = 4;
 

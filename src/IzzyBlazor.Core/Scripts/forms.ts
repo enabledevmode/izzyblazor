@@ -39,34 +39,6 @@ export function installSubmitFeedback(): void {
     }
   });
 
-  // Read-only checkboxes, radios and sliders arrive disabled, so without script nothing can change
-  // them. Enable them, so they can be focused (they carry aria-readonly); the handlers below
-  // keep them from changing. Watched, since Blazor and enhanced navigation can render them later.
-  const unlock = () =>
-    document
-      .querySelectorAll<HTMLInputElement>('input:disabled:is([aria-readonly="true"], [role="radiogroup"][aria-readonly="true"] input)')
-      .forEach((input) => (input.disabled = false));
-  unlock();
-  new MutationObserver(unlock).observe(document.documentElement, { subtree: true, childList: true, attributes: true, attributeFilter: ["disabled"] });
-
-  // Read-only checkboxes, radios and sliders (aria-readonly, on the input or its radio group):
-  // HTML has no read-only for them, so cancel what would change them: a click (also from Space or
-  // the label), and the keys that move a radio group's choice or a slider. CSS stops the pointer
-  // without script.
-  const readOnly = (target: EventTarget | null): target is HTMLInputElement =>
-    target instanceof HTMLInputElement &&
-    (target.getAttribute("aria-readonly") === "true" || !!target.closest('[role="radiogroup"][aria-readonly="true"]'));
-  document.addEventListener("click", (event) => readOnly(event.target) && event.preventDefault(), true);
-  document.addEventListener(
-    "keydown",
-    (event) =>
-      readOnly(event.target) &&
-      event.target.type !== "checkbox" &&
-      /^(Arrow|Page|Home|End)/.test(event.key) &&
-      event.preventDefault(),
-    true
-  );
-
   // Coming back with the Back button can restore a page from the cache mid-submit.
   window.addEventListener("pageshow", (event) => {
     if (!event.persisted) return;

@@ -83,6 +83,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: the hex text can be focused and selected, the swatch and presets are off, and the value still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     /// <summary>
     /// Colors offered as swatches under the field, as hex strings. Shown with script; without it,
     /// Chrome and Edge list them in the browser's own picker.

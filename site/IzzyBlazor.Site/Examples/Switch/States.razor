@@ -1,7 +1,6 @@
 <Form Model="Model" FormName="switch-states" MaxWidth="32.Rem" Grow>
     <Switch @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
     <Switch @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
-    <Switch @bind-Value="Model!.Backups" Label="Daily backups" ReadOnly Hint="Read-only: posted, but can't be changed." />
     <Switch @bind-Value="Model!.Replicas" Label="Read replicas" Disabled Hint="Disabled: not posted." />
 </Form>
 
@@ -15,7 +14,6 @@
     {
         public bool Small { get; set; } = true;
         public bool Large { get; set; } = true;
-        public bool Backups { get; set; } = true;
         public bool Replicas { get; set; }
     }
 }

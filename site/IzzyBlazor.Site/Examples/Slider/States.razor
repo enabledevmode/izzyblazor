@@ -3,7 +3,6 @@
 <Form Model="Model" FormName="slider-states" MaxWidth="24.Rem" Grow>
     <Slider @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
     <Slider @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
-    <Slider @bind-Value="Model!.Storage" ReadOnly ShowValue ValueFormat="{0} GB" Hint="Read-only: posted, but can't be moved." />
     <Slider @bind-Value="Model!.Backups" Disabled ShowValue Hint="Disabled: not posted." />
 </Form>
 
@@ -17,9 +16,6 @@
     {
         public int Small { get; set; } = 30;
         public int Large { get; set; } = 70;
-
-        [Range(0, 500), Display(Name = "Storage")]
-        public int Storage { get; set; } = 250;
 
         [Range(0, 30), Display(Name = "Backups kept")]
         public int Backups { get; set; } = 7;

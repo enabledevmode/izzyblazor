@@ -74,13 +74,14 @@
         <Heading Level="2">Read-only and disabled</Heading>
         <TextBlock>
             <Code>ReadOnly</Code> on the form makes every field read-only: the values show and post, but don't change, as on a
-            page that shows a record before editing it. HTML has no read-only select or checkbox, so selects show their value
-            in a read-only text field, and checkboxes, switches and radios stay as they are but don't change. Without
-            JavaScript those are disabled instead.
+            page that shows a record before editing it. HTML has no read-only select, checkbox, radio or range, so selects show
+            their value in a read-only text field, and checkboxes, switches, radios, segments and sliders are disabled while
+            hidden fields post their values.
         </TextBlock>
         <TextBlock>
             <Code>Disabled</Code> on the form disables every field, and disabled fields post nothing. Neither touches buttons,
-            so show the ones that fit. A field's own <Code>ReadOnly</Code> and <Code>Disabled</Code> work the same way.
+            so show the ones that fit. A field's own <Code>Disabled</Code> works the same way, and so does its own
+            <Code>ReadOnly</Code> on the fields that have one (text fields and selects; checkboxes, switches, radios, segments and sliders don't).
         </TextBlock>
 
         <Heading Level="2">Labels and marks</Heading>

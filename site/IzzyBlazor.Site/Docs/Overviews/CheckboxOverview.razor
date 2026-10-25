@@ -27,10 +27,10 @@
 <Heading Level="2">Hints, icons and the end of the row</Heading>
 <TextBlock>Use <Code>Hint</Code> for help under the label, <Code>ControlPosition.End</Code> to put the box at the end of the row and <Code>Icon</Code> for an icon at its start, as on a Switch (<Anchor Href="docs/components/switch#at-the-end-of-the-row">see them there</Anchor>).</TextBlock>
 
-<Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a box that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<Heading Level="2">Sizes and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, and <Code>Disabled</Code> for a box that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only checkbox, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the box is disabled while a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="checkbox-sizes" />
-<TextBlock>HTML has no read-only checkbox, so a hidden field posts a read-only box's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (<Code>false</Code>): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (<Code>false</Code>): keep its value on the server rather than saving it from the post.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

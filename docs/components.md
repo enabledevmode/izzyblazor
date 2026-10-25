@@ -300,7 +300,8 @@ so does every field with JavaScript off. To word one form differently, set the m
 field: `data-ib-required="…"` (also `data-ib-length`, `data-ib-range`, `data-ib-type`).
 
 Every field also takes `Hint` (help text under it, linked for screen readers), `Required`,
-`Disabled`, `ReadOnly` and `Size`. `Required` on the field marks it and asks the browser to check
+`Disabled` and `Size`; text fields and selects take `ReadOnly` too (checkboxes, radios and sliders
+don't: HTML has no read-only for them). `Required` on the field marks it and asks the browser to check
 it, but the server's validator only reads `[Required]` on the model, so put rules that must hold
 there. `HideLabel` keeps a field's label for screen readers but doesn't show it, as in a one-field
 newsletter form or a toolbar. (Checkboxes and switches show their label beside the box.)
@@ -316,15 +317,13 @@ enhanced form handling, and `Validator` replaces the DataAnnotations validator.
 
 **Read-only, disabled and marks.** `ReadOnly` on the `Form` makes every field read-only, as on a
 page that shows a record before editing it: the values show and post, but don't change. Read-only
-fields can still be focused, and screen readers say they're read-only (checkboxes, radios and
-sliders only with JavaScript; see below). HTML has no read-only
-select, checkbox or radio, so:
+text fields can still be focused, and screen readers say they're read-only. HTML has no read-only
+select, checkbox, radio or range, so:
 
 - `Select`, `Combobox` and `MultiSelect` show their value in a read-only text field ("Pro plan",
   or "Design, Writing" for several).
-- `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup` and `Slider` stay as they are, with
-  `aria-readonly`, and neither clicks nor keys change them. Without JavaScript they're disabled
-  instead, so they can't change but can't be focused either.
+- `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup` and `Slider` are disabled.
+  They have no `ReadOnly` of their own (setting it throws); use `Disabled`.
 - Their values post from hidden inputs. A `FileUpload` is disabled, since a file can't be read-only.
   A read-only `ColorPicker` can be focused through its hex box, which needs JavaScript; without it
   only the color swatch shows, disabled.
@@ -404,8 +403,8 @@ follows as you drag. Without it neither could follow, so the track is plain (Fir
 itself) and the value isn't shown. `ValueFormat` sets how the value reads, both shown and announced to screen
 readers: `"{0}%"`, `"${0}"` (without JavaScript, screen readers hear the plain number, which
 unlike formatted text stays current). On interactive pages the bound value updates on release; `Live` updates
-it while dragging, at one round trip per move. A read-only slider stays focusable with
-`aria-readonly` and posts its value through a hidden input.
+it while dragging, at one round trip per move. In a read-only `Form` a slider is disabled and posts
+its value through a hidden input.
 
 **ColorPicker.** A color field bound to a hex string, which it keeps as `#rrggbb` in lowercase
 (`#ABC` and `abc` are read as `#aabbcc`). Underneath is a native color input, so it posts with the form

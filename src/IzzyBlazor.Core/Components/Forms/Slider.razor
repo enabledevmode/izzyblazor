@@ -16,8 +16,6 @@
     - Screen readers hear the value as `ValueFormat` writes it ("20%", through `aria-valuetext`)
       once scripts run or on interactive pages; on a static page without script, the bare number.
     - The value `ShowValue` shows is hidden from screen readers, which hear the slider's own value.
-    - A read-only slider stays focusable with `aria-readonly` once scripts run, and keys and clicks
-      don't move it; without script it's disabled.
     - Label, hint and errors work as in `TextField`.
     See also: NumberField, SegmentedControl, Progress.
 *@
@@ -43,13 +41,22 @@
     </ib-field-control>
     @if (PostsReadOnlyValue)
     {
-        @* A range can't be read-only in HTML: a read-only slider stays focusable with aria-readonly,
-           outside the form (form=""), and posts its value here. *@
+        @* In a read-only Form the slider is disabled, so this posts its value. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
     }
 </FieldFrame>
 
 @code {
+    /// <inheritdoc />
+    protected override bool TakesReadOnly => false;
+
+    /// <summary>Not available: HTML has no read-only range. Use <c>Disabled</c>; in a read-only <see cref="Form"/> it's disabled and its value still posts.</summary>
+    /// <remarks>Declared only to turn a mistake into a build error; set any other way, it throws.</remarks>
+    [Parameter]
+    [Obsolete("HTML has no read-only range. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public bool ReadOnly { get; set; }
+
     /// <summary>The lowest value. Defaults to <c>[Range]</c>'s minimum, or 0.</summary>
     [Parameter] public double? Min { get; set; }
 
@@ -125,13 +132,7 @@
             yield return new("min", Format(ResolvedMin));
             yield return new("max", Format(ResolvedMax));
             if (ResolvedStep is { } step) yield return new("step", step);
-            if (IsDisabled || ShowsReadOnly) yield return new("disabled", true);
-            if (ShowsReadOnly)
-            {
-                // Outside the form (form=""), so the hidden input below posts its value.
-                yield return new("form", "");
-                yield return new("aria-readonly", "true");
-            }
+            if (IsDisabled) yield return new("disabled", true);
 
             if (RendererInfo.IsInteractive) yield return new("aria-valuetext", ValueText);
             yield return new("data-ib-format", ValueFormat);

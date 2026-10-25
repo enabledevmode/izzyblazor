@@ -31,9 +31,6 @@
     - A `SelectAll` box is named by its text, and the options under it are a group with the same
       name, so screen readers hear them as its part. It's announced as "mixed" when only some are
       checked. Its text should say it stands for all of them ("Select all", "All channels").
-    - Read-only boxes arrive disabled; the script enables them, so they can be focused, and stops
-      them from changing. They carry `aria-readonly`, but most screen readers don't announce that
-      on a checkbox, so say it's read-only in the label or `Hint`.
     See also: MultiSelect, Checkbox, RadioGroup.
 *@
 
@@ -52,8 +49,7 @@
                    checked="@all"
                    data-indeterminate="@(some ? "" : null)"
                    aria-controls="@OptionIds"
-                   disabled="@(IsDisabled || ShowsReadOnly)"
-                   aria-readonly="@(ShowsReadOnly ? "true" : null)" />
+                   disabled="@IsDisabled" />
             <span class="ib-check-label" id="@($"{AllId}-text")">@(string.IsNullOrEmpty(SelectAllText) ? TextDefaults.SelectAll : SelectAllText)</span>
         </label>
     }
@@ -69,9 +65,7 @@
                        value="@ChoiceOptions.Value(item)"
                        checked="@IsChecked(item)"
                        @onchange="e => Toggle(item, e)"
-                       disabled="@(IsDisabled || ShowsReadOnly)"
-                       form="@(ShowsReadOnly ? "" : null)"
-                       aria-readonly="@(ShowsReadOnly ? "true" : null)"
+                       disabled="@IsDisabled"
                        aria-invalid="@(Invalid ? "true" : null)" />
                 <span class="ib-check-label">
                     @if (ItemTemplate is not null)
@@ -88,7 +82,7 @@
     </div>
     @if (PostsReadOnlyValue)
     {
-        @* Read-only: the boxes are outside the form (form=""), so these post the value. *@
+        @* In a read-only Form the boxes are disabled, so these post the value. *@
         @foreach (var item in ChoiceOptions.Of(Items).Where(IsChecked))
         {
             <input type="hidden" name="@NameAttributeValue" value="@ChoiceOptions.Value(item)" />
@@ -97,6 +91,16 @@
 </FieldFrame>
 
 @code {
+    /// <inheritdoc />
+    protected override bool TakesReadOnly => false;
+
+    /// <summary>Not available: HTML has no read-only checkbox. Use <c>Disabled</c>; in a read-only <see cref="Form"/> it's disabled and its value still posts.</summary>
+    /// <remarks>Declared only to turn a mistake into a build error; set any other way, it throws.</remarks>
+    [Parameter]
+    [Obsolete("HTML has no read-only checkbox. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public bool ReadOnly { get; set; }
+
     /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Topping&gt;()"</c>.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 

@@ -140,6 +140,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: the chosen options show in a read-only text field, and the values still post.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     /// <summary>The options. For an enum, pass its values: <c>Items="Enum.GetValues&lt;Skill&gt;()"</c>.</summary>
     [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
 
