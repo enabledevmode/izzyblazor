@@ -39,6 +39,8 @@ public static class SiteApp
 
         var app = builder.Build();
 
+        app.UseCanonicalHost();
+
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/error", createScopeForErrors: true);
