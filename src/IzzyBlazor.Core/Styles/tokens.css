@@ -188,7 +188,12 @@
    *   --ib-color-selected       a selected row's fill (the primary color, very faint)
    *   --ib-state-hover          hover wash (the text color at 6%; a selection is shown by a mark)
    *   --ib-state-pressed        pressed wash (the text color at 10%)
-   *   --ib-color-segment        the chosen segment (surface-container-high), --ib-color-segment-edge its edge
+   *   --ib-color-segment        the chosen segment (the raised surface; lighter in dark), --ib-color-on-segment
+   *                             its text (on-surface), --ib-color-segment-edge its edge (the border color;
+   *                             white at 8% in dark), --ib-color-segment-track the track (surface-container;
+   *                             surface-container-low in dark). These are worked out on the track, so set
+   *                             them there or above. An accent: the first two to the primary pair, the edge
+   *                             transparent
    *   --ib-color-scrollbar      scrollbar thumb (the text color at 26%), --ib-color-scrollbar-hover (42%)
    */
   :root {

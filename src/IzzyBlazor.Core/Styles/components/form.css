@@ -165,7 +165,16 @@
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
 
+  /* Disabled: the fill with no border, so it isn't taken for read-only (the fill with a border).
+     The border variable covers add-ons, ColorPicker's box, MultiSelect's box and the segmented
+     track. A field in a disabled fieldset (no .ib-field-disabled) gets the same. */
+  .ib-field-disabled,
+  fieldset:disabled .ib-field {
+    --ib-field-border: transparent;
+  }
+
   .ib-field-input:disabled {
+    border-color: transparent;
     color: var(--ib-color-disabled);
     background-color: var(--ib-color-surface-container);
     cursor: not-allowed;
@@ -784,6 +793,11 @@
     border-color: var(--ib-field-border);
   }
 
+  /* A button left enabled beside a disabled field (copying its value) keeps its edge. */
+  :is(.ib-field-disabled, fieldset:disabled) .ib-field-addon > :is(.ib-btn, ib-copy > .ib-btn):not(.ib-btn-solid, :disabled) {
+    border-color: var(--ib-color-outline);
+  }
+
   /* The focus ring sits inside so it isn't clipped by the field next to it. */
   .ib-field-addon > .ib-btn:focus-visible,
   .ib-field-addon > ib-copy > .ib-btn:focus-visible {
@@ -863,7 +877,7 @@
     border-end-end-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
-  .ib-field-disabled .ib-field-addon {
+  :is(.ib-field-disabled, fieldset:disabled) .ib-field-addon {
     color: var(--ib-color-disabled);
   }
 
@@ -1273,20 +1287,21 @@
 
   /* Disabled: the box is a div, so it takes a disabled field's look here, and the chips lose
      their remove buttons (the script ignores them anyway). */
-  .ib-field-disabled .ib-multiselect > .ib-multiselect-box,
-  .ib-field-disabled .ib-multiselect > .ib-multiselect-box:hover {
+  :is(.ib-field-disabled, fieldset:disabled) .ib-multiselect > .ib-multiselect-box,
+  :is(.ib-field-disabled, fieldset:disabled) .ib-multiselect > .ib-multiselect-box:hover {
     border-color: var(--ib-field-border);
     color: var(--ib-color-disabled);
     background-color: var(--ib-color-surface-container);
     cursor: not-allowed;
   }
 
-  .ib-field-disabled .ib-multiselect .ib-chip {
+  :is(.ib-field-disabled, fieldset:disabled) .ib-multiselect .ib-chip {
     padding-inline-end: var(--ib-space-2);
+    background-color: transparent;
     color: var(--ib-color-disabled);
   }
 
-  .ib-field-disabled .ib-multiselect .ib-chip-remove {
+  :is(.ib-field-disabled, fieldset:disabled) .ib-multiselect .ib-chip-remove {
     display: none;
   }
 
@@ -2148,6 +2163,25 @@
     box-shadow: inset 0 0 0 1px var(--ib-field-border, var(--ib-color-outline));
   }
 
+  /*
+   * The chosen segment is raised off a filled track: the raised surface (lighter than the track in
+   * dark, where shadows barely show), a soft edge and a small shadow. Shared by SegmentedControl,
+   * ColorSchemeSwitch (both .ib-segmented) and segmented Tabs (tabs.css). Declared on the track,
+   * so the colors are the ones in effect there. For an accent instead: --ib-color-segment and
+   * --ib-color-on-segment (the chosen text), and --ib-color-segment-edge: transparent.
+   */
+  .ib-segmented,
+  .ib-tabs-segmented > .ib-tabs-list {
+    --ib-segment-fill: var(--ib-color-segment, light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 16%, var(--ib-color-surface))));
+    --ib-segment-edge: var(--ib-color-segment-edge, light-dark(var(--ib-color-border), rgb(255 255 255 / 0.08)));
+    --ib-segment-lift:
+      inset 0 0 0 1px var(--ib-segment-edge),
+      inset 0 1px 0 light-dark(transparent, rgb(255 255 255 / 0.08)),
+      0 1px 2px light-dark(rgb(20 20 19 / 0.12), rgb(0 0 0 / 0.6)),
+      0 1px 1px light-dark(rgb(20 20 19 / 0.06), rgb(0 0 0 / 0.4));
+    background-color: var(--ib-color-segment-track, light-dark(var(--ib-color-surface-container), var(--ib-color-surface-container-low)));
+  }
+
   .ib-segmented-full {
     display: flex;
     align-self: stretch;
@@ -2210,14 +2244,15 @@
     padding-inline: 0;
   }
 
-  .ib-segment:hover:not(:has(.ib-segment-input:disabled)) {
+  /* Not the chosen one: it keeps its own text color (an accent fill sets a light one). */
+  .ib-segment:hover:not(:has(.ib-segment-input:disabled), :has(.ib-segment-input:checked), [aria-current="true"]) {
     color: var(--ib-color-on-surface);
   }
 
   .ib-segment:has(.ib-segment-input:checked) {
-    background-color: var(--ib-color-segment, var(--ib-color-surface-container-high));
-    color: var(--ib-color-on-surface);
-    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge, transparent);
+    background-color: var(--ib-segment-fill);
+    color: var(--ib-color-on-segment, var(--ib-color-on-surface));
+    box-shadow: var(--ib-segment-lift);
   }
 
   .ib-segment:has(.ib-segment-input:focus-visible) {
@@ -2225,9 +2260,19 @@
     outline-offset: 1px;
   }
 
-  .ib-segment:has(.ib-segment-input:disabled) {
+  /* Read-only segments arrive disabled until the script enables them (and stay so without it):
+     they keep the normal look. */
+  .ib-segment:has(.ib-segment-input:disabled):not(.ib-field-readonly *) {
     color: var(--ib-color-disabled);
     cursor: default;
+  }
+
+  /* Disabled and chosen: its fill, edge and text at half strength, without the shadow, whatever
+     the fill (as a disabled Switch). */
+  .ib-segment:has(.ib-segment-input:checked:disabled):not(.ib-field-readonly *) {
+    color: var(--ib-color-on-segment, var(--ib-color-on-surface));
+    opacity: 0.5;
+    box-shadow: inset 0 0 0 1px var(--ib-segment-edge);
   }
 
   .ib-field-invalid .ib-segmented {
@@ -2248,6 +2293,14 @@
 
     .ib-segment:has(.ib-segment-input:disabled) {
       color: GrayText;
+    }
+
+    /* Disabled and chosen: the system's disabled color as the fill, not the theme's text on
+       Highlight. */
+    .ib-segment:has(.ib-segment-input:checked:disabled):not(.ib-field-readonly *) {
+      background-color: GrayText;
+      color: Canvas;
+      opacity: 1;
     }
   }
 }
@@ -2445,6 +2498,17 @@
     .ib-color-preset,
     .ib-color-input::-webkit-color-swatch {
       forced-color-adjust: none;
+    }
+  }
+}
+
+/* High contrast: a disabled field's boxes that aren't native inputs (MultiSelect's box,
+   ColorPicker's box, add-ons, the upload zone) take the system's disabled color, like the inputs. */
+@layer izzy.components {
+  @media (forced-colors: active) {
+    :is(.ib-field-disabled, fieldset:disabled) :is(.ib-multiselect > .ib-multiselect-box, .ib-color-box:has(:disabled), .ib-field-addon, .ib-file-zone) {
+      border-color: GrayText;
+      color: GrayText;
     }
   }
 }

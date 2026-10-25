@@ -77,9 +77,9 @@
   }
 
   .ib-scheme-switch > .ib-segment[aria-current="true"] {
-    background-color: var(--ib-color-segment, var(--ib-color-surface-container-high));
-    color: var(--ib-color-on-surface);
-    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge, transparent);
+    background-color: var(--ib-segment-fill);
+    color: var(--ib-color-on-segment, var(--ib-color-on-surface));
+    box-shadow: var(--ib-segment-lift);
   }
 
   .ib-scheme-switch > .ib-segment:focus-visible {
