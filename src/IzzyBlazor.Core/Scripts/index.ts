@@ -24,7 +24,7 @@ import { installDismissMemory, keepDismissed } from "./elements/dismiss";
 import { clearClosedDialogQuery, installCommandFallback, installDialogAutoClose, reopenAfterPost } from "./elements/dialog";
 import { installStaleErrors, installSubmitFeedback, installValidityMessages } from "./forms";
 import { installSelects, syncSelects } from "./select";
-import { openActiveNavGroups } from "./nav";
+import { installKeepPlace, keepPlaceArrived, openActiveNavGroups } from "./nav";
 import { installToggleBridge, type ToggleDetail } from "./toggle";
 import { installIndeterminate, installSelectAll, syncIndeterminate } from "./checkbox";
 import { focusMarked, installFocusRescue, installSkipLinks } from "./focus";
@@ -93,7 +93,9 @@ function registerEvents(blazor: BlazorLike): void {
 /** Blazor Web App initializer hook. */
 export function afterWebStarted(blazor: BlazorLike): void {
   registerEvents(blazor);
+  installKeepPlace();
   blazor.addEventListener?.("enhancedload", () => {
+    keepPlaceArrived();
     openActiveNavGroups();
     resetShellScroll();
     syncShells();
