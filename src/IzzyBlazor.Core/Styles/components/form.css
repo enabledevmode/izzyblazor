@@ -1272,16 +1272,32 @@
     display: contents;
   }
 
+  /* Empty, it takes what's left of the last row, however little, so a full row doesn't add an
+     empty one; once something is typed it needs room for a few characters and moves to a row of
+     its own if there isn't any. (The input always has a placeholder, a space if none is given, so
+     :placeholder-shown tells when it's empty.) */
   .ib-multiselect-box > .ib-multiselect-input {
     display: block;
-    flex: 1 0 6ch;
-    min-width: 6ch;
+    flex: 1 0 2ch;
+    min-width: 2ch;
     height: calc(var(--ib-field-h) - var(--ib-space-2) - 2px);
     padding: 0 var(--ib-space-1);
     border: 0;
     background: transparent;
     color: inherit;
     font: inherit;
+  }
+
+  .ib-multiselect-box > .ib-multiselect-input:not(:placeholder-shown) {
+    flex-basis: 6ch;
+    min-width: 6ch;
+  }
+
+  /* Beside chips, the empty input (its placeholder hidden) may reach into the room kept for the
+     chevron, so it needs none of its own: chips that fill the row don't push it onto a new one,
+     and the caret sits just before the chevron. */
+  .ib-multiselect:has(.ib-chip) .ib-multiselect-box > .ib-multiselect-input:placeholder-shown {
+    margin-inline-end: calc(-2ch - var(--ib-space-1));
   }
 
   .ib-multiselect-box > .ib-multiselect-input:focus {
