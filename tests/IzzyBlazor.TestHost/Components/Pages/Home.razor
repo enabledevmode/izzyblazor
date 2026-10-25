@@ -6,39 +6,37 @@
     <h1 class="host-title">IzzyBlazor dev host</h1>
 
     <p>
-        Every component demo is served twice. Use the switch in the header to move between them.
+        Full-page previews built only from IzzyBlazor components: realistic screens for judging the
+        shell variants and layering, and the README's screenshot. Component examples are on the docs
+        site (<code>site/IzzyBlazor.Site</code>, <code>npm run dev</code>).
     </p>
 
-    <Stack Gap="3" Padding="5" Bg="Color.SurfaceContainer" Radius="Radius.Md">
-        <Row Gap="3" Align="Align.Baseline"><code>/static/{demo}</code><span>Static SSR. No C# runs after the page is sent.</span></Row>
-        <Row Gap="3" Align="Align.Baseline"><code>/interactive/{demo}</code><span>Interactive Server. C# events work.</span></Row>
-    </Stack>
-
     <Stack Gap="2">
-        <h2 class="host-subtitle">Testing the three modes</h2>
-        <ol class="host-list">
-            <li><strong>No JavaScript:</strong> open a static page, then in Chrome or Edge DevTools press Ctrl+Shift+P (Cmd+Shift+P on macOS), run "Disable JavaScript", and reload. The badge next to the title says "JavaScript off".</li>
-            <li><strong>Enhanced:</strong> the same static page with JavaScript on. Custom elements and enhanced navigation are active.</li>
-            <li><strong>Interactive:</strong> switch to Interactive in the header.</li>
-        </ol>
-    </Stack>
-
-    <Stack Gap="2">
-        <h2 class="host-subtitle">Also check</h2>
+        <h2 class="host-subtitle">Previews</h2>
         <ul class="host-list">
-            <li>Light, dark and system themes (header switch, or DevTools Rendering panel for the system setting).</li>
-            <li>Every breakpoint with the DevTools device toolbar: sm 640px, md 768px, lg 1024px, xl 1280px.</li>
-            <li>Keyboard only, and an axe DevTools scan, on anything interactive.</li>
+            @foreach (var (href, title, note) in Previews)
+            {
+                <li><Anchor Href="@href">@title</Anchor>: @note</li>
+            }
         </ul>
     </Stack>
 
     <Stack Gap="2">
-        <h2 class="host-subtitle">Components</h2>
-        <Row Gap="2" Wrap>
-            @foreach (var demo in DemoCatalog.All)
-            {
-                <a class="host-chip" href="static/@demo.Slug">@demo.Title</a>
-            }
-        </Row>
+        <h2 class="host-subtitle">Shell variants</h2>
+        <p>The layout previews take <code>?variant=tinted</code>, <code>inset</code>, <code>flat</code> or <code>canvas</code>.</p>
     </Stack>
 </Stack>
+
+@code {
+    internal static readonly (string Href, string Title, string Note)[] Previews =
+    [
+        ("preview/showcase", "Showcase", "the README screenshot, at 1280×860 with a device scale factor of 2, in light and dark"),
+        ("preview/app-shell", "App shell", "a full-page AppShell, static"),
+        ("preview/app-shell-live", "App shell, interactive", "a collapsible sidebar bound to C#"),
+        ("preview/layout/settings", "Settings", "forms in sections"),
+        ("preview/layout/list", "List", "a full-width table"),
+        ("preview/layout/dashboard", "Dashboard", "stats and panels"),
+        ("preview/layout/document", "Document", "long-form reading"),
+        ("preview/layout/marketing", "Marketing site", "no sidebar, a hero, full-bleed bands"),
+    ];
+}

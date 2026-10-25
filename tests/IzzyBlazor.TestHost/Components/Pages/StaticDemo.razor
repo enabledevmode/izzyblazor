@@ -1,8 +1,0 @@
-@page "/static/{Slug}"
-@* No render mode: static SSR. Disable JavaScript in DevTools to test the no-JS case. *@
-
-<DemoPage Slug="@Slug" />
-
-@code {
-    [Parameter] public string? Slug { get; set; }
-}

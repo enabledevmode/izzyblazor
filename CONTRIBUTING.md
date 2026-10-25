@@ -13,7 +13,7 @@ src/IzzyBlazor.Core/         the components, CSS and JS; runs in any render mode
   Styles/                    tokens, base and component CSS (bundled by esbuild)
   Scripts/                   custom elements in TypeScript (bundled by esbuild)
 src/IzzyBlazor/              server-only pieces: cookie-backed toast carrier and request cookies (IzzyBlazor package)
-tests/IzzyBlazor.TestHost/   dev host: every demo at /static/{demo} and /interactive/{demo}, previews at /preview/...
+tests/IzzyBlazor.TestHost/   dev host: full-page previews at /preview/... (the README screenshot, shell layouts)
 tests/IzzyBlazor.Tests/      xUnit and bUnit tests
 site/IzzyBlazor.Site/        the documentation site at izzyblazor.com: /docs and /demos (see "The docs site" below)
 site/IzzyBlazor.DocsGen/     writes izzyblazor.api.json, the API metadata, from the built library
@@ -33,25 +33,23 @@ Requirements: .NET 10 SDK and Node 20 or newer.
 
 ```bash
 npm ci        # once: installs esbuild, the Lucide source icons and the Inter font
-npm run dev   # asset watcher + dotnet watch on the dev host
+npm run dev   # asset watcher + dotnet watch on the docs site
 ```
 
-Open the host (http://localhost:5180 by default) and pick a component. Use the header to switch
-between **Static** and **Interactive**, and between light and dark themes.
-
-To test with JavaScript off: open a static page, press Ctrl+Shift+P (Cmd+Shift+P on macOS) in Chrome
-or Edge DevTools, run **Disable JavaScript**, and reload. A "JavaScript off" note appears next to the page
-title.
+Open the docs site (http://localhost:5190) and pick a component. Its examples switch between
+**Off** (JavaScript off), **Static** and **Live** (interactive), and the header between light and
+dark.
 
 Other commands:
 
 ```bash
 dotnet build              # also builds CSS and JS (runs npm ci the first time)
-dotnet test               # unit and render tests
+dotnet test               # unit, render and site tests (one site test runs in Chromium)
 npm run build             # assets only, minified
 ```
 
-The README screenshots come from the dev host's `/preview/showcase` page, at 1280×860 with a device
+The dev host (`tests/IzzyBlazor.TestHost`, http://localhost:5180) holds full-page previews. The
+README screenshots come from its `/preview/showcase` page, at 1280×860 with a device
 scale factor of 2, in light and dark. The other full-page previews are `/preview/app-shell`,
 `/preview/app-shell-live` (interactive) and `/preview/layout/{kind}` (realistic screens such as
 `settings`, `list` and `dashboard`).
@@ -94,7 +92,8 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
    Inter, `build/measure-text.mjs`) for the first paint, and the script, which sets
    `[data-ib-measured]`, keeps that layout on its first pass when it fits and the measurement
    differs by no more than a few pixels.
-4. **A demo** in `tests/IzzyBlazor.TestHost/Components/Demos/`, plus one line in `DemoCatalog.cs`.
+4. **Examples** on the docs site: one file per example in `site/IzzyBlazor.Site/Examples/{Component}/`,
+   listed on its `components.json` entry (see [The docs site](#the-docs-site)).
 5. **Tests** in `tests/IzzyBlazor.Tests/`, for its behavior (see [Tests](#tests)).
 6. **Docs:** an entry in `site/IzzyBlazor.Site/components.json` (or a part on its parent's entry;
    a test fails until it's there), doc comments on every parameter, and `[ModeSupport]` on the
