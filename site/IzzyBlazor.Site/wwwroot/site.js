@@ -3,7 +3,6 @@
 //   - a link or form in an example that loads this page again (?page=2, a post, a scheme switch's
 //     link with JavaScript off) brings it back to that example, where it was on the screen, rather
 //     than to the top,
-//   - following a link to another page keeps this one where it is until the new one is in,
 //   - an Off page that enhanced navigation patched into a page still running Blazor is reloaded,
 //     so its examples really run without it,
 //   - a demo's frame follows the page's color scheme when it changes,
@@ -183,31 +182,6 @@
     else form.setAttribute("action", href);
   }, true);
 
-  // Blazor's enhanced navigation scrolls to the top as soon as a link to another page is followed,
-  // before that page arrives, so this one shows from its top until then. Its handler is on the
-  // document: after it, put the place back, and go to the top once the new page is patched in.
-  let from = null;
-  let leaving = false;
-  document.addEventListener("click", () => {
-    from = { path: location.pathname, y: window.scrollY };
-  }, true);
-  window.addEventListener("click", (event) => {
-    if (!from || !event.defaultPrevented || !blazor() || location.pathname === from.path) return;
-    if (window.scrollY !== from.y) window.scrollTo(0, from.y);
-    leaving = true;
-  });
-  window.addEventListener("popstate", () => {
-    leaving = false;
-  });
-
-  function arrived() {
-    if (!leaving) return;
-    leaving = false;
-    // A link to a #fragment: Blazor scrolls to it once the page is in.
-    const hash = location.hash && decodeURIComponent(location.hash.slice(1));
-    if (!hash || !document.getElementById(hash)) window.scrollTo(0, 0);
-  }
-
   // The page's scheme lives on <html> (data-ib-color-scheme) once someone picks one; a demo's
   // frame follows it.
   function scheme(frame) {
@@ -256,7 +230,6 @@
         return;
       }
 
-      arrived();
       restore();
       frames();
     });
