@@ -22,7 +22,7 @@ public sealed partial class XmlDocs
             throw new FileNotFoundException($"No XML doc file at {path}. Is GenerateDocumentationFile on?", path);
         }
 
-        foreach (var member in XDocument.Load(path).Descendants("member"))
+        foreach (var member in XDocument.Load(path, LoadOptions.PreserveWhitespace).Descendants("member"))
         {
             if (member.Attribute("name")?.Value is { } name)
             {
