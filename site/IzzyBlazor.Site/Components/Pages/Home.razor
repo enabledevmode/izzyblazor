@@ -31,8 +31,8 @@
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
-                Rich components for static SSR. Pages arrive as real HTML, a small script brings them to life, and
-                the same markup binds to C# on the pages you make interactive.
+                Rich components for static SSR. Pages arrive as HTML, a small script adds client-side behavior, and
+                the same components support C# interactivity wherever you need it.
             </TextBlock>
             <Row Gap="3" Wrap>
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
@@ -51,39 +51,39 @@
 <Section Bg="Color.SurfaceContainerLow" Class="site-band">
     <Stack Gap="6">
         <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl2">Why SSR first</Heading>
+            <Heading Level="2" Size="TextSize.Xl2">SSR first. Interactive when it matters.</Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Class="site-why-intro">
-                Static SSR is Blazor at its lightest.<br />With IzzyBlazor, it's enough for most of your pages.
+                Static SSR keeps Blazor lightweight.<br />IzzyBlazor helps you build more of your UI that way, adding interactivity where it earns its place.
             </TextBlock>
         </Stack>
         <Grid Columns="new() { Base = 1, Sm = 2, Lg = 4 }" Gap="8" Class="site-why">
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.MemoryStick" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">No per-visitor state</Heading>
+                    <Heading Level="3" Size="TextSize.Md">No circuits to maintain</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">Pages scale like any web app, behind any load balancer. There is no circuit to hold server memory for each open tab.</TextBlock>
+                <TextBlock Color="Color.Muted">Static pages don't hold a live server connection or reserve circuit memory for every open tab. Serve each request and move on.</TextBlock>
             </Stack>
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.RefreshCw" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">Deploy anytime</Heading>
+                    <Heading Level="3" Size="TextSize.Md">Deploy with less disruption</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">Restart or redeploy without dropping anyone. There are no live circuits to lose, and the next click is an ordinary request.</TextBlock>
+                <TextBlock Color="Color.Muted">No live circuits means no sessions to disconnect during a restart or deployment. The next navigation is a fresh request.</TextBlock>
             </Stack>
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.Zap" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">Fast first paint</Heading>
+                    <Heading Level="3" Size="TextSize.Md">Content comes first</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">Pages show as soon as the HTML arrives, which is good for users and for search. There is no runtime to download first.</TextBlock>
+                <TextBlock Color="Color.Muted">Pages arrive as HTML, ready for the browser to display. Users can start reading without waiting for a .NET runtime to download.</TextBlock>
             </Stack>
             <Stack Gap="2">
                 <Row Gap="3" Align="Align.Center">
                     <Pictogram Icon="Lucide.Layers" Size="ControlSize.Sm" />
-                    <Heading Level="3" Size="TextSize.Md">One set of components</Heading>
+                    <Heading Level="3" Size="TextSize.Md">One component library. Every render mode.</Heading>
                 </Row>
-                <TextBlock Color="Color.Muted">Opt a page into interactivity only when it needs C#. The same components work on static, Server, WebAssembly and Auto pages.</TextBlock>
+                <TextBlock Color="Color.Muted">Start with static SSR and add interactive C# where you need it. Use the same IzzyBlazor components across static SSR, Interactive Server, WebAssembly, and Auto.</TextBlock>
             </Stack>
         </Grid>
     </Stack>
