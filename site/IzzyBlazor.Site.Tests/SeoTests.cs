@@ -25,6 +25,11 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Contains("Sitemap: https://izzyblazor.com/sitemap.xml", robots);
         Assert.Contains("Disallow: /frame/", robots);
         Assert.Contains("Disallow: /search", robots);
+        foreach (var file in new[] { "robots.txt", "sitemap.xml" })
+        {
+            using var head = new HttpRequestMessage(HttpMethod.Head, file);
+            Assert.Equal(HttpStatusCode.OK, (await site.Client.SendAsync(head)).StatusCode);
+        }
 
         var paths = await SitemapPaths();
         Assert.Equal(paths.Count, paths.Distinct().Count());

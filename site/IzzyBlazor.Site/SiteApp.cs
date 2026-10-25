@@ -112,8 +112,8 @@ public static class SiteApp
             context.Response.Headers.CacheControl = "public, max-age=300";
             return new RazorComponentResult<SearchDialogResults>(new { Q = q });
         });
-        app.MapGet("/robots.txt", () => Results.Text(Sitemap.Robots, "text/plain"));
-        app.MapGet("/sitemap.xml", (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
+        app.MapMethods("/robots.txt", ["GET", "HEAD"], () => Results.Text(Sitemap.Robots, "text/plain"));
+        app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
         app.MapGet("/izzyblazor.api.json", (ApiMetadata api) => Results.Text(api.Json, "application/json"));
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
