@@ -58,7 +58,6 @@
   // Enhanced navigation can reset <html> attributes to the server's version.
   if (window.Blazor && Blazor.addEventListener) {
     Blazor.addEventListener("enhancedload", function () {
-      document.documentElement.classList.add("js");
       applySets();
     });
   }

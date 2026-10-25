@@ -1,6 +1,6 @@
 // One command for day-to-day development:  npm run dev
 //
-// Runs the asset watcher (CSS + TypeScript) and `dotnet watch` on the test host
+// Runs the asset watcher (CSS + TypeScript) and `dotnet watch` on the docs site
 // side by side. Edit a component, its CSS or a custom element and the browser
 // updates. Stop both with Ctrl+C.
 
@@ -30,4 +30,4 @@ process.on("SIGTERM", shutdown);
 
 run("assets", "node", ["build/build-assets.mjs", "--watch"], root);
 // The watcher owns the assets, so MSBuild skips its own asset step.
-run("host", "dotnet", ["watch", "--project", "tests/IzzyBlazor.TestHost", "--property:SkipAssetBuild=true"], root);
+run("site", "dotnet", ["watch", "--project", "site/IzzyBlazor.Site", "--property:SkipAssetBuild=true"], root);

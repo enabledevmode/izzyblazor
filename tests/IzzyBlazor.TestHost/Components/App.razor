@@ -5,12 +5,11 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <base href="/" />
-    @* Applied before first paint: the saved preset and brand, and a class that says JavaScript is
-       running. The color scheme comes from IzzyTheme (the switch's cookie), below. *@
+    @* Applied before first paint: the saved preset and brand. The color scheme comes from
+       IzzyTheme (the switch's cookie), below. *@
     <script>
         (function () {
             var d = document.documentElement;
-            d.classList.add("js");
             try {
                 var l = localStorage.getItem("ib-host-preset");
                 if (l) d.setAttribute("data-ib-preset", l);

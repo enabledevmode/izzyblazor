@@ -1,6 +1,4 @@
 @inherits LayoutComponentBase
-@inject NavigationManager Navigation
-@implements IDisposable
 
 @* The dev host's chrome, built with AppShell and NavMenu. It renders statically. *@
 
@@ -9,7 +7,6 @@
        the browser closes (Remember's default). *@
     <Banner Title="Alpha:" Dismissible Position="BarPosition.Sticky">
         IzzyBlazor is in alpha; component APIs may change before 1.0.
-        <BannerActions><Anchor Href="static/alerts">Banner demos</Anchor></BannerActions>
     </Banner>
     <AppHeader>
         <SidebarToggle />
@@ -17,14 +14,6 @@
             <Logo><span class="host-brand">IzzyBlazor <span>dev host</span></span></Logo>
         </AppBrand>
         <Box Grow />
-        @if (_counterpart is not null)
-        {
-            @* From 640px up; on phones it's at the top of the sidebar drawer instead. *@
-            <Tabs Label="Render mode" Variant="TabsVariant.Segmented" Class="host-mode" VisibleFrom="Breakpoint.Sm">
-                <TabLink Href="@_staticUrl" Label="Static" />
-                <TabLink Href="@_interactiveUrl" Label="Interactive" />
-            </Tabs>
-        }
         <Row Inline Gap="2" Align="Align.Center" VisibleFrom="Breakpoint.Md" Class="host-sets">
             <span class="host-select-wrap"><select class="host-select" data-host-set="preset" aria-label="Preset">
                 <option value="">Standard</option><option value="compact">Compact</option><option value="soft">Soft</option><option value="editorial">Editorial</option>
@@ -38,24 +27,12 @@
     </AppHeader>
 
     <AppSidebar>
-        @if (_counterpart is not null)
-        {
-            <Box HiddenFrom="Breakpoint.Sm">
-                <Tabs Label="Render mode" Variant="TabsVariant.Segmented" FullWidth>
-                    <TabLink Href="@_staticUrl" Label="Static" />
-                    <TabLink Href="@_interactiveUrl" Label="Interactive" />
-                </Tabs>
-            </Box>
-        }
-        <NavMenu aria-label="Components">
+        <NavMenu aria-label="Previews">
             <NavItem Href="/" Icon="Lucide.House" Match="NavLinkMatch.All">Overview</NavItem>
-            @foreach (var group in DemoCatalog.All.GroupBy(d => d.Group))
+            <NavLabel>Previews</NavLabel>
+            @foreach (var (href, title, _) in Home.Previews)
             {
-                <NavLabel>@group.Key</NavLabel>
-                @foreach (var demo in group)
-                {
-                    <NavItem Href="@($"{(_isStatic ? "static" : "interactive")}/{demo.Slug}")">@demo.Title</NavItem>
-                }
+                <NavItem Href="@href">@title</NavItem>
             }
         </NavMenu>
     </AppSidebar>
@@ -74,39 +51,3 @@
     <a href="." class="reload">Reload</a>
     <span class="dismiss">🗙</span>
 </div>
-
-@code {
-    private bool _isStatic = true;
-    private string? _counterpart;
-    private string? _staticUrl;
-    private string? _interactiveUrl;
-
-    protected override void OnInitialized()
-    {
-        Navigation.LocationChanged += OnLocationChanged;
-        Update();
-    }
-
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e)
-    {
-        Update();
-        StateHasChanged();
-    }
-
-    private void Update()
-    {
-        var path = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0];
-        var parts = path.Split('/', 2);
-        _counterpart = null;
-
-        if (parts.Length == 2 && parts[0] is "static" or "interactive")
-        {
-            _isStatic = parts[0] == "static";
-            _counterpart = parts[1];
-            _staticUrl = $"static/{parts[1]}";
-            _interactiveUrl = $"interactive/{parts[1]}";
-        }
-    }
-
-    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
-}
