@@ -255,6 +255,16 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>Whether the field has validation errors.</summary>
     protected bool Invalid => Errors.Count > 0;
 
+    /// <summary>
+    /// Whether a group (checkboxes, radios) takes focus: on a static page with errors, that is
+    /// after a post that failed. Its errors are linked to the fieldset, which nothing focuses, so
+    /// they'd go unheard. The group puts <c>autofocus</c> (full page loads, JavaScript off too) and
+    /// <c>data-ib-autofocus</c> (enhanced posts) on its checked radio, else its first option; the
+    /// browser and the script focus the first of these on the page that can take focus, so a <see cref="FormErrors"/> or a group
+    /// earlier in the page keeps it.
+    /// </summary>
+    protected bool FocusesGroup => Invalid && !IsDisabled && !RendererInfo.IsInteractive;
+
     /// <summary>The ids that describe the control: the hint and, when invalid, the errors.</summary>
     protected string? DescribedBy
     {

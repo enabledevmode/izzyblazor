@@ -10,8 +10,9 @@
     - Label, hint and errors work as in `TextField`: a linked `label`, `aria-describedby` and
       `aria-invalid`.
     - With a maximum length, the browser stops typing at the limit (`maxlength`).
-    - The `ShowCount` counter isn't announced as it changes and isn't linked to the field, so put
-      the limit in the `Hint` when it matters.
+    - With script, the `ShowCount` counter ("12 / 200") is the field's description, after the
+      hint and errors, so screen readers read it on focus; it isn't announced as it changes. With
+      JavaScript off it doesn't update, so it isn't linked.
     See also: TextField, Form, FieldFrame.
 *@
 
@@ -33,9 +34,11 @@
                   readonly="@IsReadOnly"
                   aria-invalid="@(Invalid ? "true" : null)"
                   aria-describedby="@DescribedBy"></textarea>
-        @if (ShowCount && Max is { } max)
+        @if (ShowsCount)
         {
-            <span class="ib-field-count" data-ib-count="@max">@(CurrentValueAsString?.Length ?? 0) / @max</span>
+            @* The script keeps the number's own text node in step as you type and adds the count
+               to the textarea's aria-describedby. *@
+            <span class="ib-field-count" id="@CountId"><span class="ib-field-count-current">@(CurrentValueAsString?.Length ?? 0)</span> / @Max</span>
         }
     </ib-field-control>
 </FieldFrame>
@@ -66,6 +69,10 @@
     [Parameter] public bool ShowCount { get; set; }
 
     private int? Max => MaxLength ?? AnnotatedMaxLength;
+
+    private bool ShowsCount => ShowCount && Max is not null;
+
+    private string CountId => FieldId + "-count";
 
     private string InputClass => AutoGrow ? "ib-field-input ib-field-autogrow" : "ib-field-input";
 }

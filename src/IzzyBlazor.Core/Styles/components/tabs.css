@@ -1,5 +1,5 @@
 /*
- * Tabs. Each tab is a label around a radio button; CSS shows the panel whose tab is checked,
+ * Tabs. Each tab holds a radio button and its label; CSS shows the panel whose tab is checked,
  * so switching works with no script. Panels follow the list in order, so tab N shows panel N
  * (up to 30 tabs). With script, <ib-tabs> adds ARIA tab roles and roving focus; the radios
  * stay the source of truth.
@@ -62,6 +62,21 @@
 
   a.ib-tab {
     text-decoration: none;
+  }
+
+  /* The tab's content is in a label for its radio, laid out as the tab's own; the label is
+     stretched over the whole tab, so a click anywhere on it checks the radio. With script the
+     tab, not the label, takes role="tab" (a label can't have a role). */
+  .ib-tab-label {
+    display: contents;
+    /* The tab's pointer (or not-allowed): a label's own is the arrow. */
+    cursor: inherit;
+  }
+
+  .ib-tab-label::before {
+    content: "";
+    position: absolute;
+    inset: 0;
   }
 
   .ib-tab-text {

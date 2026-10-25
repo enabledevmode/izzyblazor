@@ -12,6 +12,10 @@
       reaches the group and the arrow keys move the choice.
     - Each option's text is its `label`; the hint and errors are linked to the group with
       `aria-describedby`, and each radio sets `aria-invalid` when the field is invalid.
+    - After a post that fails with an error here, the checked radio (or the first)
+      takes focus, so screen readers read the group's name and error (its description); a
+      `FormErrors` earlier in the page takes it first. Not on interactive pages: there, use a
+      `FormErrors`.
     See also: SegmentedControl, Select, CheckboxGroup.
 *@
 
@@ -22,6 +26,7 @@
         {
             var value = FormatValueAsString(item);
             var id = $"{FieldId}-{index}";
+            var focus = FocusesGroup && index == FocusIndex;
             <label class="ib-check" for="@id">
                 <input @attributes="RadioMessageAttributes"
                        id="@id"
@@ -33,7 +38,9 @@
                        @onchange="() => CurrentValue = item"
                        required="@IsRequired"
                        disabled="@IsDisabled"
-                       aria-invalid="@(Invalid ? "true" : null)" />
+                       aria-invalid="@(Invalid ? "true" : null)"
+                       autofocus="@focus"
+                       data-ib-autofocus="@(focus ? "" : null)" />
                 <span class="ib-check-label">@TextFor(item)</span>
             </label>
         }
@@ -55,6 +62,9 @@
     [Obsolete("HTML has no read-only radio. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public bool ReadOnly { get; set; }
+
+    // The radio Tab reaches: the checked one, or else the first.
+    private int FocusIndex => Math.Max(0, Options.Select(FormatValueAsString).ToList().IndexOf(CurrentValueAsString));
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }

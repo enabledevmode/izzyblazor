@@ -40,7 +40,8 @@
     Wrap it in a ToolbarItem, which keeps its place.
 
     Accessibility:
-    - With script, it's a `toolbar` named by `Label`, with one tab stop: Left and Right move between
+    - With script, it's a `toolbar` named by `Label` (optional; name each one when a page has
+      more than one), with one tab stop: Left and Right move between
       its controls and wrap, Home and End go to the ends (reversed on right-to-left pages), and
       focus comes back to the control last used.
     - A text field keeps Left and Right until the caret reaches its start or end, and a
@@ -90,8 +91,11 @@
 </ib-toolbar>
 
 @code {
-    /// <summary>What the toolbar is for, for screen readers: "Formatting", "Editor". Required.</summary>
-    [Parameter, EditorRequired] public string Label { get; set; } = "";
+    /// <summary>
+    /// What the toolbar is for, for screen readers: "Formatting", "Editor". Optional, as in ARIA;
+    /// set it when the page has more than one toolbar, so they can be told apart.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
 
     /// <summary>The buttons' accent, unless a button sets its own. Defaults to <see cref="Accent.Neutral"/>.</summary>
     [Parameter] public Accent Accent { get; set; } = Accent.Neutral;
@@ -146,11 +150,6 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (string.IsNullOrWhiteSpace(Label))
-        {
-            throw new InvalidOperationException("Toolbar needs a Label: it names the toolbar for screen readers.");
-        }
-
         _context.Gap = Gap * 4;
         if (_defaults is null || _defaults.Accent != Accent || _defaults.Variant != Variant || _defaults.Size != Size)
         {

@@ -33,8 +33,16 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
     /// <summary>The query-string name, such as <c>status</c>.</summary>
     [Parameter] public string Name { get; set; } = "";
 
-    /// <summary>The label for screen readers. Filter bars are compact, so it isn't shown.</summary>
+    /// <summary>
+    /// The field's name for screen readers (shown beside a <see cref="FilterCheckbox"/>). Filter
+    /// bars are compact, so a search box's and a select's isn't shown. Required on
+    /// <see cref="FilterSelect"/> and <see cref="FilterCheckbox"/>; <see cref="FilterSearch"/>'s
+    /// defaults to "Search".
+    /// </summary>
     [Parameter] public string? Label { get; set; }
+
+    /// <summary>Whether the field needs a <see cref="Label"/>: the query key is no name for people.</summary>
+    private protected virtual bool RequiresLabel => false;
 
     /// <summary>Control height and text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
     [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
@@ -78,7 +86,15 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
     }
 
     /// <inheritdoc />
-    protected override void OnParametersSet() => Read();
+    protected override void OnParametersSet()
+    {
+        if (RequiresLabel && string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException($"{GetType().Name} needs a {nameof(Label)}: it names the field for screen readers.");
+        }
+
+        Read();
+    }
 
     private void Read()
     {
@@ -157,8 +173,10 @@ public sealed class FilterSelect : FilterFieldBase
     /// <summary>Display text for a value, when it differs from the value.</summary>
     [Parameter] public Func<string, string>? ItemText { get; set; }
 
-    /// <summary>The first option, meaning no filter. Defaults to "{Label}: All", or "All".</summary>
+    /// <summary>The first option, meaning no filter. Defaults to "{Label}: All".</summary>
     [Parameter] public string? AllText { get; set; }
+
+    private protected override bool RequiresLabel => true;
 
     // Each value once: a repeated value would only confuse (and Items plus EnumType can overlap).
     private IEnumerable<(string Value, string Text)> Options() =>
@@ -185,7 +203,7 @@ public sealed class FilterSelect : FilterFieldBase
     {
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", FieldClass("select"));
-        builder.AddContent(2, HiddenLabel(Label ?? Name));
+        builder.AddContent(2, HiddenLabel(Label!));
         builder.OpenElement(10, "div");
         builder.AddAttribute(11, "class", "ib-field-control ib-has-end");
         builder.OpenElement(12, "select");
@@ -196,7 +214,7 @@ public sealed class FilterSelect : FilterFieldBase
         builder.AddAttribute(17, "value", CurrentValue ?? "");
         builder.OpenElement(18, "option");
         builder.AddAttribute(19, "value", "");
-        builder.AddContent(20, AllText ?? (Label is null ? "All" : $"{Label}: All"));
+        builder.AddContent(20, AllText ?? $"{Label}: All");
         builder.CloseElement();
         foreach (var (value, text) in Options())
         {
@@ -219,6 +237,8 @@ public sealed class FilterSelect : FilterFieldBase
 /// <summary>A checkbox for a <see cref="FilterForm"/>: when checked the URL has <c>name=true</c>.</summary>
 public sealed class FilterCheckbox : FilterFieldBase
 {
+    private protected override bool RequiresLabel => true;
+
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
@@ -238,7 +258,7 @@ public sealed class FilterCheckbox : FilterFieldBase
         builder.CloseElement();
         builder.OpenElement(13, "span");
         builder.AddAttribute(14, "class", "ib-check-label");
-        builder.AddContent(15, Label ?? Name);
+        builder.AddContent(15, Label);
         builder.CloseElement();
         builder.CloseElement();
         builder.CloseElement();

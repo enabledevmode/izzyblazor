@@ -17,10 +17,12 @@
       `aria-describedby` (with `Group`, the `fieldset` carries it) and sets `aria-invalid` itself.
     - `HideLabel` keeps the label for screen readers; `LabelId` lets a control that isn't a native
       input take its name with `aria-labelledby`.
-    - The required asterisk is hidden from screen readers, so mark the control `required` too.
+    - The required asterisk is hidden from screen readers, so mark the control `required` too;
+      where it can't be (a group of checkboxes), `AnnounceRequired` adds "(required)" for them
+      after the label.
     - Add-on text from `FieldAddons` isn't part of the control's name.
-    - `FieldError`'s messages aren't linked to any control, so screen readers don't hear them on
-      focus; an IzzyBlazor field links its own.
+    - `FieldError`'s messages are linked through its `Id`: point the control's `aria-describedby`
+      at it. An IzzyBlazor field links its own.
     See also: TextField, Fieldset, Form.
 *@
 
@@ -29,7 +31,7 @@
     <fieldset class="@Class" style="@Style" aria-describedby="@DescribedBy">
         @if (!string.IsNullOrEmpty(Label))
         {
-            <legend class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")">@Label@RequiredMark</legend>
+            <legend class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")">@Label@RequiredMark@RequiredText</legend>
         }
         @ChildContent
         @Footer
@@ -40,7 +42,7 @@ else
     <div class="@Class" style="@Style">
         @if (!string.IsNullOrEmpty(Label) && !LabelInControl)
         {
-            <label class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")" for="@Id" id="@LabelId">@Label@RequiredMark</label>
+            <label class="@(HideLabel ? "ib-field-label ib-visually-hidden" : "ib-field-label")" for="@Id" id="@LabelId">@Label@RequiredMark@RequiredText</label>
         }
         @ChildContent
         @Footer
@@ -68,6 +70,13 @@ else
 
     /// <summary>Whether the field is required: an asterisk, or no "(optional)", depending on the form's <c>RequiredMark</c>.</summary>
     [Parameter] public bool Required { get; set; }
+
+    /// <summary>
+    /// Says "(required)" to screen readers after the label of a required field
+    /// (<see cref="IzzyText.Required"/>), for controls that can't be marked <c>required</c>
+    /// themselves, such as a group of checkboxes. Whatever the form's <c>RequiredMark</c>.
+    /// </summary>
+    [Parameter] public bool AnnounceRequired { get; set; }
 
     [CascadingParameter] internal FormOptions? FormOptions { get; set; }
 
@@ -102,6 +111,17 @@ else
         IzzyBlazor.RequiredMark.Optional when !Required => RenderOptionalMark,
         _ => null,
     };
+
+    private RenderFragment? RequiredText => Required && AnnounceRequired ? RenderRequiredText : null;
+
+    private void RenderRequiredText(RenderTreeBuilder builder)
+    {
+        builder.AddContent(0, " ");
+        builder.OpenElement(1, "span");
+        builder.AddAttribute(2, "class", "ib-visually-hidden");
+        builder.AddContent(3, IzzyText.From(Services).Required);
+        builder.CloseElement();
+    }
 
     private void RenderOptionalMark(RenderTreeBuilder builder)
     {

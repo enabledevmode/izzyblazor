@@ -40,8 +40,10 @@ public class ShellRenderTests : BunitContext
 
         Assert.Equal("./#ib-sidebar", a.GetAttribute("href"));
         Assert.Equal("ib-sidebar", a.GetAttribute("aria-controls"));
-        Assert.Equal("false", a.GetAttribute("aria-expanded"));
         Assert.Equal("Open menu", a.GetAttribute("aria-label"));
+        // A plain link until the shell's script makes it a button and keeps aria-expanded.
+        Assert.Null(a.GetAttribute("role"));
+        Assert.Null(a.GetAttribute("aria-expanded"));
     }
 
     [Theory]

@@ -1,14 +1,19 @@
 @using System.ComponentModel.DataAnnotations
 
 <Form Model="Model" FormName="color-picker-presets" MaxWidth="20.Rem" Grow>
-    <ColorPicker @bind-Value="Model!.Brand" Presets="BrandColors" Hint="Used for buttons, links and focus rings." />
+    <ColorPicker @bind-Value="Model!.Brand" Presets="BrandColors.Keys" PresetText="hex => BrandColors[hex]" Hint="Used for buttons, links and focus rings." />
 </Form>
 
 @code {
     [SupplyParameterFromForm(FormName = "color-picker-presets")]
     private Branding? Model { get; set; }
 
-    private static readonly string[] BrandColors = ["#2563eb", "#4f46e5", "#7c3aed", "#0f766e", "#15803d", "#be123c", "#ea580c", "#18181b"];
+    // Each preset's name, which screen readers hear instead of its hex value. In order.
+    private static readonly OrderedDictionary<string, string> BrandColors = new()
+    {
+        ["#2563eb"] = "Blue", ["#4f46e5"] = "Indigo", ["#7c3aed"] = "Violet", ["#0f766e"] = "Teal",
+        ["#15803d"] = "Green", ["#be123c"] = "Rose", ["#ea580c"] = "Orange", ["#18181b"] = "Black",
+    };
 
     protected override void OnInitialized() => Model ??= new();
 

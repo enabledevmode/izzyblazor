@@ -39,15 +39,32 @@ class FieldControl extends IzzyElement {
       setupSteppers(input, steppers, signal);
     }
 
-    // The count's text belongs to Blazor, so the live number goes in an attribute that CSS
-    // shows instead. When Blazor re-renders the text, its number is current again.
-    const count = this.querySelector<HTMLElement>("[data-ib-count]");
-    if (count) {
-      const update = () => (count.dataset.current = String(input.value.length));
+    // With script the count is live, so it becomes the field's description (with JavaScript off it
+    // would read a stale number). The number's text node belongs to Blazor: change its data, never
+    // replace it, so Blazor's next render of the count finds its own node (and writes the same
+    // number). Blazor also writes aria-describedby (the hint and errors), so put the count back
+    // whenever it does.
+    const count = this.querySelector<HTMLElement>(".ib-field-count[id]");
+    const current = count?.querySelector<HTMLElement>(".ib-field-count-current");
+    if (count && current) {
+      const update = () => {
+        const text = String(input.value.length);
+        const node = current.firstChild;
+        if (node instanceof Text && node.data !== text) node.data = text;
+      };
+      const link = () => {
+        const ids = (input.getAttribute("aria-describedby") ?? "").split(/\s+/).filter(Boolean);
+        if (!ids.includes(count.id)) input.setAttribute("aria-describedby", [...ids, count.id].join(" "));
+      };
       input.addEventListener("input", update, { signal });
-      const observer = new MutationObserver(() => delete count.dataset.current);
-      observer.observe(count, { childList: true, characterData: true, subtree: true });
+      // A reset changes the value after its event, with no input event.
+      input.form?.addEventListener("reset", () => setTimeout(update), { signal });
+      const observer = new MutationObserver(link);
+      observer.observe(input, { attributes: true, attributeFilter: ["aria-describedby"] });
       signal.addEventListener("abort", () => observer.disconnect());
+      link();
+      // The browser may restore typed text on reload, which the server's count didn't see.
+      update();
     }
   }
 }

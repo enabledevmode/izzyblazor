@@ -6,8 +6,10 @@ import { writeCookie } from "../cookies";
  * CSS :target links; with it, opening does not touch the URL, Escape and the backdrop close
  * it, following a link closes it, and focus moves into the drawer and back to the toggle.
  *
- * It only sets data-sidebar-open and aria-expanded. Enhanced navigation re-syncs the shell's
- * attributes with the server's markup, which also closes the drawer after navigating.
+ * It only sets data-sidebar-open, and role="button" and aria-expanded on the menu and close links
+ * (with no script they stay links: nothing could keep aria-expanded in step). Enhanced navigation
+ * re-syncs the shell's attributes with the server's markup, which also closes the drawer after
+ * navigating; syncShells puts the roles back.
  *
  * For a collapsible sidebar it saves the collapse checkbox in a cookie, which the server reads
  * on the next request, and lets a group in the icon rail expand the sidebar to show its items.
@@ -41,7 +43,18 @@ class Shell extends IzzyElement {
     return this.hasAttribute("data-sidebar-open");
   }
 
+  /** The menu and close links become buttons: Space presses them (below) and aria-expanded follows the drawer. */
+  syncRoles(): void {
+    this.querySelectorAll<HTMLElement>("a[data-ib-shell-toggle], a[data-ib-shell-close]").forEach((control) => {
+      control.setAttribute("role", "button");
+      // A close button in the header is shown only while the drawer is open.
+      if (control.hasAttribute("data-ib-shell-close") && control.hasAttribute("aria-controls")) control.setAttribute("aria-expanded", "true");
+    });
+    this.toggles.forEach((t) => t.setAttribute("aria-expanded", String(this.isOpen)));
+  }
+
   protected setup(signal: AbortSignal): void {
+    this.syncRoles();
     revealActiveNav(this);
     this.addEventListener(
       "click",
@@ -156,6 +169,8 @@ class Shell extends IzzyElement {
   }
 
   open(): void {
+    // A menu button Blazor added since setup has no role yet.
+    this.syncRoles();
     this.setAttribute("data-sidebar-open", "");
     revealActiveNav(this);
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", "true"));
@@ -188,6 +203,7 @@ class Shell extends IzzyElement {
   }
 
   close(restoreFocus = true): void {
+    this.syncRoles();
     this.removeAttribute("data-sidebar-open");
     this.setInert(false);
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", "false"));
@@ -228,6 +244,11 @@ function remember(input: HTMLInputElement, collapsed: boolean): void {
 }
 
 defineElement("ib-shell", Shell);
+
+/** Puts the menu and close buttons' roles back after enhanced navigation reset the attributes. */
+export function syncShells(): void {
+  document.querySelectorAll<HTMLElement & { syncRoles?: () => void }>("ib-shell").forEach((shell) => shell.syncRoles?.());
+}
 
 /**
  * In ScrollMode.Main the page itself never scrolls, so the browser's scroll-to-top after an

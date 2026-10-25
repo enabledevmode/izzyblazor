@@ -619,7 +619,7 @@ public class FormRenderTests : BunitContext
             b.AddAttribute(1, nameof(TextField.ValueExpression), field);
             b.CloseComponent();
         };
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .AddCascadingValue(_context)
             .Add(t => t.ChildContent, b =>
             {
@@ -689,7 +689,7 @@ public class FormRenderTests : BunitContext
     public async Task The_open_tab_stays_when_it_has_errors_and_typing_never_switches_tabs()
     {
         _model.Email = "not an address";
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .AddCascadingValue(_context)
             .Add(t => t.Selected, "account")
             .Add(t => t.ChildContent, b =>
@@ -714,10 +714,11 @@ public class FormRenderTests : BunitContext
         RenderFragment inner = b =>
         {
             b.OpenComponent<Tabs>(0);
-            b.AddAttribute(1, nameof(Tabs.ChildContent), TabOf("Limits", FieldFor(() => _model.Name)));
+            b.AddAttribute(1, nameof(Tabs.Label), "Inner");
+            b.AddAttribute(2, nameof(Tabs.ChildContent), TabOf("Limits", FieldFor(() => _model.Name)));
             b.CloseComponent();
         };
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .AddCascadingValue(_context)
             .Add(t => t.ChildContent, b =>
             {
@@ -785,7 +786,7 @@ public class FormRenderTests : BunitContext
     {
         _model.Name = "Izzy";
         _model.Email = "izzy@example.com";
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .AddCascadingValue(_context)
             .Add(t => t.Selected, "account")
             .Add(t => t.ChildContent, b =>

@@ -27,15 +27,21 @@
     - Each option's text is its `label`; an `ItemDescription` is the box's description, not part of
       its name. The hint and errors are linked to the group with `aria-describedby`, and each box
       sets `aria-invalid` when the field is invalid.
-    - A required group shows an asterisk, which screen readers skip, and its boxes aren't
-      marked required (HTML can't require one of several): say so in the label or `Hint`.
+    - After a post that fails with an error here, the first option
+      takes focus, so screen readers read the group's name and error (its description); a
+      `FormErrors` earlier in the page takes it first. Not on interactive pages: there, use a
+      `FormErrors`.
+    - A required group's boxes can't be marked required (HTML can't require one of several), so
+      screen readers hear "(required)" after its label instead (`IzzyText.Required`); the
+      asterisk is hidden from them. Nothing stops a post with none checked: the server's
+      validation reports it.
     - A `SelectAll` box is named by its text, and the options under it are a group with the same
       name, so screen readers hear them as its part. It's announced as "mixed" when only some are
       checked. Its text should say it stands for all of them ("Select all", "All channels").
     See also: MultiSelect, Checkbox, RadioGroup.
 *@
 
-<FieldFrame Class="@WrapperClass("checkboxes")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
+<FieldFrame Class="@WrapperClass("checkboxes")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" AnnounceRequired Group
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     @if (ShowsSelectAll)
     {
@@ -58,6 +64,7 @@
         @foreach (var (item, index) in ChoiceOptions.Of(Items).Select((o, i) => (o, i)))
         {
             var id = $"{FieldId}-{index}";
+            var focus = FocusesGroup && index == 0;
             var description = ItemDescription?.Invoke(item) is { } text && !string.IsNullOrWhiteSpace(text) ? text : null;
             <label class="ib-check" for="@id">
                 <input id="@id"
@@ -69,6 +76,8 @@
                        @onchange="e => Toggle(item, e)"
                        disabled="@IsDisabled"
                        aria-invalid="@(Invalid ? "true" : null)"
+                       autofocus="@focus"
+                       data-ib-autofocus="@(focus ? "" : null)"
                        aria-labelledby="@(description is null ? null : $"{id}-text")"
                        aria-describedby="@(description is null ? null : $"{id}-description")" />
                 <span class="ib-check-label">

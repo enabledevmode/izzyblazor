@@ -5,12 +5,19 @@
 @*
     Validation messages for one model property, for fields that are not IzzyBlazor fields.
     IzzyBlazor fields show their own errors.
-    <FieldError For="() => Model.Email" />
+    <input id="email" @bind="Model.Email" aria-describedby="email-error" aria-invalid="@emailInvalid" />
+    <FieldError For="() => Model.Email" Id="email-error" />
+
+    Accessibility:
+    - Give it an `Id` and point the control's `aria-describedby` at it, so screen readers read the
+      messages with the control; set `aria-invalid` on the control yourself. The element is there
+      only while there are messages, and a reference to a missing id is ignored.
+    - Messages aren't announced as they appear.
 *@
 
 @if (Messages.Count > 0)
 {
-    <div class="ib-field-error">
+    <div class="ib-field-error" id="@Id">
         @foreach (var message in Messages)
         {
             <p><Icon Role="IconRole.Error" /> @message</p>
@@ -20,6 +27,9 @@
 
 @code {
     [CascadingParameter] private EditContext? EditContext { get; set; }
+
+    /// <summary>The element's id, for the control's <c>aria-describedby</c>.</summary>
+    [Parameter] public string? Id { get; set; }
 
     /// <summary>The property whose messages to show.</summary>
     [Parameter, EditorRequired] public System.Linq.Expressions.Expression<Func<TValue>> For { get; set; } = default!;

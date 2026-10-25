@@ -42,7 +42,7 @@ public class TabsExtrasRenderTests : BunitContext
     public void Link_tab_above_the_current_page_is_marked_true()
     {
         GoTo("settings/billing/invoices/42");
-        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, Links()));
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, Links()));
 
         Assert.Equal("true", cut.FindAll("a.ib-tab")[1].GetAttribute("aria-current"));
     }
@@ -51,7 +51,7 @@ public class TabsExtrasRenderTests : BunitContext
     public void Link_tabs_follow_navigation()
     {
         GoTo("settings/profile");
-        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, Links()));
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, Links()));
 
         GoTo("settings/security");
 
@@ -67,7 +67,7 @@ public class TabsExtrasRenderTests : BunitContext
     public void Link_tabs_told_apart_by_the_query_mark_one(string uri, int current)
     {
         GoTo(uri);
-        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, builder =>
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, builder =>
         {
             foreach (var (href, label) in new[] { ("settings", "Profile"), ("settings?view=billing", "Billing"), ("settings?view=team", "Team") })
             {
@@ -85,7 +85,7 @@ public class TabsExtrasRenderTests : BunitContext
     [Fact]
     public void Disabled_link_tab_has_no_href_and_reads_as_a_disabled_link()
     {
-        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, Links(disableLast: true)));
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, Links(disableLast: true)));
         var disabled = cut.Find("span.ib-tab-disabled");
 
         Assert.Equal(("link", "true"), (disabled.GetAttribute("role"), disabled.GetAttribute("aria-disabled")));
@@ -107,7 +107,7 @@ public class TabsExtrasRenderTests : BunitContext
             builder.CloseComponent();
         };
 
-        Assert.ThrowsAny<InvalidOperationException>(() => Render<Tabs>(p => p.Add(t => t.ChildContent, mixed)));
+        Assert.ThrowsAny<InvalidOperationException>(() => Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, mixed)));
     }
 
     [Fact]
@@ -122,11 +122,11 @@ public class TabsExtrasRenderTests : BunitContext
             builder.AddComponentParameter(3, nameof(Tab.Label), "Two");
             builder.CloseComponent();
         };
-        var cut = Render<Tabs>(p => p.Add(t => t.Orientation, Orientation.Vertical).Add(t => t.ChildContent, two));
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.Orientation, Orientation.Vertical).Add(t => t.ChildContent, two));
 
         Assert.Contains("ib-tabs-vertical", cut.Find("ib-tabs").ClassList);
         Assert.Equal("vertical", cut.Find(".ib-tabs-list").GetAttribute("aria-orientation"));
-        Assert.Null(Render<Tabs>(p => p.Add(t => t.ChildContent, two)).Find(".ib-tabs-list").GetAttribute("aria-orientation"));
+        Assert.Null(Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, two)).Find(".ib-tabs-list").GetAttribute("aria-orientation"));
     }
 
     [Fact]

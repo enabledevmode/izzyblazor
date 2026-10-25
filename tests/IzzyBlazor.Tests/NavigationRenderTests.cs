@@ -52,7 +52,7 @@ public class NavigationRenderTests : BunitContext
     [Fact]
     public void Duplicate_and_non_latin_titles_get_unique_keys()
     {
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .Add(t => t.Id, "t")
             .Add(t => t.ChildContent, (RenderFragment)(b =>
             {
@@ -73,7 +73,7 @@ public class NavigationRenderTests : BunitContext
     public void Tab_list_follows_changes_to_a_tab()
     {
         var badge = "1";
-        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, (RenderFragment)(b =>
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, (RenderFragment)(b =>
         {
             b.OpenComponent<Tab>(0);
             b.AddComponentParameter(1, nameof(Tab.Label), "Inbox");
@@ -91,19 +91,19 @@ public class NavigationRenderTests : BunitContext
     [Fact]
     public void First_enabled_tab_is_selected_by_default()
     {
-        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, ThreeTabs(disableFirst: true)));
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs").Add(t => t.ChildContent, ThreeTabs(disableFirst: true)));
 
         var radios = cut.FindAll("input.ib-tab-input");
         Assert.True(radios[0].HasAttribute("disabled"));
         Assert.True(radios[1].HasAttribute("checked"));
-        Assert.Contains("ib-tab-disabled", cut.FindAll("label.ib-tab")[0].ClassName);
+        Assert.Contains("ib-tab-disabled", cut.FindAll(".ib-tab")[0].ClassName);
     }
 
     [Fact]
     public void Query_string_selects_the_tab()
     {
         GoTo("/settings?tab=security");
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .Add(t => t.QueryKey, "tab")
             .Add(t => t.Selected, "profile")
             .Add(t => t.ChildContent, ThreeTabs()));
@@ -119,7 +119,7 @@ public class NavigationRenderTests : BunitContext
         GoTo("/settings?tab=profile");
         var nav = Services.GetRequiredService<BunitNavigationManager>();
         var historyBefore = nav.History.Count;
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .Add(t => t.QueryKey, "tab")
             .Add(t => t.ChildContent, ThreeTabs()));
 
@@ -137,7 +137,7 @@ public class NavigationRenderTests : BunitContext
     public void Change_event_reports_the_tab_and_parent_can_select()
     {
         string? reported = null;
-        var cut = Render<Tabs>(p => p
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
             .Add(t => t.SelectedChanged, (string v) => reported = v)
             .Add(t => t.ChildContent, ThreeTabs()));
 

@@ -164,17 +164,17 @@
             <Tab Label="Archive" Disabled="true">...</Tab>
         </Tabs>
 
-        <Tabs Variant="TabsVariant.Segmented">...</Tabs>
+        <Tabs Label="Project" Variant="TabsVariant.Segmented">...</Tabs>
         """;
 
     private const string SizesCode =
         """
-        <Tabs Size="ControlSize.Sm" Variant="TabsVariant.Segmented" FullWidth>...</Tabs>
+        <Tabs Label="Plan" Size="ControlSize.Sm" Variant="TabsVariant.Segmented" FullWidth>...</Tabs>
         """;
 
     private const string UrlCode =
         """
-        <Tabs QueryKey="tab">
+        <Tabs Label="Account" QueryKey="tab">
             <Tab Label="Profile">...</Tab>
             <Tab Label="Billing">...</Tab>   <!-- ?tab=billing -->
         </Tabs>
@@ -182,7 +182,7 @@
 
     private const string BindCode =
         """
-        <Tabs @bind-Selected="plan">
+        <Tabs Label="Plan" @bind-Selected="plan">
             <Tab Label="Free">...</Tab>
             <Tab Label="Pro">...</Tab>
         </Tabs>
@@ -190,7 +190,7 @@
 
     private const string FormCode =
         """
-        <Tabs>
+        <Tabs Label="Details">
             <Tab Label="Name"><TextField ... /></Tab>
             <Tab Label="Address"><TextField ... /></Tab>
         </Tabs>

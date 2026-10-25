@@ -645,7 +645,7 @@
         { "feature": "A hex box to type or paste in, and preset swatches", "off": "none", "static": "full", "live": "full" }
       ],
       "examples": [
-        { "id": "color-picker-presets", "title": "Presets", "lead": "Use `Presets` to offer a set of colors; the value is a hex string such as `#2563eb`.",
+        { "id": "color-picker-presets", "title": "Presets", "lead": "Use `Presets` to offer a set of colors and `PresetText` to name them for screen readers; the value is a hex string such as `#2563eb`.",
           "notes": {
             "off": "The swatch fills the field and opens the browser's picker, where Chrome and Edge list the presets first. There's no hex box.",
             "static": "The script adds the hex box and shows the presets as swatches under the field."

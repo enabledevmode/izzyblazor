@@ -15,6 +15,10 @@
     - Screen readers hear a radio group: a `fieldset` named by its `legend`, with a native radio
       in each segment, so Tab reaches the group and the arrow keys move the choice.
     - The focus ring is drawn around the focused segment.
+    - After a post that fails with an error here, the checked segment (or the first)
+      takes focus, so screen readers read the group's name and error (its description); a
+      `FormErrors` earlier in the page takes it first. Not on interactive pages: there, use a
+      `FormErrors`.
     - With `IconOnly`, each option's text stays for screen readers and shows as its hover
       tooltip.
     - A field with no visible label needs `HideLabel`, not an empty label, so the group keeps
@@ -29,6 +33,7 @@
         {
             var value = FormatValueAsString(item);
             var id = $"{FieldId}-{index}";
+            var focus = FocusesGroup && index == FocusIndex;
             var text = TextFor(item);
             var icon = ItemIcon?.Invoke(item);
             <label class="ib-segment" for="@id" title="@(IconOnly ? text : null)">
@@ -42,7 +47,9 @@
                        @onchange="() => CurrentValue = item"
                        required="@IsRequired"
                        disabled="@IsDisabled"
-                       aria-invalid="@(Invalid ? "true" : null)" />
+                       aria-invalid="@(Invalid ? "true" : null)"
+                       autofocus="@focus"
+                       data-ib-autofocus="@(focus ? "" : null)" />
                 @if (icon is not null)
                 {
                     <Icon Name="icon" />
@@ -68,6 +75,9 @@
     [Obsolete("HTML has no read-only radio. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
     [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
     public bool ReadOnly { get; set; }
+
+    // The radio Tab reaches: the checked one, or else the first.
+    private int FocusIndex => Math.Max(0, Options.Select(FormatValueAsString).ToList().IndexOf(CurrentValueAsString));
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }

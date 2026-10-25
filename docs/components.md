@@ -325,8 +325,8 @@ select, checkbox, radio or range, so:
 - `Checkbox`, `Switch`, `RadioGroup`, `SegmentedControl`, `CheckboxGroup` and `Slider` are disabled.
   They have no `ReadOnly` of their own (setting it throws); use `Disabled`.
 - Their values post from hidden inputs. A `FileUpload` is disabled, since a file can't be read-only.
-  A read-only `ColorPicker` can be focused through its hex box, which needs JavaScript; without it
-  only the color swatch shows, disabled.
+  A read-only `ColorPicker` can be focused through its hex box, which it shows read-only even with
+  `ShowHex` false or JavaScript off; its swatch is disabled.
 
 `Disabled` on the `Form` disables every field, and disabled fields post nothing. Neither touches
 buttons, so show the ones that fit. A field's own `ReadOnly` and `Disabled` work the same way. `RequiredMark` chooses the
@@ -371,8 +371,8 @@ labels on top, as there's no room beside them.
 - `FormErrors` lists every validation message in the form, under a `Title` ("Please fix the
   following"). After a failed submit it takes focus, with JavaScript off too, so keyboard and screen
   reader users start from the list of problems.
-- `FieldError For="() => Model.Email"` shows one property's messages, for your own inputs.
-  IzzyBlazor fields show their own.
+- `FieldError For="() => Model.Email"` shows one property's messages, for your own inputs; give it
+  an `Id` and point the input's `aria-describedby` at it. IzzyBlazor fields show their own.
 - `FieldFrame` is the frame every field uses: `Label`, `Hint`, `Errors` and the required marker
   around your own control (`Id` links the label to it; `Group` renders a `fieldset`). Wrap a custom
   field in it to match the built-in ones.
@@ -381,7 +381,8 @@ labels on top, as there's no room beside them.
 comes from `[EmailAddress]`, `[Phone]`, `[Url]` or `[DataType(DataType.Password)]` when not set. It
 takes `StartIcon`, `EndIcon` and `AutoComplete`; a password field gets a show/hide button once
 scripts run (`Reveal`, on by default). `TextArea` shows 4 `Rows` by default; `AutoGrow` grows it
-with the text where the browser supports `field-sizing`, and `ShowCount` shows "n / max" under it.
+with the text where the browser supports `field-sizing`, and `ShowCount` shows "n / max" under it, which, with script, screen readers read
+as the field's description.
 
 `Select` and `RadioGroup` list enum values automatically, using `[Display(Name)]`.
 
@@ -410,11 +411,12 @@ its value through a hidden input.
 (`#ABC` and `abc` are read as `#aabbcc`). Underneath is a native color input, so it posts with the form
 and works with no script: the swatch fills the field and opens the browser's picker. With JavaScript
 the swatch moves to the start and a hex box appears beside it for typing or pasting (`ShowHex`, on by
-default). `Presets` lists colors offered as swatches under the field, and clicking the swatch in the field
+default). `Presets` lists colors offered as swatches under the field (`PresetText` names them for
+screen readers and the tooltip; otherwise they're named by their hex), and clicking the swatch in the field
 opens the picker directly; without script, Chrome and Edge offer the presets in a menu before their
 picker instead. A color input always has a value, so an empty field shows and posts
-black (`#000000`). Outside a `Form`, give it a `name` to post with a plain form. A read-only picker is
-disabled and posts its value through a hidden input.
+black (`#000000`). Outside a `Form`, give it a `name` to post with a plain form. A read-only picker's
+swatch is disabled and its hex box shown and read-only; it posts its value through a hidden input.
 
 ```razor
 <ColorPicker @bind-Value="Model.Brand" Presets="@(["#2563eb", "#0f766e", "#be123c"])" />
@@ -927,7 +929,7 @@ and the arrow key back or Escape returns to its item. Choosing any item closes t
 
 ## Tabs
 
-Each tab is a label around a radio button, and CSS shows its panel. With JavaScript off, tabs switch
+Each tab holds a radio button and its label, and CSS shows its panel. With JavaScript off, tabs switch
 instantly, arrow keys work, and form input in other panels is kept. With JavaScript the list becomes
 proper ARIA tabs (roving focus, Home/End).
 
@@ -1390,7 +1392,8 @@ search-and-filter bar whose values go in the URL (`?q=ada&status=Paid`), read wi
 
 Fields: `FilterSearch` (`?q=`), `FilterSelect` (`Items`, or an enum with `EnumType`, with an "All"
 option first) and `FilterCheckbox` (`name=true` when checked). Each takes a `Name` (its query key)
-and a `Label`, kept for screen readers but not shown. List your own inputs' names in `Fields`.
+and a `Label`, kept for screen readers but not shown (beside a checkbox it's shown); `FilterSelect`
+and `FilterCheckbox` require one. List your own inputs' names in `Fields`.
 `Live="false"` keeps an Apply button instead of applying as you type.
 
 ```razor
