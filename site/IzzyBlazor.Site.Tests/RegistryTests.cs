@@ -9,6 +9,17 @@ public class RegistryTests
     private static readonly Registry Registry = Registry.Load(Api);
     private static readonly ExampleCatalog Catalog = new();
 
+    [Theory]
+    [InlineData("Button", "MultiSubmit", "button-multi-submit")]
+    [InlineData("AppShell", "Inbox", "app-shell-inbox")]
+    [InlineData("Layout", "InARow", "layout-in-a-row")]
+    [InlineData("Table", "CSVExport", "table-csv-export")]
+    [InlineData("Grid", "Columns2", "grid-columns2")]
+    public void Example_ids_split_the_names_into_words(string folder, string name, string id)
+    {
+        Assert.Equal(id, ExampleCatalog.IdOf(folder, name));
+    }
+
     [Fact]
     public void Every_public_component_is_documented_as_a_component_or_a_part()
     {

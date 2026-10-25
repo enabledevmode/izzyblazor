@@ -2511,6 +2511,17 @@
     color: var(--ib-color-disabled);
   }
 
+  /* No hex box (ShowHex false): the box hugs a square swatch, with or without script, rather than
+     leaving an empty stretch that looks like a text field. */
+  .ib-color-box:not(:has(.ib-color-hex)) {
+    width: fit-content;
+  }
+
+  .ib-color-box:not(:has(.ib-color-hex)) .ib-color-input {
+    flex: none;
+    width: calc(var(--ib-field-h) - 8px);
+  }
+
   /* Swatches a little smaller than the field, round, with a hairline so white shows on white. */
   .ib-color-preset {
     --ib-preset-size: calc(var(--ib-field-h) - 12px);

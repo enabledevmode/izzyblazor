@@ -138,6 +138,8 @@
 .site-pagehead { margin-block-end: var(--ib-space-2); }
 
 .site-footer { width: 100%; }
+/* The footer's links wrap on a phone, rather than scrolling sideways as a horizontal NavMenu does. */
+.site-footer .ib-nav-horizontal { flex-wrap: wrap; overflow-x: visible; }
 
 /* Scenario links under a component in the demos sidebar. */
 
