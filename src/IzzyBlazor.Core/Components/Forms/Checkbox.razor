@@ -10,7 +10,7 @@
     posts "true" then "false" (Blazor binds the first value). Without it an unchecked box posts
     nothing, and when nothing else in the form is posted, Blazor doesn't bind the model at all:
     the page recreates it and a box that defaults to true comes back checked. A disabled box
-    posts nothing, like any disabled field.
+    posts nothing, like any disabled field; in a read-only Form it's disabled and posts its value.
 
     Indeterminate shows a dash, for a "select all" box when only some are selected. It's display
     only: the box posts as unchecked ("false"), and choosing it clears the dash.
@@ -23,9 +23,6 @@
     - With script, an unchecked indeterminate box is announced as "mixed"; with JavaScript off,
       only the dash shows it and screen readers hear "not checked". A checked box is "checked"
       either way, with no dash.
-    - A read-only box arrives disabled; the script enables it, so it can be focused, and stops it
-      from changing. It carries `aria-readonly`, but most screen readers don't announce that on a
-      checkbox, so say it's read-only in the label or `Hint`.
     See also: Switch, CheckboxGroup, RadioGroup.
 *@
 
@@ -41,10 +38,8 @@
                name="@NameAttributeValue"
                value="true"
                @bind="CurrentValue"
-               required="@(IsRequired && !ShowsReadOnly)"
-               disabled="@(IsDisabled || ShowsReadOnly)"
-               form="@(ShowsReadOnly ? "" : null)"
-               aria-readonly="@(ShowsReadOnly ? "true" : null)"
+               required="@IsRequired"
+               disabled="@IsDisabled"
                aria-invalid="@(Invalid ? "true" : null)"
                aria-describedby="@DescribedBy" />
         @if (Icon is { } icon)
@@ -66,15 +61,25 @@
             }
         </span>
     </label>
-    @if (!IsDisabled && !string.IsNullOrEmpty(NameAttributeValue))
+    @if ((!IsDisabled || PostsReadOnlyValue) && !string.IsNullOrEmpty(NameAttributeValue))
     {
-        @* An unchecked box doesn't post, so this "false" does. A read-only box is outside the form
-           (form=""), so this posts its value. *@
-        <input type="hidden" name="@NameAttributeValue" value="@(IsReadOnly && CurrentValue ? "true" : "false")" />
+        @* An unchecked box doesn't post, so this "false" does. In a read-only Form the box is
+           disabled, so this posts its value. *@
+        <input type="hidden" name="@NameAttributeValue" value="@(PostsReadOnlyValue && CurrentValue ? "true" : "false")" />
     }
 </FieldFrame>
 
 @code {
+    /// <inheritdoc />
+    protected override bool TakesReadOnly => false;
+
+    /// <summary>Not available: HTML has no read-only checkbox. Use <c>Disabled</c>; in a read-only <see cref="Form"/> it's disabled and its value still posts.</summary>
+    /// <remarks>Declared only to turn a mistake into a build error; set any other way, it throws.</remarks>
+    [Parameter]
+    [Obsolete("HTML has no read-only checkbox. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public bool ReadOnly { get; set; }
+
     /// <summary>Rich label content, such as text with a link. Overrides <c>Label</c>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 

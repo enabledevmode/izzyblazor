@@ -70,6 +70,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: it can be focused and its text selected, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     // A static page doesn't write a password back into its HTML: after a failed post the field is
     // empty, as browsers and other frameworks leave it. Interactive pages keep it in the circuit.
     private bool EchoesValue => ResolvedType != TextFieldType.Password || RendererInfo.IsInteractive;

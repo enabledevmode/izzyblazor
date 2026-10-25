@@ -19,17 +19,12 @@
       tooltip.
     - A field with no visible label needs `HideLabel`, not an empty label, so the group keeps
       its name.
-    - A read-only control's radios arrive disabled; the script enables them, so they can be
-      focused, and the group is a `radiogroup` with `aria-readonly`, where a click or arrow key
-      doesn't change the choice. Screen readers don't announce `aria-readonly` on a radio group,
-      so say it's read-only in the label or `Hint`.
     See also: RadioGroup, Tabs, Switch, ButtonGroup.
 *@
 
 <FieldFrame Class="@WrapperClass("segmented")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    @* Read-only radios stay focusable and readable; the group says it's read-only. *@
-    <div class="@SegmentsClass" role="@(ShowsReadOnly ? "radiogroup" : null)" aria-readonly="@(ShowsReadOnly ? "true" : null)" aria-label="@(ShowsReadOnly ? ResolvedLabel : null)">
+    <div class="@SegmentsClass">
         @foreach (var (item, index) in Options.Select((o, i) => (o, i)))
         {
             var value = FormatValueAsString(item);
@@ -41,13 +36,12 @@
                        id="@id"
                        class="ib-segment-input"
                        type="radio"
-                       name="@(ShowsReadOnly ? FieldId : GroupName)"
+                       name="@GroupName"
                        value="@value"
                        checked="@(value == CurrentValueAsString)"
                        @onchange="() => CurrentValue = item"
-                       required="@(IsRequired && !ShowsReadOnly)"
-                       disabled="@(IsDisabled || ShowsReadOnly)"
-                       form="@(ShowsReadOnly ? "" : null)"
+                       required="@IsRequired"
+                       disabled="@IsDisabled"
                        aria-invalid="@(Invalid ? "true" : null)" />
                 @if (icon is not null)
                 {
@@ -59,12 +53,22 @@
     </div>
     @if (PostsReadOnlyValue)
     {
-        @* Read-only: the radios are outside the form (form=""), so this posts the value. *@
+        @* In a read-only Form the radios are disabled, so this posts the value. *@
         <input type="hidden" name="@NameAttributeValue" value="@CurrentValueAsString" />
     }
 </FieldFrame>
 
 @code {
+    /// <inheritdoc />
+    protected override bool TakesReadOnly => false;
+
+    /// <summary>Not available: HTML has no read-only radio. Use <c>Disabled</c>; in a read-only <see cref="Form"/> it's disabled and its value still posts.</summary>
+    /// <remarks>Declared only to turn a mistake into a build error; set any other way, it throws.</remarks>
+    [Parameter]
+    [Obsolete("HTML has no read-only radio. Use Disabled; in a read-only Form it's disabled and its value still posts.", error: true)]
+    [System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+    public bool ReadOnly { get; set; }
+
     /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }
 

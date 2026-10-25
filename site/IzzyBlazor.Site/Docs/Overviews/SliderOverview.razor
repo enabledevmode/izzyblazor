@@ -23,10 +23,10 @@
 <Heading Level="2">Empty values</Heading>
 <TextBlock>A range input always has a value: bound to a nullable type that's null, it shows the thumb at the midpoint (snapped to the step) and posts that value. Use a <Anchor Href="docs/components/number-field">NumberField</Anchor> when "not set" must stay possible.</TextBlock>
 
-<Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with other fields, <Code>ReadOnly</Code> for a value that posts but can't be moved, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<Heading Level="2">Sizes and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with other fields, and <Code>Disabled</Code> for a value that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only range input, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the slider is disabled while a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="slider-states" />
-<TextBlock>HTML has no read-only range input, so a hidden field posts a read-only slider's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (<Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (<Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

@@ -27,8 +27,8 @@
     - The summary's messages are plain text, not links to their fields.
     - `RequiredMark` changes only what's shown: the asterisk is hidden from screen readers, which
       hear "required" from the control, and "(optional)" is read with the label.
-    - `Disabled` fields can't be focused; with `ReadOnly`, checkboxes, radios and sliders stay
-      focusable with `aria-readonly` once scripts run.
+    - `Disabled` fields can't be focused. With `ReadOnly`, text fields stay focusable and are
+      announced as read only; checkboxes, switches, radios, segments and sliders are disabled.
     See also: Fieldset, TextField, Button, Alert.
 *@
 
@@ -128,10 +128,10 @@ else
 
     /// <summary>
     /// Makes every field read-only: shown and posted, but not changed, as on a page that shows a
-    /// record before editing it. HTML has no read-only select, checkbox or radio, so a read-only
-    /// Select, Combobox or MultiSelect shows its value in a read-only text field, and checkboxes,
-    /// radios and sliders stay focusable with <c>aria-readonly</c> and don't change; their values
-    /// post from hidden inputs.
+    /// record before editing it. HTML has no read-only select, checkbox, radio or range, so a
+    /// read-only Select, Combobox or MultiSelect shows its value in a read-only text field, and
+    /// checkboxes, switches, radios, segments and sliders are disabled; their values post from
+    /// hidden inputs.
     /// </summary>
     [Parameter] public bool ReadOnly { get; set; }
 

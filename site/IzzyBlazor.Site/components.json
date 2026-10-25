@@ -489,10 +489,7 @@
             "live": "Each field is checked when it changes, and Send runs C# without a page load."
           } },
         { "id": "form-horizontal", "title": "Labels beside fields" },
-        { "id": "form-read-only", "title": "Read-only",
-          "notes": {
-            "off": "The checkbox and switch show as disabled: only the script makes them read-only."
-          } },
+        { "id": "form-read-only", "title": "Read-only" },
         { "id": "form-two-forms", "title": "Two forms on a page",
           "notes": {
             "off": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
@@ -635,9 +632,9 @@
             "live": "Save budget runs C# without a page load; the saved line keeps what was saved."
           } },
         { "id": "slider-live", "title": "Following the value live", "lead": "Use `Live` on interactive pages to update the bound value while dragging, for something on the page that follows it.", "modes": ["live"] },
-        { "id": "slider-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match other fields, `ReadOnly` to post a value that can't be moved, and `Disabled` to post nothing.",
+        { "id": "slider-states", "title": "Sizes and disabled", "lead": "Use `Size` to match other fields, and `Disabled` for a value that can't be moved, which doesn't post.",
           "notes": {
-            "off": "Plain range inputs with no values beside them, and the read-only slider shows as disabled: only the script makes it focusable and read-only."
+            "off": "Plain range inputs with no values beside them."
           } }
       ]
     },
@@ -823,10 +820,7 @@
             "live": "The browser stops the post in the model's words, and clearing a checked box shows them under it at once."
           } },
         { "id": "checkbox-select-all", "title": "A dash of your own", "modes": ["live"], "lead": "Use `Indeterminate` to show a dash when only some of what a box stands for is checked, and set the others from its `ValueChanged`." },
-        { "id": "checkbox-sizes", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`, `ReadOnly` for one that posts but can't change, and `Disabled` for one that doesn't post.",
-          "notes": {
-            "off": "The read-only box looks disabled and can't be focused, but it still posts."
-          } }
+        { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`, and `Disabled` for one that doesn't post." }
       ]
     },
     {
@@ -840,10 +834,7 @@
             "static": "Switching changes nothing until Save posts the form; the page doesn't reload.",
             "live": "Each switch saves at once, with no button."
           } },
-        { "id": "switch-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a switch that posts but can't change, and `Disabled` for one that doesn't post.",
-          "notes": {
-            "off": "The read-only switch looks disabled and can't be focused, but it still posts."
-          } }
+        { "id": "switch-states", "title": "Sizes and disabled", "lead": "Use `Size` to line up with other controls, and `Disabled` for one that doesn't post." }
       ],
       "scenarios": [
         { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
@@ -862,10 +853,7 @@
             "static": "The browser stops the post until an option is chosen, in the model's words.",
             "live": "The browser stops the post in the model's words, as on static pages, and Send runs C# without a page load."
           } },
-        { "id": "radio-group-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a choice that posts but can't change, and `Disabled` for one that doesn't post.",
-          "notes": {
-            "off": "The read-only group looks disabled and can't be focused, but it still posts."
-          } }
+        { "id": "radio-group-states", "title": "Sizes and disabled", "lead": "Use `Size` to line up with other controls, and `Disabled` for one that doesn't post." }
       ]
     },
     {
@@ -883,10 +871,7 @@
             "static": "Saving with no box checked shows the message under the group without a reload; it stays until the next Save.",
             "live": "Save checks it without a post, and the message comes and goes as boxes are checked and cleared."
           } },
-        { "id": "checkbox-group-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for choices that post but can't change, and `Disabled` for ones that don't post.",
-          "notes": {
-            "off": "The read-only boxes look disabled and can't be focused, but they still post."
-          } }
+        { "id": "checkbox-group-states", "title": "Sizes and disabled", "lead": "Use `Size` to line up with other controls, and `Disabled` for ones that don't post." }
       ]
     },
     {
@@ -894,10 +879,7 @@
       "examples": [
         { "id": "segmented-control-icons", "title": "Icons", "lead": "Use `ItemIcon` to put an icon before each option's text, and `IconOnly` to show just the icons, with the text as a tooltip and for screen readers." },
         { "id": "segmented-control-full-width", "title": "Full width, no visible label", "lead": "Use `FullWidth` to share the width equally between the segments, and `HideLabel` to keep the label for screen readers only." },
-        { "id": "segmented-control-sizes", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to match the control to fields and buttons of the same `ControlSize`, `ReadOnly` for a choice that posts but can't change, and `Disabled` for one that doesn't post.",
-          "notes": {
-            "off": "The read-only control looks disabled and can't be focused, but it still posts."
-          } }
+        { "id": "segmented-control-sizes", "title": "Sizes and disabled", "lead": "Use `Size` to match the control to fields and buttons of the same `ControlSize`, and `Disabled` for one that doesn't post." }
       ]
     },
 

@@ -14,10 +14,10 @@
 <TextBlock>Use <Code>FullWidth</Code> to share the width equally between the segments, and <Code>HideLabel</Code> when something near it, such as a heading, already says what it's for.</TextBlock>
 <ExampleViewer Example="segmented-control-full-width" />
 
-<Heading Level="2">Sizes, read-only and disabled</Heading>
-<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, <Code>ReadOnly</Code> for a choice that posts but can't change, and <Code>Disabled</Code> for one that doesn't post.</TextBlock>
+<Heading Level="2">Sizes and disabled</Heading>
+<TextBlock>Use <Code>Size</Code> to line up with buttons and other fields, and <Code>Disabled</Code> for a choice that can't change, which doesn't post. There's no <Code>ReadOnly</Code>: HTML has no read-only radio, and in a read-only <Anchor Href="docs/components/form">Form</Anchor> the control is disabled while a hidden field posts its value.</TextBlock>
 <ExampleViewer Example="segmented-control-sizes" />
-<TextBlock>HTML has no read-only radio, so a hidden field posts a read-only control's value; a crafted post can change it like any other, so check it on the server if it matters. A disabled field posts nothing, so after a static post its property holds its default (an enum's <Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
+<TextBlock>A disabled field posts nothing, so after a static post its property holds its default (an enum's <Code>0</Code>, or null): keep its value on the server rather than saving it from the post.</TextBlock>
 
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />

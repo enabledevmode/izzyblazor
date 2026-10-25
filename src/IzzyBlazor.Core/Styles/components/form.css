@@ -1970,19 +1970,6 @@
     grid-column: 1 / -1;
   }
 
-  /* Read-only checkboxes, switches, radios, segments and sliders arrive disabled and outside the
-     form; hidden inputs post the value. The script enables them (focusable, with aria-readonly).
-     Clicks do nothing here, and the script cancels the keys that would change them. Read-only selects show as a read-only text
-     field (.ib-field-input[readonly]). */
-  .ib-field-readonly :is(.ib-check, .ib-segment, .ib-slider-input) {
-    pointer-events: none;
-  }
-
-  /* A link in a read-only checkbox's label ("I agree to the terms") still works. */
-  .ib-field-readonly .ib-check :is(a, button) {
-    pointer-events: auto;
-  }
-
   /* Columns (Form and Fieldset Columns): up to N columns by the form's or group's own width, so a
      two-column form is one column in a narrow dialog. The form or fieldset is the container; the
      grid inside it can't measure itself. --ib-form-cols is the count shown now, and ColSpan never
@@ -2261,16 +2248,14 @@
     outline-offset: 1px;
   }
 
-  /* Read-only segments arrive disabled until the script enables them (and stay so without it):
-     they keep the normal look. */
-  .ib-segment:has(.ib-segment-input:disabled):not(.ib-field-readonly *) {
+  .ib-segment:has(.ib-segment-input:disabled) {
     color: var(--ib-color-disabled);
     cursor: default;
   }
 
   /* Disabled and chosen: its fill, edge and text at half strength, without the shadow, whatever
      the fill (as a disabled Switch). */
-  .ib-segment:has(.ib-segment-input:checked:disabled):not(.ib-field-readonly *) {
+  .ib-segment:has(.ib-segment-input:checked:disabled) {
     color: var(--ib-color-on-segment, var(--ib-color-on-surface));
     opacity: 0.5;
     box-shadow: inset 0 0 0 1px var(--ib-segment-edge);
@@ -2298,7 +2283,7 @@
 
     /* Disabled and chosen: the system's disabled color as the fill, not the theme's text on
        Highlight. */
-    .ib-segment:has(.ib-segment-input:checked:disabled):not(.ib-field-readonly *) {
+    .ib-segment:has(.ib-segment-input:checked:disabled) {
       background-color: GrayText;
       color: Canvas;
       opacity: 1;

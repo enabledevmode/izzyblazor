@@ -139,6 +139,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>Makes the field read-only: the chosen text shows in a read-only text field, and the value still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
     private CancellationTokenSource? _searchCts;
     private IReadOnlyList<TValue>? _results;
     // The text _results were found for, so the script knows which search they answer.

@@ -332,7 +332,7 @@
         </Box>
     </Example>
 
-    <Example Title="Read-only and optional marks" Note="ReadOnly on the Form shows a record without letting it change. Every field can still be focused and reads as read-only: the select shows its value as text, and the radios and switch don't change (without JavaScript they're disabled). Their values post from hidden inputs. Edit turns it into a normal form. Disabled on the Form works the same way, but posts nothing. RequiredMark.Optional marks the fields that aren't required, instead of starring the ones that are: clearer when most fields are required." Code="@AccountCode">
+    <Example Title="Read-only and optional marks" Note="ReadOnly on the Form shows a record without letting it change. Text fields can still be focused and read as read-only, and the select shows its value as text; the radios and switch are disabled. Their values post from hidden inputs. Edit turns it into a normal form. Disabled on the Form works the same way, but posts nothing. RequiredMark.Optional marks the fields that aren't required, instead of starring the ones that are: clearer when most fields are required." Code="@AccountCode">
         <Form Model="Account" FormName="account" Columns="2" ReadOnly="!EditAccount" RequiredMark="RequiredMark.Optional" OnValidSubmit="() => { }">
             <TextField @bind-Value="Account!.DisplayName" />
             <TextField @bind-Value="Account!.Email" />

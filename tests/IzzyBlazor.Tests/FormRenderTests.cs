@@ -32,6 +32,8 @@ public class FormRenderTests : BunitContext
         public List<Plan> Plans { get; set; } = [Plan.Pro];
 
         public string[] Tags { get; set; } = ["b"];
+
+        public int Count { get; set; }
     }
 
     private readonly Model _model = new();
@@ -421,10 +423,10 @@ public class FormRenderTests : BunitContext
         Assert.True(Box(cut)!.HasAttribute("checked"));
         Assert.Equal(["Plans=Free", "Plans=Pro"], Posted(cut.FindAll("input")));
 
-        // Read-only: it doesn't change and still posts nothing; the options post from hidden inputs.
+        // A read-only form: it's disabled and posts nothing; the options post from hidden inputs.
         _model.Plans = [Plan.Pro];
         cut = Group(Enum.GetValues<Plan>(), options: new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required));
-        Assert.Equal("true", Box(cut)!.GetAttribute("aria-readonly"));
+        Assert.True(Box(cut)!.HasAttribute("disabled"));
         Assert.Equal(["Plans=Pro"], Posted(cut.FindAll("input")));
 
         // No options, or not asked for: no box.
@@ -533,8 +535,7 @@ public class FormRenderTests : BunitContext
         Assert.Equal("Pro plan", select.Find("input[readonly]").GetAttribute("value"));
         Assert.Equal(new[] { "Plan=Pro" }, Posted(select.FindAll("input, select, textarea")));
 
-        // A read-only box says it's read-only, and arrives disabled so it can't change without
-        // script (the script enables it, keeping it from changing); it posts its value once ("true").
+        // A box can't be read-only: it's disabled, and posts its value once ("true").
         var box = Render<Checkbox>(p => p
             .AddCascadingValue(_context)
             .AddCascadingValue(readOnly)
@@ -542,8 +543,18 @@ public class FormRenderTests : BunitContext
             .Add(c => c.ValueExpression, () => _model.Accept));
         var input = box.Find("input[type=checkbox]");
         Assert.True(input.HasAttribute("disabled"));
-        Assert.Equal("true", input.GetAttribute("aria-readonly"));
+        Assert.False(input.HasAttribute("aria-readonly"));
         Assert.Equal(new[] { "Accept=true" }, Posted(box.FindAll("input")));
+
+        // A slider too.
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var slider = Render<Slider<int>>(p => p
+            .AddCascadingValue(_context)
+            .AddCascadingValue(readOnly)
+            .Add(s => s.Value, 3)
+            .Add(s => s.ValueExpression, () => _model.Count));
+        Assert.True(slider.Find("input[type=range]").HasAttribute("disabled"));
+        Assert.Equal(new[] { "Count=3" }, Posted(slider.FindAll("input")));
     }
 
     // What a browser would post from these controls, as "Property=value": named controls that are
@@ -777,7 +788,7 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void Read_only_boxes_and_radios_never_block_a_post()
+    public void A_read_only_form_s_boxes_and_radios_are_disabled_so_never_block_a_post()
     {
         var readOnly = new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required);
 
@@ -785,12 +796,29 @@ public class FormRenderTests : BunitContext
             .AddCascadingValue(_context).AddCascadingValue(readOnly)
             .Add(c => c.Value, Plan.Pro).Add(c => c.ValueExpression, () => _model.Plan)
             .Add(c => c.Required, true));
-        Assert.All(radios.FindAll("input[type=radio]"), r => Assert.False(r.HasAttribute("required")));
+        Assert.All(radios.FindAll("input[type=radio]"), r => Assert.True(r.HasAttribute("disabled")));
 
         var box = Render<Checkbox>(p => p
             .AddCascadingValue(_context).AddCascadingValue(readOnly)
             .Add(c => c.Value, false).Add(c => c.ValueExpression, () => _model.Accept)
             .Add(c => c.Required, true));
-        Assert.False(box.Find("input[type=checkbox]").HasAttribute("required"));
+        Assert.True(box.Find("input[type=checkbox]").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void Checkboxes_radios_and_segments_refuse_ReadOnly()
+    {
+        void Refused<TComponent>(Action<ComponentParameterCollectionBuilder<TComponent>> parameters) where TComponent : IComponent =>
+            Assert.Contains("doesn't take ReadOnly", Assert.Throws<InvalidOperationException>(() => Render<TComponent>(p =>
+            {
+                p.AddCascadingValue(_context);
+                parameters(p);
+                p.AddUnmatched("ReadOnly", true);
+            })).Message);
+
+        Refused<Checkbox>(p => p.Add(c => c.ValueExpression, () => _model.Accept));
+        Refused<Switch>(p => p.Add(c => c.ValueExpression, () => _model.Accept));
+        Refused<RadioGroup<Plan>>(p => p.Add(c => c.ValueExpression, () => _model.Plan));
+        Refused<SegmentedControl<Plan>>(p => p.Add(c => c.ValueExpression, () => _model.Plan));
     }
 }

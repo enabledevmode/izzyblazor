@@ -53,9 +53,6 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>Disables the field. Disabled fields are not posted with the form.</summary>
     [Parameter] public bool Disabled { get; set; }
 
-    /// <summary>Makes the field read-only. Read-only fields are still posted.</summary>
-    [Parameter] public bool ReadOnly { get; set; }
-
     /// <summary>The tab the field is in, which counts its errors.</summary>
     [CascadingParameter] internal Tab? ParentTab { get; set; }
 
@@ -64,6 +61,21 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
     {
+        // Fields take unmatched attributes, so ReadOnly on a checkbox would be a plain readonly
+        // attribute, which does nothing: say so instead.
+        if (!TakesReadOnly)
+        {
+            foreach (var parameter in parameters)
+            {
+                if (string.Equals(parameter.Name, "ReadOnly", StringComparison.OrdinalIgnoreCase))
+                {
+                    var name = GetType().Name.Split('`')[0];
+                    throw new InvalidOperationException(
+                        $"{name} doesn't take ReadOnly: HTML has no read-only checkbox, radio or range. Use Disabled; in a read-only Form a {name} is disabled and its value still posts.");
+                }
+            }
+        }
+
         await base.SetParametersAsync(parameters);
         if (!ReferenceEquals(ParentTab, _registeredTab))
         {
@@ -88,26 +100,42 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// <summary>The form's Disabled, ReadOnly and RequiredMark.</summary>
     [CascadingParameter] internal FormOptions? FormOptions { get; set; }
 
-    /// <summary>Whether the field is disabled: by itself or by its <see cref="Form"/>.</summary>
-    protected bool IsDisabled => Disabled || FormOptions?.Disabled == true;
-
-    /// <summary>Whether the field is read-only: by itself or by its <see cref="Form"/>.</summary>
-    protected bool IsReadOnly => ReadOnly || FormOptions?.ReadOnly == true;
+    /// <summary>
+    /// The field's own <c>ReadOnly</c> parameter, on the fields that take one: text-like fields, and
+    /// choice fields shown as text when read-only. Checkboxes, switches, radios, segments and
+    /// sliders take none (<see cref="TakesReadOnly"/>).
+    /// </summary>
+    protected virtual bool OwnReadOnly => false;
 
     /// <summary>
-    /// Whether hidden inputs post the value. Selects, checkboxes and radios can't be read-only in
-    /// HTML, so a read-only one shows its value outside the form (<see cref="ShowsReadOnly"/>) and
-    /// these post it.
+    /// Whether the field can be read-only. Checkboxes, switches, radios, segments and sliders
+    /// can't (HTML has no read-only for them): in a read-only <see cref="Form"/> they're disabled,
+    /// and hidden inputs post their value (<see cref="PostsReadOnlyValue"/>).
     /// </summary>
-    protected bool PostsReadOnlyValue => ShowsReadOnly && !string.IsNullOrEmpty(NameAttributeValue);
+    protected virtual bool TakesReadOnly => true;
+
+    /// <summary>
+    /// Whether the field is disabled: by itself, by its <see cref="Form"/>, or by a read-only Form
+    /// when it can't be read-only.
+    /// </summary>
+    protected bool IsDisabled => Disabled || FormOptions?.Disabled == true || LockedByReadOnlyForm;
+
+    /// <summary>Whether the field is read-only: by itself or by its <see cref="Form"/>.</summary>
+    protected bool IsReadOnly => TakesReadOnly && (OwnReadOnly || FormOptions?.ReadOnly == true);
+
+    // A read-only Form's checkbox, radio, segment or slider: disabled, but its value still posts.
+    private bool LockedByReadOnlyForm => !TakesReadOnly && FormOptions?.ReadOnly == true && !Disabled && FormOptions?.Disabled != true;
+
+    /// <summary>
+    /// Whether hidden inputs post the value: a read-only choice field, whose value shows outside
+    /// the form (<see cref="ShowsReadOnly"/>), or a control a read-only Form disabled.
+    /// </summary>
+    protected bool PostsReadOnlyValue => (ShowsReadOnly || LockedByReadOnlyForm) && !string.IsNullOrEmpty(NameAttributeValue);
 
     /// <summary>
     /// Whether a read-only field shows as read-only (a field that is also disabled shows as
     /// disabled). Selects can't be read-only in HTML, so a read-only Select, Combobox or
     /// MultiSelect shows its value in a read-only text field (<see cref="ReadOnlyControl"/>).
-    /// Checkboxes, radios and sliders are rendered disabled, with <c>aria-readonly</c> and outside
-    /// the form (<c>form=""</c>), so without script they can't change; the script enables them
-    /// (focusable, with <c>aria-readonly</c>, which most screen readers don't announce on these) and keeps them from changing.
     /// </summary>
     protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
 
