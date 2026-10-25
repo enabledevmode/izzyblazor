@@ -15,6 +15,47 @@ public class ButtonRenderTests : BunitContext
     }
 
     [Fact]
+    public void Pressed_makes_a_toggle_button()
+    {
+        Assert.Null(Render<Button>(p => p.AddChildContent("Bold")).Find("button").GetAttribute("aria-pressed"));
+
+        var off = Render<Button>(p => p.Add(b => b.Pressed, false).AddChildContent("Bold")).Find("button");
+        var on = Render<IconButton>(p => p.Add(b => b.Icon, Lucide.Bold).Add(b => b.Label, "Bold").Add(b => b.Pressed, true)).Find("button");
+
+        Assert.Equal("false", off.GetAttribute("aria-pressed"));
+        Assert.Contains("ib-btn-toggle", off.ClassList);
+        Assert.Equal("true", on.GetAttribute("aria-pressed"));
+    }
+
+    [Fact]
+    public void A_click_toggles_a_bound_button_before_its_OnClick()
+    {
+        var pressed = false;
+        var seen = (bool?)null;
+        var cut = Render<Button>(p => p
+            .Add(b => b.Pressed, pressed)
+            .Add(b => b.PressedChanged, (bool value) => pressed = value)
+            .Add(b => b.OnClick, (MouseEventArgs _) => seen = pressed)
+            .AddChildContent("Bold"));
+
+        cut.Find("button").Click();
+
+        Assert.True(pressed);
+        Assert.True(seen);
+    }
+
+    [Fact]
+    public void A_link_cant_be_pressed()
+    {
+        var link = Assert.Throws<InvalidOperationException>(() => Render<Button>(p => p.Add(b => b.Href, "/b").Add(b => b.Pressed, true).AddChildContent("Bold")));
+        var icon = Assert.Throws<InvalidOperationException>(() => Render<IconButton>(p => p
+            .Add(b => b.Href, "/b").Add(b => b.Icon, Lucide.Bold).Add(b => b.Label, "Bold").Add(b => b.Pressed, false)));
+
+        Assert.Contains("can't be pressed", link.Message);
+        Assert.Contains("can't be pressed", icon.Message);
+    }
+
+    [Fact]
     public void Accent_variant_and_size_add_classes()
     {
         var button = Render<Button>(p => p

@@ -21,6 +21,7 @@ namespace IzzyBlazor;
 /// <item>The tooltip is the native <c>title</c>, so it shows on mouse hover, not on keyboard focus. Inside a <see cref="Tooltip"/> it has none, and the Tooltip shows on hover and focus.</item>
 /// <item>A loading button (not a link) keeps focus and sets <c>aria-busy</c> and <c>aria-disabled</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/> before the label ("Loading Delete").</item>
 /// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
+/// <item>A toggle (<see cref="ButtonBase.Pressed"/>) sets <c>aria-pressed</c>, so screen readers hear "pressed" or "not pressed"; pressed, it shows an edge in the accent color as well as a tint.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="Button"/>
@@ -104,6 +105,8 @@ public class IconButton : ButtonBase
                 throw new InvalidOperationException("IconButton with Href is a link, so Submit, Reset, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
             }
 
+            RefusePressedLink(nameof(IconButton));
+
             // Like Button with Href: an inactive link has no href, so it keeps role="link" for its name.
             var inactive = Disabled || Loading;
             builder.AddAttribute(1, "href", inactive ? null : Href);
@@ -123,9 +126,10 @@ public class IconButton : ButtonBase
             builder.AddAttribute(19, "value", Value);
             builder.AddAttribute(20, "formaction", FormAction);
             builder.AddAttribute(21, "form", Form);
-            if (OnClick.HasDelegate && !Loading)
+            builder.AddAttribute(22, "aria-pressed", AriaPressed);
+            if (Clickable(OnClick) && !Loading)
             {
-                builder.AddAttribute(5, "onclick", OnClick);
+                builder.AddAttribute(5, "onclick", Click(OnClick));
             }
         }
 

@@ -27,6 +27,7 @@ namespace IzzyBlazor;
 /// <item>A loading button keeps focus and sets <c>aria-busy</c>; screen readers hear <see cref="ButtonBase.LoadingLabel"/>.</item>
 /// <item>A disabled or loading link loses its <c>href</c>, keeps <c>role="link"</c> and sets <c>aria-disabled</c>.</item>
 /// <item>An external link says it opens a new tab (<see cref="NewTabLabel"/>), not just with its icon.</item>
+/// <item>A toggle (<see cref="ButtonBase.Pressed"/>) sets <c>aria-pressed</c>, so screen readers hear "pressed" or "not pressed"; pressed, it shows an edge in the accent color as well as a tint.</item>
 /// </list>
 /// </accessibility>
 [ModeSupport(Notes = "OnClick runs only on interactive pages; Submit, Reset and Href work everywhere.")]
@@ -118,6 +119,7 @@ public class Button : ButtonBase
         builder.AddAttribute(4, "formaction", FormAction);
         builder.AddAttribute(5, "form", Form);
         builder.AddAttribute(6, "disabled", Disabled);
+        builder.AddAttribute(15, "aria-pressed", AriaPressed);
         if (Loading)
         {
             // Not "disabled": the button keeps focus while busy. CSS blocks clicks.
@@ -125,9 +127,9 @@ public class Button : ButtonBase
             builder.AddAttribute(8, "aria-busy", "true");
         }
 
-        if (OnClick.HasDelegate && !Loading)
+        if (Clickable(OnClick) && !Loading)
         {
-            builder.AddAttribute(9, "onclick", OnClick);
+            builder.AddAttribute(9, "onclick", Click(OnClick));
         }
 
         builder.AddMultipleAttributes(10, ExtraAttributes);
@@ -153,6 +155,8 @@ public class Button : ButtonBase
             throw new InvalidOperationException(
                 $"{component} with Href is a link, so Submit, Reset, Name, Value, FormAction and Form don't apply. Leave out Href for a button.");
         }
+
+        RefusePressedLink(component);
 
         var (cssClass, style) = BuildRootAttributes();
         var inactive = Disabled || Loading;

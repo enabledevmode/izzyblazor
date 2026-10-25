@@ -354,6 +354,7 @@
         { "id": "button-sizes-icons", "title": "Sizes and icons" },
         { "id": "button-states", "title": "Loading and disabled" },
         { "id": "button-on-click", "title": "Running C# on click", "modes": ["live"] },
+        { "id": "button-toggle", "title": "Toggle buttons", "modes": ["live"] },
         { "id": "button-state-in-address", "title": "A count in the address",
           "notes": {
             "off": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
@@ -422,6 +423,7 @@
           } },
         { "id": "toolbar-filters", "title": "Fields, a SegmentedControl and a Menu" },
         { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["live"] },
+        { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["live"] },
         { "id": "toolbar-wrap", "title": "Wrapping instead" }
       ],
       "scenarios": [

@@ -1,0 +1,15 @@
+@* Toggle buttons: @bind-Pressed turns them on and off, and screen readers hear "pressed". *@
+<Stack Gap="3" Align="Align.Center">
+    <ButtonGroup Label="Text style" Attached Variant="ButtonVariant.Outline" Accent="Accent.Neutral">
+        <IconButton Icon="Lucide.Bold" Label="Bold" @bind-Pressed="_bold" />
+        <IconButton Icon="Lucide.Italic" Label="Italic" @bind-Pressed="_italic" />
+        <IconButton Icon="Lucide.Underline" Label="Underline" @bind-Pressed="_underline" />
+    </ButtonGroup>
+    <TextBlock Weight="@(_bold ? FontWeight.Bold : FontWeight.Normal)" Italic="_italic" Decoration="@(_underline ? TextDecoration.Underline : null)">The quick brown fox</TextBlock>
+</Stack>
+
+@code {
+    private bool _bold = true;
+    private bool _italic;
+    private bool _underline;
+}

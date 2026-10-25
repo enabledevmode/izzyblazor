@@ -5,7 +5,8 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// A <see cref="Button"/> in a <see cref="Toolbar"/> or a <see cref="ToolbarButtonGroup"/>. In the
-/// "…" menu it's a menu item with the same link, form post and <c>OnClick</c>.
+/// "…" menu it's a menu item with the same link, form post and <c>OnClick</c>; a toggle
+/// (<see cref="ButtonBase.Pressed"/>) is a checkbox item there.
 /// </summary>
 /// <example>
 /// <code>
@@ -60,6 +61,13 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
             builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
         }
 
+        // A toggle is a checkbox item there.
+        builder.AddComponentParameter(14, nameof(MenuItem.Checked), Pressed);
+        if (PressedChanged.HasDelegate)
+        {
+            builder.AddComponentParameter(15, nameof(MenuItem.CheckedChanged), PressedChanged);
+        }
+
         if (External && Href is not null)
         {
             builder.AddAttribute(11, "target", "_blank");
@@ -90,7 +98,7 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
 /// <summary>
 /// An <see cref="IconButton"/> in a <see cref="Toolbar"/> or a <see cref="ToolbarButtonGroup"/>. In
 /// the "…" menu it's a menu item with its icon, its <c>Label</c> as text, and the same link, form
-/// post and <c>OnClick</c>.
+/// post and <c>OnClick</c>; a toggle (<see cref="ButtonBase.Pressed"/>) is a checkbox item there.
 /// </summary>
 /// <example>
 /// <code>
@@ -141,6 +149,13 @@ public sealed class ToolbarIconButton : IconButton, IToolbarItem, IDisposable
         if (OnClick.HasDelegate)
         {
             builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
+        }
+
+        // A toggle is a checkbox item there.
+        builder.AddComponentParameter(14, nameof(MenuItem.Checked), Pressed);
+        if (PressedChanged.HasDelegate)
+        {
+            builder.AddComponentParameter(15, nameof(MenuItem.CheckedChanged), PressedChanged);
         }
 
         builder.AddComponentParameter(11, nameof(MenuItem.ChildContent), (RenderFragment)(b => b.AddContent(0, Label)));

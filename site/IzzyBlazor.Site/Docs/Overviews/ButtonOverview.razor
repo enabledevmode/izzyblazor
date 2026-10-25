@@ -33,6 +33,10 @@
 <TextBlock>Use <Code>OnClick</Code> to run C# on interactive pages; on static pages, use <Code>Submit</Code> or <Code>Href</Code>.</TextBlock>
 <ExampleViewer Example="button-on-click" />
 
+<Heading Level="2">Toggle buttons</Heading>
+<TextBlock>Use <Code>@@bind-Pressed</Code> for a button that turns something on and off, such as Bold: a click toggles it, and screen readers hear whether it's pressed. On static pages, set <Code>Pressed</Code> from the server's state and post the change with <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code>. A link can't be pressed.</TextBlock>
+<ExampleViewer Example="button-toggle" />
+
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
 

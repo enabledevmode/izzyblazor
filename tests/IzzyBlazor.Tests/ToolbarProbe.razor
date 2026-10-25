@@ -92,6 +92,15 @@
     case "toolbar-button-in-item":
         <Toolbar><ToolbarItem><ToolbarButton>Nested</ToolbarButton></ToolbarItem></Toolbar>
         break;
+    case "toggles":
+        <Toolbar Label="Format">
+            <ToolbarButtonGroup Label="Text style">
+                <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" @bind-Pressed="Bold" />
+                <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" Pressed="false" />
+            </ToolbarButtonGroup>
+            <ToolbarButton StartIcon="Lucide.Eye" @bind-Pressed="Preview">Preview</ToolbarButton>
+        </Toolbar>
+        break;
     case "outside":
         <ToolbarButton>Alone</ToolbarButton>
         break;
@@ -99,4 +108,8 @@
 
 @code {
     [Parameter] public string Kind { get; set; } = "controls";
+
+    public bool Bold { get; set; } = true;
+
+    public bool Preview { get; set; }
 }
