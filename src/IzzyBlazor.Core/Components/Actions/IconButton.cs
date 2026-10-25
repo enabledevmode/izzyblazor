@@ -34,7 +34,7 @@ public class IconButton : ButtonBase
     /// <summary>The icon.</summary>
     [Parameter, EditorRequired] public IconData Icon { get; set; }
 
-    /// <summary>What the button does, for screen readers and the tooltip. Required.</summary>
+    /// <summary>What the button does, for screen readers and the tooltip.</summary>
     [Parameter, EditorRequired] public string Label { get; set; } = "";
 
     [CascadingParameter] private TooltipScope? InTooltip { get; set; }

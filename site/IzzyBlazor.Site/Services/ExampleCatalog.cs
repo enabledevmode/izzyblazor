@@ -52,7 +52,7 @@ public sealed partial class ExampleCatalog
     /// <summary><c>Button</c> and <c>MultiSubmit</c> make <c>button-multi-submit</c>.</summary>
     public static string IdOf(string folder, string name) => $"{Kebab(folder.Replace('.', '-'))}-{Kebab(name)}";
 
-    private static string Kebab(string name) => WordStart().Replace(name, "-$1").ToLowerInvariant();
+    private static string Kebab(string name) => WordStart().Replace(name, "-").ToLowerInvariant();
 
     /// <summary>The source as shown: no hidden lines, LF line ends, no blank lines at the ends.</summary>
     public static string Clean(string source)
@@ -83,6 +83,8 @@ public sealed partial class ExampleCatalog
         return shown.ToString().Trim('\n');
     }
 
-    [GeneratedRegex("(?<=[a-z0-9])([A-Z])")]
+    // Before a capital after a lowercase letter or digit, and before the last capital of a run when
+    // a word follows: InARow is in-a-row, CsvExport csv-export, CSVExport csv-export.
+    [GeneratedRegex("(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")]
     private static partial Regex WordStart();
 }
