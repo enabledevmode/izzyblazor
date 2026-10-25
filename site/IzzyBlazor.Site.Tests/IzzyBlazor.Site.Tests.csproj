@@ -1,7 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Checks the docs site: the registry covers the library, every example has a file and renders
-       in each mode it claims, Off frames carry no script, and internal links resolve. -->
+       in each mode it claims, Off frames carry no script, internal links resolve, and toolbars don't
+       move when their script arrives (in a browser). -->
   <PropertyGroup>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
@@ -11,6 +12,8 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.12.0" />
     <PackageReference Include="xunit" Version="2.9.2" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+    <!-- The Toolbar's width sweep runs in Chromium (ToolbarWidthTests). -->
+    <PackageReference Include="Microsoft.Playwright" Version="1.63.0" />
   </ItemGroup>
 
   <ItemGroup>
