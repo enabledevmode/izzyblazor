@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.12",
+  "version": "0.1.0-alpha.13",
   "components": [
     {
       "name": "Accordion",
@@ -1452,8 +1452,23 @@
           "type": "RenderFragment\u003CTItem\u003E?"
         },
         {
+          "name": "ItemDescription",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
           "name": "Orientation",
           "type": "Orientation"
+        },
+        {
+          "name": "SelectAll",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "SelectAllText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
         },
         {
           "name": "Value",
@@ -1678,6 +1693,11 @@
       ],
       "properties": [
         {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
           "name": "Presets",
           "type": "IEnumerable\u003Cstring\u003E?"
         },
@@ -1692,6 +1712,11 @@
         {
           "name": "PresetsLabel",
           "type": "string?"
+        },
+        {
+          "name": "PresetText",
+          "type": "Func\u003Cstring, string?\u003E?",
+          "addedIn": "0.1.0-alpha.13"
         },
         {
           "name": "Value",
@@ -1807,6 +1832,11 @@
         "FieldBase"
       ],
       "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
         {
           "name": "Items",
           "type": "IEnumerable\u003CTValue\u003E?"
@@ -2780,6 +2810,11 @@
       "bases": [],
       "properties": [
         {
+          "name": "Id",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
           "name": "For",
           "type": "Expression\u003CFunc\u003CTValue\u003E\u003E"
         }
@@ -2823,6 +2858,11 @@
         {
           "name": "Required",
           "type": "bool"
+        },
+        {
+          "name": "AnnounceRequired",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
         },
         {
           "name": "Hint",
@@ -3425,10 +3465,6 @@
           "type": "TextSize?"
         },
         {
-          "name": "As",
-          "type": "string"
-        },
-        {
           "name": "ChildContent",
           "type": "RenderFragment?"
         }
@@ -3524,6 +3560,26 @@
         {
           "name": "Reset",
           "type": "bool"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
         },
         {
           "name": "Accent",
@@ -4069,6 +4125,11 @@
       ],
       "properties": [
         {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
           "name": "Items",
           "type": "IEnumerable\u003CTItem\u003E?"
         },
@@ -4265,6 +4326,11 @@
         "FieldBase"
       ],
       "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
         {
           "name": "Min",
           "type": "double?"
@@ -4870,6 +4936,11 @@
       ],
       "properties": [
         {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
           "name": "Items",
           "type": "IEnumerable\u003CTValue\u003E?"
         },
@@ -5422,10 +5493,6 @@
           "type": "RenderFragment?"
         },
         {
-          "name": "Indeterminate",
-          "type": "bool"
-        },
-        {
           "name": "ControlPosition",
           "type": "ControlPosition"
         },
@@ -5881,6 +5948,11 @@
       ],
       "properties": [
         {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
           "name": "Rows",
           "type": "int"
         },
@@ -6018,6 +6090,11 @@
         "FieldBase"
       ],
       "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
         {
           "name": "Type",
           "type": "TextFieldType?"
@@ -6186,6 +6263,626 @@
         "AlertVariant",
         "ToastPlacement"
       ]
+    },
+    {
+      "name": "Toolbar",
+      "displayName": "Toolbar",
+      "fullName": "IzzyBlazor.Toolbar",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Gap",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Wrap",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "MoreLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Nonce",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarButton",
+      "displayName": "ToolbarButton",
+      "fullName": "IzzyBlazor.ToolbarButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "External",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "HideExternalIcon",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Submit",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Reset",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarButtonGroup",
+      "displayName": "ToolbarButtonGroup",
+      "fullName": "IzzyBlazor.ToolbarButtonGroup",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Attached",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Orientation",
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarIconButton",
+      "displayName": "ToolbarIconButton",
+      "fullName": "IzzyBlazor.ToolbarIconButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Icon",
+          "type": "IconData",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Submit",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Reset",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "EndIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarItem",
+      "displayName": "ToolbarItem",
+      "fullName": "IzzyBlazor.ToolbarItem",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "MenuContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarMenu",
+      "displayName": "ToolbarMenu",
+      "fullName": "IzzyBlazor.ToolbarMenu",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Trigger",
+          "type": "RenderFragment\u003CIReadOnlyDictionary\u003Cstring, object\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Placement",
+          "type": "Placement",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "PanelWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Open",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Id",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Length",
+        "Placement",
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarSeparator",
+      "displayName": "ToolbarSeparator",
+      "fullName": "IzzyBlazor.ToolbarSeparator",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarText",
+      "displayName": "ToolbarText",
+      "fullName": "IzzyBlazor.ToolbarText",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.13"
     },
     {
       "name": "Tooltip",
@@ -6488,10 +7185,6 @@
         },
         {
           "name": "Disabled",
-          "type": "bool"
-        },
-        {
-          "name": "ReadOnly",
           "type": "bool"
         },
         {
@@ -8496,6 +9189,52 @@
           "type": "ToastPlacement"
         }
       ]
+    },
+    {
+      "name": "ToolbarOverflow",
+      "fullName": "IzzyBlazor.ToolbarOverflow",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Never",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Always",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.13"
+    },
+    {
+      "name": "ToolbarPosition",
+      "fullName": "IzzyBlazor.ToolbarPosition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Start",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Center",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "End",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.13"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.13"
     },
     {
       "name": "VerticalPosition",
