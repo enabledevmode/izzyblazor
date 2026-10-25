@@ -19,15 +19,11 @@
                         </MenuRadioGroup>
                     </MenuContent>
                 </ToolbarItem>
-                <ToolbarEnd>
-                    <Menu Label="Export" StartIcon="Lucide.Download">
-                        <MenuItem Submit Name="export" Value="csv" OnClick='() => _export = "csv"'>CSV</MenuItem>
-                        <MenuItem Submit Name="export" Value="xlsx" OnClick='() => _export = "xlsx"'>Excel</MenuItem>
-                    </Menu>
-                    <ToolbarItem Overflow="ToolbarOverflow.Never">
-                        <Button Submit Accent="Accent.Primary" Variant="ButtonVariant.Solid">Apply</Button>
-                    </ToolbarItem>
-                </ToolbarEnd>
+                <ToolbarMenu Label="Export" StartIcon="Lucide.Download" Position="ToolbarPosition.End">
+                    <MenuItem Submit Name="export" Value="csv" OnClick='() => _export = "csv"'>CSV</MenuItem>
+                    <MenuItem Submit Name="export" Value="xlsx" OnClick='() => _export = "xlsx"'>Excel</MenuItem>
+                </ToolbarMenu>
+                <ToolbarButton Submit Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never">Apply</ToolbarButton>
             </Toolbar>
         </Form>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>

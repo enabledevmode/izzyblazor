@@ -64,7 +64,7 @@
         }
         @* Buttons in the panel don't take the style of a ButtonGroup around its trigger, or become a toolbar's items. *@
         <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
-            <CascadingValue Value="ToolbarScope.Blocked" IsFixed="true">
+            <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
                 @ChildContent
             </CascadingValue>
         </CascadingValue>

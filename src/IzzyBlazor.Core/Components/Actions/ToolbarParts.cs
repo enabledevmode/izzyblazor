@@ -4,10 +4,23 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
+/// <summary>Where an item of a <see cref="Toolbar"/> sits.</summary>
+public enum ToolbarPosition
+{
+    /// <summary>At the start (the left in left-to-right text), the default.</summary>
+    Start,
+
+    /// <summary>In the middle, kept centered between the start and the end.</summary>
+    Center,
+
+    /// <summary>At the end, before the "…" menu.</summary>
+    End,
+}
+
 /// <summary>When an item of a <see cref="Toolbar"/> moves into its "…" menu.</summary>
 public enum ToolbarOverflow
 {
-    /// <summary>When there's no room for it, in order of <see cref="ToolbarItem.Priority"/> (the default).</summary>
+    /// <summary>When there's no room for it, in order of <c>Priority</c> (the default).</summary>
     Auto,
 
     /// <summary>Never: it stays in the bar, such as the main action.</summary>
@@ -17,37 +30,28 @@ public enum ToolbarOverflow
     Always,
 }
 
-/// <summary>The middle of a <see cref="Toolbar"/>, kept centered between the start and the end.</summary>
-public sealed class ToolbarCenter : ComponentPart
-{
-    internal override Type HostType => typeof(Toolbar);
-}
-
-/// <summary>The end of a <see cref="Toolbar"/> (the right in left-to-right text), before its "…" menu.</summary>
-public sealed class ToolbarEnd : ComponentPart
-{
-    internal override Type HostType => typeof(Toolbar);
-}
-
 /// <summary>
-/// Settings for the control inside it, which moves into the toolbar's "…" menu as one: a
-/// <see cref="Button"/>, <see cref="IconButton"/>, <see cref="ButtonGroup"/> or <see cref="Menu"/>.
-/// Also a box for anything else, such as a search field, with <see cref="MenuContent"/> for what
-/// stands in for it in the menu.
+/// Anything that isn't a toolbar control, in a <see cref="Toolbar"/>: a search field, a
+/// SegmentedControl, a Tooltip around a button. Give it a <see cref="LayoutItemBase.Width"/>, so the
+/// widths without script allow for it, and <see cref="MenuContent"/> for what stands in for it in
+/// the "…" menu; without that, it stays in the bar.
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;ToolbarItem Priority="1"&gt;&lt;Button StartIcon="Lucide.Link"&gt;Link&lt;/Button&gt;&lt;/ToolbarItem&gt;
-/// &lt;ToolbarItem Overflow="ToolbarOverflow.Never"&gt;&lt;Button Accent="Accent.Primary" Variant="ButtonVariant.Solid"&gt;Publish&lt;/Button&gt;&lt;/ToolbarItem&gt;
-/// &lt;ToolbarItem Width="Length.Rem(12)"&gt;&lt;TextField Label="Search" HideLabel /&gt;&lt;/ToolbarItem&gt;
+/// &lt;ToolbarItem Width="Length.Rem(12)" Overflow="ToolbarOverflow.Never"&gt;&lt;TextField Label="Search" HideLabel /&gt;&lt;/ToolbarItem&gt;
 /// </code>
 /// </example>
-public sealed class ToolbarItem : LayoutItemBase, IDisposable
+public sealed class ToolbarItem : LayoutItemBase, IToolbarItem, IDisposable
 {
-    private readonly ToolbarMember _member;
+    private readonly ToolbarSlot _slot;
+    private string? _class;
+    private string? _style;
 
     /// <summary>Creates the item.</summary>
-    public ToolbarItem() => _member = new ToolbarMember(this);
+    public ToolbarItem() => _slot = new ToolbarSlot(this, nameof(ToolbarItem));
+
+    /// <summary>Where it sits. Defaults to <see cref="ToolbarPosition.Start"/>.</summary>
+    [Parameter] public ToolbarPosition Position { get; set; }
 
     /// <summary>
     /// Which items stay longest when there's no room: higher stays longer. Defaults to 0. Items with
@@ -55,42 +59,41 @@ public sealed class ToolbarItem : LayoutItemBase, IDisposable
     /// </summary>
     [Parameter] public int Priority { get; set; }
 
-    /// <summary>When it moves into the "…" menu. Defaults to <see cref="ToolbarOverflow.Auto"/>.</summary>
+    /// <summary>
+    /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
+    /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
+    /// </summary>
     [Parameter] public ToolbarOverflow Overflow { get; set; }
 
-    /// <summary>The text of the control in the menu, in place of its label, such as "Bold" for a "B" button.</summary>
-    [Parameter] public string? MenuText { get; set; }
-
-    /// <summary>
-    /// What stands in for this item in the "…" menu, such as <see cref="MenuItem"/>s. Without it,
-    /// content that isn't a Button, IconButton, ButtonGroup or Menu stays in the bar.
-    /// </summary>
+    /// <summary>What stands in for it in the "…" menu, such as <see cref="MenuItem"/>s. Without it, the item stays in the bar.</summary>
     [Parameter] public RenderFragment? MenuContent { get; set; }
 
-    /// <summary>The control, or other content.</summary>
+    /// <summary>The content. Buttons in it are plain <see cref="Button"/>s, not toolbar buttons.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
-    [CascadingParameter] private ToolbarScope? Scope { get; set; }
+    [CascadingParameter] private ToolbarContext? Toolbar { get; set; }
 
-    private string? _class;
-    private string? _style;
+    bool IToolbarItem.Separator => false;
+
+    RenderFragment IToolbarItem.Bar => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddMultipleAttributes(1, AdditionalAttributes);
+        builder.AddAttribute(2, "class", _class);
+        builder.AddAttribute(3, "style", _style);
+        builder.AddContent(4, ChildContent);
+        builder.CloseElement();
+    };
+
+    RenderFragment? IToolbarItem.Menu => MenuContent;
+
+    double? IToolbarItem.Width => Pixels(Width.Base.Css);
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Scope?.Context is null && !ReferenceEquals(Scope, ToolbarScope.Blocked))
-        {
-            throw new InvalidOperationException("ToolbarItem must be inside a Toolbar.");
-        }
-
         (_class, _style) = BuildRootAttributes();
-        _member.Update(Scope, entry: null, configure: unit =>
-        {
-            unit.Priority = Priority;
-            unit.Overflow = Overflow;
-            unit.MenuContent = MenuContent;
-            unit.FixedWidth = Pixels(Width.Base.Css);
-        });
+        _slot.Join(Toolbar);
     }
 
     /// <inheritdoc />
@@ -101,16 +104,10 @@ public sealed class ToolbarItem : LayoutItemBase, IDisposable
     }
 
     /// <inheritdoc />
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
-    {
-        builder.OpenComponent<CascadingValue<ToolbarScope?>>(0);
-        builder.AddComponentParameter(1, "Value", _member.Inner(menuText: MenuText));
-        builder.AddComponentParameter(2, "ChildContent", _member.Wrap(ChildContent ?? (_ => { }), _class, _style, AdditionalAttributes));
-        builder.CloseComponent();
-    }
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => _slot.Rendered();
 
     /// <summary>A CSS length in rem or px as pixels at a 16px root; null for anything else.</summary>
-    private static double? Pixels(string? css)
+    internal static double? Pixels(string? css)
     {
         if (string.IsNullOrEmpty(css))
         {
@@ -124,61 +121,201 @@ public sealed class ToolbarItem : LayoutItemBase, IDisposable
     }
 
     /// <inheritdoc />
-    public void Dispose() => _member.Dispose();
+    public void Dispose() => _slot.Dispose();
+}
+
+/// <summary>
+/// Text in a <see cref="Toolbar"/>, such as "3 selected" or a document's name. It stays in the bar,
+/// sized from its text; give it a <see cref="LayoutItemBase.Width"/> to cut long text short with "…".
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;ToolbarText&gt;3 selected&lt;/ToolbarText&gt;
+/// &lt;ToolbarText Position="ToolbarPosition.Center" Width="Length.Rem(9)"&gt;Q3 report.pdf&lt;/ToolbarText&gt;
+/// </code>
+/// </example>
+public sealed class ToolbarText : LayoutItemBase, IToolbarItem, IDisposable
+{
+    private readonly ToolbarSlot _slot;
+    private string? _class;
+    private string? _style;
+
+    /// <summary>Creates the text.</summary>
+    public ToolbarText() => _slot = new ToolbarSlot(this, nameof(ToolbarText));
+
+    /// <summary>Where it sits. Defaults to <see cref="ToolbarPosition.Start"/>.</summary>
+    [Parameter] public ToolbarPosition Position { get; set; }
+
+    /// <summary>The text.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] private ToolbarContext? Toolbar { get; set; }
+
+    // The toolbar's settings, for its size.
+    [CascadingParameter] private ButtonGroup? Defaults { get; set; }
+
+    int IToolbarItem.Priority => 0;
+
+    ToolbarOverflow IToolbarItem.Overflow => ToolbarOverflow.Never;
+
+    bool IToolbarItem.Separator => false;
+
+    RenderFragment IToolbarItem.Bar => builder =>
+    {
+        builder.OpenElement(0, "span");
+        builder.AddMultipleAttributes(1, AdditionalAttributes);
+        builder.AddAttribute(2, "class", _class);
+        builder.AddAttribute(3, "style", _style);
+        builder.AddContent(4, ChildContent);
+        builder.CloseElement();
+    };
+
+    RenderFragment? IToolbarItem.Menu => null;
+
+    double? IToolbarItem.Width => ToolbarItem.Pixels(Width.Base.Css)
+        ?? (ChildContent is not null && Code.ReadText(ChildContent) is { } text ? TextWidths.Of(text, Defaults?.DefaultSize ?? ControlSize.Sm) : null);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        _slot.Join(Toolbar);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-toolbar-text");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => _slot.Rendered();
+
+    /// <inheritdoc />
+    public void Dispose() => _slot.Dispose();
 }
 
 /// <summary>A vertical line between groups of a <see cref="Toolbar"/>'s items; in its "…" menu, a divider.</summary>
-public sealed class ToolbarSeparator : IzzyComponentBase, IDisposable
+public sealed class ToolbarSeparator : IzzyComponentBase, IToolbarItem, IDisposable
 {
-    private readonly ToolbarMember _member;
-
-    /// <summary>Creates the separator.</summary>
-    public ToolbarSeparator() => _member = new ToolbarMember(this);
-
-    [CascadingParameter] private ToolbarScope? Scope { get; set; }
-
     private static readonly RenderFragment MenuDivider = builder =>
     {
         builder.OpenComponent<MenuDivider>(0);
         builder.CloseComponent();
     };
 
-    /// <inheritdoc />
-    protected override void OnParametersSet()
-    {
-        if (Scope?.Context is null && !ReferenceEquals(Scope, ToolbarScope.Blocked))
-        {
-            throw new InvalidOperationException("ToolbarSeparator must be inside a Toolbar.");
-        }
+    private readonly ToolbarSlot _slot;
 
-        _member.Update(Scope, new ToolbarEntry(MenuDivider, 1), configure: unit => unit.Separator = true);
-    }
+    /// <summary>Creates the separator.</summary>
+    public ToolbarSeparator() => _slot = new ToolbarSlot(this, nameof(ToolbarSeparator));
 
-    /// <inheritdoc />
-    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    /// <summary>Where it sits. Defaults to <see cref="ToolbarPosition.Start"/>.</summary>
+    [Parameter] public ToolbarPosition Position { get; set; }
+
+    [CascadingParameter] private ToolbarContext? Toolbar { get; set; }
+
+    int IToolbarItem.Priority => 0;
+
+    ToolbarOverflow IToolbarItem.Overflow => ToolbarOverflow.Never;
+
+    bool IToolbarItem.Separator => true;
+
+    RenderFragment IToolbarItem.Bar => builder =>
     {
         var (cssClass, style) = BuildRootAttributes();
-        builder.AddContent(0, _member.Wrap(b =>
-        {
-            b.OpenElement(0, "div");
-            b.AddAttribute(1, "role", "separator");
-            b.AddAttribute(2, "aria-orientation", "vertical");
-            b.AddMultipleAttributes(3, AdditionalAttributes);
-            b.AddAttribute(4, "class", cssClass);
-            b.AddAttribute(5, "style", style);
-            b.CloseElement();
-        }, "ib-toolbar-sep"));
-    }
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "role", "separator");
+        builder.AddAttribute(2, "aria-orientation", "vertical");
+        builder.AddMultipleAttributes(3, AdditionalAttributes);
+        builder.AddAttribute(4, "class", cssClass);
+        builder.AddAttribute(5, "style", style);
+        builder.CloseElement();
+    };
+
+    RenderFragment? IToolbarItem.Menu => MenuDivider;
+
+    double? IToolbarItem.Width => 1;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => _slot.Join(Toolbar);
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-toolbar-divider");
 
     /// <inheritdoc />
-    public void Dispose() => _member.Dispose();
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => _slot.Rendered();
+
+    /// <inheritdoc />
+    public void Dispose() => _slot.Dispose();
 }
 
 /// <summary>
-/// The end of a <see cref="Toolbar"/>: its "…" menu, holding a copy of every unit that can go
+/// Draws a <see cref="Toolbar"/>'s items at one position, each in a <c>div.ib-toolbar-unit</c>
+/// marked with its id, which the CSS and the script show and hide. The center has a box of its own,
+/// drawn only when an item is there.
+/// </summary>
+internal sealed class ToolbarOutlet : ComponentBase, IDisposable
+{
+    private Action? _render;
+
+    [Parameter, EditorRequired] public ToolbarContext Context { get; set; } = null!;
+
+    [Parameter] public ToolbarPosition Position { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        _render = StateHasChanged;
+        Context.AddOutlet(_render);
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        var items = Context.Items.Where(i => i.Item.Position == Position).ToList();
+        var box = Position == ToolbarPosition.Center;
+        if (box)
+        {
+            if (items.Count == 0)
+            {
+                return;
+            }
+
+            builder.OpenElement(0, "div");
+            builder.AddAttribute(1, "class", "ib-toolbar-center");
+        }
+
+        foreach (var (item, id) in items)
+        {
+            builder.OpenElement(2, "div");
+            builder.SetKey(item);
+            builder.AddAttribute(3, "class", item.Separator ? "ib-toolbar-unit ib-toolbar-sep" : "ib-toolbar-unit");
+            builder.AddAttribute(4, "data-ib-unit", id.ToString(CultureInfo.InvariantCulture));
+            builder.AddAttribute(5, "data-ib-priority", item.Priority == 0 ? null : item.Priority.ToString(CultureInfo.InvariantCulture));
+            builder.AddAttribute(6, "data-ib-overflow", item.Overflow == ToolbarOverflow.Auto ? null : item.Overflow.ToString().ToLowerInvariant());
+            builder.AddContent(7, item.Bar);
+            builder.CloseElement();
+        }
+
+        if (box)
+        {
+            builder.CloseElement();
+        }
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_render is not null)
+        {
+            Context.RemoveOutlet(_render);
+        }
+    }
+}
+
+/// <summary>
+/// The end of a <see cref="Toolbar"/>: its "…" menu, holding a copy of every item that can go
 /// there, and the container queries that choose, without script, which copies show.
 /// </summary>
 internal sealed class ToolbarMore : ComponentBase
@@ -192,18 +329,21 @@ internal sealed class ToolbarMore : ComponentBase
     [Parameter] public string? Nonce { get; set; }
 
     /// <inheritdoc />
-    protected override void OnInitialized() => Context.OnChanged = StateHasChanged;
+    protected override void OnInitialized() => Context.OnMenuChanged = StateHasChanged;
+
+    /// <summary>How it moves, after what it can do: one with nothing to show in the menu stays.</summary>
+    private static ToolbarOverflow Effective(IToolbarItem item) => item.Separator || item.Menu is null ? ToolbarOverflow.Never : item.Overflow;
 
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
-        var units = Context.Units.ToList();
-        if (!units.Exists(u => !u.Separator && u.EffectiveOverflow != ToolbarOverflow.Never))
+        var items = Context.Items.ToList();
+        if (!items.Exists(i => !i.Item.Separator && Effective(i.Item) != ToolbarOverflow.Never))
         {
             return;
         }
 
-        var plan = units.Select(u => new ToolbarPlan.Unit(u.Id, u.Region, u.Width ?? 0, u.Priority, u.Separator ? ToolbarOverflow.Never : u.EffectiveOverflow, u.Separator)).ToList();
+        var plan = items.ConvertAll(i => new ToolbarPlan.Unit(i.Id, i.Item.Position, i.Item.Width ?? 0, i.Item.Priority, Effective(i.Item), i.Item.Separator));
         var moreWidth = Size switch { ControlSize.Sm => 32, ControlSize.Lg => 44, _ => 36 };
         var states = ToolbarPlan.States(plan, Context.Gap, moreWidth);
 
@@ -214,39 +354,33 @@ internal sealed class ToolbarMore : ComponentBase
 
         builder.OpenElement(3, "div");
         builder.AddAttribute(4, "class", "ib-toolbar-more");
-        builder.OpenComponent<CascadingValue<ToolbarScope?>>(6);
-        builder.AddComponentParameter(7, "Value", ToolbarScope.Blocked);
-        builder.AddComponentParameter(8, "IsFixed", true);
-        builder.AddComponentParameter(9, "ChildContent", (RenderFragment)(b =>
+        builder.OpenComponent<Menu>(5);
+        builder.AddComponentParameter(6, nameof(Menu.Placement), Placement.BottomEnd);
+        builder.AddComponentParameter(7, nameof(Menu.Trigger), (RenderFragment<IReadOnlyDictionary<string, object>>)(attributes => t =>
         {
-            b.OpenComponent<Menu>(0);
-            b.AddComponentParameter(1, nameof(Menu.Placement), Placement.BottomEnd);
-            b.AddComponentParameter(2, nameof(Menu.Trigger), (RenderFragment<IReadOnlyDictionary<string, object>>)(attributes => t =>
+            t.OpenComponent<IconButton>(0);
+            t.AddComponentParameter(1, nameof(IconButton.Icon), Lucide.Ellipsis);
+            t.AddComponentParameter(2, nameof(IconButton.Label), MoreLabel);
+            t.AddMultipleAttributes(3, attributes);
+            t.CloseComponent();
+        }));
+        builder.AddComponentParameter(8, nameof(Menu.ChildContent), (RenderFragment)(m =>
+        {
+            // A copy of what can move; separators go with their neighbors.
+            foreach (var (item, id) in items)
             {
-                t.OpenComponent<IconButton>(0);
-                t.AddComponentParameter(1, nameof(IconButton.Icon), Lucide.Ellipsis);
-                t.AddComponentParameter(2, nameof(IconButton.Label), MoreLabel);
-                t.AddMultipleAttributes(3, attributes);
-                t.CloseComponent();
-            }));
-            b.AddComponentParameter(3, nameof(Menu.ChildContent), (RenderFragment)(m =>
-            {
-                foreach (var unit in units)
+                if (!item.Separator && Effective(item) == ToolbarOverflow.Never)
                 {
-                    if (unit.Menu is not { } menu)
-                    {
-                        continue;
-                    }
-
-                    m.OpenElement(0, "div");
-                    m.SetKey(unit);
-                    m.AddAttribute(1, "class", "ib-toolbar-menu-unit");
-                    m.AddAttribute(2, "data-ib-unit", unit.Id.ToString(CultureInfo.InvariantCulture));
-                    m.AddContent(4, menu);
-                    m.CloseElement();
+                    continue;
                 }
-            }));
-            b.CloseComponent();
+
+                m.OpenElement(0, "div");
+                m.SetKey(item);
+                m.AddAttribute(1, "class", "ib-toolbar-menu-unit");
+                m.AddAttribute(2, "data-ib-unit", id.ToString(CultureInfo.InvariantCulture));
+                m.AddContent(3, item.Menu);
+                m.CloseElement();
+            }
         }));
         builder.CloseComponent();
         builder.CloseElement();

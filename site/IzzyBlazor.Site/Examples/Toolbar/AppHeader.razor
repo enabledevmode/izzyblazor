@@ -7,15 +7,11 @@
         <SidebarToggle />
         <AppBrand Href="@To(null)" Icon="Lucide.Mail" Label="Acme Mail" />
         <Toolbar Label="Mail actions" Grow>
-            <ToolbarEnd>
-                <IconButton Icon="Lucide.Search" Label="Search mail" />
-                <IconButton Icon="Lucide.Bell" Label="Notifications" />
-                <IconButton Icon="Lucide.CircleQuestionMark" Label="Help" Href='@To("help")' />
-                <IconButton Icon="Lucide.Settings" Label="Settings" Href='@To("settings")' />
-                <ToolbarItem Priority="1">
-                    <Button StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Compose</Button>
-                </ToolbarItem>
-            </ToolbarEnd>
+            <ToolbarIconButton Icon="Lucide.Search" Label="Search mail" Position="ToolbarPosition.End" />
+            <ToolbarIconButton Icon="Lucide.Bell" Label="Notifications" Position="ToolbarPosition.End" />
+            <ToolbarIconButton Icon="Lucide.CircleQuestionMark" Label="Help" Href='@To("help")' Position="ToolbarPosition.End" />
+            <ToolbarIconButton Icon="Lucide.Settings" Label="Settings" Href='@To("settings")' Position="ToolbarPosition.End" />
+            <ToolbarButton StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" Priority="1">Compose</ToolbarButton>
         </Toolbar>
     </AppHeader>
 

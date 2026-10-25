@@ -1,10 +1,10 @@
 <Card Size="ControlSize.Sm" Width="Length.Full">
     <CardBody Gap="3">
         <Toolbar Label="Counter">
-            <IconButton Icon="Lucide.Minus" Label="Decrease" OnClick="() => _count--" />
-            <IconButton Icon="Lucide.Plus" Label="Increase" OnClick="() => _count++" />
-            <Button StartIcon="Lucide.RotateCcw" OnClick="() => _count = 0">Reset count</Button>
-            <Button StartIcon="Lucide.ChevronsUp" OnClick="() => _count += 10">Add ten</Button>
+            <ToolbarIconButton Icon="Lucide.Minus" Label="Decrease" OnClick="() => _count--" />
+            <ToolbarIconButton Icon="Lucide.Plus" Label="Increase" OnClick="() => _count++" />
+            <ToolbarButton StartIcon="Lucide.RotateCcw" OnClick="() => _count = 0">Reset count</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.ChevronsUp" OnClick="() => _count += 10">Add ten</ToolbarButton>
         </Toolbar>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Count: @_count</TextBlock>
     </CardBody>

@@ -74,7 +74,7 @@
         <CascadingValue Value="_context" IsFixed="true">
         @* Buttons in the dialog don't take the style of a ButtonGroup around its trigger, or become a toolbar's items. *@
         <CascadingValue Value="ButtonGroup.Reset" IsFixed="true">
-        <CascadingValue Value="ToolbarScope.Blocked" IsFixed="true">
+        <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
             @if (Title is not null || ShownHeader is not null || ShowCloseButton)
             {
                 <header class="ib-dialog-header">

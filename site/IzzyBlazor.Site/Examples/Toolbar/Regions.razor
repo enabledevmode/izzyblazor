@@ -1,20 +1,14 @@
 <Card Size="ControlSize.Sm" Width="Length.Full">
     <CardBody Gap="4">
         <Toolbar Label="Document">
-            <IconButton Icon="Lucide.ArrowLeft" Label="Back to files" Href="docs/components/toolbar" />
-            <ToolbarCenter>
-                <ToolbarItem Overflow="ToolbarOverflow.Never" Width="Length.Rem(9)">
-                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" Truncate>Q3 report.pdf</TextBlock>
-                </ToolbarItem>
-            </ToolbarCenter>
-            <ToolbarEnd>
-                <ButtonGroup Label="Zoom">
-                    <IconButton Icon="Lucide.ZoomOut" Label="Zoom out" />
-                    <IconButton Icon="Lucide.ZoomIn" Label="Zoom in" />
-                </ButtonGroup>
-                <IconButton Icon="Lucide.Printer" Label="Print" />
-                <IconButton Icon="Lucide.Download" Label="Download" />
-            </ToolbarEnd>
+            <ToolbarIconButton Icon="Lucide.ArrowLeft" Label="Back to files" Href="docs/components/toolbar" />
+            <ToolbarText Position="ToolbarPosition.Center" Width="Length.Rem(9)">Q3 report.pdf</ToolbarText>
+            <ToolbarButtonGroup Label="Zoom" Position="ToolbarPosition.End">
+                <ToolbarIconButton Icon="Lucide.ZoomOut" Label="Zoom out" />
+                <ToolbarIconButton Icon="Lucide.ZoomIn" Label="Zoom in" />
+            </ToolbarButtonGroup>
+            <ToolbarIconButton Icon="Lucide.Printer" Label="Print" Position="ToolbarPosition.End" />
+            <ToolbarIconButton Icon="Lucide.Download" Label="Download" Position="ToolbarPosition.End" />
         </Toolbar>
         <AspectRatio Ratio="5.0" Bg="Color.SurfaceContainer" Radius="Radius.Md" />
     </CardBody>

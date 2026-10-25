@@ -1,7 +1,7 @@
 /*
  * Toolbar: one row of controls; what doesn't fit moves into the "…" menu at the end.
  *
- * Each unit is in the bar (div.ib-toolbar-unit) and in the menu (div.ib-toolbar-menu-unit), with
+ * The toolbar draws its items itself, each at its position. Each unit is in the bar (div.ib-toolbar-unit) and in the menu (div.ib-toolbar-menu-unit), with
  * the same data-ib-unit. Which copy shows comes from the toolbar's own <style> without script
  * (container queries at widths the server worked out, scoped to its id and switched off by
  * [data-ib-measured]), and from the script's measurements with it (data-ib-out on bar units,
@@ -37,12 +37,12 @@
   }
 
   /* With a center, it stays centered: the start and the end take equal shares around it. */
-  .ib-toolbar-centered {
+  .ib-toolbar:has(> .ib-toolbar-center) {
     display: grid;
     grid-template-columns: 1fr auto 1fr;
   }
 
-  .ib-toolbar-centered > .ib-toolbar-end {
+  .ib-toolbar:has(> .ib-toolbar-center) > .ib-toolbar-end {
     justify-content: flex-end;
   }
 
@@ -51,6 +51,23 @@
     flex: none;
     align-items: center;
     gap: var(--ib-toolbar-gap);
+  }
+
+  /* Text sized and weighted like the toolbar's button labels, which the server's width estimate assumes. */
+  .ib-toolbar-text {
+    overflow: hidden;
+    font-size: var(--ib-text-sm);
+    font-weight: var(--ib-weight-medium);
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .ib-toolbar-sm .ib-toolbar-text {
+    font-size: var(--ib-control-font-sm);
+  }
+
+  .ib-toolbar-lg .ib-toolbar-text {
+    font-size: var(--ib-text-md);
   }
 
   .ib-toolbar-divider {

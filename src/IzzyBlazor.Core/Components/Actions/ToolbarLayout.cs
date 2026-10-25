@@ -5,123 +5,47 @@ using Microsoft.AspNetCore.Components.Rendering;
 
 namespace IzzyBlazor;
 
-/// <summary>Where a toolbar region sits.</summary>
-internal enum ToolbarRegion
-{
-    Start,
-    Center,
-    End,
-}
-
 /// <summary>
-/// What a control inside a <see cref="Toolbar"/> knows about where it is. At the top of a region
-/// (no <see cref="Sink"/>) a control is a unit of its own; inside a unit (a ToolbarItem, a Tooltip,
-/// a ButtonGroup) it reports to that. Overlays cascade <see cref="Blocked"/>, so the buttons in a
-/// dialog or a menu panel aren't taken for toolbar items. Providers keep one instance per place,
-/// since a control joins again when its scope object changes.
+/// One of a <see cref="Toolbar"/>'s items: a ToolbarButton, ToolbarItem, ToolbarSeparator and so on.
+/// The toolbar draws it twice, in the bar and (when it has a <see cref="Menu"/>) in the "…" menu,
+/// and the item itself draws nothing where it's written. Read when drawn, so always current.
 /// </summary>
-internal sealed class ToolbarScope(ToolbarContext? context, ToolbarRegion region, IToolbarSink? sink, string? menuText)
+internal interface IToolbarItem
 {
-    /// <summary>For content that isn't part of the toolbar: an overlay's panel, the "…" menu.</summary>
-    public static ToolbarScope Blocked { get; } = new(null, ToolbarRegion.Start, null, null);
+    ToolbarPosition Position { get; }
 
-    public ToolbarContext? Context { get; } = context;
+    int Priority { get; }
 
-    public ToolbarRegion Region { get; } = region;
+    /// <summary>When it moves into the "…" menu. One with no <see cref="Menu"/> stays in the bar whatever this says.</summary>
+    ToolbarOverflow Overflow { get; }
 
-    public IToolbarSink? Sink { get; } = sink;
+    bool Separator { get; }
 
-    /// <summary>A ToolbarItem's <c>MenuText</c>, for the control inside it.</summary>
-    public string? MenuText { get; } = menuText;
-}
-
-/// <summary>Takes the menu forms and widths of the controls inside it.</summary>
-internal interface IToolbarSink
-{
-    void Set(object owner, ToolbarEntry entry);
-
-    void Remove(object owner);
-}
-
-/// <summary>
-/// One control's part in the toolbar: what it becomes in the "…" menu (null: it can't go there)
-/// and its estimated width in pixels at a 16px root (null: unknown).
-/// </summary>
-internal sealed record ToolbarEntry(RenderFragment? Menu, double? Width);
-
-/// <summary>
-/// What overflows into the "…" menu as one: a control at the top of a region, or a ToolbarItem.
-/// It's drawn in the bar inside a <c>div.ib-toolbar-unit</c> and in the menu inside a
-/// <c>div.ib-toolbar-menu-unit</c>, both marked with its id, which the CSS and the script show and hide.
-/// </summary>
-internal sealed class ToolbarUnit(ToolbarContext context, int id, ToolbarRegion region) : IToolbarSink
-{
-    private readonly List<(object Owner, ToolbarEntry Entry)> _entries = [];
-
-    public int Id { get; } = id;
-
-    public ToolbarRegion Region { get; } = region;
-
-    public bool Separator { get; set; }
-
-    public int Priority { get; set; }
-
-    public ToolbarOverflow Overflow { get; set; }
-
-    /// <summary>A ToolbarItem's own width, in pixels at a 16px root.</summary>
-    public double? FixedWidth { get; set; }
-
-    /// <summary>A ToolbarItem's <c>MenuContent</c>, in place of its controls' menu forms.</summary>
-    public RenderFragment? MenuContent { get; set; }
+    /// <summary>What it shows in the bar.</summary>
+    RenderFragment Bar { get; }
 
     /// <summary>What it shows in the "…" menu, or null when it can't go there (it then stays in the bar).</summary>
-    public RenderFragment? Menu => MenuContent ?? (_entries.Count > 0 && _entries.TrueForAll(e => e.Entry.Menu is not null)
-        ? builder =>
-        {
-            foreach (var (_, entry) in _entries)
-            {
-                builder.AddContent(0, entry.Menu);
-            }
-        }
-        : null);
+    RenderFragment? Menu { get; }
 
-    /// <summary>The estimated width, or null when a control in it has none.</summary>
-    public double? Width => FixedWidth ?? (_entries.Count > 0 && _entries.TrueForAll(e => e.Entry.Width is not null)
-        ? _entries.Sum(e => e.Entry.Width!.Value) + (_entries.Count - 1) * context.Gap
-        : null);
-
-    /// <summary>How it overflows, after what it can do: without a menu form it stays.</summary>
-    public ToolbarOverflow EffectiveOverflow => Menu is null ? ToolbarOverflow.Never : Overflow;
-
-    public void Set(object owner, ToolbarEntry entry)
-    {
-        var index = _entries.FindIndex(e => ReferenceEquals(e.Owner, owner));
-        if (index >= 0)
-        {
-            _entries[index] = (owner, entry);
-        }
-        else
-        {
-            _entries.Add((owner, entry));
-        }
-
-        context.Changed();
-    }
-
-    public void Remove(object owner)
-    {
-        if (_entries.RemoveAll(e => ReferenceEquals(e.Owner, owner)) > 0)
-        {
-            context.Changed();
-        }
-    }
+    /// <summary>The estimated width in pixels at a 16px root, or null when unknown.</summary>
+    double? Width { get; }
 }
 
-/// <summary>The units of one <see cref="Toolbar"/>, in page order within each region.</summary>
+/// <summary>
+/// The items of one <see cref="Toolbar"/>, in the order they joined (page order, unless a component
+/// of the app's adds one later), and the parts that draw them: an outlet per position and the "…" menu.
+/// </summary>
 internal sealed class ToolbarContext(string rootId)
 {
-    private readonly List<ToolbarUnit> _units = [];
+    private readonly List<(IToolbarItem Item, int Id)> _items = [];
+    private readonly List<Action> _outlets = [];
     private int _nextId;
+
+    /// <summary>
+    /// For content that isn't at the top of a toolbar: a toolbar's own outlets and menu, an
+    /// overlay's panel. Toolbar controls there refuse to render, and other controls are allowed.
+    /// </summary>
+    public static ToolbarContext Outside { get; } = new("");
 
     public string RootId { get; } = rootId;
 
@@ -129,157 +53,134 @@ internal sealed class ToolbarContext(string rootId)
     public double Gap { get; set; } = 8;
 
     /// <summary>Re-renders the "…" menu and the toolbar's CSS. Set by the part that draws them.</summary>
-    public Action? OnChanged { get; set; }
+    public Action? OnMenuChanged { get; set; }
 
-    /// <summary>The units, start region first, then center, then end, each in the order they joined.</summary>
-    public IEnumerable<ToolbarUnit> Units => _units.OrderBy(u => u.Region);
+    /// <summary>The items with their ids, start first, then center, then end, each in the order they joined.</summary>
+    public IEnumerable<(IToolbarItem Item, int Id)> Items => _items.OrderBy(i => i.Item.Position);
 
-    public ToolbarUnit Add(ToolbarRegion region)
+    public bool Has(ToolbarPosition position) => _items.Exists(i => i.Item.Position == position);
+
+    public void Add(IToolbarItem item)
     {
-        var unit = new ToolbarUnit(this, ++_nextId, region);
-        _units.Add(unit);
-        Changed();
-        return unit;
+        _items.Add((item, ++_nextId));
+        Refresh();
     }
 
-    public void Remove(ToolbarUnit unit)
+    public void Remove(IToolbarItem item)
     {
-        if (_units.Remove(unit))
+        if (_items.RemoveAll(i => ReferenceEquals(i.Item, item)) > 0)
         {
-            Changed();
+            Refresh();
         }
     }
 
-    public void Changed() => OnChanged?.Invoke();
+    public void AddOutlet(Action render) => _outlets.Add(render);
+
+    public void RemoveOutlet(Action render) => _outlets.Remove(render);
+
+    /// <summary>Draws the bar and the menu again: an item changed.</summary>
+    public void Refresh()
+    {
+        foreach (var render in _outlets.ToList())
+        {
+            render();
+        }
+
+        MenuChanged();
+    }
+
+    /// <summary>
+    /// Draws the menu and the CSS again, not the bar: a control inside a unit (a ToolbarButtonGroup's
+    /// button) changed while the bar drew it.
+    /// </summary>
+    public void MenuChanged() => OnMenuChanged?.Invoke();
 }
 
-/// <summary>
-/// A control's membership in a toolbar. A control at the top of a region gets a unit of its own
-/// (when it can draw the unit's wrapper); inside a unit it reports to it. Outside a toolbar it does nothing.
-/// </summary>
-internal sealed class ToolbarMember(object owner) : IDisposable
+/// <summary>An item's place in its toolbar: joins on its first parameters, leaves when disposed.</summary>
+internal sealed class ToolbarSlot(IToolbarItem item, string component) : IDisposable
 {
-    private ToolbarScope? _scope;
-    private ToolbarScope? _inner;
-    private IToolbarSink? _sink;
+    private ToolbarContext? _context;
 
-    /// <summary>The unit this control is, when it's at the top of a region.</summary>
-    public ToolbarUnit? Unit { get; private set; }
-
-    /// <summary>Whether the control is in a toolbar at all.</summary>
-    public bool Active => _sink is not null;
-
-    /// <summary>
-    /// Joins or updates. <paramref name="entry"/> is what this control reports (null: nothing, as
-    /// for a wrapper such as Tooltip). <paramref name="canBeUnit"/> is false for controls that don't
-    /// draw a unit's wrapper; at the top of a region they stay out of the toolbar's reckoning.
-    /// </summary>
-    public void Update(ToolbarScope? scope, ToolbarEntry? entry, bool canBeUnit = true, Action<ToolbarUnit>? configure = null)
+    /// <summary>Joins <paramref name="context"/>, the one a toolbar's content gets; refuses anywhere else.</summary>
+    public void Join(ToolbarContext? context)
     {
-        if (!ReferenceEquals(scope, _scope))
+        if (context is null || ReferenceEquals(context, ToolbarContext.Outside))
         {
-            Leave();
-            _scope = scope;
-            if (scope?.Context is { } context)
-            {
-                if (scope.Sink is not null)
-                {
-                    _sink = scope.Sink;
-                }
-                else if (canBeUnit)
-                {
-                    Unit = context.Add(scope.Region);
-                    _sink = Unit;
-                }
-            }
+            throw new InvalidOperationException($"{component} must be directly inside a Toolbar.");
         }
 
-        if (_sink is null)
+        if (!ReferenceEquals(context, _context))
         {
-            return;
-        }
-
-        if (Unit is not null)
-        {
-            configure?.Invoke(Unit);
-        }
-
-        if (entry is not null)
-        {
-            _sink.Set(owner, entry);
-        }
-        else
-        {
-            _scope!.Context!.Changed();
+            _context?.Remove(item);
+            _context = context;
+            context.Add(item);
         }
     }
 
     /// <summary>
-    /// The scope for the content inside this control: reporting to <paramref name="sink"/> (a
-    /// ButtonGroup's buttons), else to this control's unit, else the same as its own.
+    /// Called where the item would render: the toolbar draws it instead, so the bar and the menu
+    /// follow every change (new parameters, or a state change of its own, such as a Menu opening).
     /// </summary>
-    public ToolbarScope? Inner(IToolbarSink? sink = null, string? menuText = null)
+    public void Rendered() => _context?.Refresh();
+
+    /// <summary>The menu copy changed, not the bar: a ToolbarButtonGroup's button, which the bar is drawing.</summary>
+    public void MenuChanged() => _context?.MenuChanged();
+
+    public void Dispose()
     {
-        if (_scope?.Context is not { } context)
-        {
-            return _scope;
-        }
-
-        var target = sink ?? Unit ?? _scope.Sink;
-        var text = sink is not null ? null : menuText ?? _scope.MenuText;
-        if (_inner is null || !ReferenceEquals(_inner.Sink, target) || _inner.MenuText != text)
-        {
-            _inner = new ToolbarScope(context, _scope.Region, target, text);
-        }
-
-        return _inner;
+        _context?.Remove(item);
+        _context = null;
     }
+}
 
+/// <summary>The estimated width of a button, from button.css and the label in Inter (<see cref="TextWidths"/>).</summary>
+internal static class ButtonWidth
+{
     /// <summary>
-    /// Draws <paramref name="content"/>, inside the unit's wrapper when this control is a unit. A
-    /// control with a box of its own (ToolbarItem) passes its class, style and attributes, and gets
-    /// the box whether or not it's a unit.
+    /// In pixels at a 16px root. <paramref name="text"/> is the label as plain text; null with
+    /// <paramref name="hasLabel"/> means a label that isn't plain text, whose width is unknown.
     /// </summary>
-    public RenderFragment Wrap(RenderFragment content, string? cssClass = null, string? style = null, IReadOnlyDictionary<string, object>? attributes = null) => builder =>
+    public static double? Estimate(ControlSize size, bool iconOnly, bool hasLabel, string? text, bool startIcon, bool endIcon, bool externalIcon = false)
     {
-        if (Unit is null && cssClass is null)
+        var (height, padding, icon, font) = size switch
         {
-            builder.AddContent(0, content);
-            return;
+            ControlSize.Sm => (32.0, 12.0, 16.0, 13.0),
+            ControlSize.Lg => (44.0, 20.0, 24.0, 16.0),
+            _ => (36.0, 16.0, 20.0, 14.0),
+        };
+        if (iconOnly)
+        {
+            return height;
         }
 
-        builder.OpenElement(1, "div");
-        builder.AddMultipleAttributes(2, attributes);
-        builder.AddAttribute(3, "class", Unit is null ? cssClass : cssClass is null ? "ib-toolbar-unit" : $"ib-toolbar-unit {cssClass}");
-        builder.AddAttribute(4, "style", style);
-        if (Unit is { } unit)
+        if (hasLabel && text is null)
         {
-            builder.AddAttribute(5, "data-ib-unit", unit.Id.ToString(CultureInfo.InvariantCulture));
-            builder.AddAttribute(6, "data-ib-priority", unit.Priority == 0 ? null : unit.Priority.ToString(CultureInfo.InvariantCulture));
-            builder.AddAttribute(7, "data-ib-overflow", unit.Overflow == ToolbarOverflow.Auto ? null : unit.Overflow.ToString().ToLowerInvariant());
+            return null;
         }
 
-        builder.AddContent(8, content);
-        builder.CloseElement();
-    };
-
-    private void Leave()
-    {
-        if (Unit is not null)
+        var parts = new List<double>();
+        if (startIcon)
         {
-            _scope!.Context!.Remove(Unit);
-        }
-        else
-        {
-            _sink?.Remove(owner);
+            parts.Add(icon);
         }
 
-        Unit = null;
-        _sink = null;
-        _inner = null;
+        if (!string.IsNullOrWhiteSpace(text))
+        {
+            parts.Add(TextWidths.Of(text, size));
+        }
+
+        if (endIcon)
+        {
+            parts.Add(icon);
+        }
+        else if (externalIcon)
+        {
+            parts.Add(font < 16 ? 12 : 14);
+        }
+
+        // Padding and the 1px border on each side, and a gap of half the font size between parts.
+        return 2 * padding + 2 + parts.Sum() + Math.Max(0, parts.Count - 1) * font / 2;
     }
-
-    public void Dispose() => Leave();
 }
 
 /// <summary>
@@ -289,7 +190,7 @@ internal sealed class ToolbarMember(object owner) : IDisposable
 internal static class ToolbarPlan
 {
     /// <summary>A unit as the plan sees it.</summary>
-    public sealed record Unit(int Id, ToolbarRegion Region, double Width, int Priority, ToolbarOverflow Overflow, bool Separator);
+    public sealed record Unit(int Id, ToolbarPosition Region, double Width, int Priority, ToolbarOverflow Overflow, bool Separator);
 
     /// <summary>
     /// The toolbar's state from <see cref="Min"/> (inclusive) to <see cref="Max"/> (exclusive) pixels
@@ -310,11 +211,11 @@ internal static class ToolbarPlan
             var region = droppable.Where(d => d.Region == u.Region).ToList();
             var index = region.IndexOf(u);
             var before = droppable.Count(d => d.Region < u.Region);
-            return before + (u.Region == ToolbarRegion.End ? index : region.Count - 1 - index);
+            return before + (u.Region == ToolbarPosition.End ? index : region.Count - 1 - index);
         }
 
         var ranked = droppable.OrderBy(u => u.Priority).ThenBy(Rank).ToList();
-        if (!units.Any(u => u.Region == ToolbarRegion.Center))
+        if (!units.Any(u => u.Region == ToolbarPosition.Center))
         {
             return ranked;
         }
@@ -324,7 +225,7 @@ internal static class ToolbarPlan
         {
             // Once one has gone, the "…" shows at the end.
             var (_, _, _, start, end) = Layout(units, [.. order.Select(u => u.Id)], gap, moreWidth, more: true);
-            var side = start >= end ? ToolbarRegion.Start : ToolbarRegion.End;
+            var side = start >= end ? ToolbarPosition.Start : ToolbarPosition.End;
             var next = ranked.Find(u => u.Priority == ranked[0].Priority && u.Region == side) ?? ranked[0];
             order.Add(next);
             ranked.Remove(next);
@@ -380,22 +281,22 @@ internal static class ToolbarPlan
             }
         }
 
-        double RegionWidth(ToolbarRegion region)
+        double RegionWidth(ToolbarPosition region)
         {
             var shown = units.Where(u => u.Region == region && !barHidden.Contains(u.Id)).ToList();
             return shown.Sum(u => u.Width) + Math.Max(0, shown.Count - 1) * gap;
         }
 
-        var start = RegionWidth(ToolbarRegion.Start);
-        var end = RegionWidth(ToolbarRegion.End);
+        var start = RegionWidth(ToolbarPosition.Start);
+        var end = RegionWidth(ToolbarPosition.End);
         if (more)
         {
             end += (end > 0 ? gap : 0) + moreWidth;
         }
 
-        var hasCenter = units.Any(u => u.Region == ToolbarRegion.Center);
+        var hasCenter = units.Any(u => u.Region == ToolbarPosition.Center);
         var width = hasCenter
-            ? 2 * Math.Max(start, end) + RegionWidth(ToolbarRegion.Center) + 2 * gap
+            ? 2 * Math.Max(start, end) + RegionWidth(ToolbarPosition.Center) + 2 * gap
             : start + gap + end;
         return (barHidden, menuShown, width, start, end);
     }
