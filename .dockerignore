@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/node_modules/
+**/TestResults/
+artifacts/
+.git/
+.github/
+.idea/
+.vs/
+*.user
+Dockerfile
+fly.toml

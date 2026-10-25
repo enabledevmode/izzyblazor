@@ -305,5 +305,7 @@ pushes `IzzyBlazor.Core` then `IzzyBlazor` (with their symbol packages) to nuget
 a GitHub release with the packages attached (marked as a pre-release for versions like `-alpha.1`). It uses nuget.org trusted publishing: no API key is
 stored; `NuGet/login` exchanges the job's GitHub token for a key that lasts an hour. It runs in the
 `release` environment, and needs the `NUGET_USER` secret (the nuget.org username of the policy's
-creator). A failed run can be rerun: packages already on nuget.org are skipped. A published version
+creator). Its last job deploys the docs site to Fly.io (`fly.toml`, `Dockerfile`; Fly's builder
+builds the image) with the `release` environment's `FLY_API_TOKEN` secret, a deploy token for the
+`izzyblazor` app (`fly tokens create deploy -a izzyblazor`). `fly deploy` deploys it by hand. A failed run can be rerun: packages already on nuget.org are skipped. A published version
 can't be replaced, only unlisted, so a fix needs a new version.
