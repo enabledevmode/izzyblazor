@@ -241,7 +241,7 @@ public sealed partial class SearchIndex
     // ---- Building ----
 
     private void Add(SearchKind kind, string title, string? context, string? summary, string href, IReadOnlyList<string>? keywords = null, bool standard = false) =>
-        _entries.Add(new SearchEntry(kind, title, context, FirstSentence(string.IsNullOrWhiteSpace(summary) ? null : summary), href)
+        _entries.Add(new SearchEntry(kind, title, context, OverviewText.Sentence(summary, 180), href)
         {
             Keywords = keywords ?? [],
             Standard = standard,
@@ -499,7 +499,7 @@ public sealed partial class SearchIndex
             string? lead = null;
             if (LeadBlock().Match(source, match.Index + match.Length) is { Success: true } block)
             {
-                lead = FirstSentence(Text(block.Groups["text"].Value));
+                lead = OverviewText.Sentence(Text(block.Groups["text"].Value), 180);
             }
 
             found.Add((text, explicitId, lead));
@@ -556,18 +556,6 @@ public sealed partial class SearchIndex
         return Spaces().Replace(text, " ").Trim() is { Length: > 0 } result ? result : null;
     }
 
-    private static string? FirstSentence(string? text)
-    {
-        if (text is null)
-        {
-            return null;
-        }
-
-        var end = SentenceEnd().Match(text);
-        var sentence = end.Success ? text[..(end.Index + 1)] : text;
-        return sentence.Length <= 180 ? sentence : sentence[..177].TrimEnd() + "…";
-    }
-
     [GeneratedRegex(@"<Heading\b(?<attrs>[^>]*)>(?<text>.*?)</Heading>", RegexOptions.Singleline)]
     private static partial Regex HeadingTag();
 
@@ -594,9 +582,6 @@ public sealed partial class SearchIndex
 
     [GeneratedRegex(@"\s+")]
     private static partial Regex Spaces();
-
-    [GeneratedRegex(@"[.!?](?=\s|$)")]
-    private static partial Regex SentenceEnd();
 }
 
 /// <summary>What a search entry is.</summary>

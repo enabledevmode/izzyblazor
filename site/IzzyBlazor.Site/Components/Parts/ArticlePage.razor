@@ -6,8 +6,7 @@
 
 @if (_found is { } found)
 {
-    <PageTitle>@found.Article.Title · IzzyBlazor</PageTitle>
-    <HeadContent><meta name="description" content="@found.Article.Summary" /></HeadContent>
+    <PageMeta Title="@($"{found.Article.Title} · IzzyBlazor")" Description="@found.Article.Summary" />
 
     <article class="site-article">
         <Stack Gap="4" Class="site-pagehead">

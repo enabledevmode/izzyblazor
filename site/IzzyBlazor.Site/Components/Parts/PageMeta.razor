@@ -1,0 +1,44 @@
+@inject NavigationManager Navigation
+
+@* A page's head for browsers, search engines and link previews: its title and description (<title>
+   and the description meta, og:title and og:description from the same values), and its canonical
+   address on izzyblazor.com (the link and og:url) whatever host served it, without the query:
+   ?mode=, ?dialog=, ?q= and an example's own keys are all the same page. Here rather than in App,
+   since App's head is written before a page can turn out not found (Navigation.NotFound).
+   ChildContent is the page's other head tags: a page has one HeadContent, and this is it. *@
+
+<PageTitle>@Title</PageTitle>
+<HeadContent>
+    @if (Description is not null)
+    {
+        <meta name="description" content="@Description" />
+    }
+    <meta property="og:title" content="@Title" />
+    @if (Description is not null)
+    {
+        <meta property="og:description" content="@Description" />
+    }
+    @if (Indexed)
+    {
+        <link rel="canonical" href="@Canonical" />
+        <meta property="og:url" content="@Canonical" />
+    }
+    else
+    {
+        <meta name="robots" content="noindex" />
+    }
+    @ChildContent
+</HeadContent>
+
+@code {
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+
+    [Parameter] public string? Description { get; set; }
+
+    /// <summary>False for a page search engines should leave out (search results, errors).</summary>
+    [Parameter] public bool Indexed { get; set; } = true;
+
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private string Canonical => $"https://{CanonicalHost.Host}/{Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0]}";
+}

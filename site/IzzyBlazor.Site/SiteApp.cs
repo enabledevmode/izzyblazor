@@ -1,5 +1,6 @@
 using System.Globalization;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.HttpResults;
 using IzzyBlazor.Site.Components;
 using IzzyBlazor.Site.Components.Parts;
@@ -42,6 +43,13 @@ public static class SiteApp
 
         var app = builder.Build();
 
+        // Fly ends TLS and forwards plain HTTP with X-Forwarded-Proto, so without this every
+        // absolute address the site writes (og:image) would be http://. Fly's proxy has no fixed
+        // address to trust.
+        var forwarded = new ForwardedHeadersOptions { ForwardedHeaders = ForwardedHeaders.XForwardedProto };
+        forwarded.KnownIPNetworks.Clear();
+        forwarded.KnownProxies.Clear();
+        app.UseForwardedHeaders(forwarded);
         app.UseCanonicalHost();
 
         if (!app.Environment.IsDevelopment())
@@ -104,6 +112,8 @@ public static class SiteApp
             context.Response.Headers.CacheControl = "public, max-age=300";
             return new RazorComponentResult<SearchDialogResults>(new { Q = q });
         });
+        app.MapGet("/robots.txt", () => Results.Text(Sitemap.Robots, "text/plain"));
+        app.MapGet("/sitemap.xml", (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
         app.MapGet("/izzyblazor.api.json", (ApiMetadata api) => Results.Text(api.Json, "application/json"));
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
