@@ -1295,9 +1295,10 @@
     cursor: not-allowed;
   }
 
+  /* Chips keep their fill (each stays one item: "Dark blue" beside "Light gray"), with the
+     disabled text, as MUI's and Ant Design's disabled chips and tags. */
   :is(.ib-field-disabled, fieldset:disabled) .ib-multiselect .ib-chip {
     padding-inline-end: var(--ib-space-2);
-    background-color: transparent;
     color: var(--ib-color-disabled);
   }
 
