@@ -324,6 +324,13 @@
       ]
     },
     {
+      "id": "highlight", "icon": "Highlighter", "name": "Highlight", "category": "Typography", "summary": "Text with the words of a search marked.",
+      "examples": [
+        { "id": "highlight-results", "title": "Search results", "lead": "Use `Query` for the search: each of its words is marked where a word of `Text` starts, inside PascalCase names too." },
+        { "id": "highlight-anywhere", "title": "Matching anywhere", "lead": "Use `Match` set to `Anywhere` to mark a word wherever it appears, such as a code inside a part number." }
+      ]
+    },
+    {
       "id": "icon", "icon": "Shapes", "name": "Icon", "category": "Typography", "summary": "Inline SVG icons from Lucide, rendered on the server.",
       "examples": [
         { "id": "icon-beside-text", "title": "Beside text", "lead": "Use `Icon` with a `Name` such as `Lucide.House`: it's sized in em and takes the text color, so it matches the text it sits in." },

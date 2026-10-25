@@ -17,6 +17,39 @@ public class DisplayRenderTests : BunitContext
     public void Keys_split_on_plus(string keys, string[] expected) =>
         Assert.Equal(expected, Kbd.SplitKeys(keys));
 
+    [Theory]
+    [InlineData("TextField", "text field", HighlightMatch.WordStart, "[TextField]")]
+    [InlineData("TextField", "field", HighlightMatch.WordStart, "Text[Field]")]
+    [InlineData("TextField", "textf", HighlightMatch.WordStart, "[TextF]ield")]
+    [InlineData("TextField", "ield", HighlightMatch.WordStart, "TextField")]
+    [InlineData("TextField", "ield", HighlightMatch.Anywhere, "TextF[ield]")]
+    [InlineData("HTMLEditor", "editor", HighlightMatch.WordStart, "HTML[Editor]")]
+    [InlineData("A form's post", "form, post!", HighlightMatch.WordStart, "A [form]'s [post]")]
+    [InlineData("banana", "an ana", HighlightMatch.Anywhere, "b[anana]")]
+    [InlineData("Dialog", "  ", HighlightMatch.WordStart, "Dialog")]
+    public void Highlight_marks_the_query_words(string text, string query, HighlightMatch match, string expected)
+    {
+        var marked = Highlight.Find(text, query, match).Aggregate(
+            (Text: text, Shift: 0),
+            (acc, range) =>
+            {
+                var (start, length) = range.GetOffsetAndLength(text.Length);
+                var at = start + acc.Shift;
+                return (acc.Text[..at] + "[" + acc.Text.Substring(at, length) + "]" + acc.Text[(at + length)..], acc.Shift + 2);
+            }).Text;
+
+        Assert.Equal(expected, marked);
+    }
+
+    [Fact]
+    public void Highlight_marks_matches_and_encodes_the_text()
+    {
+        var cut = Render<Highlight>(p => p.Add(h => h.Text, "<b>Loading</b> state").Add(h => h.Query, "load"));
+
+        Assert.Equal("Load", cut.Find("mark").TextContent);
+        Assert.Equal("<b>Loading</b> state", cut.Find("span").TextContent);
+    }
+
     [Fact]
     public void Kbd_is_one_key_or_nested_keys()
     {
