@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Web;
 
 namespace IzzyBlazor;
 
@@ -39,6 +40,18 @@ public abstract class ButtonBase : LayoutItemBase
 
     /// <summary>Disables the button.</summary>
     [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>
+    /// Makes it a toggle button, such as Bold in an editor: true shows it pressed, false not, and
+    /// screen readers hear which (<c>aria-pressed</c>). With <c>@bind-Pressed</c> a click turns it
+    /// on and off on interactive pages; on static pages the server decides, as with a submit button's
+    /// <c>Name</c> and <c>Value</c>. Null (the default) is an ordinary button. Not for links.
+    /// </summary>
+    [Parameter] public bool? Pressed { get; set; }
+
+    /// <summary>Raised with the new state when a click toggles <see cref="Pressed"/>, for <c>@bind-Pressed</c>. Interactive pages only.</summary>
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<bool> PressedChanged { get; set; }
 
     /// <summary>The label.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -80,6 +93,31 @@ public abstract class ButtonBase : LayoutItemBase
     /// <summary>The label as plain text, for the toolbar's width estimate; null when it isn't plain text.</summary>
     private protected virtual string? LabelText => ChildContent is null ? null : Code.ReadText(ChildContent);
 
+    /// <summary>The <c>aria-pressed</c> value: null unless it's a toggle.</summary>
+    private protected string? AriaPressed => Pressed is { } pressed ? (pressed ? "true" : "false") : null;
+
+    /// <summary>Whether a click does anything in C#: toggles <see cref="Pressed"/> or runs <paramref name="onClick"/>.</summary>
+    private protected bool Clickable(EventCallback<MouseEventArgs> onClick) => onClick.HasDelegate || (Pressed is not null && PressedChanged.HasDelegate);
+
+    /// <summary>A click: toggles <see cref="Pressed"/>, then runs <paramref name="onClick"/>.</summary>
+    private protected EventCallback<MouseEventArgs> Click(EventCallback<MouseEventArgs> onClick) =>
+        Pressed is not null && PressedChanged.HasDelegate
+            ? EventCallback.Factory.Create<MouseEventArgs>(this, async e =>
+            {
+                await PressedChanged.InvokeAsync(!Pressed.Value);
+                await onClick.InvokeAsync(e);
+            })
+            : onClick;
+
+    /// <summary>Refuses <see cref="Pressed"/> on a link, which has no pressed state.</summary>
+    private protected void RefusePressedLink(string component)
+    {
+        if (Pressed is not null)
+        {
+            throw new InvalidOperationException($"{component} with Href is a link, which can't be pressed. Leave out Href for a toggle button.");
+        }
+    }
+
     /// <summary>Whether a link adds the external-link icon after its text.</summary>
     private protected virtual bool ExternalIcon => false;
 
@@ -104,6 +142,7 @@ public abstract class ButtonBase : LayoutItemBase
         classes.Add("ib-btn-icon-only", IconOnly);
         classes.Add("ib-btn-full", FullWidth);
         classes.Add("ib-btn-loading", Loading);
+        classes.Add("ib-btn-toggle", Pressed is not null);
         if (accent.Custom is { } custom)
         {
             ColorOverride.Apply(styles, custom);

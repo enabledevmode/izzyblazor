@@ -1,0 +1,26 @@
+@* Toggles in a toolbar: in the … menu they're checkbox items, which toggle the same. *@
+<Card Size="ControlSize.Sm" Width="Length.Full">
+    <CardBody Gap="3">
+        <Toolbar Label="Format">
+            <ToolbarButtonGroup Label="Text style" Priority="1">
+                <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" @bind-Pressed="_bold" />
+                <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" @bind-Pressed="_italic" />
+            </ToolbarButtonGroup>
+            <ToolbarSeparator />
+            <ToolbarButton StartIcon="Lucide.Pilcrow" @bind-Pressed="_marks">Show marks</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.SpellCheck" @bind-Pressed="_spelling">Check spelling</ToolbarButton>
+        </Toolbar>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+            Bold @OnOff(_bold), italic @OnOff(_italic), marks @OnOff(_marks), spelling @OnOff(_spelling)
+        </TextBlock>
+    </CardBody>
+</Card>
+
+@code {
+    private bool _bold = true;
+    private bool _italic;
+    private bool _marks;
+    private bool _spelling = true;
+
+    private static string OnOff(bool on) => on ? "on" : "off";
+}

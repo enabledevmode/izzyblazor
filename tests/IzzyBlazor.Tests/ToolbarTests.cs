@@ -56,6 +56,36 @@ public class ToolbarTests : BunitContext
         Assert.NotNull(panel.QuerySelector("ib-popover [popover] a[href='/export.csv']"));
     }
 
+    [Theory]
+    [InlineData(false)]
+    [InlineData(true)]
+    public void A_toggle_is_a_checkbox_item_in_the_menu(bool interactive)
+    {
+        var cut = RenderToolbar("toggles", interactive);
+        var items = MenuPanel(cut).QuerySelectorAll(".ib-menu-item").ToDictionary(i => i.TextContent.Trim());
+
+        // Roles and states wait for the script on static pages, as for any menu item.
+        string? Attr(AngleSharp.Dom.IElement item, string name) => item.GetAttribute(interactive ? name : "data-ib-" + name.Replace("aria-", ""));
+        Assert.Equal("menuitemcheckbox", Attr(items["Bold"], "role"));
+        Assert.Equal("true", Attr(items["Bold"], "aria-checked"));
+        Assert.Equal("false", Attr(items["Italic"], "aria-checked"));
+        Assert.Equal("false", Attr(items["Preview"], "aria-checked"));
+    }
+
+    [Fact]
+    public void A_toggle_turns_on_from_the_bar_and_from_the_menu()
+    {
+        var cut = RenderToolbar("toggles", interactive: true);
+
+        cut.Find(".ib-toolbar-unit button.ib-btn:not([aria-label])").Click();
+        Assert.True(cut.Instance.Preview);
+        Assert.Equal("true", cut.Find(".ib-toolbar-unit button.ib-btn:not([aria-label])").GetAttribute("aria-pressed"));
+
+        MenuPanel(cut).QuerySelectorAll(".ib-menu-item").Single(i => i.TextContent.Trim() == "Bold").Click();
+        Assert.False(cut.Instance.Bold);
+        Assert.Equal("false", cut.Find(".ib-toolbar-unit button[aria-label='Bold']").GetAttribute("aria-pressed"));
+    }
+
     [Fact]
     public void Items_sit_at_their_position()
     {
