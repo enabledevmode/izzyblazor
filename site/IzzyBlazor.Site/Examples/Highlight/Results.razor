@@ -1,0 +1,22 @@
+<List Gap="3" Plain>
+    @foreach (var (name, summary) in _results)
+    {
+        <ListItem>
+            <TextBlock Weight="FontWeight.Medium"><Highlight Text="@name" Query="@Query" /></TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted"><Highlight Text="@summary" Query="@Query" /></TextBlock>
+        </ListItem>
+    }
+</List>
+
+@code {
+    private const string Query = "text field";
+
+    @* hide *@
+    private readonly (string Name, string Summary)[] _results =
+    [
+        ("TextField", "A text box with its label, hint and errors."),
+        ("TextArea", "A text box for several lines."),
+        ("FieldFrame", "The label, hint and errors around a control of your own."),
+    ];
+    @* /hide *@
+}

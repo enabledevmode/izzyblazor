@@ -587,6 +587,14 @@
     color: inherit;
   }
 
+  /* Highlight's matches: a mark as in prose, without padding, so a match inside a word stays
+     joined to the rest of it. */
+  .ib-mark {
+    border-radius: 2px;
+    background-color: var(--ib-color-warning-soft);
+    color: inherit;
+  }
+
   /* Last, so they win over the headings' and blocks' margins at the same weight. */
   .ib-prose > :where(:first-child) {
     margin-block-start: 0;
