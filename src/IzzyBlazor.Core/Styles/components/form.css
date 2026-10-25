@@ -1128,6 +1128,13 @@
     }
   }
 
+  /* With chips on several rows, the chevron stays beside the first, where it was, instead of
+     moving down to the middle each time a row is added. Whole pixels at every size: the field's
+     height and the icon are even. */
+  .ib-multiselect > .ib-combobox-toggle {
+    top: calc((var(--ib-field-h) - var(--ib-icon-size)) / 2 - 0.375rem);
+  }
+
   .ib-multiselect[data-ib-failed] > .ib-combobox-toggle {
     display: none;
   }
@@ -1241,7 +1248,8 @@
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: var(--ib-space-1);
+      /* Rows are spaced by the chips' own margins (below), so each is as tall as one row's room. */
+      gap: 0 var(--ib-space-1);
       height: auto;
       min-height: var(--ib-field-h);
       padding-block: calc(var(--ib-space-1) - 1px);
@@ -1284,6 +1292,9 @@
      padding and border inside the field's height (at least 20px). */
   .ib-multiselect-box .ib-chip {
     min-height: max(1.25rem, calc(var(--ib-field-h) - 0.75rem));
+    /* With the box's padding and border, every row is the field's height less 8px, wrapped or not,
+       so the first row and the chevron stay where a single row puts them. */
+    margin-block: 2px;
     font-size: var(--ib-field-font);
   }
 
