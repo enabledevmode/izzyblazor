@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.14",
+  "version": "0.1.0-alpha.15",
   "components": [
     {
       "name": "Accordion",
@@ -3507,6 +3507,40 @@
         "TextTransform",
         "TextWrap"
       ]
+    },
+    {
+      "name": "Highlight",
+      "displayName": "Highlight",
+      "fullName": "IzzyBlazor.Highlight",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Text",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.15"
+        },
+        {
+          "name": "Query",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.15"
+        },
+        {
+          "name": "Match",
+          "type": "HighlightMatch",
+          "addedIn": "0.1.0-alpha.15"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "HighlightMatch"
+      ],
+      "addedIn": "0.1.0-alpha.15"
     },
     {
       "name": "Icon",
@@ -8132,6 +8166,24 @@
           "type": "FormLayout"
         }
       ]
+    },
+    {
+      "name": "HighlightMatch",
+      "fullName": "IzzyBlazor.HighlightMatch",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "WordStart",
+          "type": "HighlightMatch",
+          "addedIn": "0.1.0-alpha.15"
+        },
+        {
+          "name": "Anywhere",
+          "type": "HighlightMatch",
+          "addedIn": "0.1.0-alpha.15"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.15"
     },
     {
       "name": "IconRole",
