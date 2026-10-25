@@ -87,6 +87,8 @@
                     {
                         @* Select all (this page): script only; it checks the rows, which report their own changes. *@
                         <th scope="col" class="ib-table-select-cell">
+                            @* The column's name while select-all is hidden (no script yet). *@
+                            <span class="ib-visually-hidden ib-table-select-heading">@(SelectRowLabel ?? TextDefaults.SelectRow)</span>
                             <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
                         </th>
                     }

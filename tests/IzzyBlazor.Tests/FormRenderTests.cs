@@ -638,7 +638,7 @@ public class FormRenderTests : BunitContext
 
         var radios = cut.FindAll("input[type=radio]");
         Assert.True(radios[1].HasAttribute("checked"));
-        Assert.Contains("1 error", cut.FindAll(".ib-tab")[1].TextContent);
+        Assert.Equal("(1 error)", cut.FindAll(".ib-tab")[1].QuerySelector(".ib-tab-errors .ib-visually-hidden")!.TextContent);
         Assert.Single(cut.FindAll(".ib-tab-errors"));
     }
 

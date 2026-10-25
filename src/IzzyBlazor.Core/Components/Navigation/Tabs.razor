@@ -38,7 +38,7 @@
       libraries, with no default; set it when the tabs' purpose isn't clear from the heading
       before them, and give each `nav` of TabLinks its own when a page has more than one.
     - In a form, with script, a tab whose fields have errors shows a count, read as part of its
-      name ("Billing, 1 error").
+      name ("Billing (1 error)").
     - TabLinks render a `nav` of plain links that Tab moves between (no arrow keys); the current
       page's link has `aria-current`, and a disabled one is a link with no `href`, announced as
       disabled (`aria-disabled`).
@@ -381,7 +381,7 @@ else
         if (errors > 0)
         {
             var text = IzzyText.From(Services);
-            <Badge Size="BadgeSize.Sm" Pill Status="Status.Danger" Class="ib-tab-errors"><span aria-hidden="true">@errors</span><span class="ib-visually-hidden">, @(errors == 1 ? text.OneError : string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ErrorCount, errors))</span></Badge>
+            <Badge Size="BadgeSize.Sm" Pill Status="Status.Danger" Class="ib-tab-errors"><span aria-hidden="true">@errors</span><span class="ib-visually-hidden">(@(errors == 1 ? text.OneError : string.Format(System.Globalization.CultureInfo.CurrentCulture, text.ErrorCount, errors)))</span></Badge>
         }
     };
 

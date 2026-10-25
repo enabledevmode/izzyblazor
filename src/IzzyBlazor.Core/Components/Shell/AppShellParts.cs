@@ -6,7 +6,8 @@ namespace IzzyBlazor;
 /// <summary>What an <see cref="AppShell"/> shares with its parts.</summary>
 /// <param name="MainId">The main area's id, which the skip link targets.</param>
 /// <param name="ContentWidth">The shell's <see cref="AppShell.ContentWidth"/>, if set.</param>
-public sealed record AppShellContext(string MainId, Length? ContentWidth = null);
+/// <param name="ScrollMode">The shell's <see cref="AppShell.ScrollMode"/>.</param>
+public sealed record AppShellContext(string MainId, Length? ContentWidth = null, ShellScroll ScrollMode = ShellScroll.Page);
 
 /// <summary>
 /// Carries a <see cref="SiteNav"/>'s links to the shell's <see cref="AppSidebar"/>, which shows
@@ -210,7 +211,9 @@ public class AppMain : AppShellPart
         var (cssClass, style) = BuildRootAttributes();
         builder.OpenElement(0, "main");
         builder.AddAttribute(1, "id", Id ?? Shell?.MainId ?? "ib-main");
-        builder.AddAttribute(2, "tabindex", "-1");
+        // With ScrollMode.Main it scrolls on its own, so the keyboard needs to reach it even when
+        // nothing in it takes focus.
+        builder.AddAttribute(2, "tabindex", Shell?.ScrollMode == ShellScroll.Main ? "0" : "-1");
         builder.AddMultipleAttributes(3, AdditionalAttributes);
         builder.AddAttribute(4, "class", cssClass);
         builder.AddAttribute(5, "style", style);

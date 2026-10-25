@@ -1,7 +1,7 @@
 @* State in the component, on an interactive page: headers and page numbers become buttons, filters
    apply after a pause in typing, and the URL doesn't change. *@
 <Stack Gap="3" Grow>
-    <Table Items="Orders.All" PageSize="5" InitialSort="-date" Caption="Orders" QueryPrefix="bound-" FilterPlacement="FilterPlacement.Row"
+    <Table Items="Orders.All" PageSize="5" InitialSort="-date" Caption="Order history" QueryPrefix="bound-" FilterPlacement="FilterPlacement.Row"
            @bind-Sort="_sort" @bind-Page="_page" @bind-Filters="_filters">
         <PropertyColumn Property="o => o.Number" Title="Order" />
         <PropertyColumn Property="o => o.Customer" Sortable Filterable />

@@ -26,6 +26,8 @@
     - The parts are landmarks: `AppHeader` a `header`, `AppMain` a `main`, `AppAside` an `aside`,
       `AppFooter` a `footer`, and `AppSidebar` a `nav`.
     - The skip link moves focus to the main area (`MainId`), with JavaScript off too.
+    - With `ShellScroll.Main` the main area is also a tab stop, so it can be scrolled from the
+      keyboard when nothing in it takes focus.
     - `AppBrand` is named by its `Label`, which screen readers still hear with `HideLabel`; a `Logo`
       is hidden from them.
     - `AppAside` has no name of its own: add an `aria-label`, such as "On this page", when it helps.
@@ -122,9 +124,9 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (_context is null || _context.MainId != MainId || !Nullable.Equals(_context.ContentWidth, ContentWidth))
+        if (_context is null || _context.MainId != MainId || !Nullable.Equals(_context.ContentWidth, ContentWidth) || _context.ScrollMode != ScrollMode)
         {
-            _context = new AppShellContext(MainId, ContentWidth);
+            _context = new AppShellContext(MainId, ContentWidth, ScrollMode);
         }
         (_class, _style) = BuildRootAttributes();
     }

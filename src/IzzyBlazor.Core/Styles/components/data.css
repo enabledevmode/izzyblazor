@@ -654,6 +654,11 @@
     visibility: hidden;
   }
 
+  /* With it, the checkbox names the column. */
+  ib-table[data-ready] .ib-table-select-heading {
+    display: none;
+  }
+
   /* A selected row: a faint accent tint, and an accent edge at its start. */
   .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
   .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td {
