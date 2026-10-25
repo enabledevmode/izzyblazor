@@ -117,15 +117,14 @@
     color: var(--ib-color-primary-text);
   }
 
-  /* Segmented: an outlined track with the selected tab filled. */
-  /* The same track and segment as SegmentedControl (form.css), so the two read as one control. */
+  /* Segmented: a filled track with the selected tab raised, as SegmentedControl's (form.css). No
+     outline: that matches a SegmentedControl to the fields beside it, and tabs aren't a field. */
   .ib-tabs-segmented > .ib-tabs-list {
     display: inline-flex;
     max-width: 100%;
     gap: 0.125rem;
     padding: 0.1875rem;
     border-radius: var(--ib-radius-control, var(--ib-radius-md));
-    box-shadow: inset 0 0 0 1px var(--ib-color-outline);
   }
 
   .ib-tabs-segmented.ib-tabs-fitted > .ib-tabs-list {
@@ -137,10 +136,11 @@
     border-radius: calc(var(--ib-radius-control, var(--ib-radius-md)) - 2px);
   }
 
+  /* Its track's fill and the raised chosen tab are set with SegmentedControl's (form.css). */
   .ib-tabs-segmented > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
-    background-color: var(--ib-color-segment, var(--ib-color-surface-container-high));
-    box-shadow: inset 0 0 0 1px var(--ib-color-segment-edge, transparent);
-    color: var(--ib-color-on-surface);
+    background-color: var(--ib-segment-fill);
+    box-shadow: var(--ib-segment-lift);
+    color: var(--ib-color-on-segment, var(--ib-color-on-surface));
   }
 
   /*
@@ -290,10 +290,12 @@
    system's selection colors instead. */
 @layer izzy.components {
   @media (forced-colors: active) {
-    .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
+    /* As specific as the variants' own rules (later, so it wins), and without their shadows. */
+    .ib-tabs > .ib-tabs-list > .ib-tab:is(:has(> .ib-tab-input:checked), [aria-current]) {
       forced-color-adjust: none;
       background-color: Highlight;
       color: HighlightText;
+      box-shadow: none;
     }
   }
 }
