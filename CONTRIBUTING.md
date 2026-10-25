@@ -286,8 +286,8 @@ A component is done when:
   dots, checkboxes) have whole, even sizes and sit at whole-pixel offsets in the box they're
   centered in, and its heights don't add half pixels to the page. Use `round()` where a size comes
   from rem or a percentage, and center even graphics in even spaces;
-- tests cover its behavior (not its markup; see [Tests](#tests)), and the docs in
-  `docs/components.md` cover it.
+- tests cover its behavior (not its markup; see [Tests](#tests)), and the docs site
+  covers it (its Overview, see [The docs site](#the-docs-site)).
 
 ## Commits
 

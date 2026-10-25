@@ -282,7 +282,7 @@
   }
 
   /* Editorial: Newsreader headings over IBM Plex Sans. Load the fonts yourself (see
-     docs/styling.md); the fallbacks keep the look without them. Fonts are app-wide, so only on
+     izzyblazor.com/docs/theming/themes); the fallbacks keep the look without them. Fonts are app-wide, so only on
      <html>: on part of a page a preset changes density, shape and depth. */
   :root[data-ib-preset="editorial"],
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])) {
