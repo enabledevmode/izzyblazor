@@ -82,7 +82,7 @@
             <input type="text"
                    id="@InputId"
                    class="ib-combobox-input ib-multiselect-input"
-                   placeholder="@Placeholder"
+                   placeholder="@(string.IsNullOrEmpty(Placeholder) ? " " : Placeholder)"
                    role="combobox"
                    aria-autocomplete="list"
                    aria-expanded="false"
