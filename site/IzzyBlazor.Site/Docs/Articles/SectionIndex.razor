@@ -5,8 +5,7 @@
 
 @if (_section is not null)
 {
-    <PageTitle>@_section.Title · IzzyBlazor</PageTitle>
-    <HeadContent><meta name="description" content="@($"IzzyBlazor docs: {_section.Title}.")" /></HeadContent>
+    <PageMeta Title="@($"{_section.Title} · IzzyBlazor")" Description="@($"IzzyBlazor docs: {_section.Title}.")" />
 
     <article class="site-article">
         <Stack Gap="4" Class="site-pagehead">

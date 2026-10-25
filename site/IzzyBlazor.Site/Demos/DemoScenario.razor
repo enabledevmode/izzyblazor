@@ -9,8 +9,7 @@
 
 @if (_component is not null && _scenario is not null)
 {
-    <PageTitle>@_scenario.Title · @_component.Name demos · IzzyBlazor</PageTitle>
-    <HeadContent><meta name="description" content="@_scenario.Description" /></HeadContent>
+    <PageMeta Title="@($"{_scenario.Title} · {_component.Name} demos · IzzyBlazor")" Description="@OverviewText.Sentence(_scenario.Description)" />
 
     <article class="site-article site-article-wide">
         <Stack Gap="3" Class="site-pagehead">

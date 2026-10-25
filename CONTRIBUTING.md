@@ -146,6 +146,12 @@ parameter tables and defaults are never written by hand.
   are a list; markup starts after a blank line or a line ending in `.` or `:`. A line reading
   `Accessibility:` starts the accessibility bullets, and `See also: Select, Combobox.` names
   related components; both go at the end.
+- A page's head is `<PageMeta Title="..." Description="..." />` (Parts), not `PageTitle` and
+  `HeadContent`: it writes the description and Open Graph tags from the same two values, and the
+  canonical link (izzyblazor.com, the path without the query, so `?mode=` and an example's keys
+  aren't separate pages). Keep the description under 160 characters (a site test checks);
+  `Indexed="false"` for a page search engines should skip. A new kind of page also goes in
+  `Services/Sitemap.cs`, which serves `sitemap.xml` and `robots.txt`.
 - `Api/released.api.json` is the last release's API (names only). The build compares with it to
   mark what each release added ("Added in") and print what it removed; it's refreshed when a
   release is cut (see Releasing).
@@ -165,6 +171,8 @@ machine is ever added, `fly scale count 1 -a izzyblazor`.
   301 that keeps the path and query (`Services/CanonicalHost.cs`). It names those hosts rather than
   redirecting every other one, since Fly's health checks and `izzyblazor.fly.dev` arrive with other
   hosts.
+- Fly ends TLS and forwards plain HTTP with `X-Forwarded-Proto`, which `UseForwardedHeaders` in
+  `SiteApp` reads, so absolute addresses (`og:image`) stay `https`.
 - Fly holds a certificate for each of the four names and renews it. DNS for both domains is at
   Hostinger: `A` and `AAAA` records on `@` with the app's addresses (`fly ips list -a izzyblazor`),
   and `www` a CNAME to the apex. A new name needs `fly certs add <name> -a izzyblazor`, its DNS

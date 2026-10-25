@@ -4,11 +4,8 @@
 @* Site search: a GET form (FilterForm), so a search is a link and works with JavaScript off; with
    script it applies as you type. The count is a live region, read when the results change. *@
 
-<PageTitle>@(_results.Query.Length == 0 ? "Search" : $"{_results.Query} · Search") · IzzyBlazor</PageTitle>
-<HeadContent>
-    <meta name="robots" content="noindex" />
-    <meta name="description" content="Search the IzzyBlazor docs: components, parameters, articles and examples." />
-</HeadContent>
+<PageMeta Title="@($"{(_results.Query.Length == 0 ? "Search" : $"{_results.Query} · Search")} · IzzyBlazor")"
+          Description="Search the IzzyBlazor docs: components, parameters, articles and examples." Indexed="false" />
 
 <article class="site-article site-search-page">
     <Stack Gap="4" Class="site-pagehead">

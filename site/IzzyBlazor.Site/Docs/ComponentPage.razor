@@ -12,8 +12,8 @@
 
 @if (_component is not null)
 {
-    <PageTitle>@_component.Name · IzzyBlazor</PageTitle>
-    <HeadContent><meta name="description" content="@(_api?.Summary is { } summary ? ApiMetadata.PlainText(summary) : _component.Summary)" /></HeadContent>
+    @* The doc comment's first sentence (OverviewText.Sentence): Google shows about 155 characters. *@
+    <PageMeta Title="@($"{_component.Name} · IzzyBlazor")" Description="@(OverviewText.Sentence(ApiMetadata.PlainText(_api?.Summary)) ?? _component.Summary)" />
 
     <article class="site-article">
         <ComponentHeader Component="_component" ApiComponent="_api" />
