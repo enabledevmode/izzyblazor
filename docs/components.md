@@ -244,31 +244,30 @@ takes the outer one's settings for what it doesn't set.
 ```
 
 **Toolbar.** One row of controls that stays one row: what doesn't fit moves into a "…" menu at the
-end, lowest `Priority` first. Its `Button`s, `IconButton`s, `ButtonGroup`s (as one) and `Menu`s (as
-submenus) become menu items there with the same `Href`, `Submit`/`Name`/`Value`/`FormAction`/`Form`
-and `OnClick`, so it works with JavaScript off: the server works out the widths at which each moves,
-from the labels in Inter, and writes them as container queries (with IzzyTheme's nonce, or
-`Nonce`). The script (an on-demand element) measures and corrects them, and makes it a `toolbar`
-with one tab stop and arrow keys. `ToolbarCenter` and `ToolbarEnd` hold the middle and the end;
-`ToolbarItem` sets a control's `Priority`, `Overflow` (`Never` for the main action, `Always` for
-menu-only actions) and `MenuText`, or holds other content with a `Width` and its `MenuContent`;
-`ToolbarSeparator` draws a line that goes with its neighbors. Buttons default to `Ghost`, `Neutral`
-and `Sm`. `Wrap` wraps onto more rows instead of a menu. It takes its width from its container, so
-in a row give it `Grow`.
+end, lowest `Priority` first. Its items are the toolbar's own controls: `ToolbarButton`,
+`ToolbarIconButton`, `ToolbarButtonGroup` (moves as one) and `ToolbarMenu` (a submenu there), with
+the parameters of `Button`, `IconButton`, `ButtonGroup` and `Menu`. In the menu they keep the same
+`Href`, `Submit`/`Name`/`Value`/`FormAction`/`Form` and `OnClick`, so it works with JavaScript off:
+the server works out the widths at which each moves, from the labels in Inter, and writes them as
+container queries (with IzzyTheme's nonce, or `Nonce`). The script (an on-demand element) measures
+and corrects them, and makes it a `toolbar` with one tab stop and arrow keys. Every item takes
+`Position` (`Start`, `Center`, `End`), `Priority` and `Overflow` (`Never` for the main action,
+`Always` for menu-only actions). `ToolbarText` is text that stays; `ToolbarItem` holds anything
+else, with a `Width` and its `MenuContent`; `ToolbarSeparator` draws a line that goes with its
+neighbors. Other controls throw directly in a toolbar. Buttons default to
+`Ghost`, `Neutral` and `Sm`. `Wrap` wraps onto more rows instead of a menu. It takes its width from
+its container, so in a row give it `Grow`.
 
 ```razor
 <Toolbar Label="Editor">
-    <ButtonGroup Label="History">
-        <IconButton Icon="Lucide.Undo2" Label="Undo" />
-        <IconButton Icon="Lucide.Redo2" Label="Redo" />
-    </ButtonGroup>
+    <ToolbarButtonGroup Label="History">
+        <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
+        <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
+    </ToolbarButtonGroup>
     <ToolbarSeparator />
-    <Button StartIcon="Lucide.Link">Link</Button>
-    <ToolbarEnd>
-        <ToolbarItem Overflow="ToolbarOverflow.Never">
-            <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
-        </ToolbarItem>
-    </ToolbarEnd>
+    <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
+    <ToolbarButton Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</ToolbarButton>
+    <ToolbarButton StartIcon="Lucide.Printer" Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
 </Toolbar>
 ```
 

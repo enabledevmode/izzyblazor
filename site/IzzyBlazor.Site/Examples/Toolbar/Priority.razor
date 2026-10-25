@@ -1,23 +1,13 @@
 <Card Size="ControlSize.Sm" Width="Length.Full">
     <CardBody>
         <Toolbar Label="File">
-            <ToolbarItem Overflow="ToolbarOverflow.Never">
-                <Button StartIcon="Lucide.Upload" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Upload</Button>
-            </ToolbarItem>
-            <ToolbarItem Priority="1">
-                <Button StartIcon="Lucide.Share2">Share</Button>
-            </ToolbarItem>
-            <Button StartIcon="Lucide.Pencil">Rename</Button>
-            <ToolbarItem Priority="-1">
-                <Button StartIcon="Lucide.FolderInput">Move</Button>
-            </ToolbarItem>
+            <ToolbarButton StartIcon="Lucide.Upload" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Overflow="ToolbarOverflow.Never">Upload</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Share2" Priority="1">Share</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Pencil">Rename</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.FolderInput">Move</ToolbarButton>
             <ToolbarSeparator />
-            <ToolbarItem Overflow="ToolbarOverflow.Always">
-                <Button StartIcon="Lucide.Printer">Print</Button>
-            </ToolbarItem>
-            <ToolbarItem Overflow="ToolbarOverflow.Always">
-                <Button StartIcon="Lucide.FileClock">Version history</Button>
-            </ToolbarItem>
+            <ToolbarButton StartIcon="Lucide.Printer" Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.FileClock" Overflow="ToolbarOverflow.Always">Version history</ToolbarButton>
         </Toolbar>
     </CardBody>
 </Card>

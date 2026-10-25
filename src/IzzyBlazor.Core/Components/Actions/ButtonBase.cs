@@ -6,11 +6,8 @@ namespace IzzyBlazor;
 /// <summary>
 /// Shared look and content for <see cref="Button"/> and <see cref="IconButton"/>.
 /// </summary>
-public abstract class ButtonBase : LayoutItemBase, IDisposable
+public abstract class ButtonBase : LayoutItemBase
 {
-    /// <summary>Creates the button.</summary>
-    protected ButtonBase() => ToolbarPart = new ToolbarMember(this);
-
     /// <summary>
     /// Primary (the default) for the main action, Neutral for everything else, Danger for
     /// destructive actions, or a custom color (<c>Accent.Of("#0d9488")</c>,
@@ -49,27 +46,8 @@ public abstract class ButtonBase : LayoutItemBase, IDisposable
     /// <summary>The <see cref="ButtonGroup"/> this button is in, whose settings are its defaults.</summary>
     [CascadingParameter] internal ButtonGroup? Group { get; set; }
 
-    /// <summary>Where it is in a <see cref="Toolbar"/>, if it's in one.</summary>
-    [CascadingParameter] internal ToolbarScope? ToolbarScope { get; set; }
-
-    /// <summary>Its part in a toolbar: a unit of its own at the top of a region, or reporting to the unit it's in.</summary>
-    private protected ToolbarMember ToolbarPart { get; }
-
-    /// <summary>
-    /// Whether it draws a toolbar unit's wrapper (Button and IconButton do), so it can move into
-    /// the "…" menu on its own; others count only inside a ButtonGroup or ToolbarItem.
-    /// </summary>
-    private protected virtual bool WrapsInToolbar => false;
-
-    /// <summary>What it becomes in a toolbar's "…" menu (with <paramref name="text"/> in place of its label), or null when it can't go there.</summary>
-    private protected virtual RenderFragment? ToolbarMenuItem(string? text) => null;
-
-    /// <summary>
-    /// Whether its other attributes are only names and ids, which a menu copy can do without. One
-    /// wired to something by its attributes (a popover's trigger, an event handler) can't be copied.
-    /// </summary>
-    private protected bool CopiesToMenu => AdditionalAttributes is null
-        || AdditionalAttributes.Keys.All(k => k is "id" or "title" || k.StartsWith("aria-", StringComparison.Ordinal));
+    /// <summary>The <see cref="Toolbar"/> it's directly in, where only toolbar buttons go.</summary>
+    [CascadingParameter] internal ToolbarContext? Toolbar { get; set; }
 
     private bool _accentSet;
     private bool _variantSet;
@@ -95,10 +73,7 @@ public abstract class ButtonBase : LayoutItemBase, IDisposable
         _variantSet = parameters.TryGetValue<ButtonVariant>(nameof(Variant), out _);
         _sizeSet = parameters.TryGetValue<ControlSize>(nameof(Size), out _);
         var task = base.SetParametersAsync(parameters);
-
-        // After the parameters are set and before the render (which waits for the batch), so a
-        // button that's a toolbar unit draws its wrapper.
-        ToolbarPart.Update(ToolbarScope, new ToolbarEntry(ToolbarMenuItem(ToolbarScope?.MenuText), EstimateWidth()), WrapsInToolbar);
+        ToolbarControl.Refuse(this, Toolbar, Group);
         return task;
     }
 
@@ -109,59 +84,11 @@ public abstract class ButtonBase : LayoutItemBase, IDisposable
     private protected virtual bool ExternalIcon => false;
 
     /// <summary>
-    /// The width in pixels (at a 16px root), from the size's padding and icon (button.css), and the
-    /// label in Inter (<see cref="TextWidths"/>). Null when the label isn't plain text.
+    /// The width in pixels (at a 16px root), for a toolbar, from the size's padding and icon
+    /// (button.css) and the label in Inter. Null when the label isn't plain text.
     /// </summary>
-    private double? EstimateWidth()
-    {
-        var size = EffectiveSize;
-        var (height, padding, icon, font) = size switch
-        {
-            ControlSize.Sm => (32.0, 12.0, 16.0, 13.0),
-            ControlSize.Lg => (44.0, 20.0, 24.0, 16.0),
-            _ => (36.0, 16.0, 20.0, 14.0),
-        };
-        if (IconOnly)
-        {
-            return height;
-        }
-
-        var text = LabelText;
-        if (ChildContent is not null && text is null)
-        {
-            return null;
-        }
-
-        var parts = new List<double>();
-        if (Loading || StartIcon is not null)
-        {
-            parts.Add(icon);
-        }
-
-        if (!string.IsNullOrWhiteSpace(text))
-        {
-            parts.Add(TextWidths.Of(text, size));
-        }
-
-        if (EndIcon is not null)
-        {
-            parts.Add(icon);
-        }
-        else if (ExternalIcon)
-        {
-            parts.Add(font < 16 ? 12 : 14);
-        }
-
-        // Padding and the 1px border on each side, and a gap of half the font size between parts.
-        return 2 * padding + 2 + parts.Sum() + Math.Max(0, parts.Count - 1) * font / 2;
-    }
-
-    /// <inheritdoc />
-    public void Dispose()
-    {
-        ToolbarPart.Dispose();
-        GC.SuppressFinalize(this);
-    }
+    private protected double? EstimateWidth() =>
+        ButtonWidth.Estimate(EffectiveSize, IconOnly, ChildContent is not null, LabelText, Loading || StartIcon is not null, EndIcon is not null, ExternalIcon);
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

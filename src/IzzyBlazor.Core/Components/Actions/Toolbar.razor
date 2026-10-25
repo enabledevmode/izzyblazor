@@ -7,37 +7,35 @@
 
 @*
     A row of controls that stays one row: what doesn't fit moves into a "…" menu at the end, lowest
-    priority first. Its Buttons, IconButtons, ButtonGroups and Menus become menu items there, with
-    the same links, form posts and OnClick, so it works with JavaScript off: the server works out
-    the widths at which each item moves, as container queries. The script measures the real widths
-    and corrects them, and adds arrow-key movement.
+    priority first. Its ToolbarButtons, ToolbarIconButtons, ToolbarButtonGroups and ToolbarMenus
+    become menu items there, with the same links, form posts and OnClick, so it works with
+    JavaScript off: the server works out the widths at which each item moves, as container
+    queries. The script measures the real widths and corrects them, and adds arrow-key movement.
 
     <Toolbar Label="Editor">
-        <ButtonGroup Label="History">
-            <IconButton Icon="Lucide.Undo2" Label="Undo" />
-            <IconButton Icon="Lucide.Redo2" Label="Redo" />
-        </ButtonGroup>
+        <ToolbarButtonGroup Label="History">
+            <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
+            <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
+        </ToolbarButtonGroup>
         <ToolbarSeparator />
-        <Button StartIcon="Lucide.Link">Link</Button>
-        <ToolbarEnd>
-            <ToolbarItem Overflow="ToolbarOverflow.Never">
-                <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
-            </ToolbarItem>
-        </ToolbarEnd>
+        <ToolbarButton StartIcon="Lucide.Link" Priority="1">Link</ToolbarButton>
+        <ToolbarButton Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Printer" Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
     </Toolbar>
 
-    Content outside the parts is the start; ToolbarCenter and ToolbarEnd hold the middle and the
-    end. Each control at the top of a region moves on its own; a ButtonGroup moves as one, and a
-    ToolbarItem sets an item's Priority, Overflow and MenuText. Put other content (a field, a
-    SegmentedControl) in a ToolbarItem with a Width, so the widths without script allow for it; it
-    stays in the bar unless the item gives it MenuContent. The toolbar fills its container's width;
-    in a row, give it Grow.
+    Each item takes a Position (Start, the default; Center; End), a Priority (higher stays longer)
+    and an Overflow: Never for the main action, Always for what's only ever in the menu. Only
+    toolbar items go directly in it: other controls throw there. ToolbarText is text that stays;
+    ToolbarItem holds anything else (a field, a SegmentedControl, a Tooltip), with a Width so the
+    widths without script allow for it, and MenuContent for what stands in for it in the menu
+    (without that, it stays). The toolbar fills its container's width; in a row, give it Grow.
+    With Wrap, everything shows in the bar.
 
+    The toolbar draws its items itself, so a cascading value or form written around one inside the
+    toolbar doesn't reach it (put the form around the toolbar). Items keep the order they reach the
+    toolbar in: one an @if adds on an interactive page comes after the rest of its position.
     Without script the widths are estimated from the button labels in Inter, the library's font; a
-    theme with another font can be a few pixels out until the script measures. The menu lists
-    controls in the order they reach the toolbar: one inside a component of your own (an
-    AuthorizeView), or one an @if adds on an interactive page, comes after the rest of its region.
-    Wrap it in a ToolbarItem, which keeps its place.
+    theme with another font can be a few pixels out until the script measures.
 
     Accessibility:
     - With script, it's a `toolbar` named by `Label` (optional; name each one when a page has
@@ -49,7 +47,8 @@
       number, email or date field (whose caret the script can't read), keep every arrow key, so
       put one last, or outside the toolbar.
     - The "…" button is the last control, named by `MoreLabel`; Enter, Space or Down opens its menu
-      of `menuitem`s (a ButtonGroup is a labeled group, a Menu a submenu), and Escape comes back.
+      of `menuitem`s (a ToolbarButtonGroup is a labeled group, a ToolbarMenu a submenu), and
+      Escape comes back.
     - If the focused control moves into the menu as the toolbar narrows, focus moves to "…".
     - With JavaScript off and until the script loads, it's a `group` named by `Label`, each
       control its own tab stop.
@@ -66,27 +65,23 @@
             data-ib-role="@(RendererInfo.IsInteractive ? null : "toolbar")"
             aria-label="@Label">
     <CascadingValue Value="_defaults">
-        <CascadingValue Value="_parts" IsFixed="true">
+        @* Only the items see the toolbar; what the toolbar draws (their bar and menu copies) doesn't. *@
+        <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
             <div class="ib-toolbar-start">
-                <CascadingValue Value="_start" IsFixed="true">@ChildContent</CascadingValue>
+                <CascadingValue Value="_parts" IsFixed="true">
+                    <CascadingValue Value="_context" IsFixed="true">@ChildContent</CascadingValue>
+                </CascadingValue>
+                @Outlet(ToolbarPosition.Start)
+            </div>
+            @Outlet(ToolbarPosition.Center)
+            <div class="ib-toolbar-end">
+                @Outlet(ToolbarPosition.End)
+                @if (!Wrap)
+                {
+                    @More
+                }
             </div>
         </CascadingValue>
-        @if (_parts.Shown<ToolbarCenter>() is { } center)
-        {
-            <div class="ib-toolbar-center">
-                <CascadingValue Value="_center" IsFixed="true">@_parts.Outlet(center)</CascadingValue>
-            </div>
-        }
-        <div class="ib-toolbar-end">
-            @if (_parts.Shown<ToolbarEnd>() is { } end)
-            {
-                <CascadingValue Value="_end" IsFixed="true">@_parts.Outlet(end)</CascadingValue>
-            }
-            @if (!Wrap)
-            {
-                @More
-            }
-        </div>
     </CascadingValue>
 </ib-toolbar>
 
@@ -122,16 +117,17 @@
     /// </summary>
     [Parameter] public string? Nonce { get; set; }
 
-    /// <summary>The controls of the start, and the <see cref="ToolbarCenter"/> and <see cref="ToolbarEnd"/> parts.</summary>
+    /// <summary>
+    /// The items: <see cref="ToolbarButton"/>, <see cref="ToolbarIconButton"/>, <see cref="ToolbarButtonGroup"/>,
+    /// <see cref="ToolbarMenu"/>, <see cref="ToolbarText"/>, <see cref="ToolbarItem"/> and
+    /// <see cref="ToolbarSeparator"/>.
+    /// </summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     [CascadingParameter] private PartScope? OuterScope { get; set; }
 
     private ToolbarContext _context = null!;
     private PartScope _parts = null!;
-    private ToolbarScope _start = null!;
-    private ToolbarScope _center = null!;
-    private ToolbarScope _end = null!;
     private ButtonGroup _defaults = null!;
     private string? _class;
     private string? _style;
@@ -142,9 +138,6 @@
         var id = AdditionalAttributes?.TryGetValue("id", out var given) == true ? Convert.ToString(given, System.Globalization.CultureInfo.InvariantCulture) : null;
         _context = new ToolbarContext(id ?? IdGenerator.Next("ib-toolbar"));
         _parts = new PartScope(this, OuterScope, StateHasChanged);
-        _start = new ToolbarScope(_context, ToolbarRegion.Start, null, null);
-        _center = new ToolbarScope(_context, ToolbarRegion.Center, null, null);
-        _end = new ToolbarScope(_context, ToolbarRegion.End, null, null);
     }
 
     /// <inheritdoc />
@@ -162,7 +155,6 @@
     {
         classes.Add("ib-toolbar");
         classes.Add($"ib-toolbar-{Size.ToString().ToLowerInvariant()}");
-        classes.Add("ib-toolbar-centered", _parts.Shown<ToolbarCenter>() is not null);
         classes.Add("ib-toolbar-wrap", Wrap);
         if (Gap != 2)
         {
@@ -172,7 +164,16 @@
         base.BuildAttributes(classes, styles);
     }
 
-    // The "…" menu and the widths without script, drawn last so every unit has joined.
+    // The items at one position. The start's are drawn after the content, so they've joined.
+    private RenderFragment Outlet(ToolbarPosition position) => builder =>
+    {
+        builder.OpenComponent<ToolbarOutlet>(0);
+        builder.AddComponentParameter(1, nameof(ToolbarOutlet.Context), _context);
+        builder.AddComponentParameter(2, nameof(ToolbarOutlet.Position), position);
+        builder.CloseComponent();
+    };
+
+    // The "…" menu and the widths without script, drawn last so every item has joined.
     private RenderFragment More => builder =>
     {
         builder.OpenComponent<ToolbarMore>(0);
@@ -184,5 +185,5 @@
     };
 
     /// <inheritdoc />
-    public void Dispose() => _context.OnChanged = null;
+    public void Dispose() => _context.OnMenuChanged = null;
 }

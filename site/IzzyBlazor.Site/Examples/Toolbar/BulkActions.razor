@@ -3,12 +3,10 @@
         <form method="post" @formname="toolbar-bulk-actions" @onsubmit="Apply" data-enhance>
             <AntiforgeryToken />
             <Toolbar Label="Selected messages">
-                <ToolbarItem Overflow="ToolbarOverflow.Never" Width="Length.Rem(6.5)">
-                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">3 selected</TextBlock>
-                </ToolbarItem>
-                <Button Submit Name="intent" Value="archive" StartIcon="Lucide.Archive" OnClick='() => _pressed = "archive"'>Archive</Button>
-                <Button Submit Name="intent" Value="read" StartIcon="Lucide.MailOpen" OnClick='() => _pressed = "read"'>Mark read</Button>
-                <Button Submit Name="intent" Value="delete" StartIcon="Lucide.Trash" Accent="Accent.Danger" OnClick='() => _pressed = "delete"'>Delete</Button>
+                <ToolbarText>3 selected</ToolbarText>
+                <ToolbarButton Submit Name="intent" Value="archive" StartIcon="Lucide.Archive" OnClick='() => _pressed = "archive"'>Archive</ToolbarButton>
+                <ToolbarButton Submit Name="intent" Value="read" StartIcon="Lucide.MailOpen" OnClick='() => _pressed = "read"'>Mark read</ToolbarButton>
+                <ToolbarButton Submit Name="intent" Value="delete" StartIcon="Lucide.Trash" Accent="Accent.Danger" OnClick='() => _pressed = "delete"'>Delete</ToolbarButton>
             </Toolbar>
         </form>
         @if (_result is not null)

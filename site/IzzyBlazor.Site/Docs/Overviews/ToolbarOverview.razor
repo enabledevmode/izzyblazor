@@ -8,28 +8,28 @@
 <TextBlock>A Toolbar stays one row: what doesn't fit moves into a … menu at the end, where each control becomes a menu item with the same link, form post or <Code>OnClick</Code>. It works with JavaScript off, so a phone with a slow connection gets the same toolbar.</TextBlock>
 
 <Heading Level="2">An editor toolbar</Heading>
-<TextBlock>Put <Anchor Href="docs/components/button">Buttons</Anchor>, <Anchor Href="docs/components/icon-button">IconButtons</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroups</Anchor> and <Anchor Href="docs/components/menu">Menus</Anchor> in it, and narrow the window: they move into the … menu, a ButtonGroup as one.</TextBlock>
+<TextBlock>Put <Code>ToolbarButton</Code>s, <Code>ToolbarIconButton</Code>s, <Code>ToolbarButtonGroup</Code>s and <Code>ToolbarMenu</Code>s in it, the toolbar's own <Anchor Href="docs/components/button">Button</Anchor>, <Anchor Href="docs/components/icon-button">IconButton</Anchor>, <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor> with the same parameters, and narrow the window: they move into the … menu, a group as one. Other controls throw there: put them in a <Code>ToolbarItem</Code>.</TextBlock>
 <ExampleViewer Example="toolbar-editor" />
 <TextBlock>Its buttons are <Code>Ghost</Code>, <Code>Neutral</Code> and small unless they set their own <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code>, so one solid button stands out.</TextBlock>
 
 <Heading Level="2">What moves first</Heading>
-<TextBlock>Wrap a control in a <Code>ToolbarItem</Code> to set its <Code>Priority</Code> (higher stays longer) and its <Code>Overflow</Code>: <Code>Never</Code> for the main action, <Code>Always</Code> for what only the menu needs.</TextBlock>
+<TextBlock>Use <Code>Priority</Code> on an item (higher stays longer) and <Code>Overflow</Code>: <Code>Never</Code> for the main action, <Code>Always</Code> for what only the menu needs.</TextBlock>
 <ExampleViewer Example="toolbar-priority" />
 <TextBlock>With the same priority, controls move from the middle of the toolbar outward: the start from its end, then the end from its start, so the main action at the far end goes last. A <Code>ToolbarSeparator</Code> goes when there's nothing left on one side of it.</TextBlock>
 
 <Heading Level="2">Start, center and end</Heading>
-<TextBlock>Use <Code>ToolbarCenter</Code> and <Code>ToolbarEnd</Code> for the middle and the end; content outside them is the start.</TextBlock>
+<TextBlock>Use <Code>Position</Code> on an item to put it in the middle or at the end; items are at the start by default. <Code>ToolbarText</Code> is text that stays, such as a document's name.</TextBlock>
 <ExampleViewer Example="toolbar-regions" />
 <TextBlock>The center stays centered, so the start and the end each get half of the room around it, and the wider of the two gives up its controls first.</TextBlock>
 
 <Heading Level="2">Posting a form</Heading>
-<TextBlock>Use <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code> on its buttons as anywhere else: in the … menu they post the same, with JavaScript off too.</TextBlock>
+<TextBlock>Use <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code> on its buttons as on a Button: in the … menu they post the same, with JavaScript off too. Put the form around the toolbar.</TextBlock>
 <ExampleViewer Example="toolbar-bulk-actions" />
 
 <Heading Level="2">Fields, a SegmentedControl and a Menu</Heading>
-<TextBlock>Wrap other content in a <Code>ToolbarItem</Code> with a <Code>Width</Code>, and give it <Code>MenuContent</Code> for what stands in for it in the menu; without that, it stays in the bar.</TextBlock>
+<TextBlock>Put other content in a <Code>ToolbarItem</Code> with a <Code>Width</Code>, and give it <Code>MenuContent</Code> for what stands in for it in the menu; without that, it stays in the bar.</TextBlock>
 <ExampleViewer Example="toolbar-filters" />
-<TextBlock>A <Anchor Href="docs/components/menu">Menu</Anchor> becomes a submenu. The state's <Code>MenuRadioGroup</Code> posts under its own name, <Code>state</Code>: the <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor>'s radios post with the form too, even while it's in the menu.</TextBlock>
+<TextBlock>A <Code>ToolbarMenu</Code> becomes a submenu. The state's <Code>MenuRadioGroup</Code> posts under its own name, <Code>state</Code>: the <Anchor Href="docs/components/segmented-control">SegmentedControl</Anchor>'s radios post with the form too, even while it's in the menu.</TextBlock>
 
 <Heading Level="2">Running C# on click</Heading>
 <TextBlock>Use <Code>OnClick</Code> on its buttons on interactive pages; it runs from the bar or the menu.</TextBlock>
@@ -40,17 +40,17 @@
 <ExampleViewer Example="toolbar-wrap" />
 
 <Heading Level="2">In an app header</Heading>
-<TextBlock>Put the header's actions in a Toolbar with <Code>Grow</Code>, after the brand: on phones they move into the … menu. <Anchor Href="demos/toolbar/app-header">See it run</Anchor>.</TextBlock>
+<TextBlock>Put the header's actions in a Toolbar with <Code>Grow</Code>, after the brand, at its end: on phones they move into the … menu. <Anchor Href="demos/toolbar/app-header">See it run</Anchor>.</TextBlock>
 <Code Block Language="razor">@InHeader</Code>
 <TextBlock>The header stays the page's banner, and its navigation links belong in a <Anchor Href="docs/components/site-nav">SiteNav</Anchor>: a toolbar is for controls.</TextBlock>
 
 <Heading Level="2">Without script</Heading>
 <TextBlock>The server works out the width at which each control moves, from its label and icons in Inter, the library's font, and the toolbar shows the result with container queries. The script measures and corrects it: for Inter the two agree, so nothing moves when it arrives.</TextBlock>
 <List Gap="2">
-    <ListItem>Give content that isn't a button a <Code>ToolbarItem</Code> with a <Code>Width</Code>, so the server can allow for it.</ListItem>
+    <ListItem>Give a <Code>ToolbarItem</Code> a <Code>Width</Code>, so the server can allow for it.</ListItem>
     <ListItem>A theme with another font can be a few pixels out until the script measures.</ListItem>
     <ListItem>A toolbar takes its width from its container, as a container query needs: in a row, or in a box that takes its width from its content, give it <Code>Grow</Code> or a width.</ListItem>
-    <ListItem>The menu lists controls in the order they reach the toolbar: one inside a component of your own (an <Code>AuthorizeView</Code>), or one an <Code>@@if</Code> adds on an interactive page, comes after the rest of its region. Wrap it in a <Code>ToolbarItem</Code>, which keeps its place.</ListItem>
+    <ListItem>The toolbar draws its items itself, in the order they reach it: one inside a component of your own (an <Code>AuthorizeView</Code>), or one an <Code>@@if</Code> adds on an interactive page, comes after the rest of its position. A cascading value written around an item inside the toolbar doesn't reach it.</ListItem>
 </List>
 
 @if (OverviewParts.Of(Component, Api).Count > 0)
@@ -82,18 +82,15 @@
 
     private const string Usage = """
         <Toolbar Label="Editor">
-            <ButtonGroup Label="History">
-                <IconButton Icon="Lucide.Undo2" Label="Undo" />
-                <IconButton Icon="Lucide.Redo2" Label="Redo" />
-            </ButtonGroup>
+            <ToolbarButtonGroup Label="History">
+                <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
+                <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ToolbarButtonGroup>
             <ToolbarSeparator />
-            <Button StartIcon="Lucide.Link">Link</Button>
-            <ToolbarEnd>
-                @* The main action never moves into the … menu. *@
-                <ToolbarItem Overflow="ToolbarOverflow.Never">
-                    <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
-                </ToolbarItem>
-            </ToolbarEnd>
+            <ToolbarButton StartIcon="Lucide.Link" Priority="1">Link</ToolbarButton>
+            @* The main action, at the end, never moves into the … menu; Print is only ever there. *@
+            <ToolbarButton Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Printer" Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
         </Toolbar>
         """;
 
@@ -102,13 +99,9 @@
             <SidebarToggle />
             <AppBrand Href="/" Icon="Lucide.Mail" Label="Acme Mail" />
             <Toolbar Label="Mail actions" Grow>
-                <ToolbarEnd>
-                    <IconButton Icon="Lucide.Search" Label="Search mail" />
-                    <IconButton Icon="Lucide.Bell" Label="Notifications" />
-                    <ToolbarItem Priority="1">
-                        <Button Accent="Accent.Primary" Variant="ButtonVariant.Solid">Compose</Button>
-                    </ToolbarItem>
-                </ToolbarEnd>
+                <ToolbarIconButton Icon="Lucide.Search" Label="Search mail" Position="ToolbarPosition.End" />
+                <ToolbarIconButton Icon="Lucide.Bell" Label="Notifications" Position="ToolbarPosition.End" />
+                <ToolbarButton Position="ToolbarPosition.End" Priority="1" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Compose</ToolbarButton>
             </Toolbar>
         </AppHeader>
         """;

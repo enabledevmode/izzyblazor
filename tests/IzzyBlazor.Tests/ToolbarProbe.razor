@@ -3,72 +3,97 @@
 {
     case "controls":
         <Toolbar Label="Editor">
-            <ButtonGroup Label="History">
-                <IconButton Icon="Lucide.Undo2" Label="Undo" />
-                <IconButton Icon="Lucide.Redo2" Label="Redo" />
-            </ButtonGroup>
+            <ToolbarButtonGroup Label="History">
+                <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
+                <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ToolbarButtonGroup>
             <ToolbarSeparator />
-            <Button Submit Name="intent" Value="archive" FormAction="/mail/archive" StartIcon="Lucide.Archive" id="archive">Archive</Button>
-            <Button Href="/help">Help</Button>
-            <ToolbarItem MenuText="Bold">
-                <IconButton Icon="Lucide.Bold" Label="B" />
-            </ToolbarItem>
-            <Tooltip Text="Copy the link">
-                <IconButton Icon="Lucide.Link" Label="Copy link" />
-            </Tooltip>
-            <ToolbarEnd>
-                <Menu Label="Export">
-                    <MenuItem Href="/export.csv">CSV</MenuItem>
-                </Menu>
-                <ToolbarItem Overflow="ToolbarOverflow.Always">
-                    <Button>Print</Button>
-                </ToolbarItem>
-            </ToolbarEnd>
+            <ToolbarButton Submit Name="intent" Value="archive" FormAction="/mail/archive" StartIcon="Lucide.Archive" id="archive">Archive</ToolbarButton>
+            <ToolbarButton Href="/help">Help</ToolbarButton>
+            <ToolbarMenu Label="Export" Position="ToolbarPosition.End">
+                <MenuItem Href="/export.csv">CSV</MenuItem>
+            </ToolbarMenu>
+            <ToolbarButton Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never">Publish</ToolbarButton>
+            <ToolbarText Position="ToolbarPosition.Center">Untitled</ToolbarText>
+            <ToolbarButton Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Always">Print</ToolbarButton>
         </Toolbar>
         break;
     case "stays":
         <Toolbar Label="Stays">
-            <Button Reset>Reset</Button>
+            <ToolbarButton Reset>Reset</ToolbarButton>
             <ToolbarItem Width="Length.Rem(10)">
                 <input name="q" />
             </ToolbarItem>
-            <DialogTrigger For="d">Open</DialogTrigger>
-            <Popover Label="Filters">
-                <Button>Inside the popover</Button>
-            </Popover>
-            <Button>Plain</Button>
+            <ToolbarItem>
+                <DialogTrigger For="d">Open</DialogTrigger>
+            </ToolbarItem>
+            <ToolbarItem>
+                <Popover Label="Filters">
+                    <Button>Inside the popover</Button>
+                </Popover>
+            </ToolbarItem>
+            <ToolbarText>3 selected</ToolbarText>
+            <ToolbarButton>Plain</ToolbarButton>
         </Toolbar>
         break;
     case "defaults":
         <Toolbar Label="Defaults">
-            <Button>Ghost</Button>
-            <Button Variant="ButtonVariant.Solid" Accent="Accent.Primary">Solid</Button>
-            <ButtonGroup Label="Group">
-                <Button>In a group</Button>
-            </ButtonGroup>
-            <Menu Label="Menu">
+            <ToolbarButton>Ghost</ToolbarButton>
+            <ToolbarButton Variant="ButtonVariant.Solid" Accent="Accent.Primary">Solid</ToolbarButton>
+            <ToolbarButtonGroup Label="Group">
+                <ToolbarButton>In a group</ToolbarButton>
+            </ToolbarButtonGroup>
+            <ToolbarMenu Label="Menu">
                 <MenuItem>One</MenuItem>
-            </Menu>
+            </ToolbarMenu>
+            <ToolbarItem>
+                <Button>In an item</Button>
+            </ToolbarItem>
         </Toolbar>
         break;
     case "wrap":
         <Toolbar Label="Wrap" Wrap>
-            <Button>One</Button>
-            <Button>Two</Button>
+            <ToolbarButton>One</ToolbarButton>
+            <ToolbarButton>Two</ToolbarButton>
         </Toolbar>
         break;
     case "wrapped":
         <Toolbar Label="Wrapped">
-            <ToolbarItem>
-                <WrapProbe><Button>Inside</Button></WrapProbe>
-            </ToolbarItem>
-            <Button>After</Button>
+            <WrapProbe><ToolbarButton>Inside</ToolbarButton></WrapProbe>
+            <ToolbarButton>After</ToolbarButton>
         </Toolbar>
         break;
     case "nonce":
         <Toolbar Label="Nonce" Nonce="abc123">
-            <Button>One</Button>
+            <ToolbarButton>One</ToolbarButton>
         </Toolbar>
+        break;
+    case "button":
+        <Toolbar><Button>Raw</Button></Toolbar>
+        break;
+    case "icon-button":
+        <Toolbar><IconButton Icon="Lucide.Bold" Label="Bold" /></Toolbar>
+        break;
+    case "button-group":
+        <Toolbar><ButtonGroup Label="Raw"><ToolbarButton>One</ToolbarButton></ButtonGroup></Toolbar>
+        break;
+    case "menu":
+        <Toolbar><Menu Label="Raw"><MenuItem>One</MenuItem></Menu></Toolbar>
+        break;
+    case "tooltip":
+        <Toolbar><Tooltip Text="Raw"><ToolbarIconButton Icon="Lucide.Bold" Label="Bold" /></Tooltip></Toolbar>
+        break;
+    case "in-group":
+        <Toolbar><ToolbarButtonGroup Label="Group"><Button>Raw</Button></ToolbarButtonGroup></Toolbar>
+        break;
+    case "placed-in-group":
+        <Toolbar><ToolbarButtonGroup Label="Group"><ToolbarButton Overflow="ToolbarOverflow.Never">One</ToolbarButton></ToolbarButtonGroup></Toolbar>
+        break;
+    case "toolbar-button-in-item":
+        <Toolbar><ToolbarItem><ToolbarButton>Nested</ToolbarButton></ToolbarItem></Toolbar>
+        break;
+    case "outside":
+        <ToolbarButton>Alone</ToolbarButton>
         break;
 }
 

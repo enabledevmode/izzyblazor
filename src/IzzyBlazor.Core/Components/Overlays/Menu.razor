@@ -1,6 +1,5 @@
 @namespace IzzyBlazor
 @inherits ToggleComponentBase
-@implements IDisposable
 @attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the menu opens and closes, but arrow keys and type-ahead don't move between items.")]
 
 @*
@@ -39,21 +38,18 @@
     See also: Popover, NavMenu, ButtonGroup, IconButton.
 *@
 
-@_toolbar.Wrap(@<ib-popover class="@_outerClass"
+<ib-popover class="@_outerClass"
             style="@_outerStyle"
             data-placement="@Placement.Name()"
             data-open="@(IsOpen ? "" : null)">
-    @* In a toolbar the trigger reports its width to the menu, which moves as one. *@
-    <CascadingValue Value="_toolbar.Inner(_trigger)">
-        @if (Trigger is not null)
-        {
-            @Trigger(_triggerAttributes)
-        }
-        else
-        {
-            <Button Accent="TriggerAccent" Variant="TriggerVariant" Size="TriggerSize" StartIcon="StartIcon" EndIcon="IconSet.Current.Get(IconRole.ChevronDown)" @attributes="_triggerAttributes">@Label</Button>
-        }
-    </CascadingValue>
+    @if (Trigger is not null)
+    {
+        @Trigger(_triggerAttributes)
+    }
+    else
+    {
+        <Button Accent="TriggerAccent" Variant="TriggerVariant" Size="TriggerSize" StartIcon="StartIcon" EndIcon="IconSet.Current.Get(IconRole.ChevronDown)" @attributes="_triggerAttributes">@Label</Button>
+    }
     <div @attributes="AdditionalAttributes"
          id="@ElementId"
          popover="auto"
@@ -64,12 +60,12 @@
          style="@_style"
          @onibtoggle="HandleToggle">
         <CascadingValue Value="_context" IsFixed="true">
-            <CascadingValue Value="ToolbarScope.Blocked" IsFixed="true">
+            <CascadingValue Value="ToolbarContext.Outside" IsFixed="true">
                 @ChildContent
             </CascadingValue>
         </CascadingValue>
     </div>
-</ib-popover>)
+</ib-popover>
 
 @code {
     /// <summary>The default trigger's text.</summary>
@@ -108,27 +104,19 @@
 
     [CascadingParameter] private ButtonGroup? Group { get; set; }
 
-    [CascadingParameter] private ToolbarScope? ToolbarScope { get; set; }
+    /// <summary>The <see cref="Toolbar"/> it's directly in, where only a ToolbarMenu goes.</summary>
+    [CascadingParameter] internal ToolbarContext? Toolbar { get; set; }
 
-    private readonly ToolbarMember _toolbar;
-    private readonly TriggerWidth _trigger;
     private bool _accentSet;
     private bool _variantSet;
     private bool _sizeSet;
-
-    /// <summary>Creates the menu.</summary>
-    public Menu()
-    {
-        _toolbar = new ToolbarMember(this);
-        _trigger = new TriggerWidth(this);
-    }
 
     // The default trigger's look: the menu's own where set, else a ButtonGroup's or Toolbar's around it.
     private Accent TriggerAccent => !_accentSet && Group?.DefaultAccent is { } accent ? accent : Accent;
 
     private ButtonVariant TriggerVariant => !_variantSet && Group?.DefaultVariant is { } variant ? variant : Variant;
 
-    private ControlSize TriggerSize => !_sizeSet && Group?.DefaultSize is { } size ? size : Size;
+    private protected ControlSize TriggerSize => !_sizeSet && Group?.DefaultSize is { } size ? size : Size;
 
     private IReadOnlyDictionary<string, object> _triggerAttributes = new Dictionary<string, object>();
     private MenuContext _context = null!;
@@ -166,6 +154,7 @@
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
+        ToolbarControl.Refuse(this, Toolbar, Group);
         if (Trigger is null && string.IsNullOrWhiteSpace(Label))
         {
             throw new InvalidOperationException("Menu needs a Label for its button, or a Trigger.");
@@ -182,7 +171,6 @@
         };
         (_class, _style) = BuildRootAttributes();
         (_outerClass, _outerStyle) = BuildOuterAttributes("ib-pop-root", $"anchor-name:{StyleValues.AnchorName(ElementId)}");
-        Report();
     }
 
     /// <inheritdoc />
@@ -192,43 +180,5 @@
         _variantSet = parameters.TryGetValue<ButtonVariant>(nameof(Variant), out _);
         _sizeSet = parameters.TryGetValue<ControlSize>(nameof(Size), out _);
         return base.SetParametersAsync(parameters);
-    }
-
-    /// <summary>
-    /// Tells the toolbar it's in (if any) what it is: in the "…" menu, a submenu with the same
-    /// items (a custom trigger needs a Label for that); in the bar, its trigger's width.
-    /// </summary>
-    private void Report()
-    {
-        var text = ToolbarScope?.MenuText ?? Label;
-        RenderFragment? menu = string.IsNullOrWhiteSpace(text) ? null : builder =>
-        {
-            builder.OpenComponent<MenuSub>(0);
-            builder.AddComponentParameter(1, nameof(MenuSub.Label), text);
-            builder.AddComponentParameter(2, nameof(MenuSub.Icon), StartIcon);
-            builder.AddComponentParameter(3, nameof(MenuSub.ChildContent), ChildContent);
-            builder.CloseComponent();
-        };
-        _toolbar.Update(ToolbarScope, new ToolbarEntry(menu, _trigger.Width));
-    }
-
-    /// <inheritdoc />
-    public void Dispose() => _toolbar.Dispose();
-
-    /// <summary>Takes the trigger's width, as the trigger reports it to a toolbar.</summary>
-    private sealed class TriggerWidth(Menu menu) : IToolbarSink
-    {
-        public double? Width { get; private set; }
-
-        public void Set(object owner, ToolbarEntry entry)
-        {
-            if (Width != entry.Width)
-            {
-                Width = entry.Width;
-                menu.Report();
-            }
-        }
-
-        public void Remove(object owner) => Width = null;
     }
 }

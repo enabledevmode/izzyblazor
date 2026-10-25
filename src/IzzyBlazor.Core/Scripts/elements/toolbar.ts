@@ -243,7 +243,7 @@ class Toolbar extends IzzyElement {
     // The server lists units in the order they joined the toolbar (ids count up), which is page
     // order unless a component of the app's holds some; the same order keeps the two in step.
     units.sort((a, b) => a.region - b.region || Number(a.id) - Number(b.id));
-    // Other content in a region (not in a ToolbarItem) takes room too: it stays, at its width.
+    // Other content in a region (written in the toolbar, not a toolbar item) takes room too: it stays, at its width.
     REGIONS.forEach((selector, region) => {
       const container = this.querySelector(`:scope > ${selector}`);
       for (const child of container?.children ?? []) {

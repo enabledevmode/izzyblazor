@@ -1,26 +1,20 @@
 <Card Size="ControlSize.Sm" Width="Length.Full">
     <CardBody Gap="4">
         <Toolbar Label="Editor">
-            <ButtonGroup Label="History">
-                <IconButton Icon="Lucide.Undo2" Label="Undo" />
-                <IconButton Icon="Lucide.Redo2" Label="Redo" />
-            </ButtonGroup>
-            <ToolbarItem Priority="1">
-                <ButtonGroup Label="Text style" Variant="ButtonVariant.Outline">
-                    <IconButton Icon="Lucide.Bold" Label="Bold" />
-                    <IconButton Icon="Lucide.Italic" Label="Italic" />
-                    <IconButton Icon="Lucide.Underline" Label="Underline" />
-                </ButtonGroup>
-            </ToolbarItem>
+            <ToolbarButtonGroup Label="History">
+                <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
+                <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
+            </ToolbarButtonGroup>
+            <ToolbarButtonGroup Label="Text style" Variant="ButtonVariant.Outline" Priority="1">
+                <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" />
+                <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" />
+                <ToolbarIconButton Icon="Lucide.Underline" Label="Underline" />
+            </ToolbarButtonGroup>
             <ToolbarSeparator />
-            <Button StartIcon="Lucide.Link">Link</Button>
-            <Button StartIcon="Lucide.Image">Image</Button>
-            <ToolbarEnd>
-                <Button StartIcon="Lucide.Eye">Preview</Button>
-                <ToolbarItem Overflow="ToolbarOverflow.Never">
-                    <Button StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid">Publish</Button>
-                </ToolbarItem>
-            </ToolbarEnd>
+            <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Image">Image</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Eye" Position="ToolbarPosition.End">Preview</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never">Publish</ToolbarButton>
         </Toolbar>
         <Divider />
         <Stack Gap="2">

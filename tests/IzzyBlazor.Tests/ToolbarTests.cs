@@ -45,22 +45,54 @@ public class ToolbarTests : BunitContext
         Assert.Equal("archive", archive.GetAttribute("value"));
         Assert.Equal("/mail/archive", archive.GetAttribute("formaction"));
 
-        // A link stays a link; an icon button's label is its text; MenuText replaces it.
+        // A link stays a link; an icon button's label is its text. Publish (Never) isn't in the
+        // menu, and Print (Always) is.
         Assert.Equal("/help", panel.QuerySelectorAll("a").Single(a => a.TextContent.Trim() == "Help").GetAttribute("href"));
         var texts = panel.QuerySelectorAll(".ib-menu-label").Select(l => l.TextContent.Trim()).ToList();
-        Assert.Equal(["Undo", "Redo", "Archive", "Help", "Bold", "Copy link", "Export", "CSV", "Print"], texts);
+        Assert.Equal(["Undo", "Redo", "Archive", "Help", "Export", "CSV", "Print"], texts);
 
-        // A ButtonGroup is a labeled group; a Menu is a submenu with its items.
+        // A ToolbarButtonGroup is a labeled group; a ToolbarMenu is a submenu with its items.
         Assert.Equal("History", panel.QuerySelector("[role=group] .ib-menu-heading")!.TextContent.Trim());
         Assert.NotNull(panel.QuerySelector("ib-popover [popover] a[href='/export.csv']"));
     }
 
     [Fact]
-    public void A_ToolbarItem_keeps_the_place_of_a_control_in_a_component_of_the_apps()
+    public void Items_sit_at_their_position()
+    {
+        var cut = RenderToolbar("controls");
+        // Each unit by its first control's text, or its name when that has none (a group of icon buttons); a separator is empty.
+        string Texts(string region) => string.Join(",", cut.FindAll($"ib-toolbar > {region} > .ib-toolbar-unit")
+            .Select(u => u.QuerySelector("button, a, .ib-toolbar-text")?.TextContent.Trim() is { Length: > 0 } text ? text : u.QuerySelector("[aria-label]")?.GetAttribute("aria-label")));
+
+        Assert.Equal("History,,Archive,Help", Texts(".ib-toolbar-start"));
+        Assert.Equal("Untitled", Texts(".ib-toolbar-center"));
+        // Print (Always) has a bar copy too, which the CSS and the script keep hidden.
+        Assert.Equal("Export,Publish,Print", Texts(".ib-toolbar-end"));
+    }
+
+    [Fact]
+    public void A_control_inside_a_component_of_the_apps_still_joins()
     {
         var texts = MenuPanel(RenderToolbar("wrapped")).QuerySelectorAll(".ib-menu-label").Select(l => l.TextContent.Trim());
 
-        Assert.Equal(["Inside", "After"], texts);
+        Assert.Contains("Inside", texts);
+    }
+
+    [Theory]
+    [InlineData("button", "use ToolbarButton")]
+    [InlineData("icon-button", "use ToolbarIconButton")]
+    [InlineData("button-group", "use ToolbarButtonGroup")]
+    [InlineData("menu", "use ToolbarMenu")]
+    [InlineData("tooltip", "put it in a ToolbarItem")]
+    [InlineData("in-group", "use ToolbarButton or ToolbarIconButton")]
+    [InlineData("placed-in-group", "set them on the group")]
+    [InlineData("toolbar-button-in-item", "directly inside a Toolbar")]
+    [InlineData("outside", "directly inside a Toolbar")]
+    public void Only_toolbar_items_go_directly_in_a_toolbar(string kind, string message)
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => RenderToolbar(kind));
+
+        Assert.Contains(message, error.Message, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -79,8 +111,8 @@ public class ToolbarTests : BunitContext
         var panel = MenuPanel(cut);
         var texts = panel.QuerySelectorAll(".ib-menu-label").Select(l => l.TextContent.Trim()).ToList();
 
-        // Only Plain can move: a reset button, a dialog's and a popover's triggers and custom
-        // content stay, and the button inside the popover isn't the toolbar's.
+        // Only Plain can move: a reset button, items without MenuContent and text stay, and the
+        // buttons inside them are plain buttons.
         Assert.Equal(["Plain"], texts);
         Assert.Empty(cut.FindAll("[popover] .ib-toolbar-unit"));
     }
@@ -93,9 +125,10 @@ public class ToolbarTests : BunitContext
 
         Assert.Equal("ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm", Classes("Ghost"));
         Assert.Equal("ib-btn ib-btn-primary ib-btn-solid ib-btn-sm", Classes("Solid"));
-        // A group with no settings of its own, and a menu's trigger, take the toolbar's.
+        // A group with no settings of its own, a menu's trigger and a button in an item take the toolbar's.
         Assert.Equal("ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm", Classes("In a group"));
         Assert.StartsWith("ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm", Classes("Menu"));
+        Assert.Equal("ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm", Classes("In an item"));
     }
 
     [Fact]
@@ -114,10 +147,12 @@ public class ToolbarTests : BunitContext
     public void The_menu_follows_the_controls_on_interactive_pages()
     {
         SetRendererInfo(new RendererInfo("Server", true));
-        var cut = Render<Toolbar>(p => p.Add(t => t.Label, "Live").AddChildContent<Button>(b => b.AddChildContent("Before")));
+        var cut = Render<Toolbar>(p => p.Add(t => t.Label, "Live").AddChildContent<ToolbarButton>(b => b.AddChildContent("Before")));
         Assert.Equal("Before", cut.Find(".ib-toolbar-more .ib-menu-label").TextContent.Trim());
+        Assert.Equal("Before", cut.Find(".ib-toolbar-unit").TextContent.Trim());
 
-        cut.Render(p => p.Add(t => t.Label, "Live").AddChildContent<Button>(b => b.AddChildContent("After")));
+        cut.Render(p => p.Add(t => t.Label, "Live").AddChildContent<ToolbarButton>(b => b.AddChildContent("After")));
+        Assert.Equal("After", cut.Find(".ib-toolbar-unit").TextContent.Trim());
         Assert.Equal("After", cut.Find(".ib-toolbar-more .ib-menu-label").TextContent.Trim());
     }
 
@@ -126,11 +161,11 @@ public class ToolbarTests : BunitContext
     {
         if (spec == "|")
         {
-            return new ToolbarPlan.Unit(i + 1, ToolbarRegion.Start, 1, 0, ToolbarOverflow.Never, true);
+            return new ToolbarPlan.Unit(i + 1, ToolbarPosition.Start, 1, 0, ToolbarOverflow.Never, true);
         }
 
         var parts = spec.Split(':');
-        var region = parts[0][0] switch { 'c' => ToolbarRegion.Center, 'e' => ToolbarRegion.End, _ => ToolbarRegion.Start };
+        var region = parts[0][0] switch { 'c' => ToolbarPosition.Center, 'e' => ToolbarPosition.End, _ => ToolbarPosition.Start };
         var overflow = parts.Length > 2 ? Enum.Parse<ToolbarOverflow>(parts[2], true) : ToolbarOverflow.Auto;
         var priority = parts.Length > 1 && parts[1].Length > 0 ? int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture) : 0;
         return new ToolbarPlan.Unit(i + 1, region, 100, priority, overflow, false);

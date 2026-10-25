@@ -399,7 +399,7 @@
     },
     {
       "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "One row of controls; what doesn't fit moves into a … menu.",
-      "parts": ["ToolbarItem", "ToolbarSeparator", "ToolbarCenter", "ToolbarEnd"],
+      "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
       "features": [
         { "feature": "What doesn't fit moves into the … menu, which opens and posts with no script", "off": "full", "static": "full", "live": "full" },
         { "feature": "Widths measured in the browser (without script, worked out on the server)", "off": "none", "static": "full", "live": "full" },
