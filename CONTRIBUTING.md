@@ -15,11 +15,12 @@ src/IzzyBlazor.Core/         the components, CSS and JS; runs in any render mode
 src/IzzyBlazor/              server-only pieces: cookie-backed toast carrier and request cookies (IzzyBlazor package)
 tests/IzzyBlazor.TestHost/   dev host: every demo at /static/{demo} and /interactive/{demo}, previews at /preview/...
 tests/IzzyBlazor.Tests/      xUnit and bUnit tests
-site/IzzyBlazor.Site/        the documentation site: /docs and /demos (see "The docs site" below)
+site/IzzyBlazor.Site/        the documentation site at izzyblazor.com: /docs and /demos (see "The docs site" below)
 site/IzzyBlazor.DocsGen/     writes izzyblazor.api.json, the API metadata, from the built library
 site/IzzyBlazor.Site.Tests/  checks the registry, every example in each mode and the site's links
 build/                       asset build and dev scripts
-docs/                        documentation and README images
+docs/                        documentation, release notes (docs/releases) and README images
+Dockerfile, fly.toml         the docs site's image and its Fly.io app (see "Hosting")
 ```
 
 `IzzyBlazor.Core` can't reference the ASP.NET Core server framework, so it also runs in WebAssembly.
@@ -150,6 +151,26 @@ parameter tables and defaults are never written by hand.
   mark what each release added ("Added in") and print what it removed; it's refreshed when a
   release is cut (see Releasing).
 
+#### Hosting
+
+The site is at [izzyblazor.com](https://izzyblazor.com), on the Fly.io app `izzyblazor`
+(`fly.toml`, `Dockerfile` at the root). The image builds the site with the .NET 10 SDK and Node 22
+(the library's asset build) and runs it on the ASP.NET Core image; `docker build .` builds the same
+image locally. It runs on one always-on machine: a Live example's circuit stays on the machine that
+served its page, so a second machine would drop examples. `fly deploy` keeps the count; if a
+machine is ever added, `fly scale count 1 -a izzyblazor`.
+
+- The Release workflow deploys it after the packages are pushed, so the docs match the release.
+  `fly deploy --remote-only` deploys main by hand (a docs fix between releases).
+- `www.izzyblazor.com`, `izzyblazor.dev` and `www.izzyblazor.dev` redirect to izzyblazor.com with a
+  301 that keeps the path and query (`Services/CanonicalHost.cs`). It names those hosts rather than
+  redirecting every other one, since Fly's health checks and `izzyblazor.fly.dev` arrive with other
+  hosts.
+- Fly holds a certificate for each of the four names and renews it. DNS for both domains is at
+  Hostinger: `A` and `AAAA` records on `@` with the app's addresses (`fly ips list -a izzyblazor`),
+  and `www` a CNAME to the apex. A new name needs `fly certs add <name> -a izzyblazor`, its DNS
+  records, and, if it should redirect, an entry in `CanonicalHost`.
+
 #### Writing an Overview
 
 An Overview is for using the component; the API page is the reference. Follow Button's:
@@ -275,8 +296,9 @@ One logical change per commit, with messages in the form `Area: what changed`, f
 
 ## Releasing
 
-Pushing a version tag publishes both packages. Set `<Version>` in `Directory.Build.props` and the version in the preview notes of `README.md` and `docs/nuget-readme.md`, commit it
-to main, then tag that commit with the same version:
+Pushing a version tag publishes both packages and deploys the docs site. Set `<Version>` in
+`Directory.Build.props` and the version in the preview notes of `README.md` and
+`docs/nuget-readme.md`, commit it to main, then tag that commit with the same version:
 
 ```
 git tag v0.1.0-alpha.1
@@ -305,7 +327,8 @@ pushes `IzzyBlazor.Core` then `IzzyBlazor` (with their symbol packages) to nuget
 a GitHub release with the packages attached (marked as a pre-release for versions like `-alpha.1`). It uses nuget.org trusted publishing: no API key is
 stored; `NuGet/login` exchanges the job's GitHub token for a key that lasts an hour. It runs in the
 `release` environment, and needs the `NUGET_USER` secret (the nuget.org username of the policy's
-creator). Its last job deploys the docs site to Fly.io (`fly.toml`, `Dockerfile`; Fly's builder
-builds the image) with the `release` environment's `FLY_API_TOKEN` secret, a deploy token for the
-`izzyblazor` app (`fly tokens create deploy -a izzyblazor`). `fly deploy` deploys it by hand. A failed run can be rerun: packages already on nuget.org are skipped. A published version
-can't be replaced, only unlisted, so a fix needs a new version.
+creator). Its last job deploys the docs site (see Hosting) with the `release` environment's
+`FLY_API_TOKEN` secret, a deploy token for the `izzyblazor` app (`fly tokens create deploy -a
+izzyblazor`); Fly's builder builds the image, so the job only holds the token. A failed run can be
+rerun: packages already on nuget.org are skipped. A published version can't be replaced, only
+unlisted, so a fix needs a new version.
