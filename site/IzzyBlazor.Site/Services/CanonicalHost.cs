@@ -2,7 +2,7 @@ namespace IzzyBlazor.Site.Services;
 
 /// <summary>
 /// Sends the site's other names (www.izzyblazor.com, izzyblazor.dev and www.izzyblazor.dev) to
-/// https://izzyblazor.com with a 301, keeping the path and query. Only those names: Fly's health
+/// https://izzyblazor.com with a 301 (a 308 for other methods than GET and HEAD), keeping the path and query. Only those names: Fly's health
 /// checks, izzyblazor.fly.dev and localhost arrive with other hosts and are served as they are.
 /// </summary>
 public static class CanonicalHost
@@ -23,7 +23,8 @@ public static class CanonicalHost
         var request = context.Request;
         if (Target(request.Host.Host, $"{request.PathBase}{request.Path}{request.QueryString}") is { } target)
         {
-            context.Response.Redirect(target, permanent: true);
+            // 308 keeps a POST a POST (an MCP client's); GET and HEAD keep the familiar 301.
+            context.Response.Redirect(target, permanent: true, preserveMethod: !HttpMethods.IsGet(request.Method) && !HttpMethods.IsHead(request.Method));
             return Task.CompletedTask;
         }
 

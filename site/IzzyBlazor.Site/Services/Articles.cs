@@ -17,6 +17,8 @@ public static class Articles
                 "Use IzzyBlazor.Core in the .Client project; the server project keeps IzzyBlazor."),
             new("existing-app", "Add to an existing app", "PackagePlus",
                 "Bring IzzyBlazor into an app that already has pages, a layout and Bootstrap."),
+            new("ai-assistants", "AI assistants", "Bot",
+                "Connect Claude, Copilot or Cursor to IzzyBlazor's MCP server for components, parameters and examples."),
         ]),
         new("theming", "Theming", "Palette",
         [

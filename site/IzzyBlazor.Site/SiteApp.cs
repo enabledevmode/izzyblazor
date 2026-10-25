@@ -1,16 +1,48 @@
 using System.Globalization;
+using System.Net;
+using System.Net.Sockets;
+using System.Threading.RateLimiting;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.HttpResults;
 using IzzyBlazor.Site.Components;
 using IzzyBlazor.Site.Components.Parts;
 using IzzyBlazor.Site.Services;
+using IzzyBlazor.Site.Services.Mcp;
 
 namespace IzzyBlazor.Site;
 
 /// <summary>Builds the site's app, so tests can start the same one.</summary>
 public static class SiteApp
 {
+    private const string McpPath = "/mcp";
+    private const string McpRateLimit = "mcp";
+
+    // The caller's address: Fly's proxy gives it in Fly-Client-IP. IPv6 by its /64, the block one
+    // client usually has, so changing addresses inside it doesn't reset the limit.
+    private static string ClientKey(HttpContext context)
+    {
+        var address = IPAddress.TryParse(context.Request.Headers["Fly-Client-IP"].ToString(), out var fly) ? fly : context.Connection.RemoteIpAddress;
+        if (address is null)
+        {
+            return "";
+        }
+
+        if (address.IsIPv4MappedToIPv6)
+        {
+            address = address.MapToIPv4();
+        }
+
+        if (address.AddressFamily != AddressFamily.InterNetworkV6)
+        {
+            return address.ToString();
+        }
+
+        var bytes = address.GetAddressBytes();
+        Array.Clear(bytes, 8, 8);
+        return $"{new IPAddress(bytes)}/64";
+    }
+
     public static WebApplication Build(string[] args, Action<WebApplicationBuilder>? configure = null)
     {
         // Examples format money and dates as en-US whatever the server's culture is.
@@ -41,6 +73,34 @@ public static class SiteApp
         builder.Services.AddSingleton<NoScriptCss>();
         builder.Services.AddSingleton<ExampleCatalog>();
 
+        // The MCP server at /mcp (docs/get-started/ai-assistants): read-only tools over the same
+        // data, stateless so any of Fly's machines can answer any request.
+        builder.Services.AddSingleton<PageText>();
+        builder.Services.AddSingleton<McpDocs>();
+        builder.Services.AddMcpServer(options =>
+            {
+                options.ServerInfo = new() { Name = "izzyblazor", Title = "IzzyBlazor docs", Version = api.Version };
+                options.ServerInstructions = McpTools.Instructions.ReplaceLineEndings(" ");
+            })
+            .WithHttpTransport(options => options.Stateless = true)
+            .WithTools<McpTools>();
+        // Assistants call in bursts; this only stops a runaway client.
+        builder.Services.AddRateLimiter(options =>
+        {
+            options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+            options.OnRejected = (context, _) =>
+            {
+                if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait))
+                {
+                    context.HttpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
+                }
+
+                return ValueTask.CompletedTask;
+            };
+            options.AddPolicy(McpRateLimit, context => RateLimitPartition.GetFixedWindowLimiter(
+                ClientKey(context), _ => new FixedWindowRateLimiterOptions { PermitLimit = 300, Window = TimeSpan.FromMinutes(1) }));
+        });
+
         var app = builder.Build();
 
         // Fly ends TLS and forwards plain HTTP with X-Forwarded-Proto, so without this every
@@ -52,13 +112,18 @@ public static class SiteApp
         app.UseForwardedHeaders(forwarded);
         app.UseCanonicalHost();
 
-        if (!app.Environment.IsDevelopment())
+        // The site's error pages are HTML; /mcp answers its client as it is (a 429 stays a 429).
+        app.UseWhen(context => !context.Request.Path.StartsWithSegments(McpPath), site =>
         {
-            app.UseExceptionHandler("/error", createScopeForErrors: true);
-        }
+            if (!app.Environment.IsDevelopment())
+            {
+                site.UseExceptionHandler("/error", createScopeForErrors: true);
+            }
 
-        app.UseStatusCodePagesWithReExecute("/not-found");
+            site.UseStatusCodePagesWithReExecute("/not-found");
+        });
         app.UseAntiforgery();
+        app.UseRateLimiter();
 
         // A link that opens a page in a mode (?mode=off, the mode switch) keeps it for the next
         // pages, with JavaScript off too: an example's own links and forms drop ?mode= from the
@@ -114,7 +179,15 @@ public static class SiteApp
         });
         app.MapMethods("/robots.txt", ["GET", "HEAD"], () => Results.Text(Sitemap.Robots, "text/plain"));
         app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
-        app.MapGet("/izzyblazor.api.json", (ApiMetadata api) => Results.Text(api.Json, "application/json"));
+        app.MapMethods("/izzyblazor.api.json", ["GET", "HEAD"], (ApiMetadata api) => Results.Text(api.Json, "application/json"));
+        app.MapMethods("/llms.txt", ["GET", "HEAD"], (Registry registry, ApiMetadata api) => Results.Text(LlmsTxt.Of(registry, api), "text/plain; charset=utf-8"));
+        app.MapMcp(McpPath).RequireRateLimiting(McpRateLimit);
+        // Stateless: no event stream to GET and no session to DELETE, which the spec answers with 405.
+        app.MapMethods(McpPath, ["GET", "HEAD", "DELETE"], (HttpContext context) =>
+        {
+            context.Response.Headers.Allow = "POST";
+            return Results.StatusCode(StatusCodes.Status405MethodNotAllowed);
+        });
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
         app.MapIzzyBlazor();

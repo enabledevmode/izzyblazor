@@ -59,6 +59,7 @@ public static class Sitemap
         User-agent: *
         Disallow: /frame/
         Disallow: /search
+        Disallow: /mcp
 
         Sitemap: {Origin}sitemap.xml
 
