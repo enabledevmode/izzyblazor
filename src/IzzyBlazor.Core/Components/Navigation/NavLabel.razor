@@ -1,9 +1,10 @@
 @namespace IzzyBlazor
 @inherits IzzyComponentBase
 
-@* A small heading that labels the items below it in a NavMenu. *@
+@* A small heading that labels the items below it in a NavMenu: a plain list item, since a list
+   holds only items. *@
 
-<li @attributes="AdditionalAttributes" class="@_class" style="@_style" role="presentation">@ChildContent</li>
+<li @attributes="AdditionalAttributes" class="@_class" style="@_style">@ChildContent</li>
 
 @code {
     /// <summary>The heading text.</summary>

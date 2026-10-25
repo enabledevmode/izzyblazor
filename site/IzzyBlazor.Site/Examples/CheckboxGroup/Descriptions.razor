@@ -1,14 +1,8 @@
 @using System.ComponentModel.DataAnnotations
 
 <Form Model="Model" FormName="checkbox-group-descriptions" MaxWidth="28.Rem" Grow>
-    <CheckboxGroup @bind-Value="Model!.Channels" Items="Enum.GetValues<Channel>()">
-        <ItemTemplate Context="channel">
-            <Column As="span" Gap="0">
-                <span>@(Details[channel].Name)</span>
-                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@(Details[channel].Detail)</TextBlock>
-            </Column>
-        </ItemTemplate>
-    </CheckboxGroup>
+    <CheckboxGroup @bind-Value="Model!.Channels" Items="Enum.GetValues<Channel>()"
+                   ItemText="channel => Details[channel].Name" ItemDescription="channel => Details[channel].Detail" />
 </Form>
 
 @code {

@@ -860,7 +860,7 @@
       "id": "checkbox-group", "icon": "ListTodo", "name": "CheckboxGroup", "category": "Selection", "summary": "Several choices as checkboxes.",
       "examples": [
         { "id": "checkbox-group-toppings", "title": "Several choices", "lead": "Bind `CheckboxGroup` to a collection (an array, `List` or `HashSet`) and pass the options to `Items`; each checked box posts its value, so it works with JavaScript off." },
-        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemTemplate` to put a description under each option's name." },
+        { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemDescription` for a line under each option's name, read as the box's description." },
         { "id": "checkbox-group-everything", "title": "Select all", "lead": "Use `SelectAll` for a box above the options that checks or clears them all at once, and `SelectAllText` for its text.",
           "notes": {
             "off": "The Everything box isn't shown, since it needs the script: check each topic."

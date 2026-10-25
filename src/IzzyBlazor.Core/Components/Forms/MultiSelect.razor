@@ -27,8 +27,8 @@
       named "Remove" and the option ("Remove Design", `RemoveLabel`), are left out of the Tab
       order.
     - When nothing matches, "No matches" (`EmptyText`) is announced politely.
-    - The label names the input and the list, and the hint and errors are linked with
-      `aria-describedby`.
+    - The label names the input and the list. The chosen options are the input's description,
+      before the hint and errors ("Chosen: Design, Writing.", `IzzyText.Chosen`), so they're heard on focus.
     - With JavaScript off, it's a native multiple `select`, with the browser's own keys.
     See also: CheckboxGroup, Combobox, Select.
 *@
@@ -43,7 +43,8 @@
     {
     <ib-combobox class="ib-field-control ib-has-end ib-combobox ib-multiselect"
                  style="@($"anchor-name:{StyleValues.AnchorName(ListId)}")"
-                 data-remove-label="@(RemoveLabel ?? TextDefaults.Remove)">
+                 data-remove-label="@(RemoveLabel ?? TextDefaults.Remove)"
+                 data-chosen-label="@TextDefaults.Chosen">
         <select @attributes="ControlAttributes"
                 id="@FieldId"
                 class="ib-field-input ib-combobox-select ib-multiselect-select"
@@ -75,6 +76,9 @@
                     }
                 }
             </span>
+            @* The chips for screen readers, as the input's description ("Chosen: Design, Writing."):
+               the chips themselves would read their remove buttons too. Kept like the chips. *@
+            <span id="@ChosenId" class="ib-multiselect-chosen" hidden>@(RendererInfo.IsInteractive ? null : ChosenText)</span>
             <input type="text"
                    id="@InputId"
                    class="ib-combobox-input ib-multiselect-input"
@@ -86,7 +90,7 @@
                    aria-labelledby="@LabelId"
                    aria-required="@(IsRequired ? "true" : null)"
                    aria-invalid="@(Invalid ? "true" : null)"
-                   aria-describedby="@DescribedBy"
+                   aria-describedby="@(DescribedBy is null ? ChosenId : $"{ChosenId} {DescribedBy}")"
                    autocomplete="off"
                    autocapitalize="off"
                    spellcheck="false"
@@ -170,6 +174,11 @@
     private string InputId => FieldId + "-input";
     private string ListId => FieldId + "-list";
     private string LabelId => FieldId + "-label";
+    private string ChosenId => FieldId + "-chosen";
+
+    private string? ChosenText => ItemList.Where(IsChosen).Select(item => ChoiceOptions.Text(item, ItemText)).ToList() is { Count: > 0 } chosen
+        ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.Chosen, string.Join(", ", chosen))
+        : null;
 
     private IReadOnlyList<TItem> ItemList => ChoiceOptions.Of(Items).ToList();
 

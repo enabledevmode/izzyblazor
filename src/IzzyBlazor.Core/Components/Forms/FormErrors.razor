@@ -3,9 +3,11 @@
 @inject IServiceProvider Services
 
 @*
-    A summary of every validation message in the form, announced to screen readers when it appears.
-    Place it at the top of a long form. After a submit that fails validation it takes focus, so
-    keyboard and screen reader users start from the list of problems:
+    A summary of every validation message in the form. Place it at the top of a long form. After a
+    submit that fails validation it takes focus, so keyboard and screen reader users start from the
+    list of problems, and screen readers read it then: a group named by its title and described by
+    the messages. It isn't a live region as well, which would read it twice (once as it appears,
+    once on focus):
       - static pages: native autofocus on a full page load (works with JavaScript off), and the
         script for an enhanced post, which patches the page so autofocus doesn't fire;
       - interactive pages: focused from C# after the submit, but not as messages change while typing.
@@ -16,9 +18,10 @@
 {
     <div @ref="_element"
          class="ib-form-errors"
-         role="alert"
+         role="group"
          tabindex="-1"
          aria-labelledby="@_titleId"
+         aria-describedby="@DescriptionId"
          autofocus="@(!RendererInfo.IsInteractive)"
          data-ib-autofocus="@(RendererInfo.IsInteractive ? null : "")">
         <p class="ib-form-errors-title" id="@_titleId"><Icon Role="IconRole.Error" /> @(Title ?? TextDefaults.FormErrorsTitle)</p>
@@ -28,6 +31,8 @@
                 <li>@message</li>
             }
         </ul>
+        @* The messages as sentences: read from the list, they'd run together ("Enter your email Write a message"). *@
+        <span id="@DescriptionId" hidden>@string.Join(" ", Messages.Select(Sentence))</span>
     </div>
 }
 
@@ -46,6 +51,7 @@
     private ElementReference _element;
     private bool _focusAfterRender;
     private readonly string _titleId = IdGenerator.Next("ib-form-errors");
+    private string DescriptionId => _titleId + "-messages";
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -103,6 +109,12 @@
         {
             await _element.FocusAsync();
         }
+    }
+
+    private static string Sentence(string message)
+    {
+        message = message.Trim();
+        return message.Length == 0 || message[^1] is '.' or '!' or '?' or '…' or '。' or '！' or '？' ? message : message + ".";
     }
 
     private void Unsubscribe()

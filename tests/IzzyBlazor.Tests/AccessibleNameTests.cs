@@ -122,4 +122,48 @@ public class AccessibleNameTests : BunitContext
         Assert.Equal("true", multi.Find("input[role=combobox]").GetAttribute("aria-required"));
         Assert.Null(optional.Find("input[role=combobox]").GetAttribute("aria-required"));
     }
+
+    [Fact]
+    public void A_MultiSelects_chosen_options_describe_its_input()
+    {
+        var model = new Picks { Tags = ["a", "c"] };
+        var context = new EditContext(model);
+        var cut = Render<MultiSelect<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Tags).Add(c => c.ValueExpression, () => model.Tags).Add(c => c.Items, ["a", "b", "c"])
+            .Add(c => c.Hint, "Up to three"));
+
+        var input = cut.Find("input[role=combobox]");
+        var chosen = cut.Find(".ib-multiselect-chosen");
+        Assert.True(chosen.HasAttribute("hidden"));
+        Assert.Equal("Chosen: a, c.", chosen.TextContent);
+        Assert.Equal($"{chosen.Id} {input.Id!.Replace("-input", "-hint")}", input.GetAttribute("aria-describedby"));
+        Assert.Equal("Chosen: {0}.", cut.Find("ib-combobox").GetAttribute("data-chosen-label"));
+    }
+
+    [Fact]
+    public void A_CheckboxGroup_description_isnt_part_of_the_name()
+    {
+        var model = new Picks();
+        var context = new EditContext(model);
+        var cut = Render<CheckboxGroup<string[]?, string>>(p => p.AddCascadingValue(context)
+            .Add(c => c.Value, model.Tags).Add(c => c.ValueExpression, () => model.Tags).Add(c => c.Items, ["a", "b"])
+            .Add(c => c.ItemDescription, item => item == "a" ? "First" : null));
+
+        var (first, second) = (cut.FindAll("input[type=checkbox]")[0], cut.FindAll("input[type=checkbox]")[1]);
+        Assert.Equal("a", cut.Find($"#{first.GetAttribute("aria-labelledby")}").TextContent);
+        Assert.Equal("First", cut.Find($"#{first.GetAttribute("aria-describedby")}").TextContent);
+        Assert.Null(second.GetAttribute("aria-labelledby"));
+        Assert.Null(second.GetAttribute("aria-describedby"));
+    }
+
+    [Fact]
+    public void NavMenu_labels_and_dividers_are_plain_or_hidden_list_items()
+    {
+        var label = Render<NavLabel>(p => p.AddChildContent("Workspace")).Find("li");
+        var divider = Render<NavDivider>().Find("li");
+
+        Assert.Null(label.GetAttribute("role"));
+        Assert.Null(divider.GetAttribute("role"));
+        Assert.Equal("true", divider.GetAttribute("aria-hidden"));
+    }
 }

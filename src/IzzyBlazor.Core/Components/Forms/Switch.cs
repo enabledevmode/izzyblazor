@@ -1,3 +1,5 @@
+using Microsoft.AspNetCore.Components;
+
 namespace IzzyBlazor;
 
 /// <summary>
@@ -16,8 +18,22 @@ namespace IzzyBlazor;
 /// <seealso cref="SegmentedControl{TValue}"/>
 /// <seealso cref="CheckboxGroup{TValue, TItem}"/>
 [ModeSupport]
+[RefusesParameter(nameof(Indeterminate))]
 public class Switch : Checkbox
 {
     /// <inheritdoc />
     protected override bool AsSwitch => true;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // Indeterminate comes from Checkbox, but a switch is on or off: say so rather than ignore it.
+        if (parameters.TryGetValue<bool>(nameof(Indeterminate), out _))
+        {
+            throw new InvalidOperationException(
+                "A Switch is on or off, so it doesn't take Indeterminate. For a partly selected state, use a Checkbox.");
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
 }
