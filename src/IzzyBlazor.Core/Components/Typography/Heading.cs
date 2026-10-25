@@ -63,6 +63,14 @@ public class Heading : TextBase, IDisposable
     /// </summary>
     [Parameter] public bool? Anchor { get; set; }
 
+    /// <summary>
+    /// The id a heading with this text gets once an <see cref="OnThisPage"/> lists it, for a link to
+    /// it from elsewhere: lowercase, letters and digits kept (in any script), spaces and dashes as
+    /// one dash, everything else dropped, so "Rows &amp; columns" is "rows-columns". A second
+    /// heading with the same text on the page gets "-2" after it, a third "-3".
+    /// </summary>
+    public static string SlugOf(string text) => PageOutline.Slug(text);
+
     [CascadingParameter(Name = PageOutline.MainCascade)] private PageOutline? PageOutline { get; set; }
 
     [Inject] private NavigationManager Navigation { get; set; } = default!;
