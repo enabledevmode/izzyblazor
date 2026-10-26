@@ -15,7 +15,7 @@ public class OffExampleAnchorTests
     [InlineData("<a href=\"docs/components/table\">Table</a>", "<a href=\"docs/components/table\">Table</a>")]
     [InlineData("<a href=\"docs/components/card#usage\">Usage</a>", "<a href=\"docs/components/card#usage\">Usage</a>")]
     [InlineData("<a href=\"mailto:a@b.c\">Mail</a>", "<a href=\"mailto:a@b.c\">Mail</a>")]
-    [InlineData("<a class=\"site-mode-link\" href=\"docs/components/card?mode=live\">Live</a>", "<a class=\"site-mode-link\" href=\"docs/components/card?mode=live#ex-card-settings\">Live</a>")]
+    [InlineData("<a data-mode=\"live\" class=\"ib-tab\" href=\"docs/components/card?mode=live\">Live</a>", "<a data-mode=\"live\" class=\"ib-tab\" href=\"docs/components/card?mode=live#ex-card-settings\">Live</a>")]
     [InlineData("<a href=\"http://example.com/docs/components/card\">Elsewhere</a>", "<a href=\"http://example.com/docs/components/card\">Elsewhere</a>")]
     [InlineData("<a data-href=\"x\" href=\"docs/components/card?p=2\">2</a>", "<a data-href=\"x\" href=\"docs/components/card?p=2#ex-card-settings\">2</a>")]
     [InlineData("<button type=\"submit\" formaction=\"/docs/components/card?x=1\">Go</button>", "<button type=\"submit\" formaction=\"/docs/components/card?x=1#ex-card-settings\">Go</button>")]

@@ -436,7 +436,8 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [GeneratedRegex("href=\"([^\"]*)\"")]
     private static partial Regex Href();
 
-    [GeneratedRegex("<a class=\"site-modeswitch-option site-mode-link\" href=\"[^\"]*\"(?<current> aria-current=\"true\")? data-mode=\"(?<mode>\\w+)\"")]
+    // A mode link (ModeSwitch's TabLinks carry data-mode), and whether it's marked current.
+    [GeneratedRegex("<a\\b(?=[^>]*\\sdata-mode=\"(?<mode>\\w+)\")(?:(?=[^>]*\\saria-current=\"(?<current>true)\"))?[^>]*>")]
     private static partial Regex ModeLink();
 
     [GeneratedRegex("\\sid=\"([^\"]+)\"")]

@@ -442,39 +442,12 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
 .ex-widths { display: inline-flex; gap: 2px; margin: 0; padding: 0; border: 0; min-width: 0; }
 
 /*
- * The page's mode switch (ModeSwitch): radios drawn as a segmented control, then a line on what the
- * checked mode means. In the right column on wide screens, at the top of the content below that,
+ * The page's mode switch (ModeSwitch): segmented link Tabs, then a line on what the current mode
+ * means. In the right column on wide screens, at the top of the content below that,
  * and in an example's row on a page that is one example. Hidden on pages with no example.
  */
 .site-modeswitch { display: flex; flex-direction: column; gap: var(--ib-space-2); }
 .site-modeswitch-label { font-size: var(--ib-text-sm); font-weight: 600; }
-.site-modeswitch-options {
-  display: inline-flex;
-  width: fit-content;
-  gap: 2px;
-  padding: 2px;
-  border: 1px solid var(--ib-color-border);
-  border-radius: var(--ib-radius-md);
-  background: var(--ib-color-surface);
-}
-.site-modeswitch-option {
-  position: relative;
-  display: inline-flex;
-  align-items: center;
-  height: calc(var(--ib-control-h-sm) - 6px);
-  padding-inline: var(--ib-space-3);
-  border-radius: var(--ib-radius-sm);
-  font-size: var(--ib-text-sm);
-  font-weight: 500;
-  color: var(--ib-color-muted);
-  text-decoration: none;
-}
-.site-modeswitch-option:hover { color: var(--ib-color-on-surface); }
-.site-modeswitch-option[aria-current="true"] {
-  background: var(--ib-color-surface-container-high);
-  color: var(--ib-color-on-surface);
-}
-.site-modeswitch-option:focus-visible { outline: 2px solid var(--ib-color-focus); outline-offset: 1px; }
 .site-modeswitch-text { margin: 0; }
 .site-modeswitch-aside { margin-block-end: var(--ib-space-6); }
 .site-modeswitch-top { flex-direction: row; flex-wrap: wrap; align-items: center; column-gap: var(--ib-space-3); }

@@ -38,12 +38,20 @@
     /// </summary>
     [Parameter] public NavLinkMatch Match { get; set; } = NavLinkMatch.Prefix;
 
+    /// <summary>
+    /// Marks the tab current (<c>true</c>) or not (<c>false</c>) whatever the URL, for a choice the
+    /// page knows from elsewhere, such as a cookie. Unset (the default): from the URL, by
+    /// <see cref="Match"/>, unless another tab is set current. A current tab set this way has
+    /// <c>aria-current="true"</c> (a choice, not necessarily this page); a disabled tab is never current.
+    /// </summary>
+    [Parameter] public bool? Current { get; set; }
+
     /// <summary>Extra attributes for the link, such as <c>data-enhance-nav</c>.</summary>
     [Parameter(CaptureUnmatchedValues = true)] public IReadOnlyDictionary<string, object>? AdditionalAttributes { get; set; }
 
     [CascadingParameter] internal TabsContext? Context { get; set; }
 
-    private (string, string, IconData?, string?, bool, NavLinkMatch)? _shown;
+    private (string, string, IconData?, string?, bool, NavLinkMatch, bool?)? _shown;
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -65,7 +73,7 @@
     protected override void OnParametersSet()
     {
         // Tabs renders the link, so tell it when what it shows has changed.
-        var shown = (Href, Label, Icon, Badge, Disabled, Match);
+        var shown = (Href, Label, Icon, Badge, Disabled, Match, Current);
         if (_shown is { } previous && previous != shown)
         {
             Context?.Changed();
