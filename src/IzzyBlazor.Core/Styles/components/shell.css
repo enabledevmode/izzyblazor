@@ -575,6 +575,16 @@
     .ib-shell:has(> .ib-shell-sidebar-bp-sm) .ib-shell-toggle {
       display: none;
     }
+
+    /* Inset: beside the sidebar the panel needs no gap of its own (the frame has no line there,
+       and the sidebar's padding is the gap), so an icon rail sits centered in its column. */
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-sm:not(.ib-shell-sidebar-end)) > .ib-shell-main {
+      margin-inline-start: 0;
+    }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-end) > .ib-shell-main {
+      margin-inline-end: 0;
+    }
   }
 
   @media (width < 768px) {
@@ -670,6 +680,14 @@
   @media (width >= 768px) {
     .ib-shell:has(> .ib-shell-sidebar-bp-md) .ib-shell-toggle {
       display: none;
+    }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-md:not(.ib-shell-sidebar-end)) > .ib-shell-main {
+      margin-inline-start: 0;
+    }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-end) > .ib-shell-main {
+      margin-inline-end: 0;
     }
   }
 
@@ -767,6 +785,14 @@
     .ib-shell:has(> .ib-shell-sidebar-bp-lg) .ib-shell-toggle {
       display: none;
     }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-lg:not(.ib-shell-sidebar-end)) > .ib-shell-main {
+      margin-inline-start: 0;
+    }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-end) > .ib-shell-main {
+      margin-inline-end: 0;
+    }
   }
 
   @media (width < 1280px) {
@@ -862,6 +888,14 @@
   @media (width >= 1280px) {
     .ib-shell:has(> .ib-shell-sidebar-bp-xl) .ib-shell-toggle {
       display: none;
+    }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-xl:not(.ib-shell-sidebar-end)) > .ib-shell-main {
+      margin-inline-start: 0;
+    }
+
+    .ib-shell-inset:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-end) > .ib-shell-main {
+      margin-inline-end: 0;
     }
   }
 
@@ -971,6 +1005,15 @@
 
     .ib-shell-sidebar-bp-sm.ib-shell-sidebar-collapsible {
       transition: width var(--ib-duration-normal) var(--ib-ease);
+    }
+
+    /* Labels stay on one line, so while the width animates they're clipped at the edge instead of
+       wrapping and unwrapping; one too long for the sidebar ends in an ellipsis. (Not in the drawer.) */
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-collapsible .ib-nav-text,
+    .ib-shell-sidebar-bp-sm.ib-shell-sidebar-collapsible .ib-nav-heading {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* No chevron: the row takes no room, and the checkbox stays focusable. */
@@ -1165,6 +1208,13 @@
       transition: width var(--ib-duration-normal) var(--ib-ease);
     }
 
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-collapsible .ib-nav-text,
+    .ib-shell-sidebar-bp-md.ib-shell-sidebar-collapsible .ib-nav-heading {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     /* No chevron: the row takes no room, and the checkbox stays focusable. */
     .ib-shell-sidebar-bp-md .ib-shell-collapse-nobutton,
     .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-md .ib-shell-collapse-auto {
@@ -1357,6 +1407,13 @@
       transition: width var(--ib-duration-normal) var(--ib-ease);
     }
 
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-collapsible .ib-nav-text,
+    .ib-shell-sidebar-bp-lg.ib-shell-sidebar-collapsible .ib-nav-heading {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
     /* No chevron: the row takes no room, and the checkbox stays focusable. */
     .ib-shell-sidebar-bp-lg .ib-shell-collapse-nobutton,
     .ib-shell:has(.ib-shell-collapse-toggle) > .ib-shell-sidebar-bp-lg .ib-shell-collapse-auto {
@@ -1547,6 +1604,13 @@
 
     .ib-shell-sidebar-bp-xl.ib-shell-sidebar-collapsible {
       transition: width var(--ib-duration-normal) var(--ib-ease);
+    }
+
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-collapsible .ib-nav-text,
+    .ib-shell-sidebar-bp-xl.ib-shell-sidebar-collapsible .ib-nav-heading {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
     }
 
     /* No chevron: the row takes no room, and the checkbox stays focusable. */

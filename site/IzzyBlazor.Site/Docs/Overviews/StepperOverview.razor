@@ -12,7 +12,7 @@
 <Heading Level="2">Steps of a checkout</Heading>
 <TextBlock>Use <Code>Current</Code> for the step someone is on, counting from 1: the steps before it show as done. A <Code>Step</Code>'s <Code>Href</Code> makes its label a link, such as back to a finished step.</TextBlock>
 <ExampleViewer Example="stepper-checkout" WidthSwitch />
-<TextBlock>Here the step is <Code>?step=</Code> in the address, and each step's form moves on to the next step once it's valid, posting on a static page and running C# on an interactive one, so it works with JavaScript off too. Below 640px the steps stack in a column.</TextBlock>
+<TextBlock>Here the step is <Code>?step=</Code> in the address, and each step's form moves on to the next step once it's valid, posting on a static page and running C# on an interactive one, so it works with JavaScript off too. Below 640px the steps stay a row of markers, and only the current step's label shows; a finished step's link is still there, on its marker.</TextBlock>
 
 <Heading Level="2">Vertical, with descriptions</Heading>
 <TextBlock>Use <Code>Orientation="Orientation.Vertical"</Code> to keep the steps in a column on every screen. A <Code>Step</Code>'s <Code>Description</Code> adds a line under its label, and its <Code>Icon</Code> shows in the marker until the step is done.</TextBlock>
