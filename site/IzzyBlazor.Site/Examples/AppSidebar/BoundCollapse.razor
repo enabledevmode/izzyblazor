@@ -1,7 +1,8 @@
 @inject NavigationManager Navigation
 
 @* On an interactive page @bind-Collapsed follows the icon rail, and C# can collapse or expand it,
-   here from a focus-mode button. *@
+   here from a focus-mode button. The rail is a wide-screen thing (on phones the sidebar is a
+   drawer), so the button and the state line show from the sidebar's breakpoint up. *@
 <AppShell>
     <AppHeader>
         <SidebarToggle For="notes" />
@@ -20,11 +21,11 @@
         <Stack Gap="4" Padding="new() { Base = 4, Md = 8 }" MaxWidth="Length.Prose">
             <Row Gap="3" Align="Align.Center" Wrap>
                 <Heading Level="1" Size="TextSize.Xl2" Grow>Site visit, October 14</Heading>
-                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm"
+                <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Sm" VisibleFrom="Breakpoint.Md"
                         OnClick="() => _collapsed = !_collapsed">@(_collapsed ? "Show sidebar" : "Focus mode")</Button>
             </Row>
             <TextBlock>Sensor 4 reads two degrees high against the handheld. Recalibrate before the next run, and check whether the casing was opened during transport.</TextBlock>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted">Sidebar: @(_collapsed ? "collapsed" : "expanded")</TextBlock>
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" VisibleFrom="Breakpoint.Md">Sidebar: @(_collapsed ? "collapsed" : "expanded")</TextBlock>
         </Stack>
     </AppMain>
 </AppShell>

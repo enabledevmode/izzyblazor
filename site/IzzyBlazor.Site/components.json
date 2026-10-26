@@ -263,7 +263,7 @@
       ],
       "scenarios": [
         { "id": "release-notes", "title": "Release notes", "member": "Size",
-          "description": "A changelog post: the title, byline and links are components, and the body is HTML from Markdown, set large for reading at prose width.",
+          "description": "A changelog post: the title, byline and links are components, and the body is HTML from Markdown, set large for reading in an article-width column.",
           "example": { "id": "prose-release-notes", "title": "Release notes", "height": 1100, "page": true } }
       ]
     },
@@ -375,7 +375,7 @@
           "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 390, "page": true } },
         { "id": "toolbar", "title": "Editor toolbar", "member": "Variant",
           "description": "A document toolbar in a Toolbar: a joined group of formatting buttons, icon buttons with labels, and the main action on the right. At phone width what doesn't fit moves into the … menu, with JavaScript off too.",
-          "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 220, "page": true } }
+          "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 360, "page": true } }
       ]
     },
     {

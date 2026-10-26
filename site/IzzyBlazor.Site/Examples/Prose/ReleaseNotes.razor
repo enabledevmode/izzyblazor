@@ -1,17 +1,33 @@
-@* A changelog post: the page's own heading and byline as components, the body as HTML from
-   Markdown, styled by Prose. *@
-<Stack Gap="6" MaxWidth="Length.Prose" Grow>
-    <Anchor Href="https://example.com/releases" Underline="AnchorUnderline.Hover">← All releases</Anchor>
-    <Stack Gap="2">
-        <Heading Level="1" Size="TextSize.Xl4">Version 2.4: offline drafts</Heading>
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">October 14, 2026 · Ada Lovelace · 4 min read</TextBlock>
+@* A changelog post: the page's own header (version, title, summary, byline) and the links around
+   it are components, and the body is HTML from Markdown, styled by Prose at the large size, all in
+   a column at article width. *@
+<Container Size="ContainerSize.Md" PaddingY="new() { Base = 4, Md = 10 }" Grow>
+    <Stack Gap="8">
+        <Stack Gap="4">
+            <TextBlock Size="TextSize.Sm"><Anchor Href="https://example.com/releases" Underline="AnchorUnderline.Hover">← All releases</Anchor></TextBlock>
+            <Row Gap="2" Align="Align.Center" Wrap>
+                <Badge Accent="Accent.Primary">Version 2.4</Badge>
+                <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">October 14, 2026</TextBlock>
+            </Row>
+            <Heading Level="1" Size="TextSize.Xl4">Offline drafts</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Write anywhere: drafts save on your device and sync when you're back online.</TextBlock>
+            <Row Gap="3" Align="Align.Center">
+                <Avatar Name="Ada Lovelace" Decorative />
+                <Stack Gap="0">
+                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">Ada Lovelace</TextBlock>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Product · 4 min read</TextBlock>
+                </Stack>
+            </Row>
+        </Stack>
+        <Divider />
+        <Prose Size="ProseSize.Lg" As="article">@((MarkupString)Html)</Prose>
+        <Divider />
+        <Stack Gap="4">
+            <TextBlock Color="Color.Muted">Questions or feedback? <Anchor Href="https://example.com/forum" External>Discuss in the forum</Anchor></TextBlock>
+            <PrevNext PreviousHref="https://example.com/releases/2.3" PreviousTitle="Version 2.3: shared folders" />
+        </Stack>
     </Stack>
-    <Prose Size="ProseSize.Lg" As="article">@((MarkupString)Html)</Prose>
-    <Row Justify="Justify.Between" Gap="4" Wrap>
-        <Anchor Href="https://example.com/releases/2.3">← Version 2.3</Anchor>
-        <Anchor Href="https://example.com/forum" External>Discuss in the forum</Anchor>
-    </Row>
-</Stack>
+</Container>
 
 @* hide *@
 @code {
