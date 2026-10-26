@@ -29,7 +29,10 @@
         </Row>
     </CardBody>
     <CardFooter>
-        <Button Href="mailto:ada@example.com" StartIcon="Lucide.Mail" Grow>Message</Button>
-        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Calendar" Grow>Schedule a call</Button>
+        @* Two equal columns where both labels fit, else one: the buttons are always the same width. *@
+        <Grid MinChildWidth="11.Rem" Gap="2" Grow>
+            <Button Href="mailto:ada@example.com" StartIcon="Lucide.Mail">Message</Button>
+            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Calendar">Schedule a call</Button>
+        </Grid>
     </CardFooter>
 </Card>

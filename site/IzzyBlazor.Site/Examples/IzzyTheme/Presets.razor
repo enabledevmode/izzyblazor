@@ -1,10 +1,11 @@
-@* The same card under each preset. On part of a page a preset sets density, shape and depth only,
-   so each card also takes its preset's brand and gray; the Editorial fonts are app-wide. *@
+@* The same card under each preset, described by its card. On part of a page a preset sets density,
+   shape and depth only, so each card also takes its preset's brand and gray, and the Editorial card
+   sets its fonts with Style (fonts are app-wide, so the preset alone wouldn't change them here). *@
 <Grid Columns="new() { Base = 1, Sm = 2 }" Gap="4" Grow>
-    @foreach (var (preset, brand, gray) in Sets)
+    @foreach (var set in Sets)
     {
-        <IzzyTheme Preset="preset" Brand="@brand" Gray="@gray">
-            <Card Title="@preset.ToString()" Description="Invite people to your workspace.">
+        <IzzyTheme Preset="set.Preset" Brand="@set.Brand" Gray="@set.Gray" Style="@set.Style">
+            <Card Title="@set.Preset.ToString()" Description="@set.Description" Height="Length.Full">
                 <Row Gap="2" Wrap Align="Align.Center">
                     <Button>Invite</Button>
                     <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Later</Button>
@@ -16,11 +17,14 @@
 </Grid>
 
 @code {
-    private static readonly (ThemePreset, string, string)[] Sets =
+    private sealed record PresetSet(ThemePreset Preset, string Brand, string Gray, string Description, string? Style = null);
+
+    private static readonly PresetSet[] Sets =
     [
-        (ThemePreset.Standard, "blue", "neutral"),
-        (ThemePreset.Compact, "indigo", "slate"),
-        (ThemePreset.Soft, "teal", "neutral"),
-        (ThemePreset.Editorial, "ink", "stone"),
+        new(ThemePreset.Standard, "blue", "neutral", "The default: 36px controls, a medium radius and hairline shadows."),
+        new(ThemePreset.Compact, "indigo", "slate", "For dense data and admin: 32px controls, tight rows, a small radius, borders only."),
+        new(ThemePreset.Soft, "teal", "neutral", "For consumer apps and portals: 40px controls, roomy, a large radius, gentle shadows."),
+        new(ThemePreset.Editorial, "ink", "stone", "For reading and docs: serif headings over a plain sans, a large radius.",
+            "font-family: \"IBM Plex Sans\", system-ui, sans-serif; --ib-font-heading: Newsreader, Georgia, \"Times New Roman\", serif"),
     ];
 }

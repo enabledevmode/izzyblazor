@@ -21,8 +21,11 @@
                             <TextBlock Weight="FontWeight.Medium" Truncate>@message.From</TextBlock>
                             <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@message.Subject</TextBlock>
                         </Stack>
-                        <Button Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id"
+                        @* On phones the button is the icon alone, which keeps "Archive" as its name. *@
+                        <Button Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id" VisibleFrom="Breakpoint.Sm"
                                 Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+                        <IconButton Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id" HiddenFrom="Breakpoint.Sm" Shrink="false"
+                                    Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Icon="Lucide.Archive" Label="Archive" />
                     </Row>
                 }
             </form>
