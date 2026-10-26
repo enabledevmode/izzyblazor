@@ -167,9 +167,13 @@
     min-width: 0;
   }
 
-  /* Phones look for the menu button at the end of the bar. */
+  /* Phones look for the menu button at the end of the bar, or at its start beside an app's menu button. */
   .ib-site-nav-end > .ib-site-nav-toggle {
     order: 1;
+  }
+
+  .ib-site-nav-start > .ib-site-nav-toggle {
+    order: -1;
   }
 
   /* The button's icon: a menu icon, and a close icon while the panel is open. */

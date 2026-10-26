@@ -14,7 +14,9 @@
     </AppBrand>
     <Badge Variant="BadgeVariant.Outline" VisibleFrom="Breakpoint.Sm">@(Demos ? "Demos · latest" : Api.Version)</Badge>
     <Box Grow />
-    <SiteNav Label="Site">
+    @* Pages with no sidebar (home) use SiteNav's own menu button; it goes first, where the other
+       pages have SidebarToggle, so the button doesn't change sides between pages. *@
+    <SiteNav Label="Site" MenuButtonPosition="MenuButtonPosition.Start">
         <NavItem Href="docs" Match="NavLinkMatch.All">Docs</NavItem>
         <NavItem Href="docs/components">Components</NavItem>
         <NavItem Href="demos">Demos</NavItem>

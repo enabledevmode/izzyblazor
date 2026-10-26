@@ -163,6 +163,19 @@ public enum SidebarPosition
     End,
 }
 
+/// <summary>Where <see cref="SiteNav"/>'s menu button sits in the header on small screens.</summary>
+public enum MenuButtonPosition
+{
+    /// <summary>At the end of the header, after everything else, where content sites put it.</summary>
+    End,
+
+    /// <summary>At the start of the header, before the brand, where apps put a sidebar's menu button.</summary>
+    Start,
+
+    /// <summary>Where the links are in the header's content.</summary>
+    InPlace,
+}
+
 /// <summary>Top or bottom, such as where AppSidebar's collapse button sits.</summary>
 public enum VerticalPosition
 {
