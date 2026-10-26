@@ -143,20 +143,19 @@
     --ib-color-on-neutral: #ffffff;
 
     /* Grays (the default set: neutral). The page is a near-white; cards, tables, fields and bars
-       are white surfaces on it. Containers are quiet fills (table heads, code), a step darker
-       than the page so they show on it and on a card; the high container is the stronger fill (tracks, chips,
-       skeletons). */
+       are white surfaces on it. Fills sit inside a surface and step away from it as they get
+       stronger: darker in light mode, lighter in dark mode, so the names hold in both. */
     --ib-color-background: light-dark(#fafafa, #08080a);
     --ib-color-surface: light-dark(#ffffff, #0d0d0f);
-    /* Low: large quiet fills (a filled card). Container: small fills that must show (header cells,
-       code, wells, tracks). High: selected and pressed fills. */
-    --ib-color-surface-container-low: light-dark(#f3f3f5, #141416);
-    --ib-color-surface-container: light-dark(#e9e9ec, #1b1b1e);
-    --ib-color-surface-container-high: light-dark(#dfdfe3, #232326);
-    /* Floating surfaces (dialogs, menus, popovers): a step lighter than cards in dark mode, since
+    /* Subtle: large quiet fills (a filled card, a panel, a band). Fill: small fills that must show (table
+       heads, code, wells). Strong: selected and pressed fills, chips, tracks, skeletons. */
+    --ib-color-fill-subtle: light-dark(#f3f3f5, #141416);
+    --ib-color-fill: light-dark(#e9e9ec, #1b1b1e);
+    --ib-color-fill-strong: light-dark(#dfdfe3, #232326);
+    /* Overlays (dialogs, menus, popovers, toasts): a step lighter than cards in dark mode, since
        shadows barely show there; the border does most of the separating. */
-    --ib-color-surface-raised: light-dark(#ffffff, #17171a);
-    --ib-color-raised-border: light-dark(transparent, rgb(255 255 255 / 0.08));
+    --ib-color-surface-overlay: light-dark(#ffffff, #17171a);
+    --ib-color-overlay-border: light-dark(transparent, rgb(255 255 255 / 0.08));
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
     --ib-color-subtle: light-dark(#66666d, #929299);
@@ -188,16 +187,16 @@
    *   --ib-color-selected       a selected row's fill (the primary color, very faint)
    *   --ib-state-hover          hover wash (the text color at 6%; a selection is shown by a mark)
    *   --ib-state-pressed        pressed wash (the text color at 10%)
-   *   --ib-color-segment        the chosen segment (the raised surface; lighter in dark), --ib-color-on-segment
+   *   --ib-color-segment        the chosen segment (the overlay surface; lighter in dark), --ib-color-on-segment
    *                             its text (on-surface), --ib-color-segment-edge its edge (the border color;
-   *                             white at 8% in dark), --ib-color-segment-track the track (surface-container;
-   *                             surface-container-low in dark). These are worked out on the track, so set
+   *                             white at 8% in dark), --ib-color-segment-track the track (fill;
+   *                             fill-subtle in dark). These are worked out on the track, so set
    *                             them there or above. An accent: the first two to the primary pair, the edge
    *                             transparent
    *   --ib-color-scrollbar      scrollbar thumb (the text color at 26%), --ib-color-scrollbar-hover (42%)
    */
   :root {
-    /* Syntax colors for Code: each at least 4.5:1 on the code block's surface-container, in light
+    /* Syntax colors for Code: each at least 4.5:1 on the code block's fill, in light
        and dark, for every gray set. */
     --ib-code-comment: light-dark(#5f6670, #9198a1);
     --ib-code-keyword: light-dark(#b8202a, #ff8a80);

@@ -1,6 +1,22 @@
-<Grid Columns="new() { Base = 1, Sm = 2 }" Gap="3" Grow>
-    <Box Padding="4" Bg="Color.SurfaceRaised" Shadow="Shadow.Sm" Radius="Radius.Md">SurfaceRaised, Shadow.Sm</Box>
-    <Box Padding="4" Bg="Color.SurfaceContainerLow" Radius="Radius.Md">SurfaceContainerLow</Box>
-    <Box Padding="4" Bg="Color.SurfaceContainer" Radius="Radius.Md">SurfaceContainer</Box>
-    <Box Padding="4" Bg="Color.SurfaceContainerHigh" Radius="Radius.Md">SurfaceContainerHigh</Box>
-</Grid>
+@* Each color where it's used: the page, a card on it (Surface), fills inside the card, each a step
+   further from it, and an overlay with a border and a shadow, as menus and popovers draw
+   over the card. *@
+<Box Padding="4" Bg="Color.Background" Border="1" Radius="Radius.Lg" Grow>
+    <Stack Gap="3">
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Background</TextBlock>
+        <Box Padding="4" Bg="Color.Surface" Border="1" Radius="Radius.Lg">
+            <Stack Gap="3">
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Surface</TextBlock>
+                <Grid Columns="new() { Base = 1, Sm = 3 }" Gap="3">
+                    <Box Padding="3" Bg="Color.FillSubtle" Radius="Radius.Md">FillSubtle</Box>
+                    <Box Padding="3" Bg="Color.Fill" Radius="Radius.Md">Fill</Box>
+                    <Box Padding="3" Bg="Color.FillStrong" Radius="Radius.Md">FillStrong</Box>
+                </Grid>
+                <Box Padding="3" Bg="Color.SurfaceOverlay" Border="1" Shadow="Shadow.Lg" Radius="Radius.Lg" MaxWidth="Length.Rem(16)">
+                    SurfaceOverlay
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">A menu or popover</TextBlock>
+                </Box>
+            </Stack>
+        </Box>
+    </Stack>
+</Box>

@@ -150,8 +150,8 @@ public class FourthReviewTests : BunitContext
         var colors = GrayPalette.From(hex).Colors.ToDictionary(c => c.Token, c => c.Light);
         var floors = new Dictionary<string, string[]>
         {
-            ["surface-container"] = ["#e9e9ec", "#e7ebf1", "#eae8e2"],
-            ["surface-container-high"] = ["#dfdfe3", "#dce2ea", "#e0ddd5"],
+            ["fill"] = ["#e9e9ec", "#e7ebf1", "#eae8e2"],
+            ["fill-strong"] = ["#dfdfe3", "#dce2ea", "#e0ddd5"],
         };
 
         foreach (var (token, builtIn) in floors)
@@ -160,7 +160,7 @@ public class FourthReviewTests : BunitContext
         }
 
         // A color that doesn't follow the grays still reads on the strongest fill.
-        Assert.True(Ratio("#5f6670", colors["surface-container"]) >= 4.5, $"{hex}: code comment");
+        Assert.True(Ratio("#5f6670", colors["fill"]) >= 4.5, $"{hex}: code comment");
     }
 
     [Fact]

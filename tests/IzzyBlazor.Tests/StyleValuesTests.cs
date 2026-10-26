@@ -37,8 +37,8 @@ public class StyleValuesTests
     [Fact]
     public void Colors()
     {
-        Assert.Equal("var(--ib-color-surface-container-high)", Color.SurfaceContainerHigh.Css);
-        Assert.Equal("var(--ib-color-surface-container-low)", Color.SurfaceContainerLow.Css);
+        Assert.Equal("var(--ib-color-fill-strong)", Color.FillStrong.Css);
+        Assert.Equal("var(--ib-color-fill-subtle)", Color.FillSubtle.Css);
         Assert.Equal("var(--ib-color-brand-500)", Color.Token("brand-500").Css);
         Assert.Equal("#ff6600", Color.Of("#ff6600").Css);
         Assert.Throws<FormatException>(() => Color.Token("Brand 500"));
@@ -48,7 +48,7 @@ public class StyleValuesTests
     public void Contrast_text_pairs()
     {
         Assert.Equal(Color.OnPrimary, Color.Primary.ContrastText);
-        Assert.Equal(Color.OnSurface, Color.SurfaceContainerHigh.ContrastText);
+        Assert.Equal(Color.OnSurface, Color.FillStrong.ContrastText);
         Assert.Equal(Color.OnSurface, Color.Background.ContrastText);
         Assert.Equal(Color.PrimaryText, Color.PrimarySoft.ContrastText);
         Assert.Equal(Color.Token("on-brand"), Color.Token("brand").ContrastText);

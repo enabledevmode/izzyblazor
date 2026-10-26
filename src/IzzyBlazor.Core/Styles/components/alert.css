@@ -16,7 +16,7 @@
     line-height: var(--ib-leading-snug);
   }
 
-  .ib-alert-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-surface-container-high); }
+  .ib-alert-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-fill-strong); }
   .ib-alert-success { --ib-accent: var(--ib-color-success); --ib-on-accent: var(--ib-color-on-success); --ib-accent-text: var(--ib-color-success-text); --ib-accent-soft: var(--ib-color-success-soft); }
   .ib-alert-warning { --ib-accent: var(--ib-color-warning); --ib-on-accent: var(--ib-color-on-warning); --ib-accent-text: var(--ib-color-warning-text); --ib-accent-soft: var(--ib-color-warning-soft); }
   .ib-alert-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); --ib-accent-soft: var(--ib-color-danger-soft); }
@@ -315,7 +315,7 @@
   /* The outline look as a raised card: a neutral border, with the status in the icon. */
   .ib-toast.ib-alert-outline {
     border-color: var(--ib-color-border);
-    background-color: var(--ib-color-surface-raised);
+    background-color: var(--ib-color-surface-overlay);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -76,7 +76,7 @@
   /* Accents */
   .ib-btn-primary { --ib-accent: var(--ib-color-primary); --ib-on-accent: var(--ib-color-on-primary); --ib-accent-text: var(--ib-color-primary-text); --ib-accent-soft: var(--ib-color-primary-soft); }
   .ib-btn-danger { --ib-accent: var(--ib-color-danger); --ib-on-accent: var(--ib-color-on-danger); --ib-accent-text: var(--ib-color-danger-text); --ib-accent-soft: var(--ib-color-danger-soft); }
-  .ib-btn-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-surface-container-high); }
+  .ib-btn-neutral { --ib-accent: var(--ib-color-neutral); --ib-on-accent: var(--ib-color-on-neutral); --ib-accent-text: var(--ib-color-on-surface); --ib-accent-soft: var(--ib-color-fill-strong); }
 
   /* Variants */
   .ib-btn-solid {

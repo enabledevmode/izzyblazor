@@ -7,10 +7,10 @@
   --site-ember-text: light-dark(#b8480b, #ff9a5c);
   --ib-color-background: light-dark(#fafafa, #08090b);
   --ib-color-surface: light-dark(#ffffff, #0d0e11);
-  --ib-color-surface-container-low: light-dark(#f3f3f5, #14161a);
-  --ib-color-surface-container: light-dark(#e9e9ec, #1b1d22);
-  --ib-color-surface-container-high: light-dark(#dfdfe3, #23252b);
-  --ib-color-surface-raised: light-dark(#ffffff, #17191d);
+  --ib-color-fill-subtle: light-dark(#f3f3f5, #14161a);
+  --ib-color-fill: light-dark(#e9e9ec, #1b1d22);
+  --ib-color-fill-strong: light-dark(#dfdfe3, #23252b);
+  --ib-color-surface-overlay: light-dark(#ffffff, #17191d);
   --ib-color-border: light-dark(#dcdce0, #2e3138);
   --ib-color-outline: light-dark(#b8b8bf, #44474f);
 }
@@ -24,7 +24,7 @@
 /* The home page's band ("Why SSR first"): gray in light mode; in dark mode a shade above the hero's
    Ink, with a hairline, so the two read as separate bands. */
 :root.site .site-band {
-  background: light-dark(var(--ib-color-surface-container-low), #191b20);
+  background: light-dark(var(--ib-color-fill-subtle), #191b20);
   border-block-start: 1px solid light-dark(transparent, var(--ib-color-border));
 }
 
@@ -241,7 +241,7 @@
   padding: 1px var(--ib-space-1);
   border: 1px solid var(--ib-color-border);
   border-radius: var(--ib-radius-sm);
-  background: var(--ib-color-surface-container-low);
+  background: var(--ib-color-fill-subtle);
   font-size: 0.75rem;
   line-height: 1.5;
   white-space: normal;
@@ -378,7 +378,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   flex: none;
   padding: 0 var(--ib-space-2);
   border-radius: var(--ib-radius-sm);
-  background: var(--ib-color-surface-container-high);
+  background: var(--ib-color-fill-strong);
   color: var(--ib-color-on-surface);
   font-weight: 500;
 }
@@ -430,9 +430,9 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   opacity: 0;
   cursor: pointer;
 }
-.ex-code-toggle:hover, .ex-widths label:hover { background: var(--ib-color-surface-container); color: var(--ib-color-on-surface); }
+.ex-code-toggle:hover, .ex-widths label:hover { background: var(--ib-color-fill); color: var(--ib-color-on-surface); }
 .ex-widths label:has(input:checked) {
-  background: var(--ib-color-surface-container-high);
+  background: var(--ib-color-fill-strong);
   color: var(--ib-color-on-surface);
 }
 .ex-code-toggle:has(input:focus-visible), .ex-widths label:has(input:focus-visible) {

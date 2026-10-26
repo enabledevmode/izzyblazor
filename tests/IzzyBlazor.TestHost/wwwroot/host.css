@@ -64,7 +64,7 @@
 
 /* Separate rule: a browser without :open drops only this one. */
 .host-select:open {
-  background-color: var(--ib-color-surface-container);
+  background-color: var(--ib-color-fill);
   outline: none;
 }
 
@@ -91,7 +91,7 @@
     padding: var(--ib-space-1);
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-color-surface-raised);
+    background-color: var(--ib-color-surface-overlay);
     color: var(--ib-color-on-surface);
     box-shadow: var(--ib-shadow-lg);
   }

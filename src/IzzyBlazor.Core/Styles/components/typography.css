@@ -187,7 +187,7 @@
     padding: 0.125em 0.375em;
     padding: round(nearest, 0.125em, 1px) round(nearest, 0.375em, 1px);
     border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     font-family: var(--ib-font-mono);
     font-size: 0.875em;
     overflow-wrap: anywhere;
@@ -202,7 +202,7 @@
     /* A block is a large fill: the quiet container in light mode (the strong one read heavy on
        white); dark mode keeps the container, already quiet on the darker page. Inline code keeps
        the container in both. */
-    --ib-code-fill: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface-container));
+    --ib-code-fill: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill));
     background-color: var(--ib-code-fill);
   }
 
@@ -504,7 +504,7 @@
   .ib-prose :where(code) {
     padding: 0.125em 0.375em;
     border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     font-family: var(--ib-font-mono);
     font-size: 0.875em;
   }
@@ -514,7 +514,7 @@
     padding: var(--ib-space-4);
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);
-    background-color: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface-container));
+    background-color: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill));
     font-family: var(--ib-font-mono);
     font-size: var(--ib-text-sm);
     line-height: 1.375rem;
@@ -641,7 +641,7 @@
   /* The source is the recessed part: its tabs and code on the container color. A toggle row stays
      on the example's surface, as a control of the example rather than part of the code. */
   .ib-example-files > .ib-tabs-list {
-    background-color: light-dark(var(--ib-color-surface-container-low), var(--ib-color-surface-container));
+    background-color: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill));
   }
 
   .ib-example-source .ib-code-block {

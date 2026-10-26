@@ -12,7 +12,7 @@
       "examples": [
         { "id": "box-borders", "title": "Bands, borders and a dashed card" },
         { "id": "box-scheme", "title": "A scheme for part of a page" },
-        { "id": "box-surfaces", "title": "Surfaces", "lead": "Use `Bg` with the surface colors to raise or sink part of a page: `SurfaceRaised` for menus and popovers (with a `Shadow`), then three container fills, each a step stronger." },
+        { "id": "box-surfaces", "title": "Surfaces", "lead": "Use `Bg` with the surface colors: `Background` for the page, `Surface` for cards on it, the three fills (`FillSubtle`, `Fill`, `FillStrong`) inside a surface, each a step further from it, and `SurfaceOverlay` for what floats above, with a `Border` and a `Shadow`." },
         { "id": "box-contrast", "title": "Text on a color", "lead": "Set `Bg` to a theme color and the text takes its matching on-color by itself; set `Color` to choose your own, as on the soft box." },
         { "id": "box-element", "title": "Element and reading width", "lead": "Use `As` to render another element, here an `article`, and `MaxWidth=\"Length.Prose\"` to stop at a comfortable line length (68ch)." },
         { "id": "box-visibility", "title": "Showing by breakpoint", "lead": "Use `HiddenFrom` and `VisibleFrom` to swap content at a breakpoint: from Sm (640px), the button shows its label; on phones it's an icon button." }

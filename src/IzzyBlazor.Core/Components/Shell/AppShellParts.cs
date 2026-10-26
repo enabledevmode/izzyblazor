@@ -71,7 +71,7 @@ internal sealed class ShellBrand
 public abstract class AppShellPart : IzzyComponentBase
 {
     /// <summary>
-    /// The background, such as <c>Color.SurfaceContainer</c>. Text switches to the color's
+    /// The background, such as <c>Color.Fill</c>. Text switches to the color's
     /// <c>on-</c> partner when it has one. Defaults to <c>Color.Surface</c>.
     /// </summary>
     [Parameter] public Color? Bg { get; set; }

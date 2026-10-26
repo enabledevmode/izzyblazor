@@ -18,13 +18,13 @@ public class GrayPaletteTests : BunitContext
             string C(string token) => scheme == 0 ? p[token].Light : p[token].Dark;
             foreach (var text in new[] { "muted", "subtle" })
             {
-                foreach (var on in new[] { "background", "surface", "surface-container" })
+                foreach (var on in new[] { "background", "surface", "fill" })
                 {
                     Assert.True(Ratio(C(text), C(on)) >= 4.5, $"{hex} {text} on {on} ({(scheme == 0 ? "light" : "dark")}): {Ratio(C(text), C(on)):F2}");
                 }
             }
 
-            Assert.True(Ratio(C("on-surface"), C("surface-container-high")) >= 7, $"{hex} body text ({scheme})");
+            Assert.True(Ratio(C("on-surface"), C("fill-strong")) >= 7, $"{hex} body text ({scheme})");
         }
     }
 
@@ -35,8 +35,8 @@ public class GrayPaletteTests : BunitContext
 
         Assert.Equal("#f4efe6", p["background"].Light);
         Assert.True(Lum(p["surface"].Light) > Lum(p["background"].Light));
-        Assert.True(Lum(p["surface-container-low"].Light) > Lum(p["surface-container"].Light));
-        Assert.True(Lum(p["surface-container"].Light) > Lum(p["surface-container-high"].Light));
+        Assert.True(Lum(p["fill-subtle"].Light) > Lum(p["fill"].Light));
+        Assert.True(Lum(p["fill"].Light) > Lum(p["fill-strong"].Light));
         Assert.True(Lum(p["background"].Dark) < Lum(p["surface"].Dark));
         // Warm stays warm in dark mode: red above blue.
         Assert.True(Convert.ToInt32(p["background"].Dark[1..3], 16) > Convert.ToInt32(p["background"].Dark[5..7], 16));
@@ -47,7 +47,7 @@ public class GrayPaletteTests : BunitContext
     {
         var p = Colors(GrayPalette.From("#fafafa"));
         Assert.Equal("#ffffff", p["surface"].Light);
-        Assert.Equal("#ffffff", p["surface-raised"].Light);
+        Assert.Equal("#ffffff", p["surface-overlay"].Light);
         Assert.Equal(12, p.Count);
     }
 
