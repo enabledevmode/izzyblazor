@@ -90,10 +90,13 @@
     [Parameter] public string? MenuLabel { get; set; }
 
     /// <summary>
-    /// Puts the menu button at the end of the header on small screens, where people look for it,
-    /// whatever comes after the links. Defaults to true; false leaves it where the links are.
+    /// Where the menu button sits in the header on small screens: <see cref="MenuButtonPosition.End"/>
+    /// (the default), after everything else; <see cref="MenuButtonPosition.Start"/>, before the brand,
+    /// to match pages whose header starts with a <see cref="SidebarToggle"/>; or
+    /// <see cref="MenuButtonPosition.InPlace"/>, where the links are. Start and End move it visually
+    /// (CSS order), so Tab still reaches it where the SiteNav is written.
     /// </summary>
-    [Parameter] public bool MenuButtonAtEnd { get; set; } = true;
+    [Parameter] public MenuButtonPosition MenuButtonPosition { get; set; } = MenuButtonPosition.End;
 
     private PartScope _scope = null!;
     private readonly NavLinks _links = new();
@@ -114,7 +117,8 @@
     {
         classes.Add("ib-site-nav");
         classes.Add($"ib-site-nav-bp-{Breakpoint.Name()}");
-        classes.Add("ib-site-nav-end", MenuButtonAtEnd);
+        classes.Add("ib-site-nav-end", MenuButtonPosition == MenuButtonPosition.End);
+        classes.Add("ib-site-nav-start", MenuButtonPosition == MenuButtonPosition.Start);
         base.BuildAttributes(classes, styles);
     }
 

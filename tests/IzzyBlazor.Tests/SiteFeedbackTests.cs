@@ -289,6 +289,7 @@ public class SiteFeedbackTests : BunitContext
         var root = cut.Find("ib-site-nav");
         Assert.Contains("ib-site-nav-bp-sm", root.ClassName);
         Assert.Contains("ib-site-nav-end", root.ClassName);
+        Assert.DoesNotContain("ib-site-nav-start", root.ClassName);
 
         // The same links twice: the row and the panel, each its own labeled nav.
         var navs = cut.FindAll("nav");
@@ -305,6 +306,23 @@ public class SiteFeedbackTests : BunitContext
         Assert.Null(cut.Find(".ib-site-nav-toggle").GetAttribute("popovertargetaction"));
         Assert.Equal("Footer", cut.Find(".ib-site-nav-panel .ib-site-nav-foot").TextContent);
         Assert.Single(cut.FindAll(".ib-site-nav-foot"));
+    }
+
+    [Theory]
+    [InlineData(MenuButtonPosition.Start, "ib-site-nav-start")]
+    [InlineData(MenuButtonPosition.End, "ib-site-nav-end")]
+    public void SiteNav_MenuButtonPosition_moves_the_button_to_the_start_or_end(MenuButtonPosition position, string expected)
+    {
+        var root = Render<SiteNav>(p => p.Add(n => n.Id, "site-nav").Add(n => n.MenuButtonPosition, position)).Find("ib-site-nav");
+        Assert.Contains(expected, root.ClassName);
+    }
+
+    [Fact]
+    public void SiteNav_MenuButtonPosition_InPlace_leaves_the_button_with_the_links()
+    {
+        var root = Render<SiteNav>(p => p.Add(n => n.Id, "site-nav").Add(n => n.MenuButtonPosition, MenuButtonPosition.InPlace)).Find("ib-site-nav");
+        Assert.DoesNotContain("ib-site-nav-start", root.ClassName);
+        Assert.DoesNotContain("ib-site-nav-end", root.ClassName);
     }
 
     [Fact]
