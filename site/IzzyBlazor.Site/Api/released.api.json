@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.15",
+  "version": "0.1.0-alpha.16",
   "components": [
     {
       "name": "Accordion",
@@ -5181,8 +5181,9 @@
           "type": "string?"
         },
         {
-          "name": "MenuButtonAtEnd",
-          "type": "bool"
+          "name": "MenuButtonPosition",
+          "type": "MenuButtonPosition",
+          "addedIn": "0.1.0-alpha.16"
         },
         {
           "name": "Id",
@@ -5192,7 +5193,8 @@
       "events": [],
       "methods": [],
       "types": [
-        "Breakpoint"
+        "Breakpoint",
+        "MenuButtonPosition"
       ]
     },
     {
@@ -5653,6 +5655,11 @@
         {
           "name": "Match",
           "type": "NavLinkMatch"
+        },
+        {
+          "name": "Current",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.16"
         }
       ],
       "events": [],
@@ -7756,20 +7763,24 @@
           "type": "Color"
         },
         {
-          "name": "SurfaceContainerLow",
-          "type": "Color"
+          "name": "FillSubtle",
+          "type": "Color",
+          "addedIn": "0.1.0-alpha.16"
         },
         {
-          "name": "SurfaceContainer",
-          "type": "Color"
+          "name": "Fill",
+          "type": "Color",
+          "addedIn": "0.1.0-alpha.16"
         },
         {
-          "name": "SurfaceContainerHigh",
-          "type": "Color"
+          "name": "FillStrong",
+          "type": "Color",
+          "addedIn": "0.1.0-alpha.16"
         },
         {
-          "name": "SurfaceRaised",
-          "type": "Color"
+          "name": "SurfaceOverlay",
+          "type": "Color",
+          "addedIn": "0.1.0-alpha.16"
         },
         {
           "name": "OnSurface",
@@ -8557,6 +8568,29 @@
           "type": "LineHeight"
         }
       ]
+    },
+    {
+      "name": "MenuButtonPosition",
+      "fullName": "IzzyBlazor.MenuButtonPosition",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "End",
+          "type": "MenuButtonPosition",
+          "addedIn": "0.1.0-alpha.16"
+        },
+        {
+          "name": "Start",
+          "type": "MenuButtonPosition",
+          "addedIn": "0.1.0-alpha.16"
+        },
+        {
+          "name": "InPlace",
+          "type": "MenuButtonPosition",
+          "addedIn": "0.1.0-alpha.16"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.16"
     },
     {
       "name": "Orientation",
