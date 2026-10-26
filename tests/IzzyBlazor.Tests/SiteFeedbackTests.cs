@@ -71,7 +71,7 @@ public class SiteFeedbackTests : BunitContext
     [Fact]
     public void Section_is_a_full_bleed_band_by_default()
     {
-        var section = Render<Section>(p => p.Add(s => s.Bg, Color.SurfaceContainerLow).AddChildContent("Hi")).Find("section");
+        var section = Render<Section>(p => p.Add(s => s.Bg, Color.FillSubtle).AddChildContent("Hi")).Find("section");
 
         Assert.Equal("ib-section ib-bg ib-fg ib-section-md ib-section-bleed", section.ClassName);
         Assert.Equal("Hi", section.TextContent);

@@ -91,7 +91,7 @@ Chakra UI or Mantine, the layout props will feel familiar:
 
 ```razor
 <Stack Direction="new() { Base = Direction.Column, Md = Direction.Row }" Gap="4">
-    <Box Padding="6" Bg="Color.SurfaceContainer" Radius="Radius.Lg" Grow>...</Box>
+    <Box Padding="6" Bg="Color.Fill" Radius="Radius.Lg" Grow>...</Box>
     <Button StartIcon="Lucide.Plus">New order</Button>
 </Stack>
 ```

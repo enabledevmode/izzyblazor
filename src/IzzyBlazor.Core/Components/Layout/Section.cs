@@ -26,7 +26,7 @@ public enum SectionSpacing
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Section Bg="Color.SurfaceContainerLow"&gt;
+/// &lt;Section Bg="Color.FillSubtle"&gt;
 ///     &lt;Heading Level="2"&gt;Get the newsletter&lt;/Heading&gt; ...
 /// &lt;/Section&gt;
 /// </code>

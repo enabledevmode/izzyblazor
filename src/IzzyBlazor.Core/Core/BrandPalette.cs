@@ -29,9 +29,9 @@ public sealed record BrandPalette(
     // the promises hold on each. A hex Gray keeps its fills at least this light (GrayPalette).
     private static readonly Rgb White = Rgb.Parse("#ffffff");
     private static readonly Rgb Ink = Rgb.Parse("#111111");
-    private static readonly Rgb[] ContainerHigh = [Rgb.Parse("#dfdfe3"), Rgb.Parse("#dce2ea"), Rgb.Parse("#e0ddd5")];
+    private static readonly Rgb[] FillStrong = [Rgb.Parse("#dfdfe3"), Rgb.Parse("#dce2ea"), Rgb.Parse("#e0ddd5")];
     private static readonly Rgb[] DarkSurface = [Rgb.Parse("#0d0d0f"), Rgb.Parse("#0f1218"), Rgb.Parse("#0e0f10")];
-    private static readonly Rgb[] DarkContainerHigh = [Rgb.Parse("#232326"), Rgb.Parse("#262b34"), Rgb.Parse("#25272a")];
+    private static readonly Rgb[] DarkFillStrong = [Rgb.Parse("#232326"), Rgb.Parse("#262b34"), Rgb.Parse("#25272a")];
 
     /// <summary>Derives the palette from a hex color (<c>#rgb</c> or <c>#rrggbb</c>).</summary>
     /// <exception cref="ArgumentException">The value isn't a hex color.</exception>
@@ -44,7 +44,7 @@ public sealed record BrandPalette(
 
         var (fill, on) = WithText(brand);
         var soft = Snap(Rgb.Mix(fill, White, 0.16));
-        var text = MoveUntil(fill, -0.01, c => Rgb.Ratio(c, soft) >= 4.5 && ContainerHigh.All(g => Rgb.Ratio(c, g) >= 4.5) && Rgb.Ratio(c, White) >= 4.5);
+        var text = MoveUntil(fill, -0.01, c => Rgb.Ratio(c, soft) >= 4.5 && FillStrong.All(g => Rgb.Ratio(c, g) >= 4.5) && Rgb.Ratio(c, White) >= 4.5);
 
         // Dark mode: lift a dark brand color until it shows on the dark surface, then the same steps.
         // The accent as text is lifted further (6.5:1 on the strongest fill) so it reads as a
@@ -52,7 +52,7 @@ public sealed record BrandPalette(
         var darkBase = MoveUntil(brand, 0.01, c => DarkSurface.All(g => Rgb.Ratio(c, g) >= 3));
         var (darkFill, darkOn) = WithText(darkBase);
         var darkSoft = Snap(Rgb.Mix(darkFill, DarkSurface[0], 0.22));
-        var darkText = MoveUntil(darkFill, 0.01, c => Rgb.Ratio(c, darkSoft) >= 4.5 && DarkContainerHigh.All(g => Rgb.Ratio(c, g) >= 6.5));
+        var darkText = MoveUntil(darkFill, 0.01, c => Rgb.Ratio(c, darkSoft) >= 4.5 && DarkFillStrong.All(g => Rgb.Ratio(c, g) >= 6.5));
 
         return new BrandPalette(
             fill.ToHex(), on.ToHex(), text.ToHex(), soft.ToHex(),

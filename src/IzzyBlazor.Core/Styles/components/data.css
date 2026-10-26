@@ -35,13 +35,13 @@
   }
 
   .ib-card-elevated {
-    --ib-card-bg: var(--ib-color-surface-raised);
-    border-color: var(--ib-color-raised-border);
+    --ib-card-bg: var(--ib-color-surface-overlay);
+    border-color: var(--ib-color-overlay-border);
     box-shadow: var(--ib-shadow-md);
   }
 
   .ib-card-filled {
-    --ib-card-bg: var(--ib-color-surface-container-low);
+    --ib-card-bg: var(--ib-color-fill-subtle);
   }
 
   /* Sections share the padding; the space between them is the gap. */
@@ -281,7 +281,7 @@
     --ib-table-py: var(--ib-table-cell-py);
     --ib-table-px: var(--ib-table-cell-px, var(--ib-space-4));
     --ib-table-font: var(--ib-text-sm);
-    --ib-table-stripe: color-mix(in oklab, var(--ib-color-surface-container) 50%, transparent);
+    --ib-table-stripe: color-mix(in oklab, var(--ib-color-fill) 50%, transparent);
 
     display: flex;
     flex-direction: column;

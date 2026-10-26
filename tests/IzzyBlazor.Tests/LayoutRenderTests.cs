@@ -89,7 +89,7 @@ public class LayoutRenderTests : BunitContext
     [Fact]
     public void Surfaces_pair_with_on_surface()
     {
-        var cut = Render<Box>(p => p.Add(b => b.Bg, Color.SurfaceContainer));
+        var cut = Render<Box>(p => p.Add(b => b.Bg, Color.Fill));
 
         Assert.Contains("--ib-fg:var(--ib-color-on-surface);", cut.Find("div").GetAttribute("style"));
     }

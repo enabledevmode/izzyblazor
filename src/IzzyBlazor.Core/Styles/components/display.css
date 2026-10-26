@@ -273,7 +273,7 @@
     height: var(--ib-empty-icon);
     margin-bottom: var(--ib-space-4);
     border-radius: var(--ib-radius-full);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     color: var(--ib-color-muted);
   }
 
@@ -427,7 +427,7 @@
 
   /* No video yet: a quiet box (not the player's black), the poster dimmed behind a centered note. */
   .ib-video-upcoming {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     color: var(--ib-color-muted);
   }
 

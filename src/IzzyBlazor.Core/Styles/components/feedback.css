@@ -65,7 +65,7 @@
     overflow: hidden;
     height: var(--ib-progress-h);
     border-radius: var(--ib-radius-full);
-    background: var(--ib-color-surface-container-high);
+    background: var(--ib-color-fill-strong);
   }
 
   .ib-progress-bar {
@@ -96,7 +96,7 @@
   .ib-skeleton {
     display: block;
     border-radius: var(--ib-radius-sm);
-    background: linear-gradient(90deg, var(--ib-color-surface-container) 25%, var(--ib-color-surface-container-high) 50%, var(--ib-color-surface-container) 75%);
+    background: linear-gradient(90deg, var(--ib-color-fill) 25%, var(--ib-color-fill-strong) 50%, var(--ib-color-fill) 75%);
     background-size: 200% 100%;
     animation: ib-skeleton-shimmer 1.4s ease-in-out infinite;
   }

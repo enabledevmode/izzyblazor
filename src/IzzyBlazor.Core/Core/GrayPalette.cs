@@ -12,9 +12,9 @@ namespace IzzyBlazor;
 /// in OKLab, so text on it stays readable). The rest of the ladder steps down from it by the same
 /// amounts as the built-in sets, in its hue with a little more color for the darker fills, but no
 /// fill gets darker than the built-in sets' same fill: a darker page gets a shallower ladder (and a
-/// page darker than their container fill is lifted), so brand, status and code colors keep their
+/// page darker than their Fill is lifted), so brand, status and code colors keep their
 /// contrast on every fill. Muted
-/// and subtle text hold 4.5:1 on the page, the surface and the container fill, body text 7:1 on the
+/// and subtle text hold 4.5:1 on the page, the surface and Fill, body text 7:1 on the
 /// strongest fill. Dark mode uses the built-in dark lightness in the same hue, with half the color.
 /// <see cref="IzzyTheme"/> renders it as the twelve <c>--ib-color-*</c> gray tokens.
 /// </remarks>
@@ -23,8 +23,8 @@ public sealed class GrayPalette
     // Tokens in the order they're written, with their light and dark colors.
     private readonly (string Token, string Light, string Dark)[] _colors;
 
-    // The darkest of the built-in sets' (neutral, slate, stone) light container and
-    // container-high fills: the ones fixed colors are checked on.
+    // The darkest of the built-in sets' (neutral, slate, stone) light fill and fill-strong
+    // colors: the ones fixed colors are checked on.
     private static readonly double[] Floors =
     [
         Darkest("#e9e9ec", "#e7ebf1", "#eae8e2"),
@@ -54,7 +54,7 @@ public sealed class GrayPalette
 
         // Each fill stays at least as light as the built-in sets' same fill, so the colors that
         // don't change with the grays (brand and status text, code) keep their contrast on them: a
-        // darker page gets a shallower ladder, and a page darker than their container fill is lifted.
+        // darker page gets a shallower ladder, and a page darker than their fill is lifted.
         while (Tint(page, 1).Luminance() < Floors[0] && page < 0.99)
         {
             page += 0.005;
@@ -72,16 +72,16 @@ public sealed class GrayPalette
         var light = new Dictionary<string, Rgb>
         {
             ["background"] = page == l0 ? Snap(input) : Tint(page, 1),
-            ["surface-container-low"] = Tint(page - 0.020 * depth, 1.0),
-            ["surface-container"] = Tint(page - 0.050 * depth, 1.1),
-            ["surface-container-high"] = Tint(page - 0.080 * depth, 1.2),
+            ["fill-subtle"] = Tint(page - 0.020 * depth, 1.0),
+            ["fill"] = Tint(page - 0.050 * depth, 1.1),
+            ["fill-strong"] = Tint(page - 0.080 * depth, 1.2),
             ["border"] = Tint(page - 0.089, 1.2),
         };
 
         // Surfaces sit just above the page; with almost no color they're white, as in the built-in sets.
         var surfaceL = Math.Min(1.0, page + 0.015);
         light["surface"] = surfaceL >= 0.999 || c < 0.003 ? Rgb.Parse("#ffffff") : Tint(surfaceL, 0.4);
-        light["surface-raised"] = light["surface"];
+        light["surface-overlay"] = light["surface"];
 
         Rgb LightText(double l, double factor, double cap, double target, params string[] on)
         {
@@ -95,9 +95,9 @@ public sealed class GrayPalette
             return color;
         }
 
-        light["on-surface"] = LightText(0.21, 0.6, 0.02, 7, "surface-container-high");
-        light["muted"] = LightText(0.488, 1.2, 0.035, 4.5, "background", "surface", "surface-container");
-        light["subtle"] = LightText(0.513, 1.2, 0.035, 4.5, "background", "surface", "surface-container");
+        light["on-surface"] = LightText(0.21, 0.6, 0.02, 7, "fill-strong");
+        light["muted"] = LightText(0.488, 1.2, 0.035, 4.5, "background", "surface", "fill");
+        light["subtle"] = LightText(0.513, 1.2, 0.035, 4.5, "background", "surface", "fill");
         light["disabled"] = LightText(0.642, 1.2, 0.035, 3, "surface");
         light["outline"] = LightText(page - 0.200, 1.3, 0.05, 1.9, "surface");
 
@@ -106,10 +106,10 @@ public sealed class GrayPalette
         {
             ["background"] = Shade(0.135, 0.5),
             ["surface"] = Shade(0.160, 0.6),
-            ["surface-container-low"] = Shade(0.192, 0.6),
-            ["surface-container"] = Shade(0.223, 0.7),
-            ["surface-container-high"] = Shade(0.257, 0.8),
-            ["surface-raised"] = Shade(0.206, 0.6),
+            ["fill-subtle"] = Shade(0.192, 0.6),
+            ["fill"] = Shade(0.223, 0.7),
+            ["fill-strong"] = Shade(0.257, 0.8),
+            ["surface-overlay"] = Shade(0.206, 0.6),
             ["border"] = Shade(0.303, 0.8),
         };
 
@@ -125,15 +125,15 @@ public sealed class GrayPalette
             return color;
         }
 
-        dark["on-surface"] = DarkText(0.944, 0.4, 0.012, 7, "surface-container-high");
-        dark["muted"] = DarkText(0.711, 0.8, 0.025, 4.5, "background", "surface", "surface-container");
-        dark["subtle"] = DarkText(0.662, 0.8, 0.025, 4.5, "background", "surface", "surface-container");
+        dark["on-surface"] = DarkText(0.944, 0.4, 0.012, 7, "fill-strong");
+        dark["muted"] = DarkText(0.711, 0.8, 0.025, 4.5, "background", "surface", "fill");
+        dark["subtle"] = DarkText(0.662, 0.8, 0.025, 4.5, "background", "surface", "fill");
         dark["disabled"] = DarkText(0.534, 0.8, 0.025, 2.2, "surface");
         dark["outline"] = DarkText(0.441, 0.8, 0.03, 1.9, "surface");
 
         string[] order =
         [
-            "background", "surface", "surface-container-low", "surface-container", "surface-container-high", "surface-raised",
+            "background", "surface", "fill-subtle", "fill", "fill-strong", "surface-overlay",
             "on-surface", "muted", "subtle", "disabled", "border", "outline",
         ];
         return new GrayPalette([.. order.Select(t => (t, light[t].ToHex(), dark[t].ToHex()))]);

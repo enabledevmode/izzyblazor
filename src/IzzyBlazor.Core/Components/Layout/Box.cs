@@ -9,7 +9,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Box As="section" Padding="6 md:10" Bg="surface-container" Radius="md"&gt;...&lt;/Box&gt;
+/// &lt;Box As="section" Padding="new() { Base = 6, Md = 10 }" Bg="Color.Fill" Radius="Radius.Md"&gt;...&lt;/Box&gt;
 /// </code>
 /// </example>
 /// <accessibility>

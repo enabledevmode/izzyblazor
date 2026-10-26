@@ -55,7 +55,7 @@
 
   /* No name: a neutral fill behind the person icon. */
   .ib-avatar-anonymous > .ib-avatar-fallback {
-    background: var(--ib-color-surface-container-high);
+    background: var(--ib-color-fill-strong);
     color: var(--ib-color-muted);
   }
 
@@ -125,7 +125,7 @@
   }
 
   .ib-avatar-more > .ib-avatar-fallback {
-    background: var(--ib-color-surface-container-high);
+    background: var(--ib-color-fill-strong);
     color: var(--ib-color-on-surface);
     font-size: 0.9em;
   }

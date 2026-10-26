@@ -8,7 +8,7 @@ namespace IzzyBlazor;
 /// </summary>
 /// <example>
 /// <code>
-/// &lt;Box Bg="Color.SurfaceContainer" Color="Color.OnSurface"&gt;
+/// &lt;Box Bg="Color.Fill" Color="Color.OnSurface"&gt;
 /// &lt;Box Bg="Color.Token(&quot;brand-500&quot;)"&gt;   @* var(--ib-color-brand-500) *@
 /// &lt;Box Bg="Color.Of(&quot;#ff6600&quot;)"&gt;
 /// </code>
@@ -17,7 +17,7 @@ public readonly partial struct Color : IEquatable<Color>
 {
     private static readonly HashSet<string> Surfaces = new(StringComparer.Ordinal)
     {
-        "background", "surface", "surface-container-low", "surface-container", "surface-container-high", "surface-raised",
+        "background", "surface", "fill-subtle", "fill", "fill-strong", "surface-overlay",
     };
 
     private Color(string css, string? tokenName = null)
@@ -91,17 +91,17 @@ public readonly partial struct Color : IEquatable<Color>
     /// <summary>Cards, tables, fields and bars: white in light mode.</summary>
     public static Color Surface { get; } = Token("surface");
 
-    /// <summary>The lightest fill inside a surface, for large areas: a filled card, a panel.</summary>
-    public static Color SurfaceContainerLow { get; } = Token("surface-container-low");
+    /// <summary>The quietest fill inside a surface, for large areas: a filled card, a panel, a band.</summary>
+    public static Color FillSubtle { get; } = Token("fill-subtle");
 
-    /// <summary>A fill inside a surface that must show at small sizes: table heads, code blocks.</summary>
-    public static Color SurfaceContainer { get; } = Token("surface-container");
+    /// <summary>A fill inside a surface that must show at small sizes: table heads, code, wells.</summary>
+    public static Color Fill { get; } = Token("fill");
 
-    /// <summary>A stronger fill: tracks, chips, skeletons, nested panels.</summary>
-    public static Color SurfaceContainerHigh { get; } = Token("surface-container-high");
+    /// <summary>The strongest fill: selected and pressed states, chips, tracks, skeletons.</summary>
+    public static Color FillStrong { get; } = Token("fill-strong");
 
-    /// <summary>Floating surfaces such as dialogs and menus. Lighter than the page in dark mode.</summary>
-    public static Color SurfaceRaised { get; } = Token("surface-raised");
+    /// <summary>Overlays that float above the page: menus, popovers, dialogs, toasts. White like <see cref="Surface"/> in light mode, where a shadow sets it apart; a step lighter in dark mode.</summary>
+    public static Color SurfaceOverlay { get; } = Token("surface-overlay");
 
     /// <summary>Text on any surface.</summary>
     public static Color OnSurface { get; } = Token("on-surface");
@@ -109,7 +109,7 @@ public readonly partial struct Color : IEquatable<Color>
     /// <summary>Secondary text on any surface: descriptions, metadata.</summary>
     public static Color Muted { get; } = Token("muted");
 
-    /// <summary>Tertiary text: captions, hints, placeholders. Still at least 4.5:1 on Surface and SurfaceContainer.</summary>
+    /// <summary>Tertiary text: captions, hints, placeholders. Still at least 4.5:1 on Surface and Fill.</summary>
     public static Color Subtle { get; } = Token("subtle");
 
     /// <summary>Text of disabled controls. Deliberately low contrast.</summary>

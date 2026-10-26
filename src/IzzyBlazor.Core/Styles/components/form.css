@@ -176,12 +176,12 @@
   .ib-field-input:disabled {
     border-color: transparent;
     color: var(--ib-color-disabled);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     cursor: not-allowed;
   }
 
   .ib-field-input[readonly] {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
   }
 
   /* Invalid: from the server, or from the browser after interaction. Scoped to the field's own
@@ -441,17 +441,17 @@
   .ib-slider-input::-webkit-slider-runnable-track {
     height: var(--ib-slider-track);
     border-radius: 999px;
-    background: linear-gradient(to right, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-surface-container-high, var(--ib-color-outline)) 0);
+    background: linear-gradient(to right, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-fill-strong, var(--ib-color-outline)) 0);
   }
 
   .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
-    background: linear-gradient(to left, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-surface-container-high, var(--ib-color-outline)) 0);
+    background: linear-gradient(to left, var(--ib-slider-accent) var(--ib-slider-stop), var(--ib-color-fill-strong, var(--ib-color-outline)) 0);
   }
 
   .ib-slider-input::-moz-range-track {
     height: var(--ib-slider-track);
     border-radius: 999px;
-    background: var(--ib-color-surface-container-high, var(--ib-color-outline));
+    background: var(--ib-color-fill-strong, var(--ib-color-outline));
   }
 
   .ib-slider-input::-moz-range-progress {
@@ -539,7 +539,7 @@
   @media (scripting: none) {
     .ib-slider-input::-webkit-slider-runnable-track,
     .ib-slider-input:dir(rtl)::-webkit-slider-runnable-track {
-      background: var(--ib-color-surface-container-high, var(--ib-color-outline));
+      background: var(--ib-color-fill-strong, var(--ib-color-outline));
     }
 
     .ib-slider-value {
@@ -564,7 +564,7 @@
     padding: var(--ib-space-6) var(--ib-space-4);
     border: 1px var(--ib-upload-border-style, dashed) var(--ib-upload-border-color, color-mix(in oklab, var(--ib-color-outline) 70%, var(--ib-color-on-surface)));
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-upload-bg, var(--ib-color-surface-container-low));
+    background-color: var(--ib-upload-bg, var(--ib-color-fill-subtle));
     text-align: center;
     transition: border-color var(--ib-duration-fast) var(--ib-ease), background-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
@@ -572,7 +572,7 @@
   .ib-file-zone[data-dragging] {
     border-style: solid;
     border-color: var(--ib-color-primary);
-    background-color: color-mix(in oklab, var(--ib-color-primary) 8%, var(--ib-upload-bg, var(--ib-color-surface-container-low)));
+    background-color: color-mix(in oklab, var(--ib-color-primary) 8%, var(--ib-upload-bg, var(--ib-color-fill-subtle)));
   }
 
   /* The zone shows the input's focus, like a field. */
@@ -688,7 +688,7 @@
   }
 
   .ib-field-disabled .ib-file-zone {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
   }
 
   .ib-field-disabled .ib-file-choose {
@@ -738,7 +738,7 @@
     min-height: var(--ib-field-h);
     padding: 0 var(--ib-field-px);
     border: 1px solid var(--ib-field-border);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     color: var(--ib-color-subtle);
     font-size: var(--ib-field-font);
     white-space: nowrap;
@@ -870,7 +870,7 @@
   .ib-field-addon > .ib-field .ib-field-input {
     width: 100%;
     border-radius: inherit;
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
   }
 
   .ib-field-addon-start > .ib-field .ib-field-input {
@@ -945,7 +945,7 @@
       padding: var(--ib-space-1);
       border: 1px solid var(--ib-color-border);
       border-radius: var(--ib-radius-lg);
-      background-color: var(--ib-color-surface-raised);
+      background-color: var(--ib-color-surface-overlay);
       color: var(--ib-color-on-surface);
       box-shadow: var(--ib-shadow-lg);
       opacity: 0;
@@ -1329,7 +1329,7 @@
   :is(.ib-field-disabled, fieldset:disabled) .ib-multiselect > .ib-multiselect-box:hover {
     border-color: var(--ib-field-border);
     color: var(--ib-color-disabled);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     cursor: not-allowed;
   }
 
@@ -1357,7 +1357,7 @@
     min-height: 1.5rem;
     padding-inline: var(--ib-space-2) 0.125rem;
     border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-surface-container-high);
+    background-color: var(--ib-color-fill-strong);
     color: var(--ib-color-on-surface);
     font-size: var(--ib-text-sm);
     line-height: 1.2;
@@ -1602,7 +1602,7 @@
 
   .ib-check-input:disabled {
     border-color: color-mix(in oklab, var(--ib-color-outline) 60%, transparent);
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
     cursor: not-allowed;
   }
 
@@ -1677,7 +1677,7 @@
     height: var(--ib-switch-h);
     margin: 0;
     border-radius: var(--ib-radius-full);
-    background-color: var(--ib-color-surface-container-high);
+    background-color: var(--ib-color-fill-strong);
     box-shadow: inset 0 0 0 1px var(--ib-color-outline);
     cursor: pointer;
     transition: background-color var(--ib-duration-fast) var(--ib-ease);
@@ -2197,7 +2197,7 @@
   }
 
   /*
-   * The chosen segment is raised off a filled track: the raised surface (lighter than the track in
+   * The chosen segment is raised off a filled track: the overlay surface (lighter than the track in
    * dark, where shadows barely show), a soft edge and a small shadow. Shared by SegmentedControl,
    * ColorSchemeSwitch (both .ib-segmented) and segmented Tabs (tabs.css). Declared on the track,
    * so the colors are the ones in effect there. For an accent instead: --ib-color-segment and
@@ -2205,14 +2205,14 @@
    */
   .ib-segmented,
   .ib-tabs-segmented > .ib-tabs-list {
-    --ib-segment-fill: var(--ib-color-segment, light-dark(var(--ib-color-surface-raised), color-mix(in oklab, var(--ib-color-on-surface) 16%, var(--ib-color-surface))));
+    --ib-segment-fill: var(--ib-color-segment, light-dark(var(--ib-color-surface-overlay), color-mix(in oklab, var(--ib-color-on-surface) 16%, var(--ib-color-surface))));
     --ib-segment-edge: var(--ib-color-segment-edge, light-dark(var(--ib-color-border), rgb(255 255 255 / 0.08)));
     --ib-segment-lift:
       inset 0 0 0 1px var(--ib-segment-edge),
       inset 0 1px 0 light-dark(transparent, rgb(255 255 255 / 0.08)),
       0 1px 2px light-dark(rgb(20 20 19 / 0.12), rgb(0 0 0 / 0.6)),
       0 1px 1px light-dark(rgb(20 20 19 / 0.06), rgb(0 0 0 / 0.4));
-    background-color: var(--ib-color-segment-track, light-dark(var(--ib-color-surface-container), var(--ib-color-surface-container-low)));
+    background-color: var(--ib-color-segment-track, light-dark(var(--ib-color-fill), var(--ib-color-fill-subtle)));
   }
 
   .ib-segmented-full {
@@ -2418,7 +2418,7 @@
 
   /* Disabled and read-only, like the other fields. */
   .ib-color-box:has(.ib-color-input:disabled) {
-    background-color: var(--ib-color-surface-container);
+    background-color: var(--ib-color-fill);
   }
 
   .ib-color-input {
