@@ -35,7 +35,10 @@
         <Heading Level="2">Choose a page's mode</Heading>
         <TextBlock>
             A Blazor Web App's pages are static unless you say otherwise. Make a page interactive where it needs C# on every
-            click, and keep the rest static: they need no circuit, so they scale and deploy like plain pages.
+            click, and keep the rest static: they need no circuit, so they scale and deploy like plain pages. An
+            interactive Server page's circuit lives on the server that started it, so with several servers, each reader
+            has to stay on one; see <Anchor Href="docs/troubleshooting/interactive-stops-responding">Interactive parts stop
+            responding in production</Anchor>.
         </TextBlock>
         <Code Block Language="razor">@Interactive</Code>
         <TextBlock>
