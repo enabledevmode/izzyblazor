@@ -147,7 +147,7 @@
   }
 }
 
-/* Stepper: a column on phones, a row from 640px up (unless Vertical). Marker sizes leave an even
+/* Stepper: a row (compact on phones) unless Vertical, which is a column. Marker sizes leave an even
    inside (the 2px border taken off) for an even icon, and the label's line is centered on the
    marker by whole pixels. */
 @layer izzy.components {
@@ -267,6 +267,71 @@
 
   .ib-step-description {
     color: var(--ib-color-muted);
+  }
+
+  /* On phones a horizontal stepper stays a row but shows only the current step's text: the others
+     are markers joined by lines. Their text stays for screen readers, and a finished step's link
+     covers its marker, so it can still be tapped and focused (the marker shows the ring). */
+  @media (width < 640px) {
+    .ib-steps-horizontal {
+      flex-direction: row;
+      align-items: flex-start;
+      gap: var(--ib-space-2);
+    }
+
+    .ib-steps-horizontal > .ib-step {
+      flex: 1 1 auto;
+      gap: var(--ib-space-2);
+      padding-bottom: 0;
+    }
+
+    .ib-steps-horizontal > .ib-step:last-child {
+      flex: 0 1 auto;
+    }
+
+    .ib-steps-horizontal > .ib-step:not(:last-child)::after {
+      position: static;
+      flex: 1 1 var(--ib-space-3);
+      min-width: var(--ib-space-3);
+      width: auto;
+      height: 2px;
+      margin-top: calc(var(--ib-step-size) / 2 - 1px);
+    }
+
+    .ib-steps-horizontal > .ib-step-current > .ib-step-text {
+      flex: 0 1 auto;
+    }
+
+    .ib-steps-horizontal > .ib-step-current .ib-step-label {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    .ib-steps-horizontal > .ib-step:not(.ib-step-current) > .ib-step-text {
+      position: absolute;
+      top: 0;
+      inset-inline-start: 0;
+      width: var(--ib-step-size);
+      height: var(--ib-step-size);
+      padding: 0;
+      overflow: hidden;
+      border-radius: var(--ib-radius-full);
+      white-space: nowrap;
+      /* Not color: transparent, which forced colors would undo. */
+      opacity: 0;
+    }
+
+    .ib-steps-horizontal > .ib-step:not(.ib-step-current) a.ib-step-label {
+      display: block;
+      height: 100%;
+      outline: none;
+    }
+
+    .ib-steps-horizontal > .ib-step:has(> .ib-step-text a.ib-step-label:focus-visible) > .ib-step-marker {
+      outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+      outline-offset: 2px;
+    }
   }
 
   @media (min-width: 640px) {

@@ -5,8 +5,8 @@
 @*
     Where someone is in a process, such as a checkout or a setup wizard: an ordered list of steps,
     those before Current marked done, Current marked with aria-current="step". Steps with an Href
-    are links (to go back to a finished step, say). Horizontal from 640px up, a column on phones.
-    No script.
+    are links (to go back to a finished step, say). A row; on phones only the current step's text
+    shows, beside a row of markers. No script.
 
     <Stepper Current="2">
         <Step Label="Account" Href="/signup/account" />
@@ -44,8 +44,8 @@
     [Parameter] public int Current { get; set; } = 1;
 
     /// <summary>
-    /// A row from 640px up (the default) or always a column. Phones always get a column, since a row
-    /// of steps doesn't fit.
+    /// A row (the default) or a column. On phones a row shows only the current step's label; the other
+    /// steps are markers, and a finished step with an <see cref="Step.Href"/> is still a link on its marker.
     /// </summary>
     [Parameter] public Orientation Orientation { get; set; } = Orientation.Horizontal;
 
