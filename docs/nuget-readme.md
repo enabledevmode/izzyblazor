@@ -10,7 +10,7 @@ Build forms, tables, dialogs, and complete app layouts without requiring a Signa
 
 ![An orders screen built with IzzyBlazor, featuring sidebar navigation, stat cards, search filters, and a sortable, paged table.](https://raw.githubusercontent.com/enabledevmode/izzyblazor/main/docs/images/showcase-light.png)
 
-> **Preview:** `0.1.0-alpha.16`. APIs may change during preview.
+> **Preview:** `0.1.0-alpha.17`. APIs may change during preview.
 
 ## Progressive by design
 
