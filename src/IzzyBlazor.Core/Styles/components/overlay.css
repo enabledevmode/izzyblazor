@@ -630,7 +630,7 @@
 
   .ib-dialog-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--ib-space-3);
     padding: var(--ib-space-5) var(--ib-space-6) var(--ib-space-2);
   }
@@ -645,9 +645,20 @@
     line-height: var(--ib-leading-tight);
   }
 
+  /* With a close button, the title's first line is as tall as the button, so the title sits where
+     it would centered beside it. */
+  .ib-dialog-header:has(> .ib-dialog-close) > .ib-dialog-title {
+    padding-block: calc((var(--ib-control-h-sm) - var(--ib-text-lg) * var(--ib-leading-tight)) / 2);
+  }
+
+  /* In the corner: the button pulled out of the header's padding to 0.5rem from the top and end
+     edges, so the X shows about 1.2rem in, closer than the text. Its margins take it out of the
+     header's height. A small button with a medium icon: at 1rem the X is slight beside the title. */
   .ib-dialog-close {
+    --ib-icon-size: var(--ib-control-icon-md);
+    margin-block-start: calc(0.5rem - var(--ib-space-5));
     margin-inline-start: auto;
-    margin-inline-end: calc(var(--ib-space-2) * -1);
+    margin-inline-end: calc(0.5rem - var(--ib-space-6));
   }
 
   .ib-dialog-body {
