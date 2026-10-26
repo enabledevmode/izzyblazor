@@ -67,6 +67,9 @@ public static class Articles
             new("control-named-action", "A form posts to [object RadioNodeList]", "TriangleAlert",
                 "A control named action, method or enctype hides the form's own property from Blazor's script.")
                 { Components = ["Button", "Form"], Modes = ["static"] },
+            new("interactive-stops-responding", "Interactive parts stop responding in production", "Unplug",
+                "An interactive page's circuit lives on one server: behind a load balancer, turn on sticky sessions, or run one server.")
+                { Modes = ["live"] },
         ]),
     ];
 

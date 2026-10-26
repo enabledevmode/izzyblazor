@@ -1,0 +1,103 @@
+@page "/docs/troubleshooting/interactive-stops-responding"
+
+@* A circuit lives on the server that started it; behind a load balancer with no session affinity,
+   a later request reaches another server, which answers 404 and the circuit drops. IzzyBlazor's
+   script keeps controls moving, so it looks like a component bug. Found on izzyblazor.com itself:
+   a deploy left two Fly machines and the Slider's Live example stopped following the thumb. *@
+
+<ArticlePage Section="troubleshooting" Slug="interactive-stops-responding">
+    <Lead>
+        An interactive page's circuit lives on the server that started it. With more than one server, send each reader back
+        to the same one, or run only one.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">Problem</Heading>
+        <TextBlock>
+            An interactive page works on your machine, but once it's deployed, parts of it stop answering. Controls still
+            move, since IzzyBlazor's script runs in the browser: a slider's thumb and value follow the drag, a menu opens,
+            a dialog closes. But nothing that needs C# runs: a value bound with <Code>Live</Code> doesn't reach what
+            follows it, and <Code>OnClick</Code> does nothing. It can work on one load and not the next, or stop after a
+            while. Blazor's reconnection message may appear, unless the app hides it. The browser's console shows an
+            error like this one:
+        </TextBlock>
+        <Code Block Language="text">@ConsoleError</Code>
+        <TextBlock>
+            Because the controls still move, it looks like a bug in one component. It isn't: every interactive part of the
+            page has stopped.
+        </TextBlock>
+
+        <Heading Level="2">Cause</Heading>
+        <TextBlock>
+            An interactive Server page runs over a circuit: the page's components and their state, kept in memory on the
+            server that rendered it, and a SignalR connection to the browser. Every later request for that connection has
+            to reach the same server. Behind a load balancer that spreads requests across servers, one of them reaches a
+            server that has never heard of the connection. That server answers 404, and the circuit is lost.
+        </TextBlock>
+        <TextBlock>
+            Over WebSockets the browser holds one long connection, so this shows up less, but the request that sets the
+            connection up and any reconnection can still land elsewhere. When WebSockets aren't available, SignalR falls
+            back to long polling: a chain of separate requests. The page breaks the first time one reaches another server.
+            Which server each request reaches is chance, so it fails sometimes and not others. The console says when the
+            fallback happens: "Failed to connect via WebSockets, using the Long Polling fallback transport."
+        </TextBlock>
+        <TextBlock>
+            Static pages don't have this problem: nothing is kept on the server between requests, so any server can answer
+            any request. The servers still have to share their data protection keys, which protect forms, sign-in cookies
+            and the state of prerendered interactive components.
+        </TextBlock>
+
+        <Heading Level="2">Fix</Heading>
+        <TextBlock>Keep each reader on one server, or run only one:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Session affinity.</strong> Turn on the load balancer's sticky sessions, so it sends each browser back
+                to the server it reached first: ARR affinity (Session affinity) on Azure App Service, stickiness on an AWS
+                target group, cookie affinity on a Kubernetes ingress or Gateway controller. Fly.io has no affinity
+                setting; it can route a request to one machine with the <Code>fly-replay</Code> header, but one machine is
+                simpler.
+            </ListItem>
+            <ListItem>
+                <strong>Azure SignalR Service.</strong> It holds the browsers' connections and routes each one to the server
+                with its circuit. Set its <Code>ServerStickyMode</Code> to <Code>Required</Code> for Blazor.
+            </ListItem>
+            <ListItem>
+                <strong>One server.</strong> Fine for a small app, and the simplest fix. Some hosts start two by default:
+                Fly.io's <Code>fly deploy</Code> creates two machines for a new app unless it's given
+                <Code>--ha=false</Code>.
+            </ListItem>
+        </List>
+        <Code Block Language="bash" Title="Fly.io">@FlyCommands</Code>
+        <TextBlock>
+            Check that WebSockets get through too: a proxy in front of the app has to pass the <Code>Upgrade</Code> and <Code>Connection</Code> headers,
+            or every page falls back to long polling, which is slower and makes this problem show up sooner.
+        </TextBlock>
+        <TextBlock>
+            A page that doesn't need C# on every click can be static, and then any server can answer it. IzzyBlazor's
+            components post, link and run their script on static pages too.
+        </TextBlock>
+
+        <Heading Level="2">Related</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what needs a circuit, and choosing a page's mode.</ListItem>
+            <ListItem><Anchor Href="docs/troubleshooting/onclick">OnClick does nothing on a static page</Anchor>: C# events need an interactive page.</ListItem>
+            <ListItem><Anchor Href="https://learn.microsoft.com/aspnet/core/blazor/host-and-deploy/server">Host and deploy Blazor Server</Anchor>: Microsoft's guide to scaling out, WebSockets and Azure SignalR Service.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    private const string ConsoleError = """
+        No Connection with that ID: Status code '404'
+        """;
+
+    private const string FlyCommands = """
+        # See how many machines the app runs
+        fly machine list
+
+        # Go back to one
+        fly scale count 1
+
+        # Deploy without adding a second
+        fly deploy --ha=false
+        """;
+}
