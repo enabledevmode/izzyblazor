@@ -171,4 +171,5 @@ jobs:
       - name: Deploy
         env:
           FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
-        run: flyctl deploy --remote-only
+        # --ha=false: one machine (see fly.toml), even when a deploy has to create it.
+        run: flyctl deploy --remote-only --ha=false
