@@ -130,6 +130,84 @@ public class TabsExtrasRenderTests : BunitContext
     }
 
     [Fact]
+    public void TabLink_Current_wins_over_the_URL()
+    {
+        // The page is billing, but the choice comes from elsewhere (a cookie, say): Profile is current.
+        GoTo("settings/billing");
+        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Settings").Add(t => t.ChildContent, builder =>
+        {
+            foreach (var (href, label, current) in new[] { ("settings/profile", "Profile", (bool?)true), ("settings/billing", "Billing", false), ("settings/security", "Security", null) })
+            {
+                builder.OpenComponent<TabLink>(0);
+                builder.AddComponentParameter(1, nameof(TabLink.Href), href);
+                builder.AddComponentParameter(2, nameof(TabLink.Label), label);
+                builder.AddComponentParameter(3, nameof(TabLink.Current), current);
+                builder.CloseComponent();
+            }
+        }));
+
+        var marked = cut.FindAll("a.ib-tab").Select(a => a.GetAttribute("aria-current")).ToArray();
+        Assert.Equal(new string?[] { "true", null, null }, marked);
+    }
+
+    private static RenderFragment CurrentLinks(params (string Href, bool? Current)[] links) => builder =>
+    {
+        foreach (var (href, current) in links)
+        {
+            builder.OpenComponent<TabLink>(0);
+            builder.AddComponentParameter(1, nameof(TabLink.Href), href);
+            builder.AddComponentParameter(2, nameof(TabLink.Label), href);
+            builder.AddComponentParameter(3, nameof(TabLink.Current), current);
+            builder.CloseComponent();
+        }
+    };
+
+    [Fact]
+    public void TabLink_Current_unmarks_tabs_that_follow_the_URL()
+    {
+        // Billing matches the URL but leaves Current unset: Profile's Current is the one current tab.
+        GoTo("settings/billing");
+        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, CurrentLinks(("settings/profile", true), ("settings/billing", null))));
+
+        Assert.Equal(new string?[] { "true", null }, cut.FindAll("a.ib-tab").Select(a => a.GetAttribute("aria-current")).ToArray());
+    }
+
+    [Fact]
+    public void TabLink_Current_false_doesnt_hide_the_tab_the_URL_picks()
+    {
+        // The queried link is set not current, so the plain link the URL matches stays current.
+        GoTo("settings?tab=billing");
+        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, CurrentLinks(("settings", null), ("settings?tab=billing", false))));
+
+        Assert.Equal(new string?[] { "page", null }, cut.FindAll("a.ib-tab").Select(a => a.GetAttribute("aria-current")).ToArray());
+    }
+
+    [Fact]
+    public void TabLink_Current_change_redraws_the_tabs()
+    {
+        GoTo("settings/billing");
+        var current = "settings/profile";
+        RenderFragment links = builder =>
+        {
+            foreach (var href in new[] { "settings/profile", "settings/billing" })
+            {
+                builder.OpenComponent<TabLink>(0);
+                builder.AddComponentParameter(1, nameof(TabLink.Href), href);
+                builder.AddComponentParameter(2, nameof(TabLink.Label), href);
+                builder.AddComponentParameter(3, nameof(TabLink.Current), href == current);
+                builder.CloseComponent();
+            }
+        };
+        var cut = Render<Tabs>(p => p.Add(t => t.ChildContent, links));
+        Assert.Equal("true", cut.FindAll("a.ib-tab")[0].GetAttribute("aria-current"));
+
+        current = "settings/billing";
+        cut.Render(p => p.Add(t => t.ChildContent, links));
+
+        cut.WaitForAssertion(() => Assert.Equal(new string?[] { null, "true" }, cut.FindAll("a.ib-tab").Select(a => a.GetAttribute("aria-current")).ToArray()));
+    }
+
+    [Fact]
     public void TabLink_needs_a_Tabs()
     {
         Assert.ThrowsAny<InvalidOperationException>(() => Render<TabLink>(p => p.Add(l => l.Href, "x").Add(l => l.Label, "X")));

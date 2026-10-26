@@ -2,7 +2,8 @@
 
 @*
     The page's Off · Static · Live switch: three links that load the page in that mode, the current
-    one marked. Every example on the page renders in the page's mode (ExampleViewer), so picking
+    one marked. The library's segmented link Tabs draw it, with TabLink's Current, since the mode
+    may come from the cookie rather than the address. Every example on the page renders in the page's mode (ExampleViewer), so picking
     another loads the page again in it; site.js keeps the scroll position.
 
     A component page has two copies, the right column's on wide screens and one at the top of the
@@ -20,15 +21,16 @@
 <div class="@($"site-modeswitch site-modeswitch-{Placement}")">
     @if (!Compact)
     {
-        <span class="site-modeswitch-label" id="@_labelId">Examples run</span>
+        @* The Tabs' nav is named "Examples run" too, so the visible label isn't read twice. *@
+        <span class="site-modeswitch-label" aria-hidden="true">Examples run</span>
     }
-    <nav class="site-modeswitch-options" aria-labelledby="@(Compact ? null : _labelId)" aria-label="@(Compact ? "Examples run" : null)">
+    <Tabs Label="Examples run" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" Class="site-modeswitch-options">
         @foreach (var mode in Modes)
         {
-            <a class="site-modeswitch-option site-mode-link" href="@Href(mode)" aria-current="@(mode == _mode ? "true" : null)"
-               data-mode="@mode" data-enhance-nav="@(mode == "off" || _mode == "off" ? "false" : null)">@ModeChip.Name(mode)</a>
+            <TabLink Href="@Href(mode)" Label="@ModeChip.Name(mode)" Current="@(mode == _mode)"
+                     data-mode="@mode" data-enhance-nav="@(mode == "off" || _mode == "off" ? "false" : null)" />
         }
-    </nav>
+    </Tabs>
     @if (!Compact)
     {
         <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="site-modeswitch-text">@Meaning(_mode)</TextBlock>
@@ -52,7 +54,6 @@
 
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
 
-    private readonly string _labelId = $"site-modes-{Guid.NewGuid():N}"[..20];
     private string _mode = "static";
 
     protected override void OnInitialized() => _mode = Current(Navigation, HttpContext);

@@ -90,7 +90,7 @@
     }
 
     if (saved.focus) {
-      const current = [...document.querySelectorAll('.site-mode-link[aria-current="true"]')].find((link) => link.getClientRects().length > 0);
+      const current = [...document.querySelectorAll('.site-modeswitch a[data-mode][aria-current]')].find((link) => link.getClientRects().length > 0);
       if (current) current.focus({ preventScroll: true });
     }
   }
@@ -134,7 +134,7 @@
     const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
     if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
-    if (link.matches(".site-mode-link")) {
+    if (link.matches(".site-modeswitch a[data-mode]")) {
       // An Off page points an example's own switch at the example for JavaScript off
       // (OffExampleAnchors); here the saved place puts it back where it was instead.
       const target = new URL(link.href, location.href);

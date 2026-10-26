@@ -345,14 +345,16 @@ else
     // A field registered with a tab: its errors may need showing.
     internal void FieldsChanged() => Refresh();
 
-    // Each link's match. Tabs on one page told apart by the query (?view=billing): a link without
-    // a query matches its page whatever the query, so when a link with one matches, the one
-    // without gives way, and only one tab is current.
+    // Each link's match. A link's own Current wins; the others follow the URL, unless a link is
+    // Current, which leaves them unmarked so only one tab is current. Tabs on one page told apart
+    // by the query (?view=billing): a link without a query matches its page whatever the query, so
+    // when a link with one matches, the one without gives way.
     private (bool Active, bool Exact)[] CurrentLinks()
     {
         var links = _context.Links;
-        var states = links.Select(l => l.Disabled ? (Active: false, Exact: false) : LinkMatch.Of(Navigation, l.Href, Navigation.Uri, l.Match)).ToArray();
-        var queried = links.Select(l => !l.Disabled && Navigation.ToAbsoluteUri(l.Href).Query.Length > 1).ToArray();
+        var fromUrl = links.Select(l => !l.Disabled && l.Current is null).ToArray();
+        var states = links.Select((l, i) => fromUrl[i] ? LinkMatch.Of(Navigation, l.Href, Navigation.Uri, l.Match) : (Active: false, Exact: false)).ToArray();
+        var queried = links.Select((l, i) => fromUrl[i] && Navigation.ToAbsoluteUri(l.Href).Query.Length > 1).ToArray();
         if (states.Where((state, i) => state.Active && queried[i]).Any())
         {
             for (var i = 0; i < states.Length; i++)
@@ -361,6 +363,24 @@ else
                 {
                     states[i] = (false, false);
                 }
+            }
+        }
+
+        var chosen = links.Any(l => !l.Disabled && l.Current == true);
+        for (var i = 0; i < states.Length; i++)
+        {
+            if (links[i].Disabled)
+            {
+                continue;
+            }
+
+            if (links[i].Current is { } current)
+            {
+                states[i] = (current, false);
+            }
+            else if (chosen)
+            {
+                states[i] = (false, false);
             }
         }
 
