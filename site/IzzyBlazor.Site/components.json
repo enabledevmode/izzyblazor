@@ -54,7 +54,8 @@
     {
       "id": "container", "icon": "RectangleHorizontal", "name": "Container", "category": "Layout", "summary": "Centers content at a readable width.",
       "examples": [
-        { "id": "container-reading", "title": "Width", "lead": "Use `Size` to cap the width, from Sm (40rem) for forms and short text to Xl (80rem, the default); narrower than that it fills its parent, with 16px of side padding (24px from 768px)." }
+        { "id": "container-reading", "title": "Width", "lead": "Use `Size` to cap the width, from Sm (40rem) for forms and short text to Xl (80rem, the default); narrower than that it fills its parent, with 16px of side padding (24px from 768px)." },
+        { "id": "container-bands", "title": "Bands that reach the edges", "lead": "Put the color on a `Box` around each `Container`: the bands run the full width, and the content in them keeps to the same width and side padding, so their edges line up." }
       ]
     },
     {
@@ -81,7 +82,8 @@
     {
       "id": "aspect-ratio", "icon": "Ratio", "name": "AspectRatio", "category": "Layout", "summary": "Keeps media at a shape, 16:9 by default.",
       "examples": [
-        { "id": "aspect-ratio-shapes", "title": "Shapes", "lead": "Use `Ratio` for the shape, width over height: the same picture at 16:9 (the default), 1:1 and 4:5, cropped to fill each." }
+        { "id": "aspect-ratio-shapes", "title": "Shapes", "lead": "Use `Ratio` for the shape, width over height: the same picture at 16:9 (the default), 1:1 and 4:5, cropped to fill each." },
+        { "id": "aspect-ratio-thumbnails", "title": "Matching thumbnails", "lead": "Give every thumbnail in a grid the same `Ratio`, so pictures of any shape crop to it and the rows line up: here a wide one and a tall one. Other content fills the box too, such as a `Center` with an icon where there's no picture." }
       ]
     },
     {
