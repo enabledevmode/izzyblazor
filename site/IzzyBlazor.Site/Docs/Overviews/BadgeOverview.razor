@@ -1,0 +1,53 @@
+@* Badge's Overview, written by hand after Tag's: status and accent colors, variants, dots, counts
+   and icons, badges inside headings and buttons, and the badges other components draw themselves.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A badge is a small label next to something: its status ("Paid"), a category ("Beta") or a count. It's text, not a control. For a keyword that's a link or can be removed, use a <Anchor Href="docs/components/tag">Tag</Anchor>; for a message about something, an <Anchor Href="docs/components/alert">Alert</Anchor>.</TextBlock>
+
+<Heading Level="2">Status</Heading>
+<TextBlock>Use <Code>Status</Code> for what the badge means: Neutral (the default), Info, Success, Warning or Danger. <Code>Accent</Code> takes a color of your own in its place, such as <Code>Accent.Primary</Code> for a brand-colored label or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
+<ExampleViewer Example="badge-statuses" />
+
+<Heading Level="2">Variants</Heading>
+<TextBlock>Use <Code>Variant</Code> for the weight: <Code>Soft</Code> (the default), <Code>Solid</Code>, <Code>Outline</Code> or <Code>Plain</Code>, which is the text alone in the color's text shade, for quiet counts such as the totals beside sidebar links.</TextBlock>
+<ExampleViewer Example="badge-variants" />
+
+<Heading Level="2">Dots, counts and icons</Heading>
+<TextBlock>Use <Code>Dot</Code> for a colored dot before a status, <Code>Pill</Code> for fully rounded ends around a count, and <Code>StartIcon</Code> for an icon before the text (with <Code>Dot</Code> set too, only the dot shows). <Code>Size="BadgeSize.Sm"</Code> is a compact badge for counts.</TextBlock>
+<ExampleViewer Example="badge-dots-counts" />
+<TextBlock>The color, the dot and the icon don't reach screen readers, so the text has to say what it means: "Overdue", not a red badge reading "3 days".</TextBlock>
+
+<Heading Level="2">In headings and buttons</Heading>
+<TextBlock>A badge sits in a line of text, so it goes inside a heading or a button's label as it is. In a button, a small solid pill (<Code>Size="BadgeSize.Sm"</Code>) sits best beside the label.</TextBlock>
+<ExampleViewer Example="badge-inline" />
+<TextBlock>A count is read as just the number, as part of the button's name ("Inbox 4"): put it where the words next to it say what it counts. Navigation draws its own badges: use <Code>Badge</Code> on a <Anchor Href="docs/components/nav-menu">NavItem</Anchor> (with <Code>BadgeStatus</Code>, <Code>BadgeAccent</Code> and <Code>BadgeVariant</Code>), a <Anchor Href="docs/components/tabs">Tab</Anchor> or a TabLink rather than nesting a Badge.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Badge Status="Status.Success">Paid</Badge>
+        <Badge Status="Status.Warning" Dot>In review</Badge>
+        <Badge Accent="Accent.Primary" Variant="BadgeVariant.Solid" Pill>12</Badge>
+        """;
+}

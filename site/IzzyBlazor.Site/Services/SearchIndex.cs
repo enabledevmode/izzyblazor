@@ -478,6 +478,12 @@ public sealed partial class SearchIndex
 
     private static SourcePage Read(string href, string title, string source)
     {
+        // Only the markup: a code sample in the @code block (an Overview's Usage) can hold Headings too.
+        if (CodeBlockStart().Match(source) is { Success: true } code)
+        {
+            source = source[..code.Index];
+        }
+
         // Ids are numbered in page order, starting with the page's own h1 (its title).
         var found = new List<(string Text, string? ExplicitId, string? Lead)>();
         foreach (Match match in HeadingTag().Matches(source))
@@ -555,6 +561,9 @@ public sealed partial class SearchIndex
         text = WebUtility.HtmlDecode(text.Replace('\u0001', '@'));
         return Spaces().Replace(text, " ").Trim() is { Length: > 0 } result ? result : null;
     }
+
+    [GeneratedRegex(@"^@code\s*\{", RegexOptions.Multiline)]
+    private static partial Regex CodeBlockStart();
 
     [GeneratedRegex(@"<Heading\b(?<attrs>[^>]*)>(?<text>.*?)</Heading>", RegexOptions.Singleline)]
     private static partial Regex HeadingTag();

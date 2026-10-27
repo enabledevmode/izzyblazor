@@ -1,0 +1,55 @@
+@* CopyButton's Overview, written by hand after Badge's: copying fixed text, copying a field's value
+   (each previewed in the modes it has), what happens without script or clipboard access, and its
+   own words. Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A copy button copies something people paste somewhere else: an install command, an ID, an API key. A <Anchor Href="docs/components/code">Code</Anchor> block has one built in, so use a CopyButton for text that isn't in one, such as a single line of code or a field.</TextBlock>
+
+<Heading Level="2">Copy text</Heading>
+<TextBlock>Use <Code>Text</Code> for a fixed value to copy. By default it's a ghost icon button; give it a <Code>Label</Code> that says what it copies, its name for screen readers and its tooltip ("Copy" by default).</TextBlock>
+<ExampleViewer Example="copy-button-command" />
+<TextBlock>After a copy the icon turns to a check for a moment and "Copied" is announced; the button keeps its name.</TextBlock>
+
+<Heading Level="2">Copy from a field</Heading>
+<TextBlock>Use <Code>For</Code> with an element's id to copy what it holds when the button is pressed: an input's or a text area's value, or any other element's text. Give the button content, such as "Copy", and it shows the text after the icon and is named by it.</TextBlock>
+<ExampleViewer Example="copy-button-from-field" />
+<TextBlock>Set one of <Code>Text</Code> and <Code>For</Code>; with both, or neither, it throws. It draws its own icons, so it throws on <Code>StartIcon</Code>, <Code>EndIcon</Code>, <Code>Loading</Code> and <Code>LoadingLabel</Code> too. <Code>Variant</Code>, <Code>Accent</Code> and <Code>Size</Code> work as on a <Anchor Href="docs/components/button">Button</Anchor>.</TextBlock>
+
+<Heading Level="2">Without JavaScript</Heading>
+<TextBlock>Copying needs script, so with JavaScript off the button isn't there at all, from the first paint, and what it would copy stays on the page to select. The browser allows it only on a secure page (https, or localhost while you develop): without clipboard access the button stays as it was and nothing is announced.</TextBlock>
+
+<Heading Level="2">Its own words</Heading>
+<TextBlock>Use <Code>Label</Code> for the tooltip and, on an icon-only button, the name ("Copy") and <Code>CopiedLabel</Code> for the word announced after copying ("Copied"). <Anchor Href="docs/common/text">Text and other languages</Anchor> sets them for the whole app.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Code>dotnet add package IzzyBlazor</Code>
+        <CopyButton Text="dotnet add package IzzyBlazor" Label="Copy the command" />
+
+        @* Copies the field's value when pressed. *@
+        <TextField id="api-key" Label="API key" @bind-Value="key" ReadOnly>
+            <EndAddon><CopyButton For="api-key" Variant="ButtonVariant.Outline">Copy</CopyButton></EndAddon>
+        </TextField>
+        """;
+}

@@ -1,0 +1,56 @@
+@* OnThisPage's Overview, written by hand after Badge's: the guide demo (previewed in each mode),
+   which levels it lists, headings the server can't see, and pages without an AppShell.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>"On this page" lists a long page's sections beside it, so people see what's there and jump to a part. Its list is in the server's response, so it works with JavaScript off; with script it marks the section in view as the page scrolls. For links between pages, use a <Anchor Href="docs/components/nav-menu">NavMenu</Anchor> in the sidebar and <Anchor Href="docs/components/prev-next">PrevNext</Anchor> at the end of each page.</TextBlock>
+
+<Heading Level="2">A guide with its outline</Heading>
+<TextBlock>Put it in an <Code>AppAside</Code>. Each <Anchor Href="docs/components/heading">Heading</Anchor> in <Code>AppMain</Code> adds itself while the page renders, with an id taken from its text, so its link works with no setup. The aside shows from its <Code>Breakpoint</Code> up, 1024px by default; this guide sets it lower to fit the window.</TextBlock>
+<ExampleViewer Example="on-this-page-guide" />
+
+<Heading Level="2">Which headings</Heading>
+<TextBlock>It lists h2 and h3 by default, with each level indented under the one above. Use <Code>MinLevel</Code> and <Code>MaxLevel</Code> (1 to 6) for others, such as only h2 on a page of short sections, and <Code>Title</Code> for its heading ("On this page" by default, which <Anchor Href="docs/common/text">Text and other languages</Anchor> sets for the whole app).</TextBlock>
+<TextBlock>Only headings in the main area are listed, not those in the header, the sidebar or the aside. Set <Code>Outline="false"</Code> on a Heading to leave it out, such as one inside a card or a dialog. With no headings to list, it's hidden, so there's no empty landmark.</TextBlock>
+
+<Heading Level="2">Headings the server doesn't see</Heading>
+<TextBlock>Headings written as HTML, such as the ones in a <Anchor Href="docs/components/prose">Prose</Anchor> block or rendered Markdown, aren't components, so the server can't list them. With script, it adds those that have an id, in the order they're on the page, as the guide's last two sections. With JavaScript off they're left out, so give the important sections <Code>Heading</Code>s.</TextBlock>
+
+<Heading Level="2">Without an AppShell</Heading>
+<TextBlock>The list comes from the AppShell, which collects the headings in its <Code>AppMain</Code>. On a page with no AppShell, the server lists nothing and renders it hidden; with script, it lists the headings with ids in the page's <Code>main</Code> element. Headings get ids from their text only in an AppShell, so give each one an <Code>id</Code> there.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <AppShell>
+            <AppMain>
+                <Heading Level="1">Deploy your app</Heading>
+                <Heading Level="2">Build the image</Heading>
+                ...
+            </AppMain>
+            <AppAside>
+                <OnThisPage />
+            </AppAside>
+        </AppShell>
+        """;
+}
