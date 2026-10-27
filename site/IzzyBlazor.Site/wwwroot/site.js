@@ -337,21 +337,12 @@
     }
   });
 
-  // Back or Forward with the dialog open: close it before enhanced navigation patches the page.
-  // The patch drops its open attribute without closing it, which would leave the page inert.
+  // Back or Forward with the dialog open: close it at once, rather than when enhanced navigation
+  // patches the page (the library's Dialog then closes one the patch left modal).
   window.addEventListener("popstate", () => {
     const parts = searchParts();
     if (parts?.dialog.open) parts.dialog.close();
   });
-
-  // A dialog the patch left modal without its open attribute: close it properly.
-  function settleSearch() {
-    const parts = searchParts();
-    if (parts && !parts.dialog.open && parts.dialog.matches(":modal")) {
-      parts.dialog.setAttribute("open", "");
-      parts.dialog.close();
-    }
-  }
 
   restore();
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", frames);
@@ -371,7 +362,6 @@
       frames();
       // The header came back from the server with its empty results: show them again on opening.
       searchShown = "";
-      settleSearch();
     });
   }
 })();
