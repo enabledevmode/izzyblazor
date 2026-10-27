@@ -51,6 +51,7 @@ public class DialogTrigger : Button
 /// &lt;/DialogFooter&gt;
 /// </code>
 /// </example>
+[RefusesParameter(nameof(Reset))]
 public class DialogClose : Button
 {
     /// <summary>Creates a close button with neutral outline styling.</summary>
@@ -75,23 +76,37 @@ public class DialogClose : Button
     private bool UsesCloseForm => Dialog?.HasCloseForm ?? true;
 
     /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        // Reset comes from Button, but a reset button can't close a dialog: browsers ignore the
+        // close command on one, and the close form has nothing to reset.
+        if (parameters.TryGetValue<bool>(nameof(Reset), out _))
+        {
+            throw new InvalidOperationException(
+                "DialogClose closes the dialog, so it doesn't take Reset. To reset a form as well, put a Button with Reset beside it.");
+        }
+
+        return base.SetParametersAsync(parameters);
+    }
+
+    /// <inheritdoc />
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
-        // It submits its close form; Reset (or no close form) makes it an ordinary button instead.
-        if (!UsesCloseForm || Reset)
+        // It submits its close form; with no close form it's an ordinary button instead.
+        if (!UsesCloseForm)
         {
             Submit = false;
         }
     }
 
+    // Submitting the close form closes it. Otherwise (no close form, or Submit set to false) it's
+    // an ordinary button with the native close command, which browsers ignore on a submit button.
     /// <inheritdoc />
-    protected override IEnumerable<KeyValuePair<string, object>>? ExtraAttributes => UsesCloseForm
+    protected override IEnumerable<KeyValuePair<string, object>>? ExtraAttributes => Submit
         ?
         [
             new("form", $"{Target}-close"),
-            new("commandfor", Target),
-            new("command", "close"),
         ]
         :
         [
