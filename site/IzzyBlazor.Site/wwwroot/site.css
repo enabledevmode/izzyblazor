@@ -389,11 +389,19 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   background: transparent;
   color-scheme: normal;
 }
-/* A demo's phone width: the window narrows, so the page in it lays out as on a phone. */
-.ex:has(.ex-widths input[value="phone"]:checked) .ex-window {
-  width: 390px;
-  max-width: 100%;
-  margin-inline: auto;
+/* A demo's phone width: the window narrows, so the page in it lays out as on a phone. Only where
+   that differs from its full width: under 640px (the library's sm) the page lays out as on a phone
+   either way, so the switch goes, and a Phone picked in a wider window no longer applies. */
+.ex:has(> .ex-tools > .ex-widths) { container: ex / inline-size; }
+@container ex (width < 640px) {
+  .ex-tools > .ex-widths { display: none; }
+}
+@container ex (width >= 640px) {
+  .ex:has(.ex-widths input[value="phone"]:checked) .ex-window {
+    width: 390px;
+    max-width: 100%;
+    margin-inline: auto;
+  }
 }
 .ex-source .ib-code-block, .ex-source pre { margin: 0; border: 0; border-radius: 0; }
 /* Phones: the note and switches take their own row under the tabs. */
