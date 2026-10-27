@@ -1059,10 +1059,21 @@
     {
       "id": "prev-next", "icon": "ArrowRightLeft", "name": "PrevNext", "category": "Navigation", "summary": "Links to the pages before and after.",
       "examples": [
-        { "id": "prev-next-pages", "title": "Previous and next pages", "lead": "Use `PreviousHref` and `NextHref`, each with its page's title, to end an article; leave out a side on the first or last page." }
+        { "id": "prev-next-pages", "title": "Previous and next pages", "lead": "Use `PreviousHref` and `NextHref`, each with its page's title, to end an article; leave out a side on the first or last page." },
+        { "id": "prev-next-first-page", "title": "The first page, in your own words", "lead": "With only `NextHref`, the next page's card keeps to the end. Use `NextText` to change the small text above its title (`PreviousText` for the other card)." }
       ]
     },
-    { "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "The page's sections, listed on the server.", "keywords": ["table of contents", "toc"] },
+    {
+      "id": "on-this-page", "icon": "TableOfContents", "name": "OnThisPage", "category": "Navigation", "summary": "The page's sections, listed on the server.", "keywords": ["table of contents", "toc"],
+      "examples": [
+        { "id": "on-this-page-guide", "title": "A guide with its outline", "height": 640, "page": true,
+          "lead": "Put `OnThisPage` in an `AppAside`: each `Heading` in `AppMain` lists itself, h2 and h3 by default, with h3 indented. Headings in raw HTML, such as a `Prose` block, are listed by the script when they have ids.",
+          "notes": {
+            "off": "The section in view isn't marked, and the two headings in the Prose block (What's new in 1.4, Upgrading) aren't listed.",
+            "static": "Scrolling marks the section in view, and the Prose block's headings are listed."
+          } }
+      ]
+    },
     {
       "id": "stepper", "icon": "ListOrdered", "name": "Stepper", "category": "Navigation", "summary": "Where someone is in a process.", "keywords": ["wizard", "steps"], "parts": ["Step"],
       "examples": [
