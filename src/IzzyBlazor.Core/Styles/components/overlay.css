@@ -446,9 +446,19 @@
     .ib-tooltip-end[popover] { position-area: span-all inline-end; align-self: anchor-center; margin-inline-start: var(--ib-tooltip-gap); }
   }
 
-  /* Dialog */
+  /* Dialog. Laid out here, not only while [open]: as it closes, [open] and :modal (with the
+     browser's position: fixed) go at once, and the fade out keeps only its display. Without the
+     column, its header and body would sit side by side and collapse it to a line; without
+     position: fixed, it would be sized and centered against its nearest positioned ancestor.
+     Rendered open by the server with no script it isn't modal either, so this places it then
+     too, above the backdrop drawn for it (z-index 999, below). */
   .ib-dialog {
     --ib-dialog-w: 32rem;
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    flex-direction: column;
+    margin: auto;
     box-sizing: border-box;
     width: min(var(--ib-dialog-w), calc(100% - 2rem));
     max-width: none;
@@ -471,7 +481,6 @@
 
   .ib-dialog[open] {
     display: flex;
-    flex-direction: column;
     opacity: 1;
     scale: 1;
   }
@@ -501,16 +510,8 @@
     }
   }
 
-  /* Rendered open by the server with no script: not modal, so draw the backdrop by hand. */
-  .ib-dialog[open]:not(:modal) {
-    position: fixed;
-    inset: 0;
-    z-index: 1000;
-    margin: auto;
-    box-shadow: var(--ib-shadow-lg);
-  }
-
-  /* A backdrop that covers the page and catches its clicks (a box-shadow doesn't). */
+  /* Rendered open by the server with no script: not modal, so draw the backdrop by hand, a layer
+     that covers the page and catches its clicks. */
   body:has(.ib-dialog[open]:not(:modal))::after {
     content: "";
     position: fixed;
@@ -573,9 +574,6 @@
     .ib-dialog-end[open]:dir(rtl) { translate: -100% 0; }
   }
 
-  .ib-dialog-start[open]:not(:modal) { margin-inline-start: 0; margin-block: 0; }
-  .ib-dialog-end[open]:not(:modal) { margin-inline-end: 0; margin-block: 0; }
-
   /* A drawer's Size is its width. */
   .ib-dialog-sm:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 20rem; }
   .ib-dialog-lg:is(.ib-dialog-start, .ib-dialog-end) { --ib-drawer-w: 32rem; }
@@ -624,9 +622,6 @@
     .ib-dialog-top[open] { translate: 0 -100%; }
     .ib-dialog-bottom[open] { translate: 0 100%; }
   }
-
-  .ib-dialog-top[open]:not(:modal) { margin-block: 0 auto; margin-inline: 0; }
-  .ib-dialog-bottom[open]:not(:modal) { margin-block: auto 0; margin-inline: 0; }
 
   .ib-dialog-header {
     display: flex;
@@ -697,6 +692,15 @@
 
   .ib-dialog-body:first-child {
     padding-top: var(--ib-space-6);
+  }
+
+  /* Where a closing dialog can't stay in the top layer for its fade (no overlay: Safari, Firefox),
+     it closes at once: out of the top layer, an ancestor such as a Toolbar (container-type) or a
+     transformed element would place it. It still fades in. */
+  @supports not (overlay: auto) {
+    .ib-dialog:not([open]) {
+      transition: none;
+    }
   }
 
   @media (prefers-reduced-motion: reduce) {
