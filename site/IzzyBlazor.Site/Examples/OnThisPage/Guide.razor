@@ -1,0 +1,57 @@
+@inject NavigationManager Navigation
+
+@* A guide with its outline beside it. Each Heading lists itself in OnThisPage on the server; the
+   headings in the Prose block are raw HTML with ids, so the script adds them. The aside shows from
+   640px up (Sm) here, rather than the default 1024px, so it shows in a narrow window. *@
+<AppShell Variant="ShellVariant.Flat">
+    <AppHeader>
+        <AppBrand Href="@To(null)" Icon="Lucide.BookOpen" Label="Acme Docs" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Gap="5" Padding="new() { Base = 4, Md = 8 }" MaxWidth="Length.Prose">
+            <Heading Level="1" Size="TextSize.Xl3">Deploy your app</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Build a container, push it, and point your domain at it.</TextBlock>
+
+            <Heading Level="2" Size="TextSize.Xl2">Build the image</Heading>
+            <TextBlock>The SDK builds a container image from the project, with no Dockerfile to keep up to date.</TextBlock>
+            <Code Block Language="text">dotnet publish -t:PublishContainer</Code>
+
+            <Heading Level="3" Size="TextSize.Xl">Choose a base image</Heading>
+            <TextBlock>The chiseled images are smaller and have no shell, which is all a web app needs.</TextBlock>
+
+            <Heading Level="2" Size="TextSize.Xl2">Push and run it</Heading>
+            <TextBlock>Push the image to your registry, then start it with the port and the connection string set.</TextBlock>
+            <Code Block Language="text">docker push registry.example.com/acme:1.4.0</Code>
+
+            <Heading Level="3" Size="TextSize.Xl">Health checks</Heading>
+            <TextBlock>Map a health endpoint so the host restarts the app when it stops answering.</TextBlock>
+
+            <Heading Level="2" Size="TextSize.Xl2">Point your domain at it</Heading>
+            <TextBlock>Add an A record for the host's address, and a certificate is issued on the first request.</TextBlock>
+            <Code Block Language="text">acme.example.com.  300  IN  A  203.0.113.10</Code>
+            <TextBlock>DNS can take a few minutes to reach every resolver. Until it does, some visitors still reach the old address, so keep it running for an hour after the switch.</TextBlock>
+
+            <Prose>
+                <h2 id="whats-new">What's new in 1.4</h2>
+                <p>Images build about a third faster, because the SDK now reuses the layers that didn't change since the last build.</p>
+                <p>Health checks have their own timeout, so a slow database no longer marks the whole app as down.</p>
+                <h3 id="upgrading">Upgrading</h3>
+                <p>Rebuild the image; nothing in your project needs to change.</p>
+                <p>If you set the health check's timeout through an environment variable, move it to the new setting: the variable still works in 1.4 and goes away in 2.0.</p>
+            </Prose>
+
+            <PrevNext PreviousHref='@To("configure")' PreviousTitle="Configure"
+                      NextHref='@To("monitor")' NextTitle="Monitor" />
+        </Stack>
+    </AppMain>
+
+    <AppAside Breakpoint="Breakpoint.Sm">
+        <OnThisPage />
+    </AppAside>
+</AppShell>
+
+@code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+}
