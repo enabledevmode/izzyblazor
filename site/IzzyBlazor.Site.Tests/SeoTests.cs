@@ -19,6 +19,29 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
+    public async Task A_client_past_sixty_pages_a_minute_gets_a_429_in_text_and_others_keep_reading()
+    {
+        // Its own addresses, so other tests keep theirs.
+        async Task<HttpResponseMessage> Get(string client)
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, "docs");
+            request.Headers.Add("Fly-Client-IP", client);
+            return await site.Client.SendAsync(request);
+        }
+
+        HttpResponseMessage? last = null;
+        for (var i = 0; i < 61; i++)
+        {
+            last = await Get("203.0.113.10");
+        }
+
+        Assert.Equal(HttpStatusCode.TooManyRequests, last!.StatusCode);
+        Assert.NotNull(last.Headers.RetryAfter);
+        Assert.DoesNotContain("<html", await last.Content.ReadAsStringAsync(), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal(HttpStatusCode.OK, (await Get("203.0.113.11")).StatusCode);
+    }
+
+    [Fact]
     public async Task Robots_txt_keeps_frames_and_search_out_and_points_at_a_sitemap_of_every_page()
     {
         var robots = await site.Client.GetStringAsync("robots.txt");
@@ -26,6 +49,7 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.Contains("Disallow: /frame/", robots);
         Assert.Contains("Disallow: /search", robots);
         Assert.Contains("Disallow: /mcp", robots);
+        Assert.Contains("Disallow: /*?", robots);
         foreach (var file in new[] { "robots.txt", "sitemap.xml" })
         {
             using var head = new HttpRequestMessage(HttpMethod.Head, file);

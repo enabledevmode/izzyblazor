@@ -60,6 +60,7 @@ public static class Sitemap
         Disallow: /frame/
         Disallow: /search
         Disallow: /mcp
+        Disallow: /*?
 
         Sitemap: {Origin}sitemap.xml
 
