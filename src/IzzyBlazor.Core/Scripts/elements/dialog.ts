@@ -87,8 +87,10 @@ class DialogRoot extends IzzyElement {
       if (want === this.#userState || Date.now() - this.#userAt >= 2000) this.#userState = null;
       else return;
     }
-    this.#syncTarget = want;
+    // #syncTarget marks a change sync() makes, so report() doesn't take it for the user's. Only a
+    // change: upgrading the server's non-modal open to a modal one leaves it open.
     if (want && !dialog.matches(":modal")) {
+      if (!dialog.open) this.#syncTarget = true;
       // Removing the attribute (rather than close()) fires no close event, so ?dialog=id stays.
       if (dialog.open) dialog.removeAttribute("open");
       try {
@@ -97,6 +99,7 @@ class DialogRoot extends IzzyElement {
         dialog.setAttribute("open", "");
       }
     } else if (!want && dialog.open) {
+      this.#syncTarget = false;
       dialog.close();
     }
   }
@@ -113,16 +116,20 @@ class DialogRoot extends IzzyElement {
     dialog.close();
   }
 
+  // Reports the user's opens and closes. Not sync()'s: the server asked for those, and echoing
+  // one from a render that was already out of date (after a quick close, open and close) set the
+  // server back to it, whose next render did the same, open and closed for ever.
   private report(): void {
     const dialog = this.dialog;
-    if (!dialog || dialog.open === this.#reported) return;
-    if (this.#syncTarget === dialog.open) {
-      this.#syncTarget = null;
-    } else {
-      this.#userState = dialog.open;
-      this.#userAt = Date.now();
-    }
+    if (!dialog) return;
+    // Whatever sync() did is accounted for now: a mark left over would hide the user's next change.
+    const fromSync = this.#syncTarget === dialog.open;
+    this.#syncTarget = null;
+    if (dialog.open === this.#reported) return;
     this.#reported = dialog.open;
+    if (fromSync) return;
+    this.#userState = dialog.open;
+    this.#userAt = Date.now();
     emitToggle(dialog, dialog.open);
   }
 
