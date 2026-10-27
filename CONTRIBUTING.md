@@ -162,11 +162,16 @@ The site is at [izzyblazor.com](https://izzyblazor.com), on the Fly.io app `izzy
 (`fly.toml`, `Dockerfile` at the root). The image builds the site with the .NET 10 SDK and Node 22
 (the library's asset build) and runs it on the ASP.NET Core image; `docker build .` builds the same
 image locally. It runs on one always-on machine: a Live example's circuit stays on the machine that
-served its page, so a second machine would drop examples. `fly deploy` keeps the count; if a
-machine is ever added, `fly scale count 1 -a izzyblazor`.
+served its page, so a second machine drops them: Live examples stop answering while their controls
+still move, and the console shows `No Connection with that ID: Status code '404'` (the
+troubleshooting article `interactive-stops-responding`). Always deploy with `--ha=false`, which
+keeps Fly from creating a second machine. `fly machine list -a izzyblazor` should show one; if
+there are two, `fly scale count 1 -a izzyblazor`. On Oct 26, 2026 a second machine appeared
+outside the Release workflow and broke the Live examples until it was removed.
 
 - The Release workflow deploys it after the packages are pushed, so the docs match the release.
-  `fly deploy --remote-only` deploys main by hand (a docs fix between releases).
+  `fly deploy --remote-only --ha=false` deploys main by hand, but the site builds the library from
+  source, so that also puts unreleased library changes on the site.
 - `www.izzyblazor.com`, `izzyblazor.dev` and `www.izzyblazor.dev` redirect to izzyblazor.com with a
   301 that keeps the path and query (`Services/CanonicalHost.cs`). It names those hosts rather than
   redirecting every other one, since Fly's health checks and `izzyblazor.fly.dev` arrive with other
