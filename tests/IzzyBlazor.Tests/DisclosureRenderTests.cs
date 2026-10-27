@@ -4,6 +4,19 @@ namespace IzzyBlazor.Tests;
 
 public class DisclosureRenderTests : BunitContext
 {
+    public DisclosureRenderTests() => SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+
+    [Fact]
+    public void Static_pages_render_open_with_nothing_for_the_script()
+    {
+        var details = Render<AccordionItem>(p => p.Add(i => i.Title, "Notes").Add(i => i.Open, true)).Find("details");
+
+        Assert.True(details.HasAttribute("open"));
+        Assert.False(details.HasAttribute("data-open"));
+        Assert.False(details.HasAttribute("data-ib-seq"));
+        Assert.False(details.HasAttribute("data-ib-interactive"));
+    }
+
     private static RenderFragment Items(params (string Id, string Title, bool Open, bool Disabled)[] items) => builder =>
     {
         foreach (var (id, title, open, disabled) in items)
@@ -118,5 +131,67 @@ public class DisclosureRenderTests : BunitContext
         var panel = item.Find(".ib-accordion-panel");
         Assert.Equal("ib-accordion-panel ib-px ib-py", panel.ClassName);
         Assert.Equal("--ib-px:var(--ib-space-0);--ib-py:var(--ib-space-0);", panel.GetAttribute("style"));
+    }
+}
+
+/// <summary>
+/// On interactive pages the script opens and closes a Disclosure to match data-open, and
+/// data-ib-seq says which of the browser's toggles C# has handled (toggle.ts).
+/// </summary>
+public class InteractiveDisclosureRenderTests : BunitContext
+{
+    public InteractiveDisclosureRenderTests() => SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+
+    [Fact]
+    public void Open_is_rendered_as_data_open_for_the_script()
+    {
+        var cut = Render<AccordionItem>(p => p.Add(i => i.Id, "notes").Add(i => i.Title, "Notes").Add(i => i.Open, true));
+
+        var details = cut.Find("details");
+        Assert.False(details.HasAttribute("open"));
+        Assert.True(details.HasAttribute("data-open"));
+        Assert.True(details.HasAttribute("data-ib-interactive"));
+        Assert.Equal("0", details.GetAttribute("data-ib-seq"));
+    }
+
+    [Fact]
+    public void Collapsible_open_is_rendered_as_data_open_too()
+    {
+        var details = Render<Collapsible>(p => p.Add(c => c.Label, "More").Add(c => c.Open, true)).Find("details");
+
+        Assert.False(details.HasAttribute("open"));
+        Assert.True(details.HasAttribute("data-open"));
+        Assert.Equal("0", details.GetAttribute("data-ib-seq"));
+    }
+
+    [Fact]
+    public void Popover_and_Menu_render_the_count_for_their_script()
+    {
+        var popover = Render<Popover>(p => p.Add(x => x.Label, "Details").Add(x => x.ChildContent, "Body")).Find("ib-popover");
+        var menu = Render<Menu>(p => p.Add(x => x.Label, "Actions")).Find("ib-popover");
+
+        foreach (var root in new[] { popover, menu })
+        {
+            Assert.True(root.HasAttribute("data-ib-interactive"));
+            Assert.Equal("0", root.GetAttribute("data-ib-seq"));
+        }
+    }
+
+    [Fact]
+    public void Each_handled_toggle_is_counted_even_when_it_changes_nothing()
+    {
+        bool? reported = null;
+        var cut = Render<Collapsible>(p => p.Add(c => c.Id, "more").Add(c => c.Label, "More").Add(c => c.OpenChanged, (bool open) => reported = open));
+
+        cut.Find("details").TriggerEvent("onibtoggle", new IzzyToggleEventArgs { Id = "more", Open = true, Seq = 1 });
+        Assert.True(reported);
+        Assert.True(cut.Find("details").HasAttribute("data-open"));
+        Assert.Equal("1", cut.Find("details").GetAttribute("data-ib-seq"));
+
+        // Already open: nothing to report, but the count still moves on.
+        reported = null;
+        cut.Find("details").TriggerEvent("onibtoggle", new IzzyToggleEventArgs { Id = "more", Open = true, Seq = 2 });
+        Assert.Null(reported);
+        Assert.Equal("2", cut.Find("details").GetAttribute("data-ib-seq"));
     }
 }

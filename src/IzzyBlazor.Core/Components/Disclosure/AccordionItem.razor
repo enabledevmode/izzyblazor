@@ -11,7 +11,10 @@
          class="@_class"
          style="@_style"
          name="@Accordion?.Name"
-         open="@IsOpen"
+         open="@(IsOpen && !IsInteractive)"
+         data-open="@(IsOpen && IsInteractive ? "" : null)"
+         data-ib-interactive="@(IsInteractive ? "" : null)"
+         data-ib-seq="@ToggleSeq"
          @onibtoggle="HandleToggle">
     <summary class="ib-accordion-trigger"
              aria-disabled="@(Disabled ? "true" : null)"

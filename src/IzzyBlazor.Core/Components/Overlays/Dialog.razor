@@ -58,6 +58,7 @@
 <ib-dialog data-open="@(IsOpen ? "" : null)"
            data-query-key="@QueryKey"
            data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)"
+           data-ib-seq="@ToggleSeq"
            data-close-on-backdrop="@(CloseOnBackdrop ? "" : null)">
     <dialog @attributes="AdditionalAttributes"
             id="@ElementId"
