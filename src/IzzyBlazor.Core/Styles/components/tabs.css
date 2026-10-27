@@ -70,9 +70,12 @@
 
   /* The tab's content is in a label for its radio, laid out as the tab's own; the label is
      stretched over the whole tab, so a click anywhere on it checks the radio. With script the
-     tab, not the label, takes role="tab" (a label can't have a role). */
+     tab, not the label, takes role="tab" (a label can't have a role). Not display: contents: in
+     Chromium a swipe that starts on the stretched part of a box-less label doesn't scroll the strip. */
   .ib-tab-label {
-    display: contents;
+    display: inline-flex;
+    align-items: center;
+    gap: inherit;
     /* The tab's pointer (or not-allowed): a label's own is the arrow. */
     cursor: inherit;
   }
