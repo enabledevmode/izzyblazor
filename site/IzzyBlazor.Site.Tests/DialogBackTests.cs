@@ -25,7 +25,15 @@ public sealed class DialogBackTests(SiteFixture site) : IClassFixture<SiteFixtur
         await page.WaitForURLAsync("**/docs/components/dialog?dialog=whats-new");
         await page.WaitForFunctionAsync("() => document.getElementById('whats-new').matches(':modal')");
         await page.Keyboard.PressAsync("Escape");
-        await page.WaitForURLAsync("**/docs/components/dialog");
+        try
+        {
+            await page.WaitForFunctionAsync("() => !document.getElementById('whats-new').open && !location.search", null, new() { Timeout = 5000 });
+        }
+        catch (TimeoutException)
+        {
+            var state = await page.EvaluateAsync<string>("() => `open=${document.getElementById('whats-new').open} modal=${document.getElementById('whats-new').matches(':modal')} search=${location.search} active=${document.activeElement?.tagName}`");
+            Assert.Fail("Escape didn't close the dialog and clear the address: " + state);
+        }
 
         await page.ClickAsync($"main button[commandfor='{id}']:not(dialog button)");
         await page.WaitForFunctionAsync($"() => document.getElementById('{id}').matches(':modal')");
