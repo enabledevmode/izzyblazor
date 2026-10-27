@@ -10,7 +10,8 @@ namespace IzzyBlazor;
 /// The browser always does the opening and closing, with native <c>details</c>, the Popover
 /// API or <c>dialog</c>. <see cref="Open"/> sets the starting state; on interactive pages the
 /// <c>ibtoggle</c> event reports changes back, so <c>@bind-Open</c> follows the page and
-/// setting <see cref="Open"/> from C# opens or closes it.
+/// setting <see cref="Open"/> from C# opens or closes it: rendered as <c>data-open</c>, which
+/// IzzyBlazor's script applies once C# has caught up with the user's own changes.
 /// </remarks>
 public abstract class ToggleComponentBase : LayoutItemBase
 {
@@ -36,6 +37,15 @@ public abstract class ToggleComponentBase : LayoutItemBase
     /// <summary>The current state: the <see cref="Open"/> parameter, updated by the browser's toggle events.</summary>
     protected bool IsOpen { get; set; }
 
+    /// <summary>
+    /// The last toggle event handled, by its <see cref="IzzyToggleEventArgs.Seq"/>, rendered on
+    /// interactive pages as <c>data-ib-seq</c>. The script applies a render only once it has caught
+    /// up with every change the user made: one from before reports a state they've since left.
+    /// </summary>
+    private protected string? ToggleSeq => IsInteractive ? _seq.ToString(System.Globalization.CultureInfo.InvariantCulture) : null;
+
+    private int _seq;
+
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
@@ -50,7 +60,14 @@ public abstract class ToggleComponentBase : LayoutItemBase
     /// <summary>Handles <c>ibtoggle</c> from this component's own element.</summary>
     protected Task HandleToggle(IzzyToggleEventArgs e)
     {
-        if (e.Id != ElementId || e.Open == IsOpen)
+        if (e.Id != ElementId)
+        {
+            return Task.CompletedTask;
+        }
+
+        // Handled, whether or not it changes anything: the render it brings says so.
+        _seq = Math.Max(_seq, e.Seq);
+        if (e.Open == IsOpen)
         {
             return Task.CompletedTask;
         }

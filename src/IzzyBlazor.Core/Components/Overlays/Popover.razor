@@ -26,7 +26,9 @@
 <ib-popover class="@_outerClass"
             style="@_outerStyle"
             data-placement="@Placement.Name()"
-            data-open="@(IsOpen ? "" : null)">
+            data-open="@(IsOpen ? "" : null)"
+            data-ib-interactive="@(IsInteractive ? "" : null)"
+            data-ib-seq="@ToggleSeq">
     @if (Trigger is not null)
     {
         @Trigger(_triggerAttributes)

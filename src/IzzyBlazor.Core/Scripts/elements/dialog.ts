@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { emitToggle } from "../toggle";
+import { emitToggle, isBehind } from "../toggle";
 
 /**
  * <ib-dialog> wraps a Dialog's <dialog>. Opening by DialogTrigger, closing, Escape, focus
@@ -12,13 +12,11 @@ import { emitToggle } from "../toggle";
  *   - `ibtoggle` events, so @bind-Open follows the browser.
  */
 class DialogRoot extends IzzyElement {
-  static observedAttributes = ["data-open"];
+  static observedAttributes = ["data-open", "data-ib-seq"];
 
   #observer: MutationObserver | null = null;
   #reported: boolean | null = null;
   #syncTarget: boolean | null = null;
-  #userState: boolean | null = null;
-  #userAt = 0;
   #pressedOnBackdrop = false;
 
   private get dialog(): HTMLDialogElement | null {
@@ -30,10 +28,8 @@ class DialogRoot extends IzzyElement {
     if (!dialog) return;
 
     this.#reported = dialog.open;
-    // Set up again after enhanced navigation (reconnect): drop the old observer first, and forget
-    // the user's last open or close: the new page's markup is the current state.
+    // Set up again after enhanced navigation (reconnect): drop the old observer first.
     this.#observer?.disconnect();
-    this.#userState = null;
     this.#observer = new MutationObserver(() => {
       this.settle();
       this.report();
@@ -68,8 +64,17 @@ class DialogRoot extends IzzyElement {
     this.#observer = null;
   }
 
+  // Once a render has set all its attributes: data-open set before data-ib-seq has caught up
+  // would otherwise open or close it with the state it's leaving.
+  #syncQueued = false;
+
   attributeChangedCallback(): void {
-    if (this.isConnected && this.#observer) this.sync();
+    if (!this.isConnected || !this.#observer || this.#syncQueued) return;
+    this.#syncQueued = true;
+    queueMicrotask(() => {
+      this.#syncQueued = false;
+      if (this.isConnected) this.sync();
+    });
   }
 
   private outside(dialog: HTMLDialogElement, event: MouseEvent): boolean {
@@ -81,12 +86,9 @@ class DialogRoot extends IzzyElement {
     const dialog = this.dialog;
     if (!dialog) return;
     const want = this.hasAttribute("data-open");
-    // Until the server has caught up with the user's last open or close, a render that left
-    // before it mustn't undo it. Once data-open matches what the user did, C# is in charge again.
-    if (this.#userState !== null) {
-      if (want === this.#userState || Date.now() - this.#userAt >= 2000) this.#userState = null;
-      else return;
-    }
+    // A render from before the user's latest open or close would undo it (see toggle.ts), as
+    // would one arriving before that change is reported (report() runs a moment after it).
+    if (isBehind(this, dialog) || (this.hasAttribute("data-ib-interactive") && dialog.open !== this.#reported)) return;
     // #syncTarget marks a change sync() makes, so report() doesn't take it for the user's. Only a
     // change: upgrading the server's non-modal open to a modal one leaves it open.
     if (want && !dialog.matches(":modal")) {
@@ -128,8 +130,6 @@ class DialogRoot extends IzzyElement {
     if (dialog.open === this.#reported) return;
     this.#reported = dialog.open;
     if (fromSync) return;
-    this.#userState = dialog.open;
-    this.#userAt = Date.now();
     emitToggle(dialog, dialog.open);
   }
 

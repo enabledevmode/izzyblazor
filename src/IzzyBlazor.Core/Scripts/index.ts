@@ -67,7 +67,7 @@ export const izzyEvents: IzzyEventDefinition[] = [
     name: "ibtoggle",
     createEventArgs: (event) => {
       const detail = (event as CustomEvent<ToggleDetail>).detail;
-      return { id: detail?.id ?? null, open: !!detail?.open };
+      return { id: detail?.id ?? null, open: !!detail?.open, seq: detail?.seq ?? 0 };
     },
   },
   {

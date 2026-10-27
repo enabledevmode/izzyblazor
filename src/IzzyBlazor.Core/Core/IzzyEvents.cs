@@ -17,6 +17,14 @@ public sealed class IzzyToggleEventArgs : EventArgs
 
     /// <summary>Whether it is now open.</summary>
     public bool Open { get; set; }
+
+    /// <summary>
+    /// How many changes the browser has reported for this element, this one included. The
+    /// component renders the last it has handled, so the script can tell a render that left
+    /// before the user's latest change from one that has caught up. Set by IzzyBlazor's script;
+    /// apps don't need it.
+    /// </summary>
+    public int Seq { get; set; }
 }
 
 /// <summary>

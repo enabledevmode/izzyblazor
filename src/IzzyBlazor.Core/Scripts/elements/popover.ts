@@ -1,6 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { track } from "../position";
-import { emitToggle } from "../toggle";
+import { emitToggle, isBehind } from "../toggle";
 
 /**
  * <ib-popover> wraps a Menu or Popover: the trigger button and its [popover] panel.
@@ -37,7 +37,7 @@ function applyMenuRoles(root: Element): void {
   });
 }
 class PopoverRoot extends IzzyElement {
-  static observedAttributes = ["data-open"];
+  static observedAttributes = ["data-open", "data-ib-seq"];
 
   #stopTracking: (() => void) | null = null;
   #typed = "";
@@ -45,12 +45,12 @@ class PopoverRoot extends IzzyElement {
   #focusLast = false;
   // What sync() last asked for, so its own toggle isn't mistaken for the user's.
   #syncTarget: boolean | null = null;
-  // The user's latest open or close, so a render that was already on its way can't undo it.
-  #userState: boolean | null = null;
+  // The state the user's open or close is taking the panel to, until it's reported: the toggle
+  // event comes a moment after beforetoggle, and a render arriving in between would undo it.
+  #unreported: boolean | null = null;
   // The data-open sync() last acted on: only a change opens or closes the panel, so a render or
   // enhanced post that leaves it as it was doesn't close a panel the user opened.
   #lastWant: boolean | null = null;
-  #userAt = 0;
   // Opened by hovering: don't move focus into it.
   #hoverOpen = false;
   // When focus last left the panel for nowhere (a click on a blank area), to tell a dismiss that
@@ -103,6 +103,13 @@ class PopoverRoot extends IzzyElement {
 
     applyMenuRoles(this);
 
+    panel.addEventListener(
+      "beforetoggle",
+      (event) => {
+        if (this.#syncTarget === null) this.#unreported = (event as Event & { newState?: string }).newState === "open";
+      },
+      { signal }
+    );
     panel.addEventListener("toggle", (event) => this.onToggle((event as Event & { newState?: string }).newState === "open"), { signal });
     panel.addEventListener(
       "focusout",
@@ -150,15 +157,16 @@ class PopoverRoot extends IzzyElement {
   private sync(): void {
     const panel = this.panel;
     if (!panel || typeof panel.showPopover !== "function") return;
+    // A render from before the user's latest open or close would undo it (see toggle.ts).
+    if (this.#unreported !== null) {
+      // Still on its way to the reporting toggle event; or cancelled (a beforetoggle prevented).
+      if (panel.matches(":popover-open") === this.#unreported) return;
+      this.#unreported = null;
+    }
+    if (isBehind(this, panel)) return;
     const want = this.hasAttribute("data-open");
     if (want === this.#lastWant) return;
     const open = panel.matches(":popover-open");
-    // Until the server has caught up with the user's last open or close, a render that left
-    // before it mustn't undo it. Once data-open matches what the user did, C# is in charge again.
-    if (this.#userState !== null) {
-      if (want === this.#userState || Date.now() - this.#userAt >= 2000) this.#userState = null;
-      else return;
-    }
     this.#lastWant = want;
     // #syncTarget marks a change sync() makes, so onToggle() doesn't take it for the user's: set
     // only when it opens or closes the panel, or it would hide the user's next change.
@@ -184,12 +192,9 @@ class PopoverRoot extends IzzyElement {
     if (!panel) return;
     const fromSync = this.#syncTarget === open;
     this.#syncTarget = null;
+    this.#unreported = null;
     // Reports the user's opens and closes, not sync()'s (see dialog.ts, report).
-    if (!fromSync) {
-      this.#userState = open;
-      this.#userAt = Date.now();
-      emitToggle(panel, open);
-    }
+    if (!fromSync) emitToggle(panel, open);
     if (open) {
       this.#stopTracking?.();
       this.#stopTracking = track(panel, this, this.dataset.placement ?? "bottom-start");
