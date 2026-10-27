@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { track } from "../position";
+import { emitToggle } from "../toggle";
 
 /**
  * <ib-popover> wraps a Menu or Popover: the trigger button and its [popover] panel.
@@ -159,17 +160,21 @@ class PopoverRoot extends IzzyElement {
       else return;
     }
     this.#lastWant = want;
-    this.#syncTarget = want;
+    // #syncTarget marks a change sync() makes, so onToggle() doesn't take it for the user's: set
+    // only when it opens or closes the panel, or it would hide the user's next change.
     if (want && !open) {
+      this.#syncTarget = true;
       try {
         (panel.showPopover as (options?: { source?: HTMLElement | null }) => void)({ source: this.trigger });
       } catch {
         // Not connected yet, or another modal is open; the next change will retry.
+        this.#syncTarget = null;
       }
     } else if (!want && open) {
       // A panel only the user opens (a Table filter) stays open through renders and enhanced
       // navigations that don't mention it, such as the one its own live filter just made.
       if (panel.hasAttribute("data-ib-user-controlled")) return;
+      this.#syncTarget = false;
       panel.hidePopover();
     }
   }
@@ -178,11 +183,12 @@ class PopoverRoot extends IzzyElement {
     const panel = this.panel;
     if (!panel) return;
     const fromSync = this.#syncTarget === open;
-    if (fromSync) {
-      this.#syncTarget = null;
-    } else {
+    this.#syncTarget = null;
+    // Reports the user's opens and closes, not sync()'s (see dialog.ts, report).
+    if (!fromSync) {
       this.#userState = open;
       this.#userAt = Date.now();
+      emitToggle(panel, open);
     }
     if (open) {
       this.#stopTracking?.();

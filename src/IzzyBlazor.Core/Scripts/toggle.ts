@@ -3,8 +3,9 @@
  * Blazor binds as @onibtoggle on interactive pages so `@bind-Open` follows the browser.
  *
  * The native `toggle` event doesn't bubble, so one capturing listener on the document covers
- * every <details class="ib-disclosure"> and every [popover].ib-pop. Dialogs report their own
- * changes (see elements/dialog.ts).
+ * every <details class="ib-disclosure"> and every [popover].ib-pop outside <ib-popover>.
+ * Dialogs and <ib-popover> panels report their own changes, leaving out the ones the server
+ * asked for (see elements/dialog.ts).
  */
 export interface ToggleDetail {
   id: string;
@@ -27,7 +28,7 @@ export function installToggleBridge(): void {
       const target = event.target;
       if (target instanceof HTMLDetailsElement && target.classList.contains("ib-disclosure")) {
         emitToggle(target, target.open);
-      } else if (target instanceof HTMLElement && target.classList.contains("ib-pop")) {
+      } else if (target instanceof HTMLElement && target.classList.contains("ib-pop") && target.parentElement?.localName !== "ib-popover") {
         emitToggle(target, (event as Event & { newState?: string }).newState === "open");
       }
     },
