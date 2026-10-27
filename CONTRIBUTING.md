@@ -176,6 +176,14 @@ outside the Release workflow and broke the Live examples until it was removed.
   301 that keeps the path and query (`Services/CanonicalHost.cs`). It names those hosts rather than
   redirecting every other one, since Fly's health checks and `izzyblazor.fly.dev` arrive with other
   hosts.
+- Crawlers: the examples keep their state in the query (Pagination's `?page=&small=...`), so their
+  links make endless addresses. On Oct 27, 2026 GPTBot walked them at about two requests a second,
+  which throttled the shared CPU and slowed every page to 2-6s (pages render in ~30ms). robots.txt
+  disallows `/*?`, and pages that come through Fly's proxy (with `Fly-Client-IP`) are limited to 60
+  a minute per client (`SiteApp`, the `pages` policy; not `/frame/`, the circuit, or re-executed
+  error pages). The first rejection a minute is logged as `Rate limited <client> (<user agent>)`.
+  If the site is slow, compare a page's time with a local Release run and read
+  `fly logs -a izzyblazor`: request lines end with their duration.
 - Fly ends TLS and forwards plain HTTP with `X-Forwarded-Proto`, which `UseForwardedHeaders` in
   `SiteApp` reads, so absolute addresses (`og:image`) stay `https`.
 - Fly holds a certificate for each of the four names and renews it. DNS for both domains is at
