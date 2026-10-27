@@ -34,7 +34,10 @@ class DialogRoot extends IzzyElement {
     // the user's last open or close: the new page's markup is the current state.
     this.#observer?.disconnect();
     this.#userState = null;
-    this.#observer = new MutationObserver(() => this.report());
+    this.#observer = new MutationObserver(() => {
+      this.settle();
+      this.report();
+    });
     this.#observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
 
     dialog.addEventListener("close", () => this.clearQuery(dialog), { signal });
@@ -96,6 +99,18 @@ class DialogRoot extends IzzyElement {
     } else if (!want && dialog.open) {
       dialog.close();
     }
+  }
+
+  /**
+   * Enhanced navigation (Back or Forward to this page with the dialog open, say) patches the open
+   * attribute away without closing the dialog: it stays modal, unseen, and the page behind it
+   * inert. Close it properly, which reports it closed and returns focus.
+   */
+  private settle(): void {
+    const dialog = this.dialog;
+    if (!dialog || dialog.open || !dialog.matches(":modal")) return;
+    dialog.setAttribute("open", "");
+    dialog.close();
   }
 
   private report(): void {
