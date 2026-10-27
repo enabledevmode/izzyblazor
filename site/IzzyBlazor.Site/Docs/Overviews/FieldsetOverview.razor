@@ -1,0 +1,55 @@
+@* Fieldset's Overview, written by hand after the form field Overviews: a label and description,
+   columns, a list of settings with dividers, and icons on sections (each a form previewed in each
+   mode). Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A fieldset groups the fields of one part of a form under a heading, such as an address or a set of notification settings, and screen readers announce that heading as the group's name when focus moves into it. A <Anchor Href="docs/components/radio-group">RadioGroup</Anchor> or <Anchor Href="docs/components/checkbox-group">CheckboxGroup</Anchor> is a group already, so it needs no Fieldset of its own. For a part of a page that isn't a form, use a <Anchor Href="docs/components/card">Card</Anchor> or a <Anchor Href="docs/components/section">Section</Anchor>.</TextBlock>
+
+<Heading Level="2">Label and description</Heading>
+<TextBlock>Use <Code>Label</Code> for the group's heading, which it needs, and <Code>Description</Code> for a short line under it. Screen readers can read the description with the group's name; what one field needs still goes in that field's <Code>Hint</Code>.</TextBlock>
+<ExampleViewer Example="fieldset-address" />
+
+<Heading Level="2">Columns</Heading>
+<TextBlock>Use <Code>Columns</Code> (1 to 4) to lay the group's fields out side by side, as a <Anchor Href="docs/components/form">Form</Anchor>'s <Code>Columns</Code> does: by the group's own width, two columns from 32rem and three from 48rem, so a narrow group shows fewer (this one shows two until the page is wide). A field takes one column; give it <Code>ColSpan="GridSpan.Full"</Code> for the whole row, as the street here.</TextBlock>
+<ExampleViewer Example="fieldset-columns" />
+<TextBlock>In a Form with columns, a Fieldset takes the whole row and lays out its own fields.</TextBlock>
+
+<Heading Level="2">A list of settings</Heading>
+<TextBlock>Use <Code>Dividers</Code> to draw a line between rows, with <Code>Gap</Code> (4 by default) above and below each, as in a list of settings. Each direct child is a row, so use it in place of <Code>Divider</Code> components between them. It's ignored with more than one column.</TextBlock>
+<ExampleViewer Example="fieldset-dividers" />
+
+<Heading Level="2">Icons on sections</Heading>
+<TextBlock>Use <Code>Icon</Code> to tell sections apart at a glance, on a page of several groups. It sits at the start of the heading, beside the label and description, and is decorative. Put icons on the sections or on the rows inside them, not both.</TextBlock>
+<ExampleViewer Example="fieldset-icons" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Form Model="Model" FormName="checkout">
+            <Fieldset Label="Shipping address" Description="Where we send your order.">
+                <TextField @bind-Value="Model.Street" />
+                <TextField @bind-Value="Model.City" />
+            </Fieldset>
+        </Form>
+        """;
+}

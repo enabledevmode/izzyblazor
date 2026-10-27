@@ -1,0 +1,56 @@
+@* Progress's Overview, written by hand after Badge's: a value and its label, sizes and colors, the
+   indeterminate bar, and a bar that C# moves on an interactive page. Accessibility and See also
+   come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A progress bar shows how far along a task is, such as an upload or an import, or, without a value, that it's still working. For a wait with nothing to measure in a small space, use a <Anchor Href="docs/components/spinner">Spinner</Anchor>; for content still loading, a <Anchor Href="docs/components/skeleton">Skeleton</Anchor> in its place; for the steps of a form, a <Anchor Href="docs/components/stepper">Stepper</Anchor>.</TextBlock>
+
+<Heading Level="2">Value and label</Heading>
+<TextBlock>Use <Code>Value</Code> for how far along it is, out of <Code>Max</Code> (100 by default), and <Code>Label</Code> for the line above the bar, which is also its name for screen readers. <Code>ShowValue</Code> shows the percentage at the end of that line, and <Code>ValueText</Code> shows your own words in its place, such as "3 of 5 files".</TextBlock>
+<ExampleViewer Example="progress-values" />
+<TextBlock>Screen readers hear the same text: <Code>ValueText</Code>, or the percentage. A value outside 0 to <Code>Max</Code> is held to the nearest end.</TextBlock>
+
+<Heading Level="2">Sizes and colors</Heading>
+<TextBlock>Use <Code>Size</Code> for the bar's thickness (Sm, Md or Lg, to sit with controls of that size) and <Code>Accent</Code> for its color, the primary color by default: <Code>Accent.From(Color.Warning)</Code> for a status color, or <Code>Accent.Of("#0d9488")</Code>.</TextBlock>
+<ExampleViewer Example="progress-sizes" />
+<TextBlock>The color doesn't reach screen readers, so a warning needs its words too, as the storage bar's "almost full".</TextBlock>
+
+<Heading Level="2">Indeterminate</Heading>
+<TextBlock>Leave out <Code>Value</Code> for a bar that sweeps across while the work has no known length. A bar with no <Code>Label</Code> needs an <Code>aria-label</Code> for its name, as the second one here.</TextBlock>
+<ExampleViewer Example="progress-indeterminate" />
+<TextBlock>With reduced motion the sweep is slower. Once you know how much there is, set <Code>Value</Code> and the bar starts to fill.</TextBlock>
+
+<Heading Level="2">Updating from C#</Heading>
+<TextBlock>The bar is drawn on the server, so on a static page it shows the value at the time the page rendered. On an interactive page, change <Code>Value</Code> from C# and the bar follows.</TextBlock>
+<ExampleViewer Example="progress-from-code" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Progress Value="40" Label="Uploading report.pdf" ShowValue />
+        <Progress Value="3" Max="5" Label="Importing" ValueText="3 of 5 files" />
+
+        @* No value: a bar that sweeps until the work is done. *@
+        <Progress Label="Preparing export" />
+        """;
+}
