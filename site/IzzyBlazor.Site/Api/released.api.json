@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.17",
+  "version": "0.1.0-alpha.18",
   "components": [
     {
       "name": "Accordion",
@@ -2364,10 +2364,6 @@
         },
         {
           "name": "Submit",
-          "type": "bool"
-        },
-        {
-          "name": "Reset",
           "type": "bool"
         },
         {

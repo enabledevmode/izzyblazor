@@ -21,7 +21,7 @@ circuit or WebAssembly runtime for static pages.
   <img alt="An orders screen built with IzzyBlazor: app shell with sidebar navigation, stat cards, a search-and-filter bar and a sortable, paged table with status badges." src="docs/images/showcase-light.png">
 </picture>
 
-> **Status:** preview (`0.1.0-alpha.17`). APIs may change during preview.
+> **Status:** preview (`0.1.0-alpha.18`). APIs may change during preview.
 
 ## Progressive by design
 
