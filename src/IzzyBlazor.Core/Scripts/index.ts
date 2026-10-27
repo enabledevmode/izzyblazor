@@ -30,6 +30,7 @@ import { installIndeterminate, installSelectAll, syncIndeterminate } from "./che
 import { focusMarked, installFocusRescue, installSkipLinks } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
 import { installScrollbarWidth, measureScrollbar } from "./scrollbar";
+import { installTabScroll, revealSelectedTabs } from "./tab-scroll";
 
 installLazyElements();
 installSubmitFeedback();
@@ -39,6 +40,7 @@ installSelects();
 installIndeterminate();
 installSelectAll();
 installScrollbarWidth();
+installTabScroll();
 
 // ToastService calls this through JS interop on interactive pages.
 (window as unknown as { izzyBlazor?: Record<string, unknown> }).izzyBlazor = {
@@ -101,6 +103,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     syncShells();
     revealActiveNav();
     syncTabs();
+    revealSelectedTabs();
     syncSelects();
     syncIndeterminate();
     reopenAfterPost();

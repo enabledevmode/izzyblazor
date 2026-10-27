@@ -32,11 +32,15 @@
     --ib-icon-size: var(--ib-control-icon-lg);
   }
 
+  /* Tabs that don't fit scroll sideways, with no scrollbar; with script a mouse wheel scrolls them
+     and the selected tab is scrolled into view (tab-scroll.ts). */
   .ib-tabs-list {
     display: flex;
     gap: var(--ib-space-1);
     min-width: 0;
     overflow-x: auto;
+    /* A swipe past the end doesn't go back a page or scroll what's around it. */
+    overscroll-behavior-x: contain;
     scrollbar-width: none;
   }
 
@@ -100,11 +104,10 @@
     cursor: not-allowed;
   }
 
+  /* Equal shares of the row, but none narrower than its label: tabs that don't fit then scroll. */
   .ib-tabs-fitted > .ib-tabs-list > .ib-tab {
-    flex: 1 1 0;
-    min-width: 0;
-    /* A narrow tab cuts its label (and badge) off rather than running into the next one. */
-    overflow: hidden;
+    flex: 1 0 0;
+    min-width: max-content;
   }
 
   /* Line: a rule under the list; the selected tab is underlined in the accent color. */

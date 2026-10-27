@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { revealSelectedTab } from "../tab-scroll";
 
 /**
  * <ib-tabs> upgrades Tabs from a radio group to ARIA tabs. The radios stay the source of truth
@@ -10,6 +11,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * enhanced navigation, which resets attributes to the server's markup.
  */
 class Tabs extends IzzyElement {
+  // The tab last scrolled into view, so a re-sync for anything else leaves the strip where it is.
+  private revealed: HTMLElement | null = null;
+
   private get list(): HTMLElement | null {
     return this.querySelector<HTMLElement>(":scope > .ib-tabs-list");
   }
@@ -75,6 +79,20 @@ class Tabs extends IzzyElement {
     const wide = matchMedia("(min-width: 640px)");
     wide.addEventListener("change", () => this.sync(), { signal });
 
+    // The selected tab is revealed once the strip has a size: a Tabs in a closed dialog or another
+    // tab's panel has none at first. A vertical list that becomes a row (narrower than 640px) is
+    // revealed again.
+    let wasColumn = this.isColumn;
+    const resized = new ResizeObserver(() => {
+      if (this.isColumn !== wasColumn) {
+        wasColumn = this.isColumn;
+        this.revealed = null;
+      }
+      this.sync();
+    });
+    if (this.list) resized.observe(this.list);
+    signal.addEventListener("abort", () => resized.disconnect());
+
     // Re-apply roles when C# changes the selection or orientation (data-selected, class), adds or
     // removes tabs, or disables one. sync() sets only role, aria-* and tabindex, which aren't watched.
     const observer = new MutationObserver(() => this.sync());
@@ -120,6 +138,11 @@ class Tabs extends IzzyElement {
 
     // Nothing selected (every tab disabled): keep the list reachable.
     if (!focusable && tabs[0]) tabs[0].tabIndex = 0;
+
+    // A tab chosen from C# or the URL may be off the end of a strip that scrolls.
+    if (focusable && focusable !== this.revealed && revealSelectedTab(list)) {
+      this.revealed = focusable;
+    }
   }
 
   private onKey(event: KeyboardEvent): void {
