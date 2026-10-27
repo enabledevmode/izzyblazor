@@ -259,6 +259,7 @@ public class OverlayRenderTests : BunitContext
 
         var dialog = Render<Dialog>(p => p
             .Add(d => d.Id, "invite")
+            .Add(d => d.Title, "Invite")
             .AddChildContent(b =>
             {
                 b.OpenComponent<DialogFooter>(0);
@@ -274,6 +275,20 @@ public class OverlayRenderTests : BunitContext
         Assert.Equal("submit", close.GetAttribute("type"));
         Assert.Equal("invite-close", close.GetAttribute("form"));
         Assert.Contains("ib-btn-outline", close.ClassName);
+
+        // The form closes it: no close command, which browsers ignore (and warn about) on a submit button.
+        foreach (var submit in new[] { close, dialog.Find(".ib-dialog-close") })
+        {
+            Assert.Null(submit.GetAttribute("commandfor"));
+            Assert.Null(submit.GetAttribute("command"));
+        }
+    }
+
+    [Fact]
+    public void DialogClose_refuses_Reset()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Render<DialogClose>(p => p.Add(b => b.For, "d").Add(b => b.Reset, true)));
+        Assert.Contains("Reset", error.Message);
     }
 
     [Fact]

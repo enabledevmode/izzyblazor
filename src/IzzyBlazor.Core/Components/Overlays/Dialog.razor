@@ -69,8 +69,8 @@
             open="@(IsOpen && !IsInteractive)"
             @onibtoggle="HandleToggle">
         @* Close buttons submit this form: method="dialog" closes the dialog natively in every
-           browser, with or without script. They also carry the native close command, which
-           browsers use when there's no form (InsideForm). *@
+           browser, with or without script. With no form (InsideForm) they're ordinary buttons
+           with the native close command instead (browsers ignore it on a submit button). *@
         @if (!InsideForm)
         {
             <form method="dialog" id="@($"{ElementId}-close")" hidden></form>
@@ -95,8 +95,8 @@
                     {
                         <button type="@(InsideForm ? "button" : "submit")"
                                 form="@(InsideForm ? null : $"{ElementId}-close")"
-                                commandfor="@ElementId"
-                                command="close"
+                                commandfor="@(InsideForm ? ElementId : null)"
+                                command="@(InsideForm ? "close" : null)"
                                 class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-btn-sm ib-dialog-close"
                                 aria-label="@(CloseLabel ?? TextDefaults.Close)">
                             <Icon Role="IconRole.Close" />
