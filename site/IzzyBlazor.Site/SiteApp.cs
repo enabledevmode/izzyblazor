@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading.RateLimiting;
+using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Hosting.StaticWebAssets;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -17,6 +18,7 @@ public static class SiteApp
 {
     private const string McpPath = "/mcp";
     private const string McpRateLimit = "mcp";
+    private const string PagesRateLimit = "pages";
 
     // The caller's address: Fly's proxy gives it in Fly-Client-IP. IPv6 by its /64, the block one
     // client usually has, so changing addresses inside it doesn't reset the limit.
@@ -84,21 +86,55 @@ public static class SiteApp
             })
             .WithHttpTransport(options => options.Stateless = true)
             .WithTools<McpTools>();
+        // A crawler that ignores its 429s is logged once a minute, not on every request.
+        var rejectionLog = PartitionedRateLimiter.Create<string, string>(client => RateLimitPartition.GetFixedWindowLimiter(
+            client, _ => new FixedWindowRateLimiterOptions { PermitLimit = 1, Window = TimeSpan.FromMinutes(1) }));
         // Assistants call in bursts; this only stops a runaway client.
         builder.Services.AddRateLimiter(options =>
         {
             options.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
-            options.OnRejected = (context, _) =>
+            options.OnRejected = (context, token) =>
             {
                 if (context.Lease.TryGetMetadata(MetadataName.RetryAfter, out var wait))
                 {
                     context.HttpContext.Response.Headers.RetryAfter = ((int)Math.Ceiling(wait.TotalSeconds)).ToString(CultureInfo.InvariantCulture);
                 }
 
-                return ValueTask.CompletedTask;
+                // A page's 429 says so in a line of text, which also keeps the status code pages from
+                // re-executing it into the not-found page.
+                if (context.HttpContext.Request.Path.StartsWithSegments(McpPath))
+                {
+                    return ValueTask.CompletedTask;
+                }
+
+                var request = context.HttpContext.Request;
+                var client = ClientKey(context.HttpContext);
+                if (rejectionLog.AttemptAcquire(client).IsAcquired)
+                {
+                    context.HttpContext.RequestServices.GetRequiredService<ILoggerFactory>().CreateLogger(typeof(SiteApp))
+                        .LogWarning("Rate limited {Client} ({UserAgent}): {Path}", client, request.Headers.UserAgent.ToString(), request.Path + request.QueryString);
+                }
+
+                context.HttpContext.Response.ContentType = "text/plain; charset=utf-8";
+                return new ValueTask(context.HttpContext.Response.WriteAsync("Too many requests. Try again in a minute.", token));
             };
             options.AddPolicy(McpRateLimit, context => RateLimitPartition.GetFixedWindowLimiter(
                 ClientKey(context), _ => new FixedWindowRateLimiterOptions { PermitLimit = 300, Window = TimeSpan.FromMinutes(1) }));
+            // Pages, for crawlers that ignore robots.txt: the examples' query strings (Pagination's
+            // ?page=&small=...) make endless addresses, and on one small machine a crawl through them
+            // slowed every page for everyone. A reader opens far fewer pages a minute. Not the
+            // examples' frames (a page loads many), the circuit's hub, or requests that didn't come
+            // through Fly's proxy (tests, dotnet run), or the not-found and error pages re-executed for
+            // a request already counted.
+            options.AddPolicy(PagesRateLimit, context => context.Request.Headers.ContainsKey("Fly-Client-IP")
+                && context.Features.Get<IStatusCodeReExecuteFeature>() is null
+                && context.Features.Get<IExceptionHandlerFeature>() is null
+                && ClientKey(context) is var client
+                && !context.Request.Path.StartsWithSegments("/frame")
+                && !context.Request.Path.StartsWithSegments("/_blazor")
+                && !context.Request.Path.StartsWithSegments("/_framework")
+                    ? RateLimitPartition.GetFixedWindowLimiter(client, _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) })
+                    : RateLimitPartition.GetNoLimiter("unlimited"));
         });
 
         var app = builder.Build();
@@ -189,7 +225,8 @@ public static class SiteApp
             return Results.StatusCode(StatusCodes.Status405MethodNotAllowed);
         });
         app.MapRazorComponents<App>()
-            .AddInteractiveServerRenderMode();
+            .AddInteractiveServerRenderMode()
+            .RequireRateLimiting(PagesRateLimit);
         app.MapIzzyBlazor();
 
         return app;
