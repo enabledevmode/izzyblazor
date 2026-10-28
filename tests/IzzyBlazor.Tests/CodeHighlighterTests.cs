@@ -125,6 +125,28 @@ public class CodeHighlighterTests : BunitContext
         Assert.Equal("Keyword", KindOf(t, "const"));
     }
 
+    [Theory]
+    [InlineData("xml")]
+    [InlineData("html")]
+    public void Cdata_is_one_string_whatever_it_holds(string language)
+    {
+        var t = Lex(language, "<value><![CDATA[<z> & a > b]]></value><value><![CDATA[open");
+
+        Assert.Equal("String", KindOf(t, "<z> & a > b"));
+        Assert.Equal("Meta", KindOf(t, "]]>"));
+        Assert.Equal("String", KindOf(t, "open"));
+        Assert.Equal(3, t.Count(token => token.Kind == CodeTokenKind.Tag && token.Text == "value"));
+    }
+
+    [Fact]
+    public void Xml_style_and_script_elements_are_markup()
+    {
+        var t = Lex("xml", "<style><const>x</const></style><r:script a=\"1\"/>");
+
+        Assert.Equal("Tag", KindOf(t, "const"));
+        Assert.Null(KindOf(t, "x"));
+    }
+
     [Fact]
     public void Code_renders_spans_and_keeps_the_text()
     {
