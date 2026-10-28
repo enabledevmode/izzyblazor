@@ -499,3 +499,13 @@ public enum TextFieldType
     /// <summary>A URL.</summary>
     Url,
 }
+
+/// <summary>What a <see cref="DateField{TValue}"/> takes. Sets the input type.</summary>
+public enum DateFieldType
+{
+    /// <summary>A date.</summary>
+    Date,
+
+    /// <summary>A date and a time of day.</summary>
+    DateTime,
+}

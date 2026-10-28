@@ -1,0 +1,36 @@
+@* Dates in the URL are what the browser posts (2027-03-01); the page reads them as DateOnly. *@
+<Stack Gap="4" MaxWidth="34.Rem" Grow>
+    <FilterForm Label="Filter deploys">
+        <FilterDate Name="deploys-from" Label="From" />
+        <FilterDate Name="deploys-to" Label="To" Min="From" />
+    </FilterForm>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted" aria-live="polite">@Matches.Count() of @All.Length deploys</TextBlock>
+    <List Plain Gap="2">
+        @foreach (var deploy in Matches)
+        {
+            <ListItem>
+                <Row Gap="3"><TextBlock As="span" Color="Color.Muted">@deploy.On.ToString("MMM d")</TextBlock><TextBlock As="span">@deploy.Version</TextBlock></Row>
+            </ListItem>
+        }
+    </List>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "deploys-from")] private DateOnly? From { get; set; }
+    [SupplyParameterFromQuery(Name = "deploys-to")] private DateOnly? To { get; set; }
+
+    private IEnumerable<Deploy> Matches => All.Where(d => (From is null || d.On >= From) && (To is null || d.On <= To));
+
+    @* hide *@
+    private static readonly Deploy[] All =
+    [
+        new(new(2027, 2, 22), "v4.1.0"),
+        new(new(2027, 2, 27), "v4.1.1"),
+        new(new(2027, 3, 3), "v4.2.0"),
+        new(new(2027, 3, 9), "v4.2.1"),
+        new(new(2027, 3, 18), "v4.3.0"),
+    ];
+
+    private sealed record Deploy(DateOnly On, string Version);
+    @* /hide *@
+}

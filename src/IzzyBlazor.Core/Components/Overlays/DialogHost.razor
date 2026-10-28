@@ -22,6 +22,7 @@
                 Id="@entry.Instance.Id"
                 Title="@entry.Title"
                 Size="entry.Options.Size"
+                Width="@(entry.Options.Width is { } width ? width : default(Responsive<Length>))"
                 Placement="entry.Options.Placement"
                 CloseOnBackdrop="entry.Options.CloseOnBackdrop"
                 ShowCloseButton="entry.Options.ShowCloseButton"

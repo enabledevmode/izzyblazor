@@ -11,7 +11,7 @@
       - No script: a GET form. It keeps the rest of the query string (a table's sort, other
         tables' state) as hidden fields and drops page numbers, so filtering starts at page 1.
       - With script: <ib-filter-form> applies as you type in a search or text box (after a
-        pause), when a select or checkbox changes, and when another input of your own (a date)
+        pause), when a select or checkbox changes, and when a date or another input of your own
         changes, after a pause; without a full reload, and keeping focus where it was.
       - Interactive: the same navigation runs through Blazor; the page's query parameters update.
 
@@ -22,8 +22,8 @@
 
     Accessibility:
     - It renders a GET `form` with `role="search"`: a search landmark named "Filters" (`Label`).
-    - `FilterSearch` and `FilterSelect` have a `Label` that's hidden but names them. The search
-      defaults to "Search"; a select requires one.
+    - `FilterSearch`, `FilterSelect` and `FilterDate` have a `Label` that's hidden but names
+      them. The search defaults to "Search"; a select and a date require one.
     - `FilterCheckbox` is a native checkbox with its `Label` (required) shown beside it.
     - With script, filters apply as you type or change a value, without a reload, and focus stays
       where it was; Enter applies at once.
@@ -53,7 +53,7 @@
 </ib-filter-form>
 
 @code {
-    /// <summary>The filter fields: <see cref="FilterSearch"/>, <see cref="FilterSelect"/>, <see cref="FilterCheckbox"/>, or your own inputs (list their names in <see cref="Fields"/>).</summary>
+    /// <summary>The filter fields: <see cref="FilterSearch"/>, <see cref="FilterSelect"/>, <see cref="FilterDate"/>, <see cref="FilterCheckbox"/>, or your own inputs (list their names in <see cref="Fields"/>).</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
 
     /// <summary>Applies as you type and on every change, with JavaScript. Defaults to true; false keeps the Apply button.</summary>

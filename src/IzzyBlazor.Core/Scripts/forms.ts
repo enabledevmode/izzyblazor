@@ -170,3 +170,77 @@ export function installStaleErrors(): void {
     true
   );
 }
+
+/**
+ * A DateField's time zone on a static post. A date-time input holds a time with no zone, and
+ * Blazor's form binding would read it in the server's zone, so a field with data-ib-zone posts
+ * its time in that zone: with the zone's offset for a DateTimeOffset (data-ib-post="offset"),
+ * or converted to UTC for a DateTime ("utc"). Building the post's FormData fires "formdata",
+ * for enhanced and full posts alike. With JavaScript off the browser posts the time as typed.
+ */
+export function installDateZones(): void {
+  document.addEventListener(
+    "formdata",
+    (event) => {
+      const form = event.target;
+      if (!(form instanceof HTMLFormElement)) return;
+      const data = (event as FormDataEvent).formData;
+      for (const field of form.elements) {
+        if (!(field instanceof HTMLInputElement) || !field.dataset.ibZone || !field.name || field.disabled) continue;
+        const match = /^(\d{4,})-(\d\d)-(\d\d)(?:T(\d\d):(\d\d)(?::(\d\d)(\.\d+)?)?)?$/.exec(field.value);
+        if (!match) continue;
+        const [y, mo, d, h, mi, s] = match.slice(1, 7).map((part) => Number(part ?? 0));
+        const wall = utc(y, mo, d, h, mi, s);
+        const offset = zoneOffset(field.dataset.ibZone, wall);
+        const time = field.value.length === 10 ? `${field.value}T00:00` : field.value;
+        data.set(field.name, field.dataset.ibPost === "offset" ? time + formatOffset(offset) : iso(new Date(wall - offset * 60000)));
+      }
+    },
+    true
+  );
+}
+
+/** Milliseconds since 1970 for a UTC date and time; Date.UTC alone reads years 0-99 as 1900-1999. */
+function utc(y: number, mo: number, d: number, h: number, mi: number, s: number): number {
+  const date = new Date(0);
+  date.setUTCFullYear(y, mo - 1, d);
+  date.setUTCHours(h, mi, s, 0);
+  return date.getTime();
+}
+
+/**
+ * The zone's offset from UTC in minutes for a wall-clock time in it (given as if it were UTC):
+ * a fixed offset ("+05:30") as written, an IANA zone from Intl. Near a change of offset, the one
+ * that gives back the same wall-clock time; for a time the change skips or repeats, the
+ * standard (smaller) offset, as .NET's TimeZoneInfo.GetUtcOffset picks.
+ */
+function zoneOffset(zone: string, wall: number): number {
+  const fixed = /^([+-])(\d\d):(\d\d)$/.exec(zone);
+  // Before 1900 Intl gives local mean time (New York -4:56), where .NET keeps the zone's standard
+  // rules: use 1900's offset, so a time posted back unchanged stays the same.
+  wall = Math.max(wall, utc(1900, 1, 1, 0, 0, 0));
+  if (fixed) return (fixed[1] === "-" ? -1 : 1) * (Number(fixed[2]) * 60 + Number(fixed[3]));
+  const at = (instant: number) => {
+    const parts = new Intl.DateTimeFormat("en-US", {
+      timeZone: zone, hourCycle: "h23", year: "numeric", month: "numeric", day: "numeric",
+      hour: "numeric", minute: "numeric", second: "numeric", era: "short",
+    }).formatToParts(new Date(instant));
+    const part = (type: string) => Number(parts.find((p) => p.type === type)?.value ?? 0);
+    const year = parts.find((p) => p.type === "era")?.value === "BC" ? 1 - part("year") : part("year");
+    return Math.round((utc(year, part("month"), part("day"), part("hour"), part("minute"), part("second")) - instant) / 60000);
+  };
+  const before = at(wall - 43200000);
+  const after = at(wall + 43200000);
+  const fits = [before, after].filter((offset) => at(wall - offset * 60000) === offset);
+  return fits.length === 1 ? fits[0] : Math.min(before, after);
+}
+
+function formatOffset(minutes: number): string {
+  const abs = Math.abs(minutes);
+  return `${minutes < 0 ? "-" : "+"}${String(Math.floor(abs / 60)).padStart(2, "0")}:${String(abs % 60).padStart(2, "0")}`;
+}
+
+/** A UTC instant as a date-time input writes one, with seconds. */
+function iso(date: Date): string {
+  return date.toISOString().slice(0, 19);
+}

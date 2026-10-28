@@ -624,6 +624,28 @@
       ]
     },
     {
+      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Forms", "summary": "A date, or a date and time, in the browser's own input.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
+      "features": [
+        { "feature": "The browser's calendar, with Min, Max and Step checked before posting" },
+        { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
+        { "feature": "Times read in TimeZone (UTC unless set)", "off": "partial", "static": "full", "live": "full" }
+      ],
+      "examples": [
+        { "id": "date-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, or set them on the field, as Check-out's `Min` follows Check-in.",
+          "notes": {
+            "off": "The browser stops a check-in outside 2027, in its own words.",
+            "static": "The browser stops a check-in outside 2027, in the model's words.",
+            "live": "Check-out's earliest date follows Check-in as you change it."
+          } },
+        { "id": "date-field-time-zones", "title": "Time zones", "lead": "Use `TimeZone` for the zone a time is typed in; without it, UTC. A `DateTime` comes back in UTC, a `DateTimeOffset` with the zone's offset.",
+          "notes": {
+            "off": "Without the script the server reads the New York time in its own zone, so the saved offset is the server's.",
+            "static": "The script posts the New York time with its offset, so the saved value is right."
+          } },
+        { "id": "date-field-states", "title": "Sizes, read-only and disabled" }
+      ]
+    },
+    {
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.", "keywords": ["range"],
       "features": [
         { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },
@@ -711,7 +733,7 @@
       ]
     },
     {
-      "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterCheckbox"],
+      "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterDate", "FilterCheckbox"],
       "features": [
         { "feature": "Filters in the address, applied with Apply or Enter; Clear removes them" },
         { "feature": "Keeps the rest of the address and goes back to page 1" },
@@ -728,6 +750,11 @@
           "notes": {
             "off": "Search loads the page again with the filters in the URL.",
             "static": "Filters wait for Search or Enter, then apply without a full reload."
+          } },
+        { "id": "filter-form-dates", "title": "Dates", "lead": "Use `FilterDate` for a date; the page reads it from the URL as a `DateOnly?`.",
+          "notes": {
+            "off": "Press Enter or Apply to filter.",
+            "static": "Filters apply after a pause once a date changes, without a full reload."
           } },
         { "id": "filter-form-books", "title": "With a table",
           "notes": {

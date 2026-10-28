@@ -36,7 +36,7 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
     /// <summary>
     /// The field's name for screen readers (shown beside a <see cref="FilterCheckbox"/>). Filter
     /// bars are compact, so a search box's and a select's isn't shown. Required on
-    /// <see cref="FilterSelect"/> and <see cref="FilterCheckbox"/>; <see cref="FilterSearch"/>'s
+    /// <see cref="FilterSelect"/>, <see cref="FilterDate"/> and <see cref="FilterCheckbox"/>; <see cref="FilterSearch"/>'s
     /// defaults to "Search".
     /// </summary>
     [Parameter] public string? Label { get; set; }
@@ -259,6 +259,51 @@ public sealed class FilterCheckbox : FilterFieldBase
         builder.OpenElement(13, "span");
         builder.AddAttribute(14, "class", "ib-check-label");
         builder.AddContent(15, Label);
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+    }
+}
+
+/// <summary>
+/// A date for a <see cref="FilterForm"/>, or a date and time: the browser's own date input. The URL
+/// holds what the browser posts (<c>2026-10-27</c>, or <c>2026-10-27T14:30</c>), which
+/// <c>[SupplyParameterFromQuery]</c> reads as a <c>DateOnly?</c> or <c>DateTime?</c>. A time has no
+/// zone, so the page decides which zone it's in (UTC, say, and the label says so).
+/// </summary>
+public sealed class FilterDate : FilterFieldBase
+{
+    /// <summary>A date (the default), or a date and time.</summary>
+    [Parameter] public DateFieldType Type { get; set; } = DateFieldType.Date;
+
+    /// <summary>The earliest date.</summary>
+    [Parameter] public DateOnly? Min { get; set; }
+
+    /// <summary>The latest date (until the end of that day, for a date and time).</summary>
+    [Parameter] public DateOnly? Max { get; set; }
+
+    private protected override bool RequiresLabel => true;
+
+    private string? Limit(DateOnly? date, string time) =>
+        date?.ToString(Type == DateFieldType.Date ? "yyyy-MM-dd" : $"yyyy-MM-dd'T'{time}", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", FieldClass("date"));
+        builder.AddContent(2, HiddenLabel(Label!));
+        builder.OpenElement(10, "div");
+        builder.AddAttribute(11, "class", "ib-field-control");
+        builder.OpenElement(12, "input");
+        builder.AddMultipleAttributes(13, AdditionalAttributes);
+        builder.AddAttribute(14, "type", Type == DateFieldType.Date ? "date" : "datetime-local");
+        builder.AddAttribute(15, "id", ControlId);
+        builder.AddAttribute(16, "name", Name);
+        builder.AddAttribute(17, "value", CurrentValue);
+        builder.AddAttribute(18, "min", Limit(Min, "00:00"));
+        builder.AddAttribute(19, "max", Limit(Max, "23:59"));
+        builder.AddAttribute(20, "class", "ib-field-input");
         builder.CloseElement();
         builder.CloseElement();
         builder.CloseElement();

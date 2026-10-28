@@ -1,7 +1,7 @@
 @inject ApiMetadata Api
 
 @* FilterForm's Overview, written by hand after Table's and the selection Overviews: the three
-   filter fields (previewed in each mode), filtering on demand, with a table, your own inputs,
+   filter fields (previewed in each mode), dates, filtering on demand, with a table, your own inputs,
    saying how many match, and its own words. Parts, Accessibility and See also come from the
    metadata and the doc comments; See also adds the order list demo. *@
 
@@ -13,6 +13,11 @@
 <TextBlock>Use <Code>FilterSearch</Code> for a search box (<Code>?q=</Code> unless you give it a <Code>Name</Code>), <Code>FilterSelect</Code> for a choice with "All" first, and <Code>FilterCheckbox</Code> for a filter that's on or off (<Code>?mine=true</Code>).</TextBlock>
 <ExampleViewer Example="filter-form-issues" />
 <TextBlock>With the script, the search applies after a pause in typing and the others as they change, without a reload, and focus stays where it was. A <Code>FilterSelect</Code>'s options come from <Code>Items</Code> or an enum (<Code>EnumType</Code>), and the URL holds the value, so use <Code>ItemText</Code> when people should see something else.</TextBlock>
+
+<Heading Level="2">Dates</Heading>
+<TextBlock>Use <Code>FilterDate</Code> for a date, or a date and time with <Code>Type="DateFieldType.DateTime"</Code>; the page reads it as a <Code>DateOnly?</Code> or <Code>DateTime?</Code>.</TextBlock>
+<ExampleViewer Example="filter-form-dates" />
+<TextBlock>The address holds what the browser posts (<Code>2027-03-01</Code>, or <Code>2027-03-01T14:30</Code>), with no time zone, so the page decides which zone a time is in; say it in the <Code>Label</Code>, as in "From (UTC)". <Code>Min</Code> and <Code>Max</Code> limit the dates, as To's <Code>Min</Code> follows From. A date applies a moment after it changes, so typing one part by part applies once.</TextBlock>
 
 <Heading Level="2">Filtering on demand</Heading>
 <TextBlock>Use <Code>Live="false"</Code> to keep the Apply button with the script too, so nothing applies until it's pressed or Enter is, and <Code>ApplyText</Code> to rename it.</TextBlock>
@@ -27,7 +32,7 @@
 <Heading Level="2">Your own inputs</Heading>
 <TextBlock>Put any input with a <Code>name</Code> in the form, and list the names in <Code>Fields</Code> so the form doesn't also carry their old values over from the address.</TextBlock>
 <Code Block Language="razor">@OwnFields</Code>
-<TextBlock>With the script, a text, search, email, phone or URL input of your own applies after a pause in typing, like <Code>FilterSearch</Code>; a select or checkbox applies when it changes; and any other input, such as a date or a number, applies a moment after it changes, so typing a date part by part applies once. Give each one a label, here an <Code>aria-label</Code>, since the form doesn't add one.</TextBlock>
+<TextBlock>With the script, a text, search, email, phone or URL input of your own applies after a pause in typing, like <Code>FilterSearch</Code>; a select or checkbox applies when it changes; and any other input, such as a number, applies a moment after it changes. Give each one a label, here an <Code>aria-label</Code>, since the form doesn't add one.</TextBlock>
 
 <Heading Level="2">Saying how many match</Heading>
 <TextBlock>New results aren't announced, so show the count in a live region (<Code>aria-live="polite"</Code>) next to the list, as the examples do: screen readers read it each time it changes.</TextBlock>
@@ -76,13 +81,13 @@
         """;
 
     private const string OwnFields = """
-        <FilterForm Fields="@(["from"])">
+        <FilterForm Fields="@(["over"])">
             <FilterSearch Placeholder="Search invoices" />
-            <input type="date" name="from" value="@From" aria-label="From" />
+            <input type="number" name="over" value="@Over" min="0" aria-label="Over (USD)" />
         </FilterForm>
 
         @code {
-            [SupplyParameterFromQuery(Name = "from")] private string? From { get; set; }
+            [SupplyParameterFromQuery(Name = "over")] private decimal? Over { get; set; }
         }
         """;
 }

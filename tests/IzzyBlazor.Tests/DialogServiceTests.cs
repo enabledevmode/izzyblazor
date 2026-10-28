@@ -176,4 +176,14 @@ public class DialogServiceTests : BunitContext
         Assert.Equal("rose", dialogs[0].GetAttribute("data-ib-brand"));
         Assert.Contains("--ib-color-primary: light-dark(#be123c", dialogs[1].GetAttribute("style"));
     }
+
+    [Fact]
+    public async Task A_dialog_can_take_a_width_between_the_sizes()
+    {
+        var service = Setup();
+        var host = Render<DialogHost>();
+        await host.InvokeAsync(() => { _ = service.OpenAsync<Content>("Edit", null, new DialogOptions { Width = Length.Px(560) }); });
+
+        Assert.Contains("--ib-dlgw:560px", host.WaitForElement("dialog").GetAttribute("style"));
+    }
 }
