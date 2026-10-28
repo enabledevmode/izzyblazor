@@ -73,8 +73,8 @@ Auto render modes, see [WebAssembly and Auto](https://izzyblazor.com/docs/get-st
 - **App structure:** AppShell (header, collapsible sidebar, aside, footer, content width), AppBrand, NavMenu,
   SiteNav
 - **Typography:** TextBlock, Heading (with anchor links), Anchor, Code (with syntax highlighting,
-  line numbers and highlighted lines), CodeExample, Kbd, List, Prose, Icon (all of Lucide, plus
-  brand logos)
+  line numbers and highlighted lines), Diff (unified or side by side), CodeExample, Kbd, List,
+  Prose, Icon (all of Lucide, plus brand logos)
 - **Actions:** Button, IconButton, ButtonGroup, ConfirmButton, CopyButton
 - **Forms:** Form, TextField (with add-ons), TextArea, NumberField, Slider, Select, Combobox,
   MultiSelect, Checkbox, CheckboxGroup, Switch, RadioGroup, SegmentedControl, ColorPicker, FileUpload,

@@ -1,0 +1,24 @@
+<Diff OldText="@Before" NewText="@After" Language="json" Fold="false" LineNumbers="false" />
+
+@* hide *@
+@code {
+    private const string Before =
+        """
+        {
+          "retries": 3,
+          "timeoutSeconds": 30,
+          "region": "us-east"
+        }
+        """;
+
+    private const string After =
+        """
+        {
+          "retries": 5,
+          "timeoutSeconds": 30,
+          "region": "us-east",
+          "logLevel": "warning"
+        }
+        """;
+}
+@* /hide *@

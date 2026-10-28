@@ -1,0 +1,25 @@
+<Column Gap="4">
+    <Diff OldText="@Text" NewText="@Text" Title="settings.json" />
+    <Diff OldText="@Text" NewText="@Other" MaxChanges="2" Title="settings.json" />
+</Column>
+
+@* hide *@
+@code {
+    private const string Text =
+        """
+        {
+          "retries": 3,
+          "timeoutSeconds": 30
+        }
+        """;
+
+    private const string Other =
+        """
+        {
+          "retries": 5,
+          "timeoutSeconds": 60,
+          "region": "us-east"
+        }
+        """;
+}
+@* /hide *@
