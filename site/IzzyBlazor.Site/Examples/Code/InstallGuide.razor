@@ -1,44 +1,72 @@
-@* A setup guide: numbered steps, a command with its own copy button, and files with the lines
-   to change highlighted. *@
-<Stack Gap="8" MaxWidth="Length.Prose" Grow>
-    <Stack Gap="2">
-        <Heading Level="1" Size="TextSize.Xl3">Add IzzyBlazor to your app</Heading>
-        <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
-            Four steps in a Blazor Web App on .NET 10. No script tag to add: Blazor loads IzzyBlazor's script by itself.
-        </TextBlock>
-    </Stack>
+@inject NavigationManager Navigation
 
-    <Stack Gap="3">
-        <Heading Level="2" Size="TextSize.Xl">1. Install the package</Heading>
-        <Row Gap="2" Align="Align.Center" Wrap>
-            <Code>dotnet add package IzzyBlazor --prerelease</Code>
-            <CopyButton Text="dotnet add package IzzyBlazor --prerelease" Label="Copy the command" Size="ControlSize.Sm" />
-        </Row>
-    </Stack>
+@* A setup page in a docs site: the steps centered at a reading width under the site's header, a
+   command with its own copy button, files named in their header with the lines to change
+   highlighted, and links to the pages before and after. *@
 
-    <Stack Gap="3">
-        <Heading Level="2" Size="TextSize.Xl">2. Add the stylesheet and the theme</Heading>
-        <TextBlock>Link the stylesheet before your own, and put <Code>IzzyTheme</Code> in the <Code>head</Code>:</TextBlock>
-        <Code Block Language="razor" Title="Components/App.razor" HighlightLines="3,6">@AppHead</Code>
-    </Stack>
+<AppShell Variant="ShellVariant.Flat" ContentWidth="Length.Rem(48)">
+    <AppHeader>
+        <AppBrand Href="@To(null)" Icon="Lucide.BookOpen" Label="Acme Docs" />
+        <Box Grow />
+        <Badge Status="Status.Neutral">v2.4</Badge>
+    </AppHeader>
 
-    <Stack Gap="3">
-        <Heading Level="2" Size="TextSize.Xl">3. Import the components</Heading>
-        <Code Block Language="razor" Title="Components/_Imports.razor">@Imports</Code>
-    </Stack>
+    <AppMain>
+        <Section Spacing="SectionSpacing.Md">
+            <Stack Gap="8">
+                <Stack Gap="2">
+                    <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium" Color="Color.Muted">Get started</TextBlock>
+                    <Heading Level="1" Size="TextSize.Xl3">Add IzzyBlazor to your app</Heading>
+                    <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
+                        Four steps in a Blazor Web App on .NET 10. No script tag to add: Blazor loads IzzyBlazor's script by itself.
+                    </TextBlock>
+                </Stack>
 
-    <Stack Gap="3">
-        <Heading Level="2" Size="TextSize.Xl">4. Register the services</Heading>
-        <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,9">@Startup</Code>
-        <TextBlock Color="Color.Muted">
-            Run it with <Code>dotnet watch</Code>, then read the
-            <Anchor Href="docs/get-started/blazor-web-app">full guide</Anchor> for toasts, dialogs and a first page.
-        </TextBlock>
-    </Stack>
-</Stack>
+                <Alert Status="Status.Info" Title="Before you start">
+                    You need the .NET 10 SDK and a Blazor Web App. <Code>dotnet new blazor -o MyApp</Code> makes one.
+                </Alert>
+
+                <Stack Gap="3">
+                    <Heading Level="2" Size="TextSize.Xl">1. Install the package</Heading>
+                    <Row Gap="2" Align="Align.Center" Wrap>
+                        <Code>dotnet add package IzzyBlazor --prerelease</Code>
+                        <CopyButton Text="dotnet add package IzzyBlazor --prerelease" Label="Copy the command" Size="ControlSize.Sm" />
+                    </Row>
+                </Stack>
+
+                <Stack Gap="3">
+                    <Heading Level="2" Size="TextSize.Xl">2. Add the stylesheet and the theme</Heading>
+                    <TextBlock>Link the stylesheet before your own, and put <Code>IzzyTheme</Code> in the <Code>head</Code>:</TextBlock>
+                    <Code Block Language="razor" Title="Components/App.razor" HighlightLines="3,6">@AppHead</Code>
+                </Stack>
+
+                <Stack Gap="3">
+                    <Heading Level="2" Size="TextSize.Xl">3. Import the components</Heading>
+                    <Code Block Language="razor" Title="Components/_Imports.razor">@Imports</Code>
+                </Stack>
+
+                <Stack Gap="3">
+                    <Heading Level="2" Size="TextSize.Xl">4. Register the services</Heading>
+                    <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,9">@Startup</Code>
+                    <TextBlock Color="Color.Muted">Run it with <Code>dotnet watch</Code>; the next page adds toasts, dialogs and a first page.</TextBlock>
+                </Stack>
+
+                <PrevNext PreviousHref='@To("overview")' PreviousTitle="Overview"
+                          NextHref='@To("first-page")' NextTitle="Your first page" />
+            </Stack>
+        </Section>
+    </AppMain>
+
+    <AppFooter>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">© 2026 Acme</TextBlock>
+    </AppFooter>
+</AppShell>
 
 @* hide *@
 @code {
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? page) => Navigation.GetUriWithQueryParameter("view", page);
+
     private const string AppHead =
         """
         <head>

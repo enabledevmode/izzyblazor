@@ -294,7 +294,7 @@
       ],
       "scenarios": [
         { "id": "install-guide", "title": "Install guide", "member": "Title",
-          "description": "A setup page: numbered steps, a command with its own copy button, and files named in their header with the lines to change highlighted.",
+          "description": "A setup page in a docs site, centered at a reading width: numbered steps, a command with its own copy button, and files named in their header with the lines to change highlighted.",
           "example": { "id": "code-install-guide", "title": "Install guide", "height": 1300, "page": true,
             "notes": {
               "off": "The copy buttons don't appear; the command and the code are still there to select."
@@ -964,11 +964,10 @@
         { "feature": "Shows while Blazor rejoins, retries, fails or is paused", "off": "none", "static": "none", "live": "full" }
       ],
       "examples": [
-        { "id": "reconnect-dialog-states", "title": "Its states", "modes": ["static", "live"],
+        { "id": "reconnect-dialog-states", "title": "Its states", "modes": ["live"],
           "lead": "Put one `ReconnectDialog` in App.razor's body, after `Routes`. These buttons send it the events Blazor sends when the connection drops; each closes after four seconds.",
           "notes": {
-            "static": "This page has the dialog too: its messages and buttons are the same on every page.",
-            "live": "The same dialog; a real disconnect (stop the server) shows it until the circuit comes back." } }
+            "live": "A real disconnect (stop the server) shows it until the circuit comes back." } }
       ]
     },
     {
