@@ -161,6 +161,24 @@ public class NavigationRenderTests : BunitContext
         Assert.Equal(expected, string.Join(' ', items));
     }
 
+    // What a phone shows: the numbers it doesn't hide, and every gap (a phone-only gap marks a run it hides).
+    [Theory]
+    [InlineData(1, 4, "1 … 4")]
+    [InlineData(3, 4, "1 2 3 4")] // one number away from any gap stays: its gap would take the same room
+    [InlineData(4, 7, "1 … 4 … 7")]
+    [InlineData(1, 12, "1 … 12")]
+    [InlineData(5, 12, "1 … 5 … 12")]
+    [InlineData(22, 24, "1 … 22 23 24")]
+    [InlineData(1, 10, "1 …", 0)] // no boundaries: the window's far edge isn't kept as if it were the last page
+    public void Pagination_on_phones_marks_every_page_it_leaves_out(int page, int count, string expected, int boundaries = 1)
+    {
+        var cut = Render<Pagination>(p => p.Add(x => x.Page, page).Add(x => x.TotalItems, count * 10).Add(x => x.PageSize, 10).Add(x => x.Boundaries, boundaries));
+
+        var shown = cut.FindAll(".ib-pagination-list > li:not(:first-child, :last-child, .ib-pagination-far)")
+            .Select(li => li.ClassList.Contains("ib-pagination-gap") ? "…" : li.TextContent.Replace("Page", "").Trim());
+        Assert.Equal(expected, string.Join(' ', shown));
+    }
+
     [Fact]
     public void Pagination_links_set_the_query_string()
     {

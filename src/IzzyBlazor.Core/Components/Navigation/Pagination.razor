@@ -29,9 +29,16 @@
 <nav @attributes="AdditionalAttributes" aria-label="@(Label ?? TextDefaults.Pagination)" class="@_class" style="@_style">
     <ul class="ib-pagination-list">
         <li>@PageControl(Math.Max(1, _page - 1), _page <= 1, PreviousLabel ?? TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
-        @{ var gaps = 0; }
-        @foreach (var item in Items())
+        @{ var gaps = 0; var items = Items().ToList(); var far = HiddenOnPhones(items); }
+        @for (var index = 0; index < items.Count; index++)
         {
+            var item = items[index];
+            @* A run of numbers a phone hides, with no gap beside it: a gap shown only on phones takes its place. *@
+            if (NarrowGapBefore(items, far, index))
+            {
+                <li @key="@($"narrow-gap-{item}")" class="ib-pagination-gap ib-pagination-gap-narrow" aria-hidden="true">…</li>
+            }
+
             if (item == 0)
             {
                 <li @key="@($"gap-{++gaps}")" class="ib-pagination-gap" aria-hidden="true">…</li>
@@ -41,7 +48,7 @@
                 @* Keyed by its number, and one button whether it's the current page or not, so the button
                    that was picked keeps focus as it becomes the current page and the row moves. *@
                 var number = item;
-                <li @key="number" class="@FarClass(number)">
+                <li @key="number" class="@(far[index] ? "ib-pagination-far" : null)">
                     <button type="button" class="@ItemClass(number == _page ? "ib-pagination-current" : "")" aria-current="@(number == _page ? "page" : null)" @onclick="() => Pick(number)"><span class="ib-visually-hidden">@((PageLabel ?? TextDefaults.Page) + " ")</span>@number</button>
                 </li>
             }
@@ -51,7 +58,7 @@
             }
             else
             {
-                <li class="@FarClass(item)">@PageLink(item)</li>
+                <li class="@(far[index] ? "ib-pagination-far" : null)">@PageLink(item)</li>
             }
         }
         <li>@PageControl(Math.Min(_count, _page + 1), _page >= _count, NextLabel ?? TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
@@ -178,7 +185,53 @@
     private static string ItemClass(string extra) =>
         extra.Length == 0 ? "ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item" : $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item {extra}";
 
-    private string? FarClass(int number) => Math.Abs(number - _page) > 1 ? "ib-pagination-far" : null;
+    // What a phone hides: every number but the current page and the first and last pages, so the row fits a
+    // narrow column. A run marks its place with a gap, the server's or one shown only on phones, except a single
+    // number away from any gap, which stays: its gap would take the same room and say less.
+    private bool[] HiddenOnPhones(List<int> items)
+    {
+        var far = new bool[items.Count];
+        for (var start = 0; start < items.Count; start++)
+        {
+            if (!Drops(items[start]) || (start > 0 && Drops(items[start - 1])))
+            {
+                continue;
+            }
+
+            var end = start;
+            while (end + 1 < items.Count && Drops(items[end + 1]))
+            {
+                end++;
+            }
+
+            var besideGap = (start > 0 && items[start - 1] == 0) || (end + 1 < items.Count && items[end + 1] == 0);
+            for (var i = start; i <= end; i++)
+            {
+                far[i] = end > start || besideGap;
+            }
+        }
+
+        return far;
+
+        bool Drops(int number) => number != 0 && number != _page && number != 1 && number != _count;
+    }
+
+    // At the start of a run a phone hides, unless a gap is already beside the run.
+    private static bool NarrowGapBefore(List<int> items, bool[] far, int index)
+    {
+        if (!far[index] || (index > 0 && (items[index - 1] == 0 || far[index - 1])))
+        {
+            return false;
+        }
+
+        var end = index;
+        while (end + 1 < items.Count && far[end + 1])
+        {
+            end++;
+        }
+
+        return end + 1 >= items.Count || items[end + 1] != 0;
+    }
 
     private Task Pick(int number) => number == _page ? Task.CompletedTask : PageChanged.InvokeAsync(number);
 

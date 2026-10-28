@@ -12,7 +12,9 @@ import { TypingGuard, changedFromServer, navigateTo } from "../filtering";
  *   Here the boxes apply after a pause in typing, selects when they change and Enter at once:
  *   the element puts the values in the URL, drops this table's page number and navigates through
  *   Blazor, which keeps the page in place. (Filters kept in the component on interactive pages
- *   don't carry data-ib-filter, so this leaves them alone.)
+ *   don't carry data-ib-filter, so this leaves them alone.) A header filter's panel stays open
+ *   while you type; Enter applies and closes it, Escape closes it as it is, and either puts focus
+ *   back on its button.
  * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
  *   it presses the table's hidden "load next" button, as Load more does without moving focus.
  *   The visible button stays for the keyboard.
@@ -126,10 +128,17 @@ class Table extends IzzyElement {
     this.addEventListener(
       "keydown",
       (event) => {
+        // Escape closes the panel and leaves the filter as it is (a search box would clear itself first); a value
+        // typed before it still applies after the usual pause. Not while an IME is composing: Escape cancels that.
+        if (event.key === "Escape" && isFilter(event.target) && !event.isComposing && !this.#typing.composing && this.#closePanel(event.target)) {
+          event.preventDefault();
+          return;
+        }
         if (event.key !== "Enter" || !isFilter(event.target) || this.#typing.composing) return;
         event.preventDefault(); // Not the GET form's full reload.
         clearTimeout(this.#timer);
         this.#apply(false);
+        this.#closePanel(event.target);
       },
       { signal }
     );
@@ -151,6 +160,20 @@ class Table extends IzzyElement {
       if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date") this.#typed(active);
       else this.#apply(false);
     }
+  }
+
+  /**
+   * Closes the open header filter panel holding a control, and puts focus back on the button that opened it. Only
+   * this table's own panels: a row filter, or a table inside a popover, closes nothing.
+   */
+  #closePanel(control: EventTarget | null): boolean {
+    const panel = control instanceof Element ? control.closest(".ib-table-filter-panel")?.closest<HTMLElement>("[popover]") : null;
+    if (!panel || !this.contains(panel) || !panel.matches(":popover-open")) return false;
+    const trigger = this.querySelector<HTMLElement>(`[popovertarget="${CSS.escape(panel.id)}"]`);
+    if (!trigger) return false;
+    panel.hidePopover();
+    trigger.focus();
+    return true;
   }
 
   #typed(input: HTMLInputElement): void {

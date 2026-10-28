@@ -1063,6 +1063,11 @@
       overflow: hidden;
     }
 
+    /* A menu in the header or footer spans the rail, so its items are the body's width. */
+    .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot > .ib-nav {
+      align-self: stretch;
+    }
+
     .ib-shell-sidebar-bp-sm:has(.ib-shell-collapse-input:checked) .ib-nav-item {
       justify-content: center;
       gap: 0;
@@ -1260,6 +1265,11 @@
       align-items: center;
       width: 100%;
       overflow: hidden;
+    }
+
+    /* A menu in the header or footer spans the rail, so its items are the body's width. */
+    .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot > .ib-nav {
+      align-self: stretch;
     }
 
     .ib-shell-sidebar-bp-md:has(.ib-shell-collapse-input:checked) .ib-nav-item {
@@ -1461,6 +1471,11 @@
       overflow: hidden;
     }
 
+    /* A menu in the header or footer spans the rail, so its items are the body's width. */
+    .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot > .ib-nav {
+      align-self: stretch;
+    }
+
     .ib-shell-sidebar-bp-lg:has(.ib-shell-collapse-input:checked) .ib-nav-item {
       justify-content: center;
       gap: 0;
@@ -1658,6 +1673,11 @@
       align-items: center;
       width: 100%;
       overflow: hidden;
+    }
+
+    /* A menu in the header or footer spans the rail, so its items are the body's width. */
+    .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-shell-sidebar-slot > .ib-nav {
+      align-self: stretch;
     }
 
     .ib-shell-sidebar-bp-xl:has(.ib-shell-collapse-input:checked) .ib-nav-item {
