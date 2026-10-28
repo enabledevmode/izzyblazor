@@ -13,7 +13,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
     /// <summary>The shared instance.</summary>
     public static IzzyCodeHighlighter Instance { get; } = new();
 
-    private enum Lang { None, CSharp, Razor, Html, Css, Js, Json, Shell }
+    private enum Lang { None, CSharp, Razor, Html, Xml, Css, Js, Json, Shell }
 
     /// <summary>The language names this highlighter understands (case doesn't matter).</summary>
     public static IReadOnlyCollection<string> Languages => Names.Keys;
@@ -22,7 +22,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
     {
         ["c#"] = Lang.CSharp, ["cs"] = Lang.CSharp, ["csharp"] = Lang.CSharp,
         ["razor"] = Lang.Razor, ["cshtml"] = Lang.Razor, ["blazor"] = Lang.Razor,
-        ["html"] = Lang.Html, ["xml"] = Lang.Html, ["svg"] = Lang.Html, ["xaml"] = Lang.Html, ["csproj"] = Lang.Html,
+        ["html"] = Lang.Html, ["svg"] = Lang.Html, ["xml"] = Lang.Xml, ["xaml"] = Lang.Xml, ["csproj"] = Lang.Xml,
         ["css"] = Lang.Css, ["scss"] = Lang.Css,
         ["js"] = Lang.Js, ["javascript"] = Lang.Js, ["mjs"] = Lang.Js, ["ts"] = Lang.Js, ["typescript"] = Lang.Js,
         ["json"] = Lang.Json, ["jsonc"] = Lang.Json,
@@ -93,6 +93,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
             case Lang.CSharp: CLike(output, 0, code.Length, csharp: true); break;
             case Lang.Razor: Markup(output, 0, code.Length, razor: true); break;
             case Lang.Html: Markup(output, 0, code.Length, razor: false); break;
+            case Lang.Xml: Markup(output, 0, code.Length, razor: false, xml: true); break;
             case Lang.Css: Css(output, 0, code.Length); break;
             case Lang.Js: CLike(output, 0, code.Length, csharp: false); break;
             case Lang.Json: Json(output, 0, code.Length); break;
@@ -462,7 +463,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
 
     // ---- HTML, XML and Razor ----
 
-    private static void Markup(Output o, int start, int end, bool razor)
+    private static void Markup(Output o, int start, int end, bool razor, bool xml = false)
     {
         var s = o.Code;
         var i = start;
@@ -494,10 +495,22 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
                     continue;
                 }
 
+                // A CDATA section is text, "<" and ">" included.
+                if (string.CompareOrdinal(s, i, "<![CDATA[", 0, 9) == 0)
+                {
+                    var j = After(s, "]]>", i + 9, end);
+                    var close = j - i >= 12 && string.CompareOrdinal(s, j - 3, "]]>", 0, 3) == 0 ? j - 3 : j;
+                    o.Add(CodeTokenKind.Meta, i, i + 9);
+                    o.Add(CodeTokenKind.String, i + 9, close);
+                    o.Add(CodeTokenKind.Meta, close, j);
+                    i = j;
+                    continue;
+                }
+
                 var n = s[i + 1];
                 if (char.IsLetter(n) || n == '/' || n == '!' || n == '?')
                 {
-                    i = Tag(o, i, end, razor);
+                    i = Tag(o, i, end, razor, xml);
                     continue;
                 }
             }
@@ -657,7 +670,7 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
         return e;
     }
 
-    private static int Tag(Output o, int i, int end, bool razor)
+    private static int Tag(Output o, int i, int end, bool razor, bool xml)
     {
         var s = o.Code;
         var j = i + 1;
@@ -731,8 +744,8 @@ public sealed class IzzyCodeHighlighter : ICodeHighlighter
             j = a;
         }
 
-        // Script and style contents are JavaScript and CSS.
-        if (s[i + 1] != '/' && (name.Equals("script", StringComparison.OrdinalIgnoreCase) || name.Equals("style", StringComparison.OrdinalIgnoreCase)))
+        // Script and style contents are JavaScript and CSS, in HTML (an XML element may have either name).
+        if (!xml && s[i + 1] != '/' && (name.Equals("script", StringComparison.OrdinalIgnoreCase) || name.Equals("style", StringComparison.OrdinalIgnoreCase)))
         {
             var close = s.IndexOf("</" + name, j, end - j, StringComparison.OrdinalIgnoreCase);
             var bodyEnd = close < 0 ? end : close;

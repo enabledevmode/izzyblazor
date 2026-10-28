@@ -1,0 +1,415 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Rendering
+@using Microsoft.Extensions.DependencyInjection
+@inject IServiceProvider Services
+@attribute [ModeSupport]
+
+@*
+    Diff: the lines two texts differ by, with old and new line numbers, the lines removed and added
+    marked, the changed words inside them marked, and long runs of unchanged lines folded. Computed
+    and colored on the server, so it needs no script.
+
+    <Diff OldText="@before" NewText="@after" Language="xml" Title="rules.xml" />
+
+    The texts are compared line by line (TextDiff.Compare, Myers's algorithm); give Lines instead
+    for a diff computed elsewhere. Unchanged runs more than Context lines from a change fold into a
+    "12 unchanged lines" row that opens in place (a native details); the folded lines are still in
+    the page. Layout Split puts the old text beside the new, and shows as Unified where the diff is
+    narrower than 45rem. With a Language, each text is colored whole as Code colors it, so a
+    comment across lines keeps its color. Texts that differ by more than MaxChanges lines aren't
+    compared: a note says so.
+
+    Accessibility:
+    - The lines are a tab stop, so they can be scrolled from the keyboard: a group named by `Title`,
+      or "Changes" without one, described by the counts ("3 added, 1 removed").
+    - Each removed or added line starts with "Removed:" or "Added:" for screen readers; the visible
+      `+` and `−`, the line numbers and that text aren't copied with the lines.
+    - Colors aren't the only mark: removed and added lines have their sign, also in forced colors.
+    - A folded run is a `summary`, opened with Enter or Space, read as collapsed or expanded.
+    - In Split, unchanged lines are read once (the old side's copy is hidden from screen readers).
+    See also: Code.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    @if (Title is not null || _blocks is { Count: > 0 })
+    {
+        <div class="ib-diff-head">
+            @if (Title is not null)
+            {
+                <span class="ib-diff-title" id="@TitleId">@Title</span>
+            }
+            @if (_blocks is { Count: > 0 })
+            {
+                <span class="ib-diff-stats" aria-hidden="true"><span class="ib-diff-stat-added">+@_added.ToString("N0", CultureInfo.CurrentCulture)</span> <span class="ib-diff-stat-removed">−@_removed.ToString("N0", CultureInfo.CurrentCulture)</span></span>
+                <span hidden id="@SummaryId">@string.Format(CultureInfo.CurrentCulture, TextDefaults.DiffSummary, _added, _removed)</span>
+            }
+        </div>
+    }
+    @if (_blocks is { Count: > 0 } blocks)
+    {
+        <div class="ib-diff-body" tabindex="0" role="group" aria-labelledby="@(Title is null ? null : TitleId)" aria-label="@(Title is null ? TextDefaults.DiffBlock : null)" aria-describedby="@SummaryId">
+            <div class="ib-diff-lines">
+                @foreach (var block in blocks)
+                {
+                    if (block.Kind == DiffBlockKind.Fold)
+                    {
+                        <details class="ib-diff-fold" @key="block.Old[0]">
+                            <summary class="ib-diff-fold-summary"><Icon Role="IconRole.ChevronRight" Class="ib-diff-fold-chevron" />@string.Format(CultureInfo.CurrentCulture, TextDefaults.DiffUnchanged, block.Old.Count)</summary>
+                            @RenderBlock(block)
+                        </details>
+                    }
+                    else
+                    {
+                        @RenderBlock(block)
+                    }
+                }
+            </div>
+        </div>
+    }
+    else
+    {
+        <p class="ib-diff-note">@(_lines is null ? TooManyText ?? string.Format(CultureInfo.CurrentCulture, TextDefaults.DiffTooMany, MaxChanges) : SameText ?? TextDefaults.DiffSame)</p>
+    }
+</div>
+
+@code {
+    /// <summary>The old text. Line ends <c>\n</c>, <c>\r\n</c> and <c>\r</c> all count as one.</summary>
+    [Parameter] public string? OldText { get; set; }
+
+    /// <summary>The new text.</summary>
+    [Parameter] public string? NewText { get; set; }
+
+    /// <summary>
+    /// A diff computed elsewhere, such as by <see cref="TextDiff.Compare"/>, in place of <see cref="OldText"/> and
+    /// <see cref="NewText"/>: every line of both texts, in order.
+    /// </summary>
+    [Parameter] public IReadOnlyList<DiffLine>? Lines { get; set; }
+
+    /// <summary>
+    /// The language, such as "xml", "csharp" or "json": colors the lines as <see cref="Code"/> does, when the
+    /// highlighter knows it (see <see cref="IzzyCodeHighlighter.Languages"/>).
+    /// </summary>
+    [Parameter] public string? Language { get; set; }
+
+    /// <summary>Colors the lines by <see cref="Language"/>. Defaults to true.</summary>
+    [Parameter] public bool Highlight { get; set; } = true;
+
+    /// <summary>A file name or caption, such as "rules.xml" or "v3 → v4", in a header row above the lines.</summary>
+    [Parameter] public string? Title { get; set; }
+
+    /// <summary>
+    /// <see cref="DiffLayout.Unified"/> (the default): one column, removed lines before added. <see cref="DiffLayout.Split"/>:
+    /// the old text beside the new, shown as unified where the diff is narrower than 45rem.
+    /// </summary>
+    [Parameter] public DiffLayout Layout { get; set; }
+
+    /// <summary>The unchanged lines kept on each side of a change when the rest are folded. Defaults to 3.</summary>
+    [Parameter] public int Context { get; set; } = 3;
+
+    /// <summary>Folds runs of unchanged lines away from the changes into a row that opens them. Defaults to true.</summary>
+    [Parameter] public bool Fold { get; set; } = true;
+
+    /// <summary>
+    /// Marks the changed words of a removed line and the added line paired with it. Defaults to true. A pair isn't
+    /// marked when less than half of the longer line is unchanged.
+    /// </summary>
+    [Parameter] public bool MarkWords { get; set; } = true;
+
+    /// <summary>Shows the old and new line numbers. Defaults to true. They aren't selected or copied with the lines.</summary>
+    [Parameter] public bool LineNumbers { get; set; } = true;
+
+    /// <summary>The tallest the lines get before they scroll, such as <c>Length.Rem(30)</c>.</summary>
+    [Parameter] public Length? MaxHeight { get; set; }
+
+    /// <summary>
+    /// The most lines removed and added to look for. Texts that differ by more show <see cref="TooManyText"/>.
+    /// Defaults to 1,000.
+    /// </summary>
+    [Parameter] public int MaxChanges { get; set; } = TextDiff.DefaultMaxChanges;
+
+    /// <summary>Shown when the two texts are the same. Defaults to "The two texts are the same."</summary>
+    [Parameter] public string? SameText { get; set; }
+
+    /// <summary>Shown when the texts differ by more than <see cref="MaxChanges"/> lines.</summary>
+    [Parameter] public string? TooManyText { get; set; }
+
+    private string? _class;
+    private string? _style;
+    private string? _titleId;
+    private string? _summaryId;
+
+    private string TitleId => _titleId ??= IdGenerator.Next("ib-diff-title");
+
+    private string SummaryId => _summaryId ??= IdGenerator.Next("ib-diff-summary");
+
+    // The diff (null when too many lines changed), its runs (null when nothing changed), and per line its index among
+    // the old text's lines and among the new text's (-1 where it has none).
+    private IReadOnlyList<DiffLine>? _lines;
+    private List<DiffBlock>? _blocks;
+    private int[] _oldAt = [];
+    private int[] _newAt = [];
+    private int _added;
+    private int _removed;
+    private int _digits;
+    private List<List<CodeToken>>? _oldTokens;
+    private List<List<CodeToken>>? _newTokens;
+    private Dictionary<int, (List<(int Start, int End)> Old, List<(int Start, int End)> New)>? _marks;
+    private object? _computedFor;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-diff");
+        classes.Add(Layout == DiffLayout.Split ? "ib-diff-split" : "ib-diff-unified");
+        classes.Add("ib-diff-numbered", LineNumbers);
+        if (MaxHeight is { } maxHeight)
+        {
+            classes.Add("ib-diff-sized");
+            styles.AddVar("diff-maxh", StyleValues.Length(maxHeight));
+        }
+
+        styles.AddVar("diff-digits", _digits.ToString(CultureInfo.InvariantCulture));
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Lines is not null && (OldText is not null || NewText is not null))
+        {
+            throw new InvalidOperationException("Diff takes either Lines or OldText and NewText, not both.");
+        }
+
+        ArgumentOutOfRangeException.ThrowIfNegative(Context);
+        ArgumentOutOfRangeException.ThrowIfNegative(MaxChanges);
+
+        // Compare again only when what the diff is made from changes.
+        var key = (OldText, NewText, Lines, Language, Highlight, Context, Fold, MarkWords, MaxChanges);
+        if (!Equals(key, _computedFor))
+        {
+            _computedFor = key;
+            Compute();
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+
+    private void Compute()
+    {
+        _lines = Lines ?? TextDiff.Compare(OldText ?? "", NewText ?? "", MaxChanges);
+        _blocks = null;
+        _oldTokens = _newTokens = null;
+        _marks = null;
+        if (_lines is null)
+        {
+            _digits = 0;
+            return;
+        }
+
+        // Each line's place in the old and new texts, by order, so Lines with gaps in their numbers still match up.
+        _oldAt = new int[_lines.Count];
+        _newAt = new int[_lines.Count];
+        var (oldCount, newCount) = (0, 0);
+        _added = _removed = 0;
+        var widest = 0;
+        for (var i = 0; i < _lines.Count; i++)
+        {
+            var line = _lines[i];
+            _oldAt[i] = line.Kind == DiffKind.Added ? -1 : oldCount++;
+            _newAt[i] = line.Kind == DiffKind.Removed ? -1 : newCount++;
+            _added += line.Kind == DiffKind.Added ? 1 : 0;
+            _removed += line.Kind == DiffKind.Removed ? 1 : 0;
+            widest = Math.Max(widest, Math.Max(line.OldNumber ?? 0, line.NewNumber ?? 0));
+        }
+
+        _digits = widest.ToString(CultureInfo.InvariantCulture).Length;
+        if (_added + _removed == 0)
+        {
+            return;
+        }
+
+        _blocks = DiffBlocks.Build(_lines, Context, Fold);
+        if (Highlight && Language is not null)
+        {
+            var highlighter = Services.GetService<ICodeHighlighter>() ?? IzzyCodeHighlighter.Instance;
+            _oldTokens = Tokens(highlighter, DiffKind.Added, oldCount);
+            _newTokens = Tokens(highlighter, DiffKind.Removed, newCount);
+        }
+
+        if (MarkWords)
+        {
+            _marks = [];
+            foreach (var block in _blocks)
+            {
+                if (block.Kind != DiffBlockKind.Change)
+                {
+                    continue;
+                }
+
+                for (var row = 0; row < Math.Min(block.Old.Count, block.New.Count); row++)
+                {
+                    if (DiffBlocks.Words(_lines[block.Old[row]].Text, _lines[block.New[row]].Text) is { } marks)
+                    {
+                        _marks[block.Old[row]] = marks;
+                        _marks[block.New[row]] = marks;
+                    }
+                }
+            }
+        }
+    }
+
+    // One side's text colored whole and cut into its lines; null when the language isn't known.
+    private List<List<CodeToken>>? Tokens(ICodeHighlighter highlighter, DiffKind other, int count)
+    {
+        if (count == 0)
+        {
+            return [];
+        }
+
+        var text = string.Join('\n', _lines!.Where(line => line.Kind != other).Select(line => line.Text)) + "\n";
+        if (!highlighter.TryHighlight(text, Language!, out var tokens))
+        {
+            return null;
+        }
+
+        var lines = Code.SplitLines(tokens);
+        return lines.Count == count ? lines : null;
+    }
+
+    private RenderFragment RenderBlock(DiffBlock block) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", block.Kind == DiffBlockKind.Change ? "ib-diff-block ib-diff-change" : "ib-diff-block ib-diff-same");
+        builder.AddAttribute(2, "style", string.Create(CultureInfo.InvariantCulture, $"--ib-diff-rows: {block.Rows}"));
+
+        // An unchanged run is drawn once, on the new side; split also draws the old side's copy, hidden from screen
+        // readers so each line is heard once.
+        if (block.Kind == DiffBlockKind.Change || Layout == DiffLayout.Split)
+        {
+            builder.OpenElement(3, "div");
+            builder.AddAttribute(4, "class", "ib-diff-side ib-diff-old");
+            builder.AddAttribute(5, "aria-hidden", block.Kind == DiffBlockKind.Change ? null : "true");
+            foreach (var index in block.Old)
+            {
+                RenderLine(builder, index, oldSide: true);
+            }
+
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(6, "div");
+        builder.AddAttribute(7, "class", "ib-diff-side ib-diff-new");
+        foreach (var index in block.New)
+        {
+            RenderLine(builder, index, oldSide: false);
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private void RenderLine(RenderTreeBuilder builder, int index, bool oldSide)
+    {
+        var line = _lines![index];
+        var (element, kind) = line.Kind switch
+        {
+            DiffKind.Removed => ("del", "ib-diff-line ib-diff-removed"),
+            DiffKind.Added => ("ins", "ib-diff-line ib-diff-added"),
+            _ => ("div", "ib-diff-line"),
+        };
+
+        builder.OpenElement(10, element);
+        builder.AddAttribute(11, "class", kind);
+        if (LineNumbers)
+        {
+            builder.OpenElement(12, "span");
+            builder.AddAttribute(13, "class", "ib-diff-num");
+            builder.AddAttribute(14, "data-old", line.OldNumber?.ToString(CultureInfo.InvariantCulture) ?? "");
+            builder.AddAttribute(15, "data-new", line.NewNumber?.ToString(CultureInfo.InvariantCulture) ?? "");
+            builder.AddAttribute(16, "aria-hidden", "true");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(17, "span");
+        builder.AddAttribute(18, "class", "ib-diff-sign");
+        builder.AddAttribute(19, "aria-hidden", "true");
+        builder.CloseElement();
+        if (line.Kind != DiffKind.Same)
+        {
+            builder.OpenElement(20, "span");
+            builder.AddAttribute(21, "class", "ib-diff-sr");
+            builder.AddContent(22, (line.Kind == DiffKind.Added ? TextDefaults.DiffAdded : TextDefaults.DiffRemoved) + " ");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(23, "span");
+        builder.AddAttribute(24, "class", "ib-diff-text");
+        var fromOld = line.Kind == DiffKind.Removed || (oldSide && line.Kind == DiffKind.Same);
+        var tokens = fromOld ? _oldTokens?[_oldAt[index]] : _newTokens?[_newAt[index]];
+        var marks = _marks is not null && _marks.TryGetValue(index, out var pair) ? line.Kind == DiffKind.Removed ? pair.Old : pair.New : null;
+        RenderText(builder, tokens ?? [new CodeToken(CodeTokenKind.Text, line.Text)], marks);
+
+        // An empty line holds a break, or a copy would leave it out.
+        if (line.Text.Length == 0)
+        {
+            builder.AddMarkupContent(25, "<br>");
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+    }
+
+    // The line's tokens, with the changed words' ranges wrapped in a span; a token a range starts or ends in is cut there.
+    private static void RenderText(RenderTreeBuilder builder, List<CodeToken> tokens, List<(int Start, int End)>? marks)
+    {
+        var at = 0;
+        var mark = 0;
+        foreach (var token in tokens)
+        {
+            var end = at + token.Text.Length;
+            var from = at;
+            while (from < end)
+            {
+                while (marks is not null && mark < marks.Count && marks[mark].End <= from)
+                {
+                    mark++;
+                }
+
+                var inside = marks is not null && mark < marks.Count && marks[mark].Start <= from;
+                var to = inside ? Math.Min(marks![mark].End, end) : marks is not null && mark < marks.Count ? Math.Min(marks[mark].Start, end) : end;
+                var piece = token with { Text = token.Text[(from - at)..(to - at)] };
+                if (inside)
+                {
+                    builder.OpenElement(30, "span");
+                    builder.AddAttribute(31, "class", "ib-diff-word");
+                    RenderToken(builder, piece);
+                    builder.CloseElement();
+                }
+                else
+                {
+                    RenderToken(builder, piece);
+                }
+
+                from = to;
+            }
+
+            at = end;
+        }
+    }
+
+    private static void RenderToken(RenderTreeBuilder builder, CodeToken token)
+    {
+        if (token.Kind == CodeTokenKind.Text)
+        {
+            builder.AddContent(40, token.Text);
+            return;
+        }
+
+        builder.OpenElement(41, "span");
+        builder.AddAttribute(42, "class", Code.ClassOf(token.Kind));
+        builder.AddContent(43, token.Text);
+        builder.CloseElement();
+    }
+}

@@ -200,7 +200,7 @@ else
     }
 
     /// <summary>Splits tokens into lines at each newline; a newline at the very end adds no line.</summary>
-    private static List<List<CodeToken>> SplitLines(IReadOnlyList<CodeToken> tokens)
+    internal static List<List<CodeToken>> SplitLines(IReadOnlyList<CodeToken> tokens)
     {
         var lines = new List<List<CodeToken>> { new() };
         foreach (var token in tokens)
@@ -331,7 +331,7 @@ else
         builder.CloseElement();
     }
 
-    private static string ClassOf(CodeTokenKind kind) => kind switch
+    internal static string ClassOf(CodeTokenKind kind) => kind switch
     {
         CodeTokenKind.Comment => "ib-tok-comment",
         CodeTokenKind.Keyword => "ib-tok-keyword",

@@ -338,6 +338,27 @@ public class IzzyText
     /// <summary>Announced after copying.</summary>
     public virtual string Copied { get; set; } = "Copied";
 
+    /// <summary>A diff's name for screen readers when it has no Title (it's a tab stop, so it can scroll).</summary>
+    public virtual string DiffBlock { get; set; } = "Changes";
+
+    /// <summary>For screen readers, before each line a diff adds.</summary>
+    public virtual string DiffAdded { get; set; } = "Added:";
+
+    /// <summary>For screen readers, before each line a diff removes.</summary>
+    public virtual string DiffRemoved { get; set; } = "Removed:";
+
+    /// <summary>A diff's folded run of unchanged lines. {0} is how many (always 2 or more).</summary>
+    public virtual string DiffUnchanged { get; set; } = "{0:N0} unchanged lines";
+
+    /// <summary>For screen readers, a diff's counts. {0} is the lines added, {1} the lines removed.</summary>
+    public virtual string DiffSummary { get; set; } = "{0:N0} added, {1:N0} removed";
+
+    /// <summary>A diff's note when the two texts are the same.</summary>
+    public virtual string DiffSame { get; set; } = "The two texts are the same.";
+
+    /// <summary>A diff's note when the texts differ by too many lines to compare. {0} is the most it compares.</summary>
+    public virtual string DiffTooMany { get; set; } = "The texts differ by more than {0:N0} lines, too many to show line by line.";
+
     /// <summary>After a link that opens a new tab.</summary>
     public virtual string OpensInNewTab { get; set; } = "(opens in a new tab)";
 

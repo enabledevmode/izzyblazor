@@ -361,6 +361,311 @@
 }
 
 /*
+ * Diff: lines in blocks (an unchanged run, a change's removed then added lines, a fold). Each block
+ * has an old and a new side: unified stacks them, which is unified order; split puts them in two
+ * columns whose rows the sides share (subgrid), so a line sits beside the one it became even when
+ * lines wrap. An unchanged run is drawn on the new side with both numbers; split also draws the old
+ * side's copy, which unified (and split below 45rem) hides. Numbers and signs are generated
+ * content, so they aren't selected or copied.
+ */
+@layer izzy.components {
+  .ib-diff {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    overflow: hidden;
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    --ib-code-fill: light-dark(var(--ib-color-fill-subtle), var(--ib-color-fill));
+    /* Code's colors keep 4.5:1 on every tint, so the tints stay light: rows a half step, changed
+       words a little more, with an underline that carries the difference. */
+    --ib-diff-added-bg: light-dark(color-mix(in oklab, var(--ib-color-success-soft) 55%, var(--ib-code-fill)), var(--ib-color-success-soft));
+    --ib-diff-removed-bg: light-dark(color-mix(in oklab, var(--ib-color-danger-soft) 55%, var(--ib-code-fill)), var(--ib-color-danger-soft));
+    --ib-diff-word-added-bg: light-dark(color-mix(in oklab, var(--ib-color-success-soft) 92%, var(--ib-code-fill)), color-mix(in oklab, var(--ib-color-success) 6%, var(--ib-color-success-soft)));
+    --ib-diff-word-removed-bg: light-dark(color-mix(in oklab, var(--ib-color-danger-soft) 92%, var(--ib-code-fill)), color-mix(in oklab, var(--ib-color-danger) 6%, var(--ib-color-danger-soft)));
+    --ib-diff-filler: repeating-linear-gradient(-45deg, transparent 0 4px, color-mix(in oklab, var(--ib-color-border) 45%, transparent) 4px 5px);
+    background-color: var(--ib-code-fill);
+  }
+
+  .ib-diff-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    min-height: calc(2.5rem + 1px);
+    padding: 0 var(--ib-space-4);
+    border-bottom: 1px solid var(--ib-color-border);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-text-xs);
+  }
+
+  .ib-diff-title {
+    min-width: 0;
+    overflow: hidden;
+    color: var(--ib-color-muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-diff-stats {
+    margin-inline-start: auto;
+    white-space: nowrap;
+  }
+
+  .ib-diff-stat-added,
+  .ib-diff-stat-removed {
+    direction: ltr;
+    unicode-bidi: isolate;
+  }
+
+  .ib-diff-stat-added { color: var(--ib-color-success-text); }
+  .ib-diff-stat-removed { color: var(--ib-color-danger-text); }
+
+  .ib-diff-note {
+    margin: 0;
+    padding: var(--ib-space-4);
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-diff-body {
+    overflow: auto;
+    padding-block: var(--ib-space-2);
+    font-family: var(--ib-font-mono);
+    font-size: var(--ib-text-sm);
+    line-height: var(--ib-leading-normal);
+    tab-size: 4;
+    /* Every character counts in a diff: "->" or "!=" drawn as one glyph would hide a change. */
+    font-variant-ligatures: none;
+  }
+
+  .ib-diff-sized .ib-diff-body {
+    max-height: var(--ib-diff-maxh);
+  }
+
+  .ib-diff-body:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  /* Unified scrolls sideways, each line's tint as wide as the longest line. */
+  .ib-diff-lines {
+    width: max-content;
+    min-width: 100%;
+  }
+
+  .ib-diff-same > .ib-diff-old {
+    display: none;
+  }
+
+  .ib-diff-line {
+    display: flex;
+    min-height: 1lh;
+    padding-inline-end: var(--ib-space-4);
+    color: var(--ib-color-on-surface);
+    text-decoration: none;
+  }
+
+  .ib-diff-removed { background-color: var(--ib-diff-removed-bg); }
+  .ib-diff-added { background-color: var(--ib-diff-added-bg); }
+
+  .ib-diff-num {
+    display: flex;
+    flex-shrink: 0;
+    gap: var(--ib-space-2);
+    padding-inline-start: var(--ib-space-3);
+    color: var(--ib-color-subtle);
+    user-select: none;
+  }
+
+  .ib-diff-num::before,
+  .ib-diff-num::after {
+    width: calc(var(--ib-diff-digits, 2) * 1ch);
+    text-align: end;
+  }
+
+  .ib-diff-num::before {
+    content: attr(data-old);
+    content: attr(data-old) / "";
+  }
+
+  .ib-diff-num::after {
+    content: attr(data-new);
+    content: attr(data-new) / "";
+  }
+
+  .ib-diff-sign {
+    flex-shrink: 0;
+    width: 3ch;
+    text-align: center;
+    user-select: none;
+  }
+
+  .ib-diff-removed > .ib-diff-sign::before {
+    content: "−";
+    content: "−" / "";
+    color: var(--ib-color-danger-text);
+  }
+
+  .ib-diff-added > .ib-diff-sign::before {
+    content: "+";
+    content: "+" / "";
+    color: var(--ib-color-success-text);
+  }
+
+  /* "Removed:" and "Added:" for screen readers, left out of a copy. */
+  .ib-diff-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    user-select: none;
+  }
+
+  /* Each line's direction from its own text: code stays left to right on a right-to-left page. */
+  .ib-diff-text {
+    flex: 1;
+    min-width: 0;
+    white-space: pre;
+    unicode-bidi: plaintext;
+  }
+
+  /* Split draws unchanged lines on both sides; the old side's copy isn't selected, so a copy has
+     each line once. */
+  .ib-diff-same > .ib-diff-old {
+    user-select: none;
+  }
+
+  .ib-diff-removed .ib-diff-word {
+    background-color: var(--ib-diff-word-removed-bg);
+    box-shadow: inset 0 -2px var(--ib-color-danger);
+  }
+
+  .ib-diff-added .ib-diff-word {
+    background-color: var(--ib-diff-word-added-bg);
+    box-shadow: inset 0 -2px var(--ib-color-success);
+  }
+
+  /* A fold: a row across the lines that opens its unchanged lines in place. Its label stays at the
+     start when the lines scroll sideways. */
+  .ib-diff-fold {
+    background-color: color-mix(in oklab, var(--ib-color-fill-strong) 55%, var(--ib-code-fill));
+  }
+
+  .ib-diff-fold > .ib-diff-block {
+    background-color: var(--ib-code-fill);
+  }
+
+  .ib-diff-fold-summary {
+    position: sticky;
+    inset-inline-start: 0;
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    width: fit-content;
+    padding: var(--ib-space-1) var(--ib-space-3);
+    color: var(--ib-color-muted);
+    font-family: var(--ib-font-body);
+    font-size: var(--ib-text-xs);
+    cursor: pointer;
+    list-style: none;
+    user-select: none;
+  }
+
+  .ib-diff-fold-summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .ib-diff-fold-summary:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-diff-fold-summary:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-diff-fold-chevron {
+    transition: rotate var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-diff-fold[open] > summary .ib-diff-fold-chevron {
+    rotate: 90deg;
+  }
+
+  .ib-diff-fold-chevron:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-diff-fold[open] > summary .ib-diff-fold-chevron:dir(rtl) {
+    rotate: -90deg;
+  }
+
+  /* Split is a container, to show as unified when narrow. A container has no width from its
+     content, so in a parent that shrinks to fit it counts as 45rem wide (or as wide as there's
+     room for), not 0. */
+  .ib-diff-split {
+    container: ib-diff / inline-size;
+    contain-intrinsic-inline-size: 45rem;
+  }
+
+  /* Split wraps its lines in both widths: two columns that each scrolled would need a scrollbar
+     per block. */
+  .ib-diff-split .ib-diff-lines {
+    width: auto;
+  }
+
+  .ib-diff-split .ib-diff-text {
+    white-space: pre-wrap;
+    overflow-wrap: anywhere;
+  }
+
+  @container ib-diff (width >= 45rem) {
+    .ib-diff-split .ib-diff-block {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      grid-template-rows: repeat(var(--ib-diff-rows), auto);
+    }
+
+    .ib-diff-split .ib-diff-side {
+      display: grid;
+      grid-row: 1 / -1;
+      grid-template-rows: subgrid;
+      align-content: start;
+    }
+
+    .ib-diff-split .ib-diff-old { grid-column: 1; }
+
+    .ib-diff-split .ib-diff-new {
+      grid-column: 2;
+      border-inline-start: 1px solid var(--ib-color-border);
+    }
+
+    .ib-diff-split .ib-diff-change > .ib-diff-side {
+      background-image: var(--ib-diff-filler);
+    }
+
+    .ib-diff-split .ib-diff-old .ib-diff-num::after,
+    .ib-diff-split .ib-diff-new .ib-diff-num::before {
+      content: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-diff-sign::before {
+      color: CanvasText;
+    }
+
+    .ib-diff-word {
+      text-decoration: underline 2px;
+      text-underline-offset: 2px;
+    }
+  }
+}
+
+/*
  * List: bullets, numbers or an icon per item, spaced by gap (ib-gap). Icon items are a row: the
  * icon centered on the first line of text, on a whole pixel.
  */
