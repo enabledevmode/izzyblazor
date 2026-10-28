@@ -5,7 +5,7 @@
 @implements IDisposable
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no select-all checkbox, and filters apply when you press Apply, not as you type.")]
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no select-all checkbox, and filters apply when you press Apply, not as you type; empty filters stay in the address (?f-customer=), as with any GET form.")]
 
 @*
     A data table that sorts and pages through the URL: column headers and page numbers are
@@ -42,10 +42,11 @@
 
     Accessibility:
     - `Caption` names the table for screen readers; it isn't shown. It also names the scrolling
-      area, which can be scrolled from the keyboard.
+      area, which can be scrolled from the keyboard; with script it's a Tab stop only while it
+      has something to scroll.
     - Sortable headers are links, and the sorted column has `aria-sort`.
-    - Each filter button is named for its column ("Filter Customer"), and the active filters are a
-      group named "Filters".
+    - Each filter button is named for its column ("Filter Customer"), and so is the field in its
+      panel, by a visible label. The active filters are a group named "Filters".
     - Row checkboxes are named "Select" and the row's `RowLabel` ("Select order 1001"); without
       one, the `ItemKey`.
     - The range under the table ("1–5 of 23") is read when it changes.
@@ -158,14 +159,16 @@
                 {
                     <tr class="ib-table-empty">
                         <td colspan="@Math.Max(1, _columns.Count + (Selectable ? 1 : 0))">
-                            @if (EmptyContent is not null)
-                            {
-                                @EmptyContent
-                            }
-                            else
-                            {
-                                @(EmptyText ?? TextDefaults.NoItems)
-                            }
+                            <div class="ib-table-empty-content">
+                                @if (EmptyContent is not null)
+                                {
+                                    @EmptyContent
+                                }
+                                else
+                                {
+                                    @(EmptyText ?? TextDefaults.NoItems)
+                                }
+                            </div>
                         </td>
                     </tr>
                 }
@@ -651,6 +654,7 @@
         }
         else
         {
+            var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
             <Popover Placement="placement" data-ib-user-controlled>
                 <Trigger>
                     <button type="button" class="ib-table-filter-button" data-active="@(current.Length > 0 ? "" : null)" aria-label="@name" title="@name" @attributes="context">
@@ -658,8 +662,9 @@
                     </button>
                 </Trigger>
                 <ChildContent>
-                    <div class="ib-table-filter-panel">
-                        @FilterInput(column, current, label, autofocus: true)
+                    <div class="ib-table-filter-panel ib-field-sm">
+                        <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
+                        @FilterInput(column, current, label, autofocus: true, id: fieldId)
                         @if (!UseState)
                         {
                             @* With script the field applies as you type; without, Enter or Apply submits. *@
@@ -723,7 +728,9 @@
 
     // A single field: a select for a choice, a date input, or a text box (numbers get a numeric
     // keyboard). Static pages join it to the GET form; bound pages handle its events.
-    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string label, bool autofocus = false) => __builder =>
+    // A header filter's panel shows a label for the field (id); the filter row's fields are named
+    // by aria-label under their column's header.
+    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string label, bool autofocus = false, string? id = null) => __builder =>
     {
         if (column.FilterKind == ColumnFilterKind.Choice)
         {
@@ -731,13 +738,13 @@
                 <div class="ib-field-control ib-has-end">
                     @if (UseState)
                     {
-                        <select class="ib-field-input ib-field-select" aria-label="@label" autofocus="@autofocus" value="@current" @onchange="e => OnFilterAsync(column, e, wait: false)">
+                        <select class="ib-field-input ib-field-select" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" @onchange="e => OnFilterAsync(column, e, wait: false)">
                             @FilterOptions(column, current)
                         </select>
                     }
                     else
                     {
-                        <select class="ib-field-input ib-field-select" aria-label="@label" autofocus="@autofocus" value="@current" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter>
+                        <select class="ib-field-input ib-field-select" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter>
                             @FilterOptions(column, current)
                         </select>
                     }
@@ -754,11 +761,11 @@
                 <div class="ib-field-control">
                     @if (UseState)
                     {
-                        <input type="date" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@day" @onchange="e => OnFilterAsync(column, e, wait: false)" />
+                        <input type="date" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@day" @onchange="e => OnFilterAsync(column, e, wait: false)" />
                     }
                     else
                     {
-                        <input type="date" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@day" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
+                        <input type="date" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@day" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
                     }
                 </div>
             </div>
@@ -770,12 +777,12 @@
                 <div class="ib-field-control">
                     @if (UseState)
                     {
-                        <input type="search" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
+                        <input type="search" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
                                @oninput="e => OnFilterAsync(column, e, wait: true)" />
                     }
                     else
                     {
-                        <input type="search" class="ib-field-input" aria-label="@label" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
+                        <input type="search" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
                                name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
                     }
                 </div>

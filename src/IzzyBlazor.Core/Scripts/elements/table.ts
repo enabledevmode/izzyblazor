@@ -18,6 +18,10 @@ import { TypingGuard, changedFromServer, navigateTo } from "../filtering";
  * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
  *   it presses the table's hidden "load next" button, as Load more does without moving focus.
  *   The visible button stays for the keyboard.
+ * - The scroll box's Tab stop: the server renders it focusable so the keyboard can scroll it with
+ *   no script; here it's a Tab stop only while there's something to scroll. Focused, it stays.
+ *   It also gives the box its visible width (--ib-table-view), which keeps the "no items" message
+ *   centered in view when the columns are wider than the box.
  */
 class Table extends IzzyElement {
   #timer = 0;
@@ -27,6 +31,40 @@ class Table extends IzzyElement {
     this.#setupFilters(signal);
     this.#setupSelectAll(signal);
     this.#setupLoadOnScroll(signal);
+    this.#setupScrollStop(signal);
+  }
+
+  #setupScrollStop(signal: AbortSignal): void {
+    const box = this.querySelector<HTMLElement>(":scope > .ib-table-scroll");
+    if (!box) return;
+    const update = () => {
+      // Hidden (a closed tab or dialog), it measures 0: leave the message its own width until shown.
+      const view = box.clientWidth > 0 ? `${box.clientWidth}px` : "";
+      if (box.style.getPropertyValue("--ib-table-view") !== view) {
+        if (view) box.style.setProperty("--ib-table-view", view);
+        else box.style.removeProperty("--ib-table-view");
+      }
+      const scrolls = box.scrollWidth > box.clientWidth || box.scrollHeight > box.clientHeight;
+      if (scrolls) {
+        if (box.getAttribute("tabindex") !== "0") box.setAttribute("tabindex", "0");
+      } else if (box.hasAttribute("tabindex") && document.activeElement !== box) {
+        box.removeAttribute("tabindex");
+      }
+    };
+    // The box resizes with the window, the table with its rows; enhanced navigation's merge puts
+    // the server's tabindex and style back without changing either.
+    const sizes = new ResizeObserver(update);
+    sizes.observe(box);
+    const grid = box.querySelector(":scope > table");
+    if (grid) sizes.observe(grid);
+    const attributes = new MutationObserver(update);
+    attributes.observe(box, { attributes: true, attributeFilter: ["tabindex", "style"] });
+    box.addEventListener("focusout", update, { signal });
+    signal.addEventListener("abort", () => {
+      sizes.disconnect();
+      attributes.disconnect();
+    });
+    update();
   }
 
   #setupLoadOnScroll(signal: AbortSignal): void {

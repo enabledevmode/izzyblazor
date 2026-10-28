@@ -351,6 +351,12 @@ public class TableFilterRenderTests : BunitContext
         var input = cut.Find("[popover] input[name='f-name']");
         Assert.Equal(cut.Find("form.ib-table-filter-form").Id, input.GetAttribute("form"));
 
+        // Its label is shown above it, so the field has no aria-label of its own.
+        var label = cut.Find($"[popover] label[for='{input.Id}']");
+        Assert.Equal("Filter Name", label.TextContent);
+        Assert.False(input.HasAttribute("aria-label"));
+        Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty']").Id);
+
         // A choice opens a menu whose items set that value (and close the menu).
         var items = cut.FindAll("a.ib-menu-item").Where(a => a.GetAttribute("href")!.Contains("f-status", StringComparison.Ordinal) || a.TextContent.Trim() == "All").ToList();
         Assert.Contains(items, a => a.GetAttribute("href") == "http://localhost/orders?f-status=No");

@@ -4,7 +4,7 @@
     </CardActions>
     <CardBody Flush>
         <Table Items="RecentOrders" Caption="Recent orders" QueryPrefix="recent-">
-            <PropertyColumn Property="o => o.Number" Title="Order" />
+            <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
             <PropertyColumn Property="o => o.Customer" />
             <PropertyColumn Property="o => o.Total" Format="C0" />
         </Table>
