@@ -39,7 +39,7 @@
                 <Card><Stat Label="Rules live" Value="57" Change="+4" Trend="StatTrend.Up" Icon="Lucide.ListChecks" /></Card>
             </Grid>
             <Grid Columns="new() { Base = 1, Lg = 3 }" Gap="4">
-                <Card Title="Busiest rules" Description="By decisions, last 7 days." ColSpan="new() { Lg = 2 }">
+                <Card TitleLevel="2" Title="Busiest rules" Description="By decisions, last 7 days." ColSpan="new() { Lg = 2 }">
                     <Stack Gap="4">
                         @foreach (var (rule, hits) in Busiest)
                         {
@@ -53,7 +53,7 @@
                         }
                     </Stack>
                 </Card>
-                <Card Title="Project">
+                <Card TitleLevel="2" Title="Project">
                     <DescriptionList>
                         <DescriptionItem Term="Owner">Ada Lovelace</DescriptionItem>
                         <DescriptionItem Term="Region">EU (Frankfurt)</DescriptionItem>

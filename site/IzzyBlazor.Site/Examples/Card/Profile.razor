@@ -1,38 +1,57 @@
-<Card Grow MaxWidth="26.Rem">
-    <CardMedia>
-        <svg viewBox="0 0 400 100" preserveAspectRatio="xMidYMid slice" style="height: 5rem" aria-hidden="true">
-            <defs><linearGradient id="profile-cover" x1="0" x2="1"><stop offset="0" stop-color="#0f766e" /><stop offset="1" stop-color="#4f46e5" /></linearGradient></defs>
-            <rect width="400" height="100" fill="url(#profile-cover)" />
-        </svg>
-    </CardMedia>
-    <CardBody Gap="5">
-        <Row Gap="4" Align="Align.Center">
-            <Avatar Name="Ada Lovelace" Size="AvatarSize.Xl" Status="Status.Success" StatusLabel="Online" />
-            <Stack Gap="1" Grow>
-                <Row Gap="2" Align="Align.Center" Wrap>
-                    <Heading Level="2" Size="TextSize.Lg">Ada Lovelace</Heading>
-                    <Badge Accent="Accent.Primary">Admin</Badge>
-                </Row>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Staff engineer, Platform</TextBlock>
+@* A person's page in a team directory: the profile card under the breadcrumb, centered. *@
+<AppShell Variant="ShellVariant.Canvas" ContentWidth="Length.Rem(26)">
+    <AppHeader>
+        <AppBrand Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <Avatar Name="Grace Hopper" />
+    </AppHeader>
+
+    <AppMain>
+        <Section Spacing="SectionSpacing.Sm">
+            <Stack Gap="4">
+                <Breadcrumb>
+                    <BreadcrumbItem>Team</BreadcrumbItem>
+                    <BreadcrumbItem Current>Ada Lovelace</BreadcrumbItem>
+                </Breadcrumb>
+                <Card>
+                    <CardMedia>
+                        <svg viewBox="0 0 400 100" preserveAspectRatio="xMidYMid slice" style="height: 5rem" aria-hidden="true">
+                            <defs><linearGradient id="profile-cover" x1="0" x2="1"><stop offset="0" stop-color="#0f766e" /><stop offset="1" stop-color="#4f46e5" /></linearGradient></defs>
+                            <rect width="400" height="100" fill="url(#profile-cover)" />
+                        </svg>
+                    </CardMedia>
+                    <CardBody Gap="5">
+                        <Row Gap="4" Align="Align.Center">
+                            <Avatar Name="Ada Lovelace" Size="AvatarSize.Xl" Status="Status.Success" StatusLabel="Online" />
+                            <Stack Gap="1" Grow>
+                                <Row Gap="2" Align="Align.Center" Wrap>
+                                    <Heading Level="1" Size="TextSize.Lg">Ada Lovelace</Heading>
+                                    <Badge Accent="Accent.Primary">Admin</Badge>
+                                </Row>
+                                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Staff engineer, Platform</TextBlock>
+                            </Stack>
+                        </Row>
+                        <DescriptionList Size="ControlSize.Sm" Divided>
+                            <DescriptionItem Term="Email"><Anchor Href="mailto:ada@example.com">ada@example.com</Anchor></DescriptionItem>
+                            <DescriptionItem Term="Location">London, UK</DescriptionItem>
+                            <DescriptionItem Term="Local time">4:12 PM (GMT)</DescriptionItem>
+                            <DescriptionItem Term="Joined">March 2024</DescriptionItem>
+                        </DescriptionList>
+                        <Row Gap="2" Wrap>
+                            <Tag Label="Compilers" Size="ControlSize.Sm" />
+                            <Tag Label="Blazor" Size="ControlSize.Sm" />
+                            <Tag Label="Accessibility" Size="ControlSize.Sm" />
+                        </Row>
+                    </CardBody>
+                    <CardFooter>
+                        @* Two equal columns where both labels fit, else one: the buttons are always the same width. *@
+                        <Grid MinChildWidth="11.Rem" Gap="2" Grow>
+                            <Button Href="mailto:ada@example.com" StartIcon="Lucide.Mail">Message</Button>
+                            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Calendar">Schedule a call</Button>
+                        </Grid>
+                    </CardFooter>
+                </Card>
             </Stack>
-        </Row>
-        <DescriptionList Size="ControlSize.Sm" Divided>
-            <DescriptionItem Term="Email"><Anchor Href="mailto:ada@example.com">ada@example.com</Anchor></DescriptionItem>
-            <DescriptionItem Term="Location">London, UK</DescriptionItem>
-            <DescriptionItem Term="Local time">4:12 PM (GMT)</DescriptionItem>
-            <DescriptionItem Term="Joined">March 2024</DescriptionItem>
-        </DescriptionList>
-        <Row Gap="2" Wrap>
-            <Tag Label="Compilers" Size="ControlSize.Sm" />
-            <Tag Label="Blazor" Size="ControlSize.Sm" />
-            <Tag Label="Accessibility" Size="ControlSize.Sm" />
-        </Row>
-    </CardBody>
-    <CardFooter>
-        @* Two equal columns where both labels fit, else one: the buttons are always the same width. *@
-        <Grid MinChildWidth="11.Rem" Gap="2" Grow>
-            <Button Href="mailto:ada@example.com" StartIcon="Lucide.Mail">Message</Button>
-            <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Calendar">Schedule a call</Button>
-        </Grid>
-    </CardFooter>
-</Card>
+        </Section>
+    </AppMain>
+</AppShell>

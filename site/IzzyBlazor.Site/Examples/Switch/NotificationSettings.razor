@@ -1,41 +1,72 @@
 @using System.ComponentModel.DataAnnotations
+@inject NavigationManager Navigation
 
-<Form Model="Model" FormName="switch-notification-settings" OnValidSubmit="Save" MaxWidth="40.Rem" Grow>
-    <Column Gap="1">
-        <Heading Level="2" Size="TextSize.Xl">Notifications</Heading>
-        <TextBlock Color="Color.Muted">Choose what we tell you about, and where.</TextBlock>
-    </Column>
+@* A settings page: its sections down the side, and the notification settings in a card, one
+   form that saves them all. Below 768px the sections go above the form. *@
+<AppShell Variant="ShellVariant.Canvas" ContentWidth="Length.Rem(64)">
+    <AppHeader>
+        <AppBrand Icon="Lucide.Zap" Label="Acme" />
+        <Box Grow />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
 
-    <Fieldset Label="Email" Description="Sent to your account's email address." Icon="Lucide.Mail" Dividers Gap="3">
-        <Switch @bind-Value="Model!.NewDevice" ControlPosition="ControlPosition.End"
-                Hint="An email each time, with a link to sign that device out." />
-        <Switch @bind-Value="Model!.Mentions" ControlPosition="ControlPosition.End"
-                Hint="When someone mentions you or replies to you." />
-        <Switch @bind-Value="Model!.ProductUpdates" ControlPosition="ControlPosition.End"
-                Hint="A short email when something new ships, about once a month." />
-        <Checkbox @bind-Value="Model!.Digest" ControlPosition="ControlPosition.End"
-                  Hint="Everything above in one email, on Monday mornings." />
-    </Fieldset>
+    <AppMain>
+        <Section Spacing="SectionSpacing.Sm">
+            <Stack Gap="6">
+                <Heading Level="1" Size="TextSize.Xl2">Settings</Heading>
+                <Grid Template='new() { Base = "minmax(0, 1fr)", Md = "12rem minmax(0, 1fr)" }' Gap="6" Align="Align.Start">
+                    <NavMenu Label="Settings">
+                        <NavItem Href='@To("profile")' Icon="Lucide.User">Profile</NavItem>
+                        <NavItem Href="@To(null)" Icon="Lucide.Bell">Notifications</NavItem>
+                        <NavItem Href='@To("security")' Icon="Lucide.Shield">Security</NavItem>
+                        <NavItem Href='@To("billing")' Icon="Lucide.CreditCard">Billing</NavItem>
+                    </NavMenu>
+                    <Card>
+                        <Form Model="Model" FormName="switch-notification-settings" OnValidSubmit="Save">
+                            <Column Gap="1">
+                                <Heading Level="2" Size="TextSize.Xl">Notifications</Heading>
+                                <TextBlock Color="Color.Muted">Choose what we tell you about, and where.</TextBlock>
+                            </Column>
 
-    <Fieldset Label="Mobile" Description="On the phones you're signed in on." Icon="Lucide.Smartphone" Dividers Gap="3">
-        <Switch @bind-Value="Model!.Push" ControlPosition="ControlPosition.End"
-                Hint="Mentions, replies and failed deploys." />
-        <Switch @bind-Value="Model!.Quiet" ControlPosition="ControlPosition.End"
-                Hint="Hold notifications from 10 pm to 7 am." />
-    </Fieldset>
+                            <Fieldset Label="Email" Description="Sent to your account's email address." Icon="Lucide.Mail" Dividers Gap="3">
+                                <Switch @bind-Value="Model!.NewDevice" ControlPosition="ControlPosition.End"
+                                        Hint="An email each time, with a link to sign that device out." />
+                                <Switch @bind-Value="Model!.Mentions" ControlPosition="ControlPosition.End"
+                                        Hint="When someone mentions you or replies to you." />
+                                <Switch @bind-Value="Model!.ProductUpdates" ControlPosition="ControlPosition.End"
+                                        Hint="A short email when something new ships, about once a month." />
+                                <Checkbox @bind-Value="Model!.Digest" ControlPosition="ControlPosition.End"
+                                          Hint="Everything above in one email, on Monday mornings." />
+                            </Fieldset>
 
-    <FormActions><Button Submit>Save changes</Button></FormActions>
-    @if (_saved)
-    {
-        <Alert Status="Status.Success">Your notification settings are saved.</Alert>
-    }
-</Form>
+                            <Fieldset Label="Mobile" Description="On the phones you're signed in on." Icon="Lucide.Smartphone" Dividers Gap="3">
+                                <Switch @bind-Value="Model!.Push" ControlPosition="ControlPosition.End"
+                                        Hint="Mentions, replies and failed deploys." />
+                                <Switch @bind-Value="Model!.Quiet" ControlPosition="ControlPosition.End"
+                                        Hint="Hold notifications from 10 pm to 7 am." />
+                            </Fieldset>
+
+                            <FormActions><Button Submit>Save changes</Button></FormActions>
+                            @if (_saved)
+                            {
+                                <Alert Status="Status.Success">Your notification settings are saved.</Alert>
+                            }
+                        </Form>
+                    </Card>
+                </Grid>
+            </Stack>
+        </Section>
+    </AppMain>
+</AppShell>
 
 @code {
     [SupplyParameterFromForm(FormName = "switch-notification-settings")]
     private Notifications? Model { get; set; }
 
     private bool _saved;
+
+    // Links within this example: ?view= in its own address, so they stay here.
+    private string To(string? view) => Navigation.GetUriWithQueryParameter("view", view);
 
     protected override void OnInitialized() => Model ??= new();
 

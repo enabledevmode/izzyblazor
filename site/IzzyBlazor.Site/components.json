@@ -178,7 +178,7 @@
             } } },
         { "id": "menu-panel", "title": "Menu panel with header links", "member": "SmallScreen",
           "description": "A guide with site links in the header and chapters in the sidebar. At phone width the sidebar opens as a panel under the header, with the header's links at its top so there is one menu, and the menu button becomes its close button.",
-          "example": { "id": "app-sidebar-panel", "title": "Guide", "height": 560, "page": true,
+          "example": { "id": "app-sidebar-panel", "title": "Guide", "height": 580, "page": true,
             "notes": {
               "off": "At phone width the menu button and its close button are links, so the panel opens and closes, but focus doesn't move and Escape does nothing.",
               "static": "The panel opens without changing the address, focus moves into it, and Escape closes it."
@@ -199,7 +199,7 @@
       "scenarios": [
         { "id": "content-site", "title": "Content site", "member": "Breakpoint",
           "description": "A site with no sidebar: a hero and a band of project cards on a 72rem column. From 768px up SiteNav is a row of links in the header; below it a menu button opens the same links in a panel, with SiteNavFooter's button under them.",
-          "example": { "id": "site-nav-content-site", "title": "Content site", "height": 620, "page": true,
+          "example": { "id": "site-nav-content-site", "title": "Content site", "height": 860, "page": true,
             "notes": {
               "off": "At phone width the menu button opens the links in a native popover; focus stays on the button.",
               "static": "Opening moves focus to the first link, and following a link closes the panel."
@@ -395,10 +395,10 @@
       "scenarios": [
         { "id": "several-submit-buttons", "title": "Several submit buttons", "member": "Name",
           "description": "One form, three actions: each submit button posts its own Name and Value, so a single handler knows which was pressed. Works with JavaScript off.",
-          "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 390, "page": true } },
+          "example": { "id": "button-multi-submit", "title": "Publish, save or discard", "height": 540, "page": true } },
         { "id": "toolbar", "title": "Editor toolbar", "member": "Variant",
           "description": "A document toolbar in a Toolbar: a joined group of formatting buttons, icon buttons with labels, and the main action on the right. At phone width what doesn't fit moves into the … menu, with JavaScript off too.",
-          "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 360, "page": true } }
+          "example": { "id": "button-toolbar", "title": "Editor toolbar", "height": 440, "page": true } }
       ]
     },
     {
@@ -545,7 +545,7 @@
       "scenarios": [
         { "id": "sign-up", "title": "Sign-up form", "member": "OnValidSubmit",
           "description": "A complete sign-up: labels, required marks, lengths and input types come from the model's DataAnnotations, the server checks the rest, such as the terms, and every control posts with JavaScript off.",
-          "example": { "id": "form-signup", "title": "Create your account", "height": 920, "page": true,
+          "example": { "id": "form-signup", "title": "Create your account", "height": 1100, "page": true,
             "notes": {
               "off": "The browser checks the required fields and lengths before posting, in its own words; the server checks the rest, such as the terms, and the page loads again with its messages.",
               "static": "The browser's checks use the model's words, and the form posts without a full reload. The password gets a show/hide button, and the count under About you follows your typing.",
@@ -787,7 +787,7 @@
       "scenarios": [
         { "id": "order-list", "title": "Filtered order list", "member": "Live",
           "description": "An orders page: a search, a status menu, a date range and a checkbox above a sortable, paged table. The filters live in the URL, so a filtered view can be bookmarked, and filtering keeps the sort and starts again at page 1.",
-          "example": { "id": "filter-form-order-list", "title": "Orders", "height": 580, "page": true,
+          "example": { "id": "filter-form-order-list", "title": "Orders", "height": 680, "page": true,
             "notes": {
               "off": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
               "static": "Filters apply as you type, without a full reload.",
@@ -899,7 +899,7 @@
       "scenarios": [
         { "id": "notification-settings", "title": "Notification settings", "member": "ControlPosition",
           "description": "A settings page: switches (and one checkbox) at the end of each row with hints under their labels, grouped in fieldsets with dividers and section icons, and one form that saves them all. Every switch posts like a checkbox, so it works with JavaScript off.",
-          "example": { "id": "switch-notification-settings", "title": "Notification settings", "height": 680, "page": true } }
+          "example": { "id": "switch-notification-settings", "title": "Notification settings", "height": 940, "page": true } }
       ]
     },
     {
@@ -1086,7 +1086,7 @@
       "scenarios": [
         { "id": "form-tabs", "title": "Tabs in a form", "member": "Selected",
           "description": "Account details split across two tabs that still post as one form: after a failed save, the first tab with errors opens and each tab counts its own. With JavaScript off there are no tabs, and both sections show, one under the other.",
-          "example": { "id": "tabs-account-form", "title": "Account details", "height": 730, "page": true,
+          "example": { "id": "tabs-account-form", "title": "Account details", "height": 680, "page": true,
             "notes": {
               "off": "There are no tabs: both sections show, one under the other. Save posts, and the page loads again with the server's messages.",
               "static": "Save posts without a full reload, and the Address tab opens with a count of its errors.",
@@ -1146,7 +1146,7 @@
       "scenarios": [
         { "id": "checkout", "title": "Checkout", "member": "Current",
           "description": "A four-step checkout with the step in the address: each step's form posts and the server sends the browser on to the next, finished steps link back, and an order summary sits beside it. Works with JavaScript off.",
-          "example": { "id": "stepper-checkout", "title": "Checkout", "height": 600, "page": true } }
+          "example": { "id": "stepper-checkout", "title": "Checkout", "height": 680, "page": true } }
       ]
     },
 
@@ -1195,7 +1195,7 @@
       "scenarios": [
         { "id": "stays-dismissed", "title": "Banner that stays dismissed", "member": "Remember",
           "description": "A maintenance notice above a small app: close it, move between pages and reload, and the server leaves it out for a year, until a new notice gets a new key. With JavaScript off it closes, but comes back on the next page.",
-          "example": { "id": "banner-remembered", "title": "Maintenance notice", "height": 340, "page": true,
+          "example": { "id": "banner-remembered", "title": "Maintenance notice", "height": 400, "page": true,
             "notes": {
               "off": "Closing hides it on this page only: it's back after Exports or Billing. Closed in another mode first, the cookie keeps it out of this one too; Post a new notice brings it back.",
               "static": "Closing writes a cookie for a year, so the server leaves it out of every later page."
@@ -1233,7 +1233,7 @@
       "scenarios": [
         { "id": "inbox-undo", "title": "Inbox with undo",
           "description": "An inbox where each Archive button posts a form and a toast offers Undo. On static pages the post redirects with the archived ids in the address, the toast follows, and Undo is a link; on interactive pages Undo runs C#. Works with JavaScript off.",
-          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 600, "page": true,
+          "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 520, "page": true,
             "notes": {
               "off": "Archive posts and redirects; Undo is a link to the address without that conversation.",
               "static": "Archive posts without a reload, and the toast closes itself after a few seconds.",
@@ -1371,7 +1371,7 @@
       "scenarios": [
         { "id": "profile-card", "title": "Profile card",
           "description": "A team member's card: a cover, an avatar with an online dot, a role badge, contact details in a DescriptionList, skills as tags and two actions in the footer.",
-          "example": { "id": "card-profile", "title": "Team member", "height": 580, "page": true } }
+          "example": { "id": "card-profile", "title": "Team member", "height": 600, "page": true } }
       ]
     },
     {

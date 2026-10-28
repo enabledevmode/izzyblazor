@@ -1,21 +1,39 @@
 @using System.ComponentModel.DataAnnotations
 
-<Form Model="Model" FormName="article" OnValidSubmit="Save" MaxWidth="36.Rem">
-    <TextField @bind-Value="Model!.Title" />
-    <TextArea @bind-Value="Model!.Body" Rows="3" />
-    <FormActions Justify="Justify.Start">
-        <Button Submit Name="intent" Value="publish" StartIcon="Lucide.Send"
-                OnClick='() => _pressed = "publish"'>Publish</Button>
-        <Button Submit Name="intent" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
-                OnClick='() => _pressed = "draft"'>Save draft</Button>
-        <Button Submit Name="intent" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger"
-                OnClick='() => _pressed = "discard"'>Discard</Button>
-    </FormActions>
-    @if (_result is not null)
-    {
-        <Alert Status="Status.Success">@_result</Alert>
-    }
-</Form>
+@* A new post in a blog's admin: one form, three submit buttons. *@
+<AppShell Variant="ShellVariant.Canvas" ContentWidth="Length.Rem(44)">
+    <AppHeader>
+        <AppBrand Icon="Lucide.PenLine" Label="Acme Blog" />
+        <Box Grow />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppMain>
+        <Section Spacing="SectionSpacing.Sm">
+            <Stack Gap="4">
+                <Heading Level="1" Size="TextSize.Xl2">New post</Heading>
+                <Card>
+                    <Form Model="Model" FormName="article" OnValidSubmit="Save">
+                        <TextField @bind-Value="Model!.Title" />
+                        <TextArea @bind-Value="Model!.Body" Rows="3" />
+                        <FormActions Justify="Justify.Start">
+                            <Button Submit Name="intent" Value="publish" StartIcon="Lucide.Send"
+                                    OnClick='() => _pressed = "publish"'>Publish</Button>
+                            <Button Submit Name="intent" Value="draft" Variant="ButtonVariant.Outline" Accent="Accent.Neutral"
+                                    OnClick='() => _pressed = "draft"'>Save draft</Button>
+                            <Button Submit Name="intent" Value="discard" Variant="ButtonVariant.Ghost" Accent="Accent.Danger"
+                                    OnClick='() => _pressed = "discard"'>Discard</Button>
+                        </FormActions>
+                        @if (_result is not null)
+                        {
+                            <Alert Status="Status.Success">@_result</Alert>
+                        }
+                    </Form>
+                </Card>
+            </Stack>
+        </Section>
+    </AppMain>
+</AppShell>
 
 @code {
     [SupplyParameterFromForm(FormName = "article")]

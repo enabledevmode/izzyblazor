@@ -22,6 +22,7 @@
     </AppSidebar>
 
     <AppMain>
+        <Heading Level="1" Class="ib-visually-hidden">Inbox</Heading>
         <Stack Gap="0">
             @foreach (var (sender, subject, time, unread) in Messages)
             {

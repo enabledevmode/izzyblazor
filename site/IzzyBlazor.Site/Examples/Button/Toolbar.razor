@@ -1,25 +1,39 @@
-<Card Size="ControlSize.Sm" Width="Length.Full">
-    <CardBody Gap="4">
-        <Toolbar Label="Editor">
-            <ToolbarButtonGroup Label="History">
-                <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
-                <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
-            </ToolbarButtonGroup>
-            <ToolbarButtonGroup Label="Text style" Variant="ButtonVariant.Outline" Priority="1">
-                <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" />
-                <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" />
-                <ToolbarIconButton Icon="Lucide.Underline" Label="Underline" />
-            </ToolbarButtonGroup>
-            <ToolbarSeparator />
-            <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
-            <ToolbarButton StartIcon="Lucide.Image">Image</ToolbarButton>
-            <ToolbarButton StartIcon="Lucide.Eye" Position="ToolbarPosition.End">Preview</ToolbarButton>
-            <ToolbarButton StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never">Publish</ToolbarButton>
-        </Toolbar>
-        <Divider />
-        <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl">Release notes</Heading>
-            <TextBlock Color="Color.Muted">Start writing, or paste the notes from the changelog.</TextBlock>
+@* An editor page: the toolbar over the document, in a docs site's admin. *@
+<AppShell Variant="ShellVariant.Canvas">
+    <AppHeader>
+        <AppBrand Icon="Lucide.BookOpen" Label="Acme Docs" />
+        <Box Grow />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Padding="new() { Base = 4, Md = 8 }">
+            <Card Size="ControlSize.Sm" Width="Length.Full" MinHeight="Length.Rem(18)">
+                <CardBody Gap="4">
+                    <Toolbar Label="Editor">
+                        <ToolbarButtonGroup Label="History">
+                            <ToolbarIconButton Icon="Lucide.Undo2" Label="Undo" />
+                            <ToolbarIconButton Icon="Lucide.Redo2" Label="Redo" />
+                        </ToolbarButtonGroup>
+                        <ToolbarButtonGroup Label="Text style" Variant="ButtonVariant.Outline" Priority="1">
+                            <ToolbarIconButton Icon="Lucide.Bold" Label="Bold" />
+                            <ToolbarIconButton Icon="Lucide.Italic" Label="Italic" />
+                            <ToolbarIconButton Icon="Lucide.Underline" Label="Underline" />
+                        </ToolbarButtonGroup>
+                        <ToolbarSeparator />
+                        <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
+                        <ToolbarButton StartIcon="Lucide.Image">Image</ToolbarButton>
+                        <ToolbarButton StartIcon="Lucide.Eye" Position="ToolbarPosition.End">Preview</ToolbarButton>
+                        <ToolbarButton StartIcon="Lucide.Send" Accent="Accent.Primary" Variant="ButtonVariant.Solid" Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never">Publish</ToolbarButton>
+                    </Toolbar>
+                    <Divider />
+                    <Stack Gap="2">
+                        <Heading Level="1" Size="TextSize.Xl">Release notes</Heading>
+                        <TextBlock Color="Color.Muted">Start writing, or paste the notes from the changelog.</TextBlock>
+                        <TextBlock>Version 2.4 saves drafts on your device as you type, so a dropped connection never costs you a paragraph.</TextBlock>
+                    </Stack>
+                </CardBody>
+            </Card>
         </Stack>
-    </CardBody>
-</Card>
+    </AppMain>
+</AppShell>

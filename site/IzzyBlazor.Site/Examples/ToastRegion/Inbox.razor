@@ -3,35 +3,47 @@
 
 <ToastRegion />
 
-<Card Title="Inbox" Description="@($"{Shown.Count} conversations")" Grow MaxWidth="40.Rem">
-    <CardBody Flush>
-        @if (Shown.Count == 0)
-        {
-            <EmptyState Icon="Lucide.Inbox" Title="All caught up" Description="Archived conversations stay in Archive for 30 days." Size="ControlSize.Sm" />
-        }
-        else
-        {
-            <form method="post" @formname="inbox" @onsubmit="Archive" data-enhance>
-                <AntiforgeryToken />
-                @foreach (var message in Shown)
-                {
-                    <Row Gap="3" Align="Align.Center" PaddingX="4" PaddingY="3" BorderTop="1">
-                        <Avatar Name="@message.From" Decorative />
-                        <Stack Gap="0" Grow MinWidth="0.Rem">
-                            <TextBlock Weight="FontWeight.Medium" Truncate>@message.From</TextBlock>
-                            <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@message.Subject</TextBlock>
-                        </Stack>
-                        @* On phones the button is the icon alone, which keeps "Archive" as its name. *@
-                        <Button Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id" VisibleFrom="Breakpoint.Sm"
-                                Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
-                        <IconButton Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id" HiddenFrom="Breakpoint.Sm" Shrink="false"
-                                    Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Icon="Lucide.Archive" Label="Archive" />
-                    </Row>
-                }
-            </form>
-        }
-    </CardBody>
-</Card>
+<AppShell Variant="ShellVariant.Canvas" ContentWidth="Length.Rem(44)">
+    <AppHeader>
+        <AppBrand Icon="Lucide.Mail" Label="Acme Mail" />
+        <Box Grow />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppMain>
+        <Section Spacing="SectionSpacing.Sm">
+            <Card Title="Inbox" Description="@($"{Shown.Count} conversations")" TitleLevel="1">
+                <CardBody Flush>
+                    @if (Shown.Count == 0)
+                    {
+                        <EmptyState Icon="Lucide.Inbox" Title="All caught up" Description="Archived conversations stay in Archive for 30 days." Size="ControlSize.Sm" />
+                    }
+                    else
+                    {
+                        <form method="post" @formname="inbox" @onsubmit="Archive" data-enhance>
+                            <AntiforgeryToken />
+                            @foreach (var message in Shown)
+                            {
+                                <Row Gap="3" Align="Align.Center" PaddingX="4" PaddingY="3" BorderTop="1">
+                                    <Avatar Name="@message.From" Decorative />
+                                    <Stack Gap="0" Grow MinWidth="0.Rem">
+                                        <TextBlock Weight="FontWeight.Medium" Truncate>@message.From</TextBlock>
+                                        <TextBlock Size="TextSize.Sm" Color="Color.Muted" Truncate>@message.Subject</TextBlock>
+                                    </Stack>
+                                    @* On phones the button is the icon alone, which keeps "Archive" as its name. *@
+                                    <Button Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id" VisibleFrom="Breakpoint.Sm"
+                                            Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+                                    <IconButton Submit Name="archive" Value="@message.Id" OnClick="() => _clicked = message.Id" HiddenFrom="Breakpoint.Sm" Shrink="false"
+                                                Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Icon="Lucide.Archive" Label="Archive" />
+                                </Row>
+                            }
+                        </form>
+                    }
+                </CardBody>
+            </Card>
+        </Section>
+    </AppMain>
+</AppShell>
 
 @code {
     // Static pages: the archived ids live in the address (?archived=…), so each page load knows them.

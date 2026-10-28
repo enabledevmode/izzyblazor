@@ -25,7 +25,8 @@
                         OnClick="() => _collapsed = !_collapsed">@(_collapsed ? "Show sidebar" : "Focus mode")</Button>
             </Row>
             <TextBlock>Sensor 4 reads two degrees high against the handheld. Recalibrate before the next run, and check whether the casing was opened during transport.</TextBlock>
-            <TextBlock Size="TextSize.Sm" Color="Color.Muted" VisibleFrom="Breakpoint.Md">Sidebar: @(_collapsed ? "collapsed" : "expanded")</TextBlock>
+            @* What C# has, from @bind-Collapsed. *@
+            <Row VisibleFrom="Breakpoint.Md"><Badge Status="Status.Neutral">Sidebar @(_collapsed ? "collapsed" : "expanded")</Badge></Row>
         </Stack>
     </AppMain>
 </AppShell>
