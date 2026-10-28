@@ -8,8 +8,8 @@ import { TypingGuard, changedFromServer, navigateTo } from "../filtering";
  *   with the form (and report their own changes on interactive pages), so select-all only checks
  *   or clears the rows on this page and fires `change` on each one it flips, then shows the
  *   header as checked, cleared or partly selected (indeterminate).
- * - Live filters. Without script the filter row is a GET form you submit with Enter or Apply.
- *   Here the boxes apply after a pause in typing, selects when they change and Enter at once:
+ * - Live filters. Without script the header filters' fields are a GET form you submit with Enter
+ *   or Apply. Here the boxes apply after a pause in typing, dates when they change and Enter at once:
  *   the element puts the values in the URL, drops this table's page number and navigates through
  *   Blazor, which keeps the page in place. (Filters kept in the component on interactive pages
  *   don't carry data-ib-filter, so this leaves them alone.) A header filter's panel stays open
@@ -32,6 +32,24 @@ class Table extends IzzyElement {
     this.#setupSelectAll(signal);
     this.#setupLoadOnScroll(signal);
     this.#setupScrollStop(signal);
+    this.#setupBoundPanels(signal);
+  }
+
+  /**
+   * Filters kept in the component (bound, interactive pages) handle their own typing; Enter in one of their panels
+   * closes it and puts focus back on its button, as it does for the URL filters below.
+   */
+  #setupBoundPanels(signal: AbortSignal): void {
+    this.addEventListener(
+      "keydown",
+      (event) => {
+        const target = event.target;
+        if (event.key !== "Enter" || event.isComposing || !(target instanceof HTMLInputElement)) return;
+        if (target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel")) return;
+        if (this.#closePanel(target)) event.preventDefault();
+      },
+      { signal }
+    );
   }
 
   #setupScrollStop(signal: AbortSignal): void {
@@ -202,7 +220,7 @@ class Table extends IzzyElement {
 
   /**
    * Closes the open header filter panel holding a control, and puts focus back on the button that opened it. Only
-   * this table's own panels: a row filter, or a table inside a popover, closes nothing.
+   * this table's own panels: a table inside a popover doesn't close the popover around it.
    */
   #closePanel(control: EventTarget | null): boolean {
     const panel = control instanceof Element ? control.closest(".ib-table-filter-panel")?.closest<HTMLElement>("[popover]") : null;

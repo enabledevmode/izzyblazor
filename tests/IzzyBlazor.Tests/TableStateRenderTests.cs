@@ -55,7 +55,7 @@ public class TableStateRenderTests : BunitContext
             .Add(t => t.SortChanged, (string? _) => { })
             .Add(t => t.ChildContent, filterable));
 
-        Assert.Empty(cut.FindAll(".ib-table-filter-actions, form.ib-table-filter-form"));
+        Assert.Empty(cut.FindAll(".ib-table-filter-kept, form.ib-table-filter-form"));
         Assert.Contains("bound-sort=", cut.Find("thead a.ib-table-sort").GetAttribute("href"));
     }
 

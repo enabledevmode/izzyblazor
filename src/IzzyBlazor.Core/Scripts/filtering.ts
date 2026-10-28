@@ -10,7 +10,7 @@ interface BlazorNavigator {
 /**
  * Puts back typing that a response for an earlier value overwrote. While someone keeps typing, a
  * live filter's navigation can come back with the value from a moment ago and reset the box.
- * Shared by FilterForm and Table's filter row.
+ * Shared by FilterForm and Table's header filters.
  */
 export class TypingGuard {
   #typed = new Map<HTMLInputElement, string>();

@@ -7,8 +7,8 @@ namespace IzzyBlazor.Tests;
 
 public enum Paid { Yes, No, Refunded }
 
-// Filterable columns: query-string filters on static pages, component state when bound. These
-// cover the filter row; the header placement (the default) has its own tests at the end.
+// Filterable columns: query-string filters on static pages, component state when bound. Each
+// filter is a button in its column's header opening a menu (choices) or a popover with fields.
 public class TableFilterRenderTests : BunitContext
 {
     public sealed record Row(string Name, int Qty, Paid Status, bool Shipped, DateTime When)
@@ -53,14 +53,14 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row).Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
     }
 
     private static string[] Names(IRenderedComponent<Table<Row>> cut) =>
         cut.FindAll("tbody tr:not(.ib-table-empty)").Select(r => r.Children[0].TextContent).ToArray();
 
     [Fact]
-    public void Filter_row_has_a_control_per_column_joined_to_a_get_form()
+    public void Filter_fields_are_joined_to_a_get_form()
     {
         var cut = RenderStatic();
 
@@ -71,22 +71,38 @@ public class TableFilterRenderTests : BunitContext
         var name = cut.Find("input[name='f-name']");
         Assert.Equal("search", name.GetAttribute("type"));
         Assert.Equal(form.Id, name.GetAttribute("form"));
-        Assert.Equal("Filter Name", name.GetAttribute("aria-label"));
-        Assert.Equal("decimal", cut.Find("input[name='f-qty']").GetAttribute("inputmode"));
 
-        var status = cut.Find("select[name='f-status']");
-        Assert.Equal(new[] { "", "Yes", "No", "Refunded" }, status.QuerySelectorAll("option").Select(o => o.GetAttribute("value")));
-        Assert.Equal(new[] { "All", "Yes", "No" }, cut.Find("select[name='f-shipped']").QuerySelectorAll("option").Select(o => o.TextContent));
-        Assert.Equal(form.Id, cut.Find("button[type=submit]").GetAttribute("form"));
+        // A number is a range: two fields, Min and Max, each posting under its own key.
+        var min = cut.Find("input[name='f-qty-min']");
+        var max = cut.Find("input[name='f-qty-max']");
+        Assert.All(new[] { min, max }, i => Assert.Equal("decimal", i.GetAttribute("inputmode")));
+        Assert.Equal("Min", cut.Find($"label[for='{min.Id}']").TextContent);
+        Assert.Equal("Max", cut.Find($"label[for='{max.Id}']").TextContent);
+        var group = min.Closest("[role=group]")!;
+        Assert.Equal("Filter Qty", cut.Find($"#{group.GetAttribute("aria-labelledby")}").TextContent);
+
+        // Choices are menus, not fields.
+        Assert.Empty(cut.FindAll("select"));
+        Assert.All(cut.FindAll("button[type=submit]"), b => Assert.Equal(form.Id, b.GetAttribute("form")));
     }
 
     [Theory]
     [InlineData("?f-name=AD", new[] { "Ada", "adam" })]
     [InlineData("?f-name=ad&f-shipped=true", new[] { "Ada", "adam" })]
     [InlineData("?f-status=no", new[] { "Grace" })]
-    [InlineData("?f-qty=3", new[] { "Grace" })]
-    [InlineData("?f-qty=2.5", new string[0])]
-    [InlineData("?f-qty=abc", new string[0])]
+    [InlineData("?f-qty-min=3&f-qty-max=3", new[] { "Grace" })]
+    [InlineData("?f-qty-min=2", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty-max=2", new[] { "Ada", "adam" })]
+    [InlineData("?f-qty-min=2&f-qty-max=", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty-min=1.5&f-qty-max=2.5", new[] { "Ada" })]
+    [InlineData("?f-qty-min=3&f-qty-max=1", new string[0])]
+    [InlineData("?f-qty-min=abc", new string[0])]
+    [InlineData("?f-qty=3", new[] { "Ada", "Grace", "adam" })]
+    [InlineData("?f-qty-min=2.", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty-min=1.&f-qty-max=.5", new string[0])]
+    [InlineData("?f-qty-max=99999999999", new[] { "Ada", "Grace", "adam" })]
+    [InlineData("?f-qty-min=99999999999", new string[0])]
+    [InlineData("?f-qty-min=-99999999999&f-qty-max=1", new[] { "adam" })]
     [InlineData("?f-status=Unknown", new string[0])]
     [InlineData("?f-shipped=false", new[] { "Grace" })]
     public void Url_filters_keep_matching_rows(string query, string[] expected)
@@ -99,20 +115,73 @@ public class TableFilterRenderTests : BunitContext
     [Fact]
     public void Filters_show_their_values_and_the_form_carries_the_rest_of_the_url()
     {
-        var cut = RenderStatic("/orders?sort=name&page=2&tab=x&f-name=ad&f-status=Yes");
+        var cut = RenderStatic("/orders?sort=name&page=2&tab=x&f-name=ad&f-status=Yes&f-qty-min=1");
 
         Assert.Equal("ad", cut.Find("input[name='f-name']").GetAttribute("value"));
-        Assert.True(cut.Find("select[name='f-status'] option[value='Yes']").HasAttribute("selected"));
+        Assert.Equal("1", cut.Find("input[name='f-qty-min']").GetAttribute("value"));
+        Assert.Equal("", cut.Find("input[name='f-qty-max']").GetAttribute("value") ?? "");
         var kept = cut.FindAll("input[type=hidden]").Select(i => $"{i.GetAttribute("name")}={i.GetAttribute("value")}").ToArray();
         Assert.Equal(new[] { "sort=name", "tab=x" }, kept);
-        Assert.DoesNotContain("f-name", cut.Find(".ib-table-filter-actions a").GetAttribute("href"));
+        var clear = cut.FindAll(".ib-table-filter-tags a").Single(a => a.TextContent.Trim() == "Clear").GetAttribute("href")!;
+        Assert.DoesNotContain("f-", clear);
+    }
+
+    [Theory]
+    [InlineData("1.", "", "1..")]
+    [InlineData("1.", "5", "1..5")]
+    [InlineData("1", ".5", "1..0.5")]
+    [InlineData("", "-.5", "..-0.5")]
+    [InlineData(" ", "", "")]
+    public void Range_ends_join_unambiguously_while_typing(string min, string max, string joined)
+    {
+        Assert.Equal(joined, ColumnFilter.JoinRange(min, max));
+        if (joined.Length > 0)
+        {
+            var (low, high) = ColumnFilter.SplitRange(joined);
+            Assert.Equal(joined, ColumnFilter.JoinRange(low, high));
+        }
+    }
+
+    [Fact]
+    public void Range_boxes_show_what_was_typed()
+    {
+        var cut = RenderStatic("/orders?f-qty-min=2.");
+
+        Assert.Equal("2.", cut.Find("input[name='f-qty-min']").GetAttribute("value"));
+        Assert.Equal("", cut.Find("input[name='f-qty-max']").GetAttribute("value") ?? "");
+    }
+
+    [Fact]
+    public void Old_plain_number_key_is_dropped_not_carried()
+    {
+        var cut = RenderStatic("/orders?f-qty=3&tab=x");
+
+        Assert.DoesNotContain(cut.FindAll("input[type=hidden]"), i => i.GetAttribute("name") == "f-qty");
+    }
+
+    [Fact]
+    public void A_column_key_that_shares_a_range_key_says_so()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, Col<int>(r => r.Qty));
+                b.OpenComponent<PropertyColumn<Row, string>>(1);
+                b.AddComponentParameter(2, "Property", (Expression<Func<Row, string>>)(r => r.Name));
+                b.AddComponentParameter(3, "SortKey", "qty-min");
+                b.AddComponentParameter(4, "Filterable", true);
+                b.CloseComponent();
+            })));
+        Assert.Contains("?f-qty-min", ex.Message);
     }
 
     [Fact]
     public void A_column_type_that_cant_filter_says_so()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.ChildContent, Col<TimeSpan>(r => r.Took))));
         Assert.Contains("TemplateColumn with FilterBy", ex.Message);
@@ -130,7 +199,7 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo($"/orders?f-{key}={Uri.EscapeDataString(value)}");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.ChildContent, b =>
             {
@@ -156,7 +225,7 @@ public class TableFilterRenderTests : BunitContext
         // DateTime filters keep [day, day + 1); 9999-12-31 has no next day.
         Nav.NavigateTo($"/orders?f-{key}=9999-12-31");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows.Append(new("Last", 1, Paid.Yes, true, new DateTime(9999, 12, 31, 12, 0, 0))).ToArray())
             .Add(t => t.ChildContent, b =>
             {
@@ -174,7 +243,7 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo("/orders?f-who=RAC");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.ChildContent, b =>
             {
@@ -194,7 +263,7 @@ public class TableFilterRenderTests : BunitContext
     public void Template_column_without_FilterBy_says_so()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.ChildContent, b =>
             {
@@ -212,7 +281,7 @@ public class TableFilterRenderTests : BunitContext
         Nav.NavigateTo("/orders?f-name=gr");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         TableRequest<Row>? seen = null;
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var cut = Render<Table<Row>>(p => p
             .Add(t => t.ItemsProvider, request =>
             {
                 seen = request;
@@ -233,7 +302,7 @@ public class TableFilterRenderTests : BunitContext
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         var reported = new List<IReadOnlyDictionary<string, string>>();
         var pages = new List<int>();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 1)
             .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported.Add(f))
@@ -244,7 +313,7 @@ public class TableFilterRenderTests : BunitContext
 
         cut.FindAll(".ib-table-footer button").First(b => b.TextContent.Trim().EndsWith('2')).Click();
         Assert.Empty(cut.FindAll("[data-ib-filter]"));
-        cut.Find(".ib-table-filter input").Input("ad");
+        cut.Find(".ib-table-filter input[type=search]").Input("ad");
 
         // The filter applies on a timer, so wait for all of its effects, not just the rows.
         cut.WaitForAssertion(() =>
@@ -256,11 +325,33 @@ public class TableFilterRenderTests : BunitContext
         });
         Assert.Equal(url, Nav.Uri);
 
-        cut.Find("select.ib-field-select").Change("Refunded");
+        cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "Refunded").Click();
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(new[] { "adam" }, Names(cut));
             Assert.Equal("Refunded", reported.Last()["status"]);
+        });
+    }
+
+    [Fact]
+    public void Bound_number_filter_puts_its_two_ends_together()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        IReadOnlyDictionary<string, string>? reported = null;
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported = f)
+            .Add(t => t.ChildContent, Columns));
+        // Both ends typed within one pause: the filter applies once, with both.
+        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(200);
+
+        cut.FindAll("[role=group] input")[0].Input("2");
+        cut.FindAll("[role=group] input")[1].Input("2");
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal("2..2", reported!["qty"]);
+            Assert.Equal(new[] { "Ada" }, Names(cut));
+            Assert.Equal("Filter Qty: 2", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
         });
     }
 
@@ -283,11 +374,10 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo("/orders" + query);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row).Add(t => t.Items, Rows).Add(t => t.ChildContent, MultiColumns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, MultiColumns));
 
         Assert.Equal(expected, Names(cut));
-        Assert.Equal(summary, cut.Find(".ib-table-filter-summary").TextContent);
-        Assert.Equal($"Filter Status: {summary}", cut.Find(".ib-table-filter-trigger").GetAttribute("aria-label"));
+        Assert.Equal(summary == "All" ? "Filter Status" : $"Filter Status: {summary}", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
     }
 
     [Fact]
@@ -295,7 +385,7 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo("/orders?f-status=Yes&page=2");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row).Add(t => t.Items, Rows).Add(t => t.ChildContent, MultiColumns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, MultiColumns));
 
         var items = cut.FindAll("a.ib-menu-item");
         Assert.Equal(new[] { "All", "Yes", "No", "Refunded" }, items.Select(i => i.TextContent.Trim()));
@@ -311,7 +401,7 @@ public class TableFilterRenderTests : BunitContext
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         IReadOnlyDictionary<string, string>? reported = null;
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row)
+        var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported = f)
             .Add(t => t.ChildContent, MultiColumns));
@@ -331,9 +421,9 @@ public class TableFilterRenderTests : BunitContext
     public void Unbound_filters_on_an_interactive_page_use_the_url()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.FilterPlacement, FilterPlacement.Row).Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
 
-        Assert.Equal(4, cut.FindAll("[data-ib-filter]").Count);
+        Assert.Equal(3, cut.FindAll("[data-ib-filter]").Count);   // Name, and Qty's two ends
         Assert.Single(cut.FindAll("form.ib-table-filter-form"));
     }
 
@@ -342,7 +432,6 @@ public class TableFilterRenderTests : BunitContext
     {
         var cut = RenderHeader("/orders");
 
-        Assert.Empty(cut.FindAll(".ib-table-filter-row"));
         var buttons = cut.FindAll("th .ib-table-head .ib-table-filter-button");
         Assert.Equal(new[] { "Filter Name", "Filter Qty", "Filter Status", "Filter Shipped" }, buttons.Select(b => b.GetAttribute("aria-label")));
         Assert.All(buttons, b => Assert.False(b.HasAttribute("data-active")));
@@ -355,7 +444,7 @@ public class TableFilterRenderTests : BunitContext
         var label = cut.Find($"[popover] label[for='{input.Id}']");
         Assert.Equal("Filter Name", label.TextContent);
         Assert.False(input.HasAttribute("aria-label"));
-        Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty']").Id);
+        Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty-min']").Id);
 
         // A choice opens a menu whose items set that value (and close the menu).
         var items = cut.FindAll("a.ib-menu-item").Where(a => a.GetAttribute("href")!.Contains("f-status", StringComparison.Ordinal) || a.TextContent.Trim() == "All").ToList();
@@ -399,6 +488,20 @@ public class TableFilterRenderTests : BunitContext
         var hrefs = tags.QuerySelectorAll("a").Select(a => a.GetAttribute("href")).ToList();
         Assert.Contains("http://localhost/orders?f-status=No&sort=name", hrefs);
         Assert.Contains("http://localhost/orders?sort=name", hrefs);
+    }
+
+    [Theory]
+    [InlineData("?f-qty-min=2&f-qty-max=3", "2–3")]
+    [InlineData("?f-qty-min=2", "2 or more")]
+    [InlineData("?f-qty-max=3", "3 or less")]
+    public void Number_filter_reads_as_a_range_and_its_tag_clears_both_ends(string query, string summary)
+    {
+        var cut = RenderHeader("/orders" + query + "&sort=name");
+
+        Assert.Equal($"Filter Qty: {summary}", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
+        var tags = cut.Find(".ib-table-filter-tags");
+        Assert.Contains($"Qty: {summary}", tags.TextContent);
+        Assert.Contains("http://localhost/orders?sort=name", tags.QuerySelectorAll("a").Select(a => a.GetAttribute("href")));
     }
 
     [Fact]
