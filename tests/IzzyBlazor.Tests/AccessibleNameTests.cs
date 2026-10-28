@@ -195,9 +195,10 @@ public class AccessibleNameTests : BunitContext
     }
 
     [Fact]
-    public void A_filter_select_or_checkbox_needs_a_label()
+    public void A_filter_select_date_or_checkbox_needs_a_label()
     {
         Assert.Throws<InvalidOperationException>(() => Render<FilterSelect>(p => p.Add(f => f.Name, "status")));
+        Assert.Throws<InvalidOperationException>(() => Render<FilterDate>(p => p.Add(f => f.Name, "from")));
         Assert.Throws<InvalidOperationException>(() => Render<FilterCheckbox>(p => p.Add(f => f.Name, "mine")));
 
         var search = Render<FilterSearch>();

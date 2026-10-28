@@ -1,0 +1,21 @@
+<Form Model="Model" FormName="date-field-states" MaxWidth="20.Rem" Grow>
+    <DateField @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+    <DateField @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    <DateField @bind-Value="Model!.Signed" Label="Signed on" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <DateField @bind-Value="Model!.Renews" Label="Renews on" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "date-field-states")]
+    private Contract? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Contract
+    {
+        public DateOnly Small { get; set; } = new(2027, 1, 4);
+        public DateOnly Large { get; set; } = new(2027, 1, 4);
+        public DateOnly Signed { get; set; } = new(2026, 9, 30);
+        public DateOnly Renews { get; set; } = new(2027, 9, 30);
+    }
+}

@@ -330,6 +330,11 @@ public class DataRenderTests : BunitContext
         builder.AddComponentParameter(6, nameof(FilterCheckbox.Name), "large");
         builder.AddComponentParameter(7, nameof(FilterCheckbox.Label), "Large orders");
         builder.CloseComponent();
+        builder.OpenComponent<FilterDate>(8);
+        builder.AddComponentParameter(9, nameof(FilterDate.Name), "from");
+        builder.AddComponentParameter(10, nameof(FilterDate.Label), "From");
+        builder.AddComponentParameter(11, nameof(FilterDate.Max), new DateOnly(2026, 12, 31));
+        builder.CloseComponent();
     };
 
     [Fact]
@@ -350,13 +355,16 @@ public class DataRenderTests : BunitContext
     [Fact]
     public void Filter_fields_read_their_values_from_the_url()
     {
-        GoTo("/orders?q=ada&status=Paid&large=true");
+        GoTo("/orders?q=ada&status=Paid&large=true&from=2026-10-01");
         var cut = Render<FilterForm>(p => p.Add(f => f.ChildContent, FilterFields));
 
         Assert.Equal("ada", cut.Find("input[type=search]").GetAttribute("value"));
         Assert.Equal("Search", cut.Find("label.ib-visually-hidden").TextContent);
         Assert.Equal("Status: All", cut.Find("select option").TextContent);
         Assert.True(cut.Find("input[type=checkbox]").HasAttribute("checked"));
+        var from = cut.Find("input[type=date]");
+        Assert.Equal("2026-10-01", from.GetAttribute("value"));
+        Assert.Equal("2026-12-31", from.GetAttribute("max"));
     }
 
     [Fact]

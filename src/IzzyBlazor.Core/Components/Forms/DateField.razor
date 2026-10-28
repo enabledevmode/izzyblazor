@@ -1,0 +1,235 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a posted DateTime or DateTimeOffset isn't read in TimeZone: Blazor reads a DateTimeOffset in the server's time zone and a DateTime as UTC. A DateOnly isn't affected, nor is a TimeZone of UTC on a server that runs in UTC.")]
+
+@*
+    A date field, or a date and time field: the browser's own date input, so it posts with the
+    form, checks Min and Max before posting, and opens the browser's calendar. Bind it to
+    DateOnly, DateTime or DateTimeOffset, or a nullable one.
+    <DateField @bind-Value="Model.Due" />
+    <DateField @bind-Value="Model.From" Max="@DateOnly.FromDateTime(DateTime.UtcNow)" />
+    <DateField @bind-Value="Model.StartsAt" TimeZone="@zone" />
+
+    A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
+    Type="DateFieldType.Date" or [DataType(DataType.Date)] on the property (midnight in TimeZone).
+
+    TimeZone is the zone the entered time is in, UTC unless set. A DateTimeOffset comes back with
+    that zone's offset, and a DateTime comes back in UTC; a DateTime that isn't Local is read as
+    UTC. On an interactive page its Kind is Utc. After a static post Blazor's form binding sets it,
+    as Unspecified (the time is still UTC): use DateTime.SpecifyKind before ToUniversalTime or a
+    timestamptz column, or bind a DateTimeOffset. On a server, TimeZoneInfo.Local is the server's zone, not the user's: ask the
+    user for theirs, or keep UTC and say so in the label, as in "From (UTC)".
+
+    Accessibility:
+    - It renders the browser's own date or date-and-time `input` with a `label` linked to it:
+      screen readers read each part (day, month, year) and arrow keys change it.
+    - Label, hint and errors work as in `TextField`.
+    - The time zone isn't announced: put it in the label when it matters, as in "Starts (UTC)",
+      since add-on text isn't part of the field's name.
+    See also: TextField, NumberField, Form.
+*@
+
+<FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
+        <ib-field-control class="ib-field-control">
+            <input @attributes="ControlAttributes"
+                   id="@FieldId"
+                   class="ib-field-input"
+                   type="@(ResolvedType == DateFieldType.Date ? "date" : "datetime-local")"
+                   name="@NameAttributeValue"
+                   @bind="CurrentValueAsString"
+                   min="@FormatLimit(Min, Range?.Minimum)"
+                   max="@FormatLimit(Max, Range?.Maximum)"
+                   step="@StepAttribute"
+                   required="@IsRequired"
+                   disabled="@IsDisabled"
+                   readonly="@IsReadOnly"
+                   data-ib-zone="@PostedZone"
+                   data-ib-post="@(PostedZone is null ? null : IsOffset ? "offset" : "utc")"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   aria-describedby="@DescribedBy" />
+        </ib-field-control>
+    </FieldAddons>
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>
+    /// A date, or a date and time. Defaults to a date for <c>DateOnly</c> and for a property with
+    /// <c>[DataType(DataType.Date)]</c>; otherwise a date and time. A <c>DateOnly</c> can't take a time.
+    /// </summary>
+    [Parameter] public DateFieldType? Type { get; set; }
+
+    /// <summary>The earliest value. Defaults to <c>[Range]</c>'s minimum; the type's default value means none.</summary>
+    [Parameter] public TValue? Min { get; set; }
+
+    /// <summary>The latest value. Defaults to <c>[Range]</c>'s maximum; the type's default value means none.</summary>
+    [Parameter] public TValue? Max { get; set; }
+
+    /// <summary>
+    /// The step between allowed values: whole days for a date (1 day unless set), seconds for a
+    /// date and time (1 minute unless set). A step under a minute shows seconds; otherwise the time
+    /// shows to the minute, and seconds in the bound value are dropped when it posts.
+    /// </summary>
+    [Parameter] public TimeSpan? Step { get; set; }
+
+    /// <summary>
+    /// The zone the entered time is in, for a <c>DateTime</c> or <c>DateTimeOffset</c>. Defaults to UTC.
+    /// A <c>DateTimeOffset</c> comes back with this zone's offset; a <c>DateTime</c> comes back in UTC
+    /// (with Kind Unspecified after a static post, which Blazor's form binding reads). Use a zone
+    /// with an IANA or Windows id, which the browser's script can look up for static posts.
+    /// </summary>
+    [Parameter] public TimeZoneInfo? TimeZone { get; set; }
+
+    /// <summary>Content attached before the control, outside its border. See <see cref="TextField.StartAddon"/>.</summary>
+    [Parameter] public RenderFragment? StartAddon { get; set; }
+
+    /// <summary>Content attached after the control, outside its border, such as the time zone.</summary>
+    [Parameter] public RenderFragment? EndAddon { get; set; }
+
+    private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+    private static bool IsDateOnly => Underlying == typeof(DateOnly);
+
+    private static bool IsOffset => Underlying == typeof(DateTimeOffset);
+
+    private TimeZoneInfo Zone => TimeZone ?? TimeZoneInfo.Utc;
+
+    private DateFieldType ResolvedType => Type
+        ?? (IsDateOnly || Attribute<System.ComponentModel.DataAnnotations.DataTypeAttribute>()?.DataType == System.ComponentModel.DataAnnotations.DataType.Date
+            ? DateFieldType.Date
+            : DateFieldType.DateTime);
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    private bool ShowsSeconds => ResolvedType == DateFieldType.DateTime && Step is { } step && step.Ticks % TimeSpan.TicksPerMinute != 0;
+
+    private string? StepAttribute => Step switch
+    {
+        null => null,
+        { } step when ResolvedType == DateFieldType.Date => Math.Max(1, (long)Math.Round(step.TotalDays)).ToString(System.Globalization.CultureInfo.InvariantCulture),
+        { } step => Math.Max(1, (long)Math.Round(step.TotalSeconds)).ToString(System.Globalization.CultureInfo.InvariantCulture),
+    };
+
+    // The zone a static post converts to, for the script (Blazor's form binding reads a posted
+    // time without an offset in the server's zone): a DateTimeOffset always gets its offset; a
+    // DateTime posts UTC, which needs converting only from another zone. Interactive pages convert in C#.
+    private string? PostedZone =>
+        RendererInfo.IsInteractive || IsDateOnly || (!IsOffset && Zone.BaseUtcOffset == TimeSpan.Zero && !Zone.SupportsDaylightSavingTime)
+            ? null
+            : DateFieldZones.ScriptId(Zone);
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Underlying != typeof(DateOnly) && Underlying != typeof(DateTime) && Underlying != typeof(DateTimeOffset))
+        {
+            throw new InvalidOperationException($"DateField doesn't support {typeof(TValue)}. Bind it to DateOnly, DateTime or DateTimeOffset, or a nullable one.");
+        }
+
+        if (IsDateOnly && Type == DateFieldType.DateTime)
+        {
+            throw new InvalidOperationException("A DateField bound to DateOnly can't take a time. Bind it to DateTime or DateTimeOffset for a date and time.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => Format(value);
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        if (TryParse(value, out result))
+        {
+            validationErrorMessage = null;
+            return true;
+        }
+
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DateInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
+        return false;
+    }
+
+    // The input's text: the value's date, or its date and time in Zone, as the browser writes them.
+    private string? Format(object? value)
+    {
+        DateTime? wall = value switch
+        {
+            DateOnly date => date.ToDateTime(TimeOnly.MinValue),
+            // Through UTC: ConvertTime throws for a Local time in the server's own DST gap.
+            DateTime { Kind: DateTimeKind.Local } local => TimeZoneInfo.ConvertTimeFromUtc(local.ToUniversalTime(), Zone),
+            DateTime time => TimeZoneInfo.ConvertTimeFromUtc(DateTime.SpecifyKind(time, DateTimeKind.Utc), Zone),
+            DateTimeOffset offset => TimeZoneInfo.ConvertTime(offset, Zone).DateTime,
+            _ => null,
+        };
+
+        return wall?.ToString(
+            ResolvedType == DateFieldType.Date ? "yyyy-MM-dd" : ShowsSeconds ? "yyyy-MM-dd'T'HH:mm:ss" : "yyyy-MM-dd'T'HH:mm",
+            System.Globalization.CultureInfo.InvariantCulture);
+    }
+
+    // Min and Max, or [Range]'s ends: a value of the bound type, or text the browser would post.
+    private string? FormatLimit(TValue? limit, object? annotated)
+    {
+        if (limit is not null && !EqualityComparer<TValue>.Default.Equals(limit, default))
+        {
+            return Format(limit);
+        }
+
+        return annotated switch
+        {
+            string text => TryParse(text, out var parsed) ? Format(parsed) : null,
+            null => null,
+            _ => Format(annotated),
+        };
+    }
+
+    private bool TryParse(string? text, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result)
+    {
+        result = default!;
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return Nullable.GetUnderlyingType(typeof(TValue)) is not null;
+        }
+
+        if (!DateTime.TryParseExact(text.Trim(), InputFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var wall))
+        {
+            return false;
+        }
+
+        if (ResolvedType == DateFieldType.Date)
+        {
+            wall = wall.Date;
+        }
+
+        // A time at the very ends of the calendar (year 1 east of UTC, 9999 west of it) has no UTC
+        // equivalent: not a date this field can hold.
+        var offset = IsDateOnly ? TimeSpan.Zero : Zone.GetUtcOffset(wall);
+        var utcTicks = wall.Ticks - offset.Ticks;
+        if (utcTicks < DateTime.MinValue.Ticks || utcTicks > DateTime.MaxValue.Ticks)
+        {
+            return false;
+        }
+
+        // Each branch boxed: a conditional would turn the DateTime into a DateTimeOffset.
+        result = (TValue)(IsDateOnly ? (object)DateOnly.FromDateTime(wall)
+            : IsOffset ? (object)new DateTimeOffset(wall, offset)
+            : new DateTime(utcTicks, DateTimeKind.Utc));
+        return true;
+    }
+
+    // What date and datetime-local inputs post.
+    private static readonly string[] InputFormats =
+    [
+        "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF",
+    ];
+}

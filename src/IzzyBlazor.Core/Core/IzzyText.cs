@@ -119,6 +119,9 @@ public class IzzyText
     /// <summary>NumberField's and Slider's message for a value that isn't a number. {0} is the field's label.</summary>
     public virtual string NumberInvalid { get; set; } = "The {0} field must be a number.";
 
+    /// <summary>DateField's message for a value that isn't a date. {0} is the field's label.</summary>
+    public virtual string DateInvalid { get; set; } = "The {0} field must be a date.";
+
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
 

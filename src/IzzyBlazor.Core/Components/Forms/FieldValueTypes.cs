@@ -32,3 +32,6 @@ public partial class MultiSelect<[DynamicallyAccessedMembers(DynamicallyAccessed
 
 /// <summary>Checkboxes for several choices, bound to a collection.</summary>
 public partial class CheckboxGroup<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TItem>;
+
+/// <summary>A date field, or a date and time field.</summary>
+public partial class DateField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;

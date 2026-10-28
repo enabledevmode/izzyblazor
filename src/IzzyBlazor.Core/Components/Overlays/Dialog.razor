@@ -43,7 +43,9 @@
       `ShowCloseButton` and `CloseOnBackdrop` are off.
     - DialogTrigger is a native `button` with `aria-haspopup="dialog"`, and focus comes back to
       it when the dialog closes.
-    - Put `autofocus` on the field to start in. After an enhanced post that comes back with
+    - Opening moves focus into the dialog as it shows, with no delay or animation to wait for (the
+      browser's `showModal`): to the field with `autofocus`, else the first thing that takes focus.
+      A browser test can check focus as soon as the dialog shows. After an enhanced post that comes back with
       errors, the dialog reopens with focus on the first invalid field.
     - With JavaScript off, a dialog opened from the server (`?dialog=id`, `Open`) isn't modal:
       focus can leave it for the page behind. In browsers with the `closedby` attribute (Chrome
@@ -129,7 +131,11 @@
     /// </summary>
     [Parameter] public Responsive<int> ContentPadding { get; set; }
 
-    /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
+    /// <summary>
+    /// The width: <see cref="DialogSize.Sm"/> is 24rem (384px), <see cref="DialogSize.Md"/> (the
+    /// default) 32rem (512px), <see cref="DialogSize.Lg"/> 48rem (768px), <see cref="DialogSize.Xl"/>
+    /// 64rem (1024px). Use <c>Width</c> for one between them.
+    /// </summary>
     [Parameter] public DialogSize Size { get; set; } = DialogSize.Md;
 
     /// <summary>

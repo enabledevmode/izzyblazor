@@ -1,0 +1,33 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="date-field-limits" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <DateField @bind-Value="Model!.CheckIn" Hint="Bookings open for 2027." />
+    <DateField @bind-Value="Model!.CheckOut" Min="Model!.CheckIn" />
+    <Row><Button Submit>Book</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Booked @saved.In.ToString("MMM d") to @(saved.Out?.ToString("MMM d") ?? "open").</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "date-field-limits")]
+    private Booking? Model { get; set; }
+
+    // What was saved, not the fields: on an interactive page they follow typing.
+    private (DateOnly In, DateOnly? Out)? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = (Model!.CheckIn!.Value, Model.CheckOut);
+
+    public sealed class Booking
+    {
+        [Required, Range(typeof(DateOnly), "2027-01-01", "2027-12-31", ErrorMessage = "Pick a date in 2027.")]
+        [Display(Name = "Check-in")]
+        public DateOnly? CheckIn { get; set; } = new DateOnly(2027, 6, 14);
+
+        [Display(Name = "Check-out")]
+        public DateOnly? CheckOut { get; set; }
+    }
+}

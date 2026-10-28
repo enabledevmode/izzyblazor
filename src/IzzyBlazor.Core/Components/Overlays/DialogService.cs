@@ -21,8 +21,18 @@ public sealed record DialogResult(bool Canceled, object? Data)
 /// <summary>How <see cref="DialogService.OpenAsync{TComponent}"/> shows a dialog.</summary>
 public sealed class DialogOptions
 {
-    /// <summary>The width. Defaults to <see cref="DialogSize.Md"/>.</summary>
+    /// <summary>
+    /// The width: <see cref="DialogSize.Sm"/> is 24rem (384px), <see cref="DialogSize.Md"/> (the
+    /// default) 32rem (512px), <see cref="DialogSize.Lg"/> 48rem (768px), <see cref="DialogSize.Xl"/>
+    /// 64rem (1024px). Use <see cref="Width"/> for one between them.
+    /// </summary>
     public DialogSize Size { get; init; } = DialogSize.Md;
+
+    /// <summary>
+    /// A width the sizes don't cover, such as <c>Length.Px(560)</c>; it replaces <see cref="Size"/>'s.
+    /// The dialog still fits the screen on a phone.
+    /// </summary>
+    public Length? Width { get; init; }
 
     /// <summary>Center (the default), or a drawer or sheet at an edge.</summary>
     public DialogPlacement Placement { get; init; } = DialogPlacement.Center;

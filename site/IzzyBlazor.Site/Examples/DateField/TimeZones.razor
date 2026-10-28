@@ -1,0 +1,30 @@
+<Form Model="Model" FormName="date-field-time-zones" OnValidSubmit="Save" MaxWidth="22.Rem" Grow>
+    <DateField @bind-Value="Model!.Deploy" Label="Deploy at (UTC)" />
+    <DateField @bind-Value="Model!.Standup" Label="Standup (New York)" TimeZone="NewYork" />
+    <Row><Button Submit>Schedule</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Saved @saved.Deploy.ToString("u") and @saved.Standup.ToString("yyyy-MM-dd HH:mm zzz").</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "date-field-time-zones")]
+    private Schedule? Model { get; set; }
+
+    private static readonly TimeZoneInfo NewYork = TimeZoneInfo.FindSystemTimeZoneById("America/New_York");
+
+    private (DateTime Deploy, DateTimeOffset Standup)? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = (Model!.Deploy, Model.Standup);
+
+    public sealed class Schedule
+    {
+        // A DateTime comes back in UTC; a DateTimeOffset with the zone's offset.
+        public DateTime Deploy { get; set; } = new(2027, 3, 1, 22, 0, 0, DateTimeKind.Utc);
+
+        public DateTimeOffset Standup { get; set; } = new(2027, 3, 2, 9, 30, 0, TimeSpan.FromHours(-5));
+    }
+}
