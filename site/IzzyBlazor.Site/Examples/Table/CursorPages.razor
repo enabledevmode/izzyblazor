@@ -2,7 +2,7 @@
    is opaque to the table; a new sort starts again from the first page. *@
 <Table TItem="Order" ItemsProvider="LoadOrders" PageSize="5" Paging="TablePaging.NextPrevious" InitialSort="-date"
        Caption="Orders by cursor" QueryPrefix="cursor-" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" />
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
     <PropertyColumn Property="o => o.Customer" Sortable />
     <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
     <PropertyColumn Property="o => o.Total" Format="C" Sortable />

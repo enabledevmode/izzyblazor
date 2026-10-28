@@ -20,14 +20,16 @@
 
     <AppMain>
         <Section Spacing="SectionSpacing.Lg">
-            <Stack Gap="5" MaxWidth="Length.Rem(40)">
-                <Row><Badge Status="Status.Info">New series</Badge></Row>
-                <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3">Build real apps, one commit at a time</Heading>
-                <TextBlock Size="TextSize.Lg" Color="Color.Muted">Every episode ships a working feature. Watch the change, read the diff, and run the code at that exact step.</TextBlock>
-                <Row Gap="3" Wrap>
-                    <Button Href='@To("watch")' StartIcon="Lucide.Play" Size="ControlSize.Lg">Watch the series</Button>
-                    <Button Href="@To(null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</Button>
-                </Row>
+            <Stack Align="Align.Center">
+                <Stack Gap="5" MaxWidth="Length.Rem(40)" Align="Align.Center">
+                    <Badge Status="Status.Info">New series</Badge>
+                    <Heading Level="1" Size="TextSize.Xl5" MinSize="TextSize.Xl3" Align="TextAlign.Center">Build real apps, one commit at a time</Heading>
+                    <TextBlock Size="TextSize.Lg" Color="Color.Muted" Align="TextAlign.Center">Every episode ships a working feature. Watch the change, read the diff, and run the code at that exact step.</TextBlock>
+                    <Row Gap="3" Justify="Justify.Center" Wrap>
+                        <Button Href='@To("watch")' StartIcon="Lucide.Play" Size="ControlSize.Lg">Watch the series</Button>
+                        <Button Href="@To(null)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Size="ControlSize.Lg">Browse projects</Button>
+                    </Row>
+                </Stack>
             </Stack>
         </Section>
         <Section Bg="Color.FillSubtle">

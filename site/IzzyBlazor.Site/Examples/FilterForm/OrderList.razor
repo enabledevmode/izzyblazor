@@ -26,7 +26,7 @@
                     <FilterCheckbox Name="large" Label="Over $300" />
                 </FilterForm>
                 <Table Items="Filtered" PageSize="6" InitialSort="-date" Caption="Orders" EmptyText="No orders match these filters">
-                    <PropertyColumn Property="o => o.Number" Title="Order" />
+                    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
                     <PropertyColumn Property="o => o.Customer" Sortable />
                     <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
                     <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>

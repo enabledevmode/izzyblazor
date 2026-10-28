@@ -5,7 +5,7 @@
     <Stack Gap="3">
         <Table Items="Recent" Caption="Recent orders" Selectable ItemKey="o => o.Number.ToString()"
                RowLabel='o => $"order {o.Number}"' @bind-SelectedKeys="_selected">
-            <PropertyColumn Property="o => o.Number" Title="Order" FooterText="Total" />
+            <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" FooterText="Total" />
             <PropertyColumn Property="o => o.Customer" />
             <PropertyColumn Property="o => o.Total" Format="C" FooterText="@Recent.Sum(o => o.Total).ToString("C")" />
         </Table>

@@ -601,6 +601,22 @@
     text-align: center;
   }
 
+  /* With no rows, the message stays in view, centered in the box rather than across columns wider
+     than it (a phone): sticky at the box's start and as wide as the box shows, which the script
+     measures (--ib-table-view). Without script it centers across the columns. The cell's padding
+     moves onto the message. */
+  .ib-table .ib-table-grid .ib-table-empty > td:only-child {
+    padding-inline: 0;
+  }
+
+  .ib-table-empty-content {
+    position: sticky;
+    inset-inline-start: 0;
+    box-sizing: border-box;
+    inline-size: var(--ib-table-view, auto);
+    padding-inline: var(--ib-table-px);
+  }
+
   /* Sort headers: the whole header is the link; the icon shows the state. */
   .ib-table-sort {
     display: inline-flex;
