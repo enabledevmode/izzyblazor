@@ -22,8 +22,9 @@
 
     Accessibility:
     - It renders a GET `form` with `role="search"`: a search landmark named "Filters" (`Label`).
-    - `FilterSearch`, `FilterSelect` and `FilterDate` have a `Label` that's hidden but names
-      them. The search defaults to "Search"; a select and a date require one.
+    - `FilterSearch` and `FilterSelect` have a `Label` that's hidden but names them; `FilterDate`
+      shows its `Label` before the date, since a date input has no placeholder. The search
+      defaults to "Search"; a select and a date require one.
     - `FilterCheckbox` is a native checkbox with its `Label` (required) shown beside it.
     - With script, filters apply as you type or change a value, without a reload, and focus stays
       where it was; Enter applies at once.

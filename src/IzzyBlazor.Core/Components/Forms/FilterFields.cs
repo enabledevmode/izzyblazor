@@ -34,8 +34,8 @@ public abstract class FilterFieldBase : ComponentBase, IDisposable
     [Parameter] public string Name { get; set; } = "";
 
     /// <summary>
-    /// The field's name for screen readers (shown beside a <see cref="FilterCheckbox"/>). Filter
-    /// bars are compact, so a search box's and a select's isn't shown. Required on
+    /// The field's name for screen readers, shown beside a <see cref="FilterCheckbox"/> and before a
+    /// <see cref="FilterDate"/>. Filter bars are compact, so a search box's and a select's isn't shown. Required on
     /// <see cref="FilterSelect"/>, <see cref="FilterDate"/> and <see cref="FilterCheckbox"/>; <see cref="FilterSearch"/>'s
     /// defaults to "Search".
     /// </summary>
@@ -269,7 +269,8 @@ public sealed class FilterCheckbox : FilterFieldBase
 /// A date for a <see cref="FilterForm"/>, or a date and time: the browser's own date input. The URL
 /// holds what the browser posts (<c>2026-10-27</c>, or <c>2026-10-27T14:30</c>), which
 /// <c>[SupplyParameterFromQuery]</c> reads as a <c>DateOnly?</c> or <c>DateTime?</c>. A time has no
-/// zone, so the page decides which zone it's in (UTC, say, and the label says so).
+/// zone, so the page decides which zone it's in (UTC, say, and the label says so). Its <c>Label</c>
+/// shows before the date, since a date input has no placeholder to say what it's for.
 /// </summary>
 public sealed class FilterDate : FilterFieldBase
 {
@@ -290,9 +291,16 @@ public sealed class FilterDate : FilterFieldBase
     /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // A date input has no placeholder to say what it's for, so its label shows before it, as an add-on.
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", FieldClass("date"));
-        builder.AddContent(2, HiddenLabel(Label!));
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "class", "ib-field-group");
+        builder.OpenElement(4, "label");
+        builder.AddAttribute(5, "class", "ib-field-addon ib-field-addon-start");
+        builder.AddAttribute(6, "for", ControlId);
+        builder.AddContent(7, Label);
+        builder.CloseElement();
         builder.OpenElement(10, "div");
         builder.AddAttribute(11, "class", "ib-field-control");
         builder.OpenElement(12, "input");
@@ -304,6 +312,7 @@ public sealed class FilterDate : FilterFieldBase
         builder.AddAttribute(18, "min", Limit(Min, "00:00"));
         builder.AddAttribute(19, "max", Limit(Max, "23:59"));
         builder.AddAttribute(20, "class", "ib-field-input");
+        builder.CloseElement();
         builder.CloseElement();
         builder.CloseElement();
         builder.CloseElement();

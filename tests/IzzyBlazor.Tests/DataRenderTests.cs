@@ -365,6 +365,11 @@ public class DataRenderTests : BunitContext
         var from = cut.Find("input[type=date]");
         Assert.Equal("2026-10-01", from.GetAttribute("value"));
         Assert.Equal("2026-12-31", from.GetAttribute("max"));
+
+        // A date input shows no placeholder, so its label is shown, not only read.
+        var label = cut.Find($"label[for='{from.Id}']");
+        Assert.Equal("From", label.TextContent);
+        Assert.DoesNotContain("ib-visually-hidden", label.ClassName);
     }
 
     [Fact]
