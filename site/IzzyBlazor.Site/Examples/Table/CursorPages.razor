@@ -1,0 +1,35 @@
+@* First, Previous and Next by cursor, for a source that gives both cursors and a total. The cursor
+   is opaque to the table; a new sort starts again from the first page. *@
+<Table TItem="Order" ItemsProvider="LoadOrders" PageSize="5" Paging="TablePaging.NextPrevious" InitialSort="-date"
+       Caption="Orders by cursor" QueryPrefix="cursor-" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" />
+    <PropertyColumn Property="o => o.Customer" Sortable />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+</Table>
+
+@code {
+    // Here the cursor is an offset in base64; a real API's would be its own token.
+    private static ValueTask<TableResult<Order>> LoadOrders(TableRequest<Order> request)
+    {
+        var size = request.PageSize ?? 5;
+        var at = Decode(request.Cursor);
+        var query = request.ApplySorting(request.ApplyFiltering(Orders.All.AsQueryable()));
+        var total = query.Count();
+        return ValueTask.FromResult(new TableResult<Order>(query.Skip(at).Take(size).ToList(), total)
+        {
+            Next = at + size < total ? Encode(at + size) : null,
+            Previous = at > 0 ? Encode(Math.Max(0, at - size)) : null,
+        });
+    }
+
+    private static string Encode(int offset) => Convert.ToBase64String(System.Text.Encoding.UTF8.GetBytes(offset.ToString()));
+
+    // A cursor this source didn't make reads as the first page.
+    private static int Decode(string? cursor)
+    {
+        Span<byte> bytes = stackalloc byte[32];
+        return cursor is not null && Convert.TryFromBase64String(cursor, bytes, out var length)
+            && int.TryParse(bytes[..length], System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var at) ? at : 0;
+    }
+}

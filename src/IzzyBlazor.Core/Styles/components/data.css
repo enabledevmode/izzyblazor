@@ -768,6 +768,28 @@
     color: var(--ib-color-muted);
   }
 
+  /* Load more (and First, when the list starts part-way) where the pages would be. */
+  .ib-table-more {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+  }
+
+  .ib-table-more-first:not([hidden]) {
+    display: flex;
+  }
+
+  .ib-table-more .ib-pagination-item {
+    --ib-btn-h: var(--ib-control-h-sm);
+    --ib-icon-size: var(--ib-control-icon-sm);
+  }
+
+  /* The first row Load more added takes focus (tabindex -1) when the button was pressed. */
+  .ib-table-grid tbody tr:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
   /* The range sits between the size select and the pages; its text width is rarely whole, so it's
      rounded up, keeping the select's border on whole pixels (where calc-size() is supported). */
   .ib-table-summary {

@@ -13,6 +13,9 @@ import { TypingGuard, changedFromServer, navigateTo } from "../filtering";
  *   the element puts the values in the URL, drops this table's page number and navigates through
  *   Blazor, which keeps the page in place. (Filters kept in the component on interactive pages
  *   don't carry data-ib-filter, so this leaves them alone.)
+ * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
+ *   it presses the table's hidden "load next" button, as Load more does without moving focus.
+ *   The visible button stays for the keyboard.
  */
 class Table extends IzzyElement {
   #timer = 0;
@@ -21,6 +24,43 @@ class Table extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     this.#setupFilters(signal);
     this.#setupSelectAll(signal);
+    this.#setupLoadOnScroll(signal);
+  }
+
+  #setupLoadOnScroll(signal: AbortSignal): void {
+    if (!this.hasAttribute("data-ib-load-on-scroll")) return;
+    let last: Element | null = null;
+    let inView = false;
+    // The trigger is drawn only on interactive pages, and not while a page loads: one at a time.
+    const loadNext = () => this.querySelector<HTMLButtonElement>(":scope > .ib-table-footer [data-ib-load-next]")?.click();
+    // Viewport-rooted, so the table's own scroll box (MaxHeight) clips it too.
+    const visibility = new IntersectionObserver((entries) => {
+      // Only the row watched now: a report queued for the one before may still arrive.
+      const entry = entries.filter((e) => e.target === last).pop();
+      if (!entry) return;
+      inView = entry.isIntersecting;
+      if (inView) loadNext();
+    });
+    // New rows move the last one; a trigger that comes back (a page loaded) while it's still in
+    // view loads the next, until the rows fill the view.
+    const watch = () => {
+      const row = this.querySelector(":scope > .ib-table-scroll > table > tbody > tr:last-child");
+      if (row !== last) {
+        if (last) visibility.unobserve(last);
+        last = row;
+        inView = false;
+        if (row) visibility.observe(row);
+      } else if (inView) {
+        loadNext();
+      }
+    };
+    const changes = new MutationObserver(watch);
+    changes.observe(this, { childList: true, subtree: true });
+    signal.addEventListener("abort", () => {
+      changes.disconnect();
+      visibility.disconnect();
+    });
+    watch();
   }
 
   #setupSelectAll(signal: AbortSignal): void {
@@ -132,6 +172,8 @@ class Table extends IzzyElement {
     }
     const pageKey = this.dataset.ibPageKey;
     if (pageKey) url.searchParams.delete(pageKey);
+    const cursorKey = this.dataset.ibCursorKey;
+    if (cursorKey) url.searchParams.delete(cursorKey);
     if (navigateTo(url, replace)) this.#typing.guard();
   }
 

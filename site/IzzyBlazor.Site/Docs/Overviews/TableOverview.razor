@@ -30,6 +30,17 @@
 <TextBlock>Pass an EF Core <Code>IQueryable</Code> as <Code>Items</Code>, and the database sorts, filters and pages. For more control, use <Code>ItemsProvider</Code> to load each page yourself:</TextBlock>
 <Code Block Language="razor">@Provider</Code>
 
+<Heading Level="2">Paging without a total</Heading>
+<TextBlock>When the data pages by cursor (an opaque "next" token, as many APIs and logs do) or has no total, set <Code>Paging</Code> and return the next cursor from your <Code>ItemsProvider</Code>. The table passes it back as <Code>request.Cursor</Code>; the total is optional.</TextBlock>
+<Code Block Language="razor">@Cursor</Code>
+<TextBlock><Code>TablePaging.LoadMore</Code> puts a button under the rows that adds the next page to them; <Code>LoadMoreText</Code> sets its text.</TextBlock>
+<ExampleViewer Example="table-load-more" />
+<TextBlock>On static pages and with JavaScript off there's nothing to add rows to, so the button shows the next page in place of this one, and First goes back to the start. With an <Code>ItemKey</Code>, a row already shown isn't added twice. A parent's re-render keeps the added pages; call <Code>ReloadAsync()</Code> to start over.</TextBlock>
+<TextBlock><Code>TablePaging.NextPrevious</Code> shows First, Previous and Next. Return <Code>Previous</Code> too if your source has it; without it, interactive tables go back through the cursors they've followed, and static ones offer First.</TextBlock>
+<ExampleViewer Example="table-cursor-pages" />
+<TextBlock><Code>TablePaging.LoadOnScroll</Code> loads the next page as the last row comes into view. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Both modes also work with <Code>Items</Code>, where the table pages by row offset.</TextBlock>
+<ExampleViewer Example="table-load-on-scroll" />
+
 <Heading Level="2">Row links</Heading>
 <TextBlock>Use <Code>RowHref</Code> to make each row a link, and <Code>RowLabel</Code> to name it. Links, buttons and checkboxes inside the row still work on their own.</TextBlock>
 <Code Block Language="razor">@RowLinks</Code>
@@ -87,6 +98,18 @@
                 var query = db.Orders.Where(o => o.Active);
                 var page = await request.Apply(query).ToListAsync();   // filters, sorts, pages
                 return new(page, await request.ApplyFiltering(query).CountAsync());
+            }
+        }
+        """;
+
+    private const string Cursor = """
+        <Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="200" Paging="TablePaging.LoadMore">...</Table>
+
+        @code {
+            async ValueTask<TableResult<AuditEvent>> LoadEvents(TableRequest<AuditEvent> request)
+            {
+                var page = await api.ListEventsAsync(cursor: request.Cursor, limit: request.PageSize ?? 200);
+                return new(page.Items) { Next = page.Next };   // no total needed
             }
         }
         """;

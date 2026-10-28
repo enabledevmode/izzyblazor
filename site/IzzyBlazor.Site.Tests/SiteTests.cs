@@ -311,11 +311,13 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
 
         if (Regex.IsMatch(source, "Sortable|PageSize|Filterable"))
         {
-            foreach (Match m in Regex.Matches(source, "<Table\\b[^>]*>"))
+            // Quoted values may hold a ">" (ItemKey="e => e.Id").
+            foreach (Match m in Regex.Matches(source, "<Table\\b(?:[^>\"]|\"[^\"]*\")*>"))
             {
                 var prefix = Regex.Match(m.Value, "QueryPrefix=\"([^\"]*)\"").Groups[1].Value;
                 yield return prefix + "sort";
                 yield return prefix + "page";
+                yield return prefix + "cursor";
             }
         }
 

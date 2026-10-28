@@ -1272,7 +1272,10 @@
         { "feature": "Selected rows post with a form" },
         { "feature": "Filters apply as you type", "off": "none", "static": "full", "live": "full" },
         { "feature": "Select-all checkbox", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Sort, page, filters and selection bound to C#", "member": "Page" }
+        { "feature": "Sort, page, filters and selection bound to C#", "member": "Page" },
+        { "feature": "Paging by cursor (First, Previous, Next)", "member": "Paging" },
+        { "feature": "Load more adds rows under the ones shown", "member": "Paging", "off": "partial", "static": "partial", "live": "full" },
+        { "feature": "Loading on scroll", "member": "Paging", "off": "none", "static": "none", "live": "full" }
       ],
       "examples": [
         { "id": "table-sort-page", "title": "Sorting and paging",
@@ -1289,7 +1292,22 @@
             "off": "Checked rows post their keys with the form.",
             "static": "The header checkbox selects every row on the page.",
             "live": "@bind-SelectedKeys follows the checkboxes in C#." } },
-        { "id": "table-bound", "title": "State in the component", "modes": ["live"] }
+        { "id": "table-bound", "title": "State in the component", "modes": ["live"] },
+        { "id": "table-load-more", "title": "Load more by cursor",
+          "notes": {
+            "off": "Load earlier is a link: it shows the next page in place of this one, and First goes back.",
+            "static": "The same link; enhanced navigation swaps the page in.",
+            "live": "Each press adds eight rows under the ones shown, and focus moves to the first new row." } },
+        { "id": "table-cursor-pages", "title": "Next and previous by cursor",
+          "notes": {
+            "off": "First, Previous and Next are links with the cursor in the URL.",
+            "static": "The same links; enhanced navigation swaps the page in.",
+            "live": "The same links; the table follows the URL." } },
+        { "id": "table-load-on-scroll", "title": "Loading on scroll",
+          "notes": {
+            "off": "No loading on scroll: Load more is a link to the next page.",
+            "static": "No loading on scroll: Load more is a link to the next page.",
+            "live": "Scroll the rows: the next page loads as the last one comes into view." } }
       ]
     },
     {
