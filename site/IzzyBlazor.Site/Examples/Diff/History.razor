@@ -1,0 +1,77 @@
+@inject NavigationManager Navigation
+
+@* A ruleset's version history: the versions down the side, and the one chosen compared with the
+   one before it. The version and the layout are in the address (?v=, ?layout=), so every link
+   works with JavaScript off; below 1024px the list goes above the diff. *@
+<AppShell Variant="ShellVariant.Canvas">
+    <AppHeader>
+        <AppBrand Href="@To(null, null)" Icon="Lucide.ListChecks" Label="Acme Rules" />
+        <Box Grow />
+        <Avatar Name="Alan Turing" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Gap="6" Padding="new() { Base = 4, Md = 8 }">
+            <Stack Gap="1">
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Rulesets · Putaway</TextBlock>
+                <Heading Level="1" Size="TextSize.Xl2">Version history</Heading>
+            </Stack>
+
+            <Grid Template='new() { Base = "minmax(0, 1fr)", Lg = "15rem minmax(0, 1fr)" }' Gap="6" Align="Align.Start">
+                <Card Title="Versions" TitleLevel="2" Size="ControlSize.Sm">
+                    <NavMenu Label="Versions">
+                        @foreach (var version in RulesetVersions.All.Reverse())
+                        {
+                            <NavItem Href="@To(version == RulesetVersions.All[^1] ? null : version.Number, LayoutKey)" Badge="@(version.State == "Draft" ? "Draft" : null)">v@(version.Number) · @version.Note</NavItem>
+                        }
+                    </NavMenu>
+                </Card>
+
+                <Stack Gap="4">
+                    <Row Gap="3" Align="Align.Center" Wrap>
+                        <Stack Gap="1" Grow>
+                            <Heading Level="2" Size="TextSize.Xl">v@(Shown.Number): @Shown.Note</Heading>
+                            <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Shown.State by @Shown.Author on @Shown.On.ToString("MMM d, yyyy")</TextBlock>
+                        </Stack>
+                        @if (Before is not null)
+                        {
+                            <Tabs Label="Layout" Size="ControlSize.Sm">
+                                <TabLink Href="@To(ShownKey, null)" Label="Unified" />
+                                <TabLink Href='@To(ShownKey, "split")' Label="Side by side" />
+                            </Tabs>
+                        }
+                    </Row>
+                    @if (Before is null)
+                    {
+                        <Diff OldText="" NewText="@Shown.Xml" Language="xml" Title="putaway.xml · first version" Fold="false" />
+                    }
+                    else
+                    {
+                        <Diff OldText="@Before.Xml" NewText="@Shown.Xml" Language="xml" Title="@($"putaway.xml · v{Before.Number} → v{Shown.Number}")"
+                              Layout="@(LayoutKey == "split" ? DiffLayout.Split : DiffLayout.Unified)" />
+                    }
+                </Stack>
+            </Grid>
+        </Stack>
+    </AppMain>
+</AppShell>
+
+@code {
+    [SupplyParameterFromQuery(Name = "v")] private int? Version { get; set; }
+    [SupplyParameterFromQuery(Name = "layout")] private string? LayoutKey { get; set; }
+
+    // The newest unless the address names another.
+    private RulesetVersion Shown => RulesetVersions.All.FirstOrDefault(v => v.Number == Version) ?? RulesetVersions.All[^1];
+
+    // The version in the tabs' links: none for the newest, so a ?v= that names no version goes.
+    private int? ShownKey => Shown == RulesetVersions.All[^1] ? null : Shown.Number;
+
+    private RulesetVersion? Before => RulesetVersions.All.LastOrDefault(v => v.Number < Shown.Number);
+
+    // Links within this example: its own address with the version and layout.
+    private string To(int? version, string? layout) => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+    {
+        ["v"] = version,
+        ["layout"] = layout,
+    });
+}

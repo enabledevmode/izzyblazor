@@ -315,6 +315,11 @@
         { "id": "diff-every-line", "title": "Every line", "lead": "Use `Fold=\"false\"` to show every unchanged line and `LineNumbers=\"false\"` to leave the numbers out, for a short text." },
         { "id": "diff-computed", "title": "A diff computed first", "lead": "Use `Lines` for a diff you computed with `TextDiff.Compare` or elsewhere, such as to count the changes first." },
         { "id": "diff-notes", "title": "No changes, or too many", "lead": "Use `SameText` and `TooManyText` to change the notes shown when the texts are the same, or differ by more than `MaxChanges` lines." }
+      ],
+      "scenarios": [
+        { "id": "version-history", "title": "Version history", "member": "Layout",
+          "description": "A ruleset's versions down the side and the one chosen compared with the one before it, unified or side by side. The version and the layout are links in the address.",
+          "example": { "id": "diff-history", "title": "Version history", "height": 900, "page": true } }
       ]
     },
     {
@@ -781,7 +786,7 @@
       ],
       "scenarios": [
         { "id": "order-list", "title": "Filtered order list", "member": "Live",
-          "description": "An orders page: a search, a status menu and a checkbox above a sortable, paged table. The filters live in the URL, so a filtered view can be bookmarked, and filtering keeps the sort and starts again at page 1.",
+          "description": "An orders page: a search, a status menu, a date range and a checkbox above a sortable, paged table. The filters live in the URL, so a filtered view can be bookmarked, and filtering keeps the sort and starts again at page 1.",
           "example": { "id": "filter-form-order-list", "title": "Orders", "height": 580, "page": true,
             "notes": {
               "off": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
@@ -1334,6 +1339,16 @@
         { "id": "table-load-on-scroll", "title": "Loading on scroll", "modes": ["live"],
           "notes": {
             "live": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } }
+      ],
+      "scenarios": [
+        { "id": "activity-log", "title": "Activity log", "member": "Paging",
+          "description": "An admin's activity log from an API that pages by cursor, with no total: the next page loads as you scroll, and the column filters go to the API with the cursor.",
+          "example": { "id": "table-activity-log", "title": "Activity", "height": 720, "page": true,
+            "notes": {
+              "off": "Load more is a link to the next page, which takes this one's place; First goes back. The filters apply with their button.",
+              "static": "The same links, swapped in without a full reload.",
+              "live": "Scroll down: each page loads under the last as its last row comes into view. A filter starts the list over."
+            } } }
       ]
     },
     {
