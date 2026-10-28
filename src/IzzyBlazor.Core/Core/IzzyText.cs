@@ -199,6 +199,36 @@ public class IzzyText
     /// <summary>Table's button that loads the next page under the rows (<see cref="TablePaging.LoadMore"/>).</summary>
     public virtual string LoadMore { get; set; } = "Load more";
 
+    /// <summary>ReconnectDialog's title.</summary>
+    public virtual string ReconnectTitle { get; set; } = "Connection lost";
+
+    /// <summary>ReconnectDialog while it tries to rejoin the server.</summary>
+    public virtual string ReconnectRejoining { get; set; } = "Rejoining the server…";
+
+    /// <summary>ReconnectDialog between attempts: {0} is the seconds until the next one.</summary>
+    public virtual string ReconnectRetrying { get; set; } = "Couldn't rejoin. Trying again in {0} seconds.";
+
+    /// <summary>ReconnectDialog between attempts, with one second to go.</summary>
+    public virtual string ReconnectRetryingOne { get; set; } = "Couldn't rejoin. Trying again in 1 second.";
+
+    /// <summary>ReconnectDialog when every attempt failed, above its Retry button.</summary>
+    public virtual string ReconnectFailed { get; set; } = "Couldn't rejoin the server. Retry, or reload the page.";
+
+    /// <summary>ReconnectDialog when the server paused the session, above its Resume button.</summary>
+    public virtual string ReconnectPaused { get; set; } = "The server paused this session.";
+
+    /// <summary>ReconnectDialog when the session couldn't resume, above its Reload button.</summary>
+    public virtual string ReconnectResumeFailed { get; set; } = "Couldn't resume the session. Reload the page to go on.";
+
+    /// <summary>ReconnectDialog's button after it failed to rejoin.</summary>
+    public virtual string Retry { get; set; } = "Retry";
+
+    /// <summary>ReconnectDialog's button for a session the server paused.</summary>
+    public virtual string Resume { get; set; } = "Resume";
+
+    /// <summary>ReconnectDialog's button when the session can't come back.</summary>
+    public virtual string Reload { get; set; } = "Reload";
+
     /// <summary>Alert's and Banner's status, read before the message (Info).</summary>
     public virtual string StatusInfo { get; set; } = "Info";
 

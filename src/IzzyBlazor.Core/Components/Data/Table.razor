@@ -305,7 +305,12 @@
                     </span>
                     @if (_next is not null && RendererInfo.IsInteractive)
                     {
-                        <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="_loadingMore" OnClick="() => LoadMoreAsync(focus: true)">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
+                        @if (_loadingMore && OnFocusOnly)
+                        {
+                            @* The button is out of sight while loading on scroll: this says a page is on its way. *@
+                            <Spinner Class="ib-table-more-loading" />
+                        }
+                        <Button Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="_loadingMore" OnClick="() => LoadMoreAsync(focus: true)">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
                         @if (Paging == TablePaging.LoadOnScroll && !_loadingMore && !_providerLoading)
                         {
                             @* Pressed by the script when the last row comes into view: a load that doesn't move focus. *@
@@ -315,7 +320,7 @@
                     else if (_next is not null)
                     {
                         @* No component state to add pages to: the next page, in place of this one. *@
-                        <Button Href="@CursorHref(NextTarget)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
+                        <Button Href="@CursorHref(NextTarget)" Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
                     }
                 </div>
             }
@@ -1514,6 +1519,10 @@
     private bool CursorPaging => Paging != TablePaging.Pages;
 
     private bool Appending => Paging is TablePaging.LoadMore or TablePaging.LoadOnScroll;
+
+    // Loading on scroll on an interactive page (and its prerender): the button is for the keyboard,
+    // out of sight until it has focus. On static pages it's the only way on, so it shows.
+    private bool OnFocusOnly => Paging == TablePaging.LoadOnScroll && WillBeInteractive;
 
     // Numbered pages show the footer when there's anything to page; by cursor also on an empty
     // page reached by a cursor, so First leads back.

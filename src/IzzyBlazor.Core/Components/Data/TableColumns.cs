@@ -419,9 +419,11 @@ public enum TablePaging
     LoadMore,
 
     /// <summary>
-    /// <see cref="LoadMore"/>, and the next page also loads when the last row scrolls into view.
-    /// The button stays, for the keyboard. Best with a <c>MaxHeight</c>, so content under the
-    /// table stays within reach.
+    /// <see cref="LoadMore"/>, and the next page also loads when the last row scrolls into view,
+    /// on interactive pages. The button is there only for the keyboard: out of sight until it has
+    /// focus, with a spinner under the rows while a page loads. On static pages and with
+    /// JavaScript off it shows, a link to the next page, as for <see cref="LoadMore"/>. Best
+    /// with a <c>MaxHeight</c>, so content under the table stays within reach.
     /// </summary>
     LoadOnScroll,
 }

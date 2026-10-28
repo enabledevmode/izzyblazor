@@ -404,6 +404,30 @@
     z-index: 1;
   }
 
+  /* The vertical scrollbar starts under the sticky header rather than beside it: its track takes
+     a margin the header's height, worked out from the tokens (two paddings, the whole-pixel line,
+     the 1px line under it), so it's right before any script. Chromium and Safari only: their
+     ::-webkit-scrollbar track takes a margin; Firefox's standard scrollbar runs the full height, and
+     so does a native scrollbar (ib-scrollbars-native), which ignores track styles. */
+  .ib-table-sticky > .ib-table-scroll {
+    --ib-table-head-line: round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px);
+    --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px);
+  }
+
+  /* Header filters: the 22px filter button is taller than a small table's 18px line. */
+  .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-button) {
+    --ib-table-head-line: max(round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px), 1.375rem);
+  }
+
+  /* FilterPlacement.Row: a row of small fields under the headers too. */
+  .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-row) {
+    --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px + var(--ib-space-2) * 2 + var(--ib-control-h-sm) + 1px);
+  }
+
+  .ib-table-sticky > .ib-table-scroll::-webkit-scrollbar-track:vertical {
+    margin-block-start: var(--ib-table-head-h);
+  }
+
   /*
    * Header filters (the default): the funnel button follows the title (and its sort icon), so
    * the two read as one group. End-aligned columns mirror the group, funnel first, against the
@@ -782,6 +806,52 @@
   .ib-table-more .ib-pagination-item {
     --ib-btn-h: var(--ib-control-h-sm);
     --ib-icon-size: var(--ib-control-icon-sm);
+  }
+
+  /* Loading on scroll: the button is for the keyboard, out of sight until it has focus (as a
+     skip link is). It stays in the tab order and in the accessibility tree. With JavaScript off
+     nothing loads on scroll, so it shows (the prerender of an interactive page draws it too). */
+  @media (scripting: enabled) {
+    .ib-table-more-on-focus:not(:focus) {
+      position: absolute;
+      width: 1px;
+      min-width: 0;
+      height: 1px;
+      margin: -1px;
+      padding: 0;
+      border: 0;
+      overflow: hidden;
+      clip-path: inset(50%);
+      white-space: nowrap;
+    }
+  }
+
+  /* Nothing moves when it shows: the footer keeps a button's height, and the focused button and
+     the spinner sit at its start, which is otherwise free, rather than pushing the range aside. */
+  .ib-table-footer:has(.ib-table-more-on-focus) {
+    position: relative;
+    min-height: var(--ib-control-h-sm);
+  }
+
+  @media (scripting: enabled) {
+    .ib-table-more-on-focus:focus {
+      position: absolute;
+      inset-block-start: 0;
+      inset-inline-start: 0;
+    }
+  }
+
+  .ib-table-more-loading {
+    position: absolute;
+    inset-block-start: 50%;
+    inset-inline-start: 0;
+    translate: 0 -50%;
+    color: var(--ib-color-muted);
+  }
+
+  /* A focused button shows its own spinner. */
+  .ib-table-more:has(.ib-table-more-on-focus:focus) .ib-table-more-loading {
+    display: none;
   }
 
   /* The first row Load more added takes focus (tabindex -1) when the button was pressed. */
