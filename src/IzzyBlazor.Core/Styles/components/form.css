@@ -2150,6 +2150,14 @@
     flex: 0 1 12rem;
   }
 
+  /* Phones: the search, selects and dates each take the row, so they stack at one width. */
+  @media (width < 640px) {
+    .ib-filter-row > :is(.ib-filter-search, .ib-filter-select, .ib-filter-date) {
+      flex: 1 1 100%;
+      max-width: none;
+    }
+  }
+
   /* As tall as its buttons even while empty: with script and no filter set, Clear is the only
      button and isn't there, and the line it shares (a checkbox's, say) would grow when it came. */
   .ib-filter-buttons {
