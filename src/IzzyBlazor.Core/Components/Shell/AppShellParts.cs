@@ -1,5 +1,7 @@
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Rendering;
+using Microsoft.AspNetCore.Components.Routing;
+using Microsoft.AspNetCore.Components.Sections;
 
 namespace IzzyBlazor;
 
@@ -65,6 +67,17 @@ internal sealed class ShellBrand
             Changed?.Invoke();
         }
     }
+}
+
+/// <summary>
+/// Where an <see cref="AppAside"/> written in a page goes: <see cref="AppMain"/> cascades it to the
+/// page and renders its outlet just after the main area, so the page's aside takes the shell's
+/// aside column.
+/// </summary>
+internal sealed class ShellAsideSlot
+{
+    /// <summary>The section the page's aside is rendered into.</summary>
+    public object SectionId { get; } = new();
 }
 
 /// <summary>Shared plumbing for the parts of an <see cref="AppShell"/>.</summary>
@@ -183,6 +196,9 @@ public class AppMain : AppShellPart
     // The shell's page outline, passed on to the headings in the main area only.
     [CascadingParameter] private PageOutline? Outline { get; set; }
 
+    // Where an AppAside in the page goes; one per main area.
+    private readonly ShellAsideSlot _asideSlot = new();
+
     // The content goes in a centered column (a div inside main), so main itself stays full width
     // and full-bleed sections can measure it as a container.
     private bool Measured => ContentWidth is not null || Shell?.ContentWidth is not null;
@@ -230,9 +246,27 @@ public class AppMain : AppShellPart
         }
 
         builder.CloseElement();
+
+        // An AppAside in the page renders here, a sibling of main inside the shell, so it takes the
+        // aside column and comes after the main area in reading order.
+        if (Shell is not null)
+        {
+            builder.OpenComponent<SectionOutlet>(10);
+            builder.AddComponentParameter(11, nameof(SectionOutlet.SectionId), _asideSlot.SectionId);
+            builder.CloseComponent();
+        }
     }
 
-    private RenderFragment? Content => Outline is null ? ChildContent : builder =>
+    private RenderFragment? Content => Shell is null ? Outlined : builder =>
+    {
+        builder.OpenComponent<CascadingValue<ShellAsideSlot>>(0);
+        builder.AddComponentParameter(1, nameof(CascadingValue<ShellAsideSlot>.Value), _asideSlot);
+        builder.AddComponentParameter(2, nameof(CascadingValue<ShellAsideSlot>.IsFixed), true);
+        builder.AddComponentParameter(3, nameof(CascadingValue<ShellAsideSlot>.ChildContent), Outlined);
+        builder.CloseComponent();
+    };
+
+    private RenderFragment? Outlined => Outline is null ? ChildContent : builder =>
     {
         builder.OpenComponent<CascadingValue<PageOutline>>(0);
         builder.AddComponentParameter(1, nameof(CascadingValue<PageOutline>.Name), PageOutline.MainCascade);
@@ -244,16 +278,59 @@ public class AppMain : AppShellPart
 }
 
 /// <summary>
-/// An optional side column of an <see cref="AppShell"/>, such as a table of contents, on the
-/// side opposite the sidebar. Its content stays in view while the page scrolls.
+/// An optional side column of an <see cref="AppShell"/>, on the side opposite the sidebar: an
+/// outline, or a panel about what the main area shows, such as the selected row's details. Its
+/// content stays in view while the page scrolls, and scrolls on its own when it's taller.
 /// </summary>
-public class AppAside : AppShellPart
+/// <remarks>
+/// Put it in the layout for every page, or in a page for that page only: an aside written inside
+/// <see cref="AppMain"/> moves to the shell's aside column, and a page without one leaves no column.
+/// A page's aside takes the place of the layout's while that page is shown; give the two different
+/// <see cref="Id"/>s if both are drawers.
+/// </remarks>
+[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a drawer (AsideSmallScreen.Drawer) doesn't close on Escape or move focus, and the scroll box isn't a tab stop.")]
+public class AppAside : AppShellPart, IDisposable
 {
-    /// <summary>The width. Defaults to 15rem.</summary>
+    /// <summary>The width, such as <c>Length.Px(420)</c> for a detail panel. Defaults to 15rem.</summary>
     [Parameter] public Length Width { get; set; } = Length.Rem(15);
 
-    /// <summary>Shown from this breakpoint up. Defaults to <see cref="Breakpoint.Lg"/>.</summary>
+    /// <summary>Shown beside the main area from this breakpoint up. Defaults to <see cref="Breakpoint.Lg"/>.</summary>
     [Parameter] public Breakpoint Breakpoint { get; set; } = Breakpoint.Lg;
+
+    /// <summary>
+    /// What it does below <see cref="Breakpoint"/>: <see cref="AsideSmallScreen.Hidden"/> (the default)
+    /// hides it, <see cref="AsideSmallScreen.Below"/> puts it after the main area, full width, and
+    /// <see cref="AsideSmallScreen.Drawer"/> makes it a drawer opened by an <see cref="AsideToggle"/>.
+    /// All three work with JavaScript off.
+    /// </summary>
+    [Parameter] public AsideSmallScreen SmallScreen { get; set; } = AsideSmallScreen.Hidden;
+
+    /// <summary>
+    /// The space inside, on the spacing scale, per breakpoint if you like:
+    /// <c>new() { Base = 4, Md = 6 }</c>. Defaults to 4 (1rem).
+    /// </summary>
+    [Parameter] public Responsive<int> Padding { get; set; }
+
+    /// <summary>
+    /// The landmark's name for screen readers, such as "Details". Set it when the page has another
+    /// <c>aside</c>, or when what's in it isn't clear from its first words.
+    /// </summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>
+    /// The element id, which <see cref="AsideToggle"/> and links to the panel point at (an <c>id</c>
+    /// attribute sets it too). Defaults to <c>ib-aside</c>.
+    /// </summary>
+    [Parameter] public string? Id { get; set; }
+
+    /// <summary>The drawer's close button name (<see cref="AsideSmallScreen.Drawer"/>). Defaults to "Close panel".</summary>
+    [Parameter] public string? CloseLabel { get; set; }
+
+    [CascadingParameter] private ShellAsideSlot? Slot { get; set; }
+
+    [Inject] private NavigationManager Navigation { get; set; } = null!;
+
+    private bool _subscribed;
 
     /// <inheritdoc />
     protected override string Area => "aside";
@@ -262,23 +339,122 @@ public class AppAside : AppShellPart
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         base.BuildAttributes(classes, styles);
+        ApplyResponsive(classes, styles, Padding, "ib-shell-aside-pad", "asidepad", StyleValues.Spacing);
+        // Outside a shell (a page interactive on its own, in a static layout: neither the section
+        // nor the shell's cascade crosses into it), it's a block where it's written, at every width.
+        if (Shell is null)
+        {
+            classes.Add("ib-shell-aside-alone");
+            return;
+        }
+
         classes.Add($"ib-shell-aside-bp-{Breakpoint.Name()}");
+        classes.Add("ib-shell-aside-page", Slot is not null);
+        classes.Add(SmallScreen switch
+        {
+            AsideSmallScreen.Below => "ib-shell-aside-below",
+            AsideSmallScreen.Drawer => "ib-shell-aside-drawer",
+            _ => "ib-shell-aside-hide",
+        });
         styles.AddVar("aside-w", StyleValues.Length(Width));
     }
 
     /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        // A drawer's close links carry the page's address, kept current as it changes.
+        if (SmallScreen == AsideSmallScreen.Drawer && Shell is not null && !_subscribed)
+        {
+            _subscribed = true;
+            Navigation.LocationChanged += OnLocationChanged;
+        }
+
+        base.OnParametersSet();
+    }
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
     protected override void BuildRenderTree(RenderTreeBuilder builder)
     {
+        // Written in a page: rendered through AppMain's outlet, into the shell's aside column.
+        if (Slot is not null)
+        {
+            builder.OpenComponent<SectionContent>(0);
+            builder.AddComponentParameter(1, nameof(SectionContent.SectionId), Slot.SectionId);
+            builder.AddComponentParameter(2, nameof(SectionContent.ChildContent), (RenderFragment)RenderAside);
+            builder.CloseComponent();
+        }
+        else
+        {
+            RenderAside(builder);
+        }
+    }
+
+    private void RenderAside(RenderTreeBuilder builder)
+    {
+        var drawer = SmallScreen == AsideSmallScreen.Drawer && Shell is not null;
+        // "#ib-shell-closed" matches no element: it clears :target without scrolling to the top.
+        var closed = drawer ? PageLinks.ToFragment(Navigation, "ib-shell-closed") : null;
         var (cssClass, style) = BuildRootAttributes();
-        builder.OpenElement(0, "aside");
-        builder.AddMultipleAttributes(1, AdditionalAttributes);
-        builder.AddAttribute(2, "class", cssClass);
-        builder.AddAttribute(3, "style", style);
-        builder.OpenElement(4, "div");
-        builder.AddAttribute(5, "class", "ib-shell-aside-inner");
-        builder.AddContent(6, ChildContent);
+        var id = Id ?? "ib-aside";
+        if (drawer)
+        {
+            builder.OpenElement(10, "a");
+            builder.AddAttribute(11, "class", "ib-shell-backdrop ib-shell-aside-backdrop");
+            builder.AddAttribute(12, "href", closed);
+            builder.AddAttribute(13, "tabindex", "-1");
+            builder.AddAttribute(14, "aria-hidden", "true");
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(20, "aside");
+        builder.AddMultipleAttributes(21, AdditionalAttributes);
+        builder.AddAttribute(22, "id", id);
+        if (Label is not null)
+        {
+            builder.AddAttribute(23, "aria-label", Label);
+        }
+
+        builder.AddAttribute(24, "class", cssClass);
+        builder.AddAttribute(25, "style", style);
+        if (drawer)
+        {
+            // The drawer's top bar, shown below the breakpoint only.
+            builder.OpenElement(30, "div");
+            builder.AddAttribute(31, "class", "ib-shell-aside-close");
+            builder.OpenElement(32, "a");
+            builder.AddAttribute(33, "class", "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only");
+            builder.AddAttribute(34, "href", closed);
+            builder.AddAttribute(35, "aria-label", CloseLabel ?? TextDefaults.ClosePanel);
+            builder.AddAttribute(37, "data-ib-shell-close", true);
+            builder.OpenComponent<Icon>(38);
+            builder.AddComponentParameter(39, nameof(Icon.Role), IconRole.Close);
+            builder.CloseComponent();
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+
+        builder.OpenElement(40, "div");
+        builder.AddAttribute(41, "class", "ib-shell-aside-inner");
+        // Headings in a page's aside aren't the page's own: OnThisPage lists the main area's only.
+        builder.OpenComponent<CascadingValue<PageOutline>>(42);
+        builder.AddComponentParameter(43, nameof(CascadingValue<PageOutline>.Name), PageOutline.MainCascade);
+        builder.AddComponentParameter(44, nameof(CascadingValue<PageOutline>.Value), null);
+        builder.AddComponentParameter(45, nameof(CascadingValue<PageOutline>.IsFixed), true);
+        builder.AddComponentParameter(46, nameof(CascadingValue<PageOutline>.ChildContent), ChildContent);
+        builder.CloseComponent();
         builder.CloseElement();
         builder.CloseElement();
+    }
+
+    /// <inheritdoc />
+    public void Dispose()
+    {
+        if (_subscribed)
+        {
+            Navigation.LocationChanged -= OnLocationChanged;
+        }
     }
 }
 

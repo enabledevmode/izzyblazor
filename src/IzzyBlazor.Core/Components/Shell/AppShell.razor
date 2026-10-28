@@ -30,7 +30,14 @@
       keyboard when nothing in it takes focus.
     - `AppBrand` is named by its `Label`, which screen readers still hear with `HideLabel`; a `Logo`
       is hidden from them.
-    - `AppAside` has no name of its own: add an `aria-label`, such as "On this page", when it helps.
+    - `AppAside` is named by its `Label`, such as "Details"; set it when the page has another `aside`
+      or what's in it isn't clear from its first words. Its scroll box is a tab stop while it
+      scrolls (with JavaScript), so the keyboard can scroll it.
+    - An `AppAside` drawer (`AsideSmallScreen.Drawer`) opens from `AsideToggle` ("Open panel", its
+      `Label`) as the sidebar's drawer does: with JavaScript, focus moves to its close button
+      ("Close panel"), the rest of the shell is `inert`, and Escape, the close button or the
+      backdrop closes it and puts focus back on the toggle. With JavaScript off it opens and
+      closes, but focus doesn't move and Escape does nothing.
     See also: AppSidebar, SiteNav, Container, Section.
 *@
 

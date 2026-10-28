@@ -96,14 +96,20 @@
     },
 
     {
-      "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "App shell", "summary": "Header, sidebar, main area, aside and footer, arranged by CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AppFooter"],
+      "id": "app-shell", "icon": "PanelsTopLeft", "name": "AppShell", "category": "App shell", "summary": "Header, sidebar, main area, aside and footer, arranged by CSS.", "parts": ["AppHeader", "AppBrand", "AppMain", "AppAside", "AsideToggle", "AppFooter"],
       "examples": [
         { "id": "app-shell-parts", "title": "The parts", "height": 600, "page": true,
           "notes": {
               "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } },
-        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true }
+        { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true },
+        { "id": "app-shell-detail-panel", "title": "A panel for the chosen row", "height": 520, "page": true },
+        { "id": "app-shell-aside-drawer", "title": "A panel people open", "height": 420, "page": true,
+          "notes": {
+              "off": "At phone width the panel button is a link to the aside, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "static": "At phone width the drawer opens without changing the address, and focus moves to its close button. The close button, Escape or a tap beside it closes it and puts focus back on the panel button."
+            } }
       ],
       "scenarios": [
         { "id": "dashboard", "title": "Dashboard on a tinted canvas", "member": "Variant",

@@ -1,0 +1,58 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+
+@*
+    The button that opens an AppAside drawer (SmallScreen="AsideSmallScreen.Drawer") below the
+    aside's breakpoint. It shows only while the shell has such a drawer and the window is narrower
+    than the aside's breakpoint, so it can sit in the header, or in the page, on every page.
+    It is a link to the aside's id, so it works with no JavaScript; with JavaScript the shell opens
+    the drawer without changing the URL, and makes it a button (role, Space, aria-expanded kept in
+    step), as SidebarToggle does.
+*@
+
+@* Links carry the page's path: a bare "#id" resolves against <base href> and leads to another page. *@
+<a @attributes="AdditionalAttributes"
+   class="@_class"
+   style="@_style"
+   href="@PageLinks.ToFragment(Navigation, For)"
+   aria-controls="@For"
+   aria-label="@(Label ?? TextDefaults.OpenPanel)"
+   data-ib-shell-toggle>
+    <Icon Role="IconRole.Panel" />
+</a>
+
+@code {
+    /// <summary>The accessible name. Defaults to "Open panel"; name what it holds when you can, such as "Show details".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    /// <summary>The aside to open. Defaults to <c>ib-aside</c>, AppAside's default.</summary>
+    [Parameter] public string For { get; set; } = "ib-aside";
+
+    /// <summary>Visual weight. Defaults to ghost.</summary>
+    [Parameter] public ButtonVariant Variant { get; set; } = ButtonVariant.Ghost;
+
+    private string? _class;
+    private string? _style;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-btn ib-btn-neutral ib-btn-icon-only ib-shell-aside-toggle");
+        classes.Add($"ib-btn-{Variant.ToString().ToLowerInvariant()}");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(StateHasChanged);
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+}
