@@ -1,0 +1,41 @@
+<Diff OldText="@Before" NewText="@After" Language="csharp" Title="OrderTotals.cs" Layout="DiffLayout.Split" />
+
+@* hide *@
+@code {
+    private const string Before =
+        """
+        public static decimal Total(Order order)
+        {
+            decimal total = 0;
+            foreach (var line in order.Lines)
+            {
+                total += line.Price * line.Quantity;
+            }
+
+            // Free shipping over $50.
+            if (total < 50)
+            {
+                total += 4.99m;
+            }
+
+            return total;
+        }
+        """;
+
+    private const string After =
+        """
+        public static decimal Total(Order order, decimal freeShippingOver = 50)
+        {
+            var total = order.Lines.Sum(line => line.Price * line.Quantity);
+
+            // Free shipping over the threshold.
+            if (total < freeShippingOver)
+            {
+                total += 4.99m;
+            }
+
+            return total;
+        }
+        """;
+}
+@* /hide *@

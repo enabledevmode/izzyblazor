@@ -302,6 +302,22 @@
       ]
     },
     {
+      "id": "diff", "icon": "FileDiff", "name": "Diff", "category": "Typography", "summary": "The lines two texts differ by, unified or side by side.", "keywords": ["compare", "changes", "version history"],
+      "features": [
+        { "feature": "Lines removed and added, with old and new numbers" },
+        { "feature": "Changed words marked, colored as Code colors them" },
+        { "feature": "Unchanged runs folded, opened in place" },
+        { "feature": "Side by side, unified when narrow" }
+      ],
+      "examples": [
+        { "id": "diff-versions", "title": "Two versions", "lead": "Use `OldText` and `NewText` for the two texts and `Language` to color them; unchanged lines away from the changes fold." },
+        { "id": "diff-side-by-side", "title": "Side by side", "lead": "Use `Layout` `Split` to put the old text beside the new; below 45rem wide it shows as unified." },
+        { "id": "diff-every-line", "title": "Every line", "lead": "Use `Fold=\"false\"` to show every unchanged line and `LineNumbers=\"false\"` to leave the numbers out, for a short text." },
+        { "id": "diff-computed", "title": "A diff computed first", "lead": "Use `Lines` for a diff you computed with `TextDiff.Compare` or elsewhere, such as to count the changes first." },
+        { "id": "diff-notes", "title": "No changes, or too many", "lead": "Use `SameText` and `TooManyText` to change the notes shown when the texts are the same, or differ by more than `MaxChanges` lines." }
+      ]
+    },
+    {
       "id": "code-example", "icon": "SquareCode", "name": "CodeExample", "category": "Typography", "summary": "A live example with its source under it.", "parts": ["CodeExampleFile"],
       "examples": [
         { "id": "code-example-source", "title": "Preview and source", "lead": "Use `Code` to show an example's source under its live preview, colored and with a copy button.",

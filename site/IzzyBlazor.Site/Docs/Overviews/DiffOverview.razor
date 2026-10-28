@@ -1,0 +1,61 @@
+@* Diff's Overview, written by hand after Code's and Collapsible's: two versions, side by side, every
+   line, a diff computed first (TextDiff), the notes, then large texts (prose). Accessibility and See
+   also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>The diff is computed and colored on the server, so it looks the same with JavaScript off. Lines removed and added carry a <Code>−</Code> or <Code>+</Code> and their old or new line number; the numbers and signs aren't copied when you select the lines.</TextBlock>
+
+<Heading Level="2">Two versions</Heading>
+<TextBlock>Use <Code>OldText</Code> and <Code>NewText</Code> for the two texts and <Code>Language</Code> to color them; unchanged lines away from the changes fold.</TextBlock>
+<ExampleViewer Example="diff-versions" />
+<TextBlock>Each text is colored whole before it's cut into lines, so a comment or value across several lines keeps its color. In a removed line beside an added one, the changed words are marked, unless less than half of the longer line is unchanged (<Code>MarkWords</Code> turns this off). <Code>Context</Code> sets how many unchanged lines stay beside each change (3); the rest fold into a row that opens them in place.</TextBlock>
+
+<Heading Level="2">Side by side</Heading>
+<TextBlock>Use <Code>Layout</Code> <Code>DiffLayout.Split</Code> to put the old text beside the new; below 45rem wide it shows as unified.</TextBlock>
+<ExampleViewer Example="diff-side-by-side" />
+<TextBlock>Each removed line sits beside the line it became, and long lines wrap rather than scroll. Unchanged lines are drawn on both sides, so a split diff sends them twice.</TextBlock>
+
+<Heading Level="2">Every line</Heading>
+<TextBlock>Use <Code>Fold="false"</Code> to show every unchanged line and <Code>LineNumbers="false"</Code> to leave the numbers out, for a short text.</TextBlock>
+<ExampleViewer Example="diff-every-line" />
+
+<Heading Level="2">A diff computed first</Heading>
+<TextBlock>Use <Code>Lines</Code> for a diff you computed with <Code>TextDiff.Compare</Code> or elsewhere, such as to count the changes first.</TextBlock>
+<ExampleViewer Example="diff-computed" />
+<TextBlock><Code>TextDiff.Compare(oldText, newText)</Code> returns every line of both texts as a <Code>DiffLine</Code> (its <Code>Kind</Code>, <Code>OldNumber</Code>, <Code>NewNumber</Code> and <Code>Text</Code>), or null when they differ by more lines than it looks for. Lines from elsewhere should be every line of both texts, in order, removed lines before the added lines that replace them.</TextBlock>
+
+<Heading Level="2">No changes, or too many</Heading>
+<TextBlock>Use <Code>SameText</Code> and <Code>TooManyText</Code> to change the notes shown when the texts are the same, or differ by more than <Code>MaxChanges</Code> lines.</TextBlock>
+<ExampleViewer Example="diff-notes" />
+
+<Heading Level="2">Large texts</Heading>
+<TextBlock>The lines both texts start and end with cost nothing; past them, the comparison's work grows with the length of the rest times the lines that differ, and <Code>MaxChanges</Code> (1,000 lines removed and added) bounds it. Folded lines are still in the page, ready to open, so a 5,000-line file with one change sends 5,000 lines; set <Code>MaxHeight</Code> to keep a long diff in a scrolling box.</TextBlock>
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <Diff OldText="@older.Xml" NewText="@newer.Xml" Language="xml" Title="v3 → v4" />
+
+        <Diff OldText="@before" NewText="@after" Language="csharp" Layout="DiffLayout.Split" />
+        """;
+}

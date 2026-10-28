@@ -1,0 +1,43 @@
+@{
+    // Null when the texts differ by more lines than Compare looks for.
+    var lines = TextDiff.Compare(Before, After);
+}
+<Column Gap="3">
+    <Row Gap="2" Align="Align.Center">
+        <TextBlock Weight="FontWeight.Medium">Release notes</TextBlock>
+        @if (lines is not null)
+        {
+            <Badge Status="Status.Success">@lines.Count(l => l.Kind == DiffKind.Added) added</Badge>
+            <Badge Status="Status.Danger">@lines.Count(l => l.Kind == DiffKind.Removed) removed</Badge>
+        }
+    </Row>
+    @if (lines is not null)
+    {
+        <Diff Lines="lines" />
+    }
+    else
+    {
+        <TextBlock>Too many changes to show.</TextBlock>
+    }
+</Column>
+
+@* hide *@
+@code {
+    private const string Before =
+        """
+        ## 2.4.0
+
+        - Faster search on large lists.
+        - Fixed the export button on Safari.
+        """;
+
+    private const string After =
+        """
+        ## 2.4.0
+
+        - Faster search on large lists.
+        - Exports keep the column order.
+        - Fixed the export button on Safari and Firefox.
+        """;
+}
+@* /hide *@
