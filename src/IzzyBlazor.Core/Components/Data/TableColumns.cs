@@ -316,10 +316,17 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
 /// <summary>What a <see cref="Table{TItem}"/> asks its <c>ItemsProvider</c> for.</summary>
 /// <param name="SortKey">The sorted column's key, or null.</param>
 /// <param name="Descending">Whether the sort is descending.</param>
-/// <param name="Page">The page, from 1.</param>
+/// <param name="Page">The page, from 1. When the table pages by cursor, the page's position (3 is rows 401–600 at 200 a page).</param>
 /// <param name="PageSize">Items per page, or null when the table doesn't page.</param>
 public sealed record TableRequest<TItem>(string? SortKey, bool Descending, int Page, int? PageSize)
 {
+    /// <summary>
+    /// When the table pages by cursor (<see cref="TablePaging"/>), the <see cref="TableResult{TItem}.Next"/>
+    /// or <see cref="TableResult{TItem}.Previous"/> of an earlier page, as it was given; null for the
+    /// first page. Always null with <see cref="TablePaging.Pages"/>.
+    /// </summary>
+    public string? Cursor { get; init; }
+
     internal ColumnBase<TItem>? Column { get; init; }
 
     internal IReadOnlyList<ColumnBase<TItem>> FilterColumns { get; init; } = [];
@@ -371,10 +378,53 @@ public enum FilterPlacement
     Row,
 }
 
-/// <summary>What an <c>ItemsProvider</c> returns: one page of items and the total count.</summary>
+/// <summary>
+/// What an <c>ItemsProvider</c> returns: one page of items, and the total count or the cursors of
+/// the pages around it.
+/// </summary>
 /// <param name="Items">The items on this page.</param>
-/// <param name="TotalItems">How many items match in all, for the pager.</param>
-public sealed record TableResult<TItem>(IReadOnlyList<TItem> Items, int TotalItems);
+/// <param name="TotalItems">
+/// How many items match in all. Required with <see cref="TablePaging.Pages"/>, which numbers the
+/// pages from it; optional when the table pages by cursor, where it adds "of 1,234" to the range.
+/// </param>
+public sealed record TableResult<TItem>(IReadOnlyList<TItem> Items, int? TotalItems = null)
+{
+    /// <summary>The cursor of the page after this one, or null on the last page. Used when the table pages by cursor.</summary>
+    public string? Next { get; init; }
+
+    /// <summary>
+    /// The cursor of the page before this one, if your data source gives one. Without it the table
+    /// goes back to cursors it has seen on interactive pages; on static pages Previous is unavailable
+    /// past the second page (First still works).
+    /// </summary>
+    public string? Previous { get; init; }
+}
+
+/// <summary>How a <see cref="Table{TItem}"/> with a page size moves through its pages.</summary>
+public enum TablePaging
+{
+    /// <summary>Numbered pages and "1–10 of 42". Needs the total (<see cref="TableResult{TItem}.TotalItems"/>). The default.</summary>
+    Pages,
+
+    /// <summary>
+    /// First, previous and next only, by cursor (<see cref="TableResult{TItem}.Next"/>): for data
+    /// that has no total, or that pages by a token. Each page replaces the one shown.
+    /// </summary>
+    NextPrevious,
+
+    /// <summary>
+    /// A "Load more" button under the rows that adds the next page to them, by cursor. On static
+    /// pages and with JavaScript off it shows the next page in place of this one.
+    /// </summary>
+    LoadMore,
+
+    /// <summary>
+    /// <see cref="LoadMore"/>, and the next page also loads when the last row scrolls into view.
+    /// The button stays, for the keyboard. Best with a <c>MaxHeight</c>, so content under the
+    /// table stays within reach.
+    /// </summary>
+    LoadOnScroll,
+}
 
 /// <summary>Tells a table its columns have registered. Rendered after the columns, so its
 /// initialization runs once they have; static rendering waits for the returned task.</summary>

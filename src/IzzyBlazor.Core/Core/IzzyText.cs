@@ -193,6 +193,12 @@ public class IzzyText
     /// <summary>Table's row range under the rows: {0} first, {1} last, {2} total ("1–10 of 42").</summary>
     public virtual string TableRange { get; set; } = "{0:N0}–{1:N0} of {2:N0}";
 
+    /// <summary>Table's row range when the total isn't known (cursor paging): {0} first, {1} last ("201–400").</summary>
+    public virtual string TableRangeOpen { get; set; } = "{0:N0}–{1:N0}";
+
+    /// <summary>Table's button that loads the next page under the rows (<see cref="TablePaging.LoadMore"/>).</summary>
+    public virtual string LoadMore { get; set; } = "Load more";
+
     /// <summary>Alert's and Banner's status, read before the message (Info).</summary>
     public virtual string StatusInfo { get; set; } = "Info";
 
@@ -233,6 +239,9 @@ public class IzzyText
 
     /// <summary>Pagination's next button.</summary>
     public virtual string NextPage { get; set; } = "Next page";
+
+    /// <summary>A table's link back to its first page, when it pages by cursor.</summary>
+    public virtual string FirstPage { get; set; } = "First page";
 
     /// <summary>Before a page number: "Page 3".</summary>
     public virtual string Page { get; set; } = "Page";

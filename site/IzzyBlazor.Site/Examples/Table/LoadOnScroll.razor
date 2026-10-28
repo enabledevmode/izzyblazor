@@ -1,0 +1,9 @@
+@* Loading as you scroll, over a plain list: the next page loads when the last row comes into view
+   in the table's own scroll box (MaxHeight). The button stays, for the keyboard. *@
+<Table Items="Orders.All" PageSize="6" Paging="TablePaging.LoadOnScroll" MaxHeight="Length.Rem(16)" InitialSort="-date"
+       Caption="Orders, loading on scroll" QueryPrefix="scroll-" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" />
+    <PropertyColumn Property="o => o.Customer" Sortable />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+</Table>

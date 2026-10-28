@@ -113,6 +113,9 @@ public enum IconRole
 
     /// <summary>Upload a file.</summary>
     Upload,
+
+    /// <summary>Back to the first page.</summary>
+    FirstPage,
 }
 
 /// <summary>
@@ -160,6 +163,7 @@ public class IconSet
         IconRole.Person => IzzyBlazor.Lucide.User,
         IconRole.Play => IzzyBlazor.Lucide.Play,
         IconRole.Upload => IzzyBlazor.Lucide.Upload,
+        IconRole.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 
