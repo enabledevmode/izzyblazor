@@ -38,7 +38,7 @@
 <TextBlock>On static pages and with JavaScript off there's nothing to add rows to, so the button shows the next page in place of this one, and First goes back to the start. With an <Code>ItemKey</Code>, a row already shown isn't added twice. A parent's re-render keeps the added pages; call <Code>ReloadAsync()</Code> to start over.</TextBlock>
 <TextBlock><Code>TablePaging.NextPrevious</Code> shows First, Previous and Next. Return <Code>Previous</Code> too if your source has it; without it, interactive tables go back through the cursors they've followed, and static ones offer First.</TextBlock>
 <ExampleViewer Example="table-cursor-pages" />
-<TextBlock><Code>TablePaging.LoadOnScroll</Code> loads the next page as the last row comes into view. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Both modes also work with <Code>Items</Code>, where the table pages by row offset.</TextBlock>
+<TextBlock><Code>TablePaging.LoadOnScroll</Code> loads the next page as the last row comes into view, on interactive pages. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Its Load more button is for the keyboard, out of sight until it has focus; on static pages and with JavaScript off it shows, as a link to the next page. Both modes also work with <Code>Items</Code>, where the table pages by row offset.</TextBlock>
 <ExampleViewer Example="table-load-on-scroll" />
 
 <Heading Level="2">Row links</Heading>

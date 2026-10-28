@@ -1,9 +1,17 @@
-@* Loading as you scroll, over a plain list: the next page loads when the last row comes into view
-   in the table's own scroll box (MaxHeight). The button stays, for the keyboard. *@
-<Table Items="Orders.All" PageSize="6" Paging="TablePaging.LoadOnScroll" MaxHeight="Length.Rem(16)" InitialSort="-date"
-       Caption="Orders, loading on scroll" QueryPrefix="scroll-" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" />
-    <PropertyColumn Property="o => o.Customer" Sortable />
-    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
-    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+@* Loading as you scroll: the next page loads when the last row comes into view in the table's own
+   scroll box (MaxHeight), with a spinner under the rows while it does. The Load more button is
+   there for the keyboard, out of sight until it has focus. *@
+<Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="8" Paging="TablePaging.LoadOnScroll" MaxHeight="Length.Rem(18)"
+       ItemKey="e => e.Id.ToString()" Caption="Audit log, loading on scroll" QueryPrefix="scroll-" Grow>
+    <PropertyColumn Property="e => e.At" Title="Time (UTC)" Format="MMM d, HH:mm" />
+    <PropertyColumn Property="e => e.Who" />
+    <PropertyColumn Property="e => e.What" Title="Action" />
 </Table>
+
+@code {
+    private static async ValueTask<TableResult<AuditEvent>> LoadEvents(TableRequest<AuditEvent> request)
+    {
+        var (items, next) = await Events.ListAsync(request.Cursor, request.PageSize ?? 8);
+        return new TableResult<AuditEvent>(items) { Next = next };
+    }
+}

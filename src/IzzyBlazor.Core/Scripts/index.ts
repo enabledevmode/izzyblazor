@@ -31,6 +31,7 @@ import { focusMarked, installFocusRescue, installSkipLinks } from "./focus";
 import { installLazyElements, load, loadElementsIn } from "./lazy";
 import { installScrollbarWidth, measureScrollbar } from "./scrollbar";
 import { installTabScroll, revealSelectedTabs } from "./tab-scroll";
+import { installReconnectDialog } from "./reconnect";
 
 installLazyElements();
 installSubmitFeedback();
@@ -55,6 +56,7 @@ installDialogAutoClose();
 installDismissMemory();
 installSkipLinks();
 installFocusRescue();
+installReconnectDialog();
 if (document.readyState === "loading") {
   document.addEventListener("DOMContentLoaded", () => openActiveNavGroups());
 } else {

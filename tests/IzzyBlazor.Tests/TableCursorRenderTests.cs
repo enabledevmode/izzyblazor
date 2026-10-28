@@ -346,8 +346,19 @@ public class TableCursorRenderTests : BunitContext
 
         Assert.Equal(4, Names(cut).Length);
         Assert.Empty(JSInterop.Invocations);
-        // The button stays for the keyboard.
-        Assert.Single(cut.FindAll(".ib-table-more button:not([hidden])"));
+        // The button stays for the keyboard, out of sight until it has focus.
+        Assert.Contains("ib-table-more-on-focus", cut.Find(".ib-table-more button:not([hidden])").ClassName);
+    }
+
+    [Fact]
+    public void Load_on_scroll_on_a_static_page_shows_its_link()
+    {
+        Static();
+        var cut = RenderProvider(new Api(Rows), TablePaging.LoadOnScroll);
+
+        var link = cut.Find(".ib-table-more a.ib-btn:not(.ib-pagination-item)");
+        Assert.DoesNotContain("ib-table-more-on-focus", link.ClassName);
+        Assert.Empty(cut.FindAll("[data-ib-load-next]"));
     }
 
     [Fact]

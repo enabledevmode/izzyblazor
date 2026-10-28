@@ -1,0 +1,14 @@
+@* A preview of each state: these buttons send this page's ReconnectDialog (in App.razor) the
+   events Blazor sends when the connection drops, and close it again after four seconds. *@
+<Row Gap="2" Wrap>
+    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline" onclick="@Preview("{state:'show'}")">Rejoining</button>
+    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline" onclick="@Preview("{state:'retrying',currentAttempt:2,secondsToNextAttempt:5}")">Retrying</button>
+    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline" onclick="@Preview("{state:'failed'}")">Failed</button>
+    <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline" onclick="@Preview("{state:'paused'}")">Paused</button>
+</Row>
+
+@code {
+    private static string Preview(string detail) =>
+        "var d=document.getElementById('components-reconnect-modal'),s=function(x){d.dispatchEvent(new CustomEvent('components-reconnect-state-changed',{detail:x}))};" +
+        $"s({detail});setTimeout(function(){{s({{state:'hide'}})}},4000)";
+}

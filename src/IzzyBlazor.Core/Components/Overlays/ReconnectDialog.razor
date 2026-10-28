@@ -1,0 +1,76 @@
+@namespace IzzyBlazor
+@inherits IzzyComponentBase
+@attribute [ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None, Notes = "Only interactive server pages have a connection to lose. With WebAssembly there's nothing to reconnect to, and it never shows.")]
+
+@*
+    What shows when an interactive server page loses its connection, in place of Blazor's own
+    message (a white box drawn where the theme can't reach it). Put one in App.razor's body,
+    outside the routes:
+
+    <body>
+        <Routes />
+        <ReconnectDialog />
+        <script src="_framework/blazor.web.js"></script>
+    </body>
+
+    Blazor finds it by its id, components-reconnect-modal, and reports each state of the
+    reconnection to it; the main script opens it and writes the message: rejoining, retrying
+    with a countdown, failed (Retry, and again whenever the tab comes back into view), paused by
+    the server (Resume), or a session that couldn't resume (Reload). A circuit the server
+    rejected reloads the page. One per page: remove the template's ReconnectModal, which
+    would answer Blazor too (the script warns in the console when it finds two).
+
+    The messages and buttons are IzzyText's (ReconnectRejoining and on, Retry, Resume, Reload).
+
+    Accessibility:
+    - A modal dialog named by its title ("Connection lost", `Title`), which Escape doesn't close:
+      the page behind it can't respond until it reconnects.
+    - Each new state is read once from a status region; the countdown isn't read every second.
+    - Focus moves to the dialog as it opens, and to Retry, Resume or Reload when one shows.
+    See also: Dialog, Banner.
+*@
+
+<dialog @attributes="AdditionalAttributes" id="components-reconnect-modal" class="@_class" style="@_style"
+        aria-labelledby="ib-reconnect-title" closedby="none" data-ib-reconnect
+        data-rejoining="@TextDefaults.ReconnectRejoining"
+        data-retrying="@TextDefaults.ReconnectRetrying"
+        data-retrying-one="@TextDefaults.ReconnectRetryingOne"
+        data-failed="@TextDefaults.ReconnectFailed"
+        data-paused="@TextDefaults.ReconnectPaused"
+        data-resume-failed="@TextDefaults.ReconnectResumeFailed">
+    <div class="ib-dialog-body ib-reconnect-body">
+        <span class="ib-icon ib-spinner ib-icon-xl2 ib-reconnect-spinner" aria-hidden="true">@((MarkupString)SpinnerSvg)</span>
+        <h2 class="ib-dialog-title" id="ib-reconnect-title">@(Title ?? TextDefaults.ReconnectTitle)</h2>
+        <p class="ib-reconnect-message">@TextDefaults.ReconnectRejoining</p>
+        <span class="ib-visually-hidden ib-reconnect-status" role="status"></span>
+        <div class="ib-reconnect-actions">
+            <button type="button" class="ib-btn ib-btn-primary ib-btn-solid" data-ib-reconnect-action="retry">@TextDefaults.Retry</button>
+            <button type="button" class="ib-btn ib-btn-primary ib-btn-solid" data-ib-reconnect-action="resume">@TextDefaults.Resume</button>
+            <button type="button" class="ib-btn ib-btn-primary ib-btn-solid" data-ib-reconnect-action="reload">@TextDefaults.Reload</button>
+        </div>
+    </div>
+</dialog>
+
+@code {
+    /// <summary>The dialog's title. Defaults to "Connection lost".</summary>
+    [Parameter] public string? Title { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    // Spinner's ring, without its status role: the dialog's own status region speaks for it.
+    private const string SpinnerSvg =
+        "<svg class=\"ib-spinner-svg\" viewBox=\"0 0 24 24\" fill=\"none\" aria-hidden=\"true\" focusable=\"false\">" +
+        "<circle class=\"ib-spinner-track\" cx=\"12\" cy=\"12\" r=\"9.5\"/>" +
+        "<circle class=\"ib-spinner-arc\" cx=\"12\" cy=\"12\" r=\"9.5\"/></svg>";
+
+    /// <inheritdoc />
+    protected override void OnParametersSet() => (_class, _style) = BuildRootAttributes();
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-dialog ib-dialog-sm ib-dialog-center ib-reconnect");
+        base.BuildAttributes(classes, styles);
+    }
+}

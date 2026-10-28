@@ -943,6 +943,19 @@
       ]
     },
     {
+      "id": "reconnect-dialog", "icon": "WifiOff", "name": "ReconnectDialog", "category": "Overlays", "summary": "What shows when an interactive server page loses its connection, in the theme.", "keywords": ["reconnect", "connection lost", "circuit", "components-reconnect-modal"],
+      "features": [
+        { "feature": "Shows while Blazor rejoins, retries, fails or is paused", "off": "none", "static": "none", "live": "full" }
+      ],
+      "examples": [
+        { "id": "reconnect-dialog-states", "title": "Its states", "modes": ["static", "live"],
+          "lead": "Put one `ReconnectDialog` in App.razor's body, after `Routes`. These buttons send it the events Blazor sends when the connection drops; each closes after four seconds.",
+          "notes": {
+            "static": "This page has the dialog too: its messages and buttons are the same on every page.",
+            "live": "The same dialog; a real disconnect (stop the server) shows it until the circuit comes back." } }
+      ]
+    },
+    {
       "id": "drawer", "icon": "PanelRight", "name": "Drawer", "category": "Overlays", "summary": "A dialog that slides in from an edge.", "keywords": ["sheet", "side panel"],
       "examples": [
         { "id": "drawer-filters", "title": "A form in a drawer", "lead": "Put a `Form` in a `Drawer` and end it with `FormActions`: the buttons become the drawer's footer. Put the fields in a `DialogBody`, which fills the drawer, to keep the footer at its bottom.",
@@ -1303,11 +1316,9 @@
             "off": "First, Previous and Next are links with the cursor in the URL.",
             "static": "The same links; enhanced navigation swaps the page in.",
             "live": "The same links; the table follows the URL." } },
-        { "id": "table-load-on-scroll", "title": "Loading on scroll",
+        { "id": "table-load-on-scroll", "title": "Loading on scroll", "modes": ["live"],
           "notes": {
-            "off": "No loading on scroll: Load more is a link to the next page.",
-            "static": "No loading on scroll: Load more is a link to the next page.",
-            "live": "Scroll the rows: the next page loads as the last one comes into view." } }
+            "live": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } }
       ]
     },
     {

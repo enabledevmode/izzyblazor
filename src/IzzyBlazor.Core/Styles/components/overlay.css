@@ -656,6 +656,55 @@
     margin-inline-end: calc(0.5rem - var(--ib-space-6));
   }
 
+  /* ReconnectDialog: centered, a spinner while it rejoins, and the one button its state needs
+     (data-ib-state, set by reconnect.ts). It fades in after a moment, so a blip that rejoins at
+     once doesn't flash it. */
+  .ib-dialog-body.ib-reconnect-body {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--ib-space-3);
+    padding: var(--ib-space-6);
+    text-align: center;
+  }
+
+  .ib-reconnect[open] {
+    transition-delay: 0.3s;
+  }
+
+  .ib-reconnect[open]::backdrop {
+    transition-delay: 0.3s;
+  }
+
+  /* With no button yet (rejoining), the dialog itself has focus: a ring around it would only
+     outline the whole box. */
+  .ib-reconnect:focus-visible {
+    outline: none;
+  }
+
+  .ib-reconnect-spinner {
+    color: var(--ib-color-primary);
+  }
+
+  .ib-reconnect-message {
+    margin: 0;
+    color: var(--ib-color-muted);
+  }
+
+  .ib-reconnect-actions > * {
+    display: none;
+  }
+
+  .ib-reconnect:not([data-ib-state="rejoining"], [data-ib-state="retrying"]) .ib-reconnect-spinner {
+    display: none;
+  }
+
+  .ib-reconnect[data-ib-state="failed"] [data-ib-reconnect-action="retry"],
+  .ib-reconnect[data-ib-state="paused"] [data-ib-reconnect-action="resume"],
+  .ib-reconnect[data-ib-state="resume-failed"] [data-ib-reconnect-action="reload"] {
+    display: inline-flex;
+  }
+
   .ib-dialog-body {
     /* The side and bottom padding, which a DialogFooter in the body reaches out across. */
     --ib-dialog-px: var(--ib-space-6);
