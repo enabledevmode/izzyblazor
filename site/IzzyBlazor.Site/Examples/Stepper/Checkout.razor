@@ -2,101 +2,119 @@
 @using System.Globalization
 @inject NavigationManager Navigation
 
-<Grid Template='new() { Base = "1fr", Lg = "1fr 18rem" }' Gap="8" Align="Align.Start" Grow>
-    <Stack Gap="6">
-        @* Finished steps link back; the step itself is ?step= in the address. *@
-        <Stepper Current="Current" Label="Checkout progress">
-            <Step Label="Cart" Href="@BackTo(1)" />
-            <Step Label="Shipping" Href="@BackTo(2)" />
-            <Step Label="Payment" Href="@BackTo(3)" />
-            <Step Label="Review" />
-        </Stepper>
+@* A store's checkout page: the steps in a card beside the order summary, on the canvas. *@
+<AppShell Variant="ShellVariant.Canvas" ContentWidth="Length.Rem(64)">
+    <AppHeader>
+        <AppBrand Icon="Lucide.Store" Label="Acme Store" />
+        <Box Grow />
+        <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted"><Icon Name="Lucide.Lock" /> Secure checkout</TextBlock>
+    </AppHeader>
 
-        @switch (Current)
-        {
-            case 1:
-                <Stack Gap="4">
-                    <Heading Level="2" Size="TextSize.Xl">Your cart</Heading>
-                    <TextBlock Color="Color.Muted">Both items are in stock and ready to ship.</TextBlock>
-                    <Row><Button Href="@StepUrl(2)" EndIcon="Lucide.ArrowRight">Continue to shipping</Button></Row>
+    <AppMain>
+        <Section Spacing="SectionSpacing.Sm">
+            <Grid Template='new() { Base = "1fr", Lg = "1fr 18rem" }' Gap="8" Align="Align.Start">
+                <Stack Gap="6">
+                    <Heading Level="1" Size="TextSize.Xl2">Checkout</Heading>
+                    <Card>
+                        <Stack Gap="6">
+                            @* Finished steps link back; the step itself is ?step= in the address. *@
+                            <Stepper Current="Current" Label="Checkout progress">
+                                <Step Label="Cart" Href="@BackTo(1)" />
+                                <Step Label="Shipping" Href="@BackTo(2)" />
+                                <Step Label="Payment" Href="@BackTo(3)" />
+                                <Step Label="Review" />
+                            </Stepper>
+
+                            @switch (Current)
+                            {
+                                case 1:
+                                    <Stack Gap="4">
+                                        <Heading Level="2" Size="TextSize.Xl">Your cart</Heading>
+                                        <TextBlock Color="Color.Muted">Both items are in stock and ready to ship.</TextBlock>
+                                        <Row><Button Href="@StepUrl(2)" EndIcon="Lucide.ArrowRight">Continue to shipping</Button></Row>
+                                    </Stack>
+                                    break;
+
+                                case 2:
+                                    <Form Model="Shipping" FormName="checkout-shipping" OnValidSubmit="ToPayment" Columns="2">
+                                        <TextField @bind-Value="Shipping!.FullName" AutoComplete="name" ColSpan="GridSpan.Full" />
+                                        <TextField @bind-Value="Shipping!.Street" AutoComplete="street-address" ColSpan="GridSpan.Full" />
+                                        <TextField @bind-Value="Shipping!.City" AutoComplete="address-level2" />
+                                        <TextField @bind-Value="Shipping!.PostalCode" AutoComplete="postal-code" />
+                                        <RadioGroup @bind-Value="Shipping!.Delivery" ColSpan="GridSpan.Full" />
+                                        <FormActions Justify="Justify.Between">
+                                            <Button Href="@StepUrl(1)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
+                                            <Button Submit EndIcon="Lucide.ArrowRight">Continue to payment</Button>
+                                        </FormActions>
+                                    </Form>
+                                    break;
+
+                                case 3:
+                                    <Form Model="Payment" FormName="checkout-payment" OnValidSubmit="ToReview" Columns="2">
+                                        <TextField @bind-Value="Payment!.NameOnCard" AutoComplete="cc-name" ColSpan="GridSpan.Full" />
+                                        <TextField @bind-Value="Payment!.CardNumber" AutoComplete="cc-number" Placeholder="4242 4242 4242 4242" ColSpan="GridSpan.Full" />
+                                        <TextField @bind-Value="Payment!.Expiry" AutoComplete="cc-exp" Placeholder="MM/YY" />
+                                        <TextField @bind-Value="Payment!.SecurityCode" AutoComplete="cc-csc" />
+                                        <FormActions Justify="Justify.Between">
+                                            <Button Href="@StepUrl(2)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
+                                            <Button Submit EndIcon="Lucide.ArrowRight">Review order</Button>
+                                        </FormActions>
+                                    </Form>
+                                    break;
+
+                                case 4:
+                                    <Stack Gap="4">
+                                        <Heading Level="2" Size="TextSize.Xl">Review your order</Heading>
+                                        <DescriptionList Divided>
+                                            <DescriptionItem Term="Delivery">@(Express ? "Express, next day" : "Standard, 3 to 5 days")</DescriptionItem>
+                                            <DescriptionItem Term="Payment">Card, charged when the order ships</DescriptionItem>
+                                        </DescriptionList>
+                                        @* Placing the order is a post, not a link. *@
+                                        <form method="post" @formname="checkout-place" @onsubmit="Place">
+                                            <AntiforgeryToken />
+                                            <Row Gap="2" Justify="Justify.Between">
+                                                <Button Href="@StepUrl(3)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
+                                                <Button Submit StartIcon="Lucide.Lock">Place order</Button>
+                                            </Row>
+                                        </form>
+                                    </Stack>
+                                    break;
+
+                                default:
+                                    <Alert Status="Status.Success" Title="Order placed">
+                                        Order #10482 is confirmed. We've emailed your receipt.
+                                    </Alert>
+                                    <Row><Button Href="@NewOrderUrl" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Start a new order</Button></Row>
+                                    break;
+                            }
+                        </Stack>
+                    </Card>
                 </Stack>
-                break;
 
-            case 2:
-                <Form Model="Shipping" FormName="checkout-shipping" OnValidSubmit="ToPayment" Columns="2">
-                    <TextField @bind-Value="Shipping!.FullName" AutoComplete="name" ColSpan="GridSpan.Full" />
-                    <TextField @bind-Value="Shipping!.Street" AutoComplete="street-address" ColSpan="GridSpan.Full" />
-                    <TextField @bind-Value="Shipping!.City" AutoComplete="address-level2" />
-                    <TextField @bind-Value="Shipping!.PostalCode" AutoComplete="postal-code" />
-                    <RadioGroup @bind-Value="Shipping!.Delivery" ColSpan="GridSpan.Full" />
-                    <FormActions Justify="Justify.Between">
-                        <Button Href="@StepUrl(1)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
-                        <Button Submit EndIcon="Lucide.ArrowRight">Continue to payment</Button>
-                    </FormActions>
-                </Form>
-                break;
-
-            case 3:
-                <Form Model="Payment" FormName="checkout-payment" OnValidSubmit="ToReview" Columns="2">
-                    <TextField @bind-Value="Payment!.NameOnCard" AutoComplete="cc-name" ColSpan="GridSpan.Full" />
-                    <TextField @bind-Value="Payment!.CardNumber" AutoComplete="cc-number" Placeholder="4242 4242 4242 4242" ColSpan="GridSpan.Full" />
-                    <TextField @bind-Value="Payment!.Expiry" AutoComplete="cc-exp" Placeholder="MM/YY" />
-                    <TextField @bind-Value="Payment!.SecurityCode" AutoComplete="cc-csc" />
-                    <FormActions Justify="Justify.Between">
-                        <Button Href="@StepUrl(2)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
-                        <Button Submit EndIcon="Lucide.ArrowRight">Review order</Button>
-                    </FormActions>
-                </Form>
-                break;
-
-            case 4:
-                <Stack Gap="4">
-                    <Heading Level="2" Size="TextSize.Xl">Review your order</Heading>
-                    <DescriptionList Divided>
-                        <DescriptionItem Term="Delivery">@(Express ? "Express, next day" : "Standard, 3 to 5 days")</DescriptionItem>
-                        <DescriptionItem Term="Payment">Card, charged when the order ships</DescriptionItem>
-                    </DescriptionList>
-                    @* Placing the order is a post, not a link. *@
-                    <form method="post" @formname="checkout-place" @onsubmit="Place">
-                        <AntiforgeryToken />
-                        <Row Gap="2" Justify="Justify.Between">
-                            <Button Href="@StepUrl(3)" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.ArrowLeft">Back</Button>
-                            <Button Submit StartIcon="Lucide.Lock">Place order</Button>
+                <Card Title="Order summary" TitleLevel="2">
+                    <Stack Gap="3">
+                        @foreach (var line in Lines)
+                        {
+                            <Row Gap="3" Justify="Justify.Between">
+                                <TextBlock As="span">@line.Name <TextBlock As="span" Color="Color.Muted">× @line.Quantity</TextBlock></TextBlock>
+                                <TextBlock As="span" TabularNums>@Money(line.Price * line.Quantity)</TextBlock>
+                            </Row>
+                        }
+                        <Divider />
+                        <Row Gap="3" Justify="Justify.Between">
+                            <TextBlock As="span" Color="Color.Muted">Delivery</TextBlock>
+                            <TextBlock As="span" TabularNums>@(Express ? Money(ExpressCost) : "Free")</TextBlock>
                         </Row>
-                    </form>
-                </Stack>
-                break;
-
-            default:
-                <Alert Status="Status.Success" Title="Order placed">
-                    Order #10482 is confirmed. We've emailed your receipt.
-                </Alert>
-                <Row><Button Href="@NewOrderUrl" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Start a new order</Button></Row>
-                break;
-        }
-    </Stack>
-
-    <Card Title="Order summary" TitleLevel="2">
-        <Stack Gap="3">
-            @foreach (var line in Lines)
-            {
-                <Row Gap="3" Justify="Justify.Between">
-                    <TextBlock As="span">@line.Name <TextBlock As="span" Color="Color.Muted">× @line.Quantity</TextBlock></TextBlock>
-                    <TextBlock As="span" TabularNums>@Money(line.Price * line.Quantity)</TextBlock>
-                </Row>
-            }
-            <Divider />
-            <Row Gap="3" Justify="Justify.Between">
-                <TextBlock As="span" Color="Color.Muted">Delivery</TextBlock>
-                <TextBlock As="span" TabularNums>@(Express ? Money(ExpressCost) : "Free")</TextBlock>
-            </Row>
-            <Row Gap="3" Justify="Justify.Between">
-                <TextBlock As="span" Weight="FontWeight.Semibold">Total</TextBlock>
-                <TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@Money(Total)</TextBlock>
-            </Row>
-        </Stack>
-    </Card>
-</Grid>
+                        <Row Gap="3" Justify="Justify.Between">
+                            <TextBlock As="span" Weight="FontWeight.Semibold">Total</TextBlock>
+                            <TextBlock As="span" Weight="FontWeight.Semibold" TabularNums>@Money(Total)</TextBlock>
+                        </Row>
+                    </Stack>
+                </Card>
+            </Grid>
+        </Section>
+    </AppMain>
+</AppShell>
 
 @code {
     private const int Steps = 4;

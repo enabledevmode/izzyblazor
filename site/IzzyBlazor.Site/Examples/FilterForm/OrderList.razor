@@ -2,29 +2,42 @@
 @using IzzyBlazor.Site.Examples.Table
 @* /hide *@
 
-<Stack Gap="4">
-    <Row Gap="3" Align="Align.Center" Wrap>
-        <Heading Level="2" Size="TextSize.Xl">Orders</Heading>
-        <Spacer />
-        <Button StartIcon="Lucide.Download" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Export</Button>
-    </Row>
-    <FilterForm Label="Filter orders">
-        <FilterSearch Placeholder="Search customers" />
-        <FilterSelect Name="status" Label="Status" EnumType="typeof(OrderStatus)" />
-        <FilterDate Name="from" Label="Placed from" />
-        <FilterDate Name="to" Label="Placed to" Min="From" />
-        <FilterCheckbox Name="large" Label="Over $300" />
-    </FilterForm>
-    <Table Items="Filtered" PageSize="6" InitialSort="-date" Caption="Orders" EmptyText="No orders match these filters">
-        <PropertyColumn Property="o => o.Number" Title="Order" />
-        <PropertyColumn Property="o => o.Customer" Sortable />
-        <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
-        <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
-            <Badge Status="Orders.StatusOf(context.Status)" Dot>@context.Status</Badge>
-        </TemplateColumn>
-        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
-    </Table>
-</Stack>
+@* A store admin's orders page: the filters above a sortable, paged table. *@
+<AppShell Variant="ShellVariant.Flat">
+    <AppHeader>
+        <AppBrand Icon="Lucide.Store" Label="Acme Store" />
+        <Box Grow />
+        <Avatar Name="Ada Lovelace" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Padding="new() { Base = 4, Md = 8 }">
+            <Stack Gap="4">
+                <Row Gap="3" Align="Align.Center" Wrap>
+                    <Heading Level="1" Size="TextSize.Xl2">Orders</Heading>
+                    <Spacer />
+                    <Button StartIcon="Lucide.Download" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Export</Button>
+                </Row>
+                <FilterForm Label="Filter orders">
+                    <FilterSearch Placeholder="Search customers" />
+                    <FilterSelect Name="status" Label="Status" EnumType="typeof(OrderStatus)" />
+                    <FilterDate Name="from" Label="Placed from" />
+                    <FilterDate Name="to" Label="Placed to" Min="From" />
+                    <FilterCheckbox Name="large" Label="Over $300" />
+                </FilterForm>
+                <Table Items="Filtered" PageSize="6" InitialSort="-date" Caption="Orders" EmptyText="No orders match these filters">
+                    <PropertyColumn Property="o => o.Number" Title="Order" />
+                    <PropertyColumn Property="o => o.Customer" Sortable />
+                    <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
+                    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+                        <Badge Status="Orders.StatusOf(context.Status)" Dot>@context.Status</Badge>
+                    </TemplateColumn>
+                    <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+                </Table>
+            </Stack>
+        </Stack>
+    </AppMain>
+</AppShell>
 
 @code {
     [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
