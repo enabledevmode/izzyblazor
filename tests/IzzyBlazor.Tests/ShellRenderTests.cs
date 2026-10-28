@@ -254,7 +254,7 @@ public class ShellRenderTests : BunitContext
         Assert.Equal("ib-shell-footer ib-shell-footer-sticky", footer.ClassName);
 
         var aside = Render<AppAside>(p => p.Add(a => a.Bg, Color.Fill)).Find("aside");
-        Assert.Equal("ib-shell-aside ib-shell-aside-bp-lg", aside.ClassName);
+        Assert.Equal("ib-shell-aside ib-shell-aside-alone", aside.ClassName);
         Assert.Contains("--ib-shell-aside-bg:var(--ib-color-fill);", aside.GetAttribute("style"));
     }
 

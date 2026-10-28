@@ -30,9 +30,19 @@
 <TextBlock>With the default, <Code>ShellScroll.Page</Code>, the window scrolls as on any web page: the header stays at the top and the sidebar's and aside's content stays in view beside the page.</TextBlock>
 
 <Heading Level="2">An aside</Heading>
-<TextBlock>Use <Code>AppAside</Code> for a column on the side opposite the sidebar, such as an outline with <Anchor Href="docs/components/on-this-page">OnThisPage</Anchor>, which lists the main area's headings from the server. It shows from <Code>Breakpoint</Code> up, 1024px by default, and is <Code>Width</Code> wide, 15rem.</TextBlock>
+<TextBlock>Use <Code>AppAside</Code> for a column on the side opposite the sidebar, such as an outline with <Anchor Href="docs/components/on-this-page">OnThisPage</Anchor>, which lists the main area's headings from the server. It shows from <Code>Breakpoint</Code> up, 1024px by default, and is <Code>Width</Code> wide, 15rem. Its content stays in view while the page scrolls, and scrolls on its own when it's taller than the window.</TextBlock>
 <Code Block Language="razor">@Aside</Code>
-<TextBlock>An aside has no name of its own, so give one that holds something other than an outline an <Code>aria-label</Code>, as the parts example does ("Details"). The <Anchor Href="demos/app-shell/docs-outline">docs demo</Anchor> has an outline beside an article.</TextBlock>
+<TextBlock>Give an aside that holds something other than an outline a <Code>Label</Code>, such as "Details", which names its landmark for screen readers. The <Anchor Href="demos/app-shell/docs-outline">docs demo</Anchor> has an outline beside an article.</TextBlock>
+
+<Heading Level="2">A panel for the chosen row</Heading>
+<TextBlock>Write an <Code>AppAside</Code> in a page, inside <Code>AppMain</Code>, for a panel that page alone has: it takes the shell's aside column, in place of the layout's aside if there is one, and pages without one leave no column. Use <Code>SmallScreen="AsideSmallScreen.Below"</Code> to put it under the main area below its breakpoint, rather than hide it.</TextBlock>
+<ExampleViewer Example="app-shell-detail-panel" WidthSwitch />
+<TextBlock>Keep the chosen row in the address (<Code>?rule=</Code> here) and link each row to it with the <Anchor Href="docs/components/table">Table</Anchor>'s <Code>RowHref</Code>, mark the chosen one with <Code>RowCurrent</Code>, and the panel's <Anchor Href="docs/components/tabs">TabLinks</Anchor> work with JavaScript off. The page's aside moves into the shell only when the page and the layout render in the same mode; a page that is interactive on its own, in a static layout, keeps the aside where it's written, as a full-width block in the main area at every width.</TextBlock>
+
+<Heading Level="2">A panel people open</Heading>
+<TextBlock>Use <Code>SmallScreen="AsideSmallScreen.Drawer"</Code> for a panel that is a column on wide screens and a drawer from the end side below its breakpoint, opened by an <Code>AsideToggle</Code>. The toggle shows only while there is a drawer to open, so it can stay in the header on every page.</TextBlock>
+<ExampleViewer Example="app-shell-aside-drawer" WidthSwitch />
+<TextBlock>The drawer closes with its close button, a tap beside it or Escape, and focus goes back to the toggle. Any link to the aside's id (<Code>#ib-aside</Code>, its <Code>Id</Code>) opens it too, with JavaScript off.</TextBlock>
 
 <Heading Level="2">Bars and colors</Heading>
 <TextBlock>Use <Code>Bg</Code> and <Code>ColorScheme</Code> on a part for its own background or scheme, and <Code>Position</Code> on <Code>AppHeader</Code> and <Code>AppFooter</Code> for whether the bar stays in view (the header does by default; the footer doesn't).</TextBlock>

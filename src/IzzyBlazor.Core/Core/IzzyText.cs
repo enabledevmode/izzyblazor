@@ -318,6 +318,12 @@ public class IzzyText
     /// <summary>The button that collapses the sidebar to icons.</summary>
     public virtual string CollapseSidebar { get; set; } = "Collapse sidebar";
 
+    /// <summary>The button that opens an AppAside drawer below its breakpoint.</summary>
+    public virtual string OpenPanel { get; set; } = "Open panel";
+
+    /// <summary>An AppAside drawer's close button.</summary>
+    public virtual string ClosePanel { get; set; } = "Close panel";
+
     /// <summary>OnThisPage's heading, which also names its navigation landmark.</summary>
     public virtual string OnThisPage { get; set; } = "On this page";
 

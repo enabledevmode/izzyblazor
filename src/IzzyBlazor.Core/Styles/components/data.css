@@ -659,17 +659,21 @@
     display: none;
   }
 
-  /* A selected row: a faint accent tint, and an accent edge at its start. */
+  /* A selected row, or the current one (RowCurrent): a faint accent tint, and an accent edge at its start. */
   .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
-  .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td {
+  .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
+  .ib-table-grid tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td,
+  .ib-table-striped .ib-table-grid tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td {
     background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
   }
 
-  .ib-table-grid tbody tr:has(.ib-table-select:checked) > td:first-child {
+  .ib-table-grid tbody tr:has(.ib-table-select:checked) > td:first-child,
+  .ib-table-grid tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset 2px 0 0 var(--ib-color-primary);
   }
 
-  .ib-table-grid:dir(rtl) tbody tr:has(.ib-table-select:checked) > td:first-child {
+  .ib-table-grid:dir(rtl) tbody tr:has(.ib-table-select:checked) > td:first-child,
+  .ib-table-grid:dir(rtl) tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset -2px 0 0 var(--ib-color-primary);
   }
 

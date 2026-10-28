@@ -42,7 +42,7 @@
 <ExampleViewer Example="table-load-on-scroll" />
 
 <Heading Level="2">Row links</Heading>
-<TextBlock>Use <Code>RowHref</Code> to make each row a link, and <Code>RowLabel</Code> to name it. Links, buttons and checkboxes inside the row still work on their own.</TextBlock>
+<TextBlock>Use <Code>RowHref</Code> to make each row a link, and <Code>RowLabel</Code> to name it. Links, buttons and checkboxes inside the row still work on their own. Use <Code>RowCurrent</Code> to mark the row the page is showing, such as the one whose details are beside the table: it's drawn as selected and screen readers hear it as current (<Anchor Href="docs/components/app-shell">AppShell</Anchor> has one with its details in an aside).</TextBlock>
 <Code Block Language="razor">@RowLinks</Code>
 
 <Heading Level="2">Several tables on a page</Heading>

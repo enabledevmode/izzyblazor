@@ -306,8 +306,35 @@
   }
 
   .ib-shell-aside-inner {
-    padding: var(--ib-space-4);
+    padding: var(--ib-aside-pad, var(--ib-space-4));
     overflow-y: auto;
+  }
+
+  .ib-shell-aside.ib-shell-aside-pad { --ib-aside-pad: var(--ib-asidepad); }
+  @media (min-width: 640px) { .ib-shell-aside.ib-shell-aside-pad-sm { --ib-aside-pad: var(--ib-asidepad-sm); } }
+  @media (min-width: 768px) { .ib-shell-aside.ib-shell-aside-pad-md { --ib-aside-pad: var(--ib-asidepad-md); } }
+  @media (min-width: 1024px) { .ib-shell-aside.ib-shell-aside-pad-lg { --ib-aside-pad: var(--ib-asidepad-lg); } }
+  @media (min-width: 1280px) { .ib-shell-aside.ib-shell-aside-pad-xl { --ib-aside-pad: var(--ib-asidepad-xl); } }
+
+  /* A page's own aside (written in AppMain) takes the place of the layout's. */
+  .ib-shell:has(> .ib-shell-aside-page) > .ib-shell-aside:not(.ib-shell-aside-page),
+  .ib-shell:has(> .ib-shell-aside-page) > .ib-shell-aside-backdrop:not(:has(+ .ib-shell-aside-page)) {
+    display: none;
+  }
+
+  /* Outside a shell: a block where it's written. */
+  .ib-shell-aside-alone {
+    width: auto;
+    border-inline: 0;
+  }
+
+  /* A drawer's top bar and its button show below the breakpoint only (end of this file). */
+  .ib-shell-aside-close {
+    display: none;
+  }
+
+  .ib-shell .ib-shell-aside-toggle {
+    display: none;
   }
 
   .ib-shell-scroll-page > .ib-shell-aside > .ib-shell-aside-inner {
@@ -565,8 +592,8 @@
       padding-inline-end: var(--ib-scrollbar-w);
     }
 
-    .ib-shell:has(> .ib-shell-sidebar-bp-sm:target) > .ib-shell-backdrop,
-    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-sm) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm:target) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop),
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-sm) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       display: block;
     }
   }
@@ -671,8 +698,8 @@
       padding-inline-end: var(--ib-scrollbar-w);
     }
 
-    .ib-shell:has(> .ib-shell-sidebar-bp-md:target) > .ib-shell-backdrop,
-    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-md) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-md:target) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop),
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-md) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       display: block;
     }
   }
@@ -775,8 +802,8 @@
       padding-inline-end: var(--ib-scrollbar-w);
     }
 
-    .ib-shell:has(> .ib-shell-sidebar-bp-lg:target) > .ib-shell-backdrop,
-    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-lg) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg:target) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop),
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-lg) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       display: block;
     }
   }
@@ -879,8 +906,8 @@
       padding-inline-end: var(--ib-scrollbar-w);
     }
 
-    .ib-shell:has(> .ib-shell-sidebar-bp-xl:target) > .ib-shell-backdrop,
-    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-xl) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl:target) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop),
+    .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-xl) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       display: block;
     }
   }
@@ -899,27 +926,28 @@
     }
   }
 
-  /* The aside shows from its breakpoint up. */
+  /* SmallScreen="Hidden" (the default): the aside shows from its breakpoint up. Below and
+     Drawer are at the end of this file. */
   @media (width < 640px) {
-    .ib-shell-aside-bp-sm {
+    .ib-shell-aside-hide.ib-shell-aside-bp-sm {
       display: none;
     }
   }
 
   @media (width < 768px) {
-    .ib-shell-aside-bp-md {
+    .ib-shell-aside-hide.ib-shell-aside-bp-md {
       display: none;
     }
   }
 
   @media (width < 1024px) {
-    .ib-shell-aside-bp-lg {
+    .ib-shell-aside-hide.ib-shell-aside-bp-lg {
       display: none;
     }
   }
 
   @media (width < 1280px) {
-    .ib-shell-aside-bp-xl {
+    .ib-shell-aside-hide.ib-shell-aside-bp-xl {
       display: none;
     }
   }
@@ -2075,7 +2103,7 @@
     }
 
     /* The backdrop dims what's below the header, not the header. */
-    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-sm.ib-shell-sidebar-panel) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       top: var(--ib-shell-panel-top);
     }
 
@@ -2143,7 +2171,7 @@
     }
 
     /* The backdrop dims what's below the header, not the header. */
-    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-md.ib-shell-sidebar-panel) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       top: var(--ib-shell-panel-top);
     }
 
@@ -2211,7 +2239,7 @@
     }
 
     /* The backdrop dims what's below the header, not the header. */
-    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-lg.ib-shell-sidebar-panel) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       top: var(--ib-shell-panel-top);
     }
 
@@ -2279,7 +2307,7 @@
     }
 
     /* The backdrop dims what's below the header, not the header. */
-    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel) > .ib-shell-backdrop {
+    .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel) > .ib-shell-backdrop:not(.ib-shell-aside-backdrop) {
       top: var(--ib-shell-panel-top);
     }
 
@@ -2292,6 +2320,570 @@
     .ib-shell:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel:target) .ib-shell-toggle-close,
     .ib-shell[data-sidebar-open]:has(> .ib-shell-sidebar-bp-xl.ib-shell-sidebar-panel) .ib-shell-toggle-close {
       display: inline-flex;
+    }
+  }
+}
+
+/*
+ * AppAside below its breakpoint, when it isn't hidden. One block per breakpoint.
+ *
+ * SmallScreen="Below": a row of its own after the main area, full width and as tall as its
+ * content, scrolling with the page. The shell gains a row, so the grid is redrawn for each of the
+ * sidebar's arrangements; a sidebar that is a drawer at this width is out of the grid anyway.
+ *
+ * SmallScreen="Drawer": off-canvas at the end side, opened by :target with no script or
+ * [data-aside-open] with it (<ib-shell>), with the sidebar's backdrop and scroll lock. Its top bar
+ * holds the close button; AsideToggle shows only while there is such a drawer to open.
+ */
+@layer izzy.components {
+  .ib-shell-aside-drawer { --ib-aside-off: 100%; }
+  .ib-shell-aside-drawer:dir(rtl) { --ib-aside-off: -100%; }
+
+  /* The drawer's top bar: the close button at the end, at the header's height, with the header's line. */
+  .ib-shell-aside-close {
+    flex: none;
+    align-items: center;
+    justify-content: flex-end;
+    min-height: calc(var(--ib-shell-header-h, 3.5rem) + env(safe-area-inset-top, 0px));
+    padding: calc(1px + env(safe-area-inset-top, 0px)) var(--ib-space-4) 0;
+    border-bottom: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+  }
+
+  @media (width < 640px) {
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm) {
+      grid-template-rows: auto auto 1fr auto auto;
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm):has(> .ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm):has(> .ib-shell-sidebar-full) {
+      grid-template-areas:
+        "banner banner banner"
+        "sidebar header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "sidebar footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm):has(> .ib-shell-sidebar-full.ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header sidebar"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer sidebar";
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-sm {
+      width: auto;
+      border-inline: 0;
+      border-block-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-sm > .ib-shell-aside-inner {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* ScrollMode.Main: the main area and the panel under it scroll together with the page, with
+       the header kept at the top. */
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm) {
+      height: auto;
+      min-height: 100dvh;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm) > .ib-shell-main {
+      min-height: auto;
+      overflow-y: visible;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-sm) > .ib-shell-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .ib-shell-inset > .ib-shell-aside-below.ib-shell-aside-bp-sm {
+      margin: var(--ib-shell-inset-gap) var(--ib-shell-inset-gap) var(--ib-shell-inset-gap);
+      border: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      border-radius: var(--ib-radius-lg);
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-md) {
+      grid-template-rows: auto auto 1fr auto auto;
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-md):has(> .ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-md):has(> .ib-shell-sidebar-full) {
+      grid-template-areas:
+        "banner banner banner"
+        "sidebar header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "sidebar footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-md):has(> .ib-shell-sidebar-full.ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header sidebar"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer sidebar";
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-md {
+      width: auto;
+      border-inline: 0;
+      border-block-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-md > .ib-shell-aside-inner {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* ScrollMode.Main: the main area and the panel under it scroll together with the page, with
+       the header kept at the top. */
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-md) {
+      height: auto;
+      min-height: 100dvh;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-md) > .ib-shell-main {
+      min-height: auto;
+      overflow-y: visible;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-md) > .ib-shell-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .ib-shell-inset > .ib-shell-aside-below.ib-shell-aside-bp-md {
+      margin: var(--ib-shell-inset-gap) var(--ib-shell-inset-gap) var(--ib-shell-inset-gap);
+      border: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      border-radius: var(--ib-radius-lg);
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg) {
+      grid-template-rows: auto auto 1fr auto auto;
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg):has(> .ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg):has(> .ib-shell-sidebar-full) {
+      grid-template-areas:
+        "banner banner banner"
+        "sidebar header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "sidebar footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg):has(> .ib-shell-sidebar-full.ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header sidebar"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer sidebar";
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-lg {
+      width: auto;
+      border-inline: 0;
+      border-block-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-lg > .ib-shell-aside-inner {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* ScrollMode.Main: the main area and the panel under it scroll together with the page, with
+       the header kept at the top. */
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg) {
+      height: auto;
+      min-height: 100dvh;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg) > .ib-shell-main {
+      min-height: auto;
+      overflow-y: visible;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-lg) > .ib-shell-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .ib-shell-inset > .ib-shell-aside-below.ib-shell-aside-bp-lg {
+      margin: var(--ib-shell-inset-gap) var(--ib-shell-inset-gap) var(--ib-shell-inset-gap);
+      border: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      border-radius: var(--ib-radius-lg);
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl) {
+      grid-template-rows: auto auto 1fr auto auto;
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl):has(> .ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header header"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl):has(> .ib-shell-sidebar-full) {
+      grid-template-areas:
+        "banner banner banner"
+        "sidebar header header"
+        "sidebar main main"
+        "sidebar aside aside"
+        "sidebar footer footer";
+    }
+
+    .ib-shell:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl):has(> .ib-shell-sidebar-full.ib-shell-sidebar-end) {
+      grid-template-areas:
+        "banner banner banner"
+        "header header sidebar"
+        "main main sidebar"
+        "aside aside sidebar"
+        "footer footer sidebar";
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-xl {
+      width: auto;
+      border-inline: 0;
+      border-block-start: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+    }
+
+    .ib-shell > .ib-shell-aside-below.ib-shell-aside-bp-xl > .ib-shell-aside-inner {
+      position: static;
+      height: auto;
+      max-height: none;
+      overflow: visible;
+    }
+
+    /* ScrollMode.Main: the main area and the panel under it scroll together with the page, with
+       the header kept at the top. */
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl) {
+      height: auto;
+      min-height: 100dvh;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl) > .ib-shell-main {
+      min-height: auto;
+      overflow-y: visible;
+    }
+
+    .ib-shell-scroll-main:has(> .ib-shell-aside-below.ib-shell-aside-bp-xl) > .ib-shell-header {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+    }
+
+    .ib-shell-inset > .ib-shell-aside-below.ib-shell-aside-bp-xl {
+      margin: var(--ib-shell-inset-gap) var(--ib-shell-inset-gap) var(--ib-shell-inset-gap);
+      border: 1px solid var(--ib-shell-divider, var(--ib-color-border));
+      border-radius: var(--ib-radius-lg);
+    }
+  }
+
+  @media (width < 640px) {
+    .ib-shell-aside-drawer.ib-shell-aside-bp-sm {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-end: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      width: min(var(--ib-aside-w, 15rem), 100%);
+      border-inline-start: 0;
+      translate: var(--ib-aside-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-sm:target,
+    .ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-sm {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-sm > .ib-shell-aside-inner {
+      position: static;
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      max-height: none;
+      padding-block-end: calc(var(--ib-aside-pad, var(--ib-space-4)) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-sm > .ib-shell-aside-close {
+      display: flex;
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-sm) .ib-shell-aside-toggle {
+      display: inline-flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-sm:target),
+    html:has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-sm) {
+      overflow: hidden;
+    }
+
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-sm:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-sm) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-sm:target) > .ib-shell-aside-backdrop,
+    .ib-shell[data-aside-open]:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-sm) > .ib-shell-aside-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width < 768px) {
+    .ib-shell-aside-drawer.ib-shell-aside-bp-md {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-end: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      width: min(var(--ib-aside-w, 15rem), 100%);
+      border-inline-start: 0;
+      translate: var(--ib-aside-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-md:target,
+    .ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-md {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-md > .ib-shell-aside-inner {
+      position: static;
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      max-height: none;
+      padding-block-end: calc(var(--ib-aside-pad, var(--ib-space-4)) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-md > .ib-shell-aside-close {
+      display: flex;
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-md) .ib-shell-aside-toggle {
+      display: inline-flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-md:target),
+    html:has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-md) {
+      overflow: hidden;
+    }
+
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-md:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-md) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-md:target) > .ib-shell-aside-backdrop,
+    .ib-shell[data-aside-open]:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-md) > .ib-shell-aside-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width < 1024px) {
+    .ib-shell-aside-drawer.ib-shell-aside-bp-lg {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-end: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      width: min(var(--ib-aside-w, 15rem), 100%);
+      border-inline-start: 0;
+      translate: var(--ib-aside-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-lg:target,
+    .ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-lg {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-lg > .ib-shell-aside-inner {
+      position: static;
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      max-height: none;
+      padding-block-end: calc(var(--ib-aside-pad, var(--ib-space-4)) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-lg > .ib-shell-aside-close {
+      display: flex;
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-lg) .ib-shell-aside-toggle {
+      display: inline-flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-lg:target),
+    html:has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-lg) {
+      overflow: hidden;
+    }
+
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-lg:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-lg) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-lg:target) > .ib-shell-aside-backdrop,
+    .ib-shell[data-aside-open]:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-lg) > .ib-shell-aside-backdrop {
+      display: block;
+    }
+  }
+
+  @media (width < 1280px) {
+    .ib-shell-aside-drawer.ib-shell-aside-bp-xl {
+      position: fixed;
+      inset-block: 0;
+      inset-inline-end: 0;
+      z-index: 40;
+      display: flex;
+      flex-direction: column;
+      width: min(var(--ib-aside-w, 15rem), 100%);
+      border-inline-start: 0;
+      translate: var(--ib-aside-off) 0;
+      visibility: hidden;
+      box-shadow: var(--ib-shadow-lg);
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s linear var(--ib-duration-normal);
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-xl:target,
+    .ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-xl {
+      translate: 0 0;
+      visibility: visible;
+      transition: translate var(--ib-duration-normal) var(--ib-ease), visibility 0s;
+    }
+
+    .ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-xl > .ib-shell-aside-inner {
+      position: static;
+      flex: 1;
+      min-height: 0;
+      height: auto;
+      max-height: none;
+      padding-block-end: calc(var(--ib-aside-pad, var(--ib-space-4)) + env(safe-area-inset-bottom, 0px));
+    }
+
+    .ib-shell-aside-drawer.ib-shell-aside-bp-xl > .ib-shell-aside-close {
+      display: flex;
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-xl) .ib-shell-aside-toggle {
+      display: inline-flex;
+    }
+
+    html:has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-xl:target),
+    html:has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-xl) {
+      overflow: hidden;
+    }
+
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell > .ib-shell-aside-drawer.ib-shell-aside-bp-xl:target),
+    html[data-ib-scrollbar]:has(.ib-shell-scroll-page):has(.ib-shell[data-aside-open] > .ib-shell-aside-drawer.ib-shell-aside-bp-xl) {
+      scrollbar-gutter: auto;
+      padding-inline-end: var(--ib-scrollbar-w);
+    }
+
+    .ib-shell:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-xl:target) > .ib-shell-aside-backdrop,
+    .ib-shell[data-aside-open]:has(> .ib-shell-aside-drawer.ib-shell-aside-bp-xl) > .ib-shell-aside-backdrop {
+      display: block;
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-shell-aside-drawer {
+      transition: none !important;
     }
   }
 }

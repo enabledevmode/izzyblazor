@@ -166,7 +166,7 @@
                         var key = KeyOf(item);
                         var href = RowHref?.Invoke(item);
                         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-                        <tr class="@RowClasses(item, href)" tabindex="@(_pageStarts.Contains(row) ? "-1" : null)" @ref="_rowRefs[row]">
+                        <tr class="@RowClasses(item, href)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) ? "-1" : null)" @ref="_rowRefs[row]">
                             @if (Selectable)
                             {
                                 <td class="ib-table-select-cell">
@@ -183,7 +183,7 @@
                                     @if (first && href is not null)
                                     {
                                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
-                                        <a class="ib-table-row-link" href="@href"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
+                                        <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
                                     }
                                     @column.Cell(item)
                                 </td>
@@ -457,6 +457,12 @@
     /// links, buttons and checkboxes inside it still work on their own.
     /// </summary>
     [Parameter] public Func<TItem, string?>? RowHref { get; set; }
+
+    /// <summary>
+    /// The row for what the page is showing, such as the one whose details are in a panel beside the
+    /// table: drawn as selected, and marked <c>aria-current</c> (on its link with <see cref="RowHref"/>).
+    /// </summary>
+    [Parameter] public Func<TItem, bool>? RowCurrent { get; set; }
 
     /// <summary>Names a row for screen readers, in its link and its checkbox. Defaults to <see cref="ItemKey"/>.</summary>
     [Parameter] public Func<TItem, string>? RowLabel { get; set; }
@@ -971,6 +977,9 @@
     private bool IsSelected(string key) => _selected.Contains(key);
 
     private bool AllOnPageSelected => _items.Count > 0 && _items.All(i => _selected.Contains(KeyOf(i)));
+
+    // On the row's link when it has one (screen readers announce it there), else on the row.
+    private string? CurrentOf(TItem item) => RowCurrent?.Invoke(item) == true ? "true" : null;
 
     private string? RowClasses(TItem item, string? href)
     {

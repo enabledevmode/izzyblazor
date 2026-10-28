@@ -1,0 +1,47 @@
+@inject NavigationManager Navigation
+
+@* A panel people open when they want it. From 768px it's a column beside the page; below, it's a
+   drawer from the end side, opened by the AsideToggle in the header (shown only then) and closed by
+   its close button, a tap beside it or Escape. *@
+<AppShell>
+    <AppHeader>
+        <AppBrand Href="@Navigation.GetUriWithQueryParameter("view", (string?)null)" Icon="Lucide.FileText" Label="Acme Docs" />
+        <Box Grow />
+        <AsideToggle Label="Show comments" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Gap="4" Padding="new() { Base = 4, Md = 8 }">
+            <Heading Level="1" Size="TextSize.Xl2">Refund policy</Heading>
+            <TextBlock>Refunds over $500 are held for review by the payments team, who approve or decline them within one working day.</TextBlock>
+            <TextBlock>A customer can ask for a refund up to 60 days after the order. After that, the order's owner decides.</TextBlock>
+            <TextBlock>Gift cards aren't refunded; their balance stays on the card.</TextBlock>
+        </Stack>
+    </AppMain>
+
+    <AppAside Width="Length.Rem(20)" Breakpoint="Breakpoint.Md" SmallScreen="AsideSmallScreen.Drawer" Label="Comments">
+        <Stack Gap="4">
+            <Heading Level="2" Size="TextSize.Md">Comments</Heading>
+            @foreach (var (who, what) in Comments)
+            {
+                <Row Gap="3" Align="Align.Start">
+                    <Avatar Name="@who" Size="AvatarSize.Sm" />
+                    <Stack Gap="0">
+                        <TextBlock Size="TextSize.Sm" Weight="FontWeight.Semibold">@who</TextBlock>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@what</TextBlock>
+                    </Stack>
+                </Row>
+            }
+        </Stack>
+    </AppAside>
+</AppShell>
+@* hide *@
+
+@code {
+    private static readonly (string Who, string What)[] Comments =
+    [
+        ("Ada Lovelace", "Should the hold say who reviews it?"),
+        ("Alan Turing", "60 days matches the card networks."),
+    ];
+}
+@* /hide *@

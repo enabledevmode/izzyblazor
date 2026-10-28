@@ -150,6 +150,27 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
+    public void RowCurrent_marks_the_rows_link_or_the_row()
+    {
+        var linked = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.RowHref, r => $"/rows/{r.Name}")
+            .Add(t => t.RowCurrent, r => r.Name == "a")
+            .Add(t => t.ChildContent, Columns));
+
+        var current = Assert.Single(linked.FindAll("tbody [aria-current]"));
+        Assert.Equal("/rows/a", current.GetAttribute("href"));
+        Assert.Equal("true", current.GetAttribute("aria-current"));
+
+        var plain = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.RowCurrent, r => r.Name == "c")
+            .Add(t => t.ChildContent, Columns));
+
+        Assert.Equal("TR", Assert.Single(plain.FindAll("tbody [aria-current]")).TagName);
+    }
+
+    [Fact]
     public void Column_footers_add_a_footer_row()
     {
         var cut = Render<Table<Row>>(p => p

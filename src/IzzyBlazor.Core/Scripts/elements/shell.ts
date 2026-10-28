@@ -13,6 +13,9 @@ import { writeCookie } from "../cookies";
  *
  * For a collapsible sidebar it saves the collapse checkbox in a cookie, which the server reads
  * on the next request, and lets a group in the icon rail expand the sidebar to show its items.
+ *
+ * An AppAside with SmallScreen="Drawer" opens and closes the same way, with data-aside-open and
+ * AsideToggle. Any aside's scroll box is a Tab stop while it scrolls, so the keyboard can scroll it.
  */
 class Shell extends IzzyElement {
   #lastToggle: HTMLElement | null = null;
@@ -25,9 +28,24 @@ class Shell extends IzzyElement {
     return this.sidebar?.id ?? "";
   }
 
-  private get toggles(): HTMLElement[] {
-    const id = this.sidebarId;
+  /** An aside that is a drawer below its breakpoint: the page's own when it has one (it hides the layout's). */
+  private get aside(): HTMLElement | null {
+    return (
+      this.querySelector<HTMLElement>(":scope > .ib-shell-aside-drawer.ib-shell-aside-page") ??
+      this.querySelector<HTMLElement>(":scope > .ib-shell-aside-drawer")
+    );
+  }
+
+  private get asideId(): string {
+    return this.aside?.id ?? "";
+  }
+
+  private togglesFor(id: string): HTMLElement[] {
     return id ? [...this.querySelectorAll<HTMLElement>(`[data-ib-shell-toggle][aria-controls="${CSS.escape(id)}"]`)] : [];
+  }
+
+  private get toggles(): HTMLElement[] {
+    return this.togglesFor(this.sidebarId);
   }
 
   private get collapseInput(): HTMLInputElement | null {
@@ -43,6 +61,10 @@ class Shell extends IzzyElement {
     return this.hasAttribute("data-sidebar-open");
   }
 
+  private get asideOpen(): boolean {
+    return this.hasAttribute("data-aside-open");
+  }
+
   /** The menu and close links become buttons: Space presses them (below) and aria-expanded follows the drawer. */
   syncRoles(): void {
     this.querySelectorAll<HTMLElement>("a[data-ib-shell-toggle], a[data-ib-shell-close]").forEach((control) => {
@@ -51,11 +73,13 @@ class Shell extends IzzyElement {
       if (control.hasAttribute("data-ib-shell-close") && control.hasAttribute("aria-controls")) control.setAttribute("aria-expanded", "true");
     });
     this.toggles.forEach((t) => t.setAttribute("aria-expanded", String(this.isOpen)));
+    this.togglesFor(this.asideId).forEach((t) => t.setAttribute("aria-expanded", String(this.asideOpen)));
   }
 
   protected setup(signal: AbortSignal): void {
     this.syncRoles();
     revealActiveNav(this);
+    this.#setupAsideScroll(signal);
     this.addEventListener(
       "click",
       (event) => {
@@ -64,7 +88,11 @@ class Shell extends IzzyElement {
         if (toggle) {
           event.preventDefault();
           this.#lastToggle = toggle;
-          this.isOpen ? this.close() : this.open();
+          if (this.asideId && toggle.getAttribute("aria-controls") === this.asideId) {
+            this.asideOpen ? this.closeAside() : this.openAside();
+          } else {
+            this.isOpen ? this.close() : this.open();
+          }
           return;
         }
 
@@ -79,15 +107,23 @@ class Shell extends IzzyElement {
           return;
         }
 
-        if (target.closest("[data-ib-shell-close], .ib-shell-backdrop")) {
+        const closer = target.closest<HTMLElement>("[data-ib-shell-close], .ib-shell-backdrop");
+        if (closer) {
           event.preventDefault();
-          this.close();
+          // The aside's own close button, or a backdrop while the aside is the open drawer.
+          const forAside = closer.matches(".ib-shell-backdrop")
+            ? this.asideShown()
+            : !!this.asideId && (!!closer.closest(".ib-shell-aside") || closer.getAttribute("aria-controls") === this.asideId);
+          forAside ? this.closeAside() : this.close();
           return;
         }
 
         // Following a link inside the drawer closes it.
         if (this.isOpen && target.closest(".ib-shell-sidebar a[href]")) {
           this.close(false);
+        }
+        if (this.asideOpen && target.closest(".ib-shell-aside a[href]")) {
+          this.closeAside(false);
         }
       },
       { signal }
@@ -134,6 +170,26 @@ class Shell extends IzzyElement {
       () => {
         const sidebar = this.sidebar;
         if (this.isOpen && sidebar && getComputedStyle(sidebar).position !== "fixed") this.close(false);
+        const aside = this.aside;
+        if (this.asideOpen && aside && getComputedStyle(aside).position !== "fixed") {
+          // Focus on the drawer's close button, now hidden, would fall to the page: keep it in the column.
+          // The browser may already have dropped it to the body when the button was hidden: while the
+          // drawer was open nothing else could hold focus.
+          const active = document.activeElement as HTMLElement | null;
+          const lost = !active || active === document.body || (aside.contains(active) && active.checkVisibility?.() === false);
+          this.closeAside(false);
+          if (lost) {
+            // Its first control, else the aside itself (focusable from script only, until it's left).
+            const first = aside.querySelector<HTMLElement>(":scope > .ib-shell-aside-inner :is(a[href], button, input, select, textarea, summary, [tabindex])");
+            if (first) {
+              first.focus();
+            } else {
+              aside.setAttribute("tabindex", "-1");
+              aside.addEventListener("blur", () => aside.removeAttribute("tabindex"), { once: true });
+              aside.focus({ preventScroll: true });
+            }
+          }
+        }
       },
       { signal }
     );
@@ -155,10 +211,11 @@ class Shell extends IzzyElement {
       "keydown",
       (event) => {
         if (event.key !== "Escape" || event.defaultPrevented || event.isComposing) return;
-        if (!(this.isOpen || this.hashOpen())) return;
+        const aside = this.asideShown();
+        if (!(aside || this.isOpen || this.hashOpen())) return;
         // Escape belongs to an open menu, popover or dialog first.
         if (document.querySelector(":modal, [popover]:popover-open")) return;
-        this.close();
+        aside ? this.closeAside() : this.close();
       },
       { signal }
     );
@@ -166,6 +223,102 @@ class Shell extends IzzyElement {
 
   private hashOpen(): boolean {
     return !!this.sidebarId && location.hash === `#${this.sidebarId}`;
+  }
+
+  /** The aside drawer is open: by the script, or by a link to it before the script ran. */
+  private asideShown(): boolean {
+    return this.asideOpen || (!!this.asideId && location.hash === `#${this.asideId}`);
+  }
+
+  openAside(): void {
+    const aside = this.aside;
+    if (!aside) return;
+    this.syncRoles();
+    this.setAttribute("data-aside-open", "");
+    this.togglesFor(aside.id).forEach((t) => t.setAttribute("aria-expanded", "true"));
+    this.setInert(true, aside);
+    const shown = (el: HTMLElement) => (el.checkVisibility ? el.checkVisibility() : el.offsetParent !== null);
+    const close = [...aside.querySelectorAll<HTMLElement>("[data-ib-shell-close]")].find(shown);
+    (close ?? [...aside.querySelectorAll<HTMLElement>("a[href], button, input, select, textarea, summary")].find(shown))?.focus();
+  }
+
+  closeAside(restoreFocus = true): void {
+    const id = this.asideId;
+    this.syncRoles();
+    this.removeAttribute("data-aside-open");
+    this.setInert(false, this.aside);
+    const toggles = this.togglesFor(id);
+    toggles.forEach((t) => t.setAttribute("aria-expanded", "false"));
+    if (id && location.hash === `#${id}`) {
+      history.replaceState(history.state, "", location.href.split("#")[0]);
+    }
+    if (restoreFocus) {
+      (this.#lastToggle && toggles.includes(this.#lastToggle) ? this.#lastToggle : toggles[0])?.focus();
+    }
+  }
+
+  /**
+   * An aside's scroll box is a Tab stop only while it scrolls (a long panel beside a short page),
+   * so the keyboard can scroll it when nothing in it takes focus. Asides come and go with the page
+   * (an aside written in a page), so the shell's children are watched for new ones.
+   */
+  #setupAsideScroll(signal: AbortSignal): void {
+    const update = (box: HTMLElement) => {
+      if (box.scrollHeight > box.clientHeight + 1) {
+        if (box.getAttribute("tabindex") !== "0") box.setAttribute("tabindex", "0");
+      } else if (box.hasAttribute("tabindex") && document.activeElement !== box) {
+        box.removeAttribute("tabindex");
+      }
+    };
+    const boxes = () => [...this.querySelectorAll<HTMLElement>(":scope > .ib-shell-aside > .ib-shell-aside-inner")];
+    // The box resizes with the window; its children with their content.
+    const sizes = new ResizeObserver((entries) => {
+      for (const { target } of entries) {
+        const box = target.closest<HTMLElement>(".ib-shell-aside-inner");
+        if (box) update(box);
+      }
+    });
+    const watched = new Set<Element>();
+    const scan = () => {
+      // Boxes and children gone with their page are let go.
+      for (const el of watched) {
+        if (!el.isConnected) {
+          sizes.unobserve(el);
+          watched.delete(el);
+        }
+      }
+      for (const box of boxes()) {
+        for (const el of [box, ...box.children]) {
+          if (!watched.has(el)) {
+            sizes.observe(el);
+            watched.add(el);
+          }
+        }
+        update(box);
+      }
+    };
+    // New asides and new content in one; enhanced navigation's merge puts the server's tabindex back.
+    const changes = new MutationObserver((records) => {
+      // The open drawer's aside went with its page (interactive navigation): lift the inert state.
+      if (this.asideOpen && !this.aside) this.closeAside(false);
+      // Toggles Blazor added since setup get their role and aria-expanded.
+      if (this.querySelector("a[data-ib-shell-toggle]:not([role]), a[data-ib-shell-close]:not([role])")) this.syncRoles();
+      if (records.some((r) => r.target === this || (r.target as Element).closest?.(".ib-shell-aside"))) scan();
+    });
+    changes.observe(this, { childList: true, subtree: true, attributes: true, attributeFilter: ["tabindex"] });
+    this.addEventListener(
+      "focusout",
+      (event) => {
+        const box = event.target as HTMLElement;
+        if (box.matches?.(".ib-shell-aside-inner")) update(box);
+      },
+      { signal }
+    );
+    signal.addEventListener("abort", () => {
+      sizes.disconnect();
+      changes.disconnect();
+    });
+    scan();
   }
 
   open(): void {
@@ -193,10 +346,10 @@ class Shell extends IzzyElement {
    * the skip link too, since the main area it leads to is inert. A panel leaves the header usable:
    * its menu button has become the close button.
    */
-  private setInert(on: boolean): void {
-    const panel = this.isPanel;
+  private setInert(on: boolean, part: HTMLElement | null = this.sidebar): void {
+    const panel = part === this.sidebar && this.isPanel;
     for (const child of this.children) {
-      if (child === this.sidebar || child.classList.contains("ib-shell-backdrop")) continue;
+      if (child === part || child.classList.contains("ib-shell-backdrop")) continue;
       if (panel && child.classList.contains("ib-shell-header")) continue;
       child.toggleAttribute("inert", on);
     }

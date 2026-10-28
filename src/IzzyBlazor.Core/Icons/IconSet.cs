@@ -116,6 +116,9 @@ public enum IconRole
 
     /// <summary>Back to the first page.</summary>
     FirstPage,
+
+    /// <summary>Open a side panel.</summary>
+    Panel,
 }
 
 /// <summary>
@@ -164,6 +167,7 @@ public class IconSet
         IconRole.Play => IzzyBlazor.Lucide.Play,
         IconRole.Upload => IzzyBlazor.Lucide.Upload,
         IconRole.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
+        IconRole.Panel => IzzyBlazor.Lucide.PanelRight,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 

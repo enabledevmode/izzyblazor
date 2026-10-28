@@ -153,6 +153,25 @@ public enum SidebarSmallScreen
     Panel,
 }
 
+/// <summary>What an <see cref="AppAside"/> does below its breakpoint.</summary>
+public enum AsideSmallScreen
+{
+    /// <summary>It isn't shown (the default): for an outline whose links the page doesn't need on a phone.</summary>
+    Hidden,
+
+    /// <summary>
+    /// It goes after the main area, full width and as tall as its content, and scrolls with the page:
+    /// for a panel about what the main area shows, such as the selected row's details.
+    /// </summary>
+    Below,
+
+    /// <summary>
+    /// A drawer that slides in from the end side over the page, opened by an <see cref="AsideToggle"/>
+    /// or a link to the aside's id, and closed by default: for a panel people open when they want it.
+    /// </summary>
+    Drawer,
+}
+
 /// <summary>Which side of the page a sidebar sits on, following the reading direction.</summary>
 public enum SidebarPosition
 {

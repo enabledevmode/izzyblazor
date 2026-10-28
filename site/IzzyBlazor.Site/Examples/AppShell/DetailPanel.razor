@@ -1,0 +1,104 @@
+@inject NavigationManager Navigation
+
+@* A list with the chosen row's details beside it. The page writes its own AppAside, which takes the
+   shell's aside column; the rule and the panel's tab are in the address (?rule=, ?tab=), so every
+   link works with JavaScript off. Below 768px the panel goes under the list (SmallScreen Below). *@
+<AppShell>
+    <AppHeader>
+        <AppBrand Href="@To(null, null)" Icon="Lucide.ListChecks" Label="Acme Rules" />
+        <Box Grow />
+        <Avatar Name="Grace Hopper" />
+    </AppHeader>
+
+    <AppMain>
+        <Stack Gap="4" Padding="new() { Base = 4, Md = 6 }">
+            <Heading Level="1" Size="TextSize.Xl2">Rules</Heading>
+            <Table Items="Rules" Caption="Rules" RowHref="r => To(r == Rules[0] ? null : r.Id, null)" RowLabel="r => r.Name" RowCurrent="r => r == Shown">
+                <PropertyColumn Property="r => r.Name" />
+                <TemplateColumn Title="Status">
+                    <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
+                </TemplateColumn>
+            </Table>
+        </Stack>
+
+        <AppAside Width="Length.Rem(20)" Breakpoint="Breakpoint.Md" SmallScreen="AsideSmallScreen.Below" Label="Rule" Padding="new() { Base = 4, Md = 5 }">
+            <Stack Gap="4">
+                <Stack Gap="1">
+                    <Heading Level="2" Size="TextSize.Lg">@Shown.Name</Heading>
+                    <Badge Status="StatusOf(Shown.Status)" Dot>@Shown.Status</Badge>
+                </Stack>
+                <Tabs Label="Rule" Size="ControlSize.Sm">
+                    <TabLink Href="@To(ShownKey, null)" Label="Details" />
+                    <TabLink Href='@To(ShownKey, "activity")' Label="Activity" />
+                </Tabs>
+                @if (Tab == "activity")
+                {
+                    <Stack Gap="3">
+                        @foreach (var (when, what) in Activity)
+                        {
+                            <Stack Gap="0">
+                                <TextBlock Size="TextSize.Sm">@what</TextBlock>
+                                <TextBlock Size="TextSize.Xs" Color="Color.Muted">@when</TextBlock>
+                            </Stack>
+                        }
+                    </Stack>
+                }
+                else
+                {
+                    <DescriptionList>
+                        <DescriptionItem Term="Owner">@Shown.Owner</DescriptionItem>
+                        <DescriptionItem Term="Hits (7 days)">@Shown.Hits.ToString("N0")</DescriptionItem>
+                        <DescriptionItem Term="When">@Shown.When</DescriptionItem>
+                    </DescriptionList>
+                }
+            </Stack>
+        </AppAside>
+    </AppMain>
+</AppShell>
+
+@code {
+    [SupplyParameterFromQuery(Name = "rule")] private string? RuleKey { get; set; }
+    [SupplyParameterFromQuery(Name = "tab")] private string? Tab { get; set; }
+
+    private Rule Shown => Rules.FirstOrDefault(r => r.Id == RuleKey) ?? Rules[0];
+
+    // The first rule is shown when none is chosen, and its links leave ?rule= out.
+    private string? ShownKey => Shown == Rules[0] ? null : Shown.Id;
+
+    // Links within this example: ?rule= and ?tab= in its own address, so they stay here.
+    private string To(string? rule, string? tab) => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+    {
+        ["rule"] = rule,
+        ["tab"] = tab,
+    });
+}
+@* hide *@
+
+@code {
+    public sealed record Rule(string Id, string Name, string Status, string Owner, int Hits, string When);
+
+    private static readonly IReadOnlyList<Rule> Rules =
+    [
+        new("hold-refunds", "Hold large refunds", "Live", "Ada Lovelace", 4210, "Refund over $500"),
+        new("band-new", "Band new customers", "Live", "Grace Hopper", 1873, "First order in 30 days"),
+        new("repeat-buyers", "Score repeat buyers", "Draft", "Alan Turing", 0, "Third order or later"),
+        new("country", "Flag mismatched country", "Failing", "Katherine Johnson", 312, "Card and address countries differ"),
+        new("gift-cards", "Limit gift cards", "Paused", "Ada Lovelace", 96, "More than 3 gift cards a day"),
+    ];
+
+    private static readonly (string When, string What)[] Activity =
+    [
+        ("Oct 26", "Threshold raised to $500"),
+        ("Oct 12", "Turned on in production"),
+        ("Oct 9", "Created"),
+    ];
+
+    private static Status StatusOf(string status) => status switch
+    {
+        "Live" => Status.Success,
+        "Paused" => Status.Warning,
+        "Failing" => Status.Danger,
+        _ => Status.Neutral,
+    };
+}
+@* /hide *@

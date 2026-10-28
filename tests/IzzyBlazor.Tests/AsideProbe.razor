@@ -1,0 +1,24 @@
+@* A page that writes its own panel inside the main area, as a list-and-detail page does. *@
+<AppShell>
+    <AppHeader><AsideToggle /></AppHeader>
+    <AppMain>
+        <Heading Level="1">Rules</Heading>
+        @if (WithAside)
+        {
+            <AppAside Width="Length.Px(420)" Label="Rule" SmallScreen="SmallScreen" Padding="Padding">
+                <OnThisPage />
+                <Heading>In the panel</Heading>
+            </AppAside>
+        }
+        <Heading>Below the panel's markup</Heading>
+    </AppMain>
+    <AppFooter>Footer</AppFooter>
+</AppShell>
+
+@code {
+    [Parameter] public bool WithAside { get; set; } = true;
+
+    [Parameter] public AsideSmallScreen SmallScreen { get; set; }
+
+    [Parameter] public Responsive<int> Padding { get; set; }
+}
