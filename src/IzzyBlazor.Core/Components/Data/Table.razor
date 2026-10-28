@@ -13,9 +13,13 @@
     reloads, and can be shared. On interactive pages the links are ordinary navigations (with
     enhanced navigation the server renders the page again) and the table follows the URL.
 
-    Filterable columns add a filter row under the headers. Filters go in the URL too
-    (?f-customer=ada): with no script the boxes submit a GET form when you press Enter; with
-    script they apply as you type.
+    Filterable columns add a filter button to their header, opening the filter in a popover; the
+    active filters show as removable tags above the table. Text matches anywhere, enums and
+    booleans offer a menu, dates match a day, and numbers take a range (at least, at most).
+    Filters go in the URL too (?f-customer=ada, ?f-total-min=100): with no script the fields
+    submit a GET form when you press Enter or Apply; with script they apply as you type. The
+    table filters by column values; operators, several conditions and a filter row belong to a
+    data grid.
 
     Bind Sort, Page or Filters (@bind-Sort, @bind-Page, @bind-Filters) on an interactive page to
     keep them in the component instead: headers and page numbers become buttons, the URL doesn't change, and the
@@ -57,7 +61,7 @@
         @ChildContent
         @ColumnsReadyNotifier
     </CascadingValue>
-    @if (HasFilters && FilterPlacement == FilterPlacement.Header)
+    @if (HasFilters)
     {
         var active = CurrentFilters();
         @* The active filters, which the header hides in its popovers: a removable tag each. Always
@@ -99,7 +103,7 @@
                             <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
                         </th>
                     }
-                    @{ var headerFilters = HasFilters && FilterPlacement == FilterPlacement.Header ? CurrentFilters() : null; }
+                    @{ var headerFilters = HasFilters ? CurrentFilters() : null; }
                     @foreach (var column in _columns)
                     {
                         <th scope="col" class="@CellClass(column)" style="@WidthStyle(column)" aria-sort="@AriaSort(column)">
@@ -118,25 +122,6 @@
                         </th>
                     }
                 </tr>
-                @if (HasFilters && FilterPlacement == FilterPlacement.Row)
-                {
-                    var filters = CurrentFilters();
-                    <tr class="ib-table-filter-row">
-                        @if (Selectable)
-                        {
-                            <td class="ib-table-select-cell"></td>
-                        }
-                        @foreach (var column in _columns)
-                        {
-                            <td class="@CellClass(column)">
-                                @if (column.CanFilter)
-                                {
-                                    @FilterControl(column, filters.GetValueOrDefault(column.Key!) ?? "")
-                                }
-                            </td>
-                        }
-                    </tr>
-                }
             </thead>
             <tbody>
                 @if (_items.Count == 0 && IsLoading)
@@ -231,19 +216,10 @@
            inside another form (a selection form) still works: if the browser drops this nested
            form, the filters belong to no form and never post with the outer one. *@
         <form id="@FilterFormId" method="get" action="@ActionPath" class="ib-table-filter-form"></form>
-        <div class="ib-table-filter-actions">
+        <div class="ib-table-filter-kept">
             @foreach (var (key, value) in KeptQuery())
             {
                 <input type="hidden" name="@key" value="@value" form="@FilterFormId" />
-            }
-            @if (FilterPlacement == FilterPlacement.Row)
-            {
-                @* Without script, Enter in a filter submits through this button; selects need it. *@
-                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm">@TextDefaults.Apply</button>
-                @if (CurrentFilters().Count > 0)
-                {
-                    <a href="@ClearFiltersHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm">@TextDefaults.Clear</a>
-                }
             }
         </div>
     }
@@ -407,13 +383,6 @@
     public EventCallback<string?> CursorChanged { get; set; }
 
     /// <summary>
-    /// Where the column filters go: a filter button in each header that opens the filter
-    /// (<see cref="FilterPlacement.Header"/>, the default, with the active filters as removable
-    /// tags above the table), or a row of fields under the headers (<see cref="FilterPlacement.Row"/>).
-    /// </summary>
-    [Parameter] public FilterPlacement FilterPlacement { get; set; } = FilterPlacement.Header;
-
-    /// <summary>
     /// The filter values of <see cref="ColumnBase{TItem}.Filterable"/> columns, by column key
     /// (<c>"customer"</c> → <c>"ada"</c>). Binding it (<c>@bind-Filters</c>) on an interactive page
     /// keeps filters, sort and page in the component instead of the URL.
@@ -549,17 +518,33 @@
 
     private string FilterQueryKey(ColumnBase<TItem> column) => $"{QueryPrefix}f-{column.Key}";
 
+    // A number filter is a range: its two fields post under their own keys (?f-total-min=100),
+    // so the plain GET form needs no script to put them together.
+    private string MinQueryKey(ColumnBase<TItem> column) => $"{FilterQueryKey(column)}-min";
+
+    private string MaxQueryKey(ColumnBase<TItem> column) => $"{FilterQueryKey(column)}-max";
+
+    // Every URL key a column's filter uses. A number column's include its plain key, which it
+    // no longer reads, so an old link's ?f-qty= is dropped rather than carried along.
+    private IEnumerable<string> FilterQueryKeys(ColumnBase<TItem> column) => column.FilterKind == ColumnFilterKind.Number
+        ? [MinQueryKey(column), MaxQueryKey(column), FilterQueryKey(column)]
+        : [FilterQueryKey(column)];
+
     // GET replaces the query string with the form's fields, so the action is just the path.
     private string ActionPath => new Uri(Navigation.Uri).AbsolutePath;
 
     // Filter values from the URL, for the filterable columns.
     private Dictionary<string, string> ReadFilters()
     {
+        CheckFilterKeys();
         var query = QueryString.Of(Navigation.Uri);
         var filters = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
         foreach (var column in _columns.Where(c => c.CanFilter))
         {
-            if (query.TryGetValue(FilterQueryKey(column), out var value) && value.ToString() is { Length: > 0 } text && !string.IsNullOrWhiteSpace(text))
+            var text = column.FilterKind == ColumnFilterKind.Number
+                ? ColumnFilter.JoinRange(query.GetValueOrDefault(MinQueryKey(column)).ToString(), query.GetValueOrDefault(MaxQueryKey(column)).ToString())
+                : query.GetValueOrDefault(FilterQueryKey(column)).ToString();
+            if (!string.IsNullOrWhiteSpace(text))
             {
                 filters[column.Key!] = text;
             }
@@ -568,7 +553,45 @@
         return filters;
     }
 
+    // A number column "price" posts f-price-min and f-price-max: a column keyed "price-min"
+    // would share one.
+    private void CheckFilterKeys()
+    {
+        var taken = new Dictionary<string, ColumnBase<TItem>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var column in _columns.Where(c => c.CanFilter))
+        {
+            foreach (var key in FilterQueryKeys(column))
+            {
+                if (taken.TryGetValue(key, out var other) && other != column)
+                {
+                    throw new InvalidOperationException(
+                        $"The \"{column.HeaderText}\" and \"{other.HeaderText}\" columns both filter through ?{key}. Give one a different {nameof(ColumnBase<TItem>.SortKey)}.");
+                }
+
+                taken[key] = column;
+            }
+        }
+    }
+
     private IReadOnlyDictionary<string, string> CurrentFilters() => UseState ? _stateFilters : ReadFilters();
+
+    // What a number filter's two boxes show: what was typed in them, not the tidied range ("1."
+    // while typing "1.5" stays "1."). URL: each box's own key. Bound: the ends last typed, while
+    // they still make up the current value; otherwise the value's two ends.
+    private (string Min, string Max) RangeEnds(ColumnBase<TItem> column, string current)
+    {
+        if (!UseState)
+        {
+            var query = QueryString.Of(Navigation.Uri);
+            return (query.GetValueOrDefault(MinQueryKey(column)).ToString(), query.GetValueOrDefault(MaxQueryKey(column)).ToString());
+        }
+
+        return _rangeTyped.TryGetValue(column.Key!, out var typed) && ColumnFilter.JoinRange(typed.Min, typed.Max) == current
+            ? typed
+            : ColumnFilter.SplitRange(current);
+    }
+
+    private readonly Dictionary<string, (string Min, string Max)> _rangeTyped = new(StringComparer.OrdinalIgnoreCase);
 
     private static string Signature(IReadOnlyDictionary<string, string> filters) =>
         string.Join('&', filters.Where(f => !string.IsNullOrWhiteSpace(f.Value)).OrderBy(f => f.Key, StringComparer.Ordinal).Select(f => $"{f.Key}={f.Value}"));
@@ -577,14 +600,14 @@
     // filters and page (a new filter starts at page 1).
     private IEnumerable<(string Key, string Value)> KeptQuery()
     {
-        var own = _columns.Where(c => c.CanFilter).Select(FilterQueryKey).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var own = _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return QueryString.Of(Navigation.Uri)
             .Where(q => !own.Contains(q.Key))
             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
     }
 
     private string ClearFiltersHref => Navigation.GetUriWithQueryParameters(
-        _columns.Where(c => c.CanFilter).Select(FilterQueryKey).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
+        _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
 
     // The header's title: a sort control (a button when state is in the component, a link
     // otherwise) or plain text.
@@ -613,9 +636,24 @@
     private string FilterLabel(ColumnBase<TItem> column) =>
         string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterColumn, column.HeaderText);
 
-    // What a filter is set to, in words: the text typed, the choice's name, or "2 selected".
+    // What a filter is set to, in words: the text typed, the choice's name, "2 selected", or a
+    // range ("100–500", "100 or more").
     private string FilterSummary(ColumnBase<TItem> column, string current)
     {
+        if (column.FilterKind == ColumnFilterKind.Number)
+        {
+            var (min, max) = ColumnFilter.SplitRange(current);
+            var culture = System.Globalization.CultureInfo.CurrentCulture;
+            return (min.Length > 0, max.Length > 0) switch
+            {
+                (true, true) when min == max => min,
+                (true, true) => string.Format(culture, TextDefaults.FilterBetween, min, max),
+                (true, false) => string.Format(culture, TextDefaults.FilterAtLeast, min),
+                (false, true) => string.Format(culture, TextDefaults.FilterAtMost, max),
+                _ => "",
+            };
+        }
+
         if (column.FilterKind != ColumnFilterKind.Choice)
         {
             return current;
@@ -631,7 +669,7 @@
         };
     }
 
-    // FilterPlacement.Header: a funnel button, marked when the column is filtered, that opens the
+    // A funnel button, marked when the column is filtered, that opens the
     // filter. Choices open a menu (checkbox items for FilterMultiple); text, numbers and dates a
     // popover with the field. Both popovers open with no script.
     private RenderFragment HeaderFilter(ColumnBase<TItem> column, string current) => __builder =>
@@ -662,46 +700,42 @@
                     </button>
                 </Trigger>
                 <ChildContent>
-                    <div class="ib-table-filter-panel ib-field-sm">
-                        <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
-                        @FilterInput(column, current, label, autofocus: true, id: fieldId)
-                        @if (!UseState)
-                        {
-                            @* With script the field applies as you type; without, Enter or Apply submits. *@
-                            <div class="ib-table-filter-panel-actions">
-                                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm">@TextDefaults.Apply</button>
+                    @if (column.FilterKind == ColumnFilterKind.Number)
+                    {
+                        @* A range: at least and at most, each with its own label, in a group named
+                           by the panel's title. *@
+                        var (min, max) = RangeEnds(column, current);
+                        <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
+                            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                            <div class="ib-table-filter-range">
+                                @RangeInput(column, min, atLeast: true, id: $"{fieldId}-min")
+                                @RangeInput(column, max, atLeast: false, id: $"{fieldId}-max")
                             </div>
-                        }
-                    </div>
+                            @FilterPanelActions
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="ib-table-filter-panel ib-field-sm">
+                            <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
+                            @FilterInput(column, current, fieldId)
+                            @FilterPanelActions
+                        </div>
+                    }
                 </ChildContent>
             </Popover>
         }
     };
 
-    // FilterPlacement.Row: a field per column. Several values: a field-like button opening the menu.
-    private RenderFragment FilterControl(ColumnBase<TItem> column, string current) => __builder =>
+    // Without script (and on static pages before it arrives), Enter or Apply submits the filters'
+    // GET form; with script the fields apply as they change and CSS hides the button.
+    private RenderFragment FilterPanelActions => __builder =>
     {
-        var label = FilterLabel(column);
-        if (column.FilterKind == ColumnFilterKind.Choice && column.FilterMultiple)
+        if (!UseState)
         {
-            var summary = FilterSummary(column, current);
-            <div class="ib-field ib-field-sm ib-table-filter ib-table-filter-multiple">
-                <Menu Size="ControlSize.Sm" Placement="Placement.BottomStart" data-ib-user-controlled>
-                    <Trigger>
-                        <button type="button" class="ib-field-input ib-table-filter-trigger" aria-label="@($"{label}: {summary}")" @attributes="context">
-                            <span class="ib-table-filter-summary">@summary</span>
-                            <Icon Role="IconRole.ChevronDown" Class="ib-table-filter-chevron" />
-                        </button>
-                    </Trigger>
-                    <ChildContent>
-                        @FilterMenuItems(column, current)
-                    </ChildContent>
-                </Menu>
+            <div class="ib-table-filter-panel-actions">
+                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm">@TextDefaults.Apply</button>
             </div>
-        }
-        else
-        {
-            @FilterInput(column, current, label)
         }
     };
 
@@ -726,33 +760,11 @@
         }
     };
 
-    // A single field: a select for a choice, a date input, or a text box (numbers get a numeric
-    // keyboard). Static pages join it to the GET form; bound pages handle its events.
-    // A header filter's panel shows a label for the field (id); the filter row's fields are named
-    // by aria-label under their column's header.
-    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string label, bool autofocus = false, string? id = null) => __builder =>
+    // A header filter's field, shown under its label (id): a date input, or a text box. Static
+    // pages join it to the GET form; bound pages handle its events. (Choices open a menu instead.)
+    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string id) => __builder =>
     {
-        if (column.FilterKind == ColumnFilterKind.Choice)
-        {
-            <div class="ib-field ib-field-sm ib-table-filter">
-                <div class="ib-field-control ib-has-end">
-                    @if (UseState)
-                    {
-                        <select class="ib-field-input ib-field-select" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" @onchange="e => OnFilterAsync(column, e, wait: false)">
-                            @FilterOptions(column, current)
-                        </select>
-                    }
-                    else
-                    {
-                        <select class="ib-field-input ib-field-select" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter>
-                            @FilterOptions(column, current)
-                        </select>
-                    }
-                    <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
-                </div>
-            </div>
-        }
-        else if (column.FilterKind == ColumnFilterKind.Date)
+        if (column.FilterKind == ColumnFilterKind.Date)
         {
             @* A date input sends yyyy-MM-dd whatever the person's locale shows; it applies when a
                whole date is chosen, so there's no pause to wait for. *@
@@ -761,28 +773,27 @@
                 <div class="ib-field-control">
                     @if (UseState)
                     {
-                        <input type="date" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@day" @onchange="e => OnFilterAsync(column, e, wait: false)" />
+                        <input type="date" class="ib-field-input" id="@id" autofocus value="@day" @onchange="e => OnFilterAsync(column, e, wait: false)" />
                     }
                     else
                     {
-                        <input type="date" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@day" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
+                        <input type="date" class="ib-field-input" id="@id" autofocus value="@day" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
                     }
                 </div>
             </div>
         }
         else
         {
-            var mode = column.FilterKind == ColumnFilterKind.Number ? "decimal" : null;
             <div class="ib-field ib-field-sm ib-table-filter">
                 <div class="ib-field-control">
                     @if (UseState)
                     {
-                        <input type="search" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
+                        <input type="search" class="ib-field-input" id="@id" autofocus value="@current" autocomplete="off"
                                @oninput="e => OnFilterAsync(column, e, wait: true)" />
                     }
                     else
                     {
-                        <input type="search" class="ib-field-input" id="@id" aria-label="@(id is null ? label : null)" autofocus="@autofocus" value="@current" inputmode="@mode" autocomplete="off"
+                        <input type="search" class="ib-field-input" id="@id" autofocus value="@current" autocomplete="off"
                                name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
                     }
                 </div>
@@ -790,23 +801,41 @@
         }
     };
 
-    private RenderFragment FilterOptions(ColumnBase<TItem> column, string current) => __builder =>
+    // One end of a number filter's range, labeled "Min" or "Max", with a numeric keyboard. Static
+    // pages post it under its own key (?f-total-min=); bound pages put the two ends together.
+    private RenderFragment RangeInput(ColumnBase<TItem> column, string value, bool atLeast, string id) => __builder =>
     {
-        <option value="" selected="@(current.Length == 0)">@TextDefaults.All</option>
-        foreach (var (value, text) in column.FilterChoices(TextDefaults))
-        {
-            <option value="@value" selected="@string.Equals(value, current, StringComparison.OrdinalIgnoreCase)">@text</option>
-        }
+        <div class="ib-field ib-field-sm ib-table-filter">
+            <label class="ib-field-label" for="@id">@(atLeast ? TextDefaults.FilterMin : TextDefaults.FilterMax)</label>
+            <div class="ib-field-control">
+                @if (UseState)
+                {
+                    <input type="text" class="ib-field-input" id="@id" autofocus="@atLeast" value="@value" inputmode="decimal" autocomplete="off"
+                           @oninput="e => OnRangeAsync(column, e, atLeast)" />
+                }
+                else
+                {
+                    <input type="text" class="ib-field-input" id="@id" autofocus="@atLeast" value="@value" inputmode="decimal" autocomplete="off"
+                           name="@(atLeast ? MinQueryKey(column) : MaxQueryKey(column))" form="@FilterFormId" data-ib-filter />
+                }
+            </div>
+        </div>
     };
 
-    // The URL with a multi-value filter set to these values (repeated keys), from page 1.
-    private string FilterValuesHref(ColumnBase<TItem> column, IReadOnlyList<string> values) =>
-        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+    // The URL with a filter set to these values (repeated keys for several), from page 1. No
+    // values clears every key the filter uses (a range's two).
+    private string FilterValuesHref(ColumnBase<TItem> column, IReadOnlyList<string> values)
+    {
+        var changes = FilterQueryKeys(column).ToDictionary(k => k, _ => (object?)null);
+        if (values.Count > 0)
         {
-            [FilterQueryKey(column)] = values.Count == 0 ? null : values.ToArray(),
-            [PageKey] = null,
-            [CursorKey] = null,
-        });
+            changes[FilterQueryKey(column)] = values.ToArray();
+        }
+
+        changes[PageKey] = null;
+        changes[CursorKey] = null;
+        return Navigation.GetUriWithQueryParameters(changes);
+    }
 
     private async Task ClearFiltersAsync()
     {
@@ -823,7 +852,17 @@
     private Task OnFilterValuesAsync(ColumnBase<TItem> column, IReadOnlyList<string> values) =>
         OnFilterAsync(column, new ChangeEventArgs { Value = string.Join(',', values) }, wait: false);
 
-    // Typing waits for a pause before filtering; a select applies at once.
+    // One end of a bound range changed: the value is both ends together ("100..500").
+    private Task OnRangeAsync(ColumnBase<TItem> column, ChangeEventArgs e, bool atLeast)
+    {
+        var (min, max) = RangeEnds(column, _stateFilters.GetValueOrDefault(column.Key!) ?? "");
+        var typed = e.Value?.ToString() ?? "";
+        var ends = atLeast ? (typed, max) : (min, typed);
+        _rangeTyped[column.Key!] = ends;
+        return OnFilterAsync(column, new ChangeEventArgs { Value = ColumnFilter.JoinRange(ends.Item1, ends.Item2) }, wait: true);
+    }
+
+    // Typing waits for a pause before filtering; a menu or a date applies at once.
     private async Task OnFilterAsync(ColumnBase<TItem> column, ChangeEventArgs e, bool wait)
     {
         var value = e.Value?.ToString() ?? "";

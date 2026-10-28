@@ -397,7 +397,7 @@
     background-color: var(--ib-table-stripe);
   }
 
-  /* The whole head sticks, so a filter row stays in view with the headers. */
+  /* The whole head sticks with the rows scrolling under it. */
   .ib-table-sticky .ib-table-grid thead {
     position: sticky;
     top: 0;
@@ -417,11 +417,6 @@
   /* Header filters: the 22px filter button is taller than a small table's 18px line. */
   .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-button) {
     --ib-table-head-line: max(round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px), 1.375rem);
-  }
-
-  /* FilterPlacement.Row: a row of small fields under the headers too. */
-  .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-row) {
-    --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px + var(--ib-space-2) * 2 + var(--ib-control-h-sm) + 1px);
   }
 
   .ib-table-sticky > .ib-table-scroll::-webkit-scrollbar-track:vertical {
@@ -501,11 +496,14 @@
     outline-offset: 0;
   }
 
+  /* Start-aligned whatever the column's alignment (a number column's header is end-aligned). */
   .ib-table-filter-panel {
     display: flex;
     flex-direction: column;
     gap: var(--ib-space-2);
     width: 14rem;
+    font-weight: var(--ib-weight-normal);
+    text-align: start;
   }
 
   .ib-table-filter-panel-actions {
@@ -532,67 +530,29 @@
     gap: var(--ib-space-2);
   }
 
-  /* Filter row: a small field under each filterable header, on the header's surface. */
-  .ib-table-grid .ib-table-filter-row > td {
-    padding-block: var(--ib-space-2);
-    background-color: var(--ib-table-bg, var(--ib-color-surface));
-  }
-
   .ib-table-filter {
     min-width: 6rem;
   }
 
-  /* A multi-value filter: a button drawn as the field, showing "All", the value or "2 selected". */
-  .ib-table-filter-multiple > ib-popover {
-    display: block;
-  }
-
-  .ib-table-filter-trigger {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--ib-space-1);
-    text-align: start;
-    cursor: pointer;
-  }
-
-  .ib-table-filter-summary {
-    min-width: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  .ib-table-filter-chevron {
-    flex: none;
-    width: 1rem;
-    height: 1rem;
-    color: var(--ib-color-muted);
+  /* A number filter's range: at least and at most, side by side. */
+  .ib-table-filter-range {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--ib-space-2);
   }
 
   .ib-table-filter-date {
     min-width: 8.5rem;
   }
 
-  .ib-cell-end > .ib-table-filter input {
-    text-align: end;
-  }
-
   .ib-table-filter-form {
     display: none;
   }
 
-  /* Apply and Clear, for the filter row with no script; with script the filters apply themselves. */
-  .ib-table-filter-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--ib-space-2);
-  }
-
-  @media (scripting: enabled) {
-    ib-table:not([data-ib-failed]) .ib-table-filter-actions {
-      display: none;
-    }
+  /* The hidden fields that carry the rest of the URL through the filters' GET form: no box of its
+     own, or the table's gap would show around it. */
+  .ib-table-filter-kept {
+    display: none;
   }
 
   .ib-table-empty > td {

@@ -12,9 +12,9 @@
 <TextBlock><Code>InitialSort</Code> sets the order before anyone picks one (<Code>"-date"</Code> for newest first), and <Code>PageSizeOptions</Code> adds a "Rows per page" menu.</TextBlock>
 
 <Heading Level="2">Column filters</Heading>
-<TextBlock>Use <Code>Filterable</Code> on a column for a filter in its header. Text matches anywhere, numbers exactly, a date its day, and enums and booleans get a menu.</TextBlock>
+<TextBlock>Use <Code>Filterable</Code> on a column for a filter in its header. Text matches anywhere, a date its day, enums and booleans get a menu, and a number takes a range: at least, at most, or both.</TextBlock>
 <ExampleViewer Example="table-filters" />
-<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (here <Code>?orders-f-customer=ada</Code>: this table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the one above, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). <Code>FilterMultiple</Code> lets an enum column match several values, and <Code>FilterPlacement.Row</Code> puts the filters in a row under the headers. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor>.</TextBlock>
+<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (here <Code>?orders-f-customer=ada</Code>: this table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the one above, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). A number's two ends go in as <Code>?f-total-min=100&amp;f-total-max=500</Code>, so the form needs no script. <Code>FilterMultiple</Code> lets an enum column match several values. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
 
 <Heading Level="2">Selection</Heading>
 <TextBlock>Use <Code>Selectable</Code> with an <Code>ItemKey</Code> for a checkbox per row. In a form, the checked rows post their keys, so this works with JavaScript off.</TextBlock>
@@ -22,7 +22,7 @@
 <TextBlock>Read the keys with <Code>[SupplyParameterFromForm(Name = "selected")]</Code> on a static page, or <Code>@@bind-SelectedKeys</Code> on an interactive one. Give columns <Code>FooterText</Code> for a totals row.</TextBlock>
 
 <Heading Level="2">State in the component</Heading>
-<TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filters</Code> on an interactive page to keep them in C# instead of the URL, like a client-side grid.</TextBlock>
+<TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filters</Code> on an interactive page to keep them in C# instead of the URL: for a table in a dialog, or anywhere the address shouldn't change.</TextBlock>
 <ExampleViewer Example="table-bound" />
 <TextBlock>The table starts from the URL if it has values, and a new sort or filter goes back to page 1. Set the page back to 1 yourself when your own filters change.</TextBlock>
 

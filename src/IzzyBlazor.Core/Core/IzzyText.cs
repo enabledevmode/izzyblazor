@@ -54,6 +54,21 @@ public class IzzyText
     /// <summary>A Table filter menu with several values chosen: "2 selected".</summary>
     public virtual string FilterSelected { get; set; } = "{0} selected";
 
+    /// <summary>A Table number filter's lower end: "Min".</summary>
+    public virtual string FilterMin { get; set; } = "Min";
+
+    /// <summary>A Table number filter's upper end: "Max".</summary>
+    public virtual string FilterMax { get; set; } = "Max";
+
+    /// <summary>A Table number filter with only a lower end: "100 or more".</summary>
+    public virtual string FilterAtLeast { get; set; } = "{0} or more";
+
+    /// <summary>A Table number filter with only an upper end: "500 or less".</summary>
+    public virtual string FilterAtMost { get; set; } = "{0} or less";
+
+    /// <summary>A Table number filter with both ends: "100–500".</summary>
+    public virtual string FilterBetween { get; set; } = "{0}–{1}";
+
     /// <summary>A Table filter option for true.</summary>
     public virtual string Yes { get; set; } = "Yes";
 

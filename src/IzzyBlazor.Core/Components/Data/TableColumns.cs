@@ -23,9 +23,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter] public string? SortKey { get; set; }
 
     /// <summary>
-    /// Adds a filter under this column's header: a text box for text (matching anywhere, ignoring
-    /// case) and numbers (matching exactly), a date input for dates (matching the day), a select
-    /// for enums and booleans. A
+    /// Adds a filter button to this column's header: a text box for text (matching anywhere,
+    /// ignoring case), Min and Max boxes for numbers (keeping the values between them; either may
+    /// be empty), a date input for dates (matching the day), a menu for enums and booleans. A
     /// <see cref="TemplateColumn{TItem}"/> filters by its <c>FilterBy</c> text.
     /// </summary>
     [Parameter] public bool Filterable { get; set; }
@@ -236,6 +236,7 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
     {
         ColumnFilterKind.Text => ColumnFilter.Contains(source, Property, value),
         ColumnFilterKind.Date => ColumnFilter.OnDay(source, Property, value),
+        ColumnFilterKind.Number => ColumnFilter.Between(source, Property, value),
         ColumnFilterKind.Choice when FilterMultiple => ColumnFilter.AnyOf(source, Property, ColumnFilter.SplitValues(value)),
         _ => ColumnFilter.EqualTo(source, Property, value),
     };
@@ -331,7 +332,12 @@ public sealed record TableRequest<TItem>(string? SortKey, bool Descending, int P
 
     internal IReadOnlyList<ColumnBase<TItem>> FilterColumns { get; init; } = [];
 
-    /// <summary>The filter values, by column key (<c>"customer"</c> → <c>"ada"</c>). Empty when nothing is filtered.</summary>
+    /// <summary>
+    /// The filter values, by column key (<c>"customer"</c> → <c>"ada"</c>). A number column's is a
+    /// range, <c>"100..500"</c>, with either end left empty for "or more" (<c>"100.."</c>) or "or less"
+    /// (<c>"..500"</c>). Several chosen values (<c>FilterMultiple</c>) are joined with commas. Empty
+    /// when nothing is filtered.
+    /// </summary>
     public IReadOnlyDictionary<string, string> Filters { get; init; } = new Dictionary<string, string>();
 
     /// <summary>Keeps the items that match the requested filters, using each column's own expression (EF Core translates it).</summary>
@@ -363,19 +369,6 @@ public sealed record TableRequest<TItem>(string? SortKey, bool Descending, int P
         var sorted = ApplySorting(ApplyFiltering(source));
         return PageSize is { } size ? sorted.Skip(Skip).Take(size) : sorted;
     }
-}
-
-/// <summary>Where a <see cref="Table{TItem}"/> puts its column filters.</summary>
-public enum FilterPlacement
-{
-    /// <summary>
-    /// A filter button in each filterable column's header, opening the filter in a popover; the
-    /// active filters show as removable tags above the table. The default.
-    /// </summary>
-    Header,
-
-    /// <summary>A row of filter fields under the headers, always in view: for tables people filter constantly.</summary>
-    Row,
 }
 
 /// <summary>
