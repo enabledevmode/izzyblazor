@@ -126,6 +126,11 @@ parameter tables and defaults are never written by hand.
 - A demo scenario (`"page": true`) is a page of its own, sized by the window: it shows in a frame
   of `/frame/{id}?mode=` that is `height` pixels tall and scrolls inside, with a phone width.
   Off frames are sandboxed without `allow-scripts`; links in them open in the frame.
+  Make it look like a real page, not a fragment in the frame's corner: an `AppShell` with an
+  `AppHeader` (a made-up brand such as "Acme"), the content centered (`ContentWidth`) or padded,
+  cards on `ShellVariant.Canvas` where there are cards, and one h1 (card titles one level
+  under it, `TitleLevel="2"`). Set `height` to the page's tallest state on desktop: a form after
+  a submit with errors, and after a valid one with its message, not only as it loads.
 - A component's Overview is `Docs/Overviews/{Name}Overview.razor` when written by hand (see
   Button's); otherwise one is generated from the metadata in the same order: the doc comment's
   summary, its example as Usage, each of the component's examples in `components.json` under its
