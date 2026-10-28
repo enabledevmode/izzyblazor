@@ -11,6 +11,8 @@
     <FilterForm Label="Filter orders">
         <FilterSearch Placeholder="Search customers" />
         <FilterSelect Name="status" Label="Status" EnumType="typeof(OrderStatus)" />
+        <FilterDate Name="from" Label="Placed from" />
+        <FilterDate Name="to" Label="Placed to" Min="From" />
         <FilterCheckbox Name="large" Label="Over $300" />
     </FilterForm>
     <Table Items="Filtered" PageSize="6" InitialSort="-date" Caption="Orders" EmptyText="No orders match these filters">
@@ -28,10 +30,14 @@
     [SupplyParameterFromQuery(Name = "q")] private string? Search { get; set; }
     [SupplyParameterFromQuery(Name = "status")] private string? StatusFilter { get; set; }
     [SupplyParameterFromQuery(Name = "large")] private bool Large { get; set; }
+    // Dates in the address are what the browser posts (2026-09-14), read as DateOnly.
+    [SupplyParameterFromQuery(Name = "from")] private DateOnly? From { get; set; }
+    [SupplyParameterFromQuery(Name = "to")] private DateOnly? To { get; set; }
 
     // The page filters its own data; the table sorts and pages what it's given.
     private IEnumerable<Order> Filtered => Orders.All
         .Where(o => string.IsNullOrWhiteSpace(Search) || o.Customer.Contains(Search, StringComparison.OrdinalIgnoreCase))
         .Where(o => !Enum.TryParse<OrderStatus>(StatusFilter, out var status) || o.Status == status)
+        .Where(o => (From is null || o.Date >= From) && (To is null || o.Date <= To))
         .Where(o => !Large || o.Total > 300);
 }

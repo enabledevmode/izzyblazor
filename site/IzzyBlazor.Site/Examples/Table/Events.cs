@@ -16,12 +16,19 @@ public static class Events
         .Select(i => new AuditEvent(i, new DateTimeOffset(2026, 10, 27, 9, 0, 0, TimeSpan.Zero).AddMinutes(-i * 37), People[i * 3 % People.Length], Actions[i * 7 % Actions.Length]))
         .ToList();
 
-    /// <summary>One page of events, newest first, after <paramref name="cursor"/> (null for the newest).</summary>
-    public static async Task<(IReadOnlyList<AuditEvent> Items, string? Next)> ListAsync(string? cursor, int limit)
+    /// <summary>
+    /// One page of events, newest first, after <paramref name="cursor"/> (null for the newest): those whose person and
+    /// action contain <paramref name="who"/> and <paramref name="what"/>, when given.
+    /// </summary>
+    public static async Task<(IReadOnlyList<AuditEvent> Items, string? Next)> ListAsync(string? cursor, int limit, string? who = null, string? what = null)
     {
         await Task.Delay(300); // a network call
         var below = Decode(cursor); // a cursor this API didn't make reads as the newest
-        var page = All.Where(e => e.Id > below).Take(limit + 1).ToList();
+        var page = All
+            .Where(e => e.Id > below)
+            .Where(e => string.IsNullOrWhiteSpace(who) || e.Who.Contains(who.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Where(e => string.IsNullOrWhiteSpace(what) || e.What.Contains(what.Trim(), StringComparison.OrdinalIgnoreCase))
+            .Take(limit + 1).ToList();
         var next = page.Count > limit ? Convert.ToBase64String(Encoding.UTF8.GetBytes(page[limit - 1].Id.ToString(System.Globalization.CultureInfo.InvariantCulture))) : null;
         return (page.Take(limit).ToList(), next);
     }
