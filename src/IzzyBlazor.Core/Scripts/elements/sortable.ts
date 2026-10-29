@@ -2,25 +2,26 @@ import { IzzyElement, defineElement } from "../izzy-element";
 import { trackDrag } from "../sortable";
 
 const HANDLE = ".ib-sortable-handle";
+// The button whose menu holds the moves: the handle, or the item's ⋯ button when it has no handle.
+const TRIGGER = ".ib-sortable-trigger";
 const ITEM = ".ib-sortable-item";
 // With data-ib-whole, a press on these stays theirs; the item's stretched link or button drags.
 // Overlays an item opens (its menus, dialogs, a combobox's list) sit in the item too. Not
 // [tabindex]: an item that Load more focuses has tabindex=-1 itself.
 const CONTROL = "a[href]:not(.ib-listview-action), button:not(.ib-listview-action), input, select, textarea, label, summary, video, audio, [contenteditable]:not([contenteditable=false]), [popover], dialog, [role=dialog], [role=menu], [data-ib-role=menu], [role=listbox]";
-// An item's own handle; a nested list's handles are deeper.
-const OWN_HANDLE = ":scope > ib-popover > .ib-sortable-handle";
 // A touch on the item (not its handle) is a long press this long, so the page still scrolls.
 const LONG_PRESS = 250;
 
 type Move = "up" | "down" | "top" | "bottom";
 
 /**
- * <ib-sortable> moves a SortableList's items. Every way of moving goes through the handle's menu
- * items (data-ib-move), so each announces and focuses the same way:
+ * <ib-sortable> moves a ListView's items. Every way of moving goes through the items of the menu
+ * of moves (data-ib-move; the handle's, or the ⋯ menu's), so each announces and focuses the same way:
  * - A menu item: on a static page it moves the item here instead of posting (the hidden key
  *   inputs move with it, so the form posts the new order); data-ib-submit posts after each move.
- *   On an interactive page C# moves it, and focus goes back to the handle after the render.
- * - Alt+arrows and Alt+Home/End on a focused handle click the matching menu item.
+ *   On an interactive page C# moves it, and focus goes back to the menu's button after the render.
+ * - Alt+arrows and Alt+Home/End on a focused handle (or ⋯ button holding the moves) click the
+ *   matching menu item.
  * - Dragging a handle. On a static page the drop moves the item here. On an interactive page it
  *   raises `ibmove` (key, index, seq) and C# moves it; the dragged item stays where it was dropped
  *   until the render that has handled that drop (data-ib-seq) arrives, so nothing jumps back first.
@@ -78,7 +79,17 @@ class Sortable extends IzzyElement {
   private fromItem(target: Element): HTMLElement | null {
     const item = this.whole ? this.itemOf(target) : null;
     const control = target.closest(CONTROL);
-    return item && !(control && item.contains(control)) && item.querySelector(OWN_HANDLE) ? item : null;
+    return item?.hasAttribute("data-ib-movable") && !(control && item.contains(control)) ? item : null;
+  }
+
+  /** The item's own move buttons (a nested list's items have theirs). */
+  private movesOf(item: Element): HTMLButtonElement[] {
+    return [...item.querySelectorAll<HTMLButtonElement>("button[data-ib-move]")].filter((el) => this.itemOf(el) === item);
+  }
+
+  /** The item's own handle or ⋯ button with the moves (not a nested list's). */
+  private triggerOf(item: Element | undefined): HTMLElement | undefined {
+    return item ? [...item.querySelectorAll<HTMLElement>(TRIGGER)].find((el) => this.itemOf(el) === item) : undefined;
   }
 
   private itemOf(el: Element | null): HTMLElement | null {
@@ -91,7 +102,7 @@ class Sortable extends IzzyElement {
     const item = this.itemOf(button);
     if (!button || !item || button.disabled) return;
     if (this.live) {
-      // C# reorders the items; the handle's node moves, which drops focus.
+      // C# reorders the items; the menu button's node moves, which drops focus.
       this.refocusAfterRender(item.dataset.ibKey);
       return;
     }
@@ -106,23 +117,24 @@ class Sortable extends IzzyElement {
 
   private onKey(event: KeyboardEvent): void {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const handle = (event.target as Element).closest(HANDLE);
+    const handle = (event.target as Element).closest(TRIGGER);
     const item = this.itemOf(handle);
     if (!handle || !item || event.target !== handle) return;
-    const across = this.classList.contains("ib-sortable-horizontal");
+    // Both axes in every layout: rows that wrap become one column on a phone, and the other
+    // arrows would scroll the page.
     const rtl = getComputedStyle(this).direction === "rtl";
     const back = rtl ? "ArrowRight" : "ArrowLeft";
+    const forward = rtl ? "ArrowLeft" : "ArrowRight";
     const kind: Move | null =
       event.key === "Home" ? "top"
       : event.key === "End" ? "bottom"
-      : event.key === (across ? back : "ArrowUp") ? "up"
-      : across ? (event.key === (rtl ? "ArrowLeft" : "ArrowRight") ? "down" : null)
-      : event.key === "ArrowDown" ? "down"
+      : event.key === "ArrowUp" || event.key === back ? "up"
+      : event.key === "ArrowDown" || event.key === forward ? "down"
       : null;
     if (!kind) return;
-    // Alt+Left is the browser's Back: always ours on a handle, even at the end of the list.
+    // Alt+Left is the browser's Back: always ours on a menu button, even at the end of the list.
     event.preventDefault();
-    item.querySelector<HTMLButtonElement>(`button[data-ib-move="${kind}"]`)?.click();
+    this.movesOf(item).find((button) => button.dataset.ibMove === kind)?.click();
   }
 
   private onPointerDown(event: PointerEvent): void {
@@ -145,7 +157,7 @@ class Sortable extends IzzyElement {
       return;
     }
     // From the handle, or from the item itself: not a control in it (or one that took the press),
-    // and only an item with its own handle moves.
+    // and only a movable item (data-ib-movable) moves.
     const item = handle ? this.itemOf(handle) : event.defaultPrevented ? null : this.fromItem(target);
     const fromItem = !handle;
     const list = this.list;
@@ -158,6 +170,9 @@ class Sortable extends IzzyElement {
       wrap: this.classList.contains("ib-sortable-horizontal"),
       onEnd: () => (this.dropped = event.pointerType !== "mouse"),
       onDrop: (_, to, settle) => {
+        // Dragged by its body, the press left focus on the list: the item's menu button takes it,
+        // so the shortcuts work next (a field in the item keeps it).
+        if (fromItem && !item.contains(document.activeElement)) this.triggerOf(item)?.focus({ preventScroll: true });
         if (this.live) {
           this.report(item, to, settle);
           return;
@@ -192,7 +207,7 @@ class Sortable extends IzzyElement {
       // gone elsewhere meanwhile, focus stays there.
       const now = this.items().find((el) => el.dataset.ibKey === key);
       const lost = !document.activeElement || document.activeElement === document.body;
-      if (hadFocus && lost && now) now.querySelector<HTMLElement>(HANDLE)?.focus();
+      if (hadFocus && lost && now) this.triggerOf(now)?.focus();
     };
     // The render applies its moves and data-ib-seq together, before this runs.
     const observer = new MutationObserver(() => {
@@ -215,7 +230,7 @@ class Sortable extends IzzyElement {
     const from = items.indexOf(item);
     if (!list || to < 0 || to >= items.length || to === from) return;
     const rest = items.filter((el) => el !== item);
-    const handle = item.querySelector<HTMLElement>(HANDLE);
+    const handle = this.triggerOf(item);
     // Moving a node drops focus from inside it.
     const hadFocus = item.contains(document.activeElement);
     list.insertBefore(item, rest[to] ?? null);
@@ -229,7 +244,7 @@ class Sortable extends IzzyElement {
   private refreshEnds(): void {
     const items = this.items();
     items.forEach((el, i) => {
-      for (const button of el.querySelectorAll<HTMLButtonElement>("button[data-ib-move]")) {
+      for (const button of this.movesOf(el)) {
         const kind = button.dataset.ibMove;
         button.disabled = kind === "up" || kind === "top" ? i === 0 : i === items.length - 1;
       }
@@ -252,7 +267,7 @@ class Sortable extends IzzyElement {
     requestAnimationFrame(() => (region.textContent = text));
   }
 
-  /** On an interactive page, focuses the moved item's handle once Blazor has moved its node. */
+  /** On an interactive page, focuses the moved item's menu button once Blazor has moved its node. */
   private refocusAfterRender(key: string | undefined): void {
     const list = this.list;
     if (!list || key === undefined) return;
@@ -261,7 +276,7 @@ class Sortable extends IzzyElement {
     const observer = new MutationObserver(() => {
       observer.disconnect();
       const at = indexOf();
-      if (at >= 0 && at !== before) list.children[at].querySelector<HTMLElement>(HANDLE)?.focus();
+      if (at >= 0 && at !== before) this.triggerOf(list.children[at])?.focus();
     });
     observer.observe(list, { childList: true });
     setTimeout(() => observer.disconnect(), 2000);
