@@ -1,0 +1,996 @@
+@page "/docs/get-started/from-radzen"
+
+@* Moving an app from Radzen.Blazor: setup, then each piece with the Radzen code beside the
+   IzzyBlazor code, the renamed members and what behaves differently. Written from a real port (an
+   admin console on Radzen 12.1.2 that renders everything interactive with prerender off: buttons,
+   nine data grids and DialogService, the rest hand-built) and checked against IzzyBlazor's source.
+   Only what the port uses is mapped; the Radzen side is quoted from its code, not from Radzen's docs. *@
+
+<ArticlePage Section="get-started" Slug="from-radzen">
+    <Lead>
+        Most of a Radzen app maps one to one: buttons, data grids and dialogs have IzzyBlazor counterparts, and much of what
+        you built by hand around them (fields, tabs, menus, a side panel, a diff) is a component here. This page shows the
+        Radzen code beside the IzzyBlazor code, what's renamed, and what behaves differently.
+    </Lead>
+    <ChildContent>
+        <Heading Level="2">At a glance</Heading>
+        <Table Items="Glance" Caption="Radzen and IzzyBlazor" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="Radzen, or built by hand" Context="row">@Rich(row.Radzen)</TemplateColumn>
+            <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+        </Table>
+        <TextBlock>
+            The two libraries can run side by side while you move page by page, as in
+            <Anchor Href="docs/get-started/existing-app">Add to an existing app</Anchor>. Some types have the same name in
+            both: <Code>DialogService</Code>, <Code>DialogOptions</Code>, <Code>ConfirmOptions</Code>, <Code>Dialog</Code>,
+            <Code>Tooltip</Code>, <Code>TextAlign</Code>, <Code>Orientation</Code>, <Code>IconStyle</Code>,
+            <Code>SidebarPosition</Code> and <Code>ColorScheme</Code>. A file with <Code>@@using</Code> for both gets
+            ambiguous references, so move a file to IzzyBlazor whole, or qualify the name
+            (<Code>IzzyBlazor.DialogService</Code>). Components of your own can clash too, such as a <Code>Menu</Code>:
+            rename yours, or replace it with IzzyBlazor's.
+        </TextBlock>
+
+        <Heading Level="2">Setup</Heading>
+        <TextBlock>
+            Replace Radzen's services, stylesheet, script and <Code>&lt;RadzenComponents /&gt;</Code>. IzzyBlazor's theme is
+            <Code>&lt;IzzyTheme /&gt;</Code> in the head, and there's no script tag: Blazor loads IzzyBlazor's script
+            itself. <Code>DialogHost</Code> is where <Code>DialogService</Code> shows its dialogs, and it must be
+            interactive. When <Code>Routes</Code> is interactive, put it in the layout as it is; otherwise give it a render
+            mode: <Code>&lt;DialogHost @@rendermode="InteractiveServer" /&gt;</Code>.
+        </TextBlock>
+        @SideBySide(SetupRadzen, SetupIzzy)
+        <TextBlock>
+            Replace <Code>@@using Radzen</Code> and <Code>@@using Radzen.Blazor</Code> in <Code>_Imports.razor</Code> with
+            <Code>@@using IzzyBlazor</Code>, and remove the stylesheets you wrote to adjust Radzen's <Code>rz-</Code> classes.
+            The rest of setup, such as your brand color in <Code>IzzyTheme</Code>, is in
+            <Anchor Href="docs/get-started/blazor-web-app">Blazor Web App</Anchor> and
+            <Anchor Href="docs/theming/themes">Themes and presets</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Buttons</Heading>
+        <TextBlock>
+            <Code>RadzenButton</Code> becomes <Code>Button</Code>, with its text as content. A button with only an icon is an
+            <Code>IconButton</Code>, which needs a <Code>Label</Code> for screen readers; icons are Lucide's
+            (<Code>Lucide.X</Code>), not Material names. Radzen's <Code>rz-button</Code> classes on a link become a
+            <Code>Button</Code> with <Code>Href</Code>, and on a submit button a <Code>Button</Code> with
+            <Code>Submit</Code>.
+        </TextBlock>
+        @SideBySide(ButtonsRadzen, ButtonsIzzy)
+        <Table Items="ButtonRenames" Caption="RadzenButton members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="RadzenButton" Context="row">@Rich(row.Radzen)</TemplateColumn>
+            <TemplateColumn Title="Button" Context="row">@Rich(row.Izzy)</TemplateColumn>
+        </Table>
+        <TextBlock>
+            <Code>id</Code>, <Code>aria-label</Code> and other attributes go on the <Code>button</Code> element, as before, so
+            selectors like <Code>#key-create</Code> keep working. <Code>Loading</Code> keeps the button focusable and shows a
+            spinner, where <Code>Disabled</Code> alone gives no sign that something is happening. See
+            <Anchor Href="docs/components/button">Button</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Data grids</Heading>
+        <TextBlock>
+            <Code>RadzenDataGrid</Code> becomes <Code>Table</Code>. A column bound to a property is a
+            <Code>PropertyColumn</Code>, taking an expression instead of the property's name; a column with a template is a
+            <Code>TemplateColumn</Code>, whose content is the template. There's no <Code>Columns</Code> wrapper, and
+            <Code>TItem</Code> comes from <Code>Items</Code>.
+        </TextBlock>
+        @SideBySide(GridRadzen, GridIzzy)
+        <Table Items="GridRenames" Caption="RadzenDataGrid members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="RadzenDataGrid" Context="row">@Rich(row.Radzen)</TemplateColumn>
+            <TemplateColumn Title="Table" Context="row">@Rich(row.Izzy)</TemplateColumn>
+        </Table>
+        <TextBlock>What behaves differently:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Sorting, paging and filters go in the address.</strong> A sortable header is a link that sets
+                <Code>?sort=email</Code>, page numbers set <Code>?page=2</Code>, and a filter sets <Code>?f-email=</Code>.
+                The view survives a reload and can be shared, and the back button undoes a sort. Two tables on one page share
+                these keys unless one has a <Code>QueryPrefix</Code>. To keep the state in the component instead, as Radzen
+                does, bind it: <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code>, <Code>@@bind-Filters</Code>.
+            </ListItem>
+            <ListItem>
+                <strong>Filters are in the header, not in a row under it.</strong> A filterable column has a filter button that
+                opens its field, and the filters in use show as removable tags above the table. Text matches anywhere and always
+                ignores case. There's no filter row and no choice of operator.
+            </ListItem>
+            <ListItem>
+                <strong>Columns opt in.</strong> Radzen sorts and filters every column unless told not to; a
+                <Code>Table</Code> column sorts or filters only with <Code>Sortable</Code> or <Code>Filterable</Code>.
+            </ListItem>
+            <ListItem>
+                <strong>A template column sorts by what you say.</strong> Radzen sorts a template column by its
+                <Code>Property</Code>; a <Code>TemplateColumn</Code> needs <Code>SortBy</Code> and a <Code>SortKey</Code> for
+                the address, and <Code>FilterBy</Code> to filter.
+            </ListItem>
+            <ListItem>
+                <strong><Code>Caption</Code> names the table</strong> for screen readers; it isn't shown. An <Code>id</Code> goes
+                on the table's outer element, so <Code>#members tr</Code> still finds the rows.
+            </ListItem>
+        </List>
+        <TextBlock>
+            See <Anchor Href="docs/components/table">Table</Anchor> for an <Code>ItemsProvider</Code> that loads each page
+            from a server; its request carries the sort, the page and the filters by column.
+        </TextBlock>
+
+        <Heading Level="2">Paging by cursor</Heading>
+        <TextBlock>
+            A list that pages by an opaque "next" token, with no total, can be a <Code>Table</Code> too. Set
+            <Code>Paging</Code> and return the next cursor from the <Code>ItemsProvider</Code>; the table passes it back as
+            the request's <Code>Cursor</Code>. <Code>TablePaging.LoadMore</Code> puts a button under the rows that adds the
+            next page to them, as a hand-built "Load earlier" button does.
+        </TextBlock>
+        @SideBySide(CursorBefore, CursorIzzy, "Built by hand")
+        <TextBlock>
+            The table has no error state: an exception in the provider goes to the page, as one in an event handler does.
+            Catch a failed request in the provider and show it yourself, as the hand-built list did, and return no rows.
+            <Code>ReloadAsync()</Code> loads the list again from where it began, for a new search. With an
+            <Code>ItemKey</Code>, a row that's already shown isn't added twice. <Code>TablePaging.NextPrevious</Code> shows
+            First, Previous and Next instead, and <Code>LoadOnScroll</Code> loads as the last row comes into view; see
+            <Anchor Href="docs/components/table#paging-without-a-total">Paging without a total</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Dialogs</Heading>
+        <TextBlock>
+            <Code>DialogService</Code> keeps its name and its <Code>OpenAsync&lt;T&gt;(title, parameters, options)</Code>.
+            It returns a <Code>DialogResult</Code> instead of <Code>dynamic</Code>: <Code>Data</Code> is what the dialog
+            closed with, and <Code>Canceled</Code> is true when it was dismissed. The width is a <Code>Length</Code>, or one
+            of the named sizes: <Code>Sm</Code> is 384px, <Code>Md</Code> (the default) 512px, <Code>Lg</Code> 768px and
+            <Code>Xl</Code> 1024px. On a phone the dialog still fits the screen.
+        </TextBlock>
+        @SideBySide(OpenRadzen, OpenIzzy, language: "csharp")
+        <TextBlock>
+            Inside the dialog, close it through the <Code>DialogInstance</Code> it cascades, not the service.
+            <Code>Close(data)</Code> ends <Code>OpenAsync</Code> with that data, and <Code>Cancel()</Code> ends it as
+            canceled. A Cancel button that reports something, such as how many people were added before one was refused,
+            calls <Code>Close</Code> with that instead.
+        </TextBlock>
+        @SideBySide(InsideRadzen, InsideIzzy)
+        <TextBlock>
+            <Code>DialogService.Close(data)</Code> is still there and closes the most recent dialog, as Radzen's does, but
+            <Code>DialogInstance</Code> closes only its own. Closing a dialog that has already ended does nothing, so a
+            request that comes back after its dialog was closed can't close the next one.
+        </TextBlock>
+        <TextBlock>
+            <Code>Confirm</Code> becomes <Code>ConfirmAsync</Code>, with the same message, title and options, and returns a
+            <Code>bool</Code> rather than a <Code>bool?</Code>. Give a removal <Code>Accent.Danger</Code> to make the confirm
+            button red:
+        </TextBlock>
+        @SideBySide(ConfirmRadzen, ConfirmIzzy, language: "csharp")
+        <Table Items="DialogRenames" Caption="DialogService members" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
+            <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+        </Table>
+        <TextBlock>What behaves differently:</TextBlock>
+        <List Gap="2">
+            <ListItem>
+                <strong>Focus moves in as the dialog opens.</strong> The dialog is the browser's own (<Code>showModal</Code>),
+                so focus goes to the field with <Code>autofocus</Code>, else the first thing that takes focus, with no timer.
+                Radzen moves it half a second later, so a test helper that waits for that, or for a timer left by the last
+                dialog, can go.
+            </ListItem>
+            <ListItem>
+                <strong>Every dismissal is a cancel.</strong> Escape, a click on the backdrop and the close button end
+                <Code>OpenAsync</Code> with <Code>Canceled</Code> true and no data.
+            </ListItem>
+            <ListItem>
+                <strong>A confirm starts on Cancel.</strong> Cancel has the focus and Escape cancels. A confirm has no close
+                button and ignores clicks on the backdrop, so it's answered with one of its buttons or Escape.
+            </ListItem>
+        </List>
+        <TextBlock>
+            See <Anchor Href="docs/components/dialog">Dialog</Anchor>, which also covers dialogs written in the page.
+        </TextBlock>
+
+        <Heading Level="2">Tests</Heading>
+        <TextBlock>
+            In bUnit, register IzzyBlazor's services instead of Radzen's. <Code>DialogService</Code> is sealed, so instead of
+            a subclass that records what it was closed with, render a <Code>DialogHost</Code>, open the dialog through the
+            service and await what it returns. The host shows dialogs only when it renders interactively, so set the
+            renderer to interactive with <Code>SetRendererInfo</Code>. A <Code>TextField</Code> takes its value on change,
+            so the test calls <Code>Change</Code> where it called <Code>Input</Code>.
+        </TextBlock>
+        @SideBySide(BunitRadzen, BunitIzzy, language: "csharp")
+        <TextBlock>
+            Open the dialog in a block lambda, as here: an expression lambda returns the task, and bUnit's
+            <Code>InvokeAsync</Code> then waits for the dialog to close before going on. A test that presses a button
+            through the component finds <Code>Button</Code> and calls its <Code>OnClick</Code>, where it found
+            <Code>RadzenButton</Code> and its <Code>Click</Code>; the attributes are in <Code>AdditionalAttributes</Code>.
+            Only <Code>ToastService</Code> calls JavaScript, so other components need no JS interop set up.
+        </TextBlock>
+        <TextBlock>Browser tests that find Radzen's classes change to these:</TextBlock>
+        <Table Items="Selectors" Caption="Test selectors" Size="ControlSize.Sm" Class="site-params" Bordered="false">
+            <TemplateColumn Title="Radzen" Context="row">@Rich(row.Radzen)</TemplateColumn>
+            <TemplateColumn Title="IzzyBlazor" Context="row">@Rich(row.Izzy)</TemplateColumn>
+        </Table>
+        <TextBlock>
+            A dialog is named by its title, so finding it by role (<Code>GetByRole(AriaRole.Dialog, new() { Name = "Remove from
+            tenant?" })</Code>) holds up better than a class. A confirm without a title is named by its message. A test that
+            checks the page's stylesheets looks for <Code>_content/IzzyBlazor.Core/izzyblazor.css</Code>, with
+            <Code>@@Assets</Code>'s fingerprint, and no script tag.
+        </TextBlock>
+
+        <Heading Level="2">Fields</Heading>
+        <TextBlock>
+            Hand-built fields (a <Code>label</Code>, an <Code>input</Code> or <Code>textarea</Code> with Radzen's classes, a
+            hint) become <Code>TextField</Code>, <Code>TextArea</Code>, <Code>Select</Code> or <Code>DateField</Code>, which
+            draw the label, hint and errors and link them for screen readers. An <Code>id</Code> goes on the input.
+        </TextBlock>
+        <TextBlock>
+            A <Code>DateField</Code> reads and shows the time in UTC unless you set <Code>TimeZone</Code>. Bind a
+            <Code>DateTimeOffset</Code> for a date and time, or a <Code>DateOnly</Code> for a date alone. A
+            <Code>DateTime</Code> works too: one that isn't <Code>Local</Code> is read as UTC, and on an interactive page it
+            comes back with <Code>DateTimeKind.Utc</Code>.
+        </TextBlock>
+        @SideBySide(FieldsBefore, FieldsIzzy, "Built by hand")
+        <List Gap="2">
+            <ListItem>
+                <strong>The value changes when the field does</strong>, on leaving it or pressing Enter, as with Blazor's
+                <Code>InputText</Code>. A field bound with <Code>@@bind:event="oninput"</Code>, so that a Save button turns on
+                as you type, needs an <Code>@@oninput</Code> handler on the field as well, which goes to the input.
+            </ListItem>
+            <ListItem>
+                <strong>Errors come from the form.</strong> A field shows its <Code>EditContext</Code>'s messages for its
+                property. In a <Code>Form</Code>, add an API's refusal to a <Code>ValidationMessageStore</Code> and the field
+                shows it; outside one, keep showing the message yourself.
+            </ListItem>
+        </List>
+        <TextBlock>
+            See <Anchor Href="docs/components/text-field">TextField</Anchor>,
+            <Anchor Href="docs/components/date-field">DateField</Anchor> and
+            <Anchor Href="docs/common/forms">Forms and validation</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">A diff</Heading>
+        <TextBlock>
+            A hand-drawn line diff (old and new line numbers, added and removed marks, folded runs of unchanged lines) is a
+            <Code>Diff</Code>. Give it the two texts and it compares them, colors them as <Code>Code</Code> does and marks the
+            changed words. The notes for identical texts and for texts too far apart to compare are built in, with
+            <Code>SameText</Code> and <Code>TooManyText</Code> to change them; <Code>MaxChanges</Code> is 1,000 lines unless
+            set.
+        </TextBlock>
+        @SideBySide(DiffBefore, DiffIzzy, "Built by hand")
+        <TextBlock>
+            For a diff computed elsewhere, pass <Code>Lines</Code> instead; <Code>TextDiff.Compare</Code> is the comparison
+            on its own. <Code>Layout="DiffLayout.Split"</Code> puts the old text beside the new. See
+            <Anchor Href="docs/components/diff">Diff</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">A side panel</Heading>
+        <TextBlock>
+            For a list with a panel beside it about the chosen row, put an <Code>AppAside</Code> in the page. It takes the
+            shell's aside column for that page alone, scrolls on its own, and below its breakpoint goes under the main area
+            with <Code>SmallScreen="AsideSmallScreen.Below"</Code>. The rows link to the chosen one with
+            <Code>RowHref</Code>, and <Code>RowCurrent</Code> marks it. The panel's tabs are a <Code>Tabs</Code> of
+            <Code>TabLink</Code>s (more on those below).
+        </TextBlock>
+        @SideBySide(PanelBefore, PanelIzzy, "Built by hand")
+        <TextBlock>
+            This needs the layout to be an <Anchor Href="docs/components/app-shell">AppShell</Anchor>, with your bar as its
+            <Code>AppHeader</Code> and <Code>@@Body</Code> in its <Code>AppMain</Code>. The page's aside moves into the shell
+            when the page and the layout render in the same mode, as they do when <Code>Routes</Code> is interactive. Use
+            <Code>AsideSmallScreen.Drawer</Code> instead for a panel people open from an <Code>AsideToggle</Code> on small
+            screens.
+        </TextBlock>
+        <TextBlock>
+            A tab link is current when the address matches it, query included. When the page shows a default the address
+            doesn't name, such as the first row before one is chosen, say which tab is current with <Code>Current</Code>, as
+            the panel above does.
+        </TextBlock>
+
+        <Heading Level="2">Tabs and menus</Heading>
+        <TextBlock>
+            A <Code>nav</Code> of links marked with <Code>aria-current</Code> is a <Code>Tabs</Code> of <Code>TabLink</Code>s.
+            The server marks the tab for the current address, and a page below a tab's address keeps that tab marked. When
+            the tabs are one page told apart by the query (<Code>?tab=record</Code>), only the tab whose query matches is
+            marked. Tabs whose panels are on the same page are <Code>Tab</Code>s with content.
+        </TextBlock>
+        @SideBySide(TabsBefore, TabsIzzy, "Built by hand")
+        <TextBlock>
+            A menu component of your own, which closes on Escape, on a click outside and on navigation, and moves focus into
+            its panel, becomes IzzyBlazor's <Code>Menu</Code>. Opening, Escape and a click outside are the browser's (the
+            Popover API). Opening focuses the first item, arrow keys move between items, typing jumps to one, and Escape puts
+            focus back on the button. A <Code>MenuRadioGroup</Code> has a heading and marks the chosen item from its
+            <Code>Value</Code>; its items can still be links.
+        </TextBlock>
+        @SideBySide(MenuBefore, MenuIzzy, "Your own component")
+        <TextBlock>
+            <Code>Label</Code> is the button's text, and its name for screen readers. A name that doesn't contain the visible
+            text, such as an <Code>aria-label</Code> of "Switch tenant or environment" on a button that reads "Alder ·
+            Production", fails WCAG's label-in-name rule, so the visible text names it. See
+            <Anchor Href="docs/components/tabs">Tabs</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>.
+        </TextBlock>
+
+        <Heading Level="2">Next steps</Heading>
+        <List Gap="2">
+            <ListItem><Anchor Href="docs/components">Components</Anchor>: Stepper, Switch, SegmentedControl and the rest of what you may have built by hand.</ListItem>
+            <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: what changes if some pages become static.</ListItem>
+            <ListItem><Anchor Href="docs/theming/tokens">Tokens and customizing</Anchor>: CSS variables for your own styles beside the components.</ListItem>
+        </List>
+    </ChildContent>
+</ArticlePage>
+
+@code {
+    // Radzen's code (or the hand-built markup) on the left, IzzyBlazor's on the right; one under
+    // the other until the content is wide enough for both.
+    private static RenderFragment SideBySide(string before, string after, string beforeTitle = "Radzen", string language = "razor") =>
+        @<Grid MinChildWidth="Length.Rem(26)" Gap="3">
+            <Code Block Language="@language" Title="@beforeTitle">@before</Code>
+            <Code Block Language="@language" Title="IzzyBlazor">@after</Code>
+        </Grid>;
+
+    private sealed record Mapping(string Radzen, string Izzy);
+
+    private static Mapping Map(string radzen, string izzy) => new(radzen, izzy);
+
+    // A table cell: text, with the parts between backticks as code.
+    private static RenderFragment Rich(string text) => builder =>
+    {
+        var parts = text.Split('`');
+        for (var i = 0; i < parts.Length; i++)
+        {
+            if (i % 2 == 1)
+            {
+                builder.OpenElement(0, "code");
+                builder.AddContent(1, parts[i]);
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.AddContent(2, parts[i]);
+            }
+        }
+    };
+
+    private static readonly Mapping[] Glance =
+    [
+        Map("`RadzenButton`", "`Button`, `IconButton`"),
+        Map("`RadzenDataGrid`", "`Table`, with `PropertyColumn` and `TemplateColumn`"),
+        Map("`DialogService`", "`DialogService`, with `DialogHost` in the layout"),
+        Map("`<RadzenComponents />`", "`<DialogHost />`, and `<ToastRegion />` for toasts"),
+        Map("`<input>`, `<textarea>`, `<select>`", "`TextField`, `TextArea`, `Select`, `Combobox`, `NumberField`"),
+        Map("`<input type=\"date\">`, `\"datetime-local\"`", "`DateField`"),
+        Map("A list paged by cursor", "`Table` with `Paging`"),
+        Map("A line diff", "`Diff`"),
+        Map("`<main>` and `<aside>`", "`AppShell`, with an `AppAside` in the page"),
+        Map("A `nav` of links as tabs", "`Tabs` with `TabLink`"),
+        Map("A dropdown menu", "`Menu`"),
+    ];
+
+    private static readonly Mapping[] ButtonRenames =
+    [
+        Map("`Text=\"Save\"`", "Content: `<Button>Save</Button>`"),
+        Map("`Click`", "`OnClick`"),
+        Map("`ButtonStyle.Primary`", "`Accent.Primary` (the default)"),
+        Map("`ButtonStyle.Base`", "`Accent.Neutral`"),
+        Map("`ButtonStyle.Danger`", "`Accent.Danger`"),
+        Map("`Variant.Filled`", "`ButtonVariant.Solid` (the default)"),
+        Map("`Variant.Outlined`", "`ButtonVariant.Outline`"),
+        Map("`Variant.Text`", "`ButtonVariant.Ghost`"),
+        Map("`ButtonSize.Small`", "`ControlSize.Sm`"),
+        Map("`Icon=\"close\"` with no text", "`IconButton` with `Icon=\"Lucide.X\"` and a `Label`"),
+        Map("`IsBusy`", "`Loading`"),
+        Map("`class=\"rz-button …\"` on an `<a>`", "`Button` with `Href`"),
+        Map("`class=\"rz-button …\"` on a submit `<button>`", "`Button` with `Submit`"),
+    ];
+
+    private static readonly Mapping[] GridRenames =
+    [
+        Map("`Data`", "`Items`"),
+        Map("`TItem`", "Inferred from `Items`"),
+        Map("`<Columns>`", "None: columns go straight inside"),
+        Map("`RadzenDataGridColumn Property=\"Email\"`", "`PropertyColumn Property=\"m => m.Email\"`"),
+        Map("A column with a `<Template>`", "`TemplateColumn`, with the template as its content"),
+        Map("`AllowSorting` on the grid", "`Sortable` on each column"),
+        Map("`AllowFiltering`, `FilterMode.Simple`", "`Filterable` on each column"),
+        Map("`FilterCaseSensitivity.CaseInsensitive`", "None: text filters always ignore case"),
+        Map("`Sortable=\"false\"`, `Filterable=\"false\"`", "Leave `Sortable` or `Filterable` off"),
+        Map("`AllowPaging`, `PageSize=\"50\"`", "`PageSize=\"50\"`"),
+        Map("`Width=\"200px\"`", "`Width=\"Length.Px(200)\"`"),
+        Map("`TextAlign=\"TextAlign.End\"`", "`Align=\"CellAlign.End\"`"),
+    ];
+
+    private static readonly Mapping[] DialogRenames =
+    [
+        Map("`OpenAsync<T>(…)` returns `dynamic`", "`OpenAsync<T>(…)` returns a `DialogResult`: `Data` and `Canceled`"),
+        Map("`DialogOptions.Width = \"560px\"`", "`Width = Length.Px(560)`, or `Size = DialogSize.Md`"),
+        Map("`Confirm(message, title, options)`", "`ConfirmAsync(message, title, options)`"),
+        Map("`Confirm` returns `bool?`", "Returns `bool`"),
+        Map("`ConfirmOptions.OkButtonText`", "`ConfirmText`"),
+        Map("`ConfirmOptions.CancelButtonText`", "`CancelText`"),
+        Map("`Dialogs.Close(result)` in the dialog", "`Dialog.Close(result)`, on the cascaded `DialogInstance`"),
+        Map("`Dialogs.Close(null)` in the dialog", "`Dialog.Cancel()`"),
+    ];
+
+    private static readonly Mapping[] Selectors =
+    [
+        Map("`.rz-dialog-confirm`", "The dialog by role and name, or `dialog:has(.ib-confirm-message)`"),
+        Map("`.rz-dialog-title`", "`.ib-dialog-title` (an `h2`)"),
+        Map("`.rz-dialog-confirm-message`", "`.ib-confirm-message`"),
+        Map("`.rz-dialog`", "`dialog`, or `.ib-dialog`"),
+    ];
+
+    private const string SetupRadzen = """
+        // Program.cs
+        builder.Services.AddRadzenComponents();
+
+        <!-- App.razor -->
+        <link rel="stylesheet" href=
+          "_content/Radzen.Blazor/css/standard-base.css"
+        />
+        ...
+        <script src="_framework/blazor.web.js"></script>
+        <script src=
+          "_content/Radzen.Blazor/Radzen.Blazor.js">
+        </script>
+
+        <!-- MainLayout.razor -->
+        <RadzenComponents />
+        """;
+
+    private const string SetupIzzy = """
+        // Program.cs
+        builder.Services.AddIzzyBlazor();
+        ...
+        app.MapIzzyBlazor();
+
+        <!-- App.razor -->
+        <link rel="stylesheet" href=
+          "@Assets["_content/IzzyBlazor.Core/izzyblazor.css"]"
+        />
+        <IzzyTheme />
+        ...
+        <script src="_framework/blazor.web.js"></script>
+
+        <!-- MainLayout.razor -->
+        <DialogHost />
+        """;
+
+    private const string ButtonsRadzen = """
+        <RadzenButton id="key-create" Text="Create key"
+          Click="CreateAsync" Disabled="_saving" />
+
+        <RadzenButton Text="Cancel"
+          ButtonStyle="ButtonStyle.Base"
+          Variant="Variant.Outlined"
+          Click="Cancel" />
+
+        <RadzenButton Text="Remove"
+          Size="ButtonSize.Small"
+          ButtonStyle="ButtonStyle.Danger"
+          Variant="Variant.Text"
+          Click="@(() => RemoveAsync(member))" />
+
+        <RadzenButton Icon="close"
+          Size="ButtonSize.Small"
+          ButtonStyle="ButtonStyle.Base"
+          Variant="Variant.Text"
+          aria-label="Remove event"
+          Click="@(() => Remove(at))" />
+
+        <a class="rz-button rz-primary rz-button-md"
+           href="connections/new">Add connection</a>
+        """;
+
+    private const string ButtonsIzzy = """
+        <Button id="key-create" OnClick="CreateAsync"
+          Loading="_saving">Create key</Button>
+
+        <Button Accent="Accent.Neutral"
+          Variant="ButtonVariant.Outline"
+          OnClick="Cancel">Cancel</Button>
+
+        <Button Size="ControlSize.Sm"
+          Accent="Accent.Danger"
+          Variant="ButtonVariant.Ghost"
+          OnClick="() => RemoveAsync(member)">
+          Remove
+        </Button>
+
+        <IconButton Icon="Lucide.X"
+          Size="ControlSize.Sm"
+          Accent="Accent.Neutral"
+          Variant="ButtonVariant.Ghost"
+          Label="Remove event"
+          OnClick="() => Remove(at)" />
+
+        <Button Href="connections/new">
+          Add connection
+        </Button>
+        """;
+
+    private const string GridRadzen = """
+        <RadzenDataGrid TItem="Member" Data="@members"
+          AllowPaging="true" PageSize="50"
+          AllowSorting="true"
+          AllowFiltering="true"
+          FilterMode="FilterMode.Simple"
+          FilterCaseSensitivity=
+            "FilterCaseSensitivity.CaseInsensitive"
+          id="members">
+          <Columns>
+            <RadzenDataGridColumn TItem="Member"
+              Property="Email" Title="Email" />
+            <RadzenDataGridColumn TItem="Member"
+              Property="AddedBy" Title="Added by" />
+            <RadzenDataGridColumn TItem="Member"
+              Property="AddedAt" Title="Added"
+              Filterable="false" Width="200px">
+              <Template Context="member">
+                @ConsoleText.Instant(member.AddedAt)
+              </Template>
+            </RadzenDataGridColumn>
+            <RadzenDataGridColumn TItem="Member"
+              Title="" Sortable="false"
+              Filterable="false" Width="130px"
+              TextAlign="TextAlign.End">
+              <Template Context="member">
+                <RadzenButton Text="Remove" ... />
+              </Template>
+            </RadzenDataGridColumn>
+          </Columns>
+        </RadzenDataGrid>
+        """;
+
+    private const string GridIzzy = """
+        <Table Items="members" PageSize="50"
+          Caption="Members" id="members">
+          <PropertyColumn Property="m => m.Email"
+            Sortable Filterable />
+          <PropertyColumn Property="m => m.AddedBy"
+            Title="Added by" Sortable Filterable />
+          <TemplateColumn Title="Added"
+            Context="member"
+            SortBy="m => m.AddedAt" SortKey="added"
+            Sortable Width="Length.Px(200)">
+            @ConsoleText.Instant(member.AddedAt)
+          </TemplateColumn>
+          <TemplateColumn Context="member"
+            Width="Length.Px(130)"
+            Align="CellAlign.End">
+            <Button ...>Remove</Button>
+          </TemplateColumn>
+        </Table>
+        """;
+
+    private const string CursorBefore = """
+        <table class="rb-table" id="decisions">
+          @foreach (var decision in _decisions)
+          {
+            ...
+          }
+        </table>
+        @if (_next is not null)
+        {
+          <RadzenButton id="load-earlier"
+            Text="Load earlier"
+            Click="LoadEarlierAsync"
+            Disabled="_loading" ... />
+        }
+        @if (_failure is not null)
+        {
+          <p role="alert">@_failure</p>
+        }
+
+        @code {
+          private readonly List<DecisionSummary>
+            _decisions = [];
+          private string? _next;
+
+          private async Task LoadEarlierAsync()
+          {
+            _loading = true;
+            var page = await Api.SearchAsync(
+              _query, _next);
+            if (page.Failed)
+            {
+              _failure = "The log couldn't load.";
+            }
+            else
+            {
+              _decisions.AddRange(page.Items);
+              _next = page.Next;
+            }
+            _loading = false;
+          }
+        }
+        """;
+
+    private const string CursorIzzy = """
+        <Table @ref="_log" ItemsProvider="LoadAsync"
+          PageSize="50"
+          Paging="TablePaging.LoadMore"
+          LoadMoreText="Load earlier"
+          ItemKey="d => d.Id" Caption="Decisions"
+          id="decisions">
+          <TemplateColumn Title="When"
+            Context="decision">
+            @ConsoleText.Instant(decision.At)
+          </TemplateColumn>
+          ...
+        </Table>
+        @if (_failure is not null)
+        {
+          <Alert Status="Status.Warning">@_failure</Alert>
+        }
+
+        @code {
+          private Table<DecisionSummary>? _log;
+
+          private async
+            ValueTask<TableResult<DecisionSummary>>
+            LoadAsync(TableRequest<DecisionSummary> r)
+          {
+            _failure = null;
+            var page = await Api.SearchAsync(
+              _query, r.Cursor);
+            if (page.Failed)
+            {
+              _failure = "The log couldn't load.";
+              return new([]);
+            }
+            return new(page.Items)
+            {
+              Next = page.Next,
+            };
+          }
+
+          // A new search starts over.
+          private Task SearchAsync() =>
+            _log!.ReloadAsync();
+        }
+        """;
+
+    private const string OpenRadzen = """
+        var parameters = new Dictionary<string, object?>
+        {
+            [nameof(KeyDialog.View)] = View,
+        };
+        if (await Dialogs.OpenAsync<KeyDialog>(
+                "Create a key", parameters,
+                new DialogOptions { Width = "560px" })
+            is ApiKey created)
+        {
+            Show(created);
+        }
+        """;
+
+    private const string OpenIzzy = """
+        var parameters = new Dictionary<string, object?>
+        {
+            [nameof(KeyDialog.View)] = View,
+        };
+        var result = await Dialogs.OpenAsync<KeyDialog>(
+            "Create a key", parameters,
+            new DialogOptions { Width = Length.Px(560) });
+        if (result.Data is ApiKey created)
+        {
+            Show(created);
+        }
+        """;
+
+    private const string InsideRadzen = """
+        @inject DialogService Dialogs
+
+        <RadzenButton Text="Cancel" ...
+          Click="@(() => Dialogs.Close(null))" />
+        <RadzenButton Text="Create key"
+          Click="CreateAsync" />
+
+        @code {
+          private async Task CreateAsync()
+          {
+            var created =
+              await Api.CreateKeyAsync(...);
+            Dialogs.Close(created.Value);
+          }
+        }
+        """;
+
+    private const string InsideIzzy = """
+        <Button ... OnClick="() => Dialog.Cancel()">
+          Cancel
+        </Button>
+        <Button OnClick="CreateAsync">
+          Create key
+        </Button>
+
+        @code {
+          [CascadingParameter]
+          public DialogInstance Dialog { get; set; }
+            = null!;
+
+          private async Task CreateAsync()
+          {
+            var created =
+              await Api.CreateKeyAsync(...);
+            Dialog.Close(created.Value);
+          }
+        }
+        """;
+
+    private const string ConfirmRadzen = """
+        var confirmed = await Dialogs.Confirm(
+            $"{member.Email} will no longer have access.",
+            "Remove from tenant?",
+            new ConfirmOptions
+            {
+                OkButtonText = "Remove",
+                CancelButtonText = "Cancel",
+            });
+        if (confirmed != true)
+        {
+            return;
+        }
+        """;
+
+    private const string ConfirmIzzy = """
+        var confirmed = await Dialogs.ConfirmAsync(
+            $"{member.Email} will no longer have access.",
+            "Remove from tenant?",
+            new ConfirmOptions
+            {
+                ConfirmText = "Remove",
+                Accent = Accent.Danger,
+            });
+        if (!confirmed)
+        {
+            return;
+        }
+        """;
+
+    private const string BunitRadzen = """
+        Services.AddRadzenComponents();
+        Services.AddScoped<DialogService,
+            RecordingDialogs>();
+
+        var dialog = Render<KeyDialog>(
+            p => p.Add(d => d.View, view));
+        dialog.Find("#key-name").Input("Primary");
+        await dialog.Find("#key-create")
+            .ClickAsync(new());
+
+        Assert.IsType<ApiKey>(
+            Assert.Single(Dialogs.Closed));
+
+        // Records what the dialog closed with.
+        class RecordingDialogs(
+            NavigationManager navigation, IJSRuntime js)
+            : DialogService(navigation, js)
+        {
+            public List<object?> Closed { get; } = [];
+            public override void Close(
+                dynamic? result = null) =>
+                Closed.Add(result);
+        }
+        """;
+
+    private const string BunitIzzy = """
+        Services.AddIzzyBlazorCore();
+        SetRendererInfo(new RendererInfo("Server",
+            isInteractive: true));
+        var dialogs =
+            Services.GetRequiredService<DialogService>();
+
+        var host = Render<DialogHost>();
+        Task<DialogResult> closed = null!;
+        await host.InvokeAsync(() =>
+        {
+            closed = dialogs.OpenAsync<KeyDialog>(
+                "Create a key",
+                new() { ["View"] = view });
+        });
+        host.WaitForAssertion(() =>
+            host.Find("#key-name"));
+        host.Find("#key-name").Change("Primary");
+        await host.Find("#key-create")
+            .ClickAsync(new());
+
+        var result = await closed;
+        Assert.IsType<ApiKey>(result.Data);
+        """;
+
+    private const string FieldsBefore = """
+        <div class="rb-field">
+          <label for="key-name">Name</label>
+          <input id="key-name" class="rz-textbox"
+            maxlength="200" autocomplete="off"
+            @bind="_name" />
+          <span class="rb-field-hint">
+            Say who uses it.
+          </span>
+        </div>
+
+        <div class="rb-field">
+          <label for="log-from">From (UTC)</label>
+          <input id="log-from" type="datetime-local"
+            class="rz-textbox" @bind="_from" />
+        </div>
+
+        @code {
+          private DateTime? _from;
+
+          // The input's value has no kind: it's UTC.
+          private DateTimeOffset From() =>
+            new(DateTime.SpecifyKind(
+              _from!.Value, DateTimeKind.Utc));
+        }
+        """;
+
+    private const string FieldsIzzy = """
+        <TextField id="key-name" Label="Name"
+          @bind-Value="_name"
+          MaxLength="200" AutoComplete="off"
+          Hint="Say who uses it." />
+
+        <DateField id="log-from" Label="From (UTC)"
+          @bind-Value="_from" />
+
+        @code {
+          // Read in UTC unless TimeZone says otherwise.
+          private DateTimeOffset? _from;
+
+          private DateTimeOffset From() => _from!.Value;
+        }
+        """;
+
+    private const string DiffBefore = """
+        @if (LineDiff.Compare(older, newer)
+            is not { } lines)
+        {
+          <p>The texts differ by too many lines.</p>
+        }
+        else if (lines.All(l => l.Kind == DiffKind.Same))
+        {
+          <p>The two texts are the same.</p>
+        }
+        else
+        {
+          <div class="rb-diff">
+            @foreach (var hunk in LineDiff.Hunks(lines))
+            {
+              <div class="rb-diff-gap">⋯</div>
+              @foreach (var line in hunk)
+              {
+                <div class="@LineClass(line.Kind)">
+                  <span>@line.Old</span>
+                  <span>@line.New</span>
+                  <span>@Mark(line.Kind)</span>
+                  <code>@line.Text</code>
+                </div>
+              }
+            }
+          </div>
+        }
+        """;
+
+    private const string DiffIzzy = """
+        <Diff OldText="@older" NewText="@newer"
+          Language="xml"
+          Title="@($"Version {from} to {to}")" />
+        """;
+
+    private const string PanelBefore = """
+        <div class="rb-columns">
+          <main>
+            <table>
+              @foreach (var c in candidates)
+              {
+                <tr class="@(c.Id == Shown
+                    ? "rb-row-selected" : null)">
+                  <td>
+                    <a href="@Address(c.Id)">@c.Id</a>
+                  </td>
+                </tr>
+              }
+            </table>
+          </main>
+          <aside class="rb-panel" id="panel"
+            aria-label="Candidate">
+            <nav class="rb-side-tabs"
+              aria-label="Panel">
+              <a id="tab-candidate"
+                href="@Address(Shown, null)"
+                aria-current="@(PanelTab == null
+                  ? "page" : null)">Candidate</a>
+              <a id="tab-record"
+                href="@Address(Shown, "record")"
+                aria-current="@(PanelTab == "record"
+                  ? "page" : null)">Record</a>
+            </nav>
+            ...
+          </aside>
+        </div>
+        """;
+
+    private const string PanelIzzy = """
+        @* In the page; the layout's AppMain holds it. *@
+        <Table Items="candidates"
+          Caption="Candidates"
+          RowHref="c => Address(c.Id)"
+          RowLabel="c => c.Id"
+          RowCurrent="c => c.Id == Shown">
+          <PropertyColumn Property="c => c.Id" />
+        </Table>
+
+        <AppAside Width="Length.Px(420)"
+          SmallScreen="AsideSmallScreen.Below"
+          Label="Candidate" Id="panel">
+          <Tabs Label="Panel">
+            <TabLink id="tab-candidate"
+              Href="@Address(Shown, null)"
+              Current="PanelTab == null"
+              Label="Candidate" />
+            <TabLink id="tab-record"
+              Href='@Address(Shown, "record")'
+              Current='PanelTab == "record"'
+              Label="Record" />
+          </Tabs>
+          ...
+        </AppAside>
+        """;
+
+    private const string TabsBefore = """
+        <nav aria-label="Connection" class="rb-tabs">
+          @foreach (var (segment, name) in tabs)
+          {
+            <a href="@Tab(segment)"
+              aria-current="@(segment == Current
+                ? "page" : null)">@name</a>
+          }
+        </nav>
+        """;
+
+    private const string TabsIzzy = """
+        <Tabs Label="Connection">
+          @foreach (var (segment, name) in tabs)
+          {
+            <TabLink Href="@Tab(segment)"
+              Label="@name" />
+
+          }
+        </Tabs>
+        """;
+
+    private const string MenuBefore = """
+        @* Components/Layout/Menu.razor, your own *@
+        <Menu Label="Switch tenant or environment"
+          ButtonClass="rb-switcher">
+          <Button>
+            @tenant.Name · @environmentName
+          </Button>
+          <ChildContent>
+            <span class="rb-group-heading">
+              @tenant.Name
+            </span>
+            @foreach (var env in environments)
+            {
+              <a role="menuitem" class="rb-menu-item"
+                href="@Switch(tenant.Id, env)"
+                aria-current="@(env == current
+                  ? "true" : null)">@NameOf(env)</a>
+            }
+            <a role="menuitem" class="rb-menu-item"
+              href="tenants">All tenants</a>
+          </ChildContent>
+        </Menu>
+        """;
+
+    private const string MenuIzzy = """
+        <Menu Label=
+          "@($"{tenant.Name} · {environmentName}")">
+          <MenuRadioGroup Label="@tenant.Name"
+            Value="@current">
+            @foreach (var env in environments)
+            {
+              <MenuItem Value="@env"
+                Href="@Switch(tenant.Id, env)">
+                @NameOf(env)
+              </MenuItem>
+            }
+          </MenuRadioGroup>
+          <MenuDivider />
+          <MenuItem Href="tenants">
+            All tenants
+          </MenuItem>
+        </Menu>
+        """;
+}
