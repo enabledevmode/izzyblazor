@@ -283,19 +283,22 @@ public class IzzyText
     /// <summary>A ListView item's ⋯ button, which opens its ItemMenu: "Actions for Ada". {0} is the item's label.</summary>
     public virtual string ItemMenu { get; set; } = "Actions for {0}";
 
-    /// <summary>SortableList's drag handle, which opens the move menu: "Move Ada". {0} is the item's label.</summary>
+    /// <summary>A ListView item's drag handle, which opens the move menu: "Move Ada". {0} is the item's label.</summary>
     public virtual string MoveItem { get; set; } = "Move {0}";
 
-    /// <summary>SortableList's move menu: one place earlier.</summary>
+    /// <summary>The submenu holding the moves in a ListView item's ⋯ menu, beside its own items.</summary>
+    public virtual string MoveMenu { get; set; } = "Move";
+
+    /// <summary>A ListView item's move menu: one place earlier.</summary>
     public virtual string MoveUp { get; set; } = "Move up";
 
-    /// <summary>SortableList's move menu: one place later.</summary>
+    /// <summary>A ListView item's move menu: one place later.</summary>
     public virtual string MoveDown { get; set; } = "Move down";
 
-    /// <summary>SortableList's move menu: to the first place.</summary>
+    /// <summary>A ListView item's move menu: to the first place.</summary>
     public virtual string MoveToTop { get; set; } = "Move to top";
 
-    /// <summary>SortableList's move menu: to the last place.</summary>
+    /// <summary>A ListView item's move menu: to the last place.</summary>
     public virtual string MoveToBottom { get; set; } = "Move to bottom";
 
     /// <summary>A drop zone's entry in the move menu: "Move to Done". {0} is the zone's label.</summary>

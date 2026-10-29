@@ -280,8 +280,8 @@
     /// handle: with a mouse after a small move, on touch after a long press (so a swipe still
     /// scrolls the page). Links, buttons and fields in the item keep their presses; the item's own
     /// link (<see cref="ItemHref"/>) or button (<see cref="OnItemClick"/>) still works on a click.
-    /// With an <see cref="ItemMenu"/>, the moves (Move up, Move down, Move to top, Move to bottom)
-    /// go first in each item's ⋯ menu and there are no handles; without one, the handle stays as
+    /// With an <see cref="ItemMenu"/> there are no handles: each item's ⋯ menu ends with a Move
+    /// submenu (Move up, Move down, Move to top, Move to bottom); without one, the handle stays as
     /// the menu of moves.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "Nothing drags; with an ItemMenu, the moves in each item's ⋯ menu post the form.")]
@@ -574,7 +574,8 @@
         </Menu>
     };
 
-    // The item's ⋯ button, opening its ItemMenu; with MovesInMenu, the moves come first.
+    // The item's ⋯ button, opening its ItemMenu; with MovesInMenu, the moves follow its items in a
+    // Move submenu (or are the menu, when it has none of its own).
     private RenderFragment MenuButton(TItem item, string key, int index, bool moves, bool own) => __builder =>
     {
         var focus = moves && !Live && key == _focusKey;
@@ -585,17 +586,18 @@
                             autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
             </Trigger>
             <ChildContent>
-                @if (moves)
-                {
-                    @Moves(key, index)
-                    @if (own)
-                    {
-                        <MenuDivider />
-                    }
-                }
                 @if (own)
                 {
                     @ItemMenu!(item)
+                }
+                @if (moves && own)
+                {
+                    <MenuDivider />
+                    <MenuSub Label="@TextDefaults.MoveMenu" Icon="Lucide.ArrowUpDown">@Moves(key, index)</MenuSub>
+                }
+                else if (moves)
+                {
+                    @Moves(key, index)
                 }
             </ChildContent>
         </Menu>
