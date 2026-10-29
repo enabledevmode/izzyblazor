@@ -168,6 +168,11 @@
     cursor: pointer;
   }
 
+  /* An item rendered hidden, such as a drop zone's own entry in its items' "Move to": display: flex above would show it. */
+  .ib-menu-item[hidden] {
+    display: none;
+  }
+
   .ib-menu-item:hover,
   .ib-menu-item:focus-visible {
     background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));

@@ -16,6 +16,14 @@
  * scrolls as usual if the finger moves first, and the drag begins once it has been held still.
  */
 
+/** Another list the item may be dropped in: a drop zone of the same group. */
+export interface DropTarget {
+  /** The zone's box, which the pointer is over to drop there, such as its Card. */
+  area: HTMLElement;
+  /** Its items' container. */
+  list: HTMLElement;
+}
+
 export interface SortOptions {
   /** The items' container; its element children are the items. */
   list: HTMLElement;
@@ -27,8 +35,20 @@ export interface SortOptions {
   delay?: number;
   /** Rows that wrap: a drop line instead of sliding, and the item follows the pointer both ways. */
   wrap: boolean;
-  /** The drop, when the item lands somewhere new. Call settle to clear the transforms. */
-  onDrop(from: number, to: number, settle: () => void): void;
+  /**
+   * Other lists it may move to (drop zones), read when the drag begins: the item follows the
+   * pointer both ways, and over one of them a line marks its place there.
+   */
+  targets?: () => DropTarget[];
+  /** Zones that won't take it (they refuse it, or are full): over one, the drop does nothing. */
+  refusing?: () => HTMLElement[];
+  /** With targets, its own zone's box: over none of the zones, the drop does nothing. */
+  home?: HTMLElement;
+  /**
+   * The drop, when the item lands somewhere new: in its own list, or at `to` in `target`.
+   * Call settle to clear the transforms.
+   */
+  onDrop(from: number, to: number, settle: () => void, target?: DropTarget): void;
   /** After the drag ends, either way (not when the press never became a drag). */
   onEnd?(): void;
 }
@@ -68,6 +88,14 @@ export function trackDrag(options: SortOptions): void {
   let scroller: Element | null = null;
   let frame = 0;
   let held = 0;
+  // The item follows the pointer sideways too: rows that wrap, or zones to move to.
+  const free = wrap || !!options.targets;
+  let targets: DropTarget[] = [];
+  let refusing: HTMLElement[] = [];
+  // Boxes that clipped the item (a Card's overflow: hidden), opened while it drags to other zones.
+  let lifted: Element[] = [];
+  let target: DropTarget | undefined;
+  let zoneMarked: HTMLElement | null = null;
 
   try {
     grip.setPointerCapture(event.pointerId);
@@ -87,6 +115,9 @@ export function trackDrag(options: SortOptions): void {
     itemLeft = own.left - box.left;
     step = own.height + (parseFloat(getComputedStyle(list).rowGap) || 0);
     scroller = scrollParent(list);
+    targets = options.targets?.() ?? [];
+    refusing = options.refusing?.() ?? [];
+    if (options.targets) lifted = unclip(list);
     list.classList.add("ib-sortable-sorting");
     item.classList.add("ib-sortable-dragging");
     frame = requestAnimationFrame(autoScroll);
@@ -105,9 +136,30 @@ export function trackDrag(options: SortOptions): void {
 
   const update = () => {
     const box = list.getBoundingClientRect();
-    const dx = wrap ? x - startX + (startBox.left - box.left) : 0;
+    const dx = free ? x - startX + (startBox.left - box.left) : 0;
     const dy = y - startY + (startBox.top - box.top);
     item.style.transform = `translate(${dx}px, ${dy}px)`;
+    zoneMarked?.removeAttribute("data-ib-drop");
+    zoneMarked = null;
+    target = targets.find((t) => within(t.area, x, y));
+    const refused = !target && (refusing.some((area) => within(area, x, y)) || (!!options.home && !within(options.home, x, y)));
+    item.toggleAttribute("data-ib-refused", refused);
+    if (refused) {
+      // Over a zone that won't take it, or over no zone: everything stays put, and the drop does nothing.
+      for (const el of items) if (el !== item) el.style.transform = "";
+      marked?.removeAttribute("data-ib-drop");
+      marked = null;
+      to = from;
+      return;
+    }
+    if (target) {
+      // Over another zone: its own list closes up, and a line marks the place in the other.
+      for (const el of items) if (el !== item) el.style.transform = "";
+      marked?.removeAttribute("data-ib-drop");
+      marked = null;
+      markTarget(target);
+      return;
+    }
     if (wrap) {
       markDropLine();
       return;
@@ -161,6 +213,37 @@ export function trackDrag(options: SortOptions): void {
     to = after ? index + 1 : index;
   };
 
+  // Another zone: the nearest of its items, and which side of it the pointer is on; an empty
+  // zone is marked whole.
+  const markTarget = (t: DropTarget) => {
+    const others = [...t.list.children].filter((el): el is HTMLElement => el instanceof HTMLElement && el !== item);
+    if (!others.length) {
+      // The zone's own element (around its list and empty text) is outlined.
+      const zone = t.list.parentElement ?? t.area;
+      zone.setAttribute("data-ib-drop", "inside");
+      zoneMarked = zone;
+      to = 0;
+      return;
+    }
+    const across = !!t.list.parentElement?.classList.contains("ib-sortable-horizontal");
+    const rtl = getComputedStyle(t.list).direction === "rtl";
+    let best = 0;
+    let distance = Infinity;
+    others.forEach((el, i) => {
+      const r = el.getBoundingClientRect();
+      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
+      if (d < distance) {
+        distance = d;
+        best = i;
+      }
+    });
+    const r = others[best].getBoundingClientRect();
+    const after = across ? (rtl ? x < r.left + r.width / 2 : x > r.left + r.width / 2) : y > r.top + r.height / 2;
+    others[best].setAttribute("data-ib-drop", after ? "after" : "before");
+    zoneMarked = others[best];
+    to = after ? best + 1 : best;
+  };
+
   const autoScroll = () => {
     if (!dragging) return;
     if (!item.isConnected) {
@@ -196,14 +279,18 @@ export function trackDrag(options: SortOptions): void {
     // The lifted item and, in rows that wrap, the drop line stay until it settles.
     const settle = () => {
       marked?.removeAttribute("data-ib-drop");
+      zoneMarked?.removeAttribute("data-ib-drop");
       item.classList.remove("ib-sortable-dragging");
+      item.removeAttribute("data-ib-refused");
+      for (const el of lifted) el.removeAttribute("data-ib-unclip");
       for (const el of items) el.style.transform = "";
     };
     // The click that follows the pointerup would open the handle's menu, or follow the item's link.
     // (A touch's comes later; <ib-sortable> cancels its touchend instead.)
     item.addEventListener("click", swallow, { capture: true, once: true });
     setTimeout(() => item.removeEventListener("click", swallow, { capture: true }), 0);
-    if (drop && to !== from) options.onDrop(from, to, settle);
+    if (drop && target) options.onDrop(from, to, settle, target);
+    else if (drop && to !== from) options.onDrop(from, to, settle);
     else settle();
     options.onEnd?.();
   };
@@ -250,6 +337,31 @@ export function trackDrag(options: SortOptions): void {
 function swallow(event: Event): void {
   event.preventDefault();
   event.stopImmediatePropagation();
+}
+
+/**
+ * The list's ancestors that clip what overflows them (a Card, a bordered list), up to its drop
+ * zone group, marked data-ib-unclip so CSS lets the item out over the other zones. Boxes that
+ * scroll keep their overflow: opening them would change the layout.
+ */
+function unclip(list: Element): Element[] {
+  const stop = list.closest(".ib-dropzone-group");
+  const marked: Element[] = [];
+  for (let node = list.parentElement; node && node !== stop; node = node.parentElement) {
+    const style = getComputedStyle(node);
+    const clips = [style.overflowX, style.overflowY].some((o) => o === "hidden" || o === "clip");
+    const scrolls = [style.overflowX, style.overflowY].some((o) => o === "auto" || o === "scroll");
+    if (clips && !scrolls) {
+      node.setAttribute("data-ib-unclip", "");
+      marked.push(node);
+    }
+  }
+  return marked;
+}
+
+function within(el: Element, x: number, y: number): boolean {
+  const r = el.getBoundingClientRect();
+  return x >= r.left && x <= r.right && y >= r.top && y <= r.bottom;
 }
 
 /** The nearest ancestor that scrolls vertically, or the page. */

@@ -93,7 +93,7 @@
                 }
             </ul>
         }
-        else if (_items.Count == 0)
+        else if (_items.Count == 0 && !InGroup)
         {
             <div class="ib-listview-state">
                 @if (EmptyContent is not null)
@@ -108,20 +108,44 @@
         }
         else
         {
-            @if (Reorderable)
+            @if (Sortable)
             {
                 @* The drag, the menu's moves in place and the shortcuts (static pages), and the live
                    region that announces every move. *@
                 @* Keyed by DragWholeItem: the element sets up its touch handling once, for one or the other. *@
                 <ib-sortable @key="DragWholeItem" class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
                              data-ib-interactive="@(Live ? "" : null)"
-                             data-ib-seq="@(RendererInfo.IsInteractive ? _moveSeq.ToString(CultureInfo.InvariantCulture) : null)"
+                             data-ib-seq="@(RendererInfo.IsInteractive ? (InGroup ? Group!.MoveSeq : _moveSeq).ToString(CultureInfo.InvariantCulture) : null)"
                              @onibmove="DropAsync" @onibmove:stopPropagation="true"
-                             data-ib-submit="@(Posts && SubmitOnMove ? "" : null)"
+                             data-ib-submit="@(Posts && (InGroup ? Group!.SubmitOnMove : SubmitOnMove) ? "" : null)"
+                             data-ib-group="@(InGroup ? Group!.GroupId : null)" data-ib-zone="@(InGroup ? Zone : null)"
+                             data-ib-zone-label="@(InGroup ? ZoneLabel : null)"
+                             data-ib-max="@(InGroup && MaxItems is { } max ? max.ToString(CultureInfo.InvariantCulture) : null)"
+                             data-ib-moved-zone="@(InGroup ? TextDefaults.MovedToZone : null)"
                              data-ib-whole="@(DragWholeItem ? "" : null)"
                              data-ib-moved="@TextDefaults.MovedTo"
                              data-ib-cancelled="@(Live ? TextDefaults.MoveCancelled : null)">
                     @ItemsList
+                    @if (InGroup)
+                    {
+                        @* Shown by CSS while the list has no items, so a drop or a move on a static page can fill or empty it. *@
+                        <div class="ib-listview-state ib-dropzone-empty">
+                            @if (EmptyContent is not null)
+                            {
+                                @EmptyContent
+                            }
+                            else if (EmptyText is not null)
+                            {
+                                @EmptyText
+                            }
+                            else
+                            {
+                                @* Nothing drags without script. *@
+                                <span class="ib-dropzone-drop">@TextDefaults.DropHere</span>
+                                <span class="ib-dropzone-none">@TextDefaults.NoItems</span>
+                            }
+                        </div>
+                    }
                     <div class="ib-visually-hidden" role="status">@_announcement</div>
                     @if (Live)
                     {
@@ -287,6 +311,21 @@
     [Parameter, ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "Nothing drags; with an ItemMenu, the moves in each item's ⋯ menu post the form.")]
     public bool DragWholeItem { get; set; }
 
+    /// <summary>
+    /// Makes the list a zone of the <see cref="DropZoneGroup{TItem}"/> around it: it shows the
+    /// group's items whose zone is this one, and items move here from the group's other zones. Name
+    /// each zone with <see cref="AriaLabel"/>, which also names it in the menu of moves.
+    /// </summary>
+    [Parameter] public string? Zone { get; set; }
+
+    /// <summary>For a <see cref="Zone"/>, which items may move here from other zones, such as <c>t =&gt; t.Reviewed</c>.</summary>
+    [Parameter] public Func<TItem, bool>? Accepts { get; set; }
+
+    /// <summary>For a <see cref="Zone"/>, how many items it holds at most; a full zone takes no more from the others.</summary>
+    [Parameter] public int? MaxItems { get; set; }
+
+    [CascadingParameter] private DropZoneGroup<TItem>? Group { get; set; }
+
     private string? _class;
     private string? _style;
     private ElementReference _listRef;
@@ -298,21 +337,40 @@
     // Interactive (or prerendering for it): C# applies the moves.
     private bool Live => WillBeInteractive;
 
-    // Reorderable on a static page with a Name: the order posts with the form.
-    private bool Posts => Reorderable && !Live && Name is not null;
+    // A zone of a DropZoneGroup, which holds the items and saves the moves.
+    private bool InGroup => Group is not null && Zone is not null;
 
-    // Reorderable on a static page without a Name: nothing could save a move, so no handles.
-    private bool NotMovable => !Live && Name is null;
+    // Its items move: Reorderable, or a zone.
+    private bool Sortable => Reorderable || InGroup;
+
+    // Moving on a static page with a Name (the group's, in a zone): the order posts with the form.
+    private bool Posts => Sortable && !Live && PostName is not null;
+
+    // Moving on a static page without a Name: nothing could save a move, so no handles.
+    private bool NotMovable => !Live && PostName is null;
 
     // DragWholeItem with an ItemMenu: the moves go in each item's ⋯ menu, and there are no handles.
-    private bool MovesInMenu => Reorderable && !NotMovable && DragWholeItem && ItemMenu is not null;
+    private bool MovesInMenu => Sortable && !NotMovable && DragWholeItem && ItemMenu is not null;
+
+    private string? PostName => InGroup ? Group!.Name : Name;
+
+    /// <summary>The zone's name in the menu of moves and in announcements.</summary>
+    internal string ZoneLabel => AriaLabel ?? Zone ?? "";
+
+    /// <inheritdoc />
+    internal override IEnumerable<TItem>? SourceItems => InGroup ? Group!.ItemsIn(Zone!) : Items;
+
+    /// <inheritdoc />
+    internal override Func<TItem, string>? KeyFunc => InGroup ? Group!.ItemKey : ItemKey;
 
     // Rows that wrap: a drop line instead of sliding, and Left/Right shortcuts.
     private bool Wraps => Orientation == Orientation.Horizontal || ColumnCount > 1;
 
-    private string KeysName => $"{Name}.Keys";
+    private string KeysName => $"{PostName}.Keys";
 
-    private string MoveName => $"{Name}.Move";
+    private string ZonesName => $"{PostName}.Zones";
+
+    private string MoveName => $"{PostName}.Move";
 
     /// <inheritdoc />
     internal override string ViewName => "ListView";
@@ -333,7 +391,7 @@
     private string PagesLabel => string.Format(CultureInfo.CurrentCulture, TextDefaults.TablePages, AriaLabel ?? TextDefaults.ListName);
 
     private string ItemClasses(bool action, bool current, bool disabled, bool trail) =>
-        (Reorderable ? "ib-listview-item ib-sortable-item" : "ib-listview-item")
+        (Sortable ? "ib-listview-item ib-sortable-item" : "ib-listview-item")
         + (action ? " ib-listview-actionable" : "")
         + (current ? " ib-listview-current" : "")
         + (disabled ? " ib-listview-disabled" : "")
@@ -358,9 +416,82 @@
     }
 
     /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (Zone is not null)
+        {
+            if (Group is null)
+            {
+                throw new InvalidOperationException($"A ListView with Zone=\"{Zone}\" goes inside a DropZoneGroup, which holds the items of every zone.");
+            }
+
+            _registeredZone = Zone;
+            Group.Register(this);
+        }
+    }
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        if (_registeredZone is not null)
+        {
+            Group?.Unregister(this);
+        }
+
+        base.Dispose();
+    }
+
+    // The Zone it registered with the group; it can't change.
+    private string? _registeredZone;
+
+    /// <summary>The group's items or zones changed: shows this zone's again.</summary>
+    internal void GroupChanged() => _ = InvokeAsync(async () =>
+    {
+        try
+        {
+            await SyncAndLoadAsync();
+            StateHasChanged();
+        }
+        catch (Exception ex)
+        {
+            await DispatchExceptionAsync(ex);
+        }
+    });
+
+    /// <summary>What the zone's live region says next (the group's moves).</summary>
+    internal void Announce(string? text) => _announcement = text;
+
+    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
-        if (Reorderable)
+        if (Zone != _registeredZone)
+        {
+            throw new InvalidOperationException("A ListView's Zone can't change once it's shown: give each zone its own ListView (with @key, to swap one for another).");
+        }
+
+        if (InGroup)
+        {
+            // The group holds these for every zone.
+            if (Items is not null || ItemsProvider is not null || ItemKey is not null || Name is not null || Order is not null
+                || OnMove.HasDelegate || ItemsChanged.HasDelegate || SubmitOnMove)
+            {
+                throw new InvalidOperationException($"The ListView with Zone=\"{Zone}\" takes its items from its DropZoneGroup: give Items, ItemKey, Name, Order, SubmitOnMove, OnMove and @bind-Items to the group.");
+            }
+
+            if (PageSize is not null || PageSizeOptions is { Count: > 0 })
+            {
+                throw new InvalidOperationException("A drop zone shows every item: leave out PageSize and PageSizeOptions.");
+            }
+
+            if (NotMovable && !_warned)
+            {
+                _warned = true;
+                Services.GetService<ILoggerFactory>()?.CreateLogger<ListView<TItem>>().LogWarning(
+                    "A DropZoneGroup on a static page has no Name, so its zones show no handles: give it a Name inside a form, and pass the posted ListOrder back as Order.");
+            }
+        }
+        else if (Reorderable)
         {
             if (ItemKey is null)
             {
@@ -389,7 +520,7 @@
     // The items, in a list; inside <ib-sortable> when they can be reordered.
     private RenderFragment ItemsList => __builder =>
     {
-    <ul class="@(Reorderable ? "ib-listview-list ib-sortable-list" : "ib-listview-list")" role="list" aria-label="@AriaLabel" aria-busy="@(IsLoading ? "true" : null)">
+    <ul class="@(Sortable ? "ib-listview-list ib-sortable-list" : "ib-listview-list")" role="list" aria-label="@AriaLabel" aria-busy="@(IsLoading ? "true" : null)">
         @for (var index = 0; index < _items.Count; index++)
         {
             var row = index;
@@ -407,13 +538,14 @@
             @* The first item of each page Load more adds can take focus, which goes to it when it arrives. *@
             @* By key, so an item keeps its elements (and focus) when the order changes; without an
                ItemKey the string forms may repeat, which @key doesn't allow. *@
-            <li @key="(ItemKey is null ? row : key)" class="@ItemClasses(href is not null || clickable, current is not null, disabled, actions is not null || menu)"
-                data-ib-key="@(Reorderable ? key : null)" data-ib-label="@(Reorderable ? LabelOf(item) : null)"
-                data-ib-movable="@(Reorderable && !NotMovable && !disabled ? "" : null)"
+            <li @key="(KeyFunc is null ? row : key)" class="@ItemClasses(href is not null || clickable, current is not null, disabled, actions is not null || menu)"
+                data-ib-key="@(Sortable ? key : null)" data-ib-label="@(Sortable ? LabelOf(item) : null)"
+                data-ib-movable="@(Sortable && !NotMovable && !disabled ? "" : null)"
+                data-ib-to="@(InGroup ? AcceptingZones(item) : null)"
                 aria-current="@(href is null && !clickable ? current : null)"
                 tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)"
                 data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
-                @if (Reorderable && !NotMovable && !MovesInMenu)
+                @if (Sortable && !NotMovable && !MovesInMenu)
                 {
                     if (disabled)
                     {
@@ -467,6 +599,10 @@
                 @if (Posts)
                 {
                     <input type="hidden" name="@KeysName" value="@key" />
+                    @if (InGroup)
+                    {
+                        <input type="hidden" name="@ZonesName" value="@Zone" />
+                    }
                 }
             </li>
         }
@@ -477,6 +613,12 @@
     {
         // A static post: the posted order, then the menu's move (not a disabled item's).
         _focusKey = null;
+        if (InGroup)
+        {
+            _focusKey = Group!.FocusKey;
+            return;
+        }
+
         if (!Reorderable || Order is null)
         {
             return;
@@ -493,14 +635,25 @@
         _items = entries.ConvertAll(e => e.Item);
     }
 
-    private Task MoveAsync(ListMoveKind kind, string key) =>
-        ApplyMoveAsync(key, entries => ListArrangement.Apply(entries, new ListMove(kind, key)));
+    private Task MoveAsync(ListMove move) => InGroup
+        ? Group!.MenuMoveAsync(move.Key, move)
+        : ApplyMoveAsync(move.Key, entries => ListArrangement.Apply(entries, move));
 
     // A drag on an interactive page. The script holds the dragged item where it was dropped until a
     // render carries this count, so it's counted once the move is done (after an OnMove that awaits
     // a save), whatever comes of it: moved, cancelled or ignored.
     private async Task DropAsync(IzzyMoveEventArgs e)
     {
+        if (InGroup)
+        {
+            if (e.Key is { } moved)
+            {
+                await Group!.DropAsync(moved, e.ToZone ?? Zone!, e.ToIndex, e.Seq);
+            }
+
+            return;
+        }
+
         try
         {
             if (e.Key is { } key)
@@ -608,11 +761,47 @@
     {
         var first = index == 0;
         var last = index == _items.Count - 1;
-        @MoveItem(ListMoveKind.Up, key, TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
-        @MoveItem(ListMoveKind.Down, key, TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
-        @MoveItem(ListMoveKind.Top, key, TextDefaults.MoveToTop, "Alt+Home", first)
-        @MoveItem(ListMoveKind.Bottom, key, TextDefaults.MoveToBottom, "Alt+End", last)
+        @MoveItem(new(ListMoveKind.Up, key), TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
+        @MoveItem(new(ListMoveKind.Down, key), TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
+        @MoveItem(new(ListMoveKind.Top, key), TextDefaults.MoveToTop, "Alt+Home", first)
+        @MoveItem(new(ListMoveKind.Bottom, key), TextDefaults.MoveToBottom, "Alt+End", last)
+        @if (InGroup)
+        {
+            @ZoneMoves(_items[index], key)
+        }
     };
+
+    // "Move to" and each zone that takes the item. Its own zone is hidden (the script shows it again
+    // once the item moves away on a static page); a full one is disabled.
+    private RenderFragment ZoneMoves(TItem item, string key) => __builder =>
+    {
+        var zones = Group!.Zones.Where(z => z.Accepts?.Invoke(item) != false).ToList();
+        if (zones.Any(z => z != this))
+        {
+            <MenuDivider />
+            <MenuGroup Label="@TextDefaults.MoveToMenu">
+                @foreach (var zone in zones)
+                {
+                    var own = zone == this;
+                    var move = new ListMove(ListMoveKind.To, key, zone.Zone);
+                    if (Live)
+                    {
+                        <MenuItem Disabled="@(!own && !Group.CanMoveTo(item, zone, Zone))" hidden="@own" data-ib-move="to" data-ib-zone="@zone.Zone"
+                                  OnClick="() => MoveAsync(move)">@zone.ZoneLabel</MenuItem>
+                    }
+                    else
+                    {
+                        <MenuItem Disabled="@(!own && !Group.CanMoveTo(item, zone, Zone))" hidden="@own" data-ib-move="to" data-ib-zone="@zone.Zone"
+                                  Submit Name="@MoveName" Value="@move.ToString()">@zone.ZoneLabel</MenuItem>
+                    }
+                }
+            </MenuGroup>
+        }
+    };
+
+    // The zones that take an item, for the script's drag.
+    private string AcceptingZones(TItem item) =>
+        string.Join(' ', Group!.Zones.Where(z => z.Accepts?.Invoke(item) != false).Select(z => z.Zone));
 
     // Whether a fragment draws anything: an element, a component, or text that isn't only spaces.
     private static bool HasContent(RenderFragment fragment)
@@ -641,15 +830,15 @@
     // The script finds a menu item by its move: the shortcuts click it, and on static pages it moves the item in place.
     private static string Kind(ListMoveKind kind) => kind.ToString().ToLowerInvariant();
 
-    private RenderFragment MoveItem(ListMoveKind kind, string key, string text, string shortcut, bool disabled) => __builder =>
+    private RenderFragment MoveItem(ListMove move, string text, string shortcut, bool disabled) => __builder =>
     {
         if (Live)
         {
-            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@Kind(kind)" OnClick="() => MoveAsync(kind, key)">@text</MenuItem>
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@Kind(move.Kind)" OnClick="() => MoveAsync(move)">@text</MenuItem>
         }
         else
         {
-            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@Kind(kind)" Submit Name="@MoveName" Value="@(new ListMove(kind, key).ToString())">@text</MenuItem>
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@Kind(move.Kind)" Submit Name="@MoveName" Value="@move.ToString()">@text</MenuItem>
         }
     };
 

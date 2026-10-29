@@ -301,8 +301,8 @@ public class IzzyText
     /// <summary>A ListView item's move menu: to the last place.</summary>
     public virtual string MoveToBottom { get; set; } = "Move to bottom";
 
-    /// <summary>A drop zone's entry in the move menu: "Move to Done". {0} is the zone's label.</summary>
-    public virtual string MoveToZone { get; set; } = "Move to {0}";
+    /// <summary>The heading over the other drop zones in a ListView item's move menu, each named by its label.</summary>
+    public virtual string MoveToMenu { get; set; } = "Move to";
 
     /// <summary>Announced after a move: "Moved Ada to position 3 of 5".</summary>
     public virtual string MovedTo { get; set; } = "Moved {0} to position {1} of {2}";

@@ -1068,6 +1068,18 @@
     cursor: grabbing;
   }
 
+  /* A drag between drop zones: the boxes that clipped the item (a Card, a bordered list) let it out
+     while it moves. */
+  [data-ib-unclip] {
+    overflow: visible !important;
+  }
+
+  /* Over a drop zone that won't take the item. */
+  .ib-sortable-list > .ib-sortable-dragging[data-ib-refused],
+  .ib-sortable-dragging[data-ib-refused] .ib-sortable-handle {
+    cursor: no-drop;
+  }
+
   .ib-sortable-item[data-ib-drop] {
     position: relative;
   }
@@ -1087,6 +1099,43 @@
     inset-inline-end: calc(var(--ib-space-1) * -1 - 1px);
   }
 
+  /* A column another zone's item is dragged over: the line goes across, above or below. */
+  .ib-sortable-vertical > .ib-sortable-list > .ib-sortable-item[data-ib-drop]::after {
+    inset-block: -1px auto;
+    inset-inline: 0;
+    width: auto;
+    height: 2px;
+  }
+
+  .ib-sortable-vertical > .ib-sortable-list > .ib-sortable-item[data-ib-drop="after"]::after {
+    inset-block: auto -1px;
+    inset-inline: 0;
+  }
+
+  /* A drop zone: its empty text shows while it has no items, and an empty one an item is dragged
+     over is outlined. */
+  .ib-sortable-list:has(> .ib-sortable-item) + .ib-dropzone-empty {
+    display: none;
+  }
+
+  @media (scripting: enabled) {
+    .ib-dropzone-none {
+      display: none;
+    }
+  }
+
+  @media (scripting: none) {
+    .ib-dropzone-drop {
+      display: none;
+    }
+  }
+
+  .ib-sortable[data-ib-drop="inside"] {
+    outline: 2px dashed var(--ib-color-primary);
+    outline-offset: -2px;
+    border-radius: var(--ib-radius-md);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     .ib-sortable-sorting > .ib-sortable-item {
       transition: none;
@@ -1100,6 +1149,15 @@
 
     .ib-sortable-item[data-ib-drop]::after {
       background-color: Highlight;
+    }
+
+    /* Thicker than the divider it sits on, which takes the same system color. */
+    .ib-sortable-vertical > .ib-sortable-list > .ib-sortable-item[data-ib-drop]::after {
+      height: 4px;
+    }
+
+    .ib-sortable[data-ib-drop="inside"] {
+      outline-color: Highlight;
     }
   }
 

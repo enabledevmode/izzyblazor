@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { trackDrag } from "../sortable";
+import { trackDrag, type DropTarget } from "../sortable";
 
 const HANDLE = ".ib-sortable-handle";
 // The button whose menu holds the moves: the handle, or the item's ⋯ button when it has no handle.
@@ -13,6 +13,8 @@ const CONTROL = "a[href]:not(.ib-listview-action), button:not(.ib-listview-actio
 const LONG_PRESS = 250;
 
 type Move = "up" | "down" | "top" | "bottom";
+// The moves within the list; "to" (a zone's entry in the menu) moves to another list.
+const IN_LIST = new Set(["up", "down", "top", "bottom"]);
 
 /**
  * <ib-sortable> moves a ListView's items. Every way of moving goes through the items of the menu
@@ -27,6 +29,10 @@ type Move = "up" | "down" | "top" | "bottom";
  *   until the render that has handled that drop (data-ib-seq) arrives, so nothing jumps back first.
  * - With data-ib-whole, dragging the item itself, from anywhere but the controls in it: a mouse
  *   drags after a few pixels, a touch or pen after a long press.
+ * In a DropZoneGroup each zone is its own <ib-sortable>, sharing data-ib-group: an item drags to
+ * another zone whose data-ib-zone is in its data-ib-to and that has room (data-ib-max), and the
+ * menu's "Move to" items (data-ib-move="to", data-ib-zone) move it to the end of one. On a static
+ * page the node moves there and its hidden Zones input changes with it.
  * With JavaScript off, the menu items post the form and the server moves the item.
  */
 class Sortable extends IzzyElement {
@@ -36,7 +42,7 @@ class Sortable extends IzzyElement {
   // A drag just ended: the touchend that follows mustn't become a tap on the item.
   private dropped = false;
 
-  private get list(): HTMLElement | null {
+  get list(): HTMLElement | null {
     return this.querySelector(":scope > .ib-sortable-list");
   }
 
@@ -71,7 +77,7 @@ class Sortable extends IzzyElement {
     this.addEventListener("touchend", (event) => {
       if (!this.dropped) return;
       this.dropped = false;
-      event.preventDefault();
+      if (event.cancelable) event.preventDefault();
     }, { signal, passive: false });
   }
 
@@ -83,18 +89,59 @@ class Sortable extends IzzyElement {
   }
 
   /** The item's own move buttons (a nested list's items have theirs). */
-  private movesOf(item: Element): HTMLButtonElement[] {
+  movesOf(item: Element): HTMLButtonElement[] {
     return [...item.querySelectorAll<HTMLButtonElement>("button[data-ib-move]")].filter((el) => this.itemOf(el) === item);
   }
 
   /** The item's own handle or ⋯ button with the moves (not a nested list's). */
-  private triggerOf(item: Element | undefined): HTMLElement | undefined {
+  triggerOf(item: Element | undefined): HTMLElement | undefined {
     return item ? [...item.querySelectorAll<HTMLElement>(TRIGGER)].find((el) => this.itemOf(el) === item) : undefined;
   }
 
   private itemOf(el: Element | null): HTMLElement | null {
     const item = el?.closest<HTMLElement>(ITEM);
     return item && item.parentElement === this.list ? item : null;
+  }
+
+  /** Every zone of this one's DropZoneGroup, this one included; just this one outside a group. */
+  private group(): Sortable[] {
+    const id = this.dataset.ibGroup;
+    if (!id) return [this];
+    return [...document.querySelectorAll<Sortable>("ib-sortable")].filter((el) => el.dataset.ibGroup === id);
+  }
+
+  /** The group's zone named `zone`. */
+  private zone(zone: string | undefined): Sortable | undefined {
+    return zone === undefined ? undefined : this.group().find((el) => el.dataset.ibZone === zone);
+  }
+
+  /** Whether a zone has room for one more. */
+  hasRoom(): boolean {
+    const max = this.dataset.ibMax;
+    return max === undefined || this.items().length < Number(max);
+  }
+
+  /** The other zones an item may be dragged to: they accept it and have room. */
+  private targetsFor(item: HTMLElement): DropTarget[] {
+    const accepts = (item.dataset.ibTo ?? "").split(" ");
+    return this.group()
+      .filter((el) => el !== this && accepts.includes(el.dataset.ibZone ?? "") && el.hasRoom() && el.list)
+      .map((el) => ({ area: el.dropArea(), list: el.list! }));
+  }
+
+  /**
+   * Where a drop lands in this zone: the largest box around it that holds no other zone of the
+   * group, such as its Card with the title, so a drop on a column's heading counts.
+   */
+  dropArea(): HTMLElement {
+    const zones = this.group();
+    const root = this.closest(".ib-dropzone-group");
+    let area: HTMLElement = this;
+    for (let node = this.parentElement; node && node !== root; node = node.parentElement) {
+      if (zones.some((zone) => zone !== this && node.contains(zone))) break;
+      area = node;
+    }
+    return area;
   }
 
   private onClick(event: MouseEvent): void {
@@ -108,6 +155,11 @@ class Sortable extends IzzyElement {
     }
 
     event.preventDefault();
+    if (button.dataset.ibMove === "to") {
+      const zone = this.zone(button.dataset.ibZone);
+      if (zone && zone !== this) this.moveToZone(item, zone, zone.items().length, true);
+      return;
+    }
     const items = this.items();
     const from = items.indexOf(item);
     const last = items.length - 1;
@@ -145,7 +197,8 @@ class Sortable extends IzzyElement {
     this.dropped = false;
     const target = event.target as Element;
     const handle = target.closest(HANDLE);
-    if (this.settling) {
+    // In a group, one drop at a time across its zones: they share C#'s count of drops.
+    if (this.group().some((zone) => zone.settling)) {
       // The last drop is still on its way: no new drag yet, and the press doesn't open the menu.
       if (handle) {
         handle.addEventListener("click", swallow, { capture: true, once: true });
@@ -168,33 +221,46 @@ class Sortable extends IzzyElement {
       event,
       delay: fromItem && event.pointerType !== "mouse" ? LONG_PRESS : 0,
       wrap: this.classList.contains("ib-sortable-horizontal"),
+      targets: this.dataset.ibGroup ? () => this.targetsFor(item) : undefined,
+      refusing: this.dataset.ibGroup ? () => this.refusingFor(item) : undefined,
+      home: this.dataset.ibGroup ? this.dropArea() : undefined,
       onEnd: () => (this.dropped = event.pointerType !== "mouse"),
-      onDrop: (_, to, settle) => {
+      onDrop: (_, to, settle, target) => {
+        const zone = target?.list.parentElement as Sortable | undefined;
         // Dragged by its body, the press left focus on the list: the item's menu button takes it,
         // so the shortcuts work next (a field in the item keeps it).
         if (fromItem && !item.contains(document.activeElement)) this.triggerOf(item)?.focus({ preventScroll: true });
         if (this.live) {
-          this.report(item, to, settle);
+          this.report(item, to, settle, zone?.dataset.ibZone);
           return;
         }
 
         settle();
-        this.move(item, to, false);
+        if (zone) this.moveToZone(item, zone, to, false);
+        else this.move(item, to, false);
       },
     });
   }
 
+  /** The other zones that won't take an item: they refuse it, or are full. */
+  private refusingFor(item: HTMLElement): HTMLElement[] {
+    const targets = new Set(this.targetsFor(item).map((t) => t.area));
+    return this.group().filter((el) => el !== this).map((el) => el.dropArea()).filter((area) => !targets.has(area));
+  }
+
   /** An interactive page: asks C# to move the item, and settles once its render has. */
-  private report(item: HTMLElement, to: number, settle: () => void): void {
+  private report(item: HTMLElement, to: number, settle: () => void, zone?: string): void {
     const key = item.dataset.ibKey;
     if (key === undefined) {
       settle();
       return;
     }
 
-    // Counted on from what C# rendered too, in case this element is new.
-    const seq = (this.seq = Math.max(this.seq, Number(this.dataset.ibSeq ?? 0)) + 1);
-    const hadFocus = item.contains(document.activeElement);
+    // Counted on from what C# rendered too, in case this element is new, and from every zone of a
+    // group, which shares one count.
+    const seq = (this.seq = Math.max(...this.group().map((zone) => Math.max(zone.seq, Number(zone.dataset.ibSeq ?? 0)))) + 1);
+    const focused = document.activeElement;
+    const hadFocus = item.contains(focused);
     this.settling = true;
     let timer = 0;
     const done = (answered: boolean) => {
@@ -203,11 +269,12 @@ class Sortable extends IzzyElement {
       this.settling = false;
       settle();
       if (!answered) this.say((this.dataset.ibCancelled ?? "").replace("{0}", item.dataset.ibLabel ?? ""));
-      // Blazor may have moved the item's node, which drops focus from inside it; if the user has
-      // gone elsewhere meanwhile, focus stays there.
-      const now = this.items().find((el) => el.dataset.ibKey === key);
-      const lost = !document.activeElement || document.activeElement === document.body;
-      if (hadFocus && lost && now) this.triggerOf(now)?.focus();
+      // Blazor may have moved the item's node (or drawn it in another zone), which drops focus
+      // from inside it, or the focus rescue (focus.ts) has passed it to a neighbor as the node
+      // went; if the user has gone elsewhere meanwhile, focus stays there.
+      const now = this.findItem(key);
+      const lost = !document.activeElement || document.activeElement === document.body || !focused?.isConnected;
+      if (hadFocus && lost && now) now.closest<Sortable>("ib-sortable")?.triggerOf(now)?.focus();
     };
     // The render applies its moves and data-ib-seq together, before this runs.
     const observer = new MutationObserver(() => {
@@ -216,11 +283,64 @@ class Sortable extends IzzyElement {
     observer.observe(this, { attributes: true, attributeFilter: ["data-ib-seq"] });
     // No answer (the circuit is down): put the items back.
     timer = window.setTimeout(() => done(false), 3000);
-    this.dispatchEvent(new CustomEvent("ibmove", { bubbles: true, detail: { key, to, seq } }));
+    this.dispatchEvent(new CustomEvent("ibmove", { bubbles: true, detail: { key, to, zone, seq } }));
   }
 
-  private items(): HTMLElement[] {
+  items(): HTMLElement[] {
     return [...(this.list?.children ?? [])] as HTMLElement[];
+  }
+
+  /** An item by key, in this list or another zone of its group. */
+  private findItem(key: string): HTMLElement | undefined {
+    for (const zone of this.group()) {
+      const found = zone.items().find((el) => el.dataset.ibKey === key);
+      if (found) return found;
+    }
+    return undefined;
+  }
+
+  /**
+   * Moves an item's node to a place in another zone (static pages only): its Zones input and its
+   * menu's "Move to" items change with it, then the zone announces it.
+   */
+  private moveToZone(item: HTMLElement, zone: Sortable, to: number, focus: boolean): void {
+    const list = zone.list;
+    const name = zone.dataset.ibZone;
+    if (!list || name === undefined) return;
+    const hadFocus = item.contains(document.activeElement);
+    const handle = this.triggerOf(item);
+    const rest = zone.items();
+    list.insertBefore(item, rest[to] ?? null);
+    for (const input of item.querySelectorAll<HTMLInputElement>(":scope > input[type=hidden]")) {
+      if (input.name.endsWith(".Zones")) input.value = name;
+    }
+    for (const button of zone.movesOf(item)) {
+      if (button.dataset.ibMove === "to") button.hidden = button.dataset.ibZone === name;
+    }
+    if (focus || hadFocus) handle?.focus();
+    this.refreshEnds();
+    zone.refreshEnds();
+    this.refreshRoom();
+    const index = zone.items().indexOf(item);
+    zone.say((zone.dataset.ibMovedZone ?? "")
+      .replace("{0}", item.dataset.ibLabel ?? "")
+      .replace("{1}", zone.dataset.ibZoneLabel ?? name)
+      .replace("{2}", String(index + 1))
+      .replace("{3}", String(zone.items().length)));
+    if (this.hasAttribute("data-ib-submit")) list.closest("form")?.requestSubmit();
+  }
+
+  /** Every item's "Move to" entries in the group: none to a zone that's full. */
+  private refreshRoom(): void {
+    const zones = this.group();
+    for (const zone of zones) {
+      for (const item of zone.items()) {
+        for (const button of zone.movesOf(item)) {
+          if (button.dataset.ibMove !== "to" || button.hidden) continue;
+          button.disabled = !(zones.find((z) => z.dataset.ibZone === button.dataset.ibZone)?.hasRoom() ?? false);
+        }
+      }
+    }
   }
 
   /** Moves an item's node to a place in the list (static pages only), then announces it. */
@@ -241,11 +361,12 @@ class Sortable extends IzzyElement {
   }
 
   /** Each item's menu: no moving up from the top or down from the bottom. */
-  private refreshEnds(): void {
+  refreshEnds(): void {
     const items = this.items();
     items.forEach((el, i) => {
       for (const button of this.movesOf(el)) {
-        const kind = button.dataset.ibMove;
+        const kind = button.dataset.ibMove ?? "";
+        if (!IN_LIST.has(kind)) continue;
         button.disabled = kind === "up" || kind === "top" ? i === 0 : i === items.length - 1;
       }
     });
@@ -258,7 +379,7 @@ class Sortable extends IzzyElement {
       .replace("{2}", String(count)));
   }
 
-  private say(text: string): void {
+  say(text: string): void {
     // On an interactive page C# owns the first region; the script has its own.
     const region = this.querySelector(this.live ? ":scope > [data-ib-say]" : ":scope > [role=status]");
     if (!region) return;
@@ -271,14 +392,17 @@ class Sortable extends IzzyElement {
   private refocusAfterRender(key: string | undefined): void {
     const list = this.list;
     if (!list || key === undefined) return;
-    const indexOf = () => [...list.children].findIndex((el) => (el as HTMLElement).dataset.ibKey === key);
-    const before = indexOf();
+    const place = (item: HTMLElement | undefined) => (item ? [item.parentElement, [...(item.parentElement?.children ?? [])].indexOf(item)] as const : null);
+    const was = place(this.findItem(key));
+    // Every zone of the group: the item may land in another one.
     const observer = new MutationObserver(() => {
+      const item = this.findItem(key);
+      const now = place(item);
+      if (!item || !now || (now[0] === was?.[0] && now[1] === was?.[1])) return;
       observer.disconnect();
-      const at = indexOf();
-      if (at >= 0 && at !== before) this.triggerOf(list.children[at])?.focus();
+      item.closest<Sortable>("ib-sortable")?.triggerOf(item)?.focus();
     });
-    observer.observe(list, { childList: true });
+    for (const zone of this.group()) if (zone.list) observer.observe(zone.list, { childList: true });
     setTimeout(() => observer.disconnect(), 2000);
   }
 }
