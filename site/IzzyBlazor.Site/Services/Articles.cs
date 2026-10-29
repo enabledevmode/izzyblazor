@@ -41,6 +41,8 @@ public static class Articles
                 "What components do on static pages, with IzzyBlazor's script, and on interactive pages."),
             new("forms", "Forms and validation", "ClipboardCheck",
                 "Forms that post on static pages, rules from your model, columns, read-only forms and errors."),
+            new("data", "Data and filters", "Database",
+                "A provider's request and result, EF Core, filters in code and as text, fields, and calling an API."),
             new("text", "Text and other languages", "Languages",
                 "The words components use, changed app-wide or per component, in one language or several."),
             new("accessibility", "Accessibility", "Accessibility",
