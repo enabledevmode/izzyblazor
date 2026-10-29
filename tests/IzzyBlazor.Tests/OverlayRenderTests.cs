@@ -31,6 +31,59 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_shortcut_describes_the_item_rather_than_naming_it()
+    {
+        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, "Alt+↑").AddChildContent("Move up"));
+
+        var item = cut.Find("button");
+        var key = cut.Find(".ib-menu-shortcut");
+        Assert.Equal("true", key.GetAttribute("aria-hidden"));
+        Assert.Equal(key.Id, item.GetAttribute("aria-describedby"));
+        Assert.Equal("Alt+ArrowUp", item.GetAttribute("aria-keyshortcuts"));
+    }
+
+    [Theory]
+    [InlineData("Ctrl+C", "Control+C")]
+    [InlineData("⌘+⇧+P", "Meta+Shift+P")]
+    [InlineData("Alt+Home", "Alt+Home")]
+    [InlineData("⇧⌘P", "Shift+Meta+P")]
+    [InlineData("Ctrl++", "Control+Plus")]
+    [InlineData("Page Up", "PageUp")]
+    [InlineData("Ctrl+Return", "Control+Enter")]
+    public void Shortcuts_are_written_in_aria_keyshortcuts_terms(string shortcut, string expected)
+    {
+        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, shortcut).AddChildContent("Item"));
+
+        Assert.Equal(expected, cut.Find("button").GetAttribute("aria-keyshortcuts"));
+    }
+
+    [Fact]
+    public void An_apps_own_description_wins_over_the_shortcut()
+    {
+        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, "Ctrl+S").AddUnmatched("aria-describedby", "hint").AddChildContent("Save"));
+
+        Assert.Equal("hint", cut.Find("button").GetAttribute("aria-describedby"));
+    }
+
+    [Fact]
+    public void A_blank_shortcut_is_no_shortcut()
+    {
+        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, " ").AddChildContent("Item"));
+
+        Assert.Empty(cut.FindAll("kbd"));
+        Assert.False(cut.Find("button").HasAttribute("aria-keyshortcuts"));
+    }
+
+    [Fact]
+    public void An_item_without_a_shortcut_has_no_description()
+    {
+        var cut = Render<MenuItem>(p => p.AddChildContent("Item"));
+
+        Assert.False(cut.Find("button").HasAttribute("aria-describedby"));
+        Assert.False(cut.Find("button").HasAttribute("aria-keyshortcuts"));
+    }
+
+    [Fact]
     public void Menu_wires_trigger_panel_and_anchor()
     {
         var cut = Render<Menu>(p => p

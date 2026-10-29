@@ -1401,7 +1401,7 @@
         { "feature": "Links, the current item, selection and paging" },
         { "feature": "Actions on each item and its ⋯ menu (links and posting items)" },
         { "feature": "Reordering from each handle's menu (with script off, each move posts the form)" },
-        { "feature": "Dragging, Alt+arrow shortcuts and announcements", "noscript": "none", "static": "full", "interactive": "partial" },
+        { "feature": "Dragging, Alt+arrow shortcuts and announcements", "noscript": "none" },
         { "feature": "The new order bound to C#", "member": "Items" }
       ],
       "examples": [
@@ -1427,7 +1427,7 @@
           "notes": {
             "noscript": "Each move in a handle's menu posts the form, and the page comes back with the item moved and its handle focused. Save order saves.",
             "static": "Drag a handle, or use its menu or Alt+arrows: items move in the page and the move is announced. Save order posts the new order.",
-            "interactive": "A move from a handle's menu or Alt+arrows changes the list at once; dragging comes next. Save order shows the order @bind-Items holds."
+            "interactive": "Drag a handle, or use its menu or Alt+arrows: C# changes the list at once and the move is announced. Save order shows the order @bind-Items holds."
           } }
       ]
     },

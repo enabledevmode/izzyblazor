@@ -13,18 +13,18 @@
             return;
         }
 
-        <div class="ib-table-footer">
-            <div class="ib-table-footer-info">
+        <div class="ib-data-footer">
+            <div class="ib-data-footer-info">
                 @if (PageSizeOptions is { Count: > 0 } options)
                 {
                     @* Rows per page: an option menu, so it works with no script (each size a link). *@
-                    <span class="ib-table-page-size">
-                        <span class="ib-table-page-size-label" aria-hidden="true">@TextDefaults.RowsPerPage</span>
+                    <span class="ib-data-page-size">
+                        <span class="ib-data-page-size-label" aria-hidden="true">@TextDefaults.RowsPerPage</span>
                         <Menu Placement="Placement.TopStart">
                             <Trigger>
-                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-page-size-button" aria-label="@($"{TextDefaults.RowsPerPage}: {size}")" @attributes="context">
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-data-page-size-button" aria-label="@($"{TextDefaults.RowsPerPage}: {size}")" @attributes="context">
                                     @size
-                                    <Icon Role="IconRole.ChevronDown" Class="ib-table-page-size-chevron" />
+                                    <Icon Role="IconRole.ChevronDown" Class="ib-data-page-size-chevron" />
                                 </button>
                             </Trigger>
                             <ChildContent>
@@ -40,7 +40,7 @@
                     </span>
                 }
                 @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
-                <span class="ib-table-summary" role="status">@Summary(size)</span>
+                <span class="ib-data-summary" role="status">@Summary(size)</span>
             </div>
             @if (Paging == DataPaging.Pages && UseState)
             {
@@ -74,17 +74,17 @@
             return;
         }
 
-        <span class="ib-visually-hidden ib-table-summary" role="status">@Summary(size)</span>
+        <span class="ib-visually-hidden ib-data-summary" role="status">@Summary(size)</span>
         if (!ShowFooter)
         {
             return;
         }
 
-        <div class="ib-table-more">
+        <div class="ib-data-more">
             @if (_moreError && RendererInfo.IsInteractive)
             {
                 @* The next page failed: the items shown stay, and Retry asks for it again. *@
-                <span class="ib-table-error-content">
+                <span class="ib-data-error-content">
                     @LoadFailedMessage
                     @RetryControl(() => LoadMoreAsync(focus: true), _loadingMore)
                 </span>
@@ -94,9 +94,9 @@
                 @if (_loadingMore && OnFocusOnly)
                 {
                     @* The button is out of sight while loading on scroll: this says a page is on its way. *@
-                    <Spinner Class="ib-table-more-loading" />
+                    <Spinner Class="ib-data-more-loading" />
                 }
-                <Button Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="_loadingMore" OnClick="() => LoadMoreAsync(focus: true)">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
+                <Button Class="@(OnFocusOnly ? "ib-data-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="_loadingMore" OnClick="() => LoadMoreAsync(focus: true)">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
                 @if (Paging == DataPaging.LoadOnScroll && !_loadingMore && !_providerLoading && !_moreError)
                 {
                     @* Pressed by the script when the last item comes into view: a load that doesn't move focus. *@
@@ -107,7 +107,7 @@
             {
                 @* No component state to add pages to: the same list with one more page (?page=N+1).
                    Loading on scroll, the script follows it as the last item comes into view. *@
-                <Button Href="@MoreHref" data-ib-load-next="@(Paging == DataPaging.LoadOnScroll ? "" : null)" Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
+                <Button Href="@MoreHref" data-ib-load-next="@(Paging == DataPaging.LoadOnScroll ? "" : null)" Class="@(OnFocusOnly ? "ib-data-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
             }
         </div>
     };
@@ -116,7 +116,7 @@
     // which is always there (a region added with its text isn't reliably read).
     internal RenderFragment LoadFailedMessage => __builder =>
     {
-        <span class="ib-table-error-message">
+        <span class="ib-data-error-message">
             @if (ErrorContent is not null)
             {
                 @ErrorContent
@@ -144,7 +144,7 @@
     // Says a load failed when it does: present from the start, so the change is announced.
     internal RenderFragment ErrorStatus => __builder =>
     {
-        <span class="ib-visually-hidden ib-table-error-status" role="status">@((_loadError is not null && !_providerLoading) || (_moreError && !_loadingMore) ? LoadFailedText : null)</span>
+        <span class="ib-visually-hidden ib-data-error-status" role="status">@((_loadError is not null && !_providerLoading) || (_moreError && !_loadingMore) ? LoadFailedText : null)</span>
     };
 
     // First, Previous or Next by cursor, drawn as Pagination's: a button when state is in the

@@ -20,7 +20,10 @@
 
 @if (ResolvedHref is { } href)
 {
-    <a @attributes="AdditionalAttributes"
+    @* The shortcut's description first, so an app's own aria-describedby or aria-keyshortcuts wins. *@
+    <a aria-describedby="@ShortcutId"
+       aria-keyshortcuts="@KeyShortcuts"
+       @attributes="AdditionalAttributes"
        role="@(Live ? Role : null)"
        data-ib-role="@(Live ? null : Role)"
        aria-checked="@(Live ? AriaChecked : null)"
@@ -38,7 +41,9 @@ else
 {
     var submit = Submit || RadioGroup?.Name is not null;
     var closes = !submit && Menu is not null && !KeepOpen;
-    <button @attributes="AdditionalAttributes"
+    <button aria-describedby="@ShortcutId"
+            aria-keyshortcuts="@KeyShortcuts"
+            @attributes="AdditionalAttributes"
             type="@(submit ? "submit" : "button")"
             role="@(Live ? Role : null)"
             data-ib-role="@(Live ? null : Role)"
@@ -97,8 +102,10 @@ else
     [Parameter] public IconData? Icon { get; set; }
 
     /// <summary>
-    /// A keyboard hint shown at the end in a key cap, such as "Ctrl+C" or "⌘+C". Display only. The
+    /// A keyboard hint shown at the end in a key cap, such as "Ctrl+C" or "⌘+C"; the page handles the keys. The
     /// Mac modifier symbols ⌘ ⌥ ⇧ ⌃ are drawn as icons, so they look the same on every system.
+    /// Screen readers hear it after the item's name, as its description, and it's declared in
+    /// <c>aria-keyshortcuts</c>, so give only shortcuts the page handles.
     /// </summary>
     [Parameter] public string? Shortcut { get; set; }
 
@@ -211,9 +218,10 @@ else
             <Icon Name="icon" />
         }
         <span class="ib-menu-label">@ChildContent</span>
-        @if (Shortcut is not null)
+        @if (!string.IsNullOrWhiteSpace(Shortcut))
         {
-            <kbd class="ib-menu-shortcut">
+            @* The item's description, not part of its name: "Move up", then "Alt up arrow". *@
+            <kbd class="ib-menu-shortcut" id="@ShortcutId" aria-hidden="true">
                 @* Mac modifier symbols as icons: no web font has them, and system fallbacks draw them
                    at very different sizes. The character stays for screen readers. *@
                 @foreach (var c in Shortcut)
@@ -230,6 +238,67 @@ else
             </kbd>
         }
     </text>;
+
+    private string? _shortcutId;
+
+    private string? ShortcutId => string.IsNullOrWhiteSpace(Shortcut) ? null : _shortcutId ??= IdGenerator.Next("ib-key");
+
+    // The shortcut in aria-keyshortcuts' terms: "Alt+↑" is "Alt+ArrowUp", "⌘+⇧+P" and "⇧⌘P" are
+    // "Shift+Meta+P" or "Meta+Shift+P", "Ctrl++" is "Control+Plus". Spaces in a key are dropped
+    // ("Page Up"), since a space separates alternatives there.
+    private string? KeyShortcuts
+    {
+        get
+        {
+            if (string.IsNullOrWhiteSpace(Shortcut))
+            {
+                return null;
+            }
+
+            var text = Shortcut.Trim();
+            var plus = text.EndsWith("++", StringComparison.Ordinal) || text == "+";
+            var keys = new List<string>();
+            foreach (var part in text.Split('+', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+            {
+                // Mac symbols run together without "+": each is a key of its own.
+                var rest = part;
+                while (rest.Length > 1 && ModifierIcon(rest[0]) is not null)
+                {
+                    keys.Add(KeyName(rest[..1]));
+                    rest = rest[1..];
+                }
+
+                keys.Add(KeyName(rest.Replace(" ", "", StringComparison.Ordinal)));
+            }
+
+            if (plus)
+            {
+                keys.Add("Plus");
+            }
+
+            return keys.Count == 0 ? null : string.Join('+', keys);
+        }
+    }
+
+    private static string KeyName(string key) => key switch
+    {
+        "Ctrl" or "⌃" => "Control",
+        "Cmd" or "Win" or "⌘" => "Meta",
+        "Option" or "⌥" => "Alt",
+        "⇧" => "Shift",
+        "↑" => "ArrowUp",
+        "↓" => "ArrowDown",
+        "←" => "ArrowLeft",
+        "→" => "ArrowRight",
+        "Esc" => "Escape",
+        "Del" => "Delete",
+        "Ins" => "Insert",
+        "Return" => "Enter",
+        "PgUp" => "PageUp",
+        "PgDn" => "PageDown",
+        "Spc" => "Space",
+        _ => key,
+    };
 
     private static IconData? ModifierIcon(char c) => c switch
     {

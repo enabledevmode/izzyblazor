@@ -150,7 +150,7 @@
                     @* In place of the rows: what went wrong and a way to try again. *@
                     <tr class="ib-table-empty ib-table-error">
                         <td colspan="@Math.Max(1, _columns.Count + (Selectable ? 1 : 0))">
-                            <div class="ib-table-empty-content ib-table-error-content">
+                            <div class="ib-table-empty-content ib-data-error-content">
                                 @LoadFailedMessage
                                 @RetryControl(RetryAsync, _providerLoading)
                             </div>
