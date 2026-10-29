@@ -6,7 +6,7 @@
             <Grid Columns="new() { Base = 1, Md = 3 }" Gap="3">
                 @foreach (var (zone, label) in Columns)
                 {
-                    <Stack Gap="3" Padding="3" Bg="Color.FillSubtle" Radius="Radius.Lg">
+                    <Stack Gap="3" Padding="3" Bg="Color.SurfaceSunken" Radius="Radius.Lg">
                         <Heading Level="3" Size="TextSize.Md">@label</Heading>
                         <ListView Zone="@zone" AriaLabel="@label" Cards ItemText="t => t.Title" Size="ControlSize.Sm" />
                     </Stack>

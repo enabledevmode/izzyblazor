@@ -17,7 +17,7 @@ public readonly partial struct Color : IEquatable<Color>
 {
     private static readonly HashSet<string> Surfaces = new(StringComparer.Ordinal)
     {
-        "background", "surface", "fill-subtle", "fill", "fill-strong", "surface-overlay",
+        "background", "surface", "surface-sunken", "fill-subtle", "fill", "fill-strong", "surface-overlay",
     };
 
     private Color(string css, string? tokenName = null)
@@ -90,6 +90,14 @@ public readonly partial struct Color : IEquatable<Color>
 
     /// <summary>Cards, tables, fields and bars: white in light mode.</summary>
     public static Color Surface { get; } = Token("surface");
+
+    /// <summary>
+    /// An area set into a surface that holds surfaces of its own, such as a board's columns or a tray
+    /// of cards: below <see cref="Surface"/> in both modes, so the cards on it lift. Like
+    /// <see cref="FillSubtle"/> in light mode; the page's color in dark mode. Put it on a surface,
+    /// not on the <see cref="Background"/> page, where in dark mode it wouldn't show.
+    /// </summary>
+    public static Color SurfaceSunken { get; } = Token("surface-sunken");
 
     /// <summary>The quietest fill inside a surface, for large areas: a filled card, a panel, a band.</summary>
     public static Color FillSubtle { get; } = Token("fill-subtle");

@@ -44,6 +44,7 @@
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="stone"])) {
     --ib-color-background: light-dark(#f7f6f3, #08090a);
     --ib-color-surface: light-dark(#ffffff, #0e0f10);
+    --ib-color-surface-sunken: light-dark(#f3f2ee, #08090a);
     --ib-color-fill-subtle: light-dark(#f3f2ee, #161719);
     --ib-color-fill: light-dark(#eae8e2, #1d1f22);
     --ib-color-fill-strong: light-dark(#e0ddd5, #25272a);
@@ -62,6 +63,7 @@
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="slate"])) {
     --ib-color-background: light-dark(#f8fafc, #090b10);
     --ib-color-surface: light-dark(#ffffff, #0f1218);
+    --ib-color-surface-sunken: light-dark(#f1f4f8, #090b10);
     --ib-color-fill-subtle: light-dark(#f1f4f8, #171b22);
     --ib-color-fill: light-dark(#e7ebf1, #1e222a);
     --ib-color-fill-strong: light-dark(#dce2ea, #262b34);
@@ -82,6 +84,7 @@
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="neutral"])) {
     --ib-color-background: light-dark(#fafafa, #08080a);
     --ib-color-surface: light-dark(#ffffff, #0d0d0f);
+    --ib-color-surface-sunken: light-dark(#f3f3f5, #08080a);
     --ib-color-fill-subtle: light-dark(#f3f3f5, #141416);
     --ib-color-fill: light-dark(#e9e9ec, #1b1b1e);
     --ib-color-fill-strong: light-dark(#dfdfe3, #232326);

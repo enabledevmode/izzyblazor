@@ -1391,24 +1391,24 @@
     padding-inline-end: calc(0.5rem + var(--ib-control-h-sm) - var(--ib-space-4) + var(--ib-space-2));
   }
 
-  /* A card lifts when it's a link or button, rather than tinting, which would match a tinted
-     column behind it; the current card has an accent border. In dark schemes cards take the
-     overlay surface, so they sit above the page rather than sunk into it. */
+  /* A card lifts when it's a link or button, rather than tinting, which would match a sunken or
+     filled area behind it; the current card has an accent border. Cards are surfaces, as Card is:
+     put them on the page or on --ib-color-surface-sunken (a board's columns), where they lift in
+     both modes. */
   .ib-listview-cards .ib-listview-item {
-    background-color: light-dark(var(--ib-color-surface), var(--ib-color-surface-overlay));
     transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
 
   .ib-listview-cards .ib-listview-actionable:hover {
     border-color: color-mix(in oklab, var(--ib-color-border), var(--ib-color-on-surface) 25%);
-    background-color: light-dark(var(--ib-color-surface), var(--ib-color-surface-overlay));
+    background-color: var(--ib-color-surface);
     box-shadow: var(--ib-shadow-sm);
   }
 
   .ib-listview-cards .ib-listview-current,
   .ib-listview-cards .ib-listview-current:hover {
     border-color: var(--ib-color-primary);
-    background-color: light-dark(var(--ib-color-surface), var(--ib-color-surface-overlay));
+    background-color: var(--ib-color-surface);
   }
 
   .ib-listview-cards .ib-listview-current:not(:hover) {

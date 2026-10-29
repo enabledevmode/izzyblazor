@@ -1,6 +1,6 @@
 @* Each color where it's used: the page, a card on it (Surface), fills inside the card, each a step
-   further from it, and an overlay with a border and a shadow, as menus and popovers draw
-   over the card. *@
+   further from it, a sunken area holding a card of its own (a board's column), and an overlay with
+   a border and a shadow, as menus and popovers draw over the card. *@
 <Box Padding="4" Bg="Color.Background" Border="1" Radius="Radius.Lg" Grow>
     <Stack Gap="3">
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">Background</TextBlock>
@@ -12,6 +12,12 @@
                     <Box Padding="3" Bg="Color.Fill" Radius="Radius.Md">Fill</Box>
                     <Box Padding="3" Bg="Color.FillStrong" Radius="Radius.Md">FillStrong</Box>
                 </Grid>
+                <Box Padding="3" Bg="Color.SurfaceSunken" Radius="Radius.Md">
+                    <Stack Gap="2">
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">SurfaceSunken</TextBlock>
+                        <Box Padding="3" Bg="Color.Surface" Border="1" Radius="Radius.Md">A card in it</Box>
+                    </Stack>
+                </Box>
                 <Box Padding="3" Bg="Color.SurfaceOverlay" Border="1" Shadow="Shadow.Lg" Radius="Radius.Lg" MaxWidth="Length.Rem(16)">
                     SurfaceOverlay
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">A menu or popover</TextBlock>
