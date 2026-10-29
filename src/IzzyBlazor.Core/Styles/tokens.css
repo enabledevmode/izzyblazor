@@ -146,25 +146,25 @@
        are white surfaces on it. Fills sit inside a surface and step away from it as they get
        stronger: darker in light mode, lighter in dark mode, so the names hold in both. */
     --ib-color-background: light-dark(#fafafa, #08080a);
-    --ib-color-surface: light-dark(#ffffff, #0d0d0f);
+    --ib-color-surface: light-dark(#ffffff, #111113);
     /* Sunken: an area set into a surface that holds surfaces of its own (a board's columns, a tray
        of cards): below the surface in both modes, so the cards on it lift. In light mode it's the
        subtle fill; in dark mode the page, since the page is already the lowest step. */
     --ib-color-surface-sunken: light-dark(#f3f3f5, #08080a);
     /* Subtle: large quiet fills (a filled card, a panel, a band). Fill: small fills that must show (table
        heads, code, wells). Strong: selected and pressed fills, chips, tracks, skeletons. */
-    --ib-color-fill-subtle: light-dark(#f3f3f5, #141416);
-    --ib-color-fill: light-dark(#e9e9ec, #1b1b1e);
-    --ib-color-fill-strong: light-dark(#dfdfe3, #232326);
+    --ib-color-fill-subtle: light-dark(#f3f3f5, #19191b);
+    --ib-color-fill: light-dark(#e9e9ec, #202023);
+    --ib-color-fill-strong: light-dark(#dfdfe3, #28282b);
     /* Overlays (dialogs, menus, popovers, toasts): a step lighter than cards in dark mode, since
        shadows barely show there; the border does most of the separating. */
-    --ib-color-surface-overlay: light-dark(#ffffff, #17171a);
+    --ib-color-surface-overlay: light-dark(#ffffff, #1c1c1f);
     --ib-color-overlay-border: light-dark(transparent, rgb(255 255 255 / 0.08));
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
     --ib-color-subtle: light-dark(#66666d, #929299);
     --ib-color-disabled: light-dark(#8c8c93, #6c6c73);
-    --ib-color-border: light-dark(#dcdce0, #2e2e33);
+    --ib-color-border: light-dark(#dcdce0, #333338);
     /* Control edges: about 2:1 against the surface, darker than decorative borders so an empty
        field reads as a box, without outweighing the labels. */
     --ib-color-outline: light-dark(#b8b8bf, #47474d);
