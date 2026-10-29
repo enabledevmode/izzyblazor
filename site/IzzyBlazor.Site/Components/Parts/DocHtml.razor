@@ -1,11 +1,26 @@
+@using System.Net
+@using System.Text.RegularExpressions
 @inject ApiMetadata Api
 
 @* HTML from a doc comment, with its member links resolved for this page. The HTML is the
-   generator's, built from the library's own XML docs, so it's trusted. *@
+   generator's, built from the library's own XML docs, so it's trusted. Its code samples (plain
+   <pre><code>) go through Code, so they're colored and copyable like the rest of the site's. *@
 
 @if (!string.IsNullOrEmpty(Html))
 {
-    <Prose Size="Size" Class="@Class">@((MarkupString)Api.Resolve(Html, Context))</Prose>
+    <Prose Size="Size" Class="@Class">
+        @foreach (var (text, sample) in Parts(Api.Resolve(Html, Context)))
+        {
+            if (sample is null)
+            {
+                @((MarkupString)text)
+            }
+            else
+            {
+                <Code Block Language="@LanguageOf(sample)">@sample</Code>
+            }
+        }
+    </Prose>
 }
 
 @code {
@@ -16,4 +31,31 @@
     [Parameter] public ProseSize Size { get; set; } = ProseSize.Sm;
 
     [Parameter] public string? Class { get; set; }
+
+    private static readonly Regex Pre = new(@"<pre><code>(.*?)</code></pre>", RegexOptions.Singleline | RegexOptions.Compiled);
+
+    // The HTML between code samples (Sample null), and each sample as plain text (Text empty).
+    private static IEnumerable<(string Text, string? Sample)> Parts(string html)
+    {
+        var at = 0;
+        foreach (Match match in Pre.Matches(html))
+        {
+            if (match.Index > at)
+            {
+                yield return (html[at..match.Index], null);
+            }
+
+            yield return ("", WebUtility.HtmlDecode(match.Groups[1].Value));
+            at = match.Index + match.Length;
+        }
+
+        if (at < html.Length)
+        {
+            yield return (html[at..], null);
+        }
+    }
+
+    // The samples in component headers are markup; the rest are C#.
+    private static string LanguageOf(string code) =>
+        code.TrimStart() is var start && (start.StartsWith('<') || start.StartsWith('@')) ? "razor" : "csharp";
 }
