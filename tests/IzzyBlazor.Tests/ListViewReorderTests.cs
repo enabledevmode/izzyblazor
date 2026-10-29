@@ -332,4 +332,17 @@ public class ListViewReorderTests : BunitContext
         Assert.Equal("Ada verschieben", cut.Find(".ib-sortable-handle").GetAttribute("aria-label"));
         Assert.NotNull(MenuItem(cut, 1, "Nach oben"));
     }
+
+    [Fact]
+    public void DragWholeItem_marks_the_list_for_the_script_and_keeps_the_handles()
+    {
+        Static();
+        var cut = RenderList(more: p => p.Add(l => l.DragWholeItem, true));
+
+        Assert.True(cut.Find("ib-sortable").HasAttribute("data-ib-whole"));
+        Assert.Equal(3, cut.FindAll(".ib-sortable-handle").Count);
+
+        var plain = RenderList();
+        Assert.False(plain.Find("ib-sortable").HasAttribute("data-ib-whole"));
+    }
 }

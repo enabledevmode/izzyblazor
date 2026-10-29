@@ -11,6 +11,9 @@
  * static page), or asks the renderer to and settles when it has (an interactive one), so the
  * items stay where they were dropped until their nodes move.
  * Escape, a cancelled pointer or a lost capture put everything back.
+ *
+ * With a delay (a touch on the item rather than its handle), the press is a long press: the page
+ * scrolls as usual if the finger moves first, and the drag begins once it has been held still.
  */
 
 export interface SortOptions {
@@ -18,8 +21,10 @@ export interface SortOptions {
   list: HTMLElement;
   /** The item being dragged. */
   item: HTMLElement;
-  /** The pointerdown that may start the drag, on the item's handle. */
+  /** The pointerdown that may start the drag, on the item or its handle. */
   event: PointerEvent;
+  /** A long press: how long the pointer is held still before the drag begins (ms). */
+  delay?: number;
   /** Rows that wrap: a drop line instead of sliding, and the item follows the pointer both ways. */
   wrap: boolean;
   /** The drop, when the item lands somewhere new. Call settle to clear the transforms. */
@@ -30,14 +35,17 @@ export interface SortOptions {
 
 // A press moving less than this is a click (the handle's menu), not a drag.
 const THRESHOLD = 4;
+// A long press that moves further than this before its delay is up is a scroll, not a drag.
+const SLOP = 8;
 // Within this distance of a scroll container's edge, it scrolls; faster nearer the edge.
 const EDGE = 48;
 const MAX_SPEED = 16;
 
-/** Follows a press on a handle; becomes a drag once it moves a few pixels. */
+/** Follows a press; becomes a drag once it moves a few pixels, or once held for the delay. */
 export function trackDrag(options: SortOptions): void {
-  const { list, item, event, wrap } = options;
-  const handle = event.target as Element;
+  const { list, item, event, wrap, delay } = options;
+  // What was pressed: the handle, or anything on the item.
+  const grip = event.target as Element;
   const abort = new AbortController();
   const signal = abort.signal;
   const startX = event.clientX;
@@ -54,15 +62,17 @@ export function trackDrag(options: SortOptions): void {
   let tops: number[] = [];
   let heights: number[] = [];
   let itemTop = 0;
+  let itemLeft = 0;
   let step = 0;
   let marked: HTMLElement | null = null;
   let scroller: Element | null = null;
   let frame = 0;
+  let held = 0;
 
   try {
-    handle.setPointerCapture(event.pointerId);
+    grip.setPointerCapture(event.pointerId);
   } catch {
-    // An unknown pointer (synthetic events): moves still arrive while over the handle.
+    // An unknown pointer (synthetic events): moves still arrive while over what was pressed.
   }
 
   const begin = () => {
@@ -74,12 +84,24 @@ export function trackDrag(options: SortOptions): void {
     heights = items.map((el) => el.getBoundingClientRect().height);
     const own = item.getBoundingClientRect();
     itemTop = own.top - box.top;
+    itemLeft = own.left - box.left;
     step = own.height + (parseFloat(getComputedStyle(list).rowGap) || 0);
     scroller = scrollParent(list);
     list.classList.add("ib-sortable-sorting");
     item.classList.add("ib-sortable-dragging");
     frame = requestAnimationFrame(autoScroll);
   };
+
+  if (delay) {
+    held = window.setTimeout(() => {
+      if (!grip.isConnected) {
+        finish(false);
+        return;
+      }
+      begin();
+      update();
+    }, delay);
+  }
 
   const update = () => {
     const box = list.getBoundingClientRect();
@@ -106,6 +128,16 @@ export function trackDrag(options: SortOptions): void {
 
   // Rows that wrap: the nearest other item, and which side of it the pointer is on.
   const markDropLine = () => {
+    marked?.removeAttribute("data-ib-drop");
+    marked = null;
+    // Over the item's own place (a long press not moved yet, or a drag brought back): it stays.
+    const box = list.getBoundingClientRect();
+    const left = box.left + itemLeft;
+    const top = box.top + itemTop;
+    if (x >= left && x <= left + item.offsetWidth && y >= top && y <= top + heights[from]) {
+      to = from;
+      return;
+    }
     let best = -1;
     let distance = Infinity;
     items.forEach((el, i) => {
@@ -117,8 +149,6 @@ export function trackDrag(options: SortOptions): void {
         best = i;
       }
     });
-    marked?.removeAttribute("data-ib-drop");
-    marked = null;
     if (best < 0) return;
     const target = items[best];
     const r = target.getBoundingClientRect();
@@ -154,8 +184,9 @@ export function trackDrag(options: SortOptions): void {
   const finish = (drop: boolean) => {
     abort.abort();
     cancelAnimationFrame(frame);
+    clearTimeout(held);
     try {
-      handle.releasePointerCapture(event.pointerId);
+      grip.releasePointerCapture(event.pointerId);
     } catch {
       // Already released.
     }
@@ -168,15 +199,17 @@ export function trackDrag(options: SortOptions): void {
       item.classList.remove("ib-sortable-dragging");
       for (const el of items) el.style.transform = "";
     };
-    // The click that follows the pointerup would open the handle's menu.
-    handle.addEventListener("click", swallow, { capture: true, once: true });
-    setTimeout(() => handle.removeEventListener("click", swallow, { capture: true }), 0);
+    // The click that follows the pointerup would open the handle's menu, or follow the item's link.
+    // (A touch's comes later; <ib-sortable> cancels its touchend instead.)
+    item.addEventListener("click", swallow, { capture: true, once: true });
+    setTimeout(() => item.removeEventListener("click", swallow, { capture: true }), 0);
     if (drop && to !== from) options.onDrop(from, to, settle);
     else settle();
     options.onEnd?.();
   };
 
-  handle.addEventListener(
+  // On the document: what was pressed may be rendered away mid-drag, taking its capture with it.
+  document.addEventListener(
     "pointermove",
     (e) => {
       const move = e as PointerEvent;
@@ -184,7 +217,14 @@ export function trackDrag(options: SortOptions): void {
       x = move.clientX;
       y = move.clientY;
       if (!dragging) {
-        if (Math.hypot(x - startX, y - startY) < THRESHOLD) return;
+        const moved = Math.hypot(x - startX, y - startY);
+        if (delay) {
+          // Moving before the long press is up: the finger is scrolling the page.
+          // In CSS pixels, so as many screen pixels on a page zoomed out as in.
+          if (moved > SLOP / (window.visualViewport?.scale ?? 1)) finish(false);
+          return;
+        }
+        if (moved < THRESHOLD) return;
         begin();
       }
       move.preventDefault();
@@ -192,9 +232,9 @@ export function trackDrag(options: SortOptions): void {
     },
     { signal }
   );
-  handle.addEventListener("pointerup", (e) => (e as PointerEvent).pointerId === event.pointerId && finish(true), { signal });
-  handle.addEventListener("pointercancel", () => finish(false), { signal });
-  handle.addEventListener("lostpointercapture", () => finish(false), { signal });
+  document.addEventListener("pointerup", (e) => e.pointerId === event.pointerId && finish(true), { signal });
+  document.addEventListener("pointercancel", (e) => e.pointerId === event.pointerId && finish(false), { signal });
+  grip.addEventListener("lostpointercapture", () => grip.isConnected && finish(false), { signal });
   document.addEventListener(
     "keydown",
     (e) => {

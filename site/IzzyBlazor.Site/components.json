@@ -1428,6 +1428,12 @@
             "noscript": "Each move in a handle's menu posts the form, and the page comes back with the item moved and its handle focused. Save order saves.",
             "static": "Drag a handle, or use its menu or Alt+arrows: items move in the page and the move is announced. Save order posts the new order.",
             "interactive": "Drag a handle, or use its menu or Alt+arrows: C# changes the list at once and the move is announced. Save order shows the order @bind-Items holds."
+          } },
+        { "id": "list-view-drag-cards", "title": "Dragging the whole item", "lead": "Use `DragWholeItem` to let a drag start anywhere on an item, such as cards in `Columns`: with a mouse after a small move, on touch after a long press, so a swipe still scrolls the page. Links, buttons and fields in an item keep their presses, and the handle stays as the menu of moves.",
+          "notes": {
+            "noscript": "Nothing drags: each card's handle menu posts the move, as in the example above.",
+            "static": "Drag a card, or press and hold one on a phone: a line shows where it lands. Save layout posts the new order.",
+            "interactive": "Drag a card, or press and hold one on a phone: C# changes the list on the drop."
           } }
       ]
     },

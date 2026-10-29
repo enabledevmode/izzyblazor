@@ -3,6 +3,14 @@ import { trackDrag } from "../sortable";
 
 const HANDLE = ".ib-sortable-handle";
 const ITEM = ".ib-sortable-item";
+// With data-ib-whole, a press on these stays theirs; the item's stretched link or button drags.
+// Overlays an item opens (its menus, dialogs, a combobox's list) sit in the item too. Not
+// [tabindex]: an item that Load more focuses has tabindex=-1 itself.
+const CONTROL = "a[href]:not(.ib-listview-action), button:not(.ib-listview-action), input, select, textarea, label, summary, video, audio, [contenteditable]:not([contenteditable=false]), [popover], dialog, [role=dialog], [role=menu], [data-ib-role=menu], [role=listbox]";
+// An item's own handle; a nested list's handles are deeper.
+const OWN_HANDLE = ":scope > ib-popover > .ib-sortable-handle";
+// A touch on the item (not its handle) is a long press this long, so the page still scrolls.
+const LONG_PRESS = 250;
 
 type Move = "up" | "down" | "top" | "bottom";
 
@@ -16,12 +24,16 @@ type Move = "up" | "down" | "top" | "bottom";
  * - Dragging a handle. On a static page the drop moves the item here. On an interactive page it
  *   raises `ibmove` (key, index, seq) and C# moves it; the dragged item stays where it was dropped
  *   until the render that has handled that drop (data-ib-seq) arrives, so nothing jumps back first.
+ * - With data-ib-whole, dragging the item itself, from anywhere but the controls in it: a mouse
+ *   drags after a few pixels, a touch or pen after a long press.
  * With JavaScript off, the menu items post the form and the server moves the item.
  */
 class Sortable extends IzzyElement {
   // The last drop reported to C#, and whether one is waiting for its render.
   private seq = 0;
   private settling = false;
+  // A drag just ended: the touchend that follows mustn't become a tap on the item.
+  private dropped = false;
 
   private get list(): HTMLElement | null {
     return this.querySelector(":scope > .ib-sortable-list");
@@ -31,10 +43,42 @@ class Sortable extends IzzyElement {
     return this.hasAttribute("data-ib-interactive");
   }
 
+  private get whole(): boolean {
+    return this.hasAttribute("data-ib-whole");
+  }
+
+  private get sorting(): boolean {
+    return this.list?.classList.contains("ib-sortable-sorting") ?? false;
+  }
+
   protected setup(signal: AbortSignal): void {
     this.addEventListener("click", (event) => this.onClick(event), { signal });
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
     this.addEventListener("pointerdown", (event) => this.onPointerDown(event), { signal });
+    // A drag from the item: a link or image would start the browser's own drag, a held touch
+    // would open its context menu, and a moving one would scroll the page.
+    this.addEventListener("dragstart", (event) => this.fromItem(event.target as Element) && event.preventDefault(), { signal });
+    this.addEventListener("contextmenu", (event) => this.sorting && event.preventDefault(), { signal });
+    // Only lists that drag from the item: a listener that can cancel touchmove makes every scroll
+    // starting over the list wait for the script (handles don't need it: touch-action: none).
+    // ListView re-creates the element when DragWholeItem changes, so this runs again.
+    if (this.whole) {
+      this.addEventListener("touchmove", (event) => this.sorting && event.preventDefault(), { signal, passive: false });
+    }
+    // A touch lifted and let go in place is still a tap to the browser, whose click comes later
+    // than the drag's own swallowing: cancelling the touchend stops it.
+    this.addEventListener("touchend", (event) => {
+      if (!this.dropped) return;
+      this.dropped = false;
+      event.preventDefault();
+    }, { signal, passive: false });
+  }
+
+  /** With data-ib-whole, the movable item a press on this element drags, if not a control's. */
+  private fromItem(target: Element): HTMLElement | null {
+    const item = this.whole ? this.itemOf(target) : null;
+    const control = target.closest(CONTROL);
+    return item && !(control && item.contains(control)) && item.querySelector(OWN_HANDLE) ? item : null;
   }
 
   private itemOf(el: Element | null): HTMLElement | null {
@@ -84,8 +128,11 @@ class Sortable extends IzzyElement {
   private onPointerDown(event: PointerEvent): void {
     // While prerendered for an interactive page, nothing would answer a drop yet: C# renders
     // data-ib-seq once it's running.
-    if (event.button !== 0 || (this.live && !this.hasAttribute("data-ib-seq"))) return;
-    const handle = (event.target as Element).closest(HANDLE);
+    // One drag at a time: a second finger doesn't start another.
+    if (event.button !== 0 || !event.isPrimary || this.sorting || (this.live && !this.hasAttribute("data-ib-seq"))) return;
+    this.dropped = false;
+    const target = event.target as Element;
+    const handle = target.closest(HANDLE);
     if (this.settling) {
       // The last drop is still on its way: no new drag yet, and the press doesn't open the menu.
       if (handle) {
@@ -97,14 +144,19 @@ class Sortable extends IzzyElement {
       }
       return;
     }
-    const item = this.itemOf(handle);
+    // From the handle, or from the item itself: not a control in it (or one that took the press),
+    // and only an item with its own handle moves.
+    const item = handle ? this.itemOf(handle) : event.defaultPrevented ? null : this.fromItem(target);
+    const fromItem = !handle;
     const list = this.list;
-    if (!handle || !item || !list) return;
+    if (!item || !list) return;
     trackDrag({
       list,
       item,
       event,
+      delay: fromItem && event.pointerType !== "mouse" ? LONG_PRESS : 0,
       wrap: this.classList.contains("ib-sortable-horizontal"),
+      onEnd: () => (this.dropped = event.pointerType !== "mouse"),
       onDrop: (_, to, settle) => {
         if (this.live) {
           this.report(item, to, settle);

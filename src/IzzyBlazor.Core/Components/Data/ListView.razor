@@ -112,11 +112,13 @@
             {
                 @* The drag, the handle menu's moves in place and the shortcuts (static pages), and the
                    live region that announces every move. *@
-                <ib-sortable class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
+                @* Keyed by DragWholeItem: the element sets up its touch handling once, for one or the other. *@
+                <ib-sortable @key="DragWholeItem" class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
                              data-ib-interactive="@(Live ? "" : null)"
                              data-ib-seq="@(RendererInfo.IsInteractive ? _moveSeq.ToString(CultureInfo.InvariantCulture) : null)"
                              @onibmove="DropAsync" @onibmove:stopPropagation="true"
                              data-ib-submit="@(Posts && SubmitOnMove ? "" : null)"
+                             data-ib-whole="@(DragWholeItem ? "" : null)"
                              data-ib-moved="@TextDefaults.MovedTo"
                              data-ib-cancelled="@(Live ? TextDefaults.MoveCancelled : null)">
                     @ItemsList
@@ -270,6 +272,16 @@
     /// </summary>
     [Parameter, ModeSupport(Interactive = ModeLevel.None)]
     public bool SubmitOnMove { get; set; }
+
+    /// <summary>
+    /// For a <see cref="Reorderable"/> list, lets a drag start anywhere on an item, not only on its
+    /// handle: with a mouse after a small move, on touch after a long press (so a swipe still
+    /// scrolls the page). Links, buttons and fields in the item keep their presses; the item's own
+    /// link (<see cref="ItemHref"/>) or button (<see cref="OnItemClick"/>) still works on a click.
+    /// The handle stays, as the menu of moves.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool DragWholeItem { get; set; }
 
     private string? _class;
     private string? _style;

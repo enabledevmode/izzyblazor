@@ -1,0 +1,53 @@
+@* DragWholeItem: each card drags from anywhere on it, with a mouse after a small move and on touch
+   after a long press, so a swipe still scrolls. The handle stays as the menu of moves. *@
+<Stack Gap="3" Grow>
+    <Form Model="this" FormName="list-view-tiles" OnValidSubmit="Save">
+        <ListView @bind-Items="_tiles" ItemKey="t => t.Id" ItemLabel="t => t.Title" Reorderable DragWholeItem Name="tiles" Order="Order"
+                  Columns="3" Bordered Context="tile">
+            <Stack Gap="1">
+                <Heading Level="3" Size="TextSize.Md">@tile.Title</Heading>
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@tile.Description</TextBlock>
+            </Stack>
+        </ListView>
+        <FormActions><Button Submit>Save layout</Button></FormActions>
+    </Form>
+    @if (_saved is not null)
+    {
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
+    }
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "list-view-tiles", Name = "tiles")]
+    private ListOrder? Order { get; set; }
+
+    private IReadOnlyList<Tile> _tiles =
+    [
+        new("sales", "Sales", "Revenue this month against last."),
+        new("orders", "Orders", "Open, shipped and returned."),
+        new("traffic", "Traffic", "Visitors by source."),
+        new("stock", "Stock", "Items running low."),
+        new("support", "Support", "Tickets waiting for a reply."),
+        new("team", "Team", "Who's in today."),
+    ];
+    private string? _saved;
+
+    private void Save()
+    {
+        // A menu move posts too; only the Save button saves.
+        if (Order?.Move is not null)
+        {
+            return;
+        }
+
+        if (Order is not null)
+        {
+            _tiles = Order.Arrange(_tiles, t => t.Id);
+        }
+
+        _saved = $"Saved: {string.Join(", ", _tiles.Select(t => t.Title))}.";
+    }
+    @* hide *@
+    private sealed record Tile(string Id, string Title, string Description);
+    @* /hide *@
+}
