@@ -82,6 +82,8 @@ public sealed class GrayPalette
         var surfaceL = Math.Min(1.0, page + 0.015);
         light["surface"] = surfaceL >= 0.999 || c < 0.003 ? Rgb.Parse("#ffffff") : Tint(surfaceL, 0.4);
         light["surface-overlay"] = light["surface"];
+        // Sunken holds surfaces of its own: below the surface, as the subtle fill is in light mode.
+        light["surface-sunken"] = light["fill-subtle"];
 
         Rgb LightText(double l, double factor, double cap, double target, params string[] on)
         {
@@ -113,6 +115,9 @@ public sealed class GrayPalette
             ["border"] = Shade(0.303, 0.8),
         };
 
+        // Below the surface in dark mode: the page, already the lowest step.
+        dark["surface-sunken"] = dark["background"];
+
         Rgb DarkText(double l, double factor, double cap, double target, params string[] on)
         {
             var color = Shade(l, factor, cap);
@@ -133,7 +138,7 @@ public sealed class GrayPalette
 
         string[] order =
         [
-            "background", "surface", "fill-subtle", "fill", "fill-strong", "surface-overlay",
+            "background", "surface", "surface-sunken", "fill-subtle", "fill", "fill-strong", "surface-overlay",
             "on-surface", "muted", "subtle", "disabled", "border", "outline",
         ];
         return new GrayPalette([.. order.Select(t => (t, light[t].ToHex(), dark[t].ToHex()))]);

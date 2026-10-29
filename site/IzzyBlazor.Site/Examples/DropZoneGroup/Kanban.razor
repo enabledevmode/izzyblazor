@@ -6,7 +6,7 @@
    loads the page again, shows the board as it was left. *@
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Http
-<AppShell Variant="ShellVariant.Canvas">
+<AppShell>
     <AppHeader>
         <AppBrand Icon="Lucide.SquareKanban" Label="Acme Projects" />
         <Box Grow />
@@ -47,7 +47,7 @@
                         @foreach (var column in Columns)
                         {
                             var count = Board.Count(p => p.Zone == column.Id);
-                            <Stack Gap="3" Padding="3" Bg="Color.FillSubtle" Radius="Radius.Lg" Border="1" BorderColor="Color.Transparent">
+                            <Stack Gap="3" Padding="3" Bg="Color.SurfaceSunken" Radius="Radius.Lg" Border="1" BorderColor="Color.Transparent">
                                 <Row Gap="2" Align="Align.Center">
                                     <Heading Level="2" Size="TextSize.Sm">@column.Name</Heading>
                                     <Badge Size="BadgeSize.Sm" Pill>@(column.Limit is { } limit ? $"{count} / {limit}" : count)</Badge>

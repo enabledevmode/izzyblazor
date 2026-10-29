@@ -53,6 +53,7 @@
                 <tbody>
                     <tr><td>Page</td><td><code>--ib-color-background</code></td><td>The page behind everything</td></tr>
                     <tr><td>Surface</td><td><code>--ib-color-surface</code>, with a border</td><td>Cards, panels, tables, bars: anything on the page</td></tr>
+                    <tr><td>Sunken</td><td><code>--ib-color-surface-sunken</code></td><td>An area in a surface that holds surfaces: a board's columns, a tray of cards</td></tr>
                     <tr><td>Overlay</td><td><code>--ib-color-surface-overlay</code>, with a shadow</td><td>Menus, popovers, dialogs, toasts</td></tr>
                     <tr><td>Fills</td><td><code>--ib-color-fill-subtle</code></td><td>Large quiet fills inside a surface: a filled card, a panel, a band</td></tr>
                     <tr><td></td><td><code>--ib-color-fill</code></td><td>Small fills that must show: table heads, code, wells</td></tr>
@@ -95,7 +96,7 @@
             <table>
                 <thead><tr><th>Group</th><th>Tokens</th></tr></thead>
                 <tbody>
-                    <tr><td>Page and surfaces</td><td><code>--ib-color-background</code>, <code>-surface</code>, <code>-surface-overlay</code>, <code>-overlay-border</code> (an overlay's edge in dark mode), <code>-fill-subtle</code>, <code>-fill</code>, <code>-fill-strong</code></td></tr>
+                    <tr><td>Page and surfaces</td><td><code>--ib-color-background</code>, <code>-surface</code>, <code>-surface-sunken</code>, <code>-surface-overlay</code>, <code>-overlay-border</code> (an overlay's edge in dark mode), <code>-fill-subtle</code>, <code>-fill</code>, <code>-fill-strong</code></td></tr>
                     <tr><td>Text and lines</td><td><code>--ib-color-on-surface</code>, <code>-muted</code>, <code>-subtle</code>, <code>-disabled</code>, <code>-border</code>, <code>-outline</code>, <code>-backdrop</code> (behind dialogs)</td></tr>
                     <tr><td>Brand</td><td><code>--ib-color-primary</code>, <code>-on-primary</code>, <code>-primary-text</code>, <code>-primary-soft</code></td></tr>
                     <tr><td>Status</td><td><code>--ib-color-success</code>, <code>-warning</code>, <code>-danger</code>, <code>-info</code>, <code>-neutral</code>, each with <code>-on-</code>; the first four with <code>-text</code> and <code>-soft</code>. Tuned against every gray, so change them as a set.</td></tr>

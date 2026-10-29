@@ -38,6 +38,9 @@ public class GrayPaletteTests : BunitContext
         Assert.True(Lum(p["fill-subtle"].Light) > Lum(p["fill"].Light));
         Assert.True(Lum(p["fill"].Light) > Lum(p["fill-strong"].Light));
         Assert.True(Lum(p["background"].Dark) < Lum(p["surface"].Dark));
+        // Sunken sits below the surface in both modes, so cards on it lift.
+        Assert.True(Lum(p["surface-sunken"].Light) < Lum(p["surface"].Light));
+        Assert.True(Lum(p["surface-sunken"].Dark) < Lum(p["surface"].Dark));
         // Warm stays warm in dark mode: red above blue.
         Assert.True(Convert.ToInt32(p["background"].Dark[1..3], 16) > Convert.ToInt32(p["background"].Dark[5..7], 16));
     }
@@ -48,7 +51,7 @@ public class GrayPaletteTests : BunitContext
         var p = Colors(GrayPalette.From("#fafafa"));
         Assert.Equal("#ffffff", p["surface"].Light);
         Assert.Equal("#ffffff", p["surface-overlay"].Light);
-        Assert.Equal(12, p.Count);
+        Assert.Equal(13, p.Count);
     }
 
     [Fact]

@@ -7,6 +7,7 @@
   --site-ember-text: light-dark(#b8480b, #ff9a5c);
   --ib-color-background: light-dark(#fafafa, #08090b);
   --ib-color-surface: light-dark(#ffffff, #0d0e11);
+  --ib-color-surface-sunken: light-dark(#f3f3f5, #08090b);
   --ib-color-fill-subtle: light-dark(#f3f3f5, #14161a);
   --ib-color-fill: light-dark(#e9e9ec, #1b1d22);
   --ib-color-fill-strong: light-dark(#dfdfe3, #23252b);
