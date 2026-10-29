@@ -4,6 +4,16 @@
  * form post patches the page in place instead, so autofocus doesn't fire: this moves focus there.
  */
 export function focusMarked(): void {
+  // A static list that grew as it was scrolled (data-view.ts): the reader is scrolling, not
+  // pressing Load more, so focus stays. A symbol on the document, not an attribute: enhanced
+  // navigation resets <html>'s attributes, and the lazy elements have their own copy of modules.
+  const skip = Symbol.for("ib.skipFocusMark");
+  const flags = document as unknown as Record<symbol, boolean>;
+  if (flags[skip]) {
+    flags[skip] = false;
+    return;
+  }
+
   // The first one that can take focus, as native autofocus does: a group in a closed tab panel
   // is skipped.
   const target = [...document.querySelectorAll<HTMLElement>("[data-ib-autofocus]")].find((el) =>

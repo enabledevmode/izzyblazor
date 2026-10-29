@@ -1,6 +1,6 @@
 @* First, Previous and Next by cursor, for a source that gives both cursors and a total. The cursor
    is opaque to the table; a new sort starts again from the first page. *@
-<Table TItem="Order" ItemsProvider="LoadOrders" PageSize="5" Paging="TablePaging.NextPrevious" InitialSort="-date"
+<Table TItem="Order" ItemsProvider="LoadOrders" PageSize="5" Paging="DataPaging.NextPrevious" InitialSort="-date"
        Caption="Orders by cursor" QueryPrefix="cursor-" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
     <PropertyColumn Property="o => o.Customer" Sortable />

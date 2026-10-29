@@ -1,0 +1,39 @@
+@* On a static page the list posts with its form: Order holds the posted keys and any menu move,
+   and the list shows them. Save arranges the steps when the form's own button posted. *@
+<Stack Gap="3" MaxWidth="24.Rem" Grow>
+    <Form Model="this" FormName="list-view-steps" OnValidSubmit="Save">
+        <ListView @bind-Items="_steps" ItemKey="s => s.Id" ItemText="s => s.Title" Reorderable Name="order" Order="Order" Bordered />
+        <FormActions><Button Submit>Save order</Button></FormActions>
+    </Form>
+    @if (_saved is not null)
+    {
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
+    }
+</Stack>
+
+@code {
+    [SupplyParameterFromForm(FormName = "list-view-steps", Name = "order")]
+    private ListOrder? Order { get; set; }
+
+    private IReadOnlyList<Step> _steps = [new("1", "Draft"), new("2", "Review"), new("3", "Approve"), new("4", "Publish")];
+    private string? _saved;
+
+    private void Save()
+    {
+        // A menu move posts too; only the Save button saves.
+        if (Order?.Move is not null)
+        {
+            return;
+        }
+
+        if (Order is not null)
+        {
+            _steps = Order.Arrange(_steps, s => s.Id);
+        }
+
+        _saved = $"Saved: {string.Join(", ", _steps.Select(s => s.Title))}.";
+    }
+    @* hide *@
+    private sealed record Step(string Id, string Title);
+    @* /hide *@
+}

@@ -1,0 +1,492 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits DataViewBase<TItem>
+@using System.Globalization
+@using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Logging
+@attribute [ModeSupport]
+
+@*
+    A list of items from data, each drawn by a template: contacts, notifications, files, results.
+    The list sibling of Table: the same Items or ItemsProvider, ItemKey and paging, with one
+    template per item instead of columns.
+
+    <ListView Items="people" ItemKey="p => p.Id" ItemHref="@(p => $"/people/{p.Id}")" Context="person">
+        <Avatar Name="@person.Name" /> @person.Name
+    </ListView>
+
+    With no template, ItemText, ItemDescription and ItemIcon draw a row of an icon, the text and
+    a muted second line. ItemHref makes each item a link (the whole item is clickable; links and
+    buttons inside it still work on their own), and ItemCurrent marks the one the page is
+    showing. OnItemClick does the same with a button, on interactive pages.
+
+    PageSize pages the items as Table does: numbered pages or First/Previous/Next by cursor, in the
+    URL (?page=, ?cursor=, ?size=) or, bound on an interactive page, in the component. Load more
+    and loading on scroll add each page under the items, with the button after the last one; give
+    the list a MaxHeight and they scroll in its box.
+    If an ItemsProvider fails, the list shows "Couldn't load the items." with Retry.
+
+    Accessibility:
+    - It's a `ul` of `li`s with `role="list"` (Safari drops a list's role without markers), so
+      screen readers say how many items there are and where each one is.
+    - With `ItemHref` or `OnItemClick`, each item has one link or button, named by `ItemLabel`
+      (or the key), stretched over the item: one Tab stop per item.
+    - The current item (`ItemCurrent`) is marked `aria-current` (on its link when it has one).
+    - A disabled item (`ItemDisabled`) has no link or button, and is dimmed.
+    - With `Selectable`, each item has a checkbox named "Select" and the item's label; with
+      script, a "Select all rows" checkbox above the list checks the page.
+    - The range under a paged list ("1–10 of 42") is read when it changes, and a failed load is
+      announced from a status region.
+    See also: Table, List.
+*@
+
+<ib-listview @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)"
+             tabindex="-1" @ref="_listRef">
+    @ErrorStatus
+    @if (Selectable)
+    {
+        @* Select all (this page): script only; it checks the items, which report their own changes.
+           Always rendered, so the script finds it when items arrive after an empty first render;
+           CSS hides it while there are no items. *@
+        <div class="ib-listview-select-all-row">
+            <label class="ib-listview-select-all-label">
+                <input type="checkbox" class="ib-check-input ib-listview-select-all" checked="@AllOnPageSelected" />
+                @(SelectAllLabel ?? TextDefaults.SelectAllRows)
+            </label>
+        </div>
+    }
+    @if (Posts)
+    {
+        @* The form's default button, ahead of the move buttons: Enter in another field submits the
+           form, rather than pressing the first item's (often disabled) Move up. *@
+        <button type="submit" class="ib-listview-default-submit" tabindex="-1" aria-hidden="true"></button>
+    }
+    @* The items and, in a list that grows, Load more after them: one box, which scrolls with a MaxHeight. *@
+    <div class="@(MaxHeight is null ? "ib-listview-body" : "ib-listview-body ib-listview-scroll")" style="@BodyStyle" role="@(MaxHeight is null ? null : "region")"
+         aria-label="@(MaxHeight is null ? null : AriaLabel ?? TextDefaults.ListName)" tabindex="@(MaxHeight is null ? null : "0")">
+        @if (_loadError is not null)
+        {
+            @* In place of the items: what went wrong and a way to try again. *@
+            <div class="ib-listview-state ib-table-error-content">
+                @LoadFailedMessage
+                @RetryControl(RetryAsync, _providerLoading)
+            </div>
+        }
+        else if (_items.Count == 0 && IsLoading)
+        {
+            <ul class="ib-listview-list" role="list" aria-hidden="true">
+                @for (var i = 0; i < Math.Clamp(EffectivePageSize ?? 3, 1, 6); i++)
+                {
+                    <li class="ib-listview-item ib-listview-skeleton"><span class="ib-skeleton ib-listview-skeleton-line"></span></li>
+                }
+            </ul>
+        }
+        else if (_items.Count == 0)
+        {
+            <div class="ib-listview-state">
+                @if (EmptyContent is not null)
+                {
+                    @EmptyContent
+                }
+                else
+                {
+                    @(EmptyText ?? TextDefaults.NoItems)
+                }
+            </div>
+        }
+        else
+        {
+            @if (Reorderable)
+            {
+                @* The drag, the handle menu's moves in place and the shortcuts (static pages), and the
+                   live region that announces every move. *@
+                <ib-sortable class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
+                             data-ib-interactive="@(Live ? "" : null)"
+                             data-ib-submit="@(Posts && SubmitOnMove ? "" : null)"
+                             data-ib-moved="@TextDefaults.MovedTo">
+                    @ItemsList
+                    <div class="ib-visually-hidden" role="status">@_announcement</div>
+                </ib-sortable>
+            }
+            else
+            {
+                @ItemsList
+            }
+        }
+        @MoreRow
+    </div>
+    @Footer(PagesLabel)
+</ib-listview>
+
+@code {
+    /// <summary>An item's content. Without it, <see cref="ItemText"/>, <see cref="ItemDescription"/> and <see cref="ItemIcon"/> draw a row.</summary>
+    [Parameter] public RenderFragment<TItem>? ChildContent { get; set; }
+
+    /// <summary>The default row's text. Defaults to the item's string form.</summary>
+    [Parameter] public Func<TItem, string?>? ItemText { get; set; }
+
+    /// <summary>The default row's muted second line, such as an email address or a date.</summary>
+    [Parameter] public Func<TItem, string?>? ItemDescription { get; set; }
+
+    /// <summary>The default row's icon, at its start.</summary>
+    [Parameter] public Func<TItem, IconData?>? ItemIcon { get; set; }
+
+    /// <summary>
+    /// Names an item for screen readers, in its link or button. Defaults to <see cref="ItemText"/>,
+    /// then the <see cref="DataViewBase{TItem}.ItemKey"/>.
+    /// </summary>
+    [Parameter] public Func<TItem, string>? ItemLabel { get; set; }
+
+    /// <summary>
+    /// Makes each item a link, such as to its details page. The whole item is clickable; links,
+    /// buttons and fields inside it still work on their own.
+    /// </summary>
+    [Parameter] public Func<TItem, string?>? ItemHref { get; set; }
+
+    /// <summary>
+    /// The item for what the page is showing, such as the one whose details are beside the list:
+    /// drawn as selected, and marked <c>aria-current</c> (on its link with <see cref="ItemHref"/>).
+    /// </summary>
+    [Parameter] public Func<TItem, bool>? ItemCurrent { get; set; }
+
+    /// <summary>Makes each item a button that runs this, on interactive pages. Items with an <see cref="ItemHref"/> are links instead.</summary>
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<TItem> OnItemClick { get; set; }
+
+    /// <summary>Dims an item and leaves it without its link or button.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
+
+    /// <summary>
+    /// <see cref="Orientation.Vertical"/> (the default) lists the items top to bottom;
+    /// <see cref="Orientation.Horizontal"/> side by side, wrapping when space runs out.
+    /// </summary>
+    [Parameter] public Orientation Orientation { get; set; } = Orientation.Vertical;
+
+    /// <summary>
+    /// Lays the items out as cards in this many columns (2 to 6) on screens 640px and wider, such as
+    /// a gallery of products. Phones get one. Defaults to 1, a list.
+    /// </summary>
+    [Parameter] public int Columns { get; set; } = 1;
+
+    /// <summary>
+    /// A height limit: the items scroll inside the list's box, with Load more after the last one.
+    /// With <see cref="DataPaging.LoadOnScroll"/>, the next page loads as the last item scrolls into view.
+    /// </summary>
+    [Parameter] public Length? MaxHeight { get; set; }
+
+    /// <summary>A line between items in a list. Defaults to true.</summary>
+    [Parameter] public bool Dividers { get; set; } = true;
+
+    /// <summary>A rounded border around the list. Defaults to false.</summary>
+    [Parameter] public bool Bordered { get; set; }
+
+    /// <summary>Item spacing and text size. Defaults to <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize Size { get; set; } = ControlSize.Md;
+
+    /// <summary>Names the list for screen readers, when the text around it doesn't.</summary>
+    [Parameter] public string? AriaLabel { get; set; }
+
+    /// <summary>
+    /// Lets the user reorder the items: each gets a handle to drag, which also opens a menu (Move
+    /// up, Move down, Move to top, Move to bottom) for moving without dragging. Needs an
+    /// <see cref="DataViewBase{TItem}.ItemKey"/> and every item shown: no paging and no
+    /// <see cref="DataViewBase{TItem}.ItemsProvider"/>. On interactive pages bind the order with
+    /// <c>@bind-Items</c>; on static pages give it a <see cref="Name"/> inside a form and pass the
+    /// posted <see cref="ListOrder"/> back as <see cref="Order"/>.
+    /// </summary>
+    [Parameter] public bool Reorderable { get; set; }
+
+    /// <summary>Runs with the items in their new order after a move, on interactive pages; use <c>@bind-Items</c>.</summary>
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
+
+    /// <summary>
+    /// Runs before a move changes the list, on interactive pages: save it here, or set
+    /// <see cref="ListMoveEventArgs{TItem}.Cancel"/> to keep the item where it was.
+    /// </summary>
+    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<ListMoveEventArgs<TItem>> OnMove { get; set; }
+
+    /// <summary>
+    /// For a <see cref="Reorderable"/> list on a static page, the prefix of the fields it posts:
+    /// <c>{Name}.Keys</c> and <c>{Name}.Move</c>, bound as a <see cref="ListOrder"/>. Without it, a
+    /// static page shows no handles.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>
+    /// For a <see cref="Reorderable"/> list on a static page, what the form posted: the list shows
+    /// the posted order with the move applied, and focuses the moved item's handle.
+    /// </summary>
+    [Parameter] public ListOrder? Order { get; set; }
+
+    /// <summary>
+    /// For a <see cref="Reorderable"/> list on a static page with script, posts the form after each
+    /// move, for pages that save every move. Otherwise moves stay in the page until the form is
+    /// submitted. With JavaScript off, each move from a handle's menu posts anyway.
+    /// </summary>
+    [Parameter, ModeSupport(Live = ModeLevel.None)]
+    public bool SubmitOnMove { get; set; }
+
+    private string? _class;
+    private string? _style;
+    private ElementReference _listRef;
+    private string? _focusKey;
+    private string? _announcement;
+    private bool _warned;
+
+    // Interactive (or prerendering for it): C# applies the moves.
+    private bool Live => WillBeInteractive;
+
+    // Reorderable on a static page with a Name: the order posts with the form.
+    private bool Posts => Reorderable && !Live && Name is not null;
+
+    // Reorderable on a static page without a Name: nothing could save a move, so no handles.
+    private bool NotMovable => !Live && Name is null;
+
+    // Rows that wrap: a drop line instead of sliding, and Left/Right shortcuts.
+    private bool Wraps => Orientation == Orientation.Horizontal || ColumnCount > 1;
+
+    private string KeysName => $"{Name}.Keys";
+
+    private string MoveName => $"{Name}.Move";
+
+    /// <inheritdoc />
+    internal override string ViewName => "ListView";
+
+    /// <inheritdoc />
+    internal override string LoadFailedText => TextDefaults.ListLoadFailed;
+
+    /// <inheritdoc />
+    internal override ValueTask FocusAfterRetryAsync() => _listRef.FocusAsync();
+
+    private int ColumnCount => Math.Clamp(Columns, 1, 6);
+
+    private string? BodyStyle => MaxHeight is { } height ? $"max-height:{StyleValues.Length(height)}" : null;
+
+    /// <inheritdoc />
+    internal override string LabelOf(TItem item) => ItemLabel?.Invoke(item) ?? ItemText?.Invoke(item) ?? KeyOf(item);
+
+    private string PagesLabel => string.Format(CultureInfo.CurrentCulture, TextDefaults.TablePages, AriaLabel ?? TextDefaults.ListName);
+
+    private string ItemClasses(bool action, bool current, bool disabled) =>
+        (Reorderable ? "ib-listview-item ib-sortable-item" : "ib-listview-item")
+        + (action ? " ib-listview-actionable" : "")
+        + (current ? " ib-listview-current" : "")
+        + (disabled ? " ib-listview-disabled" : "");
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-listview");
+        classes.Add("ib-listview-horizontal", Orientation == Orientation.Horizontal && ColumnCount == 1);
+        classes.Add("ib-listview-dividers", Dividers && Orientation == Orientation.Vertical && ColumnCount == 1);
+        classes.Add("ib-listview-bordered", Bordered && ColumnCount == 1);
+        classes.Add("ib-listview-sm", Size == ControlSize.Sm);
+        classes.Add("ib-listview-lg", Size == ControlSize.Lg);
+        if (ColumnCount > 1)
+        {
+            classes.Add("ib-listview-columns");
+            styles.AddVar("listview-columns", ColumnCount.ToString(CultureInfo.InvariantCulture));
+        }
+
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override async Task OnParametersSetAsync()
+    {
+        if (Reorderable)
+        {
+            if (ItemKey is null)
+            {
+                throw new InvalidOperationException("A Reorderable ListView needs an ItemKey, such as ItemKey=\"s => s.Id\": it's what posts and what keeps each item's elements.");
+            }
+
+            // A move on one page, or among the items a provider returned, has no well-defined place in the whole list.
+            if (PageSize is not null || PageSizeOptions is { Count: > 0 } || ItemsProvider is not null)
+            {
+                throw new InvalidOperationException("A Reorderable ListView shows every item: leave out PageSize, PageSizeOptions and ItemsProvider, and give it Items.");
+            }
+
+            if (NotMovable && !_warned)
+            {
+                _warned = true;
+                Services.GetService<ILoggerFactory>()?.CreateLogger<ListView<TItem>>().LogWarning(
+                    "A Reorderable ListView on a static page has no Name, so it shows no handles: give it a Name inside a form, and pass the posted ListOrder back as Order.");
+            }
+        }
+
+        (_class, _style) = BuildRootAttributes();
+        SyncSelection();
+        await SyncAndLoadAsync();
+    }
+
+    // The items, in a list; inside <ib-sortable> when they can be reordered.
+    private RenderFragment ItemsList => __builder =>
+    {
+    <ul class="@(Reorderable ? "ib-listview-list ib-sortable-list" : "ib-listview-list")" role="list" aria-label="@AriaLabel" aria-busy="@(IsLoading ? "true" : null)">
+        @for (var index = 0; index < _items.Count; index++)
+        {
+            var row = index;
+            var item = _items[row];
+            var key = KeyOf(item);
+            var disabled = ItemDisabled?.Invoke(item) == true;
+            var href = disabled ? null : ItemHref?.Invoke(item);
+            var clickable = !disabled && href is null && OnItemClick.HasDelegate;
+            var current = ItemCurrent?.Invoke(item) == true ? "true" : null;
+            @* The first item of each page Load more adds can take focus, which goes to it when it arrives. *@
+            @* By key, so an item keeps its elements (and focus) when the order changes; without an
+               ItemKey the string forms may repeat, which @key doesn't allow. *@
+            <li @key="(ItemKey is null ? row : key)" class="@ItemClasses(href is not null || clickable, current is not null, disabled)"
+                data-ib-key="@(Reorderable ? key : null)" data-ib-label="@(Reorderable ? LabelOf(item) : null)"
+                aria-current="@(href is null && !clickable ? current : null)"
+                tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)"
+                data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
+                @if (Reorderable && !NotMovable)
+                {
+                    if (disabled)
+                    {
+                        <span class="ib-sortable-spacer"></span>
+                    }
+                    else
+                    {
+                        @Handle(item, key, row)
+                    }
+                }
+                @if (href is not null)
+                {
+                    @* One link per item, stretched over it; controls in the item stay clickable above it. *@
+                    <a class="ib-listview-action" href="@href" aria-current="@current"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
+                }
+                else if (clickable)
+                {
+                    <button type="button" class="ib-listview-action" aria-current="@current" @onclick="() => OnItemClick.InvokeAsync(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></button>
+                }
+                @if (Selectable)
+                {
+                    <input type="checkbox" class="ib-check-input ib-listview-select" name="@EffectiveSelectionName" value="@key"
+                           aria-label="@SelectLabel(item)" checked="@IsSelected(key)" disabled="@disabled"
+                           @onchange="e => OnSelectChanged(key, e)" />
+                    @if (disabled && !Live && IsSelected(key))
+                    {
+                        <input type="hidden" name="@EffectiveSelectionName" value="@key" />
+                    }
+                }
+                <div class="ib-listview-content">
+                    @if (ChildContent is not null)
+                    {
+                        @ChildContent(item)
+                    }
+                    else
+                    {
+                        @DefaultRow(item)
+                    }
+                </div>
+                @if (Posts)
+                {
+                    <input type="hidden" name="@KeysName" value="@key" />
+                }
+            </li>
+        }
+    </ul>    };
+
+    /// <inheritdoc />
+    internal override void Loaded()
+    {
+        // A static post: the posted order, then the menu's move (not a disabled item's).
+        _focusKey = null;
+        if (!Reorderable || Order is null)
+        {
+            return;
+        }
+
+        var entries = ListArrangement.Order(_items, KeyOf, Order.Keys, zones: null);
+        if (ListMove.TryParse(Order.Move, out var move) && move.Kind != ListMoveKind.To
+            && entries.Find(e => e.Key == move.Key) is { Key: not null } entry && ItemDisabled?.Invoke(entry.Item) != true)
+        {
+            ListArrangement.Apply(entries, move);
+            _focusKey = move.Key;
+        }
+
+        _items = entries.ConvertAll(e => e.Item);
+    }
+
+    private async Task MoveAsync(ListMoveKind kind, string key)
+    {
+        var entries = _items.Select(i => new ListEntry<TItem>(i, KeyOf(i), null)).ToList();
+        var at = entries.FindIndex(e => e.Key == key);
+        if (at < 0 || ItemDisabled?.Invoke(entries[at].Item) == true || ListArrangement.Apply(entries, new ListMove(kind, key)) is not { } moved)
+        {
+            return;
+        }
+
+        var item = entries[moved.ToIndex].Item;
+        var args = new ListMoveEventArgs<TItem> { Item = item, Key = key, FromIndex = moved.FromIndex, ToIndex = moved.ToIndex };
+        await OnMove.InvokeAsync(args);
+        if (args.Cancel)
+        {
+            _announcement = string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, LabelOf(item));
+            return;
+        }
+
+        var items = entries.ConvertAll(e => e.Item);
+        _items = items;
+        _announcement = string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedTo, LabelOf(item), moved.ToIndex + 1, entries.Count);
+        await ItemsChanged.InvokeAsync(items);
+    }
+
+    // The handle: a grip to drag, and the button of a menu of moves.
+    private RenderFragment Handle(TItem item, string key, int index) => __builder =>
+    {
+        var first = index == 0;
+        var last = index == _items.Count - 1;
+        var focus = !Live && key == _focusKey;
+        <Menu>
+            <Trigger Context="wire">
+                <IconButton Icon="Lucide.GripVertical" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, LabelOf(item))"
+                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle"
+                            autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
+            </Trigger>
+            <ChildContent>
+                @MoveItem(ListMoveKind.Up, key, TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
+                @MoveItem(ListMoveKind.Down, key, TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
+                @MoveItem(ListMoveKind.Top, key, TextDefaults.MoveToTop, "Alt+Home", first)
+                @MoveItem(ListMoveKind.Bottom, key, TextDefaults.MoveToBottom, "Alt+End", last)
+            </ChildContent>
+        </Menu>
+    };
+
+    // The script finds a menu item by its move: the shortcuts click it, and on static pages it moves the item in place.
+    private static string Kind(ListMoveKind kind) => kind.ToString().ToLowerInvariant();
+
+    private RenderFragment MoveItem(ListMoveKind kind, string key, string text, string shortcut, bool disabled) => __builder =>
+    {
+        if (Live)
+        {
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@Kind(kind)" OnClick="() => MoveAsync(kind, key)">@text</MenuItem>
+        }
+        else
+        {
+            <MenuItem Shortcut="@shortcut" Disabled="disabled" data-ib-move="@Kind(kind)" Submit Name="@MoveName" Value="@(new ListMove(kind, key).ToString())">@text</MenuItem>
+        }
+    };
+
+    private RenderFragment DefaultRow(TItem item) => __builder =>
+    {
+        var description = ItemDescription?.Invoke(item);
+        <span class="ib-listview-row">
+            @if (ItemIcon?.Invoke(item) is { } icon)
+            {
+                <Icon Name="icon" Class="ib-listview-icon" />
+            }
+            <span class="ib-listview-text">
+                <span class="ib-listview-title">@(ItemText?.Invoke(item) ?? item?.ToString())</span>
+                @if (!string.IsNullOrEmpty(description))
+                {
+                    <span class="ib-listview-description">@description</span>
+                }
+            </span>
+        </span>
+    };
+}

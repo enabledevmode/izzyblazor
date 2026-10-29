@@ -33,7 +33,7 @@ public sealed record DataRequest<TItem>
     public int? Take { get; init; }
 
     /// <summary>
-    /// When the component pages by cursor (<see cref="TablePaging"/>), the <see cref="DataResult{TItem}.Next"/>
+    /// When the component pages by cursor (<see cref="DataPaging"/>), the <see cref="DataResult{TItem}.Next"/>
     /// or <see cref="DataResult{TItem}.Previous"/> of an earlier page, as it was given; null for the
     /// first page. <see cref="Skip"/> is then the page's position (rows 401–600 at 200 a page).
     /// </summary>
@@ -286,7 +286,7 @@ public readonly record struct SortField(string Key, bool Descending = false)
 /// <typeparam name="TItem">The type of the items.</typeparam>
 /// <param name="Items">The rows.</param>
 /// <param name="Total">
-/// How many rows match in all. A Table with numbered pages (<see cref="TablePaging.Pages"/>) needs
+/// How many rows match in all. A Table with numbered pages (<see cref="DataPaging.Pages"/>) needs
 /// it; paging by cursor, it's optional and adds "of 1,234" to the range.
 /// </param>
 public sealed record DataResult<TItem>(IReadOnlyList<TItem> Items, int? Total = null)

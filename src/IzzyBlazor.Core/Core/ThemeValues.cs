@@ -92,7 +92,7 @@ public enum ThemeScrollbars
     /// <summary>
     /// The default: the page keeps the system's scrollbar (which fades when not scrolling on macOS
     /// and with Windows 11's overlay scrollbars); the library's own scroll areas (sidebar, aside,
-    /// code, tables, menus, dialogs, <c>.ib-scroll</c>) get thin themed ones.
+    /// code, tables, lists, menus, dialogs, <c>.ib-scroll</c>) get thin themed ones.
     /// </summary>
     Auto,
 

@@ -309,34 +309,6 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
     internal override RenderFragment Cell(TItem item) => ChildContent?.Invoke(item) ?? (_ => { });
 }
 
-/// <summary>How a <see cref="Table{TItem}"/> with a page size moves through its pages.</summary>
-public enum TablePaging
-{
-    /// <summary>Numbered pages and "1–10 of 42". Needs the total (<see cref="DataResult{TItem}.Total"/>). The default.</summary>
-    Pages,
-
-    /// <summary>
-    /// First, previous and next only, by cursor (<see cref="DataResult{TItem}.Next"/>): for data
-    /// that has no total, or that pages by a token. Each page replaces the one shown.
-    /// </summary>
-    NextPrevious,
-
-    /// <summary>
-    /// A "Load more" button under the rows that adds the next page to them, by cursor. On static
-    /// pages and with JavaScript off it shows the next page in place of this one.
-    /// </summary>
-    LoadMore,
-
-    /// <summary>
-    /// <see cref="LoadMore"/>, and the next page also loads when the last row scrolls into view,
-    /// on interactive pages. The button is there only for the keyboard: out of sight until it has
-    /// focus, with a spinner under the rows while a page loads. On static pages and with
-    /// JavaScript off it shows, a link to the next page, as for <see cref="LoadMore"/>. Best
-    /// with a <c>MaxHeight</c>, so content under the table stays within reach.
-    /// </summary>
-    LoadOnScroll,
-}
-
 /// <summary>Tells a table its columns have registered. Rendered after the columns, so its
 /// initialization runs once they have; static rendering waits for the returned task.</summary>
 internal sealed class TableColumnsReady : ComponentBase

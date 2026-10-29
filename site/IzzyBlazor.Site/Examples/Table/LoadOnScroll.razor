@@ -1,7 +1,7 @@
 @* Loading as you scroll: the next page loads when the last row comes into view in the table's own
    scroll box (MaxHeight), with a spinner under the rows while it does. The Load more button is
    there for the keyboard, out of sight until it has focus. *@
-<Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="8" Paging="TablePaging.LoadOnScroll" MaxHeight="Length.Rem(18)"
+<Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="8" Paging="DataPaging.LoadOnScroll" MaxHeight="Length.Rem(18)"
        ItemKey="e => e.Id.ToString()" Caption="Audit log, loading on scroll" QueryPrefix="scroll-" Grow>
     <PropertyColumn Property="e => e.At" Title="Time (UTC)" Format="MMM d, HH:mm" />
     <PropertyColumn Property="e => e.Who" />

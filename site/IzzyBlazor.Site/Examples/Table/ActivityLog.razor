@@ -23,7 +23,7 @@
             </Row>
             <Card>
                 <CardBody Flush>
-                    <Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="12" Paging="TablePaging.LoadOnScroll"
+                    <Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="12" Paging="DataPaging.LoadOnScroll"
                            MaxHeight='Length.Of("max(16rem, 100dvh - 18rem)")' ItemKey="e => e.Id.ToString()" Caption="Activity" EmptyText="No activity matches these filters">
                         <PropertyColumn Property="e => e.At" Title="Time (UTC)" Format="MMM d, HH:mm" />
                         <PropertyColumn Property="e => e.Who" Filterable />
