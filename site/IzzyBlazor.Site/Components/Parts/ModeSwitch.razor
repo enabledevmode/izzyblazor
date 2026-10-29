@@ -1,8 +1,10 @@
 @inject NavigationManager Navigation
 
 @*
-    The page's Off · Static · Live switch: three links that load the page in that mode, the current
-    one marked. The library's segmented link Tabs draw it, with TabLink's Current, since the mode
+    The page's Static · Interactive switch: links that load the page in that mode, the current one
+    marked. A third mode, no script (?mode=noscript: neither Blazor's nor IzzyBlazor's script), isn't
+    offered: it's how every page looks before its scripts run, kept for checking the fallback, and
+    shows in the switch only while the page is in it. The library's segmented link Tabs draw it, with TabLink's Current, since the mode
     may come from the cookie rather than the address. Every example on the page renders in the page's mode (ExampleViewer), so picking
     another loads the page again in it; site.js keeps the scroll position.
 
@@ -14,8 +16,8 @@
     in the cookie (SiteApp), so the next page opens in the same mode, with JavaScript off too, and
     an example's own links and forms, which drop ?mode= from the address, keep it.
 
-    Off pages run no Blazor (App), so the link into Off is a full page load: enhanced navigation
-    would patch the Off page into a page that's still running script.
+    No-script pages run no Blazor (App), so a link into or out of one is a full page load: enhanced
+    navigation would patch the no-script page into a page that's still running script.
 *@
 
 <div class="@($"site-modeswitch site-modeswitch-{Placement}")">
@@ -25,10 +27,10 @@
         <span class="site-modeswitch-label" aria-hidden="true">Examples run</span>
     }
     <Tabs Label="Examples run" Variant="TabsVariant.Segmented" Size="ControlSize.Sm" Class="site-modeswitch-options">
-        @foreach (var mode in Modes)
+        @foreach (var mode in Offered.Concat(_mode == "noscript" ? ["noscript"] : []))
         {
             <TabLink Href="@Href(mode)" Label="@ModeChip.Name(mode)" Current="@(mode == _mode)"
-                     data-mode="@mode" data-enhance-nav="@(mode == "off" || _mode == "off" ? "false" : null)" />
+                     data-mode="@mode" data-enhance-nav="@(mode == "noscript" || _mode == "noscript" ? "false" : null)" />
         }
     </Tabs>
     @if (!Compact)
@@ -38,7 +40,11 @@
 </div>
 
 @code {
-    public static readonly string[] Modes = ["off", "static", "live"];
+    /// <summary>Every mode a page can be in, the hidden no-script one too.</summary>
+    public static readonly string[] Modes = ["static", "interactive", "noscript"];
+
+    /// <summary>The modes the switch offers.</summary>
+    public static readonly string[] Offered = ["static", "interactive"];
 
     /// <summary>The docs layout's right-column section a component page puts its switch in.</summary>
     public const string AsideSection = "site-mode-aside";
@@ -49,7 +55,7 @@
     /// <summary>Where it sits, for CSS: <c>aside</c> (wide screens), <c>top</c> (narrow) or <c>example</c>.</summary>
     [Parameter] public string Placement { get; set; } = "top";
 
-    /// <summary>Only the three options, for an example's own row.</summary>
+    /// <summary>Only the options, for an example's own row.</summary>
     [Parameter] public bool Compact { get; set; }
 
     [CascadingParameter] private HttpContext? HttpContext { get; set; }
@@ -86,8 +92,8 @@
 
     private static string Meaning(string mode) => mode switch
     {
-        "off" => "JavaScript off: what the HTML and CSS do on their own.",
-        "live" => "An interactive page: C# runs over a Blazor Server connection.",
-        _ => "A static page with IzzyBlazor's script. No circuit.",
+        "noscript" => "No script: the HTML and CSS on their own, as every page starts before its scripts run.",
+        "interactive" => "An interactive page: C# runs over a Blazor Server connection.",
+        _ => "Static server-side rendering: no circuit, no WebAssembly.",
     };
 }

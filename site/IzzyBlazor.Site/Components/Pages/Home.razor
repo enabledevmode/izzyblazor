@@ -30,8 +30,7 @@
                 Blazor components.<br /><span>No circuit required.</span>
             </Heading>
             <TextBlock Size="TextSize.Lg" Color="Color.Muted" Wrap="TextWrap.Pretty">
-                Rich components for static SSR. Pages arrive as HTML, a small script adds client-side behavior, and
-                the same components support C# interactivity wherever you need it.
+                Rich components for static SSR. C# interactivity when you need it.
             </TextBlock>
             <Row Gap="3" Wrap>
                 <Button Href="docs/get-started" Size="ControlSize.Lg" Accent="@Ember">Get started</Button>
@@ -91,21 +90,17 @@
 <Section>
     <Stack Gap="6">
         <Stack Gap="2">
-            <Heading Level="2" Size="TextSize.Xl2">Progressive by design</Heading>
-            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Start with server-rendered HTML. Add lightweight browser behavior. Bring in C# interactivity where you need it.</TextBlock>
+            <Heading Level="2" Size="TextSize.Xl2">Static and Interactive</Heading>
+            <TextBlock Size="TextSize.Lg" Color="Color.Muted">Blazor's two render modes, and the same components work in both. Start static; make a page interactive when it needs C#.</TextBlock>
         </Stack>
-        <Grid Columns="new() { Base = 1, Md = 3 }" Gap="4">
-            <Card Title="HTML first" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-off" /><span class="site-media-tag"><ModeChip Mode="off" Level="ModeLevel.Full" /></span></div></CardMedia>
-                <TextBlock>Components render complete HTML on the server, so content appears quickly, is readable by search engines, and stays accessible before scripts load.</TextBlock>
+        <Grid Columns="new() { Base = 1, Md = 2 }" Gap="4">
+            <Card Title="Static: no circuit" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Static</Badge></span></div></CardMedia>
+                <TextBlock>Pages render as complete HTML on the server, and IzzyBlazor's small script adds keyboard controls, live values, dragging and drop zones. No SignalR connection, no WebAssembly runtime. Every page is working HTML before the script loads, so nothing is broken while it wakes up.</TextBlock>
             </Card>
-            <Card Title="Interactive without a circuit" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-static" /><span class="site-media-tag"><ModeChip Mode="static" Level="ModeLevel.Full" /></span></div></CardMedia>
-                <TextBlock>Lightweight custom elements bring keyboard controls, live values, and drop zones to static pages. No SignalR connection or WebAssembly runtime required.</TextBlock>
-            </Card>
-            <Card Title="C# when you need it" Variant="CardVariant.Outline">
-                <CardMedia><div class="site-media"><ComponentPicture Id="mode-live" /><span class="site-media-tag"><ModeChip Mode="live" Level="ModeLevel.Full" /></span></div></CardMedia>
-                <TextBlock>Choose Server, WebAssembly, or Auto for pages that need C# interactivity. The same components support <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, so you can build on what's already there.</TextBlock>
+            <Card Title="Interactive: C# when you need it" Variant="CardVariant.Outline">
+                <CardMedia><div class="site-media"><ComponentPicture Id="mode-interactive" /><span class="site-media-tag"><Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Soft" Class="site-mode">Interactive</Badge></span></div></CardMedia>
+                <TextBlock>Choose Server, WebAssembly or Auto for a page that needs C#. The same components add <Code Style="white-space: nowrap">@("@bind-Value")</Code> and events, and while the page prerenders they're the same working HTML, until the circuit or runtime is ready.</TextBlock>
             </Card>
         </Grid>
     </Stack>

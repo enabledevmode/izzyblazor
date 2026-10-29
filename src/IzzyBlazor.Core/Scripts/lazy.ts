@@ -24,6 +24,8 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-toolbar": () => import("./elements/toolbar.js"),
   "ib-sortable": () => import("./elements/sortable.js"),
   "ib-listview": () => import("./elements/listview.js"),
+  // Not an element: ReconnectDialog's code, loaded with the first reconnection state (reconnect.ts).
+  "ib-reconnect": () => import("./elements/reconnect.js"),
 };
 
 const loading = new Map<string, Promise<unknown>>();

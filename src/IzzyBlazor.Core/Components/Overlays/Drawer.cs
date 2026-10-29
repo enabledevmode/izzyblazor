@@ -24,7 +24,7 @@ namespace IzzyBlazor;
 /// <seealso cref="Dialog"/>
 /// <seealso cref="AppSidebar"/>
 /// <seealso cref="Popover"/>
-[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a drawer opened from the server isn't modal: focus can leave it, and Escape or a click outside closes it only in browsers with closedby (not Safari).")]
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a drawer opened from the server isn't modal: focus can leave it, and Escape or a click outside closes it only in browsers with closedby (not Safari).")]
 public class Drawer : Dialog
 {
     /// <summary>Creates a drawer on the end side.</summary>

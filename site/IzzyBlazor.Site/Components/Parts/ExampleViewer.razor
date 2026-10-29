@@ -5,20 +5,20 @@
 @*
     One example, in the page's mode (ModeSwitch), rendered into the page itself:
 
-      Off     the page sends no Blazor and no IzzyBlazor script, and reads the library's
-              stylesheet as JavaScript off would (App, NoScriptCss);
-      Static  rendered with the page, which has IzzyBlazor's script;
-      Live    an interactive island (Blazor Server), prerendered with the page.
+      Static       rendered with the page, which has IzzyBlazor's script;
+      Interactive  an interactive island (Blazor Server), prerendered with the page;
+      no script    (hidden) the page sends no Blazor and no IzzyBlazor script, and reads the
+                   library's stylesheet as JavaScript off would (App, NoScriptCss).
 
     So an example arrives with the page at its own size: nothing to measure, nothing that moves.
     An example pinned to one mode (components.json "modes") shows in it whatever the page's; a
-    Live-only one on an Off page, which has no Blazor, shows a link to the page in Live instead.
+    Interactive-only one on a no-script page, which has no Blazor, shows a link to the page as Interactive instead.
 
     A demo scenario (components.json "page") is a page of its own, sized by the window: it shows in
     a frame of /frame/{example} at a fixed height, scrolling inside like a window, with a phone
-    width when WidthSwitch is on. Off frames are sandboxed without allow-scripts.
+    width when WidthSwitch is on. no-script frame are sandboxed without allow-scripts.
 
-    Around the preview: one row (Preview · Code tabs at the left; "Always Live" and any width or
+    Around the preview: one row (Preview · Code tabs at the left; "Always Interactive" and any width or
     mode switch at the right), the box, then the example's note for its mode. With SourceOpen
     (demos) there are no tabs: the code shows under the preview, with a Hide code toggle.
 
@@ -34,12 +34,12 @@
         {
             <span class="ex-title">@Title</span>
         }
-        @* Before the preview in reading order ("Always Live", the switches); the grid puts it at the
+        @* Before the preview in reading order ("Always Interactive", the switches); the grid puts it at the
            right of the row. *@
         <div class="ex-tools">
             @if (_example.Modes.Count == 1)
             {
-                @* Shown in its one mode whatever the page's (an example of Live-only behavior). *@
+                @* Shown in its one mode whatever the page's (an example of Interactive-only behavior). *@
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted" Class="ex-fixed-mode">Always @ModeChip.Name(_example.Modes[0])</TextBlock>
             }
             @if (SourceOpen && _source is not null)
@@ -153,12 +153,12 @@
         _uid = $"ex-{Example}";
         // A page with the switch shows its mode (?mode=, then the cookie); any other page, Static.
         _pageMode = FollowsModeSwitchAttribute.PageMode(HttpContext, Registry);
-        // The page's mode where the example has it, else its own (one pinned to Live, say).
+        // The page's mode where the example has it, else its own (one pinned to Interactive, say).
         _mode = _example.Modes.Contains(_pageMode) ? _pageMode : _example.StartMode;
     }
 
-    // An Off page runs no Blazor, so a Live-only example can't run on it.
-    private bool NeedsLivePage => _mode == "live" && _pageMode == "off" && !_example!.Page;
+    // A no-script page runs no Blazor, so a Interactive-only example can't run on it.
+    private bool NeedsLivePage => _mode == "interactive" && _pageMode == "noscript" && !_example!.Page;
 
     private IzzyBlazor.ColorScheme? FixedScheme => Scheme switch
     {
@@ -179,14 +179,14 @@
         {
             @* A page of its own: a window onto it, a fixed height that scrolls inside. *@
             <div class="ex-box ex-stage ex-window">
-                @if (_mode == "off")
+                @if (_mode == "noscript")
                 {
                     <iframe class="ex-frame" src="@Src" sandbox="allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-top-navigation-by-user-activation"
                             title="@($"{Title}, JavaScript off")" style="@($"height: {_example.Height}px")"></iframe>
                 }
                 else
                 {
-                    <iframe class="ex-frame" src="@Src" title="@($"{Title}, {(_mode == "live" ? "interactive page" : "static page")}")" style="@($"height: {_example.Height}px")"></iframe>
+                    <iframe class="ex-frame" src="@Src" title="@($"{Title}, {(_mode == "interactive" ? "interactive page" : "static page")}")" style="@($"height: {_example.Height}px")"></iframe>
                 }
             </div>
         }
@@ -194,8 +194,8 @@
         {
             <div class="ex-box ex-stage ex-needs-live">
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted" Align="TextAlign.Center">
-                    This example runs C# over a Blazor Server connection, which an Off page doesn't have.
-                    <Anchor Href="@Navigation.GetUriWithQueryParameter("mode", "live")">Show this page Live</Anchor>
+                    This example runs C# over a Blazor Server connection, which a no-script page doesn't have.
+                    <Anchor Href="@Navigation.GetUriWithQueryParameter("mode", "interactive")">Show this page as Interactive</Anchor>
                 </TextBlock>
             </div>
         }
@@ -203,7 +203,7 @@
         {
             <IzzyTheme Brand="blue" ColorScheme="FixedScheme" Class="ex-theme">
                 <CodeExample Center Class="ex-box ex-stage">
-                    @if (_mode == "live")
+                    @if (_mode == "interactive")
                     {
                         @* Keyed by the example: enhanced navigation would otherwise keep the last page's island in
                            this place, showing its example until this one rendered over it. *@

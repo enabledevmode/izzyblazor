@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @inject NavigationManager Navigation
 @inject IServiceProvider Services
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, tabs switch as a radio group, but screen readers don't hear them as tabs, the URL doesn't follow, and tabs that don't fit scroll by touch, trackpad or Shift+wheel only, with the selected one not scrolled into view.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, tabs switch as a radio group, but screen readers don't hear them as tabs, the URL doesn't follow, and tabs that don't fit scroll by touch, trackpad or Shift+wheel only, with the selected one not scrolled into view.")]
 
 @*
     A set of tabs, in three layers:
@@ -121,7 +121,7 @@ else
     [Parameter] public string? Selected { get; set; }
 
     /// <summary>Called when someone picks a tab (interactive pages).</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<string> SelectedChanged { get; set; }
 
     /// <summary>The tab list's (or the TabLinks' <c>nav</c>'s) name for screen readers, such as "Account settings".</summary>

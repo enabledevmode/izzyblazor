@@ -1,6 +1,6 @@
 # IzzyBlazor
 
-**Rich Blazor components. No circuit required.**
+**Blazor components. No circuit required.**
 
 IzzyBlazor is a component library for .NET 10 Blazor Web Apps, built for static SSR. Components render as HTML on the server, gain browser behavior through lightweight custom elements, and support C# bindings and events when you choose an interactive render mode.
 
@@ -12,19 +12,19 @@ Build forms, tables, dialogs, and complete app layouts without requiring a Signa
 
 > **Preview:** `0.1.0-alpha.19`. APIs may change during preview.
 
-## Progressive by design
+## Static and Interactive
 
-Start with server-rendered HTML. Add lightweight browser behavior. Bring in C# interactivity where you need it.
+The same components work in both of Blazor's render modes. Start static; make a page interactive when it needs C#.
 
-The same components support each layer, so you can add interactivity without replacing your UI.
+| Component | Static | Interactive |
+| --- | --- | --- |
+| **Dialog** | Opens from a trigger or a `?dialog=id` link; server-opened dialogs become modal | Bind open state with `@bind-Open` |
+| **Table** | Sort, filter, and page through URL parameters; select all rows, filter as you type | Bind sorting, paging, filters, and selection to C# |
+| **Tabs** | ARIA tabs with arrow-key navigation, over radio buttons and CSS | Bind the selected tab with `@bind-Selected` |
+| **Combobox** | A native select that submits with the form, with filtering and keyboard navigation | Search on the server as you type |
+| **FileUpload** | Submits files with the form as `IFormFile`, with drag and drop and type and size checks | Stream `IBrowserFile` instances through `OnChange` |
 
-| Component | HTML and CSS | With JavaScript | With Blazor interactivity |
-| --- | --- | --- | --- |
-| **Dialog** | Opens from a trigger or a `?dialog=id` link, with browser-managed focus trapping | Promotes server-opened dialogs to modal dialogs | Bind open state with `@bind-Open` |
-| **Table** | Sort, filter, and page through URL parameters | Select all rows and apply filters as you type | Bind sorting, paging, filters, and selection to C# |
-| **Tabs** | Switch panels with radio buttons and CSS | Adds ARIA tab semantics and arrow-key navigation | Bind the selected tab with `@bind-Selected` |
-| **Combobox** | Uses a native select that submits with the form | Adds filtering and keyboard navigation | Search on the server as you type |
-| **FileUpload** | Submits files through a `Multipart` form as `IFormFile` | Adds drag and drop with file type and size checks | Stream `IBrowserFile` instances through `OnChange` |
+Every page starts as working HTML: before IzzyBlazor's script loads, and while an interactive page prerenders. So nothing is broken while a page wakes up.
 
 ## Getting started
 

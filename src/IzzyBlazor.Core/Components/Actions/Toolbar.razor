@@ -3,7 +3,7 @@
 @implements IDisposable
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, items move into the … menu at widths worked out on the server, and arrow keys don't move between them.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, items move into the … menu at widths worked out on the server, and arrow keys don't move between them.")]
 
 @*
     A row of controls that stays one row: what doesn't fit moves into a "…" menu at the end, lowest

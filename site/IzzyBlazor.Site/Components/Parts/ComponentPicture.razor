@@ -1,15 +1,23 @@
 @* A component's pictogram (Services/Pictures.cs) on its ink tile, with the hero's rings in the
    corner. Decorative: the card's title names the component. *@
 
-@if (Pictures.ById.TryGetValue(Id, out var drawing) || Pictures.Modes.TryGetValue(Id, out drawing))
+@if (Pictures.ById.TryGetValue(Id, out var drawing))
 {
     <svg class="pg" viewBox="0 0 160 96" aria-hidden="true" focusable="false">
         <g class="pg-rings"><circle cx="160" cy="96" r="150" fill-opacity=".03" /><circle cx="160" cy="96" r="110" fill-opacity=".035" /><circle cx="160" cy="96" r="75" fill-opacity=".045" /></g>
         @((MarkupString)drawing)
     </svg>
 }
+else if (Pictures.Modes.TryGetValue(Id, out drawing))
+{
+    @* A mode's picture, shown twice as wide: drawn on a grid twice the size, so its lines stay fine. *@
+    <svg class="pg" viewBox="0 0 320 192" aria-hidden="true" focusable="false">
+        <g class="pg-rings"><circle cx="320" cy="192" r="300" fill-opacity=".03" /><circle cx="320" cy="192" r="220" fill-opacity=".035" /><circle cx="320" cy="192" r="150" fill-opacity=".045" /></g>
+        @((MarkupString)drawing)
+    </svg>
+}
 
 @code {
-    /// <summary>A component's id in components.json, or a mode's picture ("mode-off", "mode-static", "mode-live").</summary>
+    /// <summary>A component's id in components.json, or a mode's picture ("mode-static", "mode-interactive").</summary>
     [Parameter, EditorRequired] public string Id { get; set; } = "";
 }

@@ -87,7 +87,7 @@ public partial class SeoTests(SiteFixture site) : IClassFixture<SiteFixture>
         foreach (var path in await SitemapPaths())
         {
             // Any query is a variant of the same page.
-            var html = await site.Client.GetStringAsync($"/{path}?mode=off&page=2");
+            var html = await site.Client.GetStringAsync($"/{path}?mode=noscript&page=2");
             var canonical = Canonical().Matches(html).Select(m => m.Groups[1].Value).ToList();
             var url = $"https://izzyblazor.com/{path}";
             if (canonical.Count != 1 || canonical[0] != url)

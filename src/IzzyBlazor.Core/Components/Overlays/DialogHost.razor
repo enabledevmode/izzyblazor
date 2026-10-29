@@ -2,7 +2,7 @@
 @implements IDisposable
 @attribute [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2111", Justification = "The renderer sets DynamicComponent.Type as a parameter. The type comes from DialogService.OpenAsync, which keeps the component's members for the trimmer.")]
 @inject IServiceProvider Services
-@attribute [ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None, Notes = "A static page can't show dialogs from code: put the host on an interactive page.")]
+@attribute [ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None, Notes = "A static page can't show dialogs from code: put the host on an interactive page.")]
 
 @*
     Where DialogService shows its dialogs. Put one on an interactive page or in an interactive

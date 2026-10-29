@@ -360,10 +360,11 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
 
     private static ApiModes? Modes(ModeSupportAttribute? attribute) => attribute is null ? null : new ApiModes
     {
-        Off = Level(attribute.Off),
         Static = Level(attribute.Static),
-        Live = Level(attribute.Live),
+        Interactive = Level(attribute.Interactive),
+        NoScript = Level(attribute.NoScript),
         Notes = attribute.Notes,
+        NoScriptNotes = attribute.NoScriptNotes,
     };
 
     private static string Level(ModeLevel level) => level.ToString().ToLowerInvariant();

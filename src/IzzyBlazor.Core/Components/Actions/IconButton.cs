@@ -66,7 +66,7 @@ public class IconButton : ButtonBase
     [Parameter] public string? Form { get; set; }
 
     /// <summary>Runs on click on interactive pages (a link still navigates).</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <inheritdoc />

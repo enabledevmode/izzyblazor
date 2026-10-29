@@ -5,7 +5,7 @@
 @inject IServiceProvider Services
 @inject NavigationManager Navigation
 @using Microsoft.AspNetCore.Components.Routing
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the phone drawer doesn't close on Escape or move focus, and a collapsed sidebar isn't remembered.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the phone drawer doesn't close on Escape or move focus, and a collapsed sidebar isn't remembered.")]
 
 @*
     The navigation column of an AppShell. From its breakpoint up it is a column beside the
@@ -166,7 +166,7 @@
     [Parameter] public bool Collapsed { get; set; }
 
     /// <summary>Called when someone collapses or expands it (interactive pages).</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<bool> CollapsedChanged { get; set; }
 
     /// <summary>The width when collapsed. Defaults to 3.5rem, room for an icon.</summary>

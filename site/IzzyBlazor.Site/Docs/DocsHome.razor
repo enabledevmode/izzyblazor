@@ -25,19 +25,18 @@
         <Code>@Install</Code>
         <CopyButton Text="@Install" Label="Copy the install command" Size="ControlSize.Sm" />
     </Row>
-    <TextBlock>One set of components for every page. This form posts and validates on a static page, with JavaScript off too, and runs over a circuit on an interactive one, with no change to the markup. The model takes the post through <Code>[SupplyParameterFromForm]</Code>:</TextBlock>
+    <TextBlock>One set of components for every page. This form posts and validates on a static page, and runs over a circuit on an interactive one, with no change to the markup. The model takes the post through <Code>[SupplyParameterFromForm]</Code>:</TextBlock>
     <Code Block Language="razor">@FirstLook</Code>
     <Row Gap="3" Wrap>
         <Button Href="docs/get-started">Get started</Button>
         <Button Href="docs/components" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Browse components</Button>
     </Row>
 
-    <Heading Level="2">Off · Static · Live</Heading>
-    <TextBlock>Examples on this site run three ways. Pick one with the switch, here and on component pages:</TextBlock>
+    <Heading Level="2">Static · Interactive</Heading>
+    <TextBlock>Examples on this site run in both of Blazor's render modes. Pick one with the switch, here and on component pages:</TextBlock>
     <List Gap="2">
-        <ListItem><strong>Off</strong>: JavaScript disabled, so you see exactly what the HTML and CSS do on their own.</ListItem>
-        <ListItem><strong>Static</strong>: a static SSR page with IzzyBlazor's script, which adds keyboard handling, live values and the like. No circuit.</ListItem>
-        <ListItem><strong>Live</strong>: an interactive page on Blazor Server, where C# event handlers and <Code>@@bind</Code> run.</ListItem>
+        <ListItem><strong>Static</strong>: static server-side rendering, with IzzyBlazor's script adding keyboard handling, live values and the like. No circuit, no WebAssembly.</ListItem>
+        <ListItem><strong>Interactive</strong>: an interactive page on Blazor Server, where C# event handlers and <Code>@@bind</Code> run.</ListItem>
     </List>
     <ExampleViewer Example="home-settings" ModeSwitch />
 
@@ -45,7 +44,7 @@
     <Grid Columns="new() { Base = 1, Md = 2 }" Gap="6" Class="site-concepts">
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">One set for every render mode</Heading>
-            <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages. Nearly all work with JavaScript off and do more with it. <Anchor Href="docs/common/render-modes">Render modes</Anchor></TextBlock>
+            <TextBlock Color="Color.Muted">The same components on static, Server, WebAssembly and Auto pages, and every page is working HTML before its scripts run. <Anchor Href="docs/common/render-modes">Render modes</Anchor></TextBlock>
         </Stack>
         <Stack Gap="1">
             <Heading Level="3" Size="TextSize.Md" Outline="false" Class="site-concept-title">Forms that post</Heading>
@@ -101,7 +100,7 @@
 
     <Heading Level="2">Resources</Heading>
     <List Gap="2">
-        <ListItem><Anchor Href="demos">Demos</Anchor>: realistic scenarios in all three modes, with the source.</ListItem>
+        <ListItem><Anchor Href="demos">Demos</Anchor>: realistic scenarios, static and interactive, with the source.</ListItem>
         <ListItem><Anchor Href="https://github.com/enabledevmode/izzyblazor">GitHub</Anchor>: the source and issues.</ListItem>
         <ListItem><Anchor Href="https://github.com/enabledevmode/izzyblazor/releases">Release notes</Anchor>: what changed in each version.</ListItem>
         <ListItem><Anchor Href="docs/get-started/ai-assistants">AI assistants</Anchor>: connect yours to the docs' MCP server.</ListItem>

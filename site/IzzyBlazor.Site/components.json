@@ -100,14 +100,14 @@
       "examples": [
         { "id": "app-shell-parts", "title": "The parts", "height": 600, "page": true,
           "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } },
         { "id": "app-shell-variants", "title": "Variants", "height": 400, "page": true },
         { "id": "app-shell-detail-panel", "title": "A panel for the chosen row", "height": 520, "page": true },
         { "id": "app-shell-aside-drawer", "title": "A panel people open", "height": 420, "page": true,
           "notes": {
-              "off": "At phone width the panel button is a link to the aside, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the panel button is a link to the aside, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves to its close button. The close button, Escape or a tap beside it closes it and puts focus back on the panel button."
             } }
       ],
@@ -116,36 +116,36 @@
           "description": "An analytics overview made of stat cards and panels. Canvas tints the main area so each white card has an edge; at phone width the sidebar becomes a drawer behind the menu button.",
           "example": { "id": "app-shell-dashboard", "title": "Dashboard", "height": 600, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "full-width-table", "title": "Full-width table", "member": "Variant",
           "description": "A list page where the table is the page. In Tinted, the default, the sidebar takes the page tint and the table sits on white with no card around it. Sorting and paging are links, so they work with JavaScript off.",
           "example": { "id": "app-shell-rules-list", "title": "Rules", "height": 620, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "docs-outline", "title": "Docs with an outline", "member": "Variant",
           "description": "A documentation article on one white page (Flat). Its headings list themselves in OnThisPage in the AppAside from 1024px up, and on phones the sidebar's drawer opens from the right, where the menu button moves.",
           "example": { "id": "app-shell-docs", "title": "Docs article", "height": 640, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "reading-column", "title": "Reading column", "member": "ContentWidth",
           "description": "A blog article with no sidebar. ContentWidth centers the header, the article and the footer on one column so their edges line up, while the bars, their lines and a full-bleed band stay full width.",
           "example": { "id": "app-shell-reading", "title": "Article", "height": 640, "page": true,
             "notes": {
-              "off": "At phone width the menu opens the links in a native popover, and focus stays on the button. Subscribe posts the form and loads the page.",
+              "noscript": "At phone width the menu opens the links in a native popover, and focus stays on the button. Subscribe posts the form and loads the page.",
               "static": "Opening the menu moves focus to the first link. Subscribe posts without a reload.",
-              "live": "Subscribe checks the address and runs C# without a post."
+              "interactive": "Subscribe checks the address and runs C# without a post."
             } } },
         { "id": "desktop-app-scrolling", "title": "Scrolling like a desktop app", "member": "ScrollMode",
           "description": "A mail client. ScrollMode.Main makes the shell fill the window and scrolls only the message list, so the header, the folders and the footer never move.",
           "example": { "id": "app-shell-inbox", "title": "Inbox", "height": 520, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } }
       ]
@@ -155,15 +155,15 @@
       "features": [
         { "feature": "A column beside the page, from its breakpoint up" },
         { "feature": "A drawer or panel on phones, opened and closed by the menu button" },
-        { "feature": "Focus moves into the drawer and back; Escape closes it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Focus moves into the drawer and back; Escape closes it", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Collapse to an icon rail" },
-        { "feature": "The collapsed rail remembered on the next page", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The collapsed rail remembered on the next page", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Collapsed bound to C#", "member": "Collapsed" }
       ],
       "examples": [
         { "id": "app-sidebar-drawer", "title": "A drawer on phones", "height": 460, "page": true,
           "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } }
       ],
@@ -172,26 +172,26 @@
           "description": "On wide screens the menu button shrinks the sidebar to an icon rail, with labels as tooltips and the account pinned in SidebarFooter. Inset raises the work area as one panel in a tinted frame.",
           "example": { "id": "app-sidebar-icon-rail", "title": "Icon rail", "height": 520, "page": true,
             "notes": {
-              "off": "The menu button collapses the sidebar through a checkbox and CSS; a reload forgets it. A group opened in the rail stays narrow, so its items don't show.",
+              "noscript": "The menu button collapses the sidebar through a checkbox and CSS; a reload forgets it. A group opened in the rail stays narrow, so its items don't show.",
               "static": "The choice is saved in a cookie the server reads, so the page comes back collapsed. Opening a group in the rail expands the sidebar."
             } } },
         { "id": "full-height", "title": "Full-height dark sidebar", "member": "FullHeight",
           "description": "A hosting dashboard whose sidebar runs the full height of the window, with the brand in SidebarHeader lined up with the header beside it. ColorScheme makes the sidebar dark in a light app.",
           "example": { "id": "app-sidebar-full-height", "title": "Full-height sidebar", "height": 600, "page": true,
             "notes": {
-              "off": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
+              "noscript": "At phone width the menu button is a link to the sidebar, which opens as a drawer through CSS; its close button or a tap beside it closes it. Escape doesn't close it, and focus doesn't move.",
               "static": "At phone width the drawer opens without changing the address, and focus moves into it. Its close button, Escape or a tap beside it closes it and puts focus back on the menu button; following a link closes it too."
             } } },
         { "id": "menu-panel", "title": "Menu panel with header links", "member": "SmallScreen",
           "description": "A guide with site links in the header and chapters in the sidebar. At phone width the sidebar opens as a panel under the header, with the header's links at its top so there is one menu, and the menu button becomes its close button.",
           "example": { "id": "app-sidebar-panel", "title": "Guide", "height": 580, "page": true,
             "notes": {
-              "off": "At phone width the menu button and its close button are links, so the panel opens and closes, but focus doesn't move and Escape does nothing.",
+              "noscript": "At phone width the menu button and its close button are links, so the panel opens and closes, but focus doesn't move and Escape does nothing.",
               "static": "The panel opens without changing the address, focus moves into it, and Escape closes it."
             } } },
         { "id": "collapsed-from-csharp", "title": "Collapsed from C#", "member": "Collapsed",
           "description": "A notes app with a focus-mode button. @bind-Collapsed follows the icon rail on an interactive page, and C# can collapse or expand it.",
-          "example": { "id": "app-sidebar-bound-collapse", "title": "Focus mode", "height": 440, "page": true, "modes": ["live"] } }
+          "example": { "id": "app-sidebar-bound-collapse", "title": "Focus mode", "height": 440, "page": true, "modes": ["interactive"] } }
       ]
     },
     {
@@ -199,7 +199,7 @@
       "features": [
         { "feature": "A row of links from the breakpoint up" },
         { "feature": "A menu button on phones; Escape or a tap outside closes the panel" },
-        { "feature": "Focus moves to the first link when the panel opens", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Focus moves to the first link when the panel opens", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "The links move into an AppSidebar on phones" }
       ],
       "scenarios": [
@@ -207,7 +207,7 @@
           "description": "A site with no sidebar: a hero and a band of project cards on a 72rem column. From 768px up SiteNav is a row of links in the header; below it a menu button opens the same links in a panel, with SiteNavFooter's button under them.",
           "example": { "id": "site-nav-content-site", "title": "Content site", "height": 860, "page": true,
             "notes": {
-              "off": "At phone width the menu button opens the links in a native popover; focus stays on the button.",
+              "noscript": "At phone width the menu button opens the links in a native popover; focus stays on the button.",
               "static": "Opening moves focus to the first link, and following a link closes the panel."
             } } }
       ]
@@ -225,17 +225,17 @@
       "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.", "keywords": ["dark mode", "theme toggle"],
       "features": [
         { "feature": "Picks a scheme, kept in a cookie for every later page" },
-        { "feature": "Changes the page at once, without a reload; other open tabs follow", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Changes the page at once, without a reload; other open tabs follow", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Value bound to C#", "member": "Value" }
       ],
       "examples": [
         { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented",
           "notes": {
-            "off": "Each option is a link: the server saves the choice and sends you back.",
+            "noscript": "Each option is a link: the server saves the choice and sends you back.",
             "static": "The scheme changes at once, and other open tabs follow.",
-            "live": "The same, and @bind-Value gives you the choice in C#."
+            "interactive": "The same, and @bind-Value gives you the choice in C#."
           } },
-        { "id": "color-scheme-switch-bound", "title": "Following it from C#", "lead": "Use `ValueChanged` to learn the choice in C#, and set `Value` to apply a scheme to the page, the cookie and other open tabs.", "modes": ["live"] }
+        { "id": "color-scheme-switch-bound", "title": "Following it from C#", "lead": "Use `ValueChanged` to learn the choice in C#, and set `Value` to apply a scheme to the page, the cookie and other open tabs.", "modes": ["interactive"] }
       ]
     },
 
@@ -287,15 +287,15 @@
       "examples": [
         { "id": "code-inline-block", "title": "Inline and block", "lead": "Use `Code` alone for names in running text, and `Block` for code on its own lines that scrolls sideways.",
           "notes": {
-            "off": "The block has no copy button; the command is still there to select."
+            "noscript": "The block has no copy button; the command is still there to select."
           } },
         { "id": "code-languages", "title": "Syntax highlighting", "lead": "Use `Language` to color the code on the server: C#, Razor, HTML, CSS, JavaScript, TypeScript, JSON and shell.",
           "notes": {
-            "off": "The colors are the same, since the server draws them; only the copy buttons are missing."
+            "noscript": "The colors are the same, since the server draws them; only the copy buttons are missing."
           } },
         { "id": "code-lines", "title": "File name, line numbers and highlights", "lead": "Use `Title` for a file name, `LineNumbers` to number the lines and `HighlightLines` to mark some, such as \"2,9\".",
           "notes": {
-            "off": "There's no copy button; selecting the code still leaves the line numbers out."
+            "noscript": "There's no copy button; selecting the code still leaves the line numbers out."
           } }
       ],
       "scenarios": [
@@ -303,7 +303,7 @@
           "description": "A setup page in a docs site, centered at a reading width: numbered steps, a command with its own copy button, and files named in their header with the lines to change highlighted.",
           "example": { "id": "code-install-guide", "title": "Install guide", "height": 1300, "page": true,
             "notes": {
-              "off": "The copy buttons don't appear; the command and the code are still there to select."
+              "noscript": "The copy buttons don't appear; the command and the code are still there to select."
             } } }
       ]
     },
@@ -333,15 +333,15 @@
       "examples": [
         { "id": "code-example-source", "title": "Preview and source", "lead": "Use `Code` to show an example's source under its live preview, colored and with a copy button.",
           "notes": {
-            "off": "The source has no copy button."
+            "noscript": "The source has no copy button."
           } },
         { "id": "code-example-files", "title": "Several files", "lead": "Use `CodeExampleFile` parts to show each file of an example as a tab over its source.",
           "notes": {
-            "off": "The file tabs still switch, as radio buttons; the source has no copy button."
+            "noscript": "The file tabs still switch, as radio buttons; the source has no copy button."
           } },
         { "id": "code-example-show-code", "title": "Hidden source", "lead": "Use `Collapsible` to hide the source behind a \"Show code\" toggle.",
           "notes": {
-            "off": "Show code still opens the source (a native `details`); it has no copy button."
+            "noscript": "Show code still opens the source (a native `details`); it has no copy button."
           } }
       ]
     },
@@ -382,20 +382,20 @@
         { "id": "button-variants", "title": "Accents and variants" },
         { "id": "button-submit-reset", "title": "Submit and reset",
           "notes": {
-            "off": "Save posts the form, and the server renders the page again with the result.",
+            "noscript": "Save posts the form, and the server renders the page again with the result.",
             "static": "Blazor's enhanced form handling posts it without a full reload.",
-            "live": "The same form validates and runs OnValidSubmit over the circuit."
+            "interactive": "The same form validates and runs OnValidSubmit over the circuit."
           } },
         { "id": "button-links", "title": "Links that look like buttons" },
         { "id": "button-sizes-icons", "title": "Sizes and icons" },
         { "id": "button-states", "title": "Loading and disabled" },
-        { "id": "button-on-click", "title": "Running C# on click", "modes": ["live"] },
-        { "id": "button-toggle", "title": "Toggle buttons", "modes": ["live"] },
+        { "id": "button-on-click", "title": "Running C# on click", "modes": ["interactive"] },
+        { "id": "button-toggle", "title": "Toggle buttons", "modes": ["interactive"] },
         { "id": "button-state-in-address", "title": "A count in the address",
           "notes": {
-            "off": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
+            "noscript": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
             "static": "Each button is a link to this page with a new ?guests=, so every request knows the count.",
-            "live": "The same links: the component follows the address and keeps no count of its own."
+            "interactive": "The same links: the component follows the address and keeps no count of its own."
           } }
       ],
       "scenarios": [
@@ -419,9 +419,9 @@
         { "id": "icon-button-sizes-states", "title": "Sizes and states", "lead": "Use `Size`, `Loading` and `Disabled` as on Button." },
         { "id": "icon-button-row-actions", "title": "Actions on a row", "lead": "Use `Href` for a link and `Submit` with `Name` and `Value` to post which row a button is on, with `OnClick` for the same on interactive pages.",
           "notes": {
-            "off": "Delete posts the file's name and the page reloads without it; Restore is a link back.",
+            "noscript": "Delete posts the file's name and the page reloads without it; Restore is a link back.",
             "static": "Delete posts without a reload, and the response redirects to an address listing what's deleted.",
-            "live": "Delete runs OnClick in C#, and nothing is posted."
+            "interactive": "Delete runs OnClick in C#, and nothing is posted."
           } }
       ]
     },
@@ -438,28 +438,28 @@
       "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "One row of controls; what doesn't fit moves into a … menu.", "keywords": ["action bar"],
       "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
       "features": [
-        { "feature": "What doesn't fit moves into the … menu, which opens and posts with no script", "off": "full", "static": "full", "live": "full" },
-        { "feature": "Widths measured in the browser (without script, worked out on the server)", "off": "none", "static": "full", "live": "full" },
-        { "feature": "One tab stop, with arrow keys between its controls", "off": "none", "static": "full", "live": "full" },
-        { "feature": "OnClick runs from the bar or the menu", "off": "none", "static": "none", "live": "full" }
+        { "feature": "What doesn't fit moves into the … menu, which opens and posts with no script", "noscript": "full", "static": "full", "interactive": "full" },
+        { "feature": "Widths measured in the browser (without script, worked out on the server)", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "One tab stop, with arrow keys between its controls", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "OnClick runs from the bar or the menu", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
         { "id": "toolbar-editor", "title": "Editor toolbar",
           "notes": {
-            "off": "Widths worked out on the server choose what moves into the … menu; each control is its own tab stop.",
+            "noscript": "Widths worked out on the server choose what moves into the … menu; each control is its own tab stop.",
             "static": "The script measures and adds the keys: Tab reaches the toolbar once, and the arrows move along it."
           } },
         { "id": "toolbar-regions", "title": "Start, center and end" },
         { "id": "toolbar-priority", "title": "What moves first" },
         { "id": "toolbar-bulk-actions", "title": "Posting a form",
           "notes": {
-            "off": "Each button, in the bar or the … menu, posts intent=archive, read or delete with the form.",
+            "noscript": "Each button, in the bar or the … menu, posts intent=archive, read or delete with the form.",
             "static": "The same posts, without a full reload.",
-            "live": "OnClick says which was pressed, from the bar or the menu; nothing is posted."
+            "interactive": "OnClick says which was pressed, from the bar or the menu; nothing is posted."
           } },
         { "id": "toolbar-filters", "title": "Fields, a SegmentedControl and a Menu" },
-        { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["live"] },
-        { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["live"] },
+        { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["interactive"] },
+        { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["interactive"] },
         { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
         { "id": "toolbar-wrap", "title": "Wrapping instead" }
       ],
@@ -472,23 +472,23 @@
     {
       "id": "confirm-button", "icon": "ShieldQuestionMark", "name": "ConfirmButton", "category": "Actions", "summary": "Asks in an alert dialog before acting.", "keywords": ["are you sure"], "parts": ["ConfirmDialogContent"],
       "features": [
-        { "feature": "Opens its dialog (with JavaScript off, in browsers with the command attribute)", "off": "partial", "static": "full", "live": "full" },
-        { "feature": "Confirming posts the form with Name and Value", "off": "full", "static": "full", "live": "none" },
+        { "feature": "Opens its dialog (with JavaScript off, in browsers with the command attribute)", "noscript": "partial", "static": "full", "interactive": "full" },
+        { "feature": "Confirming posts the form with Name and Value", "noscript": "full", "static": "full", "interactive": "none" },
         { "feature": "Confirming follows Href" },
         { "feature": "OnConfirm runs C#", "member": "OnConfirm" }
       ],
       "examples": [
         { "id": "confirm-button-form-post", "title": "Confirming a form post", "lead": "Use `Name` and `Value` on a `ConfirmButton` in a form to post which action was confirmed, and `OnConfirm` to run C# instead on interactive pages.",
           "notes": {
-            "off": "Confirming posts the form with intent=archive or intent=delete. The buttons open the dialog only in browsers with the native command attribute.",
+            "noscript": "Confirming posts the form with intent=archive or intent=delete. The buttons open the dialog only in browsers with the native command attribute.",
             "static": "Confirming posts the form without a reload, and the dialog closes as it goes.",
-            "live": "Confirming runs OnConfirm in C#, and nothing is posted."
+            "interactive": "Confirming runs OnConfirm in C#, and nothing is posted."
           } },
         { "id": "confirm-button-affected", "title": "Showing what's affected", "lead": "Use `Body` for more than a one-line `Message`, such as a list of what will be deleted.",
           "notes": {
-            "off": "Confirming posts the form. The button opens the dialog only in browsers with the native command attribute.",
+            "noscript": "Confirming posts the form. The button opens the dialog only in browsers with the native command attribute.",
             "static": "Confirming posts the form without a reload, and the dialog closes as it goes.",
-            "live": "Confirming runs OnConfirm in C#, and nothing is posted."
+            "interactive": "Confirming runs OnConfirm in C#, and nothing is posted."
           } }
       ]
     },
@@ -497,11 +497,11 @@
       "examples": [
         { "id": "copy-button-command", "title": "Copy text", "lead": "Use `Text` to copy a fixed value, such as an install command.",
           "notes": {
-            "off": "The button doesn't appear; the command is still there to select."
+            "noscript": "The button doesn't appear; the command is still there to select."
           } },
         { "id": "copy-button-from-field", "title": "Copy from a field", "lead": "Use `For` to copy the value or text of the element with that id, such as a read-only field.",
           "notes": {
-            "off": "The button doesn't appear and the field takes its space; the key is still there to select."
+            "noscript": "The button doesn't appear and the field takes its space; the key is still there to select."
           } }
       ]
     },
@@ -509,43 +509,43 @@
     {
       "id": "form", "icon": "ClipboardList", "name": "Form", "category": "Forms", "summary": "Posts on static pages, validates live on interactive ones.", "parts": ["FormActions", "FormErrors"],
       "examples": [
-        { "id": "home-settings", "title": "A settings form, three modes",
+        { "id": "home-settings", "title": "A settings form, static or interactive",
           "notes": {
-            "off": "Every control still works, and Save posts, checks and shows the result.",
+            "noscript": "Every control still works, and Save posts, checks and shows the result.",
             "static": "The script adds the slider's live value and keyboard handling.",
-            "live": "The same markup binds to C#, and Save runs a C# handler."
+            "interactive": "The same markup binds to C#, and Save runs a C# handler."
           } },
         { "id": "form-columns", "title": "Two columns",
           "notes": {
-            "off": "The browser checks before posting, in its own words.",
+            "noscript": "The browser checks before posting, in its own words.",
             "static": "The browser checks before posting, in the model's words.",
-            "live": "Each field is checked when it changes, and Save runs C# without a page load."
+            "interactive": "Each field is checked when it changes, and Save runs C# without a page load."
           } },
         { "id": "form-errors", "title": "Errors from the server",
           "notes": {
-            "off": "Send posts and loads the page again with the messages, and the summary takes focus.",
+            "noscript": "Send posts and loads the page again with the messages, and the summary takes focus.",
             "static": "Send posts without a reload, and the summary takes focus.",
-            "live": "Each field is checked when it changes, and Send runs C# without a page load."
+            "interactive": "Each field is checked when it changes, and Send runs C# without a page load."
           } },
         { "id": "form-horizontal", "title": "Labels beside fields" },
         { "id": "form-read-only", "title": "Read-only" },
         { "id": "form-two-forms", "title": "Two forms on a page",
           "notes": {
-            "off": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
+            "noscript": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
             "static": "Each post is a new request that fills only its own form's model: after Subscribe, the search is empty again.",
-            "live": "Nothing posts, so the search keeps its value after Subscribe."
+            "interactive": "Nothing posts, so the search keeps its value after Subscribe."
           } },
         { "id": "form-empty-selection", "title": "An empty selection",
           "notes": {
-            "off": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
+            "noscript": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
             "static": "Uncheck every box and save: nothing posts for the group, and no default comes back.",
-            "live": "Nothing posts on an interactive page: the list is just empty."
+            "interactive": "Nothing posts on an interactive page: the list is just empty."
           } },
         { "id": "form-redirect-after-save", "title": "A redirect after saving",
           "notes": {
-            "off": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
+            "noscript": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
             "static": "The post is answered with a redirect to ?saved=, so reloading doesn't post again.",
-            "live": "NavigateTo changes the address without a page load."
+            "interactive": "NavigateTo changes the address without a page load."
           } }
       ],
       "scenarios": [
@@ -553,9 +553,9 @@
           "description": "A complete sign-up: labels, required marks, lengths and input types come from the model's DataAnnotations, the server checks the rest, such as the terms, and every control posts with JavaScript off.",
           "example": { "id": "form-signup", "title": "Create your account", "height": 1100, "page": true,
             "notes": {
-              "off": "The browser checks the required fields and lengths before posting, in its own words; the server checks the rest, such as the terms, and the page loads again with its messages.",
+              "noscript": "The browser checks the required fields and lengths before posting, in its own words; the server checks the rest, such as the terms, and the page loads again with its messages.",
               "static": "The browser's checks use the model's words, and the form posts without a full reload. The password gets a show/hide button, and the count under About you follows your typing.",
-              "live": "Each field is checked when it changes, and Create account runs C# without a page load."
+              "interactive": "Each field is checked when it changes, and Create account runs C# without a page load."
             } } }
       ]
     },
@@ -574,29 +574,29 @@
         { "feature": "Label, hint, type and limits from the model" },
         { "feature": "Icons and add-ons" },
         { "feature": "Checks before posting, server messages under the field" },
-        { "feature": "Show/hide button on passwords", "off": "none", "static": "full", "live": "full" }
+        { "feature": "Show/hide button on passwords", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "text-field-labels", "title": "Labels and hints" },
         { "id": "text-field-password", "title": "Passwords",
           "notes": {
-            "off": "A plain password input, with no show/hide button.",
+            "noscript": "A plain password input, with no show/hide button.",
             "static": "The script adds the show/hide button."
           } },
         { "id": "text-field-icons", "title": "Icons" },
         { "id": "text-field-addons", "title": "Add-ons" },
         { "id": "text-field-validation", "title": "Validation",
           "notes": {
-            "off": "The browser checks before posting, in its own words; the server's messages show after.",
+            "noscript": "The browser checks before posting, in its own words; the server's messages show after.",
             "static": "The browser checks before posting, in the model's words; the server's messages show after.",
-            "live": "Each field is checked when it changes, and submitting runs C# without a page load."
+            "interactive": "Each field is checked when it changes, and submitting runs C# without a page load."
           } },
         { "id": "text-field-states", "title": "Sizes, read-only and disabled" },
         { "id": "text-field-sign-in", "title": "A password after a failed post",
           "notes": {
-            "off": "After the failed post, the email comes back and the password field is empty.",
+            "noscript": "After the failed post, the email comes back and the password field is empty.",
             "static": "After the failed post, the email comes back and the password field is empty.",
-            "live": "Nothing reloads, so the password stays in the field."
+            "interactive": "Nothing reloads, so the password stays in the field."
           } }
       ]
     },
@@ -606,20 +606,20 @@
         { "feature": "Label, hint and length limits from the model" },
         { "feature": "Checks before posting, server messages under the field" },
         { "feature": "Grows with the text (AutoGrow)" },
-        { "feature": "The count follows typing (ShowCount)", "off": "none", "static": "full", "live": "full" }
+        { "feature": "The count follows typing (ShowCount)", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "text-area-rows", "title": "Rows and placeholder", "lead": "Use `Rows` to set how many lines show; longer text scrolls." },
         { "id": "text-area-count", "title": "Growing, with a count", "lead": "Use `AutoGrow` to grow with the text, and `ShowCount` to count against the limit from `[StringLength]`.",
           "notes": {
-            "off": "The count shows the length the page loaded with; it doesn't follow your typing.",
+            "noscript": "The count shows the length the page loaded with; it doesn't follow your typing.",
             "static": "The script keeps the count current as you type."
           } },
         { "id": "text-area-feedback", "title": "Required, with a length",
           "notes": {
-            "off": "The browser stops a post that's empty or too short, in its own words.",
+            "noscript": "The browser stops a post that's empty or too short, in its own words.",
             "static": "The browser stops a post that's empty or too short, in the model's words.",
-            "live": "The browser checks in the model's words, as on static pages, and Send runs C# without a page load."
+            "interactive": "The browser checks in the model's words, as on static pages, and Send runs C# without a page load."
           } },
         { "id": "text-area-states", "title": "Sizes, read-only and disabled" }
       ]
@@ -629,24 +629,24 @@
       "features": [
         { "feature": "Typing and arrow keys, with Min, Max and Step checked before posting" },
         { "feature": "A number keyboard on phones" },
-        { "feature": "Increase and decrease buttons (hold to repeat)", "off": "none", "static": "full", "live": "full" }
+        { "feature": "Increase and decrease buttons (hold to repeat)", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "number-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, and the browser checks them before the form posts.",
           "notes": {
-            "off": "The browser stops a quantity outside 1 to 99, in its own words.",
+            "noscript": "The browser stops a quantity outside 1 to 99, in its own words.",
             "static": "The browser stops a quantity outside 1 to 99, in the model's words.",
-            "live": "The browser checks in the model's words, as on static pages, and Update order runs C# without a page load."
+            "interactive": "The browser checks in the model's words, as on static pages, and Update order runs C# without a page load."
           } },
         { "id": "number-field-decimals", "title": "Decimals and units", "lead": "Use `Step` for the allowed increments, such as `0.01` for cents, and `StartAddon` or `EndAddon` for a currency or unit." },
         { "id": "number-field-steppers", "title": "Step buttons", "lead": "Use `StepButtons` to stack the buttons at the end (the default), split them across both ends, or leave them out.",
           "notes": {
-            "off": "The browser's own spin buttons show in place of the step buttons, except on Room number, which has none.",
+            "noscript": "The browser's own spin buttons show in place of the step buttons, except on Room number, which has none.",
             "static": "The script adds the buttons; hold one to repeat, and each stops at its end of the range."
           } },
         { "id": "number-field-states", "title": "Sizes, read-only and disabled",
           "notes": {
-            "off": "The browser's spin buttons show on every field, and do nothing on the read-only and disabled ones."
+            "noscript": "The browser's spin buttons show on every field, and do nothing on the read-only and disabled ones."
           } }
       ]
     },
@@ -655,18 +655,18 @@
       "features": [
         { "feature": "The browser's calendar, with Min, Max and Step checked before posting" },
         { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
-        { "feature": "Times read in TimeZone (UTC unless set)", "off": "partial", "static": "full", "live": "full" }
+        { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "date-field-limits", "title": "Limits from the model", "lead": "`Min` and `Max` come from `[Range]`, or set them on the field, as Check-out's `Min` follows Check-in.",
           "notes": {
-            "off": "The browser stops a check-in outside 2027, in its own words.",
+            "noscript": "The browser stops a check-in outside 2027, in its own words.",
             "static": "The browser stops a check-in outside 2027, in the model's words.",
-            "live": "Check-out's earliest date follows Check-in as you change it."
+            "interactive": "Check-out's earliest date follows Check-in as you change it."
           } },
         { "id": "date-field-time-zones", "title": "Time zones", "lead": "Use `TimeZone` for the zone a time is typed in; without it, UTC. A `DateTime` comes back in UTC, a `DateTimeOffset` with the zone's offset.",
           "notes": {
-            "off": "Without the script the server reads the New York time in its own zone, so the saved offset is the server's.",
+            "noscript": "Without the script the server reads the New York time in its own zone, so the saved offset is the server's.",
             "static": "The script posts the New York time with its offset, so the saved value is right."
           } },
         { "id": "date-field-states", "title": "Sizes, read-only and disabled" }
@@ -676,26 +676,26 @@
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.", "keywords": ["range"],
       "features": [
         { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },
-        { "feature": "The track fills to the thumb, and the shown value follows", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Screen readers hear the value as ValueFormat writes it", "off": "none", "static": "full", "live": "full" },
-        { "feature": "The bound value follows while dragging (Live)", "off": "none", "static": "none", "live": "full" }
+        { "feature": "The track fills to the thumb, and the shown value follows", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Screen readers hear the value as ValueFormat writes it", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The bound value follows while dragging (Live)", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
         { "id": "slider-value", "title": "Showing the value", "lead": "Use `ShowValue` to show the value beside the slider, and `ValueFormat` for how it reads, shown and announced; `[Range]` sets the ends.",
           "notes": {
-            "off": "A plain range input: no fill, and no value beside it.",
+            "noscript": "A plain range input: no fill, and no value beside it.",
             "static": "The script fills the track to the thumb, and the value follows as you drag."
           } },
         { "id": "slider-budget", "title": "Saving a value",
           "notes": {
-            "off": "Save budget posts the slider's number; the value beside it doesn't follow the thumb.",
+            "noscript": "Save budget posts the slider's number; the value beside it doesn't follow the thumb.",
             "static": "The value follows the thumb, and Save budget posts it without a full reload.",
-            "live": "Save budget runs C# without a page load; the saved line keeps what was saved."
+            "interactive": "Save budget runs C# without a page load; the saved line keeps what was saved."
           } },
-        { "id": "slider-live", "title": "Following the value live", "lead": "Use `Live` on interactive pages to update the bound value while dragging, for something on the page that follows it.", "modes": ["live"] },
+        { "id": "slider-live", "title": "Following the value live", "lead": "Use `Live` on interactive pages to update the bound value while dragging, for something on the page that follows it.", "modes": ["interactive"] },
         { "id": "slider-states", "title": "Sizes and disabled", "lead": "Use `Size` to match other fields, and `Disabled` for a value that can't be moved, which doesn't post.",
           "notes": {
-            "off": "Plain range inputs with no values beside them."
+            "noscript": "Plain range inputs with no values beside them."
           } }
       ]
     },
@@ -703,23 +703,23 @@
       "id": "color-picker", "icon": "Pipette", "name": "ColorPicker", "category": "Forms", "summary": "A color field with a hex box and presets.",
       "features": [
         { "feature": "Pick in the browser's color panel; posted with the form" },
-        { "feature": "A hex box to type or paste in, and preset swatches", "off": "none", "static": "full", "live": "full" }
+        { "feature": "A hex box to type or paste in, and preset swatches", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "color-picker-presets", "title": "Presets", "lead": "Use `Presets` to offer a set of colors and `PresetText` to name them for screen readers; the value is a hex string such as `#2563eb`.",
           "notes": {
-            "off": "The swatch fills the field and opens the browser's picker, where Chrome and Edge list the presets first. There's no hex box.",
+            "noscript": "The swatch fills the field and opens the browser's picker, where Chrome and Edge list the presets first. There's no hex box.",
             "static": "The script adds the hex box and shows the presets as swatches under the field."
           } },
         { "id": "color-picker-label-color", "title": "Saving a color",
           "notes": {
-            "off": "The swatch opens the browser's panel, with the presets first in Chrome and Edge; Save label posts the color.",
+            "noscript": "The swatch opens the browser's panel, with the presets first in Chrome and Edge; Save label posts the color.",
             "static": "Type a hex value or choose a swatch; Save label posts it without a full reload.",
-            "live": "Save label runs C# without a page load; the saved badge keeps what was saved."
+            "interactive": "Save label runs C# without a page load; the saved badge keeps what was saved."
           } },
         { "id": "color-picker-states", "title": "Sizes, swatch only and locked", "lead": "Use `Size` to match other fields, `ShowHex=\"false\"` for the swatch alone, and `ReadOnly` or `Disabled` to lock the value.",
           "notes": {
-            "off": "There's no hex box, so the read-only field shows only its swatch, disabled.",
+            "noscript": "There's no hex box, so the read-only field shows only its swatch, disabled.",
             "static": "The read-only field's hex box can be focused and selected, but not changed."
           } }
       ]
@@ -728,27 +728,27 @@
       "id": "file-upload", "icon": "Upload", "name": "FileUpload", "category": "Forms", "summary": "A drop zone around a real file input.", "keywords": ["dropzone", "file input"],
       "features": [
         { "feature": "Choose files with the picker, posted with the form" },
-        { "feature": "Drop files on the zone; the wrong type refused", "off": "none", "static": "full", "live": "full" },
-        { "feature": "The chosen file's name and size, too large flagged before posting", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Drop files on the zone; the wrong type refused", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The chosen file's name and size, too large flagged before posting", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "OnChange gets the files", "member": "OnChange" }
       ],
       "examples": [
         { "id": "file-upload-photo", "title": "Types, size and posting", "lead": "Use `Accept` and `MaxFileSize` for the files allowed (they write the hint), and `Multipart` on the Form so the file posts.",
           "notes": {
-            "off": "Choose a file opens the picker, the browser names the chosen file under the prompt, and Upload posts the photo. Dropping a file and the size check need the script.",
+            "noscript": "Choose a file opens the picker, the browser names the chosen file under the prompt, and Upload posts the photo. Dropping a file and the size check need the script.",
             "static": "You can also drop a photo on the zone; one over 2 MB is flagged before posting, and the chosen file's name and size replace the types and size line.",
-            "live": "OnChange gets the photo as an IBrowserFile when it's chosen, to read as a stream."
+            "interactive": "OnChange gets the photo as an IBrowserFile when it's chosen, to read as a stream."
           } },
         { "id": "file-upload-multiple", "title": "Several files", "lead": "Use `Multiple` to take several files at once; on a static page they bind to an `IReadOnlyList<IFormFile>`.",
           "notes": {
-            "off": "Choose files opens the picker, and Attach posts every file chosen. Dropping files needs the script.",
+            "noscript": "Choose files opens the picker, and Attach posts every file chosen. Dropping files needs the script.",
             "static": "Files can be dropped on the zone too (other types are refused), and \"2 files\" replaces the types and size line.",
-            "live": "OnChange gets the files as they're chosen; Attach lists them without a page load."
+            "interactive": "OnChange gets the files as they're chosen; Attach lists them without a page load."
           } },
         { "id": "file-upload-states", "title": "Required and disabled",
           "notes": {
-            "off": "The browser stops Apply until a résumé is chosen, in its own words.",
-            "live": "OnChange gets the résumé when it's chosen, and Apply runs C# without a page load."
+            "noscript": "The browser stops Apply until a résumé is chosen, in its own words.",
+            "interactive": "OnChange gets the résumé when it's chosen, and Apply runs C# without a page load."
           } }
       ]
     },
@@ -764,30 +764,30 @@
       "features": [
         { "feature": "Filters in the address, applied with Apply or Enter; Clear removes them" },
         { "feature": "Keeps the rest of the address and goes back to page 1" },
-        { "feature": "Applies as you type and on each change, without a reload", "off": "none", "static": "full", "live": "full" }
+        { "feature": "Applies as you type and on each change, without a reload", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "filter-form-issues", "title": "Search, select and checkbox", "lead": "Use `FilterSearch`, `FilterSelect` and `FilterCheckbox` for the filters; the page reads them from the URL with `[SupplyParameterFromQuery]` and filters its own data.",
           "notes": {
-            "off": "Press Enter or Apply to filter; Clear is a link that removes every filter.",
+            "noscript": "Press Enter or Apply to filter; Clear is a link that removes every filter.",
             "static": "Filters apply as you type and when a choice changes, without a full reload.",
-            "live": "The same, through Blazor's navigation: the page's query parameters update."
+            "interactive": "The same, through Blazor's navigation: the page's query parameters update."
           } },
         { "id": "filter-form-apply-button", "title": "Filtering on demand", "lead": "Use `Live=\"false\"` to keep the Apply button, so filters wait until it's pressed; `ApplyText` renames it.",
           "notes": {
-            "off": "Search loads the page again with the filters in the URL.",
+            "noscript": "Search loads the page again with the filters in the URL.",
             "static": "Filters wait for Search or Enter, then apply without a full reload."
           } },
         { "id": "filter-form-dates", "title": "Dates", "lead": "Use `FilterDate` for a date; the page reads it from the URL as a `DateOnly?`.",
           "notes": {
-            "off": "Press Enter or Apply to filter.",
+            "noscript": "Press Enter or Apply to filter.",
             "static": "Filters apply after a pause once a date changes, without a full reload."
           } },
         { "id": "filter-form-books", "title": "With a table",
           "notes": {
-            "off": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
+            "noscript": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
             "static": "Filters apply as you type, without a full reload; the sort stays and the table goes back to page 1.",
-            "live": "The same, through Blazor's navigation; the table follows the address."
+            "interactive": "The same, through Blazor's navigation; the table follows the address."
           } }
       ],
       "scenarios": [
@@ -795,9 +795,9 @@
           "description": "An orders page: a search, a status menu, a date range and a checkbox above a sortable, paged table. The filters live in the URL, so a filtered view can be bookmarked, and filtering keeps the sort and starts again at page 1.",
           "example": { "id": "filter-form-order-list", "title": "Orders", "height": 680, "page": true,
             "notes": {
-              "off": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
+              "noscript": "Press Enter or Apply to filter. Headers and page numbers are links; filtering keeps the sort and goes back to page 1.",
               "static": "Filters apply as you type, without a full reload.",
-              "live": "The same, through Blazor's navigation; the table follows the URL."
+              "interactive": "The same, through Blazor's navigation; the table follows the URL."
             } } }
       ]
     },
@@ -808,13 +808,13 @@
         { "id": "select-options", "title": "Options" },
         { "id": "select-rich", "title": "Rich options",
           "notes": {
-            "off": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"); the script puts ItemText in its place."
+            "noscript": "A browser without the customizable select shows each option's text run together (\"Pro$12 a month\"); the script puts ItemText in its place."
           } },
         { "id": "select-required", "title": "Required, with a placeholder",
           "notes": {
-            "off": "The browser stops the post until a plan is chosen, in its own words.",
+            "noscript": "The browser stops the post until a plan is chosen, in its own words.",
             "static": "The browser stops the post until a plan is chosen, in the model's words.",
-            "live": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
+            "interactive": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
           } },
         { "id": "select-states", "title": "Sizes, read-only and disabled" }
       ]
@@ -823,28 +823,28 @@
       "id": "combobox", "icon": "TextSearch", "name": "Combobox", "category": "Selection", "summary": "Type to filter; server search on interactive pages.", "keywords": ["autocomplete", "typeahead"],
       "features": [
         { "feature": "Choose an option, posted with the form" },
-        { "feature": "Type to filter, ignoring case and accents", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Markup in each option (ItemTemplate)", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Type to filter, ignoring case and accents", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Markup in each option (ItemTemplate)", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Search fills the list" },
-        { "feature": "Search as you type", "off": "none", "static": "none", "live": "full" }
+        { "feature": "Search as you type", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
         { "id": "combobox-filtering", "title": "Typing to filter", "lead": "Use `Items` and `ItemText` for a long list people find by typing: what's typed filters the options, ignoring case and accents.",
           "notes": {
-            "off": "A plain dropdown of every country, with no typing to filter.",
+            "noscript": "A plain dropdown of every country, with no typing to filter.",
             "static": "The script makes it a text field: typing filters the list, so \"cote\" finds Côte d'Ivoire."
           } },
         { "id": "combobox-server-search", "title": "Searching on the server", "lead": "Use `Search` for a list too long to send whole: it gets what's typed and returns the first matches, and `ItemTemplate` adds markup to each, such as an avatar.",
           "notes": {
-            "off": "A plain dropdown of what Search returns for an empty string: the first eight people.",
+            "noscript": "A plain dropdown of what Search returns for an empty string: the first eight people.",
             "static": "Search fills the list once, and typing filters those eight people in the browser.",
-            "live": "Typing calls Search after a short pause, so anyone in the directory can be found."
+            "interactive": "Typing calls Search after a short pause, so anyone in the directory can be found."
           } },
         { "id": "combobox-required", "title": "Required, with a placeholder", "lead": "Use `[Required]` on a nullable property and a `Placeholder`: nothing is chosen until someone picks an option.",
           "notes": {
-            "off": "A plain dropdown: the browser stops the post until a country is chosen, in its own words.",
+            "noscript": "A plain dropdown: the browser stops the post until a country is chosen, in its own words.",
             "static": "The browser stops the post until a country is chosen, in the model's words, on the text field.",
-            "live": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
+            "interactive": "The browser stops the post in the model's words, as on static pages, and Continue runs C# without a page load."
           } },
         { "id": "combobox-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for a value that posts but can't change, and `Disabled` for one that doesn't post." }
       ]
@@ -853,25 +853,25 @@
       "id": "multi-select", "icon": "ListChecks", "name": "MultiSelect", "category": "Selection", "summary": "Several choices as chips you can type to filter.", "keywords": ["tags input", "chips input"],
       "features": [
         { "feature": "Choose several options, posted with the form" },
-        { "feature": "Chips, and typing to filter, ignoring case and accents", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Markup in each option (ItemTemplate)", "off": "none", "static": "full", "live": "full" },
-        { "feature": "@bind-Value follows each choice", "off": "none", "static": "none", "live": "full" }
+        { "feature": "Chips, and typing to filter, ignoring case and accents", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Markup in each option (ItemTemplate)", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "@bind-Value follows each choice", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
         { "id": "multi-select-chips", "title": "Chips", "lead": "Bind `MultiSelect` to a collection and pass the options to `Items`: each chosen option posts as a repeated form field.",
           "notes": {
-            "off": "A plain multiple-select list, without chips or typing to filter. Save posts every chosen skill.",
+            "noscript": "A plain multiple-select list, without chips or typing to filter. Save posts every chosen skill.",
             "static": "Chosen skills show as chips, typing filters the list, choosing keeps it open, and Backspace removes the last chip."
           } },
         { "id": "multi-select-reviewers", "title": "At least one, with a placeholder", "lead": "Use `[Required]` and `[MinLength(1)]` to need at least one choice, and `ItemText` to name options whose values are ids.",
           "notes": {
-            "off": "A plain multiple-select list: the browser stops the post until someone is chosen, in its own words.",
+            "noscript": "A plain multiple-select list: the browser stops the post until someone is chosen, in its own words.",
             "static": "The browser stops the post until someone is chosen, in the model's words, on the field.",
-            "live": "The browser stops the post in the model's words, as on static pages, and Request review runs C# without a page load."
+            "interactive": "The browser stops the post in the model's words, as on static pages, and Request review runs C# without a page load."
           } },
         { "id": "multi-select-enum-icons", "title": "Enum options with icons", "lead": "For an enum, pass its values to `Items`; `ItemTemplate` adds an icon to each option, and the chips show its text.",
           "notes": {
-            "off": "A plain multiple-select list, showing each option's text without its icon."
+            "noscript": "A plain multiple-select list, showing each option's text without its icon."
           } },
         { "id": "multi-select-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` to line up with other controls, `ReadOnly` for choices that post but can't change, and `Disabled` for ones that don't post." }
       ]
@@ -881,11 +881,11 @@
       "examples": [
         { "id": "checkbox-terms", "title": "Agreeing to terms", "lead": "Use `ChildContent` for a label with a link, and `[Required]` with `[Range]` on the bool for a box that must be checked.",
           "notes": {
-            "off": "The browser stops the post until the box is checked, in its own words.",
+            "noscript": "The browser stops the post until the box is checked, in its own words.",
             "static": "The browser stops the post until the box is checked, in the model's words.",
-            "live": "The browser stops the post in the model's words, and clearing a checked box shows them under it at once."
+            "interactive": "The browser stops the post in the model's words, and clearing a checked box shows them under it at once."
           } },
-        { "id": "checkbox-select-all", "title": "A dash of your own", "modes": ["live"], "lead": "Use `Indeterminate` to show a dash when only some of what a box stands for is checked, and set the others from its `ValueChanged`." },
+        { "id": "checkbox-select-all", "title": "A dash of your own", "modes": ["interactive"], "lead": "Use `Indeterminate` to show a dash when only some of what a box stands for is checked, and set the others from its `ValueChanged`." },
         { "id": "checkbox-sizes", "title": "Sizes and disabled", "lead": "Use `Size` to match a box to fields and buttons of the same `ControlSize`, and `Disabled` for one that doesn't post." }
       ]
     },
@@ -896,9 +896,9 @@
         { "id": "switch-icons", "title": "Icons on rows", "lead": "Use `Icon` to put a decorative icon at the start of the row; give every row in a group one, or none." },
         { "id": "switch-save-on-change", "title": "Saving as it changes", "lead": "Use `@bind-Value:after` to save each change on an interactive page, and a Save button on a static one.",
           "notes": {
-            "off": "Switching changes nothing until Save posts the form.",
+            "noscript": "Switching changes nothing until Save posts the form.",
             "static": "Switching changes nothing until Save posts the form; the page doesn't reload.",
-            "live": "Each switch saves at once, with no button."
+            "interactive": "Each switch saves at once, with no button."
           } },
         { "id": "switch-states", "title": "Sizes and disabled", "lead": "Use `Size` to line up with other controls, and `Disabled` for one that doesn't post." }
       ],
@@ -915,9 +915,9 @@
         { "id": "radio-group-shipping", "title": "Options from a list", "lead": "Use `Items` for options that aren't an enum, and `ItemText` for how each one reads." },
         { "id": "radio-group-required-choice", "title": "Required, with nothing chosen", "lead": "Bind a nullable property with `[Required]` to start with nothing chosen and need a choice.",
           "notes": {
-            "off": "The browser stops the post until an option is chosen, in its own words.",
+            "noscript": "The browser stops the post until an option is chosen, in its own words.",
             "static": "The browser stops the post until an option is chosen, in the model's words.",
-            "live": "The browser stops the post in the model's words, as on static pages, and Send runs C# without a page load."
+            "interactive": "The browser stops the post in the model's words, as on static pages, and Send runs C# without a page load."
           } },
         { "id": "radio-group-states", "title": "Sizes and disabled", "lead": "Use `Size` to line up with other controls, and `Disabled` for one that doesn't post." }
       ]
@@ -929,13 +929,13 @@
         { "id": "checkbox-group-descriptions", "title": "Descriptions", "lead": "Use `ItemDescription` for a line under each option's name, read as the box's description." },
         { "id": "checkbox-group-everything", "title": "Select all", "lead": "Use `SelectAll` for a box above the options that checks or clears them all at once, and `SelectAllText` for its text.",
           "notes": {
-            "off": "The Everything box isn't shown, since it needs the script: check each topic."
+            "noscript": "The Everything box isn't shown, since it needs the script: check each topic."
           } },
         { "id": "checkbox-group-at-least-one", "title": "At least one", "lead": "Use `[Required]` and `[MinLength(1)]` together to need at least one checked box.",
           "notes": {
-            "off": "Saving with no box checked reloads the page with the message under the group; it stays until the next Save.",
+            "noscript": "Saving with no box checked reloads the page with the message under the group; it stays until the next Save.",
             "static": "Saving with no box checked shows the message under the group without a reload; it stays until the next Save.",
-            "live": "Save checks it without a post, and the message comes and goes as boxes are checked and cleared."
+            "interactive": "Save checks it without a post, and the message comes and goes as boxes are checked and cleared."
           } },
         { "id": "checkbox-group-states", "title": "Sizes and disabled", "lead": "Use `Size` to line up with other controls, and `Disabled` for ones that don't post." }
       ]
@@ -954,31 +954,31 @@
       "examples": [
         { "id": "dialog-open", "title": "Opening it",
           "notes": {
-            "off": "The trigger opens it as a modal. The link loads the page with it open but not modal, so focus can leave it.",
+            "noscript": "The trigger opens it as a modal. The link loads the page with it open but not modal, so focus can leave it.",
             "static": "The link opens it as a modal too, and closing it takes ?dialog= off the address.",
-            "live": "Open from C# sets @bind-Open, which also follows the dialog closing."
+            "interactive": "Open from C# sets @bind-Open, which also follows the dialog closing."
           } },
         { "id": "dialog-rename", "title": "A form in a dialog",
           "notes": {
-            "off": "Rename posts and loads the page again. A slash, which only the server checks, opens the dialog again with its message.",
+            "noscript": "Rename posts and loads the page again. A slash, which only the server checks, opens the dialog again with its message.",
             "static": "Rename posts without a reload. When the server finds an error, the dialog opens again at the field.",
-            "live": "The field is checked when it changes, and Rename runs C# and closes the dialog."
+            "interactive": "The field is checked when it changes, and Rename runs C# and closes the dialog."
           } },
         { "id": "dialog-parts", "title": "Header, body and footer" },
         { "id": "dialog-placement", "title": "Size and placement" },
-        { "id": "dialog-service", "title": "Dialogs from code", "modes": ["live"] }
+        { "id": "dialog-service", "title": "Dialogs from code", "modes": ["interactive"] }
       ]
     },
     {
       "id": "reconnect-dialog", "icon": "WifiOff", "name": "ReconnectDialog", "category": "Overlays", "summary": "What shows when an interactive server page loses its connection, in the theme.", "keywords": ["reconnect", "connection lost", "circuit", "components-reconnect-modal"],
       "features": [
-        { "feature": "Shows while Blazor rejoins, retries, fails or is paused", "off": "none", "static": "none", "live": "full" }
+        { "feature": "Shows while Blazor rejoins, retries, fails or is paused", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
-        { "id": "reconnect-dialog-states", "title": "Its states", "modes": ["live"],
+        { "id": "reconnect-dialog-states", "title": "Its states", "modes": ["interactive"],
           "lead": "Put one `ReconnectDialog` in App.razor's body, after `Routes`. These buttons send it the events Blazor sends when the connection drops; each closes after four seconds.",
           "notes": {
-            "live": "A real disconnect (stop the server) shows it until the circuit comes back." } }
+            "interactive": "A real disconnect (stop the server) shows it until the circuit comes back." } }
       ]
     },
     {
@@ -986,9 +986,9 @@
       "examples": [
         { "id": "drawer-filters", "title": "A form in a drawer", "lead": "Put a `Form` in a `Drawer` and end it with `FormActions`: the buttons become the drawer's footer. Put the fields in a `DialogBody`, which fills the drawer, to keep the footer at its bottom.",
           "notes": {
-            "off": "Show orders posts the form and loads the page again, with the drawer closed.",
+            "noscript": "Show orders posts the form and loads the page again, with the drawer closed.",
             "static": "Show orders posts without a reload, and the drawer closes.",
-            "live": "Show orders runs C# and closes the drawer through @bind-Open."
+            "interactive": "Show orders runs C# and closes the drawer through @bind-Open."
           } },
         { "id": "drawer-edges", "title": "Edges and widths", "lead": "Use `Size` for the width at the end edge, and `Placement` `DialogPlacement.Bottom` for a sheet along the bottom." },
         { "id": "drawer-nav", "title": "A menu from the start edge", "lead": "Use `Placement` `DialogPlacement.Start` with a small `Size` for navigation that slides in from the start edge." }
@@ -999,16 +999,16 @@
       "examples": [
         { "id": "menu-actions", "title": "Links, posts and actions",
           "notes": {
-            "off": "It opens and closes with no script, but arrow keys don't move through it. Settings is a link; Duplicate and Delete post the form.",
+            "noscript": "It opens and closes with no script, but arrow keys don't move through it. Settings is a link; Duplicate and Delete post the form.",
             "static": "The script adds the menu roles and keys: arrows, Home, End and type-ahead. Posts go without a full reload.",
-            "live": "Duplicate and Delete run the form's C# handler, and OnClick says which was chosen."
+            "interactive": "Duplicate and Delete run the form's C# handler, and OnClick says which was chosen."
           } },
         { "id": "menu-groups", "title": "Groups, shortcuts and colors" },
         { "id": "menu-trigger", "title": "Your own trigger" },
         { "id": "menu-checked", "title": "Checked items" },
         { "id": "menu-sub", "title": "Submenus",
           "notes": {
-            "off": "A click opens a submenu. Opening one on hover or with the arrow keys needs the script.",
+            "noscript": "A click opens a submenu. Opening one on hover or with the arrow keys needs the script.",
             "static": "Hover and the right arrow open a submenu and the left arrow closes it, as on interactive pages."
           } }
       ]
@@ -1017,17 +1017,17 @@
       "id": "popover", "icon": "MessageSquare", "name": "Popover", "category": "Overlays", "summary": "Non-modal content beside a trigger.", "keywords": ["popup", "flyout"],
       "features": [
         { "feature": "Opens and closes; Escape and a click outside close it" },
-        { "feature": "Focus moves in when opened and back when closed", "off": "partial", "static": "full", "live": "full" },
-        { "feature": "Placed next to its trigger where CSS can't place it", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Open from the server shows it", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Focus moves in when opened and back when closed", "noscript": "partial", "static": "full", "interactive": "full" },
+        { "feature": "Placed next to its trigger where CSS can't place it", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Open from the server shows it", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Open bound to C#", "member": "Open" }
       ],
       "examples": [
         { "id": "popover-filters", "title": "A form in a popover", "lead": "Use `Title` to head the panel and name it for screen readers; anything can go inside, such as a small filter form.",
           "notes": {
-            "off": "It opens and closes with no script, but focus stays on the button until you Tab into the panel. Apply posts the form and the page loads again, with the panel closed.",
+            "noscript": "It opens and closes with no script, but focus stays on the button until you Tab into the panel. Apply posts the form and the page loads again, with the panel closed.",
             "static": "Opening it moves focus into the panel, and closing it from inside puts focus back on the button. Apply posts without a reload, and the panel stays open.",
-            "live": "Apply runs C# with nothing posted, and the panel stays open."
+            "interactive": "Apply runs C# with nothing posted, and the panel stays open."
           } },
         { "id": "popover-sides", "title": "Placement and width", "lead": "Use `Placement` for the side it opens on (`BottomStart` by default) and `PanelWidth` for a set width; otherwise it's as wide as its content, up to 24rem." },
         { "id": "popover-manual", "title": "Staying open", "lead": "Use `Mode` `PopoverMode.Manual` for a panel that stays open while people work elsewhere on the page: Escape, a click outside and other popovers don't close it, so it shows a close button." },
@@ -1038,15 +1038,15 @@
       "id": "tooltip", "icon": "Info", "name": "Tooltip", "category": "Overlays", "summary": "Text on hover and keyboard focus.", "keywords": ["hint"],
       "features": [
         { "feature": "Shows on hover and keyboard focus, on the side Placement picks" },
-        { "feature": "Heard by screen readers as the trigger's description", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Escape hides it", "off": "none", "static": "full", "live": "full" },
-        { "feature": "In the top layer, where nothing clips it", "off": "none", "static": "full", "live": "full" }
+        { "feature": "Heard by screen readers as the trigger's description", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Escape hides it", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "In the top layer, where nothing clips it", "noscript": "none", "static": "full", "interactive": "full" }
       ],
       "examples": [
         { "id": "tooltip-sides", "title": "Placement", "lead": "Use `Placement` to show the tooltip below, before or after its trigger; it's above by default." },
         { "id": "tooltip-icon-buttons", "title": "Icon buttons and shortcuts", "lead": "Use `Content` for more than plain text, such as a keyboard shortcut, and `Delay` for how long a hover waits.",
           "notes": {
-            "off": "It's CSS alone: it shows on hover and focus, but Escape doesn't hide it and screen readers don't hear it.",
+            "noscript": "It's CSS alone: it shows on hover and focus, but Escape doesn't hide it and screen readers don't hear it.",
             "static": "The script links it to its button with aria-describedby and moves it to the top layer, where nothing can clip it. Escape hides it."
           } }
       ]
@@ -1064,26 +1064,26 @@
       "id": "tabs", "icon": "LayoutPanelTop", "name": "Tabs", "category": "Navigation", "summary": "Panels that switch with no script, or links to pages.", "keywords": ["tab strip"], "parts": ["Tab", "TabLink"],
       "features": [
         { "feature": "Switch panels, keeping what's typed" },
-        { "feature": "Heard as tabs, with Home and End", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Heard as tabs, with Home and End", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Open a tab from a ?tab= link" },
-        { "feature": "The address follows the picked tab", "off": "none", "static": "full", "live": "full" },
-        { "feature": "In a form: error counts, the tab with errors opens", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The address follows the picked tab", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "In a form: error counts, the tab with errors opens", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Selected bound to C#", "member": "Selected" },
         { "feature": "Tabs as links (TabLink)" }
       ],
       "examples": [
         { "id": "tabs-modes", "title": "Tabs in each mode",
           "notes": {
-            "off": "Radio buttons and CSS switch the panels; arrow keys work. C# isn't told.",
+            "noscript": "Radio buttons and CSS switch the panels; arrow keys work. C# isn't told.",
             "static": "The script makes them ARIA tabs, with roving focus. C# still isn't told: there's no circuit.",
-            "live": "@bind-Selected tells C# each time the tab changes."
+            "interactive": "@bind-Selected tells C# each time the tab changes."
           } },
         { "id": "tabs-variants", "title": "Variants, icons and badges", "lead": "Use `Variant` for an underline (the default), soft tabs or a segmented control; each `Tab` can have an `Icon`, a `Badge`, or be `Disabled`." },
         { "id": "tabs-sizes", "title": "Sizes and full width", "lead": "Use `Size` to match buttons and fields, and `FullWidth` to stretch the tabs across the row." },
         { "id": "tabs-vertical", "title": "Vertical", "lead": "Use `Orientation` `Orientation.Vertical` to put the tabs in a column beside the panels from 640px up; on phones they stay a row above." },
         { "id": "tabs-url", "title": "In the URL", "lead": "Use `QueryKey` to keep the selected tab in the query string, so a link to `?tab=billing` opens Billing.",
           "notes": {
-            "off": "The link opens Billing, but picking a tab doesn't change the address.",
+            "noscript": "The link opens Billing, but picking a tab doesn't change the address.",
             "static": "Picking a tab also updates the address, so it can be copied and shared."
           } },
         { "id": "tabs-links", "title": "Tabs as links", "lead": "Use `TabLink` in place of `Tab` for tabs that are links to their own pages: a `nav` of plain links, with the tab for the current address marked on the server." },
@@ -1094,9 +1094,9 @@
           "description": "Account details split across two tabs that still post as one form: after a failed save, the first tab with errors opens and each tab counts its own. With JavaScript off there are no tabs, and both sections show, one under the other.",
           "example": { "id": "tabs-account-form", "title": "Account details", "height": 680, "page": true,
             "notes": {
-              "off": "There are no tabs: both sections show, one under the other. Save posts, and the page loads again with the server's messages.",
+              "noscript": "There are no tabs: both sections show, one under the other. Save posts, and the page loads again with the server's messages.",
               "static": "Save posts without a full reload, and the Address tab opens with a count of its errors.",
-              "live": "Save runs C# and opens the Address tab; each tab's count follows its errors as you fix them."
+              "interactive": "Save runs C# and opens the Address tab; each tab's count follows its errors as you fix them."
             } } }
       ]
     },
@@ -1118,9 +1118,9 @@
         { "id": "pagination-sizes", "title": "Sizes and how many pages show", "lead": "Use `Size` to match buttons and fields, `Siblings` for the pages on each side of the current one, and `Boundaries` for the pages always shown at each end." },
         { "id": "pagination-bound", "title": "Bound to C#", "lead": "Use `@bind-Page` on an interactive page to page in C#, with buttons in place of links.",
           "notes": {
-            "off": "The pages are links that set ?page= and load the page again.",
-            "static": "The pages are still links that set ?page=; the page reads it as it loads, as with JavaScript off.",
-            "live": "The pages are buttons that update C# through @bind-Page, and the address stays as it is."
+            "noscript": "The pages are links that set ?page= and load the page again.",
+            "static": "The pages are still links that set ?page=; the page reads it as it loads.",
+            "interactive": "The pages are buttons that update C# through @bind-Page, and the address stays as it is."
           } }
       ]
     },
@@ -1137,7 +1137,7 @@
         { "id": "on-this-page-guide", "title": "A guide with its outline", "height": 640, "page": true,
           "lead": "Put `OnThisPage` in an `AppAside`: each `Heading` in `AppMain` lists itself, h2 and h3 by default, with h3 indented. Headings in raw HTML, such as a `Prose` block, are listed by the script when they have ids.",
           "notes": {
-            "off": "The section in view isn't marked, and the two headings in the Prose block (What's new in 1.4, Upgrading) aren't listed.",
+            "noscript": "The section in view isn't marked, and the two headings in the Prose block (What's new in 1.4, Upgrading) aren't listed.",
             "static": "Scrolling marks the section in view, and the Prose block's headings are listed."
           } }
       ]
@@ -1161,7 +1161,7 @@
       "features": [
         { "feature": "Status, title, icon and actions" },
         { "feature": "Closes with its close button" },
-        { "feature": "The close button is a button, and focus moves on when it closes", "off": "none", "static": "full", "live": "full" },
+        { "feature": "The close button is a button, and focus moves on when it closes", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Dismissed bound to C#", "member": "Dismissed" }
       ],
       "examples": [
@@ -1169,15 +1169,15 @@
         { "id": "alert-variants", "title": "Variants", "lead": "Use `Variant` for the weight: `Soft` (the default), `Outline` or `Solid`." },
         { "id": "alert-dismiss", "title": "Actions and dismissing", "lead": "Use `Dismissible` for a close button that works without script, and `AlertActions` for buttons under the message.",
           "notes": {
-            "off": "The close button is a checkbox and CSS: the alert hides, but focus isn't moved on, and a reload brings it back.",
+            "noscript": "The close button is a checkbox and CSS: the alert hides, but focus isn't moved on, and a reload brings it back.",
             "static": "The close button is a real button, and focus moves on to the next control on the page as the alert closes. A reload brings it back.",
-            "live": "The same, and @bind-Dismissed tells C# it closed: the switch below follows it, and turning it on shows the alert again."
+            "interactive": "The same, and @bind-Dismissed tells C# it closed: the switch below follows it, and turning it on shows the alert again."
           } },
         { "id": "alert-saved", "title": "After a post", "lead": "Use an `Alert` the handler renders to say what a post did, with `@bind-Dismissed` so a new save shows it again on interactive pages.",
           "notes": {
-            "off": "Save reloads the page with the alert. Closing hides it until the next save renders it again; focus isn't moved.",
+            "noscript": "Save reloads the page with the alert. Closing hides it until the next save renders it again; focus isn't moved.",
             "static": "Save posts without a reload, and the alert comes back with each response, closed or not. Closing it moves focus to the name field.",
-            "live": "Save runs C# with no page load. Closing sets the example's flag through @bind-Dismissed, and the next save clears it, so the alert shows again."
+            "interactive": "Save runs C# with no page load. Closing sets the example's flag through @bind-Dismissed, and the next save clears it, so the alert shows again."
           } }
       ]
     },
@@ -1186,15 +1186,15 @@
       "features": [
         { "feature": "Status, accent, icon and actions" },
         { "feature": "Closes with its close button" },
-        { "feature": "Stays closed on later pages (a cookie)", "off": "none", "static": "full", "live": "full" },
-        { "feature": "The close button is a button, and focus moves on when it closes", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Stays closed on later pages (a cookie)", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "The close button is a button, and focus moves on when it closes", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Dismissed bound to C#", "member": "Dismissed" }
       ],
       "examples": [
         { "id": "banner-statuses", "title": "Status and color", "lead": "Use `Status` for what the message means, or `Accent` and `Icon` for an announcement in your brand's color." },
         { "id": "banner-dismiss", "title": "Dismissing", "lead": "Use `Dismissible` for a close button; the banner then stays closed on later pages, remembered under its `RememberKey`.",
           "notes": {
-            "off": "The close button hides the banner on this page only: with no script, nothing is remembered. Closed in another mode first, the cookie keeps it out of this one too.",
+            "noscript": "The close button hides the banner on this page only: with no script, nothing is remembered. Closed in another mode first, the cookie keeps it out of this one too.",
             "static": "Closing writes a cookie, and the server leaves the banner out of later pages until the browser closes."
           } }
       ],
@@ -1203,7 +1203,7 @@
           "description": "A maintenance notice above a small app: close it, move between pages and reload, and the server leaves it out for a year, until a new notice gets a new key. With JavaScript off it closes, but comes back on the next page.",
           "example": { "id": "banner-remembered", "title": "Maintenance notice", "height": 400, "page": true,
             "notes": {
-              "off": "Closing hides it on this page only: it's back after Exports or Billing. Closed in another mode first, the cookie keeps it out of this one too; Post a new notice brings it back.",
+              "noscript": "Closing hides it on this page only: it's back after Exports or Billing. Closed in another mode first, the cookie keeps it out of this one too; Post a new notice brings it back.",
               "static": "Closing writes a cookie for a year, so the server leaves it out of every later page."
             } } }
       ]
@@ -1213,26 +1213,26 @@
       "features": [
         { "feature": "Toasts from a static post or page, rendered with the response" },
         { "feature": "Kept across a redirect or NavigateTo (not forceLoad on interactive pages)" },
-        { "feature": "Close themselves after Duration, pausing on hover and focus", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Added in the browser at once from C#, with no post", "off": "none", "static": "none", "live": "full" },
-        { "feature": "An action's OnClick runs C#", "off": "none", "static": "none", "live": "full" }
+        { "feature": "Close themselves after Duration, pausing on hover and focus", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Added in the browser at once from C#, with no post", "noscript": "none", "static": "none", "interactive": "full" },
+        { "feature": "An action's OnClick runs C#", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
         { "id": "toast-region-show", "title": "Showing a toast", "lead": "Use `ToastService` to show a toast from a form post or a C# handler; the `ToastRegion` in your layout shows it.",
           "notes": {
-            "off": "Each button posts its form, and the page comes back with the toast, which stays until closed.",
+            "noscript": "Each button posts its form, and the page comes back with the toast, which stays until closed.",
             "static": "The post updates the page without a reload; the success toast closes after 5 seconds, the error stays until closed.",
-            "live": "ToastService adds the toast in the browser straight away, with no post."
+            "interactive": "ToastService adds the toast in the browser straight away, with no post."
           } },
         { "id": "toast-region-undo", "title": "An action on the toast", "lead": "Use a `ToastAction` for a button on the toast: its `Href` on static pages, its `OnClick` on interactive ones.",
           "notes": {
-            "off": "Undo is a link to this page with ?restored=1, since there's no connection to run C# over.",
+            "noscript": "Undo is a link to this page with ?restored=1, since there's no connection to run C# over.",
             "static": "Undo is the same link, and the toast stays 10 seconds, twice as long as one without an action.",
-            "live": "Undo runs C# over the connection and closes the toast."
+            "interactive": "Undo runs C# over the connection and closes the toast."
           } },
-        { "id": "toast-region-redirect", "title": "After a redirect", "lead": "Use `ToastService` before a redirect: the toast follows to the next page, so post-redirect-get works.", "modes": ["off", "static"],
+        { "id": "toast-region-redirect", "title": "After a redirect", "lead": "Use `ToastService` before a redirect: the toast follows to the next page, so post-redirect-get works.", "modes": ["noscript", "static"],
           "notes": {
-            "off": "The post redirects, and the toast follows to the next page in a short-lived cookie.",
+            "noscript": "The post redirects, and the toast follows to the next page in a short-lived cookie.",
             "static": "The same, and the toast closes itself after 5 seconds."
           } }
       ],
@@ -1241,9 +1241,9 @@
           "description": "An inbox where each Archive button posts a form and a toast offers Undo. On static pages the post redirects with the archived ids in the address, the toast follows, and Undo is a link; on interactive pages Undo runs C#. Works with JavaScript off.",
           "example": { "id": "toast-region-inbox", "title": "Archive with undo", "height": 520, "page": true,
             "notes": {
-              "off": "Archive posts and redirects; Undo is a link to the address without that conversation.",
+              "noscript": "Archive posts and redirects; Undo is a link to the address without that conversation.",
               "static": "Archive posts without a reload, and the toast closes itself after a few seconds.",
-              "live": "Archive and Undo run C# with no page load."
+              "interactive": "Archive and Undo run C# with no page load."
             } } }
       ]
     },
@@ -1268,8 +1268,8 @@
         { "id": "tag-links-sizes", "title": "Links, icons and sizes", "lead": "Use `Href` to make a tag a link, `StartIcon` for an icon and `Size` for 20, 24 or 28px tall." },
         { "id": "tag-remove", "title": "Removable", "lead": "Use `RemoveHref` for a remove link that works on any page, and `OnRemove` for C# on interactive ones.",
           "notes": {
-            "off": "Each remove control is a link to this page without that filter.",
-            "live": "Each remove control is a button that runs OnRemove in C#, with no page load."
+            "noscript": "Each remove control is a link to this page without that filter.",
+            "interactive": "Each remove control is a button that runs OnRemove in C#, with no page load."
           } }
       ]
     },
@@ -1286,14 +1286,14 @@
         { "id": "progress-values", "title": "Value and label", "lead": "Use `Value` and `Max` for how far along it is, `Label` to name it, and `ShowValue` or `ValueText` to show the amount." },
         { "id": "progress-sizes", "title": "Sizes and colors", "lead": "Use `Size` for the bar's thickness and `Accent` for its color." },
         { "id": "progress-indeterminate", "title": "Indeterminate", "lead": "Leave out `Value` for a bar that sweeps while the work has no known length." },
-        { "id": "progress-from-code", "title": "Updating from C#", "lead": "Change `Value` from C# on an interactive page and the bar follows.", "modes": ["live"] }
+        { "id": "progress-from-code", "title": "Updating from C#", "lead": "Change `Value` from C# on an interactive page and the bar follows.", "modes": ["interactive"] }
       ]
     },
     {
       "id": "skeleton", "icon": "Ghost", "name": "Skeleton", "category": "Feedback", "summary": "Stands in for content still loading.", "keywords": ["placeholder", "shimmer"],
       "examples": [
         { "id": "skeleton-shapes", "title": "Lines, blocks and circles", "lead": "Use `Lines` for text, `Height` for a block such as an image, and `Circle` for an avatar." },
-        { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives; a placeholder as tall as what it stands for keeps the page still.", "modes": ["live"] }
+        { "id": "skeleton-loaded", "title": "Swapping in content", "lead": "Use `Loaded` to show the real content in place of the placeholder once it arrives; a placeholder as tall as what it stands for keeps the page still.", "modes": ["interactive"] }
       ]
     },
     {
@@ -1309,54 +1309,54 @@
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Selected rows post with a form" },
-        { "feature": "Filters apply as you type", "off": "none", "static": "full", "live": "full" },
-        { "feature": "Select-all checkbox", "off": "none", "static": "full", "live": "full" },
+        { "feature": "Filters apply as you type", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "Select-all checkbox", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Sort, page, filters and selection bound to C#", "member": "Page" },
         { "feature": "Paging by cursor (First, Previous, Next)", "member": "Paging" },
-        { "feature": "Load more adds rows under the ones shown", "member": "Paging", "off": "partial", "static": "partial", "live": "full" },
-        { "feature": "Loading on scroll", "member": "Paging", "off": "none", "static": "none", "live": "full" },
+        { "feature": "Load more adds rows under the ones shown", "member": "Paging", "noscript": "partial", "static": "partial", "interactive": "full" },
+        { "feature": "Loading on scroll", "member": "Paging", "noscript": "none", "static": "none", "interactive": "full" },
         { "feature": "A failed load shows an error with Retry" }
       ],
       "examples": [
         { "id": "table-sort-page", "title": "Sorting and paging",
           "notes": {
-            "off": "Headers and page numbers are links: each click loads the page again.",
+            "noscript": "Headers and page numbers are links: each click loads the page again.",
             "static": "The same links; Blazor's enhanced navigation swaps the page in without a full reload.",
-            "live": "The same links; the table follows the URL." } },
+            "interactive": "The same links; the table follows the URL." } },
         { "id": "table-filters", "title": "Column filters",
           "notes": {
-            "off": "Press Enter or Apply in the filter to submit it.",
+            "noscript": "Press Enter or Apply in the filter to submit it.",
             "static": "Filters apply as you type." } },
         { "id": "table-selection", "title": "Selection and totals",
           "notes": {
-            "off": "Checked rows post their keys with the form.",
+            "noscript": "Checked rows post their keys with the form.",
             "static": "The header checkbox selects every row on the page.",
-            "live": "@bind-SelectedKeys follows the checkboxes in C#." } },
-        { "id": "table-bound", "title": "State in the component", "modes": ["live"] },
+            "interactive": "@bind-SelectedKeys follows the checkboxes in C#." } },
+        { "id": "table-bound", "title": "State in the component", "modes": ["interactive"] },
         { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {
-            "off": "First, Previous and Next are links with the cursor in the URL.",
+            "noscript": "First, Previous and Next are links with the cursor in the URL.",
             "static": "The same links; enhanced navigation swaps the page in.",
-            "live": "The same links; the table follows the URL." } },
+            "interactive": "The same links; the table follows the URL." } },
         { "id": "table-load-on-scroll", "title": "Loading on scroll",
           "notes": {
-            "off": "Nothing loads on scroll: Load more shows under the rows, a link that reloads the table with one more page.",
+            "noscript": "Nothing loads on scroll: Load more shows under the rows, a link that reloads the table with one more page.",
             "static": "Scroll the rows: the next page loads as the last one comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept. Tab to the hidden button to load from the keyboard.",
-            "live": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } },
+            "interactive": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } },
         { "id": "table-load-error", "title": "When loading fails",
           "notes": {
-            "off": "Retry is a link that loads the page again. Bring the API back, then the rows come.",
+            "noscript": "Retry is a link that loads the page again. Bring the API back, then the rows come.",
             "static": "The same link; enhanced navigation swaps the page in.",
-            "live": "Retry asks again. Bring the API back and the table reloads." } }
+            "interactive": "Retry asks again. Bring the API back and the table reloads." } }
       ],
       "scenarios": [
         { "id": "activity-log", "title": "Activity log", "member": "Paging",
           "description": "An admin's activity log from an API that pages by cursor, with no total: the next page loads as you scroll, and the column filters go to the API with the cursor.",
           "example": { "id": "table-activity-log", "title": "Activity", "height": 720, "page": true,
             "notes": {
-              "off": "Load more is a link: the page comes back with one more page of rows. The filters apply with their button.",
+              "noscript": "Load more is a link: the page comes back with one more page of rows. The filters apply with their button.",
               "static": "The same links, swapped in without a full reload.",
-              "live": "Scroll down: each page loads under the last as its last row comes into view. A filter starts the list over."
+              "interactive": "Scroll down: each page loads under the last as its last row comes into view. A filter starts the list over."
             } } }
       ]
     },
@@ -1372,9 +1372,9 @@
         { "id": "card-sections", "title": "Sections and a footer bar", "lead": "Use `Dividers` to make each `CardBody` a section, and a `CardFooter` with a `Bg` for a bar across the bottom." },
         { "id": "card-settings", "title": "A form in a card", "lead": "Put the `Form` around the `Card`, so a submit button in the `CardFooter` is inside the form.",
           "notes": {
-            "off": "Save posts the form and the page loads again, with the result under the card.",
+            "noscript": "Save posts the form and the page loads again, with the result under the card.",
             "static": "Save posts the form without a reload.",
-            "live": "Save runs C# on the server, with no post." } },
+            "interactive": "Save runs C# on the server, with no post." } },
         { "id": "card-projects", "title": "Cards in a grid", "lead": "Use a `Grid` with `MinChildWidth` to fit as many cards to a row as there's room for; cards in a row take its height, and each `CardFooter` stays at the bottom." }
       ],
       "scenarios": [
@@ -1400,7 +1400,7 @@
       "features": [
         { "feature": "Links, the current item, selection and paging" },
         { "feature": "Reordering from each handle's menu (with script off, each move posts the form)" },
-        { "feature": "Dragging, Alt+arrow shortcuts and announcements", "off": "none", "static": "full", "live": "partial" },
+        { "feature": "Dragging, Alt+arrow shortcuts and announcements", "noscript": "none", "static": "full", "interactive": "partial" },
         { "feature": "The new order bound to C#", "member": "Items" }
       ],
       "examples": [
@@ -1409,19 +1409,19 @@
         { "id": "list-view-cards", "title": "Cards in columns", "lead": "Use `Columns` to lay the items out as cards, such as a gallery of products: that many across from 640px up, one on phones. With `ItemHref` each card is a link, and controls inside it still work." },
         { "id": "list-view-load-more", "title": "Load more", "lead": "Use `PageSize` with `DataPaging.LoadMore` for a button after the last item that adds the next page, and `MaxHeight` to scroll the items in the list's box, the button with them. Numbered pages and `DataPaging.NextPrevious` work as in Table. The page goes in the address, so `QueryPrefix` keeps two lists apart.",
           "notes": {
-            "off": "Load more is a link: the page comes back with four more items.",
+            "noscript": "Load more is a link: the page comes back with four more items.",
             "static": "The same link; enhanced navigation swaps the list in, with focus on the first new item.",
-            "live": "Each press adds four items after the ones shown, and focus moves to the first new one." } },
+            "interactive": "Each press adds four items after the ones shown, and focus moves to the first new one." } },
         { "id": "list-view-load-on-scroll", "title": "Loading on scroll", "lead": "Use `DataPaging.LoadOnScroll` with a `MaxHeight`: the next page loads as the last item scrolls into view. Its Load more button is for the keyboard, out of sight until it has focus.",
           "notes": {
-            "off": "Nothing loads on scroll: Load more shows after the items, a link that reloads the list with one more page.",
+            "noscript": "Nothing loads on scroll: Load more shows after the items, a link that reloads the list with one more page.",
             "static": "Scroll the list: the next page loads as the last item comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept.",
-            "live": "Scroll the list: the next page loads as the last item comes into view, with a spinner after the items while it does." } },
+            "interactive": "Scroll the list: the next page loads as the last item comes into view, with a spinner after the items while it does." } },
         { "id": "list-view-save-order", "title": "Reordering, and saving the order", "lead": "Use `Reorderable`. On a static page give it a `Name` and pass the posted `ListOrder` back as `Order`; `Order.Arrange` puts the items in the posted order. On an interactive page, `@bind-Items` keeps the order.",
           "notes": {
-            "off": "Each move in a handle's menu posts the form, and the page comes back with the item moved and its handle focused. Save order saves.",
+            "noscript": "Each move in a handle's menu posts the form, and the page comes back with the item moved and its handle focused. Save order saves.",
             "static": "Drag a handle, or use its menu or Alt+arrows: items move in the page and the move is announced. Save order posts the new order.",
-            "live": "A move from a handle's menu or Alt+arrows changes the list at once; dragging comes next. Save order shows the order @bind-Items holds."
+            "interactive": "A move from a handle's menu or Alt+arrows changes the list at once; dragging comes next. Save order shows the order @bind-Items holds."
           } }
       ]
     },
@@ -1460,7 +1460,7 @@
       "examples": [
         { "id": "video-embed-play", "title": "Playing a video", "lead": "Use `YouTubeId` and `Label`: the poster shows first, and YouTube's player loads only on play.",
           "notes": {
-            "off": "The play button is a link that opens the video on YouTube.",
+            "noscript": "The play button is a link that opens the video on YouTube.",
             "static": "Clicking plays the video in place, from youtube-nocookie.com."
           } },
         { "id": "video-embed-upcoming", "title": "Not out yet", "lead": "Leave out `YouTubeId` to keep the space for a video that isn't out yet, with `EmptyText` in the middle." }
@@ -1477,7 +1477,7 @@
       "id": "accordion", "icon": "ChevronsDownUp", "name": "Accordion", "category": "Data display", "summary": "Sections that open and close with no script.", "keywords": ["expander"], "parts": ["AccordionItem", "AccordionHeader"],
       "features": [
         { "feature": "Items open and close, one at a time with Exclusive" },
-        { "feature": "An item's Open bound to C#", "off": "none", "static": "none", "live": "full" }
+        { "feature": "An item's Open bound to C#", "noscript": "none", "static": "none", "interactive": "full" }
       ],
       "examples": [
         { "id": "accordion-variants", "title": "Variants", "lead": "Use `Variant` to draw the items as separate cards (the default), as one bordered box, or flush with the page." },
@@ -1486,15 +1486,15 @@
         { "id": "accordion-sizes", "title": "Sizes", "lead": "Use `Size` to scale the titles and spacing together: `Sm` for sidebars and dense pages, `Lg` for FAQ pages." },
         { "id": "accordion-bound", "title": "Following it from C#", "lead": "Use `@bind-Open` on an `AccordionItem` to know in C# whether it's open, and to open it from C#.",
           "notes": {
-            "off": "The item opens and closes; C# isn't told.",
+            "noscript": "The item opens and closes; C# isn't told.",
             "static": "The item opens and closes, but there's no circuit, so C# still isn't told.",
-            "live": "@bind-Open tells C# each time the item opens or closes."
+            "interactive": "@bind-Open tells C# each time the item opens or closes."
           } },
         { "id": "accordion-settings", "title": "Forms in sections",
           "notes": {
-            "off": "Saving reloads the page: the section that posted, saved or with errors, opens again because the page sets its Open; any other section you opened closes.",
+            "noscript": "Saving reloads the page: the section that posted, saved or with errors, opens again because the page sets its Open; any other section you opened closes.",
             "static": "Saving posts without a reload, and the response closes the sections the page doesn't open: only the one that posted stays open.",
-            "live": "Saving runs C# with no page load, and every section stays as you left it."
+            "interactive": "Saving runs C# with no page load, and every section stays as you left it."
           } }
       ]
     },

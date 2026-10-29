@@ -1,34 +1,44 @@
 namespace IzzyBlazor;
 
 /// <summary>
-/// How well a component, or one of its parameters or methods, works in each of the three ways a
-/// page can run: with JavaScript off, on a static page with IzzyBlazor's script, and on an
-/// interactive page. It changes nothing at run time; the documentation site and tools read it. It
-/// isn't inherited: a component derived from another (DialogClose from Button) states its own.
+/// How well a component, or one of its parameters or methods, works in each of the two ways a page
+/// can run: <see cref="Static"/> (static server-side rendering, with Blazor's and IzzyBlazor's
+/// scripts) and <see cref="Interactive"/> (Server, WebAssembly or Auto). It also records what still
+/// works with neither script (<see cref="NoScript"/>): the plain HTML every page starts as, before
+/// the scripts load or while an interactive page prerenders. It changes nothing at run time; the
+/// documentation site and tools read it. It isn't inherited: a component derived from another
+/// (DialogClose from Button) states its own.
 /// </summary>
 /// <example>
 /// <code>
-/// [ModeSupport(Off = ModeLevel.Partial, Notes = "Without script it's a native select.")]
+/// [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "Without script it's a native select.")]
 /// public partial class Combobox&lt;TValue&gt; { }
 ///
-/// [ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+/// [ModeSupport(Static = ModeLevel.None, NoScript = ModeLevel.None)]
 /// [Parameter] public EventCallback OnClick { get; set; }
 /// </code>
 /// </example>
 [AttributeUsage(AttributeTargets.Class | AttributeTargets.Property | AttributeTargets.Method, Inherited = false, AllowMultiple = false)]
 public sealed class ModeSupportAttribute : Attribute
 {
-    /// <summary>With JavaScript off. Defaults to <see cref="ModeLevel.Full"/>.</summary>
-    public ModeLevel Off { get; set; } = ModeLevel.Full;
-
-    /// <summary>On a static page, with IzzyBlazor's script running. Defaults to <see cref="ModeLevel.Full"/>.</summary>
+    /// <summary>On a static page (no circuit, no WebAssembly), with Blazor's and IzzyBlazor's scripts. Defaults to <see cref="ModeLevel.Full"/>.</summary>
     public ModeLevel Static { get; set; } = ModeLevel.Full;
 
     /// <summary>On an interactive page (Server, WebAssembly or Auto). Defaults to <see cref="ModeLevel.Full"/>.</summary>
-    public ModeLevel Live { get; set; } = ModeLevel.Full;
+    public ModeLevel Interactive { get; set; } = ModeLevel.Full;
 
-    /// <summary>What's missing where support is partial or absent, in a sentence.</summary>
+    /// <summary>
+    /// With neither script: the plain HTML a page shows before its scripts load, if they fail to,
+    /// or with JavaScript off. Not a mode the documentation offers; it keeps the fallback checked.
+    /// Defaults to <see cref="ModeLevel.Full"/>.
+    /// </summary>
+    public ModeLevel NoScript { get; set; } = ModeLevel.Full;
+
+    /// <summary>What's missing in <see cref="Static"/> or <see cref="Interactive"/>, in a sentence.</summary>
     public string? Notes { get; set; }
+
+    /// <summary>What's missing with no script (<see cref="NoScript"/>), in a sentence.</summary>
+    public string? NoScriptNotes { get; set; }
 }
 
 /// <summary>How much of a component or parameter works in a mode (see <see cref="ModeSupportAttribute"/>).</summary>

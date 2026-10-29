@@ -12,8 +12,8 @@
     <meta property="og:image" content="@($"{Navigation.BaseUri}og-image.png")" />
     <meta property="og:site_name" content="IzzyBlazor" />
     <meta name="twitter:card" content="summary_large_image" />
-    @* An Off page reads the library's stylesheet as JavaScript off would (NoScriptCss). *@
-    <link rel="stylesheet" href="@(OffPage ? NoScript.Href : Assets[NoScriptCss.LibraryPath])" />
+    @* A no-script page reads the library's stylesheet as JavaScript off would (NoScriptCss). *@
+    <link rel="stylesheet" href="@(NoScriptPage ? NoScript.Href : Assets[NoScriptCss.LibraryPath])" />
     <link rel="stylesheet" href="@Assets["site.css"]" />
     @* The site's chrome is Ink (monochrome): the brand's Ember is kept for brand moments (the logo,
        the hero, its call to action, the pictograms), and examples keep the component default (Blue:
@@ -36,17 +36,17 @@
 
 <body>
     <Routes />
-    @if (OffPage)
+    @if (NoScriptPage)
     {
         @* site.js reloads a page that enhanced navigation patched in from a page running Blazor. *@
-        <div hidden data-site-off></div>
+        <div hidden data-site-noscript></div>
     }
     @if (Blazor)
     {
         <ReconnectDialog />
         <script src="_framework/blazor.web.js"></script>
     }
-    @if (!OffFrame)
+    @if (!NoScriptFrame)
     {
         <script src="@Assets["site.js"]"></script>
     }
@@ -63,15 +63,15 @@
 
     private bool IsFrame => HttpContext?.Request.Path.StartsWithSegments("/frame") == true;
 
-    // A demo's frame in Off mode sends no script at all: the frame is sandboxed without
+    // A demo's frame in no-script mode sends no script at all: the frame is sandboxed without
     // allow-scripts anyway, and leaving the tags out keeps the console quiet.
-    private bool OffFrame => IsFrame && HttpContext?.Request.Query["mode"].ToString() == "off";
+    private bool NoScriptFrame => IsFrame && HttpContext?.Request.Query["mode"].ToString() == "noscript";
 
-    // A page in Off mode renders its examples in the page with no Blazor and no IzzyBlazor script,
+    // A page in no-script mode renders its examples in the page with no Blazor and no IzzyBlazor script,
     // so they do what the HTML and CSS do on their own. The site's own script still runs (it never
     // touches an example), and the stylesheet's scripting rules apply as with JavaScript off. Only
-    // a page with the mode switch ([FollowsModeSwitch]) is ever Off.
-    private bool OffPage => !IsFrame && FollowsModeSwitchAttribute.PageMode(HttpContext, Registry) == "off";
+    // a page with the mode switch ([FollowsModeSwitch]) is ever in the no-script mode.
+    private bool NoScriptPage => !IsFrame && FollowsModeSwitchAttribute.PageMode(HttpContext, Registry) == "noscript";
 
-    private bool Blazor => !OffFrame && !OffPage;
+    private bool Blazor => !NoScriptFrame && !NoScriptPage;
 }

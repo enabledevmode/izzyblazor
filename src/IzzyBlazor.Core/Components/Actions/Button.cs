@@ -82,7 +82,7 @@ public class Button : ButtonBase
     [Parameter] public string? Form { get; set; }
 
     /// <summary>Runs on click on interactive pages (a link still navigates). Has no effect on static pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<MouseEventArgs> OnClick { get; set; }
 
     /// <summary>

@@ -2,13 +2,13 @@
 @layout DemosLayout
 @inject Registry Registry
 
-<PageMeta Title="Demos · IzzyBlazor" Description="IzzyBlazor demos: realistic scenarios as plain HTML, on a static SSR page with no circuit, and on an interactive page." />
+<PageMeta Title="Demos · IzzyBlazor" Description="IzzyBlazor demos: realistic scenarios on a static SSR page with no circuit, and on an interactive page." />
 
 <article class="site-article site-article-wide">
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Demos</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            Realistic scenarios, each in all three modes with its source. Demos always show the latest release.
+            Realistic scenarios, each static and interactive, with its source. Demos always show the latest release.
         </TextBlock>
     </Stack>
     @foreach (var category in Registry.Categories)

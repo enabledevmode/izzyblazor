@@ -1,7 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TValue
 @inherits FieldBase<TValue>
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, it's a plain dropdown with no typing to filter.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a plain dropdown with no typing to filter.")]
 
 @*
     A select you can type in to filter. Options come from Items, an enum, or Search.
@@ -159,7 +159,7 @@
     /// the list at first (on every page), and as the user types on interactive pages. Return a
     /// short list, such as the first 50 matches.
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once; searching as you type needs an interactive page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "On static pages, Search fills the list once; searching as you type needs an interactive page.")]
     public Func<string, CancellationToken, Task<IEnumerable<TValue>>>? Search { get; set; }
 
     /// <summary>Milliseconds to wait after the last keystroke before calling <see cref="Search"/>.</summary>

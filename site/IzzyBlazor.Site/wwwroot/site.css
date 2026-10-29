@@ -88,7 +88,9 @@
   border-radius: var(--ib-radius-md);
   background: var(--ib-color-surface);
 }
-.site-install code { background: none; padding: 0; }
+.site-install code { background: none; padding: 0; white-space: nowrap; }
+.site-install { max-width: 100%; overflow-x: auto; }
+.site-muted-list { color: var(--ib-color-muted); }
 
 /*
  * Docs and demos: the sidebar, content and outline centered as one group (as on Chakra's docs),
@@ -194,6 +196,9 @@
 .pg .h { fill: #f26a1b; fill-opacity: .08; } .pg .h2 { fill: #f26a1b; fill-opacity: .22; } .pg .hs { fill: #f26a1b; fill-opacity: .12; }
 .pg .t { fill: var(--pg-steel); } .pg .p { fill: var(--pg-strong); } .pg .p0 { fill: var(--pg-line); } .pg .inv { fill: var(--pg-bg); } .pg .ink { fill: #14161a; }
 .pg .o55 { opacity: .55; }
+.pg .as { stroke: #ffb020; stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round; } .pg .ah { fill: #ffb020; fill-opacity: .16; }
+.pg text.pg-label { stroke: none; font-family: var(--ib-font-mono); font-size: 9px; font-weight: 600; letter-spacing: .04em; }
+.pg text.pg-label-lg { font-size: 20px; letter-spacing: 0; } .pg text.pg-ember { fill: #f26a1b; }
 
 /* A card's picture with a tag on its corner (the mode, or the component a demo is about), so the
    card reads picture, title, text. */

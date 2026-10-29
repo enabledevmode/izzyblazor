@@ -76,7 +76,7 @@ public class Tag : LayoutItemBase
     /// <see cref="RemoveHref"/> to show a remove control; a prerender shows that link where there is
     /// one, else the button, inert until the page is interactive, so the tag keeps its width.
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback OnRemove { get; set; }
 
     /// <summary>

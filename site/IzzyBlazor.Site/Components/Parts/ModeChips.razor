@@ -1,7 +1,7 @@
 @* A component's or member's mode support, from its [ModeSupport], as one label shown only when
-   it's restricted: "Needs JavaScript" (nothing without script), "Interactive only" (needs a
-   circuit), or the modes it works in. Works everywhere, or works with JavaScript off and does more
-   with it, says nothing. The Overview's Mode support table has the full grid. With a Subject, the
+   it's limited in one of the two modes: "Interactive only" (needs a circuit or WebAssembly),
+   "Static: partly", and so on. Works in both says nothing; what the plain HTML does with no script
+   is the fallback, not a mode, and is in the Overview's Mode support section. With a Subject, the
    label is about that part of the member, as in "@bind: Interactive only". *@
 
 @if (Label is { } label)
@@ -23,15 +23,10 @@
     /// <summary>What the label is about when it isn't the whole member, such as <c>@bind</c>.</summary>
     [Parameter] public string? Subject { get; set; }
 
-    /// <summary>Shows "JS" for "Needs JavaScript" and "Live" for "Interactive only", for dense lists.</summary>
+    /// <summary>Shows "Interactive" for "Interactive only", for dense lists.</summary>
     [Parameter] public bool Compact { get; set; }
 
-    private static string? Short(string label) => label switch
-    {
-        "Needs JavaScript" => "JS",
-        "Interactive only" => "Live",
-        _ => null,
-    };
+    private static string? Short(string label) => label == "Interactive only" ? "Interactive" : null;
 
     private string? Label
     {
@@ -42,34 +37,26 @@
                 return null;
             }
 
-            var levels = new (string Name, ModeLevel Level)[]
+            var (inStatic, inInteractive) = (ModeChip.Parse(Modes.Static), ModeChip.Parse(Modes.Interactive));
+            if (inStatic == ModeLevel.Full && inInteractive == ModeLevel.Full)
             {
-                ("Off", ModeChip.Parse(Modes.Off)),
-                ("Static", ModeChip.Parse(Modes.Static)),
-                ("Live", ModeChip.Parse(Modes.Live)),
-            };
-            // Working without script and doing more with it is the design, not a restriction: a
-            // component that only loses an extra with JavaScript off says nothing here (the
-            // Overview's Mode support table has the detail).
-            if (levels[1].Level == ModeLevel.Full && levels[2].Level == ModeLevel.Full)
-            {
-                return levels[0].Level == ModeLevel.None ? "Needs JavaScript" : null;
+                return null;
             }
 
-            if (levels[0].Level == ModeLevel.None && levels[1].Level == ModeLevel.None && levels[2].Level == ModeLevel.Full)
+            if (inStatic == ModeLevel.None && inInteractive == ModeLevel.Full)
             {
                 return "Interactive only";
             }
 
-            var works = levels.Where(l => l.Level == ModeLevel.Full).Select(l => l.Name).ToList();
-            var partly = levels.Where(l => l.Level == ModeLevel.Partial).Select(l => l.Name).ToList();
-            // "Live only" when nothing else works at all; "Live; Off and Static partly" otherwise.
-            var text = works.Count > 0 ? string.Join(" and ", works) + (partly.Count == 0 ? " only" : "") : "";
-            if (partly.Count > 0)
+            if (inInteractive == ModeLevel.None && inStatic == ModeLevel.Full)
             {
-                text += (text.Length > 0 ? "; " : "") + string.Join(" and ", partly) + " partly";
+                return "Static only";
             }
 
+            // "Static: partly", "Interactive: partly", or both limited.
+            var text = string.Join("; ", new[] { ("Static", inStatic), ("Interactive", inInteractive) }
+                .Where(m => m.Item2 != ModeLevel.Full)
+                .Select(m => $"{m.Item1}: {(m.Item2 == ModeLevel.Partial ? "partly" : "no")}"));
             return text;
         }
     }

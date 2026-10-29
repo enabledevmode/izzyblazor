@@ -23,21 +23,21 @@ circuit or WebAssembly runtime for static pages.
 
 > **Status:** preview (`0.1.0-alpha.19`). APIs may change during preview.
 
-## Progressive by design
+## Static and Interactive
 
-Start with server-rendered HTML. Add lightweight browser behavior. Bring in C# interactivity where
-you need it.
+The same components work in both of Blazor's render modes. Start static; make a page interactive when it needs C#.
 
-The same components support each layer, so you can add interactivity without switching libraries.
+| | Static | Interactive |
+| --- | --- | --- |
+| **What runs** | Server-rendered HTML, with IzzyBlazor's script adding browser behavior. No circuit, no WebAssembly | Server, WebAssembly or Auto: Blazor events keep C# in sync |
+| **Dialog** | Opens from a link (`?dialog=id`) and closes with a form; focus handling and backdrop click | `@bind-Open` |
+| **Table** | Sorts, filters and pages through the URL; select-all, filters as you type | Sorting, paging, filters and selection bound to C# |
+| **Tabs** | ARIA tabs with arrow keys, over radio buttons and CSS | `@bind-Selected` |
+| **Combobox** | A native select that posts with the form, with type-to-filter and keyboard navigation | Server-side search as you type |
+| **FileUpload** | The file posts with the form (`IFormFile`); drop files on the zone, type and size checked first | `OnChange` streams `IBrowserFile`s |
 
-| | HTML and CSS | With JavaScript | With Blazor interactivity |
-| --- | --- | --- | --- |
-| **How** | Plain HTML, forms, links and CSS | Custom elements add browser behavior | Blazor events keep C# in sync |
-| **Dialog** | Opens from a link (`?dialog=id`), closes with a form | Focus handling, backdrop click | `@bind-Open` |
-| **Table** | Sort and page through links in the URL | Same, without full reloads | Navigates through Blazor |
-| **Tabs** | Radio buttons and CSS switch panels | ARIA tab semantics, arrow-key navigation | `@bind-Selected` |
-| **Combobox** | A native select that posts with the form | Type to filter, keyboard navigation | Server-side search as you type |
-| **FileUpload** | The file input posts with the form (`IFormFile`) | Drop files anywhere on the zone; type and size checked first | `OnChange` streams `IBrowserFile`s |
+Every page starts as working HTML: before IzzyBlazor's script loads, and while an interactive page prerenders. So
+nothing is broken while a page wakes up.
 
 ## Getting started
 

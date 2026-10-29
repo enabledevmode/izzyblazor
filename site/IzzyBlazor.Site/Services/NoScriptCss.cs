@@ -6,10 +6,10 @@ using Microsoft.Extensions.FileProviders;
 namespace IzzyBlazor.Site.Services;
 
 /// <summary>
-/// IzzyBlazor's stylesheet as a browser with JavaScript off applies it, for the docs' Off pages.
+/// IzzyBlazor's stylesheet as a browser with JavaScript off applies it, for the docs' No-script pages.
 /// </summary>
 /// <remarks>
-/// An Off page renders its examples into the page itself and sends no Blazor and no IzzyBlazor
+/// A no-script page renders its examples into the page itself and sends no Blazor and no IzzyBlazor
 /// script (App), so they do what the HTML and CSS do on their own. The library's few
 /// <c>@media (scripting: ...)</c> rules still follow the browser, which has script on for the
 /// site's own: this copy makes <c>(scripting: none)</c> always match and
@@ -37,7 +37,7 @@ public sealed partial class NoScriptCss(IWebHostEnvironment environment, ILogger
             var info = environment.WebRootFileProvider.GetFileInfo(LibraryPath);
             if (!info.Exists)
             {
-                logger.LogWarning("{Path} wasn't found: Off pages use the library's stylesheet as it is.", LibraryPath);
+                logger.LogWarning("{Path} wasn't found: No-script pages use the library's stylesheet as it is.", LibraryPath);
                 return null;
             }
 

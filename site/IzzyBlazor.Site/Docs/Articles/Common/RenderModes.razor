@@ -1,7 +1,7 @@
 @page "/docs/common/render-modes"
 @attribute [FollowsModeSwitch]
 
-@* Render modes: the three layers every component has, one example under its own mode switch,
+@* Render modes: Static and Interactive, and the HTML every page starts as; one example under its own mode switch,
    choosing a page's mode, mode support on component pages, and state on static pages. From
    docs/nuget-readme.md, components.md and the [ModeSupport] metadata. *@
 
@@ -11,19 +11,24 @@
         script adds what HTML can't, and on an interactive page the same markup binds to C#.
     </Lead>
     <ChildContent>
-        <Heading Level="2">Three layers</Heading>
+        <Heading Level="2">Static and Interactive</Heading>
         <List Gap="2">
-            <ListItem><strong>HTML first.</strong> Every component renders real elements: forms that post, links, radio buttons, native dialogs and selects, with CSS doing the switching. This is all a page has with JavaScript off.</ListItem>
-            <ListItem><strong>IzzyBlazor's script.</strong> Small custom elements add keyboard handling, ARIA roles, live values and checks before posting, with no circuit.</ListItem>
-            <ListItem><strong>Interactive pages.</strong> On a Server, WebAssembly or Auto page, <Code>@@bind</Code> and event handlers keep C# in step.</ListItem>
+            <ListItem><strong>Static</strong> (static server-side rendering): no circuit and no WebAssembly. Components render real elements (forms that post, links, native dialogs and selects), and IzzyBlazor's script adds keyboard handling, ARIA roles, live values and checks before posting.</ListItem>
+            <ListItem><strong>Interactive</strong> (Server, WebAssembly or Auto): the same components, and <Code>@@bind</Code> and event handlers keep C# in step.</ListItem>
         </List>
+        <TextBlock>
+            Every page starts as that HTML: a static page before IzzyBlazor's script has loaded (or if it fails to), and an
+            interactive page while it prerenders, before its circuit or WebAssembly runtime is ready. So the HTML works on its
+            own, and nothing is broken while the page wakes up; the script, and then C#, add to it. (Blazor's own script,
+            which a static page also loads, handles enhanced navigation and form posts.)
+        </TextBlock>
         <TextBlock>Switch the mode to see one component in each:</TextBlock>
         <ExampleViewer Example="tabs-modes" ModeSwitch />
         <Prose Class="site-table ib-scroll">
             <table>
-                <thead><tr><th></th><th>JavaScript off</th><th>With IzzyBlazor's script</th><th>Interactive page</th></tr></thead>
+                <thead><tr><th></th><th>Before the script</th><th>Static</th><th>Interactive</th></tr></thead>
                 <tbody>
-                    <tr><td>Dialog</td><td>Opens from a trigger or a <code>?dialog=id</code> link; the browser traps focus and Escape closes it</td><td>A dialog opened from the server becomes a real modal; the URL is tidied after closing</td><td><code>@@bind-Open</code></td></tr>
+                    <tr><td>Dialog</td><td>Opens from a trigger (a native modal) or a <code>?dialog=id</code> link (shown, but not modal: focus can leave it)</td><td>A dialog opened from the server becomes a real modal; the URL is tidied after closing</td><td><code>@@bind-Open</code></td></tr>
                     <tr><td>Table</td><td>Sorts, filters and pages through the URL</td><td>A select-all checkbox; filters apply as you type</td><td>Sorting, paging, filters and selection bind to C#</td></tr>
                     <tr><td>Tabs</td><td>Radio buttons and CSS switch panels</td><td>ARIA tabs, roving focus</td><td><code>@@bind-Selected</code></td></tr>
                     <tr><td>Combobox</td><td>A native select that posts with the form</td><td>Type to filter, keyboard navigation</td><td>Server-side search as you type</td></tr>
@@ -48,9 +53,9 @@
 
         <Heading Level="2">What each component does</Heading>
         <TextBlock>
-            Each component's Overview has a Mode support table, and its API page labels the parameters that need more than
-            HTML: <strong>Needs JavaScript</strong>, or <strong>Interactive only</strong> for C# events and
-            <Code>@@bind</Code>. Working with JavaScript off and doing more with it isn't labeled: that's every component.
+            Each component's Overview has a Mode support table, and its API page labels the parameters that don't work in
+            both modes, such as <strong>Interactive only</strong> for C# events and <Code>@@bind</Code>. What the HTML does
+            before the script runs is under "Without JavaScript" in the table's section, where it differs.
         </TextBlock>
 
         <Heading Level="2">State on static pages</Heading>

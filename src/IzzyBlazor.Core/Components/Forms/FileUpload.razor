@@ -1,7 +1,7 @@
 @namespace IzzyBlazor
 @inherits LayoutItemBase
 @using Microsoft.AspNetCore.Components.Forms
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, files can't be dropped on the zone, and type and size aren't checked before posting.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, files can't be dropped on the zone, and type and size aren't checked before posting.")]
 
 @*
     A drop zone around a real file input: "Choose a file or drag it here", with a hint built from
@@ -143,7 +143,7 @@
     /// On interactive pages, runs with the chosen files, leaving out any over <see cref="MaxFileSize"/>
     /// (the zone flags those). Read one with <c>OpenReadStream(MaxFileSize)</c>: its default limit is 500 KB.
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<IReadOnlyList<IBrowserFile>> OnChange { get; set; }
 
     private string InputId =>

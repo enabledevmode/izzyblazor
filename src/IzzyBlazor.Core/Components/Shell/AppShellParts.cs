@@ -288,7 +288,7 @@ public class AppMain : AppShellPart
 /// A page's aside takes the place of the layout's while that page is shown; give the two different
 /// <see cref="Id"/>s if both are drawers.
 /// </remarks>
-[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a drawer (AsideSmallScreen.Drawer) doesn't close on Escape or move focus, and the scroll box isn't a tab stop.")]
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a drawer (AsideSmallScreen.Drawer) doesn't close on Escape or move focus, and the scroll box isn't a tab stop.")]
 public class AppAside : AppShellPart, IDisposable
 {
     /// <summary>The width, such as <c>Length.Px(420)</c> for a detail panel. Defaults to 15rem.</summary>

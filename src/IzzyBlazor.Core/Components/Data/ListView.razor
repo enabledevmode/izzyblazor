@@ -150,7 +150,7 @@
     [Parameter] public Func<TItem, bool>? ItemCurrent { get; set; }
 
     /// <summary>Makes each item a button that runs this, on interactive pages. Items with an <see cref="ItemHref"/> are links instead.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<TItem> OnItemClick { get; set; }
 
     /// <summary>Dims an item and leaves it without its link or button.</summary>
@@ -197,14 +197,14 @@
     [Parameter] public bool Reorderable { get; set; }
 
     /// <summary>Runs with the items in their new order after a move, on interactive pages; use <c>@bind-Items</c>.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
 
     /// <summary>
     /// Runs before a move changes the list, on interactive pages: save it here, or set
     /// <see cref="ListMoveEventArgs{TItem}.Cancel"/> to keep the item where it was.
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<ListMoveEventArgs<TItem>> OnMove { get; set; }
 
     /// <summary>
@@ -225,7 +225,7 @@
     /// move, for pages that save every move. Otherwise moves stay in the page until the form is
     /// submitted. With JavaScript off, each move from a handle's menu posts anyway.
     /// </summary>
-    [Parameter, ModeSupport(Live = ModeLevel.None)]
+    [Parameter, ModeSupport(Interactive = ModeLevel.None)]
     public bool SubmitOnMove { get; set; }
 
     private string? _class;
