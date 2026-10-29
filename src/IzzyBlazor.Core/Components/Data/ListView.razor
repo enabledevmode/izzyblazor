@@ -241,6 +241,12 @@
     /// </summary>
     [Parameter] public Length? MaxHeight { get; set; }
 
+    /// <summary>
+    /// Draws each item as a card, with space between them rather than lines, such as the tasks in
+    /// a board's columns. <see cref="Columns"/> over 1 always draws cards.
+    /// </summary>
+    [Parameter] public bool Cards { get; set; }
+
     /// <summary>A line between items in a list. Defaults to true.</summary>
     [Parameter] public bool Dividers { get; set; } = true;
 
@@ -383,6 +389,8 @@
 
     private int ColumnCount => Math.Clamp(Columns, 1, 6);
 
+    private bool AsCards => Cards || ColumnCount > 1;
+
     private string? BodyStyle => MaxHeight is { } height ? $"max-height:{StyleValues.Length(height)}" : null;
 
     /// <inheritdoc />
@@ -402,8 +410,9 @@
     {
         classes.Add("ib-listview");
         classes.Add("ib-listview-horizontal", Orientation == Orientation.Horizontal && ColumnCount == 1);
-        classes.Add("ib-listview-dividers", Dividers && Orientation == Orientation.Vertical && ColumnCount == 1);
-        classes.Add("ib-listview-bordered", Bordered && ColumnCount == 1);
+        classes.Add("ib-listview-dividers", Dividers && Orientation == Orientation.Vertical && !AsCards);
+        classes.Add("ib-listview-bordered", Bordered && !AsCards);
+        classes.Add("ib-listview-cards", AsCards);
         classes.Add("ib-listview-sm", Size == ControlSize.Sm);
         classes.Add("ib-listview-lg", Size == ControlSize.Lg);
         if (ColumnCount > 1)

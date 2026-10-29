@@ -180,6 +180,30 @@ public class DocsGenTests
     }
 
     [Fact]
+    public void A_usage_sample_keeps_its_code_block_after_a_blank_line()
+    {
+        var root = Directory.CreateTempSubdirectory().FullName;
+        File.WriteAllText(Path.Combine(root, "Sample.razor"), """
+            @*
+                Moves items.
+
+                <Sample OnMove="Moved" />
+
+                @code {
+                    void Moved() { }
+                }
+
+                Items drag within their zone.
+            *@
+            """);
+
+        var header = new RazorHeaders(root).For("Sample")!;
+
+        Assert.Equal("<Sample OnMove=\"Moved\" />\n\n@code {\n    void Moved() { }\n}", header.Example);
+        Assert.Equal("<p>Items drag within their zone.</p>", header.Remarks);
+    }
+
+    [Fact]
     public void Header_text_after_the_example_is_kept()
     {
         var codeExample = Api.Component("CodeExample")!;

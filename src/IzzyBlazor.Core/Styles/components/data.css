@@ -1049,7 +1049,9 @@
     user-select: none;
   }
 
-  .ib-sortable-sorting > .ib-sortable-item {
+  /* Its own list, and another zone's column opening a space for it. */
+  .ib-sortable-sorting > .ib-sortable-item,
+  .ib-sortable-receiving > .ib-sortable-item {
     transition: transform 150ms ease;
   }
 
@@ -1137,7 +1139,8 @@
   }
 
   @media (prefers-reduced-motion: reduce) {
-    .ib-sortable-sorting > .ib-sortable-item {
+    .ib-sortable-sorting > .ib-sortable-item,
+    .ib-sortable-receiving > .ib-sortable-item {
       transition: none;
     }
   }
@@ -1255,9 +1258,9 @@
     gap: var(--ib-space-2);
   }
 
-  /* Cards in columns: one on phones. */
-  .ib-listview-columns > .ib-listview-body > .ib-listview-list,
-  .ib-listview-columns > .ib-listview-body > ib-sortable > .ib-listview-list {
+  /* Cards, in one column or (Columns) several: one on phones. */
+  .ib-listview-cards:where(:not(.ib-listview-horizontal)) > .ib-listview-body > .ib-listview-list,
+  .ib-listview-cards:where(:not(.ib-listview-horizontal)) > .ib-listview-body > ib-sortable > .ib-listview-list {
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     gap: var(--ib-space-3);
@@ -1270,7 +1273,7 @@
     }
   }
 
-  .ib-listview-columns .ib-listview-item {
+  .ib-listview-cards .ib-listview-item {
     align-items: flex-start;
     padding: var(--ib-space-4);
     border: 1px solid var(--ib-color-border);
@@ -1287,8 +1290,10 @@
     background-color: var(--ib-color-fill-subtle);
   }
 
+  /* An empty box (its ::after covers the item), so it takes no share of the item's gap. */
   .ib-listview-action {
     margin: 0;
+    margin-inline-end: calc(var(--ib-space-3) * -1);
     padding: 0;
     border: 0;
     background: none;
@@ -1361,20 +1366,53 @@
     margin-inline-end: calc(var(--ib-space-1) * -1);
   }
 
-  /* On a card, in the corner as a dialog's close button is: 0.5rem from the top and end edges, so
-     the dots line up with the title's first line and the card's padding. */
-  .ib-listview-columns .ib-listview-trail {
+  /* A card's grip, centered on its first line: a card's parts start at its top, not its middle. */
+  .ib-listview-cards .ib-sortable-item > .ib-pop-root:has(> .ib-sortable-handle) {
+    margin-block: calc((1lh - var(--ib-control-h-sm)) / 2);
+  }
+
+  /* On a card, the trail sits in the corner as a dialog's close button does, 0.5rem from the top
+     and end edges, over the content, which keeps the card's whole width (a footer row reaches its
+     edge). The default row leaves its first line clear of the ⋯ button; a template's first line
+     runs under it, so keep it short (a label) or leave room. */
+  .ib-listview-cards .ib-listview-trail {
+    position: absolute;
+    z-index: 1;
+    inset-block-start: 0.5rem;
+    inset-inline-end: 0.5rem;
     align-items: flex-start;
   }
 
-  /* Cards are narrow: the text wraps beside the trail rather than the trail under the text. */
-  .ib-listview-columns .ib-listview-has-trail > .ib-listview-content {
-    flex-basis: 0;
+  .ib-listview-cards .ib-listview-trail > .ib-pop-root:has(> .ib-listview-menu) {
+    margin-inline-end: 0;
   }
 
-  .ib-listview-columns .ib-listview-trail > .ib-pop-root:has(> .ib-listview-menu) {
-    margin-block-start: calc(0.5rem - var(--ib-space-4));
-    margin-inline-end: calc(0.5rem - var(--ib-space-4));
+  .ib-listview-cards .ib-listview-has-trail .ib-listview-row {
+    padding-inline-end: calc(0.5rem + var(--ib-control-h-sm) - var(--ib-space-4) + var(--ib-space-2));
+  }
+
+  /* A card lifts when it's a link or button, rather than tinting, which would match a tinted
+     column behind it; the current card has an accent border. In dark schemes cards take the
+     overlay surface, so they sit above the page rather than sunk into it. */
+  .ib-listview-cards .ib-listview-item {
+    background-color: light-dark(var(--ib-color-surface), var(--ib-color-surface-overlay));
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-listview-cards .ib-listview-actionable:hover {
+    border-color: color-mix(in oklab, var(--ib-color-border), var(--ib-color-on-surface) 25%);
+    background-color: light-dark(var(--ib-color-surface), var(--ib-color-surface-overlay));
+    box-shadow: var(--ib-shadow-sm);
+  }
+
+  .ib-listview-cards .ib-listview-current,
+  .ib-listview-cards .ib-listview-current:hover {
+    border-color: var(--ib-color-primary);
+    background-color: light-dark(var(--ib-color-surface), var(--ib-color-surface-overlay));
+  }
+
+  .ib-listview-cards .ib-listview-current:not(:hover) {
+    box-shadow: none;
   }
 
   /* Selection: a checkbox at each item's start; select-all above them, with script only (it

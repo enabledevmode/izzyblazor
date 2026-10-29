@@ -1,0 +1,297 @@
+@* A team's board: four columns, each a ListView zone drawn as Cards, in a DropZoneGroup that holds
+   every card. A card drags from anywhere on it (a long press on touch) and opens beside the board
+   on a click (ItemHref). Its ⋯ menu has Assign to me, Archive and the moves under Move. In progress
+   holds three at most. Every move saves: on a static page the form posts after each one
+   (SubmitOnMove) and Save stores it; on an interactive one OnMove does. So a card's link, which
+   loads the page again, shows the board as it was left. *@
+@inject NavigationManager Navigation
+@using Microsoft.AspNetCore.Http
+<AppShell Variant="ShellVariant.Canvas">
+    <AppHeader>
+        <AppBrand Icon="Lucide.SquareKanban" Label="Acme Projects" />
+        <Box Grow />
+        <Avatar Name="@Me" />
+    </AppHeader>
+
+    <AppMain>
+        <Form Model="this" FormName="kanban" OnValidSubmit="Save">
+            <Stack Gap="5" Padding="new() { Base = 4, Md = 6 }">
+                <Row Gap="3" Align="Align.Center" Wrap>
+                    <Stack Gap="0">
+                        <Heading Level="1" Size="TextSize.Xl2">Spring conference</Heading>
+                        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@Board.Count cards · @Board.Count(p => p.Zone == "done") done</TextBlock>
+                    </Stack>
+                    <Spacer />
+                    @if (_archived.Count > 0)
+                    {
+                        @if (RendererInfo.IsInteractive)
+                        {
+                            <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" StartIcon="Lucide.ArchiveRestore" OnClick="RestoreAll">Restore @_archived.Count archived</Button>
+                        }
+                        else
+                        {
+                            <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" StartIcon="Lucide.ArchiveRestore" Submit Name="act" Value="restore">Restore @_archived.Count archived</Button>
+                        }
+                    }
+                    <AvatarGroup Label="Team" Size="AvatarSize.Sm">
+                        @foreach (var name in Team)
+                        {
+                            <Avatar Name="@name" />
+                        }
+                    </AvatarGroup>
+                </Row>
+
+                <DropZoneGroup TItem="KanbanCard" @bind-Items="_cards" ItemKey="c => c.Id" ZoneOf="c => c.Column" OnMove="Moved"
+                               Name="board" Order="Order" SubmitOnMove>
+                    <Grid Columns="new() { Base = 1, Sm = 2, Xl = 4 }" Gap="3">
+                        @foreach (var column in Columns)
+                        {
+                            var count = Board.Count(p => p.Zone == column.Id);
+                            <Stack Gap="3" Padding="3" Bg="Color.FillSubtle" Radius="Radius.Lg" Border="1" BorderColor="Color.Transparent">
+                                <Row Gap="2" Align="Align.Center">
+                                    <Heading Level="2" Size="TextSize.Sm">@column.Name</Heading>
+                                    <Badge Size="BadgeSize.Sm" Pill>@(column.Limit is { } limit ? $"{count} / {limit}" : count)</Badge>
+                                </Row>
+                                <ListView Zone="@column.Id" AriaLabel="@column.Name" Cards DragWholeItem MaxItems="column.Limit" ItemLabel="c => c.Title"
+                                          ItemHref="c => CardHref(c)" ItemCurrent="c => c.Id == Opened" EmptyText="No cards" Size="ControlSize.Sm" Context="card">
+                                    <ChildContent>
+                                        <Stack Gap="2">
+                                            <Tag Label="@card.Label" Status="StatusOf(card.Label)" Size="ControlSize.Sm" />
+                                            <TextBlock Size="TextSize.Sm" Weight="FontWeight.Medium">@card.Title</TextBlock>
+                                            <Row Gap="2" Align="Align.Center">
+                                                <Icon Name="Lucide.Calendar" Size="IconSize.Sm" Color="Color.Muted" />
+                                                <TextBlock Size="TextSize.Xs" Color="Color.Muted">@card.Due</TextBlock>
+                                                <Spacer />
+                                                <Avatar Name="@card.Owner" Size="AvatarSize.Xs" />
+                                            </Row>
+                                        </Stack>
+                                    </ChildContent>
+                                    <ItemMenu>
+                                        <MenuItem Icon="Lucide.ExternalLink" Href="@CardHref(card)" target="_blank">Open in a new tab</MenuItem>
+                                        @if (RendererInfo.IsInteractive)
+                                        {
+                                            <MenuItem Icon="Lucide.UserCheck" Disabled="card.Owner == Me" OnClick="() => card.Owner = Me">Assign to me</MenuItem>
+                                            <MenuDivider />
+                                            <MenuItem Icon="Lucide.Archive" Accent="Accent.Danger" OnClick="() => Archive(card.Id)">Archive</MenuItem>
+                                        }
+                                        else
+                                        {
+                                            <MenuItem Icon="Lucide.UserCheck" Disabled="card.Owner == Me" Submit Name="act" Value="@($"assign:{card.Id}")">Assign to me</MenuItem>
+                                            <MenuDivider />
+                                            <MenuItem Icon="Lucide.Archive" Accent="Accent.Danger" Submit Name="act" Value="@($"archive:{card.Id}")">Archive</MenuItem>
+                                        }
+                                    </ItemMenu>
+                                </ListView>
+                            </Stack>
+                        }
+                    </Grid>
+                </DropZoneGroup>
+            </Stack>
+        </Form>
+
+        <AppAside Width="Length.Rem(20)" Breakpoint="Breakpoint.Lg" SmallScreen="AsideSmallScreen.Below" Label="Card" Padding="new() { Base = 4, Md = 5 }">
+            @if (Board.FirstOrDefault(p => p.Item.Id == Opened) is { Item: not null } shown)
+            {
+                <Stack Gap="4">
+                    <Stack Gap="2" Align="Align.Start">
+                        <Tag Label="@shown.Item.Label" Status="StatusOf(shown.Item.Label)" Size="ControlSize.Sm" />
+                        <Heading Level="2" Size="TextSize.Lg">@shown.Item.Title</Heading>
+                    </Stack>
+                    <DescriptionList>
+                        <DescriptionItem Term="Column">@Columns.FirstOrDefault(c => c.Id == shown.Zone)?.Name</DescriptionItem>
+                        <DescriptionItem Term="Owner">@shown.Item.Owner</DescriptionItem>
+                        <DescriptionItem Term="Due">@shown.Item.Due</DescriptionItem>
+                    </DescriptionList>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@shown.Item.Notes</TextBlock>
+                </Stack>
+            }
+            else
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">Choose a card to see it here.</TextBlock>
+            }
+        </AppAside>
+    </AppMain>
+</AppShell>
+
+@code {
+    [SupplyParameterFromQuery(Name = "card")] private string? Opened { get; set; }
+
+    [SupplyParameterFromForm(FormName = "kanban", Name = "board")]
+    private ListOrder? Order { get; set; }
+
+    // A menu item or button that posted: assign:{id}, archive:{id} or restore.
+    [SupplyParameterFromForm(FormName = "kanban", Name = "act")]
+    private string? Act { get; set; }
+
+    private const string Me = "Grace Hopper";
+
+    // The board as shown and saved: the posted order and columns on a static page (checked, as
+    // they're user input), else the cards.
+    private IReadOnlyList<ListPlace<KanbanCard>> Board => Order is null
+        ? _cards.Select(c => new ListPlace<KanbanCard>(c, c.Column, 0)).ToList()
+        : Checked(Order.Arrange(_cards, c => c.Id, c => c.Column));
+
+    private string CardHref(KanbanCard card) => Navigation.GetUriWithQueryParameter("card", card.Id);
+
+    // An interactive page: the card takes its new column here, where an app would save it.
+    private void Moved(ListMoveEventArgs<KanbanCard> move) => move.Item.Column = move.ToZone!;
+
+    // A static page: a move posts the board, a menu item its act. An app would save Order.Arrange
+    // to its database here, checking In progress's limit again, since posted columns are user input.
+    private void Save()
+    {
+        switch (Act?.Split(':', 2))
+        {
+            case ["assign", var id] when _cards.FirstOrDefault(c => c.Id == id) is { } card:
+                card.Owner = Me;
+                break;
+            case ["archive", var id]:
+                Archive(id);
+                break;
+            case ["restore"]:
+                RestoreAll();
+                break;
+        }
+
+        Store(Board);
+    }
+
+    private void Archive(string id)
+    {
+        if (_cards.FirstOrDefault(c => c.Id == id) is { } card)
+        {
+            _cards = _cards.Where(c => c != card).ToList();
+            _archived = [.. _archived, card];
+        }
+    }
+
+    // Each archived card goes back to its column, or to Backlog when that column is full.
+    private void RestoreAll()
+    {
+        foreach (var card in _archived)
+        {
+            if (Columns.First(c => c.Id == card.Column).Limit is { } limit && Board.Count(p => p.Zone == card.Column) >= limit)
+            {
+                card.Column = "backlog";
+            }
+
+            _cards = [.. _cards, card];
+        }
+
+        _archived = [];
+    }
+
+    // A posted column no board has goes to Backlog; over a column's limit, the cards that were in
+    // it already stay, and the ones moved in go back where they were.
+    private static IReadOnlyList<ListPlace<KanbanCard>> Checked(IReadOnlyList<ListPlace<KanbanCard>> places)
+    {
+        var board = places.Select(p => Columns.Any(c => c.Id == p.Zone) ? p : p with { Zone = "backlog" }).ToList();
+        foreach (var column in Columns.Where(c => c.Limit is not null))
+        {
+            var room = column.Limit!.Value - board.Count(p => p.Zone == column.Id && p.Item.Column == column.Id);
+            foreach (var moved in board.Where(p => p.Zone == column.Id && p.Item.Column != column.Id).Skip(Math.Max(room, 0)).ToList())
+            {
+                board[board.IndexOf(moved)] = moved with { Zone = moved.Item.Column };
+            }
+        }
+
+        return board;
+    }
+
+    private static Status StatusOf(string label) => label switch
+    {
+        "Design" => Status.Info,
+        "Content" => Status.Success,
+        "Venue" => Status.Warning,
+        _ => Status.Neutral,
+    };
+}
+@* hide *@
+
+@code {
+    // The demo has no database: on static pages it keeps the board in a cookie, so a card's link
+    // (which loads the page again) shows the board as it was left. An app saves in Save and OnMove.
+    [CascadingParameter] private HttpContext? HttpContext { get; set; }
+
+    private const string Cookie = "izzy-kanban";
+
+    private bool Stores => HttpContext is not null && AssignedRenderMode is null;
+
+    protected override void OnInitialized()
+    {
+        if (!Stores || !HttpContext!.Request.Cookies.TryGetValue(Cookie, out var raw))
+        {
+            return;
+        }
+
+        try
+        {
+            var saved = System.Text.Json.JsonSerializer.Deserialize<Saved>(raw);
+            var all = _cards.ToDictionary(c => c.Id);
+            var shown = new List<KanbanCard>();
+            foreach (var (id, column, owner) in saved?.Cards ?? [])
+            {
+                if (all.Remove(id, out var card) && Columns.Any(c => c.Id == column))
+                {
+                    (card.Column, card.Owner) = (column, Team.Contains(owner) ? owner : card.Owner);
+                    shown.Add(card);
+                }
+            }
+
+            _archived = all.Values.ToList();
+            _cards = shown;
+        }
+        catch (System.Text.Json.JsonException)
+        {
+            // A cookie from an older demo: start over.
+        }
+    }
+
+    private void Store(IEnumerable<ListPlace<KanbanCard>> board)
+    {
+        if (!Stores || HttpContext!.Response.HasStarted)
+        {
+            return;
+        }
+
+        var saved = new Saved(board.Select(p => new SavedCard(p.Item.Id, p.Zone, p.Item.Owner)).ToList());
+        HttpContext.Response.Cookies.Append(Cookie, System.Text.Json.JsonSerializer.Serialize(saved),
+            new() { HttpOnly = true, SameSite = SameSiteMode.Lax, MaxAge = TimeSpan.FromDays(1) });
+    }
+
+    private sealed record Saved(List<SavedCard> Cards);
+
+    private sealed record SavedCard(string Id, string Column, string Owner);
+
+    private sealed record Column(string Id, string Name, int? Limit = null);
+
+    private static readonly Column[] Columns = [new("backlog", "Backlog"), new("doing", "In progress", 3), new("review", "Review"), new("done", "Done")];
+
+    private static readonly string[] Team = ["Grace Hopper", "Alan Turing", "Ada Lovelace", "Katherine Johnson"];
+
+    private sealed class KanbanCard(string id, string title, string label, string owner, string due, string column, string notes)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public string Label { get; } = label;
+        public string Owner { get; set; } = owner;
+        public string Due { get; } = due;
+        public string Column { get; set; } = column;
+        public string Notes { get; } = notes;
+    }
+
+    private IReadOnlyList<KanbanCard> _cards =
+    [
+        new("1", "Draft the call for talks", "Content", "Ada Lovelace", "Mar 4", "backlog", "Two pages: themes, formats, and the review process."),
+        new("2", "Shortlist caterers", "Venue", "Alan Turing", "Mar 8", "backlog", "Three quotes, one with a vegan menu."),
+        new("3", "Badge layout", "Design", "Katherine Johnson", "Mar 11", "backlog", "Name, company and a QR code for the schedule."),
+        new("4", "Book the main hall", "Venue", "Grace Hopper", "Mar 1", "doing", "Hold for both days, with the breakout rooms."),
+        new("5", "Speaker invitations", "Content", "Ada Lovelace", "Mar 2", "doing", "Twelve invited, five confirmed so far."),
+        new("6", "Logo and colors", "Design", "Katherine Johnson", "Feb 26", "review", "Two options with the sponsors' marks."),
+        new("7", "Set the dates", "Venue", "Grace Hopper", "Feb 20", "done", "May 14 and 15."),
+        new("8", "Budget sign-off", "Content", "Alan Turing", "Feb 22", "done", "Approved with a 10% reserve."),
+    ];
+
+    private IReadOnlyList<KanbanCard> _archived = [];
+}
+@* /hide *@
