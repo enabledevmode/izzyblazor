@@ -1,0 +1,48 @@
+@* A board of three zones for DropZoneGroupTests: Doing holds two at most, Done takes only reviewed tasks. *@
+<DropZoneGroup TItem="BoardTask" Items="Tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" Name="@Name" Order="Order"
+               ItemsChanged="Changed" OnMove="Moved">
+    <ListView Zone="todo" AriaLabel="To do" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
+    <ListView Zone="doing" AriaLabel="Doing" MaxItems="2" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
+    <ListView Zone="done" AriaLabel="Done" Accepts="t => t.Reviewed" ItemLabel="t => t.Title" Context="task">@task.Title</ListView>
+</DropZoneGroup>
+
+@code {
+    public sealed class BoardTask(string id, string title, string status, bool reviewed = false)
+    {
+        public string Id { get; } = id;
+        public string Title { get; } = title;
+        public string Status { get; set; } = status;
+        public bool Reviewed { get; } = reviewed;
+    }
+
+    [Parameter] public IReadOnlyList<BoardTask> Tasks { get; set; } = [];
+
+    [Parameter] public string? Name { get; set; }
+
+    [Parameter] public ListOrder? Order { get; set; }
+
+    /// <summary>Sets the moved task's status, unless Cancel is set.</summary>
+    [Parameter] public bool SaveZone { get; set; } = true;
+
+    [Parameter] public bool Cancel { get; set; }
+
+    public List<ListMoveEventArgs<BoardTask>> Moves { get; } = [];
+
+    public IReadOnlyList<BoardTask>? Changes { get; private set; }
+
+    private void Moved(ListMoveEventArgs<BoardTask> move)
+    {
+        Moves.Add(move);
+        move.Cancel = Cancel;
+        if (SaveZone && !Cancel)
+        {
+            move.Item.Status = move.ToZone!;
+        }
+    }
+
+    private void Changed(IReadOnlyList<BoardTask> tasks)
+    {
+        Changes = tasks;
+        Tasks = tasks;
+    }
+}

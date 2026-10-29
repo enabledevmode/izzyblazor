@@ -301,6 +301,19 @@
             <Anchor Href="docs/components/tabs">Tabs</Anchor> and <Anchor Href="docs/components/menu">Menu</Anchor>.
         </TextBlock>
 
+        <Heading Level="2">Drag and drop</Heading>
+        <TextBlock>
+            A <Code>RadzenDropZoneContainer</Code> with <Code>RadzenDropZone</Code>s becomes a <Code>DropZoneGroup</Code>
+            with a <Code>ListView</Code> per zone. As in Radzen, the group holds one list of items (<Code>Items</Code>,
+            Radzen's <Code>Data</Code>): <Code>ZoneOf</Code> takes the place of <Code>ItemSelector</Code>, each ListView's
+            <Code>Zone</Code> of the zone's <Code>Value</Code>, and <Code>Accepts</Code> of <Code>CanDrop</Code>. Save the move in <Code>OnMove</Code>,
+            which gets <Code>FromZone</Code>, <Code>ToZone</Code> and the item's place in each, in place of
+            <Code>Drop</Code>; the zone shows the item there before you've saved it. Each item's handle opens a menu with
+            the same moves (Move to and a zone, up and down), so moving works with the keyboard, on touch, and with
+            JavaScript off. Reordering a single list is a <Code>ListView</Code> with <Code>Reorderable</Code>. See
+            <Anchor Href="docs/components/drop-zone-group">DropZoneGroup</Anchor>.
+        </TextBlock>
+
         <Heading Level="2">Next steps</Heading>
         <List Gap="2">
             <ListItem><Anchor Href="docs/components">Components</Anchor>: Stepper, Switch, SegmentedControl and the rest of what you may have built by hand.</ListItem>
@@ -355,6 +368,7 @@
         Map("`<main>` and `<aside>`", "`AppShell`, with an `AppAside` in the page"),
         Map("A `nav` of links as tabs", "`Tabs` with `TabLink`"),
         Map("A dropdown menu", "`Menu`"),
+        Map("`RadzenDropZoneContainer`, `RadzenDropZone`", "`DropZoneGroup`, with a `ListView` per zone"),
     ];
 
     private static readonly Mapping[] ButtonRenames =

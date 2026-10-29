@@ -1,15 +1,19 @@
 namespace IzzyBlazor;
 
 /// <summary>
-/// What a <c>SortableList</c> posts on a static page: its keys in the order shown, and the move a
-/// handle's menu asked for. Bind it with <c>[SupplyParameterFromForm(FormName = "...", Name = "...")]</c>
-/// under the list's <c>Name</c>, pass it back to the list as <c>Order</c> so it shows the new order,
-/// and save <see cref="Arrange{TItem}"/> when the post is the form's own submit (<see cref="Move"/> is null).
+/// What a reorderable <c>ListView</c> or a <c>DropZoneGroup</c> posts on a static page: its keys in
+/// the order shown (and in a group each item's zone), and the move a menu asked for. Bind it with
+/// <c>[SupplyParameterFromForm(FormName = "...", Name = "...")]</c> under the list's (or group's)
+/// <c>Name</c>, pass it back as <c>Order</c> so it shows the new order, and save
+/// <see cref="Arrange{TItem}(IReadOnlyList{TItem}, Func{TItem, string})"/> (or, for zones,
+/// <see cref="Arrange{TItem}(IReadOnlyList{TItem}, Func{TItem, string}, Func{TItem, string})"/>)
+/// when the post is the form's own submit (<see cref="Move"/> is null).
 /// </summary>
 /// <remarks>
-/// Everything here came from the browser. <see cref="Arrange{TItem}"/> only reorders the items it's
-/// given: unknown keys are dropped, a repeated key counts once, and items the post left out keep
-/// their place after the item they followed.
+/// Everything here came from the browser. Arrange only reorders the items it's given: unknown keys
+/// are dropped, a repeated key counts once, and items the post left out keep their place after the
+/// item they followed. It doesn't know a zone's <c>Accepts</c> or <c>MaxItems</c>: check your own
+/// rules for the zones it gives before saving them.
 /// </remarks>
 public sealed class ListOrder
 {
@@ -37,9 +41,69 @@ public sealed class ListOrder
 
         return entries.ConvertAll(e => e.Item);
     }
+
+    /// <summary>
+    /// For a <c>DropZoneGroup</c>: every item with its zone and its place in it, in the posted
+    /// order, with the posted move applied. Save each item's <see cref="ListPlace{TItem}.Zone"/> and
+    /// <see cref="ListPlace{TItem}.Index"/>.
+    /// </summary>
+    /// <param name="items">The items, in the order they had before the post.</param>
+    /// <param name="key">The group's <c>ItemKey</c>.</param>
+    /// <param name="zoneOf">The group's <c>ZoneOf</c>: an item's zone before the post, for items the post left out.</param>
+    public IReadOnlyList<ListPlace<TItem>> Arrange<TItem>(IReadOnlyList<TItem> items, Func<TItem, string> key, Func<TItem, string> zoneOf)
+    {
+        ArgumentNullException.ThrowIfNull(items);
+        ArgumentNullException.ThrowIfNull(key);
+        ArgumentNullException.ThrowIfNull(zoneOf);
+        var entries = ListArrangement.Order(items, key, Keys, Zones, zoneOf);
+        if (ListMove.TryParse(Move, out var move))
+        {
+            ListArrangement.Apply(entries, move);
+        }
+
+        var counts = new Dictionary<string, int>(StringComparer.Ordinal);
+        var places = new List<ListPlace<TItem>>(entries.Count);
+        foreach (var entry in entries)
+        {
+            var zone = entry.Zone ?? "";
+            counts.TryGetValue(zone, out var index);
+            counts[zone] = index + 1;
+            places.Add(new(entry.Item, zone, index));
+        }
+
+        return places;
+    }
+
+    /// <summary>The zone the post put an item in (its posted zone, or the move's), or null when the post didn't name it.</summary>
+    /// <param name="key">The item's key.</param>
+    public string? ZoneOf(string key)
+    {
+        if (ListMove.TryParse(Move, out var move) && move.Kind == ListMoveKind.To && move.Key == key)
+        {
+            return move.Zone;
+        }
+
+        if (Keys is not null && Zones is not null)
+        {
+            var at = Array.IndexOf(Keys, key);
+            if (at >= 0 && at < Zones.Length && !string.IsNullOrEmpty(Zones[at]))
+            {
+                return Zones[at];
+            }
+        }
+
+        return null;
+    }
 }
 
-/// <summary>A move in a <c>SortableList</c> or between drop zones, before the list changes.</summary>
+/// <summary>An item's place after a post to a <c>DropZoneGroup</c>: its zone, and its index among that zone's items.</summary>
+/// <typeparam name="TItem">The type of the items.</typeparam>
+/// <param name="Item">The item.</param>
+/// <param name="Zone">Its zone.</param>
+/// <param name="Index">Its place in the zone, from 0.</param>
+public readonly record struct ListPlace<TItem>(TItem Item, string Zone, int Index);
+
+/// <summary>A move in a reorderable <c>ListView</c> or between drop zones, before the list changes.</summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
 public sealed class ListMoveEventArgs<TItem>
 {
@@ -55,10 +119,10 @@ public sealed class ListMoveEventArgs<TItem>
     /// <summary>Its place after the move, from 0, among the items of the zone it moves to (or the list).</summary>
     public required int ToIndex { get; init; }
 
-    /// <summary>The zone it moves from; null in a <c>SortableList</c>.</summary>
+    /// <summary>The zone it moves from; null outside a <c>DropZoneGroup</c>.</summary>
     public string? FromZone { get; init; }
 
-    /// <summary>The zone it moves to; null in a <c>SortableList</c>.</summary>
+    /// <summary>The zone it moves to; null outside a <c>DropZoneGroup</c>.</summary>
     public string? ToZone { get; init; }
 
     /// <summary>Set to keep the item where it was, such as when saving the move failed.</summary>
@@ -118,7 +182,7 @@ internal readonly record struct ListEntry<TItem>(TItem Item, string Key, string?
 /// <summary>Where a move took an item: its zone and place before and after.</summary>
 internal readonly record struct ListMoved(string Key, string? FromZone, int FromIndex, string? ToZone, int ToIndex);
 
-/// <summary>The ordering and move rules shared by SortableList, DropZoneGroup and <see cref="ListOrder"/>.</summary>
+/// <summary>The ordering and move rules shared by ListView, DropZoneGroup and <see cref="ListOrder"/>.</summary>
 internal static class ListArrangement
 {
     /// <summary>
@@ -184,6 +248,12 @@ internal static class ListArrangement
         }
 
         var zone = entries[at].Zone;
+        // To its own zone: it's there already.
+        if (move.Kind == ListMoveKind.To && move.Zone == zone)
+        {
+            return null;
+        }
+
         var index = IndexInZone(entries, at);
         (string? toZone, int toIndex) = move.Kind switch
         {

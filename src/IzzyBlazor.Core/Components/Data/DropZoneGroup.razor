@@ -1,0 +1,401 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits IzzyComponentBase
+@using System.Globalization
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@attribute [ModeSupport]
+
+@*
+    Moves items between lists: a board's columns, a list of available items and a list of chosen
+    ones. The group holds the items and saves the moves; each zone is a ListView with a Zone,
+    placed anywhere in the group's content, which shows the group's items in that zone and
+    keeps every ListView option (a template, ItemMenu, ItemActions, ItemHref).
+
+    <DropZoneGroup @bind-Items="tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" OnMove="Moved">
+        <Grid Columns="3">
+            <ListView Zone="todo" AriaLabel="To do" Context="task">@task.Title</ListView>
+            <ListView Zone="doing" AriaLabel="Doing" MaxItems="3" Context="task">@task.Title</ListView>
+            <ListView Zone="done" AriaLabel="Done" Accepts="t => t.Reviewed" Context="task">@task.Title</ListView>
+        </Grid>
+    </DropZoneGroup>
+
+    @code {
+        Task Moved(ListMoveEventArgs<TaskItem> move)
+        {
+            move.Item.Status = move.ToZone!;
+            return db.SaveAsync();
+        }
+    }
+
+    Items drag within their zone and to another one that accepts them and has room; the menu of
+    moves (the handle's, or the ⋯ menu's Move submenu) adds "Move to" and each such zone. On a
+    static page give the group a Name inside a form and pass the posted ListOrder back as Order.
+
+    Accessibility:
+    - Each zone is a list named by its AriaLabel (give every zone one), which also names it in
+      the menu ("Move to Done").
+    - A move is announced from the zone it lands in: "Moved Ada to Done, position 1 of 3".
+    See also: ListView.
+*@
+
+<div @attributes="AdditionalAttributes" class="@_class" style="@_style">
+    <CascadingValue Value="this" IsFixed="true">@ChildContent</CascadingValue>
+</div>
+
+@code {
+    /// <summary>Every item, in every zone; each zone shows its own in this order.</summary>
+    [Parameter, EditorRequired] public IEnumerable<TItem>? Items { get; set; }
+
+    /// <summary>Each item's key: what posts and what keeps its elements when it moves.</summary>
+    [Parameter, EditorRequired] public Func<TItem, string>? ItemKey { get; set; }
+
+    /// <summary>
+    /// The zone an item is in, matching a ListView's <c>Zone</c>, such as <c>t =&gt; t.Status</c>.
+    /// An item whose zone no ListView has isn't shown.
+    /// </summary>
+    [Parameter, EditorRequired] public Func<TItem, string>? ZoneOf { get; set; }
+
+    /// <summary>Runs with every item in its new order after a move, on interactive pages; use <c>@bind-Items</c>.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<IReadOnlyList<TItem>> ItemsChanged { get; set; }
+
+    /// <summary>
+    /// Runs before a move changes the zones, on interactive pages: set the item's zone from
+    /// <see cref="ListMoveEventArgs{TItem}.ToZone"/> and save it here, or set
+    /// <see cref="ListMoveEventArgs{TItem}.Cancel"/> to keep the item where it was. Until
+    /// <see cref="ZoneOf"/> gives the new zone, the group shows the item there anyway.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<ListMoveEventArgs<TItem>> OnMove { get; set; }
+
+    /// <summary>
+    /// On a static page, the prefix of the fields the zones post: <c>{Name}.Keys</c>,
+    /// <c>{Name}.Zones</c> and <c>{Name}.Move</c>, bound as a <see cref="ListOrder"/>. Without it,
+    /// a static page shows no handles.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>
+    /// On a static page, what the form posted: the zones show the posted order and zones with the
+    /// move applied, and focus the moved item's handle (or ⋯ button).
+    /// </summary>
+    [Parameter] public ListOrder? Order { get; set; }
+
+    /// <summary>
+    /// On a static page with script, posts the form after each move, for pages that save every
+    /// move. Otherwise moves stay in the page until the form is submitted. With JavaScript off,
+    /// each move from an item's menu posts anyway.
+    /// </summary>
+    [Parameter, ModeSupport(Interactive = ModeLevel.None)]
+    public bool SubmitOnMove { get; set; }
+
+    /// <summary>The layout: the zones (ListViews with a <c>Zone</c>) in a Grid, a Stack or Cards.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private readonly List<ListView<TItem>> _zones = [];
+    // On interactive pages, the zone a move gave an item, until ZoneOf agrees.
+    private readonly Dictionary<string, string> _moved = new(StringComparer.Ordinal);
+    private List<ListEntry<TItem>>? _entries;
+    private Dictionary<string, IReadOnlyList<TItem>>? _byZone;
+    private object? _arrangedFrom;
+    // On interactive pages, the order the last move left, kept while the page passes the same Items
+    // (a page that doesn't bind them); items added since go after the one they follow.
+    private List<string>? _movedOrder;
+    private string? _focusKey;
+    private bool _moving;
+    private string? _class;
+    private string? _style;
+
+    internal string GroupId { get; } = IdGenerator.Next("ib-dropzones");
+
+    // Interactive (or prerendering for it): C# applies the moves.
+    internal bool Live => WillBeInteractive;
+
+    // On a static page, the moves post with the form.
+    internal bool Posts => !Live && Name is not null;
+
+    // On a static page without a Name, nothing could save a move.
+    internal bool NotMovable => !Live && Name is null;
+
+    internal string KeysName => $"{Name}.Keys";
+
+    internal string ZonesName => $"{Name}.Zones";
+
+    internal string MoveName => $"{Name}.Move";
+
+    /// <summary>How many drops the browser has reported, for every zone's <c>data-ib-seq</c>.</summary>
+    internal int MoveSeq { get; private set; }
+
+    /// <summary>After a static post, the moved item's key, whose handle (or ⋯ button) takes focus.</summary>
+    internal string? FocusKey
+    {
+        get
+        {
+            Arrange();
+            return _focusKey;
+        }
+    }
+
+    internal IReadOnlyList<ListView<TItem>> Zones => _zones;
+
+    internal string KeyOf(TItem item) => ItemKey!(item);
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles) => classes.Add("ib-dropzone-group");
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (ItemKey is null || ZoneOf is null)
+        {
+            throw new InvalidOperationException("A DropZoneGroup needs an ItemKey and a ZoneOf, such as ItemKey=\"t => t.Id\" ZoneOf=\"t => t.Status\".");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+        // The same list may have changed (an item added, or its zone set), as a ListView's may.
+        _entries = null;
+        _byZone = null;
+        RefreshZones();
+    }
+
+    /// <inheritdoc />
+    protected override void OnAfterRender(bool firstRender)
+    {
+        // Checked once the render is done: a zone drawn again in place registers before the old one goes.
+        if (_zones.GroupBy(z => z.Zone).FirstOrDefault(g => g.Count() > 1) is { } twice)
+        {
+            throw new InvalidOperationException($"Two ListViews in a DropZoneGroup have Zone=\"{twice.Key}\": each zone needs its own.");
+        }
+    }
+
+    internal void Register(ListView<TItem> zone)
+    {
+        // Zones are written into the menu's posted moves (to:zone:key) and a space-separated attribute.
+        if (string.IsNullOrEmpty(zone.Zone) || zone.Zone.Any(c => char.IsWhiteSpace(c) || c == ':'))
+        {
+            throw new InvalidOperationException($"A drop zone's Zone (\"{zone.Zone}\") must be a value without spaces or colons, such as \"in-progress\"; name it for people with AriaLabel.");
+        }
+
+        if (!_zones.Contains(zone))
+        {
+            _zones.Add(zone);
+            // The zones already drawn add this one to their menus; on a static page the posted zones
+            // are checked again, as this one may be where an item was posted.
+            ZonesChanged();
+            RefreshZones(except: zone);
+        }
+    }
+
+    internal void Unregister(ListView<TItem> zone)
+    {
+        if (_zones.Remove(zone))
+        {
+            ZonesChanged();
+            RefreshZones();
+        }
+    }
+
+    // A post's zones are checked against every zone.
+    private void ZonesChanged()
+    {
+        _byZone = null;
+        _entries = null;
+    }
+
+    /// <summary>The items in a zone, in the group's order.</summary>
+    internal IReadOnlyList<TItem> ItemsIn(string zone)
+    {
+        Arrange();
+        if (_byZone is null)
+        {
+            _byZone = new Dictionary<string, IReadOnlyList<TItem>>(StringComparer.Ordinal);
+            foreach (var z in _zones)
+            {
+                _byZone.TryAdd(z.Zone!, new List<TItem>());
+            }
+
+            foreach (var entry in _entries!)
+            {
+                if (entry.Zone is { } z && _byZone.TryGetValue(z, out var list))
+                {
+                    ((List<TItem>)list).Add(entry.Item);
+                }
+            }
+        }
+
+        return _byZone.TryGetValue(zone, out var items) ? items : [];
+    }
+
+    /// <summary>Whether a zone takes the item: its Accepts, and room under its MaxItems unless the item is in it already.</summary>
+    internal bool CanMoveTo(TItem item, ListView<TItem> zone, string? fromZone) =>
+        zone.Accepts?.Invoke(item) != false
+        && (fromZone == zone.Zone || zone.MaxItems is not { } max || ItemsIn(zone.Zone!).Count < max);
+
+    // The display order and zones: Items with the zones moves gave them (interactive), or the
+    // posted order, zones and move (static). Posted zones are user input: one no zone has, or
+    // whose Accepts refuses the item, keeps the item's own.
+    private void Arrange()
+    {
+        if (_entries is not null)
+        {
+            return;
+        }
+
+        var items = Items as IReadOnlyList<TItem> ?? Items?.ToList() ?? [];
+        // New Items (bound, in their new order): theirs wins over the last move's.
+        if (!ReferenceEquals(_arrangedFrom, Items))
+        {
+            _movedOrder = null;
+        }
+
+        _arrangedFrom = Items;
+        _byZone = null;
+        _focusKey = null;
+        if (Live || Order is null)
+        {
+            var zones = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var i in items)
+            {
+                zones.TryAdd(KeyOf(i), ZoneOf!(i));
+            }
+
+            foreach (var key in _moved.Keys.ToList())
+            {
+                if (!zones.TryGetValue(key, out var zone) || zone == _moved[key])
+                {
+                    _moved.Remove(key);
+                }
+            }
+
+            _entries = ListArrangement.Order(items, KeyOf, _movedOrder, zones: null,
+                i => _moved.TryGetValue(KeyOf(i), out var z) ? z : ZoneOf!(i));
+            return;
+        }
+
+        var entries = ListArrangement.Order(items, KeyOf, Order.Keys, Order.Zones, ZoneOf);
+        for (var i = 0; i < entries.Count; i++)
+        {
+            var own = ZoneOf!(entries[i].Item);
+            if (entries[i].Zone != own && (ZoneNamed(entries[i].Zone) is not { } zone || zone.Accepts?.Invoke(entries[i].Item) == false))
+            {
+                entries[i] = entries[i] with { Zone = own };
+            }
+        }
+
+        _entries = entries;
+        if (ListMove.TryParse(Order.Move, out var move) && entries.Find(e => e.Key == move.Key) is { Key: not null } entry
+            && ZoneNamed(entry.Zone) is { } from && from.ItemDisabled?.Invoke(entry.Item) != true
+            && (move.Kind != ListMoveKind.To || (ZoneNamed(move.Zone) is { } to && CanMoveToArranged(entry.Item, to, entry.Zone))))
+        {
+            ListArrangement.Apply(entries, move);
+            _focusKey = move.Key;
+        }
+    }
+
+    // CanMoveTo while arranging, counting from the entries rather than the arranged zones.
+    private bool CanMoveToArranged(TItem item, ListView<TItem> zone, string? fromZone) =>
+        zone.Accepts?.Invoke(item) != false
+        && (fromZone == zone.Zone || zone.MaxItems is not { } max || _entries!.Count(e => e.Zone == zone.Zone) < max);
+
+    // The last to register, when a zone drawn again in place hasn't gone yet.
+    private ListView<TItem>? ZoneNamed(string? zone) => zone is null ? null : _zones.FindLast(z => z.Zone == zone);
+
+    // A drop on an interactive page. Counted once the move is done, whatever comes of it, and every
+    // zone renders the count: the drop's own list waits for it, and the item may have left it.
+    internal async Task DropAsync(string key, string toZone, int toIndex, int seq)
+    {
+        try
+        {
+            await MoveAsync(key, entries => ListArrangement.MoveTo(entries, key, toZone, toIndex));
+        }
+        finally
+        {
+            MoveSeq = Math.Max(MoveSeq, seq);
+            RefreshZones();
+        }
+    }
+
+    /// <summary>A move from an item's menu on an interactive page.</summary>
+    internal Task MenuMoveAsync(string key, ListMove move) =>
+        MoveAsync(key, entries => ListArrangement.Apply(entries, move));
+
+    private async Task MoveAsync(string key, Func<List<ListEntry<TItem>>, ListMoved?> move)
+    {
+        // One move at a time: one arriving while OnMove awaits would start from the old order.
+        if (_moving)
+        {
+            return;
+        }
+
+        _moving = true;
+        try
+        {
+            Arrange();
+            var entries = new List<ListEntry<TItem>>(_entries!);
+            var at = entries.FindIndex(e => e.Key == key);
+            if (at < 0 || ZoneNamed(entries[at].Zone) is not { } from || from.ItemDisabled?.Invoke(entries[at].Item) == true)
+            {
+                return;
+            }
+
+            var item = entries[at].Item;
+            if (move(entries) is not { } moved || ZoneNamed(moved.ToZone) is not { } to
+                || (moved.ToZone != moved.FromZone && !CanMoveTo(item, to, moved.FromZone)))
+            {
+                return;
+            }
+
+            var args = new ListMoveEventArgs<TItem>
+            {
+                Item = item, Key = key, FromIndex = moved.FromIndex, ToIndex = moved.ToIndex, FromZone = moved.FromZone, ToZone = moved.ToZone,
+            };
+            await OnMove.InvokeAsync(args);
+            if (args.Cancel)
+            {
+                from.Announce(string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveCancelled, from.LabelOf(item)));
+                RefreshZones();
+                return;
+            }
+
+            if (ZoneOf!(item) != moved.ToZone)
+            {
+                _moved[key] = moved.ToZone!;
+            }
+            else
+            {
+                _moved.Remove(key);
+            }
+
+            var items = entries.ConvertAll(e => e.Item);
+            _entries = entries;
+            _movedOrder = entries.ConvertAll(e => e.Key);
+            _byZone = null;
+            var count = ItemsIn(moved.ToZone!).Count;
+            to.Announce(moved.ToZone == moved.FromZone
+                ? string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedTo, to.LabelOf(item), moved.ToIndex + 1, count)
+                : string.Format(CultureInfo.CurrentCulture, TextDefaults.MovedToZone, to.LabelOf(item), to.ZoneLabel, moved.ToIndex + 1, count));
+            if (moved.ToZone != moved.FromZone)
+            {
+                from.Announce(null);
+            }
+
+            await ItemsChanged.InvokeAsync(items);
+            RefreshZones();
+        }
+        finally
+        {
+            _moving = false;
+        }
+    }
+
+    private void RefreshZones(ListView<TItem>? except = null)
+    {
+        foreach (var zone in _zones.ToList())
+        {
+            if (zone != except)
+            {
+                zone.GroupChanged();
+            }
+        }
+    }
+}

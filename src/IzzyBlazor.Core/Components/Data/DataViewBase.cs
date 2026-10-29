@@ -255,7 +255,13 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         await SelectedKeysChanged.InvokeAsync(keys);
     }
 
-    internal string KeyOf(TItem item) => ItemKey?.Invoke(item) ?? item?.ToString() ?? "";
+    internal string KeyOf(TItem item) => KeyFunc?.Invoke(item) ?? item?.ToString() ?? "";
+
+    /// <summary>The items to show: <see cref="Items"/>, or a drop zone's share of its group's.</summary>
+    internal virtual IEnumerable<TItem>? SourceItems => Items;
+
+    /// <summary>The key: <see cref="ItemKey"/>, or a drop zone's group's.</summary>
+    internal virtual Func<TItem, string>? KeyFunc => ItemKey;
 
     /// <inheritdoc />
     protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
@@ -475,7 +481,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         var (sortRaw, pageRaw, cursorRaw) = CurrentState();
         var pageSize = EffectivePageSize;
         // Always reload: the same list may have changed since the last render.
-        _loadedKey = new LoadKey(sortRaw, pageRaw, cursorRaw, FilterSignature(), Items, ItemsProvider, pageSize);
+        _loadedKey = new LoadKey(sortRaw, pageRaw, cursorRaw, FilterSignature(), SourceItems, ItemsProvider, pageSize);
         var version = ++_loadVersion;
         _loadingMore = false;
         _loadCts?.Cancel();
@@ -545,7 +551,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
                     total = result.Total;
                 }
             }
-            else if (Items is not null)
+            else if (SourceItems is not null)
             {
                 var shown = PageOfItems(request);
                 (items, total, page, next, previous) = (shown.Items, shown.Total, shown.Page, shown.Next, shown.Previous);
@@ -633,7 +639,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     // A page of Items: by number, or by cursor, where the cursor is the item offset.
     private (IReadOnlyList<TItem> Items, int Total, int Page, string? Next, string? Previous) PageOfItems(DataRequest<TItem> request)
     {
-        var sorted = request.ApplySorting(request.ApplyFiltering(AsQuery(Items!)));
+        var sorted = request.ApplySorting(request.ApplyFiltering(AsQuery(SourceItems!)));
         var total = sorted.Count();
         if (request.Take is not { } size)
         {
@@ -711,7 +717,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
             // Items added at the top between loads shift an offset or a time cursor onto items
             // already shown: with an ItemKey they aren't shown twice.
-            var shown = ItemKey is null ? null : _items.Select(KeyOf).ToHashSet(StringComparer.Ordinal);
+            var shown = KeyFunc is null ? null : _items.Select(KeyOf).ToHashSet(StringComparer.Ordinal);
             var added = shown is null ? items : items.Where(i => shown.Add(KeyOf(i))).ToList();
             if (added.Count > 0)
             {
@@ -772,7 +778,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         }
 
         var (sortRaw, pageRaw, cursorRaw) = CurrentState();
-        return loaded == new LoadKey(sortRaw, pageRaw, cursorRaw, FilterSignature(), Items, ItemsProvider, EffectivePageSize);
+        return loaded == new LoadKey(sortRaw, pageRaw, cursorRaw, FilterSignature(), SourceItems, ItemsProvider, EffectivePageSize);
     }
 
     /// <inheritdoc />

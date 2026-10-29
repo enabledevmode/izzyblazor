@@ -1438,6 +1438,22 @@
       ]
     },
     {
+      "id": "drop-zone-group", "icon": "Columns3", "name": "DropZoneGroup", "category": "Data display", "summary": "Moves items between lists, such as a board's columns; each zone is a ListView.", "keywords": ["drag and drop", "kanban", "board", "drop zone", "transfer list"],
+      "features": [
+        { "feature": "Moving between zones from each handle's menu (with script off, each move posts the form)" },
+        { "feature": "Dragging between zones and announcements", "noscript": "none" },
+        { "feature": "The moves bound to C#", "member": "Items" }
+      ],
+      "examples": [
+        { "id": "drop-zone-group-board", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items: `ZoneOf` says which zone each is in, and `OnMove` gets `FromZone` and `ToZone`. `Accepts` limits what a zone takes and `MaxItems` how many. On a static page give the group a `Name` and pass the posted `ListOrder` back as `Order`; `Order.Arrange` gives each item's zone and place.",
+          "notes": {
+            "noscript": "Each move in a handle's menu (Move to and a column, or up and down) posts the form, and the page comes back with the task moved and its handle focused. Save board saves.",
+            "static": "Drag a handle into another column, or use its menu: tasks move in the page and the move is announced. Done refuses tasks that aren't reviewed, and a full Doing takes no more. Save board posts the columns.",
+            "interactive": "Drag a handle into another column, or use its menu: C# moves the task at once (OnMove sets its status) and the move is announced."
+          } }
+      ]
+    },
+    {
       "id": "description-list", "icon": "BookText", "name": "DescriptionList", "category": "Data display", "summary": "Terms and their details.", "keywords": ["key value", "definition list"], "parts": ["DescriptionItem"],
       "examples": [
         { "id": "description-list-divided", "title": "Terms beside details", "lead": "Use `Divided` for lines between items; terms sit beside their details from 640px up and above them on phones." },
