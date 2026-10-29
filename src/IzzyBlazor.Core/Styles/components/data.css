@@ -1032,13 +1032,13 @@
     }
   }
 
-  .ib-sortable-handle,
+  /* The grip is narrow: a 24px target (WCAG's minimum), pulled into the space around it so the
+     icon sits where an item's leading icon would. */
+  .ib-sortable .ib-sortable-handle,
   .ib-sortable-spacer {
     flex: none;
-  }
-
-  .ib-sortable-spacer {
-    width: var(--ib-control-h-sm);
+    width: 1.5rem;
+    margin-inline: calc(var(--ib-space-1) * -1);
   }
 
   /* A drag: the item lifts above the others, which slide aside (or, in rows that wrap, a line
