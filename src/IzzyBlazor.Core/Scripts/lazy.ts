@@ -22,6 +22,8 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-on-this-page": () => import("./elements/on-this-page.js"),
   "ib-toasts": () => import("./elements/toasts.js"),
   "ib-toolbar": () => import("./elements/toolbar.js"),
+  "ib-sortable": () => import("./elements/sortable.js"),
+  "ib-listview": () => import("./elements/listview.js"),
 };
 
 const loading = new Map<string, Promise<unknown>>();

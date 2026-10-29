@@ -40,16 +40,13 @@
 <Heading Level="2">Paging without a total</Heading>
 <TextBlock>When the data pages by cursor (an opaque "next" token, as many APIs and logs do) or has no total, set <Code>Paging</Code> and return the next cursor from your <Code>ItemsProvider</Code>. The table passes it back as <Code>request.Cursor</Code>; the total is optional.</TextBlock>
 <Code Block Language="razor">@Cursor</Code>
-<TextBlock><Code>TablePaging.LoadMore</Code> puts a button under the rows that adds the next page to them; <Code>LoadMoreText</Code> sets its text.</TextBlock>
-<ExampleViewer Example="table-load-more" />
-<TextBlock>On static pages and with JavaScript off there's nothing to add rows to, so the button shows the next page in place of this one, and First goes back to the start. With an <Code>ItemKey</Code>, a row already shown isn't added twice. A parent's re-render keeps the added pages; call <Code>ReloadAsync()</Code> to start over.</TextBlock>
-<TextBlock><Code>TablePaging.NextPrevious</Code> shows First, Previous and Next. Return <Code>Previous</Code> too if your source has it; without it, interactive tables go back through the cursors they've followed, and static ones offer First.</TextBlock>
+<TextBlock><Code>DataPaging.NextPrevious</Code> shows First, Previous and Next. Return <Code>Previous</Code> too if your source has it; without it, interactive tables go back through the cursors they've followed, and static ones offer First.</TextBlock>
 <ExampleViewer Example="table-cursor-pages" />
-<TextBlock><Code>TablePaging.LoadOnScroll</Code> loads the next page as the last row comes into view, on interactive pages. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Its Load more button is for the keyboard, out of sight until it has focus; on static pages and with JavaScript off it shows, as a link to the next page. Both modes also work with <Code>Items</Code>, where the table pages by row offset.</TextBlock>
+<TextBlock><Code>DataPaging.LoadOnScroll</Code> loads the next page as the last row comes into view and adds it under the rows: in place on interactive pages, and on static pages by following its Load more link, which enhanced navigation swaps in with the scroll kept. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Its Load more button, under the last row, is for the keyboard, out of sight until it has focus (<Code>LoadMoreText</Code> sets its text); with JavaScript off it shows, as a link that reloads the table with one more page of rows (<Code>?page=3</Code> shows the first three, asked of the provider as one request). With an <Code>ItemKey</Code>, a row already shown isn't added twice. A parent's re-render keeps the added pages; call <Code>ReloadAsync()</Code> to start over. Both modes also work with <Code>Items</Code>, where the table pages by row offset. (A visible Load more button is a list's pattern: see ListView.)</TextBlock>
 <ExampleViewer Example="table-load-on-scroll" />
 
 <Heading Level="2">When loading fails</Heading>
-<TextBlock>If the <Code>ItemsProvider</Code> throws (or an <Code>IQueryable</Code> in <Code>Items</Code> does), the table logs the exception and shows "Couldn't load the rows." with Retry in place of the rows. On static pages and with JavaScript off, Retry is a link to the same address. <Code>ErrorContent</Code> replaces the message. With Load more, the rows already shown stay, and the message and Retry take the button's place under them. A request the table canceled because a newer one replaced it isn't an error: pass <Code>request.CancellationToken</Code> on to stop the work.</TextBlock>
+<TextBlock>If the <Code>ItemsProvider</Code> throws (or an <Code>IQueryable</Code> in <Code>Items</Code> does), the table logs the exception and shows "Couldn't load the rows." with Retry in place of the rows. On static pages and with JavaScript off, Retry is a link to the same address. <Code>ErrorContent</Code> replaces the message. When loading on scroll, the rows already shown stay, and the message and Retry go under them. A request the table canceled because a newer one replaced it isn't an error: pass <Code>request.CancellationToken</Code> on to stop the work.</TextBlock>
 <ExampleViewer Example="table-load-error" />
 
 <Heading Level="2">Row links</Heading>
@@ -153,7 +150,7 @@
         """;
 
     private const string Cursor = """
-        <Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="200" Paging="TablePaging.LoadMore">...</Table>
+        <Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="200" Paging="DataPaging.NextPrevious">...</Table>
 
         @code {
             async ValueTask<DataResult<AuditEvent>> LoadEvents(DataRequest<AuditEvent> request)

@@ -211,7 +211,7 @@ public class IzzyText
     /// <summary>Table's row range when the total isn't known (cursor paging): {0} first, {1} last ("201–400").</summary>
     public virtual string TableRangeOpen { get; set; } = "{0:N0}–{1:N0}";
 
-    /// <summary>Table's button that loads the next page under the rows (<see cref="TablePaging.LoadMore"/>).</summary>
+    /// <summary>The button that loads the next page after the items: a ListView's Load more, and the keyboard's way on when a Table or ListView loads on scroll.</summary>
     public virtual string LoadMore { get; set; } = "Load more";
 
     /// <summary>Table's message when its rows failed to load, before a Retry button.</summary>
@@ -273,6 +273,42 @@ public class IzzyText
 
     /// <summary>Stat, a figure that didn't change.</summary>
     public virtual string TrendFlat { get; set; } = "No change";
+
+    /// <summary>A ListView's name for screen readers in its pagination, when it has no AriaLabel.</summary>
+    public virtual string ListName { get; set; } = "List";
+
+    /// <summary>A ListView whose items failed to load, with Retry after it.</summary>
+    public virtual string ListLoadFailed { get; set; } = "Couldn't load the items.";
+
+    /// <summary>SortableList's drag handle, which opens the move menu: "Move Ada". {0} is the item's label.</summary>
+    public virtual string MoveItem { get; set; } = "Move {0}";
+
+    /// <summary>SortableList's move menu: one place earlier.</summary>
+    public virtual string MoveUp { get; set; } = "Move up";
+
+    /// <summary>SortableList's move menu: one place later.</summary>
+    public virtual string MoveDown { get; set; } = "Move down";
+
+    /// <summary>SortableList's move menu: to the first place.</summary>
+    public virtual string MoveToTop { get; set; } = "Move to top";
+
+    /// <summary>SortableList's move menu: to the last place.</summary>
+    public virtual string MoveToBottom { get; set; } = "Move to bottom";
+
+    /// <summary>A drop zone's entry in the move menu: "Move to Done". {0} is the zone's label.</summary>
+    public virtual string MoveToZone { get; set; } = "Move to {0}";
+
+    /// <summary>Announced after a move: "Moved Ada to position 3 of 5".</summary>
+    public virtual string MovedTo { get; set; } = "Moved {0} to position {1} of {2}";
+
+    /// <summary>Announced after a move between zones: "Moved Ada to Done, position 1 of 2".</summary>
+    public virtual string MovedToZone { get; set; } = "Moved {0} to {1}, position {2} of {3}";
+
+    /// <summary>Announced when a move is cancelled: "Ada wasn't moved".</summary>
+    public virtual string MoveCancelled { get; set; } = "{0} wasn't moved";
+
+    /// <summary>An empty drop zone.</summary>
+    public virtual string DropHere { get; set; } = "Drop items here";
 
     // Navigation and layout
 

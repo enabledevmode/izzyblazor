@@ -1,0 +1,43 @@
+@* Selection in a form: each checked item posts its ItemKey, so Archive works with JavaScript off.
+   With script, "Select all rows" above the list checks the page. *@
+<form method="post" @onsubmit="Archive" @formname="list-view-archive" style="width: 100%">
+    <AntiforgeryToken />
+    <Stack Gap="3" MaxWidth="28.Rem">
+        <ListView Items="_messages" ItemKey="m => m.Id" ItemText="m => m.Subject" ItemDescription="m => m.From"
+                  Selectable SelectAllLabel="Select all messages" @bind-SelectedKeys="_selected" Bordered />
+        <Row Gap="3" Align="Align.Center" Wrap>
+            <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive selected</Button>
+            @if (_archived is not null)
+            {
+                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                    Archived: @(_archived.Count == 0 ? "nothing selected" : string.Join(", ", _messages.Where(m => _archived.Contains(m.Id)).Select(m => m.Subject)))
+                </TextBlock>
+            }
+        </Row>
+    </Stack>
+</form>
+
+@code {
+    // Static pages: the checked items post as "selected".
+    [SupplyParameterFromForm(FormName = "list-view-archive", Name = "selected")]
+    private string[]? Posted { get; set; }
+
+    // Interactive pages: bound to the checkboxes.
+    private IReadOnlyCollection<string>? _selected;
+    private IReadOnlyCollection<string>? _archived;
+
+    private readonly Message[] _messages =
+    [
+        new("1", "Quarterly report draft", "Grace Hopper"),
+        new("2", "Lunch on Friday?", "Alan Turing"),
+        new("3", "Build failed on main", "CI"),
+        new("4", "Invoice #1042", "Billing"),
+    ];
+
+    protected override void OnInitialized() => _selected = Posted;
+
+    private void Archive() => _archived = (IReadOnlyCollection<string>?)Posted ?? _selected ?? [];
+    @* hide *@
+    private sealed record Message(string Id, string Subject, string From);
+    @* /hide *@
+}

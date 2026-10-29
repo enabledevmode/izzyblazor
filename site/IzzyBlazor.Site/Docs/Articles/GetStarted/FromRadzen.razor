@@ -116,15 +116,16 @@
         <TextBlock>
             A list that pages by an opaque "next" token, with no total, can be a <Code>Table</Code> too. Set
             <Code>Paging</Code> and return the next cursor from the <Code>ItemsProvider</Code>; the table passes it back as
-            the request's <Code>Cursor</Code>. <Code>TablePaging.LoadMore</Code> puts a button under the rows that adds the
-            next page to them, as a hand-built "Load earlier" button does.
+            the request's <Code>Cursor</Code>. <Code>DataPaging.LoadOnScroll</Code> adds the next page under the rows as
+            the last one scrolls into view, in a box as tall as <Code>MaxHeight</Code>, where a hand-built "Load earlier"
+            button needed a press; the button stays, for the keyboard.
         </TextBlock>
         @SideBySide(CursorBefore, CursorIzzy, "Built by hand")
         <TextBlock>
             The table has an error state: when the provider throws, it shows "Couldn't load the rows." with Retry, and with
             Load more the rows already shown stay and the message goes under them. So the provider throws on a failed
             request instead of keeping a message of its own. <Code>ReloadAsync()</Code> loads the list again from where it began, for a new search. With an
-            <Code>ItemKey</Code>, a row that's already shown isn't added twice. <Code>TablePaging.NextPrevious</Code> shows
+            <Code>ItemKey</Code>, a row that's already shown isn't added twice. <Code>DataPaging.NextPrevious</Code> shows
             First, Previous and Next instead, and <Code>LoadOnScroll</Code> loads as the last row comes into view; see
             <Anchor Href="docs/components/table#paging-without-a-total">Paging without a total</Anchor>.
         </TextBlock>
@@ -598,7 +599,8 @@
     private const string CursorIzzy = """
         <Table @ref="_log" ItemsProvider="LoadAsync"
           PageSize="50"
-          Paging="TablePaging.LoadMore"
+          Paging="DataPaging.LoadOnScroll"
+          MaxHeight="30.Rem"
           LoadMoreText="Load earlier"
           ItemKey="d => d.Id" Caption="Decisions"
           id="decisions">

@@ -1,0 +1,15 @@
+@* PageSize with Paging="DataPaging.LoadMore": the first page, and a button after it that adds
+   the next, scrolling with the items in a box as tall as MaxHeight. On static pages and with
+   JavaScript off, the button is a link to the same list with one more page. *@
+<ListView Items="_events" ItemKey="e => e.Id" ItemText="e => e.Title" ItemDescription="e => e.When"
+          ItemIcon="_ => Lucide.Bell" PageSize="4" Paging="DataPaging.LoadMore" QueryPrefix="events-"
+          MaxHeight="16.Rem" Bordered AriaLabel="Notifications" MaxWidth="28.Rem" Grow />
+
+@code {
+    private readonly Event[] _events = Enumerable.Range(1, 11)
+        .Select(i => new Event(i.ToString(System.Globalization.CultureInfo.InvariantCulture), $"Notification {i}", $"{i * 7} minutes ago"))
+        .ToArray();
+    @* hide *@
+    private sealed record Event(string Id, string Title, string When);
+    @* /hide *@
+}

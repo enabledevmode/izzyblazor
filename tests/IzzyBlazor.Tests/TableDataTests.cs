@@ -101,7 +101,7 @@ public class TableDataTests : BunitContext
         DataRequest<Row>? seen = null;
         Render<Table<Row>>(p => p
             .Add(t => t.PageSize, 2)
-            .Add(t => t.Paging, TablePaging.LoadMore)
+            .Add(t => t.Paging, DataPaging.LoadOnScroll)
             .Add(t => t.ItemsProvider, request =>
             {
                 seen = request;
@@ -282,7 +282,7 @@ public class TableDataTests : BunitContext
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.ItemsProvider, api.Load)
             .Add(t => t.PageSize, 2)
-            .Add(t => t.Paging, TablePaging.LoadMore)
+            .Add(t => t.Paging, DataPaging.LoadOnScroll)
             .Add(t => t.ChildContent, Columns));
         cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada", "Grace" }, Names(cut)));
 
@@ -311,7 +311,7 @@ public class TableDataTests : BunitContext
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.ItemsProvider, api.Load)
             .Add(t => t.PageSize, 2)
-            .Add(t => t.Paging, TablePaging.LoadOnScroll)
+            .Add(t => t.Paging, DataPaging.LoadOnScroll)
             .Add(t => t.ChildContent, Columns));
         cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-ib-load-next]")));
 

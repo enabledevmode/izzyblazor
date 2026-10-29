@@ -1333,18 +1333,15 @@
             "static": "The header checkbox selects every row on the page.",
             "live": "@bind-SelectedKeys follows the checkboxes in C#." } },
         { "id": "table-bound", "title": "State in the component", "modes": ["live"] },
-        { "id": "table-load-more", "title": "Load more by cursor",
-          "notes": {
-            "off": "Load earlier is a link: it shows the next page in place of this one, and First goes back.",
-            "static": "The same link; enhanced navigation swaps the page in.",
-            "live": "Each press adds eight rows under the ones shown, and focus moves to the first new row." } },
         { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {
             "off": "First, Previous and Next are links with the cursor in the URL.",
             "static": "The same links; enhanced navigation swaps the page in.",
             "live": "The same links; the table follows the URL." } },
-        { "id": "table-load-on-scroll", "title": "Loading on scroll", "modes": ["live"],
+        { "id": "table-load-on-scroll", "title": "Loading on scroll",
           "notes": {
+            "off": "Nothing loads on scroll: Load more shows under the rows, a link that reloads the table with one more page.",
+            "static": "Scroll the rows: the next page loads as the last one comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept. Tab to the hidden button to load from the keyboard.",
             "live": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } },
         { "id": "table-load-error", "title": "When loading fails",
           "notes": {
@@ -1357,7 +1354,7 @@
           "description": "An admin's activity log from an API that pages by cursor, with no total: the next page loads as you scroll, and the column filters go to the API with the cursor.",
           "example": { "id": "table-activity-log", "title": "Activity", "height": 720, "page": true,
             "notes": {
-              "off": "Load more is a link to the next page, which takes this one's place; First goes back. The filters apply with their button.",
+              "off": "Load more is a link: the page comes back with one more page of rows. The filters apply with their button.",
               "static": "The same links, swapped in without a full reload.",
               "live": "Scroll down: each page loads under the last as its last row comes into view. A filter starts the list over."
             } } }
@@ -1396,6 +1393,36 @@
         { "id": "store-dashboard", "title": "Store dashboard", "member": "Trend",
           "description": "Stat cards for revenue, orders, refunds and conversion over a monthly goal and top products. The period is a link, so it works in every mode, and refunds going down shows as good news.",
           "example": { "id": "stat-dashboard", "title": "Store overview", "height": 600, "page": true } }
+      ]
+    },
+    {
+      "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "Items from data, each drawn by a template; links, selection, reordering and paging.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
+      "features": [
+        { "feature": "Links, the current item, selection and paging" },
+        { "feature": "Reordering from each handle's menu (with script off, each move posts the form)" },
+        { "feature": "Dragging, Alt+arrow shortcuts and announcements", "off": "none", "static": "full", "live": "partial" },
+        { "feature": "The new order bound to C#", "member": "Items" }
+      ],
+      "examples": [
+        { "id": "list-view-contacts", "title": "Links and the current item", "lead": "Use `ItemText`, `ItemDescription` and `ItemIcon` for a row with no template, `ItemHref` to make each item a link, and `ItemCurrent` for the one the page is showing." },
+        { "id": "list-view-selection", "title": "Selection", "lead": "Use `Selectable` for a checkbox per item: inside a form the checked items post their `ItemKey`, and `@bind-SelectedKeys` follows them on interactive pages. With script, a checkbox above the list selects the page." },
+        { "id": "list-view-cards", "title": "Cards in columns", "lead": "Use `Columns` to lay the items out as cards, such as a gallery of products: that many across from 640px up, one on phones. With `ItemHref` each card is a link, and controls inside it still work." },
+        { "id": "list-view-load-more", "title": "Load more", "lead": "Use `PageSize` with `DataPaging.LoadMore` for a button after the last item that adds the next page, and `MaxHeight` to scroll the items in the list's box, the button with them. Numbered pages and `DataPaging.NextPrevious` work as in Table. The page goes in the address, so `QueryPrefix` keeps two lists apart.",
+          "notes": {
+            "off": "Load more is a link: the page comes back with four more items.",
+            "static": "The same link; enhanced navigation swaps the list in, with focus on the first new item.",
+            "live": "Each press adds four items after the ones shown, and focus moves to the first new one." } },
+        { "id": "list-view-load-on-scroll", "title": "Loading on scroll", "lead": "Use `DataPaging.LoadOnScroll` with a `MaxHeight`: the next page loads as the last item scrolls into view. Its Load more button is for the keyboard, out of sight until it has focus.",
+          "notes": {
+            "off": "Nothing loads on scroll: Load more shows after the items, a link that reloads the list with one more page.",
+            "static": "Scroll the list: the next page loads as the last item comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept.",
+            "live": "Scroll the list: the next page loads as the last item comes into view, with a spinner after the items while it does." } },
+        { "id": "list-view-save-order", "title": "Reordering, and saving the order", "lead": "Use `Reorderable`. On a static page give it a `Name` and pass the posted `ListOrder` back as `Order`; `Order.Arrange` puts the items in the posted order. On an interactive page, `@bind-Items` keeps the order.",
+          "notes": {
+            "off": "Each move in a handle's menu posts the form, and the page comes back with the item moved and its handle focused. Save order saves.",
+            "static": "Drag a handle, or use its menu or Alt+arrows: items move in the page and the move is announced. Save order posts the new order.",
+            "live": "A move from a handle's menu or Alt+arrows changes the list at once; dragging comes next. Save order shows the order @bind-Items holds."
+          } }
       ]
     },
     {

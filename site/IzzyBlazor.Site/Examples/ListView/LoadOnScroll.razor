@@ -1,0 +1,14 @@
+@* PageSize with Paging="DataPaging.LoadOnScroll" and a MaxHeight: the next page loads as the
+   last item scrolls into view, on interactive pages. *@
+<ListView Items="_messages" ItemKey="m => m.Id" ItemText="m => m.Title" ItemDescription="m => m.When"
+          ItemIcon="_ => Lucide.MessageSquare" PageSize="8" Paging="DataPaging.LoadOnScroll" QueryPrefix="feed-"
+          MaxHeight="18.Rem" Bordered AriaLabel="Messages" MaxWidth="28.Rem" Grow />
+
+@code {
+    private readonly Message[] _messages = Enumerable.Range(1, 40)
+        .Select(i => new Message(i.ToString(System.Globalization.CultureInfo.InvariantCulture), $"Message {i}", $"{i * 3} minutes ago"))
+        .ToArray();
+    @* hide *@
+    private sealed record Message(string Id, string Title, string When);
+    @* /hide *@
+}

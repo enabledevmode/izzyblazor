@@ -1,0 +1,22 @@
+@* Each contact links to this page with ?contact=, and the one in the address is current: a list
+   beside its details that works in every mode, with no script. (A link's address is resolved
+   against the page's <base href>, so it's built whole, not as a bare "?contact=".) *@
+@inject NavigationManager Navigation
+<ListView Items="_people" ItemKey="p => p.Id" ItemText="p => p.Name" ItemDescription="p => p.Email"
+          ItemIcon="_ => Lucide.CircleUser" ItemHref="@(p => Navigation.GetUriWithQueryParameter("contact", p.Id))" ItemCurrent="p => p.Id == Contact"
+          Bordered MaxWidth="24.Rem" />
+
+@code {
+    [SupplyParameterFromQuery] private string? Contact { get; set; }
+
+    private readonly Person[] _people =
+    [
+        new("ada", "Ada Lovelace", "ada@example.com"),
+        new("grace", "Grace Hopper", "grace@example.com"),
+        new("alan", "Alan Turing", "alan@example.com"),
+        new("katherine", "Katherine Johnson", "katherine@example.com"),
+    ];
+    @* hide *@
+    private sealed record Person(string Id, string Name, string Email);
+    @* /hide *@
+}

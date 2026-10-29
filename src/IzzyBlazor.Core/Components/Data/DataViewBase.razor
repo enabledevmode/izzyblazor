@@ -1,0 +1,168 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+
+@code {
+    // The footer under the items when they're paged: the size menu, the range ("1–10 of 42") and
+    // the pages, or First/Previous/Next. A list that grows (Load more, on scroll) has none: its
+    // control is inline, after the last item (MoreRow). Its classes are Table's, which drew it first.
+    internal RenderFragment Footer(string pagesLabel) => __builder =>
+    {
+        if (EffectivePageSize is not { } size || !ShowFooter || Appending)
+        {
+            return;
+        }
+
+        <div class="ib-table-footer">
+            <div class="ib-table-footer-info">
+                @if (PageSizeOptions is { Count: > 0 } options)
+                {
+                    @* Rows per page: an option menu, so it works with no script (each size a link). *@
+                    <span class="ib-table-page-size">
+                        <span class="ib-table-page-size-label" aria-hidden="true">@TextDefaults.RowsPerPage</span>
+                        <Menu Placement="Placement.TopStart">
+                            <Trigger>
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-page-size-button" aria-label="@($"{TextDefaults.RowsPerPage}: {size}")" @attributes="context">
+                                    @size
+                                    <Icon Role="IconRole.ChevronDown" Class="ib-table-page-size-chevron" />
+                                </button>
+                            </Trigger>
+                            <ChildContent>
+                                @foreach (var option in options)
+                                {
+                                    var choice = option;
+                                    <MenuItem Checked="choice == size"
+                                              Href="@(UseState ? null : PageSizeHref(choice))"
+                                              CheckedChanged="@(UseState ? EventCallback.Factory.Create<bool>(this, () => OnPageSizeAsync(choice)) : default)">@choice</MenuItem>
+                                }
+                            </ChildContent>
+                        </Menu>
+                    </span>
+                }
+                @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
+                <span class="ib-table-summary" role="status">@Summary(size)</span>
+            </div>
+            @if (Paging == DataPaging.Pages && UseState)
+            {
+                <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total ?? 0" PageSize="size" Size="ControlSize.Sm" Label="@pagesLabel" />
+            }
+            else if (Paging == DataPaging.Pages)
+            {
+                <Pagination Page="_page" TotalItems="_total ?? 0" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@pagesLabel" />
+            }
+            else
+            {
+                @* By cursor there are no page numbers to show: first, previous and next, drawn as Pagination's. *@
+                <nav class="ib-pagination ib-pagination-sm" aria-label="@pagesLabel">
+                    <ul class="ib-pagination-list">
+                        <li>@CursorControl(FirstTarget, TextDefaults.FirstPage, IconRole.FirstPage, "ib-pagination-first")</li>
+                        <li>@CursorControl(PreviousTarget, TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
+                        <li>@CursorControl(NextTarget, TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
+                    </ul>
+                </nav>
+            }
+        </div>
+    };
+
+    // Load more (and First, when the list starts part-way) after the last item, inside the scroll
+    // area: the way on in a list that grows, and the keyboard's way on when it loads on scroll. A
+    // status region beside it says how many items are shown after each load.
+    internal RenderFragment MoreRow => __builder =>
+    {
+        if (!Appending || EffectivePageSize is not { } size)
+        {
+            return;
+        }
+
+        <span class="ib-visually-hidden ib-table-summary" role="status">@Summary(size)</span>
+        if (!ShowFooter)
+        {
+            return;
+        }
+
+        <div class="ib-table-more">
+            @if (_moreError && RendererInfo.IsInteractive)
+            {
+                @* The next page failed: the items shown stay, and Retry asks for it again. *@
+                <span class="ib-table-error-content">
+                    @LoadFailedMessage
+                    @RetryControl(() => LoadMoreAsync(focus: true), _loadingMore)
+                </span>
+            }
+            else if (_next is not null && RendererInfo.IsInteractive)
+            {
+                @if (_loadingMore && OnFocusOnly)
+                {
+                    @* The button is out of sight while loading on scroll: this says a page is on its way. *@
+                    <Spinner Class="ib-table-more-loading" />
+                }
+                <Button Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="_loadingMore" OnClick="() => LoadMoreAsync(focus: true)">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
+                @if (Paging == DataPaging.LoadOnScroll && !_loadingMore && !_providerLoading && !_moreError)
+                {
+                    @* Pressed by the script when the last item comes into view: a load that doesn't move focus. *@
+                    <button type="button" hidden data-ib-load-next @onclick="() => LoadMoreAsync(focus: false)"></button>
+                }
+            }
+            else if (_next is not null)
+            {
+                @* No component state to add pages to: the same list with one more page (?page=N+1).
+                   Loading on scroll, the script follows it as the last item comes into view. *@
+                <Button Href="@MoreHref" data-ib-load-next="@(Paging == DataPaging.LoadOnScroll ? "" : null)" Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
+            }
+        </div>
+    };
+
+    // "Couldn't load the rows." (or ErrorContent). Screen readers hear it from the status region,
+    // which is always there (a region added with its text isn't reliably read).
+    internal RenderFragment LoadFailedMessage => __builder =>
+    {
+        <span class="ib-table-error-message">
+            @if (ErrorContent is not null)
+            {
+                @ErrorContent
+            }
+            else
+            {
+                @LoadFailedText
+            }
+        </span>
+    };
+
+    // Retry: a button on interactive pages, a link to this address on static ones.
+    internal RenderFragment RetryControl(Func<Task> retry, bool loading) => __builder =>
+    {
+        if (RendererInfo.IsInteractive)
+        {
+            <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="loading" OnClick="retry">@TextDefaults.Retry</Button>
+        }
+        else
+        {
+            <Button Href="@Navigation.Uri" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@TextDefaults.Retry</Button>
+        }
+    };
+
+    // Says a load failed when it does: present from the start, so the change is announced.
+    internal RenderFragment ErrorStatus => __builder =>
+    {
+        <span class="ib-visually-hidden ib-table-error-status" role="status">@((_loadError is not null && !_providerLoading) || (_moreError && !_loadingMore) ? LoadFailedText : null)</span>
+    };
+
+    // First, Previous or Next by cursor, drawn as Pagination's: a button when state is in the
+    // component (unavailable ones stay focusable), else a link, unavailable without an href.
+    private RenderFragment CursorControl(PageTarget target, string label, IconRole icon, string extra) => __builder =>
+    {
+        var classes = $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item ib-btn-icon-only {extra}";
+        if (UseState)
+        {
+            <button type="button" class="@classes" aria-disabled="@(target.Enabled ? null : "true")" aria-label="@label" @onclick="() => target.Enabled ? OnCursorClickAsync(target) : Task.CompletedTask"><Icon Role="icon" /></button>
+        }
+        else
+        {
+            @* One <a> either way: Next followed onto the last page stays the same element, unavailable
+               but still focused (tabindex -1 keeps it focusable, out of the Tab order). *@
+            <a href="@(target.Enabled ? CursorHref(target) : null)" class="@classes" aria-label="@label" aria-disabled="@(target.Enabled ? null : "true")"
+               role="@(target.Enabled ? null : "link")" tabindex="@(target.Enabled ? null : "-1")"
+               rel="@(target.Enabled && extra == "ib-pagination-next" ? "next" : target.Enabled && extra == "ib-pagination-prev" ? "prev" : null)"><Icon Role="icon" /></a>
+        }
+    };
+}

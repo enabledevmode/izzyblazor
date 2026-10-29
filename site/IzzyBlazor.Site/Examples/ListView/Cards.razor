@@ -1,0 +1,34 @@
+@* Columns lays the items out as cards, three across from 640px up and one on phones. Each card
+   links to this page with ?product=, and the chosen one is current. *@
+@inject NavigationManager Navigation
+<ListView Items="_products" ItemKey="p => p.Sku" ItemLabel="p => p.Name" ItemHref="@(p => Navigation.GetUriWithQueryParameter("product", p.Sku))"
+          ItemCurrent="p => p.Sku == Product" Columns="3" Context="product">
+    <Stack Gap="1">
+        <Row Justify="Justify.Between" Align="Align.Center">
+            <Heading Level="3" Size="TextSize.Md">@product.Name</Heading>
+            @if (product.New)
+            {
+                <Badge Accent="Accent.Primary">New</Badge>
+            }
+        </Row>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@product.Description</TextBlock>
+        <TextBlock Weight="FontWeight.Semibold">@product.Price.ToString("C", System.Globalization.CultureInfo.GetCultureInfo("en-US"))</TextBlock>
+    </Stack>
+</ListView>
+
+@code {
+    [SupplyParameterFromQuery] private string? Product { get; set; }
+
+    private readonly Item[] _products =
+    [
+        new("desk", "Standing desk", "Oak top, quiet motor, three memory positions.", 549m, New: true),
+        new("chair", "Task chair", "Mesh back with adjustable lumbar support.", 329m),
+        new("lamp", "Desk lamp", "Warm to cool light, dims to 5%.", 79m),
+        new("arm", "Monitor arm", "Holds screens up to 32 inches.", 119m),
+        new("mat", "Standing mat", "Cushioned, with beveled edges.", 59m, New: true),
+        new("shelf", "Wall shelf", "Floating, holds 20 kg.", 89m),
+    ];
+    @* hide *@
+    private sealed record Item(string Sku, string Name, string Description, decimal Price, bool New = false);
+    @* /hide *@
+}

@@ -1,13 +1,10 @@
 @namespace IzzyBlazor
 @typeparam TItem
 @attribute [CascadingTypeParameter(nameof(TItem))]
-@inherits LayoutItemBase
-@implements IDisposable
+@inherits DataViewBase<TItem>
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
-@inject NavigationManager Navigation
-@inject IServiceProvider Services
 @attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no select-all checkbox, and filters apply when you press Apply, not as you type; empty filters stay in the address (?f-customer=), as with any GET form.")]
 
 @*
@@ -39,9 +36,11 @@
 
     Paging pages by cursor, for data with no total or that pages by a token: the provider returns
     the items and a Next cursor (DataResult.Next), and the table shows First, Previous and Next
-    (NextPrevious), a "Load more" button (LoadMore), or loads as the last row comes into view
-    (LoadOnScroll). The cursor goes in the URL (?cursor=) beside ?page=, the page's position.
-    Load more adds pages on interactive pages only; elsewhere it shows the next page in place.
+    (NextPrevious), or loads as the last row comes into view (LoadOnScroll, best with a
+    MaxHeight). The cursor goes in the URL (?cursor=) beside ?page=, the page's position.
+    Loading on scroll adds a page as the last row comes into view: in place on interactive pages,
+    and on static pages through a "Load more" link under the rows (?page=3 shows the first three),
+    which the script follows and enhanced navigation swaps in. With script off the link shows.
 
     Selectable adds a checkbox per row: it posts the row's ItemKey with the surrounding form, and
     @bind-SelectedKeys follows it on interactive pages. RowHref makes each row a link. Columns
@@ -68,7 +67,7 @@
       goes to the table's scroll box once Retry brings the rows.
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == TablePaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <CascadingValue Value="this" IsFixed="true">
         @ChildContent
         @ColumnsReadyNotifier
@@ -107,8 +106,7 @@
             }
         </div>
     }
-    @* Says a load failed when it does: present from the start, so the change is announced. *@
-    <span class="ib-visually-hidden ib-table-error-status" role="status">@((_loadError is not null && !_providerLoading) || (_moreError && !_loadingMore) ? TextDefaults.LoadFailed : null)</span>
+    @ErrorStatus
     <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
         <table class="ib-table-grid" aria-busy="@(IsLoading ? "true" : null)">
             @if (Caption is not null)
@@ -201,12 +199,12 @@
                         var key = KeyOf(item);
                         var href = RowHref?.Invoke(item);
                         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-                        <tr class="@RowClasses(item, href)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) ? "-1" : null)" @ref="_rowRefs[row]">
+                        <tr class="@RowClasses(item, href)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
                             @if (Selectable)
                             {
                                 <td class="ib-table-select-cell">
                                     <input type="checkbox" class="ib-check-input ib-table-select" name="@EffectiveSelectionName" value="@key"
-                                           aria-label="@($"{SelectRowLabel ?? TextDefaults.SelectRow} {LabelOf(item)}")"
+                                           aria-label="@SelectLabel(item)"
                                            checked="@IsSelected(key)"
                                            @onchange="e => OnSelectChanged(key, e)" />
                                 </td>
@@ -244,6 +242,8 @@
                 </tfoot>
             }
         </table>
+        @* Loading on scroll: the keyboard's way on, under the last row, inside the scroll box. *@
+        @MoreRow
     </div>
     @if (HasFilters && !StateLayout)
     {
@@ -258,129 +258,12 @@
             }
         </div>
     }
-    @if (EffectivePageSize is { } size && ShowFooter)
-    {
-        <div class="ib-table-footer">
-            <div class="ib-table-footer-info">
-                @if (PageSizeOptions is { Count: > 0 } options)
-                {
-                    @* Rows per page: an option menu, so it works with no script (each size a link). *@
-                    <span class="ib-table-page-size">
-                        <span class="ib-table-page-size-label" aria-hidden="true">@TextDefaults.RowsPerPage</span>
-                        <Menu Placement="Placement.TopStart">
-                            <Trigger>
-                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-page-size-button" aria-label="@($"{TextDefaults.RowsPerPage}: {size}")" @attributes="context">
-                                    @size
-                                    <Icon Role="IconRole.ChevronDown" Class="ib-table-page-size-chevron" />
-                                </button>
-                            </Trigger>
-                            <ChildContent>
-                                @foreach (var option in options)
-                                {
-                                    var choice = option;
-                                    <MenuItem Checked="choice == size"
-                                              Href="@(UseState ? null : PageSizeHref(choice))"
-                                              CheckedChanged="@(UseState ? EventCallback.Factory.Create<bool>(this, () => OnPageSizeAsync(choice)) : default)">@choice</MenuItem>
-                                }
-                            </ChildContent>
-                        </Menu>
-                    </span>
-                }
-                @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
-                <span class="ib-table-summary" role="status">@Summary(size)</span>
-            </div>
-            @if (Paging == TablePaging.Pages && UseState)
-            {
-                <Pagination Page="_page" PageChanged="OnPageClickAsync" TotalItems="_total ?? 0" PageSize="size" Size="ControlSize.Sm" Label="@PagesLabel" />
-            }
-            else if (Paging == TablePaging.Pages)
-            {
-                <Pagination Page="_page" TotalItems="_total ?? 0" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@PagesLabel" />
-            }
-            else if (Paging == TablePaging.NextPrevious)
-            {
-                @* By cursor there are no page numbers to show: first, previous and next, drawn as Pagination's. *@
-                <nav class="ib-pagination ib-pagination-sm" aria-label="@PagesLabel">
-                    <ul class="ib-pagination-list">
-                        <li>@CursorControl(FirstTarget, TextDefaults.FirstPage, IconRole.FirstPage, "ib-pagination-first")</li>
-                        <li>@CursorControl(PreviousTarget, TextDefaults.PreviousPage, IconRole.ChevronLeft, "ib-pagination-prev")</li>
-                        <li>@CursorControl(NextTarget, TextDefaults.NextPage, IconRole.ChevronRight, "ib-pagination-next")</li>
-                    </ul>
-                </nav>
-            }
-            else
-            {
-                <div class="ib-table-more">
-                    @* The way back to the start when the list starts part-way (a link to a later page). Always
-                       drawn, hidden on the first page: appearing in front of Load more, enhanced
-                       navigation's merge would take it for the Load more link and give it the focus. *@
-                    <span class="ib-table-more-first" hidden="@(_cursor is null)">
-                        @CursorControl(FirstTarget, TextDefaults.FirstPage, IconRole.FirstPage, "ib-pagination-first")
-                    </span>
-                    @if (_moreError && RendererInfo.IsInteractive)
-                    {
-                        @* The next page failed: the rows shown stay, and Retry asks for it again. *@
-                        <span class="ib-table-error-content">
-                            @LoadFailedMessage
-                            @RetryControl(() => LoadMoreAsync(focus: true), _loadingMore)
-                        </span>
-                    }
-                    else if (_next is not null && RendererInfo.IsInteractive)
-                    {
-                        @if (_loadingMore && OnFocusOnly)
-                        {
-                            @* The button is out of sight while loading on scroll: this says a page is on its way. *@
-                            <Spinner Class="ib-table-more-loading" />
-                        }
-                        <Button Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="_loadingMore" OnClick="() => LoadMoreAsync(focus: true)">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
-                        @if (Paging == TablePaging.LoadOnScroll && !_loadingMore && !_providerLoading && !_moreError)
-                        {
-                            @* Pressed by the script when the last row comes into view: a load that doesn't move focus. *@
-                            <button type="button" hidden data-ib-load-next @onclick="() => LoadMoreAsync(focus: false)"></button>
-                        }
-                    }
-                    else if (_next is not null)
-                    {
-                        @* No component state to add pages to: the next page, in place of this one. *@
-                        <Button Href="@CursorHref(NextTarget)" Class="@(OnFocusOnly ? "ib-table-more-on-focus" : null)" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@(LoadMoreText ?? TextDefaults.LoadMore)</Button>
-                    }
-                </div>
-            }
-        </div>
-    }
+    @Footer(PagesLabel)
 </ib-table>
 
 @code {
-    /// <summary>The items. A list is sorted and paged in memory; an <c>IQueryable</c> (such as an EF Core query) is sorted and paged by the database.</summary>
-    [Parameter] public IEnumerable<TItem>? Items { get; set; }
-
-    /// <summary>
-    /// Loads the rows yourself, in place of <see cref="Items"/>: the request has the range, sort and
-    /// filter, and the columns as fields, so <c>request.ToResultAsync(query, ...)</c> or
-    /// <c>request.Apply(query)</c> does the work. An exception it throws shows "Couldn't load the
-    /// rows." with Retry (and is logged); a request the table canceled is ignored.
-    /// </summary>
-    [Parameter] public Func<DataRequest<TItem>, ValueTask<DataResult<TItem>>>? ItemsProvider { get; set; }
-
     /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/> and <see cref="TemplateColumn{TItem}"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }
-
-    /// <summary>Items per page. Leave it out to show every item.</summary>
-    [Parameter] public int? PageSize { get; set; }
-
-    /// <summary>
-    /// Sizes to choose from in a "Rows per page" menu in the footer, such as
-    /// <c>new[] { 10, 25, 50 }</c>. The URL carries the choice (<c>?size=25</c>); only these sizes
-    /// are accepted from it. <see cref="PageSize"/> is the default (the first option when not set).
-    /// </summary>
-    [Parameter] public IReadOnlyList<int>? PageSizeOptions { get; set; }
-
-    /// <summary>
-    /// Raised when a page size is chosen on an interactive page. Binding it
-    /// (<c>@bind-PageSize</c>) keeps the size, with sort, page and filters, in the component.
-    /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<int?> PageSizeChanged { get; set; }
 
     /// <summary>The sort when the URL has none, such as <c>"name"</c> or <c>"-date"</c> (descending).</summary>
     [Parameter] public string? InitialSort { get; set; }
@@ -397,40 +280,6 @@
     public EventCallback<string?> SortChanged { get; set; }
 
     /// <summary>
-    /// The page, from 1. Binding it (<c>@bind-Page</c>) on an interactive page keeps sort and page
-    /// in the component instead of the URL. Set it back to 1 when your filters change.
-    /// </summary>
-    [Parameter] public int? Page { get; set; }
-
-    /// <summary>Raised when a page is chosen (and with 1 when the sort or filters change), on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<int> PageChanged { get; set; }
-
-    /// <summary>
-    /// How the table moves through its pages when it has a <see cref="PageSize"/>: numbered pages
-    /// (<see cref="TablePaging.Pages"/>, the default, which needs a total), or by cursor, with no
-    /// total needed: First, Previous and Next (<see cref="TablePaging.NextPrevious"/>), a "Load
-    /// more" button (<see cref="TablePaging.LoadMore"/>), or loading as the last row comes into
-    /// view (<see cref="TablePaging.LoadOnScroll"/>).
-    /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.Partial, Static = ModeLevel.Partial, Notes = "LoadMore and LoadOnScroll show the next page in place of this one on static pages and with JavaScript off; LoadOnScroll loads on scroll only on interactive pages.")]
-    public TablePaging Paging { get; set; }
-
-    /// <summary>The "Load more" button's text, such as "Load earlier". Defaults to "Load more".</summary>
-    [Parameter] public string? LoadMoreText { get; set; }
-
-    /// <summary>
-    /// The cursor of the page shown when the table pages by cursor (<see cref="Paging"/>); null for
-    /// the first page. Binding it (<c>@bind-Cursor</c>) on an interactive page keeps it in the
-    /// component instead of the URL; <see cref="Page"/> is then the page's position.
-    /// </summary>
-    [Parameter] public string? Cursor { get; set; }
-
-    /// <summary>Raised when First, Previous or Next is chosen (and with null when the sort or filters change), on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<string?> CursorChanged { get; set; }
-
-    /// <summary>
     /// The filter: <c>Filter.All</c> of a condition per filtered column (contains for text, between
     /// for numbers, on day for dates, equals or in for choices), or null for none. Binding it
     /// (<c>@bind-Filter</c>) on an interactive page keeps filters, sort and page in the component
@@ -444,23 +293,8 @@
     [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<IzzyBlazor.Filter?> FilterChanged { get; set; }
 
-    /// <summary>
-    /// Prefix for this table's query-string keys, so several tables can share a page:
-    /// <c>QueryPrefix="orders-"</c> uses <c>?orders-sort=</c> and <c>?orders-page=</c>.
-    /// </summary>
-    [Parameter] public string QueryPrefix { get; set; } = "";
-
     /// <summary>The table's name for screen readers (a visually hidden caption).</summary>
     [Parameter] public string? Caption { get; set; }
-
-    /// <summary>Shown when there are no items. Defaults to <see cref="EmptyText"/>.</summary>
-    [Parameter] public RenderFragment? EmptyContent { get; set; }
-
-    /// <summary>The text when there are no items. Defaults to "No items".</summary>
-    [Parameter] public string? EmptyText { get; set; }
-
-    /// <summary>Shown in place of "Couldn't load the rows." when loading fails, before the Retry button.</summary>
-    [Parameter] public RenderFragment? ErrorContent { get; set; }
 
     /// <summary>A class for each row, such as one that highlights overdue orders.</summary>
     [Parameter] public Func<TItem, string?>? RowClass { get; set; }
@@ -484,29 +318,6 @@
     [Parameter] public Length? MaxHeight { get; set; }
 
     /// <summary>
-    /// A unique, stable key for each item, such as its id. Selection posts and binds these keys.
-    /// Defaults to the item's string form.
-    /// </summary>
-    [Parameter] public Func<TItem, string>? ItemKey { get; set; }
-
-    /// <summary>
-    /// Adds a checkbox to each row. Inside a form, the checked rows post their <see cref="ItemKey"/>
-    /// under <see cref="SelectionName"/>; on interactive pages <c>@bind-SelectedKeys</c> follows them.
-    /// With script, a header checkbox selects every row on the page.
-    /// </summary>
-    [Parameter] public bool Selectable { get; set; }
-
-    /// <summary>The form field name the checked rows post under. Defaults to <c>"{QueryPrefix}selected"</c>.</summary>
-    [Parameter] public string? SelectionName { get; set; }
-
-    /// <summary>The keys of the selected rows (on any page). Read the posted ones with <c>[SupplyParameterFromForm]</c> on static pages.</summary>
-    [Parameter] public IReadOnlyCollection<string>? SelectedKeys { get; set; }
-
-    /// <summary>Raised when rows are selected or cleared on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyCollection<string>> SelectedKeysChanged { get; set; }
-
-    /// <summary>
     /// Makes each row a link, such as to the item's details page. The whole row is clickable;
     /// links, buttons and checkboxes inside it still work on their own.
     /// </summary>
@@ -518,56 +329,31 @@
     /// </summary>
     [Parameter] public Func<TItem, bool>? RowCurrent { get; set; }
 
-    /// <summary>Names a row for screen readers, in its link and its checkbox. Defaults to <see cref="ItemKey"/>.</summary>
+    /// <summary>Names a row for screen readers, in its link and its checkbox. Defaults to <see cref="DataViewBase{TItem}.ItemKey"/>.</summary>
     [Parameter] public Func<TItem, string>? RowLabel { get; set; }
 
-    /// <summary>Shows the table as loading: rows dim, or placeholder rows show while there are none. Set automatically while an <see cref="ItemsProvider"/> loads on interactive pages.</summary>
-    [Parameter] public bool Loading { get; set; }
-
-    /// <summary>The header checkbox's name for screen readers. Defaults to "Select all rows".</summary>
-    [Parameter] public string? SelectAllLabel { get; set; }
-
-    /// <summary>The start of each row checkbox's name for screen readers, before <see cref="RowLabel"/>. Defaults to "Select".</summary>
-    [Parameter] public string? SelectRowLabel { get; set; }
-
     private readonly List<ColumnBase<TItem>> _columns = [];
-    private IReadOnlyList<TItem> _items = [];
-    private int? _total;
-    // By cursor: the cursor of the first page shown (null for page 1), the next and previous ones,
-    // and the last page shown (Load more adds pages after _page).
-    private string? _cursor;
-    private string? _next;
-    private string? _previous;
-    private int _lastPage = 1;
-    private bool _loadingMore;
-    private DataRequest<TItem>? _loadedRequest;
-    private int _loadedSize;
-    // A failed load: in place of the rows (_loadError), or under them for Load more (_moreError).
-    private Exception? _loadError;
-    private bool _moreError;
-    private bool _focusAfterRetry;
-    private ElementReference _scrollRef;
-    private CancellationTokenSource? _loadCts;
-    private readonly HashSet<int> _pageStarts = [];
-    private readonly Dictionary<int, ElementReference> _rowRefs = [];
-    private int? _focusRow;
-    private int _page = 1;
     private string? _sortKey;
     private bool _descending;
     private bool _columnsReady;
     private string? _class;
     private string? _style;
-    private bool _providerLoading;
-    private HashSet<string> _selected = new(StringComparer.Ordinal);
-    private IReadOnlyCollection<string>? _paramKeys;
-    private IReadOnlyCollection<string>? _reportedKeys;
+    private ElementReference _scrollRef;
+    // The sort a load shaped the request with, shown once the load succeeds.
+    private (string? Key, bool Descending) _shapedSort;
 
-    private bool IsLoading => Loading || _providerLoading;
+    /// <inheritdoc />
+    internal override string ViewName => "Table";
 
-    // Sort and page live in the component (not the URL) on interactive pages that bind them.
-    private bool Bound => SortChanged.HasDelegate || PageChanged.HasDelegate || FilterChanged.HasDelegate || PageSizeChanged.HasDelegate || CursorChanged.HasDelegate;
+    /// <inheritdoc />
+    internal override bool ReadyToLoad => _columnsReady;
 
-    private bool UseState => RendererInfo.IsInteractive && Bound;
+    // Sort and filters live in the component too (not the URL) on interactive pages that bind them.
+    /// <inheritdoc />
+    internal override bool ExtraBound => SortChanged.HasDelegate || FilterChanged.HasDelegate;
+
+    /// <inheritdoc />
+    internal override string? SortParameter => Sort;
 
     // The prerender of a bound interactive table leaves out the filters' GET form and its Apply
     // row, as the interactive render will: drawn, they'd go when the circuit connects and the
@@ -717,7 +503,8 @@
     }
 
     // What the filter is, for telling whether it changed since the last load.
-    private string FilterSignature() =>
+    /// <inheritdoc />
+    internal override string FilterSignature() =>
         UseState && _stateExtra.Count > 0
             ? $"{Signature(CurrentFilters())}|{string.Join("|", _stateExtra)}"
             : Signature(CurrentFilters());
@@ -1057,75 +844,10 @@
     /// <summary>How long typing in a filter waits for a pause. Internal so tests can shorten it.</summary>
     internal TimeSpan FilterDelay { get; set; } = TimeSpan.FromMilliseconds(300);
 
-    private bool _stateReady;
-    private string? _stateSort;
-    private int _statePage = 1;
-    private string? _lastSortParam;
-    private int? _lastPageParam;
-    private string? _stateCursor;
-    private string? _lastCursorParam;
-
     private int SkeletonRows => Math.Clamp(EffectivePageSize ?? 5, 1, 10);
 
-    private string SizeKey => $"{QueryPrefix}size";
-
-    private int? _statePageSize;
-    private int? _lastPageSizeParam;
-
-    // The size when none has been chosen: PageSize, else the first option.
-    private int? DefaultPageSize => PageSize ?? (PageSizeOptions is { Count: > 0 } o ? o[0] : null);
-
-    // A ?size= from the URL, if it's one of the options.
-    private int? ReadSizeQuery() =>
-        PageSizeOptions is { Count: > 0 } options
-        && QueryString.Of(Navigation.Uri).TryGetValue(SizeKey, out var raw)
-        && int.TryParse(raw.ToString(), out var size) && options.Contains(size) ? size : null;
-
-    private int? EffectivePageSize => UseState ? _statePageSize ?? DefaultPageSize : ReadSizeQuery() ?? DefaultPageSize;
-
-    // The page that holds the first row on view now, at another size. A cursor is for one size,
-    // so paging by cursor starts over.
-    private int PageAt(int newSize) => !CursorPaging && EffectivePageSize is { } current ? (_page - 1) * current / newSize + 1 : 1;
-
-    private string PageSizeHref(int size)
-    {
-        var page = PageAt(size);
-        return Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
-        {
-            [SizeKey] = size == DefaultPageSize ? null : size,
-            [PageKey] = page == 1 ? null : page,
-            [CursorKey] = null,
-        });
-    }
-
-    private async Task OnPageSizeAsync(int size)
-    {
-        var page = PageAt(size);
-        var (pageWas, cursorWas) = (_statePage, _stateCursor);
-        (_statePageSize, _statePage, _stateCursor) = (size, page, null);
-        await PageSizeChanged.InvokeAsync(size);
-        if (page != pageWas)
-        {
-            await PageChanged.InvokeAsync(page);
-        }
-
-        if (cursorWas is not null)
-        {
-            await CursorChanged.InvokeAsync(null);
-        }
-
-        await ReloadIfStaleAsync();
-    }
-
-    private string KeyOf(TItem item) => ItemKey?.Invoke(item) ?? item?.ToString() ?? "";
-
-    private string LabelOf(TItem item) => RowLabel?.Invoke(item) ?? KeyOf(item);
-
-    private string EffectiveSelectionName => SelectionName ?? $"{QueryPrefix}selected";
-
-    private bool IsSelected(string key) => _selected.Contains(key);
-
-    private bool AllOnPageSelected => _items.Count > 0 && _items.All(i => _selected.Contains(KeyOf(i)));
+    /// <inheritdoc />
+    internal override string LabelOf(TItem item) => RowLabel?.Invoke(item) ?? KeyOf(item);
 
     // On the row's link when it has one (screen readers announce it there), else on the row.
     private string? CurrentOf(TItem item) => RowCurrent?.Invoke(item) == true ? "true" : null;
@@ -1136,19 +858,6 @@
         return classes.Length > 0 ? classes : null;
     }
 
-    private async Task OnSelectChanged(string key, ChangeEventArgs e)
-    {
-        var on = e.Value is true || (e.Value is string text && bool.TryParse(text, out var parsed) && parsed);
-        if (on ? !_selected.Add(key) : !_selected.Remove(key))
-        {
-            return;
-        }
-
-        var keys = _selected.ToArray();
-        _reportedKeys = keys;
-        await SelectedKeysChanged.InvokeAsync(keys);
-    }
-
     // Rendered after the columns: its initialization runs once they have registered.
     private RenderFragment ColumnsReadyNotifier => builder =>
     {
@@ -1156,12 +865,6 @@
         builder.AddComponentParameter(1, nameof(TableColumnsReady.Ready), (Func<Task>)ColumnsReadyAsync);
         builder.CloseComponent();
     };
-
-    private string SortQueryKey => $"{QueryPrefix}sort";
-
-    private string PageKey => $"{QueryPrefix}page";
-
-    private string CursorKey => $"{QueryPrefix}cursor";
 
     private string? ScrollStyle => MaxHeight is { } height ? $"max-height:{StyleValues.Length(height)}" : null;
 
@@ -1196,95 +899,19 @@
     }
 
     /// <inheritdoc />
-    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
-
-    /// <inheritdoc />
     protected override async Task OnParametersSetAsync()
     {
         (_class, _style) = BuildRootAttributes();
 
-        // Take the parent's keys when the parameter changes (a static post, or C# clearing the
-        // selection), but not the echo of a change this table just reported. Without a binding
-        // the parameter never changes, so the table keeps its own selection.
-        if (!ReferenceEquals(SelectedKeys, _paramKeys))
+        if (Paging == DataPaging.LoadMore)
         {
-            _paramKeys = SelectedKeys;
-            if (!ReferenceEquals(SelectedKeys, _reportedKeys))
-            {
-                _selected = new HashSet<string>(SelectedKeys ?? [], StringComparer.Ordinal);
-            }
+            throw new InvalidOperationException(
+                "A Table pages by number (DataPaging.Pages), by cursor (DataPaging.NextPrevious), or loads the next page as you scroll (DataPaging.LoadOnScroll, with a MaxHeight). " +
+                "A Load more button is for lists: use ListView.");
         }
 
-        SyncState();
-
-        if (_columnsReady && !KeepsAddedPages())
-        {
-            await LoadAsync();
-        }
-    }
-
-    // Takes the parent's Sort and Page when they change (C# setting them, or the echo of a click),
-    // starting from the URL so a link to ?sort=&page= still opens on that view.
-    private void SyncState()
-    {
-        if (!UseState)
-        {
-            return;
-        }
-
-        if (!_stateReady)
-        {
-            var (sortRaw, pageRaw, cursorRaw) = ReadQuery();
-            _stateSort = Sort ?? (string.IsNullOrEmpty(sortRaw) ? null : sortRaw);
-            _statePage = Page ?? (int.TryParse(pageRaw, out var number) ? number : 1);
-            _stateCursor = Cursor ?? (string.IsNullOrEmpty(cursorRaw) ? null : cursorRaw);
-            _lastCursorParam = Cursor;
-            TakeFilter(Filter);
-            // A bound PageSize is the current size; otherwise it's the default, and the URL may pick another.
-            _statePageSize = PageSizeChanged.HasDelegate ? PageSize : ReadSizeQuery();
-            (_lastSortParam, _lastPageParam, _lastFilterParam, _lastPageSizeParam, _stateReady) = (Sort, Page, Filter, PageSize, true);
-            return;
-        }
-
-        if (PageSize != _lastPageSizeParam)
-        {
-            _lastPageSizeParam = PageSize;
-            _statePageSize = PageSize;
-        }
-
-        // A new filter from the parent, but not the echo of one this table just reported.
-        if (!ReferenceEquals(Filter, _lastFilterParam))
-        {
-            _lastFilterParam = Filter;
-            if (!ReferenceEquals(Filter, _reportedFilter))
-            {
-                TakeFilter(Filter);
-            }
-        }
-
-        if (!string.Equals(Sort, _lastSortParam, StringComparison.Ordinal))
-        {
-            _lastSortParam = Sort;
-            _stateSort = Sort;
-        }
-
-        if (Page != _lastPageParam)
-        {
-            _lastPageParam = Page;
-            _statePage = Page ?? 1;
-
-            // Page 1 by cursor is the first page: without a bound Cursor, setting it means start over.
-            if (_statePage == 1 && !CursorChanged.HasDelegate)
-            {
-                _stateCursor = null;
-            }
-        }
-
-        if (!string.Equals(Cursor, _lastCursorParam, StringComparison.Ordinal))
-        {
-            _lastCursorParam = Cursor;
-            _stateCursor = Cursor;
-        }
+        SyncSelection();
+        await SyncAndLoadAsync();
     }
 
     private void TakeFilter(IzzyBlazor.Filter? filter)
@@ -1303,58 +930,6 @@
 
         await ReloadIfStaleAsync();
     }
-
-    private async Task OnPageClickAsync(int page)
-    {
-        _statePage = page;
-        await PageChanged.InvokeAsync(page);
-        await ReloadIfStaleAsync();
-    }
-
-    // First, Previous or Next, by cursor, with state in the component.
-    private async Task OnCursorClickAsync(PageTarget target)
-    {
-        var pageWas = _statePage;
-        (_stateCursor, _statePage) = (target.Cursor, target.Page);
-        await CursorChanged.InvokeAsync(target.Cursor);
-        if (target.Page != pageWas)
-        {
-            await PageChanged.InvokeAsync(target.Page);
-        }
-
-        await ReloadIfStaleAsync();
-    }
-
-    // A new sort, filter or size starts from the first page: told to a bound parent when that changed.
-    private async Task ReportFirstPageAsync(int pageWas, string? cursorWas)
-    {
-        if (pageWas != 1)
-        {
-            await PageChanged.InvokeAsync(1);
-        }
-
-        if (cursorWas is not null)
-        {
-            await CursorChanged.InvokeAsync(null);
-        }
-    }
-
-    // A bound parent re-renders the table, which loads; otherwise load here.
-    private async Task ReloadIfStaleAsync()
-    {
-        var (sortRaw, pageRaw, cursorRaw) = CurrentState();
-        if (_loadedKey is { } loaded && loaded.Sort == sortRaw && loaded.Page == pageRaw && loaded.Cursor == cursorRaw && loaded.Filters == FilterSignature() && loaded.PageSize == EffectivePageSize)
-        {
-            return;
-        }
-
-        await LoadAsync();
-        StateHasChanged();
-    }
-
-    // Where sort, page and cursor come from: the component's state, or the URL.
-    private (string? Sort, string? Page, string? Cursor) CurrentState() =>
-        UseState ? (_stateSort, _statePage.ToString(System.Globalization.CultureInfo.InvariantCulture), _stateCursor) : ReadQuery();
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -1384,407 +959,6 @@
         await LoadAsync();
         StateHasChanged();
     }
-
-    // Only this table's own sort or page changing calls for a reload here; anything else that
-    // changes the data (filters) re-renders the page, which reloads through the parameters.
-    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
-    {
-        if (!_columnsReady || UseState)
-        {
-            return;
-        }
-
-        // Another part of the address changed: the rows stay, but every link (sort, size, filters,
-        // cursor) carries the whole address, so they're drawn again.
-        if (ReadQuery() == (_loadedKey?.Sort, _loadedKey?.Page, _loadedKey?.Cursor) && FilterSignature() == _loadedKey?.Filters && EffectivePageSize == _loadedKey?.PageSize)
-        {
-            StateHasChanged();
-            return;
-        }
-
-        try
-        {
-            await LoadAsync();
-            StateHasChanged();
-        }
-        catch (Exception ex)
-        {
-            await DispatchExceptionAsync(ex);
-        }
-    });
-
-    private (string? Sort, string? Page, string? Cursor) ReadQuery()
-    {
-        var query = QueryString.Of(Navigation.Uri);
-        return (query.TryGetValue(SortQueryKey, out var s) ? s.ToString() : null,
-                query.TryGetValue(PageKey, out var p) ? p.ToString() : null,
-                query.TryGetValue(CursorKey, out var c) ? c.ToString() : null);
-    }
-
-    private sealed record LoadKey(string? Sort, string? Page, string? Cursor, string Filters, object? Items, object? Provider, int? PageSize);
-
-    private LoadKey? _loadedKey;
-    private int _loadVersion;
-
-    // A list is queried as an EnumerableQuery, which runs the query through Enumerable's methods,
-    // found by reflection; the DynamicDependency keeps them in a trimmed app.
-    [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicMethods, typeof(Enumerable))]
-    [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The DynamicDependency keeps the Enumerable methods the in-memory query binds to.")]
-    private static IQueryable<TItem> AsQuery(IEnumerable<TItem> items) => items as IQueryable<TItem> ?? items.AsQueryable();
-
-    private async Task LoadAsync()
-    {
-        var (sortRaw, pageRaw, cursorRaw) = CurrentState();
-        var pageSize = EffectivePageSize;
-        // Always reload: the same list may have changed since the last render.
-        _loadedKey = new LoadKey(sortRaw, pageRaw, cursorRaw, FilterSignature(), Items, ItemsProvider, pageSize);
-        var version = ++_loadVersion;
-        _loadingMore = false;
-        _loadCts?.Cancel();
-        var cts = _loadCts = new CancellationTokenSource();
-
-        var sort = !string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
-        var descending = sort?.StartsWith('-') == true;
-        var sortKey = sort?.TrimStart('-');
-        var column = _columns.FirstOrDefault(c => c.CanSort && string.Equals(c.Key, sortKey, StringComparison.OrdinalIgnoreCase));
-        if (column is null)
-        {
-            sortKey = null;
-        }
-
-        var byCursor = CursorPaging && pageSize is not null;
-        var cursor = byCursor && !string.IsNullOrEmpty(cursorRaw) ? cursorRaw : null;
-
-        // Keep (page - 1) * size inside int range, whatever is in the URL. By cursor, the first
-        // page is page 1 whatever the URL says.
-        var maxPage = pageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
-        var page = byCursor && cursor is null ? 1 : int.TryParse(pageRaw, out var number) ? Math.Clamp(number, 1, maxPage) : 1;
-        var request = new DataRequest<TItem>
-        {
-            Sort = column is null ? [] : [new SortField(column.Key!, descending)],
-            Filter = CurrentFilter(),
-            Skip = pageSize is { } size1 ? (page - 1) * size1 : 0,
-            Take = pageSize,
-            Cursor = cursor,
-            NeedsTotal = !byCursor,
-            CancellationToken = cts.Token,
-            Fields = _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList(),
-        };
-
-        IReadOnlyList<TItem> items;
-        int? total;
-        string? next = null, previous = null;
-        var noTotal = false;
-        try
-        {
-            if (ItemsProvider is not null)
-            {
-                // Show the loading state while the provider works (on interactive pages it renders).
-                _providerLoading = true;
-                if (RendererInfo.IsInteractive)
-                {
-                    StateHasChanged();
-                }
-
-                DataResult<TItem> result;
-                try
-                {
-                    result = await ItemsProvider(request);
-                }
-                finally
-                {
-                    if (version == _loadVersion)
-                    {
-                        _providerLoading = false;
-                    }
-                }
-
-                (items, total, next, previous) = (result.Items, result.Total, result.Next, result.Previous);
-                noTotal = !byCursor && pageSize is not null && result.Total is null;
-
-                // A page past the end shows the last page.
-                if (!noTotal && !byCursor && pageSize is { } size && items.Count == 0 && total is > 0 and var count && page > LastPage(count, size))
-                {
-                    page = LastPage(count, size);
-                    request = request with { Skip = (page - 1) * size };
-                    result = await ItemsProvider(request);
-                    items = result.Items;
-                    total = result.Total;
-                }
-            }
-            else if (Items is not null)
-            {
-                var shown = PageOfItems(request);
-                (items, total, page, next, previous) = (shown.Items, shown.Total, shown.Page, shown.Next, shown.Previous);
-                request = request with { Skip = pageSize is { } size2 ? (page - 1) * size2 : 0 };
-            }
-            else
-            {
-                items = [];
-                total = 0;
-            }
-        }
-        catch (OperationCanceledException) when (cts.IsCancellationRequested)
-        {
-            // A newer load, or the table went away.
-            return;
-        }
-        catch (Exception ex)
-        {
-            if (version != _loadVersion)
-            {
-                return;
-            }
-
-            Logger?.LogError(ex, "The Table's rows failed to load.");
-            (_items, _total, _loadError, _moreError, _focusAfterRetry) = ([], null, ex, false, false);
-            (_cursor, _next, _previous) = (null, null, null);
-            _loadedRequest = null;
-            return;
-        }
-
-        // A slower, older load must not overwrite a newer one.
-        if (version != _loadVersion)
-        {
-            return;
-        }
-
-        if (noTotal)
-        {
-            throw new InvalidOperationException(
-                $"The Table's {nameof(ItemsProvider)} returned no {nameof(DataResult<TItem>.Total)}, which numbered pages need. " +
-                $"Return the total, or set {nameof(Paging)} to page by cursor (TablePaging.{nameof(TablePaging.NextPrevious)} or TablePaging.{nameof(TablePaging.LoadMore)}).");
-        }
-
-        if (_loadError is not null && _focusAfterRetry)
-        {
-            _focusScroll = true;
-        }
-
-        (_loadError, _moreError, _focusAfterRetry) = (null, false, false);
-        (_items, _total, _page, _lastPage, _sortKey, _descending) = (items, total, page, page, sortKey, descending);
-        (_cursor, _next, _previous) = byCursor ? (cursor, next, previous) : (null, null, null);
-        (_loadedRequest, _loadedSize) = (request, pageSize ?? 0);
-        _pageStarts.Clear();
-        _rowRefs.Clear();
-        _focusRow = null;
-        Remember(_loadedKey with { Page = null, Cursor = null }, cursor, _next);
-
-        // A page past the end showed the last one; keep that, so the next click counts from it.
-        if (UseState)
-        {
-            _statePage = page;
-        }
-    }
-
-    private ILogger? _logger;
-
-    private ILogger? Logger => _logger ??= Services.GetService<ILoggerFactory>()?.CreateLogger<Table<TItem>>();
-
-    private bool _focusScroll;
-
-    // Retry after a failed load: loads again; when the rows come, focus goes to the scroll box
-    // (the Retry button it was on is gone).
-    private async Task RetryAsync()
-    {
-        _focusAfterRetry = true;
-        await LoadAsync();
-        StateHasChanged();
-    }
-
-    // "Couldn't load the rows." (or ErrorContent). Screen readers hear it from the table's status
-    // region, which is always there (a region added with its text isn't reliably read).
-    private RenderFragment LoadFailedMessage => __builder =>
-    {
-        <span class="ib-table-error-message">
-            @if (ErrorContent is not null)
-            {
-                @ErrorContent
-            }
-            else
-            {
-                @TextDefaults.LoadFailed
-            }
-        </span>
-    };
-
-    // Retry: a button on interactive pages, a link to this address on static ones.
-    private RenderFragment RetryControl(Func<Task> retry, bool loading) => __builder =>
-    {
-        if (RendererInfo.IsInteractive)
-        {
-            <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="loading" OnClick="retry">@TextDefaults.Retry</Button>
-        }
-        else
-        {
-            <Button Href="@Navigation.Uri" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">@TextDefaults.Retry</Button>
-        }
-    };
-
-    // A page of Items: by number, or by cursor, where the cursor is the row offset.
-    private (IReadOnlyList<TItem> Items, int Total, int Page, string? Next, string? Previous) PageOfItems(DataRequest<TItem> request)
-    {
-        var sorted = request.ApplySorting(request.ApplyFiltering(AsQuery(Items!)));
-        var total = sorted.Count();
-        if (request.Take is not { } size)
-        {
-            return (sorted.ToList(), total, 1, null, null);
-        }
-
-        if (!CursorPaging)
-        {
-            var page = Math.Min(request.Page, LastPage(total, size));
-            return (sorted.Skip((page - 1) * size).Take(size).ToList(), total, page, null, null);
-        }
-
-        var offset = int.TryParse(request.Cursor, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var at) ? Math.Min(at, total) : 0;
-        var next = total - offset > size ? Offset(offset + size) : null;
-        var previous = offset > size ? Offset(offset - size) : null;
-        return (sorted.Skip(offset).Take(size).ToList(), total, offset / size + 1, next, previous);
-    }
-
-    private static string Offset(int offset) => offset.ToString(System.Globalization.CultureInfo.InvariantCulture);
-
-    // Where each followed cursor came from, so Previous works without a provider's Previous. Kept
-    // while the sort, filters, size and data stay the same; a cursor is only good for those.
-    private readonly Dictionary<string, string?> _cameFrom = new(StringComparer.Ordinal);
-    private LoadKey? _cameFromKey;
-
-    private void Remember(LoadKey key, string? cursor, string? next)
-    {
-        if (key != _cameFromKey)
-        {
-            _cameFrom.Clear();
-            _cameFromKey = key;
-        }
-
-        if (next is not null)
-        {
-            _cameFrom[next] = cursor;
-        }
-    }
-
-    // Load more: the next page, added under the rows. Pressing the button moves focus to the first
-    // new row; a load as the last row scrolls into view doesn't.
-    private async Task LoadMoreAsync(bool focus)
-    {
-        // Not while the list reloads (a new sort): its rows and cursor are on their way out.
-        if (_loadingMore || _providerLoading || _next is null || _loadedRequest is not { } basis)
-        {
-            return;
-        }
-
-        var version = _loadVersion;
-        var page = _lastPage + 1;
-        var request = basis with { Skip = (page - 1) * _loadedSize, Cursor = _next };
-        _loadingMore = true;
-        try
-        {
-            IReadOnlyList<TItem> items;
-            int? total;
-            string? next;
-            if (ItemsProvider is not null)
-            {
-                var result = await ItemsProvider(request);
-                (items, total, next) = (result.Items, result.Total, result.Next);
-            }
-            else
-            {
-                var result = PageOfItems(request);
-                (items, total, next) = (result.Items, result.Total, result.Next);
-            }
-
-            // The list started over (a new sort or filter) while this page loaded.
-            if (version != _loadVersion || !ReferenceEquals(basis, _loadedRequest))
-            {
-                return;
-            }
-
-            // Rows added at the top between loads shift an offset or a time cursor onto rows
-            // already shown: with an ItemKey they aren't shown twice.
-            var shown = ItemKey is null ? null : _items.Select(KeyOf).ToHashSet(StringComparer.Ordinal);
-            var added = shown is null ? items : items.Where(i => shown.Add(KeyOf(i))).ToList();
-            if (added.Count > 0)
-            {
-                var first = _items.Count;
-                _items = [.. _items, .. added];
-                _pageStarts.Add(first);
-                _focusRow = focus ? first : null;
-            }
-
-            (_next, _lastPage, _total, _moreError) = (next, page, total ?? _total, false);
-            Remember(_loadedKey! with { Page = null, Cursor = null }, request.Cursor, next);
-        }
-        catch (OperationCanceledException) when (request.CancellationToken.IsCancellationRequested)
-        {
-            // The list started over, or the table went away.
-        }
-        catch (Exception ex)
-        {
-            // The rows shown stay; the message and Retry go under them.
-            if (version == _loadVersion && ReferenceEquals(basis, _loadedRequest))
-            {
-                Logger?.LogError(ex, "The Table's next page failed to load.");
-                _moreError = true;
-            }
-        }
-        finally
-        {
-            if (version == _loadVersion)
-            {
-                _loadingMore = false;
-            }
-        }
-    }
-
-    /// <summary>
-    /// Loads the rows again, such as after an edit. With <see cref="TablePaging.LoadMore"/> it
-    /// starts over from the page the list began at, dropping the pages added since.
-    /// </summary>
-    public async Task ReloadAsync()
-    {
-        if (!_columnsReady)
-        {
-            return;
-        }
-
-        await LoadAsync();
-        StateHasChanged();
-    }
-
-    // Load more keeps the pages it added while nothing that shapes the list changes: a parent's
-    // re-render would otherwise load the first page again and drop them. (With one page shown,
-    // and no Load more under way, it reloads, as the other modes do: the same list may have changed.)
-    private bool KeepsAddedPages()
-    {
-        if (!Appending || (_lastPage == _page && !_loadingMore) || _loadedKey is not { } loaded)
-        {
-            return false;
-        }
-
-        var (sortRaw, pageRaw, cursorRaw) = CurrentState();
-        return loaded == new LoadKey(sortRaw, pageRaw, cursorRaw, FilterSignature(), Items, ItemsProvider, EffectivePageSize);
-    }
-
-    /// <inheritdoc />
-    protected override async Task OnAfterRenderAsync(bool firstRender)
-    {
-        // After Load more, the reader carries on from the first row it added.
-        if (_focusRow is { } row && _rowRefs.TryGetValue(row, out var element))
-        {
-            _focusRow = null;
-            await element.FocusAsync();
-        }
-
-        // After Retry brought the rows, focus goes to them (the button it was on is gone).
-        if (_focusScroll)
-        {
-            _focusScroll = false;
-            await _scrollRef.FocusAsync();
-        }
-    }
-
-    private static int LastPage(int total, int size) => Math.Max(1, (int)Math.Ceiling(total / (double)size));
 
     // Ascending first; a second click on the sorted column turns it descending.
     private string? NextSort(ColumnBase<TItem> column)
@@ -1824,81 +998,56 @@
     private static string? WidthStyle(ColumnBase<TItem> column) =>
         column.Width is { } width ? $"width:{StyleValues.Length(width)}" : null;
 
-    private string Summary(int size)
-    {
-        if (_items.Count == 0)
-        {
-            return "";
-        }
-
-        var first = (_page - 1L) * size + 1;
-        var last = first + _items.Count - 1;
-        return _total is { } total
-            ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TableRange, first, last, total)
-            : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TableRangeOpen, first, last);
-    }
-
-    private bool CursorPaging => Paging != TablePaging.Pages;
-
-    private bool Appending => Paging is TablePaging.LoadMore or TablePaging.LoadOnScroll;
-
-    // Loading on scroll on an interactive page (and its prerender): the button is for the keyboard,
-    // out of sight until it has focus. On static pages it's the only way on, so it shows.
-    private bool OnFocusOnly => Paging == TablePaging.LoadOnScroll && WillBeInteractive;
-
-    // Numbered pages show the footer when there's anything to page; by cursor also on an empty
-    // page reached by a cursor, so First leads back.
-    private bool ShowFooter => CursorPaging ? _items.Count > 0 || _cursor is not null : _total > 0;
-
-    // Where First, Previous or Next lead: a cursor (null for the first page) and the position.
-    private readonly record struct PageTarget(bool Enabled, string? Cursor, int Page);
-
-    private PageTarget FirstTarget => new(_cursor is not null, null, 1);
-
-    private PageTarget NextTarget => new(_next is not null, _next, _lastPage + 1);
-
-    // The provider's Previous; the second page's is the first; else a cursor this table followed here.
-    private PageTarget PreviousTarget =>
-        _cursor is null ? default
-        : _previous is not null ? new(true, _previous, Math.Max(1, _page - 1))
-        : _page == 2 ? new(true, null, 1)
-        : _cameFrom.TryGetValue(_cursor, out var before) ? new(true, before, before is null ? 1 : Math.Max(1, _page - 1))
-        : default;
-
-    private string CursorHref(PageTarget target) =>
-        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
-        {
-            [CursorKey] = target.Cursor,
-            [PageKey] = target.Cursor is null || target.Page <= 1 ? null : target.Page,
-        });
-
-    // First, Previous or Next by cursor, drawn as Pagination's: a button when state is in the
-    // component (unavailable ones stay focusable), else a link, unavailable without an href.
-    private RenderFragment CursorControl(PageTarget target, string label, IconRole icon, string extra) => __builder =>
-    {
-        var classes = $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item ib-btn-icon-only {extra}";
-        if (UseState)
-        {
-            <button type="button" class="@classes" aria-disabled="@(target.Enabled ? null : "true")" aria-label="@label" @onclick="() => target.Enabled ? OnCursorClickAsync(target) : Task.CompletedTask"><Icon Role="icon" /></button>
-        }
-        else
-        {
-            @* One <a> either way: Next followed onto the last page stays the same element, unavailable
-               but still focused (tabindex -1 keeps it focusable, out of the Tab order). *@
-            <a href="@(target.Enabled ? CursorHref(target) : null)" class="@classes" aria-label="@label" aria-disabled="@(target.Enabled ? null : "true")"
-               role="@(target.Enabled ? null : "link")" tabindex="@(target.Enabled ? null : "-1")"
-               rel="@(target.Enabled && extra == "ib-pagination-next" ? "next" : target.Enabled && extra == "ib-pagination-prev" ? "prev" : null)"><Icon Role="icon" /></a>
-        }
-    };
-
     private string PagesLabel =>
         string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TablePages, Caption ?? TextDefaults.TableName);
 
     /// <inheritdoc />
-    public void Dispose()
+    internal override void SyncFilter(bool first)
     {
-        Navigation.LocationChanged -= OnLocationChanged;
+        if (first)
+        {
+            TakeFilter(Filter);
+            _lastFilterParam = Filter;
+            return;
+        }
+
+        // A new filter from the parent, but not the echo of one this table just reported.
+        if (!ReferenceEquals(Filter, _lastFilterParam))
+        {
+            _lastFilterParam = Filter;
+            if (!ReferenceEquals(Filter, _reportedFilter))
+            {
+                TakeFilter(Filter);
+            }
+        }
+    }
+
+    /// <inheritdoc />
+    internal override DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw)
+    {
+        var sort = !string.IsNullOrEmpty(sortRaw) ? sortRaw : InitialSort;
+        var descending = sort?.StartsWith('-') == true;
+        var sortKey = sort?.TrimStart('-');
+        var column = _columns.FirstOrDefault(c => c.CanSort && string.Equals(c.Key, sortKey, StringComparison.OrdinalIgnoreCase));
+        _shapedSort = (column is null ? null : sortKey, descending);
+        return request with
+        {
+            Sort = column is null ? [] : [new SortField(column.Key!, descending)],
+            Filter = CurrentFilter(),
+            Fields = _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList(),
+        };
+    }
+
+    /// <inheritdoc />
+    internal override void Loaded() => (_sortKey, _descending) = _shapedSort;
+
+    /// <inheritdoc />
+    internal override ValueTask FocusAfterRetryAsync() => _scrollRef.FocusAsync();
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        base.Dispose();
         _filterDelay?.Cancel();
-        _loadCts?.Cancel();
     }
 }

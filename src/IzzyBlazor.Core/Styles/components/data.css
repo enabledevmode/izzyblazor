@@ -790,15 +790,28 @@
     color: var(--ib-color-muted);
   }
 
-  /* Load more (and First, when the list starts part-way) where the pages would be. */
+  /* Load more (and First, when the list starts part-way) after the last row or item, inside the
+     scroll area, centered. It takes room only when it has something in it: at the end of the
+     list it's empty, and while loading on scroll it keeps a button's height for the spinner. */
   .ib-table-more {
     display: flex;
+    flex-wrap: wrap;
     align-items: center;
-    gap: var(--ib-space-1);
+    justify-content: center;
+    gap: var(--ib-space-1) var(--ib-space-2);
   }
 
-  .ib-table-more-first:not([hidden]) {
-    display: flex;
+  .ib-table-more:has(> .ib-btn, > .ib-table-error-content, > .ib-table-more-loading) {
+    min-height: var(--ib-control-h-sm);
+    padding-block: var(--ib-space-3);
+  }
+
+  /* In a table's scroll box: held at its start, as wide as the box shows (as "no items" is). */
+  .ib-table-scroll > .ib-table-more {
+    position: sticky;
+    inset-inline-start: 0;
+    box-sizing: border-box;
+    inline-size: var(--ib-table-view, auto);
   }
 
   .ib-table-more .ib-pagination-item {
@@ -824,26 +837,7 @@
     }
   }
 
-  /* Nothing moves when it shows: the footer keeps a button's height, and the focused button and
-     the spinner sit at its start, which is otherwise free, rather than pushing the range aside. */
-  .ib-table-footer:has(.ib-table-more-on-focus) {
-    position: relative;
-    min-height: var(--ib-control-h-sm);
-  }
-
-  @media (scripting: enabled) {
-    .ib-table-more-on-focus:focus {
-      position: absolute;
-      inset-block-start: 0;
-      inset-inline-start: 0;
-    }
-  }
-
   .ib-table-more-loading {
-    position: absolute;
-    inset-block-start: 50%;
-    inset-inline-start: 0;
-    translate: 0 -50%;
     color: var(--ib-color-muted);
   }
 
@@ -1002,6 +996,380 @@
       forced-color-adjust: none;
       border-color: Highlight;
       background-color: Highlight;
+    }
+  }
+}
+
+/*
+ * Reordering (ListView's Reorderable): the handle (a 32px ghost icon button) at each item's start;
+ * a locked item keeps its space, so contents line up. Dragging and the menu's shortcuts need the
+ * script, so without it the handle has no grab cursor and the shortcuts hide.
+ */
+@layer izzy.components {
+  .ib-sortable {
+    display: block;
+    min-width: 0;
+  }
+
+  /* Only the script drags: without it the handle is just the menu's button, and the page scrolls. */
+  @media (scripting: enabled) {
+    .ib-sortable:not([data-ib-interactive]) .ib-sortable-handle {
+      cursor: grab;
+      touch-action: none;
+    }
+  }
+
+  .ib-sortable-handle,
+  .ib-sortable-spacer {
+    flex: none;
+  }
+
+  .ib-sortable-spacer {
+    width: var(--ib-control-h-sm);
+  }
+
+  /* A drag: the item lifts above the others, which slide aside (or, in rows that wrap, a line
+     marks where it lands). */
+  .ib-sortable-sorting {
+    user-select: none;
+  }
+
+  .ib-sortable-sorting > .ib-sortable-item {
+    transition: transform 150ms ease;
+  }
+
+  .ib-sortable-sorting > .ib-sortable-dragging {
+    position: relative;
+    z-index: 1;
+    transition: none;
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-surface-overlay);
+    box-shadow: var(--ib-shadow-md);
+    cursor: grabbing;
+  }
+
+  .ib-sortable-sorting .ib-sortable-handle {
+    cursor: grabbing;
+  }
+
+  .ib-sortable-item[data-ib-drop] {
+    position: relative;
+  }
+
+  .ib-sortable-item[data-ib-drop]::after {
+    content: "";
+    position: absolute;
+    inset-block: 0;
+    inset-inline-start: calc(var(--ib-space-1) * -1 - 1px);
+    width: 2px;
+    border-radius: 1px;
+    background-color: var(--ib-color-primary);
+  }
+
+  .ib-sortable-item[data-ib-drop="after"]::after {
+    inset-inline-start: auto;
+    inset-inline-end: calc(var(--ib-space-1) * -1 - 1px);
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .ib-sortable-sorting > .ib-sortable-item {
+      transition: none;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-sortable-sorting > .ib-sortable-dragging {
+      outline: 2px solid Highlight;
+    }
+
+    .ib-sortable-item[data-ib-drop]::after {
+      background-color: Highlight;
+    }
+  }
+
+  @media (scripting: none) {
+    .ib-sortable .ib-menu-shortcut {
+      display: none;
+    }
+  }
+}
+
+/*
+ * ListView: a column of items, padded so a hover or the current item's tint has room, with lines
+ * between them by default. An item with a link or button has it stretched over the whole item,
+ * under its other controls (as Table's linked rows). Horizontal rows wrap; Columns lays the items
+ * out as cards in a grid from 640px up.
+ */
+@layer izzy.components {
+  .ib-listview {
+    --ib-listview-py: var(--ib-space-2);
+    --ib-listview-px: var(--ib-space-3);
+    --ib-listview-font: var(--ib-text-sm);
+
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    min-width: 0;
+  }
+
+  .ib-listview-sm {
+    --ib-listview-py: var(--ib-space-1);
+    --ib-listview-px: var(--ib-space-2);
+  }
+
+  .ib-listview-lg {
+    --ib-listview-py: var(--ib-space-3);
+    --ib-listview-px: var(--ib-space-4);
+    --ib-listview-font: var(--ib-text-md);
+  }
+
+  .ib-listview-list {
+    display: flex;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    font-size: var(--ib-listview-font);
+  }
+
+  .ib-listview-list:focus {
+    outline: none;
+  }
+
+  .ib-listview-item {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    min-width: 0;
+    padding: var(--ib-listview-py) var(--ib-listview-px);
+    border-radius: var(--ib-radius-md);
+  }
+
+  .ib-listview-dividers .ib-listview-item {
+    border-radius: 0;
+  }
+
+  .ib-listview-dividers .ib-listview-item + .ib-listview-item {
+    border-block-start: 1px solid var(--ib-color-border);
+  }
+
+  .ib-listview-bordered > .ib-listview-body {
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    overflow: hidden;
+  }
+
+  /* MaxHeight: the items scroll in the body, Load more after them. */
+  .ib-listview-body.ib-listview-scroll {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
+
+  .ib-listview-scroll:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: 2px;
+  }
+
+  .ib-listview-bordered .ib-listview-item {
+    border-radius: 0;
+  }
+
+  .ib-listview-horizontal > .ib-listview-body > .ib-listview-list,
+  .ib-listview-horizontal > .ib-listview-body > ib-sortable > .ib-listview-list {
+    flex-flow: row wrap;
+    gap: var(--ib-space-2);
+  }
+
+  /* Cards in columns: one on phones. */
+  .ib-listview-columns > .ib-listview-body > .ib-listview-list,
+  .ib-listview-columns > .ib-listview-body > ib-sortable > .ib-listview-list {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: var(--ib-space-3);
+  }
+
+  @media (width >= 40rem) {
+    .ib-listview-columns > .ib-listview-body > .ib-listview-list,
+    .ib-listview-columns > .ib-listview-body > ib-sortable > .ib-listview-list {
+      grid-template-columns: repeat(var(--ib-listview-columns), minmax(0, 1fr));
+    }
+  }
+
+  .ib-listview-columns .ib-listview-item {
+    align-items: flex-start;
+    padding: var(--ib-space-4);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-lg);
+    background-color: var(--ib-color-surface);
+  }
+
+  /* The item's link or button, stretched over it; controls inside stay above it. */
+  .ib-listview-actionable {
+    cursor: pointer;
+  }
+
+  .ib-listview-actionable:hover {
+    background-color: var(--ib-color-fill-subtle);
+  }
+
+  .ib-listview-action {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .ib-listview-action::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+  }
+
+  .ib-listview-action:focus-visible {
+    outline: none;
+  }
+
+  .ib-listview-item:has(> .ib-listview-action:focus-visible) {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-listview-actionable > :is(a, button, input, select, textarea, label, summary, [tabindex]):not(.ib-listview-action),
+  .ib-listview-actionable > * :is(a, button, input, select, textarea, label, summary, [tabindex]) {
+    position: relative;
+    z-index: 1;
+  }
+
+  /* The current item: a faint accent tint and an accent edge at its start, as Table's. */
+  .ib-listview-current {
+    background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
+    box-shadow: inset 2px 0 0 var(--ib-color-primary);
+  }
+
+  .ib-listview-current:dir(rtl) {
+    box-shadow: inset -2px 0 0 var(--ib-color-primary);
+  }
+
+  .ib-listview-disabled {
+    opacity: 0.55;
+  }
+
+  .ib-listview-content {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  /* Selection: a checkbox at each item's start; select-all above them, with script only (it
+     checks the boxes, which post and report their own changes). A checked item is tinted. */
+  /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset (as Table's). */
+  .ib-listview-select,
+  .ib-listview-select-all {
+    --ib-check-size: 1rem;
+    flex: none;
+    margin: 0;
+    margin-block-start: 0;
+  }
+
+  .ib-listview-select-all-row {
+    padding-inline: var(--ib-listview-px);
+    font-size: var(--ib-text-sm);
+  }
+
+  /* Until the script is ready, out of sight but holding its place (as Table's): enhanced
+     navigation resets the element's attributes on every update, and a row that came and went
+     would move everything under it. With no script, or no items, it isn't there at all. */
+  ib-listview:not([data-ready]) > .ib-listview-select-all-row {
+    visibility: hidden;
+  }
+
+  ib-listview:not(:has(.ib-listview-select)) > .ib-listview-select-all-row {
+    display: none;
+  }
+
+  @media (scripting: none) {
+    .ib-listview-select-all-row {
+      display: none;
+    }
+  }
+
+  ib-listview:focus {
+    outline: none;
+  }
+
+  /* Out of sight but not display: none, which some browsers skip when Enter submits a form. */
+  .ib-listview-default-submit {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    border: 0;
+    overflow: hidden;
+    clip-path: inset(50%);
+  }
+
+  .ib-listview-select-all-label {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    color: var(--ib-color-muted);
+  }
+
+  .ib-listview-item:has(> .ib-listview-select:checked) {
+    background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
+  }
+
+  /* The default row: an icon, the text, and a muted second line. */
+  .ib-listview-row {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-3);
+    min-width: 0;
+  }
+
+  .ib-listview-icon {
+    flex: none;
+    color: var(--ib-color-muted);
+  }
+
+  .ib-listview-text {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+
+  .ib-listview-title {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-listview-description {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-xs);
+  }
+
+  /* Empty, failed: centered in the list's place. */
+  .ib-listview-state {
+    padding: var(--ib-space-6) var(--ib-listview-px);
+    color: var(--ib-color-muted);
+    text-align: center;
+  }
+
+  .ib-listview-list[aria-busy="true"] {
+    opacity: 0.55;
+    transition: opacity var(--ib-duration-normal) var(--ib-ease);
+  }
+
+  .ib-listview-skeleton-line {
+    display: block;
+    width: 60%;
+    height: 0.75em;
+  }
+
+  @media (forced-colors: active) {
+    .ib-listview-current {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
     }
   }
 }
