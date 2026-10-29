@@ -52,28 +52,28 @@ public static class Articles
         [
             new("empty-selection", "An empty selection comes back with its defaults", "ListChecks",
                 "Unchecked boxes post nothing, so after a static post the model gets its defaults back, or null.")
-                { Components = ["CheckboxGroup", "MultiSelect", "Form"], Modes = ["off", "static"] },
+                { Components = ["CheckboxGroup", "MultiSelect", "Form"], Modes = ["static"] },
             new("form-name", "A form's post fails or arrives empty", "ClipboardX",
                 "A static post finds its form and model by name: FormName on the form, the same name on the model.")
-                { Components = ["Form"], Modes = ["off", "static"] },
+                { Components = ["Form"], Modes = ["static"] },
             new("onclick", "OnClick does nothing on a static page", "MousePointerClick",
                 "A static page has no connection to run C# on a click: post a form or follow a link instead.")
-                { Components = ["Button", "IconButton", "Menu", "Tag"], Modes = ["off", "static"] },
+                { Components = ["Button", "IconButton", "Menu", "Tag"], Modes = ["static"] },
             new("state-between-requests", "A value resets on the next request", "RotateCcw",
                 "A static page is built afresh for every request: keep what it needs in the address, or post it.")
-                { Modes = ["off", "static"] },
+                { Modes = ["static"] },
             new("password-after-post", "The password is empty after a failed post", "KeyRound",
                 "A static page doesn't write a password back into its HTML, so the reader types it again.")
-                { Components = ["TextField"], Modes = ["off", "static"] },
+                { Components = ["TextField"], Modes = ["static"] },
             new("redirect-after-post", "Code runs after NavigateTo, or the post doesn't redirect", "CornerDownRight",
                 "NavigateTo doesn't always stop your code: make it the last line or return after it, and keep it out of try/catch.")
-                { Components = ["Form"], Modes = ["off", "static", "live"] },
+                { Components = ["Form"], Modes = ["static", "interactive"] },
             new("control-named-action", "A form posts to [object RadioNodeList]", "TriangleAlert",
                 "A control named action, method or enctype hides the form's own property from Blazor's script.")
                 { Components = ["Button", "Form"], Modes = ["static"] },
             new("interactive-stops-responding", "Interactive parts stop responding in production", "Unplug",
                 "An interactive page's circuit lives on one server: behind a load balancer, turn on sticky sessions, or run one server.")
-                { Modes = ["live"] },
+                { Modes = ["interactive"] },
         ]),
     ];
 

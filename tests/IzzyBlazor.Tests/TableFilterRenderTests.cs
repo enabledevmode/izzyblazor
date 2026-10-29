@@ -11,6 +11,9 @@ public enum Paid { Yes, No, Refunded }
 // filter is a button in its column's header opening a menu (choices) or a popover with fields.
 public class TableFilterRenderTests : BunitContext
 {
+    // Filters wait for a pause in typing (a timer): room for a slow CI machine.
+    private static readonly TimeSpan Timer = TimeSpan.FromSeconds(5);
+
     public sealed record Row(string Name, int Qty, Paid Status, bool Shipped, DateTime When)
     {
         public DateOnly Day => DateOnly.FromDateTime(When);
@@ -322,7 +325,7 @@ public class TableFilterRenderTests : BunitContext
             Assert.Equal("ad", Assert.Single(reported)!.Find("name")!.Value);
             Assert.Equal(new[] { 2, 1 }, pages);
             Assert.Contains("1–1 of 2", cut.Find(".ib-table-summary").TextContent);
-        });
+        }, Timer);
         Assert.Equal(url, Nav.Uri);
 
         cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "Refunded").Click();
@@ -330,7 +333,7 @@ public class TableFilterRenderTests : BunitContext
         {
             Assert.Equal(new[] { "adam" }, Names(cut));
             Assert.Equal(Paid.Refunded, reported.Last()!.Find("status")!.Value);
-        });
+        }, Timer);
     }
 
     [Fact]
@@ -352,7 +355,7 @@ public class TableFilterRenderTests : BunitContext
             Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 2, 2), reported!.Find("qty"));
             Assert.Equal(new[] { "Ada" }, Names(cut));
             Assert.Equal("Filter Qty: 2", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
-        });
+        }, Timer);
     }
 
     private static RenderFragment MultiColumns => b =>

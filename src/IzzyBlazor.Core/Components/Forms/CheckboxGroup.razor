@@ -2,7 +2,7 @@
 @typeparam TValue
 @typeparam TItem
 @inherits FieldBase<TValue>
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the SelectAll box isn't shown.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the SelectAll box isn't shown.")]
 
 @*
     A group of checkboxes for picking several options, bound to a collection: an array,
@@ -140,7 +140,7 @@
     /// script, and isn't shown with JavaScript off. On an interactive page, <c>ValueChanged</c> runs
     /// once for each option it flips, so code that saves on every change sees the steps between.
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Notes = "With JavaScript off, the box isn't shown.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, the box isn't shown.")]
     public bool SelectAll { get; set; }
 
     /// <summary>The <see cref="SelectAll"/> box's text. Defaults to <see cref="IzzyText.SelectAll"/> ("Select all"), also when empty.</summary>

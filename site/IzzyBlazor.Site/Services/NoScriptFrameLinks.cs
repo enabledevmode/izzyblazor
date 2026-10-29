@@ -4,18 +4,18 @@ using System.Text.RegularExpressions;
 namespace IzzyBlazor.Site.Services;
 
 /// <summary>
-/// In an Off example frame, sends links to other pages to the whole window. With script, site.js
-/// does this; an Off frame runs none, so the server marks those links <c>target="_top"</c> (the
+/// In a no-script example frame, sends links to other pages to the whole window. With script, site.js
+/// does this; an no-script frame runs none, so the server marks those links <c>target="_top"</c> (the
 /// frame's sandbox allows top navigation on a click). Links within the example (its own path,
 /// such as a pager's <c>?page=2</c>, an <c>#anchor</c>, or IzzyBlazor's <c>/_izzy/</c> endpoints) stay
 /// in the frame, written relative or absolute (<c>NavigationManager.GetUriWithQueryParameter</c>
 /// gives the request's own scheme and host).
 /// </summary>
-public static partial class OffFrameLinks
+public static partial class NoScriptFrameLinks
 {
     public static IApplicationBuilder UseOffFrameLinks(this IApplicationBuilder app) => app.Use(async (context, next) =>
     {
-        if (!context.Request.Path.StartsWithSegments("/frame") || context.Request.Query["mode"].ToString() != "off")
+        if (!context.Request.Path.StartsWithSegments("/frame") || context.Request.Query["mode"].ToString() != "noscript")
         {
             await next();
             return;

@@ -1,7 +1,7 @@
 @namespace IzzyBlazor
 @typeparam TValue
 @inherits FieldBase<TValue>
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, a posted DateTime or DateTimeOffset isn't read in TimeZone: Blazor reads a DateTimeOffset in the server's time zone and a DateTime as UTC. A DateOnly isn't affected, nor is a TimeZone of UTC on a server that runs in UTC.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a posted DateTime or DateTimeOffset isn't read in TimeZone: Blazor reads a DateTimeOffset in the server's time zone and a DateTime as UTC. A DateOnly isn't affected, nor is a TimeZone of UTC on a server that runs in UTC.")]
 
 @*
     A date field, or a date and time field: the browser's own date input, so it posts with the

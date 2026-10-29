@@ -4,7 +4,7 @@ using System.Text.RegularExpressions;
 namespace IzzyBlazor.Site.Services;
 
 /// <summary>
-/// On an Off page, sends an example's links and forms that load the page again to the example
+/// On a no-script page, sends an example's links and forms that load the page again to the example
 /// (<c>#ex-{id}</c>), so a post or a pager link lands on it rather than at the top of the page.
 /// site.js does this when script runs; with JavaScript truly off, the server writes the fragment
 /// into the link's <c>href</c> or the form's <c>action</c>. Only links and forms inside an example
@@ -16,14 +16,14 @@ namespace IzzyBlazor.Site.Services;
 /// Not covered: a redirect after a post (its <c>Location</c> has no
 /// fragment), and a form with an empty <c>action</c> (Blazor always writes one).
 /// </summary>
-public static partial class OffExampleAnchors
+public static partial class NoScriptExampleAnchors
 {
     public static IApplicationBuilder UseOffExampleAnchors(this IApplicationBuilder app) => app.Use(async (context, next) =>
     {
-        // An Off page: ?mode=off, or the site-mode cookie when the address has no mode.
+        // A no-script page: ?mode=noscript, or the site-mode cookie when the address has no mode.
         var query = context.Request.Query["mode"].ToString();
         var mode = query is "" ? context.Request.Cookies[IzzyBlazor.Site.Components.Parts.ModeSwitch.Cookie] : query;
-        if (mode != "off" || context.Request.Path.StartsWithSegments("/frame"))
+        if (mode != "noscript" || context.Request.Path.StartsWithSegments("/frame"))
         {
             await next();
             return;

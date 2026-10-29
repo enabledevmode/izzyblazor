@@ -22,7 +22,7 @@ public abstract class ToggleComponentBase : LayoutItemBase
     [Parameter] public bool Open { get; set; }
 
     /// <summary>Runs when the user opens or closes it on an interactive page.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<bool> OpenChanged { get; set; }
 
     /// <summary>The element id. Generated when not set.</summary>

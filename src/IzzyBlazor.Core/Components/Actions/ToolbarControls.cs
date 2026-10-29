@@ -319,7 +319,7 @@ public sealed class ToolbarButtonGroup : ButtonGroup, IToolbarItem, IDisposable
 /// </code>
 /// </example>
 /// <seealso cref="Toolbar"/>
-[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the menu opens and closes, but arrow keys and type-ahead don't move between items.")]
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the menu opens and closes, but arrow keys and type-ahead don't move between items.")]
 public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
 {
     private readonly ToolbarSlot _slot;

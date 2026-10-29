@@ -7,7 +7,7 @@ public class CanonicalHostTests
 {
     [Theory]
     [InlineData("izzyblazor.dev", "/", "https://izzyblazor.com/")]
-    [InlineData("www.izzyblazor.dev", "/docs/components/toolbar?mode=off", "https://izzyblazor.com/docs/components/toolbar?mode=off")]
+    [InlineData("www.izzyblazor.dev", "/docs/components/toolbar?mode=noscript", "https://izzyblazor.com/docs/components/toolbar?mode=noscript")]
     [InlineData("www.izzyblazor.com", "/docs", "https://izzyblazor.com/docs")]
     [InlineData("WWW.IzzyBlazor.Com", "/docs", "https://izzyblazor.com/docs")]
     public void The_other_names_redirect_with_the_path_and_query(string host, string pathAndQuery, string expected) =>

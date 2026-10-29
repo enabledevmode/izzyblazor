@@ -39,7 +39,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// Raised when a page size is chosen on an interactive page. Binding it
     /// (<c>@bind-PageSize</c>) keeps the size, with the page (and a Table's sort and filters), in the component.
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<int?> PageSizeChanged { get; set; }
 
     /// <summary>
@@ -49,7 +49,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter] public int? Page { get; set; }
 
     /// <summary>Raised when a page is chosen (and with 1 when a Table's sort or filters change), on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<int> PageChanged { get; set; }
 
     /// <summary>
@@ -59,7 +59,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// more" button after the items (<see cref="DataPaging.LoadMore"/>, ListView only), or loading
     /// as the last item comes into view (<see cref="DataPaging.LoadOnScroll"/>).
     /// </summary>
-    [Parameter, ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, LoadOnScroll doesn't load as you scroll: its Load more button shows, which reloads the page with one more page.")]
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, LoadOnScroll doesn't load as you scroll: its Load more button shows, which reloads the page with one more page.")]
     public DataPaging Paging { get; set; }
 
     /// <summary>The "Load more" button's text, such as "Load earlier". Defaults to "Load more".</summary>
@@ -73,7 +73,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter] public string? Cursor { get; set; }
 
     /// <summary>Raised when First, Previous or Next is chosen (and with null when a Table's sort or filters change), on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<string?> CursorChanged { get; set; }
 
     /// <summary>
@@ -114,7 +114,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter] public IReadOnlyCollection<string>? SelectedKeys { get; set; }
 
     /// <summary>Raised when items are selected or cleared on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<IReadOnlyCollection<string>> SelectedKeysChanged { get; set; }
 
     /// <summary>The select-all checkbox's name for screen readers. Defaults to "Select all rows".</summary>

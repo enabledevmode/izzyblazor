@@ -121,7 +121,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         Assert.All(Articles.Sections.SelectMany(s => s.Articles.Select(a => "/" + s.HrefOf(a))), href => Assert.Contains(href, seen));
     }
 
-    public static readonly TheoryData<string> Modes = new() { "off", "static", "live" };
+    public static readonly TheoryData<string> Modes = new() { "noscript", "static", "interactive" };
 
     // Every page that shows examples: component pages, articles, the docs overview and home.
     private IEnumerable<string> ExamplePages =>
@@ -164,7 +164,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     // The preview holds the example: rendered with the page, a prerendered island in Live, or on an
-    // Off page a Live-only example's link to Live.
+    // no-script page a Live-only example's link to Live.
     private static void AssertRendered(string section, RegistryExample example, string pageMode, string page)
     {
         if (example.Page)
@@ -174,15 +174,15 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
 
         var mode = example.Modes.Contains(pageMode) ? pageMode : example.StartMode;
-        if (mode == "live" && pageMode == "off")
+        if (mode == "interactive" && pageMode == "noscript")
         {
-            Assert.Contains("an Off page doesn't have", section);
+            Assert.Contains("a no-script page doesn't have", section);
             return;
         }
 
         var preview = Regex.Match(section, "ib-example-preview[^\"]*\">(?<content>.*)", RegexOptions.Singleline).Groups["content"].Value;
         Assert.True(Regex.IsMatch(preview, "^\\s*(<!--Blazor:[^>]*-->\\s*)?<(?!/)"), $"/{page} ({pageMode}): {example.Id} renders nothing");
-        Assert.True((mode == "live") == section.Contains("<!--Blazor:", StringComparison.Ordinal), $"/{page} ({pageMode}): {example.Id} should {(mode == "live" ? "" : "not ")}be a Live island");
+        Assert.True((mode == "interactive") == section.Contains("<!--Blazor:", StringComparison.Ordinal), $"/{page} ({pageMode}): {example.Id} should {(mode == "interactive" ? "" : "not ")}be a Live island");
     }
 
     [Fact]
@@ -195,7 +195,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
                 var html = await site.Client.GetStringAsync($"frame/{example.Id}?mode={mode}");
                 Assert.Contains("class=\"frame", html);
 
-                if (mode == "off")
+                if (mode == "noscript")
                 {
                     // The sandbox runs no script anyway; the page shouldn't even ask for any.
                     Assert.DoesNotContain("<script", html);
@@ -207,14 +207,14 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task An_off_page_sends_no_blazor_and_no_library_script()
     {
-        var off = await site.Client.GetStringAsync("docs/components/button?mode=off");
-        var live = await site.Client.GetStringAsync("docs/components/button?mode=live");
+        var off = await site.Client.GetStringAsync("docs/components/button?mode=noscript");
+        var live = await site.Client.GetStringAsync("docs/components/button?mode=interactive");
 
         Assert.DoesNotContain("blazor.web.js", off);
         Assert.DoesNotContain("importmap", off);
-        Assert.Contains("data-site-off", off);
+        Assert.Contains("data-site-noscript", off);
         Assert.Contains("blazor.web.js", live);
-        Assert.DoesNotContain("data-site-off", live);
+        Assert.DoesNotContain("data-site-noscript", live);
 
         // Its stylesheet: the library's with the scripting rules as JavaScript off reads them.
         var href = Regex.Match(off, "href=\"(_content/IzzyBlazor.Core/izzyblazor-noscript.css\\?v=\\w+)\"").Groups[1].Value;
@@ -243,11 +243,11 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         foreach (var page in ExamplePages.Concat(["docs/components/button/api", "docs/components", "docs/get-started", "docs/components/app-shell"]))
         {
             using var request = new HttpRequestMessage(HttpMethod.Get, page);
-            request.Headers.Add("Cookie", "site-mode=off");
+            request.Headers.Add("Cookie", "site-mode=noscript");
             var html = await (await site.Client.SendAsync(request)).Content.ReadAsStringAsync();
             var hasSwitch = html.Contains("class=\"site-modeswitch ", StringComparison.Ordinal);
 
-            Assert.True(hasSwitch == html.Contains("data-site-off", StringComparison.Ordinal),
+            Assert.True(hasSwitch == html.Contains("data-site-noscript", StringComparison.Ordinal),
                 $"/{page}: {(hasSwitch ? "has the switch but isn't [FollowsModeSwitch]" : "is Off with no switch")}");
         }
     }
@@ -345,10 +345,10 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Theory]
-    [InlineData("docs/components/button?mode=off", null, "off")]
+    [InlineData("docs/components/button?mode=noscript", null, "noscript")]
     [InlineData("docs/components/button", null, "static")]
-    [InlineData("docs/components/button", "live", "live")]
-    [InlineData("docs/components/button?mode=off", "live", "off")]
+    [InlineData("docs/components/button", "interactive", "interactive")]
+    [InlineData("docs/components/button?mode=noscript", "interactive", "noscript")]
     [InlineData("docs/components/button?mode=nope", "nope", "static")]
     public async Task A_page_opens_in_the_linked_then_remembered_mode(string path, string? cookie, string expected)
     {
@@ -370,9 +370,9 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     public async Task A_link_with_a_mode_remembers_it_for_the_next_page()
     {
         // With JavaScript off too: an example's own links and forms drop ?mode= from the address.
-        var response = await site.Client.GetAsync("docs/components/button?mode=live");
+        var response = await site.Client.GetAsync("docs/components/button?mode=interactive");
 
-        Assert.Contains(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith("site-mode=live;", StringComparison.Ordinal));
+        Assert.Contains(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith("site-mode=interactive;", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -407,16 +407,16 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
-    public async Task An_example_pinned_to_live_runs_live_on_a_static_page_and_links_to_live_from_off()
+    public async Task An_example_pinned_to_interactive_runs_interactive_on_a_static_page_and_links_to_it_from_no_script()
     {
-        // Button's OnClick example demonstrates Live behavior: Live whatever the page's mode, and an
-        // Off page has no Blazor to run it.
+        // Button's OnClick example demonstrates interactive behavior: Interactive whatever the page's mode, and a
+        // no-script page has no Blazor to run it.
         var onStatic = Example(await site.Client.GetStringAsync("docs/components/button?mode=static"), "button-on-click");
-        var onOff = Example(await site.Client.GetStringAsync("docs/components/button?mode=off"), "button-on-click");
+        var onOff = Example(await site.Client.GetStringAsync("docs/components/button?mode=noscript"), "button-on-click");
 
-        Assert.Contains("Always Live", onStatic);
+        Assert.Contains("Always Interactive", onStatic);
         Assert.Contains("<!--Blazor:", onStatic);
-        Assert.Contains("an Off page doesn't have", onOff);
+        Assert.Contains("a no-script page doesn't have", onOff);
         Assert.DoesNotContain("<!--Blazor:", onOff);
     }
 

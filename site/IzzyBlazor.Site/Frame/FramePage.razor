@@ -6,8 +6,8 @@
 
 @*
     A demo scenario (components.json "page") on a bare page, for the example viewer's frame: a page
-    of its own, sized by the window. Off and Static render it in static SSR (Off is the same page
-    in a sandbox without script, and App leaves the script tags out); Live renders it in an
+    of its own, sized by the window. No script and Static render it in static SSR (no script is the same page
+    in a sandbox without script, and App leaves the script tags out); Interactive renders it in an
     interactive render mode from this static page. Other examples render in the docs page itself.
 *@
 
@@ -17,7 +17,7 @@
 @if (_type is not null)
 {
     <div class="@_class" data-mode="@_mode">
-        @if (_mode == "live")
+        @if (_mode == "interactive")
         {
             <ExampleHost ExampleId="@ExampleId" @rendermode="InteractiveServer" />
         }
@@ -49,7 +49,7 @@
             return;
         }
 
-        _mode = Mode is "off" or "static" or "live" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
+        _mode = Mode is "noscript" or "static" or "interactive" && entry.Value.Example.Modes.Contains(Mode) ? Mode : entry.Value.Example.StartMode;
         _class = "frame frame-page";
         _title = $"{entry.Value.Example.Title} ({ModeChip.Name(_mode)})";
     }

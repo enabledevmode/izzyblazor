@@ -7,7 +7,7 @@
 </Badge>
 
 @code {
-    /// <summary>"off", "static" or "live".</summary>
+    /// <summary>"static", "interactive" or "noscript".</summary>
     [Parameter, EditorRequired] public string Mode { get; set; } = "";
 
     [Parameter] public ModeLevel Level { get; set; }
@@ -32,17 +32,17 @@
 
     public static string Name(string mode) => mode switch
     {
-        "off" => "Off",
+        "noscript" => "No script",
         "static" => "Static",
-        "live" => "Live",
+        "interactive" => "Interactive",
         _ => mode,
     };
 
     public static string Describe(string mode) => mode switch
     {
-        "off" => "With JavaScript off",
-        "static" => "On a static page with script",
-        "live" => "On an interactive page",
+        "noscript" => "With no script",
+        "static" => "On a static page",
+        "interactive" => "On an interactive page",
         _ => mode,
     };
 

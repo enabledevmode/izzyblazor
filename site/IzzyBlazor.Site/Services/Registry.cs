@@ -150,9 +150,11 @@ public sealed record RegistryFeature
     /// </summary>
     public string? Member { get; init; }
 
-    public ModeLevel Off { get; init; } = ModeLevel.Full;
+    /// <summary>With no script: the fallback, shown under "Without JavaScript", not as a mode.</summary>
+    [JsonPropertyName("noscript")]
+    public ModeLevel NoScript { get; init; } = ModeLevel.Full;
     public ModeLevel Static { get; init; } = ModeLevel.Full;
-    public ModeLevel Live { get; init; } = ModeLevel.Full;
+    public ModeLevel Interactive { get; init; } = ModeLevel.Full;
 }
 
 public sealed record RegistryExample
@@ -171,7 +173,7 @@ public sealed record RegistryExample
     public int Height { get; init; } = 600;
 
     /// <summary>The modes it's shown in. Defaults to all three.</summary>
-    public List<string> Modes { get; init; } = ["off", "static", "live"];
+    public List<string> Modes { get; init; } = ["noscript", "static", "interactive"];
 
     /// <summary>The mode it opens in. Defaults to Static where it's shown, else the first of <see cref="Modes"/>.</summary>
     public string? Mode { get; init; }

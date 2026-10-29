@@ -78,11 +78,19 @@ public class RegistryTests
                 var at = $"{section.Slug}/{article.Slug}";
                 problems.AddRange(new[] { article.Icon }.Where(i => IzzyBlazor.Site.Components.Parts.Pictogram.Lookup(i) is null).Select(i => $"{at}: icon {i}"));
                 problems.AddRange(article.Components.Where(c => Registry.ByName(c) is null).Select(c => $"{at}: component {c}"));
-                problems.AddRange(article.Modes.Where(m => m is not ("off" or "static" or "live")).Select(m => $"{at}: mode {m}"));
+                problems.AddRange(article.Modes.Where(m => m is not ("noscript" or "static" or "interactive")).Select(m => $"{at}: mode {m}"));
             }
         }
 
         Assert.True(problems.Count == 0, string.Join(", ", problems));
+    }
+
+    [Fact]
+    public void Feature_rows_read_their_no_script_level()
+    {
+        // The rows' "noscript" key: read case-sensitively, a mismatch would leave every row Full
+        // and empty the "Without JavaScript" lists without an error.
+        Assert.Contains(Registry.Components.SelectMany(c => c.Features), f => f.NoScript != IzzyBlazor.ModeLevel.Full);
     }
 
     [Fact]

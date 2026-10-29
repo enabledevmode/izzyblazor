@@ -3,7 +3,7 @@
 //   - a link or form in an example that loads this page again (?page=2, a post, a scheme switch's
 //     link with JavaScript off) brings it back to that example, where it was on the screen, rather
 //     than to the top,
-//   - an Off page that enhanced navigation patched into a page still running Blazor is reloaded,
+//   - a no-script page that enhanced navigation patched into a page still running Blazor is reloaded,
 //     so its examples really run without it,
 //   - Ctrl+K opens the header's search, which shows results as you type,
 //   - a demo's frame follows the page's color scheme when it changes,
@@ -107,7 +107,7 @@
     return null;
   }
 
-  // Links and forms in an example that load this page again. A full page load (an Off page, a
+  // Links and forms in an example that load this page again. A full page load (a no-script page, a
   // post that isn't enhanced) goes to the example's id (#ex-...), and App's script in <head> sets
   // that example's scroll-margin to where it was on the screen, so the browser lands it there as
   // it opens the page. Enhanced navigation keeps the scroll of a page that loads itself, and
@@ -135,8 +135,8 @@
     if (!link || event.button !== 0 || event.ctrlKey || event.metaKey || event.shiftKey || event.altKey) return;
     if (link.hasAttribute("download") || (link.target && link.target !== "_self")) return;
     if (link.matches(".site-modeswitch a[data-mode]")) {
-      // An Off page points an example's own switch at the example for JavaScript off
-      // (OffExampleAnchors); here the saved place puts it back where it was instead.
+      // A no-script page points an example's own switch at the example for JavaScript off
+      // (NoScriptExampleAnchors); here the saved place puts it back where it was instead.
       const target = new URL(link.href, location.href);
       if (target.hash) {
         target.hash = "";
@@ -151,7 +151,7 @@
     if (!example) return;
     const url = new URL(link.href, location.href);
     if (url.origin === location.origin && url.pathname === "/_izzy/scheme") {
-      // A ColorSchemeSwitch's link, followed only without IzzyBlazor's script (an Off page): the
+      // A ColorSchemeSwitch's link, followed only without IzzyBlazor's script (a no-script page): the
       // endpoint redirects to its return path, and the browser keeps this link's fragment.
       const back = new URL(url.searchParams.get("return") || "", document.baseURI);
       if (blazor() || back.origin !== location.origin || back.pathname !== location.pathname) return;
@@ -161,8 +161,8 @@
     }
 
     if (url.origin !== location.origin || url.pathname !== location.pathname) return;
-    // A link with its own #fragment goes there; on an Off page the server already points the
-    // example's links at the example (OffExampleAnchors), which is ours.
+    // A link with its own #fragment goes there; on a no-script page the server already points the
+    // example's links at the example (NoScriptExampleAnchors), which is ours.
     if (url.hash && url.hash !== `#${example.id}`) return;
     link.href = anchor(example, url, !blazor() || !!link.closest('[data-enhance-nav="false"]')).href;
   }, true);
@@ -330,7 +330,7 @@
     }
 
     // Following a result closes the dialog: enhanced navigation keeps the header, and the open
-    // dialog with it. IzzyBlazor's script does this too, but an Off page doesn't load it.
+    // dialog with it. IzzyBlazor's script does this too, but a no-script page doesn't load it.
     const link = event.target.closest(`#${SEARCH} a[href]`);
     if (link && event.button === 0 && !event.ctrlKey && !event.metaKey && !event.shiftKey && !event.altKey) {
       searchParts()?.dialog.close();
@@ -348,12 +348,12 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", frames);
   else frames();
 
-  // Enhanced navigation swaps the page's content without a reload. An Off page sends no Blazor,
-  // so one patched into a page that runs it (a link followed from a Static page, with Off picked
+  // Enhanced navigation swaps the page's content without a reload. A no-script page sends no Blazor,
+  // so one patched into a page that runs it (a link followed from a Static page, with no script picked
   // in another tab) loads again on its own.
   if (blazor()) {
     window.Blazor.addEventListener("enhancedload", () => {
-      if (document.querySelector("[data-site-off]")) {
+      if (document.querySelector("[data-site-noscript]")) {
         location.reload();
         return;
       }

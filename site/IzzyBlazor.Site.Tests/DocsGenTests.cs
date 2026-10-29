@@ -37,8 +37,8 @@ public class DocsGenTests
 
         Assert.Equal("OnClick", onClick.Name);
         Assert.Equal("EventCallback<MouseEventArgs>", onClick.Type);
-        Assert.Equal(("none", "none", "full"), (onClick.Modes!.Off, onClick.Modes.Static, onClick.Modes.Live));
-        Assert.Equal("full", button.Modes!.Off);
+        Assert.Equal(("none", "none", "full"), (onClick.Modes!.NoScript, onClick.Modes.Static, onClick.Modes.Interactive));
+        Assert.Equal("full", button.Modes!.NoScript);
     }
 
     [Fact]

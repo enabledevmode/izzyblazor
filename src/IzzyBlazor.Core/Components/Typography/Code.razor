@@ -4,7 +4,7 @@
 @using Microsoft.AspNetCore.Components.RenderTree
 @using Microsoft.Extensions.DependencyInjection
 @inject IServiceProvider Services
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, code blocks have no copy button.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, code blocks have no copy button.")]
 
 @*
     Code: inline (a <code> in running text) or a Block (<pre><code>) that scrolls sideways.

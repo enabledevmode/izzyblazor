@@ -123,13 +123,17 @@ public sealed record ApiMember
     public string? DeclaredOn { get; init; }
 }
 
-/// <summary>What works in each mode: "full", "partial" or "none".</summary>
+/// <summary>
+/// What works in each mode: "full", "partial" or "none". Static and Interactive are the modes the
+/// site offers; NoScript is the plain-HTML fallback, kept for the hidden no-script checks.
+/// </summary>
 public sealed record ApiModes
 {
-    public required string Off { get; init; }
     public required string Static { get; init; }
-    public required string Live { get; init; }
+    public required string Interactive { get; init; }
+    public required string NoScript { get; init; }
     public string? Notes { get; init; }
+    public string? NoScriptNotes { get; init; }
 }
 
 /// <summary>An enum, class, struct or record that components' members use.</summary>

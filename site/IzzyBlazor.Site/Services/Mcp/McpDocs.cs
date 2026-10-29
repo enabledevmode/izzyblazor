@@ -146,7 +146,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
 
         var text = new StringBuilder($"{Release}: {registry.Components.Count} components");
         text.Append(categories.Count == 1 ? $" ({registry.InCategory(categories[0]).Count()} in {categories[0]}).\n" : ", by category.\n");
-        text.Append("Modes: Off is a static page with JavaScript off, Static a static page with IzzyBlazor's script, Live an interactive page. ")
+        text.Append("Modes: Static is static server-side rendering (no circuit, no WebAssembly), Interactive is Server, WebAssembly or Auto. ")
             .Append("Only limits are noted. Parts are components written inside another and documented with it.\n");
         foreach (var name in categories)
         {
@@ -155,12 +155,12 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
             {
                 text.Append($"- **{component.Name}**: {component.Summary}");
                 var limited = api.Component(component.Name) is { } apiComponent
-                    ? ModeRows(apiComponent, component).Where(r => (r.Off, r.Static, r.Live) != ("full", "full", "full")).ToList()
+                    ? ModeRows(apiComponent, component).Where(r => (r.Static, r.Interactive) != ("full", "full")).ToList()
                     : [];
                 if (limited.Count > 0)
                 {
                     text.Append(" Limits: ").AppendJoin("; ", limited.Select(r =>
-                        $"{(limited.Count == 1 && r.Feature == "Everything" ? "" : r.Feature + ", ")}{Limits(new ApiModes { Off = r.Off, Static = r.Static, Live = r.Live })}"))
+                        $"{(limited.Count == 1 && r.Feature == "Everything" ? "" : r.Feature + ", ")}{Limits(new ApiModes { NoScript = r.NoScript, Static = r.Static, Interactive = r.Interactive })}"))
                         .Append('.');
                 }
 
@@ -390,9 +390,9 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 text.Append($"\n{lead}\n");
             }
 
-            if (example.Modes.Count < 3)
+            if (ModeSwitch.Offered.Where(example.Modes.Contains).ToList() is { } offered && offered.Count < ModeSwitch.Offered.Length)
             {
-                text.Append($"\nShown in {string.Join(" and ", example.Modes.Select(ModeChip.Name))} only.\n");
+                text.Append($"\nShown in {string.Join(" and ", offered.Select(ModeChip.Name))} only.\n");
             }
 
             foreach (var (mode, note) in example.Notes)
@@ -474,12 +474,12 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
     }
 
     /// <summary>What works in each mode, a row per feature, as the Overview's table shows it.</summary>
-    private static List<(string Feature, string Off, string Static, string Live)> ModeRows(ApiComponent component, RegistryComponent? owner) =>
+    private static List<(string Feature, string NoScript, string Static, string Interactive)> ModeRows(ApiComponent component, RegistryComponent? owner) =>
         owner is not null && owner.Name == component.Name && owner.Features.Count > 0
             ? owner.Features.Select(f => f.Member is { } member && ModeSupportTable.ModesOf(component, member) is { } modes
-                ? (f.Feature, modes.Off, modes.Static, modes.Live)
-                : (f.Feature, Level(f.Off), Level(f.Static), Level(f.Live))).ToList()
-            : component.Modes is { } all ? [("Everything", all.Off, all.Static, all.Live)] : [];
+                ? (f.Feature, modes.NoScript, modes.Static, modes.Interactive)
+                : (f.Feature, Level(f.NoScript), Level(f.Static), Level(f.Interactive))).ToList()
+            : component.Modes is { } all ? [("Everything", all.NoScript, all.Static, all.Interactive)] : [];
 
     private static void ModeSupport(StringBuilder text, ApiComponent component, RegistryComponent? owner)
     {
@@ -489,11 +489,23 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
             return;
         }
 
-        text.Append("\n## Mode support\n\nOff: a static page with JavaScript off. Static: a static page with IzzyBlazor's script. Live: an interactive page.\n\n")
-            .Append("| Feature | Off | Static | Live |\n| --- | --- | --- | --- |\n");
-        foreach (var (feature, off, @static, live) in rows)
+        text.Append("\n## Mode support\n\nStatic: static server-side rendering, no circuit or WebAssembly. Interactive: Server, WebAssembly or Auto.\n\n")
+            .Append("| Feature | Static | Interactive |\n| --- | --- | --- |\n");
+        foreach (var (feature, _, @static, interactive) in rows)
         {
-            text.Append($"| {Markdown.Cell(feature)} | {off} | {@static} | {live} |\n");
+            text.Append($"| {Markdown.Cell(feature)} | {@static} | {interactive} |\n");
+        }
+
+        // The fallback, not a mode: what the plain HTML does before the scripts run.
+        var noScript = rows.Where(r => r.NoScript != "full" && r.Static != "none").Select(r => $"{r.Feature}: {r.NoScript}").ToList();
+        if (component.Modes?.NoScriptNotes is { Length: > 0 } fallback)
+        {
+            noScript.Add(fallback);
+        }
+
+        if (noScript.Count > 0)
+        {
+            text.Append("\nWith no script (before the scripts run, or with JavaScript off): ").AppendJoin("; ", noScript).Append('\n');
         }
 
         if (component.Modes?.Notes is { Length: > 0 } notes)
@@ -550,6 +562,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 notes.Add($"{modeLimits}.");
             }
 
+            if (member.Modes?.NoScriptNotes is { Length: > 0 } fallback)
+            {
+                notes.Add($"With no script: {fallback}");
+            }
+
             if (member.DeclaredOn is { } declared && component is not null)
             {
                 notes.Add($"From {declared}.");
@@ -571,10 +588,10 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
     /// <summary>A member's doc comment as one line of Markdown.</summary>
     private static string Plain(string? html) => Markdown.Cell(Markdown.FromHtml(html).Replace("\n", " "));
 
-    /// <summary>"Off: none; Static: partial", leaving out the modes where it fully works; null when it works everywhere.</summary>
+    /// <summary>"Static: none; Interactive: partial", leaving out the modes where it fully works; null when it works in both.</summary>
     private static string? Limits(ApiModes modes)
     {
-        var limits = new[] { ("Off", modes.Off), ("Static", modes.Static), ("Live", modes.Live) }
+        var limits = new[] { ("Static", modes.Static), ("Interactive", modes.Interactive) }
             .Where(m => m.Item2 != "full").Select(m => $"{m.Item1}: {m.Item2}").ToList();
         return limits.Count == 0 ? null : string.Join("; ", limits);
     }

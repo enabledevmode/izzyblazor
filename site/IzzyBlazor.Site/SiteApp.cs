@@ -161,12 +161,12 @@ public static class SiteApp
         app.UseAntiforgery();
         app.UseRateLimiter();
 
-        // A link that opens a page in a mode (?mode=off, the mode switch) keeps it for the next
+        // A link that opens a page in a mode (?mode=noscript, the mode switch) keeps it for the next
         // pages, with JavaScript off too: an example's own links and forms drop ?mode= from the
         // address, and the page has to stay in its mode.
         app.Use((context, next) =>
         {
-            if (context.Request.Query["mode"].ToString() is "off" or "static" or "live" && !context.Request.Path.StartsWithSegments("/frame"))
+            if (context.Request.Query["mode"].ToString() is "noscript" or "static" or "interactive" && !context.Request.Path.StartsWithSegments("/frame"))
             {
                 var mode = context.Request.Query["mode"].ToString();
                 if (context.Request.Cookies[ModeSwitch.Cookie] != mode)
@@ -174,7 +174,9 @@ public static class SiteApp
                     context.Response.Cookies.Append(ModeSwitch.Cookie, mode, new CookieOptions
                     {
                         Path = context.Request.PathBase.HasValue ? context.Request.PathBase.Value + "/" : "/",
-                        MaxAge = TimeSpan.FromDays(365),
+                        // No script is the hidden mode, for checking: kept for the visit only, so it doesn't
+                        // greet the reader next time.
+                        MaxAge = mode == "noscript" ? null : TimeSpan.FromDays(365),
                         SameSite = SameSiteMode.Lax,
                         IsEssential = true,
                     });

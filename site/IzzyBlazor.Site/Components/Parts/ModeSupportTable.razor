@@ -1,20 +1,42 @@
 @* What works in each mode, a row per feature (from components.json, with a member's [ModeSupport]
    where the row names one), or one row for the whole component (from its [ModeSupport], with its
-   notes: feature rows already say what the notes would). *@
+   notes: feature rows already say what the notes would). Then, collapsed, what still works with no
+   script: the fallback every page starts as, not a mode the site offers. *@
 
 @if (_rows.Count > 0)
 {
     <Stack Gap="2">
         <Table Items="_rows" Caption="@($"What works in each mode, {Component.Name}")" Size="ControlSize.Sm">
             <TemplateColumn Title="Feature">@context!.Feature</TemplateColumn>
-            <TemplateColumn Title="Off" Width="Length.Rem(6)"><ModeMark Level="context!.Off" /></TemplateColumn>
             <TemplateColumn Title="Static" Width="Length.Rem(6)"><ModeMark Level="context!.Static" /></TemplateColumn>
-            <TemplateColumn Title="Live" Width="Length.Rem(6)"><ModeMark Level="context!.Live" /></TemplateColumn>
+            <TemplateColumn Title="Interactive" Width="Length.Rem(7)"><ModeMark Level="context!.Interactive" /></TemplateColumn>
         </Table>
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-            Off: JavaScript disabled. Static: a static SSR page with IzzyBlazor's script. Live: an interactive page
-            (Server, WebAssembly or Auto). @if (Notes is not null) { @Notes }
+            Static: static server-side rendering, with no circuit and no WebAssembly. Interactive: Server, WebAssembly
+            or Auto. @if (Notes is not null) { @Notes }
         </TextBlock>
+        @if (_noScript.Count > 0 || NoScriptNotes is not null)
+        {
+            <Collapsible Label="Without JavaScript">
+                <Stack Gap="2">
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+                        Every page starts as plain HTML: before IzzyBlazor's script loads on a static page, while an
+                        interactive page prerenders, and with JavaScript off.
+                        @NoScriptNotes
+                    </TextBlock>
+                    @* The component's own sentence says it best; without one, the features that differ. *@
+                    @if (NoScriptNotes is null && _noScript.Count > 0)
+                    {
+                        <List Size="TextSize.Sm" Class="site-muted-list">
+                            @foreach (var row in _noScript)
+                            {
+                                <ListItem>@row.Feature: @(row.NoScript == ModeLevel.None ? "waits for the script" : "works, with less (see the example's notes)")</ListItem>
+                            }
+                        </List>
+                    }
+                </Stack>
+            </Collapsible>
+        }
     </Stack>
 }
 
@@ -24,21 +46,30 @@
     [Parameter] public ApiComponent? ApiComponent { get; set; }
 
     private List<RegistryFeature> _rows = [];
+    private List<RegistryFeature> _noScript = [];
 
     private string? Notes => Component.Features.Count == 0 ? ApiComponent?.Modes?.Notes : null;
+
+    // The component's own word on the fallback, with or without feature rows (they rarely say it).
+    private string? NoScriptNotes => ApiComponent?.Modes?.NoScriptNotes;
 
     protected override void OnParametersSet()
     {
         _rows = Component.Features.Count > 0
             ? Component.Features.Select(FromMember).ToList()
             : ApiComponent?.Modes is { } modes
-                ? [new RegistryFeature { Feature = "Everything", Off = ModeChip.Parse(modes.Off), Static = ModeChip.Parse(modes.Static), Live = ModeChip.Parse(modes.Live) }]
+                ? [new RegistryFeature { Feature = "Everything", Static = ModeChip.Parse(modes.Static), Interactive = ModeChip.Parse(modes.Interactive), NoScript = ModeChip.Parse(modes.NoScript) }]
                 : [];
+        // Rows that work on a static page but not fully with no script; one row for the whole
+        // component is said by its notes instead.
+        _noScript = Component.Features.Count > 0
+            ? _rows.Where(r => r.NoScript != ModeLevel.Full && r.Static != ModeLevel.None).ToList()
+            : [];
     }
 
     private RegistryFeature FromMember(RegistryFeature feature) =>
         feature.Member is { } name && ApiComponent is not null && ModesOf(ApiComponent, name) is { } modes
-            ? feature with { Off = ModeChip.Parse(modes.Off), Static = ModeChip.Parse(modes.Static), Live = ModeChip.Parse(modes.Live) }
+            ? feature with { NoScript = ModeChip.Parse(modes.NoScript), Static = ModeChip.Parse(modes.Static), Interactive = ModeChip.Parse(modes.Interactive) }
             : feature;
 
     /// <summary>The modes a member records: a bindable's <c>@bind</c>, else its own.</summary>

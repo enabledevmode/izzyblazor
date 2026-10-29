@@ -138,7 +138,7 @@ public class Image : StyledComponentBase
 /// </accessibility>
 /// <seealso cref="Image"/>
 /// <seealso cref="AspectRatio"/>
-[ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, the play button opens the video on YouTube instead of playing it in place.")]
+[ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the play button opens the video on YouTube instead of playing it in place.")]
 public partial class VideoEmbed : StyledComponentBase
 {
     /// <summary>

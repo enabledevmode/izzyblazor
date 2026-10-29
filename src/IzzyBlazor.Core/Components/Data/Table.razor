@@ -5,7 +5,7 @@
 @using Microsoft.AspNetCore.Components.Routing
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
-@attribute [ModeSupport(Off = ModeLevel.Partial, Notes = "With JavaScript off, there's no select-all checkbox, and filters apply when you press Apply, not as you type; empty filters stay in the address (?f-customer=), as with any GET form.")]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox, and filters apply when you press Apply, not as you type; empty filters stay in the address (?f-customer=), as with any GET form.")]
 
 @*
     A data table that sorts and pages through the URL: column headers and page numbers are
@@ -276,7 +276,7 @@
     [Parameter] public string? Sort { get; set; }
 
     /// <summary>Raised when a header is chosen, on interactive pages.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<string?> SortChanged { get; set; }
 
     /// <summary>
@@ -290,7 +290,7 @@
     [Parameter] public IzzyBlazor.Filter? Filter { get; set; }
 
     /// <summary>Raised when a filter changes, on interactive pages (typing waits for a pause).</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<IzzyBlazor.Filter?> FilterChanged { get; set; }
 
     /// <summary>The table's name for screen readers (a visually hidden caption).</summary>

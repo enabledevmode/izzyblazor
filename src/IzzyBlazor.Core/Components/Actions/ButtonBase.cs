@@ -50,7 +50,7 @@ public abstract class ButtonBase : LayoutItemBase
     [Parameter] public bool? Pressed { get; set; }
 
     /// <summary>Raised with the new state when a click toggles <see cref="Pressed"/>, for <c>@bind-Pressed</c>. Interactive pages only.</summary>
-    [Parameter, ModeSupport(Off = ModeLevel.None, Static = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<bool> PressedChanged { get; set; }
 
     /// <summary>The label.</summary>

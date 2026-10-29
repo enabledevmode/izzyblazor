@@ -5,9 +5,9 @@ using Microsoft.AspNetCore.Components.Endpoints;
 namespace IzzyBlazor.Site.Components;
 
 /// <summary>
-/// Marks a page that has the Off · Static · Live switch (ModeSwitch): its examples render in the
-/// picked mode, and in Off, App sends it no Blazor and no IzzyBlazor script. Every other page
-/// renders its examples in Static and keeps its script, so picking Off for the examples doesn't
+/// Marks a page that has the Static · Interactive switch (ModeSwitch): its examples render in the
+/// picked mode, and in the no-script mode, App sends it no Blazor and no IzzyBlazor script. Every other page
+/// renders its examples in Static and keeps its script, so picking no script for the examples doesn't
 /// turn the rest of the site's script off on pages with no switch to turn it back on. A site test
 /// checks that a page has a switch exactly when it follows one.
 /// </summary>

@@ -54,6 +54,10 @@ else
                 {
                     <TextBlock Size="TextSize.Sm" Color="Color.Muted">@notes</TextBlock>
                 }
+                @if (member.Modes?.NoScriptNotes is { } fallback)
+                {
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">Without JavaScript: @fallback</TextBlock>
+                }
             </div>
         }
     </div>

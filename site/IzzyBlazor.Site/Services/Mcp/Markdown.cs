@@ -57,7 +57,7 @@ public static partial class Markdown
     /// <summary>A link into the site, made absolute on izzyblazor.com; null for a link to the same page.</summary>
     public static string? Absolute(string href)
     {
-        // A fragment or query alone ("?mode=off") is the page itself.
+        // A fragment or query alone ("?mode=noscript") is the page itself.
         if (href.Length == 0 || href[0] is '#' or '?')
         {
             return null;
