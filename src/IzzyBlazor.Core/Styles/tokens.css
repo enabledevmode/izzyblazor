@@ -145,11 +145,12 @@
     /* Grays (the default set: neutral). The page is a near-white; cards, tables, fields and bars
        are white surfaces on it. Fills sit inside a surface and step away from it as they get
        stronger: darker in light mode, lighter in dark mode, so the names hold in both. */
-    --ib-color-background: light-dark(#fafafa, #08080a);
+    --ib-color-background: light-dark(#fafafa, #0b0b0d);
     --ib-color-surface: light-dark(#ffffff, #0d0d0f);
     /* Sunken: an area set into a surface that holds surfaces of its own (a board's columns, a tray
        of cards): below the surface in both modes, so the cards on it lift. In light mode it's the
-       subtle fill; in dark mode the page, since the page is already the lowest step. */
+       subtle fill; in dark mode it's below the page too, which sits just under the surface (as the
+       light page does), so a page beside a surface (a tinted sidebar) stays a quiet step. */
     --ib-color-surface-sunken: light-dark(#f3f3f5, #08080a);
     /* Subtle: large quiet fills (a filled card, a panel, a band). Fill: small fills that must show (table
        heads, code, wells). Strong: selected and pressed fills, chips, tracks, skeletons. */

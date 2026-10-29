@@ -94,8 +94,7 @@ public readonly partial struct Color : IEquatable<Color>
     /// <summary>
     /// An area set into a surface that holds surfaces of its own, such as a board's columns or a tray
     /// of cards: below <see cref="Surface"/> in both modes, so the cards on it lift. Like
-    /// <see cref="FillSubtle"/> in light mode; the page's color in dark mode. Put it on a surface,
-    /// not on the <see cref="Background"/> page, where in dark mode it wouldn't show.
+    /// <see cref="FillSubtle"/> in light mode; below the page in dark mode.
     /// </summary>
     public static Color SurfaceSunken { get; } = Token("surface-sunken");
 

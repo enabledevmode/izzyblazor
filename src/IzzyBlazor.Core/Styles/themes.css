@@ -42,7 +42,7 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="editorial"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="stone"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="stone"])) {
-    --ib-color-background: light-dark(#f7f6f3, #08090a);
+    --ib-color-background: light-dark(#f7f6f3, #0b0c0d);
     --ib-color-surface: light-dark(#ffffff, #0e0f10);
     --ib-color-surface-sunken: light-dark(#f3f2ee, #08090a);
     --ib-color-fill-subtle: light-dark(#f3f2ee, #161719);
@@ -61,7 +61,7 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="compact"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="slate"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="slate"])) {
-    --ib-color-background: light-dark(#f8fafc, #090b10);
+    --ib-color-background: light-dark(#f8fafc, #0c0e13);
     --ib-color-surface: light-dark(#ffffff, #0f1218);
     --ib-color-surface-sunken: light-dark(#f1f4f8, #090b10);
     --ib-color-fill-subtle: light-dark(#f1f4f8, #171b22);
@@ -82,7 +82,7 @@
   :root:where(:has(> head > meta[name="ib-preset"][content="soft"])),
   [data-ib-gray][data-ib-gray][data-ib-gray][data-ib-gray="neutral"],
   :root:root:root:where(:has(> head > meta[name="ib-gray"][content="neutral"])) {
-    --ib-color-background: light-dark(#fafafa, #08080a);
+    --ib-color-background: light-dark(#fafafa, #0b0b0d);
     --ib-color-surface: light-dark(#ffffff, #0d0d0f);
     --ib-color-surface-sunken: light-dark(#f3f3f5, #08080a);
     --ib-color-fill-subtle: light-dark(#f3f3f5, #141416);
