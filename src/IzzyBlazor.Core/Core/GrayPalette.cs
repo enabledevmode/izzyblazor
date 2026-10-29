@@ -106,7 +106,7 @@ public sealed class GrayPalette
         Rgb Shade(double l, double factor, double cap = 0.03) => Snap(FromLch(l, Math.Min(c * factor, cap), hue));
         var dark = new Dictionary<string, Rgb>
         {
-            ["background"] = Shade(0.135, 0.5),
+            ["background"] = Shade(0.150, 0.5),
             ["surface"] = Shade(0.160, 0.6),
             ["fill-subtle"] = Shade(0.192, 0.6),
             ["fill"] = Shade(0.223, 0.7),
@@ -115,8 +115,8 @@ public sealed class GrayPalette
             ["border"] = Shade(0.303, 0.8),
         };
 
-        // Below the surface in dark mode: the page, already the lowest step.
-        dark["surface-sunken"] = dark["background"];
+        // Below the page in dark mode, which sits close under the surface.
+        dark["surface-sunken"] = Shade(0.135, 0.5);
 
         Rgb DarkText(double l, double factor, double cap, double target, params string[] on)
         {
