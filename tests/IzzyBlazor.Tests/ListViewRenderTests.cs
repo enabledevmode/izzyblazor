@@ -211,12 +211,25 @@ public class ListViewRenderTests : BunitContext
     }
 
     [Fact]
+    public void Cards_draw_one_column_of_cards_without_dividers()
+    {
+        var cut = RenderList(p => p.Add(l => l.Cards, true).Add(l => l.Bordered, true));
+
+        var root = cut.Find("ib-listview");
+        Assert.Contains("ib-listview-cards", root.ClassName);
+        Assert.DoesNotContain("ib-listview-columns", root.ClassName);
+        Assert.DoesNotContain("ib-listview-dividers", root.ClassName);
+        Assert.DoesNotContain("ib-listview-bordered", root.ClassName);
+    }
+
+    [Fact]
     public void Columns_lay_the_items_out_as_cards()
     {
         var cut = RenderList(p => p.Add(l => l.Columns, 3));
 
         var root = cut.Find("ib-listview");
         Assert.Contains("ib-listview-columns", root.ClassName);
+        Assert.Contains("ib-listview-cards", root.ClassName);
         Assert.DoesNotContain("ib-listview-dividers", root.ClassName);
         Assert.Contains("--ib-listview-columns:3", root.GetAttribute("style"));
     }

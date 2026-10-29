@@ -161,8 +161,8 @@ public sealed partial class RazorHeaders
     private static Block Paragraph(string line) => new([line], null, []);
 
     // Markup starts a block when it opens one: after a blank line, or under a line that ends a
-    // sentence (".", ":"). It runs until a blank line that isn't followed by more markup, or a line
-    // indented less than it. "- " starts a bullet; a line indented under one continues it.
+    // sentence (".", ":"). It runs until a blank line that isn't followed by more markup (or the
+    // sample's @code block), or a line indented less than it. "- " starts a bullet; a line indented under one continues it.
     private static List<Block> Blocks(List<string> text)
     {
         var blocks = new List<Block>();
@@ -180,7 +180,7 @@ public sealed partial class RazorHeaders
                 if (trimmed.Length == 0)
                 {
                     var next = text.Skip(i + 1).FirstOrDefault(l => l.Trim().Length > 0);
-                    if (next is null || !next.TrimStart().StartsWith('<'))
+                    if (next is null || !(next.TrimStart().StartsWith('<') || next.TrimStart().StartsWith("@code", StringComparison.Ordinal)))
                     {
                         code = null;
                         current = null;

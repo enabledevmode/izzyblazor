@@ -169,9 +169,12 @@ class Sortable extends IzzyElement {
 
   private onKey(event: KeyboardEvent): void {
     if (!event.altKey || event.ctrlKey || event.metaKey || event.shiftKey) return;
-    const handle = (event.target as Element).closest(TRIGGER);
-    const item = this.itemOf(handle);
-    if (!handle || !item || event.target !== handle) return;
+    // On the handle (or ⋯ button holding the moves), or on the item's own link or button, the first
+    // Tab stop of a card that drags whole.
+    const target = event.target as Element;
+    const item = this.itemOf(target);
+    const handle = item && (target.matches(TRIGGER) || target.matches(".ib-listview-action")) ? this.triggerOf(item) : undefined;
+    if (!handle || !item) return;
     // Both axes in every layout: rows that wrap become one column on a phone, and the other
     // arrows would scroll the page.
     const rtl = getComputedStyle(this).direction === "rtl";

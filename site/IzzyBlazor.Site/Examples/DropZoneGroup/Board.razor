@@ -1,83 +1,35 @@
-@* A board: each column is a ListView with a Zone, and the group holds every task. A task moves by
-   dragging its handle into another column, or from its handle's menu (Move to). Done takes only
-   reviewed tasks, and Doing holds three at most. On a static page the group posts with the form:
-   Order holds the posted order and zones, and Save puts each task where the board shows it. *@
-<Stack Gap="3" Grow>
-    <Form Model="this" FormName="drop-zone-board" OnValidSubmit="Save">
-        <DropZoneGroup TItem="BoardTask" @bind-Items="_tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" OnMove="Moved" Name="board" Order="Order">
-            <Grid Columns="new() { Base = 1, Md = 3 }" Gap="3" Align="Align.Start">
-                @foreach (var (zone, label, note) in Columns)
+@* Each column is a ListView with a Zone; the group holds every task and ZoneOf says which column
+   it's in. On a static page every move posts the form (SubmitOnMove) and Order shows it. *@
+<Stack Grow>
+    <Form Model="this" FormName="drop-zone-board">
+        <DropZoneGroup @bind-Items="_tasks" ItemKey="t => t.Id" ZoneOf="t => t.Status" Name="board" Order="Order" SubmitOnMove>
+            <Grid Columns="new() { Base = 1, Md = 3 }" Gap="3">
+                @foreach (var (zone, label) in Columns)
                 {
-                    <Card Title="@label" Description="@note" TitleLevel="3">
-                        <ListView Zone="@zone" AriaLabel="@label" ItemText="t => t.Title" MaxItems="@(zone == "doing" ? 3 : null)"
-                                  ItemDescription="@(t => t.Reviewed ? "Reviewed" : null)" Accepts="@(t => zone != "done" || t.Reviewed)"
-                                  Size="ControlSize.Sm" />
-                    </Card>
+                    <Stack Gap="3" Padding="3" Bg="Color.FillSubtle" Radius="Radius.Lg">
+                        <Heading Level="3" Size="TextSize.Md">@label</Heading>
+                        <ListView Zone="@zone" AriaLabel="@label" Cards ItemText="t => t.Title" Size="ControlSize.Sm" />
+                    </Stack>
                 }
             </Grid>
         </DropZoneGroup>
-        <FormActions><Button Submit>Save board</Button></FormActions>
     </Form>
-    @if (_saved is not null)
-    {
-        <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
-    }
 </Stack>
 
 @code {
     [SupplyParameterFromForm(FormName = "drop-zone-board", Name = "board")]
     private ListOrder? Order { get; set; }
 
-    private static readonly (string Zone, string Label, string? Note)[] Columns =
-        [("todo", "To do", null), ("doing", "Doing", "Three at most."), ("done", "Done", "Reviewed tasks only.")];
+    private static readonly (string Zone, string Label)[] Columns = [("todo", "To do"), ("doing", "Doing"), ("done", "Done")];
 
     private IReadOnlyList<BoardTask> _tasks =
     [
-        new("1", "Write the brief", "todo", reviewed: true),
+        new("1", "Write the brief", "todo"),
         new("2", "Pick a venue", "todo"),
-        new("3", "Book the speakers", "doing", reviewed: true),
-        new("4", "Order the badges", "doing"),
-        new("5", "Set the date", "done", reviewed: true),
+        new("3", "Book the speakers", "doing"),
+        new("4", "Set the date", "done"),
     ];
-
-    private string? _saved;
-
-    // An interactive page: the task takes its new column here, where an app would save it.
-    private void Moved(ListMoveEventArgs<BoardTask> move) => move.Item.Status = move.ToZone!;
-
-    private void Save()
-    {
-        // A menu move posts too; only the Save button saves.
-        if (Order?.Move is not null)
-        {
-            return;
-        }
-
-        if (Order is not null)
-        {
-            // Posted zones are user input: the board's rules are checked again (Done takes only
-            // reviewed tasks, Doing three), and a task that breaks them stays where it was.
-            var places = Order.Arrange(_tasks, t => t.Id, t => t.Status);
-            foreach (var place in places)
-            {
-                var allowed = Columns.Any(c => c.Zone == place.Zone)
-                    && (place.Zone != "done" || place.Item.Reviewed)
-                    && (place.Zone != "doing" || place.Index < 3);
-                place.Item.Status = allowed ? place.Zone : place.Item.Status;
-            }
-
-            _tasks = places.Select(p => p.Item).ToList();
-        }
-
-        _saved = "Saved: " + string.Join("; ", Columns.Select(c => $"{c.Label}: {string.Join(", ", _tasks.Where(t => t.Status == c.Zone).Select(t => t.Title))}")) + ".";
-    }
     @* hide *@
-    private sealed class BoardTask(string id, string title, string status, bool reviewed = false)
-    {
-        public string Id { get; } = id;
-        public string Title { get; } = title;
-        public string Status { get; set; } = status;
-        public bool Reviewed { get; } = reviewed;
-    }
+    private sealed record BoardTask(string Id, string Title, string Status);
     @* /hide *@
 }

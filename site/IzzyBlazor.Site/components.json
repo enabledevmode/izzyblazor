@@ -1445,12 +1445,17 @@
         { "feature": "The moves bound to C#", "member": "Items" }
       ],
       "examples": [
-        { "id": "drop-zone-group-board", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout. The group holds the items: `ZoneOf` says which zone each is in, and `OnMove` gets `FromZone` and `ToZone`. `Accepts` limits what a zone takes and `MaxItems` how many. On a static page give the group a `Name` and pass the posted `ListOrder` back as `Order`; `Order.Arrange` gives each item's zone and place.",
+        { "id": "drop-zone-group-board", "title": "A board", "lead": "Put a `ListView` with a `Zone` in the group for each column, anywhere in its layout; `Cards` draws its items as cards. The group holds the items, and `ZoneOf` says which zone each is in. On an interactive page `@bind-Items` keeps the order, and `OnMove` (with `FromZone` and `ToZone`) is where you save a move. On a static page give the group a `Name` and pass the posted `ListOrder` back as `Order`; `SubmitOnMove` posts each move, and `Order.Arrange` gives each item's zone and place to save. `Accepts` and `MaxItems` limit what a zone takes; the Kanban board demo shows them with cards that drag from anywhere.",
           "notes": {
-            "noscript": "Each move in a handle's menu (Move to and a column, or up and down) posts the form, and the page comes back with the task moved and its handle focused. Save board saves.",
-            "static": "Drag a handle into another column, or use its menu: tasks move in the page and the move is announced. Done refuses tasks that aren't reviewed, and a full Doing takes no more. Save board posts the columns.",
-            "interactive": "Drag a handle into another column, or use its menu: C# moves the task at once (OnMove sets its status) and the move is announced."
+            "noscript": "Each move in a handle's menu (Move to and a column, or up and down) posts the form, and the page comes back with the task moved and its handle focused.",
+            "static": "Drag a handle into another column, or use its menu: the task moves, the move is announced, and the form posts.",
+            "interactive": "Drag a handle into another column, or use its menu: C# moves the task at once and the move is announced."
           } }
+      ],
+      "scenarios": [
+        { "id": "kanban", "title": "Kanban board", "member": "SubmitOnMove",
+          "description": "A team's board in an app shell: four columns with counts, In progress limited to three, and cards with a label, a due date and an owner. Cards drag from anywhere, and the column under the pointer opens a space where the card will land. A click opens a card beside the board (a link), and every move saves, so the link shows the board as it was left. The ⋯ menu has Assign to me and Archive, which post the form on a static page",
+          "example": { "id": "drop-zone-group-kanban", "title": "Spring conference", "height": 760, "page": true } }
       ]
     },
     {
