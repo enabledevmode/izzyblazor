@@ -1,0 +1,34 @@
+@inject NavigationManager Navigation
+
+@* When loading fails: the provider throws, and the table shows "Couldn't load the rows." with
+   Retry in place of the rows (and logs the exception). The link above it takes this stand-in API
+   down or brings it back (?flaky-api=), so Retry can fail or succeed. *@
+<Stack Gap="3" Grow>
+    <TextBlock Size="TextSize.Sm">
+        @(Down ? "The orders API is down." : "The orders API is up.")
+        <Anchor Href="@Navigation.GetUriWithQueryParameter("flaky-api", Down ? "up" : null)">@(Down ? "Bring it back" : "Take it down")</Anchor>
+    </TextBlock>
+    <Table TItem="Order" ItemsProvider="LoadOrders" PageSize="5" InitialSort="-date" Caption="Orders from a flaky API" QueryPrefix="flaky-">
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    </Table>
+</Stack>
+
+@code {
+    [SupplyParameterFromQuery(Name = "flaky-api")] private string? Api { get; set; }
+
+    private bool Down => Api != "up";
+
+    private async ValueTask<DataResult<Order>> LoadOrders(DataRequest<Order> request)
+    {
+        await Task.Delay(300, request.CancellationToken); // a network call
+        if (Down)
+        {
+            throw new HttpRequestException("The orders API didn't answer.");
+        }
+
+        return request.ToResult(Orders.All.AsQueryable());
+    }
+}

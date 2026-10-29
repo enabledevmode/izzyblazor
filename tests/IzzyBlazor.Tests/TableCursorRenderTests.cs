@@ -15,16 +15,16 @@ public class TableCursorRenderTests : BunitContext
     // A cursor API over Rows: "c{offset}" cursors, two rows a page, no total unless asked.
     private sealed class Api(Row[] data, bool total = false, bool previous = false)
     {
-        public List<TableRequest<Row>> Requests { get; } = [];
+        public List<DataRequest<Row>> Requests { get; } = [];
 
         public Row[] Data { get; set; } = data;
 
-        public ValueTask<TableResult<Row>> Load(TableRequest<Row> request)
+        public ValueTask<DataResult<Row>> Load(DataRequest<Row> request)
         {
             Requests.Add(request);
             var at = request.Cursor is null ? 0 : int.Parse(request.Cursor[1..], System.Globalization.CultureInfo.InvariantCulture);
-            var size = request.PageSize ?? Data.Length;
-            return ValueTask.FromResult(new TableResult<Row>(Data.Skip(at).Take(size).ToList(), total ? Data.Length : null)
+            var size = request.Take ?? Data.Length;
+            return ValueTask.FromResult(new DataResult<Row>(Data.Skip(at).Take(size).ToList(), total ? Data.Length : null)
             {
                 Next = at + size < Data.Length ? $"c{at + size}" : null,
                 Previous = previous && at > 0 ? $"c{Math.Max(0, at - size)}" : null,
@@ -256,21 +256,21 @@ public class TableCursorRenderTests : BunitContext
     // A cursor API whose answers wait until the test releases them.
     private sealed class SlowApi
     {
-        public List<(TableRequest<Row> Request, TaskCompletionSource<TableResult<Row>> Answer)> Pending { get; } = [];
+        public List<(DataRequest<Row> Request, TaskCompletionSource<DataResult<Row>> Answer)> Pending { get; } = [];
 
-        public ValueTask<TableResult<Row>> Load(TableRequest<Row> request)
+        public ValueTask<DataResult<Row>> Load(DataRequest<Row> request)
         {
-            var answer = new TaskCompletionSource<TableResult<Row>>();
+            var answer = new TaskCompletionSource<DataResult<Row>>();
             Pending.Add((request, answer));
-            return new ValueTask<TableResult<Row>>(answer.Task);
+            return new ValueTask<DataResult<Row>>(answer.Task);
         }
 
         public void Answer(int index)
         {
             var (request, answer) = Pending[index];
             var at = request.Cursor is null ? 0 : int.Parse(request.Cursor[1..], System.Globalization.CultureInfo.InvariantCulture);
-            var rows = request.Descending ? Rows.Reverse().ToArray() : Rows;
-            answer.SetResult(new TableResult<Row>(rows.Skip(at).Take(2).ToList()) { Next = at + 2 < rows.Length ? $"c{at + 2}" : null });
+            var rows = request.Sort is [{ Descending: true }] ? Rows.Reverse().ToArray() : Rows;
+            answer.SetResult(new DataResult<Row>(rows.Skip(at).Take(2).ToList()) { Next = at + 2 < rows.Length ? $"c{at + 2}" : null });
         }
     }
 

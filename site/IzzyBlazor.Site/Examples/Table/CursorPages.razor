@@ -10,13 +10,13 @@
 
 @code {
     // Here the cursor is an offset in base64; a real API's would be its own token.
-    private static ValueTask<TableResult<Order>> LoadOrders(TableRequest<Order> request)
+    private static ValueTask<DataResult<Order>> LoadOrders(DataRequest<Order> request)
     {
-        var size = request.PageSize ?? 5;
+        var size = request.Take ?? 5;
         var at = Decode(request.Cursor);
         var query = request.ApplySorting(request.ApplyFiltering(Orders.All.AsQueryable()));
         var total = query.Count();
-        return ValueTask.FromResult(new TableResult<Order>(query.Skip(at).Take(size).ToList(), total)
+        return ValueTask.FromResult(new DataResult<Order>(query.Skip(at).Take(size).ToList(), total)
         {
             Next = at + size < total ? Encode(at + size) : null,
             Previous = at > 0 ? Encode(Math.Max(0, at - size)) : null,

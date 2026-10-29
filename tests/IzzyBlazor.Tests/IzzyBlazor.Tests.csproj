@@ -12,6 +12,8 @@
     <!-- bunit 2.x depends on AngleSharp 1.8.1+, past the CVE-2026-54570 fix in 1.5.0.
          bunit 1.x can't use a patched AngleSharp: 1.8 is not binary compatible with it. -->
     <PackageReference Include="bunit" Version="2.11.3" />
+    <!-- Filters must translate to SQL: the data tests run them through EF Core's SQLite provider. -->
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.13" />
   </ItemGroup>
 
   <ItemGroup>

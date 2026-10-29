@@ -36,6 +36,14 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public bool FilterMultiple { get; set; }
 
+    /// <summary>
+    /// Builds this column's filter condition yourself, for a computed value or one stored
+    /// differently from how it's shown. It gets the condition (operator and values parsed for the
+    /// column's type) and returns the filter on the item, or null for the usual one. See
+    /// <see cref="DataField{TItem}.Filter"/>.
+    /// </summary>
+    [Parameter] public Func<FieldFilter, Expression<Func<TItem, bool>>?>? Filter { get; set; }
+
     /// <summary>How the cells line up. Defaults to the end for numbers and the start otherwise.</summary>
     [Parameter] public CellAlign? Align { get; set; }
 
@@ -71,8 +79,11 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>The options of a select filter: value and text.</summary>
     internal virtual IReadOnlyList<(string Value, string Text)> FilterChoices(IzzyText text) => [];
 
-    /// <summary>Keeps the items that match the filter value.</summary>
-    internal virtual IQueryable<TItem> ApplyFilter(IQueryable<TItem> source, string value) => source;
+    /// <summary>The type of the value the column filters, or null when it can't.</summary>
+    internal virtual Type? ValueType => null;
+
+    /// <summary>The column as a field, for requests: null when it has no key or nothing to read.</summary>
+    internal abstract DataField<TItem>? ToField(IzzyText text);
 
     /// <summary>Why <see cref="Filterable"/> can't work on this column, or null when it can.</summary>
     protected virtual string? FilterProblem => null;
@@ -90,9 +101,6 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     /// <summary>Whether the column knows what to sort by.</summary>
     protected abstract bool HasSortExpression { get; }
-
-    /// <summary>Orders the query by this column.</summary>
-    internal abstract IQueryable<TItem> ApplySort(IQueryable<TItem> source, bool descending);
 
     /// <summary>The cell content for an item.</summary>
     internal abstract RenderFragment Cell(TItem item);
@@ -151,13 +159,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <inheritdoc />
     public void Dispose() => Table?.RemoveColumn(this);
 
-    internal static bool IsNumeric(Type type)
-    {
-        type = Nullable.GetUnderlyingType(type) ?? type;
-        return type == typeof(int) || type == typeof(long) || type == typeof(decimal) || type == typeof(double)
-            || type == typeof(float) || type == typeof(short) || type == typeof(byte) || type == typeof(uint)
-            || type == typeof(ulong) || type == typeof(ushort) || type == typeof(sbyte);
-    }
+    internal static bool IsNumeric(Type type) => FilterValues.IsNumeric(type);
 }
 
 /// <summary>
@@ -183,7 +185,7 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
 
     /// <inheritdoc />
     protected override string? DefaultTitle =>
-        _member?.GetCustomAttribute<DisplayAttribute>()?.GetName() ?? (_member is null ? null : Words(_member.Name));
+        _member?.GetCustomAttribute<DisplayAttribute>()?.GetName() ?? (_member is null ? null : DataFields.Words(_member.Name));
 
     /// <inheritdoc />
     protected override string? DefaultSortKey => _path;
@@ -232,17 +234,21 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
     internal override IReadOnlyList<(string Value, string Text)> FilterChoices(IzzyText text) => ColumnFilter.Choices(typeof(TValue), text);
 
     /// <inheritdoc />
-    internal override IQueryable<TItem> ApplyFilter(IQueryable<TItem> source, string value) => FilterKind switch
-    {
-        ColumnFilterKind.Text => ColumnFilter.Contains(source, Property, value),
-        ColumnFilterKind.Date => ColumnFilter.OnDay(source, Property, value),
-        ColumnFilterKind.Number => ColumnFilter.Between(source, Property, value),
-        ColumnFilterKind.Choice when FilterMultiple => ColumnFilter.AnyOf(source, Property, ColumnFilter.SplitValues(value)),
-        _ => ColumnFilter.EqualTo(source, Property, value),
-    };
+    internal override Type? ValueType => typeof(TValue);
 
-    internal override IQueryable<TItem> ApplySort(IQueryable<TItem> source, bool descending) =>
-        descending ? source.OrderByDescending(Property) : source.OrderBy(Property);
+    /// <inheritdoc />
+    internal override DataField<TItem>? ToField(IzzyText text) => Key is not { } key || Property is null ? null : new()
+    {
+        Key = key,
+        Value = Property,
+        Caption = HeaderText,
+        Format = Format,
+        Sortable = CanSort,
+        Filterable = CanFilter,
+        Searchable = FilterKind == ColumnFilterKind.Text,
+        Choices = FilterKind == ColumnFilterKind.Choice ? FilterChoices(text) : null,
+        Filter = Filter,
+    };
 
     internal override RenderFragment Cell(TItem item) => builder =>
     {
@@ -251,26 +257,6 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
             ? formattable.ToString(Format, CultureInfo.CurrentCulture)
             : value?.ToString());
     };
-
-    // "OrderDate" -> "Order date"
-    private static string Words(string name)
-    {
-        var chars = new System.Text.StringBuilder(name.Length + 4);
-        for (var i = 0; i < name.Length; i++)
-        {
-            var c = name[i];
-            if (i > 0 && char.IsUpper(c) && !char.IsUpper(name[i - 1]))
-            {
-                chars.Append(' ').Append(char.ToLowerInvariant(c));
-            }
-            else
-            {
-                chars.Append(c);
-            }
-        }
-
-        return chars.ToString();
-    }
 }
 
 /// <summary>
@@ -305,102 +291,32 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         : null;
 
     /// <inheritdoc />
-    internal override IQueryable<TItem> ApplyFilter(IQueryable<TItem> source, string value) =>
-        FilterBy is null ? source : ColumnFilter.Contains(source, FilterBy, value);
+    internal override Type? ValueType => FilterBy is null ? null : typeof(string);
 
-    internal override IQueryable<TItem> ApplySort(IQueryable<TItem> source, bool descending) =>
-        SortBy is null ? source : descending ? source.OrderByDescending(SortBy) : source.OrderBy(SortBy);
+    /// <inheritdoc />
+    internal override DataField<TItem>? ToField(IzzyText text) => Key is not { } key || (FilterBy ?? (LambdaExpression?)SortBy) is not { } value ? null : new()
+    {
+        Key = key,
+        Value = value,
+        SortValue = FilterBy is null ? null : SortBy,
+        Caption = HeaderText,
+        Sortable = CanSort,
+        Filterable = CanFilter,
+        Searchable = FilterBy is not null,
+        Filter = Filter,
+    };
 
     internal override RenderFragment Cell(TItem item) => ChildContent?.Invoke(item) ?? (_ => { });
-}
-
-/// <summary>What a <see cref="Table{TItem}"/> asks its <c>ItemsProvider</c> for.</summary>
-/// <param name="SortKey">The sorted column's key, or null.</param>
-/// <param name="Descending">Whether the sort is descending.</param>
-/// <param name="Page">The page, from 1. When the table pages by cursor, the page's position (3 is rows 401–600 at 200 a page).</param>
-/// <param name="PageSize">Items per page, or null when the table doesn't page.</param>
-public sealed record TableRequest<TItem>(string? SortKey, bool Descending, int Page, int? PageSize)
-{
-    /// <summary>
-    /// When the table pages by cursor (<see cref="TablePaging"/>), the <see cref="TableResult{TItem}.Next"/>
-    /// or <see cref="TableResult{TItem}.Previous"/> of an earlier page, as it was given; null for the
-    /// first page. Always null with <see cref="TablePaging.Pages"/>.
-    /// </summary>
-    public string? Cursor { get; init; }
-
-    internal ColumnBase<TItem>? Column { get; init; }
-
-    internal IReadOnlyList<ColumnBase<TItem>> FilterColumns { get; init; } = [];
-
-    /// <summary>
-    /// The filter values, by column key (<c>"customer"</c> → <c>"ada"</c>). A number column's is a
-    /// range, <c>"100..500"</c>, with either end left empty for "or more" (<c>"100.."</c>) or "or less"
-    /// (<c>"..500"</c>). Several chosen values (<c>FilterMultiple</c>) are joined with commas. Empty
-    /// when nothing is filtered.
-    /// </summary>
-    public IReadOnlyDictionary<string, string> Filters { get; init; } = new Dictionary<string, string>();
-
-    /// <summary>Keeps the items that match the requested filters, using each column's own expression (EF Core translates it).</summary>
-    public IQueryable<TItem> ApplyFiltering(IQueryable<TItem> source)
-    {
-        foreach (var column in FilterColumns)
-        {
-            if (column.Key is { } key && Filters.TryGetValue(key, out var value) && !string.IsNullOrWhiteSpace(value))
-            {
-                source = column.ApplyFilter(source, value.Trim());
-            }
-        }
-
-        return source;
-    }
-
-    /// <summary>Items to skip for this page.</summary>
-    public int Skip => PageSize is { } size ? (Page - 1) * size : 0;
-
-    /// <summary>Applies the requested sort to a query, using the column's own expression (EF Core translates it).</summary>
-    public IQueryable<TItem> ApplySorting(IQueryable<TItem> source) => Column is null ? source : Column.ApplySort(source, Descending);
-
-    /// <summary>
-    /// Applies the requested filters, sort and page to a query. Count the total with
-    /// <see cref="ApplyFiltering"/>, so it counts what the filters keep.
-    /// </summary>
-    public IQueryable<TItem> Apply(IQueryable<TItem> source)
-    {
-        var sorted = ApplySorting(ApplyFiltering(source));
-        return PageSize is { } size ? sorted.Skip(Skip).Take(size) : sorted;
-    }
-}
-
-/// <summary>
-/// What an <c>ItemsProvider</c> returns: one page of items, and the total count or the cursors of
-/// the pages around it.
-/// </summary>
-/// <param name="Items">The items on this page.</param>
-/// <param name="TotalItems">
-/// How many items match in all. Required with <see cref="TablePaging.Pages"/>, which numbers the
-/// pages from it; optional when the table pages by cursor, where it adds "of 1,234" to the range.
-/// </param>
-public sealed record TableResult<TItem>(IReadOnlyList<TItem> Items, int? TotalItems = null)
-{
-    /// <summary>The cursor of the page after this one, or null on the last page. Used when the table pages by cursor.</summary>
-    public string? Next { get; init; }
-
-    /// <summary>
-    /// The cursor of the page before this one, if your data source gives one. Without it the table
-    /// goes back to cursors it has seen on interactive pages; on static pages Previous is unavailable
-    /// past the second page (First still works).
-    /// </summary>
-    public string? Previous { get; init; }
 }
 
 /// <summary>How a <see cref="Table{TItem}"/> with a page size moves through its pages.</summary>
 public enum TablePaging
 {
-    /// <summary>Numbered pages and "1–10 of 42". Needs the total (<see cref="TableResult{TItem}.TotalItems"/>). The default.</summary>
+    /// <summary>Numbered pages and "1–10 of 42". Needs the total (<see cref="DataResult{TItem}.Total"/>). The default.</summary>
     Pages,
 
     /// <summary>
-    /// First, previous and next only, by cursor (<see cref="TableResult{TItem}.Next"/>): for data
+    /// First, previous and next only, by cursor (<see cref="DataResult{TItem}.Next"/>): for data
     /// that has no total, or that pages by a token. Each page replaces the one shown.
     /// </summary>
     NextPrevious,

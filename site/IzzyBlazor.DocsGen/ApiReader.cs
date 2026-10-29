@@ -315,7 +315,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
                 .Select(ReadMethod);
 
             // Then what an instance has: an options class's settings (ConfirmOptions.Accent), a
-            // record's values and helpers (TableRequest.Page, ApplySorting).
+            // record's values and helpers (DataRequest.Page, ApplySorting).
             var instance = InstanceOf(type);
             var properties = type.GetProperties(Instance)
                 .Where(p => p.GetIndexParameters().Length == 0 && p.GetMethod is { IsPublic: true } && !Removed(p))

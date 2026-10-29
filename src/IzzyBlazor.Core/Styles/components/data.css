@@ -577,6 +577,24 @@
     padding-inline: var(--ib-table-px);
   }
 
+  /* A failed load: the message, then Retry. In place of the rows it sits where "No items" would,
+     in the body's color; under rows Load more added, it takes Load more's place. */
+  .ib-table-error-content {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: var(--ib-space-2) var(--ib-space-3);
+  }
+
+  .ib-table-error > td {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-table-more .ib-table-error-content {
+    justify-content: flex-start;
+  }
+
   /* Sort headers: the whole header is the link; the icon shows the state. */
   .ib-table-sort {
     display: inline-flex;

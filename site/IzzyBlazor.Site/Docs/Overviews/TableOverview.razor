@@ -1,6 +1,6 @@
 @* Table's Overview, written by hand after Button's: the URL-first behavior (sorting, paging,
    filters) previewed in each mode, selection in a form, then state in the component (Live only),
-   data from a database, row links and the look as code. From docs/components.md (Table) and the
+   data from a database or an API, a failed load, row links and the look as code. From docs/components.md (Table) and the
    dev host's TableDemo. *@
 
 <Heading Level="2">Usage</Heading>
@@ -22,13 +22,20 @@
 <TextBlock>Read the keys with <Code>[SupplyParameterFromForm(Name = "selected")]</Code> on a static page, or <Code>@@bind-SelectedKeys</Code> on an interactive one. Give columns <Code>FooterText</Code> for a totals row.</TextBlock>
 
 <Heading Level="2">State in the component</Heading>
-<TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filters</Code> on an interactive page to keep them in C# instead of the URL: for a table in a dialog, or anywhere the address shouldn't change.</TextBlock>
+<TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code> on an interactive page to keep them in C# instead of the URL: for a table in a dialog, or anywhere the address shouldn't change.</TextBlock>
 <ExampleViewer Example="table-bound" />
 <TextBlock>The table starts from the URL if it has values, and a new sort or filter goes back to page 1. Set the page back to 1 yourself when your own filters change.</TextBlock>
+<TextBlock>The filter is a <Code>Filter</Code>: <Code>Filter.All</Code> of one condition per filtered column (contains for text, between for a number, on day for a date, equals or in for a choice). Set one in C# to filter from code. A condition no column's panel can show, such as an or, still applies, and shows as a tag that removes it:</TextBlock>
+<Code Block Language="razor">@BoundFilter</Code>
 
 <Heading Level="2">Data from a database</Heading>
-<TextBlock>Pass an EF Core <Code>IQueryable</Code> as <Code>Items</Code>, and the database sorts, filters and pages. For more control, use <Code>ItemsProvider</Code> to load each page yourself:</TextBlock>
+<TextBlock>Pass an EF Core <Code>IQueryable</Code> as <Code>Items</Code>, and the database sorts, filters and pages. For more control, use <Code>ItemsProvider</Code> to load the rows yourself. It gets a <Code>DataRequest</Code> (the range as <Code>Skip</Code> and <Code>Take</Code>, the <Code>Sort</Code>, the <Code>Filter</Code>, and the columns, which say how each key reads an item) and returns a <Code>DataResult</Code>. <Code>ToResultAsync</Code> counts what the filter keeps and lists the page, through EF Core's async methods:</TextBlock>
 <Code Block Language="razor">@Provider</Code>
+<TextBlock>The filter becomes a LINQ expression on each column's own property, so the database filters, and a value typed into a filter never becomes code. <Code>request.Apply(query)</Code> does the same without counting; <Code>ApplyFiltering</Code> and <Code>ApplySorting</Code> do one part each. To filter a column your own way, such as a value stored differently from how it's shown, give it a <Code>Filter</Code> that returns the condition:</TextBlock>
+<Code Block Language="razor">@CustomCondition</Code>
+<TextBlock>When the rows come from an API, pass the request on. <Code>request.Filter?.Find("status")</Code> reads one column's condition, and <Code>request.ToQueryString()</Code> writes the whole request (<Code>sort=-date&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code>). The API reads it back with <Code>DataRequest&lt;Order&gt;.Parse</Code> and applies it through the fields it declares, so a request can't reach other properties. <Code>ToODataQuery()</Code> writes it for an OData endpoint, and the request also serializes with <Code>System.Text.Json</Code>.</TextBlock>
+<TextBlock><Code>DataFields.Of&lt;T&gt;()</Code> declares every public property, so read it from a type made for the API, or leave a property out with <Code>[ScaffoldColumn(false)]</Code>. The request asks for its own <Code>Take</Code>, so cap it on the server if it shouldn't ask for every row.</TextBlock>
+<Code Block Language="csharp">@OverTheWire</Code>
 
 <Heading Level="2">Paging without a total</Heading>
 <TextBlock>When the data pages by cursor (an opaque "next" token, as many APIs and logs do) or has no total, set <Code>Paging</Code> and return the next cursor from your <Code>ItemsProvider</Code>. The table passes it back as <Code>request.Cursor</Code>; the total is optional.</TextBlock>
@@ -40,6 +47,10 @@
 <ExampleViewer Example="table-cursor-pages" />
 <TextBlock><Code>TablePaging.LoadOnScroll</Code> loads the next page as the last row comes into view, on interactive pages. Give the table a <Code>MaxHeight</Code>, so it scrolls in its own box and what's under it stays within reach. Its Load more button is for the keyboard, out of sight until it has focus; on static pages and with JavaScript off it shows, as a link to the next page. Both modes also work with <Code>Items</Code>, where the table pages by row offset.</TextBlock>
 <ExampleViewer Example="table-load-on-scroll" />
+
+<Heading Level="2">When loading fails</Heading>
+<TextBlock>If the <Code>ItemsProvider</Code> throws (or an <Code>IQueryable</Code> in <Code>Items</Code> does), the table logs the exception and shows "Couldn't load the rows." with Retry in place of the rows. On static pages and with JavaScript off, Retry is a link to the same address. <Code>ErrorContent</Code> replaces the message. With Load more, the rows already shown stay, and the message and Retry take the button's place under them. A request the table canceled because a newer one replaced it isn't an error: pass <Code>request.CancellationToken</Code> on to stop the work.</TextBlock>
+<ExampleViewer Example="table-load-error" />
 
 <Heading Level="2">Row links</Heading>
 <TextBlock>Use <Code>RowHref</Code> to make each row a link, and <Code>RowLabel</Code> to name it. Links, buttons and checkboxes inside the row still work on their own. Use <Code>RowCurrent</Code> to mark the row the page is showing, such as the one whose details are beside the table: it's drawn as selected and screen readers hear it as current (<Anchor Href="docs/components/app-shell">AppShell</Anchor> has one with its details in an aside).</TextBlock>
@@ -93,22 +104,54 @@
         <Table TItem="Order" ItemsProvider="LoadOrders" PageSize="10">...</Table>
 
         @code {
-            async ValueTask<TableResult<Order>> LoadOrders(TableRequest<Order> request)
+            async ValueTask<DataResult<Order>> LoadOrders(DataRequest<Order> request)
             {
-                var query = db.Orders.Where(o => o.Active);
-                var page = await request.Apply(query).ToListAsync();   // filters, sorts, pages
-                return new(page, await request.ApplyFiltering(query).CountAsync());
+                var query = db.Orders.AsNoTracking().Where(o => o.Active);
+                return await request.ToResultAsync(query,             // filters, sorts, pages
+                    count: (q, ct) => q.CountAsync(ct),
+                    list: (q, ct) => q.ToListAsync(ct));
             }
         }
+        """;
+
+    private const string BoundFilter = """
+        <Table Items="orders" @bind-Filter="filter">...</Table>
+
+        @code {
+            Filter? filter = Filter.Where("status", FilterOperator.Equals, "Paid");
+        }
+        """;
+
+    private const string CustomCondition = """
+        @* Tags are stored as "red;green": "green" in the filter finds it. *@
+        <PropertyColumn Property="o => o.Tags" Filterable
+                        Filter='f => o => (";" + o.Tags + ";").Contains(";" + f.Value + ";")' />
+        """;
+
+    private const string OverTheWire = """
+        // In the browser (WebAssembly): the provider calls the API with the request.
+        async ValueTask<DataResult<Order>> LoadOrders(DataRequest<Order> request) =>
+            (await http.GetFromJsonAsync<DataResult<Order>>(
+                $"api/orders?{request.ToQueryString()}", request.CancellationToken))!;
+
+        // On the server: only the fields declared here can be filtered or sorted.
+        app.MapGet("/api/orders", async (HttpContext http, ShopDb db) =>
+        {
+            var request = DataRequest<Order>.Parse(http.Request.QueryString.Value ?? "")
+                with { CancellationToken = http.RequestAborted };
+            request = request with { Take = Math.Min(request.Take ?? 100, 100) };   // at most 100 rows
+            return await request.ToResultAsync(db.Orders.AsNoTracking(), DataFields.Of<Order>(),
+                count: (q, ct) => q.CountAsync(ct), list: (q, ct) => q.ToListAsync(ct));
+        });
         """;
 
     private const string Cursor = """
         <Table TItem="AuditEvent" ItemsProvider="LoadEvents" PageSize="200" Paging="TablePaging.LoadMore">...</Table>
 
         @code {
-            async ValueTask<TableResult<AuditEvent>> LoadEvents(TableRequest<AuditEvent> request)
+            async ValueTask<DataResult<AuditEvent>> LoadEvents(DataRequest<AuditEvent> request)
             {
-                var page = await api.ListEventsAsync(cursor: request.Cursor, limit: request.PageSize ?? 200);
+                var page = await api.ListEventsAsync(cursor: request.Cursor, limit: request.Take ?? 200);
                 return new(page.Items) { Next = page.Next };   // no total needed
             }
         }

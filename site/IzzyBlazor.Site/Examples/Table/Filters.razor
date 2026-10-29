@@ -1,7 +1,7 @@
 @* Column filters: a funnel in each Filterable header opens the filter; active filters show as tags
    above the table. Text matches anywhere, enums get a menu, numbers take a range. *@
-<Table Items="Orders.All" PageSize="5" InitialSort="-date" Caption="Filtered orders" QueryPrefix="orders-" Grow>
-    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
+<Table Items="Orders.All" PageSize="5" InitialSort="-number" Caption="Filtered orders" QueryPrefix="orders-" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
     <PropertyColumn Property="o => o.Customer" Sortable Filterable />
     <PropertyColumn Property="o => o.Status" Sortable Filterable />
     <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable />
