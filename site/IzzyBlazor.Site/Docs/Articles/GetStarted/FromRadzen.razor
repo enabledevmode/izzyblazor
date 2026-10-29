@@ -85,7 +85,7 @@
                 <Code>?sort=email</Code>, page numbers set <Code>?page=2</Code>, and a filter sets <Code>?f-email=</Code>.
                 The view survives a reload and can be shared, and the back button undoes a sort. Two tables on one page share
                 these keys unless one has a <Code>QueryPrefix</Code>. To keep the state in the component instead, as Radzen
-                does, bind it: <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code>, <Code>@@bind-Filters</Code>.
+                does, bind it: <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code>, <Code>@@bind-Filter</Code>.
             </ListItem>
             <ListItem>
                 <strong>Filters are in the header, not in a row under it.</strong> A filterable column has a filter button that
@@ -108,7 +108,8 @@
         </List>
         <TextBlock>
             See <Anchor Href="docs/components/table">Table</Anchor> for an <Code>ItemsProvider</Code> that loads each page
-            from a server; its request carries the sort, the page and the filters by column.
+            from a server; its <Code>DataRequest</Code> carries the sort, the range and the filter, and
+            <Code>ToResultAsync</Code> applies them to an EF Core query, as <Code>LoadDataArgs</Code> with Dynamic LINQ did.
         </TextBlock>
 
         <Heading Level="2">Paging by cursor</Heading>
@@ -120,9 +121,9 @@
         </TextBlock>
         @SideBySide(CursorBefore, CursorIzzy, "Built by hand")
         <TextBlock>
-            The table has no error state: an exception in the provider goes to the page, as one in an event handler does.
-            Catch a failed request in the provider and show it yourself, as the hand-built list did, and return no rows.
-            <Code>ReloadAsync()</Code> loads the list again from where it began, for a new search. With an
+            The table has an error state: when the provider throws, it shows "Couldn't load the rows." with Retry, and with
+            Load more the rows already shown stay and the message goes under them. So the provider throws on a failed
+            request instead of keeping a message of its own. <Code>ReloadAsync()</Code> loads the list again from where it began, for a new search. With an
             <Code>ItemKey</Code>, a row that's already shown isn't added twice. <Code>TablePaging.NextPrevious</Code> shows
             First, Previous and Next instead, and <Code>LoadOnScroll</Code> loads as the last row comes into view; see
             <Anchor Href="docs/components/table#paging-without-a-total">Paging without a total</Anchor>.
@@ -607,25 +608,22 @@
           </TemplateColumn>
           ...
         </Table>
-        @if (_failure is not null)
-        {
-          <Alert Status="Status.Warning">@_failure</Alert>
-        }
 
         @code {
           private Table<DecisionSummary>? _log;
 
+          // A failure throws: the table shows it,
+          // with Retry.
           private async
-            ValueTask<TableResult<DecisionSummary>>
-            LoadAsync(TableRequest<DecisionSummary> r)
+            ValueTask<DataResult<DecisionSummary>>
+            LoadAsync(DataRequest<DecisionSummary> r)
           {
-            _failure = null;
             var page = await Api.SearchAsync(
               _query, r.Cursor);
             if (page.Failed)
             {
-              _failure = "The log couldn't load.";
-              return new([]);
+              throw new HttpRequestException(
+                "The log couldn't load.");
             }
             return new(page.Items)
             {

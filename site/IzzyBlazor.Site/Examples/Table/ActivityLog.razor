@@ -37,10 +37,10 @@
 
 @code {
     // The filters go to the API with the cursor; the table drops the cursor when one changes.
-    private static async ValueTask<TableResult<AuditEvent>> LoadEvents(TableRequest<AuditEvent> request)
+    private static async ValueTask<DataResult<AuditEvent>> LoadEvents(DataRequest<AuditEvent> request)
     {
-        var (items, next) = await Events.ListAsync(request.Cursor, request.PageSize ?? 12,
-            request.Filters.GetValueOrDefault("who"), request.Filters.GetValueOrDefault("what"));
-        return new TableResult<AuditEvent>(items) { Next = next };
+        var (items, next) = await Events.ListAsync(request.Cursor, request.Take ?? 12,
+            request.Filter?.Find("who")?.Value as string, request.Filter?.Find("what")?.Value as string);
+        return new DataResult<AuditEvent>(items) { Next = next };
     }
 }

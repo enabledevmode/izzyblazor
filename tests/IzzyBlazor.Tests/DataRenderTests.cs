@@ -243,20 +243,19 @@ public class DataRenderTests : BunitContext
     public void Items_provider_gets_the_request()
     {
         GoTo("/rows?x-sort=-name&x-page=2");
-        TableRequest<Row>? seen = null;
+        DataRequest<Row>? seen = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.QueryPrefix, "x-")
             .Add(t => t.PageSize, 1)
             .Add(t => t.ItemsProvider, request =>
             {
                 seen = request;
-                return ValueTask.FromResult(new TableResult<Row>(request.Apply(Rows.AsQueryable()).ToList(), Rows.Length));
+                return ValueTask.FromResult(new DataResult<Row>(request.Apply(Rows.AsQueryable()).ToList(), Rows.Length));
             })
             .Add(t => t.ChildContent, Columns));
 
         Assert.NotNull(seen);
-        Assert.Equal("name", seen!.SortKey);
-        Assert.True(seen.Descending);
+        Assert.Equal(new[] { new SortField("name", Descending: true) }, seen!.Sort);
         Assert.Equal(2, seen.Page);
         Assert.Equal(1, seen.Skip);
         Assert.Equal(new[] { "b" }, Column(cut, 0));

@@ -36,15 +36,16 @@ class Table extends IzzyElement {
   }
 
   /**
-   * Filters kept in the component (bound, interactive pages) handle their own typing; Enter in one of their panels
-   * closes it and puts focus back on its button, as it does for the URL filters below.
+   * Filters kept in the component (bound, interactive pages) handle their own typing; Enter or Escape in one of their
+   * panels closes it and puts focus back on its button, as for the URL filters below (Escape before a search box
+   * clears itself, which would clear the filter).
    */
   #setupBoundPanels(signal: AbortSignal): void {
     this.addEventListener(
       "keydown",
       (event) => {
         const target = event.target;
-        if (event.key !== "Enter" || event.isComposing || !(target instanceof HTMLInputElement)) return;
+        if ((event.key !== "Enter" && event.key !== "Escape") || event.isComposing || !(target instanceof HTMLInputElement)) return;
         if (target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel")) return;
         if (this.#closePanel(target)) event.preventDefault();
       },

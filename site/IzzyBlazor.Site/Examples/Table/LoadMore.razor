@@ -8,9 +8,9 @@
 </Table>
 
 @code {
-    private static async ValueTask<TableResult<AuditEvent>> LoadEvents(TableRequest<AuditEvent> request)
+    private static async ValueTask<DataResult<AuditEvent>> LoadEvents(DataRequest<AuditEvent> request)
     {
-        var (items, next) = await Events.ListAsync(request.Cursor, request.PageSize ?? 8);
-        return new TableResult<AuditEvent>(items) { Next = next };
+        var (items, next) = await Events.ListAsync(request.Cursor, request.Take ?? 8);
+        return new DataResult<AuditEvent>(items) { Next = next };
     }
 }

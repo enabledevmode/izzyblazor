@@ -280,18 +280,18 @@ public class TableFilterRenderTests : BunitContext
     {
         Nav.NavigateTo("/orders?f-name=gr");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        TableRequest<Row>? seen = null;
+        DataRequest<Row>? seen = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.ItemsProvider, request =>
             {
                 seen = request;
                 var query = Rows.AsQueryable();
-                return ValueTask.FromResult(new TableResult<Row>(request.Apply(query).ToList(), request.ApplyFiltering(query).Count()));
+                return ValueTask.FromResult(new DataResult<Row>(request.Apply(query).ToList(), request.ApplyFiltering(query).Count()));
             })
             .Add(t => t.PageSize, 10)
             .Add(t => t.ChildContent, Columns));
 
-        Assert.Equal("gr", seen!.Filters["name"]);
+        Assert.Equal(new FieldFilter("name", FilterOperator.Contains, "gr"), seen!.Filter!.Find("name"));
         Assert.Equal(new[] { "Grace" }, Names(cut));
         Assert.Contains("1–1 of 1", cut.Find(".ib-table-summary").TextContent);
     }
@@ -300,12 +300,12 @@ public class TableFilterRenderTests : BunitContext
     public void Bound_filters_apply_in_place_after_a_pause_and_go_back_to_page_one()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var reported = new List<IReadOnlyDictionary<string, string>>();
+        var reported = new List<Filter?>();
         var pages = new List<int>();
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.PageSize, 1)
-            .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported.Add(f))
+            .Add(t => t.FilterChanged, (Filter? f) => reported.Add(f))
             .Add(t => t.PageChanged, (int page) => pages.Add(page))
             .Add(t => t.ChildContent, Columns));
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
@@ -319,7 +319,7 @@ public class TableFilterRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(new[] { "Ada" }, Names(cut));
-            Assert.Equal("ad", Assert.Single(reported)["name"]);
+            Assert.Equal("ad", Assert.Single(reported)!.Find("name")!.Value);
             Assert.Equal(new[] { 2, 1 }, pages);
             Assert.Contains("1–1 of 2", cut.Find(".ib-table-summary").TextContent);
         });
@@ -329,7 +329,7 @@ public class TableFilterRenderTests : BunitContext
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(new[] { "adam" }, Names(cut));
-            Assert.Equal("Refunded", reported.Last()["status"]);
+            Assert.Equal(Paid.Refunded, reported.Last()!.Find("status")!.Value);
         });
     }
 
@@ -337,10 +337,10 @@ public class TableFilterRenderTests : BunitContext
     public void Bound_number_filter_puts_its_two_ends_together()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        IReadOnlyDictionary<string, string>? reported = null;
+        Filter? reported = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported = f)
+            .Add(t => t.FilterChanged, (Filter? f) => reported = f)
             .Add(t => t.ChildContent, Columns));
         // Both ends typed within one pause: the filter applies once, with both.
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(200);
@@ -349,7 +349,7 @@ public class TableFilterRenderTests : BunitContext
         cut.FindAll("[role=group] input")[1].Input("2");
         cut.WaitForAssertion(() =>
         {
-            Assert.Equal("2..2", reported!["qty"]);
+            Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 2, 2), reported!.Find("qty"));
             Assert.Equal(new[] { "Ada" }, Names(cut));
             Assert.Equal("Filter Qty: 2", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
         });
@@ -400,17 +400,17 @@ public class TableFilterRenderTests : BunitContext
     public void Bound_multiple_filter_toggles_in_place()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        IReadOnlyDictionary<string, string>? reported = null;
+        Filter? reported = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported = f)
+            .Add(t => t.FilterChanged, (Filter? f) => reported = f)
             .Add(t => t.ChildContent, MultiColumns));
 
         cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "No").Click();
         cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "Refunded").Click();
 
         Assert.Equal(new[] { "Grace", "adam" }, Names(cut));
-        Assert.Equal("No,Refunded", reported!["status"]);
+        Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported!.Find("status")!.Values);
         Assert.Null(cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "No").GetAttribute("popovertargetaction"));
 
         cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "All").Click();
@@ -508,19 +508,19 @@ public class TableFilterRenderTests : BunitContext
     public void Bound_header_filters_change_in_place_and_tags_remove_them()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        IReadOnlyDictionary<string, string>? reported = null;
+        Filter? reported = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.FiltersChanged, (IReadOnlyDictionary<string, string> f) => reported = f)
+            .Add(t => t.FilterChanged, (Filter? f) => reported = f)
             .Add(t => t.ChildContent, Columns));
 
         cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "No").Click();
         Assert.Equal(new[] { "Grace" }, Names(cut));
-        Assert.Equal("No", reported!["status"]);
+        Assert.Equal(new FieldFilter("status", FilterOperator.Equals, Paid.No), reported!.Find("status"));
 
         cut.Find(".ib-table-filter-tags .ib-btn").Click();   // Clear
         Assert.Equal(3, Names(cut).Length);
-        Assert.Empty(reported!);
+        Assert.Null(reported);
     }
 
     private IRenderedComponent<Table<Row>> RenderHeader(string url)

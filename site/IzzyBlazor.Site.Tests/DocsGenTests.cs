@@ -90,14 +90,14 @@ public class DocsGenTests
     public void A_removed_overload_is_listed_by_its_signature()
     {
         ApiMember Method(string signature) => new() { Name = "Apply", Type = signature };
-        ApiType Type(params ApiMember[] members) => new() { Name = "TableRequest", FullName = "IzzyBlazor.TableRequest`1", Kind = "record", Members = [.. members] };
+        ApiType Type(params ApiMember[] members) => new() { Name = "DataRequest", FullName = "IzzyBlazor.DataRequest`1", Kind = "record", Members = [.. members] };
         var empty = Api.File with { Components = [], Bases = [] };
         var previous = empty with { Version = "1.0.0", Types = [Type(Method("int Apply(int x)"), Method("int Apply(string s)"))] };
         var current = empty with { Version = "1.1.0", Types = [Type(Method("int Apply(int x)"))] };
 
         var (file, removed) = ReleaseComparer.Apply(current, previous);
 
-        Assert.Equal(["TableRequest.Apply(string s)"], removed);
+        Assert.Equal(["DataRequest.Apply(string s)"], removed);
         Assert.Null(file.Types.Single().Members.Single().AddedIn);
     }
 
@@ -224,11 +224,11 @@ public class DocsGenTests
     public void Options_and_records_list_their_properties()
     {
         var options = Api.Type("ConfirmOptions")!;
-        var request = Api.Type("TableRequest")!;
-        var result = Api.Type("TableResult")!;
+        var request = Api.Type("DataRequest")!;
+        var result = Api.Type("DataResult")!;
 
         Assert.Equal("Accent.Primary", options.Members.Single(m => m.Name == "Accent").Default);
-        Assert.Contains("from 1", request.Members.Single(m => m.Name == "Page").Summary); // From the record's <param>.
+        Assert.Contains("from 1", request.Members.Single(m => m.Name == "Page").Summary); // From the property's summary.
         Assert.Contains(request.Members, m => m.Name == "ApplySorting" && m.Type.Contains("ApplySorting(", StringComparison.Ordinal));
         Assert.DoesNotContain(request.Members, m => m.Name is "Equals" or "Deconstruct" or "ToString");
         Assert.All(result.Members, m => Assert.NotNull(m.Summary));

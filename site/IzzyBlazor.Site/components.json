@@ -1314,7 +1314,8 @@
         { "feature": "Sort, page, filters and selection bound to C#", "member": "Page" },
         { "feature": "Paging by cursor (First, Previous, Next)", "member": "Paging" },
         { "feature": "Load more adds rows under the ones shown", "member": "Paging", "off": "partial", "static": "partial", "live": "full" },
-        { "feature": "Loading on scroll", "member": "Paging", "off": "none", "static": "none", "live": "full" }
+        { "feature": "Loading on scroll", "member": "Paging", "off": "none", "static": "none", "live": "full" },
+        { "feature": "A failed load shows an error with Retry" }
       ],
       "examples": [
         { "id": "table-sort-page", "title": "Sorting and paging",
@@ -1344,7 +1345,12 @@
             "live": "The same links; the table follows the URL." } },
         { "id": "table-load-on-scroll", "title": "Loading on scroll", "modes": ["live"],
           "notes": {
-            "live": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } }
+            "live": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } },
+        { "id": "table-load-error", "title": "When loading fails",
+          "notes": {
+            "off": "Retry is a link that loads the page again. Bring the API back, then the rows come.",
+            "static": "The same link; enhanced navigation swaps the page in.",
+            "live": "Retry asks again. Bring the API back and the table reloads." } }
       ],
       "scenarios": [
         { "id": "activity-log", "title": "Activity log", "member": "Paging",

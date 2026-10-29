@@ -214,6 +214,9 @@ public class IzzyText
     /// <summary>Table's button that loads the next page under the rows (<see cref="TablePaging.LoadMore"/>).</summary>
     public virtual string LoadMore { get; set; } = "Load more";
 
+    /// <summary>Table's message when its rows failed to load, before a Retry button.</summary>
+    public virtual string LoadFailed { get; set; } = "Couldn't load the rows.";
+
     /// <summary>ReconnectDialog's title.</summary>
     public virtual string ReconnectTitle { get; set; } = "Connection lost";
 
@@ -235,7 +238,7 @@ public class IzzyText
     /// <summary>ReconnectDialog when the session couldn't resume, above its Reload button.</summary>
     public virtual string ReconnectResumeFailed { get; set; } = "Couldn't resume the session. Reload the page to go on.";
 
-    /// <summary>ReconnectDialog's button after it failed to rejoin.</summary>
+    /// <summary>ReconnectDialog's button after it failed to rejoin, and Table's after its rows failed to load.</summary>
     public virtual string Retry { get; set; } = "Retry";
 
     /// <summary>ReconnectDialog's button for a session the server paused.</summary>
