@@ -19,9 +19,10 @@ All text is outlined, so the SVGs need no fonts installed.
 | `github/` | `readme-banner-{light,dark}.{svg,png}` | Top of the README (see snippet below). Transparent background. |
 | `social/` | `og-image.{svg,png}` (1200×630) | Open Graph / X card image for the docs site. |
 | `social/` | `banner-1500x500.{svg,png}` | X and LinkedIn header. |
-| `hero/` | `hero-dark.{svg,png}` (1600×800, PNG at 2x) | Docs landing page, video intros, slides. |
+| `hero/` | `hero-{dark,light}.{svg,png}` (1600×800, PNG at 2x) | Docs landing page, video intros, slides. |
 | `nuget/` | `icon.png` (128×128) | `<PackageIcon>` in the .csproj. |
-| `badges/` | `mode-{off,static,live}-{light,dark}.svg`, PNGs in `png/` | The Off · Static · Live mode badge for demos and thumbnails. |
+| `badges/` | `mode-{static,interactive}-{light,dark}.svg`, PNGs in `png/` | The Static · Interactive switch with one mode lit, for demos and video thumbnails. |
+| `badges/` | `mode-both-{light,dark}.svg`, PNGs in `png/` | Both modes with a dot each ("works in either"), for marketing. Used on the hero and social cards. |
 
 ## README header
 
@@ -47,7 +48,8 @@ All text is outlined, so the SVGs need no fonts installed.
 
 ## Rules
 
-- **Tagline:** "Blazor components. No circuit required." **Subhead:** "Works in static SSR. No SignalR or WebAssembly needed."
+- **Tagline:** "Blazor components. No circuit required." **Subhead:** "Rich components for static SSR. C# interactivity when you need it."
+- **Render modes:** say Static and Interactive, Microsoft's own terms. Static is amber, Interactive is ember. Working without JavaScript is part of what Static means, not a mode of its own, so marketing doesn't mention it on its own.
 - **Wordmark:** the dot gets its halo at 48 px and up and its amber core at 24 px and up. Below that it's a plain ember dot.
 - **Icon:** use the "ib" monogram wherever a square mark is needed. It's transparent at favicon sizes, and sits on a plain ink tile at 128 px and up.
 - **Clear space** around the logo equals the knob's diameter.
