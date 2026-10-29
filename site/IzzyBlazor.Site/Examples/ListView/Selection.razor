@@ -1,30 +1,42 @@
 @* Selection in a form: each checked item posts its ItemKey, so Archive works with JavaScript off.
-   With script, "Select all rows" above the list checks the page. *@
-<form method="post" @onsubmit="Archive" @formname="list-view-archive" style="width: 100%">
+   With script, "Select all messages" above the list checks the page. Archived messages leave the
+   list; on static pages hidden fields carry them to the next post. *@
+<form method="post" @onsubmit="Submit" @formname="list-view-archive" style="width: 100%">
     <AntiforgeryToken />
+    @foreach (var id in _archived)
+    {
+        <input type="hidden" name="archived" value="@id" />
+    }
     <Stack Gap="3" MaxWidth="28.Rem">
-        <ListView Items="_messages" ItemKey="m => m.Id" ItemText="m => m.Subject" ItemDescription="m => m.From"
-                  Selectable SelectAllLabel="Select all messages" @bind-SelectedKeys="_selected" Bordered />
+        <ListView Items="Inbox" ItemKey="m => m.Id" ItemText="m => m.Subject" ItemDescription="m => m.From"
+                  Selectable SelectAllLabel="Select all messages" @bind-SelectedKeys="_selected" EmptyText="Nothing left in the inbox." Bordered />
         <Row Gap="3" Align="Align.Center" Wrap>
-            <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive selected</Button>
-            @if (_archived is not null)
+            <Button Submit Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive" Disabled="Inbox.Count == 0">Archive selected</Button>
+            @if (_archived.Count > 0)
             {
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                    Archived: @(_archived.Count == 0 ? "nothing selected" : string.Join(", ", _messages.Where(m => _archived.Contains(m.Id)).Select(m => m.Subject)))
-                </TextBlock>
+                <Button Submit Name="restore" Value="all" OnClick="() => _restoring = true" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Restore all</Button>
             }
+            <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>
         </Row>
     </Stack>
 </form>
 
 @code {
-    // Static pages: the checked items post as "selected".
+    // Static pages: the checked items post as "selected", and the ones archived before as "archived".
     [SupplyParameterFromForm(FormName = "list-view-archive", Name = "selected")]
     private string[]? Posted { get; set; }
 
-    // Interactive pages: bound to the checkboxes.
+    [SupplyParameterFromForm(FormName = "list-view-archive", Name = "archived")]
+    private string[]? PostedArchived { get; set; }
+
+    [SupplyParameterFromForm(FormName = "list-view-archive", Name = "restore")]
+    private string? PostedRestore { get; set; }
+
+    // Interactive pages: bound to the checkboxes; Restore all says it was pressed.
     private IReadOnlyCollection<string>? _selected;
-    private IReadOnlyCollection<string>? _archived;
+    private bool _restoring;
+    private HashSet<string> _archived = [];
+    private string? _status;
 
     private readonly Message[] _messages =
     [
@@ -34,9 +46,36 @@
         new("4", "Invoice #1042", "Billing"),
     ];
 
-    protected override void OnInitialized() => _selected = Posted;
+    private List<Message> Inbox => _messages.Where(m => !_archived.Contains(m.Id)).ToList();
 
-    private void Archive() => _archived = (IReadOnlyCollection<string>?)Posted ?? _selected ?? [];
+    protected override void OnInitialized()
+    {
+        _archived = [.. PostedArchived ?? []];
+        _selected = Posted;
+    }
+
+    private void Submit()
+    {
+        if (PostedRestore is not null || _restoring)
+        {
+            _restoring = false;
+            _archived.Clear();
+            _status = "Restored every message.";
+        }
+        else
+        {
+            var picked = Inbox.Where(m => (Posted ?? _selected ?? []).Contains(m.Id)).ToList();
+            _archived.UnionWith(picked.Select(m => m.Id));
+            _status = picked.Count switch
+            {
+                0 => "Select the messages to archive first.",
+                1 => $"Archived \"{picked[0].Subject}\".",
+                _ => $"Archived {picked.Count} messages.",
+            };
+        }
+
+        _selected = [];
+    }
     @* hide *@
     private sealed record Message(string Id, string Subject, string From);
     @* /hide *@

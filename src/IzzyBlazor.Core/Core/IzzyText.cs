@@ -280,6 +280,9 @@ public class IzzyText
     /// <summary>A ListView whose items failed to load, with Retry after it.</summary>
     public virtual string ListLoadFailed { get; set; } = "Couldn't load the items.";
 
+    /// <summary>A ListView item's ⋯ button, which opens its ItemMenu: "Actions for Ada". {0} is the item's label.</summary>
+    public virtual string ItemMenu { get; set; } = "Actions for {0}";
+
     /// <summary>SortableList's drag handle, which opens the move menu: "Move Ada". {0} is the item's label.</summary>
     public virtual string MoveItem { get; set; } = "Move {0}";
 

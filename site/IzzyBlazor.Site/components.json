@@ -1399,6 +1399,7 @@
       "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "Items from data, each drawn by a template; links, selection, reordering and paging.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
         { "feature": "Links, the current item, selection and paging" },
+        { "feature": "Actions on each item and its ⋯ menu (links and posting items)" },
         { "feature": "Reordering from each handle's menu (with script off, each move posts the form)" },
         { "feature": "Dragging, Alt+arrow shortcuts and announcements", "noscript": "none", "static": "full", "interactive": "partial" },
         { "feature": "The new order bound to C#", "member": "Items" }
@@ -1406,6 +1407,11 @@
       "examples": [
         { "id": "list-view-contacts", "title": "Links and the current item", "lead": "Use `ItemText`, `ItemDescription` and `ItemIcon` for a row with no template, `ItemHref` to make each item a link, and `ItemCurrent` for the one the page is showing." },
         { "id": "list-view-selection", "title": "Selection", "lead": "Use `Selectable` for a checkbox per item: inside a form the checked items post their `ItemKey`, and `@bind-SelectedKeys` follows them on interactive pages. With script, a checkbox above the list selects the page." },
+        { "id": "list-view-actions", "title": "Actions on items", "lead": "Use `ItemActions` for content at each item's end, such as a badge or an icon button named for its item, and `ItemMenu` for a ⋯ menu of `MenuItem`s, named \"Actions for\" and the item's label. Keep one or two actions visible and put the rest in the menu; a menu that renders nothing for an item leaves it without the button.",
+          "notes": {
+            "noscript": "Star and each menu item post the form with their Name=Value; the menu opens and closes, without arrow keys.",
+            "static": "The same posts; the menu has arrow keys and type-ahead.",
+            "interactive": "OnClick runs C# for each button; nothing posts." } },
         { "id": "list-view-cards", "title": "Cards in columns", "lead": "Use `Columns` to lay the items out as cards, such as a gallery of products: that many across from 640px up, one on phones. With `ItemHref` each card is a link, and controls inside it still work." },
         { "id": "list-view-load-more", "title": "Load more", "lead": "Use `PageSize` with `DataPaging.LoadMore` for a button after the last item that adds the next page, and `MaxHeight` to scroll the items in the list's box, the button with them. Numbered pages and `DataPaging.NextPrevious` work as in Table. The page goes in the address, so `QueryPrefix` keeps two lists apart.",
           "notes": {
