@@ -13,6 +13,9 @@ FD = "node_modules/@fontsource"
 
 INK, PAPER, EMBER, AMBER = "#14161A", "#F5F4F1", "#F26A1B", "#FFB020"
 STEEL, GREY_L, GREY_D, TRACK = "#8A8F98", "#5A6069", "#A9AEB6", "#2C3038"
+TAGLINE = "Blazor components. No circuit required."
+SUBHEAD = "Rich components for static SSR. C# interactivity when you need it."
+MODES = ["Static", "Interactive"]
 
 class Font:
     def __init__(self, path):
@@ -276,21 +279,29 @@ png(nu, "nuget/icon.png", width=128)
 os.remove(nu)
 
 # ============ 3. banners ============
-def mode_badge(x, y, h, active="Live", dark=True):
-    labels = ["Off", "Static", "Live"]
+def mode_badge(x, y, h, active="Static", dark=True):
+    """The render-mode switch. active=None shows both modes as supported (a dot each), for marketing."""
     fs = h * 0.42; padx = h * 0.42; gap = h * 0.08; inset = h * 0.12
-    widths = [text("m600", l, fs, 0, 0, "#000")[1] + 2 * padx for l in labels]
-    total = sum(widths) + gap * 2 + inset * 2
+    dot = h * 0.13; dgap = h * 0.22
+    extra = (dot * 2 + dgap) if active is None else 0
+    widths = [text("m600", l, fs, 0, 0, "#000")[1] + 2 * padx + extra for l in MODES]
+    total = sum(widths) + gap * (len(MODES) - 1) + inset * 2
     bg, border, idle = ("#1E2126", "#3A3F48", STEEL) if dark else ("#FFFFFF", "#D6D3CC", "#6B717B")
     s = f'<rect x="{x:.2f}" y="{y:.2f}" width="{total:.2f}" height="{h:.2f}" rx="{h/2:.2f}" fill="{bg}" stroke="{border}" stroke-width="{h*0.03:.2f}"/>'
     cx = x + inset
-    for l, w in zip(labels, widths):
+    col = {"Static": AMBER, "Interactive": EMBER}
+    for l, w in zip(MODES, widths):
         fill = idle
-        if l == active:
-            col = {"Off": PAPER if dark else INK, "Static": AMBER, "Live": EMBER}[l]
-            s += f'<rect x="{cx:.2f}" y="{y+inset:.2f}" width="{w:.2f}" height="{h-2*inset:.2f}" rx="{(h-2*inset)/2:.2f}" fill="{col}"/>'
-            fill = PAPER if (l == "Off" and not dark) else INK
-        s += text("m600", l, fs, cx + w / 2, y + h / 2 + fs * 0.36, fill, anchor="middle")[0]
+        if active is None:
+            fill = PAPER if dark else INK
+            tx = cx + padx + dot * 2 + dgap
+            s += f'<circle cx="{cx + padx + dot:.2f}" cy="{y + h/2:.2f}" r="{dot:.2f}" fill="{col[l]}"/>'
+            s += text("m600", l, fs, tx, y + h / 2 + fs * 0.36, fill)[0]
+        else:
+            if l == active:
+                s += f'<rect x="{cx:.2f}" y="{y+inset:.2f}" width="{w:.2f}" height="{h-2*inset:.2f}" rx="{(h-2*inset)/2:.2f}" fill="{col[l]}"/>'
+                fill = INK
+            s += text("m600", l, fs, cx + w / 2, y + h / 2 + fs * 0.36, fill, anchor="middle")[0]
         cx += w + gap
     return s, total
 
@@ -312,13 +323,13 @@ def card(w, h, wm_size, tag_size, sub_size, badge_h, left, path, glow_r=None, sh
     wm, b, ww = placed_wordmark(wm_size, left, base, "dark")
     body += wm
     y = base + b[3] + tag_size * 1.5
-    body += text("b700", "Blazor components. No circuit required.", tag_size, left, y, PAPER, -0.015)[0]
+    body += text("b700", TAGLINE, tag_size, left, y, PAPER, -0.015)[0]
     if show_sub:
         y += sub_size * 1.7
-        body += text("b500", "Works in static SSR. No SignalR or WebAssembly needed.", sub_size, left, y, GREY_D)[0]
+        body += text("b500", SUBHEAD, sub_size, left, y, GREY_D)[0]
     if show_badge:
         y += badge_h * 0.9
-        bs, _ = mode_badge(left, y, badge_h, "Live")
+        bs, _ = mode_badge(left, y, badge_h, None)
         body += bs
     p = save(path, svg_doc(w, h, body, bg=INK))
     return p
@@ -338,42 +349,45 @@ def readme_banner(scheme):
     base = (h - block) / 2 - b[1]
     wm, b, ww = placed_wordmark(116, w / 2, base, scheme, "middle")
     fill = INK if scheme == "light" else PAPER
-    t = text("b500", "Blazor components. No circuit required.", tag_size, w / 2, base + b[3] + tag_size * 1.7, GREY_L if scheme == "light" else GREY_D, anchor="middle")[0]
+    t = text("b500", TAGLINE, tag_size, w / 2, base + b[3] + tag_size * 1.7, GREY_L if scheme == "light" else GREY_D, anchor="middle")[0]
     return svg_doc(w, h, wm + t)
 for sc in ("light", "dark"):
     p = save(f"github/readme-banner-{sc}.svg", readme_banner(sc))
     png(p, f"github/readme-banner-{sc}.png", width=1280)
 
-# hero 1600x800 (export 2x)
-def hero():
+# hero 1600x800 (export 2x), dark and light
+def hero(scheme="dark"):
+    dark = scheme == "dark"
+    fg, sub, panel, line = (PAPER, GREY_D, "#1E2126", "#3A3F48") if dark else (INK, GREY_L, "#FFFFFF", "#D6D3CC")
+    accent = EMBER if dark else "#E0590F"
     w, h = 1600, 800; left = 120; body = glow(w - 160, h / 2, 140)
-    wm, b, _ = placed_wordmark(145, left, 0, "dark")
     base = 300
-    wm, b, _ = placed_wordmark(145, left, base, "dark")
+    wm, b, _ = placed_wordmark(145, left, base, scheme)
     body += wm
     y = base + b[3] + 88
-    body += text("b700", "Blazor components.", 64, left, y, PAPER, -0.02)[0]
+    body += text("b700", "Blazor components.", 64, left, y, fg, -0.02)[0]
     y += 76
-    body += text("b700", "No circuit required.", 64, left, y, EMBER, -0.02)[0]
+    body += text("b700", "No circuit required.", 64, left, y, accent, -0.02)[0]
     y += 60
-    body += text("b500", "Works in static SSR. No SignalR or WebAssembly needed.", 28, left, y, GREY_D)[0]
+    body += text("b500", SUBHEAD, 28, left, y, sub)[0]
     y += 50
     cmd = "dotnet add package IzzyBlazor"
     cw = text("m600", cmd, 22, 0, 0, "#000")[1]
-    body += f'<rect x="{left}" y="{y}" width="{cw+56:.1f}" height="56" rx="12" fill="#1E2126" stroke="#3A3F48" stroke-width="1.5"/>'
+    body += f'<rect x="{left}" y="{y}" width="{cw+56:.1f}" height="56" rx="12" fill="{panel}" stroke="{line}" stroke-width="1.5"/>'
     body += text("m600", "$", 22, left + 24, y + 36, STEEL)[0]
-    body += text("m600", cmd, 22, left + 46, y + 36, PAPER)[0]
-    bs, _ = mode_badge(left + cw + 56 + 24, y + 4, 48, "Live")
+    body += text("m600", cmd, 22, left + 46, y + 36, fg)[0]
+    bs, _ = mode_badge(left + cw + 56 + 24, y + 4, 48, None, dark)
     body += bs
-    return svg_doc(w, h, body, bg=INK)
-p = save("hero/hero-dark.svg", hero())
-png(p, "hero/hero-dark.png", width=3200)
+    return svg_doc(w, h, body, bg=INK if dark else PAPER)
+for sc in ("dark", "light"):
+    p = save(f"hero/hero-{sc}.svg", hero(sc))
+    png(p, f"hero/hero-{sc}.png", width=3200)
 
-# mode badges
-for mode in ("Off", "Static", "Live"):
+# mode badges: one per mode (for demos and thumbnails), plus "both" for marketing
+for mode in MODES + [None]:
     for dk in (True, False):
         bs, tw = mode_badge(2, 2, 40, mode, dk)
-        nm = f"badges/mode-{mode.lower()}-{'dark' if dk else 'light'}.svg"
+        nm = f"badges/mode-{(mode or 'both').lower()}-{'dark' if dk else 'light'}.svg"
         p = save(nm, svg_doc(round(tw + 4), 44, bs))
         png(p, nm.replace(".svg", ".png").replace("badges/", "badges/png/"), height=88)
 
