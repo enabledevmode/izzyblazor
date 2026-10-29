@@ -24,8 +24,8 @@ public class BrandPaletteTests
         Assert.True(Ratio(p.Text, p.Soft) >= 4.5, "accent text on its soft tint");
 
         Assert.True(Ratio(p.DarkOnFill, p.DarkFill) >= 4.5, "dark: text on fill");
-        Assert.True(Ratio(p.DarkFill, "#111113") >= 3, "dark: fill visible on the surface");
-        Assert.True(Ratio(p.DarkText, "#28282b") >= 4.5, "dark: accent text on the strongest gray fill");
+        Assert.True(Ratio(p.DarkFill, "#0d0d0f") >= 3, "dark: fill visible on the surface");
+        Assert.True(Ratio(p.DarkText, "#232326") >= 4.5, "dark: accent text on the strongest gray fill");
         Assert.True(Ratio(p.DarkText, p.DarkSoft) >= 4.5, "dark: accent text on its soft tint");
     }
 
@@ -56,7 +56,7 @@ public class BrandPaletteTests
 
         Assert.Equal("#1e3a8a", p.Fill);
         Assert.NotEqual("#1e3a8a", p.DarkFill);
-        Assert.True(Ratio(p.DarkFill, "#111113") >= 3);
+        Assert.True(Ratio(p.DarkFill, "#0d0d0f") >= 3);
     }
 
     [Fact]
