@@ -1017,6 +1017,19 @@
       cursor: grab;
       touch-action: none;
     }
+
+    /* DragWholeItem: the item drags too; a held touch picks it up rather than selecting its text. */
+    .ib-sortable[data-ib-whole] .ib-sortable-item:has(> ib-popover > .ib-sortable-handle) {
+      cursor: grab;
+      -webkit-user-select: none;
+      user-select: none;
+      -webkit-touch-callout: none;
+    }
+
+    /* A held link or image would lift as the system's own drag on iOS. */
+    .ib-sortable[data-ib-whole] .ib-sortable-item :is(a, img) {
+      -webkit-user-drag: none;
+    }
   }
 
   .ib-sortable-handle,
@@ -1031,6 +1044,7 @@
   /* A drag: the item lifts above the others, which slide aside (or, in rows that wrap, a line
      marks where it lands). */
   .ib-sortable-sorting {
+    -webkit-user-select: none;
     user-select: none;
   }
 
