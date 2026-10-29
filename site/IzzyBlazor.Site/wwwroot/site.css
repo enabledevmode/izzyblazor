@@ -1,6 +1,7 @@
 /* Dark mode, after Chakra: a near-black page with cards one step up on the brand's Ink (the hero's
-   and the picture tiles' color) and a quiet border. Light mode keeps the library's Neutral, and
-   examples keep the library's grays in both schemes, on the page's own background (below). */
+   and the picture tiles' color) and a quiet border. Light mode keeps the library's Neutral. These
+   are the site's chrome only: examples set the library's Neutral on their IzzyTheme
+   (ExampleViewer), and demo frames have no .site class, so both show the library's own grays. */
 :root.site {
   /* The brand's Ember for pictograms, which keep it while the chrome is Ink. */
   --site-ember-soft: light-dark(#fdebdf, rgb(242 106 27 / 0.18));
@@ -487,9 +488,8 @@ body:not(:has(.ex)) :is(.site-modeswitch-aside, .site-modeswitch-top) { display:
 @media (width < 1024px) { .site-modeswitch-aside { display: none; } }
 
 /* A demo's frame: a page of its own, scrolling inside its window. */
-/* The docs page's background (its --ib-color-surface), so an example sits on the page; the
-   frame has the library's own theme, which would put its own gray here. */
-html:has(> body > .frame), html:has(> body > .frame) body { background: light-dark(#ffffff, #111215); }
+/* The library's surface behind a demo, as an app would have (the frame has the library's grays). */
+html:has(> body > .frame), html:has(> body > .frame) body { background: var(--ib-color-surface); }
 /* No strip kept for a scrollbar: AppShell keeps one on its page so locking it doesn't shift the
    page, but a frame that doesn't scroll would show it as an empty band down the right edge. */
 html:has(> body > .frame) { scrollbar-gutter: auto; }
