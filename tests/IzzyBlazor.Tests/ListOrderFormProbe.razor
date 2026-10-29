@@ -1,0 +1,10 @@
+@page "/list-order-probe"
+@attribute [Microsoft.AspNetCore.Antiforgery.RequireAntiforgeryToken(required: false)]
+@* A static page with a form that posts a SortableList's fields; ListOrderTests posts to it. *@
+<form method="post" @formname="probe" @onsubmit="() => { }"></form>
+<p id="out">@(Order is null ? "null" : $"{string.Join(",", Order.Keys ?? [])}|{string.Join(",", Order.Zones ?? [])}|{Order.Move}")</p>
+
+@code {
+    [SupplyParameterFromForm(FormName = "probe", Name = "order")]
+    public ListOrder? Order { get; set; }
+}
