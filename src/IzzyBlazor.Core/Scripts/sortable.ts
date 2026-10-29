@@ -6,8 +6,10 @@
  *
  * It never moves nodes. While dragging, the item follows the pointer by a transform, and either
  * the others slide aside (a single column, as DevExtreme's "push") or a line marks the drop place
- * (rows that wrap). When the pointer comes up, onDrop gets the item's old and new index; the
- * caller moves the node itself (a static page) or asks the renderer to (an interactive one).
+ * (rows that wrap). When the pointer comes up, onDrop gets the item's old and new index and a
+ * `settle` that clears the transforms; the caller moves the node itself and settles at once (a
+ * static page), or asks the renderer to and settles when it has (an interactive one), so the
+ * items stay where they were dropped until their nodes move.
  * Escape, a cancelled pointer or a lost capture put everything back.
  */
 
@@ -20,8 +22,8 @@ export interface SortOptions {
   event: PointerEvent;
   /** Rows that wrap: a drop line instead of sliding, and the item follows the pointer both ways. */
   wrap: boolean;
-  /** The drop, when the item lands somewhere new. */
-  onDrop(from: number, to: number): void;
+  /** The drop, when the item lands somewhere new. Call settle to clear the transforms. */
+  onDrop(from: number, to: number, settle: () => void): void;
   /** After the drag ends, either way (not when the press never became a drag). */
   onEnd?(): void;
 }
@@ -160,13 +162,17 @@ export function trackDrag(options: SortOptions): void {
     if (!dragging) return;
     // Without the sorting class first, so clearing the transforms doesn't animate.
     list.classList.remove("ib-sortable-sorting");
-    item.classList.remove("ib-sortable-dragging");
-    for (const el of items) el.style.transform = "";
-    marked?.removeAttribute("data-ib-drop");
+    // The lifted item and, in rows that wrap, the drop line stay until it settles.
+    const settle = () => {
+      marked?.removeAttribute("data-ib-drop");
+      item.classList.remove("ib-sortable-dragging");
+      for (const el of items) el.style.transform = "";
+    };
     // The click that follows the pointerup would open the handle's menu.
     handle.addEventListener("click", swallow, { capture: true, once: true });
     setTimeout(() => handle.removeEventListener("click", swallow, { capture: true }), 0);
-    if (drop && to !== from) options.onDrop(from, to);
+    if (drop && to !== from) options.onDrop(from, to, settle);
+    else settle();
     options.onEnd?.();
   };
 

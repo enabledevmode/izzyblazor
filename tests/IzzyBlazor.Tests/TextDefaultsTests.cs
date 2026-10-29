@@ -50,7 +50,7 @@ public class TextDefaultsTests : BunitContext
                 b.CloseComponent();
             })));
         Assert.Equal("Tabelle", table.Find(".ib-table-scroll").GetAttribute("aria-label"));
-        Assert.Equal("1–10 von 30", table.Find(".ib-table-summary").TextContent);
+        Assert.Equal("1–10 von 30", table.Find(".ib-data-summary").TextContent);
         Assert.Equal("Tabelle: Seiten", table.Find("nav").GetAttribute("aria-label"));
     }
 

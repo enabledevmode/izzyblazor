@@ -13,10 +13,16 @@ type Move = "up" | "down" | "top" | "bottom";
  *   inputs move with it, so the form posts the new order); data-ib-submit posts after each move.
  *   On an interactive page C# moves it, and focus goes back to the handle after the render.
  * - Alt+arrows and Alt+Home/End on a focused handle click the matching menu item.
- * - Dragging a handle (static pages; interactive pages come with the ibmove handshake).
+ * - Dragging a handle. On a static page the drop moves the item here. On an interactive page it
+ *   raises `ibmove` (key, index, seq) and C# moves it; the dragged item stays where it was dropped
+ *   until the render that has handled that drop (data-ib-seq) arrives, so nothing jumps back first.
  * With JavaScript off, the menu items post the form and the server moves the item.
  */
 class Sortable extends IzzyElement {
+  // The last drop reported to C#, and whether one is waiting for its render.
+  private seq = 0;
+  private settling = false;
+
   private get list(): HTMLElement | null {
     return this.querySelector(":scope > .ib-sortable-list");
   }
@@ -76,8 +82,21 @@ class Sortable extends IzzyElement {
   }
 
   private onPointerDown(event: PointerEvent): void {
-    if (event.button !== 0 || this.live) return;
+    // While prerendered for an interactive page, nothing would answer a drop yet: C# renders
+    // data-ib-seq once it's running.
+    if (event.button !== 0 || (this.live && !this.hasAttribute("data-ib-seq"))) return;
     const handle = (event.target as Element).closest(HANDLE);
+    if (this.settling) {
+      // The last drop is still on its way: no new drag yet, and the press doesn't open the menu.
+      if (handle) {
+        handle.addEventListener("click", swallow, { capture: true, once: true });
+        // The click, if any, comes right after the pointer is up; then the next one is the user's.
+        const release = () => setTimeout(() => handle.removeEventListener("click", swallow, { capture: true }), 0);
+        handle.addEventListener("pointerup", release, { once: true });
+        handle.addEventListener("pointercancel", release, { once: true });
+      }
+      return;
+    }
     const item = this.itemOf(handle);
     const list = this.list;
     if (!handle || !item || !list) return;
@@ -86,8 +105,51 @@ class Sortable extends IzzyElement {
       item,
       event,
       wrap: this.classList.contains("ib-sortable-horizontal"),
-      onDrop: (_, to) => this.move(item, to, false),
+      onDrop: (_, to, settle) => {
+        if (this.live) {
+          this.report(item, to, settle);
+          return;
+        }
+
+        settle();
+        this.move(item, to, false);
+      },
     });
+  }
+
+  /** An interactive page: asks C# to move the item, and settles once its render has. */
+  private report(item: HTMLElement, to: number, settle: () => void): void {
+    const key = item.dataset.ibKey;
+    if (key === undefined) {
+      settle();
+      return;
+    }
+
+    // Counted on from what C# rendered too, in case this element is new.
+    const seq = (this.seq = Math.max(this.seq, Number(this.dataset.ibSeq ?? 0)) + 1);
+    const hadFocus = item.contains(document.activeElement);
+    this.settling = true;
+    let timer = 0;
+    const done = (answered: boolean) => {
+      observer.disconnect();
+      clearTimeout(timer);
+      this.settling = false;
+      settle();
+      if (!answered) this.say((this.dataset.ibCancelled ?? "").replace("{0}", item.dataset.ibLabel ?? ""));
+      // Blazor may have moved the item's node, which drops focus from inside it; if the user has
+      // gone elsewhere meanwhile, focus stays there.
+      const now = this.items().find((el) => el.dataset.ibKey === key);
+      const lost = !document.activeElement || document.activeElement === document.body;
+      if (hadFocus && lost && now) now.querySelector<HTMLElement>(HANDLE)?.focus();
+    };
+    // The render applies its moves and data-ib-seq together, before this runs.
+    const observer = new MutationObserver(() => {
+      if (Number(this.dataset.ibSeq ?? 0) >= seq) done(true);
+    });
+    observer.observe(this, { attributes: true, attributeFilter: ["data-ib-seq"] });
+    // No answer (the circuit is down): put the items back.
+    timer = window.setTimeout(() => done(false), 3000);
+    this.dispatchEvent(new CustomEvent("ibmove", { bubbles: true, detail: { key, to, seq } }));
   }
 
   private items(): HTMLElement[] {
@@ -123,11 +185,15 @@ class Sortable extends IzzyElement {
   }
 
   private announce(item: HTMLElement, index: number, count: number): void {
-    const region = this.querySelector(":scope > [role=status]");
-    const text = (this.dataset.ibMoved ?? "")
+    this.say((this.dataset.ibMoved ?? "")
       .replace("{0}", item.dataset.ibLabel ?? "")
       .replace("{1}", String(index + 1))
-      .replace("{2}", String(count));
+      .replace("{2}", String(count)));
+  }
+
+  private say(text: string): void {
+    // On an interactive page C# owns the first region; the script has its own.
+    const region = this.querySelector(this.live ? ":scope > [data-ib-say]" : ":scope > [role=status]");
     if (!region) return;
     // Cleared first, so moving the same item twice in a row is announced again.
     region.textContent = "";
@@ -148,6 +214,11 @@ class Sortable extends IzzyElement {
     observer.observe(list, { childList: true });
     setTimeout(() => observer.disconnect(), 2000);
   }
+}
+
+function swallow(event: Event): void {
+  event.preventDefault();
+  event.stopImmediatePropagation();
 }
 
 defineElement("ib-sortable", Sortable);

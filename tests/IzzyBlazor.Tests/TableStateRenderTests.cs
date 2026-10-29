@@ -32,7 +32,7 @@ public class TableStateRenderTests : BunitContext
         cut.FindAll("tbody tr").Select(r => r.Children[0].TextContent).ToArray();
 
     private static AngleSharp.Dom.IElement PageButton(IRenderedComponent<Table<Row>> cut, int page) =>
-        cut.FindAll(".ib-table-footer button").First(b => b.TextContent.Trim().EndsWith(page.ToString(), StringComparison.Ordinal));
+        cut.FindAll(".ib-data-footer button").First(b => b.TextContent.Trim().EndsWith(page.ToString(), StringComparison.Ordinal));
 
     [Fact]
     public void The_prerender_of_a_bound_table_has_no_filter_apply_row_and_keeps_working_links()
@@ -94,7 +94,7 @@ public class TableStateRenderTests : BunitContext
         Assert.Equal(new[] { "b" }, Names(cut));
         PageButton(cut, 2).Click();
         Assert.Equal(new[] { "a" }, Names(cut));
-        Assert.Contains("2–2 of 3", cut.Find(".ib-table-summary").TextContent);
+        Assert.Contains("2–2 of 3", cut.Find(".ib-data-summary").TextContent);
 
         cut.FindAll("thead button.ib-table-sort")[1].Click();   // Qty ascending: c, b, a
         Assert.Equal(new[] { "c" }, Names(cut));
@@ -145,13 +145,13 @@ public class TableStateRenderTests : BunitContext
 
         Assert.Equal(5, Names(cut).Length);   // the first option is the default
         PageButton(cut, 3).Click();            // rows 11-15
-        cut.FindAll(".ib-table-page-size button.ib-menu-item").First(b => b.TextContent.Trim() == "10").Click();
+        cut.FindAll(".ib-data-page-size button.ib-menu-item").First(b => b.TextContent.Trim() == "10").Click();
 
         Assert.Equal("r11", Names(cut)[0]);    // page 2 at 10 per page
         Assert.Equal(10, Names(cut).Length);
         Assert.Equal(new int?[] { 10 }, sizes);
         Assert.Equal(new[] { 3, 2 }, pages);
-        Assert.Equal("Rows per page: 10", cut.Find(".ib-table-page-size-button").GetAttribute("aria-label"));
+        Assert.Equal("Rows per page: 10", cut.Find(".ib-data-page-size-button").GetAttribute("aria-label"));
     }
 
     [Fact]
@@ -163,6 +163,6 @@ public class TableStateRenderTests : BunitContext
             .Add(t => t.ChildContent, Columns));
 
         Assert.Equal(2, cut.FindAll("thead a.ib-table-sort").Count);
-        Assert.Empty(cut.FindAll(".ib-table-footer button"));
+        Assert.Empty(cut.FindAll(".ib-data-footer button"));
     }
 }

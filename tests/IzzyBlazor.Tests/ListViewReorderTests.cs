@@ -189,6 +189,84 @@ public class ListViewReorderTests : BunitContext
     }
 
     [Fact]
+    public void A_live_drop_moves_the_item_through_OnMove_and_renders_its_count()
+    {
+        Live();
+        ListMoveEventArgs<Step>? move = null;
+        IReadOnlyList<Step>? changed = null;
+        var cut = RenderList(name: null, more: p => p
+            .Add(l => l.OnMove, m => move = m)
+            .Add(l => l.ItemsChanged, items => changed = items));
+
+        Assert.Equal("0", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "a", ToIndex = 2, Seq = 1 });
+
+        Assert.Equal(0, move!.FromIndex);
+        Assert.Equal(2, move.ToIndex);
+        Assert.Equal(new[] { "b", "c", "a" }, changed!.Select(s => s.Id));
+        Assert.Equal(new[] { "Brian", "Cleo", "Ada" }, Shown(cut));
+        Assert.Equal("1", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+        Assert.Equal("Moved Ada to position 3 of 3", cut.Find("ib-sortable > [role=status]").TextContent);
+    }
+
+    [Fact]
+    public void A_cancelled_or_locked_drop_keeps_the_order_and_still_renders_its_count()
+    {
+        // The script holds the dragged item until the render with its count: it must come either way.
+        Live();
+        var cut = RenderList(items: [new("a", "Ada"), new("b", "Brian", Locked: true), new("c", "Cleo")], name: null,
+            more: p => p.Add(l => l.OnMove, m => m.Cancel = m.Key == "c"));
+
+        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "c", ToIndex = 0, Seq = 1 });
+        Assert.Equal(new[] { "Ada", "Brian", "Cleo" }, Shown(cut));
+        Assert.Equal("1", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+
+        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "b", ToIndex = 2, Seq = 2 });
+        Assert.Equal(new[] { "Ada", "Brian", "Cleo" }, Shown(cut));
+        Assert.Equal("2", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+    }
+
+    [Fact]
+    public void A_drop_is_counted_only_once_an_awaited_OnMove_is_done_and_moves_meanwhile_are_ignored()
+    {
+        // The script settles on the count: a render while OnMove saves must not carry it.
+        Live();
+        var save = new TaskCompletionSource();
+        var calls = 0;
+        var cut = RenderList(name: null, more: p => p.Add(l => l.OnMove, async m => { calls++; await save.Task; }));
+
+        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "a", ToIndex = 2, Seq = 1 });
+        Assert.Equal("0", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+
+        // A second drag while the first saves: ignored, but counted so the script puts it back.
+        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "c", ToIndex = 0, Seq = 2 });
+        Assert.Equal(1, calls);
+        Assert.Equal("2", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+
+        save.SetResult();
+        cut.WaitForAssertion(() => Assert.Equal(new[] { "Brian", "Cleo", "Ada" }, Shown(cut)));
+        Assert.Equal("2", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
+    }
+
+    [Fact]
+    public void A_list_prerendered_for_an_interactive_page_renders_no_count_so_nothing_drags_yet()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = RenderList(name: null, more: p => p.AddCascadingValue(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode(prerender: true)));
+
+        Assert.False(cut.Find("ib-sortable").HasAttribute("data-ib-seq"));
+    }
+
+    [Fact]
+    public void A_static_list_renders_no_drop_count()
+    {
+        Static();
+        var cut = RenderList();
+
+        Assert.False(cut.Find("ib-sortable").HasAttribute("data-ib-seq"));
+    }
+
+    [Fact]
     public void The_script_finds_each_move_label_and_mode_in_the_markup()
     {
         Static();

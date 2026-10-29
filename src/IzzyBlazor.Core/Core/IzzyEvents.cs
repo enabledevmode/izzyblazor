@@ -37,8 +37,33 @@ public sealed class IzzySchemeEventArgs : EventArgs
     public string? Scheme { get; set; }
 }
 
+/// <summary>
+/// Data for the <c>ibmove</c> event, which IzzyBlazor's script raises when an item is dragged to a
+/// new place in a reorderable list on an interactive page. The list applies it; apps use the
+/// list's <c>OnMove</c> and <c>@bind-Items</c>.
+/// </summary>
+public sealed class IzzyMoveEventArgs : EventArgs
+{
+    /// <summary>The dragged item's key.</summary>
+    public string? Key { get; set; }
+
+    /// <summary>Where it was dropped: its index once it's there, among the items of its zone.</summary>
+    public int ToIndex { get; set; }
+
+    /// <summary>The zone it was dropped in, for a drop zone group; null in a single list.</summary>
+    public string? ToZone { get; set; }
+
+    /// <summary>
+    /// How many drops the browser has reported for this list, this one included. The list renders
+    /// the last it has handled, and the script holds the dragged item in place until that render
+    /// arrives, so items don't jump back before moving. Set by IzzyBlazor's script.
+    /// </summary>
+    public int Seq { get; set; }
+}
+
 /// <summary>Registers IzzyBlazor's custom events with the Razor compiler.</summary>
 [EventHandler("onibtoggle", typeof(IzzyToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("onibmove", typeof(IzzyMoveEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibscheme", typeof(IzzySchemeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers
 {

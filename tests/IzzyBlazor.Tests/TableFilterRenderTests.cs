@@ -296,7 +296,7 @@ public class TableFilterRenderTests : BunitContext
 
         Assert.Equal(new FieldFilter("name", FilterOperator.Contains, "gr"), seen!.Filter!.Find("name"));
         Assert.Equal(new[] { "Grace" }, Names(cut));
-        Assert.Contains("1–1 of 1", cut.Find(".ib-table-summary").TextContent);
+        Assert.Contains("1–1 of 1", cut.Find(".ib-data-summary").TextContent);
     }
 
     [Fact]
@@ -314,7 +314,7 @@ public class TableFilterRenderTests : BunitContext
         cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
         var url = Nav.Uri;
 
-        cut.FindAll(".ib-table-footer button").First(b => b.TextContent.Trim().EndsWith('2')).Click();
+        cut.FindAll(".ib-data-footer button").First(b => b.TextContent.Trim().EndsWith('2')).Click();
         Assert.Empty(cut.FindAll("[data-ib-filter]"));
         cut.Find(".ib-table-filter input[type=search]").Input("ad");
 
@@ -324,7 +324,7 @@ public class TableFilterRenderTests : BunitContext
             Assert.Equal(new[] { "Ada" }, Names(cut));
             Assert.Equal("ad", Assert.Single(reported)!.Find("name")!.Value);
             Assert.Equal(new[] { 2, 1 }, pages);
-            Assert.Contains("1–1 of 2", cut.Find(".ib-table-summary").TextContent);
+            Assert.Contains("1–1 of 2", cut.Find(".ib-data-summary").TextContent);
         }, Timer);
         Assert.Equal(url, Nav.Uri);
 

@@ -45,13 +45,13 @@ public class TableCursorRenderTests : BunitContext
     private static string[] Names(IRenderedComponent<Table<Row>> cut) =>
         cut.FindAll("tbody tr").Select(r => r.TextContent.Trim()).ToArray();
 
-    private static string Summary(IRenderedComponent<Table<Row>> cut) => cut.Find(".ib-table-summary").TextContent.Trim();
+    private static string Summary(IRenderedComponent<Table<Row>> cut) => cut.Find(".ib-data-summary").TextContent.Trim();
 
     private static string? Href(IRenderedComponent<Table<Row>> cut, string control) =>
-        cut.Find($".ib-table-footer .ib-pagination-{control}").GetAttribute("href");
+        cut.Find($".ib-data-footer .ib-pagination-{control}").GetAttribute("href");
 
     private static bool Unavailable(IRenderedComponent<Table<Row>> cut, string control) =>
-        cut.Find($".ib-table-footer .ib-pagination-{control}").GetAttribute("aria-disabled") == "true";
+        cut.Find($".ib-data-footer .ib-pagination-{control}").GetAttribute("aria-disabled") == "true";
 
     private IRenderedComponent<Table<Row>> RenderProvider(Api api, DataPaging paging, Action<ComponentParameterCollectionBuilder<Table<Row>>>? more = null) =>
         Render<Table<Row>>(p =>
@@ -77,8 +77,8 @@ public class TableCursorRenderTests : BunitContext
         Assert.Contains("ListView", refused.Message);
 
         var cut = RenderProvider(new Api(Rows), DataPaging.LoadOnScroll);
-        Assert.NotNull(cut.Find("ib-table > .ib-table-scroll > .ib-table-more"));
-        Assert.Empty(cut.FindAll(".ib-table-footer"));
+        Assert.NotNull(cut.Find("ib-table > .ib-table-scroll > .ib-data-more"));
+        Assert.Empty(cut.FindAll(".ib-data-footer"));
     }
 
     [Fact]
@@ -99,7 +99,7 @@ public class TableCursorRenderTests : BunitContext
         // The second page's previous is the first, with no cursor; First too.
         Assert.DoesNotContain("cursor=", Href(cut, "prev"));
         Assert.DoesNotContain("cursor=", Href(cut, "first"));
-        Assert.Empty(cut.FindAll(".ib-table-footer .ib-pagination-item:not(.ib-btn-icon-only)"));
+        Assert.Empty(cut.FindAll(".ib-data-footer .ib-pagination-item:not(.ib-btn-icon-only)"));
     }
 
     [Fact]
@@ -190,12 +190,12 @@ public class TableCursorRenderTests : BunitContext
             .Add(t => t.PageChanged, (int page) => pages.Add(page)));
         var urlBefore = Nav.Uri;
 
-        cut.Find(".ib-table-footer button.ib-pagination-next").Click();
+        cut.Find(".ib-data-footer button.ib-pagination-next").Click();
         Assert.Equal(new[] { "r3", "r4" }, Names(cut));
-        cut.Find(".ib-table-footer button.ib-pagination-next").Click();
+        cut.Find(".ib-data-footer button.ib-pagination-next").Click();
         Assert.Equal(new[] { "r5", "r6" }, Names(cut));
         // Previous from what the table followed.
-        cut.Find(".ib-table-footer button.ib-pagination-prev").Click();
+        cut.Find(".ib-data-footer button.ib-pagination-prev").Click();
         Assert.Equal(new[] { "r3", "r4" }, Names(cut));
 
         Assert.Equal(new string?[] { "c2", "c4", "c2" }, cursors);
@@ -216,7 +216,7 @@ public class TableCursorRenderTests : BunitContext
         var api = new Api(Rows);
         var cut = RenderProvider(api, DataPaging.LoadOnScroll, p => p.Add(t => t.LoadMoreText, "Load earlier"));
 
-        var button = cut.Find(".ib-table-more button");
+        var button = cut.Find(".ib-data-more button");
         Assert.Equal("Load earlier", button.TextContent.Trim());
         button.Click();
 
@@ -228,10 +228,10 @@ public class TableCursorRenderTests : BunitContext
         Assert.Null(cut.FindAll("tbody tr")[0].GetAttribute("tabindex"));
         cut.WaitForAssertion(() => JSInterop.VerifyFocusAsyncInvoke());
 
-        cut.Find(".ib-table-more button").Click();
-        cut.Find(".ib-table-more button").Click();
+        cut.Find(".ib-data-more button").Click();
+        cut.Find(".ib-data-more button").Click();
         Assert.Equal(7, Names(cut).Length);
-        Assert.Empty(cut.FindAll(".ib-table-more button"));
+        Assert.Empty(cut.FindAll(".ib-data-more button"));
     }
 
     [Fact]
@@ -243,7 +243,7 @@ public class TableCursorRenderTests : BunitContext
 
         // A row added at the top shifts the offset: r2 would come again.
         api.Data = [new Row("r0"), .. Rows];
-        cut.Find(".ib-table-more button").Click();
+        cut.Find(".ib-data-more button").Click();
 
         Assert.Equal(new[] { "r1", "r2", "r3" }, Names(cut));
     }
@@ -254,7 +254,7 @@ public class TableCursorRenderTests : BunitContext
         Interactive();
         var api = new Api(Rows);
         var cut = RenderProvider(api, DataPaging.LoadOnScroll);
-        cut.Find(".ib-table-more button").Click();
+        cut.Find(".ib-data-more button").Click();
         var requests = api.Requests.Count;
 
         cut.Render();
@@ -303,7 +303,7 @@ public class TableCursorRenderTests : BunitContext
         // A new sort starts a reload; the old rows stay on view meanwhile, but no Load more starts from them.
         cut.Find("thead button.ib-table-sort").Click();
         Assert.Empty(cut.FindAll("[data-ib-load-next]"));
-        cut.Find(".ib-table-more button").Click();
+        cut.Find(".ib-data-more button").Click();
         Assert.Equal(new string?[] { null, null }, api.Pending.Select(p => p.Request.Cursor));
 
         cut.InvokeAsync(() => api.Answer(1));
@@ -321,7 +321,7 @@ public class TableCursorRenderTests : BunitContext
         cut.InvokeAsync(() => api.Answer(0));
         cut.WaitForAssertion(() => Assert.Equal(2, Names(cut).Length));
 
-        cut.Find(".ib-table-more button").Click();
+        cut.Find(".ib-data-more button").Click();
         cut.Render();
         // The first page and the next one asked for; no reload of the first page.
         Assert.Equal(new[] { null, "c2" }, api.Pending.Select(p => p.Request.Cursor));
@@ -339,7 +339,7 @@ public class TableCursorRenderTests : BunitContext
 
         // ?page=2 is the first two pages, loaded as one; Load more asks for three.
         Assert.Equal(4, Names(cut).Length);
-        var link = cut.Find(".ib-table-more a.ib-btn");
+        var link = cut.Find(".ib-data-more a.ib-btn");
         Assert.Equal("Load more", link.TextContent.Trim());
         Assert.Contains("page=3", link.GetAttribute("href"));
         Assert.DoesNotContain("cursor=", link.GetAttribute("href"));
@@ -364,7 +364,7 @@ public class TableCursorRenderTests : BunitContext
         Assert.Equal(4, Names(cut).Length);
         Assert.Empty(JSInterop.Invocations);
         // The button stays for the keyboard, out of sight until it has focus.
-        Assert.Contains("ib-table-more-on-focus", cut.Find(".ib-table-more button:not([hidden])").ClassName);
+        Assert.Contains("ib-data-more-on-focus", cut.Find(".ib-data-more button:not([hidden])").ClassName);
     }
 
     [Fact]
@@ -375,9 +375,9 @@ public class TableCursorRenderTests : BunitContext
 
         // The script follows the link as the last row comes into view; it's out of sight until
         // focused (CSS shows it with no script, where it's the only way on).
-        var link = cut.Find(".ib-table-more a.ib-btn");
+        var link = cut.Find(".ib-data-more a.ib-btn");
         Assert.True(link.HasAttribute("data-ib-load-next"));
-        Assert.Contains("ib-table-more-on-focus", link.ClassName);
+        Assert.Contains("ib-data-more-on-focus", link.ClassName);
         Assert.Contains("page=2", link.GetAttribute("href"));
     }
 
@@ -391,12 +391,12 @@ public class TableCursorRenderTests : BunitContext
             .Add(t => t.Paging, DataPaging.LoadOnScroll)
             .Add(t => t.ChildContent, Columns));
 
-        cut.Find(".ib-table-more button").Click();
-        cut.Find(".ib-table-more button").Click();
+        cut.Find(".ib-data-more button").Click();
+        cut.Find(".ib-data-more button").Click();
 
         Assert.Equal(Rows.Select(r => r.Name), Names(cut));
         Assert.Equal("1–7 of 7", Summary(cut));
-        Assert.Empty(cut.FindAll(".ib-table-more button"));
+        Assert.Empty(cut.FindAll(".ib-data-more button"));
     }
 
     [Fact]

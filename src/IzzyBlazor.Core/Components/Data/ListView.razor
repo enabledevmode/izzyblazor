@@ -79,7 +79,7 @@
         @if (_loadError is not null)
         {
             @* In place of the items: what went wrong and a way to try again. *@
-            <div class="ib-listview-state ib-table-error-content">
+            <div class="ib-listview-state ib-data-error-content">
                 @LoadFailedMessage
                 @RetryControl(RetryAsync, _providerLoading)
             </div>
@@ -114,10 +114,19 @@
                    live region that announces every move. *@
                 <ib-sortable class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
                              data-ib-interactive="@(Live ? "" : null)"
+                             data-ib-seq="@(RendererInfo.IsInteractive ? _moveSeq.ToString(CultureInfo.InvariantCulture) : null)"
+                             @onibmove="DropAsync" @onibmove:stopPropagation="true"
                              data-ib-submit="@(Posts && SubmitOnMove ? "" : null)"
-                             data-ib-moved="@TextDefaults.MovedTo">
+                             data-ib-moved="@TextDefaults.MovedTo"
+                             data-ib-cancelled="@(Live ? TextDefaults.MoveCancelled : null)">
                     @ItemsList
                     <div class="ib-visually-hidden" role="status">@_announcement</div>
+                    @if (Live)
+                    {
+                        @* The script's own, for a drop no render answered: C# owns the one above, and
+                           text the script wrote there would cut Blazor's later announcements off. *@
+                        <div class="ib-visually-hidden" role="status" data-ib-say></div>
+                    }
                 </ib-sortable>
             }
             else
@@ -234,7 +243,9 @@
 
     /// <summary>
     /// Runs before a move changes the list, on interactive pages: save it here, or set
-    /// <see cref="ListMoveEventArgs{TItem}.Cancel"/> to keep the item where it was.
+    /// <see cref="ListMoveEventArgs{TItem}.Cancel"/> to keep the item where it was. A dragged item
+    /// stays where it was dropped while this runs, for up to 3 seconds; moves made meanwhile are
+    /// ignored.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<ListMoveEventArgs<TItem>> OnMove { get; set; }
@@ -265,6 +276,7 @@
     private ElementReference _listRef;
     private string? _focusKey;
     private string? _announcement;
+    private int _moveSeq;
     private bool _warned;
 
     // Interactive (or prerendering for it): C# applies the moves.
@@ -459,11 +471,54 @@
         _items = entries.ConvertAll(e => e.Item);
     }
 
-    private async Task MoveAsync(ListMoveKind kind, string key)
+    private Task MoveAsync(ListMoveKind kind, string key) =>
+        ApplyMoveAsync(key, entries => ListArrangement.Apply(entries, new ListMove(kind, key)));
+
+    // A drag on an interactive page. The script holds the dragged item where it was dropped until a
+    // render carries this count, so it's counted once the move is done (after an OnMove that awaits
+    // a save), whatever comes of it: moved, cancelled or ignored.
+    private async Task DropAsync(IzzyMoveEventArgs e)
+    {
+        try
+        {
+            if (e.Key is { } key)
+            {
+                await ApplyMoveAsync(key, entries => ListArrangement.MoveTo(entries, key, null, e.ToIndex));
+            }
+        }
+        finally
+        {
+            _moveSeq = Math.Max(_moveSeq, e.Seq);
+        }
+    }
+
+    // One move at a time: one that arrives while OnMove awaits would start from the old order, and
+    // whichever finished last would undo the other. It's ignored, and a dragged item goes back.
+    private bool _moving;
+
+    private async Task ApplyMoveAsync(string key, Func<List<ListEntry<TItem>>, ListMoved?> move)
+    {
+        if (_moving)
+        {
+            return;
+        }
+
+        _moving = true;
+        try
+        {
+            await ApplyMoveCoreAsync(key, move);
+        }
+        finally
+        {
+            _moving = false;
+        }
+    }
+
+    private async Task ApplyMoveCoreAsync(string key, Func<List<ListEntry<TItem>>, ListMoved?> move)
     {
         var entries = _items.Select(i => new ListEntry<TItem>(i, KeyOf(i), null)).ToList();
         var at = entries.FindIndex(e => e.Key == key);
-        if (at < 0 || ItemDisabled?.Invoke(entries[at].Item) == true || ListArrangement.Apply(entries, new ListMove(kind, key)) is not { } moved)
+        if (at < 0 || ItemDisabled?.Invoke(entries[at].Item) == true || move(entries) is not { } moved)
         {
             return;
         }

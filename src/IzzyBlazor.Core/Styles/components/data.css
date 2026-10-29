@@ -579,7 +579,7 @@
 
   /* A failed load: the message, then Retry. In place of the rows it sits where "No items" would,
      in the body's color; under rows Load more added, it takes Load more's place. */
-  .ib-table-error-content {
+  .ib-data-error-content {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -591,7 +591,7 @@
     color: var(--ib-color-on-surface);
   }
 
-  .ib-table-more .ib-table-error-content {
+  .ib-data-more .ib-data-error-content {
     justify-content: flex-start;
   }
 
@@ -741,7 +741,7 @@
 
   /* Paging, grouped at the end like AG Grid and MUI: rows per page, the range, the pages. The
      start stays free for selection counts or bulk actions. */
-  .ib-table-footer {
+  .ib-data-footer {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -749,7 +749,7 @@
     gap: var(--ib-space-2) var(--ib-space-4);
   }
 
-  .ib-table-footer-info {
+  .ib-data-footer-info {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -758,7 +758,7 @@
 
   /* Rows per page: a label and a small ghost button opening the sizes. */
   /* The footer's text lines are a whole 20px, centered in the 32px row of small buttons. */
-  .ib-table-page-size {
+  .ib-data-page-size {
     display: inline-flex;
     align-items: center;
     gap: var(--ib-space-2);
@@ -769,7 +769,7 @@
 
   /* The size is a control, so it's drawn as a small select (outlined, plain weight), not as
      one more page number. */
-  .ib-table-page-size-button {
+  .ib-data-page-size-button {
     justify-content: space-between;
     gap: var(--ib-space-2);
     /* A fixed width (room for "100"), so its border lands on whole pixels whatever the number. */
@@ -780,11 +780,11 @@
   }
 
   /* One text size across the footer: the pages and the size match the 14px range and label. */
-  .ib-table-footer :is(.ib-pagination-item, .ib-table-page-size-button) {
+  .ib-data-footer :is(.ib-pagination-item, .ib-data-page-size-button) {
     --ib-btn-font: var(--ib-text-sm);
   }
 
-  .ib-table-page-size-chevron {
+  .ib-data-page-size-chevron {
     width: 0.875rem;
     height: 0.875rem;
     color: var(--ib-color-muted);
@@ -793,7 +793,7 @@
   /* Load more (and First, when the list starts part-way) after the last row or item, inside the
      scroll area, centered. It takes room only when it has something in it: at the end of the
      list it's empty, and while loading on scroll it keeps a button's height for the spinner. */
-  .ib-table-more {
+  .ib-data-more {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
@@ -801,20 +801,20 @@
     gap: var(--ib-space-1) var(--ib-space-2);
   }
 
-  .ib-table-more:has(> .ib-btn, > .ib-table-error-content, > .ib-table-more-loading) {
+  .ib-data-more:has(> .ib-btn, > .ib-data-error-content, > .ib-data-more-loading) {
     min-height: var(--ib-control-h-sm);
     padding-block: var(--ib-space-3);
   }
 
   /* In a table's scroll box: held at its start, as wide as the box shows (as "no items" is). */
-  .ib-table-scroll > .ib-table-more {
+  .ib-table-scroll > .ib-data-more {
     position: sticky;
     inset-inline-start: 0;
     box-sizing: border-box;
     inline-size: var(--ib-table-view, auto);
   }
 
-  .ib-table-more .ib-pagination-item {
+  .ib-data-more .ib-pagination-item {
     --ib-btn-h: var(--ib-control-h-sm);
     --ib-icon-size: var(--ib-control-icon-sm);
   }
@@ -823,7 +823,7 @@
      skip link is). It stays in the tab order and in the accessibility tree. With JavaScript off
      nothing loads on scroll, so it shows (the prerender of an interactive page draws it too). */
   @media (scripting: enabled) {
-    .ib-table-more-on-focus:not(:focus) {
+    .ib-data-more-on-focus:not(:focus) {
       position: absolute;
       width: 1px;
       min-width: 0;
@@ -837,12 +837,12 @@
     }
   }
 
-  .ib-table-more-loading {
+  .ib-data-more-loading {
     color: var(--ib-color-muted);
   }
 
   /* A focused button shows its own spinner. */
-  .ib-table-more:has(.ib-table-more-on-focus:focus) .ib-table-more-loading {
+  .ib-data-more:has(.ib-data-more-on-focus:focus) .ib-data-more-loading {
     display: none;
   }
 
@@ -854,7 +854,7 @@
 
   /* The range sits between the size select and the pages; its text width is rarely whole, so it's
      rounded up, keeping the select's border on whole pixels (where calc-size() is supported). */
-  .ib-table-summary {
+  .ib-data-summary {
     width: calc-size(max-content, round(up, size, 1px));
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
@@ -1013,7 +1013,7 @@
 
   /* Only the script drags: without it the handle is just the menu's button, and the page scrolls. */
   @media (scripting: enabled) {
-    .ib-sortable:not([data-ib-interactive]) .ib-sortable-handle {
+    .ib-sortable .ib-sortable-handle {
       cursor: grab;
       touch-action: none;
     }
@@ -1038,7 +1038,8 @@
     transition: transform 150ms ease;
   }
 
-  .ib-sortable-sorting > .ib-sortable-dragging {
+  /* Also after the drop, until an interactive page's render moves it there. */
+  .ib-sortable-list > .ib-sortable-dragging {
     position: relative;
     z-index: 1;
     transition: none;
@@ -1078,7 +1079,7 @@
   }
 
   @media (forced-colors: active) {
-    .ib-sortable-sorting > .ib-sortable-dragging {
+    .ib-sortable-list > .ib-sortable-dragging {
       outline: 2px solid Highlight;
     }
 

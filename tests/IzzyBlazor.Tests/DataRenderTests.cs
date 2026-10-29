@@ -57,7 +57,7 @@ public class DataRenderTests : BunitContext
             .Add(t => t.ChildContent, Columns));
 
         Assert.Equal(shown, cut.FindAll("tbody tr").Count);
-        var items = cut.FindAll(".ib-table-page-size a.ib-menu-item");
+        var items = cut.FindAll(".ib-data-page-size a.ib-menu-item");
         Assert.Equal(new[] { "2", "3" }, items.Select(i => i.TextContent.Trim()));
         Assert.Equal("http://localhost/orders", items[0].GetAttribute("href"));
         Assert.Equal("http://localhost/orders?size=3", items[1].GetAttribute("href"));
@@ -217,7 +217,7 @@ public class DataRenderTests : BunitContext
         Assert.Equal("http://localhost/rows?sort=-name", name.QuerySelector("a")!.GetAttribute("href"));
         Assert.Equal("http://localhost/rows?sort=unitprice", cut.FindAll("th")[1].QuerySelector("a")!.GetAttribute("href"));
         Assert.Null(cut.FindAll("th")[2].GetAttribute("aria-sort"));
-        Assert.Equal("3–3 of 3", cut.Find(".ib-table-summary").TextContent);
+        Assert.Equal("3–3 of 3", cut.Find(".ib-data-summary").TextContent);
     }
 
     [Fact]

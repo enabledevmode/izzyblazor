@@ -220,12 +220,12 @@ public class TableDataTests : BunitContext
         var cut = Render<Table<Row>>(p => p.Add(t => t.ItemsProvider, api.Load).Add(t => t.PageSize, 2).Add(t => t.ChildContent, Columns));
 
         var error = cut.Find("tbody tr.ib-table-error");
-        Assert.Equal("Couldn't load the rows.", error.QuerySelector(".ib-table-error-message")!.TextContent.Trim());
+        Assert.Equal("Couldn't load the rows.", error.QuerySelector(".ib-data-error-message")!.TextContent.Trim());
         var retry = error.QuerySelector("a")!;
         Assert.Equal("Retry", retry.TextContent.Trim());
         Assert.Equal("http://localhost/rows?sort=name", retry.GetAttribute("href"));
-        Assert.Empty(cut.FindAll(".ib-table-footer"));
-        Assert.Equal("Couldn't load the rows.", cut.Find("[role=status].ib-table-error-status").TextContent);
+        Assert.Empty(cut.FindAll(".ib-data-footer"));
+        Assert.Equal("Couldn't load the rows.", cut.Find("[role=status].ib-data-error-status").TextContent);
         Assert.Equal(3, int.Parse(error.QuerySelector("td")!.GetAttribute("colspan")!, System.Globalization.CultureInfo.InvariantCulture));
     }
 
@@ -238,7 +238,7 @@ public class TableDataTests : BunitContext
             .Add(t => t.ErrorContent, b => b.AddContent(0, "The orders service is down."))
             .Add(t => t.ChildContent, Columns));
 
-        Assert.Equal("The orders service is down.", cut.Find(".ib-table-error .ib-table-error-message").TextContent.Trim());
+        Assert.Equal("The orders service is down.", cut.Find(".ib-table-error .ib-data-error-message").TextContent.Trim());
     }
 
     [Fact]
@@ -256,7 +256,7 @@ public class TableDataTests : BunitContext
         retry.Click();
         cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada", "Grace" }, Names(cut)));
         Assert.Empty(cut.FindAll(".ib-table-error"));
-        Assert.Contains("1–2 of 4", cut.Find(".ib-table-summary").TextContent);
+        Assert.Contains("1–2 of 4", cut.Find(".ib-data-summary").TextContent);
 
         // The Retry button is gone: focus goes to the table's scroll box.
         cut.WaitForAssertion(() => JSInterop.VerifyFocusAsyncInvoke());
@@ -287,20 +287,20 @@ public class TableDataTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada", "Grace" }, Names(cut)));
 
         api.Fail = true;
-        cut.Find(".ib-table-more button").Click();
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".ib-table-more .ib-table-error-message")));
+        cut.Find(".ib-data-more button").Click();
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".ib-data-more .ib-data-error-message")));
 
         // The rows stay; the message and Retry are under them, in place of Load more.
         Assert.Equal(new[] { "Ada", "Grace" }, Names(cut));
         Assert.Empty(cut.FindAll("tbody .ib-table-error"));
-        Assert.Equal("Couldn't load the rows.", cut.Find(".ib-table-more .ib-table-error-message").TextContent.Trim());
-        var retry = cut.Find(".ib-table-more button");
+        Assert.Equal("Couldn't load the rows.", cut.Find(".ib-data-more .ib-data-error-message").TextContent.Trim());
+        var retry = cut.Find(".ib-data-more button");
         Assert.Equal("Retry", retry.TextContent.Trim());
 
         api.Fail = false;
         retry.Click();
         cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada", "Grace", "adam", "Alan" }, Names(cut)));
-        Assert.Empty(cut.FindAll(".ib-table-more .ib-table-error-message"));
+        Assert.Empty(cut.FindAll(".ib-data-more .ib-data-error-message"));
     }
 
     [Fact]
@@ -317,7 +317,7 @@ public class TableDataTests : BunitContext
 
         api.Fail = true;
         cut.Find("[data-ib-load-next]").Click();
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".ib-table-more .ib-table-error-message")));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".ib-data-more .ib-data-error-message")));
         Assert.Empty(cut.FindAll("[data-ib-load-next]"));
     }
 

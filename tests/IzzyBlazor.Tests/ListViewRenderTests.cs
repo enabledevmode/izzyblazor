@@ -110,7 +110,7 @@ public class ListViewRenderTests : BunitContext
         var cut = RenderList(p => p.Add(l => l.PageSize, 2));
 
         Assert.Equal(new[] { "Cleo" }, cut.FindAll(".ib-listview-title").Select(t => t.TextContent));
-        Assert.Equal("3–3 of 3", cut.Find(".ib-table-summary").TextContent);
+        Assert.Equal("3–3 of 3", cut.Find(".ib-data-summary").TextContent);
         Assert.Equal("List pages", cut.Find("nav.ib-pagination").GetAttribute("aria-label"));
     }
 
@@ -121,7 +121,7 @@ public class ListViewRenderTests : BunitContext
         var cut = RenderList(p => p.Add(l => l.PageSize, 2).Add(l => l.Paging, DataPaging.LoadMore));
 
         Assert.Equal(2, cut.FindAll("li").Count);
-        Assert.Equal("http://localhost/people?page=2", cut.Find(".ib-table-more > a.ib-btn").GetAttribute("href"));
+        Assert.Equal("http://localhost/people?page=2", cut.Find(".ib-data-more > a.ib-btn").GetAttribute("href"));
     }
 
     [Fact]
@@ -140,9 +140,9 @@ public class ListViewRenderTests : BunitContext
         Assert.Equal("People", body.GetAttribute("aria-label"));
         Assert.Equal("0", body.GetAttribute("tabindex"));
         Assert.Contains("max-height:10rem", body.GetAttribute("style"));
-        Assert.NotNull(cut.Find("ib-listview > .ib-listview-body > .ib-listview-list + .ib-table-summary + .ib-table-more"));
-        Assert.Empty(cut.FindAll(".ib-table-footer"));
-        Assert.Equal("1–2 of 3", cut.Find(".ib-table-summary").TextContent);
+        Assert.NotNull(cut.Find("ib-listview > .ib-listview-body > .ib-listview-list + .ib-data-summary + .ib-data-more"));
+        Assert.Empty(cut.FindAll(".ib-data-footer"));
+        Assert.Equal("1–2 of 3", cut.Find(".ib-data-summary").TextContent);
     }
 
     [Fact]
@@ -152,7 +152,7 @@ public class ListViewRenderTests : BunitContext
             .Add(l => l.ItemsProvider, _ => throw new InvalidOperationException("down")));
 
         Assert.Contains("Couldn't load the items.", cut.Find(".ib-listview-state").TextContent);
-        Assert.Equal("Couldn't load the items.", cut.Find(".ib-table-error-status").TextContent);
+        Assert.Equal("Couldn't load the items.", cut.Find(".ib-data-error-status").TextContent);
         Assert.NotNull(cut.Find(".ib-listview-state a.ib-btn"));
     }
 

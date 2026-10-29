@@ -31,7 +31,7 @@ class Table extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     this.#setupFilters(signal);
     setupSelectAll(this, ".ib-table-select-all", "tbody .ib-table-select", signal);
-    setupLoadOnScroll(this, ":scope > .ib-table-scroll > table > tbody > tr:last-child", ":scope > .ib-table-scroll > .ib-table-more [data-ib-load-next]", signal);
+    setupLoadOnScroll(this, ":scope > .ib-table-scroll > table > tbody > tr:last-child", ":scope > .ib-table-scroll > .ib-data-more [data-ib-load-next]", signal);
     this.#setupScrollStop(signal);
     this.#setupBoundPanels(signal);
   }

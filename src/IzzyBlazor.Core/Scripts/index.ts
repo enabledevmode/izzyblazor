@@ -74,6 +74,14 @@ export const izzyEvents: IzzyEventDefinition[] = [
     },
   },
   {
+    // A reorderable list reports a drop for C# to apply (elements/sortable.ts).
+    name: "ibmove",
+    createEventArgs: (event) => {
+      const d = (event as CustomEvent<{ key: string; to: number; zone?: string; seq: number }>).detail;
+      return { key: d?.key ?? null, toIndex: d?.to ?? 0, toZone: d?.zone ?? null, seq: d?.seq ?? 0 };
+    },
+  },
+  {
     // ColorSchemeSwitch reports the user's choice for @bind-Value.
     name: "ibscheme",
     createEventArgs: (event) => ({ scheme: (event as CustomEvent<{ scheme: string }>).detail?.scheme ?? null }),
