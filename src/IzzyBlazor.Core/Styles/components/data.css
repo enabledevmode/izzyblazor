@@ -1001,9 +1001,10 @@
 }
 
 /*
- * Reordering (ListView's Reorderable): the handle (a 32px ghost icon button) at each item's start;
- * a locked item keeps its space, so contents line up. Dragging and the menu's shortcuts need the
- * script, so without it the handle has no grab cursor and the shortcuts hide.
+ * Reordering (ListView's Reorderable): the handle (a narrow ghost icon button) at each item's start;
+ * a locked item keeps its space, so contents line up. With DragWholeItem and an ItemMenu there are
+ * no handles: the moves are in the ⋯ menu and the item itself drags. Dragging and the menu's
+ * shortcuts need the script, so without it nothing has a grab cursor and the shortcuts hide.
  */
 @layer izzy.components {
   .ib-sortable {
@@ -1019,7 +1020,7 @@
     }
 
     /* DragWholeItem: the item drags too; a held touch picks it up rather than selecting its text. */
-    .ib-sortable[data-ib-whole] .ib-sortable-item:has(> ib-popover > .ib-sortable-handle) {
+    .ib-sortable[data-ib-whole] .ib-sortable-item[data-ib-movable] {
       cursor: grab;
       -webkit-user-select: none;
       user-select: none;

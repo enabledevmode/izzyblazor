@@ -1,16 +1,28 @@
 @* DragWholeItem: each card drags from anywhere on it, with a mouse after a small move and on touch
-   after a long press, so a swipe still scrolls. The handle stays as the menu of moves. *@
+   after a long press, so a swipe still scrolls. With an ItemMenu there are no handles: Move up,
+   Move down, Move to top and Move to bottom come first in each card's ⋯ menu. Open stands in for
+   a link to the tile's report: here it names the tile under the list. *@
+@inject NavigationManager Navigation
 <Stack Gap="3" Grow>
     <Form Model="this" FormName="list-view-tiles" OnValidSubmit="Save">
         <ListView @bind-Items="_tiles" ItemKey="t => t.Id" ItemLabel="t => t.Title" Reorderable DragWholeItem Name="tiles" Order="Order"
                   Columns="3" Bordered Context="tile">
-            <Stack Gap="1">
-                <Heading Level="3" Size="TextSize.Md">@tile.Title</Heading>
-                <TextBlock Size="TextSize.Sm" Color="Color.Muted">@tile.Description</TextBlock>
-            </Stack>
+            <ChildContent>
+                <Stack Gap="1">
+                    <Heading Level="3" Size="TextSize.Md">@tile.Title</Heading>
+                    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@tile.Description</TextBlock>
+                </Stack>
+            </ChildContent>
+            <ItemMenu>
+                <MenuItem Href="@Navigation.GetUriWithQueryParameter("tile", tile.Id)" Icon="Lucide.ExternalLink">Open</MenuItem>
+            </ItemMenu>
         </ListView>
         <FormActions><Button Submit>Save layout</Button></FormActions>
     </Form>
+    @if (Opened is not null && _tiles.FirstOrDefault(t => t.Id == Opened) is { } open)
+    {
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted">Opened: @open.Title.</TextBlock>
+    }
     @if (_saved is not null)
     {
         <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_saved</TextBlock>
@@ -18,6 +30,8 @@
 </Stack>
 
 @code {
+    [SupplyParameterFromQuery(Name = "tile")] private string? Opened { get; set; }
+
     [SupplyParameterFromForm(FormName = "list-view-tiles", Name = "tiles")]
     private ListOrder? Order { get; set; }
 

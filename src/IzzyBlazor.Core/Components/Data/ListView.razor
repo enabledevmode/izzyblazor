@@ -110,8 +110,8 @@
         {
             @if (Reorderable)
             {
-                @* The drag, the handle menu's moves in place and the shortcuts (static pages), and the
-                   live region that announces every move. *@
+                @* The drag, the menu's moves in place and the shortcuts (static pages), and the live
+                   region that announces every move. *@
                 @* Keyed by DragWholeItem: the element sets up its touch handling once, for one or the other. *@
                 <ib-sortable @key="DragWholeItem" class="@(Wraps ? "ib-sortable ib-sortable-horizontal" : "ib-sortable ib-sortable-vertical")"
                              data-ib-interactive="@(Live ? "" : null)"
@@ -231,7 +231,9 @@
 
     /// <summary>
     /// Lets the user reorder the items: each gets a handle to drag, which also opens a menu (Move
-    /// up, Move down, Move to top, Move to bottom) for moving without dragging. Needs an
+    /// up, Move down, Move to top, Move to bottom) for moving without dragging; with
+    /// <see cref="DragWholeItem"/> and an <see cref="ItemMenu"/>, the moves go in each item's ⋯ menu
+    /// instead, and the item drags from anywhere. Needs an
     /// <see cref="DataViewBase{TItem}.ItemKey"/> and every item shown: no paging and no
     /// <see cref="DataViewBase{TItem}.ItemsProvider"/>. On interactive pages bind the order with
     /// <c>@bind-Items</c>; on static pages give it a <see cref="Name"/> inside a form and pass the
@@ -261,14 +263,14 @@
 
     /// <summary>
     /// For a <see cref="Reorderable"/> list on a static page, what the form posted: the list shows
-    /// the posted order with the move applied, and focuses the moved item's handle.
+    /// the posted order with the move applied, and focuses the moved item's handle (or ⋯ button).
     /// </summary>
     [Parameter] public ListOrder? Order { get; set; }
 
     /// <summary>
     /// For a <see cref="Reorderable"/> list on a static page with script, posts the form after each
     /// move, for pages that save every move. Otherwise moves stay in the page until the form is
-    /// submitted. With JavaScript off, each move from a handle's menu posts anyway.
+    /// submitted. With JavaScript off, each move from an item's menu posts anyway.
     /// </summary>
     [Parameter, ModeSupport(Interactive = ModeLevel.None)]
     public bool SubmitOnMove { get; set; }
@@ -278,9 +280,11 @@
     /// handle: with a mouse after a small move, on touch after a long press (so a swipe still
     /// scrolls the page). Links, buttons and fields in the item keep their presses; the item's own
     /// link (<see cref="ItemHref"/>) or button (<see cref="OnItemClick"/>) still works on a click.
-    /// The handle stays, as the menu of moves.
+    /// With an <see cref="ItemMenu"/>, the moves (Move up, Move down, Move to top, Move to bottom)
+    /// go first in each item's ⋯ menu and there are no handles; without one, the handle stays as
+    /// the menu of moves.
     /// </summary>
-    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "Nothing drags; with an ItemMenu, the moves in each item's ⋯ menu post the form.")]
     public bool DragWholeItem { get; set; }
 
     private string? _class;
@@ -299,6 +303,9 @@
 
     // Reorderable on a static page without a Name: nothing could save a move, so no handles.
     private bool NotMovable => !Live && Name is null;
+
+    // DragWholeItem with an ItemMenu: the moves go in each item's ⋯ menu, and there are no handles.
+    private bool MovesInMenu => Reorderable && !NotMovable && DragWholeItem && ItemMenu is not null;
 
     // Rows that wrap: a drop line instead of sliding, and Left/Right shortcuts.
     private bool Wraps => Orientation == Orientation.Horizontal || ColumnCount > 1;
@@ -394,16 +401,19 @@
             var current = ItemCurrent?.Invoke(item) == true ? "true" : null;
             // Fragments that write nothing for this item (an @if around their content) leave no space and no ⋯ button.
             var actions = ItemActions?.Invoke(item) is { } fragment && HasContent(fragment) ? fragment : null;
-            var menu = ItemMenu is not null && HasContent(ItemMenu(item));
+            var moves = !disabled && MovesInMenu;
+            var own = ItemMenu is not null && HasContent(ItemMenu(item));
+            var menu = moves || own;
             @* The first item of each page Load more adds can take focus, which goes to it when it arrives. *@
             @* By key, so an item keeps its elements (and focus) when the order changes; without an
                ItemKey the string forms may repeat, which @key doesn't allow. *@
             <li @key="(ItemKey is null ? row : key)" class="@ItemClasses(href is not null || clickable, current is not null, disabled, actions is not null || menu)"
                 data-ib-key="@(Reorderable ? key : null)" data-ib-label="@(Reorderable ? LabelOf(item) : null)"
+                data-ib-movable="@(Reorderable && !NotMovable && !disabled ? "" : null)"
                 aria-current="@(href is null && !clickable ? current : null)"
                 tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)"
                 data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
-                @if (Reorderable && !NotMovable)
+                @if (Reorderable && !NotMovable && !MovesInMenu)
                 {
                     if (disabled)
                     {
@@ -450,7 +460,7 @@
                         @actions
                         @if (menu)
                         {
-                            @MenuButton(item)
+                            @MenuButton(item, key, row, moves, own)
                         }
                     </div>
                 }
@@ -553,34 +563,53 @@
     // The handle: a grip to drag, and the button of a menu of moves.
     private RenderFragment Handle(TItem item, string key, int index) => __builder =>
     {
-        var first = index == 0;
-        var last = index == _items.Count - 1;
         var focus = !Live && key == _focusKey;
         <Menu>
             <Trigger Context="wire">
                 <IconButton Icon="Lucide.GripVertical" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.MoveItem, LabelOf(item))"
-                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle"
+                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-sortable-handle ib-sortable-trigger"
+                            autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
+            </Trigger>
+            <ChildContent>@Moves(key, index)</ChildContent>
+        </Menu>
+    };
+
+    // The item's ⋯ button, opening its ItemMenu; with MovesInMenu, the moves come first.
+    private RenderFragment MenuButton(TItem item, string key, int index, bool moves, bool own) => __builder =>
+    {
+        var focus = moves && !Live && key == _focusKey;
+        <Menu Placement="Placement.BottomEnd">
+            <Trigger Context="wire">
+                <IconButton Icon="IconSet.Current.Get(IconRole.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item))"
+                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="@(moves ? "ib-listview-menu ib-sortable-trigger" : "ib-listview-menu")"
                             autofocus="@focus" data-ib-autofocus="@(focus ? "" : null)" @attributes="wire" />
             </Trigger>
             <ChildContent>
-                @MoveItem(ListMoveKind.Up, key, TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
-                @MoveItem(ListMoveKind.Down, key, TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
-                @MoveItem(ListMoveKind.Top, key, TextDefaults.MoveToTop, "Alt+Home", first)
-                @MoveItem(ListMoveKind.Bottom, key, TextDefaults.MoveToBottom, "Alt+End", last)
+                @if (moves)
+                {
+                    @Moves(key, index)
+                    @if (own)
+                    {
+                        <MenuDivider />
+                    }
+                }
+                @if (own)
+                {
+                    @ItemMenu!(item)
+                }
             </ChildContent>
         </Menu>
     };
 
-    // The item's ⋯ button, opening its ItemMenu.
-    private RenderFragment MenuButton(TItem item) => __builder =>
+    // Move up, down, to the top and to the bottom; none past the ends.
+    private RenderFragment Moves(string key, int index) => __builder =>
     {
-        <Menu Placement="Placement.BottomEnd">
-            <Trigger Context="wire">
-                <IconButton Icon="IconSet.Current.Get(IconRole.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item))"
-                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-listview-menu" @attributes="wire" />
-            </Trigger>
-            <ChildContent>@ItemMenu!(item)</ChildContent>
-        </Menu>
+        var first = index == 0;
+        var last = index == _items.Count - 1;
+        @MoveItem(ListMoveKind.Up, key, TextDefaults.MoveUp, Wraps ? "Alt+←" : "Alt+↑", first)
+        @MoveItem(ListMoveKind.Down, key, TextDefaults.MoveDown, Wraps ? "Alt+→" : "Alt+↓", last)
+        @MoveItem(ListMoveKind.Top, key, TextDefaults.MoveToTop, "Alt+Home", first)
+        @MoveItem(ListMoveKind.Bottom, key, TextDefaults.MoveToBottom, "Alt+End", last)
     };
 
     // Whether a fragment draws anything: an element, a component, or text that isn't only spaces.

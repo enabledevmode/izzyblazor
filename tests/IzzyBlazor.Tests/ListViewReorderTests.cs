@@ -345,4 +345,89 @@ public class ListViewReorderTests : BunitContext
         var plain = RenderList();
         Assert.False(plain.Find("ib-sortable").HasAttribute("data-ib-whole"));
     }
+
+    // An Open item for every step, or only for those `when` allows.
+    private static RenderFragment<Step> OpenMenu(Func<Step, bool>? when = null) => step => b =>
+    {
+        if (when?.Invoke(step) == false)
+        {
+            return;
+        }
+
+        b.OpenComponent<IzzyBlazor.MenuItem>(0);
+        b.AddAttribute(1, nameof(IzzyBlazor.MenuItem.Href), $"/steps/{step.Id}");
+        b.AddAttribute(2, nameof(IzzyBlazor.MenuItem.ChildContent), (RenderFragment)(c => c.AddContent(0, "Open")));
+        b.CloseComponent();
+    };
+
+    private static string[] MenuTexts(IElement item) =>
+        item.QuerySelectorAll(".ib-menu-item .ib-menu-label").Select(l => l.TextContent.Trim()).ToArray();
+
+    [Fact]
+    public void DragWholeItem_with_an_ItemMenu_puts_the_moves_in_the_menu_and_draws_no_handles()
+    {
+        Static();
+        var cut = RenderList(more: p => p.Add(l => l.DragWholeItem, true).Add(l => l.ItemMenu, OpenMenu()));
+
+        Assert.Empty(cut.FindAll(".ib-sortable-handle"));
+        Assert.Empty(cut.FindAll(".ib-sortable-spacer"));
+        Assert.All(cut.FindAll("li"), li => Assert.True(li.HasAttribute("data-ib-movable")));
+
+        var first = cut.FindAll("li")[0];
+        var button = first.QuerySelector(".ib-listview-menu")!;
+        Assert.Equal("Actions for Ada", button.GetAttribute("aria-label"));
+        Assert.Contains("ib-sortable-trigger", button.ClassList);
+        Assert.Equal(new[] { "Move up", "Move down", "Move to top", "Move to bottom", "Open" }, MenuTexts(first));
+        Assert.NotNull(first.QuerySelector("[role=separator]"));
+
+        var down = MenuItem(cut, 0, "Move down");
+        Assert.Equal("order.Move", down.GetAttribute("name"));
+        Assert.Equal("down:a", down.GetAttribute("value"));
+        Assert.True(MenuItem(cut, 0, "Move up").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void A_locked_item_gets_no_moves_and_a_menu_only_for_its_own_items()
+    {
+        Static();
+        Step[] steps = [new("a", "Ada"), new("b", "Brian", Locked: true), new("c", "Cleo", Locked: true)];
+        var cut = RenderList(steps, more: p => p
+            .Add(l => l.DragWholeItem, true)
+            .Add(l => l.ItemMenu, OpenMenu(s => s.Id != "c")));
+
+        var items = cut.FindAll("li");
+        Assert.False(items[1].HasAttribute("data-ib-movable"));
+        Assert.Equal(new[] { "Open" }, MenuTexts(items[1]));
+        Assert.DoesNotContain("ib-sortable-trigger", items[1].QuerySelector(".ib-listview-menu")!.ClassList);
+        Assert.Null(items[2].QuerySelector(".ib-listview-menu"));
+        Assert.Empty(cut.FindAll(".ib-sortable-spacer"));
+    }
+
+    [Fact]
+    public void A_posted_move_from_the_menu_focuses_the_moved_items_menu_button()
+    {
+        Static();
+        var cut = RenderList(order: new ListOrder { Keys = ["a", "b", "c"], Move = "down:a" }, more: p => p
+            .Add(l => l.DragWholeItem, true)
+            .Add(l => l.ItemMenu, OpenMenu()));
+
+        Assert.Equal(new[] { "Brian", "Ada", "Cleo" }, Shown(cut));
+        Assert.Equal("Actions for Ada", Assert.Single(cut.FindAll("[autofocus]")).GetAttribute("aria-label"));
+    }
+
+    [Fact]
+    public void An_interactive_list_moves_from_the_menu()
+    {
+        Live();
+        IReadOnlyList<Step>? changed = null;
+        var cut = RenderList(name: null, more: p => p
+            .Add(l => l.DragWholeItem, true)
+            .Add(l => l.ItemMenu, OpenMenu())
+            .Add(l => l.ItemsChanged, items => changed = items));
+
+        Assert.Empty(cut.FindAll(".ib-sortable-handle"));
+        MenuItem(cut, 2, "Move to top").Click();
+
+        Assert.Equal(new[] { "c", "a", "b" }, changed!.Select(s => s.Id));
+    }
 }
