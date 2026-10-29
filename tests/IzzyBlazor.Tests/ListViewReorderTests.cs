@@ -364,7 +364,7 @@ public class ListViewReorderTests : BunitContext
         item.QuerySelectorAll(".ib-menu-item .ib-menu-label").Select(l => l.TextContent.Trim()).ToArray();
 
     [Fact]
-    public void DragWholeItem_with_an_ItemMenu_puts_the_moves_in_the_menu_and_draws_no_handles()
+    public void DragWholeItem_with_an_ItemMenu_puts_the_moves_in_a_Move_submenu_and_draws_no_handles()
     {
         Static();
         var cut = RenderList(more: p => p.Add(l => l.DragWholeItem, true).Add(l => l.ItemMenu, OpenMenu()));
@@ -377,8 +377,12 @@ public class ListViewReorderTests : BunitContext
         var button = first.QuerySelector(".ib-listview-menu")!;
         Assert.Equal("Actions for Ada", button.GetAttribute("aria-label"));
         Assert.Contains("ib-sortable-trigger", button.ClassList);
-        Assert.Equal(new[] { "Move up", "Move down", "Move to top", "Move to bottom", "Open" }, MenuTexts(first));
+        // The item's own items, a line, then Move opening the moves.
+        Assert.Equal(new[] { "Open", "Move", "Move up", "Move down", "Move to top", "Move to bottom" }, MenuTexts(first));
         Assert.NotNull(first.QuerySelector("[role=separator]"));
+        var sub = first.QuerySelector(".ib-menu-sub-trigger")!;
+        Assert.Equal("Move", sub.TextContent.Trim());
+        Assert.NotNull(first.QuerySelector(".ib-menu-sub-root button[data-ib-move=down]"));
 
         var down = MenuItem(cut, 0, "Move down");
         Assert.Equal("order.Move", down.GetAttribute("name"));
@@ -401,6 +405,20 @@ public class ListViewReorderTests : BunitContext
         Assert.DoesNotContain("ib-sortable-trigger", items[1].QuerySelector(".ib-listview-menu")!.ClassList);
         Assert.Null(items[2].QuerySelector(".ib-listview-menu"));
         Assert.Empty(cut.FindAll(".ib-sortable-spacer"));
+    }
+
+    [Fact]
+    public void An_item_whose_menu_is_empty_gets_the_moves_without_a_submenu()
+    {
+        Static();
+        var cut = RenderList(more: p => p
+            .Add(l => l.DragWholeItem, true)
+            .Add(l => l.ItemMenu, OpenMenu(s => s.Id != "b")));
+
+        var brian = cut.FindAll("li")[1];
+        Assert.Equal(new[] { "Move up", "Move down", "Move to top", "Move to bottom" }, MenuTexts(brian));
+        Assert.Null(brian.QuerySelector(".ib-menu-sub-trigger"));
+        Assert.Null(brian.QuerySelector("[role=separator]"));
     }
 
     [Fact]
