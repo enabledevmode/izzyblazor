@@ -107,12 +107,12 @@ public sealed class GrayPalette
         var dark = new Dictionary<string, Rgb>
         {
             ["background"] = Shade(0.135, 0.5),
-            ["surface"] = Shade(0.180, 0.6),
-            ["fill-subtle"] = Shade(0.212, 0.6),
-            ["fill"] = Shade(0.243, 0.7),
-            ["fill-strong"] = Shade(0.277, 0.8),
-            ["surface-overlay"] = Shade(0.226, 0.6),
-            ["border"] = Shade(0.323, 0.8),
+            ["surface"] = Shade(0.160, 0.6),
+            ["fill-subtle"] = Shade(0.192, 0.6),
+            ["fill"] = Shade(0.223, 0.7),
+            ["fill-strong"] = Shade(0.257, 0.8),
+            ["surface-overlay"] = Shade(0.206, 0.6),
+            ["border"] = Shade(0.303, 0.8),
         };
 
         // Below the surface in dark mode: the page, already the lowest step.
