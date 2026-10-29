@@ -737,7 +737,8 @@
     font-size: var(--ib-text-lg);
   }
 
-  .ib-prose :where(p, ul, ol, dl, blockquote, pre, table, figure, hr, details) {
+  /* A Code block is spaced as a pre is; its own pre inside is Code's to style. */
+  .ib-prose :where(p, ul, ol, dl, blockquote, pre:not(.ib-code-pre), table, figure, hr, details, .ib-code-block) {
     margin-block: 0 var(--ib-prose-gap);
   }
 
@@ -814,7 +815,7 @@
     font-size: 0.875em;
   }
 
-  .ib-prose :where(pre) {
+  .ib-prose :where(pre:not(.ib-code-pre)) {
     overflow-x: auto;
     padding: var(--ib-space-4);
     border: 1px solid var(--ib-color-border);
@@ -826,7 +827,7 @@
     tab-size: 4;
   }
 
-  .ib-prose :where(pre code) {
+  .ib-prose :where(pre:not(.ib-code-pre) code) {
     padding: 0;
     border-radius: 0;
     background: none;
