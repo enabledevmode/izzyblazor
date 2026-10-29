@@ -201,7 +201,8 @@
         }
         else
         {
-            <IzzyTheme Brand="blue" ColorScheme="FixedScheme" Class="ex-theme">
+            @* The library's own grays (Neutral, its default), not the site's: an example shows what an app gets. *@
+            <IzzyTheme Brand="blue" Gray="neutral" ColorScheme="FixedScheme" Class="ex-theme">
                 <CodeExample Center Class="ex-box ex-stage">
                     @if (_mode == "interactive")
                     {
