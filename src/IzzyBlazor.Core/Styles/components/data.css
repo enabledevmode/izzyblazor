@@ -1297,6 +1297,28 @@
     margin-inline-start: auto;
   }
 
+  /* The ⋯ button pulled into the padding, so its dots end where the text would (as the handle's
+     start where it would). */
+  .ib-listview-trail > .ib-pop-root:has(> .ib-listview-menu) {
+    margin-inline-end: calc(var(--ib-space-1) * -1);
+  }
+
+  /* On a card, in the corner as a dialog's close button is: 0.5rem from the top and end edges, so
+     the dots line up with the title's first line and the card's padding. */
+  .ib-listview-columns .ib-listview-trail {
+    align-items: flex-start;
+  }
+
+  /* Cards are narrow: the text wraps beside the trail rather than the trail under the text. */
+  .ib-listview-columns .ib-listview-has-trail > .ib-listview-content {
+    flex-basis: 0;
+  }
+
+  .ib-listview-columns .ib-listview-trail > .ib-pop-root:has(> .ib-listview-menu) {
+    margin-block-start: calc(0.5rem - var(--ib-space-4));
+    margin-inline-end: calc(0.5rem - var(--ib-space-4));
+  }
+
   /* Selection: a checkbox at each item's start; select-all above them, with script only (it
      checks the boxes, which post and report their own changes). A checked item is tinted. */
   /* Drawn like Checkbox (ib-check-input), at 16px, with no first-line offset (as Table's). */
