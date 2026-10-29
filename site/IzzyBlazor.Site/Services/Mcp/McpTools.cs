@@ -55,7 +55,7 @@ public sealed class McpTools(McpDocs docs)
         Run(() => docs.GetExample(id));
 
     [McpServerTool(Name = "get_article", Title = "Get an IzzyBlazor docs page", ReadOnly = true, Idempotent = true, OpenWorld = false)]
-    [Description("A docs page as Markdown, examples included: setup (docs/get-started/blazor-web-app, webassembly-and-auto, existing-app, from-radzen), theming (docs/theming/themes, color-scheme, tokens), common features (docs/common/style-props, responsive, render-modes, forms, text, accessibility), troubleshooting static pages (docs/troubleshooting/...), or a component's Overview (docs/components/button). Leave the path empty to list every article.")]
+    [Description("A docs page as Markdown, examples included: setup (docs/get-started/blazor-web-app, webassembly-and-auto, existing-app, from-radzen), theming (docs/theming/themes, color-scheme, tokens), common features (docs/common/style-props, responsive, render-modes, forms, data, text, accessibility), troubleshooting static pages (docs/troubleshooting/...), or a component's Overview (docs/components/button). Leave the path empty to list every article.")]
     public Task<string> GetArticle(
         [Description("The page's path (docs/common/forms), its last segment (forms) or a component name for its Overview.")] string path = "") =>
         RunAsync(() => docs.GetArticleAsync(path));

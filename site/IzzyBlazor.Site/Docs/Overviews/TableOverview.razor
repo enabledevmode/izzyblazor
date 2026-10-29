@@ -33,7 +33,7 @@
 <Code Block Language="razor">@Provider</Code>
 <TextBlock>The filter becomes a LINQ expression on each column's own property, so the database filters, and a value typed into a filter never becomes code. <Code>request.Apply(query)</Code> does the same without counting; <Code>ApplyFiltering</Code> and <Code>ApplySorting</Code> do one part each. To filter a column your own way, such as a value stored differently from how it's shown, give it a <Code>Filter</Code> that returns the condition:</TextBlock>
 <Code Block Language="razor">@CustomCondition</Code>
-<TextBlock>When the rows come from an API, pass the request on. <Code>request.Filter?.Find("status")</Code> reads one column's condition, and <Code>request.ToQueryString()</Code> writes the whole request (<Code>sort=-date&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code>). The API reads it back with <Code>DataRequest&lt;Order&gt;.Parse</Code> and applies it through the fields it declares, so a request can't reach other properties. <Code>ToODataQuery()</Code> writes it for an OData endpoint, and the request also serializes with <Code>System.Text.Json</Code>.</TextBlock>
+<TextBlock>When the rows come from an API, pass the request on. <Code>request.Filter?.Find("status")</Code> reads one column's condition, and <Code>request.ToQueryString()</Code> writes the whole request (<Code>sort=-date&amp;skip=20&amp;take=10&amp;filter=total ge 100</Code>). The API reads it back with <Code>DataRequest&lt;Order&gt;.Parse</Code> and applies it through the fields it declares, so a request can't reach other properties. <Code>ToODataQuery()</Code> writes it for an OData endpoint, and the request also serializes with <Code>System.Text.Json</Code>. <Anchor Href="docs/common/data">Data and filters</Anchor> has the operators, the filter syntax and a full client and server.</TextBlock>
 <TextBlock><Code>DataFields.Of&lt;T&gt;()</Code> declares every public property, so read it from a type made for the API, or leave a property out with <Code>[ScaffoldColumn(false)]</Code>. The request asks for its own <Code>Take</Code>, so cap it on the server if it shouldn't ask for every row.</TextBlock>
 <Code Block Language="csharp">@OverTheWire</Code>
 
@@ -78,6 +78,7 @@
 
 <Heading Level="2">See also</Heading>
 <List Gap="2">
+    <ListItem><Anchor Href="docs/common/data">Data and filters</Anchor>: the request, filters in code and as text, fields, and calling an API.</ListItem>
     <ListItem><Anchor Href="docs/components/filter-form">FilterForm</Anchor>: search and filters of your own, in the URL.</ListItem>
     <ListItem><Anchor Href="docs/components/pagination">Pagination</Anchor>: page links for a list that isn't a table.</ListItem>
     <ListItem><Anchor Href="docs/common/render-modes">Render modes</Anchor>: state in the URL on static pages.</ListItem>
@@ -123,9 +124,15 @@
         """;
 
     private const string CustomCondition = """
-        @* Tags are stored as "red;green": "green" in the filter finds it. *@
-        <PropertyColumn Property="o => o.Tags" Filterable
-                        Filter='f => o => (";" + o.Tags + ";").Contains(";" + f.Value + ";")' />
+        <PropertyColumn Property="o => o.Tags" Filterable Filter="TagFilter" />
+
+        @code {
+            // Tags are stored lower case, as "red;green": "Green" in the filter finds it.
+            static Expression<Func<Order, bool>>? TagFilter(FieldFilter f) =>
+                f.Operator == FilterOperator.Contains && f.Value is string tag
+                    ? o => (";" + o.Tags + ";").Contains(";" + tag.ToLower() + ";")
+                    : null;
+        }
         """;
 
     private const string OverTheWire = """
