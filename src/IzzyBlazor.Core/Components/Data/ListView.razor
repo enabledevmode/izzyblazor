@@ -20,6 +20,15 @@
     buttons inside it still work on their own), and ItemCurrent marks the one the page is
     showing. OnItemClick does the same with a button, on interactive pages.
 
+    ItemActions puts content at each item's end (icon buttons, a switch, a badge), and ItemMenu
+    gives each item a ⋯ menu of MenuItems:
+
+    <ListView Items="files" ItemKey="f => f.Id" ItemLabel="f => f.Name" Context="file">
+        <ChildContent>@file.Name</ChildContent>
+        <ItemActions><IconButton Icon="Lucide.Star" Label="@($"Star {file.Name}")" OnClick="() => Star(file)" /></ItemActions>
+        <ItemMenu><MenuItem Submit Name="delete" Value="@file.Id">Delete</MenuItem></ItemMenu>
+    </ListView>
+
     PageSize pages the items as Table does: numbered pages or First/Previous/Next by cursor, in the
     URL (?page=, ?cursor=, ?size=) or, bound on an interactive page, in the component. Load more
     and loading on scroll add each page under the items, with the button after the last one; give
@@ -33,6 +42,8 @@
       (or the key), stretched over the item: one Tab stop per item.
     - The current item (`ItemCurrent`) is marked `aria-current` (on its link when it has one).
     - A disabled item (`ItemDisabled`) has no link or button, and is dimmed.
+    - Each item's ⋯ button (`ItemMenu`) is named "Actions for" and its label. Tab goes through
+      an item's controls in order: handle, link, checkbox, content, ItemActions, the ⋯ button.
     - With `Selectable`, each item has a checkbox named "Select" and the item's label; with
       script, a "Select all rows" checkbox above the list checks the page.
     - The range under a paged list ("1–10 of 42") is read when it changes, and a failed load is
@@ -55,10 +66,11 @@
             </label>
         </div>
     }
-    @if (Posts)
+    @if (Posts || ItemMenu is not null || ItemActions is not null)
     {
-        @* The form's default button, ahead of the move buttons: Enter in another field submits the
-           form, rather than pressing the first item's (often disabled) Move up. *@
+        @* The form's default button, ahead of the items' buttons: Enter in another field submits the
+           form, rather than pressing the first item's (often disabled) Move up or its Delete. On an
+           interactive page it only raises the form's submit. *@
         <button type="submit" class="ib-listview-default-submit" tabindex="-1" aria-hidden="true"></button>
     }
     @* The items and, in a list that grows, Load more after them: one box, which scrolls with a MaxHeight. *@
@@ -153,7 +165,27 @@
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<TItem> OnItemClick { get; set; }
 
-    /// <summary>Dims an item and leaves it without its link or button.</summary>
+    /// <summary>
+    /// Content at the end of each item, after its text: icon buttons, a switch, a badge or a time.
+    /// Its controls work on their own above the item's link. Name each for its item, such as
+    /// "Star report.pdf"; keep it to one or two, and put the rest in <see cref="ItemMenu"/>. On a
+    /// narrow item they go under its text, at the end.
+    /// </summary>
+    /// <remarks>
+    /// With <see cref="ItemActions"/> or <see cref="ItemMenu"/>, Enter in another field of the
+    /// form submits it with no button's name or value, rather than pressing the first item's button.
+    /// </remarks>
+    [Parameter] public RenderFragment<TItem>? ItemActions { get; set; }
+
+    /// <summary>
+    /// Each item's menu, of <see cref="MenuItem"/>s, opened by a ⋯ button at the item's end, named
+    /// "Actions for" and the item's label. Items that link or post work on static pages and with
+    /// JavaScript off. When the fragment writes nothing for an item (an <c>@if</c> around its items),
+    /// that item has no ⋯ button.
+    /// </summary>
+    [Parameter] public RenderFragment<TItem>? ItemMenu { get; set; }
+
+    /// <summary>Dims an item and leaves it without its link or button; its <see cref="ItemActions"/> and <see cref="ItemMenu"/> stay.</summary>
     [Parameter] public Func<TItem, bool>? ItemDisabled { get; set; }
 
     /// <summary>
@@ -269,11 +301,12 @@
 
     private string PagesLabel => string.Format(CultureInfo.CurrentCulture, TextDefaults.TablePages, AriaLabel ?? TextDefaults.ListName);
 
-    private string ItemClasses(bool action, bool current, bool disabled) =>
+    private string ItemClasses(bool action, bool current, bool disabled, bool trail) =>
         (Reorderable ? "ib-listview-item ib-sortable-item" : "ib-listview-item")
         + (action ? " ib-listview-actionable" : "")
         + (current ? " ib-listview-current" : "")
-        + (disabled ? " ib-listview-disabled" : "");
+        + (disabled ? " ib-listview-disabled" : "")
+        + (trail ? " ib-listview-has-trail" : "");
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
@@ -335,10 +368,13 @@
             var href = disabled ? null : ItemHref?.Invoke(item);
             var clickable = !disabled && href is null && OnItemClick.HasDelegate;
             var current = ItemCurrent?.Invoke(item) == true ? "true" : null;
+            // Fragments that write nothing for this item (an @if around their content) leave no space and no ⋯ button.
+            var actions = ItemActions?.Invoke(item) is { } fragment && HasContent(fragment) ? fragment : null;
+            var menu = ItemMenu is not null && HasContent(ItemMenu(item));
             @* The first item of each page Load more adds can take focus, which goes to it when it arrives. *@
             @* By key, so an item keeps its elements (and focus) when the order changes; without an
                ItemKey the string forms may repeat, which @key doesn't allow. *@
-            <li @key="(ItemKey is null ? row : key)" class="@ItemClasses(href is not null || clickable, current is not null, disabled)"
+            <li @key="(ItemKey is null ? row : key)" class="@ItemClasses(href is not null || clickable, current is not null, disabled, actions is not null || menu)"
                 data-ib-key="@(Reorderable ? key : null)" data-ib-label="@(Reorderable ? LabelOf(item) : null)"
                 aria-current="@(href is null && !clickable ? current : null)"
                 tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)"
@@ -383,6 +419,17 @@
                         @DefaultRow(item)
                     }
                 </div>
+                @if (actions is not null || menu)
+                {
+                    @* One box, so the actions and the ⋯ button wrap under the content together on a narrow item. *@
+                    <div class="ib-listview-trail">
+                        @actions
+                        @if (menu)
+                        {
+                            @MenuButton(item)
+                        }
+                    </div>
+                }
                 @if (Posts)
                 {
                     <input type="hidden" name="@KeysName" value="@key" />
@@ -456,6 +503,42 @@
             </ChildContent>
         </Menu>
     };
+
+    // The item's ⋯ button, opening its ItemMenu.
+    private RenderFragment MenuButton(TItem item) => __builder =>
+    {
+        <Menu Placement="Placement.BottomEnd">
+            <Trigger Context="wire">
+                <IconButton Icon="IconSet.Current.Get(IconRole.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item))"
+                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="ib-listview-menu" @attributes="wire" />
+            </Trigger>
+            <ChildContent>@ItemMenu!(item)</ChildContent>
+        </Menu>
+    };
+
+    // Whether a fragment draws anything: an element, a component, or text that isn't only spaces.
+    private static bool HasContent(RenderFragment fragment)
+    {
+#pragma warning disable BL0006 // Reading render frames: the fragment is run here only to see whether it's empty.
+        using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
+        fragment(builder);
+        var frames = builder.GetFrames();
+        for (var i = 0; i < frames.Count; i++)
+        {
+            ref var frame = ref frames.Array[i];
+            switch (frame.FrameType)
+            {
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Element:
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Component:
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Text when !string.IsNullOrWhiteSpace(frame.TextContent):
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Markup when !string.IsNullOrWhiteSpace(frame.MarkupContent):
+                    return true;
+            }
+        }
+#pragma warning restore BL0006
+
+        return false;
+    }
 
     // The script finds a menu item by its move: the shortcuts click it, and on static pages it moves the item in place.
     private static string Kind(ListMoveKind kind) => kind.ToString().ToLowerInvariant();

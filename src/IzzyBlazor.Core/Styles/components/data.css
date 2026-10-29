@@ -1252,13 +1252,33 @@
     box-shadow: inset -2px 0 0 var(--ib-color-primary);
   }
 
-  .ib-listview-disabled {
+  /* A disabled item's actions and menu still work, so only the rest dims. */
+  .ib-listview-disabled > :not(.ib-listview-trail, .ib-listview-action) {
     opacity: 0.55;
   }
 
   .ib-listview-content {
     flex: 1 1 auto;
     min-width: 0;
+  }
+
+  /* ItemActions and the ⋯ button, at the item's end (in cards, the top end). The content keeps
+     10rem before they wrap under it, still at the end, so a long title doesn't push them down
+     on wide items. */
+  .ib-listview-has-trail {
+    flex-wrap: wrap;
+  }
+
+  .ib-listview-has-trail > .ib-listview-content {
+    flex: 1 1 10rem;
+  }
+
+  .ib-listview-trail {
+    display: flex;
+    flex: none;
+    align-items: center;
+    gap: var(--ib-space-2);
+    margin-inline-start: auto;
   }
 
   /* Selection: a checkbox at each item's start; select-all above them, with script only (it

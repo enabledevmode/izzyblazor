@@ -1,0 +1,59 @@
+@* Each button posts its Name=Value with the form, so the actions work with JavaScript off;
+   OnClick says which it was on interactive pages, where nothing posts. A file shared with you
+   has no Delete, so its menu is shorter. *@
+<form method="post" @onsubmit="Act" @formname="list-view-files" style="width: 100%">
+    <AntiforgeryToken />
+    <Stack Gap="3" MaxWidth="32.Rem">
+        <ListView Items="_files" ItemKey="f => f.Id" ItemText="f => f.Name" ItemDescription="f => f.Detail" ItemIcon="_ => Lucide.FileText" Bordered Context="file">
+            <ItemActions>
+                @if (file.Shared)
+                {
+                    <Badge>Shared</Badge>
+                }
+                <IconButton Icon="Lucide.Star" Label="@($"Star {file.Name}")" Submit Name="intent" Value="@($"star:{file.Id}")"
+                            OnClick="@(() => _clicked = $"star:{file.Id}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+            </ItemActions>
+            <ItemMenu>
+                <MenuItem Submit Name="intent" Value="@($"download:{file.Id}")" OnClick="@(() => _clicked = $"download:{file.Id}")" Icon="Lucide.Download">Download</MenuItem>
+                <MenuItem Submit Name="intent" Value="@($"archive:{file.Id}")" OnClick="@(() => _clicked = $"archive:{file.Id}")" Icon="Lucide.Archive">Archive</MenuItem>
+                @if (!file.Shared)
+                {
+                    <MenuDivider />
+                    <MenuItem Submit Name="intent" Value="@($"delete:{file.Id}")" OnClick="@(() => _clicked = $"delete:{file.Id}")" Icon="Lucide.Trash" Accent="Accent.Danger">Delete</MenuItem>
+                }
+            </ItemMenu>
+        </ListView>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_done</TextBlock>
+    </Stack>
+</form>
+
+@code {
+    // Static pages: the pressed button's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "list-view-files", Name = "intent")]
+    private string? Posted { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which button it was.
+    private string? _clicked;
+    private string? _done;
+
+    private readonly FileEntry[] _files =
+    [
+        new("1", "Quarterly report.pdf", "2.4 MB, edited today"),
+        new("2", "Brand guidelines.pdf", "8.1 MB, shared by Grace", Shared: true),
+        new("3", "Budget 2027.xlsx", "640 KB, edited Monday"),
+    ];
+
+    private void Act()
+    {
+        var (verb, id) = (Posted ?? _clicked)?.Split(':', 2) is [var v, var i] ? (v, i) : (null, null);
+        _clicked = null;
+        var done = verb switch { "star" => "Starred", "download" => "Downloaded", "archive" => "Archived", "delete" => "Deleted", _ => null };
+        if (done is not null && _files.FirstOrDefault(f => f.Id == id) is { } file)
+        {
+            _done = $"{done} {file.Name}.";
+        }
+    }
+    @* hide *@
+    private sealed record FileEntry(string Id, string Name, string Detail, bool Shared = false);
+    @* /hide *@
+}
