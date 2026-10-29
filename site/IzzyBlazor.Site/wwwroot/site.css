@@ -1,24 +1,9 @@
-/* Dark mode, after Chakra: a near-black page with cards one step up on the brand's Ink (the hero's
-   and the picture tiles' color) and a quiet border. Light mode keeps the library's Neutral. These
-   are the site's chrome only: examples set the library's Neutral on their IzzyTheme
-   (ExampleViewer), and demo frames have no .site class, so both show the library's own grays. */
+/* The site uses the library's own colors (Neutral), as an app would; only the brand's Ember for
+   pictograms is its own. */
 :root.site {
-  /* The brand's Ember for pictograms, which keep it while the chrome is Ink. */
   --site-ember-soft: light-dark(#fdebdf, rgb(242 106 27 / 0.18));
   --site-ember-text: light-dark(#b8480b, #ff9a5c);
-  --ib-color-background: light-dark(#fafafa, #08090b);
-  --ib-color-surface: light-dark(#ffffff, #111215);
-  --ib-color-surface-sunken: light-dark(#f3f3f5, #08090b);
-  --ib-color-fill-subtle: light-dark(#f3f3f5, #191b1f);
-  --ib-color-fill: light-dark(#e9e9ec, #202227);
-  --ib-color-fill-strong: light-dark(#dfdfe3, #282a30);
-  --ib-color-surface-overlay: light-dark(#ffffff, #1c1e22);
-  --ib-color-border: light-dark(#dcdce0, #33363d);
-  --ib-color-outline: light-dark(#b8b8bf, #44474f);
 }
-/* Not in examples: they keep the library's card on the surface, so a footer bar or a filled card
-   shows against it as in an app. */
-:root.site .ib-card-outline:not(.ex-theme *) { --ib-card-bg: light-dark(#ffffff, #191b1f); }
 .site-why-intro { max-inline-size: 44rem; margin-block-end: var(--ib-space-2); }
 /* Each point's heading and text share rows across the band, so a heading that wraps doesn't push its text below the others'. */
 .site-why > * { display: grid; grid-row: span 2; grid-template-rows: subgrid; row-gap: var(--ib-space-2); }
@@ -373,8 +358,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
    rounded one, and on a band of another color (the home hero) its corners showed outside the
    curve: the box paints the background itself. */
 .ex-theme { background: none; }
-/* The home hero's window: the site's near-black inside the dark band. */
-.ex-deep .ex-stage { background: #111215; }
+/* The home hero's window: an example, so the library's surface, inside the dark band. */
+.ex-deep .ex-stage { background: var(--ib-color-surface); }
 .ex-fixed-mode { margin: 0; white-space: nowrap; }
 .ex-needs-live { display: flex; align-items: center; justify-content: center; padding: var(--ib-space-6); }
 .ex-below { grid-row: 3; grid-column: 1 / -1; padding-block-start: var(--ib-space-2); }
