@@ -95,7 +95,8 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
   signal.addEventListener("abort", () => delete root.dataset.ready);
 
   const boxes = () => [...root.querySelectorAll<HTMLInputElement>(itemSelector)];
-  // On interactive pages C# keeps the selection; the script adds only the ranges.
+  keepFocus(bar, boxes, signal);
+  // On interactive pages C# keeps the selection; the script adds only the ranges and focus.
   if (root.hasAttribute("data-ib-interactive")) {
     setupRanges(root, boxes, signal);
     return;
@@ -113,8 +114,12 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
   const empty = (): SelectionState => ({ keys: new Set(), all: false, filter: "", search: "" });
 
   let state = selections.get(id) ?? fromServer();
-  // All of another filter or search isn't these items (the server clears it the same way).
-  if (state.all && (state.filter !== scope.filter || state.search !== scope.search)) state = empty();
+  // All of another filter or search isn't these items (the server clears it the same way), and
+  // isn't kept to come back with that filter.
+  if (state.all && (state.filter !== scope.filter || state.search !== scope.search)) {
+    state = empty();
+    selections.delete(id);
+  }
   const has = (key: string) => state.all !== state.keys.has(key);
   const save = () => selections.set(id, state);
   const multiple = () => boxes().some((box) => box.type === "checkbox");
@@ -131,8 +136,10 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
       : count === null
         ? (bar.dataset.ibAllOpen ?? "")
         : fill((state.all ? bar.dataset.ibAllCount : bar.dataset.ibCount) ?? "{0}", count);
-    const status = bar.querySelector<HTMLElement>(".ib-selection-count");
-    if (status && status.textContent !== text) status.textContent = text;
+    // The visible count, and the status region beside the bar that announces it.
+    for (const el of [bar.querySelector<HTMLElement>(".ib-selection-count"), root.querySelector<HTMLElement>(":scope > .ib-selection-status")]) {
+      if (el && el.textContent !== text) el.textContent = text;
+    }
     const selectable = shown.filter((box) => !box.disabled);
     const pageAll = selectable.length > 0 && selectable.every((box) => box.checked);
     const more = bar.querySelector<HTMLElement>(".ib-selection-more");
@@ -168,8 +175,6 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
       state = button.dataset.ibSelection === "all" ? { keys: new Set(), all: true, ...scope } : empty();
       save();
       render();
-      if (button.dataset.ibSelection === "clear") boxes()[0]?.focus();
-      else bar.querySelector<HTMLElement>(".ib-selection-clear")?.focus();
     },
     { signal }
   );
@@ -181,8 +186,10 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
     "formdata",
     (event) => {
       const data = event.formData;
+      // One field for all the keys: one per key would pass the server's limit of 1,024 form values.
       data.delete(`${name}.Keys`);
-      for (const key of state.keys) data.append(`${name}.Keys`, key);
+      data.delete(`${name}.KeyList`);
+      if (state.keys.size) data.set(`${name}.KeyList`, JSON.stringify([...state.keys]));
       if (state.all) {
         data.set(`${name}.All`, "true");
         if (state.filter) data.set(`${name}.Filter`, state.filter);
@@ -196,6 +203,36 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
 
   setupRanges(root, boxes, signal);
   render();
+}
+
+/**
+ * When the focused button in the bar goes out of sight (Clear selection hides the bar, Select all
+ * hides itself, an action empties the selection), focus moves on rather than falling to the page:
+ * to Clear selection while the bar shows, else to the first box that can be selected.
+ */
+function keepFocus(bar: HTMLElement, boxes: () => HTMLInputElement[], signal: AbortSignal): void {
+  let inBar = false;
+  bar.addEventListener("focusin", () => (inBar = true), { signal });
+  bar.addEventListener(
+    "focusout",
+    (event) => {
+      const next = (event as FocusEvent).relatedTarget as Node | null;
+      if (next && !bar.contains(next)) inBar = false;
+    },
+    { signal }
+  );
+  const check = () => {
+    if (!inBar) return;
+    const active = document.activeElement as HTMLElement | null;
+    if (active && active !== document.body && active.checkVisibility()) return;
+    const clear = bar.querySelector<HTMLElement>(".ib-selection-clear");
+    const target = !bar.hidden && clear?.checkVisibility() ? clear : boxes().find((box) => !box.disabled);
+    inBar = target === clear;
+    target?.focus();
+  };
+  const observer = new MutationObserver(check);
+  observer.observe(bar, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
+  signal.addEventListener("abort", () => observer.disconnect());
 }
 
 /**

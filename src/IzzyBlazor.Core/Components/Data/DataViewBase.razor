@@ -142,8 +142,8 @@
     };
 
     // While something is selected: the count, Clear selection, the step to every matching item
-    // after the page is selected, and the page's actions. Always rendered, so its status region is
-    // there before the first change; hidden while empty. On static pages the script keeps it (the
+    // after the page is selected, and the page's actions. Always rendered (hidden while empty), and
+    // its status region sits outside it, in the page from the start, so the first count is announced. On static pages the script keeps it (the
     // count, the buttons and what they post); the data attributes give it what it can't know.
     internal RenderFragment SelectionBar => __builder =>
     {
@@ -153,12 +153,14 @@
         }
 
         var offerAll = MultiSelect && !_selection.All && AllOnPageSelected && HasMoreThanShown;
-        <div class="ib-selection-bar" role="group" aria-label="@TextDefaults.SelectionBar" hidden="@_selection.IsEmpty"
+        var count = _selection.IsEmpty ? null : SelectionCountText;
+        <span class="ib-visually-hidden ib-selection-status" role="status">@count</span>
+        <div class="ib-selection-bar" role="group" aria-label="@SelectionBarName" hidden="@_selection.IsEmpty"
              data-ib-name="@EffectiveSelectionName" data-ib-keys="@System.Text.Json.JsonSerializer.Serialize(_selection.Keys ?? [], PersistedStateJson.Default.StringArray)" data-ib-all="@(_selection.All ? "" : null)"
              data-ib-scope-filter="@_selection.Filter" data-ib-scope-search="@_selection.Search" data-ib-more="@(HasMoreThanShown ? "" : null)"
              data-ib-total="@_total" data-ib-filter="@_loadedRequest?.Filter?.ToString()" data-ib-search="@_loadedRequest?.Search"
              data-ib-count="@TextDefaults.SelectionCount" data-ib-all-count="@TextDefaults.SelectionAllCount" data-ib-all-open="@TextDefaults.SelectionAllOpen">
-            <span class="ib-selection-count" role="status">@(_selection.IsEmpty ? null : SelectionCountText)</span>
+            <span class="ib-selection-count">@count</span>
             <span class="ib-selection-more" hidden="@(!offerAll)">
                 <span>@Format(TextDefaults.SelectionPage, _items.Count(CanSelect))</span>
                 <button type="button" class="ib-btn ib-btn-primary ib-btn-link ib-btn-sm ib-selection-all" data-ib-selection="all"

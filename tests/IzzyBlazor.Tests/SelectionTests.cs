@@ -124,6 +124,50 @@ public sealed class SelectionTests : IDisposable
     }
 
     [Fact]
+    public async Task Many_keys_post_as_one_list_under_the_form_value_limit()
+    {
+        var builder = WebApplication.CreateSlimBuilder();
+        builder.WebHost.UseUrls("http://127.0.0.1:0");
+        builder.Services.AddRazorComponents();
+        await using var app = builder.Build();
+        app.UseDeveloperExceptionPage();
+        app.UseAntiforgery();
+        app.MapRazorComponents<SelectionFormProbe>();
+        await app.StartAsync();
+        var address = app.Services.GetRequiredService<IServer>().Features.Get<IServerAddressesFeature>()!.Addresses.First();
+        using var client = new HttpClient { BaseAddress = new Uri(address) };
+
+        var fields = new List<KeyValuePair<string, string>> { new("_handler", "probe") };
+        // The script's form: the kept keys as one JSON list, beside the page's own boxes.
+        fields.Add(new("selected.Keys", "0"));
+        fields.Add(new("selected.KeyList", System.Text.Json.JsonSerializer.Serialize(Enumerable.Range(1, 1500).Select(i => i.ToString()))));
+        var response = await client.PostAsync("/selection-probe", new FormUrlEncodedContent(fields));
+        var body = await response.Content.ReadAsStringAsync();
+        Assert.True(response.IsSuccessStatusCode, body);
+        Assert.Contains("<p id=\"out\">0,1,2,", body);
+        Assert.Contains("1499,1500|False", body);
+    }
+
+    [Fact]
+    public void A_key_list_that_is_not_JSON_adds_nothing()
+    {
+        var selection = new Selection { Keys = ["a"], KeyList = "not json" };
+
+        Assert.Equal(new[] { "a" }, selection.Keys);
+    }
+
+    [Fact]
+    public void The_keys_go_to_the_database_as_one_parameter()
+    {
+        var sql = Selection.Of("2", "4").Apply(_db.Members.AsNoTracking(), m => m.Id.ToString()).ToQueryString();
+
+        // Parameters (declared above the query), not the keys written into it.
+        var query = sql[sql.IndexOf("SELECT", StringComparison.Ordinal)..];
+        Assert.DoesNotContain("'4'", query);
+        Assert.Contains("@list", query);
+    }
+
+    [Fact]
     public async Task Posted_fields_bind_to_a_Selection()
     {
         var builder = WebApplication.CreateSlimBuilder();

@@ -35,7 +35,12 @@
     private void Archive()
     {
         var orders = (Posted ?? _selection ?? Selection.None).Apply(Orders.All.AsQueryable(), o => o.Number.ToString()).ToList();
-        _status = orders.Count == 0 ? "Select the orders to archive first." : $"Archived {orders.Count} orders, #{orders.Min(o => o.Number)} to #{orders.Max(o => o.Number)}.";
+        _status = orders.Count switch
+        {
+            0 => "Select the orders to archive first.",
+            1 => $"Archived order #{orders[0].Number}.",
+            _ => $"Archived {orders.Count} orders.",
+        };
         _selection = Selection.None;
     }
 }

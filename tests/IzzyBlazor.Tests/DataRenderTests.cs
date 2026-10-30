@@ -158,6 +158,37 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
+    public void Under_all_rows_that_cannot_be_selected_stay_unchecked()
+    {
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.SelectionMode, SelectionMode.Multiple)
+            .Add(t => t.ItemKey, r => r.Name)
+            .Add(t => t.ItemSelectable, r => r.Name != "a")
+            .Add(t => t.Selection, new Selection { All = true })
+            .Add(t => t.ChildContent, Columns));
+
+        Assert.Equal(new[] { true, false, true }, cut.FindAll("tbody .ib-table-select").Select(b => b.HasAttribute("checked")));
+    }
+
+    [Fact]
+    public void A_new_but_equal_selection_from_the_parent_keeps_the_views_own()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.SelectionMode, SelectionMode.Multiple)
+            .Add(t => t.ItemKey, r => r.Name)
+            .Add(t => t.Selection, Selection.None)
+            .Add(t => t.ChildContent, Columns));
+
+        cut.FindAll("tbody .ib-table-select")[0].Change(true);
+        cut.Render(p => p.Add(t => t.Selection, Selection.None));
+
+        Assert.True(cut.FindAll("tbody .ib-table-select")[0].HasAttribute("checked"));
+    }
+
+    [Fact]
     public void Rows_that_cannot_be_selected_have_a_disabled_box()
     {
         var cut = Render<Table<Row>>(p => p
