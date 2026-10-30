@@ -1401,6 +1401,18 @@
       ]
     },
     {
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "preview": true, "summary": "A table with state in the URL, widths set by the server, and sorting by several columns.", "keywords": [],
+      "features": [
+        { "feature": "Sort, filter and page through the URL" },
+        { "feature": "Column widths and sideways scrolling, set by the server" },
+        { "feature": "Selected rows post with a form" },
+        { "feature": "Shift+click sorts by several columns", "noscript": "none" }
+      ],
+      "examples": [
+        { "id": "data-grid-columns", "title": "Columns", "lead": "Give a column a `Width` to keep it, and the others share the rest down to their `MinWidth`, when the grid scrolls sideways. Shift+click a header to add it to the sort." }
+      ]
+    },
+    {
       "id": "list-view", "icon": "List", "name": "ListView", "category": "Data display", "summary": "Items from data, each drawn by a template; links, selection, reordering and paging.", "keywords": ["data list", "list box", "reorder", "drag and drop", "sortable"],
       "features": [
         { "feature": "Links, the current item, selection and paging" },

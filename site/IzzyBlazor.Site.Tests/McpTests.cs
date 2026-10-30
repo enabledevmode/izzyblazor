@@ -45,7 +45,7 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
     public void Every_component_and_part_answers_in_Markdown()
     {
         var wrong = new List<string>();
-        foreach (var component in site.Api.File.Components.Where(c => c.Obsolete is null))
+        foreach (var component in site.Api.File.Components.Where(c => c.Obsolete is null && site.Registry.ByName(c.Name)?.Preview != true))
         {
             Check(wrong, component.Name, Docs.GetComponent(component.Name));
         }
@@ -63,7 +63,7 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
     public void Every_example_answers_with_its_source()
     {
         var wrong = new List<string>();
-        foreach (var (component, example) in site.Registry.AllExamples)
+        foreach (var (component, example) in site.Registry.AllExamples.Where(e => !e.Component.Preview))
         {
             var answer = Docs.GetExample(example.Id);
             if (!answer.Contains("```razor", StringComparison.Ordinal) || !answer.Contains(example.Title, StringComparison.Ordinal))
@@ -104,6 +104,10 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task Unknown_names_suggest_close_ones_and_the_sites_own_forms_resolve()
     {
+        // A preview isn't there for agents yet.
+        Assert.Throws<McpDocsException>(() => Docs.GetComponent("DataGrid"));
+        Assert.Throws<McpDocsException>(() => Docs.GetExample("data-grid-columns"));
+        Assert.DoesNotContain("DataGrid", Docs.GetType("SelectionMode"));
         Assert.Contains("Did you mean Select", Assert.Throws<McpDocsException>(() => Docs.GetComponent("Selct")).Message);
         Assert.Contains("ControlSize", Assert.Throws<McpDocsException>(() => Docs.GetType("ControlSise")).Message);
         Assert.Contains("button-variants", Assert.Throws<McpDocsException>(() => Docs.GetExample("Button")).Message);

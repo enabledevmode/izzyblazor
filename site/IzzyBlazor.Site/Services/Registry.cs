@@ -26,25 +26,29 @@ public sealed class Registry
     public Registry(RegistryFile file)
     {
         Categories = file.Categories;
-        Components = Categories.SelectMany(c => file.Components.Where(x => x.Category == c)).ToList();
+        AllComponents = Categories.SelectMany(c => file.Components.Where(x => x.Category == c)).ToList();
+        Components = AllComponents.Where(c => !c.Preview).ToList();
         var stray = file.Components.Where(c => !Categories.Contains(c.Category)).Select(c => c.Id).ToList();
         if (stray.Count > 0)
         {
             throw new InvalidOperationException($"components.json: unknown category for {string.Join(", ", stray)}.");
         }
 
-        _byId = Components.ToDictionary(c => c.Id, StringComparer.Ordinal);
-        _byName = Components.ToDictionary(c => c.Name, StringComparer.Ordinal);
-        _byPart = Components.SelectMany(c => c.Parts.Select(p => (Part: p, Component: c))).ToDictionary(x => x.Part, x => x.Component, StringComparer.Ordinal);
-        _examples = Components
+        _byId = AllComponents.ToDictionary(c => c.Id, StringComparer.Ordinal);
+        _byName = AllComponents.ToDictionary(c => c.Name, StringComparer.Ordinal);
+        _byPart = AllComponents.SelectMany(c => c.Parts.Select(p => (Part: p, Component: c))).ToDictionary(x => x.Part, x => x.Component, StringComparer.Ordinal);
+        _examples = AllComponents
             .SelectMany(c => c.Examples.Concat(c.Scenarios.Select(s => s.Example)).Select(e => (Component: c, Example: e)))
             .ToDictionary(x => x.Example.Id, StringComparer.Ordinal);
     }
 
     public IReadOnlyList<string> Categories { get; }
 
-    /// <summary>Every component, in category order, then file order.</summary>
+    /// <summary>Every listed component, in category order, then file order.</summary>
     public IReadOnlyList<RegistryComponent> Components { get; }
+
+    /// <summary>The listed components and the previews, whose pages work but nothing links to.</summary>
+    public IReadOnlyList<RegistryComponent> AllComponents { get; }
 
     /// <summary>The component count rounded down to ten, as "80+", for links and marketing copy.</summary>
     public string ComponentCountLabel => Components.Count < 10 ? $"{Components.Count}" : $"{Components.Count / 10 * 10}+";
@@ -103,6 +107,11 @@ public sealed class Registry
     public (RegistryComponent? Previous, RegistryComponent? Next) Around(RegistryComponent component)
     {
         var index = Components.ToList().IndexOf(component);
+        if (index < 0)
+        {
+            return (null, null);
+        }
+
         return (index > 0 ? Components[index - 1] : null, index < Components.Count - 1 ? Components[index + 1] : null);
     }
 }
@@ -124,6 +133,9 @@ public sealed record RegistryComponent
 
     /// <summary>A Lucide icon's name (<c>MousePointerClick</c>), the component's pictogram on cards and its page.</summary>
     public required string Icon { get; init; }
+
+    /// <summary>Not ready: its pages work by address, but the index, search, sitemap and MCP leave it out.</summary>
+    public bool Preview { get; init; }
 
     /// <summary>One line for cards and the index.</summary>
     public required string Summary { get; init; }

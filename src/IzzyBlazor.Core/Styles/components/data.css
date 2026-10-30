@@ -645,6 +645,71 @@
     opacity: 1;
   }
 
+  /* A column's place in a sort of several (DataGrid). */
+  .ib-table-sort:has(.ib-table-sort-order) .ib-table-sort-icon {
+    opacity: 1;
+  }
+
+  .ib-table-sort-order {
+    font-size: var(--ib-text-xs);
+    font-weight: var(--ib-weight-normal);
+  }
+
+  /* DataGrid: the server sets the widths, so the layout doesn't wait for the content. */
+  .ib-datagrid {
+    --ib-datagrid-select: 2.75rem;
+  }
+
+  .ib-datagrid .ib-table-grid {
+    table-layout: fixed;
+  }
+
+  .ib-datagrid-select-col {
+    width: var(--ib-datagrid-select);
+  }
+
+  /* What can't fit stays in its cell (its padding leaves room for a focus ring). Text wraps;
+     numbers stay on one line, as a split one misreads. */
+  .ib-datagrid .ib-table-grid :is(th, td):not(.ib-table-select-cell) {
+    overflow: clip;
+  }
+
+  .ib-datagrid .ib-table-grid td {
+    overflow-wrap: anywhere;
+  }
+
+  .ib-datagrid .ib-table-grid td.ib-cell-end {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* A narrow header: the title gives way, and the icon, its place and the filter button stay. */
+  .ib-datagrid .ib-table-title {
+    display: block;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .ib-datagrid .ib-table-sort {
+    display: flex;
+    width: fit-content;
+    min-width: 0;
+    max-width: calc(100% + 0.75rem);
+  }
+
+  .ib-datagrid .ib-table-sort > :not(.ib-table-title) {
+    flex: none;
+  }
+
+  .ib-datagrid .ib-cell-end > .ib-table-sort {
+    margin-inline-start: auto;
+  }
+
+  .ib-datagrid .ib-cell-center > .ib-table-sort {
+    margin-inline: auto;
+  }
+
   /* Footer row (column FooterText or Footer): totals and the like. */
   .ib-table-grid tfoot td {
     border-top: 1px solid var(--ib-color-border);

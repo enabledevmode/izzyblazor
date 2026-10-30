@@ -125,7 +125,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
 
     // Every page that shows examples: component pages, articles, the docs overview and home.
     private IEnumerable<string> ExamplePages =>
-        site.Registry.Components.Select(Registry.OverviewHref)
+        site.Registry.AllComponents.Select(Registry.OverviewHref)
             .Concat(Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf)))
             .Concat(["docs", ""]);
 

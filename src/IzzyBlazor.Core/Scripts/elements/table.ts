@@ -19,6 +19,8 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
  *   it presses the table's hidden "load next" button, as Load more does without moving focus.
  *   The visible button stays for the keyboard.
+ * - Shift+click on a DataGrid's sort link adds the column to the sort (its data-ib-sort-add), where
+ *   the browser would open a window.
  * - The scroll box's Tab stop: the server renders it focusable so the keyboard can scroll it with
  *   no script; here it's a Tab stop only while there's something to scroll. Focused, it stays.
  *   It also gives the box its visible width (--ib-table-view), which keeps the "no items" message
@@ -35,6 +37,16 @@ class Table extends IzzyElement {
     setupLoadOnScroll(this, ":scope > .ib-table-scroll > table > tbody > tr:last-child", ":scope > .ib-table-scroll > .ib-data-more [data-ib-load-next]", signal);
     this.#setupScrollStop(signal);
     this.#setupBoundPanels(signal);
+    this.addEventListener(
+      "click",
+      (event) => {
+        const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
+        if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
+        event.preventDefault();
+        navigateTo(new URL(add, location.href), false);
+      },
+      { signal }
+    );
   }
 
   /**

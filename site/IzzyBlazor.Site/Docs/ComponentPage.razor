@@ -13,7 +13,7 @@
 @if (_component is not null)
 {
     @* The doc comment's first sentence (OverviewText.Sentence): Google shows about 155 characters. *@
-    <PageMeta Title="@($"{_component.Name} · IzzyBlazor")" Description="@(OverviewText.Sentence(ApiMetadata.PlainText(_api?.Summary)) ?? _component.Summary)" />
+    <PageMeta Title="@($"{_component.Name} · IzzyBlazor")" Description="@(OverviewText.Sentence(ApiMetadata.PlainText(_api?.Summary)) ?? _component.Summary)" Indexed="!_component.Preview" />
 
     <article class="site-article">
         <ComponentHeader Component="_component" ApiComponent="_api" />

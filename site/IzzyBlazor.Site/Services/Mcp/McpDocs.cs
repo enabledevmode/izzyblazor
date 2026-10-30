@@ -320,7 +320,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         var answer = new StringBuilder($"# {type.Name}\n\n{Release} · {type.Kind} {Markdown.Code(GenericArity().Replace(type.FullName, "<T>"))}");
         answer.Append(type.AddedIn is { } added ? $" · added in {added}\n" : "\n");
         Section(answer, null, type.Summary);
-        var users = api.File.Components.Where(c => c.Types.Contains(type.Name) && c.Obsolete is null).Select(c => c.Name).ToList();
+        var users = api.File.Components.Where(c => c.Types.Contains(type.Name) && c.Obsolete is null && !IsPreview(c.Name)).Select(c => c.Name).ToList();
         if (type.Members.Count > 0)
         {
             answer.Append(type.Kind == "enum" ? "\n## Values\n\n" : "\n## Members\n\n");
@@ -362,7 +362,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
             key = scenarioId;
         }
 
-        if (catalog.SourceOf(key) is not { } source)
+        if (catalog.SourceOf(key) is not { } source || registry.Example(key)?.Component.Preview == true)
         {
             if (FindComponentOrNull(key) is { } component && (registry.ByName(component.Name) ?? registry.OwnerOfPart(component.Name)) is { } owner)
             {
@@ -370,11 +370,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 throw new McpDocsException($"\"{id}\" is a component, not an example id. {owner.Name}'s examples: {string.Join(", ", ids)}.");
             }
 
-            throw NotFound("example", id, catalog.Ids);
+            throw NotFound("example", id, catalog.Ids.Where(e => registry.Example(e)?.Component.Preview != true));
         }
 
         var text = new StringBuilder();
-        if (registry.Example(key) is { } found)
+        if (registry.Example(key) is { } found && !found.Component.Preview)
         {
             var (owner, example) = found;
             text.Append($"# {example.Title}\n\n{Release} · an example on {owner.Name}'s page, {Url(Registry.OverviewHref(owner))}");
@@ -626,16 +626,19 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
     }
 
     private ApiComponent FindComponent(string name) =>
-        FindComponentOrNull(name) ?? throw NotFound("component", name, api.File.Components.Where(c => c.Obsolete is null).Select(c => c.Name));
+        FindComponentOrNull(name) ?? throw NotFound("component", name, api.File.Components.Where(c => c.Obsolete is null && !IsPreview(c.Name)).Select(c => c.Name));
 
     /// <summary>A component by its name in any case, written as in Razor (<c>&lt;Select TValue&gt;</c>, <c>Select&lt;TValue&gt;</c>) or by its page id (<c>app-shell</c>).</summary>
     private ApiComponent? FindComponentOrNull(string name)
     {
         var wanted = Bare(name);
-        return api.Component(wanted)
+        var found = api.Component(wanted)
             ?? api.File.Components.FirstOrDefault(c => string.Equals(c.Name, wanted, StringComparison.OrdinalIgnoreCase))
             ?? (registry.ById(wanted.ToLowerInvariant()) is { } byId ? api.Component(byId.Name) : null);
+        return found is not null && IsPreview(found.Name) ? null : found;
     }
+
+    private bool IsPreview(string name) => registry.ByName(name)?.Preview == true;
 
     // "<Select TValue>", "Select<TValue>", "IzzyBlazor.Button" and " button " all mean the type's name.
     private static string Bare(string name)
