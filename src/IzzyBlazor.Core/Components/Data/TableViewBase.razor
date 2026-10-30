@@ -73,7 +73,7 @@
                                 </th>
                             }
                             @{ var headerFilters = HasFilters ? CurrentFilters() : null; }
-                            @foreach (var column in _columns)
+                            @foreach (var column in Shown)
                             {
                                 <th scope="col" class="@CellClass(column)" style="@HeaderStyle(column)" aria-sort="@AriaSort(column)">
                                     @if (headerFilters is not null && column.CanFilter)
@@ -97,7 +97,7 @@
                         {
                             @* In place of the rows: what went wrong and a way to try again. *@
                             <tr class="ib-table-empty ib-table-error">
-                                <td colspan="@Math.Max(1, _columns.Count + (Selectable ? 1 : 0))">
+                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0))">
                                     <div class="ib-table-empty-content ib-data-error-content">
                                         @LoadFailedMessage
                                         @RetryControl(RetryAsync, _providerLoading)
@@ -114,7 +114,7 @@
                                     {
                                         <td class="@SelectCellClass"></td>
                                     }
-                                    @foreach (var column in _columns)
+                                    @foreach (var column in Shown)
                                     {
                                         <td class="@CellClass(column)" style="@CellStyle(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
                                     }
@@ -124,7 +124,7 @@
                         else if (_items.Count == 0)
                         {
                             <tr class="ib-table-empty">
-                                <td colspan="@Math.Max(1, _columns.Count + (Selectable ? 1 : 0))">
+                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0))">
                                     <div class="ib-table-empty-content">
                                         @if (EmptyContent is not null)
                                         {
@@ -159,7 +159,7 @@
                                         </td>
                                     }
                                     @{ var first = true; }
-                                    @foreach (var column in _columns)
+                                    @foreach (var column in Shown)
                                     {
                                         <td class="@CellClass(column)" style="@CellStyle(column)">
                                             @if (first && href is not null)
@@ -175,7 +175,7 @@
                             }
                         }
                     </tbody>
-                    @if (_columns.Any(c => c.HasFooter))
+                    @if (Shown.Any(c => c.HasFooter))
                     {
                         <tfoot>
                             <tr>
@@ -183,7 +183,7 @@
                                 {
                                     <td class="@SelectCellClass"></td>
                                 }
-                                @foreach (var column in _columns)
+                                @foreach (var column in Shown)
                                 {
                                     <td class="@CellClass(column)" style="@CellStyle(column)">@(column.HasFooter ? column.FooterCell : null)</td>
                                 }
@@ -831,7 +831,7 @@
         if (!_columns.Contains(column))
         {
             _columns.Add(column);
-            ArrangeColumns();
+            ColumnsChanged();
 
             // A column shown later (behind an @if) appears without waiting for another render.
             if (_columnsReady)
@@ -843,7 +843,7 @@
 
     internal void ColumnChanged()
     {
-        ArrangeColumns();
+        ColumnsChanged();
         if (_columnsReady)
         {
             StateHasChanged();
@@ -854,6 +854,7 @@
     {
         if (_columns.Remove(column))
         {
+            ColumnsChanged();
             // Its rows stay as they are until the next load, but its place in the sort goes now.
             _sorts = _sorts.Where(s => !string.Equals(s.Key, column.Key, StringComparison.OrdinalIgnoreCase)).ToList();
             StateHasChanged();
@@ -1023,16 +1024,15 @@
     /// <summary>A style for a column's header cell.</summary>
     internal virtual string? HeaderStyle(ColumnBase<TItem> column) => WidthStyle(column);
 
-    internal List<ColumnBase<TItem>> Columns => _columns;
+    /// <summary>The columns as registered, shown or not.</summary>
+    internal IReadOnlyList<ColumnBase<TItem>> Columns => _columns;
 
-    /// <summary>Where a column goes among the others, whatever order they were declared or shown in.</summary>
-    internal virtual int ColumnZone(ColumnBase<TItem> column) => 0;
+    /// <summary>The columns drawn, in order.</summary>
+    internal virtual IReadOnlyList<ColumnBase<TItem>> Shown => _columns;
 
-    private void ArrangeColumns()
+    /// <summary>The columns changed: one came, went or has new settings.</summary>
+    internal virtual void ColumnsChanged()
     {
-        var arranged = _columns.OrderBy(ColumnZone).ToList();
-        _columns.Clear();
-        _columns.AddRange(arranged);
     }
 
     private static string? WidthStyle(ColumnBase<TItem> column) =>
