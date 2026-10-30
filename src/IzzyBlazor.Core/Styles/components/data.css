@@ -1341,6 +1341,11 @@
     outline-offset: -2px;
   }
 
+  /* Scrolled into view by script, clear of a sticky shell header. */
+  .ib-listview-actionable {
+    scroll-margin-block-start: var(--ib-shell-top, 0px);
+  }
+
   .ib-listview-actionable > :is(a, button, input, select, textarea, label, summary, [tabindex]):not(.ib-listview-action),
   .ib-listview-actionable > * :is(a, button, input, select, textarea, label, summary, [tabindex]) {
     position: relative;

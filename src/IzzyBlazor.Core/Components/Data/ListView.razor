@@ -44,6 +44,11 @@
     - A disabled item (`ItemDisabled`) has no link or button, and is dimmed.
     - Each item's ⋯ button (`ItemMenu`) is named "Actions for" and its label. Tab goes through
       an item's controls in order: handle, link, checkbox, content, ItemActions, the ⋯ button.
+    - With script, arrow keys are a shortcut on top of Tab: Up and Down go to the same kind of
+      control in the item above or below, Left and Right to the one before or after in Columns,
+      Cards and Horizontal lists, Home and End to the first and last item. A handle or ⋯ button
+      keeps its arrows, which open its menu; fields keep theirs.
+    - On a checkbox, Shift+Up and Shift+Down extend the selection, and Ctrl+A selects the page.
     - With `SelectionMode`, each item has a checkbox (or, for Single, a radio button) named
       "Select" and the item's label; with script, a "Select all rows" checkbox above a Multiple
       list checks the page.
