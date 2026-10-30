@@ -134,25 +134,25 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
 
             // Plain arrows move and never select.
             await page.Keyboard.PressAsync("ArrowDown");
-            Assert.False(await boxes.First.IsCheckedAsync());
+            await Assertions.Expect(boxes.First).Not.ToBeCheckedAsync();
             Assert.Equal(await boxes.Nth(1).GetAttributeAsync("aria-label"), await FocusedNameAsync(page));
             await page.Keyboard.PressAsync("ArrowUp");
 
             // Shift+Down selects from where it started; going back undoes what the run checked.
             await page.Keyboard.PressAsync("Shift+ArrowDown");
-            Assert.True(await boxes.First.IsCheckedAsync());
-            Assert.True(await boxes.Nth(1).IsCheckedAsync());
-            Assert.False(await boxes.Nth(2).IsCheckedAsync());
+            await Assertions.Expect(boxes.First).ToBeCheckedAsync();
+            await Assertions.Expect(boxes.Nth(1)).ToBeCheckedAsync();
+            await Assertions.Expect(boxes.Nth(2)).Not.ToBeCheckedAsync();
             await page.Keyboard.PressAsync("Shift+ArrowDown");
-            Assert.True(await boxes.Nth(2).IsCheckedAsync());
+            await Assertions.Expect(boxes.Nth(2)).ToBeCheckedAsync();
             await page.Keyboard.PressAsync("Shift+ArrowUp");
-            Assert.False(await boxes.Nth(2).IsCheckedAsync());
-            Assert.True(await boxes.Nth(1).IsCheckedAsync());
+            await Assertions.Expect(boxes.Nth(2)).Not.ToBeCheckedAsync();
+            await Assertions.Expect(boxes.Nth(1)).ToBeCheckedAsync();
 
             // Ctrl+A selects the page.
             await page.Keyboard.PressAsync("Control+a");
             var count = await boxes.CountAsync();
-            for (var i = 0; i < count; i++) Assert.True(await boxes.Nth(i).IsCheckedAsync());
+            for (var i = 0; i < count; i++) await Assertions.Expect(boxes.Nth(i)).ToBeCheckedAsync();
         }
     }
 }

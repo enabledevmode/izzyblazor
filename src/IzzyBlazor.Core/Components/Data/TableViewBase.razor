@@ -147,7 +147,7 @@
                                 var key = KeyOf(item);
                                 var href = RowHref?.Invoke(item);
                                 @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-                                <tr class="@RowClasses(item, href)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
+                                <tr class="@RowClasses(item, href)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
                                     @if (Selectable)
                                     {
                                         <td class="ib-table-select-cell">
@@ -511,7 +511,7 @@
     {
         if (column.CanSort && UseState)
         {
-            <button type="button" class="ib-table-sort" @onclick="e => OnSortClickAsync(column, MultiSort && e.ShiftKey)">
+            <button type="button" class="ib-table-sort" data-ib-primary="@(GridColumns ? "" : null)" @onclick="e => OnSortClickAsync(column, MultiSort && e.ShiftKey)">
                 <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@column.HeaderText</span>
                 <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
                 @SortOrder(column)
@@ -519,7 +519,7 @@
         }
         else if (column.CanSort)
         {
-            <a href="@SortHref(column)" class="ib-table-sort" data-ib-sort-add="@(MultiSort ? AddSortHref(column) : null)">
+            <a href="@SortHref(column)" class="ib-table-sort" data-ib-primary="@(GridColumns ? "" : null)" data-ib-sort-add="@(MultiSort ? AddSortHref(column) : null)">
                 <span class="ib-table-title" title="@(GridColumns ? column.HeaderText : null)">@column.HeaderText</span>
                 <Icon Role="SortIcon(column)" Class="ib-table-sort-icon" />
                 @SortOrder(column)

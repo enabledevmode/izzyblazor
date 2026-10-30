@@ -1406,10 +1406,12 @@
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
         { "feature": "Selected rows post with a form" },
-        { "feature": "Shift+click sorts by several columns", "noscript": "none" }
+        { "feature": "Shift+click sorts by several columns", "noscript": "none" },
+        { "feature": "One Tab stop and arrow keys between cells, with selection keys", "noscript": "none" }
       ],
       "examples": [
-        { "id": "data-grid-columns", "title": "Columns", "lead": "Give a column a `Width` to keep it, and the others share the rest down to their `MinWidth`, when the grid scrolls sideways. Shift+click a header to add it to the sort." }
+        { "id": "data-grid-columns", "title": "Columns", "lead": "Give a column a `Width` to keep it, and the others share the rest down to their `MinWidth`, when the grid scrolls sideways. Shift+click a header to add it to the sort." },
+        { "id": "data-grid-cells", "title": "Controls in cells", "lead": "With script the grid is one Tab stop. Arrow keys land on a cell's one button, or on the cell when it holds several controls or a field: press Enter or F2 to go in, and Escape to come back." }
       ]
     },
     {

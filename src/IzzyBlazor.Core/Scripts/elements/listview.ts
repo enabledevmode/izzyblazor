@@ -1,5 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
-import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view";
+import { extendRange, setupLoadOnScroll, setupSelectAll, setupSelection, type RangeRun } from "../data-view";
 
 /**
  * <ib-listview> adds a ListView's selection (select-all, Shift ranges, the bar, and on static pages a selection across pages) and loading on scroll (Paging
@@ -19,8 +19,7 @@ const KINDS = [".ib-listview-action", ".ib-listview-select"];
 const BOX = ".ib-listview-select[type=checkbox]";
 
 class ListView extends IzzyElement {
-  // A run of Shift+arrows: where it started, where it is now, and the boxes it has checked so far.
-  private run: { anchor: HTMLInputElement; at: HTMLInputElement; checked: Set<HTMLInputElement> } | null = null;
+  private run: RangeRun | null = null;
 
   protected setup(signal: AbortSignal): void {
     setupSelectAll(this, ".ib-listview-select-all", ".ib-listview-list > li > .ib-listview-select", signal);
@@ -152,29 +151,7 @@ class ListView extends IzzyElement {
     if (!to) return false;
     event.preventDefault();
 
-    // A run goes on only from the box it reached: any other way of moving focus starts a new one.
-    if (this.run?.at !== box || !this.run.anchor.isConnected) this.run = { anchor: box, at: box, checked: new Set() };
-    this.run.at = to;
-    const { anchor, checked } = this.run;
-    const boxes = this.items.map(boxOf).filter((b): b is HTMLInputElement => !!b);
-    const [from, end] = [boxes.indexOf(anchor), boxes.indexOf(to)];
-    const range = new Set(boxes.slice(Math.min(from, end), Math.max(from, end) + 1));
-    const set = (el: HTMLInputElement, value: boolean) => {
-      if (el.checked === value) return;
-      el.checked = value;
-      el.dispatchEvent(new Event("change", { bubbles: true }));
-    };
-    // Going back over the run clears only what the run itself checked.
-    for (const el of [...checked]) {
-      if (range.has(el)) continue;
-      set(el, false);
-      checked.delete(el);
-    }
-    for (const el of range) {
-      if (el.checked) continue;
-      set(el, true);
-      checked.add(el);
-    }
+    this.run = extendRange(this.run, this.items.map(boxOf).filter((b): b is HTMLInputElement => !!b), box, to);
     to.focus();
     return true;
   }
