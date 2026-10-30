@@ -1,0 +1,12 @@
+@* Order, Date and Total keep their widths; Customer and Status share the rest, and past their
+   minimums the grid scrolls sideways. Shift+click a header to add it to the sort. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" PageSizeOptions="[5, 10]" InitialSort="-date" Caption="Orders" SelectionMode="SelectionMode.Multiple" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Width="8.Rem" />
+    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" Sortable>
+        <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
+    </TemplateColumn>
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+</DataGrid>

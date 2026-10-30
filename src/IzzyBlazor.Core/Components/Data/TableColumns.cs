@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Components;
 
 namespace IzzyBlazor;
 
-/// <summary>Shared settings for <see cref="Table{TItem}"/> columns.</summary>
+/// <summary>Shared settings for the columns of a <see cref="Table{TItem}"/> or <c>DataGrid</c>.</summary>
 public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 {
     /// <summary>The header text.</summary>
@@ -47,8 +47,14 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>How the cells line up. Defaults to the end for numbers and the start otherwise.</summary>
     [Parameter] public CellAlign? Align { get; set; }
 
-    /// <summary>The column width, such as <c>Length.Rem(8)</c>.</summary>
+    /// <summary>The column width, such as <c>Length.Rem(8)</c>. In a grid, a fixed length: not a percent or a keyword.</summary>
     [Parameter] public Length? Width { get; set; }
+
+    /// <summary>
+    /// How narrow a column without a <see cref="Width"/> can get before the grid scrolls sideways.
+    /// Defaults to 8rem. Not for a Table, whose columns size to their content.
+    /// </summary>
+    [Parameter] public Length? MinWidth { get; set; }
 
     /// <summary>A class for this column's cells and header.</summary>
     [Parameter] public string? Class { get; set; }
@@ -63,7 +69,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     internal RenderFragment FooterCell => Footer ?? (b => b.AddContent(0, FooterText));
 
-    [CascadingParameter] internal Table<TItem>? Table { get; set; }
+    [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
 
     internal string HeaderText => Title ?? DefaultTitle ?? "";
 
@@ -110,7 +116,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     {
         if (Table is null)
         {
-            throw new InvalidOperationException($"{GetType().Name} must be inside a Table.");
+            throw new InvalidOperationException($"{GetType().Name} must be inside a Table or a DataGrid.");
         }
 
         Table.AddColumn(this);
@@ -119,6 +125,28 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
+        if (MinWidth is not null && Table is { GridColumns: false })
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(MinWidth)}, which only a DataGrid's columns take.");
+        }
+
+        if (Table is { GridColumns: true })
+        {
+            // The grid adds its widths up, and a percent of the table or a keyword can't be added.
+            foreach (var (name, length) in new[] { (nameof(Width), Width), (nameof(MinWidth), MinWidth) })
+            {
+                if (length?.ToString() is { } css && (css.EndsWith('%') || css is "auto" or "fit-content" or "min-content" or "max-content"))
+                {
+                    throw new InvalidOperationException($"The \"{HeaderText}\" column's {name} is {css}: a DataGrid's column widths are fixed lengths, such as Length.Rem(8). Leave {nameof(Width)} out to share the rest of the space.");
+                }
+            }
+
+            if (Key?.Contains(',') == true)
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column's {nameof(SortKey)} is \"{Key}\": a DataGrid's sort lists keys with commas, so a key can't hold one.");
+            }
+        }
+
         if (!Filterable)
         {
             return;
@@ -141,7 +169,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)

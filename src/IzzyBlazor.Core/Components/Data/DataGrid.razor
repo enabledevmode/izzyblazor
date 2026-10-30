@@ -1,0 +1,120 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@attribute [CascadingTypeParameter(nameof(TItem))]
+@inherits TableViewBase<TItem>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort; filters apply when you press Apply.")]
+
+@*
+    A data grid: a real table, on the same columns, data, paging, filters and selection as Table,
+    with sort, filter and page in the address, so it works on static pages. It adds what a grid
+    needs: Shift+click on a header sorts by several columns (?sort=customer,-total), and column
+    widths are set by the server, so nothing moves when the script arrives.
+
+    A column with a Width keeps it (a fixed length, not a percent). Columns without one share the rest of the space, down to their
+    MinWidth (8rem by default), and then the grid scrolls sideways. If every column has a Width, the
+    grid is as wide as their sum.
+
+    <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
+        <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
+    </DataGrid>
+
+    Accessibility:
+    - `Caption` names the grid for screen readers; it isn't shown.
+    - Sortable headers are links, and the first sorted column has `aria-sort`. With several sorted,
+      each says its place and direction ("Sort 2, descending").
+    - Row checkboxes and filter buttons are named as in a Table.
+    See also: Table.
+*@
+
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+    @Body
+</ib-table>
+
+@code {
+    private const string DefaultMinWidth = "8rem";
+
+    /// <inheritdoc />
+    internal override string ViewName => "DataGrid";
+
+    /// <inheritdoc />
+    internal override bool MultiSort => true;
+
+    /// <inheritdoc />
+    internal override bool GridColumns => true;
+
+    /// <inheritdoc />
+    internal override RenderFragment? ColGroup => Columns.Count == 0 ? null : __builder =>
+    {
+        <colgroup>
+            @if (Selectable)
+            {
+                <col class="ib-datagrid-select-col" />
+            }
+            @for (var i = 0; i < Columns.Count; i++)
+            {
+                <col style="@(Columns[i].Width is null ? null : $"width:var(--ib-col-{i})")" />
+            }
+        </colgroup>
+    };
+
+    // Widths are variables on the table, so one change later (a resize) moves everything that uses
+    // them. Fixed layout shares the rest equally whatever each column's minimum, so the grid's
+    // minimum gives every unset column the largest of them.
+    /// <inheritdoc />
+    internal override string? GridStyle
+    {
+        get
+        {
+            // Before the columns register (a page still streaming), a message takes the whole width.
+            if (Columns.Count == 0)
+            {
+                return "table-layout:auto";
+            }
+
+            var style = new System.Text.StringBuilder();
+            var parts = new List<string>();
+            var unset = new List<string>();
+            for (var i = 0; i < Columns.Count; i++)
+            {
+                if (Columns[i].Width is { } width)
+                {
+                    style.Append($"--ib-col-{i}:{StyleValues.Length(width)};");
+                    parts.Add($"var(--ib-col-{i})");
+                }
+                else
+                {
+                    unset.Add(Columns[i].MinWidth is { } min ? StyleValues.Length(min) : DefaultMinWidth);
+                }
+            }
+
+            if (Selectable)
+            {
+                parts.Add("var(--ib-datagrid-select)");
+            }
+
+            if (unset.Count > 0)
+            {
+                parts.Add($"{unset.Count} * max({string.Join(", ", unset.Distinct())})");
+            }
+
+            if (parts.Count > 0)
+            {
+                style.Append($"{(unset.Count > 0 ? "min-width" : "width")}:calc({string.Join(" + ", parts)})");
+            }
+
+            return style.Length > 0 ? style.ToString() : null;
+        }
+    }
+
+    /// <inheritdoc />
+    internal override string? HeaderStyle(ColumnBase<TItem> column) => null;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-datagrid");
+        base.BuildAttributes(classes, styles);
+    }
+}

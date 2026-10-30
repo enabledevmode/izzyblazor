@@ -23,7 +23,7 @@ public class RegistryTests
     [Fact]
     public void Every_public_component_is_documented_as_a_component_or_a_part()
     {
-        var listed = Registry.Components.SelectMany(c => c.Parts.Prepend(c.Name)).ToHashSet();
+        var listed = Registry.AllComponents.SelectMany(c => c.Parts.Prepend(c.Name)).ToHashSet();
         var missing = Api.File.Components.Select(c => c.Name).Where(n => !listed.Contains(n)).ToList();
         var unknown = listed.Where(n => Api.Component(n) is null).ToList();
 
@@ -96,8 +96,8 @@ public class RegistryTests
     [Fact]
     public void Every_component_has_a_picture()
     {
-        Assert.Empty(Registry.Components.Select(c => c.Id).Except(Pictures.ById.Keys));
-        Assert.Empty(Pictures.ById.Keys.Except(Registry.Components.Select(c => c.Id)));
+        Assert.Empty(Registry.AllComponents.Select(c => c.Id).Except(Pictures.ById.Keys));
+        Assert.Empty(Pictures.ById.Keys.Except(Registry.AllComponents.Select(c => c.Id)));
     }
 
     [Fact]

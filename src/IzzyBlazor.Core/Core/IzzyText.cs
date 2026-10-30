@@ -45,6 +45,12 @@ public class IzzyText
     /// <summary>Table's page size menu: "Rows per page".</summary>
     public virtual string RowsPerPage { get; set; } = "Rows per page";
 
+    /// <summary>A DataGrid header's place in a sort of several columns, ascending: "Sort 2, ascending".</summary>
+    public virtual string SortOrderAscending { get; set; } = "Sort {0}, ascending";
+
+    /// <summary>A DataGrid header's place in a sort of several columns, descending: "Sort 2, descending".</summary>
+    public virtual string SortOrderDescending { get; set; } = "Sort {0}, descending";
+
     /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
     public virtual string FilterColumn { get; set; } = "Filter {0}";
 

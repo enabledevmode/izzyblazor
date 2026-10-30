@@ -11,7 +11,7 @@
 
 @if (_component is not null && _api is not null)
 {
-    <PageMeta Title="@($"{_component.Name} API · IzzyBlazor")" Description="@($"Parameters, events, methods and types of the IzzyBlazor {_component.Name} component.")" />
+    <PageMeta Title="@($"{_component.Name} API · IzzyBlazor")" Description="@($"Parameters, events, methods and types of the IzzyBlazor {_component.Name} component.")" Indexed="!_component.Preview" />
 
     <article class="site-article">
         <ComponentHeader Component="_component" ApiComponent="_api" />
