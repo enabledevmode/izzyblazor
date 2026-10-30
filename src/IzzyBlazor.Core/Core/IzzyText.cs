@@ -51,6 +51,45 @@ public class IzzyText
     /// <summary>A DataGrid header's place in a sort of several columns, descending: "Sort 2, descending".</summary>
     public virtual string SortOrderDescending { get; set; } = "Sort {0}, descending";
 
+    /// <summary>A DataGrid header's menu button: "Options for Customer". {0} is the column's title.</summary>
+    public virtual string ColumnOptions { get; set; } = "Options for {0}";
+
+    /// <summary>A DataGrid column menu: moves the column one place toward the start.</summary>
+    public virtual string ColumnMoveStart { get; set; } = "Move left";
+
+    /// <summary>A DataGrid column menu: moves the column one place toward the end.</summary>
+    public virtual string ColumnMoveEnd { get; set; } = "Move right";
+
+    /// <summary>A DataGrid column menu: widens the column a step.</summary>
+    public virtual string ColumnWider { get; set; } = "Wider";
+
+    /// <summary>A DataGrid column menu: narrows the column a step.</summary>
+    public virtual string ColumnNarrower { get; set; } = "Narrower";
+
+    /// <summary>A DataGrid column menu: back to the column's declared width.</summary>
+    public virtual string ColumnResetWidth { get; set; } = "Reset width";
+
+    /// <summary>A DataGrid column menu: hides the column.</summary>
+    public virtual string ColumnHide { get; set; } = "Hide column";
+
+    /// <summary>A DataGrid column menu: freezes the column at the grid's start.</summary>
+    public virtual string ColumnFreezeStart { get; set; } = "Freeze at start";
+
+    /// <summary>A DataGrid column menu: freezes the column at the grid's end.</summary>
+    public virtual string ColumnFreezeEnd { get; set; } = "Freeze at end";
+
+    /// <summary>A DataGrid column menu: unfreezes the column.</summary>
+    public virtual string ColumnUnfreeze { get; set; } = "Unfreeze";
+
+    /// <summary>Said when a DataGrid column is resized: "Customer: 180 pixels". {0} is its title, {1} its width.</summary>
+    public virtual string ColumnWidth { get; set; } = "{0}: {1} pixels";
+
+    /// <summary>A DataGrid's column picker button.</summary>
+    public virtual string ColumnPicker { get; set; } = "Columns";
+
+    /// <summary>A DataGrid's column picker: back to the columns as declared.</summary>
+    public virtual string ColumnsReset { get; set; } = "Reset layout";
+
     /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
     public virtual string FilterColumn { get; set; } = "Filter {0}";
 

@@ -62,6 +62,18 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public ColumnFrozen Frozen { get; set; }
 
+    /// <summary>In a grid with <c>ResizableColumns</c>, how wide people can make this column. No limit by default.</summary>
+    [Parameter] public Length? MaxWidth { get; set; }
+
+    /// <summary>In a grid with <c>ResizableColumns</c>, whether people can resize this column. Defaults to true.</summary>
+    [Parameter] public bool Resizable { get; set; } = true;
+
+    /// <summary>In a grid with <c>ReorderableColumns</c>, whether people can move this column. Defaults to true.</summary>
+    [Parameter] public bool Reorderable { get; set; } = true;
+
+    /// <summary>In a grid with a <c>ColumnPicker</c>, whether people can hide this column. Defaults to true.</summary>
+    [Parameter] public bool Pickable { get; set; } = true;
+
     /// <summary>A class for this column's cells and header.</summary>
     [Parameter] public string? Class { get; set; }
 
@@ -149,7 +161,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             }
 
             // The grid adds its widths up, and a percent of the table or a keyword can't be added.
-            foreach (var (name, length) in new[] { (nameof(Width), Width), (nameof(MinWidth), MinWidth) })
+            foreach (var (name, length) in new[] { (nameof(Width), Width), (nameof(MinWidth), MinWidth), (nameof(MaxWidth), MaxWidth) })
             {
                 if (length?.ToString() is { } css && (css.EndsWith('%') || css is "auto" or "fit-content" or "min-content" or "max-content"))
                 {
@@ -185,7 +197,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, Frozen, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)

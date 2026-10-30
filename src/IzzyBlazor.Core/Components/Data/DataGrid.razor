@@ -3,6 +3,7 @@
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @inherits TableViewBase<TItem>
 @using Microsoft.Extensions.DependencyInjection
+@using Microsoft.Extensions.Logging
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort; filters apply when you press Apply.")]
 
 @*
@@ -30,13 +31,20 @@
     shared link still shows the same rows, since sort, filter and page are in the address. To keep
     layouts in a database instead, bind Layout.
 
+    ResizableColumns, ReorderableColumns and ColumnPicker let people rearrange the columns, with
+    script, by pointer, keys, a menu in each header and a picker above the grid. On a static page they
+    need somewhere to keep the result: a LayoutKey, or Layout with a LayoutSaveUrl.
+
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
     - With script it's an ARIA grid, one Tab stop: arrows move between cells, Home and End along the
       row, Ctrl+Home and Ctrl+End to the corners, PageUp and PageDown by the rows in view and then to
       the next page. A cell with one link, button or checkbox focuses that; with several controls
       or a field, Enter or F2 goes in, and Escape, F2 or tabbing past the end comes back. On a header,
-      Enter sorts, Shift+Enter adds to the sort, and Alt+Down opens its filter.
+      Enter sorts, Shift+Enter adds to the sort, and F2 goes in to its filter and menu.
+    - On a header, Shift+Left and Shift+Right resize the column and Alt+Left and Alt+Right move it; its
+      menu (Alt+Down, which opens the filter when there's no menu) does both, so nothing needs
+      dragging. A new width is read out.
     - Space toggles the row's checkbox from a cell of text, Shift+Space from anywhere, Shift+Up and
       Shift+Down extend the selection, and Ctrl+A selects the page. With no script, it's a plain
       table and Tab goes through its controls.
@@ -48,6 +56,11 @@
 
 <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <ib-grid hidden></ib-grid>
+    @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive))
+    {
+        <ib-grid-columns hidden data-ib-layout="@CurrentLayout?.ToJson()" data-ib-layout-key="@LayoutKey" data-ib-save-url="@LayoutSaveUrl"
+                         data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)" data-ib-width-text="@TextDefaults.ColumnWidth" @oniblayout="OnLayoutAsync"></ib-grid-columns>
+    }
     @Body
 </ib-table>
 
@@ -71,11 +84,48 @@
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<DataGridLayout?> LayoutChanged { get; set; }
 
+    /// <summary>
+    /// With script, an address the app maps to save a person's layout: the grid posts it there as JSON
+    /// when it changes, for a static page that passes its own <see cref="Layout"/>.
+    /// </summary>
+    [Parameter] public string? LayoutSaveUrl { get; set; }
+
+    /// <summary>
+    /// Lets people resize columns: by dragging a handle at the header's end, by double-clicking it to
+    /// fit, by Shift+Left and Shift+Right, or from the header's menu. The grid scrolls if it grows.
+    /// Needs script, and on a static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool ResizableColumns { get; set; }
+
+    /// <summary>
+    /// Lets people move columns: by dragging a header, by Alt+Left and Alt+Right, or from the header's
+    /// menu, which can also freeze them. Frozen columns move among themselves. Needs script, and on a
+    /// static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool ReorderableColumns { get; set; }
+
+    /// <summary>
+    /// A button above the grid listing the columns to show or hide, and to put back as declared. Needs
+    /// script, and on a static page a <see cref="LayoutKey"/> or <see cref="LayoutSaveUrl"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None)]
+    public bool ColumnPicker { get; set; }
+
+    // A static page can only keep a change by having it saved and asking for the page again.
+    private bool CanSave => WillBeInteractive || LayoutKey is not null || LayoutSaveUrl is not null;
+
+    private bool Rearrangeable => (ResizableColumns || ReorderableColumns || ColumnPicker) && CanSave;
+
     private DataGridLayout? _stored;
     private PersistingComponentStateSubscription? _persisting;
     private List<ColumnBase<TItem>>? _shown;
 
-    private DataGridLayout? CurrentLayout => Layout ?? _stored;
+    // One bound follows the parent; given one-way, what people choose after it wins.
+    private DataGridLayout? CurrentLayout => LayoutChanged.HasDelegate || !_rearranged ? Layout ?? _stored : _stored;
+
+    private bool _rearranged;
 
     private string CookieName => $"ib-grid-{LayoutKey}";
 
@@ -115,13 +165,13 @@
             _stored = DataGridLayout.Parse(Services.GetService<IRequestCookies>()?.Get(CookieName));
         }
 
-        if (state is not null && _stored is { } stored)
+        if (state is not null && _stored is not null)
         {
             _persisting = state.RegisterOnPersisting(() =>
             {
                 try
                 {
-                    PersistedState.Persist(state, key, stored, PersistedStateJson.Default.DataGridLayout);
+                    PersistedState.Persist(state, key, _stored, PersistedStateJson.Default.DataGridLayout);
                 }
                 catch (ArgumentException)
                 {
@@ -137,8 +187,154 @@
     protected override Task OnParametersSetAsync()
     {
         _shown = null;
+        if ((ResizableColumns || ReorderableColumns || ColumnPicker) && !CanSave && !_warned)
+        {
+            _warned = true;
+            Logger?.LogWarning("A DataGrid on a static page needs a {Key} or {Url} for people to rearrange its columns, so it shows no controls.", nameof(LayoutKey), nameof(LayoutSaveUrl));
+        }
+
         return base.OnParametersSetAsync();
     }
+
+    private bool _warned;
+
+    private async Task OnLayoutAsync(IzzyLayoutEventArgs e)
+    {
+        _stored = DataGridLayout.Parse(e.Layout);
+        _rearranged = true;
+        _shown = null;
+        await LayoutChanged.InvokeAsync(_stored);
+        StateHasChanged();
+    }
+
+    private bool CanResize(ColumnBase<TItem> column) => ResizableColumns && CanSave && column.Resizable;
+
+    private bool CanMove(ColumnBase<TItem> column) => ReorderableColumns && CanSave && column.Reorderable;
+
+    /// <inheritdoc />
+    internal override IReadOnlyDictionary<string, object>? HeaderAttributes(ColumnBase<TItem> column)
+    {
+        if (!Rearrangeable)
+        {
+            return null;
+        }
+
+        var attributes = new Dictionary<string, object> { ["data-ib-col"] = KeyOf(column) };
+        if (CanMove(column))
+        {
+            attributes["data-ib-reorder"] = "";
+        }
+
+        if (CanResize(column))
+        {
+            attributes["data-ib-resize"] = "";
+            // Its controls need room: smaller, they'd sit on each other.
+            attributes["data-ib-min"] = column.MinWidth is { } min ? StyleValues.Length(min) : "6rem";
+            if (column.MaxWidth is { } max)
+            {
+                attributes["data-ib-max"] = StyleValues.Length(max);
+            }
+        }
+
+        return attributes;
+    }
+
+    /// <inheritdoc />
+    internal override bool HasHeaderMenu(ColumnBase<TItem> column) =>
+        CanResize(column) || CanMove(column) || (ColumnPicker && CanSave && column.Pickable);
+
+    /// <inheritdoc />
+    internal override RenderFragment? HeaderMenu(ColumnBase<TItem> column) => !HasHeaderMenu(column) ? null : __builder =>
+    {
+        var key = KeyOf(column);
+        var frozen = FrozenOf(column);
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, column.HeaderText);
+        var zone = Shown.Where(c => FrozenOf(c) == frozen && CanMove(c)).ToList();
+        <Menu Placement="Placement.BottomEnd" Class="ib-col-menu" data-ib-user-controlled>
+            <Trigger>
+                <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
+                    <Icon Role="IconRole.MoreVertical" />
+                </button>
+            </Trigger>
+            <ChildContent>
+                @if (CanMove(column))
+                {
+                    <MenuItem Disabled="zone.FirstOrDefault() == column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
+                    <MenuItem Disabled="zone.LastOrDefault() == column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
+                    <MenuDivider />
+                }
+                @if (CanResize(column))
+                {
+                    <MenuItem data-ib-col-action="wider" data-ib-col="@key">@TextDefaults.ColumnWider</MenuItem>
+                    <MenuItem data-ib-col-action="narrower" data-ib-col="@key">@TextDefaults.ColumnNarrower</MenuItem>
+                    <MenuItem Disabled="CurrentLayout?.Column(key)?.Width is null || (frozen != ColumnFrozen.None && column.Width is null)" data-ib-col-action="reset-width" data-ib-col="@key">@TextDefaults.ColumnResetWidth</MenuItem>
+                    <MenuDivider />
+                }
+                @if (CanMove(column) && RowHref is null)
+                {
+                    if (frozen == ColumnFrozen.None)
+                    {
+                        <MenuItem data-ib-col-action="freeze-start" data-ib-col="@key">@TextDefaults.ColumnFreezeStart</MenuItem>
+                        <MenuItem data-ib-col-action="freeze-end" data-ib-col="@key">@TextDefaults.ColumnFreezeEnd</MenuItem>
+                    }
+                    else
+                    {
+                        <MenuItem data-ib-col-action="unfreeze" data-ib-col="@key">@TextDefaults.ColumnUnfreeze</MenuItem>
+                    }
+                }
+                @if (ColumnPicker && CanSave && column.Pickable)
+                {
+                    <MenuItem Disabled="Shown.Count <= 1" data-ib-col-action="hide" data-ib-col="@key">@TextDefaults.ColumnHide</MenuItem>
+                }
+            </ChildContent>
+        </Menu>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? HeaderHandle(ColumnBase<TItem> column) => !CanResize(column) ? null : __builder =>
+    {
+        @* Pointer only: the grid is one Tab stop, and the keys and the menu do the same. *@
+        <span class="ib-col-resize" aria-hidden="true"></span>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? AboveGrid => !Rearrangeable ? null : __builder =>
+    {
+        <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
+        if (ColumnPicker)
+        {
+            <div class="ib-col-picker">
+                <Popover Placement="Placement.BottomEnd" data-ib-user-controlled>
+                    <Trigger>
+                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm" @attributes="context">@TextDefaults.ColumnPicker</button>
+                    </Trigger>
+                    <ChildContent>
+                        <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
+                            @foreach (var column in Columns.Where(c => c.Pickable))
+                            {
+                                var key = KeyOf(column);
+                                var shown = Shown.Contains(column);
+                                var zoneOf = Shown.Where(c => FrozenOf(c) == FrozenOf(column) && CanMove(c)).ToList();
+                                <li>
+                                    <label>
+                                        <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                                        @column.HeaderText
+                                    </label>
+                                    @if (shown && CanMove(column))
+                                    {
+                                        var at = zoneOf.IndexOf(column);
+                                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><span aria-hidden="true">↑</span></button>
+                                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><span aria-hidden="true">↓</span></button>
+                                    }
+                                </li>
+                            }
+                        </ul>
+                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
+                    </ChildContent>
+                </Popover>
+            </div>
+        }
+    };
 
     /// <inheritdoc />
     internal override void ColumnsChanged() => _shown = null;
@@ -159,7 +355,8 @@
     // A layout can freeze a column only if it has a width to be placed by.
     private ColumnFrozen FrozenOf(ColumnBase<TItem> column)
     {
-        var frozen = CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
+        // A stored layout can't freeze a column on a grid that can't have frozen columns.
+        var frozen = RowHref is not null ? column.Frozen : CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
         return frozen != ColumnFrozen.None && WidthOf(column) is null ? ColumnFrozen.None : frozen;
     }
 
@@ -172,7 +369,8 @@
     private List<ColumnBase<TItem>> Arrange()
     {
         var layout = CurrentLayout;
-        var visible = Columns.Where(c => layout?.Column(KeyOf(c))?.Hidden != true).ToList();
+        // One the page says can't be hidden isn't, whatever a stored layout says.
+        var visible = Columns.Where(c => !c.Pickable || layout?.Column(KeyOf(c))?.Hidden != true).ToList();
         return (visible.Count > 0 ? visible : Columns)
             .Select((column, index) => (column, index))
             .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
@@ -312,6 +510,19 @@
         if (RowHref is not null && Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))
         {
             throw new InvalidOperationException($"A DataGrid can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
+        }
+
+        if (Rearrangeable)
+        {
+            // A layout finds columns by key: two with one, or one with none, would be mixed up.
+            var taken = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            foreach (var column in Columns)
+            {
+                if (string.IsNullOrEmpty(KeyOf(column)) || !taken.Add(KeyOf(column)))
+                {
+                    throw new InvalidOperationException($"The \"{column.HeaderText}\" column needs a {nameof(ColumnBase<TItem>.SortKey)} of its own, since people can rearrange the columns: its key is empty or another column's.");
+                }
+            }
         }
     }
 

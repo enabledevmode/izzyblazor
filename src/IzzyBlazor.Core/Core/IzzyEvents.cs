@@ -61,9 +61,20 @@ public sealed class IzzyMoveEventArgs : EventArgs
     public int Seq { get; set; }
 }
 
+/// <summary>
+/// Data for the <c>iblayout</c> event, which IzzyBlazor's script raises when a <c>DataGrid</c>'s
+/// columns are rearranged on an interactive page. Apps use its <c>@bind-Layout</c>.
+/// </summary>
+public sealed class IzzyLayoutEventArgs : EventArgs
+{
+    /// <summary>The layout, as <see cref="DataGridLayout.ToJson"/> writes it; empty for none.</summary>
+    public string? Layout { get; set; }
+}
+
 /// <summary>Registers IzzyBlazor's custom events with the Razor compiler.</summary>
 [EventHandler("onibtoggle", typeof(IzzyToggleEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibmove", typeof(IzzyMoveEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
+[EventHandler("oniblayout", typeof(IzzyLayoutEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 [EventHandler("onibscheme", typeof(IzzySchemeEventArgs), enableStopPropagation: true, enablePreventDefault: false)]
 public static class EventHandlers
 {

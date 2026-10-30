@@ -81,6 +81,11 @@ class Grid extends IzzyElement {
     this.#rowsChanged();
   }
 
+  /** Puts focus where the keys would in this cell, for a header that has just been rearranged. */
+  focusCell(cell: HTMLTableCellElement): void {
+    this.#focusCell(cell);
+  }
+
   // Focus stops clear of the frozen columns; if they'd leave too little room for the rows (a phone),
   // they scroll like the rest.
   #frozen(): void {

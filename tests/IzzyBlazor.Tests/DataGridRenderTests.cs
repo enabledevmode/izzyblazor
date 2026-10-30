@@ -157,7 +157,7 @@ public class DataGridRenderTests : BunitContext
     }
 
     private static string[] Headers(IRenderedComponent<DataGrid<Row>> cut) =>
-        cut.FindAll("thead th").Select(th => th.TextContent.Trim()).ToArray();
+        cut.FindAll("thead th .ib-table-title").Select(t => t.TextContent.Trim()).ToArray();
 
     private static DataGridLayout Arranged(params DataGridColumnLayout[] columns) => new() { Columns = columns };
 
@@ -225,7 +225,62 @@ public class DataGridRenderTests : BunitContext
     [InlineData("not json")]
     [InlineData("[]")]
     [InlineData("")]
+    [InlineData("{}")]
+    [InlineData("""{"c":null}""")]
+    [InlineData("""{"c":[null]}""")]
+    [InlineData("""{"x":1}""")]
+    [InlineData("""{"c":[{"w":"10px"}]}""")]
     public void A_broken_cookie_is_no_layout(string json) => Assert.Empty(DataGridLayout.Parse(json)?.Columns ?? []);
+
+    [Theory]
+    [InlineData("١٨٠px")]
+    [InlineData("10px\n")]
+    public void A_width_in_other_digits_or_with_more_after_it_is_dropped(string width) =>
+        Assert.Null(DataGridLayout.Parse(Arranged(new DataGridColumnLayout { Key = "a", Width = width }).ToJson())!.Column("a")!.Width);
+
+    [Fact]
+    public void A_stored_layout_cant_freeze_a_grid_with_row_links()
+    {
+        var cut = Grid(Column(r => r.Name, Length.Rem(4)), p => p
+            .Add(x => x.RowHref, r => "/x")
+            .Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Frozen = ColumnFrozen.Start })));
+        Assert.DoesNotContain("ib-frozen", cut.Find("thead th").ClassName ?? "");
+    }
+
+    [Fact]
+    public void Rearranging_needs_a_key_of_its_own_per_column()
+    {
+        RenderFragment twins = builder =>
+        {
+            builder.AddContent(0, Column(r => r.Name));
+            builder.AddContent(1, Column(r => r.Name));
+        };
+        Assert.Contains("SortKey", Assert.Throws<InvalidOperationException>(() => Grid(twins, p => p.Add(x => x.ResizableColumns, true).Add(x => x.LayoutKey, "o"))).Message);
+    }
+
+    [Fact]
+    public void A_layout_given_one_way_gives_way_to_what_people_choose()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.Layout, new DataGridLayout()));
+        cut.Find("ib-grid-columns").TriggerEvent("oniblayout", new IzzyLayoutEventArgs { Layout = """{"c":[{"k":"qty","h":true}]}""" });
+        Assert.Equal(["Name"], Headers(cut));
+    }
+
+    [Fact]
+    public void A_column_the_page_wont_let_people_hide_stays()
+    {
+        RenderFragment fixedColumn = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Row, string>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
+            builder.AddComponentParameter(2, "Pickable", false);
+            builder.CloseComponent();
+            builder.AddContent(3, Column(r => r.Qty));
+        };
+        var cut = Grid(fixedColumn, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Hidden = true })));
+        Assert.Equal(["Name", "Qty"], Headers(cut));
+    }
 
     [Theory]
     [InlineData("1px;background:url(x)")]
@@ -248,6 +303,54 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal("12.5rem", back.Column("A")!.Width);
         Assert.Equal(ColumnFrozen.Start, back.Column("a")!.Frozen);
         Assert.Null(back.Column("b")!.Width);
+    }
+
+    [Fact]
+    public void Rearranging_needs_somewhere_to_keep_it_on_a_static_page()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.ReorderableColumns, true).Add(x => x.ColumnPicker, true));
+        Assert.Empty(cut.FindAll("ib-grid-columns"));
+        Assert.Empty(cut.FindAll(".ib-col-resize"));
+        Assert.Empty(cut.FindAll(".ib-col-menu"));
+
+        cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.ReorderableColumns, true).Add(x => x.ColumnPicker, true).Add(x => x.LayoutKey, "orders"));
+        Assert.Equal("orders", cut.Find("ib-grid-columns").GetAttribute("data-ib-layout-key"));
+        Assert.Equal(2, cut.FindAll("th .ib-col-resize").Count);
+        Assert.Equal("name", cut.Find("th").GetAttribute("data-ib-col"));
+        Assert.NotNull(cut.Find("th").GetAttribute("data-ib-reorder"));
+        Assert.Equal(2, cut.FindAll("[data-ib-col-show]").Count);
+    }
+
+    [Fact]
+    public void A_column_can_opt_out_of_each()
+    {
+        RenderFragment fixedColumn = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Row, string>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
+            builder.AddComponentParameter(2, "Resizable", false);
+            builder.AddComponentParameter(3, "Reorderable", false);
+            builder.AddComponentParameter(4, "Pickable", false);
+            builder.CloseComponent();
+            builder.AddContent(5, Column(r => r.Qty));
+        };
+        var cut = Grid(fixedColumn, p => p.Add(x => x.ResizableColumns, true).Add(x => x.ReorderableColumns, true).Add(x => x.ColumnPicker, true).Add(x => x.LayoutKey, "o"));
+        var head = cut.FindAll("th");
+        Assert.Null(head[0].GetAttribute("data-ib-reorder"));
+        Assert.Empty(head[0].QuerySelectorAll(".ib-col-resize, [data-ib-menu]"));
+        Assert.NotEmpty(head[1].QuerySelectorAll(".ib-col-resize"));
+        Assert.Single(cut.FindAll("[data-ib-col-show]"));
+    }
+
+    [Fact]
+    public void Layout_events_redraw_and_tell_a_bound_parent()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        DataGridLayout? told = null;
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.LayoutChanged, (DataGridLayout? l) => told = l));
+        cut.Find("ib-grid-columns").TriggerEvent("oniblayout", new IzzyLayoutEventArgs { Layout = """{"c":[{"k":"qty","h":true}]}""" });
+        Assert.Equal(["Name"], Headers(cut));
+        Assert.True(told!.Column("qty")!.Hidden);
     }
 
     [Fact]
@@ -408,8 +511,9 @@ public class DataGridRenderTests : BunitContext
         cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll("tbody tr").Count));
 
         answer = new TaskCompletionSource<DataResult<Row>>();
+        // The first click starts a load, which renders: the second may need to find its button again.
         cut.FindAll("th button.ib-table-sort")[0].Click(new Microsoft.AspNetCore.Components.Web.MouseEventArgs { ShiftKey = true });
-        cut.FindAll("th button.ib-table-sort")[1].Click(new Microsoft.AspNetCore.Components.Web.MouseEventArgs { ShiftKey = true });
+        cut.WaitForAssertion(() => cut.FindAll("th button.ib-table-sort")[1].Click(new Microsoft.AspNetCore.Components.Web.MouseEventArgs { ShiftKey = true }));
         answer.SetResult(new DataResult<Row>(Rows, Rows.Length));
         cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(".ib-table-sort-order").Count));
     }

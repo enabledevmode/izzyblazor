@@ -175,7 +175,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         }
     }
 
-    // In the third example: Note (a field), Actions (two buttons), More (a menu button).
+    // In the fourth example: Note (a field), Actions (two buttons), More (a menu button).
     [Fact]
     public async Task Cells_with_controls_are_entered_and_left_with_one_tab_stop_after()
     {
@@ -183,7 +183,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         using (playwright)
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").Nth(2);
+            var grid = page.Locator(".ib-datagrid").Nth(3);
             var stops = () => grid.EvaluateAsync<int>("g => [...g.querySelector('.ib-table-scroll').querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
             Task<bool> Focused(string selector) => grid.Locator(selector).First.EvaluateAsync<bool>("e => e === document.activeElement || e.contains(document.activeElement)");
             await grid.Locator("tbody tr").First.Locator("td").Nth(4).FocusAsync();
