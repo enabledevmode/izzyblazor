@@ -1149,38 +1149,6 @@
     cursor: no-drop;
   }
 
-  .ib-sortable-item[data-ib-drop] {
-    position: relative;
-  }
-
-  .ib-sortable-item[data-ib-drop]::after {
-    content: "";
-    position: absolute;
-    inset-block: 0;
-    inset-inline-start: calc(var(--ib-space-1) * -1 - 1px);
-    width: 2px;
-    border-radius: 1px;
-    background-color: var(--ib-color-primary);
-  }
-
-  .ib-sortable-item[data-ib-drop="after"]::after {
-    inset-inline-start: auto;
-    inset-inline-end: calc(var(--ib-space-1) * -1 - 1px);
-  }
-
-  /* A column another zone's item is dragged over: the line goes across, above or below. */
-  .ib-sortable-vertical > .ib-sortable-list > .ib-sortable-item[data-ib-drop]::after {
-    inset-block: -1px auto;
-    inset-inline: 0;
-    width: auto;
-    height: 2px;
-  }
-
-  .ib-sortable-vertical > .ib-sortable-list > .ib-sortable-item[data-ib-drop="after"]::after {
-    inset-block: auto -1px;
-    inset-inline: 0;
-  }
-
   /* A drop zone: its empty text shows while it has no items, and an empty one an item is dragged
      over is outlined. */
   .ib-sortable-list:has(> .ib-sortable-item) + .ib-dropzone-empty {
@@ -1215,15 +1183,6 @@
   @media (forced-colors: active) {
     .ib-sortable-list > .ib-sortable-dragging {
       outline: 2px solid Highlight;
-    }
-
-    .ib-sortable-item[data-ib-drop]::after {
-      background-color: Highlight;
-    }
-
-    /* Thicker than the divider it sits on, which takes the same system color. */
-    .ib-sortable-vertical > .ib-sortable-list > .ib-sortable-item[data-ib-drop]::after {
-      height: 4px;
     }
 
     .ib-sortable[data-ib-drop="inside"] {
