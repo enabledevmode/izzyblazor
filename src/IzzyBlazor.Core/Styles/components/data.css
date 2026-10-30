@@ -697,7 +697,13 @@
     visibility: hidden;
   }
 
+  /* With no script nothing can show the bar when a box is checked, so it's always there with its
+     actions; Clear and Select all need script. */
   @media (scripting: none) {
+    .ib-selection-bar[hidden]:has(.ib-selection-actions) {
+      display: flex;
+    }
+
     :is(.ib-selection-clear, .ib-selection-more) {
       display: none !important;
     }

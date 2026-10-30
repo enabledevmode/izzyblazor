@@ -1,6 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { TypingGuard, changedFromServer, navigateTo } from "../filtering";
-import { setupLoadOnScroll, setupSelectAll } from "../data-view";
+import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view";
 
 /**
  * <ib-table> adds two things to a Table:
@@ -31,6 +31,7 @@ class Table extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     this.#setupFilters(signal);
     setupSelectAll(this, ".ib-table-select-all", "tbody .ib-table-select", signal);
+    setupSelection(this, "tbody .ib-table-select", signal);
     setupLoadOnScroll(this, ":scope > .ib-table-scroll > table > tbody > tr:last-child", ":scope > .ib-table-scroll > .ib-data-more [data-ib-load-next]", signal);
     this.#setupScrollStop(signal);
     this.#setupBoundPanels(signal);
