@@ -3,8 +3,8 @@
 <form method="post" @onsubmit="Archive" @formname="archive" style="width: 100%">
     <AntiforgeryToken />
     <Stack Gap="3">
-        <Table Items="Recent" Caption="Recent orders" Selectable ItemKey="o => o.Number.ToString()"
-               RowLabel='o => $"order {o.Number}"' @bind-SelectedKeys="_selected">
+        <Table Items="Recent" Caption="Recent orders" SelectionMode="SelectionMode.Multiple" ItemKey="o => o.Number.ToString()"
+               RowLabel='o => $"order {o.Number}"' @bind-Selection="_selected">
             <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" FooterText="Total" />
             <PropertyColumn Property="o => o.Customer" />
             <PropertyColumn Property="o => o.Total" Format="C" FooterText="@Recent.Sum(o => o.Total).ToString("C")" />
@@ -14,7 +14,7 @@
             @if (_archived is not null)
             {
                 <TextBlock Size="TextSize.Sm" Color="Color.Muted">
-                    Archived: @(_archived.Count == 0 ? "nothing selected" : string.Join(", ", _archived.Select(k => "#" + k)))
+                    Archived: @(_archived.Length == 0 ? "nothing selected" : string.Join(", ", _archived.Select(k => "#" + k)))
                 </TextBlock>
             }
         </Row>
@@ -26,13 +26,17 @@
 
     // Static pages: the checked rows post as "selected".
     [SupplyParameterFromForm(FormName = "archive", Name = "selected")]
-    private string[]? Posted { get; set; }
+    private Selection? Posted { get; set; }
 
     // Interactive pages: bound to the checkboxes.
-    private IReadOnlyCollection<string>? _selected;
-    private IReadOnlyCollection<string>? _archived;
+    private Selection? _selected;
+    private string[]? _archived;
 
     protected override void OnInitialized() => _selected = Posted;
 
-    private void Archive() => _archived = (IReadOnlyCollection<string>?)Posted ?? _selected ?? [];
+    private void Archive()
+    {
+        var selection = Posted ?? _selected ?? Selection.None;
+        _archived = [.. selection.Apply(Recent.AsQueryable(), o => o.Number.ToString()).Select(o => o.Number.ToString())];
+    }
 }

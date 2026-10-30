@@ -2,7 +2,7 @@ import { IzzyElement, defineElement } from "../izzy-element";
 import { setupLoadOnScroll, setupSelectAll } from "../data-view";
 
 /**
- * <ib-listview> adds a ListView's select-all checkbox (Selectable) and loading on scroll (Paging
+ * <ib-listview> adds a ListView's select-all checkbox (SelectionMode.Multiple) and loading on scroll (Paging
  * LoadOnScroll, interactive pages), both shared with <ib-table>. Everything else works without it.
  */
 class ListView extends IzzyElement {

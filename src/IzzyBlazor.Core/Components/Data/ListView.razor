@@ -44,8 +44,9 @@
     - A disabled item (`ItemDisabled`) has no link or button, and is dimmed.
     - Each item's ⋯ button (`ItemMenu`) is named "Actions for" and its label. Tab goes through
       an item's controls in order: handle, link, checkbox, content, ItemActions, the ⋯ button.
-    - With `Selectable`, each item has a checkbox named "Select" and the item's label; with
-      script, a "Select all rows" checkbox above the list checks the page.
+    - With `SelectionMode`, each item has a checkbox (or, for Single, a radio button) named
+      "Select" and the item's label; with script, a "Select all rows" checkbox above a Multiple
+      list checks the page.
     - The range under a paged list ("1–10 of 42") is read when it changes, and a failed load is
       announced from a status region.
     See also: Table, List.
@@ -54,7 +55,7 @@
 <ib-listview @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)"
              tabindex="-1" @ref="_listRef">
     @ErrorStatus
-    @if (Selectable)
+    @if (MultiSelect)
     {
         @* Select all (this page): script only; it checks the items, which report their own changes.
            Always rendered, so the script finds it when items arrive after an empty first render;
@@ -576,12 +577,12 @@
                 }
                 @if (Selectable)
                 {
-                    <input type="checkbox" class="ib-check-input ib-listview-select" name="@EffectiveSelectionName" value="@key"
-                           aria-label="@SelectLabel(item)" checked="@IsSelected(key)" disabled="@disabled"
+                    <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-listview-select" name="@SelectionKeysName" value="@key"
+                           aria-label="@SelectLabel(item)" checked="@IsSelected(key)" disabled="@(disabled || !CanSelect(item))"
                            @onchange="e => OnSelectChanged(key, e)" />
                     @if (disabled && !Live && IsSelected(key))
                     {
-                        <input type="hidden" name="@EffectiveSelectionName" value="@key" />
+                        <input type="hidden" name="@SelectionKeysName" value="@key" />
                     }
                 }
                 <div class="ib-listview-content">

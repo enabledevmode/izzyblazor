@@ -309,7 +309,7 @@ public class ListViewReorderTests : BunitContext
     public void Reordering_works_with_selection_and_links()
     {
         Static();
-        var cut = RenderList(more: p => p.Add(l => l.Selectable, true).Add(l => l.ItemHref, s => $"/steps/{s.Id}"));
+        var cut = RenderList(more: p => p.Add(l => l.SelectionMode, SelectionMode.Multiple).Add(l => l.ItemHref, s => $"/steps/{s.Id}"));
 
         var first = cut.FindAll("li")[0];
         // Handle, then the checkbox, then the content; the link is stretched over the item.

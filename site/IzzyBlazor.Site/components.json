@@ -1327,11 +1327,11 @@
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it.",
             "static": "Filters apply as you type." } },
-        { "id": "table-selection", "title": "Selection and totals",
+        { "id": "table-select-rows", "title": "Selection and totals",
           "notes": {
             "noscript": "Checked rows post their keys with the form.",
             "static": "The header checkbox selects every row on the page.",
-            "interactive": "@bind-SelectedKeys follows the checkboxes in C#." } },
+            "interactive": "@bind-Selection follows the checkboxes in C#." } },
         { "id": "table-bound", "title": "State in the component", "modes": ["interactive"] },
         { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {
@@ -1406,7 +1406,7 @@
       ],
       "examples": [
         { "id": "list-view-contacts", "title": "Links and the current item", "lead": "Use `ItemText`, `ItemDescription` and `ItemIcon` for a row with no template, `ItemHref` to make each item a link, and `ItemCurrent` for the one the page is showing." },
-        { "id": "list-view-selection", "title": "Selection", "lead": "Use `Selectable` for a checkbox per item: inside a form the checked items post their `ItemKey`, and `@bind-SelectedKeys` follows them on interactive pages. With script, a checkbox above the list selects the page." },
+        { "id": "list-view-select-items", "title": "Selection", "lead": "Use `SelectionMode` for a checkbox per item (or a radio button, for one): inside a form the selected items post their `ItemKey` as a `Selection`, and `@bind-Selection` follows them on interactive pages. With script, a checkbox above the list selects the page." },
         { "id": "list-view-actions", "title": "Actions on items", "lead": "Use `ItemActions` for content at each item's end, such as a badge or an icon button named for its item, and `ItemMenu` for a ⋯ menu of `MenuItem`s, named \"Actions for\" and the item's label. Keep one or two actions visible and put the rest in the menu; a menu that renders nothing for an item leaves it without the button.",
           "notes": {
             "noscript": "Star and each menu item post the form with their Name=Value; the menu opens and closes, without arrow keys.",

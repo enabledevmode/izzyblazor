@@ -42,8 +42,8 @@
     and on static pages through a "Load more" link under the rows (?page=3 shows the first three),
     which the script follows and enhanced navigation swaps in. With script off the link shows.
 
-    Selectable adds a checkbox per row: it posts the row's ItemKey with the surrounding form, and
-    @bind-SelectedKeys follows it on interactive pages. RowHref makes each row a link. Columns
+    SelectionMode adds a checkbox (Multiple) or radio button (Single) per row: it posts the row's
+    ItemKey with the surrounding form, and @bind-Selection follows it. RowHref makes each row a link. Columns
     take FooterText or Footer for a footer row.
 
     <Table Items="orders" PageSize="10" Caption="Orders">
@@ -121,7 +121,10 @@
                         <th scope="col" class="ib-table-select-cell">
                             @* The column's name while select-all is hidden (no script yet). *@
                             <span class="ib-visually-hidden ib-table-select-heading">@(SelectRowLabel ?? TextDefaults.SelectRow)</span>
-                            <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
+                            @if (MultiSelect)
+                            {
+                                <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" />
+                            }
                         </th>
                     }
                     @{ var headerFilters = HasFilters ? CurrentFilters() : null; }
@@ -203,9 +206,10 @@
                             @if (Selectable)
                             {
                                 <td class="ib-table-select-cell">
-                                    <input type="checkbox" class="ib-check-input ib-table-select" name="@EffectiveSelectionName" value="@key"
+                                    <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
                                            aria-label="@SelectLabel(item)"
                                            checked="@IsSelected(key)"
+                                           disabled="@(!CanSelect(item))"
                                            @onchange="e => OnSelectChanged(key, e)" />
                                 </td>
                             }

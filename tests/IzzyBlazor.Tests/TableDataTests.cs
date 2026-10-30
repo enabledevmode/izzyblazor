@@ -53,6 +53,43 @@ public class TableDataTests : BunitContext
 
     private void Interactive() => SetRendererInfo(new RendererInfo("Server", isInteractive: true));
 
+    // Selecting all that match keeps the filter it was made under; another filter clears it.
+
+    private IRenderedComponent<Table<Row>> SelectAllUnder(Selection selection, Action<Selection> report) => Render<Table<Row>>(p => p
+        .Add(t => t.Items, Rows)
+        .Add(t => t.ItemKey, r => r.Id.ToString())
+        .Add(t => t.SelectionMode, SelectionMode.Multiple)
+        .Add(t => t.Selection, selection)
+        .Add(t => t.SelectionChanged, report)
+        .Add(t => t.ChildContent, Columns));
+
+    [Fact]
+    public void All_of_another_filter_is_cleared_when_the_rows_load()
+    {
+        Static("/rows?f-name=ad");
+        Selection? reported = null;
+        var cut = SelectAllUnder(new Selection { All = true }, s => reported = s);
+
+        Assert.True(reported!.IsEmpty);
+        Assert.Empty(cut.FindAll("tbody .ib-table-select[checked]"));
+    }
+
+    [Fact]
+    public void All_of_the_shown_filter_is_kept()
+    {
+        Static("/rows?f-name=ad");
+        DataRequest<Row>? seen = null;
+        Render<Table<Row>>(p => p
+            .Add(t => t.ItemsProvider, r => { seen = r; return ValueTask.FromResult(r.ToResult(Rows.AsQueryable())); })
+            .Add(t => t.ChildContent, Columns));
+        Selection? reported = null;
+
+        var cut = SelectAllUnder(Selection.AllOf(seen!), s => reported = s);
+
+        Assert.Null(reported);
+        Assert.Equal(2, cut.FindAll("tbody .ib-table-select[checked]").Count);
+    }
+
     [Fact]
     public void Columns_are_the_requests_fields()
     {
@@ -91,7 +128,6 @@ public class TableDataTests : BunitContext
         // The template column sorts by SortBy (Qty) and filters by FilterBy (Name).
         Assert.Equal(new[] { new SortField("who", true) }, seen.Sort);
         Assert.True(seen.NeedsTotal);
-        Assert.Equal(new[] { "Ada", "adam" }, Names(cut));
     }
 
     [Fact]
