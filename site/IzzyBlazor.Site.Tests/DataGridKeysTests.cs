@@ -327,6 +327,19 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
             // Scrolled away, a menu at the pointer closes rather than sit over another row.
             await page.Mouse.ClickAsync(cell.X + 10, cell.Y + 10, new() { Button = MouseButton.Right });
             await open.WaitForAsync();
+            // Something else on the page scrolling isn't the row moving.
+            await page.EvaluateAsync("""
+                () => new Promise(done => {
+                  const other = document.createElement('div');
+                  other.style.cssText = 'position:fixed;top:0;left:0;width:50px;height:50px;overflow:auto';
+                  other.innerHTML = '<div style="height:500px"></div>';
+                  document.body.append(other);
+                  other.addEventListener('scroll', () => { other.remove(); done(); }, { once: true });
+                  other.scrollTop = 100;
+                })
+                """);
+            await page.WaitForTimeoutAsync(100);
+            Assert.True(await open.IsVisibleAsync());
             await page.EvaluateAsync("() => window.scrollBy(0, 40)");
             await open.WaitForAsync(new() { State = WaitForSelectorState.Detached });
 

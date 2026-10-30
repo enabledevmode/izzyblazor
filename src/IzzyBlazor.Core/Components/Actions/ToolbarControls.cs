@@ -74,6 +74,7 @@ public sealed class ToolbarButton : Button, IToolbarItem, IDisposable
             builder.AddAttribute(12, "rel", "noopener noreferrer");
         }
 
+        ToolbarControl.CopyDownload(builder, AdditionalAttributes);
         builder.AddComponentParameter(13, nameof(MenuItem.ChildContent), ChildContent);
         builder.CloseComponent();
     };
@@ -173,6 +174,7 @@ public sealed class ToolbarIconButton : IconButton, IToolbarItem, IDisposable
             builder.AddComponentParameter(15, nameof(MenuItem.CheckedChanged), PressedChanged);
         }
 
+        ToolbarControl.CopyDownload(builder, AdditionalAttributes);
         builder.AddComponentParameter(11, nameof(MenuItem.ChildContent), (RenderFragment)(b => b.AddContent(0, Label)));
         builder.CloseComponent();
     };
@@ -432,11 +434,20 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
     public static ToolbarContext? Of(ToolbarContext? toolbar, ButtonGroup? group) => group is ToolbarButtonGroup buttons ? buttons.Toolbar : toolbar;
 
     /// <summary>
-    /// Whether its other attributes are only names and ids, which a menu copy can do without. One
+    /// Whether its other attributes are only names, ids and a link's download, which a menu copy can keep or do without. One
     /// wired to something by its attributes (a popover's trigger, an event handler) can't be copied.
     /// </summary>
     public static bool CopiesToMenu(IReadOnlyDictionary<string, object>? attributes) => attributes is null
-        || attributes.Keys.All(k => k is "id" or "title" || k.StartsWith("aria-", StringComparison.Ordinal));
+        || attributes.Keys.All(k => k is "id" or "title" or "download" || k.StartsWith("aria-", StringComparison.Ordinal));
+
+    /// <summary>A link's download stays one in the menu, or it would navigate instead.</summary>
+    public static void CopyDownload(RenderTreeBuilder builder, IReadOnlyDictionary<string, object>? attributes)
+    {
+        if (attributes?.TryGetValue("download", out var download) == true)
+        {
+            builder.AddAttribute(16, "download", download);
+        }
+    }
 
     /// <summary>
     /// Refuses a control written straight in a toolbar or a <see cref="ToolbarButtonGroup"/>, where

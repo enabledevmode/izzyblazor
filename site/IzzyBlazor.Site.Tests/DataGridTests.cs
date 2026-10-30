@@ -16,6 +16,58 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         return (playwright, browser, page);
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Export_downloads_what_the_screen_shows_without_leaving_the_page(string mode)
+    {
+        var (playwright, browser, page) = await OpenAsync(mode);
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid").Last;
+            await grid.ScrollIntoViewIfNeededAsync();
+            var url = page.Url;
+
+            // Sorted by total, highest first: the links follow.
+            var total = grid.Locator("thead th", new() { HasText = "Total" }).Locator("a, button").First;
+            var csv = grid.Locator("a.ib-btn[download]", new() { HasText = "Export CSV" });
+            await total.ClickAsync();
+            await Expect(csv, "sort=total");
+            await total.ClickAsync();
+            await Expect(csv, "sort=-total");
+
+            var download = await page.RunAndWaitForDownloadAsync(() => csv.ClickAsync());
+            Assert.Equal("orders.csv", download.SuggestedFilename);
+            var text = await File.ReadAllTextAsync((await download.PathAsync())!);
+            var lines = text.Split("\r\n", StringSplitOptions.RemoveEmptyEntries);
+            Assert.Equal("Number,Customer,Total", lines[0].TrimStart('\uFEFF'));
+            Assert.Equal(24, lines.Length);
+            var totals = lines.Skip(1).Select(l => decimal.Parse(l.Split(',')[^1].Trim('"'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture)).ToList();
+            Assert.Equal(totals.OrderDescending(), totals);
+
+            var excel = grid.Locator("a.ib-btn[download]", new() { HasText = "Export Excel" });
+            download = await page.RunAndWaitForDownloadAsync(() => excel.ClickAsync());
+            Assert.Equal("orders.xlsx", download.SuggestedFilename);
+            using var zip = System.IO.Compression.ZipFile.OpenRead((await download.PathAsync())!);
+            Assert.NotNull(zip.GetEntry("xl/worksheets/sheet1.xml"));
+
+            // Still on the page, its grid intact.
+            Assert.StartsWith(url.Split('?')[0], page.Url);
+            Assert.True(await grid.IsVisibleAsync());
+        }
+    }
+
+    private static async Task Expect(ILocator link, string part)
+    {
+        for (var i = 0; i < 50 && !((await link.GetAttributeAsync("href")) ?? "").Contains(part, StringComparison.Ordinal); i++)
+        {
+            await Task.Delay(100);
+        }
+
+        Assert.Contains(part, await link.GetAttributeAsync("href"));
+    }
+
     [Fact]
     public async Task Columns_keep_their_widths_share_the_rest_and_scroll_past_their_minimums()
     {

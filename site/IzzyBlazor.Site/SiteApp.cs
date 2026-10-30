@@ -215,6 +215,15 @@ public static class SiteApp
             context.Response.Headers.CacheControl = "public, max-age=300";
             return new RazorComponentResult<SearchDialogResults>(new { Q = q });
         });
+        // The DataGrid export example's downloads.
+        app.MapGet("/examples/orders.csv", (HttpContext context) => Results.Stream(
+                stream => DataExport.WriteCsvAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), cancellationToken: context.RequestAborted),
+                "text/csv", "orders.csv"))
+            .RequireRateLimiting(PagesRateLimit);
+        app.MapGet("/examples/orders.xlsx", (HttpContext context) => Results.Stream(
+                stream => DataExport.WriteExcelAsync(stream, Examples.Table.Orders.All.AsQueryable(), context.Request.QueryString.Value, DataFields.Of<Examples.Table.Order>(), "Orders", cancellationToken: context.RequestAborted),
+                "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"))
+            .RequireRateLimiting(PagesRateLimit);
         app.MapMethods("/robots.txt", ["GET", "HEAD"], () => Results.Text(Sitemap.Robots, "text/plain"));
         app.MapMethods("/sitemap.xml", ["GET", "HEAD"], (Registry registry) => Results.Text(Sitemap.Xml(registry), "application/xml"));
         app.MapMethods("/izzyblazor.api.json", ["GET", "HEAD"], (ApiMetadata api) => Results.Text(api.Json, "application/json"));

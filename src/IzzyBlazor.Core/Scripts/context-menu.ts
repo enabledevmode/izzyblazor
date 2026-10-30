@@ -32,8 +32,12 @@ export function openMenuAt(trigger: HTMLElement, x: number, y: number): void {
   panel.style.cssText += `;position:fixed;inset:auto;margin:0;position-anchor:none;left:${left}px;top:${top}px`;
 
   // It stays where it opened, so once its row has scrolled away it's closed, not left over another.
-  const scrolled = (event: Event) => {
-    if (!panel.contains(event.target as Node)) panel.hidePopover();
+  // By where the row is, not that something scrolled: another list may have, or a scroll that had
+  // already ended, whose event comes a frame later.
+  const opened = trigger.getBoundingClientRect();
+  const scrolled = () => {
+    const now = trigger.getBoundingClientRect();
+    if (now.top !== opened.top || now.left !== opened.left) panel.hidePopover();
   };
   document.addEventListener("scroll", scrolled, { capture: true, passive: true });
   panel.addEventListener("toggle", function reset(event) {

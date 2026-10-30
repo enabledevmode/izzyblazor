@@ -186,6 +186,10 @@ class Table extends IzzyElement {
       }
     }
 
+    // A response for an earlier value has just arrived: what's been typed since goes back, and below,
+    // being a change from what the server drew, it applies after the usual pause.
+    this.#typing.restore();
+
     // A filter changed before this script arrived (the table shows no Apply button where script
     // runs): apply it now rather than drop it; one still being typed in, after the usual pause.
     const filters = [...this.querySelectorAll("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this);

@@ -444,6 +444,35 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void Export_links_carry_the_sort_and_the_columns_shown_and_no_page()
+    {
+        Services.GetRequiredService<NavigationManager>().NavigateTo("?sort=-qty&page=2");
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx?t=1").Add(x => x.PageSize, 1));
+        // The bar's links; the toolbar's "…" menu has copies, which download too.
+        var links = cut.FindAll(".ib-btn[download]");
+        Assert.Equal("/o.csv?sort=-qty&columns=name,qty", links[0].GetAttribute("href"));
+        Assert.Equal("/o.xlsx?t=1&sort=-qty&columns=name,qty", links[1].GetAttribute("href"));
+        Assert.Equal(["Export CSV", "Export Excel"], links.Select(l => l.TextContent.Trim()));
+        Assert.Equal(2, cut.FindAll(".ib-menu-item[download]").Count);
+    }
+
+    [Fact]
+    public void Export_links_leave_out_a_title_used_as_a_key_and_a_fragment()
+    {
+        var titled = new RenderFragment(b =>
+        {
+            b.OpenComponent<TemplateColumn<Row>>(0);
+            b.AddComponentParameter(1, nameof(TemplateColumn<Row>.Title), "Name, note");
+            b.CloseComponent();
+            b.OpenComponent<PropertyColumn<Row, int>>(2);
+            b.AddComponentParameter(3, nameof(PropertyColumn<Row, int>.Property), (System.Linq.Expressions.Expression<Func<Row, int>>)(r => r.Qty));
+            b.CloseComponent();
+        });
+        var cut = Grid(titled, p => p.Add(x => x.ExportCsvHref, "/o.csv#top"));
+        Assert.Equal("/o.csv?columns=qty", cut.Find(".ib-btn[download]").GetAttribute("href"));
+    }
+
+    [Fact]
     public void The_empty_row_spans_the_menu_column_too()
     {
         var cut = Render<DataGrid<Row>>(p => p.Add(x => x.Items, Array.Empty<Row>()).Add(x => x.ChildContent, NameAndQty).Add(x => x.RowMenu, _ => _ => { }));
