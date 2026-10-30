@@ -683,6 +683,21 @@
     white-space: nowrap;
   }
 
+  /* Grid keys: an inset ring, since the scroll box clips one outside the cell. */
+  .ib-datagrid .ib-table-grid :is(th, td):focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-datagrid .ib-table-grid td {
+    scroll-margin-block-start: var(--ib-shell-top, 0px);
+  }
+
+  /* A focused row stops below the sticky header. */
+  .ib-table-sticky.ib-datagrid > .ib-table-scroll {
+    scroll-padding-block-start: var(--ib-table-head-h);
+  }
+
   /* A narrow header: the title gives way, and the icon, its place and the filter button stay. */
   .ib-datagrid .ib-table-title {
     display: block;
@@ -805,7 +820,7 @@
   }
 
   /* With it, the checkbox names the column. */
-  ib-table[data-ready] .ib-table-select-heading {
+  ib-table[data-ready] .ib-table-select-cell:has(.ib-table-select-all) .ib-table-select-heading {
     display: none;
   }
 

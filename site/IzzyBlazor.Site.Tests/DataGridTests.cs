@@ -110,7 +110,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
             await customer.ClickAsync();
             await SortIs("customer");
-            await page.Locator(".ib-datagrid th[aria-sort=ascending]", new() { HasText = "Customer" }).WaitForAsync();
+            await page.Locator(".ib-datagrid >> nth=0 >> th[aria-sort=ascending]", new() { HasText = "Customer" }).WaitForAsync();
 
             await total.ClickAsync(new() { Modifiers = [KeyboardModifier.Shift] });
             await SortIs("customer,total");
@@ -122,7 +122,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
             await total.ClickAsync(new() { Modifiers = [KeyboardModifier.Shift] });
             await SortIs("customer,-total");
-            await page.Locator(".ib-datagrid th", new() { HasText = "Sort 2, descending" }).WaitForAsync();
+            await page.Locator(".ib-datagrid >> nth=0 >> th", new() { HasText = "Sort 2, descending" }).WaitForAsync();
 
             await total.ClickAsync(new() { Modifiers = [KeyboardModifier.Shift] });
             await SortIs("customer");

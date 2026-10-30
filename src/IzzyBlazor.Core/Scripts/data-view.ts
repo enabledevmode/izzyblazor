@@ -279,6 +279,41 @@ function setupRanges(root: HTMLElement, boxes: () => HTMLInputElement[], signal:
   );
 }
 
+/** A run of Shift+arrows: where it started, where it is now, and the boxes it has checked so far. */
+export interface RangeRun {
+  anchor: HTMLInputElement;
+  at: HTMLInputElement;
+  checked: Set<HTMLInputElement>;
+}
+
+/**
+ * Shift+arrow from one selection box to another: every box from where the run started is checked,
+ * and going back clears only what the run itself checked. A run goes on only from the box it
+ * reached: any other way of moving focus starts a new one. Returns the run.
+ */
+export function extendRange(run: RangeRun | null, boxes: HTMLInputElement[], box: HTMLInputElement, to: HTMLInputElement): RangeRun {
+  const current = run?.at === box && run.anchor.isConnected ? run : { anchor: box, at: box, checked: new Set<HTMLInputElement>() };
+  current.at = to;
+  const [from, end] = [boxes.indexOf(current.anchor), boxes.indexOf(to)];
+  const range = new Set(boxes.slice(Math.min(from, end), Math.max(from, end) + 1));
+  const set = (el: HTMLInputElement, value: boolean) => {
+    if (el.checked === value) return;
+    el.checked = value;
+    el.dispatchEvent(new Event("change", { bubbles: true }));
+  };
+  for (const el of [...current.checked]) {
+    if (range.has(el)) continue;
+    set(el, false);
+    current.checked.delete(el);
+  }
+  for (const el of range) {
+    if (el.checked) continue;
+    set(el, true);
+    current.checked.add(el);
+  }
+  return current;
+}
+
 /**
  * Loading on scroll (Paging LoadOnScroll): when the last item comes into view, presses the "load
  * next" trigger after the items, a load that doesn't move focus. On interactive pages it's a hidden

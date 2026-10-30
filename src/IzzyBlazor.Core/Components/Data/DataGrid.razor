@@ -22,6 +22,14 @@
 
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
+    - With script it's an ARIA grid, one Tab stop: arrows move between cells, Home and End along the
+      row, Ctrl+Home and Ctrl+End to the corners, PageUp and PageDown by the rows in view and then to
+      the next page. A cell with one link, button or checkbox focuses that; with several controls
+      or a field, Enter or F2 goes in, and Escape, F2 or tabbing past the end comes back. On a header,
+      Enter sorts, Shift+Enter adds to the sort, and Alt+Down opens its filter.
+    - Space toggles the row's checkbox from a cell of text, Shift+Space from anywhere, Shift+Up and
+      Shift+Down extend the selection, and Ctrl+A selects the page. With no script, it's a plain
+      table and Tab goes through its controls.
     - Sortable headers are links, and the first sorted column has `aria-sort`. With several sorted,
       each says its place and direction ("Sort 2, descending").
     - Row checkboxes and filter buttons are named as in a Table.
@@ -29,6 +37,7 @@
 *@
 
 <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+    <ib-grid hidden></ib-grid>
     @Body
 </ib-table>
 

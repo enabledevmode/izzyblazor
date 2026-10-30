@@ -125,7 +125,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     measureScrollbar();
     // Enhanced navigation can keep an element in place whose code failed to load: try again.
     loadElementsIn();
-    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-listview, ib-popover, ib-dialog, ib-banner, ib-on-this-page, ib-toolbar");
+    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-grid, ib-listview, ib-popover, ib-dialog, ib-banner, ib-on-this-page, ib-toolbar");
   });
 }
 

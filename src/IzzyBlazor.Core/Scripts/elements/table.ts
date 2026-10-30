@@ -77,6 +77,8 @@ class Table extends IzzyElement {
         if (view) box.style.setProperty("--ib-table-view", view);
         else box.style.removeProperty("--ib-table-view");
       }
+      // A DataGrid's <ib-grid> is its one Tab stop.
+      if (this.querySelector(":scope > ib-grid")) return;
       const scrolls = box.scrollWidth > box.clientWidth || box.scrollHeight > box.clientHeight;
       if (scrolls) {
         if (box.getAttribute("tabindex") !== "0") box.setAttribute("tabindex", "0");

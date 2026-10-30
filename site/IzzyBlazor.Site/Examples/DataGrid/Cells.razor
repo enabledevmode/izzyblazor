@@ -1,0 +1,35 @@
+@* Cells that hold controls. One button or menu takes focus directly; with several, or a field that
+   uses the arrows itself, Enter goes in and Escape comes back. The header stays in view when the
+   rows scroll. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" MaxHeight="16.Rem" Caption="Orders to review" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" Sortable />
+    <TemplateColumn Title="Note" Context="order">
+        <input class="ib-field-input" aria-label="@($"Note for order {order.Number}")" value="@order.Customer" />
+    </TemplateColumn>
+    <TemplateColumn Title="Priority" Width="9.Rem" Context="order">
+        <Select @bind-Value="_priority" Items="Priorities" Label="@($"Priority of order {order.Number}")" HideLabel />
+    </TemplateColumn>
+    <TemplateColumn Title="Actions" Width="12.Rem" Context="order">
+        <Row Gap="1">
+            <Button Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral">Open</Button>
+            <Button Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral">Copy</Button>
+        </Row>
+    </TemplateColumn>
+    <TemplateColumn Title="More" Width="5.Rem" Context="order">
+        <Menu>
+            <Trigger Context="wire">
+                <IconButton Icon="Lucide.Ellipsis" Label="@($"Actions for order {order.Number}")" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" @attributes="wire" />
+            </Trigger>
+            <ChildContent>
+                <MenuItem>Archive</MenuItem>
+            </ChildContent>
+        </Menu>
+    </TemplateColumn>
+</DataGrid>
+
+@code {
+    private static readonly string?[] Priorities = ["Normal", "High", "Low"];
+    private string? _priority = "Normal";
+}
