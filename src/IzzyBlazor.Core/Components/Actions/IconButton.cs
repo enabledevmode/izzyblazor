@@ -111,52 +111,52 @@ public class IconButton : ButtonBase
             var inactive = Disabled || Loading;
             builder.AddAttribute(1, "href", inactive ? null : Href);
             builder.AddAttribute(2, "aria-disabled", inactive ? "true" : null);
-            builder.AddAttribute(15, "role", inactive ? "link" : null);
+            builder.AddAttribute(3, "role", inactive ? "link" : null);
             if (OnClick.HasDelegate && !inactive)
             {
-                builder.AddAttribute(16, "onclick", OnClick);
+                builder.AddAttribute(4, "onclick", OnClick);
             }
         }
         else
         {
             var type = ButtonTypes.Of(Submit, Reset, nameof(IconButton));
-            builder.AddAttribute(3, "type", Loading ? "button" : type);
-            builder.AddAttribute(4, "disabled", Disabled);
-            builder.AddAttribute(18, "name", Name);
-            builder.AddAttribute(19, "value", Value);
-            builder.AddAttribute(20, "formaction", FormAction);
-            builder.AddAttribute(21, "form", Form);
-            builder.AddAttribute(22, "aria-pressed", AriaPressed);
+            builder.AddAttribute(5, "type", Loading ? "button" : type);
+            builder.AddAttribute(6, "disabled", Disabled);
+            builder.AddAttribute(7, "name", Name);
+            builder.AddAttribute(8, "value", Value);
+            builder.AddAttribute(9, "formaction", FormAction);
+            builder.AddAttribute(10, "form", Form);
+            builder.AddAttribute(11, "aria-pressed", AriaPressed);
             if (Clickable(OnClick) && !Loading)
             {
-                builder.AddAttribute(5, "onclick", Click(OnClick));
+                builder.AddAttribute(12, "onclick", Click(OnClick));
             }
         }
 
         // Loading reads like Button's: "Loading Delete" (LoadingLabel, then the label).
-        builder.AddAttribute(6, "aria-label", Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {Label}" : Label);
+        builder.AddAttribute(13, "aria-label", Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {Label}" : Label);
         // The native tooltip, unless a Tooltip around it shows one.
         if (InTooltip is null)
         {
-            builder.AddAttribute(7, "title", Label);
+            builder.AddAttribute(14, "title", Label);
         }
 
         if (Loading)
         {
-            builder.AddAttribute(8, "aria-busy", "true");
+            builder.AddAttribute(15, "aria-busy", "true");
             if (!isLink)
             {
-                builder.AddAttribute(17, "aria-disabled", "true");
+                builder.AddAttribute(16, "aria-disabled", "true");
             }
         }
 
-        builder.AddMultipleAttributes(9, AdditionalAttributes);
-        builder.AddAttribute(10, "class", cssClass);
-        builder.AddAttribute(11, "style", style);
+        builder.AddMultipleAttributes(17, AdditionalAttributes);
+        builder.AddAttribute(18, "class", cssClass);
+        builder.AddAttribute(19, "style", style);
 
-        builder.OpenComponent<IzzyBlazor.Icon>(12);
-        builder.AddComponentParameter(13, nameof(IzzyBlazor.Icon.Name), (IconData?)(Loading ? IconSet.Current.Get(IconRole.Loading) : Icon));
-        builder.AddComponentParameter(14, nameof(IzzyBlazor.Icon.Spin), Loading);
+        builder.OpenComponent<IzzyBlazor.Icon>(20);
+        builder.AddComponentParameter(21, nameof(IzzyBlazor.Icon.Name), (IconData?)(Loading ? IconSet.Current.Get(IconRole.Loading) : Icon));
+        builder.AddComponentParameter(22, nameof(IzzyBlazor.Icon.Spin), Loading);
         builder.CloseComponent();
         builder.CloseElement();
     }

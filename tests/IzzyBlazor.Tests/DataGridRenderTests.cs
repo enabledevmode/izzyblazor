@@ -448,12 +448,12 @@ public class DataGridRenderTests : BunitContext
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("?sort=-qty&page=2");
         var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx?t=1").Add(x => x.PageSize, 1));
-        // The bar's links; the toolbar's "…" menu has copies, which download too.
-        var links = cut.FindAll(".ib-btn[download]");
+        // The bar's menu of links, and the toolbar's "…" menu has copies, which download too.
+        var links = cut.FindAll(".ib-menu-item[download]");
+        Assert.Equal(4, links.Count);
         Assert.Equal("/o.csv?sort=-qty&columns=name,qty", links[0].GetAttribute("href"));
         Assert.Equal("/o.xlsx?t=1&sort=-qty&columns=name,qty", links[1].GetAttribute("href"));
-        Assert.Equal(["Export CSV", "Export Excel"], links.Select(l => l.TextContent.Trim()));
-        Assert.Equal(2, cut.FindAll(".ib-menu-item[download]").Count);
+        Assert.Equal(["Export CSV", "Export Excel"], links.Take(2).Select(l => l.TextContent.Trim()));
     }
 
     [Fact]
@@ -470,6 +470,136 @@ public class DataGridRenderTests : BunitContext
         });
         var cut = Grid(titled, p => p.Add(x => x.ExportCsvHref, "/o.csv#top"));
         Assert.Equal("/o.csv?columns=qty", cut.Find(".ib-btn[download]").GetAttribute("href"));
+    }
+
+    private static RenderFragment Tools(params Action<Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder>[] items) => b =>
+    {
+        foreach (var item in items)
+        {
+            item(b);
+        }
+    };
+
+    private static void Add<T>(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder b, params (string Name, object Value)[] parameters) where T : IComponent
+    {
+        b.OpenComponent<T>(0);
+        foreach (var (name, value) in parameters)
+        {
+            b.AddComponentParameter(1, name, value);
+        }
+
+        b.CloseComponent();
+    }
+
+    [Fact]
+    public void The_grids_tools_are_icons_named_for_what_they_do_unless_told_otherwise()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv"));
+        var link = cut.Find(".ib-btn[download]");
+        Assert.Equal("Export CSV", link.GetAttribute("aria-label"));
+        Assert.Equal("Export CSV", link.GetAttribute("title"));
+        Assert.DoesNotContain("Export CSV", link.TextContent);
+
+        link = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ToolbarLabels, true)).Find(".ib-btn[download]");
+        Assert.Contains("Export CSV", link.TextContent);
+
+        // One tool's own word goes first.
+        var content = Tools(b => Add<DataGridExport>(b, (nameof(DataGridExport.ShowText), (bool?)false)));
+        link = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ToolbarLabels, true).Add(x => x.ToolbarContent, content)).Find(".ib-btn[download]");
+        Assert.DoesNotContain("Export CSV", link.TextContent);
+    }
+
+    [Fact]
+    public void A_tool_written_in_the_content_is_drawn_there_and_not_again()
+    {
+        var content = Tools(
+            b => Add<ToolbarText>(b, (nameof(ToolbarText.ChildContent), (RenderFragment)(t => t.AddContent(0, "Mine")))),
+            b => Add<DataGridSearch>(b),
+            b => Add<ToolbarText>(b, (nameof(ToolbarText.ChildContent), (RenderFragment)(t => t.AddContent(0, "Yours")))));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Searchable, true).Add(x => x.ToolbarContent, content));
+        Assert.Single(cut.FindAll("input[type=search]"));
+        var units = cut.FindAll(".ib-toolbar-start > .ib-toolbar-unit");
+        Assert.Equal(3, units.Count);
+        Assert.Equal("Mine", units[0].TextContent.Trim());
+        Assert.Single(units[1].QuerySelectorAll("input[type=search]"));
+        Assert.Equal("Yours", units[2].TextContent.Trim());
+    }
+
+    [Fact]
+    public void A_tool_the_grid_hasnt_turned_on_draws_nothing()
+    {
+        var content = Tools(b => Add<DataGridSearch>(b), b => Add<DataGridExport>(b), b => Add<DataGridColumnPicker>(b));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, content));
+        Assert.Empty(cut.FindAll(".ib-toolbar-unit"));
+    }
+
+    [Fact]
+    public void A_download_stays_one_in_the_toolbars_menu()
+    {
+        var content = Tools(b =>
+        {
+            b.OpenComponent<ToolbarIconButton>(0);
+            b.AddComponentParameter(1, nameof(ToolbarIconButton.Icon), Lucide.Download);
+            b.AddComponentParameter(2, nameof(ToolbarIconButton.Label), "Report");
+            b.AddComponentParameter(3, nameof(ToolbarIconButton.Href), "/report.pdf");
+            b.AddAttribute(4, "download", "report.pdf");
+            b.CloseComponent();
+        });
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, content));
+        Assert.Equal("report.pdf", cut.Find(".ib-menu-item[href='/report.pdf']").GetAttribute("download"));
+    }
+
+    [Fact]
+    public void The_tools_follow_the_grids_parameters()
+    {
+        var content = Tools(b => Add<DataGridSearch>(b));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, content));
+        Assert.Empty(cut.FindAll("input[type=search]"));
+        Assert.Empty(cut.FindAll("[download]"));
+
+        cut.Render(p => p.Add(x => x.Searchable, true).Add(x => x.ExportCsvHref, "/o.csv"));
+        Assert.Single(cut.FindAll("input[type=search]"));
+        Assert.NotEmpty(cut.FindAll("[download]"));
+
+        // Cleared, the link goes rather than draw with nowhere to point.
+        cut.Render(p => p.Add(x => x.Searchable, false).Add(x => x.ExportCsvHref, null));
+        Assert.Empty(cut.FindAll("input[type=search]"));
+        Assert.Empty(cut.FindAll("[download]"));
+    }
+
+    [Fact]
+    public void A_tool_takes_no_attributes_it_would_only_ignore()
+    {
+        var content = Tools(b =>
+        {
+            b.OpenComponent<DataGridExport>(0);
+            b.AddAttribute(1, "class", "mine");
+            b.CloseComponent();
+        });
+        Assert.ThrowsAny<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ToolbarContent, content)));
+    }
+
+    [Fact]
+    public void An_icon_link_keeps_its_name_and_look_when_it_becomes_active()
+    {
+        var cut = Render<IconButton>(p => p.Add(x => x.Icon, Lucide.Download).Add(x => x.Label, "Export").Add(x => x.Href, "/o.csv").Add(x => x.Disabled, true).AddUnmatched("download", ""));
+        Assert.Equal("link", cut.Find("a").GetAttribute("role"));
+
+        cut.Render(p => p.Add(x => x.Disabled, false));
+        var link = cut.Find("a");
+        Assert.Equal("/o.csv", link.GetAttribute("href"));
+        Assert.Null(link.GetAttribute("role"));
+        Assert.Equal("Export", link.GetAttribute("aria-label"));
+        Assert.Equal("Export", link.GetAttribute("title"));
+        Assert.True(link.HasAttribute("download"));
+        Assert.Contains("ib-btn", link.ClassName);
+    }
+
+    [Fact]
+    public void A_tool_outside_a_grid_says_where_it_goes()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Render<DataGridSearch>());
+        Assert.Contains("DataGrid's ToolbarContent", error.Message);
     }
 
     [Fact]
