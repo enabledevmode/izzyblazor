@@ -709,6 +709,11 @@
     margin-inline: auto 0;
   }
 
+  /* A sort link hangs out by its padding, so its text lines up with the cells. */
+  .ib-datagrid .ib-cell-end > .ib-table-head > .ib-table-sort {
+    margin-inline-end: -0.375rem;
+  }
+
   .ib-datagrid th:not([aria-sort="ascending"], [aria-sort="descending"], :hover, :focus-within) .ib-table-sort:not(:has(.ib-table-sort-order)) .ib-table-sort-icon {
     opacity: 0;
   }

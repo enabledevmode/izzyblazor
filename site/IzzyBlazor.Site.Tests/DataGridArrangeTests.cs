@@ -159,6 +159,11 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             Assert.True(tool!.X - (title!.X + title.Width) > 40, "the menu is away from the title");
             Assert.True(cell!.X + cell.Width - (tool.X + tool.Width) < 24, "the menu is at the cell's far edge");
 
+            // An end-aligned title lines up with its values.
+            var total = await grid.Locator("thead th", new() { HasText = "Total" }).Locator(".ib-table-title").EvaluateAsync<double>("t => t.getBoundingClientRect().right");
+            var value = await grid.Locator("tbody tr").First.Locator("td").Last.EvaluateAsync<double>("c => { const r = document.createRange(); r.selectNodeContents(c); return r.getBoundingClientRect().right; }");
+            Assert.Equal(value, total, 1.5);
+
             foreach (var bad in new[] { "{}", "%7B%22c%22%3Anull%7D", "nonsense" })
             {
                 await page.Context.AddCookiesAsync([new() { Name = "ib-grid-arrange-example", Value = bad, Url = page.Url }]);
