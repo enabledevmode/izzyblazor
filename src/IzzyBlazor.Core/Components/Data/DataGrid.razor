@@ -14,8 +14,12 @@
     MinWidth (8rem by default), and then the grid scrolls sideways. If every column has a Width, the
     grid is as wide as their sum.
 
+    Frozen keeps a column in view at the grid's start or end, with no script, and is drawn at that
+    edge wherever it's declared. It needs a Width. On a phone they scroll like the rest, and so they
+    do if the script finds they'd leave too little room for the rows. RowHref can't be used with it.
+
     <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
-        <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Id" Title="Order" Width="8.Rem" Frozen="ColumnFrozen.Start" />
         <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
         <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
     </DataGrid>
@@ -82,6 +86,7 @@
                 return "table-layout:auto";
             }
 
+            CheckFrozen();
             var style = new System.Text.StringBuilder();
             var parts = new List<string>();
             var unset = new List<string>();
@@ -118,7 +123,80 @@
     }
 
     /// <inheritdoc />
-    internal override string? HeaderStyle(ColumnBase<TItem> column) => null;
+    internal override string? HeaderStyle(ColumnBase<TItem> column) => CellStyle(column);
+
+    /// <inheritdoc />
+    internal override string SelectCellClass =>
+        Columns.Any(c => c.Frozen == ColumnFrozen.Start) ? "ib-table-select-cell ib-frozen ib-frozen-start" : "ib-table-select-cell";
+
+    /// <inheritdoc />
+    internal override string? ColumnClass(ColumnBase<TItem> column)
+    {
+        if (column.Frozen == ColumnFrozen.None)
+        {
+            return null;
+        }
+
+        var side = column.Frozen == ColumnFrozen.Start ? "start" : "end";
+        // The one beside the columns that scroll draws the line between them.
+        var edge = column.Frozen == ColumnFrozen.Start
+            ? column == Columns.LastOrDefault(c => c.Frozen == ColumnFrozen.Start)
+            : column == Columns.FirstOrDefault(c => c.Frozen == ColumnFrozen.End);
+        return edge ? $"ib-frozen ib-frozen-{side} ib-frozen-edge" : $"ib-frozen ib-frozen-{side}";
+    }
+
+    // Its offset: the widths between it and its edge, and the selection column at the start.
+    /// <inheritdoc />
+    internal override string? CellStyle(ColumnBase<TItem> column)
+    {
+        if (column.Frozen == ColumnFrozen.None)
+        {
+            return null;
+        }
+
+        var index = Columns.IndexOf(column);
+        var parts = new List<string>();
+        if (column.Frozen == ColumnFrozen.Start)
+        {
+            if (Selectable)
+            {
+                parts.Add("var(--ib-datagrid-select)");
+            }
+
+            for (var i = 0; i < index; i++)
+            {
+                parts.Add($"var(--ib-col-{i})");
+            }
+        }
+        else
+        {
+            for (var i = index + 1; i < Columns.Count; i++)
+            {
+                parts.Add($"var(--ib-col-{i})");
+            }
+        }
+
+        return parts.Count == 0 ? null : $"--ib-frozen-at:calc({string.Join(" + ", parts)})";
+    }
+
+    // Start, then the rest, then end: a frozen column among those that scroll would overlap them.
+    /// <inheritdoc />
+    internal override int ColumnZone(ColumnBase<TItem> column) => column.Frozen switch
+    {
+        ColumnFrozen.Start => 0,
+        ColumnFrozen.End => 2,
+        _ => 1,
+    };
+
+    // A frozen cell is the containing block of the row's stretched link, and sits above it, so the
+    // link wouldn't cover the row.
+    private void CheckFrozen()
+    {
+        if (RowHref is not null && Columns.Any(c => c.Frozen != ColumnFrozen.None))
+        {
+            throw new InvalidOperationException($"A DataGrid can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
+        }
+    }
 
     /// <inheritdoc />
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)

@@ -63,7 +63,7 @@
                             @if (Selectable)
                             {
                                 @* Select all (this page): script only; it checks the rows, which report their own changes. *@
-                                <th scope="col" class="ib-table-select-cell">
+                                <th scope="col" class="@SelectCellClass">
                                     @* The column's name while select-all is hidden (no script yet). *@
                                     <span class="ib-visually-hidden ib-table-select-heading">@(SelectRowLabel ?? TextDefaults.SelectRow)</span>
                                     @if (MultiSelect)
@@ -112,11 +112,11 @@
                                 <tr class="ib-table-skeleton-row" aria-hidden="true">
                                     @if (Selectable)
                                     {
-                                        <td class="ib-table-select-cell"></td>
+                                        <td class="@SelectCellClass"></td>
                                     }
                                     @foreach (var column in _columns)
                                     {
-                                        <td class="@CellClass(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
+                                        <td class="@CellClass(column)" style="@CellStyle(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
                                     }
                                 </tr>
                             }
@@ -150,7 +150,7 @@
                                 <tr class="@RowClasses(item, href)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
                                     @if (Selectable)
                                     {
-                                        <td class="ib-table-select-cell">
+                                        <td class="@SelectCellClass">
                                             <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
                                                    aria-label="@SelectLabel(item)"
                                                    checked="@IsSelected(item, key)"
@@ -161,7 +161,7 @@
                                     @{ var first = true; }
                                     @foreach (var column in _columns)
                                     {
-                                        <td class="@CellClass(column)">
+                                        <td class="@CellClass(column)" style="@CellStyle(column)">
                                             @if (first && href is not null)
                                             {
                                                 @* One link per row, stretched over it; controls in the row stay clickable above it. *@
@@ -181,11 +181,11 @@
                             <tr>
                                 @if (Selectable)
                                 {
-                                    <td class="ib-table-select-cell"></td>
+                                    <td class="@SelectCellClass"></td>
                                 }
                                 @foreach (var column in _columns)
                                 {
-                                    <td class="@CellClass(column)">@(column.HasFooter ? column.FooterCell : null)</td>
+                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(column.HasFooter ? column.FooterCell : null)</td>
                                 }
                             </tr>
                         </tfoot>
@@ -831,6 +831,7 @@
         if (!_columns.Contains(column))
         {
             _columns.Add(column);
+            ArrangeColumns();
 
             // A column shown later (behind an @if) appears without waiting for another render.
             if (_columnsReady)
@@ -842,6 +843,7 @@
 
     internal void ColumnChanged()
     {
+        ArrangeColumns();
         if (_columnsReady)
         {
             StateHasChanged();
@@ -984,7 +986,16 @@
     private IconRole SortIcon(ColumnBase<TItem> column) =>
         SortIndex(column) is var index && index < 0 ? IconRole.Sortable : _sorts[index].Descending ? IconRole.SortDescending : IconRole.SortAscending;
 
-    private static string? CellClass(ColumnBase<TItem> column)
+    /// <summary>A class for a column's cells beyond their alignment and its own.</summary>
+    internal virtual string? ColumnClass(ColumnBase<TItem> column) => null;
+
+    /// <summary>A style for a column's data and footer cells.</summary>
+    internal virtual string? CellStyle(ColumnBase<TItem> column) => null;
+
+    /// <summary>The class of the selection column's cells.</summary>
+    internal virtual string SelectCellClass => "ib-table-select-cell";
+
+    private string? CellClass(ColumnBase<TItem> column)
     {
         var align = column.EffectiveAlign switch
         {
@@ -993,7 +1004,7 @@
             _ => null,
         };
 
-        var classes = string.Join(' ', new[] { align, column.Class }.Where(c => !string.IsNullOrEmpty(c)));
+        var classes = string.Join(' ', new[] { align, column.Class, ColumnClass(column) }.Where(c => !string.IsNullOrEmpty(c)));
         return classes.Length > 0 ? classes : null;
     }
 
@@ -1012,7 +1023,17 @@
     /// <summary>A style for a column's header cell.</summary>
     internal virtual string? HeaderStyle(ColumnBase<TItem> column) => WidthStyle(column);
 
-    internal IReadOnlyList<ColumnBase<TItem>> Columns => _columns;
+    internal List<ColumnBase<TItem>> Columns => _columns;
+
+    /// <summary>Where a column goes among the others, whatever order they were declared or shown in.</summary>
+    internal virtual int ColumnZone(ColumnBase<TItem> column) => 0;
+
+    private void ArrangeColumns()
+    {
+        var arranged = _columns.OrderBy(ColumnZone).ToList();
+        _columns.Clear();
+        _columns.AddRange(arranged);
+    }
 
     private static string? WidthStyle(ColumnBase<TItem> column) =>
         column.Width is { } width ? $"width:{StyleValues.Length(width)}" : null;

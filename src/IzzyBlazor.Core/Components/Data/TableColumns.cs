@@ -56,6 +56,12 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public Length? MinWidth { get; set; }
 
+    /// <summary>
+    /// Keeps this column in view at the grid's start or end while the rest scrolls sideways, and draws
+    /// it at that edge wherever it's declared. It needs a <see cref="Width"/>. Not for a Table.
+    /// </summary>
+    [Parameter] public ColumnFrozen Frozen { get; set; }
+
     /// <summary>A class for this column's cells and header.</summary>
     [Parameter] public string? Class { get; set; }
 
@@ -130,8 +136,18 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"The \"{HeaderText}\" column has a {nameof(MinWidth)}, which only a DataGrid's columns take.");
         }
 
+        if (Frozen != ColumnFrozen.None && Table is { GridColumns: false })
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column is {nameof(Frozen)}, which only a DataGrid's columns can be.");
+        }
+
         if (Table is { GridColumns: true })
         {
+            if (Frozen != ColumnFrozen.None && Width is null)
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column is {nameof(Frozen)}, so it needs a {nameof(Width)}: the columns after it are placed by adding the widths up.");
+            }
+
             // The grid adds its widths up, and a percent of the table or a keyword can't be added.
             foreach (var (name, length) in new[] { (nameof(Width), Width), (nameof(MinWidth), MinWidth) })
             {
@@ -169,7 +185,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, Frozen, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -188,6 +204,19 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     public void Dispose() => Table?.RemoveColumn(this);
 
     internal static bool IsNumeric(Type type) => FilterValues.IsNumeric(type);
+}
+
+/// <summary>Where a <c>DataGrid</c> column stays in view while the rest scrolls sideways.</summary>
+public enum ColumnFrozen
+{
+    /// <summary>It scrolls with the rest. The default.</summary>
+    None,
+
+    /// <summary>At the grid's start (the left, or the right in a right-to-left page).</summary>
+    Start,
+
+    /// <summary>At the grid's end.</summary>
+    End,
 }
 
 /// <summary>
