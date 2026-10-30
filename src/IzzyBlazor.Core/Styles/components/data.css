@@ -783,7 +783,45 @@
     overflow: visible;
   }
 
-  .ib-col-picker {
+  /* The toolbar gives way to the selection bar while rows are selected (with script: with none, the
+     bar always shows, holding its actions). */
+  .ib-datagrid[data-ready]:has(> .ib-selection-bar:not([hidden])) > .ib-grid-toolbar {
+    display: none;
+  }
+
+  /* As tall as the bar, so the rows don't move when one takes the other's place. */
+  .ib-grid-toolbar {
+    display: flex;
+    align-items: center;
+    min-height: 2.5rem;
+  }
+
+  .ib-grid-toolbar > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ib-card-flush > .ib-datagrid > :is(.ib-grid-toolbar, .ib-selection-bar) {
+    margin-block-start: var(--ib-card-gap);
+  }
+
+  /* The search box gives way on a phone, rather than running under the tools at the end. */
+  .ib-grid-toolbar .ib-toolbar-start {
+    min-width: 0;
+  }
+
+  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]) {
+    flex: 0 1 14rem;
+    width: auto !important;
+    min-width: 6rem;
+  }
+
+  .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]) > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ib-grid-toolbar .ib-col-picker {
     display: flex;
     justify-content: flex-end;
   }

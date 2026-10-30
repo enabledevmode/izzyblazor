@@ -354,6 +354,68 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void Searching_is_in_the_address_and_keeps_the_rest_of_it()
+    {
+        Nav.NavigateTo("http://localhost/?search=b&sort=name&page=1");
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Searchable, true));
+        Assert.Equal(["b2"], Cells(cut));
+        var box = cut.Find(".ib-grid-toolbar input[type=search]");
+        Assert.Equal("b", box.GetAttribute("value"));
+        Assert.Equal("search", box.GetAttribute("name"));
+        Assert.Equal(box.GetAttribute("form"), cut.Find("form.ib-table-filter-form").Id);
+        var kept = cut.FindAll(".ib-table-filter-kept input").Select(i => i.GetAttribute("name")).ToArray();
+        Assert.Contains("sort", kept);
+        Assert.DoesNotContain("search", kept);
+        Assert.DoesNotContain("page", kept);
+    }
+
+    [Fact]
+    public void A_bound_search_is_in_the_component()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        string? told = null;
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Searchable, true).Add(x => x.Search, "a").Add(x => x.SearchChanged, (string? s) => told = s));
+        Assert.Equal(2, cut.FindAll("tbody tr").Count);
+        var box = cut.Find(".ib-grid-toolbar input[type=search]");
+        Assert.Null(box.GetAttribute("name"));
+        box.Input("b");
+        cut.WaitForAssertion(() => Assert.Equal("b", told), TimeSpan.FromSeconds(5));
+        cut.WaitForAssertion(() => Assert.Equal(["b2"], Cells(cut)), TimeSpan.FromSeconds(5));
+    }
+
+    [Fact]
+    public void Typing_doesnt_redraw_the_box_and_an_echo_doesnt_overwrite_it()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Searchable, true).Add(x => x.Search, "a").Add(x => x.SearchChanged, (string? _) => { }));
+        Assert.Equal("a", cut.Find("input[type=search]").GetAttribute("value"));
+        cut.Find("input[type=search]").Input("ab");
+        Assert.Equal("a", cut.Find("input[type=search]").GetAttribute("value"));
+
+        // C# setting something else does redraw it.
+        cut.Render(p => p.Add(x => x.Search, "b"));
+        Assert.Equal("b", cut.Find("input[type=search]").GetAttribute("value"));
+    }
+
+    [Fact]
+    public void A_bound_search_works_with_a_box_of_the_pages_own()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Search, "b").Add(x => x.SearchChanged, (string? _) => { }));
+        Assert.Empty(cut.FindAll("input[type=search]"));
+        Assert.Equal(["b2"], Cells(cut));
+    }
+
+    [Fact]
+    public void No_toolbar_without_something_to_put_in_it_and_a_table_has_none()
+    {
+        Assert.Empty(Grid(NameAndQty).FindAll(".ib-grid-toolbar"));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, b => b.AddMarkupContent(0, "<span id=mine></span>")));
+        Assert.Single(cut.FindAll(".ib-grid-toolbar"));
+        Assert.Empty(Render<Table<Row>>(p => p.Add(x => x.Items, Rows).Add(x => x.ChildContent, NameAndQty)).FindAll(".ib-grid-toolbar"));
+    }
+
+    [Fact]
     public void A_table_refuses_a_minimum_width()
     {
         var thrown = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p

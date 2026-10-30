@@ -35,6 +35,11 @@
     script, by pointer, keys, a menu in each header and a picker above the grid. On a static page they
     need somewhere to keep the result: a LayoutKey, or Layout with a LayoutSaveUrl.
 
+    A toolbar above the grid holds ToolbarContent (Toolbar's items), the search box with Searchable,
+    and the Columns button. While rows are selected, the selection bar takes its place. Searchable
+    searches the text columns; the words go in the address (?search=), and with script apply as
+    you type.
+
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
     - With script it's an ARIA grid, one Tab stop: arrows move between cells, Home and End along the
@@ -54,7 +59,7 @@
     See also: Table.
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <ib-grid hidden></ib-grid>
     @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive))
     {
@@ -112,6 +117,85 @@
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool ColumnPicker { get; set; }
+
+    /// <summary>
+    /// The page's own controls in the toolbar above the grid: <c>ToolbarButton</c>,
+    /// <c>ToolbarMenu</c> and the like. While rows are selected, the selection bar takes its place.
+    /// </summary>
+    [Parameter] public RenderFragment? ToolbarContent { get; set; }
+
+    /// <summary>
+    /// A search box in the toolbar, across the text columns. The words go in the address
+    /// (<c>?search=</c>) and reach an <c>ItemsProvider</c> as the request's <c>Search</c>. With no
+    /// script they apply on Enter.
+    /// </summary>
+    [Parameter] public bool Searchable { get; set; }
+
+    /// <summary>The words searched for. Binding it (<c>@bind-Search</c>) on an interactive page keeps them, with sort and page, in the component.</summary>
+    [Parameter] public string? Search { get; set; }
+
+    /// <summary>Raised when the search changes, on interactive pages (typing waits for a pause).</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string?> SearchChanged { get; set; }
+
+    /// <summary>The search box's name and placeholder. Defaults to "Search".</summary>
+    [Parameter] public string? SearchLabel { get; set; }
+
+    private string SearchKey => $"{QueryPrefix}search";
+
+    private string? _stateSearch;
+    private string? _lastSearchParam;
+    private string? _reportedSearch;
+    // What the box is drawn with: not what's being typed, or a slow render would overwrite the keys
+    // pressed since. It changes only when C# sets something else.
+    private string? _searchShown;
+    private bool _searchReady;
+    private CancellationTokenSource? _searchDelay;
+
+    // The words searched for: the component's when bound, else the address's.
+    private string? CurrentSearch =>
+        UseState ? _stateSearch?.Trim()
+        : !Searchable ? null
+        : QueryString.Of(Navigation.Uri).TryGetValue(SearchKey, out var words) ? (string.IsNullOrWhiteSpace(words.ToString()) ? null : words.ToString().Trim())
+        : null;
+
+    /// <inheritdoc />
+    internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate;
+
+    /// <inheritdoc />
+    internal override bool NeedsFilterForm => base.NeedsFilterForm || Searchable;
+
+    /// <inheritdoc />
+    internal override IEnumerable<string> ExtraFilterKeys => Searchable ? [SearchKey] : [];
+
+    /// <inheritdoc />
+    internal override string FilterSignature() => $"{base.FilterSignature()}|{CurrentSearch}";
+
+    /// <inheritdoc />
+    internal override DataRequest<TItem> Shape(DataRequest<TItem> request, string? sortRaw) =>
+        base.Shape(request, sortRaw) with { Search = CurrentSearch };
+
+    private async Task OnSearchAsync(ChangeEventArgs e)
+    {
+        _stateSearch = string.IsNullOrWhiteSpace(e.Value?.ToString()) ? null : e.Value!.ToString();
+        _reportedSearch = _stateSearch;
+        _searchDelay?.Cancel();
+        var delay = _searchDelay = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(FilterDelay, delay.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        var (pageWas, cursorWas) = (_statePage, _stateCursor);
+        (_statePage, _stateCursor) = (1, null);
+        await SearchChanged.InvokeAsync(_stateSearch);
+        await ReportFirstPageAsync(pageWas, cursorWas);
+        await ReloadIfStaleAsync();
+    }
 
     // A static page can only keep a change by having it saved and asking for the page again.
     private bool CanSave => WillBeInteractive || LayoutKey is not null || LayoutSaveUrl is not null;
@@ -187,6 +271,24 @@
     protected override Task OnParametersSetAsync()
     {
         _shown = null;
+        // Bound, it starts from the address, as sort and page do, and then follows the parent.
+        if (!_searchReady)
+        {
+            _searchReady = true;
+            _lastSearchParam = Search;
+            _stateSearch = Search ?? (QueryString.Of(Navigation.Uri).TryGetValue(SearchKey, out var words) ? words.ToString() : null);
+            _searchShown = _stateSearch;
+        }
+        else if (Search != _lastSearchParam)
+        {
+            _lastSearchParam = Search;
+            // Not the echo of what was just typed, which may have moved on since.
+            if (Search != _reportedSearch)
+            {
+                _stateSearch = _searchShown = Search;
+            }
+        }
+
         if ((ResizableColumns || ReorderableColumns || ColumnPicker) && !CanSave && !_warned)
         {
             _warned = true;
@@ -297,13 +399,41 @@
         <span class="ib-col-resize" aria-hidden="true"></span>
     };
 
+    private bool HasPicker => Rearrangeable && ColumnPicker;
+
     /// <inheritdoc />
-    internal override RenderFragment? AboveGrid => !Rearrangeable ? null : __builder =>
+    internal override RenderFragment? AboveGrid => __builder =>
     {
-        <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
-        if (ColumnPicker)
+        if (Rearrangeable)
         {
-            <div class="ib-col-picker">
+            <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
+        }
+
+        if (ToolbarContent is not null || Searchable || HasPicker)
+        {
+            <div class="ib-grid-toolbar">
+                <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
+                    @if (Searchable)
+                    {
+                        <ToolbarItem Width="Length.Rem(14)" Overflow="ToolbarOverflow.Never">
+                            <div class="ib-field ib-field-sm">
+                                <div class="ib-field-control">
+                                    @if (UseState)
+                                    {
+                                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@_searchShown" autocomplete="off" data-ib-bound-search @oninput="OnSearchAsync" />
+                                    }
+                                    else
+                                    {
+                                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@CurrentSearch" autocomplete="off" name="@SearchKey" form="@FilterFormId" data-ib-filter />
+                                    }
+                                </div>
+                            </div>
+                        </ToolbarItem>
+                    }
+                    @ToolbarContent
+                    @if (HasPicker)
+                    {
+                        <ToolbarItem Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Width="Length.Rem(6)" Class="ib-col-picker">
                 <Popover Placement="Placement.BottomEnd" data-ib-user-controlled>
                     <Trigger>
                         <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm" @attributes="context">@TextDefaults.ColumnPicker</button>
@@ -335,6 +465,9 @@
                         <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
                     </ChildContent>
                 </Popover>
+                        </ToolbarItem>
+                    }
+                </Toolbar>
             </div>
         }
     };
@@ -347,6 +480,7 @@
     {
         base.Dispose();
         _persisting?.Dispose();
+        _searchDelay?.Cancel();
     }
 
     // Its key in a layout. Not every column has a sort key; its title is the next best.

@@ -27,7 +27,9 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   centered in view when the columns are wider than the box.
  */
 class Table extends IzzyElement {
+  // Kept when setup runs again as a response arrives: the key pressed after that request still counts.
   #timer = 0;
+  #popped = false;
   #typing = new TypingGuard();
 
   protected setup(signal: AbortSignal): void {
@@ -55,10 +57,20 @@ class Table extends IzzyElement {
    * clears itself, which would clear the filter).
    */
   #setupBoundPanels(signal: AbortSignal): void {
+    // A bound search box: C# hears nothing until a composition is committed, and Enter isn't the
+    // surrounding form's.
+    const isBoundSearch = (target: EventTarget | null): target is HTMLInputElement => target instanceof HTMLInputElement && target.hasAttribute("data-ib-bound-search");
+    this.addEventListener("input", (event) => {
+      if (isBoundSearch(event.target) && (event as InputEvent).isComposing) event.stopPropagation();
+    }, { signal });
+    this.addEventListener("compositionend", (event) => {
+      if (isBoundSearch(event.target)) event.target.dispatchEvent(new Event("input", { bubbles: true }));
+    }, { signal });
     this.addEventListener(
       "keydown",
       (event) => {
         const target = event.target;
+        if (event.key === "Enter" && isBoundSearch(target)) event.preventDefault();
         if ((event.key !== "Enter" && event.key !== "Escape") || event.isComposing || !(target instanceof HTMLInputElement)) return;
         if (target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel")) return;
         if (this.#closePanel(target)) event.preventDefault();
@@ -160,7 +172,19 @@ class Table extends IzzyElement {
       },
       { signal }
     );
-    signal.addEventListener("abort", () => clearTimeout(this.#timer));
+    // Back or Forward: the address decides, not what was being typed. Setup runs again as the page
+    // arrives, which puts the boxes back to what the server drew.
+    window.addEventListener("popstate", () => {
+      clearTimeout(this.#timer);
+      this.#typing.clear();
+      this.#popped = true;
+    }, { signal });
+    if (this.#popped) {
+      this.#popped = false;
+      for (const control of this.querySelectorAll<HTMLInputElement>("input[data-ib-filter]")) {
+        if (control.closest("ib-table") === this) control.value = control.defaultValue;
+      }
+    }
 
     // A filter changed before this script arrived (the table shows no Apply button where script
     // runs): apply it now rather than drop it; one still being typed in, after the usual pause.
@@ -195,7 +219,7 @@ class Table extends IzzyElement {
 
   /** Navigates to the current URL with this table's filter values, without its page number. */
   #apply(replace: boolean): void {
-    if (this.#typing.composing) return;
+    if (this.#typing.composing || !this.isConnected) return;
     this.#typing.restore();
     const url = new URL(location.href);
     for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {

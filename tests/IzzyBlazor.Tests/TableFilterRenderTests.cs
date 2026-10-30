@@ -124,7 +124,8 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal("1", cut.Find("input[name='f-qty-min']").GetAttribute("value"));
         Assert.Equal("", cut.Find("input[name='f-qty-max']").GetAttribute("value") ?? "");
         var kept = cut.FindAll("input[type=hidden]").Select(i => $"{i.GetAttribute("name")}={i.GetAttribute("value")}").ToArray();
-        Assert.Equal(new[] { "sort=name", "tab=x" }, kept);
+        // A menu filter has no field in the form, so it travels with the rest of the address.
+        Assert.Equal(new[] { "sort=name", "tab=x", "f-status=Yes" }, kept);
         var clear = cut.FindAll(".ib-table-filter-tags a").Single(a => a.TextContent.Trim() == "Clear").GetAttribute("href")!;
         Assert.DoesNotContain("f-", clear);
     }
