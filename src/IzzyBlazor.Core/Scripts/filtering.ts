@@ -35,8 +35,17 @@ export class TypingGuard {
 
   restore(): void {
     if (this.composing) return;
-    for (const [input, typed] of this.#typed) {
-      if (input.isConnected && input.value !== typed) {
+    for (const [known, typed] of [...this.#typed]) {
+      // The response may have brought a new box of the same name, which has the old one's focus.
+      let input = known;
+      if (!input.isConnected) {
+        const next = input.name ? document.querySelector<HTMLInputElement>(`input[name="${CSS.escape(input.name)}"]`) : null;
+        this.#typed.delete(input);
+        if (!next) continue;
+        input = next;
+        this.#typed.set(input, typed);
+      }
+      if (input.value !== typed) {
         const focused = document.activeElement === input;
         input.value = typed;
         // Only text-like inputs have a caret (a date or number input throws).

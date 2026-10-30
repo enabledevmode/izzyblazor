@@ -164,7 +164,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         using (playwright)
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "Export" });
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
             var toolbar = grid.Locator(".ib-grid-toolbar");
             await toolbar.ScrollIntoViewIfNeededAsync();
             var box = grid.GetByRole(AriaRole.Searchbox);
@@ -192,7 +192,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         using (playwright)
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "Export" });
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
             var box = grid.GetByRole(AriaRole.Searchbox);
             await box.ClickAsync();
             // Near the pause that applies a search, so a key lands while the last one's page is on its way.
@@ -215,6 +215,34 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     }
 
     [Fact]
+    public async Task What_was_typed_while_a_response_was_on_its_way_stays_typed()
+    {
+        var (playwright, browser, page, _) = await OpenAsync("static");
+        using (playwright)
+        await using (browser)
+        {
+            await page.RouteAsync("**/docs/components/data-grid*", async route =>
+            {
+                // Back before the next key's pause is up, which would replace this navigation.
+                await Task.Delay(50);
+                await route.ContinueAsync();
+            });
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
+            var box = grid.GetByRole(AriaRole.Searchbox);
+            await box.ClickAsync();
+            await page.Keyboard.PressAsync("a");
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'a'");
+
+            // Typed with the response for "a" still to come, then typing on after it has.
+            await page.Keyboard.PressAsync("l");
+            await page.WaitForFunctionAsync("() => document.querySelector('input[name=tools-search]').defaultValue !== ''");
+            await page.Keyboard.PressAsync("a");
+            Assert.Equal("ala", await box.InputValueAsync());
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'ala'");
+        }
+    }
+
+    [Fact]
     public async Task At_phone_width_the_search_box_stops_short_of_the_tools()
     {
         var (playwright, browser, page, _) = await OpenAsync("static");
@@ -225,7 +253,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             {
                 await page.SetViewportSizeAsync(width, 800);
                 await page.WaitForTimeoutAsync(400);
-                var grid = page.Locator(".ib-datagrid", new() { HasText = "Export" });
+                var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
                 var search = await grid.GetByRole(AriaRole.Searchbox).BoundingBoxAsync();
                 var end = await grid.Locator(".ib-toolbar-end").BoundingBoxAsync();
                 Assert.True(search!.X + search.Width <= end!.X + 1, $"{width}: the box ends at {search.X + search.Width}, the tools start at {end.X}");

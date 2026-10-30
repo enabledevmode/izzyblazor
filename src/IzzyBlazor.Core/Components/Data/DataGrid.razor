@@ -40,6 +40,13 @@
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
+    ExportCsvHref and ExportExcelHref add plain links to endpoints the app maps with DataExport. They
+    carry the filter, sort, search and visible columns, in every mode and with no script. The
+    endpoint's fields decide what's written, and head the file. A download matches the screen when
+    they have the grid's keys: a column whose key they don't have is left out, a filter on it matches
+    nothing, and a sort on it is ignored. Search covers their searchable fields, which may not be the
+    grid's text columns.
+
     RowMenu gives each row a ⋮ menu of MenuItems in a last column, working with no script. With script
     a right-click on the row, a long press, Shift+F10 or the menu key opens the same menu. It acts on
     the row it opened on, and doesn't change the selection; actions on the selection go in the bar. A
@@ -123,6 +130,21 @@
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool ColumnPicker { get; set; }
+
+    /// <summary>
+    /// A link in the toolbar to an endpoint that writes the rows as CSV with <c>DataExport</c>. It adds
+    /// the current <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address. The
+    /// endpoint's fields need the grid's keys for the file to match the screen.
+    /// </summary>
+    [Parameter] public string? ExportCsvHref { get; set; }
+
+    /// <summary>
+    /// A link in the toolbar to an endpoint that writes the rows as an Excel workbook with
+    /// <c>DataExport</c>. It adds the current <c>filter</c>, <c>sort</c>, <c>search</c> and
+    /// <c>columns</c> to the address. The endpoint's fields need the grid's keys for the file to match
+    /// the screen.
+    /// </summary>
+    [Parameter] public string? ExportExcelHref { get; set; }
 
     /// <summary>
     /// A menu for each row, of <c>MenuItem</c>s, in a ⋮ button in a last column. A row whose menu
@@ -452,6 +474,17 @@
         </td>
     };
 
+    // Everything that matches what's on screen, not its page, in the columns on screen.
+    private string ExportHref(string href)
+    {
+        var request = _loadedRequest is { } loaded ? (loaded with { Skip = 0, Take = null, Cursor = null, NeedsTotal = true }).ToQueryString() : "";
+        // Only real keys: a title can hold a comma, and no field has one for a key.
+        var columns = "columns=" + string.Join(",", Shown.Where(c => c.Key is not null).Select(c => Uri.EscapeDataString(c.Key!)));
+        // A fragment would swallow the query, and means nothing to a download.
+        href = href.Split('#')[0];
+        return href + (href.Contains('?', StringComparison.Ordinal) ? "&" : "?") + (request.Length > 0 ? request + "&" : "") + columns;
+    }
+
     /// <inheritdoc />
     internal override RenderFragment? AboveGrid => __builder =>
     {
@@ -460,7 +493,7 @@
             <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
         }
 
-        if (ToolbarContent is not null || Searchable || HasPicker)
+        if (ToolbarContent is not null || Searchable || HasPicker || ExportCsvHref is not null || ExportExcelHref is not null)
         {
             <div class="ib-grid-toolbar">
                 <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
@@ -482,6 +515,14 @@
                         </ToolbarItem>
                     }
                     @ToolbarContent
+                    @if (ExportCsvHref is not null)
+                    {
+                        <ToolbarButton Href="@ExportHref(ExportCsvHref)" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportCsv</ToolbarButton>
+                    }
+                    @if (ExportExcelHref is not null)
+                    {
+                        <ToolbarButton Href="@ExportHref(ExportExcelHref)" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportExcel</ToolbarButton>
+                    }
                     @if (HasPicker)
                     {
                         <ToolbarItem Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Width="Length.Rem(6)" Class="ib-col-picker">
