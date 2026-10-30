@@ -1,0 +1,10 @@
+@page "/selection-probe"
+@attribute [Microsoft.AspNetCore.Antiforgery.RequireAntiforgeryToken(required: false)]
+@* A static page with a form that posts a view's selection fields; SelectionTests posts to it. *@
+<form method="post" @formname="probe" @onsubmit="() => { }"></form>
+<p id="out">@(Selected is null ? "null" : $"{string.Join(",", Selected.Keys ?? [])}|{Selected.All}|{Selected.Filter}|{Selected.Search}")</p>
+
+@code {
+    [SupplyParameterFromForm(FormName = "probe", Name = "selected")]
+    public Selection? Selected { get; set; }
+}
