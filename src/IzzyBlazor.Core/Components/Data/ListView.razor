@@ -371,7 +371,7 @@
     /// <inheritdoc />
     internal override Func<TItem, string>? KeyFunc => InGroup ? Group!.ItemKey : ItemKey;
 
-    // Rows that wrap: a drop line instead of sliding, and Left/Right shortcuts.
+    // Rows that wrap: the items slide from place to place as a grid, and Left/Right shortcuts.
     private bool Wraps => Orientation == Orientation.Horizontal || ColumnCount > 1;
 
     private string KeysName => $"{PostName}.Keys";

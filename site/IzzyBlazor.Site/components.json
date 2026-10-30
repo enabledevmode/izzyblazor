@@ -1437,7 +1437,7 @@
         { "id": "list-view-drag-cards", "title": "Dragging the whole item", "lead": "Use `DragWholeItem` to let a drag start anywhere on an item, such as cards in `Columns`: with a mouse after a small move, on touch after a long press, so a swipe still scrolls the page. Links, buttons and fields in an item keep their presses. With an `ItemMenu` there are no handles: each item's ⋯ menu ends with Move, a submenu of the moves, and Alt+arrows work on the ⋯ button. Without one, the handle stays as the menu of moves.",
           "notes": {
             "noscript": "Nothing drags: the moves under Move in each card's ⋯ menu post the form, and the page comes back with the card moved and its ⋯ button focused.",
-            "static": "Drag a card, or press and hold one on a phone: a line shows where it lands. Move in its ⋯ menu and Alt+arrows on the ⋯ button move it too. Save layout posts the new order.",
+            "static": "Drag a card, or press and hold one on a phone: the others move aside to show where it lands. Move in its ⋯ menu and Alt+arrows on the ⋯ button move it too. Save layout posts the new order.",
             "interactive": "Drag a card, or press and hold one on a phone, or use Move in its ⋯ menu: C# changes the list and the move is announced."
           } }
       ]

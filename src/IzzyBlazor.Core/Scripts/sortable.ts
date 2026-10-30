@@ -4,9 +4,10 @@
  * <ib-sortable> and, later, anything else that reorders: it works on any container whose element
  * children are the items.
  *
- * It never moves nodes. While dragging, the item follows the pointer by a transform, and either
- * the others slide aside (a single column, as DevExtreme's "push") or a line marks the drop place
- * (rows that wrap). When the pointer comes up, onDrop gets the item's old and new index and a
+ * It never moves nodes. While dragging, the item follows the pointer by a transform, and the
+ * others slide aside to open a space where it lands: down a column (as DevExtreme's "push"), or
+ * each into the place of its neighbour in rows that wrap (a grid, as SortableJS and dnd-kit). An
+ * empty zone is outlined, having nothing to move. When the pointer comes up, onDrop gets the item's old and new index and a
  * `settle` that clears the transforms; the caller moves the node itself and settles at once (a
  * static page), or asks the renderer to and settles when it has (an interactive one), so the
  * items stay where they were dropped until their nodes move.
@@ -33,11 +34,11 @@ export interface SortOptions {
   event: PointerEvent;
   /** A long press: how long the pointer is held still before the drag begins (ms). */
   delay?: number;
-  /** Rows that wrap: a drop line instead of sliding, and the item follows the pointer both ways. */
+  /** Rows that wrap: the others move from place to place, and the item follows the pointer both ways. */
   wrap: boolean;
   /**
    * Other lists it may move to (drop zones), read when the drag begins: the item follows the
-   * pointer both ways, and over one of them a line marks its place there.
+   * pointer both ways, and over one of them its items open a space for it.
    */
   targets?: () => DropTarget[];
   /** Zones that won't take it (they refuse it, or are full): over one, the drop does nothing. */
@@ -81,10 +82,9 @@ export function trackDrag(options: SortOptions): void {
   // Positions within the list at the start, so scrolling during the drag doesn't skew them.
   let tops: number[] = [];
   let heights: number[] = [];
+  let lefts: number[] = [];
   let itemTop = 0;
-  let itemLeft = 0;
   let step = 0;
-  let marked: HTMLElement | null = null;
   let scroller: Element | null = null;
   let frame = 0;
   let held = 0;
@@ -98,7 +98,7 @@ export function trackDrag(options: SortOptions): void {
   let zoneMarked: HTMLElement | null = null;
   // Columns of other zones, measured when the drag begins (as this list is), and the one that has
   // opened a space for the item.
-  const columns = new Map<HTMLElement, { els: HTMLElement[]; tops: number[]; heights: number[]; gap: number }>();
+  const columns = new Map<HTMLElement, Zone>();
   let receiving: HTMLElement | null = null;
 
   try {
@@ -114,9 +114,9 @@ export function trackDrag(options: SortOptions): void {
     const box = list.getBoundingClientRect();
     tops = items.map((el) => el.getBoundingClientRect().top - box.top);
     heights = items.map((el) => el.getBoundingClientRect().height);
+    lefts = items.map((el) => el.getBoundingClientRect().left - box.left);
     const own = item.getBoundingClientRect();
     itemTop = own.top - box.top;
-    itemLeft = own.left - box.left;
     step = own.height + (parseFloat(getComputedStyle(list).rowGap) || 0);
     scroller = scrollParent(list);
     targets = options.targets?.() ?? [];
@@ -124,11 +124,18 @@ export function trackDrag(options: SortOptions): void {
     for (const t of targets) {
       const tb = t.list.getBoundingClientRect();
       const els = [...t.list.children].filter((el): el is HTMLElement => el instanceof HTMLElement);
+      const style = getComputedStyle(t.list);
       columns.set(t.list, {
         els,
         tops: els.map((el) => el.getBoundingClientRect().top - tb.top),
         heights: els.map((el) => el.getBoundingClientRect().height),
-        gap: parseFloat(getComputedStyle(t.list).rowGap) || 0,
+        lefts: els.map((el) => el.getBoundingClientRect().left - tb.left),
+        widths: els.map((el) => el.getBoundingClientRect().width),
+        gap: parseFloat(style.rowGap) || 0,
+        columnGap: parseFloat(style.columnGap) || 0,
+        width: tb.width,
+        rtl: style.direction === "rtl",
+        wraps: !!t.list.parentElement?.classList.contains("ib-sortable-horizontal"),
       });
     }
     if (options.targets) lifted = unclip(list);
@@ -162,24 +169,21 @@ export function trackDrag(options: SortOptions): void {
     if (refused) {
       // Over a zone that won't take it, or over no zone: everything stays put, and the drop does nothing.
       for (const el of items) if (el !== item) el.style.transform = "";
-      marked?.removeAttribute("data-ib-drop");
-      marked = null;
       to = from;
       return;
     }
     if (target) {
-      // Over another zone: its own list closes up behind it, and the other opens a space where it
-      // lands (a column), or a line marks the place (rows that wrap).
+      // Over another zone: its own list closes up behind it, and the other opens a space where it lands.
       items.forEach((el, i) => {
-        if (el !== item) el.style.transform = !wrap && i > from ? `translateY(${-step}px)` : "";
+        if (el === item) return;
+        if (i <= from) el.style.transform = "";
+        else el.style.transform = wrap ? `translate(${lefts[i - 1] - lefts[i]}px, ${tops[i - 1] - tops[i]}px)` : `translateY(${-step}px)`;
       });
-      marked?.removeAttribute("data-ib-drop");
-      marked = null;
       if (!openSpace(target)) markTarget(target);
       return;
     }
     if (wrap) {
-      markDropLine();
+      slideGrid();
       return;
     }
 
@@ -196,53 +200,47 @@ export function trackDrag(options: SortOptions): void {
     });
   };
 
-  // Rows that wrap: the nearest other item, and which side of it the pointer is on.
-  const markDropLine = () => {
-    marked?.removeAttribute("data-ib-drop");
-    marked = null;
-    // Over the item's own place (a long press not moved yet, or a drag brought back): it stays.
+  // Rows that wrap: the item takes the place (as at the start) nearest its middle, and the items
+  // between move one place along to open it, each into its neighbour's.
+  const slideGrid = () => {
     const box = list.getBoundingClientRect();
-    const left = box.left + itemLeft;
-    const top = box.top + itemTop;
-    if (x >= left && x <= left + item.offsetWidth && y >= top && y <= top + heights[from]) {
-      to = from;
-      return;
-    }
-    let best = -1;
-    let distance = Infinity;
+    const own = item.getBoundingClientRect();
+    const widths = items.map((el) => el.offsetWidth);
+    to = nearest(lefts, tops, widths, heights, own.left + own.width / 2 - box.left, own.top + own.height / 2 - box.top);
     items.forEach((el, i) => {
       if (i === from) return;
-      const r = el.getBoundingClientRect();
-      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
-      if (d < distance) {
-        distance = d;
-        best = i;
-      }
+      const j = from < to && i > from && i <= to ? i - 1 : to < from && i >= to && i < from ? i + 1 : i;
+      el.style.transform = j === i ? "" : `translate(${lefts[j] - lefts[i]}px, ${tops[j] - tops[i]}px)`;
     });
-    if (best < 0) return;
-    const target = items[best];
-    const r = target.getBoundingClientRect();
-    const rtl = getComputedStyle(list).direction === "rtl";
-    const after = rtl ? x < r.left + r.width / 2 : x > r.left + r.width / 2;
-    target.setAttribute("data-ib-drop", after ? "after" : "before");
-    marked = target;
-    // Its index once the dragged item is out of the list.
-    const index = best > from ? best - 1 : best;
-    to = after ? index + 1 : index;
   };
 
-  // Another zone's column: the items the dragged one's middle hasn't passed move down by its height,
-  // as in its own list. False for rows that wrap and empty zones, which markTarget marks.
+  // Another zone opens a space where the item lands. A column: the items its middle hasn't passed
+  // move down by its height, as in its own list. Rows that wrap: the place nearest its middle, and
+  // the items from there on move one place along (the last to where one more would go). False for
+  // an empty zone, which markTarget outlines.
   const openSpace = (t: DropTarget): boolean => {
-    const column = columns.get(t.list);
-    if (!column || !column.els.length || t.list.parentElement?.classList.contains("ib-sortable-horizontal")) return false;
+    const zone = columns.get(t.list);
+    if (!zone || !zone.els.length) return false;
     const own = item.getBoundingClientRect();
-    const middle = own.top + own.height / 2 - t.list.getBoundingClientRect().top;
-    to = column.els.filter((_, i) => column.tops[i] + column.heights[i] / 2 < middle).length;
-    const space = own.height + column.gap;
+    const tb = t.list.getBoundingClientRect();
+    const middleX = own.left + own.width / 2 - tb.left;
+    const middleY = own.top + own.height / 2 - tb.top;
     t.list.classList.add("ib-sortable-receiving");
     receiving = t.list;
-    column.els.forEach((el, i) => (el.style.transform = i >= to ? `translateY(${space}px)` : ""));
+    if (zone.wraps) {
+      const next = nextPlace(zone);
+      const placeLefts = [...zone.lefts, next.left];
+      const placeTops = [...zone.tops, next.top];
+      const last = zone.els.length - 1;
+      to = nearest(placeLefts, placeTops, [...zone.widths, zone.widths[last]], [...zone.heights, zone.heights[last]], middleX, middleY);
+      zone.els.forEach((el, i) => {
+        el.style.transform = i >= to ? `translate(${placeLefts[i + 1] - placeLefts[i]}px, ${placeTops[i + 1] - placeTops[i]}px)` : "";
+      });
+      return true;
+    }
+    to = zone.els.filter((_, i) => zone.tops[i] + zone.heights[i] / 2 < middleY).length;
+    const space = own.height + zone.gap;
+    zone.els.forEach((el, i) => (el.style.transform = i >= to ? `translateY(${space}px)` : ""));
     return true;
   };
 
@@ -252,35 +250,12 @@ export function trackDrag(options: SortOptions): void {
     receiving = null;
   };
 
-  // Another zone: the nearest of its items, and which side of it the pointer is on; an empty
-  // zone is marked whole.
+  // An empty zone: its own element (around its list and empty text) is outlined.
   const markTarget = (t: DropTarget) => {
-    const others = [...t.list.children].filter((el): el is HTMLElement => el instanceof HTMLElement && el !== item);
-    if (!others.length) {
-      // The zone's own element (around its list and empty text) is outlined.
-      const zone = t.list.parentElement ?? t.area;
-      zone.setAttribute("data-ib-drop", "inside");
-      zoneMarked = zone;
-      to = 0;
-      return;
-    }
-    const across = !!t.list.parentElement?.classList.contains("ib-sortable-horizontal");
-    const rtl = getComputedStyle(t.list).direction === "rtl";
-    let best = 0;
-    let distance = Infinity;
-    others.forEach((el, i) => {
-      const r = el.getBoundingClientRect();
-      const d = Math.hypot(x - (r.left + r.width / 2), y - (r.top + r.height / 2));
-      if (d < distance) {
-        distance = d;
-        best = i;
-      }
-    });
-    const r = others[best].getBoundingClientRect();
-    const after = across ? (rtl ? x < r.left + r.width / 2 : x > r.left + r.width / 2) : y > r.top + r.height / 2;
-    others[best].setAttribute("data-ib-drop", after ? "after" : "before");
-    zoneMarked = others[best];
-    to = after ? best + 1 : best;
+    const zone = t.list.parentElement ?? t.area;
+    zone.setAttribute("data-ib-drop", "inside");
+    zoneMarked = zone;
+    to = 0;
   };
 
   const autoScroll = () => {
@@ -316,9 +291,8 @@ export function trackDrag(options: SortOptions): void {
     // Without the sorting classes first, so clearing the transforms doesn't animate.
     list.classList.remove("ib-sortable-sorting");
     for (const other of columns.keys()) other.classList.remove("ib-sortable-receiving");
-    // The lifted item and, in rows that wrap, the drop line stay until it settles.
+    // The lifted item and an empty zone's outline stay until it settles.
     const settle = () => {
-      marked?.removeAttribute("data-ib-drop");
       zoneMarked?.removeAttribute("data-ib-drop");
       item.classList.remove("ib-sortable-dragging");
       item.removeAttribute("data-ib-refused");
@@ -413,4 +387,41 @@ function scrollParent(el: Element): Element | null {
     if ((overflow === "auto" || overflow === "scroll") && node.scrollHeight > node.clientHeight) return node;
   }
   return document.scrollingElement;
+}
+
+/** Another zone's items, measured when the drag begins. */
+interface Zone {
+  els: HTMLElement[];
+  tops: number[];
+  heights: number[];
+  lefts: number[];
+  widths: number[];
+  gap: number;
+  columnGap: number;
+  width: number;
+  rtl: boolean;
+  wraps: boolean;
+}
+
+/** The index of the place whose middle is nearest a point (all relative to the list). */
+function nearest(lefts: number[], tops: number[], widths: number[], heights: number[], x: number, y: number): number {
+  let best = 0;
+  let distance = Infinity;
+  lefts.forEach((left, i) => {
+    const d = Math.hypot(x - (left + widths[i] / 2), y - (tops[i] + heights[i] / 2));
+    if (d < distance) {
+      distance = d;
+      best = i;
+    }
+  });
+  return best;
+}
+
+/** Where one more item would go in rows that wrap: after the last on its row, or first on the next. */
+function nextPlace(zone: Zone): { left: number; top: number } {
+  const last = zone.els.length - 1;
+  const w = zone.widths[last];
+  const along = zone.rtl ? zone.lefts[last] - zone.columnGap - w : zone.lefts[last] + w + zone.columnGap;
+  if (zone.rtl ? along >= -0.5 : along + w <= zone.width + 0.5) return { left: along, top: zone.tops[last] };
+  return { left: zone.lefts[0], top: zone.tops[last] + zone.heights[last] + zone.gap };
 }
