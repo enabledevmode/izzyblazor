@@ -109,7 +109,8 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     /// <summary>
     /// The form field name the selection posts under, read back as a <see cref="IzzyBlazor.Selection"/>
-    /// with <c>[SupplyParameterFromForm(Name = ...)]</c>. Defaults to <c>"{QueryPrefix}selected"</c>.
+    /// with <c>[SupplyParameterFromForm(Name = ...)]</c>. Defaults to <c>"{QueryPrefix}selected"</c>:
+    /// give two selectable views in one form a <c>QueryPrefix</c> (or a name) each.
     /// </summary>
     [Parameter] public string? SelectionName { get; set; }
 
@@ -124,7 +125,11 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<Selection> SelectionChanged { get; set; }
 
-    /// <summary>Whether an item can be selected; others show a disabled box, and selecting all leaves them out.</summary>
+    /// <summary>
+    /// Whether an item can be selected; others show a disabled, unchecked box, and selecting the page
+    /// or a range leaves them out. "Select all" (every matching item) can't know this rule: leave
+    /// them out of the query you apply the <see cref="IzzyBlazor.Selection"/> to.
+    /// </summary>
     [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
 
     /// <summary>
@@ -244,12 +249,19 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>The name each item's box posts its key under, so the post binds to a <see cref="IzzyBlazor.Selection"/>.</summary>
     internal string SelectionKeysName => $"{EffectiveSelectionName}.Keys";
 
-    internal bool IsSelected(string key) => _selection.Contains(key);
+    internal bool IsSelected(TItem item, string key) => CanSelect(item) && _selection.Contains(key);
 
     internal bool CanSelect(TItem item) => ItemSelectable?.Invoke(item) ?? true;
 
     internal bool AllOnPageSelected =>
         _items.Any(CanSelect) && _items.Where(CanSelect).All(i => _selection.Contains(KeyOf(i)));
+
+    /// <summary>The view's name for screen readers (a Table's Caption), which names its selection bar.</summary>
+    internal virtual string? AccessibleName => null;
+
+    internal string SelectionBarName => AccessibleName is { Length: > 0 } name
+        ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.SelectionBarOf, name)
+        : TextDefaults.SelectionBar;
 
     /// <summary>There are matching items that aren't shown: on other pages, or not loaded yet.</summary>
     internal bool HasMoreThanShown => _total is { } total ? total > _items.Count : _next is not null;
@@ -273,10 +285,12 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     // changes, so the view keeps its own selection.
     internal void SyncSelection()
     {
-        if (!ReferenceEquals(Selection, _paramSelection))
+        // By value: a parent passing a new but equal selection (such as Selection.None) on every
+        // render isn't a change.
+        if (!ReferenceEquals(Selection, _paramSelection) && !(Selection?.SameAs(_paramSelection) ?? _paramSelection is null))
         {
             _paramSelection = Selection;
-            if (!ReferenceEquals(Selection, _reportedSelection))
+            if (!ReferenceEquals(Selection, _reportedSelection) && !(Selection?.SameAs(_reportedSelection) ?? false))
             {
                 _selection = Selection ?? IzzyBlazor.Selection.None;
             }

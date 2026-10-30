@@ -1,5 +1,6 @@
+using System.ComponentModel;
 using System.Linq.Expressions;
-using System.Reflection;
+using System.Text.Json;
 
 namespace IzzyBlazor;
 
@@ -14,6 +15,9 @@ namespace IzzyBlazor;
 /// Treat it as a value: the views hand back a new one on every change. A posted one came from the
 /// browser: <see cref="Apply{TItem}(IQueryable{TItem}, Expression{Func{TItem, string}}, IReadOnlyList{DataField{TItem}})"/>
 /// only reaches items through the fields it's given, and a filter it can't read matches nothing.
+/// Under <see cref="All"/> it doesn't know a view's <c>ItemSelectable</c>: its count and
+/// <c>Apply</c> take every matching item, so leave out the ones that can't be selected in the
+/// query you apply it to.
 /// </remarks>
 public sealed class Selection
 {
@@ -28,6 +32,36 @@ public sealed class Selection
 
     /// <summary>With <see cref="All"/>, the search it was made under; null for none.</summary>
     public string? Search { get; set; }
+
+    /// <summary>
+    /// The keys as one JSON list, as the script posts a selection kept across pages: one field
+    /// rather than one per key, which stays under the server's limit of 1,024 form values. Added to
+    /// <see cref="Keys"/>. For the form post, not for code.
+    /// </summary>
+    [EditorBrowsable(EditorBrowsableState.Never)]
+    public string? KeyList
+    {
+        get => null;
+        set
+        {
+            if (string.IsNullOrEmpty(value))
+            {
+                return;
+            }
+
+            try
+            {
+                if (JsonSerializer.Deserialize(value, PersistedStateJson.Default.StringArray) is { } keys)
+                {
+                    Keys = Distinct([.. Keys ?? [], .. keys]);
+                }
+            }
+            catch (JsonException)
+            {
+                // Not ours: the posted boxes alone.
+            }
+        }
+    }
 
     /// <summary>Nothing selected.</summary>
     public static Selection None => new();
@@ -52,7 +86,7 @@ public sealed class Selection
     /// <param name="total">The number of matching items, or null when unknown.</param>
     public int? Count(int? total = null)
     {
-        var left = Keys?.Length ?? 0;
+        var left = Keys is null ? 0 : Keys.Distinct(StringComparer.Ordinal).Count();
         return !All ? left : total is { } t ? Math.Max(0, t - left) : null;
     }
 
@@ -115,14 +149,25 @@ public sealed class Selection
         return keys.Length == 0 ? matching : matching.Where(In(key, keys, negate: true));
     }
 
-    // keys.Contains(key(item)), or its negation; a list EF Core sends as one parameter.
+    // keys.Contains(key(item)), or its negation. The list is captured as a closure is, so EF Core
+    // sends it as one parameter rather than writing every key into the SQL.
     private static Expression<Func<TItem, bool>> In<TItem>(Expression<Func<TItem, string>> key, string[] keys, bool negate)
     {
-        var contains = Expression.Call(Expression.Constant(new List<string>(keys)), ContainsMethod, key.Body);
-        return Expression.Lambda<Func<TItem, bool>>(negate ? Expression.Not(contains) : contains, key.Parameters);
+        var list = new List<string>(keys);
+        Expression<Func<string, bool>> contains = k => list.Contains(k);
+        var body = new Substitute(contains.Parameters[0], key.Body).Visit(contains.Body);
+        return Expression.Lambda<Func<TItem, bool>>(negate ? Expression.Not(body) : body, key.Parameters);
     }
 
-    private static readonly MethodInfo ContainsMethod = typeof(List<string>).GetMethod(nameof(List<string>.Contains))!;
+    /// <summary>Whether this is the same selection as another (the same keys, in any order, and scope).</summary>
+    internal bool SameAs(Selection? other) =>
+        other is not null && All == other.All && Filter == other.Filter && NullIfEmpty(Search) == NullIfEmpty(other.Search)
+        && new HashSet<string>(Keys ?? [], StringComparer.Ordinal).SetEquals(other.Keys ?? []);
+
+    private sealed class Substitute(ParameterExpression parameter, Expression with) : ExpressionVisitor
+    {
+        protected override Expression VisitParameter(ParameterExpression node) => node == parameter ? with : node;
+    }
 
     private static string[] Distinct(IEnumerable<string> keys) => [.. keys.Where(k => k is not null).Distinct(StringComparer.Ordinal)];
 

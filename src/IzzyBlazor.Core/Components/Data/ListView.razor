@@ -384,6 +384,9 @@
     internal override string ViewName => "ListView";
 
     /// <inheritdoc />
+    internal override string? AccessibleName => AriaLabel;
+
+    /// <inheritdoc />
     internal override string LoadFailedText => TextDefaults.ListLoadFailed;
 
     /// <inheritdoc />
@@ -579,9 +582,9 @@
                 @if (Selectable)
                 {
                     <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-listview-select" name="@SelectionKeysName" value="@key"
-                           aria-label="@SelectLabel(item)" checked="@IsSelected(key)" disabled="@(disabled || !CanSelect(item))"
+                           aria-label="@SelectLabel(item)" checked="@IsSelected(item, key)" disabled="@(disabled || !CanSelect(item))"
                            @onchange="e => OnSelectChanged(key, e)" />
-                    @if (disabled && !Live && IsSelected(key))
+                    @if (disabled && !Live && IsSelected(item, key))
                     {
                         <input type="hidden" name="@SelectionKeysName" value="@key" />
                     }

@@ -199,8 +199,11 @@ public class IzzyText
     /// <summary>Table's row checkboxes, before the row's name.</summary>
     public virtual string SelectRow { get; set; } = "Select";
 
-    /// <summary>The name of a Table's or ListView's selection bar, for screen readers.</summary>
+    /// <summary>The name of a Table's or ListView's selection bar, for screen readers, when the view has no name.</summary>
     public virtual string SelectionBar { get; set; } = "Selection";
+
+    /// <summary>The name of the selection bar of a named view (a Table's Caption, a ListView's AriaLabel): {0} is that name ("Orders selection").</summary>
+    public virtual string SelectionBarOf { get; set; } = "{0} selection";
 
     /// <summary>The selection bar of a Table or ListView: {0} is how many are selected ("3 selected").</summary>
     public virtual string SelectionCount { get; set; } = "{0:N0} selected";

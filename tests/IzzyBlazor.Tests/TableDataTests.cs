@@ -110,6 +110,8 @@ public class TableDataTests : BunitContext
 
         Assert.True(bar.HasAttribute("hidden"));
         Assert.Equal("Selection", bar.GetAttribute("aria-label"));
+        Assert.Equal("Orders selection", Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Caption, "Orders")
+            .Add(t => t.SelectionMode, SelectionMode.Single).Add(t => t.ChildContent, Columns)).Find(".ib-selection-bar").GetAttribute("aria-label"));
         Assert.Equal("4", bar.GetAttribute("data-ib-total"));
         Assert.Equal("", bar.QuerySelector(".ib-selection-count")!.TextContent);
     }
@@ -123,6 +125,11 @@ public class TableDataTests : BunitContext
 
         Assert.False(bar.HasAttribute("hidden"));
         Assert.Equal("2 selected", bar.QuerySelector(".ib-selection-count")!.TextContent);
+        // Announced from a status region outside the bar, which is in the page while the bar is hidden.
+        var status = cut.Find(".ib-selection-status");
+        Assert.Equal("status", status.GetAttribute("role"));
+        Assert.Equal("2 selected", status.TextContent);
+        Assert.Null(status.Closest(".ib-selection-bar"));
         Assert.Equal("Archive 2", bar.QuerySelector(".ib-selection-actions .act")!.TextContent);
         // Only the first row of this page is selected: no step to all yet.
         Assert.True(bar.QuerySelector(".ib-selection-more")!.HasAttribute("hidden"));

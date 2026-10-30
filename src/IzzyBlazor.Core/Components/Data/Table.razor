@@ -209,7 +209,7 @@
                                 <td class="ib-table-select-cell">
                                     <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
                                            aria-label="@SelectLabel(item)"
-                                           checked="@IsSelected(key)"
+                                           checked="@IsSelected(item, key)"
                                            disabled="@(!CanSelect(item))"
                                            @onchange="e => OnSelectChanged(key, e)" />
                                 </td>
@@ -1042,6 +1042,9 @@
             Fields = _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList(),
         };
     }
+
+    /// <inheritdoc />
+    internal override string? AccessibleName => Caption;
 
     /// <inheritdoc />
     internal override void Loaded() => (_sortKey, _descending) = _shapedSort;

@@ -713,6 +713,11 @@
     .ib-selection-bar {
       border: 1px solid CanvasText;
     }
+
+    /* A link button gets a border in forced colors: room for it inside. */
+    .ib-selection-all {
+      padding-inline: var(--ib-space-1);
+    }
   }
 
   /* Selection: a checkbox column; checked rows are tinted, with or without script. */
