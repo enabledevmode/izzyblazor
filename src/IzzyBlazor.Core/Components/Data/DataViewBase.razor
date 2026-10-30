@@ -141,6 +141,36 @@
         }
     };
 
+    // While something is selected: the count, Clear selection, the step to every matching item
+    // after the page is selected, and the page's actions. Always rendered, so its status region is
+    // there before the first change; hidden while empty. On static pages the script keeps it (the
+    // count, the buttons and what they post); the data attributes give it what it can't know.
+    internal RenderFragment SelectionBar => __builder =>
+    {
+        if (!Selectable)
+        {
+            return;
+        }
+
+        var offerAll = MultiSelect && !_selection.All && AllOnPageSelected && HasMoreThanShown;
+        <div class="ib-selection-bar" role="group" aria-label="@TextDefaults.SelectionBar" hidden="@_selection.IsEmpty"
+             data-ib-total="@_total" data-ib-filter="@_loadedRequest?.Filter?.ToString()" data-ib-search="@_loadedRequest?.Search"
+             data-ib-count="@TextDefaults.SelectionCount" data-ib-all-count="@TextDefaults.SelectionAllCount" data-ib-all-open="@TextDefaults.SelectionAllOpen">
+            <span class="ib-selection-count" role="status">@(_selection.IsEmpty ? null : SelectionCountText)</span>
+            <span class="ib-selection-more" hidden="@(!offerAll)">
+                <span>@Format(TextDefaults.SelectionPage, _items.Count(CanSelect))</span>
+                <button type="button" class="ib-btn ib-btn-primary ib-btn-link ib-btn-sm ib-selection-all" data-ib-selection="all"
+                        @onclick="SelectAllMatchingAsync">@SelectAllMatchingText</button>
+            </span>
+            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-selection-clear" data-ib-selection="clear"
+                    @onclick="ClearSelectionAsync">@TextDefaults.ClearSelection</button>
+            @if (SelectionActions is not null)
+            {
+                <span class="ib-selection-actions">@SelectionActions(_selection)</span>
+            }
+        </div>
+    };
+
     // Says a load failed when it does: present from the start, so the change is announced.
     internal RenderFragment ErrorStatus => __builder =>
     {
