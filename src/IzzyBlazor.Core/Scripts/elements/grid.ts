@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { extendRange, type RangeRun } from "../data-view";
+import { openMenuAt, ownTrigger, setupContextMenu } from "../context-menu";
 
 /**
  * <ib-grid> is an empty element inside a DataGrid's <ib-table>, and makes its table an ARIA grid: one
@@ -72,6 +73,7 @@ class Grid extends IzzyElement {
     this.#on(table, "focusin", (event) => this.#onFocusIn(event as FocusEvent), signal);
     this.#on(table, "focusout", (event) => this.#onFocusOut(event as FocusEvent), signal);
     this.#on(table, "change", () => this.#syncSelected(), signal);
+    setupContextMenu(table, "tbody > tr, thead > tr > th", "[data-ib-row-menu], [data-ib-menu]", () => true, signal);
     this.#on(this.closest("ib-table")!, "ib-selection", () => this.#syncSelected(), signal);
     this.#on(document, "pointerdown", (event) => {
       this.#run = null;
@@ -409,6 +411,14 @@ class Grid extends IzzyElement {
   #onAction(event: KeyboardEvent, target: HTMLElement, cell: HTMLTableCellElement): boolean {
     const modifier = event.ctrlKey || event.metaKey;
     if (event.altKey) return this.#openMenu(event, cell);
+    // The menu key is the browser's event, which setupContextMenu answers. Shift+F10 has none everywhere.
+    if (event.shiftKey && event.key === "F10") {
+      const menu = ownTrigger(cell.parentElement as Element, "tr", "[data-ib-row-menu]") ?? ownTrigger(cell, "th, td", "[data-ib-menu]");
+      if (!menu) return false;
+      const { left, bottom } = cell.getBoundingClientRect();
+      openMenuAt(menu, left, bottom);
+      return true;
+    }
     if (modifier && !event.shiftKey && event.key.toLowerCase() === "a") {
       const all = this.closest("ib-table")?.querySelector<HTMLInputElement>(".ib-table-select-all");
       if (!all) return false;

@@ -1,0 +1,18 @@
+@* Right-click a row, press and hold it on a phone, or press Shift+F10 on a cell: the same menu as its
+   ⋮ button, which works with no script. A paid order has no Cancel. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@inject NavigationManager Navigation
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with menus" ItemKey="o => o.Number.ToString()" QueryPrefix="menus-" Grow>
+    <ChildContent>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+    </ChildContent>
+    <RowMenu Context="order">
+        <MenuItem Href="@Navigation.GetUriWithQueryParameter("order", order.Number)">View @order.Number</MenuItem>
+        @if (order.Status != Table.OrderStatus.Paid)
+        {
+            <MenuItem Href="@Navigation.GetUriWithQueryParameter("cancel", order.Number)">Cancel @order.Number</MenuItem>
+        }
+    </RowMenu>
+</DataGrid>

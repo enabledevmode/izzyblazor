@@ -1,5 +1,6 @@
 import { IzzyElement, defineElement } from "../izzy-element";
 import { extendRange, setupLoadOnScroll, setupSelectAll, setupSelection, type RangeRun } from "../data-view";
+import { openMenuAt, ownTrigger, setupContextMenu } from "../context-menu";
 
 /**
  * <ib-listview> adds a ListView's selection (select-all, Shift ranges, the bar, and on static pages a selection across pages) and loading on scroll (Paging
@@ -27,6 +28,8 @@ class ListView extends IzzyElement {
     setupLoadOnScroll(this, ":scope > .ib-listview-body > .ib-listview-list > li:last-child", ":scope > .ib-listview-body > .ib-data-more [data-ib-load-next]", signal);
     this.addEventListener("keydown", (event) => this.onKey(event), { signal });
     this.addEventListener("pointerdown", () => (this.run = null), { signal });
+    // With DragWholeItem a long press is the drag.
+    setupContextMenu(this, ".ib-listview-item", ".ib-listview-menu", () => !this.querySelector("[data-ib-whole]"), signal);
     // An item's stretched link has no height of its own, so the browser scrolls only that much of
     // the item into view. The whole item, for arrows and Tab alike.
     this.addEventListener(
@@ -118,6 +121,15 @@ class ListView extends IzzyElement {
     const control = event.target as HTMLElement;
     const item = control.closest<HTMLElement>(".ib-listview-item");
     if (!item || item.closest("ib-listview") !== this || control.matches(KEEPS_KEYS)) return;
+    // The menu key is the browser's event, which setupContextMenu answers. Shift+F10 has none everywhere.
+    if (event.shiftKey && event.key === "F10") {
+      const menu = ownTrigger(item, ".ib-listview-item", ".ib-listview-menu");
+      if (!menu || control.closest("[popover], dialog")) return;
+      event.preventDefault();
+      const { left, bottom } = control.getBoundingClientRect();
+      openMenuAt(menu, left, bottom);
+      return;
+    }
     // An item can have focus itself: Load more puts it on the first new one.
     if (control !== item && !this.controls(item).includes(control)) return;
 

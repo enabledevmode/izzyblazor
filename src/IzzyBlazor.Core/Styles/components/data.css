@@ -658,6 +658,16 @@
   /* DataGrid: the server sets the widths, so the layout doesn't wait for the content. */
   .ib-datagrid {
     --ib-datagrid-select: 2.75rem;
+    --ib-datagrid-menu: 3rem;
+  }
+
+  .ib-datagrid-menu-col {
+    width: var(--ib-datagrid-menu);
+  }
+
+  .ib-datagrid .ib-table-grid .ib-grid-menu-cell {
+    padding-inline: 0;
+    text-align: center;
   }
 
   .ib-datagrid .ib-table-grid {
@@ -956,11 +966,11 @@
     flex: none;
   }
 
-  .ib-datagrid .ib-cell-end > .ib-table-sort {
+  .ib-datagrid .ib-cell-end > :is(.ib-table-sort, .ib-table-title) {
     margin-inline-start: auto;
   }
 
-  .ib-datagrid .ib-cell-center > .ib-table-sort {
+  .ib-datagrid .ib-cell-center > :is(.ib-table-sort, .ib-table-title) {
     margin-inline: auto;
   }
 

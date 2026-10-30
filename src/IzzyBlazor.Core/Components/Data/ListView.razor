@@ -822,30 +822,6 @@
     private string AcceptingZones(TItem item) =>
         string.Join(' ', Group!.Zones.Where(z => z.Accepts?.Invoke(item) != false).Select(z => z.Zone));
 
-    // Whether a fragment draws anything: an element, a component, or text that isn't only spaces.
-    private static bool HasContent(RenderFragment fragment)
-    {
-#pragma warning disable BL0006 // Reading render frames: the fragment is run here only to see whether it's empty.
-        using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
-        fragment(builder);
-        var frames = builder.GetFrames();
-        for (var i = 0; i < frames.Count; i++)
-        {
-            ref var frame = ref frames.Array[i];
-            switch (frame.FrameType)
-            {
-                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Element:
-                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Component:
-                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Text when !string.IsNullOrWhiteSpace(frame.TextContent):
-                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Markup when !string.IsNullOrWhiteSpace(frame.MarkupContent):
-                    return true;
-            }
-        }
-#pragma warning restore BL0006
-
-        return false;
-    }
-
     // The script finds a menu item by its move: the shortcuts click it, and on static pages it moves the item in place.
     private static string Kind(ListMoveKind kind) => kind.ToString().ToLowerInvariant();
 

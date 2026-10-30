@@ -871,6 +871,30 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         }
     }
 
+    // Whether a fragment draws anything: an element, a component, or text that isn't only spaces.
+    internal static bool HasContent(RenderFragment fragment)
+    {
+#pragma warning disable BL0006 // Reading render frames: the fragment is run here only to see whether it's empty.
+        using var builder = new Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder();
+        fragment(builder);
+        var frames = builder.GetFrames();
+        for (var i = 0; i < frames.Count; i++)
+        {
+            ref var frame = ref frames.Array[i];
+            switch (frame.FrameType)
+            {
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Element:
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Component:
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Text when !string.IsNullOrWhiteSpace(frame.TextContent):
+                case Microsoft.AspNetCore.Components.RenderTree.RenderTreeFrameType.Markup when !string.IsNullOrWhiteSpace(frame.MarkupContent):
+                    return true;
+            }
+        }
+#pragma warning restore BL0006
+
+        return false;
+    }
+
     internal static int LastPage(int total, int size) => Math.Max(1, (int)Math.Ceiling(total / (double)size));
 
     internal string Summary(int size)

@@ -144,6 +144,20 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
+    public async Task An_end_aligned_title_with_no_sort_lines_up_with_its_values()
+    {
+        var (playwright, browser, page) = await OpenAsync("static");
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
+            var title = await grid.Locator("thead th", new() { HasText = "Total" }).Locator(".ib-table-title").EvaluateAsync<double>("t => t.getBoundingClientRect().right");
+            var value = await grid.Locator("tbody tr").First.Locator("td").Nth(2).EvaluateAsync<double>("c => { const r = document.createRange(); r.selectNodeContents(c); return r.getBoundingClientRect().right; }");
+            Assert.Equal(value, title, 1.5);
+        }
+    }
+
+    [Fact]
     public async Task Frozen_columns_too_wide_for_a_phone_scroll_like_the_rest()
     {
         var (playwright, browser, page) = await OpenAsync("static", 390);

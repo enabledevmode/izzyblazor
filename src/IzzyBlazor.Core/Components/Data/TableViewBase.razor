@@ -104,6 +104,7 @@
                                     @HeaderHandle(column)
                                 </th>
                             }
+                            @LastHeaderCell
                         </tr>
                     </thead>
                     <tbody>
@@ -111,7 +112,7 @@
                         {
                             @* In place of the rows: what went wrong and a way to try again. *@
                             <tr class="ib-table-empty ib-table-error">
-                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0))">
+                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content ib-data-error-content">
                                         @LoadFailedMessage
                                         @RetryControl(RetryAsync, _providerLoading)
@@ -132,13 +133,14 @@
                                     {
                                         <td class="@CellClass(column)" style="@CellStyle(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
                                     }
+                                    @LastEmptyCell
                                 </tr>
                             }
                         }
                         else if (_items.Count == 0)
                         {
                             <tr class="ib-table-empty">
-                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0))">
+                                <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content">
                                         @if (EmptyContent is not null)
                                         {
@@ -185,6 +187,7 @@
                                         </td>
                                         first = false;
                                     }
+                                    @LastCell(item)
                                 </tr>
                             }
                         }
@@ -201,6 +204,7 @@
                                 {
                                     <td class="@CellClass(column)" style="@CellStyle(column)">@(column.HasFooter ? column.FooterCell : null)</td>
                                 }
+                                @LastEmptyCell
                             </tr>
                         </tfoot>
                     }
@@ -1044,6 +1048,15 @@
 
     /// <summary>A style for a column's header cell.</summary>
     internal virtual string? HeaderStyle(ColumnBase<TItem> column) => WidthStyle(column);
+
+    /// <summary>A last column of the view's own: its header cell.</summary>
+    internal virtual RenderFragment? LastHeaderCell => null;
+
+    /// <summary>A last column of the view's own: its cell in a row.</summary>
+    internal virtual RenderFragment? LastCell(TItem item) => null;
+
+    /// <summary>A last column of the view's own: its cell in a skeleton or footer row.</summary>
+    internal virtual RenderFragment? LastEmptyCell => null;
 
     /// <summary>Above the grid and its selection bar.</summary>
     internal virtual RenderFragment? AboveGrid => null;
