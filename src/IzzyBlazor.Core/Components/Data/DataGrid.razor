@@ -320,11 +320,14 @@
                                         <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
                                         @column.HeaderText
                                     </label>
-                                    @if (shown && CanMove(column))
+                                    @if (ReorderableColumns)
                                     {
-                                        var at = zoneOf.IndexOf(column);
-                                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><span aria-hidden="true">↑</span></button>
-                                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><span aria-hidden="true">↓</span></button>
+                                        @* Always drawn, so the row keeps its width when a column is hidden. *@
+                                        var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
+                                        <span class="ib-col-picker-move">
+                                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><span aria-hidden="true">↑</span></button>
+                                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><span aria-hidden="true">↓</span></button>
+                                        </span>
                                     }
                                 </li>
                             }

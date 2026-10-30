@@ -108,6 +108,13 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             await grid.Locator(".ib-col-picker button").First.ClickAsync();
             var box = await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).BoundingBoxAsync();
             Assert.Equal(16, box!.Width, 1);
+            // Hiding a column leaves its row as it was: the arrows stay, greyed out.
+            var row = grid.Locator(".ib-col-picker-list li", new() { HasText = "Status" });
+            Assert.Equal(2, await row.Locator(".ib-col-picker-move button:disabled").CountAsync());
+            var hiddenRow = await row.BoundingBoxAsync();
+            var shownRow = await grid.Locator(".ib-col-picker-list li", new() { HasText = "Date" }).BoundingBoxAsync();
+            Assert.Equal(shownRow!.Width, hiddenRow!.Width, 0.5);
+
             await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).CheckAsync();
             await Until(grid, ["Order", "Customer", "Date", "Status", "Total"]);
 
