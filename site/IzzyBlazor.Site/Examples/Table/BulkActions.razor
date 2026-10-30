@@ -1,0 +1,41 @@
+@* Bulk actions: select rows on any page, or, once the page is selected, every order the filters
+   match. The bar above the rows counts them and holds Archive, which posts the selection;
+   Selection.Apply finds the orders it means. *@
+<form method="post" @onsubmit="Archive" @formname="bulk-archive" style="width: 100%">
+    <AntiforgeryToken />
+    <Stack Gap="3">
+        <Table Items="Orders.All" PageSize="5" Caption="Orders to archive" QueryPrefix="bulk-" Grow
+               ItemKey="o => o.Number.ToString()" RowLabel='o => $"order {o.Number}"'
+               SelectionMode="SelectionMode.Multiple" @bind-Selection="_selection">
+            <SelectionActions>
+                <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
+            </SelectionActions>
+            <ChildContent>
+                <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" />
+                <PropertyColumn Property="o => o.Customer" Filterable />
+                <PropertyColumn Property="o => o.Status" Filterable />
+                <PropertyColumn Property="o => o.Total" Format="C" />
+            </ChildContent>
+        </Table>
+        <TextBlock Size="TextSize.Sm" Color="Color.Muted" role="status">@_status</TextBlock>
+    </Stack>
+</form>
+
+@code {
+    // Static pages: the selection posts under the table's SelectionName ("{QueryPrefix}selected").
+    [SupplyParameterFromForm(FormName = "bulk-archive", Name = "bulk-selected")]
+    private Selection? Posted { get; set; }
+
+    // Interactive pages: bound to the table.
+    private Selection? _selection;
+    private string? _status;
+
+    protected override void OnInitialized() => _selection = Posted;
+
+    private void Archive()
+    {
+        var orders = (Posted ?? _selection ?? Selection.None).Apply(Orders.All.AsQueryable(), o => o.Number.ToString()).ToList();
+        _status = orders.Count == 0 ? "Select the orders to archive first." : $"Archived {orders.Count} orders, #{orders.Min(o => o.Number)} to #{orders.Max(o => o.Number)}.";
+        _selection = Selection.None;
+    }
+}

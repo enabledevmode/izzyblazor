@@ -21,6 +21,10 @@
 <ExampleViewer Example="table-select-rows" />
 <TextBlock>Read them as a <Code>Selection</Code> with <Code>[SupplyParameterFromForm(Name = "selected")]</Code> on a static page, or <Code>@@bind-Selection</Code> on an interactive one; <Code>Apply</Code> gives the selected items from a query. Give columns <Code>FooterText</Code> for a totals row.</TextBlock>
 
+<Heading Level="3">Bulk actions</Heading>
+<TextBlock>While rows are selected, a bar above them shows how many, with <Code>Clear selection</Code> and the buttons you put in <Code>SelectionActions</Code>. The selection stays as you page, sort and filter. Once every row on the page is selected, the bar offers every row the filters match (<Code>Select all 23</Code>): the <Code>Selection</Code> then holds the filter and the rows left out, so <Code>Apply</Code> finds them without the page loading them. A change of filter clears it. Shift-click a checkbox to select or clear the rows from the last one clicked. With JavaScript off, only the rows checked on the page post.</TextBlock>
+<ExampleViewer Example="table-bulk-actions" />
+
 <Heading Level="2">State in the component</Heading>
 <TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code> on an interactive page to keep them in C# instead of the URL: for a table in a dialog, or anywhere the address shouldn't change.</TextBlock>
 <ExampleViewer Example="table-bound" />

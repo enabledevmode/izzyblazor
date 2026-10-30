@@ -1332,6 +1332,11 @@
             "noscript": "Checked rows post their keys with the form.",
             "static": "The header checkbox selects every row on the page.",
             "interactive": "@bind-Selection follows the checkboxes in C#." } },
+        { "id": "table-bulk-actions", "title": "Bulk actions",
+          "notes": {
+            "noscript": "Checked rows on this page post with Archive; Clear selection and Select all need script.",
+            "static": "The selection stays as you page and filter, and Archive posts all of it, or every match after Select all.",
+            "interactive": "@bind-Selection holds the selection, Select all included." } },
         { "id": "table-bound", "title": "State in the component", "modes": ["interactive"] },
         { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {
