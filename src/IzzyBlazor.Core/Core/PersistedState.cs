@@ -39,6 +39,7 @@ internal static class PersistedState
 [JsonSerializable(typeof(bool))]
 [JsonSerializable(typeof(bool?))]
 [JsonSerializable(typeof(ColorScheme))]
+[JsonSerializable(typeof(DataGridLayout))]
 [JsonSerializable(typeof(List<ToastMessage>))]
 [JsonSerializable(typeof(string[]))]
 internal sealed partial class PersistedStateJson : JsonSerializerContext;

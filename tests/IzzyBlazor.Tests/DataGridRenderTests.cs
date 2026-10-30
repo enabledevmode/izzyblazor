@@ -12,7 +12,13 @@ public class DataGridRenderTests : BunitContext
 
     private static readonly Row[] Rows = [new("b", 2), new("a", 3), new("a", 1)];
 
-    public DataGridRenderTests() => SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+    private readonly Cookies _cookies = new();
+
+    public DataGridRenderTests()
+    {
+        Services.AddSingleton<IRequestCookies>(_cookies);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+    }
 
     private BunitNavigationManager Nav => Services.GetRequiredService<BunitNavigationManager>();
 
@@ -135,6 +141,113 @@ public class DataGridRenderTests : BunitContext
         Assert.Contains("Frozen", Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
             .Add(x => x.Items, Rows)
             .Add(x => x.ChildContent, Column(r => r.Name, Length.Rem(4), frozen: ColumnFrozen.Start)))).Message);
+    }
+
+    private sealed class Cookies : IRequestCookies
+    {
+        public string? Value { get; set; }
+
+        public string? Name { get; private set; }
+
+        public string? Get(string name)
+        {
+            Name = name;
+            return Value;
+        }
+    }
+
+    private static string[] Headers(IRenderedComponent<DataGrid<Row>> cut) =>
+        cut.FindAll("thead th").Select(th => th.TextContent.Trim()).ToArray();
+
+    private static DataGridLayout Arranged(params DataGridColumnLayout[] columns) => new() { Columns = columns };
+
+    [Fact]
+    public void A_layout_sets_widths_order_hidden_and_frozen()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(
+            new DataGridColumnLayout { Key = "qty", Position = 0, Width = "120px", Frozen = ColumnFrozen.End },
+            new() { Key = "name", Position = 1 })));
+        Assert.Equal(["Name", "Qty"], Headers(cut));
+        Assert.Contains("--ib-col-1:120px", cut.Find("table").GetAttribute("style"));
+        Assert.Contains("ib-frozen-end", cut.FindAll("thead th")[1].ClassName);
+
+        cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "qty", Position = 0 }, new() { Key = "name", Position = 1 })));
+        Assert.Equal(["Qty", "Name"], Headers(cut));
+
+        cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "qty", Hidden = true })));
+        Assert.Equal(["Name"], Headers(cut));
+        Assert.Single(cut.FindAll("tbody tr")[0].Children);
+    }
+
+    [Fact]
+    public void A_layout_that_hides_every_column_or_freezes_one_with_no_width_is_ignored_for_that()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Hidden = true }, new() { Key = "qty", Hidden = true })));
+        Assert.Equal(2, Headers(cut).Length);
+
+        cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Frozen = ColumnFrozen.Start })));
+        Assert.DoesNotContain("ib-frozen", cut.Find("thead th").ClassName ?? "");
+    }
+
+    [Fact]
+    public void Unknown_columns_in_a_layout_are_dropped_and_new_columns_stay_in_their_place()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "gone", Position = 0, Width = "99px" })));
+        Assert.Equal(["Name", "Qty"], Headers(cut));
+        Assert.DoesNotContain("99px", cut.Find("table").GetAttribute("style") ?? "");
+    }
+
+    [Fact]
+    public void The_cookie_is_read_on_the_servers_first_render()
+    {
+        _cookies.Value = Arranged(new DataGridColumnLayout { Key = "qty", Hidden = true }).ToJson();
+        var cut = Grid(NameAndQty, p => p.Add(x => x.LayoutKey, "orders"));
+        Assert.Equal("ib-grid-orders", _cookies.Name);
+        Assert.Equal(["Name"], Headers(cut));
+    }
+
+    [Fact]
+    public void No_key_reads_no_cookie_and_a_bound_layout_wins()
+    {
+        _cookies.Value = Arranged(new DataGridColumnLayout { Key = "qty", Hidden = true }).ToJson();
+        Assert.Equal(2, Headers(Grid(NameAndQty)).Length);
+        Assert.Null(_cookies.Name);
+
+        var cut = Grid(NameAndQty, p => p.Add(x => x.LayoutKey, "orders").Add(x => x.Layout, new DataGridLayout()));
+        Assert.Equal(2, Headers(cut).Length);
+    }
+
+    [Fact]
+    public void A_key_that_cant_name_a_cookie_is_refused() =>
+        Assert.Contains("LayoutKey", Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.LayoutKey, "a;b"))).Message);
+
+    [Theory]
+    [InlineData("not json")]
+    [InlineData("[]")]
+    [InlineData("")]
+    public void A_broken_cookie_is_no_layout(string json) => Assert.Empty(DataGridLayout.Parse(json)?.Columns ?? []);
+
+    [Theory]
+    [InlineData("1px;background:url(x)")]
+    [InlineData("calc(1px)")]
+    [InlineData("10%")]
+    [InlineData("0px")]
+    [InlineData("-5px")]
+    public void A_cookies_width_that_isnt_plain_is_dropped(string width)
+    {
+        var layout = DataGridLayout.Parse(Arranged(new DataGridColumnLayout { Key = "a", Width = width }).ToJson());
+        Assert.Null(layout!.Column("a")!.Width);
+    }
+
+    [Fact]
+    public void A_layout_round_trips_and_only_says_what_differs()
+    {
+        var json = Arranged(new DataGridColumnLayout { Key = "a", Width = "12.5rem", Position = 2, Hidden = true, Frozen = ColumnFrozen.Start }, new DataGridColumnLayout { Key = "b" }).ToJson();
+        Assert.Equal("""{"c":[{"k":"a","w":"12.5rem","p":2,"h":true,"f":1},{"k":"b"}]}""", json);
+        var back = DataGridLayout.Parse(json)!;
+        Assert.Equal("12.5rem", back.Column("A")!.Width);
+        Assert.Equal(ColumnFrozen.Start, back.Column("a")!.Frozen);
+        Assert.Null(back.Column("b")!.Width);
     }
 
     [Fact]

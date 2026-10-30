@@ -2,6 +2,7 @@
 @typeparam TItem
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @inherits TableViewBase<TItem>
+@using Microsoft.Extensions.DependencyInjection
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort; filters apply when you press Apply.")]
 
 @*
@@ -23,6 +24,11 @@
         <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
         <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
     </DataGrid>
+
+    LayoutKey remembers how one person has arranged the columns (widths, order, hidden, frozen) in a
+    cookie, so the server draws it on the first paint with no flash. It's per person and per page; a
+    shared link still shows the same rows, since sort, filter and page are in the address. To keep
+    layouts in a database instead, bind Layout.
 
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
@@ -48,6 +54,31 @@
 @code {
     private const string DefaultMinWidth = "8rem";
 
+    /// <summary>
+    /// Remembers how each person has arranged the columns, in a cookie under this name, so the server
+    /// draws it on the first paint. Letters, digits, <c>-</c> and <c>_</c>. With neither this nor
+    /// <see cref="Layout"/>, nothing is stored.
+    /// </summary>
+    [Parameter] public string? LayoutKey { get; set; }
+
+    /// <summary>
+    /// How the columns are arranged, in place of the cookie: bind it (<c>@bind-Layout</c>) to keep
+    /// layouts yourself, such as per user in a database. Null leaves them as declared.
+    /// </summary>
+    [Parameter] public DataGridLayout? Layout { get; set; }
+
+    /// <summary>Raised when the columns are rearranged, on interactive pages.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<DataGridLayout?> LayoutChanged { get; set; }
+
+    private DataGridLayout? _stored;
+    private PersistingComponentStateSubscription? _persisting;
+    private List<ColumnBase<TItem>>? _shown;
+
+    private DataGridLayout? CurrentLayout => Layout ?? _stored;
+
+    private string CookieName => $"ib-grid-{LayoutKey}";
+
     /// <inheritdoc />
     internal override string ViewName => "DataGrid";
 
@@ -58,16 +89,109 @@
     internal override bool GridColumns => true;
 
     /// <inheritdoc />
-    internal override RenderFragment? ColGroup => Columns.Count == 0 ? null : __builder =>
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        if (LayoutKey is null)
+        {
+            return;
+        }
+
+        if (LayoutKey.Length is 0 or > 64 || !LayoutKey.All(c => char.IsAsciiLetterOrDigit(c) || c is '-' or '_'))
+        {
+            throw new InvalidOperationException($"The DataGrid's {nameof(LayoutKey)} \"{LayoutKey}\" names a cookie: use letters, digits, - and _.");
+        }
+
+        // The cookie is there on the server's first render; an interactive render that follows a
+        // prerender gets it handed over.
+        var state = Services.GetService<PersistentComponentState>();
+        var key = $"ib-grid:{LayoutKey}";
+        if (state is not null && PersistedState.TryTake(state, key, PersistedStateJson.Default.DataGridLayout, out var handedOver))
+        {
+            _stored = handedOver;
+        }
+        else if (!RendererInfo.IsInteractive)
+        {
+            _stored = DataGridLayout.Parse(Services.GetService<IRequestCookies>()?.Get(CookieName));
+        }
+
+        if (state is not null && _stored is { } stored)
+        {
+            _persisting = state.RegisterOnPersisting(() =>
+            {
+                try
+                {
+                    PersistedState.Persist(state, key, stored, PersistedStateJson.Default.DataGridLayout);
+                }
+                catch (ArgumentException)
+                {
+                    // Another grid with the same key already handed it over.
+                }
+
+                return Task.CompletedTask;
+            });
+        }
+    }
+
+    /// <inheritdoc />
+    protected override Task OnParametersSetAsync()
+    {
+        _shown = null;
+        return base.OnParametersSetAsync();
+    }
+
+    /// <inheritdoc />
+    internal override void ColumnsChanged() => _shown = null;
+
+    /// <inheritdoc />
+    public override void Dispose()
+    {
+        base.Dispose();
+        _persisting?.Dispose();
+    }
+
+    // Its key in a layout. Not every column has a sort key; its title is the next best.
+    private static string KeyOf(ColumnBase<TItem> column) => column.Key ?? column.HeaderText;
+
+    private string? WidthOf(ColumnBase<TItem> column) =>
+        CurrentLayout?.Column(KeyOf(column))?.Width ?? (column.Width is { } width ? StyleValues.Length(width) : null);
+
+    // A layout can freeze a column only if it has a width to be placed by.
+    private ColumnFrozen FrozenOf(ColumnBase<TItem> column)
+    {
+        var frozen = CurrentLayout?.Column(KeyOf(column))?.Frozen ?? column.Frozen;
+        return frozen != ColumnFrozen.None && WidthOf(column) is null ? ColumnFrozen.None : frozen;
+    }
+
+    // Start, then the rest, then end, whatever order they were declared or came in: a frozen column
+    // among those that scroll would overlap them. Within those, a layout's place, else the declared one.
+    // At least one always shows: a layout that hides them all is ignored for that.
+    /// <inheritdoc />
+    internal override IReadOnlyList<ColumnBase<TItem>> Shown => _shown ??= Arrange();
+
+    private List<ColumnBase<TItem>> Arrange()
+    {
+        var layout = CurrentLayout;
+        var visible = Columns.Where(c => layout?.Column(KeyOf(c))?.Hidden != true).ToList();
+        return (visible.Count > 0 ? visible : Columns)
+            .Select((column, index) => (column, index))
+            .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
+            .ThenBy(x => layout?.Column(KeyOf(x.column))?.Position ?? x.index)
+            .Select(x => x.column)
+            .ToList();
+    }
+
+    /// <inheritdoc />
+    internal override RenderFragment? ColGroup => Shown.Count == 0 ? null : __builder =>
     {
         <colgroup>
             @if (Selectable)
             {
                 <col class="ib-datagrid-select-col" />
             }
-            @for (var i = 0; i < Columns.Count; i++)
+            @for (var i = 0; i < Shown.Count; i++)
             {
-                <col style="@(Columns[i].Width is null ? null : $"width:var(--ib-col-{i})")" />
+                <col style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
             }
         </colgroup>
     };
@@ -81,7 +205,7 @@
         get
         {
             // Before the columns register (a page still streaming), a message takes the whole width.
-            if (Columns.Count == 0)
+            if (Shown.Count == 0)
             {
                 return "table-layout:auto";
             }
@@ -90,16 +214,16 @@
             var style = new System.Text.StringBuilder();
             var parts = new List<string>();
             var unset = new List<string>();
-            for (var i = 0; i < Columns.Count; i++)
+            for (var i = 0; i < Shown.Count; i++)
             {
-                if (Columns[i].Width is { } width)
+                if (WidthOf(Shown[i]) is { } width)
                 {
-                    style.Append($"--ib-col-{i}:{StyleValues.Length(width)};");
+                    style.Append($"--ib-col-{i}:{width};");
                     parts.Add($"var(--ib-col-{i})");
                 }
                 else
                 {
-                    unset.Add(Columns[i].MinWidth is { } min ? StyleValues.Length(min) : DefaultMinWidth);
+                    unset.Add(Shown[i].MinWidth is { } min ? StyleValues.Length(min) : DefaultMinWidth);
                 }
             }
 
@@ -127,21 +251,22 @@
 
     /// <inheritdoc />
     internal override string SelectCellClass =>
-        Columns.Any(c => c.Frozen == ColumnFrozen.Start) ? "ib-table-select-cell ib-frozen ib-frozen-start" : "ib-table-select-cell";
+        Shown.Any(c => FrozenOf(c) == ColumnFrozen.Start) ? "ib-table-select-cell ib-frozen ib-frozen-start" : "ib-table-select-cell";
 
     /// <inheritdoc />
     internal override string? ColumnClass(ColumnBase<TItem> column)
     {
-        if (column.Frozen == ColumnFrozen.None)
+        var frozen = FrozenOf(column);
+        if (frozen == ColumnFrozen.None)
         {
             return null;
         }
 
-        var side = column.Frozen == ColumnFrozen.Start ? "start" : "end";
+        var side = frozen == ColumnFrozen.Start ? "start" : "end";
         // The one beside the columns that scroll draws the line between them.
-        var edge = column.Frozen == ColumnFrozen.Start
-            ? column == Columns.LastOrDefault(c => c.Frozen == ColumnFrozen.Start)
-            : column == Columns.FirstOrDefault(c => c.Frozen == ColumnFrozen.End);
+        var edge = frozen == ColumnFrozen.Start
+            ? column == Shown.LastOrDefault(c => FrozenOf(c) == ColumnFrozen.Start)
+            : column == Shown.FirstOrDefault(c => FrozenOf(c) == ColumnFrozen.End);
         return edge ? $"ib-frozen ib-frozen-{side} ib-frozen-edge" : $"ib-frozen ib-frozen-{side}";
     }
 
@@ -149,14 +274,15 @@
     /// <inheritdoc />
     internal override string? CellStyle(ColumnBase<TItem> column)
     {
-        if (column.Frozen == ColumnFrozen.None)
+        var frozen = FrozenOf(column);
+        if (frozen == ColumnFrozen.None)
         {
             return null;
         }
 
-        var index = Columns.IndexOf(column);
+        var index = _shown!.IndexOf(column);
         var parts = new List<string>();
-        if (column.Frozen == ColumnFrozen.Start)
+        if (frozen == ColumnFrozen.Start)
         {
             if (Selectable)
             {
@@ -170,7 +296,7 @@
         }
         else
         {
-            for (var i = index + 1; i < Columns.Count; i++)
+            for (var i = index + 1; i < Shown.Count; i++)
             {
                 parts.Add($"var(--ib-col-{i})");
             }
@@ -179,20 +305,11 @@
         return parts.Count == 0 ? null : $"--ib-frozen-at:calc({string.Join(" + ", parts)})";
     }
 
-    // Start, then the rest, then end: a frozen column among those that scroll would overlap them.
-    /// <inheritdoc />
-    internal override int ColumnZone(ColumnBase<TItem> column) => column.Frozen switch
-    {
-        ColumnFrozen.Start => 0,
-        ColumnFrozen.End => 2,
-        _ => 1,
-    };
-
     // A frozen cell is the containing block of the row's stretched link, and sits above it, so the
     // link wouldn't cover the row.
     private void CheckFrozen()
     {
-        if (RowHref is not null && Columns.Any(c => c.Frozen != ColumnFrozen.None))
+        if (RowHref is not null && Shown.Any(c => FrozenOf(c) != ColumnFrozen.None))
         {
             throw new InvalidOperationException($"A DataGrid can't have both {nameof(RowHref)} and {nameof(ColumnBase<TItem>.Frozen)} columns yet: use a link in a cell.");
         }
