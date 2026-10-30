@@ -36,6 +36,8 @@ class Grid extends IzzyElement {
   // PageUp or PageDown asked for a page: where focus goes, once this first row has gone.
   #arrive: { to: "first" | "last"; from: string | null } | null = null;
   #run: RangeRun | null = null;
+  // The frozen columns' widths at each edge, as a scroll padding.
+  #clearOf = "";
 
   protected setup(signal: AbortSignal): void {
     const table = this.closest("ib-table")?.querySelector<HTMLTableElement>(":scope > .ib-table-scroll > table");
@@ -53,8 +55,12 @@ class Grid extends IzzyElement {
     const changes = new MutationObserver(() => this.#rowsChanged());
     changes.observe(table, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-key", "disabled", "hidden"] });
     // Shown (a closed tab or dialog opening), or a column hidden at a new width: the stop looks again.
-    const sizes = new ResizeObserver(() => this.#prepare());
+    const sizes = new ResizeObserver(() => {
+      this.#prepare();
+      this.#frozen();
+    });
     sizes.observe(table);
+    if (this.#box) sizes.observe(this.#box);
     signal.addEventListener("abort", () => {
       changes.disconnect();
       sizes.disconnect();
@@ -75,6 +81,25 @@ class Grid extends IzzyElement {
     this.#rowsChanged();
   }
 
+  // Focus stops clear of the frozen columns; if they'd leave too little room for the rows (a phone),
+  // they scroll like the rest.
+  #frozen(): void {
+    const table = this.#table;
+    const box = this.#box;
+    const cells = table?.tHead?.rows[0]?.cells;
+    if (!table || !box || !cells || box.clientWidth === 0) return;
+    let [start, end] = [0, 0];
+    for (const cell of cells) {
+      if (cell.matches(".ib-frozen-start")) start += cell.offsetWidth;
+      else if (cell.matches(".ib-frozen-end")) end += cell.offsetWidth;
+    }
+    // Room for at least a column's minimum beside them; below 640px the stylesheet has done this.
+    const room = 8 * parseFloat(getComputedStyle(document.documentElement).fontSize);
+    const unfrozen = start + end > 0 && (box.clientWidth - start - end < room || !matchMedia("(min-width: 640px)").matches);
+    table.toggleAttribute("data-ib-unfrozen", unfrozen);
+    this.#clearOf = unfrozen ? "" : `${start}px ${end}px`;
+  }
+
   protected teardown(): void {
     for (const [control, tabindex] of this.#controls) {
       if (tabindex === null) control.removeAttribute("tabindex");
@@ -85,6 +110,7 @@ class Grid extends IzzyElement {
     if (this.#table) {
       this.#table.removeAttribute("role");
       this.#table.removeAttribute("aria-multiselectable");
+      this.#table.removeAttribute("data-ib-unfrozen");
       for (const cell of this.#table.querySelectorAll(CELLS)) cell.removeAttribute("tabindex");
     }
     this.#table = this.#box = this.#current = this.#inside = null;
@@ -179,9 +205,19 @@ class Grid extends IzzyElement {
   #focusCell(cell: HTMLTableCellElement | undefined): void {
     if (!cell) return;
     this.#rove(cell);
-    this.#targetOf(cell).focus();
+    this.#focusInCell(cell, this.#targetOf(cell));
+  }
+
+  #focusInCell(cell: HTMLTableCellElement, target: HTMLElement): void {
+    // Clear of the frozen columns, only while the keys move focus: a frozen cell would count as
+    // under them and move the grid, and a click on one would too.
+    const box = this.#box;
+    const padding = !cell.matches(".ib-frozen") && box ? this.#clearOf : "";
+    if (padding) box!.style.scrollPaddingInline = padding;
+    target.focus({ preventScroll: true });
     // The browser leaves a partly visible cell as it is; the ring and text should show.
     cell.scrollIntoView({ block: "nearest", inline: "nearest" });
+    if (padding) box!.style.removeProperty("scroll-padding-inline");
   }
 
   // Not the cells of a column hidden at this width.
@@ -267,6 +303,7 @@ class Grid extends IzzyElement {
   #rowsChanged(): void {
     if (!this.#table) return;
     this.#prepare();
+    this.#frozen();
     const rows = this.#rows;
     const data = this.#bodyRows.filter((row) => row.cells.length > 1);
     if (this.#arrive && data[0] && data[0].dataset.ibKey !== this.#arrive.from) {
@@ -397,12 +434,12 @@ class Grid extends IzzyElement {
           return true;
         }
         const control = this.#controlsOf(cell)[0];
-        if (control) control.focus();
+        if (control) this.#focusInCell(cell, control);
         else cell.closest("tr")?.querySelector<HTMLElement>(".ib-table-row-link")?.click();
         return true;
       }
       case "F2":
-        if (target === cell) this.#controlsOf(cell)[0]?.focus();
+        if (target === cell && this.#controlsOf(cell)[0]) this.#focusInCell(cell, this.#controlsOf(cell)[0]);
         return true;
       case "ArrowUp":
       case "ArrowDown":

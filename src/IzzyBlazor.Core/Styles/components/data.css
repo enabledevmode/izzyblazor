@@ -698,6 +698,64 @@
     scroll-padding-block-start: var(--ib-table-head-h);
   }
 
+  /* Frozen columns: sticky cells at offsets the server writes from the width variables, so they
+     hold with no script, from a phone's width up, where they'd leave no room for the rows. */
+  .ib-datagrid {
+    --ib-frozen-bg: var(--ib-color-surface);
+  }
+
+  .ib-card-flush > .ib-datagrid,
+  .ib-table-borderless.ib-datagrid {
+    --ib-frozen-bg: var(--ib-card-bg, var(--ib-color-surface));
+  }
+
+  @media (min-width: 640px) {
+    .ib-datagrid .ib-table-grid .ib-frozen {
+      position: sticky;
+      z-index: 1;
+    }
+  }
+
+  .ib-datagrid .ib-frozen-start {
+    inset-inline-start: var(--ib-frozen-at, 0);
+  }
+
+  .ib-datagrid .ib-frozen-end {
+    inset-inline-end: var(--ib-frozen-at, 0);
+  }
+
+  .ib-datagrid .ib-table-grid .ib-frozen-start.ib-frozen-edge {
+    border-inline-end: 1px solid var(--ib-color-border);
+  }
+
+  .ib-datagrid .ib-table-grid .ib-frozen-end.ib-frozen-edge {
+    border-inline-start: 1px solid var(--ib-color-border);
+  }
+
+  .ib-table-sticky.ib-datagrid .ib-table-grid thead {
+    z-index: 2;
+  }
+
+  /* A footer stays in view with the header. */
+  .ib-table-sticky.ib-datagrid .ib-table-grid tfoot {
+    position: sticky;
+    bottom: 0;
+    z-index: 2;
+  }
+
+  .ib-table-sticky.ib-datagrid .ib-table-grid tfoot td {
+    background-color: var(--ib-frozen-bg);
+  }
+
+  .ib-table-sticky.ib-datagrid > .ib-table-scroll:has(tfoot) {
+    scroll-padding-block-end: var(--ib-table-head-h);
+  }
+
+  /* Too wide to leave room for the rows (the script measures): they scroll like the rest. */
+  .ib-datagrid .ib-table-grid[data-ib-unfrozen] .ib-frozen {
+    position: static;
+  }
+
   /* A narrow header: the title gives way, and the icon, its place and the filter button stay. */
   .ib-datagrid .ib-table-title {
     display: block;
@@ -840,6 +898,25 @@
   .ib-table-grid:dir(rtl) tbody tr:has(.ib-table-select:checked) > td:first-child,
   .ib-table-grid:dir(rtl) tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset -2px 0 0 var(--ib-color-primary);
+  }
+
+  /* Frozen cells are opaque, since rows scroll under them: a row's stripe, tint and hover go over the
+     surface as images. After the rules above, which they replace. */
+  .ib-datagrid.ib-table .ib-table-grid tr > :is(td, th).ib-frozen {
+    background-color: var(--ib-frozen-bg);
+    background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
+  }
+
+  .ib-table-striped.ib-datagrid .ib-table-grid tbody tr:nth-child(even) > .ib-frozen {
+    --ib-frozen-tint: var(--ib-table-stripe);
+  }
+
+  .ib-datagrid .ib-table-grid tbody tr:is(:has(.ib-table-select:checked), [aria-current], :has(> td > .ib-table-row-link[aria-current])) > .ib-frozen {
+    --ib-frozen-tint: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
+  }
+
+  .ib-datagrid .ib-table-grid tbody tr:hover > .ib-frozen {
+    --ib-frozen-hover: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   /* Linked rows: one link per row, stretched over it; controls inside stay above it. */

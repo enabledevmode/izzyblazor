@@ -16,13 +16,14 @@ public class DataGridRenderTests : BunitContext
 
     private BunitNavigationManager Nav => Services.GetRequiredService<BunitNavigationManager>();
 
-    private static RenderFragment Column<T>(Expression<Func<Row, T>> property, Length? width = null, Length? min = null) => builder =>
+    private static RenderFragment Column<T>(Expression<Func<Row, T>> property, Length? width = null, Length? min = null, ColumnFrozen frozen = ColumnFrozen.None) => builder =>
     {
         builder.OpenComponent<PropertyColumn<Row, T>>(0);
         builder.AddComponentParameter(1, "Property", property);
         builder.AddComponentParameter(2, "Sortable", true);
         builder.AddComponentParameter(3, "Width", width);
         builder.AddComponentParameter(4, "MinWidth", min);
+        builder.AddComponentParameter(5, "Frozen", frozen);
         builder.CloseComponent();
     };
 
@@ -85,6 +86,55 @@ public class DataGridRenderTests : BunitContext
         Assert.Contains("min-width:calc(var(--ib-datagrid-select) + 2 * max(12rem, 8rem))", cut.Find("table").GetAttribute("style"));
         Assert.Equal(3, cut.FindAll("col").Count);
         Assert.Equal("ib-datagrid-select-col", cut.FindAll("col")[0].ClassName);
+    }
+
+    [Fact]
+    public void Frozen_columns_are_placed_by_the_widths_before_them()
+    {
+        var cut = Grid(builder =>
+        {
+            builder.AddContent(0, Column(r => r.Name, Length.Rem(8), frozen: ColumnFrozen.Start));
+            builder.AddContent(1, Column(r => r.Qty, Length.Rem(4), frozen: ColumnFrozen.Start));
+            builder.AddContent(2, Column(r => r.Name.Length));
+            builder.AddContent(3, Column(r => r.Qty + 1, Length.Rem(5), frozen: ColumnFrozen.End));
+            builder.AddContent(4, Column(r => r.Qty + 2, Length.Rem(6), frozen: ColumnFrozen.End));
+        }, p => p.Add(x => x.SelectionMode, SelectionMode.Multiple));
+
+        var cells = cut.Find("tbody tr").Children;
+        Assert.Contains("ib-frozen-start", cells[0].ClassName);
+        Assert.Null(cells[0].GetAttribute("style"));
+        Assert.Equal("--ib-frozen-at:calc(var(--ib-datagrid-select))", cells[1].GetAttribute("style"));
+        Assert.DoesNotContain("ib-frozen-edge", cells[1].ClassName);
+        Assert.Equal("--ib-frozen-at:calc(var(--ib-datagrid-select) + var(--ib-col-0))", cells[2].GetAttribute("style"));
+        Assert.Contains("ib-frozen-edge", cells[2].ClassName);
+        Assert.DoesNotContain("ib-frozen", cells[3].ClassName ?? "");
+        Assert.Equal("--ib-frozen-at:calc(var(--ib-col-4))", cells[4].GetAttribute("style"));
+        Assert.Contains("ib-frozen-edge", cells[4].ClassName);
+        Assert.Null(cells[5].GetAttribute("style"));
+
+        var head = cut.Find("thead tr").Children;
+        Assert.Equal(cells[2].GetAttribute("style"), head[2].GetAttribute("style"));
+    }
+
+    [Fact]
+    public void Frozen_needs_a_width_and_its_place_and_a_grid()
+    {
+        Assert.Contains("Width", Assert.Throws<InvalidOperationException>(() => Grid(Column(r => r.Name, frozen: ColumnFrozen.Start))).Message);
+
+        // Declared after a column that scrolls, it's still drawn at its edge.
+        var cut = Grid(builder =>
+        {
+            builder.AddContent(0, Column(r => r.Name));
+            builder.AddContent(1, Column(r => r.Qty, Length.Rem(4), frozen: ColumnFrozen.Start));
+        });
+        Assert.Contains("ib-frozen-start", cut.Find("tbody tr").Children[0].ClassName);
+        Assert.Contains("--ib-col-0:4rem", cut.Find("table").GetAttribute("style"));
+
+        Assert.Contains("RowHref", Assert.Throws<InvalidOperationException>(() => Grid(Column(r => r.Name, Length.Rem(4), frozen: ColumnFrozen.Start), p => p.Add(x => x.RowHref, r => "/x"))).Message);
+
+        Assert.Contains("Frozen", Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
+            .Add(x => x.Items, Rows)
+            .Add(x => x.ChildContent, Column(r => r.Name, Length.Rem(4), frozen: ColumnFrozen.Start)))).Message);
     }
 
     [Fact]

@@ -1405,12 +1405,14 @@
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
+        { "feature": "Frozen columns" },
         { "feature": "Selected rows post with a form" },
         { "feature": "Shift+click sorts by several columns", "noscript": "none" },
         { "feature": "One Tab stop and arrow keys between cells, with selection keys", "noscript": "none" }
       ],
       "examples": [
         { "id": "data-grid-columns", "title": "Columns", "lead": "Give a column a `Width` to keep it, and the others share the rest down to their `MinWidth`, when the grid scrolls sideways. Shift+click a header to add it to the sort." },
+        { "id": "data-grid-frozen", "title": "Frozen columns", "lead": "Use `Frozen` to keep a column in view at the grid's start or end while the rest scroll sideways. It works with no script. A frozen column needs a `Width`, and is drawn at its edge wherever it's declared. On a phone they scroll like the rest." },
         { "id": "data-grid-cells", "title": "Controls in cells", "lead": "With script the grid is one Tab stop. Arrow keys land on a cell's one button, or on the cell when it holds several controls or a field: press Enter or F2 to go in, and Escape to come back." }
       ]
     },

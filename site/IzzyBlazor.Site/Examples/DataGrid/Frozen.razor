@@ -1,0 +1,16 @@
+@* Order and Customer stay at the start and Total at the end while the rest scroll sideways, with no
+   script. On a phone they'd leave too little room, so they scroll too. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders by column" Striped Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Frozen="ColumnFrozen.Start" />
+    <PropertyColumn Property="o => o.Customer" Width="12.Rem" Frozen="ColumnFrozen.Start" />
+    <PropertyColumn Property="o => o.Date" Title="Placed" Format="MMM d" Width="10.Rem" />
+    <PropertyColumn Property="o => o.Date" Title="Shipped" Format="yyyy-MM-dd" Width="10.Rem" SortKey="shipped" />
+    <PropertyColumn Property="o => o.Date" Title="Delivered" Format="yyyy-MM-dd" Width="10.Rem" SortKey="delivered" />
+    <TemplateColumn Title="Status" Width="10.Rem">
+        <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
+    </TemplateColumn>
+    <PropertyColumn Property="o => o.Date" Title="Invoiced" Format="yyyy-MM-dd" Width="10.Rem" SortKey="invoiced" />
+    <PropertyColumn Property="o => o.Date" Title="Paid" Format="yyyy-MM-dd" Width="10.Rem" SortKey="paid" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" Frozen="ColumnFrozen.End" />
+</DataGrid>
