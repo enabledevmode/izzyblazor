@@ -816,8 +816,18 @@
   }
 
   /* The search box gives way on a phone, rather than running under the tools at the end. */
-  .ib-grid-toolbar .ib-toolbar-start {
+  .ib-grid-toolbar .ib-toolbar-start,
+  .ib-grid-toolbar .ib-toolbar-end:has(input[type="search"]) {
     min-width: 0;
+  }
+
+  .ib-grid-toolbar .ib-toolbar-end:has(input[type="search"]) {
+    flex: 0 1 auto;
+  }
+
+  /* Only tools the grid hasn't turned on. */
+  .ib-grid-toolbar:not(:has(.ib-toolbar-unit)) {
+    display: none;
   }
 
   .ib-grid-toolbar .ib-toolbar-unit:has(input[type="search"]) {
@@ -879,7 +889,8 @@
   @media (scripting: none) {
     .ib-datagrid [data-ib-menu],
     .ib-col-resize,
-    .ib-col-picker {
+    .ib-grid-toolbar .ib-toolbar-unit:has(> .ib-col-picker),
+    .ib-grid-toolbar-picker-only {
       display: none;
     }
 

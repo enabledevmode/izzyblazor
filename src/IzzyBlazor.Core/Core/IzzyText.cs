@@ -90,6 +90,9 @@ public class IzzyText
     /// <summary>The name of a DataGrid's toolbar, after its caption: "Orders: Tools".</summary>
     public virtual string GridToolbar { get; set; } = "Tools";
 
+    /// <summary>A DataGrid's menu of export links.</summary>
+    public virtual string Export { get; set; } = "Export";
+
     /// <summary>A DataGrid's link to its rows as CSV.</summary>
     public virtual string ExportCsv { get; set; } = "Export CSV";
 

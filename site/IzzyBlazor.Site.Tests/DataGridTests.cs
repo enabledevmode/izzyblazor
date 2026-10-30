@@ -25,18 +25,20 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         using (playwright)
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").Last;
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to export" });
             await grid.ScrollIntoViewIfNeededAsync();
             var url = page.Url;
+            var menu = grid.GetByRole(AriaRole.Button, new() { Name = "Export" });
 
             // Sorted by total, highest first: the links follow.
             var total = grid.Locator("thead th", new() { HasText = "Total" }).Locator("a, button").First;
-            var csv = grid.Locator("a.ib-btn[download]", new() { HasText = "Export CSV" });
+            var csv = grid.Locator(".ib-toolbar-end > .ib-toolbar-unit a[download]", new() { HasText = "Export CSV" });
             await total.ClickAsync();
             await Expect(csv, "sort=total");
             await total.ClickAsync();
             await Expect(csv, "sort=-total");
 
+            await menu.ClickAsync();
             var download = await page.RunAndWaitForDownloadAsync(() => csv.ClickAsync());
             Assert.Equal("orders.csv", download.SuggestedFilename);
             var text = await File.ReadAllTextAsync((await download.PathAsync())!);
@@ -46,7 +48,8 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             var totals = lines.Skip(1).Select(l => decimal.Parse(l.Split(',')[^1].Trim('"'), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.CurrentCulture)).ToList();
             Assert.Equal(totals.OrderDescending(), totals);
 
-            var excel = grid.Locator("a.ib-btn[download]", new() { HasText = "Export Excel" });
+            var excel = grid.Locator(".ib-toolbar-end > .ib-toolbar-unit a[download]", new() { HasText = "Export Excel" });
+            if (!await excel.IsVisibleAsync()) await menu.ClickAsync();
             download = await page.RunAndWaitForDownloadAsync(() => excel.ClickAsync());
             Assert.Equal("orders.xlsx", download.SuggestedFilename);
             using var zip = System.IO.Compression.ZipFile.OpenRead((await download.PathAsync())!);
@@ -55,6 +58,58 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             // Still on the page, its grid intact.
             Assert.StartsWith(url.Split('?')[0], page.Url);
             Assert.True(await grid.IsVisibleAsync());
+        }
+    }
+
+    [Fact]
+    public async Task The_grids_tools_go_where_theyre_written_with_no_script_too()
+    {
+        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
+        using var playwright = await Playwright.CreateAsync();
+        await using var browser = await playwright.Chromium.LaunchAsync();
+        foreach (var script in new[] { true, false })
+        {
+            var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, ViewportSize = new() { Width = 1400, Height = 900 } });
+            var page = await context.NewPageAsync();
+            await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with placed tools" });
+
+            // In the order written, one of each.
+            var start = grid.Locator(".ib-toolbar-start > .ib-toolbar-unit");
+            Assert.Equal(2, await start.CountAsync());
+            Assert.Contains("Add order", await start.Nth(0).TextContentAsync());
+            Assert.Equal(1, await start.Nth(1).Locator("input[type=search]").CountAsync());
+            var end = grid.Locator(".ib-toolbar-end > .ib-toolbar-unit");
+            Assert.Equal(3, await end.CountAsync());
+            Assert.Equal(1, await end.Nth(0).Locator(".ib-col-picker").CountAsync());
+            Assert.Equal("Help", await end.Nth(1).Locator("button").GetAttributeAsync("aria-label"));
+            Assert.Contains("Export", await end.Nth(2).TextContentAsync());
+
+            // Icons alone unless told otherwise, named all the same.
+            var picker = end.Nth(0).Locator("button").First;
+            Assert.Equal("Columns", await picker.GetAttributeAsync("aria-label"));
+            Assert.Equal("Columns", await picker.GetAttributeAsync("title"));
+            // Its checkboxes need script, so with none it isn't offered, like the resize handles.
+            Assert.Equal(script, await picker.IsVisibleAsync());
+            if (!script) Assert.Equal("none", await page.Locator(".ib-col-resize").First.EvaluateAsync<string>("e => getComputedStyle(e).display"));
+
+            // The menu of links opens and downloads with no script.
+            await end.Nth(2).Locator("button").ClickAsync();
+            var csv = end.Nth(2).Locator("a[download]", new() { HasText = "Export CSV" });
+            await csv.WaitForAsync();
+            var download = await page.RunAndWaitForDownloadAsync(() => csv.ClickAsync());
+            Assert.Equal("orders.csv", download.SuggestedFilename);
+
+            // A toolbar with nothing in it takes no room.
+            Assert.Equal("none", await page.EvaluateAsync<string>("""
+                () => {
+                  const empty = document.createElement('div');
+                  empty.className = 'ib-grid-toolbar';
+                  document.body.append(empty);
+                  return getComputedStyle(empty).display;
+                }
+                """));
+            await context.CloseAsync();
         }
     }
 

@@ -2,6 +2,7 @@
 @typeparam TItem
 @attribute [CascadingTypeParameter(nameof(TItem))]
 @inherits TableViewBase<TItem>
+@implements IDataGridToolbar
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort; filters apply when you press Apply.")]
@@ -36,7 +37,8 @@
     need somewhere to keep the result: a LayoutKey, or Layout with a LayoutSaveUrl.
 
     A toolbar above the grid holds ToolbarContent (Toolbar's items), the search box with Searchable,
-    and the Columns button. While rows are selected, the selection bar takes its place. Searchable
+    export and the Columns button, which show their icons alone unless ToolbarLabels is set. Write
+    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the selection bar takes its place. Searchable
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
@@ -69,6 +71,8 @@
     - Sortable headers are links, and the first sorted column has `aria-sort`. With several sorted,
       each says its place and direction ("Sort 2, descending").
     - Row checkboxes and filter buttons are named as in a Table.
+    - The toolbar is one Tab stop with script, with arrow keys between its controls. The tools that
+      show only an icon are named for what they do, and have that as a hover tooltip.
     See also: Table.
 *@
 
@@ -132,14 +136,20 @@
     public bool ColumnPicker { get; set; }
 
     /// <summary>
-    /// A link in the toolbar to an endpoint that writes the rows as CSV with <c>DataExport</c>. It adds
+    /// Text beside the icons of the toolbar's own tools, for a grid people use now and then. Without it
+    /// they're icons with a tooltip, for one used all day. A tool's own <c>ShowText</c> goes first.
+    /// </summary>
+    [Parameter] public bool ToolbarLabels { get; set; }
+
+    /// <summary>
+    /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>. It adds
     /// the current <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address. The
     /// endpoint's fields need the grid's keys for the file to match the screen.
     /// </summary>
     [Parameter] public string? ExportCsvHref { get; set; }
 
     /// <summary>
-    /// A link in the toolbar to an endpoint that writes the rows as an Excel workbook with
+    /// A link in the toolbar, in a menu with <see cref="ExportCsvHref"/>, to an endpoint that writes the rows as an Excel workbook with
     /// <c>DataExport</c>. It adds the current <c>filter</c>, <c>sort</c>, <c>search</c> and
     /// <c>columns</c> to the address. The endpoint's fields need the grid's keys for the file to match
     /// the screen.
@@ -156,7 +166,10 @@
 
     /// <summary>
     /// The page's own controls in the toolbar above the grid: <c>ToolbarButton</c>,
-    /// <c>ToolbarMenu</c> and the like. While rows are selected, the selection bar takes its place.
+    /// <c>ToolbarMenu</c> and the like. Write <see cref="DataGridSearch"/>, <see cref="DataGridExport"/> or
+    /// <see cref="DataGridColumnPicker"/> here to place the grid's own among them. While rows are selected,
+    /// the selection bar takes its place. The grid reads this once more on each render, to see which of
+    /// its tools are here, so nothing in it should count or consume anything.
     /// </summary>
     [Parameter] public RenderFragment? ToolbarContent { get; set; }
 
@@ -474,6 +487,133 @@
         </td>
     };
 
+    private bool HasSearchTool => Searchable;
+
+    private bool HasExportTool => ExportCsvHref is not null || ExportExcelHref is not null;
+
+    bool IDataGridToolbar.HasSearch => HasSearchTool;
+
+    bool IDataGridToolbar.HasColumnPicker => HasPicker;
+
+    bool IDataGridToolbar.HasExport => HasExportTool;
+
+    bool IDataGridToolbar.ToolbarLabels => ToolbarLabels;
+
+    string IDataGridToolbar.ColumnPickerLabel => TextDefaults.ColumnPicker;
+
+    string IDataGridToolbar.ExportLabel => ExportCsvHref is null ? TextDefaults.ExportExcel : ExportExcelHref is null ? TextDefaults.ExportCsv : TextDefaults.Export;
+
+    RenderFragment IDataGridToolbar.SearchBar => __builder =>
+    {
+        <div class="ib-toolbar-item" style="width:14rem">
+            <div class="ib-field ib-field-sm">
+                <div class="ib-field-control">
+                    @if (UseState)
+                    {
+                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@_searchShown" autocomplete="off" data-ib-bound-search @oninput="OnSearchAsync" />
+                    }
+                    else
+                    {
+                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@CurrentSearch" autocomplete="off" name="@SearchKey" form="@FilterFormId" data-ib-filter />
+                    }
+                </div>
+            </div>
+        </div>
+    };
+
+    RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
+    {
+        <div class="ib-toolbar-item ib-col-picker">
+            <Popover Placement="Placement.BottomEnd" data-ib-user-controlled>
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconRole.Columns)" @attributes="context">@TextDefaults.ColumnPicker</Button>
+                    }
+                    else
+                    {
+                        <IconButton Icon="IconSet.Current.Get(IconRole.Columns)" Label="@TextDefaults.ColumnPicker" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>
+                    <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
+                    @foreach (var column in Columns.Where(c => c.Pickable))
+                    {
+                        var key = KeyOf(column);
+                        var shown = Shown.Contains(column);
+                        var zoneOf = Shown.Where(c => FrozenOf(c) == FrozenOf(column) && CanMove(c)).ToList();
+                        <li>
+                            <label>
+                                <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
+                                @column.HeaderText
+                            </label>
+                            @if (ReorderableColumns)
+                            {
+                                @* Always drawn, so the row keeps its width when a column is hidden. *@
+                                var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
+                                <span class="ib-col-picker-move">
+                                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><span aria-hidden="true">↑</span></button>
+                                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><span aria-hidden="true">↓</span></button>
+                                </span>
+                            }
+                        </li>
+                    }
+                    </ul>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
+                </ChildContent>
+            </Popover>
+        </div>
+    };
+
+    RenderFragment IDataGridToolbar.ExportBar(bool showText) => __builder =>
+    {
+        // Its links can be cleared before the item has left.
+        if (!HasExportTool)
+        {
+            return;
+        }
+
+        var label = ((IDataGridToolbar)this).ExportLabel;
+        var icon = IconSet.Current.Get(IconRole.Export);
+        if (ExportCsvHref is not null && ExportExcelHref is not null)
+        {
+            <Menu Placement="Placement.BottomEnd">
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button StartIcon="icon" Disabled="@(_loadedRequest is null)" @attributes="context">@label</Button>
+                    }
+                    else
+                    {
+                        <IconButton Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>@(((IDataGridToolbar)this).ExportMenu)</ChildContent>
+            </Menu>
+        }
+        else if (showText)
+        {
+            <Button Href="@ExportHref((ExportCsvHref ?? ExportExcelHref)!)" StartIcon="icon" Disabled="@(_loadedRequest is null)" download>@label</Button>
+        }
+        else
+        {
+            <IconButton Href="@ExportHref((ExportCsvHref ?? ExportExcelHref)!)" Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" download />
+        }
+    };
+
+    RenderFragment IDataGridToolbar.ExportMenu => __builder =>
+    {
+        if (ExportCsvHref is not null)
+        {
+            <MenuItem Href="@ExportHref(ExportCsvHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportCsv</MenuItem>
+        }
+
+        if (ExportExcelHref is not null)
+        {
+            <MenuItem Href="@ExportHref(ExportExcelHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportExcel</MenuItem>
+        }
+    };
+
     // Everything that matches what's on screen, not its page, in the columns on screen.
     private string ExportHref(string href)
     {
@@ -493,73 +633,28 @@
             <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
         }
 
-        if (ToolbarContent is not null || Searchable || HasPicker || ExportCsvHref is not null || ExportExcelHref is not null)
+        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool)
         {
-            <div class="ib-grid-toolbar">
-                <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
-                    @if (Searchable)
-                    {
-                        <ToolbarItem Width="Length.Rem(14)" Overflow="ToolbarOverflow.Never">
-                            <div class="ib-field ib-field-sm">
-                                <div class="ib-field-control">
-                                    @if (UseState)
-                                    {
-                                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@_searchShown" autocomplete="off" data-ib-bound-search @oninput="OnSearchAsync" />
-                                    }
-                                    else
-                                    {
-                                        <input type="search" class="ib-field-input" aria-label="@(SearchLabel ?? TextDefaults.Search)" placeholder="@(SearchLabel ?? TextDefaults.Search)" value="@CurrentSearch" autocomplete="off" name="@SearchKey" form="@FilterFormId" data-ib-filter />
-                                    }
-                                </div>
-                            </div>
-                        </ToolbarItem>
-                    }
-                    @ToolbarContent
-                    @if (ExportCsvHref is not null)
-                    {
-                        <ToolbarButton Href="@ExportHref(ExportCsvHref)" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportCsv</ToolbarButton>
-                    }
-                    @if (ExportExcelHref is not null)
-                    {
-                        <ToolbarButton Href="@ExportHref(ExportExcelHref)" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportExcel</ToolbarButton>
-                    }
-                    @if (HasPicker)
-                    {
-                        <ToolbarItem Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Never" Width="Length.Rem(6)" Class="ib-col-picker">
-                <Popover Placement="Placement.BottomEnd" data-ib-user-controlled>
-                    <Trigger>
-                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm" @attributes="context">@TextDefaults.ColumnPicker</button>
-                    </Trigger>
-                    <ChildContent>
-                        <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
-                            @foreach (var column in Columns.Where(c => c.Pickable))
-                            {
-                                var key = KeyOf(column);
-                                var shown = Shown.Contains(column);
-                                var zoneOf = Shown.Where(c => FrozenOf(c) == FrozenOf(column) && CanMove(c)).ToList();
-                                <li>
-                                    <label>
-                                        <input type="checkbox" class="ib-check-input" data-ib-col-show="@key" checked="@shown" disabled="@(shown && Shown.Count <= 1)" />
-                                        @column.HeaderText
-                                    </label>
-                                    @if (ReorderableColumns)
-                                    {
-                                        @* Always drawn, so the row keeps its width when a column is hidden. *@
-                                        var at = shown && CanMove(column) ? zoneOf.IndexOf(column) : -1;
-                                        <span class="ib-col-picker-move">
-                                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at <= 0)" data-ib-col-action="left" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveStart}: {column.HeaderText}")"><span aria-hidden="true">↑</span></button>
-                                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" disabled="@(at < 0 || at >= zoneOf.Count - 1)" data-ib-col-action="right" data-ib-col="@key" aria-label="@($"{TextDefaults.ColumnMoveEnd}: {column.HeaderText}")"><span aria-hidden="true">↓</span></button>
-                                        </span>
-                                    }
-                                </li>
-                            }
-                        </ul>
-                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-col-action="reset">@TextDefaults.ColumnsReset</button>
-                    </ChildContent>
-                </Popover>
-                        </ToolbarItem>
-                    }
-                </Toolbar>
+            var placed = DataGridToolbarItem.Placed(ToolbarContent);
+            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool ? "ib-grid-toolbar-picker-only" : null)">
+                @* Around the toolbar, not inside it: its items keep the order they join in, and a wrapper would delay these. *@
+                <CascadingValue TValue="IDataGridToolbar" Value="this">
+                    <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
+                        @if (!placed.Contains(typeof(DataGridSearch)))
+                        {
+                            <DataGridSearch />
+                        }
+                        @ToolbarContent
+                        @if (!placed.Contains(typeof(DataGridExport)))
+                        {
+                            <DataGridExport />
+                        }
+                        @if (!placed.Contains(typeof(DataGridColumnPicker)))
+                        {
+                            <DataGridColumnPicker />
+                        }
+                    </Toolbar>
+                </CascadingValue>
             </div>
         }
     };

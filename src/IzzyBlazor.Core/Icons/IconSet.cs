@@ -42,6 +42,12 @@ public enum IconRole
     /// <summary>A DataGrid header's menu button.</summary>
     MoreVertical,
 
+    /// <summary>A DataGrid's export.</summary>
+    Export,
+
+    /// <summary>A DataGrid's column picker.</summary>
+    Columns,
+
     /// <summary>Informational message.</summary>
     Info,
 
@@ -145,6 +151,8 @@ public class IconSet
         IconRole.Search => IzzyBlazor.Lucide.Search,
         IconRole.MoreHorizontal => IzzyBlazor.Lucide.Ellipsis,
         IconRole.MoreVertical => IzzyBlazor.Lucide.EllipsisVertical,
+        IconRole.Export => IzzyBlazor.Lucide.Download,
+        IconRole.Columns => IzzyBlazor.Lucide.Columns3,
         IconRole.Info => IzzyBlazor.Lucide.Info,
         IconRole.Success => IzzyBlazor.Lucide.CircleCheck,
         IconRole.Warning => IzzyBlazor.Lucide.TriangleAlert,
