@@ -82,6 +82,11 @@ export const izzyEvents: IzzyEventDefinition[] = [
     },
   },
   {
+    // A DataGrid's columns were rearranged (elements/grid-columns.ts).
+    name: "iblayout",
+    createEventArgs: (event) => ({ layout: (event as CustomEvent<{ layout: string }>).detail?.layout ?? "" }),
+  },
+  {
     // ColorSchemeSwitch reports the user's choice for @bind-Value.
     name: "ibscheme",
     createEventArgs: (event) => ({ scheme: (event as CustomEvent<{ scheme: string }>).detail?.scheme ?? null }),
@@ -125,7 +130,7 @@ export function afterWebStarted(blazor: BlazorLike): void {
     measureScrollbar();
     // Enhanced navigation can keep an element in place whose code failed to load: try again.
     loadElementsIn();
-    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-grid, ib-listview, ib-popover, ib-dialog, ib-banner, ib-on-this-page, ib-toolbar");
+    reconnect("ib-field-control, ib-file-upload, ib-tooltip, ib-combobox, ib-table, ib-grid, ib-grid-columns, ib-listview, ib-popover, ib-dialog, ib-banner, ib-on-this-page, ib-toolbar");
   });
 }
 

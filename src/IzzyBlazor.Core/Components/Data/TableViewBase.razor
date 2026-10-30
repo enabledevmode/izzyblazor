@@ -49,6 +49,7 @@
                     }
                 </div>
             }
+            @AboveGrid
             @SelectionBar
             @ErrorStatus
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
@@ -75,19 +76,24 @@
                             @{ var headerFilters = HasFilters ? CurrentFilters() : null; }
                             @foreach (var column in Shown)
                             {
-                                <th scope="col" class="@CellClass(column)" style="@HeaderStyle(column)" aria-sort="@AriaSort(column)">
-                                    @if (headerFilters is not null && column.CanFilter)
+                                <th scope="col" class="@CellClass(column)" style="@HeaderStyle(column)" aria-sort="@AriaSort(column)" @attributes="HeaderAttributes(column)">
+                                    @if ((headerFilters is not null && column.CanFilter) || HasHeaderMenu(column))
                                     {
                                         @* The title (or sort control) and a filter button that opens the filter. *@
                                         <div class="ib-table-head">
                                             @HeaderTitle(column)
-                                            @HeaderFilter(column, headerFilters.GetValueOrDefault(column.Key!) ?? "")
+                                            @if (headerFilters is not null && column.CanFilter)
+                                            {
+                                                @HeaderFilter(column, headerFilters.GetValueOrDefault(column.Key!) ?? "")
+                                            }
+                                            @HeaderMenu(column)
                                         </div>
                                     }
                                     else
                                     {
                                         @HeaderTitle(column)
                                     }
+                                    @HeaderHandle(column)
                                 </th>
                             }
                         </tr>
@@ -1023,6 +1029,21 @@
 
     /// <summary>A style for a column's header cell.</summary>
     internal virtual string? HeaderStyle(ColumnBase<TItem> column) => WidthStyle(column);
+
+    /// <summary>Above the grid and its selection bar.</summary>
+    internal virtual RenderFragment? AboveGrid => null;
+
+    /// <summary>Attributes for a column's header cell.</summary>
+    internal virtual IReadOnlyDictionary<string, object>? HeaderAttributes(ColumnBase<TItem> column) => null;
+
+    /// <summary>Whether a column's header has a menu of its own.</summary>
+    internal virtual bool HasHeaderMenu(ColumnBase<TItem> column) => false;
+
+    /// <summary>A column's own menu, in its header.</summary>
+    internal virtual RenderFragment? HeaderMenu(ColumnBase<TItem> column) => null;
+
+    /// <summary>A column's resize handle, in its header.</summary>
+    internal virtual RenderFragment? HeaderHandle(ColumnBase<TItem> column) => null;
 
     /// <summary>The columns as registered, shown or not.</summary>
     internal IReadOnlyList<ColumnBase<TItem>> Columns => _columns;

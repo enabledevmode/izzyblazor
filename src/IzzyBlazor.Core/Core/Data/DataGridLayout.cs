@@ -42,7 +42,7 @@ public sealed partial record DataGridLayout
             var layout = JsonSerializer.Deserialize(json, PersistedStateJson.Default.DataGridLayout);
             return layout is null ? null : new DataGridLayout
             {
-                Columns = layout.Columns.Where(c => !string.IsNullOrEmpty(c.Key)).Take(MaxColumns).Select(Clean).ToList(),
+                Columns = (layout.Columns ?? []).Where(c => !string.IsNullOrEmpty(c?.Key)).Take(MaxColumns).Select(Clean).ToList(),
             };
         }
         catch (JsonException)
@@ -53,11 +53,11 @@ public sealed partial record DataGridLayout
 
     private static DataGridColumnLayout Clean(DataGridColumnLayout column) => column with
     {
-        Width = column.Width is { } width && SafeWidth().IsMatch(width) && double.Parse(SafeWidth().Match(width).Groups[1].Value, CultureInfo.InvariantCulture) > 0 ? width : null,
+        Width = column.Width is { } width && SafeWidth().Match(width) is { Success: true } match && double.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) > 0 ? width : null,
         Frozen = column.Frozen is { } frozen && Enum.IsDefined(frozen) ? frozen : null,
     };
 
-    [GeneratedRegex(@"^(\d{1,5}(?:\.\d{1,3})?)(?:px|rem)$", RegexOptions.CultureInvariant)]
+    [GeneratedRegex(@"^([0-9]{1,5}(?:\.[0-9]{1,3})?)(?:px|rem)\z", RegexOptions.CultureInvariant)]
     private static partial Regex SafeWidth();
 }
 

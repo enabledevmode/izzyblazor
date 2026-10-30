@@ -697,7 +697,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     private ILogger? _logger;
 
-    private ILogger? Logger => _logger ??= Services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
+    internal ILogger? Logger => _logger ??= Services.GetService<ILoggerFactory>()?.CreateLogger(GetType());
 
     // Retry after a failed load: loads again; when the items come, focus goes to them (the Retry
     // button it was on is gone).
