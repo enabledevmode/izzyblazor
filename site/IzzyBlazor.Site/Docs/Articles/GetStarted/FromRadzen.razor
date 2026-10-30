@@ -93,6 +93,13 @@
                 ignores case. There's no filter row and no choice of operator.
             </ListItem>
             <ListItem>
+                <strong>Selection is a checkbox column, kept by key.</strong> Each row has a checkbox (a radio button for
+                <Code>Single</Code>) rather than selecting on a row click, and the table keeps the rows' <Code>ItemKey</Code>,
+                not the items, so a selection survives paging and reloading. While rows are selected, a bar above them
+                counts them and holds your <Code>SelectionActions</Code>; after the page is selected it offers every row the
+                filters match. In a form the selection posts, so a bulk action is a submit button. Shift-click selects a range.
+            </ListItem>
+            <ListItem>
                 <strong>Columns opt in.</strong> Radzen sorts and filters every column unless told not to; a
                 <Code>Table</Code> column sorts or filters only with <Code>Sortable</Code> or <Code>Filterable</Code>.
             </ListItem>
@@ -402,6 +409,9 @@
         Map("`AllowPaging`, `PageSize=\"50\"`", "`PageSize=\"50\"`"),
         Map("`Width=\"200px\"`", "`Width=\"Length.Px(200)\"`"),
         Map("`TextAlign=\"TextAlign.End\"`", "`Align=\"CellAlign.End\"`"),
+        Map("`SelectionMode=\"DataGridSelectionMode.Multiple\"`", "`SelectionMode=\"SelectionMode.Multiple\"` (with `ItemKey`)"),
+        Map("`@bind-Value` (the selected items)", "`@bind-Selection` (their keys, or all matching); `Apply` gives the items"),
+        Map("`RowSelect`, `RowDeselect`", "`SelectionChanged`"),
     ];
 
     private static readonly Mapping[] DialogRenames =
