@@ -15,6 +15,12 @@
                 @ChildContent
                 @ColumnsReadyNotifier
             </CascadingValue>
+            @AboveGrid
+            @* A grid's bar takes the toolbar's place, so it comes before the filter tags. *@
+            @if (GridColumns)
+            {
+                @SelectionBar
+            }
             @if (HasFilters)
             {
                 var active = CurrentFilters();
@@ -49,8 +55,10 @@
                     }
                 </div>
             }
-            @AboveGrid
-            @SelectionBar
+            @if (!GridColumns)
+            {
+                @SelectionBar
+            }
             @ErrorStatus
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
                 <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)">
@@ -200,7 +208,7 @@
                 @* Loading on scroll: the keyboard's way on, under the last row, inside the scroll box. *@
                 @MoreRow
             </div>
-            @if (HasFilters && !StateLayout)
+            @if (NeedsFilterForm && !StateLayout)
             {
                 @* The filters' GET form. Its fields join it through form="", not by nesting, so a table
                    inside another form (a selection form) still works: if the browser drops this nested
@@ -333,7 +341,13 @@
 
     internal bool HasFilters => _columns.Any(c => c.CanFilter);
 
-    private string FilterFormId => _filterFormId ??= IdGenerator.Next("ib-table-filters");
+    /// <summary>Whether anything posts through the filters' GET form.</summary>
+    internal virtual bool NeedsFilterForm => HasFilters;
+
+    /// <summary>The URL keys of the view's own fields in that form, beyond the columns'.</summary>
+    internal virtual IEnumerable<string> ExtraFilterKeys => [];
+
+    internal string FilterFormId => _filterFormId ??= IdGenerator.Next("ib-table-filters");
 
     private string FilterQueryKey(ColumnBase<TItem> column) => $"{QueryPrefix}f-{column.Key}";
 
@@ -502,7 +516,8 @@
     // filters and page (a new filter starts at page 1).
     private IEnumerable<(string Key, string Value)> KeptQuery()
     {
-        var own = _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        // Not a menu's: it has no field in the form, so it's kept like the rest of the address.
+        var own = _columns.Where(c => c.CanFilter && c.FilterKind != ColumnFilterKind.Choice).SelectMany(FilterQueryKeys).Concat(ExtraFilterKeys).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return QueryString.Of(Navigation.Uri)
             .Where(q => !own.Contains(q.Key))
             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));

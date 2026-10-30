@@ -84,6 +84,9 @@ public class IzzyText
     /// <summary>Said when a DataGrid column is resized: "Customer: 180 pixels". {0} is its title, {1} its width.</summary>
     public virtual string ColumnWidth { get; set; } = "{0}: {1} pixels";
 
+    /// <summary>The name of a DataGrid's toolbar, after its caption: "Orders: Tools".</summary>
+    public virtual string GridToolbar { get; set; } = "Tools";
+
     /// <summary>A DataGrid's column picker button.</summary>
     public virtual string ColumnPicker { get; set; } = "Columns";
 

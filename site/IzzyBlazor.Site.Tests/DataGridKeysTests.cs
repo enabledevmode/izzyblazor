@@ -183,7 +183,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         using (playwright)
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").Nth(3);
+            var grid = page.Locator(".ib-datagrid").Nth(4);
             var stops = () => grid.EvaluateAsync<int>("g => [...g.querySelector('.ib-table-scroll').querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
             Task<bool> Focused(string selector) => grid.Locator(selector).First.EvaluateAsync<bool>("e => e === document.activeElement || e.contains(document.activeElement)");
             await grid.Locator("tbody tr").First.Locator("td").Nth(4).FocusAsync();

@@ -1,0 +1,15 @@
+@* Your own buttons above the grid, and a search box whose words are in the address. Select a row and
+   the selection bar takes the toolbar's place. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" Caption="Orders with tools" SelectionMode="SelectionMode.Multiple" Searchable QueryPrefix="tools-" SelectionName="tools" Grow>
+    <ToolbarContent>
+        <ToolbarButton StartIcon="Lucide.Plus" Position="ToolbarPosition.End" Variant="ButtonVariant.Outline">New order</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Download" Position="ToolbarPosition.End">Export</ToolbarButton>
+    </ToolbarContent>
+    <ChildContent>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" Sortable />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Width="8.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+    </ChildContent>
+</DataGrid>

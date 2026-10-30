@@ -155,6 +155,84 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         }
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Search_filters_as_you_type_and_the_selection_bar_takes_the_toolbars_place(string mode)
+    {
+        var (playwright, browser, page, _) = await OpenAsync(mode);
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Export" });
+            var toolbar = grid.Locator(".ib-grid-toolbar");
+            await toolbar.ScrollIntoViewIfNeededAsync();
+            var box = grid.GetByRole(AriaRole.Searchbox);
+            await box.FillAsync("ada");
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'ada'");
+            await page.WaitForFunctionAsync("() => [...document.querySelectorAll('.ib-datagrid')].find(g => g.textContent.includes('Export')).querySelectorAll('tbody tr').length === 3");
+            Assert.Equal("ada", await box.InputValueAsync());
+
+            var top = await grid.Locator("table").EvaluateAsync<double>("t => t.getBoundingClientRect().top");
+            await grid.Locator("tbody .ib-table-select").First.CheckAsync();
+            await grid.Locator(".ib-selection-bar:not([hidden])").WaitForAsync();
+            Assert.False(await toolbar.IsVisibleAsync());
+            Assert.Equal(top, await grid.Locator("table").EvaluateAsync<double>("t => t.getBoundingClientRect().top"), 1);
+            await grid.Locator(".ib-selection-clear").ClickAsync();
+            await toolbar.WaitForAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task The_last_key_always_applies_and_back_follows_the_address(string mode)
+    {
+        var (playwright, browser, page, _) = await OpenAsync(mode);
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Export" });
+            var box = grid.GetByRole(AriaRole.Searchbox);
+            await box.ClickAsync();
+            // Near the pause that applies a search, so a key lands while the last one's page is on its way.
+            foreach (var key in "alax")
+            {
+                await page.Keyboard.PressAsync(key.ToString());
+                await page.WaitForTimeoutAsync(347);
+            }
+
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'alax'");
+            await grid.GetByText("No items").WaitForAsync();
+
+            await box.FillAsync("ada");
+            await page.Keyboard.PressAsync("Enter");
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'ada'");
+            await page.GoBackAsync();
+            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') !== 'ada'");
+            await page.WaitForFunctionAsync("() => { const v = new URLSearchParams(location.search).get('tools-search') ?? ''; return [...document.querySelectorAll('input[type=search]')].some(i => i.name === 'tools-search' && i.value === v); }");
+        }
+    }
+
+    [Fact]
+    public async Task At_phone_width_the_search_box_stops_short_of_the_tools()
+    {
+        var (playwright, browser, page, _) = await OpenAsync("static");
+        using (playwright)
+        await using (browser)
+        {
+            foreach (var width in new[] { 390, 320 })
+            {
+                await page.SetViewportSizeAsync(width, 800);
+                await page.WaitForTimeoutAsync(400);
+                var grid = page.Locator(".ib-datagrid", new() { HasText = "Export" });
+                var search = await grid.GetByRole(AriaRole.Searchbox).BoundingBoxAsync();
+                var end = await grid.Locator(".ib-toolbar-end").BoundingBoxAsync();
+                Assert.True(search!.X + search.Width <= end!.X + 1, $"{width}: the box ends at {search.X + search.Width}, the tools start at {end.X}");
+            }
+        }
+    }
+
     [Fact]
     public async Task A_bad_cookie_is_ignored_and_tools_sit_at_the_far_edge()
     {
