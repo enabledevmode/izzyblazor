@@ -1407,6 +1407,7 @@
         { "feature": "Column widths and sideways scrolling, set by the server" },
         { "feature": "Frozen columns" },
         { "feature": "A toolbar with search in the address" },
+        { "feature": "Row menus (right-click, long press and keys open them too)", "member": "RowMenu" },
         { "feature": "Resizing, moving and hiding columns, kept per person", "member": "ResizableColumns" },
         { "feature": "Selected rows post with a form" },
         { "feature": "Shift+click sorts by several columns", "noscript": "none" },
@@ -1417,6 +1418,7 @@
         { "id": "data-grid-arrange", "title": "Rearranging columns", "lead": "`ResizableColumns`, `ReorderableColumns` and `ColumnPicker` let people change the columns. A `LayoutKey` keeps what they chose in a cookie, per person and per page, and the server draws it on the first paint. Drag a handle or a header, or use the keys and the ⋮ menu in each header." },
         { "id": "data-grid-frozen", "title": "Frozen columns", "lead": "Use `Frozen` to keep a column in view at the grid's start or end while the rest scroll sideways. It works with no script. A frozen column needs a `Width`, and is drawn at its edge wherever it's declared. On a phone they scroll like the rest." },
         { "id": "data-grid-toolbar", "title": "Toolbar and search", "lead": "`ToolbarContent` puts your own `ToolbarButton`s above the grid, and `Searchable` adds a search box across the text columns, with the words in the address. While rows are selected, the selection bar takes the toolbar's place." },
+        { "id": "data-grid-row-menu", "title": "Row menus", "lead": "`RowMenu` gives each row a ⋮ menu of `MenuItem`s, and with script a right-click, a long press, Shift+F10 or the menu key open the same menu. It acts on the row it opened on, whatever is selected. A right-click on a link keeps the browser's menu." },
         { "id": "data-grid-cells", "title": "Controls in cells", "lead": "Tab moves into the grid once, and arrow keys move between its cells. A cell with one button or link focuses it directly, so Enter uses it. In a cell with several controls or a field, press Enter to go in and Escape to come back." }
       ]
     },

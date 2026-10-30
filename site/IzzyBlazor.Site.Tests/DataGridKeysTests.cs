@@ -183,7 +183,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         using (playwright)
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").Nth(4);
+            var grid = page.Locator(".ib-datagrid").Nth(5);
             var stops = () => grid.EvaluateAsync<int>("g => [...g.querySelector('.ib-table-scroll').querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
             Task<bool> Focused(string selector) => grid.Locator(selector).First.EvaluateAsync<bool>("e => e === document.activeElement || e.contains(document.activeElement)");
             await grid.Locator("tbody tr").First.Locator("td").Nth(4).FocusAsync();
@@ -263,6 +263,80 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
             Assert.Equal("true", await grid.Locator("tbody tr").Nth(2).GetAttributeAsync("aria-selected"));
             await grid.Locator(".ib-selection-clear").ClickAsync();
             await page.WaitForFunctionAsync("() => [...document.querySelector('.ib-datagrid').querySelectorAll('tbody tr')].every(r => r.getAttribute('aria-selected') === 'false') || false");
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_rows_menu_opens_by_button_right_click_and_keys_and_links_keep_the_browsers(string mode)
+    {
+        var (playwright, browser, page) = await OpenAsync(mode);
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
+            await grid.ScrollIntoViewIfNeededAsync();
+            var row = grid.Locator("tbody tr").Nth(1);
+            var open = grid.Locator("[popover]:popover-open");
+
+            // Right-click at the pointer: the row's own menu, there.
+            var cell = await row.Locator("td").Nth(1).BoundingBoxAsync();
+            await page.Mouse.ClickAsync(cell!.X + 10, cell.Y + 10, new() { Button = MouseButton.Right });
+            await open.WaitForAsync();
+            Assert.Contains(await row.Locator("td").First.TextContentAsync() ?? "x", await open.TextContentAsync());
+            var box = await open.BoundingBoxAsync();
+            Assert.Equal(cell.X + 10, box!.X, 2);
+            Assert.Equal(cell.Y + 10, box.Y, 2);
+            await page.Keyboard.PressAsync("Escape");
+            await open.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+            // From the keys, on a cell of text.
+            await row.Locator("td").Nth(1).FocusAsync();
+            await page.Keyboard.PressAsync("Shift+F10");
+            await open.WaitForAsync();
+            await page.Keyboard.PressAsync("Escape");
+            await open.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+            // A long press opens it as the finger lifts, and only that click is swallowed.
+            await row.Locator("td").Nth(1).EvaluateAsync("""
+                c => new Promise(done => {
+                  const r = c.getBoundingClientRect();
+                  const init = { bubbles: true, pointerType: 'touch', isPrimary: true, clientX: r.left + 5, clientY: r.top + 5 };
+                  c.dispatchEvent(new PointerEvent('pointerdown', init));
+                  setTimeout(() => { c.dispatchEvent(new PointerEvent('pointerup', init)); done(); }, 600);
+                })
+                """);
+            await open.WaitForAsync();
+            await page.WaitForTimeoutAsync(400);
+            Assert.True(await open.IsVisibleAsync());
+            await page.Keyboard.PressAsync("Escape");
+            await open.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+            // A short press doesn't.
+            await row.Locator("td").Nth(1).EvaluateAsync("""
+                c => new Promise(done => {
+                  const init = { bubbles: true, pointerType: 'touch', isPrimary: true };
+                  c.dispatchEvent(new PointerEvent('pointerdown', init));
+                  setTimeout(() => { c.dispatchEvent(new PointerEvent('pointerup', init)); done(); }, 100);
+                })
+                """);
+            await page.WaitForTimeoutAsync(100);
+            Assert.False(await open.IsVisibleAsync());
+
+            // Scrolled away, a menu at the pointer closes rather than sit over another row.
+            await page.Mouse.ClickAsync(cell.X + 10, cell.Y + 10, new() { Button = MouseButton.Right });
+            await open.WaitForAsync();
+            await page.EvaluateAsync("() => window.scrollBy(0, 40)");
+            await open.WaitForAsync(new() { State = WaitForSelectorState.Detached });
+
+            // The button, which sits where it was after a menu at the pointer has closed.
+            await row.Locator("[data-ib-row-menu]").ClickAsync();
+            await open.WaitForAsync();
+            var button = await row.Locator("[data-ib-row-menu]").BoundingBoxAsync();
+            box = await open.BoundingBoxAsync();
+            Assert.True(box!.Y >= button!.Y + button.Height - 2, "under its button");
+            await page.Keyboard.PressAsync("Escape");
         }
     }
 

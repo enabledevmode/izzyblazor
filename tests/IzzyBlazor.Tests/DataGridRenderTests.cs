@@ -407,6 +407,50 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void Row_menus_are_a_last_column_and_only_rows_with_items_have_a_button()
+    {
+        RenderFragment<Row> menu = row => builder =>
+        {
+            if (row.Name == "b")
+            {
+                builder.AddMarkupContent(0, "<span>Item</span>");
+            }
+        };
+        var cut = Grid(NameAndQty, p => p.Add(x => x.RowMenu, menu));
+        Assert.Equal(3, cut.FindAll("thead th").Count);
+        Assert.Equal(3, cut.FindAll("col").Count);
+        Assert.Contains("var(--ib-datagrid-menu)", cut.Find("table").GetAttribute("style"));
+        Assert.Single(cut.FindAll("[data-ib-row-menu]"));
+        Assert.Equal(3, cut.FindAll("tbody tr")[0].Children.Length);
+        Assert.Equal(3, cut.FindAll("tbody tr")[1].Children.Length);
+    }
+
+    [Fact]
+    public void With_frozen_end_columns_the_menu_column_stays_with_them()
+    {
+        var cut = Grid(Column(r => r.Qty, Length.Rem(4), frozen: ColumnFrozen.End), p => p.Add(x => x.RowMenu, _ => b => b.AddMarkupContent(0, "<span>Item</span>")));
+        var cells = cut.Find("tbody tr").Children;
+        Assert.Equal("--ib-frozen-at:calc(var(--ib-datagrid-menu))", cells[0].GetAttribute("style"));
+        Assert.Contains("ib-frozen-end", cells[1].ClassName);
+    }
+
+    [Fact]
+    public void A_row_with_no_name_of_its_own_has_a_short_menu_name()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.RowMenu, _ => b => b.AddMarkupContent(0, "<span>Item</span>")));
+        Assert.Equal("Actions", cut.Find("[data-ib-row-menu]").GetAttribute("aria-label"));
+        cut = Grid(NameAndQty, p => p.Add(x => x.ItemKey, r => r.Name).Add(x => x.RowMenu, _ => b => b.AddMarkupContent(0, "<span>Item</span>")));
+        Assert.Equal("Actions for b", cut.Find("[data-ib-row-menu]").GetAttribute("aria-label"));
+    }
+
+    [Fact]
+    public void The_empty_row_spans_the_menu_column_too()
+    {
+        var cut = Render<DataGrid<Row>>(p => p.Add(x => x.Items, Array.Empty<Row>()).Add(x => x.ChildContent, NameAndQty).Add(x => x.RowMenu, _ => _ => { }));
+        Assert.Equal("3", cut.Find("tbody td").GetAttribute("colspan"));
+    }
+
+    [Fact]
     public void No_toolbar_without_something_to_put_in_it_and_a_table_has_none()
     {
         Assert.Empty(Grid(NameAndQty).FindAll(".ib-grid-toolbar"));

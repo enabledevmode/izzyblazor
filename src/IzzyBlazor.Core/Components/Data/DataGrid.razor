@@ -40,6 +40,12 @@
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
+    RowMenu gives each row a ⋮ menu of MenuItems in a last column, working with no script. With script
+    a right-click on the row, a long press, Shift+F10 or the menu key opens the same menu. It acts on
+    the row it opened on, and doesn't change the selection; actions on the selection go in the bar. A
+    right-click on a link keeps the browser's menu, with its "open in new tab": that includes the
+    whole of a row with RowHref, whose ⋮ button and Shift+F10 still open the menu.
+
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
     - With script it's an ARIA grid, one Tab stop: arrows move between cells, Home and End along the
@@ -117,6 +123,14 @@
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool ColumnPicker { get; set; }
+
+    /// <summary>
+    /// A menu for each row, of <c>MenuItem</c>s, in a ⋮ button in a last column. A row whose menu
+    /// renders nothing has no button. With script, a right-click on the row, a long press, Shift+F10
+    /// or the menu key open it too; on a link, a right-click keeps the browser's menu. With frozen
+    /// End columns, the button's column stays in view with them.
+    /// </summary>
+    [Parameter] public RenderFragment<TItem>? RowMenu { get; set; }
 
     /// <summary>
     /// The page's own controls in the toolbar above the grid: <c>ToolbarButton</c>,
@@ -401,6 +415,43 @@
 
     private bool HasPicker => Rearrangeable && ColumnPicker;
 
+    // With frozen End columns its column stays in view with them, or its button would be out of reach.
+    private string MenuCellClass => Shown.Any(c => FrozenOf(c) == ColumnFrozen.End) ? "ib-grid-menu-cell ib-frozen ib-frozen-end" : "ib-grid-menu-cell";
+
+    // Named for its row, if the row has a name: its string form may be a whole record.
+    private string RowMenuLabel(TItem item) => RowLabel is null && ItemKey is null
+        ? TextDefaults.RowActions
+        : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item));
+
+    /// <inheritdoc />
+    internal override RenderFragment? LastHeaderCell => RowMenu is null ? null : __builder =>
+    {
+        <th scope="col" class="@MenuCellClass"><span class="ib-visually-hidden">@TextDefaults.RowActions</span></th>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? LastEmptyCell => RowMenu is null ? null : __builder =>
+    {
+        <td class="@MenuCellClass"></td>
+    };
+
+    /// <inheritdoc />
+    internal override RenderFragment? LastCell(TItem item) => RowMenu is null ? null : __builder =>
+    {
+        <td class="@MenuCellClass">
+            @if (HasContent(RowMenu(item)))
+            {
+                <Menu Placement="Placement.BottomEnd">
+                    <Trigger Context="wire">
+                        <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)"
+                                    Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
+                    </Trigger>
+                    <ChildContent>@RowMenu(item)</ChildContent>
+                </Menu>
+            }
+        </td>
+    };
+
     /// <inheritdoc />
     internal override RenderFragment? AboveGrid => __builder =>
     {
@@ -528,6 +579,10 @@
             {
                 <col style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
             }
+            @if (RowMenu is not null)
+            {
+                <col class="ib-datagrid-menu-col" />
+            }
         </colgroup>
     };
 
@@ -565,6 +620,11 @@
             if (Selectable)
             {
                 parts.Add("var(--ib-datagrid-select)");
+            }
+
+            if (RowMenu is not null)
+            {
+                parts.Add("var(--ib-datagrid-menu)");
             }
 
             if (unset.Count > 0)
@@ -634,6 +694,11 @@
             for (var i = index + 1; i < Shown.Count; i++)
             {
                 parts.Add($"var(--ib-col-{i})");
+            }
+
+            if (RowMenu is not null)
+            {
+                parts.Add("var(--ib-datagrid-menu)");
             }
         }
 
