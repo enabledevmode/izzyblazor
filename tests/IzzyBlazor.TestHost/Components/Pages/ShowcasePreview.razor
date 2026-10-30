@@ -96,7 +96,7 @@
                     <FilterCheckbox Name="large" Label="Over $300" />
                 </FilterForm>
                 <Table Items="Filtered" PageSize="8" PageSizeOptions="@(new[] { 8, 16, 32 })" InitialSort="-date" Caption="Orders" EmptyText="No orders match"
-                       Selectable ItemKey="o => o.Number" RowLabel="o => o.Number" id="showcase-orders">
+                       SelectionMode="SelectionMode.Multiple" ItemKey="o => o.Number" RowLabel="o => o.Number" id="showcase-orders">
                     <PropertyColumn Property="o => o.Number" Title="Order" />
                     <PropertyColumn Property="o => o.Customer" Sortable />
                     <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />

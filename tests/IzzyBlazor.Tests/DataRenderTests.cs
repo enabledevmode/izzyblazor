@@ -100,14 +100,14 @@ public class DataRenderTests : BunitContext
     {
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.Selectable, true)
+            .Add(t => t.SelectionMode, SelectionMode.Multiple)
             .Add(t => t.ItemKey, r => r.Name)
-            .Add(t => t.SelectedKeys, new[] { "a" })
+            .Add(t => t.Selection, Selection.Of("a"))
             .Add(t => t.ChildContent, Columns));
 
         var boxes = cut.FindAll("tbody .ib-table-select");
         Assert.Equal(new[] { "b", "a", "c" }, boxes.Select(b => b.GetAttribute("value")));
-        Assert.All(boxes, b => Assert.Equal("selected", b.GetAttribute("name")));
+        Assert.All(boxes, b => Assert.Equal("selected.Keys", b.GetAttribute("name")));
         Assert.Equal(new[] { false, true, false }, boxes.Select(b => b.HasAttribute("checked")));
         Assert.Equal("Select a", boxes[1].GetAttribute("aria-label"));
         Assert.Equal("Select all rows", cut.Find("thead .ib-table-select-all").GetAttribute("aria-label"));
@@ -119,19 +119,72 @@ public class DataRenderTests : BunitContext
     [Fact]
     public void Selection_changes_report_the_keys()
     {
-        IReadOnlyCollection<string>? reported = null;
+        Selection? reported = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
-            .Add(t => t.Selectable, true)
+            .Add(t => t.SelectionMode, SelectionMode.Multiple)
             .Add(t => t.ItemKey, r => r.Name)
-            .Add(t => t.SelectedKeysChanged, (IReadOnlyCollection<string> keys) => reported = keys)
+            .Add(t => t.SelectionChanged, (Selection s) => reported = s)
             .Add(t => t.ChildContent, Columns));
 
         cut.FindAll("tbody .ib-table-select")[2].Change(true);
-        Assert.Equal(new[] { "c" }, reported);
+        Assert.Equal(new[] { "c" }, reported!.Keys);
 
         cut.FindAll("tbody .ib-table-select")[0].Change(true);
-        Assert.Equal(new[] { "b", "c" }, reported!.Order());
+        Assert.Equal(new[] { "b", "c" }, reported!.Keys!.Order());
+    }
+
+    [Fact]
+    public void Single_selection_is_a_radio_per_row_and_replaces_the_last_one()
+    {
+        Selection? reported = null;
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.SelectionMode, SelectionMode.Single)
+            .Add(t => t.ItemKey, r => r.Name)
+            .Add(t => t.Selection, Selection.Of("a"))
+            .Add(t => t.SelectionChanged, (Selection s) => reported = s)
+            .Add(t => t.ChildContent, Columns));
+
+        var radios = cut.FindAll("tbody .ib-table-select");
+        Assert.All(radios, r => Assert.Equal("radio", r.GetAttribute("type")));
+        Assert.True(radios[1].HasAttribute("checked"));
+        // No select-all for one item; the heading still names the column.
+        Assert.Empty(cut.FindAll(".ib-table-select-all"));
+        Assert.Equal("Select", cut.Find("thead .ib-table-select-heading").TextContent);
+
+        radios[2].Change("c");
+        Assert.Equal(new[] { "c" }, reported!.Keys);
+    }
+
+    [Fact]
+    public void Rows_that_cannot_be_selected_have_a_disabled_box()
+    {
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.SelectionMode, SelectionMode.Multiple)
+            .Add(t => t.ItemKey, r => r.Name)
+            .Add(t => t.ItemSelectable, r => r.Name != "a")
+            .Add(t => t.Selection, Selection.Of("b", "c"))
+            .Add(t => t.ChildContent, Columns));
+
+        var boxes = cut.FindAll("tbody .ib-table-select");
+        Assert.Equal(new[] { false, true, false }, boxes.Select(b => b.HasAttribute("disabled")));
+        // Every row that can be selected is: the page counts as all selected.
+        Assert.True(cut.Find(".ib-table-select-all").HasAttribute("checked"));
+    }
+
+    [Fact]
+    public void All_matching_shows_every_row_selected_but_the_exceptions()
+    {
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.SelectionMode, SelectionMode.Multiple)
+            .Add(t => t.ItemKey, r => r.Name)
+            .Add(t => t.Selection, new Selection { All = true, Keys = ["b"] })
+            .Add(t => t.ChildContent, Columns));
+
+        Assert.Equal(new[] { false, true, true }, cut.FindAll("tbody .ib-table-select").Select(b => b.HasAttribute("checked")));
     }
 
     [Fact]

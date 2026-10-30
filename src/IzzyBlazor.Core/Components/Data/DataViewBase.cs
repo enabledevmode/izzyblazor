@@ -101,21 +101,31 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter] public bool Loading { get; set; }
 
     /// <summary>
-    /// Adds a checkbox to each item. Inside a form, the checked items post their <see cref="ItemKey"/>
-    /// under <see cref="SelectionName"/>; on interactive pages <c>@bind-SelectedKeys</c> follows them.
-    /// With script, a checkbox above them selects every item on the page.
+    /// Whether items can be selected: one (a radio button on each) or several (a checkbox on each).
+    /// Inside a form, the selected items post their <see cref="ItemKey"/> under
+    /// <see cref="SelectionName"/>; bind <see cref="Selection"/> to follow them.
     /// </summary>
-    [Parameter] public bool Selectable { get; set; }
+    [Parameter] public SelectionMode SelectionMode { get; set; }
 
-    /// <summary>The form field name the checked items post under. Defaults to <c>"{QueryPrefix}selected"</c>.</summary>
+    /// <summary>
+    /// The form field name the selection posts under, read back as a <see cref="IzzyBlazor.Selection"/>
+    /// with <c>[SupplyParameterFromForm(Name = ...)]</c>. Defaults to <c>"{QueryPrefix}selected"</c>.
+    /// </summary>
     [Parameter] public string? SelectionName { get; set; }
 
-    /// <summary>The keys of the selected items (on any page). Read the posted ones with <c>[SupplyParameterFromForm]</c> on static pages.</summary>
-    [Parameter] public IReadOnlyCollection<string>? SelectedKeys { get; set; }
+    /// <summary>
+    /// The selected items: keys on any page, or every item matching the filter except some. On a
+    /// static page pass back the posted one. Selecting all that match is cleared when the filter or
+    /// search changes.
+    /// </summary>
+    [Parameter] public Selection? Selection { get; set; }
 
-    /// <summary>Raised when items are selected or cleared on interactive pages.</summary>
+    /// <summary>Raised with the new selection when items are selected or cleared on interactive pages.</summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
-    public EventCallback<IReadOnlyCollection<string>> SelectedKeysChanged { get; set; }
+    public EventCallback<Selection> SelectionChanged { get; set; }
+
+    /// <summary>Whether an item can be selected; others show a disabled box, and selecting all leaves them out.</summary>
+    [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
 
     /// <summary>The select-all checkbox's name for screen readers. Defaults to "Select all rows".</summary>
     [Parameter] public string? SelectAllLabel { get; set; }
@@ -212,47 +222,68 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal string SizeKey => $"{QueryPrefix}size";
 
-    internal HashSet<string> _selected = new(StringComparer.Ordinal);
-    private IReadOnlyCollection<string>? _paramKeys;
-    private IReadOnlyCollection<string>? _reportedKeys;
+    internal Selection _selection = IzzyBlazor.Selection.None;
+    private Selection? _paramSelection;
+    private Selection? _reportedSelection;
 
     /// <summary>Names an item for screen readers, in its link and its checkbox.</summary>
     internal virtual string LabelOf(TItem item) => KeyOf(item);
 
+    internal bool Selectable => SelectionMode != SelectionMode.None;
+
+    internal bool MultiSelect => SelectionMode == SelectionMode.Multiple;
+
     internal string EffectiveSelectionName => SelectionName ?? $"{QueryPrefix}selected";
 
-    internal bool IsSelected(string key) => _selected.Contains(key);
+    /// <summary>The name each item's box posts its key under, so the post binds to a <see cref="IzzyBlazor.Selection"/>.</summary>
+    internal string SelectionKeysName => $"{EffectiveSelectionName}.Keys";
 
-    internal bool AllOnPageSelected => _items.Count > 0 && _items.All(i => _selected.Contains(KeyOf(i)));
+    internal bool IsSelected(string key) => _selection.Contains(key);
+
+    internal bool CanSelect(TItem item) => ItemSelectable?.Invoke(item) ?? true;
+
+    internal bool AllOnPageSelected =>
+        _items.Any(CanSelect) && _items.Where(CanSelect).All(i => _selection.Contains(KeyOf(i)));
 
     internal string SelectLabel(TItem item) => $"{SelectRowLabel ?? TextDefaults.SelectRow} {LabelOf(item)}";
 
-    // Takes the parent's keys when the parameter changes (a static post, or C# clearing the
-    // selection), but not the echo of a change this view just reported. Without a binding
-    // the parameter never changes, so the view keeps its own selection.
+    // Takes the parent's selection when the parameter changes (a static post, or C# clearing it),
+    // but not the echo of a change this view just reported. Without a binding the parameter never
+    // changes, so the view keeps its own selection.
     internal void SyncSelection()
     {
-        if (!ReferenceEquals(SelectedKeys, _paramKeys))
+        if (!ReferenceEquals(Selection, _paramSelection))
         {
-            _paramKeys = SelectedKeys;
-            if (!ReferenceEquals(SelectedKeys, _reportedKeys))
+            _paramSelection = Selection;
+            if (!ReferenceEquals(Selection, _reportedSelection))
             {
-                _selected = new HashSet<string>(SelectedKeys ?? [], StringComparer.Ordinal);
+                _selection = Selection ?? IzzyBlazor.Selection.None;
             }
         }
     }
 
-    internal async Task OnSelectChanged(string key, ChangeEventArgs e)
+    internal Task OnSelectChanged(string key, ChangeEventArgs e)
     {
-        var on = e.Value is true || (e.Value is string text && bool.TryParse(text, out var parsed) && parsed);
-        if (on ? !_selected.Add(key) : !_selected.Remove(key))
+        var on = e.Value is true || (e.Value is string text && (text == key || (bool.TryParse(text, out var parsed) && parsed)));
+        return SetSelectionAsync(MultiSelect ? _selection.With(key, on) : on ? IzzyBlazor.Selection.Of(key) : IzzyBlazor.Selection.None);
+    }
+
+    /// <summary>Every item matching the shown filter and search.</summary>
+    internal Task SelectAllMatchingAsync() =>
+        _loadedRequest is { } request ? SetSelectionAsync(IzzyBlazor.Selection.AllOf(request)) : Task.CompletedTask;
+
+    internal Task ClearSelectionAsync() => SetSelectionAsync(IzzyBlazor.Selection.None);
+
+    internal async Task SetSelectionAsync(Selection selection)
+    {
+        if (ReferenceEquals(selection, _selection))
         {
             return;
         }
 
-        var keys = _selected.ToArray();
-        _reportedKeys = keys;
-        await SelectedKeysChanged.InvokeAsync(keys);
+        _selection = selection;
+        _reportedSelection = selection;
+        await SelectionChanged.InvokeAsync(selection);
     }
 
     internal string KeyOf(TItem item) => KeyFunc?.Invoke(item) ?? item?.ToString() ?? "";
@@ -603,6 +634,12 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         (_loadError, _moreError, _focusAfterRetry) = (null, false, false);
         (_items, _total, _page, _lastPage) = (items, total, page, page + shownPages - 1);
         Loaded();
+        // All of another filter or search isn't these items: clear it rather than let it grow.
+        if (_selection.All && !_selection.MatchesScope(request.Filter, request.Search))
+        {
+            await ClearSelectionAsync();
+        }
+
         (_cursor, _next, _previous) = byCursor ? (cursor, next, previous) : (null, null, null);
         // Pages added later are one page each, after the ones loaded here.
         (_loadedRequest, _loadedSize) = (request with { Take = pageSize }, pageSize ?? 0);
@@ -863,6 +900,19 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         Navigation.LocationChanged -= OnLocationChanged;
         _loadCts?.Cancel();
     }
+}
+
+/// <summary>Whether the items of a <see cref="Table{TItem}"/> or <c>ListView</c> can be selected.</summary>
+public enum SelectionMode
+{
+    /// <summary>No selection. The default.</summary>
+    None,
+
+    /// <summary>One item, with a radio button on each.</summary>
+    Single,
+
+    /// <summary>Any number, with a checkbox on each; with script, a box to select every item on the page.</summary>
+    Multiple,
 }
 
 /// <summary>How a <see cref="Table{TItem}"/> or <c>ListView</c> with a <c>PageSize</c> moves through its pages.</summary>

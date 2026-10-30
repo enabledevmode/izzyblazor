@@ -160,13 +160,13 @@ public class ListViewRenderTests : BunitContext
     public void Selectable_items_post_their_keys_with_checkboxes_named_by_label()
     {
         var cut = RenderList(p => p
-            .Add(l => l.Selectable, true)
-            .Add(l => l.SelectedKeys, new[] { "3" })
+            .Add(l => l.SelectionMode, SelectionMode.Multiple)
+            .Add(l => l.Selection, Selection.Of("3"))
             .Add(l => l.ItemDisabled, x => x.Away));
 
         var boxes = cut.FindAll("li > input.ib-listview-select");
         Assert.Equal(new[] { "1", "2", "3" }, boxes.Select(b => b.GetAttribute("value")));
-        Assert.All(boxes, b => Assert.Equal("selected", b.GetAttribute("name")));
+        Assert.All(boxes, b => Assert.Equal("selected.Keys", b.GetAttribute("name")));
         Assert.Equal("Select Ada", boxes[0].GetAttribute("aria-label"));
         Assert.True(boxes[2].HasAttribute("checked"));
         Assert.True(boxes[1].HasAttribute("disabled"));
@@ -177,20 +177,20 @@ public class ListViewRenderTests : BunitContext
     public void Selecting_on_an_interactive_page_reports_the_keys()
     {
         Live();
-        IReadOnlyCollection<string>? keys = null;
+        Selection? selection = null;
         var cut = RenderList(p => p
-            .Add(l => l.Selectable, true)
-            .Add(l => l.SelectedKeysChanged, k => keys = k));
+            .Add(l => l.SelectionMode, SelectionMode.Multiple)
+            .Add(l => l.SelectionChanged, s => selection = s));
 
         cut.FindAll("input.ib-listview-select")[1].Change(true);
 
-        Assert.Equal(new[] { "2" }, keys);
+        Assert.Equal(new[] { "2" }, selection!.Keys);
     }
 
     [Fact]
     public void Select_all_is_there_before_any_items_so_the_script_finds_it_when_they_come()
     {
-        var cut = Render<ListView<Person>>(p => p.Add(l => l.Items, Array.Empty<Person>()).Add(l => l.Selectable, true));
+        var cut = Render<ListView<Person>>(p => p.Add(l => l.Items, Array.Empty<Person>()).Add(l => l.SelectionMode, SelectionMode.Multiple));
 
         Assert.NotNull(cut.Find(".ib-listview-select-all"));
         // Focus after Retry goes to the root, which is always there.
@@ -201,13 +201,13 @@ public class ListViewRenderTests : BunitContext
     public void A_selected_disabled_item_still_posts_its_key()
     {
         var cut = RenderList(p => p
-            .Add(l => l.Selectable, true)
-            .Add(l => l.SelectedKeys, new[] { "2" })
+            .Add(l => l.SelectionMode, SelectionMode.Multiple)
+            .Add(l => l.Selection, Selection.Of("2"))
             .Add(l => l.ItemDisabled, x => x.Away));
 
         var hidden = cut.FindAll("li input[type=hidden]");
         Assert.Equal("2", Assert.Single(hidden).GetAttribute("value"));
-        Assert.Equal("selected", hidden[0].GetAttribute("name"));
+        Assert.Equal("selected.Keys", hidden[0].GetAttribute("name"));
     }
 
     [Fact]
