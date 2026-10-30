@@ -106,6 +106,8 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             await Until(grid, ["Order", "Customer", "Date", "Total"]);
 
             await grid.Locator(".ib-col-picker button").First.ClickAsync();
+            var box = await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).BoundingBoxAsync();
+            Assert.Equal(16, box!.Width, 1);
             await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).CheckAsync();
             await Until(grid, ["Order", "Customer", "Date", "Status", "Total"]);
 

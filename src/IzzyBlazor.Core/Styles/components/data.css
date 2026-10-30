@@ -800,6 +800,15 @@
     gap: var(--ib-space-1);
   }
 
+  .ib-col-picker-list {
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-col-picker-list .ib-check-input {
+    --ib-check-size: 1rem;
+    margin: 0;
+  }
+
   .ib-col-picker-list label {
     display: flex;
     flex: 1;
