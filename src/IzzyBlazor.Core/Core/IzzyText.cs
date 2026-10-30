@@ -199,6 +199,30 @@ public class IzzyText
     /// <summary>Table's row checkboxes, before the row's name.</summary>
     public virtual string SelectRow { get; set; } = "Select";
 
+    /// <summary>The name of a Table's or ListView's selection bar, for screen readers.</summary>
+    public virtual string SelectionBar { get; set; } = "Selection";
+
+    /// <summary>The selection bar of a Table or ListView: {0} is how many are selected ("3 selected").</summary>
+    public virtual string SelectionCount { get; set; } = "{0:N0} selected";
+
+    /// <summary>The selection bar when every matching item is selected: {0} is how many ("All 1,234 selected").</summary>
+    public virtual string SelectionAllCount { get; set; } = "All {0:N0} selected";
+
+    /// <summary>The selection bar when every matching item is selected and the total isn't known (cursor paging).</summary>
+    public virtual string SelectionAllOpen { get; set; } = "All selected";
+
+    /// <summary>The selection bar when the page is selected and there are more: {0} is how many are on the page.</summary>
+    public virtual string SelectionPage { get; set; } = "All {0:N0} on this page are selected.";
+
+    /// <summary>The selection bar's button that selects every matching item: {0} is how many ("Select all 1,234").</summary>
+    public virtual string SelectAllMatching { get; set; } = "Select all {0:N0}";
+
+    /// <summary>The same button when the total isn't known (cursor paging).</summary>
+    public virtual string SelectAllMatchingOpen { get; set; } = "Select all matching";
+
+    /// <summary>The selection bar's button that clears the selection.</summary>
+    public virtual string ClearSelection { get; set; } = "Clear selection";
+
     /// <summary>Table's scroll region name when it has no Caption.</summary>
     public virtual string TableName { get; set; } = "Table";
 

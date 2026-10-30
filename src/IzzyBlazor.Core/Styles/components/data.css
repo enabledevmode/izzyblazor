@@ -653,6 +653,62 @@
     font-weight: var(--ib-weight-semibold);
   }
 
+  /* The selection bar, above the items while something is selected: the count, the step to every
+     matching item, Clear selection, then the page's actions. */
+  .ib-selection-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2) var(--ib-space-3);
+    min-height: var(--ib-control-h-md, 2.25rem);
+    padding: var(--ib-space-1) var(--ib-space-3);
+    border-radius: var(--ib-radius-md);
+    background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 8%, transparent), color-mix(in oklab, var(--ib-color-primary) 16%, transparent)));
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-selection-bar[hidden],
+  .ib-selection-more[hidden] {
+    display: none;
+  }
+
+  .ib-selection-count {
+    font-weight: var(--ib-weight-medium);
+  }
+
+  .ib-selection-more {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-1);
+  }
+
+  /* The page's actions at the end of the bar. */
+  .ib-selection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-2);
+    margin-inline-start: auto;
+  }
+
+  /* Clear and Select all work with script (or on interactive pages); until it's ready, out of sight
+     but holding their place. With no script they aren't there. */
+  :is(ib-table, ib-listview):not([data-ready], [data-ib-interactive]) :is(.ib-selection-clear, .ib-selection-more) {
+    visibility: hidden;
+  }
+
+  @media (scripting: none) {
+    :is(.ib-selection-clear, .ib-selection-more) {
+      display: none !important;
+    }
+  }
+
+  @media (forced-colors: active) {
+    .ib-selection-bar {
+      border: 1px solid CanvasText;
+    }
+  }
+
   /* Selection: a checkbox column; checked rows are tinted, with or without script. */
   .ib-table-grid :is(th, td).ib-table-select-cell {
     width: 1%;

@@ -127,6 +127,12 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>Whether an item can be selected; others show a disabled box, and selecting all leaves them out.</summary>
     [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
 
+    /// <summary>
+    /// Actions on the selection, shown in the bar above the items while something is selected, after
+    /// its count and Clear selection: submit buttons in the surrounding form post the selection.
+    /// </summary>
+    [Parameter] public RenderFragment<Selection>? SelectionActions { get; set; }
+
     /// <summary>The select-all checkbox's name for screen readers. Defaults to "Select all rows".</summary>
     [Parameter] public string? SelectAllLabel { get; set; }
 
@@ -244,6 +250,21 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal bool AllOnPageSelected =>
         _items.Any(CanSelect) && _items.Where(CanSelect).All(i => _selection.Contains(KeyOf(i)));
+
+    /// <summary>There are matching items that aren't shown: on other pages, or not loaded yet.</summary>
+    internal bool HasMoreThanShown => _total is { } total ? total > _items.Count : _next is not null;
+
+    /// <summary>"3 selected", "All 1,234 selected" or "All selected".</summary>
+    internal string SelectionCountText => _selection.Count(_total) is { } count
+        ? Format(_selection.All ? TextDefaults.SelectionAllCount : TextDefaults.SelectionCount, count)
+        : TextDefaults.SelectionAllOpen;
+
+    internal string SelectAllMatchingText => _total is { } total
+        ? Format(TextDefaults.SelectAllMatching, total)
+        : TextDefaults.SelectAllMatchingOpen;
+
+    private static string Format(string format, int value) =>
+        string.Format(System.Globalization.CultureInfo.CurrentCulture, format, value);
 
     internal string SelectLabel(TItem item) => $"{SelectRowLabel ?? TextDefaults.SelectRow} {LabelOf(item)}";
 

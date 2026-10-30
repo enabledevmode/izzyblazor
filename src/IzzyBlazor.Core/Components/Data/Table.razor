@@ -106,6 +106,7 @@
             }
         </div>
     }
+    @SelectionBar
     @ErrorStatus
     <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
         <table class="ib-table-grid" aria-busy="@(IsLoading ? "true" : null)">
