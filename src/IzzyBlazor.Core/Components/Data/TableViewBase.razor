@@ -733,7 +733,24 @@
                 </Trigger>
                 <ChildContent>
                     @{ var ops = ColumnFilter.OperatorsOf(column); }
-                    @if (ops.Count > 1 || ops is [FilterOperator.Between])
+                    @if (current.Op == FilterOperator.In)
+                    {
+                        @* A list from the address that one box can't show: its values post as they came,
+                           so no script or form changes what the link means, and its tag removes it. *@
+                        <div class="ib-table-filter-panel ib-field-sm">
+                            <span class="ib-field-label ib-table-filter-label">@label</span>
+                            <span>@FilterSummary(column, current)</span>
+                            @if (!UseState)
+                            {
+                                foreach (var value in current.Values)
+                                {
+                                    <input type="hidden" name="@FilterQueryKey(column)" value="@value" form="@FilterFormId" data-ib-filter />
+                                }
+                            }
+                            @FilterPanelActions
+                        </div>
+                    }
+                    else if (ops.Count > 1 || ops is [FilterOperator.Between])
                     {
                         @* An operator above the values, and a range's two ends, in a group named by the
                            panel's title. Which of them show follows the operator, in CSS. *@
@@ -930,7 +947,15 @@
     private async Task OnOperatorAsync(ColumnBase<TItem> column, ChangeEventArgs e)
     {
         var state = StateOf(column);
-        var next = state with { Op = ColumnFilter.OperatorOf(e.Value?.ToString()) ?? ColumnFilter.DefaultOperator(column) };
+        var op = ColumnFilter.OperatorOf(e.Value?.ToString()) ?? ColumnFilter.DefaultOperator(column);
+
+        // What it doesn't take goes, as a static page's next response would have it.
+        var next = state with
+        {
+            Op = op,
+            Values = ColumnFilter.TakesNoValue(op) ? [] : state.Values,
+            To = op == FilterOperator.Between ? state.To : null,
+        };
         if (state.IsFilter || next.IsFilter)
         {
             await SetFilterAsync(column, next, wait: false);

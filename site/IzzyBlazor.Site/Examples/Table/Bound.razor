@@ -5,6 +5,7 @@
            @bind-Sort="_sort" @bind-Page="_page" @bind-Filter="_filter">
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
         <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable />
         <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable />
     </Table>
     <TextBlock Size="TextSize.Sm" Color="Color.Muted">

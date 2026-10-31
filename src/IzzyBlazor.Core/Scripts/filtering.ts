@@ -9,11 +9,12 @@ interface BlazorNavigator {
 
 /**
  * Puts back typing that a response for an earlier value overwrote. While someone keeps typing, a
- * live filter's navigation can come back with the value from a moment ago and reset the box.
- * Shared by FilterForm and Table's header filters.
+ * live filter's navigation can come back with the value from a moment ago and reset the box. An
+ * operator chosen with a response on its way is held the same way for a while. Shared by FilterForm
+ * and Table's header filters.
  */
 export class TypingGuard {
-  #typed = new Map<HTMLInputElement, string>();
+  #typed = new Map<HTMLInputElement | HTMLSelectElement, string>();
   #root: ParentNode;
   composing = false;
 
@@ -26,12 +27,24 @@ export class TypingGuard {
     return this.#typed.size;
   }
 
-  typed(input: HTMLInputElement): void {
+  typed(input: HTMLInputElement | HTMLSelectElement): void {
     this.#typed.set(input, input.value);
   }
 
-  forget(input: HTMLInputElement): void {
+  forget(input: HTMLInputElement | HTMLSelectElement): void {
     this.#typed.delete(input);
+  }
+
+  /** Holds a select's choice while a response asked for before it may still arrive. */
+  chosen(select: HTMLSelectElement): void {
+    this.typed(select);
+    this.guard();
+    setTimeout(() => this.forget(select), 3200);
+  }
+
+  /** Lets go of the selects: a new request has been made, and its response is the one to believe. */
+  forgetChosen(): void {
+    for (const control of [...this.#typed.keys()]) if (control instanceof HTMLSelectElement) this.#typed.delete(control);
   }
 
   /** Forgets everything typed, so nothing is put back. */
@@ -45,7 +58,7 @@ export class TypingGuard {
       // The response may have brought a new box of the same name, which has the old one's focus.
       let input = known;
       if (!input.isConnected) {
-        const next = input.name ? this.#root.querySelector<HTMLInputElement>(`input[name="${CSS.escape(input.name)}"]`) : null;
+        const next = input.name ? this.#root.querySelector<HTMLInputElement | HTMLSelectElement>(`${input.localName}[name="${CSS.escape(input.name)}"]`) : null;
         this.#typed.delete(input);
         if (!next) continue;
         input = next;
@@ -55,7 +68,7 @@ export class TypingGuard {
         const focused = document.activeElement === input;
         input.value = typed;
         // Only text-like inputs have a caret (a date or number input throws).
-        if (focused && /^(text|search|url|tel|password)$/.test(input.type)) input.setSelectionRange(typed.length, typed.length);
+        if (focused && input instanceof HTMLInputElement && /^(text|search|url|tel|password)$/.test(input.type)) input.setSelectionRange(typed.length, typed.length);
       }
     }
   }

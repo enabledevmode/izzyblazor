@@ -217,6 +217,7 @@ public class ColumnFilterOperatorTests : BunitContext
     [InlineData("f-qty=2")]
     [InlineData("f-note-op=isempty")]
     [InlineData("f-when-op=between&f-when=2026-01-02&f-when-to=2026-01-03")]
+    [InlineData("f-name=ada&f-name=grace&f-name=Smith, John")]
     public void What_the_writer_writes_the_reader_reads(string query)
     {
         var cut = Grid("/lines?" + query);
@@ -228,8 +229,35 @@ public class ColumnFilterOperatorTests : BunitContext
         var written = ColumnFilter.Write(column, key, read);
 
         // The same keys and values, and nothing else: the default isn't written, nor an empty end.
-        var again = written.Where(k => k.Value is not null).Select(k => $"{k.Key}={(k.Value is string[] many ? many[0] : k.Value)}").Order().ToArray();
+        var again = written.Where(k => k.Value is not null).SelectMany(k => k.Value is string[] many ? many.Select(v => $"{k.Key}={v}") : [$"{k.Key}={k.Value}"]).Order().ToArray();
         Assert.Equal(query.Split('&').Order(), again);
+    }
+
+    // A panel with one box can't show a list, or post it: its values go as they came, and a tag shows them.
+    [Fact]
+    public void A_repeated_key_on_text_posts_every_value_and_has_no_box_to_lose_them()
+    {
+        foreach (var fields in new Func<string, IEnumerable<string?>>[]
+        {
+            url => { var c = Grid(url); return Check(c); },
+            url => { var c = Table(url); return Check(c); },
+        })
+        {
+            Assert.Equal(new[] { "Ada", "Smith, John" }, fields("/lines?f-name=Ada&f-name=Smith%2C%20John"));
+        }
+
+        IEnumerable<string?> Check<T>(IRenderedComponent<T> cut) where T : IComponent
+        {
+            Assert.Equal(new[] { "Ada", "Smith, John" }, Names(cut));
+            Assert.Contains(Tags(cut), t => t.Contains("Name: 2 selected", StringComparison.Ordinal));
+
+            // No operator with no option for it, and no box holding only the first.
+            Assert.Empty(cut.FindAll("select[name='f-name-op']"));
+            Assert.Empty(cut.FindAll("input[name='f-name']:not([type=hidden])"));
+            var fields = cut.FindAll("input[type=hidden][name='f-name'][data-ib-filter]");
+            Assert.All(fields, i => Assert.Equal(cut.Find("form.ib-table-filter-form").Id, i.GetAttribute("form")));
+            return fields.Select(i => i.GetAttribute("value"));
+        }
     }
 
     // A GET form posts every field: only a value makes a filter.
@@ -504,7 +532,7 @@ public class ColumnFilterOperatorTests : BunitContext
             Assert.Equal(Lines.Length, Names(cut).Length);
             Assert.Null(reported[^1]);
             Assert.Equal("", qty().QuerySelector("input")!.GetAttribute("value") ?? "");
-            Assert.Equal("eq", qty().QuerySelector("option[selected]")?.GetAttribute("value") ?? "eq");
+            Assert.Equal("eq", qty().QuerySelector("select")!.GetAttribute("value"));
         }, Timer);
     }
 
@@ -540,6 +568,40 @@ public class ColumnFilterOperatorTests : BunitContext
         {
             Assert.Equal(new[] { "Ada", "Grace", "Alan" }, Names(cut));
             Assert.Null(reported[^1]!.Find("note"));
+        }, Timer);
+    }
+
+    // What the operator doesn't take goes when it's chosen, as a static page's next response does.
+    [Fact]
+    public void A_bound_operator_forgets_the_values_it_doesnt_take()
+    {
+        var reported = new List<Filter?>();
+        var cut = Bound(reported);
+        var qty = () => Panel(cut, "Filter Qty").Single();
+        var note = () => Panel(cut, "Filter Note").Single();
+
+        Again(cut, () => qty().QuerySelector("select")!.Change("between"));
+        Again(cut, () => qty().QuerySelectorAll("input")[0].Input("1"));
+        Again(cut, () => qty().QuerySelectorAll("input")[1].Input("3"));
+        cut.WaitForAssertion(() => Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 1, 3), reported[^1]!.Find("qty")), Timer);
+
+        Again(cut, () => qty().QuerySelector("select")!.Change("ge"));
+        cut.WaitForAssertion(() => Assert.Equal(new FieldFilter("qty", FilterOperator.GreaterThanOrEqual, 1), reported[^1]!.Find("qty")), Timer);
+        Again(cut, () => qty().QuerySelector("select")!.Change("between"));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 1, null), reported[^1]!.Find("qty"));
+            Assert.Equal("", qty().QuerySelectorAll("input")[1].GetAttribute("value") ?? "");
+        }, Timer);
+
+        Again(cut, () => note().QuerySelector("input")!.Input("fir"));
+        cut.WaitForAssertion(() => Assert.NotNull(reported[^1]!.Find("note")), Timer);
+        Again(cut, () => note().QuerySelector("select")!.Change("isempty"));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Contains(Tags(cut), t => t.EndsWith("Note: Is empty", StringComparison.Ordinal) || t.Contains("Note: Is empty\n", StringComparison.Ordinal));
+            Assert.DoesNotContain(Tags(cut), t => t.Contains("fir", StringComparison.Ordinal));
+            Assert.Contains(cut.FindAll(".ib-table-filter-button"), b => b.GetAttribute("aria-label") == "Filter Note: Is empty");
         }, Timer);
     }
 
