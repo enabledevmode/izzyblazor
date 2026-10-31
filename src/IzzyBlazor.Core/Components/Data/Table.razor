@@ -64,6 +64,17 @@
     - A failed load is announced from a status region that's always in the table ("Couldn't
       load the rows."); the message shows with Retry after it. Focus stays where it was, and
       goes to the table's scroll box once Retry brings the rows.
+
+    Keyboard:
+    In a filter panel
+    - Tab, Shift+Tab | Move among the operator, the values and the list
+    - Enter | Filter now and close, from a field or the list's search box
+    - Escape | Close and go back to the filter button; the filter stays
+    In a filter's list
+    - Down | Move from the search box to the first value
+    - Up, Down | Move among the values; Up from the first goes to the search box
+    - Home, End | Move to the first or last value
+    - Space | Tick or untick the value
 *@
 
 <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">

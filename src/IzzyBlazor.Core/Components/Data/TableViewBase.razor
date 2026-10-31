@@ -30,7 +30,7 @@
         var key = KeyOf(item);
         var href = RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + 2)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@VirtualRowStyle" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@VirtualRowStyle" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
@@ -159,7 +159,7 @@
             @SelectionBar
             @ErrorStatus
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
-                <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + 1 + (HasFooterRow ? 1 : 0) : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
+                <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + HeaderRows + (HasFooterRow ? 1 : 0) : null)" data-ib-first="@(VirtualRows ? HeaderRows + 1 : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
                     @if (Caption is not null)
                     {
                         <caption class="ib-visually-hidden">@Caption</caption>
@@ -206,7 +206,7 @@
                         </tr>
                         @if (ShowsFilterRow && headerFilters is not null)
                         {
-                            <tr class="ib-table-filter-row">
+                            <tr class="ib-table-filter-row" aria-rowindex="@(VirtualRows ? 2 : null)">
                                 @if (Selectable)
                                 {
                                     <td class="@SelectCellClass"></td>
@@ -291,7 +291,7 @@
                     @if (Shown.Any(c => c.HasFooter))
                     {
                         <tfoot>
-                            <tr aria-rowindex="@(VirtualRows ? (_total ?? 0) + 2 : null)">
+                            <tr aria-rowindex="@(VirtualRows ? (_total ?? 0) + HeaderRows + 1 : null)">
                                 @if (Selectable)
                                 {
                                     <td class="@SelectCellClass"></td>
@@ -1406,6 +1406,9 @@
 
     /// <summary>Whether a row of filters sits under the titles: a DataGrid's <c>FilterRow</c>.</summary>
     internal virtual bool ShowsFilterRow => false;
+
+    // How many rows the head has, which numbers the rest for virtual rows.
+    private int HeaderRows => ShowsFilterRow && HasFilters ? 2 : 1;
 
     private string FilterRowFormId => $"{FilterFormId}-row";
 

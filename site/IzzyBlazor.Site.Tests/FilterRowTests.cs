@@ -68,4 +68,34 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         Assert.Contains("row-f-total-op=between", page.Url, StringComparison.Ordinal);
         Assert.Contains("row-sort=customer", page.Url, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public async Task The_keys_reach_the_row_and_a_field_keeps_its_arrows()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using var _ = browser;
+        var cell = grid.Locator(".ib-table-filter-row td").Nth(1);
+        var field = cell.Locator("input[data-ib-row]");
+
+        // From the Customer header, down onto the row's cell, and into its field past the operator.
+        await grid.Locator("thead th").Nth(1).Locator("[data-ib-primary]").FocusAsync();
+        await page.Keyboard.PressAsync("ArrowDown");
+        await Assertions.Expect(cell).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(field).ToBeFocusedAsync();
+
+        await page.Keyboard.TypeAsync("ab");
+        await page.Keyboard.PressAsync("ArrowLeft");
+        Assert.Equal(1, await field.EvaluateAsync<int>("f => f.selectionStart"));
+        await Assertions.Expect(field).ToBeFocusedAsync();
+
+        // Escape leaves the field and what's in it.
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(cell).ToBeFocusedAsync();
+        Assert.Equal("ab", await field.InputValueAsync());
+
+        await page.Keyboard.PressAsync("ArrowUp");
+        await Assertions.Expect(grid.Locator("thead th").Nth(1).Locator("[data-ib-primary]")).ToBeFocusedAsync();
+    }
 }
+

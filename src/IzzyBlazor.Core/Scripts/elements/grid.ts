@@ -149,6 +149,11 @@ class Grid extends IzzyElement {
     return Number(this.#table?.getAttribute("aria-rowcount") ?? 0);
   }
 
+  // The number of the first row of data: a filter row counts as one of the head's.
+  get #first(): number {
+    return Number(this.#table?.dataset.ibFirst ?? 2);
+  }
+
   #nth(row: HTMLTableRowElement): number {
     return Number(row.getAttribute("aria-rowindex"));
   }
@@ -166,7 +171,7 @@ class Grid extends IzzyElement {
     if (row) this.#focusCell(this.#atColumn(row, this.#column));
     else {
       const box = this.#box!, height = this.#bodyRows[0]?.offsetHeight ?? 48;
-      box.scrollTop = (to - 2) * height - (to > this.#number ? box.clientHeight - this.#table!.tHead!.offsetHeight - height : 0);
+      box.scrollTop = (to - this.#first) * height - (to > this.#number ? box.clientHeight - this.#table!.tHead!.offsetHeight - height : 0);
     }
   }
 
@@ -176,7 +181,7 @@ class Grid extends IzzyElement {
       this.#box!.scrollTop = 0;
       this.#load = load;
       this.#seek = null;
-      this.#number = 2;
+      this.#number = this.#first;
     }
     if (this.#seek !== null) {
       // The row asked for failed to load: Retry is what's there.
@@ -240,6 +245,11 @@ class Grid extends IzzyElement {
   #targetOf(cell: HTMLTableCellElement): HTMLElement {
     const controls = this.#controlsOf(cell);
     return controls.length === 1 && !this.#keepsArrows(controls[0]) ? controls[0] : cell;
+  }
+
+  /** Where Enter and F2 go in: a filter cell's field, past its operator button, else the first control. */
+  #entryOf(cell: HTMLTableCellElement): HTMLElement | undefined {
+    return cell.querySelector<HTMLElement>("[data-ib-enter]") ?? this.#controlsOf(cell)[0];
   }
 
   #prepare(): void {
@@ -534,13 +544,13 @@ class Grid extends IzzyElement {
           primary.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, shiftKey: event.shiftKey }));
           return true;
         }
-        const control = this.#controlsOf(cell)[0];
+        const control = this.#entryOf(cell);
         if (control) this.#focusInCell(cell, control);
         else cell.closest("tr")?.querySelector<HTMLElement>(".ib-table-row-link")?.click();
         return true;
       }
       case "F2":
-        if (target === cell && this.#controlsOf(cell)[0]) this.#focusInCell(cell, this.#controlsOf(cell)[0]);
+        if (target === cell && this.#entryOf(cell)) this.#focusInCell(cell, this.#entryOf(cell)!);
         return true;
       case "ArrowUp":
       case "ArrowDown":
@@ -573,7 +583,7 @@ class Grid extends IzzyElement {
     if (modifier && this.#count && (event.key === "Home" || event.key === "End")) {
       // The corners, as with pages: past the last column is the last cell.
       this.#column = event.key === "Home" ? 0 : 1e3;
-      this.#goTo(event.key === "Home" ? 2 : this.#count - (this.#table!.tFoot ? 1 : 0));
+      this.#goTo(event.key === "Home" ? this.#first : this.#count - (this.#table!.tFoot ? 1 : 0));
       return true;
     }
     if (modifier) {
@@ -627,7 +637,7 @@ class Grid extends IzzyElement {
     const row = cell.parentElement as HTMLTableRowElement;
     if (this.#count) {
       const rows = Math.max(1, Math.floor(this.#box!.clientHeight / body[0].offsetHeight) - 1);
-      this.#goTo(Math.max(2, this.#nth(row) + (down ? rows : -rows)));
+      this.#goTo(Math.max(this.#first, this.#nth(row) + (down ? rows : -rows)));
       return;
     }
     const at = body.indexOf(row);
