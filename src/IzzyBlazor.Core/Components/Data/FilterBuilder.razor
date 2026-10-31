@@ -32,12 +32,23 @@
         <fieldset class="ib-fb-group" data-ib-fb-group>
             <legend class="ib-visually-hidden">@TextDefaults.FilterGroupLabel</legend>
             <div class="ib-fb-head">
-                @LogicSelect
-                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-fb-add-rule><Icon Role="IconRole.Plus" />@TextDefaults.FilterAddRule</button>
-                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-fb-add-group><Icon Role="IconRole.Plus" />@TextDefaults.FilterAddGroup</button>
+                <div class="ib-segmented ib-field-sm ib-fb-logic" role="group" aria-label="@TextDefaults.FilterMatchLabel" data-ib-fb-logic>
+                    <button type="button" class="ib-segment" aria-pressed="true" data-ib-logic="all">@TextDefaults.FilterAnd</button>
+                    <button type="button" class="ib-segment" aria-pressed="false" data-ib-logic="any">@TextDefaults.FilterOr</button>
+                </div>
                 @RemoveButton
             </div>
-            <div class="ib-fb-items" data-ib-fb-items></div>
+            <div class="ib-fb-items" data-ib-fb-items>
+                @* A group's add stays last among its rows. Cloned with new ids, for its menu. *@
+                <div class="ib-fb-add" data-ib-fb-add>
+                    <SplitButton Label="@TextDefaults.FilterAddRule" IconOnly StartIcon="IconSet.Current.Get(IconRole.Plus)" Accent="Accent.Neutral" Variant="ButtonVariant.Soft" Size="ControlSize.Sm" data-ib-fb-add-rule>
+                        <MenuItem data-ib-fb-add-group>@TextDefaults.FilterAddGroup</MenuItem>
+                    </SplitButton>
+                </div>
+                <div class="ib-fb-add" data-ib-fb-add-plain>
+                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-soft ib-btn-sm ib-btn-icon-only" aria-label="@TextDefaults.FilterAddRule" title="@TextDefaults.FilterAddRule" data-ib-fb-add-rule><Icon Role="IconRole.Plus" /></button>
+                </div>
+            </div>
         </fieldset>
         <div class="ib-fb-rule" data-ib-fb-rule>
             @FieldSelect
@@ -146,16 +157,6 @@
                 <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
             </div>
         </div>
-    };
-
-    private RenderFragment LogicSelect => Select(TextDefaults.FilterGroupLabel, "data-ib-fb-logic", LogicOptions);
-
-    private RenderFragment LogicOptions => __builder =>
-    {
-        <option value="all">@TextDefaults.FilterAllOf</option>
-        <option value="any">@TextDefaults.FilterAnyOf</option>
-        <option value="none">@TextDefaults.FilterNoneOf</option>
-        <option value="notall">@TextDefaults.FilterNotAllOf</option>
     };
 
     private RenderFragment FieldSelect => Select(TextDefaults.FilterFieldLabel, "data-ib-fb-field-select", FieldOptions);
