@@ -119,23 +119,23 @@ public class Button : ButtonBase
         builder.AddAttribute(4, "formaction", FormAction);
         builder.AddAttribute(5, "form", Form);
         builder.AddAttribute(6, "disabled", Disabled);
-        builder.AddAttribute(15, "aria-pressed", AriaPressed);
+        builder.AddAttribute(7, "aria-pressed", AriaPressed);
         if (Loading)
         {
             // Not "disabled": the button keeps focus while busy. CSS blocks clicks.
-            builder.AddAttribute(7, "aria-disabled", "true");
-            builder.AddAttribute(8, "aria-busy", "true");
+            builder.AddAttribute(8, "aria-disabled", "true");
+            builder.AddAttribute(9, "aria-busy", "true");
         }
 
         if (Clickable(OnClick) && !Loading)
         {
-            builder.AddAttribute(9, "onclick", Click(OnClick));
+            builder.AddAttribute(10, "onclick", Click(OnClick));
         }
 
-        builder.AddMultipleAttributes(10, ExtraAttributes);
-        builder.AddMultipleAttributes(11, AdditionalAttributes);
-        builder.AddAttribute(12, "class", cssClass);
-        builder.AddAttribute(13, "style", style);
+        builder.AddMultipleAttributes(11, ExtraAttributes);
+        builder.AddMultipleAttributes(12, AdditionalAttributes);
+        builder.AddAttribute(13, "class", cssClass);
+        builder.AddAttribute(14, "style", style);
         builder.OpenRegion(14);
         RenderContent(builder);
         builder.CloseRegion();
@@ -164,7 +164,8 @@ public class Button : ButtonBase
         builder.OpenElement(20, "a");
         if (inactive)
         {
-            // A link with no href can't be followed or reached with Tab; role="link" keeps its name.
+            // A link with no href can't be followed or reached with Tab (a toolbar's arrows still reach one
+            // that's loading); role="link" keeps its name.
             builder.AddAttribute(21, "role", "link");
             builder.AddAttribute(22, "aria-disabled", "true");
         }

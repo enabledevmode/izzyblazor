@@ -488,7 +488,7 @@ class Grid extends IzzyElement {
 
   #openMenu(event: KeyboardEvent, cell: HTMLTableCellElement): boolean {
     if (event.key !== "ArrowDown") return false;
-    const menu = cell.querySelector<HTMLElement>("[data-ib-menu]") ?? cell.querySelector<HTMLElement>("[popovertarget]:not(:disabled)");
+    const menu = cell.querySelector<HTMLElement>("[data-ib-menu]") ?? cell.querySelector<HTMLElement>("[popovertarget]:not(:disabled, [popover] *)");
     menu?.click();
     return !!menu;
   }
