@@ -159,7 +159,47 @@ internal static class FilterExpression
             return False;
         }
 
-        return Default(filter, Rebind(field.Value, x), field.Type);
+        var body = Rebind(field.Value, x);
+        return FilterValues.DayCondition(filter, field.Type) is { } days ? Days(days, body, field.Type) : Default(filter, body, field.Type);
+    }
+
+    // What a comparison with a whole day came to (FilterValues.DayCondition). On an offset, the day is
+    // the one on its clock, as OnDay reads it.
+    private static Expression Days(Filter filter, Expression body, Type type)
+    {
+        switch (filter)
+        {
+            case NotFilter not:
+                return Not(Days(not.Filter, body, type));
+            case FilterGroup group:
+                return Join(group.Filters.Select(f => Days(f, body, type)).ToList(), group.Logic == FilterLogic.And);
+            case FieldFilter { Operator: FilterOperator.GreaterThanOrEqual or FilterOperator.LessThan } f
+                when (Nullable.GetUnderlyingType(type) ?? type) == typeof(DateTimeOffset) && FilterValues.IsWholeDay(f.Value, out var day):
+            {
+                var (date, hasValue) = ClockDate(body, type);
+                var start = Capture(day.ToDateTime(TimeOnly.MinValue));
+                Expression compare = f.Operator == FilterOperator.LessThan ? Expression.LessThan(date, start) : Expression.GreaterThanOrEqual(date, start);
+                return hasValue is null ? compare : Expression.AndAlso(hasValue, compare);
+            }
+
+            case FieldFilter f:
+                return Default(f, body, type);
+            default:
+                return False;
+        }
+    }
+
+    // An offset's date on its own clock: x.Date, through .Value when nullable, with what guards that.
+    private static (Expression Date, Expression? HasValue) ClockDate(Expression body, Type type)
+    {
+        var date = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.Date))!;
+        if (type == typeof(DateTimeOffset))
+        {
+            return (Expression.Property(body, date), null);
+        }
+
+        var value = Expression.Property(body, typeof(DateTimeOffset?).GetProperty(nameof(Nullable<DateTimeOffset>.Value))!);
+        return (Expression.Property(value, date), Expression.Property(body, typeof(DateTimeOffset?).GetProperty(nameof(Nullable<DateTimeOffset>.HasValue))!));
     }
 
     // A condition on the value expression `body`, of `type`.
@@ -379,11 +419,10 @@ internal static class FilterExpression
             return day == DateOnly.MaxValue ? onOrAfter : Expression.AndAlso(onOrAfter, Expression.LessThan(body, Parameter(start.AddDays(1), type)));
         }
 
-        // DateTimeOffset(?): x.Date == day, through .Value when nullable.
-        var date = typeof(DateTimeOffset).GetProperty(nameof(DateTimeOffset.Date))!;
-        var instance = type == t ? body : Expression.Property(body, typeof(DateTimeOffset?).GetProperty(nameof(Nullable<DateTimeOffset>.Value))!);
-        var equal = Expression.Equal(Expression.Property(instance, date), Capture(day.ToDateTime(TimeOnly.MinValue)));
-        return type == t ? equal : Expression.AndAlso(Expression.Property(body, typeof(DateTimeOffset?).GetProperty(nameof(Nullable<DateTimeOffset>.HasValue))!), equal);
+        // DateTimeOffset(?): x.Date == day.
+        var (date, hasValue) = ClockDate(body, type);
+        var equal = Expression.Equal(date, Capture(day.ToDateTime(TimeOnly.MinValue)));
+        return hasValue is null ? equal : Expression.AndAlso(hasValue, equal);
     }
 
     /// <summary>
@@ -437,9 +476,18 @@ internal static class FilterExpression
     /// </summary>
     public static Filter TypedFor<TItem>(Filter filter, IReadOnlyList<DataField<TItem>> fields) => !WithinLimits(filter) ? filter : filter switch
     {
-        FieldFilter f => fields.FirstOrDefault(d => string.Equals(d.Key, f.Field, StringComparison.OrdinalIgnoreCase)) is { } field ? Typed(f, field.Type) : f,
+        FieldFilter f => fields.FirstOrDefault(d => string.Equals(d.Key, f.Field, StringComparison.OrdinalIgnoreCase)) is { } field ? TypedDays(FilterValues.DayCondition(f, field.Type) ?? f, field.Type) : f,
         FilterGroup g => g with { Filters = g.Filters.Select(c => TypedFor(c, fields)).ToList() },
         NotFilter n => new NotFilter(TypedFor(n.Filter, fields)),
+        _ => filter,
+    };
+
+    // What a comparison with a whole day came to, so OData is sent the same whole day.
+    private static Filter TypedDays(Filter filter, Type type) => filter switch
+    {
+        FieldFilter f => Typed(f, type),
+        FilterGroup g => g with { Filters = g.Filters.Select(c => TypedDays(c, type)).ToList() },
+        NotFilter n => new NotFilter(TypedDays(n.Filter, type)),
         _ => filter,
     };
 
