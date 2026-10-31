@@ -303,6 +303,9 @@
     public bool FilterBuilder { get; set; }
 
     /// <inheritdoc />
+    internal override bool ReadsFilterText => FilterBuilder || base.ReadsFilterText;
+
+    /// <inheritdoc />
     internal override string? BuilderPanelId => FilterBuilder ? $"{FilterFormId}-builder" : null;
 
     bool IDataGridToolbar.HasFilterBuilder => FilterBuilder;
@@ -327,11 +330,11 @@
                 <ChildContent>
                     @if (UseState)
                     {
-                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" Value="ExtraFilter" ValueChanged="SetExtraFilterAsync" />
+                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" CursorKey="@CursorKey" Value="ExtraFilter" ValueChanged="SetExtraFilterAsync" />
                     }
                     else
                     {
-                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" />
+                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" CursorKey="@CursorKey" />
                     }
                 </ChildContent>
             </Popover>

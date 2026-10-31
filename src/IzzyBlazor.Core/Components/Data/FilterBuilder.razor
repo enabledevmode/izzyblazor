@@ -26,7 +26,7 @@
 *@
 
 <ib-filter-builder @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@(Label ?? TextDefaults.FilterBuilderLabel)"
-                   data-ib-value="@_model" data-ib-name="@Name" data-ib-page-key="@PageKey" data-ib-max-depth="@MaxDepth" data-ib-remove="@TextDefaults.FilterRemove">
+                   data-ib-value="@_model" data-ib-fields="@string.Join(',', Offered.Select(f => f.Key))" data-ib-name="@Name" data-ib-page-key="@PageKey" data-ib-cursor-key="@CursorKey" data-ib-max-depth="@MaxDepth" data-ib-remove="@TextDefaults.FilterRemove">
     <div data-ib-fb-root data-permanent="@($"fb-{Name}")"></div>
     <div data-ib-fb-lib hidden>
         <fieldset class="ib-fb-group" data-ib-fb-group>
@@ -84,6 +84,9 @@
     /// <summary>The address's page number, dropped on Apply, as a new filter starts at the first page. Defaults to <c>page</c>.</summary>
     [Parameter] public string PageKey { get; set; } = "page";
 
+    /// <summary>The address's cursor, dropped on Apply as the page number is. Defaults to <c>cursor</c>.</summary>
+    [Parameter] public string CursorKey { get; set; } = "cursor";
+
     /// <summary>How deeply groups can nest. Defaults to 5.</summary>
     [Parameter] public int MaxDepth { get; set; } = 5;
 
@@ -93,10 +96,6 @@
     private string? _class;
     private string? _style;
     private string _model = "";
-
-    // What the last Apply told C#: its echo through the binding isn't a new filter to draw.
-    private Filter? _reported;
-    private bool _awaitingEcho;
 
     private IEnumerable<DataField<TItem>> Offered => Fields.Where(f => f.Filterable && FilterBuilderModel.KindWord(f.Type) is not null);
 
@@ -125,12 +124,6 @@
 
     private void Draw()
     {
-        if (_awaitingEcho && ReferenceEquals(Value, _reported))
-        {
-            _awaitingEcho = false;
-            return;
-        }
-
         var filter = ValueChanged.HasDelegate || Value is not null ? Value
             : QueryString.Of(Navigation.Uri).TryGetValue(Name, out var text) && Filter.TryParse(text.ToString(), out var parsed) ? parsed
             : null;
@@ -140,9 +133,7 @@
     private async Task OnAppliedAsync(ChangeEventArgs e)
     {
         var text = e.Value?.ToString();
-        _reported = !string.IsNullOrEmpty(text) && Filter.TryParse(text, out var parsed) ? parsed : null;
-        _awaitingEcho = true;
-        await ValueChanged.InvokeAsync(_reported);
+        await ValueChanged.InvokeAsync(!string.IsNullOrEmpty(text) && Filter.TryParse(text, out var parsed) ? parsed : null);
     }
 
     private RenderFragment Select(string name, string attribute, RenderFragment options) => __builder =>

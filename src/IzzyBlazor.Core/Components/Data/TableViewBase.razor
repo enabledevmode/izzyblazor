@@ -654,7 +654,7 @@
     }
 
     private string ClearFiltersHref => Navigation.GetUriWithQueryParameters(
-        _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Append(FilterTextKey).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
+        _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Concat(ReadsFilterText ? [FilterTextKey] : []).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
 
     /// <summary>The address's key for a whole filter as text, which a FilterBuilder writes. It's anded with the columns' own.</summary>
     internal string FilterTextKey => $"{QueryPrefix}filter";
@@ -662,11 +662,26 @@
     // That filter. One that can't be read matches nothing, and a tag says so, rather than quietly showing every row.
     private (IzzyBlazor.Filter? Filter, bool Unreadable) AddressFilter()
     {
+        if (!ReadsFilterText)
+        {
+            return (null, false);
+        }
+
         var text = QueryString.Of(Navigation.Uri).GetValueOrDefault(FilterTextKey).ToString();
         return string.IsNullOrWhiteSpace(text) ? (null, false)
             : IzzyBlazor.Filter.TryParse(text, out var parsed) ? (parsed, false)
             : (IzzyBlazor.Filter.Any(), true);
     }
+
+    /// <summary>
+    /// Applies a whole filter from the address (<c>?filter=</c>, with the <c>QueryPrefix</c>), as a
+    /// <see cref="FilterBuilder{TItem}"/> on the page writes it, along with the columns' own. Off by
+    /// default, as the page may use that name itself.
+    /// </summary>
+    [Parameter] public bool FilterFromAddress { get; set; }
+
+    /// <summary>Whether this view reads that filter.</summary>
+    internal virtual bool ReadsFilterText => FilterFromAddress;
 
     /// <summary>The fields a FilterBuilder on this view builds from: its columns.</summary>
     internal IReadOnlyList<DataField<TItem>> BuilderFields => _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList();
