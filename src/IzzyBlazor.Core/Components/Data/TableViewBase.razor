@@ -737,7 +737,6 @@
                 </button>
             </Trigger>
             <ChildContent>
-                @{ var ops = ColumnFilter.OperatorsOf(column); }
                 @if (column.FilterKind == ColumnFilterKind.Choice)
                 {
                     @FilterList(column, current, label, fieldId)
@@ -746,58 +745,77 @@
                 {
                     @ValueList(column, label, fieldId)
                 }
-                else if (ColumnFilter.IsListState(current))
+                else if (FetchesValues(column) && ShowsValueList(column))
                 {
-                    @* A list from the address that one box can't show: its values post as they came,
-                       so no script or form changes what the link means, and Clear removes it. *@
-                    <div class="ib-table-filter-panel ib-field-sm">
-                        <span class="ib-field-label ib-table-filter-label">@label</span>
-                        <span>@FilterSummary(column, current)</span>
-                        @if (!UseState)
-                        {
-                            foreach (var (name, written) in ColumnFilter.Write(column, FilterQueryKey(column), current))
-                            {
-                                foreach (var value in written as string[] ?? (written is string one ? [one] : []))
-                                {
-                                    <input type="hidden" name="@name" value="@value" form="@FilterFormId" data-ib-filter />
-                                }
-                            }
-                        }
-                        @FilterPanelActions(column, current)
-                    </div>
-                }
-                else if (ops.Count > 1 || ops is [FilterOperator.Between])
-                {
-                    @* An operator above the values, and a range's two ends, in a group named by the
-                       panel's title. Which of them show follows the operator, in CSS. *@
-                    <div class="@(ops.Count == 1 ? "ib-table-filter-panel ib-table-filter-between ib-field-sm" : "ib-table-filter-panel ib-field-sm")" role="group" aria-labelledby="@($"{fieldId}-title")">
-                        <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
-                        @if (ops.Count > 1)
-                        {
-                            @OperatorSelect(column, current, ops, $"{fieldId}-op")
-                        }
-                        <div class="ib-table-filter-range">
-                            @FilterInput(column, current.Value, $"{fieldId}-min", ValueLabel(column, ops, $"{fieldId}-min"), second: false, autofocus: !ColumnFilter.TakesNoValue(current.Op))
-                            @if (ops.Contains(FilterOperator.Between))
-                            {
-                                <div class="ib-table-filter-to">
-                                    @FilterInput(column, current.To ?? "", $"{fieldId}-max", UpperLabel(column, $"{fieldId}-max"), second: true, autofocus: false)
-                                </div>
-                            }
-                        </div>
-                        @FilterPanelActions(column, current)
+                    @* The script fetches this list from the page itself. With none, the usual panel. *@
+                    @FetchedValueList(column, current, label, fieldId)
+                    <div class="ib-filter-no-script">
+                        @UsualPanel(column, current, label, $"{fieldId}-usual")
                     </div>
                 }
                 else
                 {
-                    <div class="ib-table-filter-panel ib-field-sm">
-                        <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
-                        @FilterInput(column, current.Value, fieldId, null, second: false, autofocus: true)
-                        @FilterPanelActions(column, current)
-                    </div>
+                    @UsualPanel(column, current, label, fieldId)
                 }
             </ChildContent>
         </Popover>
+    };
+
+    // A column's filter as a field or a summary: the operator and values it takes, or what's in the
+    // address that one box can't show.
+    private RenderFragment UsualPanel(ColumnBase<TItem> column, ColumnFilterValue current, string label, string fieldId) => __builder =>
+    {
+        var ops = ColumnFilter.OperatorsOf(column);
+        if (ColumnFilter.IsListState(current))
+        {
+            @* A list from the address that one box can't show: its values post as they came,
+               so no script or form changes what the link means, and Clear removes it. *@
+            <div class="ib-table-filter-panel ib-field-sm">
+                <span class="ib-field-label ib-table-filter-label">@label</span>
+                <span>@FilterSummary(column, current)</span>
+                @if (!UseState)
+                {
+                    foreach (var (name, written) in ColumnFilter.Write(column, FilterQueryKey(column), current))
+                    {
+                        foreach (var value in written as string[] ?? (written is string one ? [one] : []))
+                        {
+                            <input type="hidden" name="@name" value="@value" form="@FilterFormId" data-ib-filter />
+                        }
+                    }
+                }
+                @FilterPanelActions(column, current)
+            </div>
+        }
+        else if (ops.Count > 1 || ops is [FilterOperator.Between])
+        {
+            @* An operator above the values, and a range's two ends, in a group named by the
+               panel's title. Which of them show follows the operator, in CSS. *@
+            <div class="@(ops.Count == 1 ? "ib-table-filter-panel ib-table-filter-between ib-field-sm" : "ib-table-filter-panel ib-field-sm")" role="group" aria-labelledby="@($"{fieldId}-title")">
+                <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                @if (ops.Count > 1)
+                {
+                    @OperatorSelect(column, current, ops, $"{fieldId}-op")
+                }
+                <div class="ib-table-filter-range">
+                    @FilterInput(column, current.Value, $"{fieldId}-min", ValueLabel(column, ops, $"{fieldId}-min"), second: false, autofocus: !ColumnFilter.TakesNoValue(current.Op))
+                    @if (ops.Contains(FilterOperator.Between))
+                    {
+                        <div class="ib-table-filter-to">
+                            @FilterInput(column, current.To ?? "", $"{fieldId}-max", UpperLabel(column, $"{fieldId}-max"), second: true, autofocus: false)
+                        </div>
+                    }
+                </div>
+                @FilterPanelActions(column, current)
+            </div>
+        }
+        else
+        {
+            <div class="ib-table-filter-panel ib-field-sm">
+                <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
+                @FilterInput(column, current.Value, fieldId, null, second: false, autofocus: true)
+                @FilterPanelActions(column, current)
+            </div>
+        }
     };
 
     // Clear: a link on static pages, so it needs no script, and with nothing to clear it's disabled, so
@@ -1041,6 +1059,90 @@
         </div>
     };
 
+    // Whether the script fetches this column's list from the page: where nothing in C# can answer.
+    private bool FetchesValues(ColumnBase<TItem> column) => column.HasValueList && !WillBeInteractive;
+
+    private string ValuesKey => $"{QueryPrefix}fv";
+
+    // The column whose list this request is for, as the script asks with one more key; null for a page.
+    private ColumnBase<TItem>? ValuesAsked()
+    {
+        if (WillBeInteractive || !QueryString.Of(Navigation.Uri).TryGetValue(ValuesKey, out var field))
+        {
+            return null;
+        }
+
+        return _columns.FirstOrDefault(c => c.CanFilter && c.HasValueList && string.Equals(c.Key, field.ToString(), StringComparison.OrdinalIgnoreCase));
+    }
+
+    // Answers the script: the list drawn with its rows, in place of loading the table's. The rest of the
+    // page is thrown away. A failure is only the list's, so the response still says so in the same place.
+    private Task LoadAskedValuesAsync(ColumnBase<TItem> column)
+    {
+        var list = ValueListOf(column);
+        var query = QueryString.Of(Navigation.Uri);
+        list.Search = query.TryGetValue($"{ValuesKey}-search", out var search) ? search.ToString() : "";
+        var skip = query.TryGetValue($"{ValuesKey}-skip", out var from) && int.TryParse(from, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var number) ? number : 0;
+        _answering = column;
+        return LoadValuesAsync(column, list, more: false, skip);
+    }
+
+    private ColumnBase<TItem>? _answering;
+
+    // A list the script runs: it fetches the rows on opening and keeps them through navigations
+    // (data-permanent keeps the children, and the attributes follow the server), so it sets the ticks
+    // from the address itself. This response's own rows are in here when it's the one asked for.
+    private RenderFragment FetchedValueList(ColumnBase<TItem> column, ColumnFilterValue current, string label, string fieldId) => __builder =>
+    {
+        var key = FilterQueryKey(column);
+        var answer = _answering == column ? ValueListOf(column) : null;
+        <div class="ib-table-filter-panel ib-field-sm ib-filter-with-script" role="group" aria-labelledby="@($"{fieldId}-title")">
+            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+            <ib-filter-list data-permanent="@key" data-ib-list-fetch data-ib-load-on-scroll data-ib-list-key="@key" data-ib-values-key="@ValuesKey" data-ib-values-field="@column.Key"
+                            data-ib-max="@ColumnFilter.MaxListValues" data-ib-max-rows="@MaxValueRows" data-ib-ignore-case="@(FilterCase == FilterCase.IgnoreCase ? "" : null)"
+                            data-ib-results="@TextDefaults.FilterSelectAllResults" data-ib-text-more="@TextDefaults.FilterKeepTyping" data-ib-text-none="@TextDefaults.FilterNoValues"
+                            data-ib-text-failed="@TextDefaults.FilterValuesFailed" data-ib-text-limit="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterValuesLimit, ColumnFilter.MaxListValues)"
+                            data-ib-answered="@(answer is not null ? "" : null)" data-ib-load-failed="@(answer is { Failed: true } ? "" : null)" data-ib-whole="@(answer is { Whole: true } ? "" : null)"
+                            data-ib-next="@(answer is { HasMore: true, Failed: false } ? answer.NextSkip : null)">
+                <div class="ib-field ib-field-sm ib-filter-list-search">
+                    <div class="ib-field-control">
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchValues" autocomplete="off" autofocus data-ib-list-search />
+                    </div>
+                </div>
+                <label class="ib-check ib-filter-list-all">
+                    <input type="checkbox" class="ib-check-input" data-ib-list-all />
+                    <span>@TextDefaults.SelectAll</span><span data-ib-list-results hidden></span>
+                </label>
+                <div class="ib-filter-list-items">
+                    @if (answer is not null)
+                    {
+                        foreach (var row in answer.Rows)
+                        {
+                            <label class="ib-check">
+                                <input type="checkbox" class="ib-check-input" value="@row.Value" data-ib-blank="@(row.Value is null ? "" : null)" />
+                                <span>@(row.Text ?? row.Value ?? TextDefaults.FilterBlank)</span>
+                            </label>
+                        }
+
+                        if (answer is { HasMore: true, Failed: false })
+                        {
+                            <Button Class="ib-data-more-on-focus" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" data-ib-list-more>@TextDefaults.LoadMore</Button>
+                            <button type="button" hidden data-ib-load-next></button>
+                        }
+                    }
+                </div>
+                <div data-ib-list-loading hidden><Spinner /></div>
+                <div class="ib-filter-list-status" role="status"></div>
+                <div data-ib-list-retry-row hidden>
+                    <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" data-ib-list-retry>@TextDefaults.Retry</Button>
+                </div>
+            </ib-filter-list>
+            <div class="ib-table-filter-panel-actions">
+                @ClearAction(current.IsFilter, () => FilterHref(column, null), () => Task.CompletedTask)
+            </div>
+        </div>
+    };
+
     // Rows are keyed by their value, and the blank has none. No value is this.
     private static readonly object BlankRowKey = new();
 
@@ -1098,7 +1200,7 @@
         await LoadValuesAsync(column, list, more: false);
     }
 
-    private async Task LoadValuesAsync(ColumnBase<TItem> column, ValueListState list, bool more)
+    private async Task LoadValuesAsync(ColumnBase<TItem> column, ValueListState list, bool more, int skip = 0)
     {
         list.Load?.Cancel();
         var load = list.Load = new CancellationTokenSource();
@@ -1115,7 +1217,7 @@
         {
             Field = column.Key!,
             Search = search.Length > 0 ? search : null,
-            Skip = more ? list.NextSkip : 0,
+            Skip = more ? list.NextSkip : skip,
             OtherFilters = CurrentFilter(except: column),
             GridSearch = ValuesGridSearch,
             Ticked = list.Ticked,
@@ -1536,6 +1638,14 @@
         }
 
         SyncSelection();
+
+        // The script asking still gets only the list, and a parent's data arriving late means asking again.
+        if (ReadyToLoad && ValuesAsked() is { } column)
+        {
+            await LoadAskedValuesAsync(column);
+            return;
+        }
+
         await SyncAndLoadAsync();
     }
 
@@ -1579,6 +1689,20 @@
         if (UseState && Filter is null && StateFilters().Count == 0 && _stateExtra.Count == 0)
         {
             _stateFilters = ReadFilters();
+        }
+
+        if (ValuesAsked() is { } column)
+        {
+            await LoadAskedValuesAsync(column);
+            StateHasChanged();
+            return;
+        }
+
+        // A stream-rendered page's first flush has the headers, or a navigation's merge takes them out
+        // and an open panel with them, and comes back with the rows.
+        if (!RendererInfo.IsInteractive && ItemsProvider is not null)
+        {
+            StateHasChanged();
         }
 
         await LoadAsync();

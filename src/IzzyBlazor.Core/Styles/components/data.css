@@ -643,6 +643,19 @@
     display: none;
   }
 
+  /* A list the script fetches, or the usual panel where there's no script to do that. */
+  @media (scripting: enabled) {
+    .ib-filter-no-script {
+      display: none;
+    }
+  }
+
+  @media (scripting: none) {
+    .ib-filter-with-script {
+      display: none;
+    }
+  }
+
   .ib-filter-list-status {
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);

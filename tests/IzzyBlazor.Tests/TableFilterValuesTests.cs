@@ -113,16 +113,159 @@ public class TableFilterValuesTests : BunitContext
         Assert.Equal(2, _asked.Count);
     }
 
-    [Fact]
-    public void Static_pages_show_the_usual_panel_and_ask_nothing()
+    private IRenderedComponent<Table<Row>> Static(string url, RenderFragment? columns = null)
     {
-        Nav.NavigateTo("/orders");
+        Nav.NavigateTo(url);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, columns ?? Columns));
+    }
+
+    private static IEnumerable<string?> Answered(IRenderedComponent<Table<Row>> cut, string key) =>
+        cut.Find($"ib-filter-list[data-ib-list-key='{key}']").QuerySelectorAll(".ib-filter-list-items > label input")
+            .Select(i => i.HasAttribute("data-ib-blank") ? null : i.GetAttribute("value"));
+
+    [Fact]
+    public void A_static_page_draws_an_empty_list_for_the_script_and_the_usual_panel_for_no_script()
+    {
+        var cut = Static("/orders");
+
+        Assert.Empty(_asked);
+        var list = cut.Find("ib-filter-list[data-ib-list-key='f-name']");
+        Assert.Equal("f-name", list.GetAttribute("data-permanent"));
+        Assert.False(list.HasAttribute("data-ib-answered"));
+        Assert.Empty(Answered(cut, "f-name"));
+        Assert.NotNull(cut.Find(".ib-filter-with-script"));
+        Assert.NotNull(cut.Find(".ib-filter-no-script input[name='f-name']"));
+        Assert.Equal(5, Names(cut).Length);
+    }
+
+    [Fact]
+    public void Ids_in_the_list_and_the_usual_panel_stay_apart()
+    {
+        var cut = Static("/orders");
+
+        var ids = cut.FindAll("[popover] [id]").Select(e => e.Id).ToList();
+        Assert.Equal(ids.Count, ids.Distinct().Count());
+    }
+
+    [Fact]
+    public void The_script_asking_gets_the_list_and_no_rows()
+    {
+        var cut = Static("/orders?fv=name");
+
+        Assert.Equal(new string?[] { null, "Ada", "Alan", "Grace" }, Answered(cut, "f-name"));
+        Assert.True(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-answered"));
+        Assert.True(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-whole"));
+        Assert.Empty(Answered(cut, "f-city"));
+        Assert.Empty(Names(cut));
+    }
+
+    [Fact]
+    public void Items_arriving_late_answer_again_and_still_load_no_rows()
+    {
+        Nav.NavigateTo("/orders?fv=city");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.ChildContent, Columns));
+        Assert.Empty(Answered(cut, "f-city"));
+
+        cut.Render(p => p.Add(t => t.Items, Rows));
+
+        cut.WaitForAssertion(() => Assert.Equal(new string?[] { "Lima", "Oslo", "Rome" }, Answered(cut, "f-city")), Timer);
+        Assert.Empty(Names(cut));
+    }
+
+    [Fact]
+    public void Asking_doesnt_run_the_tables_query()
+    {
+        var loads = 0;
+        Nav.NavigateTo("/orders?fv=name");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        Render<Table<Row>>(p => p
+            .Add(t => t.ItemsProvider, r => { loads++; return ValueTask.FromResult(new DataResult<Row>([], 0)); })
+            .Add(t => t.ChildContent, (RenderFragment)(b => b.AddContent(0, Col<string?>(r => r.Name, Counting)))));
+
+        Assert.Equal(0, loads);
+        Assert.Single(_asked);
+    }
+
+    [Theory]
+    [InlineData("/orders?fv=nope")]
+    [InlineData("/orders?fv=id")]
+    public void A_key_naming_no_list_is_only_a_page(string url)
+    {
+        var cut = Static(url);
+
+        Assert.Empty(_asked);
+        Assert.Equal(5, Names(cut).Length);
+    }
+
+    [Fact]
+    public void Another_tables_key_leaves_this_one_alone()
+    {
+        Nav.NavigateTo("/orders?other-fv=name");
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
 
         Assert.Empty(_asked);
-        Assert.Empty(cut.FindAll("ib-filter-list"));
-        Assert.NotNull(cut.Find("input[name='f-name']"));
+        Assert.Equal(5, Names(cut).Length);
+    }
+
+    [Fact]
+    public void An_interactive_page_takes_no_notice_of_the_key()
+    {
+        var cut = Unbound("/orders?fv=name");
+
+        Assert.Empty(_asked);
+        Assert.Equal(5, Names(cut).Length);
+        Assert.Empty(cut.FindAll("ib-filter-list[data-ib-list-fetch]"));
+    }
+
+    [Fact]
+    public void Asking_carries_the_search_page_and_filters_from_the_address()
+    {
+        var cut = Static("/orders?fv=name&fv-search=a&fv-skip=1&f-city-op=in&f-city=Oslo&f-name-op=notin&f-name=Ada");
+
+        var request = Assert.Single(_asked);
+        Assert.Equal("a", request.Search);
+        Assert.Equal(1, request.Skip);
+        Assert.Equal("city in ('Oslo')", request.OtherFilters?.ToString());
+        Assert.Equal(new[] { "Ada" }, request.Unticked);
+        Assert.False(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-whole"));
+    }
+
+    [Fact]
+    public void An_answer_with_more_says_where_to_go_on()
+    {
+        static ValueTask<FilterValuesResult> Pages(FilterValuesRequest r) =>
+            ValueTask.FromResult(new FilterValuesResult(Enumerable.Range(r.Skip, r.Take).Select(i => new FilterValue($"v{i:000}")).ToList(), true));
+
+        var cut = Static("/orders?fv=name&fv-skip=50", b => b.AddContent(0, Col<string?>(r => r.Name, Pages)));
+
+        var list = cut.Find("ib-filter-list[data-ib-list-key='f-name']");
+        Assert.Equal("100", list.GetAttribute("data-ib-next"));
+        Assert.Equal("v050", Answered(cut, "f-name").First());
+        Assert.NotNull(list.QuerySelector("[data-ib-list-more]"));
+        Assert.NotNull(list.QuerySelector("[data-ib-load-next]"));
+    }
+
+    [Fact]
+    public void A_loader_that_fails_says_so_in_its_answer_and_the_page_still_renders()
+    {
+        static ValueTask<FilterValuesResult> Down(FilterValuesRequest r) => throw new InvalidOperationException("down");
+
+        var cut = Static("/orders?fv=name", b => b.AddContent(0, Col<string?>(r => r.Name, Down)));
+
+        Assert.True(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-load-failed"));
+    }
+
+    [Fact]
+    public void A_condition_the_list_cannot_show_has_only_the_usual_panel_on_a_static_page()
+    {
+        var cut = Static("/orders?f-name=ad");
+
+        Assert.Empty(cut.FindAll("ib-filter-list[data-ib-list-key='f-name']"));
+        Assert.Equal("ad", cut.Find("input[name='f-name']").GetAttribute("value"));
+        Assert.Empty(cut.FindAll(".ib-filter-no-script input[name='f-name']"));
     }
 
     [Fact]
