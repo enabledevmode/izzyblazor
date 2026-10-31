@@ -57,7 +57,7 @@ public class TableFilterListTests : BunitContext
         return cut;
     }
 
-    private static string[] Names(IRenderedComponent<Table<Row>> cut) =>
+    private static string[] Names<T>(IRenderedComponent<T> cut) where T : IComponent =>
         cut.FindAll("tbody tr:not(.ib-table-empty) td:first-child").Select(c => c.TextContent.Trim()).ToArray();
 
     private static string Label(IRenderedComponent<Table<Row>> cut) => cut.FindAll(".ib-table-filter-button")[0].GetAttribute("aria-label")!;
@@ -97,7 +97,6 @@ public class TableFilterListTests : BunitContext
 
         Assert.Equal(3, Names(cut).Length);
         Assert.Equal("Filter Status", Label(cut));
-        Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
     }
 
     [Fact]
@@ -107,8 +106,7 @@ public class TableFilterListTests : BunitContext
 
         Assert.Empty(Names(cut));
         Assert.Equal("Filter Status: none", Label(cut));
-        Assert.Contains("Status: none", cut.Find(".ib-table-filter-tags .ib-tag").TextContent);
-        Assert.Equal("Nothing is selected under Status.", cut.Find(".ib-table-empty-content").TextContent.Trim());
+        Assert.StartsWith("Nothing is selected under Status.", cut.Find(".ib-table-empty-content").TextContent.Trim());
         Assert.All(cut.FindAll("input[name='f-status'], input[name='f-status-blank']"), b => Assert.False(b.HasAttribute("checked")));
     }
 
@@ -136,7 +134,7 @@ public class TableFilterListTests : BunitContext
 
         Assert.Equal("Filter Status: none", Label(cut));
         Assert.Empty(Names(cut));
-        Assert.Equal("Nothing is selected under Status.", cut.Find(".ib-table-empty-content").TextContent.Trim());
+        Assert.StartsWith("Nothing is selected under Status.", cut.Find(".ib-table-empty-content").TextContent.Trim());
     }
 
     [Fact]
@@ -149,11 +147,11 @@ public class TableFilterListTests : BunitContext
     }
 
     [Fact]
-    public void A_tag_removes_every_key_of_its_list()
+    public void Clear_removes_every_key_of_its_list()
     {
         var cut = Static("/orders?f-status=Yes&f-status-blank=1&tab=x");
 
-        Assert.Equal("http://localhost/orders?tab=x", cut.Find(".ib-table-filter-tags .ib-tag a").GetAttribute("href"));
+        Assert.Equal("http://localhost/orders?tab=x", cut.Find("a[data-ib-filter-clear]").GetAttribute("href"));
     }
 
     [Fact]
@@ -241,7 +239,7 @@ public class TableFilterListTests : BunitContext
 
         Assert.Equal("Filter Status", Label(cut));
         Assert.Equal(3, Names(cut).Length);
-        Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
+        Assert.Empty(cut.FindAll(".ib-table-filter-button[data-active]"));
     }
 
     [Fact]
@@ -287,6 +285,152 @@ public class TableFilterListTests : BunitContext
             Assert.Equal(3, Names(cut).Length);
             Assert.Equal("Filter Status", Label(cut));
         }, Timer);
+    }
+
+    [Fact]
+    public void A_table_draws_no_tags_for_what_its_funnels_say()
+    {
+        Assert.Empty(Static("/orders?f-status=Yes").FindAll(".ib-table-filter-tags"));
+        Assert.Empty(Bound(_ => { }, Filter.In("status", ["Yes"])).FindAll(".ib-table-filter-tags"));
+    }
+
+    [Fact]
+    public void A_condition_no_panel_shows_keeps_its_tag_above_the_table()
+    {
+        var cut = Bound(_ => { }, Filter.Any(Filter.Where("status", FilterOperator.Equals, "Yes"), Filter.Where("status", FilterOperator.Equals, "No")));
+
+        Assert.Single(cut.FindAll(".ib-table-filter-tags .ib-tag"));
+        Assert.Equal(new[] { "Ada", "Grace" }, Names(cut));
+    }
+
+    [Fact]
+    public void A_condition_no_panel_shows_is_removed_by_its_own_tag_alone()
+    {
+        Filter? reported = Filter.All(
+            Filter.In("size", ["A", "B"]),
+            Filter.Any(Filter.Where("status", FilterOperator.Equals, "Yes"), Filter.Where("status", FilterOperator.Equals, "No")));
+        var cut = Bound(f => reported = f, reported);
+
+        Assert.Empty(cut.FindAll(".ib-table-filter-tags .ib-btn"));
+        cut.Find(".ib-table-filter-tags .ib-tag button").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Empty(cut.FindAll(".ib-table-filter-tags .ib-tag"));
+            Assert.NotNull(reported!.Find("size"));
+        }, Timer);
+    }
+
+    [Fact]
+    public void No_rows_under_a_filter_offers_the_way_back()
+    {
+        var cut = Static("/orders?f-size=K&tab=x");
+
+        Assert.Empty(Names(cut));
+        var clear = cut.Find(".ib-table-empty-clear a");
+        Assert.Equal("Clear filters", clear.TextContent.Trim());
+        Assert.Equal("http://localhost/orders?tab=x", clear.GetAttribute("href"));
+    }
+
+    [Fact]
+    public void No_rows_with_no_filter_offers_nothing_to_clear()
+    {
+        Nav.NavigateTo("/orders");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, []).Add(t => t.ChildContent, Columns));
+
+        Assert.Empty(cut.FindAll(".ib-table-empty-clear"));
+    }
+
+    [Fact]
+    public void A_filter_on_a_hidden_column_keeps_a_tag_on_a_grid()
+    {
+        Nav.NavigateTo("/orders?f-status=Yes");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var cut = Render<DataGrid<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.ItemKey, r => r.Name)
+            .Add(t => t.Layout, new DataGridLayout { Columns = [new() { Key = "status", Hidden = true }] })
+            .Add(t => t.ChildContent, Columns));
+
+        Assert.Equal(new[] { "Ada" }, Names(cut));
+        var tags = cut.Find(".ib-table-filter-tags");
+        Assert.False(tags.HasAttribute("hidden"));
+        Assert.Contains("Status: Yes", tags.TextContent);
+        Assert.Equal("http://localhost/orders", tags.QuerySelector("a")!.GetAttribute("href"));
+    }
+
+    [Fact]
+    public void A_grids_row_of_tags_is_there_but_hidden_while_every_filter_has_its_funnel()
+    {
+        var cut = Grid("/orders?f-status=Yes", activeFilters: false);
+
+        Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
+        Assert.Empty(cut.FindAll(".ib-table-filter-tags .ib-tag"));
+    }
+
+    private IRenderedComponent<DataGrid<Row>> Grid(string url, bool activeFilters = true, RenderFragment? toolbar = null)
+    {
+        Nav.NavigateTo(url);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        return Render<DataGrid<Row>>(p =>
+        {
+            p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Name).Add(t => t.ActiveFilters, activeFilters).Add(t => t.ChildContent, Columns);
+            if (toolbar is not null)
+            {
+                p.Add(t => t.ToolbarContent, toolbar);
+            }
+        });
+    }
+
+    [Fact]
+    public void A_grids_Filters_button_is_there_with_nothing_filtered_and_lists_none()
+    {
+        var cut = Grid("/orders");
+
+        var button = cut.Find(".ib-grid-toolbar .ib-grid-filters-button");
+        Assert.False(button.HasAttribute("data-active"));
+        Assert.Equal("Filters", button.GetAttribute("aria-label"));
+        Assert.Empty(cut.FindAll(".ib-grid-filters-panel .ib-tag"));
+        Assert.False(cut.Find(".ib-grid-filters-none").HasAttribute("hidden"));
+        Assert.True(cut.Find(".ib-grid-filters-panel .ib-table-filter-panel-actions button").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void A_grids_Filters_button_lists_each_filter_to_remove_or_clear()
+    {
+        var cut = Grid("/orders?f-status=Yes&f-size=A&tab=x");
+
+        var button = cut.Find(".ib-grid-filters-button");
+        Assert.True(button.HasAttribute("data-active"));
+        Assert.Equal("Filters: 2 active", button.GetAttribute("aria-label"));
+        var tags = cut.FindAll(".ib-grid-filters-panel .ib-tag");
+        Assert.Equal(2, tags.Count);
+        Assert.Contains("Status: Yes", tags[0].TextContent);
+        Assert.Equal("http://localhost/orders?f-size=A&tab=x", tags[0].QuerySelector("a")!.GetAttribute("href"));
+        Assert.Equal("http://localhost/orders?tab=x", cut.Find(".ib-grid-filters-panel a[data-ib-filter-clear]").GetAttribute("href"));
+        Assert.True(cut.Find(".ib-grid-filters-none").HasAttribute("hidden"));
+    }
+
+    [Fact]
+    public void A_grid_without_ActiveFilters_has_no_Filters_button()
+    {
+        var cut = Grid("/orders?f-status=Yes", activeFilters: false);
+
+        Assert.Empty(cut.FindAll(".ib-grid-filters-button"));
+    }
+
+    [Fact]
+    public void DataGridFilters_places_the_button_among_a_toolbars_items()
+    {
+        var cut = Grid("/orders", toolbar: b =>
+        {
+            b.OpenComponent<DataGridFilters>(0);
+            b.AddComponentParameter(1, nameof(DataGridFilters.Position), ToolbarPosition.Start);
+            b.CloseComponent();
+        });
+
+        Assert.Single(cut.FindAll(".ib-grid-filters-button"));
     }
 
     [Fact]

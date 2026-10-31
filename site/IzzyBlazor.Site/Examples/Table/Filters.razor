@@ -1,5 +1,5 @@
-@* Column filters: a funnel in each Filterable header opens the filter; active filters show as tags
-   above the table. Text matches anywhere, enums get a list of checkboxes, numbers take a range. *@
+@* Column filters: a funnel in each Filterable header opens the filter, and is marked while it's
+   in use. Text matches anywhere, enums get a list of checkboxes, numbers take a range. *@
 <Table Items="Orders.All" PageSize="5" InitialSort="-number" Caption="Filtered orders" QueryPrefix="orders-" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
     <PropertyColumn Property="o => o.Customer" Sortable Filterable />

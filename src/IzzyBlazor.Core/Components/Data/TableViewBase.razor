@@ -159,38 +159,16 @@
             {
                 @SelectionBar
             }
-            @if (HasFilters)
+            @if (HasFilters && !ListsActiveFilters && (GridColumns || ExtraCount > 0))
             {
-                var filtered = FilteredColumns();
-                @* The active filters, which the header hides in its popovers: a removable tag each. Always
-                   rendered (hidden while empty): if it came and went, enhanced navigation's DOM merge would
-                   turn the table's scroll box into it and rebuild the table, closing the filter popover
-                   someone is typing in. *@
-                <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(filtered.Count + ExtraCount == 0)">
-                    @foreach (var column in filtered)
-                    {
-                        var summary = FilterSummary(column, CurrentFilters()[column.Key!]);
-                        <Tag Label="@($"{column.HeaderText}: {summary}")" Size="ControlSize.Sm"
-                             RemoveHref="@(UseState ? null : FilterHref(column, null))"
-                             OnRemove="@(UseState ? EventCallback.Factory.Create(this, () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)) : default)" />
-                    }
-                    @if (UseState)
-                    {
-                        @* Conditions of a bound filter that no column's panel shows, in the filter's own words. *@
-                        @foreach (var extra in _stateExtra)
-                        {
-                            var condition = extra;
-                            <Tag Label="@condition.ToString()" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => RemoveExtraAsync(condition)))" />
-                        }
-                    }
-                    @if (filtered.Count + ExtraCount > 0 && UseState)
-                    {
-                        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" @onclick="ClearFiltersAsync">@TextDefaults.Clear</button>
-                    }
-                    else if (filtered.Count > 0)
-                    {
-                        <a href="@ClearFiltersHref" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm">@TextDefaults.Clear</a>
-                    }
+                @* What no funnel can show would hide rows with nothing to say why, so it shows here: a bound
+                   filter's conditions that no column's panel holds, and a filter on a hidden column. Nothing a
+                   person ticks or types brings this row, so the table doesn't move under them. On a grid it's
+                   always rendered, hidden while empty, as enhanced navigation's merge would otherwise turn the
+                   scroll box into it and rebuild the table. *@
+                var unseen = FilteredColumns().Where(c => !Shown.Contains(c)).ToList();
+                <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(unseen.Count + ExtraCount == 0)">
+                    @ActiveFilterTags(unseen)
                 </div>
             }
             @if (!GridColumns)
@@ -282,6 +260,13 @@
                                         else
                                         {
                                             @(EmptyText ?? TextDefaults.NoItems)
+                                        }
+                                        @if (HasFilters && ActiveFilterCount > 0)
+                                        {
+                                            @* The way back from no rows, wherever the filters that did it are. *@
+                                            <div class="ib-table-empty-clear">
+                                                @ClearAction(true, () => ClearFiltersHref, ClearFiltersAsync, TextDefaults.ClearFilters)
+                                            </div>
                                         }
                                     </div>
                                 </td>
@@ -450,7 +435,7 @@
     private IzzyBlazor.Filter? _unsplitFilter;
     private bool _hasUnsplitFilter;
 
-    // The tags for a bound filter's other conditions.
+    // A bound filter's other conditions.
     private int ExtraCount
     {
         get
@@ -744,7 +729,7 @@
                 else if (current.Op == FilterOperator.In)
                 {
                     @* A list from the address that one box can't show: its values post as they came,
-                       so no script or form changes what the link means, and its tag removes it. *@
+                       so no script or form changes what the link means, and Clear removes it. *@
                     <div class="ib-table-filter-panel ib-field-sm">
                         <span class="ib-field-label ib-table-filter-label">@label</span>
                         <span>@FilterSummary(column, current)</span>
@@ -792,26 +777,76 @@
         </Popover>
     };
 
-    // Clear removes this column's filter: a link on static pages, so it needs no script, and with
-    // nothing to clear it's disabled, so the panel keeps its shape. Without script (and on static pages
-    // before it arrives), Enter or Apply submits the filters' GET form; with script the fields apply
-    // as they change and CSS hides that button.
+    // Clear: a link on static pages, so it needs no script, and with nothing to clear it's disabled, so
+    // the panel keeps its shape.
+    private RenderFragment ClearAction(bool any, Func<string> href, Func<Task> clear, string? text = null) => __builder =>
+    {
+        const string look = "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm";
+        if (!any)
+        {
+            <button type="button" class="@look" disabled>@(text ?? TextDefaults.Clear)</button>
+        }
+        else if (UseState)
+        {
+            <button type="button" class="@look" data-ib-filter-clear @onclick="() => clear()">@(text ?? TextDefaults.Clear)</button>
+        }
+        else
+        {
+            <a href="@href()" class="@look" data-ib-filter-clear>@(text ?? TextDefaults.Clear)</a>
+        }
+    };
+
+    /// <summary>Whether the active filters are listed elsewhere, so a bound filter's other conditions needn't show above the table.</summary>
+    internal virtual bool ListsActiveFilters => false;
+
+    /// <summary>How many filters are active: a column's, and a bound filter's that no column shows.</summary>
+    internal int ActiveFilterCount => FilteredColumns().Count + ExtraCount;
+
+    // A removable tag for each of these columns' filters and each of a bound filter's other conditions.
+    private RenderFragment ActiveFilterTags(IEnumerable<ColumnBase<TItem>> columns) => __builder =>
+    {
+        foreach (var column in columns)
+        {
+            var summary = FilterSummary(column, CurrentFilters()[column.Key!]);
+            <Tag Label="@($"{column.HeaderText}: {summary}")" Size="ControlSize.Sm"
+                 RemoveHref="@(UseState ? null : FilterHref(column, null))"
+                 OnRemove="@(UseState ? EventCallback.Factory.Create(this, () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)) : default)" />
+        }
+
+        if (UseState)
+        {
+            @* In the filter's own words, as no column's panel shows them. *@
+            foreach (var extra in _stateExtra)
+            {
+                var condition = extra;
+                <Tag Label="@condition.ToString()" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => RemoveExtraAsync(condition)))" />
+            }
+        }
+    };
+
+    /// <summary>What a list of the active filters holds: a tag each, and Clear for all of them. The tags' box stays while empty, for enhanced navigation's merge.</summary>
+    internal RenderFragment ActiveFiltersPanel => __builder =>
+    {
+        var count = ActiveFilterCount;
+        <div class="ib-table-filter-panel ib-grid-filters-panel">
+            <span class="ib-field-label ib-table-filter-label">@TextDefaults.Filters</span>
+            <span class="ib-grid-filters-none" hidden="@(count > 0)">@TextDefaults.FiltersNone</span>
+            <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(count == 0)">
+                @ActiveFilterTags(FilteredColumns())
+            </div>
+            <div class="ib-table-filter-panel-actions">
+                @ClearAction(count > 0, () => ClearFiltersHref, ClearFiltersAsync)
+            </div>
+        </div>
+    };
+
+    // A column's Clear removes its filter. Without script (and on static pages before it arrives), Enter
+    // or Apply submits the filters' GET form; with script the fields apply as they change and CSS hides
+    // that button.
     private RenderFragment FilterPanelActions(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
-        const string clear = "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm";
         <div class="ib-table-filter-panel-actions">
-            @if (!current.IsFilter)
-            {
-                <button type="button" class="@clear" disabled>@TextDefaults.Clear</button>
-            }
-            else if (UseState)
-            {
-                <button type="button" class="@clear" data-ib-filter-clear @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)">@TextDefaults.Clear</button>
-            }
-            else
-            {
-                <a href="@FilterHref(column, null)" class="@clear" data-ib-filter-clear>@TextDefaults.Clear</a>
-            }
+            @ClearAction(current.IsFilter, () => FilterHref(column, null), () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false))
             @if (!UseState)
             {
                 <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-filter-apply">@TextDefaults.Apply</button>

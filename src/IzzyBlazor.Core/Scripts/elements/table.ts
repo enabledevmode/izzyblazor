@@ -66,8 +66,9 @@ class Table extends IzzyElement {
   #boundDate = 0;
   #releasing = false;
   #popped = false;
-  // A tag's link has been followed: until its response arrives the boxes still show what it removed.
-  #removing = 0;
+  // The names in panels changed since the last apply. Only these go in the address: the rest may not yet
+  // show what a link has just changed, and the address is what's right about them.
+  #changed = new Set<string>();
   #typing = new TypingGuard(this);
 
   protected setup(signal: AbortSignal): void {
@@ -80,9 +81,11 @@ class Table extends IzzyElement {
     this.addEventListener(
       "click",
       (event) => {
-        // A panel's Clear is done with the panel.
-        const clear = (event.target as Element).closest("[data-ib-filter-clear]");
-        if (clear) this.#closePanel(clear);
+        // A panel's Clear is done with the panel, as is removing the last tag in a list of them.
+        const clear = (event.target as Element).closest("[data-ib-filter-clear], .ib-tag a, .ib-tag button");
+        const list = clear?.closest(".ib-table-filter-panel");
+        const inPlace = !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey;
+        if (inPlace && (clear?.matches("[data-ib-filter-clear]") || list?.querySelectorAll(".ib-tag").length === 1)) this.#closePanel(clear);
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
         if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();
@@ -206,6 +209,7 @@ class Table extends IzzyElement {
       (event) => {
         const target = event.target;
         if (!isFilter(target)) return;
+        this.#touch(target);
         if (target instanceof HTMLSelectElement) {
           clearTimeout(this.#timer);
           this.#typing.forget(target);
@@ -257,6 +261,7 @@ class Table extends IzzyElement {
       clearTimeout(this.#timer);
       this.#typing.undoTicks();
       this.#typing.clear();
+      this.#changed.clear();
       this.#popped = true;
     }, { signal });
     // A link in a table carries on with what's waiting to apply, as sorting and paging do, except a
@@ -272,12 +277,10 @@ class Table extends IzzyElement {
         clearTimeout(this.#timer);
         this.#typing.undoTicks();
         this.#typing.clear();
-        if (tag && !this.hasAttribute("data-ib-interactive")) this.#removing = window.setTimeout(() => (this.#removing = 0), 5000);
+        this.#changed.clear();
       },
       { signal }
     );
-    clearTimeout(this.#removing);
-    this.#removing = 0;
     if (this.#popped) {
       this.#popped = false;
       // An interactive page's render sets its values as properties, so the defaults here are old.
@@ -298,6 +301,7 @@ class Table extends IzzyElement {
     const filters = [...this.querySelectorAll("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this);
     // Not on an interactive page, whose render sets values as properties (see filter-form.ts).
     if (!this.hasAttribute("data-ib-interactive") && changedFromServer(filters)) {
+      for (const control of filters) if (changedFromServer([control])) this.#touch(control);
       const active = document.activeElement;
       // A tick keeps its own place in the history, where typing replaces its own.
       if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date" && !isTick(active)) this.#typed(active);
@@ -319,22 +323,30 @@ class Table extends IzzyElement {
     return true;
   }
 
+  #touch(control: Element): void {
+    // A panel's controls go together; the toolbar's search is on its own.
+    this.#changed.add((control as HTMLInputElement).name);
+    for (const c of control.closest(".ib-table-filter-panel")?.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]") ?? []) this.#changed.add(c.name);
+  }
+
   #typed(input: HTMLInputElement): void {
+    this.#touch(input);
     this.#typing.typed(input);
     clearTimeout(this.#timer);
     this.#timer = window.setTimeout(() => this.#apply(true), PAUSE);
   }
 
   /**
-   * Navigates to the current URL with this table's filter values, without its page number, and says
-   * whether that changed it. A date part way through stays as the address has it.
+   * Navigates to the current URL with the values of this table's changed panels, without its page
+   * number, and says whether that changed it. A date part way through stays as the address has it.
    */
   #apply(replace: boolean): boolean {
-    // Held by #removing, a change waits for setup, below, which applies it from what the response drew.
-    if (this.#typing.composing || !this.isConnected || this.#removing) return false;
+    if (this.#typing.composing || !this.isConnected) return false;
     this.#typing.restore();
     const url = new URL(location.href);
-    const controls = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name && !unfinished(c));
+    const own = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name);
+    const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c));
+    if (controls.length === 0) return false;
     // A name can repeat: all of them go, then each control with something to say comes back.
     for (const control of controls) url.searchParams.delete(control.name);
     for (const control of controls) {
@@ -342,11 +354,12 @@ class Table extends IzzyElement {
       if (value) url.searchParams.append(control.name, value);
     }
     for (const list of this.querySelectorAll<HTMLElement>("ib-filter-list[data-ib-none]")) {
-      if (list.closest("ib-table") !== this) continue;
+      if (list.closest("ib-table") !== this || !this.#changed.has(list.querySelector<HTMLInputElement>("input[data-ib-filter]")?.name ?? "")) continue;
       url.searchParams.delete(list.dataset.ibNone!);
       if (!list.querySelector("input[data-ib-filter]:checked")) url.searchParams.append(list.dataset.ibNone!, "1");
     }
     this.#typing.forgetTicks();
+    this.#changed.clear();
     const pageKey = this.dataset.ibPageKey;
     if (pageKey) url.searchParams.delete(pageKey);
     const cursorKey = this.dataset.ibCursorKey;
@@ -354,7 +367,7 @@ class Table extends IzzyElement {
     if (!navigateTo(url, replace)) return false;
     this.#typing.forgetChosen();
     // An operator with no value doesn't outlast a new filter. A static page's response redraws it, and an interactive page's render doesn't.
-    for (const control of controls) if (control instanceof HTMLSelectElement && control.dataset.ibDefault && !written(control)) control.value = control.dataset.ibDefault;
+    for (const control of own) if (control instanceof HTMLSelectElement && control.dataset.ibDefault && !written(control)) control.value = control.dataset.ibDefault;
     this.#typing.guard();
     return true;
   }

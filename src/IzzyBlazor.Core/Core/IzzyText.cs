@@ -195,10 +195,19 @@ public class IzzyText
     /// <summary>A Table number filter with both ends: "100–500".</summary>
     public virtual string FilterBetween { get; set; } = "{0}–{1}";
 
+    /// <summary>A DataGrid's Filters button with filters active; {0} is how many.</summary>
+    public virtual string FiltersActive { get; set; } = "Filters: {0} active";
+
+    /// <summary>A DataGrid's list of active filters with none.</summary>
+    public virtual string FiltersNone { get; set; } = "No filters";
+
+    /// <summary>The way back from a table with no rows while filters are active.</summary>
+    public virtual string ClearFilters { get; set; } = "Clear filters";
+
     /// <summary>A list filter's row for no value.</summary>
     public virtual string FilterBlank { get; set; } = "(Blank)";
 
-    /// <summary>What a list filter with nothing ticked is set to, in its tag: "Status: none".</summary>
+    /// <summary>What a list filter with nothing ticked is set to: "Status: none".</summary>
     public virtual string FilterNone { get; set; } = "none";
 
     /// <summary>The empty message of a table with a list filter that has nothing ticked; {0} is the column's title.</summary>
@@ -320,7 +329,7 @@ public class IzzyText
     /// <summary>FileUpload, a file of the wrong type: {0} is its name.</summary>
     public virtual string FileWrongType { get; set; } = "{0} isn't an accepted file type.";
 
-    /// <summary>FilterForm's name.</summary>
+    /// <summary>FilterForm's name, and that of a table's active filters.</summary>
     public virtual string Filters { get; set; } = "Filters";
 
     /// <summary>FilterSearch's hidden label.</summary>
@@ -329,7 +338,7 @@ public class IzzyText
     /// <summary>FilterForm's apply button.</summary>
     public virtual string Apply { get; set; } = "Apply";
 
-    /// <summary>FilterForm's clear link.</summary>
+    /// <summary>FilterForm's clear link, and a header filter's.</summary>
     public virtual string Clear { get; set; } = "Clear";
 
     // Data and feedback
