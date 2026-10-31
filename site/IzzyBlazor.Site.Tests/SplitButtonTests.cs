@@ -538,6 +538,36 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
+    public async Task The_menu_opens_against_the_whole_button(string mode)
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using (browser)
+        {
+            var page = await OpenAsync(browser, "docs/components/split-button", mode);
+            var group = page.Locator(".ib-split-btn").First;
+            await group.ScrollIntoViewIfNeededAsync();
+            await group.Locator("ib-popover button").First.ClickAsync();
+            var panel = group.Locator("[popover]:popover-open");
+            await panel.WaitForAsync();
+            var (at, whole) = (await panel.BoundingBoxAsync(), await group.BoundingBoxAsync());
+
+            // From its start edge, unless Placement says otherwise.
+            Assert.Equal(whole!.X, at!.X, 1.5);
+            Assert.True(at.Y >= whole.Y + whole.Height - 1, "under the button");
+
+            await panel.EvaluateAsync("p => p.classList.replace('ib-place-bottom-start', 'ib-place-bottom')");
+            at = await panel.BoundingBoxAsync();
+            Assert.Equal(whole.X + whole.Width / 2, at!.X + at.Width / 2, 1.5);
+
+            await panel.EvaluateAsync("p => p.classList.replace('ib-place-bottom', 'ib-place-bottom-end')");
+            at = await panel.BoundingBoxAsync();
+            Assert.Equal(whole.X + whole.Width, at!.X + at.Width, 1.5);
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
     public async Task Alt_Down_never_scrolls_the_page(string mode)
     {
         var browser = await TestBrowser.OpenAsync();
