@@ -144,6 +144,24 @@
     }
 
     /// <inheritdoc />
+    private protected override bool HasOwnRules => Min is not null || Max is not null;
+
+    // As the input shows them, in Zone: fixed-width text sorts as the times do.
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        var (shown, min, max) = (Format(value), FormatLimit(Min, null), FormatLimit(Max, null));
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        string Said(string limit) => DateTime.TryParse(limit, System.Globalization.CultureInfo.InvariantCulture, out var at)
+            ? at.ToString(ResolvedType == DateFieldType.Date ? "d" : "g", culture)
+            : limit;
+        return shown is null ? null
+            : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.DateTooEarly, ResolvedLabel, Said(min))
+            : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.DateTooLate, ResolvedLabel, Said(max))
+            : null;
+    }
+
+    /// <inheritdoc />
     protected override string? FormatValueAsString(TValue? value) => Format(value);
 
     /// <inheritdoc />

@@ -83,6 +83,56 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
             _registeredTab = ParentTab;
             _registeredTab?.AddField(FieldIdentifier);
         }
+
+        if (HasOwnRules && !ReferenceEquals(EditContext, _rulesContext))
+        {
+            StopRules();
+            _rulesContext = EditContext;
+            _rulesStore = new ValidationMessageStore(EditContext);
+            EditContext.OnValidationRequested += CheckRules;
+            EditContext.OnFieldChanged += ClearRules;
+        }
+    }
+
+    private EditContext? _rulesContext;
+    private ValidationMessageStore? _rulesStore;
+
+    /// <summary>Whether this field has rules of its own on its value, such as a date's Min and Max.</summary>
+    private protected virtual bool HasOwnRules => false;
+
+    /// <summary>
+    /// What's wrong with this value by the field's own rules, or null. Checked when the form validates, so
+    /// on the server too: a browser's limits don't hold against a phone, no script, or a crafted post. It
+    /// stops <c>OnValidSubmit</c> and shows as the field's error. A model's attributes stay the validator's.
+    /// </summary>
+    private protected virtual string? OwnRuleError(TValue value) => null;
+
+    private void CheckRules(object? sender, ValidationRequestedEventArgs e)
+    {
+        _rulesStore!.Clear(FieldIdentifier);
+        if (!IsDisabled && !IsReadOnly && CurrentValue is { } value && OwnRuleError(value) is { } error)
+        {
+            _rulesStore.Add(FieldIdentifier, error);
+        }
+    }
+
+    private void ClearRules(object? sender, FieldChangedEventArgs e)
+    {
+        if (e.FieldIdentifier.Equals(FieldIdentifier))
+        {
+            _rulesStore!.Clear(FieldIdentifier);
+        }
+    }
+
+    private void StopRules()
+    {
+        if (_rulesContext is { } context)
+        {
+            context.OnValidationRequested -= CheckRules;
+            context.OnFieldChanged -= ClearRules;
+            _rulesStore!.Clear();
+            _rulesContext = null;
+        }
     }
 
     /// <inheritdoc />
@@ -92,6 +142,7 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
         {
             _registeredTab?.RemoveField(FieldIdentifier);
             _registeredTab = null;
+            StopRules();
         }
 
         base.Dispose(disposing);
