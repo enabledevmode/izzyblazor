@@ -207,6 +207,74 @@ internal static class FilterValues
         return false;
     }
 
+    /// <summary>A value that names a whole day, not an instant: a date, or text with no time in it.</summary>
+    public static bool IsWholeDay(object? value, out DateOnly day)
+    {
+        switch (Unwrap(value))
+        {
+            case DateOnly d:
+                day = d;
+                return true;
+            case string s when !s.Contains(':', StringComparison.Ordinal):
+                return TryParseDay(s, out day);
+            default:
+                day = default;
+                return false;
+        }
+    }
+
+    /// <summary>
+    /// What a condition means when it compares a field with a time to a whole day, which is all of that
+    /// day, not its first instant: "on or before 3 Jan" keeps 3 Jan at noon. Null when nothing changes.
+    /// An offset's "on or after" and "before" come back as they are, as they read the day on its clock.
+    /// </summary>
+    public static Filter? DayCondition(FieldFilter filter, Type type)
+    {
+        var t = Nullable.GetUnderlyingType(type) ?? type;
+        if (t != typeof(DateTime) && t != typeof(DateTimeOffset))
+        {
+            return null;
+        }
+
+        var (field, offset) = (filter.Field, t == typeof(DateTimeOffset));
+        Filter Through(DateOnly day) => day == DateOnly.MaxValue
+            ? Filter.Where(field, FilterOperator.LessThanOrEqual, DateTime.MaxValue)
+            : Filter.Where(field, FilterOperator.LessThan, day.AddDays(1));
+
+        switch (filter.Operator)
+        {
+            case FilterOperator.Equals when IsWholeDay(filter.Value, out var day):
+                return Filter.Where(field, FilterOperator.OnDay, day);
+            case FilterOperator.NotEquals when IsWholeDay(filter.Value, out var day):
+                return new NotFilter(Filter.Where(field, FilterOperator.OnDay, day));
+            case FilterOperator.LessThanOrEqual when IsWholeDay(filter.Value, out var day):
+                return Through(day);
+            case FilterOperator.GreaterThan when IsWholeDay(filter.Value, out var day):
+                // Nothing comes after the last day.
+                return day == DateOnly.MaxValue ? Filter.Any() : Filter.Where(field, FilterOperator.GreaterThanOrEqual, day.AddDays(1));
+            case FilterOperator.GreaterThanOrEqual or FilterOperator.LessThan when offset && IsWholeDay(filter.Value, out _):
+                return filter;
+            case FilterOperator.Between when IsWholeDay(filter.Value2, out _) || (offset && IsWholeDay(filter.Value, out _)):
+            {
+                var parts = new List<Filter>();
+                if (Unwrap(filter.Value) is not null)
+                {
+                    parts.Add(Filter.Where(field, FilterOperator.GreaterThanOrEqual, filter.Value));
+                }
+
+                if (Unwrap(filter.Value2) is not null)
+                {
+                    parts.Add(IsWholeDay(filter.Value2, out var to) ? Through(to) : Filter.Where(field, FilterOperator.LessThanOrEqual, filter.Value2));
+                }
+
+                return Filter.All([.. parts]);
+            }
+
+            default:
+                return null;
+        }
+    }
+
     /// <summary>A value as a day: a date, a date and time (its date on the clock), or text (<see cref="TryParseDay"/>).</summary>
     public static bool TryDay(object? value, out DateOnly day)
     {

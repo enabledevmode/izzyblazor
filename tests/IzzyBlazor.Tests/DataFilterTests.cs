@@ -104,6 +104,98 @@ public sealed class DataFilterTests : IDisposable
     private int[] InSqlite(Filter filter) =>
         new DataRequest<Member> { Filter = filter }.Apply(_db.Members.AsNoTracking(), Fields).Select(m => m.Id).ToList().OrderBy(i => i).ToArray();
 
+    // A day on a field with a time means the whole day: rows around 3 Jan, with their ids in time order.
+    private static readonly DateTime[] AroundTheDay =
+    [
+        new(2026, 1, 2, 23, 59, 0), new(2026, 1, 3, 0, 0, 0), new(2026, 1, 3, 9, 0, 0), new(2026, 1, 3, 23, 59, 59), new(2026, 1, 4, 0, 0, 0),
+    ];
+
+    private static readonly DateOnly TheDay = new(2026, 1, 3);
+
+    public static TheoryData<string, Filter, int[]> Days() => new()
+    {
+        { "on or after", Filter.Where("joined", FilterOperator.GreaterThanOrEqual, TheDay), [2, 3, 4, 5] },
+        { "before", Filter.Where("joined", FilterOperator.LessThan, TheDay), [1] },
+        { "on or before", Filter.Where("joined", FilterOperator.LessThanOrEqual, TheDay), [1, 2, 3, 4] },
+        { "after", Filter.Where("joined", FilterOperator.GreaterThan, TheDay), [5] },
+        { "equals", Filter.Where("joined", FilterOperator.Equals, TheDay), [2, 3, 4] },
+        { "not equals", Filter.Where("joined", FilterOperator.NotEquals, TheDay), [1, 5] },
+        { "between", Filter.Between("joined", new DateOnly(2026, 1, 2), TheDay), [1, 2, 3, 4] },
+        { "between, to the day only", Filter.Between("joined", null, TheDay), [1, 2, 3, 4] },
+        { "between, from the day only", Filter.Between("joined", TheDay, null), [2, 3, 4, 5] },
+        { "a day as text", Filter.Where("joined", FilterOperator.LessThanOrEqual, "2026-01-03"), [1, 2, 3, 4] },
+        { "a time as text stays that instant", Filter.Where("joined", FilterOperator.LessThanOrEqual, "2026-01-03T00:00:00"), [1, 2] },
+        { "a DateTime stays that instant, on or before", Filter.Where("joined", FilterOperator.LessThanOrEqual, new DateTime(2026, 1, 3)), [1, 2] },
+        { "a DateTime stays that instant, after", Filter.Where("joined", FilterOperator.GreaterThan, new DateTime(2026, 1, 3)), [3, 4, 5] },
+        { "the last day there is, on or before", Filter.Where("joined", FilterOperator.LessThanOrEqual, DateOnly.MaxValue), [1, 2, 3, 4, 5] },
+        { "the last day there is, after", Filter.Where("joined", FilterOperator.GreaterThan, DateOnly.MaxValue), [] },
+        { "a date field is unchanged", Filter.Where("birthday", FilterOperator.LessThanOrEqual, TheDay), [1, 2, 3, 4, 5] },
+        { "nullable, on or before", Filter.Where("left", FilterOperator.LessThanOrEqual, TheDay), [1, 2, 3, 4] },
+    };
+
+    [Theory]
+    [MemberData(nameof(Days))]
+    public void A_day_on_a_field_with_a_time_means_the_whole_day(string what, Filter filter, int[] expected)
+    {
+        var rows = AroundTheDay.Select((at, i) => new Member { Id = i + 1, Name = "n", Joined = at, Left = at, Birthday = new DateOnly(2000, 1, 1) }).ToList();
+        var inMemory = new DataRequest<Member> { Filter = filter }.Apply(rows.AsQueryable(), Fields).Select(m => m.Id).OrderBy(i => i).ToArray();
+        Assert.True(expected.SequenceEqual(inMemory), $"{what} in memory: {string.Join(",", inMemory)}");
+
+        _db.Members.RemoveRange(_db.Members);
+        _db.SaveChanges();
+        _db.Members.AddRange(rows);
+        _db.SaveChanges();
+        _db.ChangeTracker.Clear();
+        var inSqlite = InSqlite(filter);
+        Assert.True(expected.SequenceEqual(inSqlite), $"{what} in SQLite: {string.Join(",", inSqlite)}");
+    }
+
+    public sealed class Stamped
+    {
+        public int Id { get; set; }
+
+        public DateTimeOffset At { get; set; }
+    }
+
+    // The day on the clock where it was recorded, as OnDay reads it: 3 Jan 23:00 at -05:00 is 3 Jan, though it's 4 Jan in UTC.
+    public static TheoryData<string, Filter, int[]> OffsetDays() => new()
+    {
+        { "on day", Filter.Where("at", FilterOperator.OnDay, TheDay), [2, 3] },
+        { "equals", Filter.Where("at", FilterOperator.Equals, TheDay), [2, 3] },
+        { "not equals", Filter.Where("at", FilterOperator.NotEquals, TheDay), [1, 4] },
+        { "on or before", Filter.Where("at", FilterOperator.LessThanOrEqual, TheDay), [1, 2, 3] },
+        { "after", Filter.Where("at", FilterOperator.GreaterThan, TheDay), [4] },
+        { "on or after", Filter.Where("at", FilterOperator.GreaterThanOrEqual, TheDay), [2, 3, 4] },
+        { "before", Filter.Where("at", FilterOperator.LessThan, TheDay), [1] },
+        { "between", Filter.Between("at", TheDay, TheDay), [2, 3] },
+    };
+
+    [Theory]
+    [MemberData(nameof(OffsetDays))]
+    public void A_day_on_an_offset_field_is_the_day_on_its_clock(string what, Filter filter, int[] expected)
+    {
+        Stamped[] rows =
+        [
+            new() { Id = 1, At = new(2026, 1, 2, 23, 0, 0, TimeSpan.FromHours(-5)) },
+            new() { Id = 2, At = new(2026, 1, 3, 1, 0, 0, TimeSpan.FromHours(5)) },
+            new() { Id = 3, At = new(2026, 1, 3, 23, 0, 0, TimeSpan.FromHours(-5)) },
+            new() { Id = 4, At = new(2026, 1, 4, 0, 30, 0, TimeSpan.Zero) },
+        ];
+        var ids = new DataRequest<Stamped> { Filter = filter }.Apply(rows.AsQueryable(), DataFields.Of<Stamped>()).Select(m => m.Id).OrderBy(i => i).ToArray();
+        Assert.True(expected.SequenceEqual(ids), $"{what}: {string.Join(",", ids)}");
+    }
+
+    [Fact]
+    public void In_odata_a_day_on_a_field_with_a_time_is_the_whole_day()
+    {
+        string OData(Filter filter) => Uri.UnescapeDataString(new DataRequest<Member> { Filter = filter }.ToODataQuery(Fields));
+
+        Assert.Contains("joined lt 2026-01-04", OData(Filter.Where("joined", FilterOperator.LessThanOrEqual, TheDay)), StringComparison.Ordinal);
+        Assert.Contains("joined ge 2026-01-04", OData(Filter.Where("joined", FilterOperator.GreaterThan, TheDay)), StringComparison.Ordinal);
+        Assert.Contains("joined lt 2026-01-04", OData(Filter.Between("joined", new DateOnly(2026, 1, 2), TheDay)), StringComparison.Ordinal);
+        Assert.Contains("joined le 2026-01-03T00:00:00", OData(Filter.Where("joined", FilterOperator.LessThanOrEqual, new DateTime(2026, 1, 3))), StringComparison.Ordinal);
+    }
+
     // Each operator by type: the same ids in memory and in SQLite.
     public static TheoryData<string, Filter, int[]> Operators() => new()
     {
