@@ -25,7 +25,7 @@ public sealed partial class SearchIndex
     /// <summary>Headings every Overview or article has. They match only with their page's name.</summary>
     public static readonly IReadOnlySet<string> StandardSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "Usage", "Details", "Parts", "Mode support", "Accessibility", "Parameters", "See also",
+        "Usage", "Details", "Parts", "Mode support", "Accessibility", "Keyboard", "Parameters", "See also",
         "Problem", "Cause", "Fix", "Related", "Next steps",
     };
 
@@ -293,6 +293,12 @@ public sealed partial class SearchIndex
                 if (apiComponent.Accessibility is not null)
                 {
                     headings.Add("Accessibility");
+                }
+
+                if (apiComponent.Keyboard is { Count: > 0 } keyboard)
+                {
+                    headings.Add("Keyboard");
+                    headings.AddRange(keyboard.Select(g => g.Title).OfType<string>());
                 }
 
                 headings.Add("Parameters");

@@ -149,8 +149,11 @@ parameter tables and defaults are never written by hand.
   header comment (the `@* *@` block after the directives) instead: the text before the first
   markup is its summary, that markup its example, and the rest its remarks. Lines starting `- `
   are a list; markup starts after a blank line or a line ending in `.` or `:`. A line reading
-  `Accessibility:` starts the accessibility bullets, and `See also: Select, Combobox.` names
-  related components; both go at the end.
+  `Accessibility:` starts the accessibility bullets, `Keyboard:` the keys, and `See also: Select,
+  Combobox.` names related components; these go at the end. Under `Keyboard:`, a line titles the
+  keys for one place focus can be, and `- Up, Shift+Up | What they do` is a row; the docs build
+  fails on a malformed one. A hand-written Overview shows them with
+  `@KeyboardTable.Section(ApiComponent)`.
 - A page's head is `<PageMeta Title="..." Description="..." />` (Parts), not `PageTitle` and
   `HeadContent`: it writes the description and Open Graph tags from the same two values, and the
   canonical link (izzyblazor.com, the path without the query, so `?mode=` and an example's keys

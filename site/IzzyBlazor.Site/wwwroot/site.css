@@ -78,6 +78,9 @@
 .site-install code { background: none; padding: 0; white-space: nowrap; }
 .site-install { max-width: 100%; overflow-x: auto; }
 .site-muted-list { color: var(--ib-color-muted); }
+.site-key-groups { display: flex; flex-direction: column; gap: var(--ib-space-6); }
+.site-key-group { display: flex; flex-direction: column; gap: var(--ib-space-3); }
+.site-key-or { color: var(--ib-color-muted); font-size: var(--ib-text-sm); }
 
 /*
  * Docs and demos: the sidebar, content and outline centered as one group (as on Chakra's docs),

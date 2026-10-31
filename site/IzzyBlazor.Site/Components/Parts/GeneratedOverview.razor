@@ -4,7 +4,7 @@
 @* The Overview of a component without a hand-written one, built from its doc comment and
    components.json in the order CONTRIBUTING's "Writing an Overview" gives: the summary, Usage (the
    doc comment's example), a section per registered example, the remarks, the parts, then Mode
-   support, Accessibility, Parameters and See also. A section with nothing to show is left out. *@
+   support, Accessibility, Keyboard, Parameters and See also. A section with nothing to show is left out. *@
 
 @if (ApiComponent.Summary is not null)
 {
@@ -57,6 +57,8 @@ else
     <Heading Level="2">Accessibility</Heading>
     <DocHtml Html="@ApiComponent.Accessibility" Context="_prose" Size="ProseSize.Md" />
 }
+
+@KeyboardTable.Section(ApiComponent)
 
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />

@@ -275,6 +275,52 @@ public class DocsGenTests
     }
 
     [Fact]
+    public void A_components_keys_are_grouped_by_where_focus_is_and_a_screen_lists_them()
+    {
+        var keyboard = Api.Component("DataGrid")!.Keyboard!;
+        Assert.Equal(["In the rows", "Inside a cell", "Selecting rows", "On a header", "In the footer"], keyboard.Select(g => g.Title));
+        var home = keyboard[0].Rows.Single(r => r.Keys.Contains("Ctrl+Home"));
+        Assert.Equal(["Ctrl+Home", "Ctrl+End"], home.Keys);
+        Assert.Equal("Move to the first cell of the first row, or the last cell of the last", home.Action);
+        Assert.DoesNotContain("Ctrl+Home", Api.Component("DataGrid")!.Accessibility);
+    }
+
+    private static RazorHeaders.Header? KeysHeader(string keyboard)
+    {
+        var folder = Directory.CreateTempSubdirectory("izzy-keys");
+        try
+        {
+            File.WriteAllText(Path.Combine(folder.FullName, "Thing.razor"), $"@* \n    Keyboard:\n{keyboard}\n*@\n");
+            return new RazorHeaders(folder.FullName).For("Thing");
+        }
+        finally
+        {
+            folder.Delete(recursive: true);
+        }
+    }
+
+    [Fact]
+    public void A_header_of_only_keys_keeps_them_and_a_wrapped_row_stays_one_row()
+    {
+        var keys = KeysHeader("    - Tab | Move a long way\n      and on past it\n    - Esc | Go back")!.Keyboard!.Single();
+        Assert.Null(keys.Title);
+        Assert.Equal("Move a long way and on past it", keys.Rows[0].Action);
+        Assert.Equal("Go back", keys.Rows[1].Action);
+    }
+
+    [Theory]
+    [InlineData("    - Tab with no action")]
+    [InlineData("    -Tab | Forgot the space")]
+    [InlineData("    Title with no rows\n    Next\n    - Tab | Go")]
+    [InlineData("    -  | No keys")]
+    [InlineData("    - Ctrl+, | A comma for a key")]
+    public void A_malformed_key_fails_the_build_and_names_the_file(string keyboard)
+    {
+        var error = Assert.Throws<FormatException>(() => KeysHeader(keyboard));
+        Assert.Contains("Thing.razor", error.Message);
+    }
+
+    [Fact]
     public void Accessibility_comes_from_the_doc_comment_or_the_header()
     {
         Assert.StartsWith("<ul><li>It renders a native <code>button</code>", Api.Component("Button")!.Accessibility);

@@ -5,16 +5,14 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>DataGrid's keyboard in Chromium: one Tab stop, arrows between cells, the way in and out of a cell, selection keys.</summary>
 public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(IPlaywright, IBrowser, IPage)> OpenAsync(string mode, string query = "")
+    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, string query = "")
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        var playwright = await Playwright.CreateAsync();
-        var browser = await playwright.Chromium.LaunchAsync();
+        var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]").First.WaitForAsync();
         await page.Locator(".ib-datagrid >> nth=0 >> table[role=grid]").WaitForAsync();
-        return (playwright, browser, page);
+        return (browser, page);
     }
 
     // What has focus: "r2c3" for a cell's row and column (the header row is 0), and what in it.
@@ -39,8 +37,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task Arrows_move_between_cells_and_the_grid_is_one_tab_stop(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var stops = await page.EvaluateAsync<int>("() => [...document.querySelector('.ib-datagrid .ib-table-scroll').querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
@@ -78,8 +75,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task A_header_with_a_sort_and_a_filter_is_entered_and_left()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             // Customer: a sort link and a filter button, so focus stays on the cell.
@@ -120,8 +116,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task Selection_keys_use_the_rows_checkboxes(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var boxes = page.Locator(".ib-datagrid >> nth=0 >> tbody .ib-table-select");
@@ -154,8 +149,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task PageDown_at_the_last_row_goes_to_the_next_page_in_the_same_column(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             await page.Locator(".ib-datagrid >> nth=0 >> tbody tr").First.Locator("td").Nth(2).FocusAsync();
@@ -179,8 +173,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task Cells_with_controls_are_entered_and_left_with_one_tab_stop_after()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid").Nth(5);
@@ -253,8 +246,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task Clear_selection_clears_aria_selected()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid").First;
@@ -271,8 +263,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task A_rows_menu_opens_by_button_right_click_and_keys_and_links_keep_the_browsers(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
@@ -354,11 +345,29 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Fact]
+    public async Task The_page_lists_the_keys_by_where_focus_is()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using (browser)
+        {
+            Assert.Equal(1, await page.GetByRole(AriaRole.Heading, new() { Name = "Keyboard", Exact = true }).CountAsync());
+            var rows = page.GetByRole(AriaRole.Heading, new() { Name = "On a header" });
+            Assert.Equal(1, await rows.CountAsync());
+            Assert.Contains("Press this key", await page.Locator("table", new() { HasText = "Add the column to the sort" }).TextContentAsync());
+            Assert.True(await page.Locator("table", new() { HasText = "Add the column to the sort" }).Locator(".ib-kbd").CountAsync() > 5);
+
+            // Listed in "On this page" where they are on it.
+            var outline = await page.EvaluateAsync<string[]>("() => [...document.querySelectorAll('ib-on-this-page a')].map(a => a.textContent.trim())");
+            var at = Array.IndexOf(outline, "Keyboard");
+            Assert.Equal("Accessibility", outline[at - 1]);
+            Assert.Equal(["In the rows", "Inside a cell", "Selecting rows", "On a header", "In the footer", "Parameters"], outline[(at + 1)..(at + 7)]);
+        }
+    }
+
+    [Fact]
     public async Task With_no_script_its_a_plain_table()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = false });
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString());
