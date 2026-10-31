@@ -39,14 +39,12 @@
                 @RemoveButton
             </div>
             <div class="ib-fb-items" data-ib-fb-items>
-                @* A group's add stays last among its rows. Cloned with new ids, for its menu. *@
+                @* A group's add stays last among its rows. *@
                 <div class="ib-fb-add" data-ib-fb-add>
-                    <SplitButton Label="@TextDefaults.FilterAddRule" IconOnly StartIcon="IconSet.Current.Get(IconRole.Plus)" Accent="Accent.Neutral" Variant="ButtonVariant.Soft" Size="ControlSize.Sm" data-ib-fb-add-rule>
-                        <MenuItem data-ib-fb-add-group>@TextDefaults.FilterAddGroup</MenuItem>
-                    </SplitButton>
-                </div>
-                <div class="ib-fb-add" data-ib-fb-add-plain>
-                    <button type="button" class="ib-btn ib-btn-neutral ib-btn-soft ib-btn-sm ib-btn-icon-only" aria-label="@TextDefaults.FilterAddRule" title="@TextDefaults.FilterAddRule" data-ib-fb-add-rule><Icon Role="IconRole.Plus" /></button>
+                    <ButtonGroup Label="@TextDefaults.FilterAddRule" Accent="Accent.Neutral" Variant="ButtonVariant.Soft" Size="ControlSize.Sm">
+                        <IconButton Icon="IconSet.Current.Get(IconRole.Plus)" Label="@TextDefaults.FilterAddRule" data-ib-fb-add-rule />
+                        <IconButton Icon="Lucide.ListTree" Label="@TextDefaults.FilterAddGroup" data-ib-fb-add-group />
+                    </ButtonGroup>
                 </div>
             </div>
         </fieldset>

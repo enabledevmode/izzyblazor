@@ -32,7 +32,6 @@ const quoted = (text: string) => `'${text.replace(/'/g, "''")}'`;
 
 class FilterBuilder extends IzzyElement {
   #drawn: string | null = null;
-  #ids = 0;
 
   get #root(): HTMLElement {
     return this.querySelector<HTMLElement>(":scope > [data-ib-fb-root]")!;
@@ -90,15 +89,8 @@ class FilterBuilder extends IzzyElement {
     if (top) head.querySelector("[data-ib-fb-remove]")!.remove();
     const items = box.querySelector(":scope > [data-ib-fb-items]")!;
 
-    // At the depth limit, only rules can be added, so there's no menu. Otherwise its menu needs ids of its own.
-    const atLimit = depth >= Number(this.dataset.ibMaxDepth);
-    items.querySelector(atLimit ? ":scope > [data-ib-fb-add]" : ":scope > [data-ib-fb-add-plain]")!.remove();
-    if (!atLimit) {
-      const add = items.querySelector<HTMLElement>(":scope > [data-ib-fb-add]")!;
-      let html = add.outerHTML;
-      for (const el of add.querySelectorAll("[id]")) html = html.replaceAll(el.id, `${el.id}-${++this.#ids}`);
-      add.outerHTML = html;
-    }
+    // At the depth limit, only rules can be added.
+    if (depth >= Number(this.dataset.ibMaxDepth)) items.querySelector(":scope > [data-ib-fb-add] [data-ib-fb-add-group]")!.remove();
     const last = items.lastElementChild;
     for (const item of group.items) items.insertBefore(isGroup(item) ? this.#group(item, depth + 1) : item.raw !== undefined ? this.#raw(item.raw) : this.#rule(item), last);
     return box;
