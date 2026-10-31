@@ -12,7 +12,7 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/table?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var table = page.Locator("ib-table", new() { HasText = caption });
-        await table.ScrollIntoViewIfNeededAsync();
+        await table.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = caption }).WaitForAsync();
         if (script) await page.Locator("ib-table[data-ready]", new() { HasText = caption }).WaitForAsync();
         return (browser, page, table);
@@ -139,7 +139,7 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
             await page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
             await page.Locator("ib-table[data-ib-interactive]", new() { HasText = "Orders to archive" }).WaitForAsync();
             await page.WaitForTimeoutAsync(1500);
-            await table.ScrollIntoViewIfNeededAsync();
+            await table.ScrollIntoViewSettledAsync();
 
             await table.Locator(".ib-pagination a, .ib-pagination button").Filter(new() { HasText = "2" }).First.ClickAsync();
             await table.Locator("tbody .ib-table-select").Nth(1).CheckAsync();
@@ -183,7 +183,7 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
         await using (browser)
         {
             await page.SetViewportSizeAsync(390, 800);
-            await table.ScrollIntoViewIfNeededAsync();
+            await table.ScrollIntoViewSettledAsync();
             var footer = table.Locator(":scope > .ib-data-footer");
             var before = await footer.EvaluateAsync<double>("f => f.getBoundingClientRect().height");
             await table.Locator("tbody .ib-table-select").First.CheckAsync();
@@ -205,7 +205,7 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
             var page = await context.NewPageAsync();
             await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
             var grid = page.Locator(".ib-datagrid[data-ready]", new() { HasText = "New order" });
-            await grid.ScrollIntoViewIfNeededAsync();
+            await grid.ScrollIntoViewSettledAsync();
             if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = "New order" }).WaitForAsync();
             var head = grid.Locator("thead");
             var top = await head.EvaluateAsync<double>("h => h.getBoundingClientRect().top");

@@ -14,7 +14,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/table?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var table = page.Locator("ib-table", new() { HasText = caption });
-        await table.ScrollIntoViewIfNeededAsync();
+        await table.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = caption }).WaitForAsync();
         if (script) await page.WaitForFunctionAsync("() => !!customElements.get('ib-table') && !!customElements.get('ib-filter-list')", null, new() { PollingInterval = 100 });
         return (browser, page, table);

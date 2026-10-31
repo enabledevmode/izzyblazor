@@ -16,7 +16,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         await grid.Locator("ib-grid-columns").WaitForAsync(new() { State = WaitForSelectorState.Attached });
         if (mode == "interactive") await grid.Locator("ib-grid-columns[data-ib-interactive]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
         await grid.Locator("table[role=grid]").WaitForAsync();
-        await grid.Locator("thead").ScrollIntoViewIfNeededAsync();
+        await grid.Locator("thead").ScrollIntoViewSettledAsync();
         await page.WaitForTimeoutAsync(200);
         return (browser, page, grid);
     }
@@ -158,7 +158,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
             var toolbar = grid.Locator(".ib-grid-toolbar");
-            await toolbar.ScrollIntoViewIfNeededAsync();
+            await toolbar.ScrollIntoViewSettledAsync();
             var box = grid.GetByRole(AriaRole.Searchbox);
             await box.FillAsync("ada");
             await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'ada'");

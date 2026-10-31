@@ -14,7 +14,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to filter" });
-        await grid.ScrollIntoViewIfNeededAsync();
+        await grid.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await grid.Locator("xpath=ancestor-or-self::ib-table[@data-ib-interactive]").WaitForAsync();
         // The on-demand element's listeners are on once it has set up.
         if (script) await page.WaitForFunctionAsync("() => !!customElements.get('ib-table')", null, new() { PollingInterval = 100 });
@@ -374,7 +374,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         await using (browser)
         {
             var table = page.Locator(".ib-table:has(caption:text-is('Filtered orders'))");
-            await table.ScrollIntoViewIfNeededAsync();
+            await table.ScrollIntoViewSettledAsync();
             if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Filtered orders'))").WaitForAsync();
             await table.Locator("thead a.ib-table-sort, thead button.ib-table-sort").First.ClickAsync();
             await page.WaitForURLAsync(u => u.Contains("sort=", StringComparison.Ordinal));
@@ -405,7 +405,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid:has(caption:text-is('Orders'))");
-            await grid.ScrollIntoViewIfNeededAsync();
+            await grid.ScrollIntoViewSettledAsync();
             var entries = await page.EvaluateAsync<int>("history.length");
             await SettledAsync(page);
 
@@ -421,7 +421,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         await using (browser)
         {
             var table = page.Locator(".ib-table:has(caption:text-is('Filtered orders'))");
-            await table.ScrollIntoViewIfNeededAsync();
+            await table.ScrollIntoViewSettledAsync();
             if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Filtered orders'))").WaitForAsync();
             await SettledAsync(page);
             await table.Locator("th .ib-table-filter-button[aria-label^='Filter Total']").ClickAsync();
@@ -491,7 +491,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         {
             var table = page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Order history'))");
             await table.WaitForAsync();
-            await table.ScrollIntoViewIfNeededAsync();
+            await table.ScrollIntoViewSettledAsync();
             var shown = table.Locator("xpath=..").Locator("code").Last;
             await table.Locator("th .ib-table-filter-button[aria-label^='Filter Date']").ClickAsync();
             var input = table.Locator("[popover]:popover-open input[type=date]");

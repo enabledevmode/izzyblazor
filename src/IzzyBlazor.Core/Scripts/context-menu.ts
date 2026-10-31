@@ -74,7 +74,24 @@ export function setupContextMenu(root: HTMLElement, row: string, trigger: string
     // The menu key has no pointer: under what has focus.
     const rect = target.getBoundingClientRect();
     const fromKey = event.button !== 2 || (event.clientX === 0 && event.clientY === 0);
-    openMenuAt(button, fromKey ? rect.left : event.clientX, fromKey ? rect.bottom : event.clientY);
+    const open = () => openMenuAt(button, fromKey ? rect.left : event.clientX, fromKey ? rect.bottom : event.clientY);
+    if (!event.buttons) {
+      open();
+      return;
+    }
+
+    // macOS and Linux ask with the button still down. Opened now, its release would count as a press
+    // outside and close it, so it opens after that, as a long press does.
+    const released = () => {
+      gone();
+      setTimeout(open);
+    };
+    const gone = () => {
+      document.removeEventListener("pointerup", released);
+      document.removeEventListener("pointercancel", gone);
+    };
+    document.addEventListener("pointerup", released, { signal });
+    document.addEventListener("pointercancel", gone, { signal });
   }, { signal });
 
   let timer = 0;

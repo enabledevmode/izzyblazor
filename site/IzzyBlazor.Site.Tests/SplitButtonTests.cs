@@ -545,7 +545,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
         {
             var page = await OpenAsync(browser, "docs/components/split-button", mode);
             var group = page.Locator(".ib-split-btn").First;
-            await group.ScrollIntoViewIfNeededAsync();
+            await group.ScrollIntoViewSettledAsync();
             await group.Locator("ib-popover button").First.ClickAsync();
             var panel = group.Locator("[popover]:popover-open");
             await panel.WaitForAsync();
