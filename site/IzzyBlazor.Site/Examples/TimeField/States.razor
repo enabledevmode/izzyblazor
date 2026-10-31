@@ -1,0 +1,25 @@
+<Form Model="Model" FormName="time-field-states" MaxWidth="20.Rem" Grow>
+    <TimeField @bind-Value="Model!.Quarter" Label="Quarter hours" Step="TimeSpan.FromMinutes(15)" />
+    <TimeField @bind-Value="Model!.Seconds" Label="With seconds" Step="TimeSpan.FromSeconds(1)" />
+    <TimeField @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+    <TimeField @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    <TimeField @bind-Value="Model!.Signed" Label="Signed at" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <TimeField @bind-Value="Model!.Renews" Label="Renews at" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "time-field-states")]
+    private Contract? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Contract
+    {
+        public TimeOnly Quarter { get; set; } = new(9, 15);
+        public TimeOnly Seconds { get; set; } = new(9, 15, 30);
+        public TimeOnly Small { get; set; } = new(9, 0);
+        public TimeOnly Large { get; set; } = new(9, 0);
+        public TimeOnly Signed { get; set; } = new(16, 30);
+        public TimeOnly Renews { get; set; } = new(0, 0);
+    }
+}

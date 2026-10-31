@@ -27,7 +27,7 @@
     - Label, hint and errors work as in `TextField`.
     - The time zone isn't announced: put it in the label when it matters, as in "Starts (UTC)",
       since add-on text isn't part of the field's name.
-    See also: TextField, NumberField, Form.
+    See also: TimeField, TextField, NumberField, Form.
 *@
 
 <FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
@@ -156,8 +156,8 @@
             ? at.ToString(ResolvedType == DateFieldType.Date ? "d" : "g", culture)
             : limit;
         return shown is null ? null
-            : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.DateTooEarly, ResolvedLabel, Said(min))
-            : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.DateTooLate, ResolvedLabel, Said(max))
+            : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min))
+            : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(max))
             : null;
     }
 

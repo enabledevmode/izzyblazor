@@ -35,3 +35,6 @@ public partial class CheckboxGroup<[DynamicallyAccessedMembers(DynamicallyAccess
 
 /// <summary>A date field, or a date and time field.</summary>
 public partial class DateField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+
+/// <summary>A time of day.</summary>
+public partial class TimeField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
