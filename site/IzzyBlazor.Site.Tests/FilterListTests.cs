@@ -241,6 +241,44 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
+    public async Task On_an_address_with_a_section_nothing_scrolls_back_to_it(string mode)
+    {
+        var (browser, page, table) = await OpenAsync(mode, "Filtered orders", query: "#column-filters");
+        await using (browser)
+        {
+            await page.Mouse.WheelAsync(0, 150);
+            await page.WaitForTimeoutAsync(300);
+            const string y = "() => Math.round(scrollY)";
+            var before = await page.EvaluateAsync<int>(y);
+
+            // A tick.
+            var panel = await OpenPanelAsync(page, table, "Status");
+            await Box(panel, "Paid").UncheckAsync();
+            await page.WaitForFunctionAsync("() => location.search.includes('orders-f-status')");
+            await page.WaitForTimeoutAsync(500);
+            Assert.Equal(before, await page.EvaluateAsync<int>(y));
+
+            // A panel's Clear, a sort and a page, which are links.
+            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+            await page.WaitForFunctionAsync("() => !location.search.includes('orders-f-status')");
+            await page.WaitForTimeoutAsync(500);
+            Assert.Equal(before, await page.EvaluateAsync<int>(y));
+
+            await table.Locator("th a.ib-table-sort", new() { HasText = "Customer" }).ClickAsync();
+            await page.WaitForFunctionAsync("() => location.search.includes('orders-sort')");
+            await page.WaitForTimeoutAsync(500);
+            Assert.Equal(before, await page.EvaluateAsync<int>(y));
+
+            await table.Locator(".ib-pagination a").Filter(new() { HasText = "2" }).First.ClickAsync();
+            await page.WaitForFunctionAsync("() => location.search.includes('orders-page')");
+            await page.WaitForTimeoutAsync(500);
+            Assert.Equal(before, await page.EvaluateAsync<int>(y));
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
     public async Task Filtering_doesnt_move_the_table(string mode)
     {
         var (browser, page, table) = await OpenAsync(mode);
