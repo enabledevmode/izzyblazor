@@ -64,22 +64,50 @@
 
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
-    - With script it's an ARIA grid, one Tab stop: arrows move between cells, Home and End along the
-      row, Ctrl+Home and Ctrl+End to the corners, PageUp and PageDown by the rows in view and then to
-      the next page. A cell with one link, button or checkbox focuses that; with several controls
-      or a field, Enter or F2 goes in, and Escape, F2 or tabbing past the end comes back. On a header,
-      Enter sorts, Shift+Enter adds to the sort, and F2 goes in to its filter and menu.
-    - On a header, Shift+Left and Shift+Right resize the column and Alt+Left and Alt+Right move it; its
-      menu (Alt+Down, which opens the filter when there's no menu) does both, so nothing needs
-      dragging. A new width is read out.
-    - Space toggles the row's checkbox from a cell of text, Shift+Space from anywhere, Shift+Up and
-      Shift+Down extend the selection, and Ctrl+A selects the page. With no script, it's a plain
-      table and Tab goes through its controls.
+    - With script it's an ARIA grid, one Tab stop, with the keys below. A cell with one link, button or
+      checkbox focuses that directly. With no script, it's a plain table and Tab goes through its
+      controls.
+    - Resizing and moving a column need no dragging: a header's keys and menu do both, and a new width
+      is read out.
     - Sortable headers are links, and the first sorted column has `aria-sort`. With several sorted,
       each says its place and direction ("Sort 2, descending").
     - Row checkboxes and filter buttons are named as in a Table.
     - The toolbar is one Tab stop with script, with arrow keys between its controls. The tools that
       show only an icon are named for what they do, and have that as a hover tooltip.
+
+    Keyboard:
+    In the rows
+    - Tab | Move into the grid, and on past it
+    - Up, Down | Move to the row above or below
+    - Left, Right | Move to the cell before or after
+    - Home, End | Move to the first or last cell of the row
+    - Ctrl+Home, Ctrl+End | Move to the first cell of the first row, or the last cell of the last
+    - PageUp, PageDown | Move by the rows in view; from the edge of a page, to the next page
+    - Enter, F2 | Go into a cell with several controls or a field
+    - Enter | On a row that's a link, follow it, from a cell of text
+    - Alt+Down | Open the cell's menu
+    - Shift+F10, Menu | Open the row's menu (on a link, only Shift+F10)
+    Inside a cell
+    - Tab | Move among its controls, and back out past either end
+    - Up, Down, Left, Right | On a button or link, move on to another cell; a field keeps them
+    - Escape, F2 | Go back to the cell
+    Selecting rows
+    - Space | Select or clear the row, from a cell of text
+    - Shift+Space | Select or clear the row, from anywhere in it but a field
+    - Shift+Up, Shift+Down | Extend the selection, or shrink it going back
+    - Ctrl+A | Select what's on the page, or the rows drawn when they're virtual
+    On a header
+    - Enter | Sort by the column, if it sorts
+    - Shift+Enter | Add the column to the sort; again, reverse it, then take it out
+    - Alt+Down | Open its menu, or its filter when there's no menu
+    - F2 | Go in to its controls, the sort link first
+    - Shift+F10, Menu | Open its menu
+    - Shift+Left, Shift+Right | Resize the column, where it can be
+    - Alt+Left, Alt+Right | Move the column, where it can be
+    - PageDown | Go to the first row
+    In the footer
+    - Tab | Move through the page size button and the pager's links
+    - Enter | Follow the link
     See also: Table.
 *@
 

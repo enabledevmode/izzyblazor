@@ -10,13 +10,15 @@ namespace IzzyBlazor.DocsGen;
 /// more text. Used where a component has no <c>&lt;summary&gt;</c> or <c>&lt;remarks&gt;</c>: the
 /// text before the first markup becomes its summary, that markup its example, and everything after
 /// it its remarks (paragraphs, "- " bullet lists and more markup as code). A line reading
-/// "Accessibility:" starts the accessibility section, and a "See also:" line names related
-/// components, comma-separated; both run to the next of these lines or the end.
+/// "Accessibility:" starts the accessibility section, "Keyboard:" the keys, and a "See also:" line
+/// names related components, comma-separated; each runs to the next of these lines or the end.
+/// In "Keyboard:", a line is the title of the keys under it, "- Up, Shift+Up | What they do" a row,
+/// and an indented line continues a row. A key can't be a comma or a bar.
 /// </summary>
 public sealed partial class RazorHeaders
 {
     /// <summary>A header: summary, remarks and accessibility as HTML, the example as plain text, related components by name.</summary>
-    public sealed record Header(string? Summary, string? Example, string? Remarks, string? Accessibility = null, List<string>? SeeAlso = null);
+    public sealed record Header(string? Summary, string? Example, string? Remarks, string? Accessibility = null, List<string>? SeeAlso = null, List<ApiKeyboardGroup>? Keyboard = null);
 
     private readonly Dictionary<string, Header> _byName = new(StringComparer.Ordinal);
 
@@ -34,9 +36,16 @@ public sealed partial class RazorHeaders
                 continue;
             }
 
-            if (Parse(File.ReadAllLines(path)) is { } header)
+            try
             {
-                _byName[Path.GetFileNameWithoutExtension(path)] = header;
+                if (Parse(File.ReadAllLines(path)) is { } header)
+                {
+                    _byName[Path.GetFileNameWithoutExtension(path)] = header;
+                }
+            }
+            catch (FormatException e)
+            {
+                throw new FormatException($"{path}: {e.Message}", e);
             }
         }
     }
@@ -85,7 +94,8 @@ public sealed partial class RazorHeaders
             }
         }
 
-        var (main, accessibilityLines, seeAlso) = Sections(Dedent(body));
+        var (main, accessibilityLines, seeAlso, keyboardLines) = Sections(Dedent(body));
+        var keyboard = Keys(keyboardLines);
         var accessibility = accessibilityLines.Count > 0 ? Html(Blocks(Dedent(accessibilityLines))) : null;
         var blocks = Blocks(main);
 
@@ -94,7 +104,8 @@ public sealed partial class RazorHeaders
         var at = blocks.FindIndex(b => b.Code is not null || b.Items.Any(i => i.Code is not null));
         if (at < 0)
         {
-            return Html(blocks) is { } only ? new Header(only, null, null, accessibility, seeAlso) : null;
+            return Html(blocks) is { } only ? new Header(only, null, null, accessibility, seeAlso, keyboard)
+                : keyboard is not null ? new Header(null, null, null, accessibility, seeAlso, keyboard) : null;
         }
 
         var holder = blocks[at];
@@ -113,16 +124,75 @@ public sealed partial class RazorHeaders
             rest = [holder with { Items = items }, .. blocks.Skip(at + 1)];
         }
 
-        return new Header(Html(blocks.Take(at)), string.Join("\n", Dedent(code)), Html(rest), accessibility, seeAlso);
+        return new Header(Html(blocks.Take(at)), string.Join("\n", Dedent(code)), Html(rest), accessibility, seeAlso, keyboard);
     }
 
-    // Splits off the "Accessibility:" and "See also:" sections, which start at a line of their own
-    // that isn't indented.
-    private static (List<string> Main, List<string> Accessibility, List<string>? SeeAlso) Sections(List<string> lines)
+    private static List<ApiKeyboardGroup>? Keys(List<string> lines)
+    {
+        var groups = new List<ApiKeyboardGroup>();
+        foreach (var raw in lines)
+        {
+            var line = raw.Trim();
+            if (line.Length == 0)
+            {
+                continue;
+            }
+
+            // Under a row, a row wrapped onto the next line.
+            if (char.IsWhiteSpace(raw[0]) && groups.Count > 0 && groups[^1].Rows.Count > 0)
+            {
+                var last = groups[^1].Rows[^1];
+                groups[^1].Rows[^1] = last with { Action = $"{last.Action} {line}" };
+                continue;
+            }
+
+            var bar = line.IndexOf('|', StringComparison.Ordinal);
+            if (!line.StartsWith("- ", StringComparison.Ordinal))
+            {
+                if (bar >= 0)
+                {
+                    throw new FormatException($"A key's row is \"- keys | what they do\": {line}");
+                }
+
+                groups.Add(new ApiKeyboardGroup(line, []));
+                continue;
+            }
+
+            if (bar < 0)
+            {
+                throw new FormatException($"A key's row is \"- keys | what they do\": {line}");
+            }
+
+            if (groups.Count == 0)
+            {
+                groups.Add(new ApiKeyboardGroup(null, []));
+            }
+
+            var keys = line[2..bar].Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).ToList();
+            if (keys.Count == 0 || keys.Exists(k => k.EndsWith('+')))
+            {
+                throw new FormatException($"A key's row needs its keys, and none can be a comma or a bar: {line}");
+            }
+
+            groups[^1].Rows.Add(new ApiKeyRow(keys, line[(bar + 1)..].Trim()));
+        }
+
+        if (groups.Find(g => g.Rows.Count == 0) is { } empty)
+        {
+            throw new FormatException($"Keys titled \"{empty.Title}\" have no rows.");
+        }
+
+        return groups.Count > 0 ? groups : null;
+    }
+
+    // Splits off the "Accessibility:", "Keyboard:" and "See also:" sections, which start at a line of
+    // their own that isn't indented.
+    private static (List<string> Main, List<string> Accessibility, List<string>? SeeAlso, List<string> Keyboard) Sections(List<string> lines)
     {
         var main = new List<string>();
         var accessibility = new List<string>();
         var seeAlso = new List<string>();
+        var keyboard = new List<string>();
         var current = main;
         foreach (var line in lines)
         {
@@ -130,6 +200,12 @@ public sealed partial class RazorHeaders
             if (top && line.Trim() == "Accessibility:")
             {
                 current = accessibility;
+                continue;
+            }
+
+            if (top && line.Trim() == "Keyboard:")
+            {
+                current = keyboard;
                 continue;
             }
 
@@ -149,7 +225,7 @@ public sealed partial class RazorHeaders
             .Where(n => n.Length > 0)
             .Distinct()
             .ToList();
-        return (main, accessibility, names.Count > 0 ? names : null);
+        return (main, accessibility, names.Count > 0 ? names : null, keyboard);
     }
 
     // A block of the header: a paragraph (Lines), markup (Code) or a bullet list (Items, each with

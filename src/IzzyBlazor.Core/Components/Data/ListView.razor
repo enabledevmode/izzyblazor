@@ -44,16 +44,23 @@
     - A disabled item (`ItemDisabled`) has no link or button, and is dimmed.
     - Each item's ⋯ button (`ItemMenu`) is named "Actions for" and its label. Tab goes through
       an item's controls in order: handle, link, checkbox, content, ItemActions, the ⋯ button.
-    - With script, arrow keys are a shortcut on top of Tab: Up and Down go to the same kind of
-      control in the item above or below, Left and Right to the one before or after in Columns,
-      Cards and Horizontal lists, Home and End to the first and last item. A handle or ⋯ button
-      keeps its arrows, which open its menu; fields keep theirs.
-    - On a checkbox, Shift+Up and Shift+Down extend the selection, and Ctrl+A selects the page.
+    - With script, arrow keys are a shortcut on top of Tab. A handle or ⋯ button keeps its arrows,
+      which open its menu; fields keep theirs.
     - With `SelectionMode`, each item has a checkbox (or, for Single, a radio button) named
       "Select" and the item's label; with script, a "Select all rows" checkbox above a Multiple
       list checks the page.
     - The range under a paged list ("1–10 of 42") is read when it changes, and a failed load is
       announced from a status region.
+
+    Keyboard:
+    - Tab | Go through an item's controls in order
+    - Up, Down | Move to the same kind of control in the item above or below
+    - Left, Right | Move to the one before or after, where items sit side by side
+    - Home, End | Move to the first or last item, except from a handle or ⋯ button
+    - Alt+Up, Alt+Down, Alt+Home, Alt+End | On a handle, move the item
+    - Shift+Up, Shift+Down, Shift+Left, Shift+Right | On a checkbox, extend the selection
+    - Ctrl+A | On an item's checkbox, select the page
+    - Shift+F10, Menu | Open the item's menu
     See also: Table, List.
 *@
 

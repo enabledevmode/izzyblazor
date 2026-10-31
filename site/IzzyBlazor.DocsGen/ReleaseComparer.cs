@@ -78,7 +78,7 @@ public static class ReleaseComparer
         {
             Components = file.Components.Select(c => c with
             {
-                Summary = null, Remarks = null, Examples = null, Modes = null, Accessibility = null, SeeAlso = null,
+                Summary = null, Remarks = null, Examples = null, Modes = null, Accessibility = null, Keyboard = null, SeeAlso = null,
                 Properties = Names(c.Properties), Events = Names(c.Events), Methods = Names(c.Methods),
             }).ToList(),
             Bases = file.Bases.Select(b => b with { Summary = null, Properties = Names(b.Properties) }).ToList(),

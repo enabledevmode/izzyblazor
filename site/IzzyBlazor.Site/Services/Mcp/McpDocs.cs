@@ -258,6 +258,19 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         }
 
         Section(text, "Accessibility", component.Accessibility);
+        if (component.Keyboard is { Count: > 0 } keyboard)
+        {
+            text.Append("\n## Keyboard\n");
+            foreach (var group in keyboard)
+            {
+                text.Append(group.Title is null ? "\n" : $"\n### {group.Title}\n\n").Append("| Press this key | To do this |\n|---|---|\n");
+                foreach (var row in group.Rows)
+                {
+                    text.Append($"| {string.Join(", ", row.Keys.Select(k => $"`{k}`"))} | {Markdown.Cell(row.Action)} |\n");
+                }
+            }
+        }
+
         var related = (component.SeeAlso ?? []).ToList();
         var articles = Articles.About(component.Name).Select(a => Markdown.Link(a.Article.Title, Url(a.Section.HrefOf(a.Article)))).ToList();
         if (related.Count > 0 || articles.Count > 0)

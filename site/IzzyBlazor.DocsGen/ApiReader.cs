@@ -138,6 +138,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
             Remarks = XmlDocs.Html(doc, "remarks") ?? header?.Remarks,
             Examples = XmlDocs.Examples(doc) ?? (header?.Example is { } example ? [example] : null),
             Accessibility = XmlDocs.Html(doc, "accessibility") ?? header?.Accessibility,
+            Keyboard = header?.Keyboard,
             SeeAlso = XmlDocs.SeeAlso(doc) ?? header?.SeeAlso,
             TypeParameters = type.IsGenericTypeDefinition ? type.GetGenericArguments().Select(a => a.Name).ToList() : null,
             Bases = componentBases,

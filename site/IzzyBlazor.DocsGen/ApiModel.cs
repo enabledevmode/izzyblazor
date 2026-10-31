@@ -50,6 +50,9 @@ public sealed record ApiComponent
     /// </summary>
     public string? Accessibility { get; init; }
 
+    /// <summary>Its keys, grouped by where focus is, from a .razor header's "Keyboard:".</summary>
+    public List<ApiKeyboardGroup>? Keyboard { get; init; }
+
     /// <summary>
     /// Related components, from the doc comment's top-level <c>seealso</c> tags (a .razor header's
     /// "See also:" line), by name.
@@ -158,3 +161,9 @@ public sealed record ApiType
     /// <summary>A deprecation's <c>[Obsolete]</c> message (a warning; errors aren't in the file).</summary>
     public string? Obsolete { get; init; }
 }
+
+/// <summary>A component's keys for one place focus can be. No title when there's only the one place.</summary>
+public sealed record ApiKeyboardGroup(string? Title, List<ApiKeyRow> Rows);
+
+/// <summary>Keys that do one thing, as a <c>Kbd</c> shows them ("Shift+Up"), and what that is.</summary>
+public sealed record ApiKeyRow(List<string> Keys, string Action);

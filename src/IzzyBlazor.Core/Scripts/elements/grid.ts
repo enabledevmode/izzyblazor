@@ -571,6 +571,8 @@ class Grid extends IzzyElement {
     const cells = this.#visibleCells(row);
     const body = this.#bodyRows;
     if (modifier && this.#count && (event.key === "Home" || event.key === "End")) {
+      // The corners, as with pages: past the last column is the last cell.
+      this.#column = event.key === "Home" ? 0 : 1e3;
       this.#goTo(event.key === "Home" ? 2 : this.#count - (this.#table!.tFoot ? 1 : 0));
       return true;
     }

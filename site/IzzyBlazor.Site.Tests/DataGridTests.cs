@@ -148,6 +148,13 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             await WaitForFocusAsync(page, "3");
             await page.Keyboard.PressAsync("Control+End");
             await WaitForFocusAsync(page, "100001");
+            const string cellAt = "() => { const a = document.activeElement; const c = a.closest('td, th'); return [...c.parentElement.cells].indexOf(c) + '/' + c.parentElement.cells.length; }";
+            Assert.Equal("3/4", await page.EvaluateAsync<string>(cellAt));
+            await page.Keyboard.PressAsync("Control+Home");
+            await WaitForFocusAsync(page, "2");
+            Assert.Equal("0/4", await page.EvaluateAsync<string>(cellAt));
+            await page.Keyboard.PressAsync("Control+End");
+            await WaitForFocusAsync(page, "100001");
             await page.Keyboard.PressAsync("PageUp");
             await page.WaitForFunctionAsync($"() => +({Focused})() < 100001");
             await page.Keyboard.PressAsync("Control+Home");

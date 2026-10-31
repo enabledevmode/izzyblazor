@@ -1,0 +1,44 @@
+@* One place's keys. Section is the whole of a component's keys, drawn into the page that calls it: a
+   heading registers with the outline when it renders, so in a component of its own, or a Stack, these
+   would be listed after the sections that follow them. *@
+
+<Table Items="Group.Rows" Caption="@($"{Name} keys{(Group.Title is null ? "" : $", {Group.Title}")}")" Size="ControlSize.Sm">
+    <TemplateColumn Title="Press this key" Width="Length.Rem(14)">
+        @for (var i = 0; i < context!.Keys.Count; i++)
+        {
+            @if (i > 0)
+            {
+                <span class="site-key-or"> or </span>
+            }
+            <Kbd Keys="@context.Keys[i]" />
+        }
+    </TemplateColumn>
+    <TemplateColumn Title="To do this">@context!.Action</TemplateColumn>
+</Table>
+
+@code {
+    [Parameter, EditorRequired] public ApiKeyboardGroup Group { get; set; } = null!;
+
+    [Parameter, EditorRequired] public string Name { get; set; } = "";
+
+    /// <summary>The Keyboard section of a page, if the component has keys: <c>@KeyboardTable.Section(ApiComponent)</c>.</summary>
+    public static RenderFragment Section(ApiComponent api) => __builder =>
+    {
+        if (api.Keyboard is { Count: > 0 } groups)
+        {
+            <Heading Level="2">Keyboard</Heading>
+            <div class="site-key-groups">
+                @foreach (var group in groups)
+                {
+                    <div class="site-key-group">
+                        @if (group.Title is not null)
+                        {
+                            <Heading Level="3" Size="TextSize.Md">@group.Title</Heading>
+                        }
+                        <KeyboardTable Group="group" Name="@api.Name" />
+                    </div>
+                }
+            </div>
+        }
+    };
+}
