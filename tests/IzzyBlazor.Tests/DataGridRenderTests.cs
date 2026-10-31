@@ -451,35 +451,70 @@ public class DataGridRenderTests : BunitContext
         // The bar's menu of links, and the toolbar's "…" menu has copies, which download too.
         var links = cut.FindAll(".ib-menu-item[download]");
         Assert.Equal(4, links.Count);
-        Assert.Equal("/o.csv?sort=-qty&columns=name,qty", links[0].GetAttribute("href"));
-        Assert.Equal("/o.xlsx?t=1&sort=-qty&columns=name,qty", links[1].GetAttribute("href"));
-        Assert.Equal(["Export CSV", "Export Excel"], links.Take(2).Select(l => l.TextContent.Trim()));
-    }
-
-    [Theory]
-    [InlineData(ExportFormat.Excel, "/o.xlsx", "Export Excel", "/o.csv", "Export CSV")]
-    [InlineData(ExportFormat.Csv, "/o.csv", "Export CSV", "/o.xlsx", "Export Excel")]
-    public void A_default_export_is_one_click_with_the_other_behind_the_arrow(ExportFormat format, string main, string name, string other, string otherName)
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.DefaultExport, format));
-        var bar = cut.Find(".ib-toolbar-end > .ib-toolbar-unit");
-        var link = bar.QuerySelector(".ib-split-btn > a[download]")!;
-        Assert.StartsWith(main + "?", link.GetAttribute("href"));
-        Assert.Equal(name, link.GetAttribute("aria-label"));
-        var item = Assert.Single(bar.QuerySelectorAll(".ib-menu-item[download]"));
-        Assert.StartsWith(other + "?", item.GetAttribute("href"));
-        Assert.Contains(otherName, item.TextContent);
-
-        // In the toolbar's "…" menu, both are there to choose.
-        Assert.Equal(3, cut.FindAll(".ib-menu-item[download]").Count);
+        Assert.Equal("/o.xlsx?t=1&sort=-qty&columns=name,qty", links[0].GetAttribute("href"));
+        Assert.Equal("/o.csv?sort=-qty&columns=name,qty", links[1].GetAttribute("href"));
+        Assert.Equal(["Export Excel", "Export CSV"], links.Take(2).Select(l => l.TextContent.Trim()));
     }
 
     [Fact]
-    public void A_default_export_with_one_link_is_just_that_link()
+    public void Both_exports_are_one_button_with_a_chevron_that_opens_a_menu_excel_first()
     {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.DefaultExport, ExportFormat.Excel));
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx"));
+        var bar = cut.Find(".ib-toolbar-end > .ib-toolbar-unit");
         Assert.Empty(cut.FindAll(".ib-split-btn"));
-        Assert.StartsWith("/o.csv?", cut.Find(".ib-btn[download]").GetAttribute("href"));
+
+        // Icons alone, named, both inside one button that downloads nothing itself.
+        var button = Assert.Single(bar.QuerySelectorAll("button.ib-btn"));
+        Assert.Equal("Export", button.GetAttribute("aria-label"));
+        Assert.Equal("Export", button.GetAttribute("title"));
+        Assert.Equal(2, button.QuerySelectorAll(".ib-icon").Length);
+        Assert.Equal("", button.TextContent.Trim());
+        Assert.Null(button.GetAttribute("download"));
+
+        Assert.Equal(["Export Excel", "Export CSV"], bar.QuerySelectorAll(".ib-menu-item[download]").Select(l => l.TextContent.Trim()));
+    }
+
+    [Fact]
+    public void Exports_with_text_read_export_between_the_icon_and_the_chevron()
+    {
+        var labeled = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarLabels, true));
+        var content = Tools(b => Add<DataGridExport>(b, (nameof(DataGridExport.ShowText), (bool?)true)));
+        var placed = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarContent, content));
+        foreach (var bar in new[] { labeled.Find(".ib-toolbar-end > .ib-toolbar-unit"), placed.Find(".ib-toolbar-end > .ib-toolbar-unit") })
+        {
+            var button = Assert.Single(bar.QuerySelectorAll("button.ib-btn"));
+            Assert.Equal("Export", button.TextContent.Trim());
+            Assert.Equal(2, button.QuerySelectorAll(".ib-icon").Length);
+        }
+    }
+
+    [Theory]
+    [InlineData(true, "/o.xlsx", "Export Excel")]
+    [InlineData(false, "/o.csv", "Export CSV")]
+    public void One_export_downloads_directly_with_no_chevron(bool excel, string href, string name)
+    {
+        var cut = excel ? Grid(NameAndQty, p => p.Add(x => x.ExportExcelHref, href)) : Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, href));
+        var bar = cut.Find(".ib-toolbar-end > .ib-toolbar-unit");
+
+        var link = bar.QuerySelector("a[download]")!;
+        Assert.StartsWith(href + "?", link.GetAttribute("href"));
+        Assert.Equal(name, link.GetAttribute("aria-label"));
+        Assert.Single(link.QuerySelectorAll(".ib-icon"));
+        Assert.Empty(bar.QuerySelectorAll("button"));
+    }
+
+    // What the toolbar reckons for its first paint: a chevron's width is in it, and text's.
+    [Fact]
+    public void Exports_estimated_width_counts_the_chevron()
+    {
+        var both = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx"));
+        var one = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv"));
+
+        Assert.Equal(32, one.FindComponent<DataGridExport>().Instance.EstimatedWidth);
+        Assert.Equal(48, both.FindComponent<DataGridExport>().Instance.EstimatedWidth);
+        var labeled = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarLabels, true));
+        var plainText = ButtonWidth.Estimate(ControlSize.Sm, false, true, "Export", startIcon: true, endIcon: false);
+        Assert.True(labeled.FindComponent<DataGridExport>().Instance.EstimatedWidth > plainText + 12, "the chevron's room");
     }
 
     [Fact]

@@ -5,29 +5,19 @@ using System.Text;
 
 namespace IzzyBlazor;
 
-/// <summary>A file format a <c>DataGrid</c> exports to.</summary>
-public enum ExportFormat
-{
-    /// <summary>Comma-separated text.</summary>
-    Csv,
-
-    /// <summary>An Excel workbook.</summary>
-    Excel,
-}
-
 /// <summary>What an export wrote.</summary>
 /// <param name="Rows">The rows of data written, not counting the header.</param>
 /// <param name="Truncated">Whether it stopped early, at what the format can hold, with a note in the file's last row. An Excel sheet holds 1,048,576 rows.</param>
 public readonly record struct DataExportResult(long Rows, bool Truncated);
 
 /// <summary>
-/// Writes a query's rows as CSV or Excel to a stream, row by row, so memory stays flat however many
+/// Writes a query's rows as Excel or CSV to a stream, row by row, so memory stays flat however many
 /// there are. It runs on an endpoint the app maps, which a <c>DataGrid</c>'s export links go to with
 /// the filter, sort, search and visible columns of what's on screen:
 /// <code>
-/// app.MapGet("/orders/export.csv", (HttpContext http, AppDb db) =&gt; Results.Stream(
-///     stream =&gt; DataExport.WriteCsvAsync(stream, db.Orders.AsNoTracking(), http.Request.QueryString.Value, DataFields.Of&lt;Order&gt;(), cancellationToken: http.RequestAborted),
-///     "text/csv", "orders.csv"));
+/// app.MapGet("/orders/export.xlsx", (HttpContext http, AppDb db) =&gt; Results.Stream(
+///     stream =&gt; DataExport.WriteExcelAsync(stream, db.Orders.AsNoTracking(), http.Request.QueryString.Value, DataFields.Of&lt;Order&gt;(), cancellationToken: http.RequestAborted),
+///     "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "orders.xlsx"));
 /// </code>
 /// The fields decide what can be filtered, sorted, searched and written, whatever the address says.
 /// A database reads only those columns, and a null along a navigation is an empty cell. A field it

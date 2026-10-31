@@ -49,7 +49,8 @@
     returns, or on the next key, which scrolls to it. Browser find, and Shift ranges of selection,
     reach the rows drawn; Select all N reaches the rest.
 
-    ExportCsvHref and ExportExcelHref add plain links to endpoints the app maps with DataExport. They
+    ExportExcelHref, and ExportCsvHref beside it if CSV is wanted too, add plain links to endpoints the
+    app maps with DataExport. With both, one button with a chevron opens a menu of them. They
     carry the filter, sort, search and visible columns, in every mode and with no script. The
     endpoint's fields decide what's written, and head the file. A download matches the screen when
     they have the grid's keys: a column whose key they don't have is left out, a filter on it matches
@@ -197,19 +198,13 @@
     internal override double VirtualRowHeight => RowHeight;
 
     /// <summary>
-    /// With both export links, the format one click downloads: a split button, with the other format
-    /// behind its arrow. Without it, one button opens a menu of both.
-    /// </summary>
-    [Parameter] public ExportFormat? DefaultExport { get; set; }
-
-    /// <summary>
     /// Text beside the icons of the toolbar's own tools, for a grid people use now and then. Without it
     /// they're icons with a tooltip, for one used all day. A tool's own <c>ShowText</c> goes first.
     /// </summary>
     [Parameter] public bool ToolbarLabels { get; set; }
 
     /// <summary>
-    /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>. It adds
+    /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>, for a grid that offers CSV besides Excel. It adds
     /// the current <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address. The
     /// endpoint's fields need the grid's keys, and its <c>FilterCase</c> as their <c>Case</c>, for the
     /// file to match the screen.
@@ -582,16 +577,16 @@
 
     bool IDataGridToolbar.HasExport => HasExportTool;
 
-    bool IDataGridToolbar.ExportSplits => ExportSplits;
+    bool IDataGridToolbar.ExportHasMenu => ExportHasMenu;
 
-    private bool ExportSplits => DefaultExport is not null && ExportCsvHref is not null && ExportExcelHref is not null;
+    private bool ExportHasMenu => ExportCsvHref is not null && ExportExcelHref is not null;
 
     bool IDataGridToolbar.ToolbarLabels => ToolbarLabels;
 
     string IDataGridToolbar.ColumnPickerLabel => TextDefaults.ColumnPicker;
 
-    string IDataGridToolbar.ExportLabel => ExportCsvHref is null || (ExportSplits && DefaultExport == ExportFormat.Excel) ? TextDefaults.ExportExcel
-        : ExportExcelHref is null || ExportSplits ? TextDefaults.ExportCsv
+    string IDataGridToolbar.ExportLabel => ExportCsvHref is null ? TextDefaults.ExportExcel
+        : ExportExcelHref is null ? TextDefaults.ExportCsv
         : TextDefaults.Export;
 
     RenderFragment IDataGridToolbar.SearchBar => __builder =>
@@ -666,24 +661,19 @@
 
         var label = ((IDataGridToolbar)this).ExportLabel;
         var icon = IconSet.Current.Get(IconRole.Export);
-        if (ExportSplits)
+        if (ExportHasMenu)
         {
-            var excel = DefaultExport == ExportFormat.Excel;
-            <SplitButton Label="@label" StartIcon="icon" IconOnly="@(!showText)" Href="@ExportHref((excel ? ExportExcelHref : ExportCsvHref)!)" MenuLabel="@TextDefaults.Export" Placement="Placement.BottomEnd" Disabled="@(_loadedRequest is null)" download>
-                <MenuItem Href="@ExportHref((excel ? ExportCsvHref : ExportExcelHref)!)" Disabled="@(_loadedRequest is null)" download>@(excel ? TextDefaults.ExportCsv : TextDefaults.ExportExcel)</MenuItem>
-            </SplitButton>
-        }
-        else if (ExportCsvHref is not null && ExportExcelHref is not null)
-        {
+            // Both inside one button, not a split button: one click only ever opens the menu.
+            var chevron = IconSet.Current.Get(IconRole.ChevronDown);
             <Menu Placement="Placement.BottomEnd">
                 <Trigger>
                     @if (showText)
                     {
-                        <Button StartIcon="icon" Disabled="@(_loadedRequest is null)" @attributes="context">@label</Button>
+                        <Button Class="ib-grid-export" StartIcon="icon" EndIcon="chevron" Disabled="@(_loadedRequest is null)" @attributes="context">@label</Button>
                     }
                     else
                     {
-                        <IconButton Icon="icon" Label="@label" Disabled="@(_loadedRequest is null)" @attributes="context" />
+                        <Button Class="ib-grid-export ib-grid-export-icons" StartIcon="icon" EndIcon="chevron" Disabled="@(_loadedRequest is null)" aria-label="@label" title="@label" @attributes="context" />
                     }
                 </Trigger>
                 <ChildContent>@(((IDataGridToolbar)this).ExportMenu)</ChildContent>
@@ -701,14 +691,14 @@
 
     RenderFragment IDataGridToolbar.ExportMenu => __builder =>
     {
-        if (ExportCsvHref is not null)
-        {
-            <MenuItem Href="@ExportHref(ExportCsvHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportCsv</MenuItem>
-        }
-
         if (ExportExcelHref is not null)
         {
             <MenuItem Href="@ExportHref(ExportExcelHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportExcel</MenuItem>
+        }
+
+        if (ExportCsvHref is not null)
+        {
+            <MenuItem Href="@ExportHref(ExportCsvHref)" Disabled="@(_loadedRequest is null)" download>@TextDefaults.ExportCsv</MenuItem>
         }
     };
 

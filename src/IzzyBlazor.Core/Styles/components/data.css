@@ -846,6 +846,16 @@
   }
 
   /* As tall as the bar, so the rows don't move when one takes the other's place. */
+  /* Export's two formats: the icon and a small chevron, both inside one button. */
+  .ib-grid-export > .ib-icon:last-child {
+    --ib-icon-size: 0.75rem;
+  }
+
+  .ib-btn.ib-grid-export-icons {
+    padding-inline: var(--ib-space-2);
+    gap: 0.125rem;
+  }
+
   .ib-grid-toolbar {
     display: flex;
     align-items: center;

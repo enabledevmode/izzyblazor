@@ -12,8 +12,8 @@ internal interface IDataGridToolbar
 
     bool HasExport { get; }
 
-    /// <summary>Whether export is a split button, with a main format and an arrow: a little wider.</summary>
-    bool ExportSplits { get; }
+    /// <summary>Whether export opens a menu of both formats, with a chevron beside its icon: a little wider.</summary>
+    bool ExportHasMenu { get; }
 
     bool ToolbarLabels { get; }
 
@@ -63,6 +63,9 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     private protected virtual RenderFragment? ItemMenu => null;
 
     private protected abstract double? ItemWidth { get; }
+
+    /// <summary>What the toolbar reckons for it on the first paint.</summary>
+    internal double? EstimatedWidth => ItemWidth;
 
     int IToolbarItem.Priority => ItemPriority;
 
@@ -165,10 +168,9 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
 }
 
 /// <summary>
-/// Puts a <c>DataGrid</c>'s export, from <c>ExportCsvHref</c> and <c>ExportExcelHref</c>, among your
-/// toolbar items: a link with one of them, a menu of links with both, or with the grid's
-/// <c>DefaultExport</c> a split button. At the end unless
-/// <see cref="DataGridToolbarItem.Position"/> says otherwise.
+/// Puts a <c>DataGrid</c>'s export, from <c>ExportExcelHref</c> and <c>ExportCsvHref</c>, among your
+/// toolbar items: a link with one of them, or with both a button with a chevron that opens a menu of
+/// links. At the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the links download. A menu of them opens and closes, but arrow keys don't move between items.")]
 public sealed class DataGridExport : DataGridToolbarItem
@@ -197,5 +199,9 @@ public sealed class DataGridExport : DataGridToolbarItem
 
     private protected override RenderFragment ItemMenu => Grid.ExportMenu;
 
-    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false) + (Grid.ExportSplits ? 32 : 0);
+    // With a menu: two icons with a 2px gap, a 12px chevron (data.css), in 8px of padding and a border; or with
+    // text, the usual button with that smaller chevron.
+    private protected override double? ItemWidth => !Grid.ExportHasMenu ? ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false)
+        : Text ? ButtonWidth.Estimate(ControlSize.Sm, false, true, Grid.ExportLabel, startIcon: true, endIcon: true) - 4
+        : 48;
 }
