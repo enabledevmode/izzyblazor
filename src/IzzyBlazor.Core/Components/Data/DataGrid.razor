@@ -667,7 +667,7 @@
         if (ExportSplits)
         {
             var excel = DefaultExport == ExportFormat.Excel;
-            <SplitButton Label="@label" StartIcon="icon" IconOnly="@(!showText)" Href="@ExportHref((excel ? ExportExcelHref : ExportCsvHref)!)" MenuLabel="@TextDefaults.Export" Disabled="@(_loadedRequest is null)" download>
+            <SplitButton Label="@label" StartIcon="icon" IconOnly="@(!showText)" Href="@ExportHref((excel ? ExportExcelHref : ExportCsvHref)!)" MenuLabel="@TextDefaults.Export" Placement="Placement.BottomEnd" Disabled="@(_loadedRequest is null)" download>
                 <MenuItem Href="@ExportHref((excel ? ExportCsvHref : ExportExcelHref)!)" Disabled="@(_loadedRequest is null)" download>@(excel ? TextDefaults.ExportCsv : TextDefaults.ExportExcel)</MenuItem>
             </SplitButton>
         }
