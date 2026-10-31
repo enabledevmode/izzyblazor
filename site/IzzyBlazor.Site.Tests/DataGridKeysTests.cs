@@ -345,6 +345,28 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Fact]
+    public async Task Alt_Down_on_a_blocked_menu_doesnt_run_whats_inside_it()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using (browser)
+        {
+            // What a SplitButton draws with its arrow blocked, and a closed panel holding an item.
+            var cell = page.Locator(".ib-datagrid >> nth=0 >> tbody tr >> nth=0 >> td >> nth=2");
+            await cell.EvaluateAsync("""
+                c => {
+                  c.insertAdjacentHTML('beforeend', '<button type="button" popovertarget="blocked" disabled>More</button><div popover id="blocked"><button type="button" popovertarget="blocked" popovertargetaction="hide">Delete</button></div>');
+                  window.ran = 0;
+                  c.querySelector('[popovertargetaction]').addEventListener('click', () => window.ran++);
+                }
+                """);
+            await cell.FocusAsync();
+            await page.Keyboard.PressAsync("Alt+ArrowDown");
+            await page.WaitForTimeoutAsync(100);
+            Assert.Equal(0, await page.EvaluateAsync<int>("() => window.ran"));
+        }
+    }
+
+    [Fact]
     public async Task The_page_lists_the_keys_by_where_focus_is()
     {
         var (browser, page) = await OpenAsync("static");

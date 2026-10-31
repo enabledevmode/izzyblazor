@@ -106,6 +106,7 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
     {
         // A preview isn't there for agents yet.
         Assert.Throws<McpDocsException>(() => Docs.GetComponent("DataGrid"));
+        Assert.Contains("toolbar-split-button", Docs.GetComponent("ToolbarSplitButton"));
         Assert.Throws<McpDocsException>(() => Docs.GetExample("data-grid-columns"));
         Assert.DoesNotContain("DataGrid", Docs.GetType("SelectionMode"));
         Assert.Contains("Did you mean Select", Assert.Throws<McpDocsException>(() => Docs.GetComponent("Selct")).Message);

@@ -238,8 +238,10 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
 
         if (owner is not null)
         {
-            var examples = owner.Examples.Select(e => (e.Id, e.Title, Lead: e.Lead))
-                .Concat(owner.Scenarios.Select(s => (s.Example.Id, $"Demo: {s.Title}", Lead: (string?)s.Description))).ToList();
+            // A part can be listed on more than one component (ToolbarSplitButton on SplitButton and Toolbar).
+            var sources = registry.Components.Where(c => c.Parts.Contains(component.Name)).Append(owner).Distinct();
+            var examples = sources.SelectMany(c => c.Examples.Select(e => (e.Id, e.Title, Lead: e.Lead))
+                .Concat(c.Scenarios.Select(s => (s.Example.Id, $"Demo: {s.Title}", Lead: (string?)s.Description)))).ToList();
             if (owner.Name != component.Name)
             {
                 // A part: only the owner's examples that use it.

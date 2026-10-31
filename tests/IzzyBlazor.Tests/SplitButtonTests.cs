@@ -335,10 +335,10 @@ public class SplitButtonTests : BunitContext
     // Reads each render's frames. On a page a state change patches the element by comparing sequence
     // numbers, and an attribute out of order can then be lost; bUnit draws its markup from the frames
     // and can't show that, so this checks the order (the browser test checks the page itself).
-    private sealed class FrameRenderer(IServiceProvider services) : Renderer(services, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance)
+    private sealed class FrameRenderer<TComponent>(IServiceProvider services) : Renderer(services, Microsoft.Extensions.Logging.Abstractions.NullLoggerFactory.Instance)
     {
         private int _rootId;
-        private SplitButton _root = null!;
+        private IComponent _root = null!;
 
         public List<string> OutOfOrder { get; } = [];
 
@@ -350,7 +350,7 @@ public class SplitButtonTests : BunitContext
 
         public Task MountAsync(ParameterView parameters) => Dispatcher.InvokeAsync(() =>
         {
-            _root = (SplitButton)InstantiateComponent(typeof(SplitButton));
+            _root = InstantiateComponent(typeof(TComponent));
             _rootId = AssignRootComponentId(_root);
             return RenderRootComponentAsync(_rootId, parameters);
         });
@@ -413,7 +413,7 @@ public class SplitButtonTests : BunitContext
         });
 
         using var services = new ServiceCollection().BuildServiceProvider();
-        await using var renderer = new FrameRenderer(services);
+        await using var renderer = new FrameRenderer<SplitButton>(services);
         await renderer.MountAsync(Parameters(false, false));
         foreach (var (disabled, loading) in new[] { (true, false), (false, false), (false, true), (false, false) })
         {
@@ -422,6 +422,56 @@ public class SplitButtonTests : BunitContext
 
         Assert.True(renderer.AttributesSeen > 0);
         Assert.Empty(renderer.OutOfOrder);
+    }
+
+    private async Task AscendsAsync<TComponent>(params Dictionary<string, object?>[] states)
+    {
+        using var services = new ServiceCollection().BuildServiceProvider();
+        await using var renderer = new FrameRenderer<TComponent>(services);
+        await renderer.MountAsync(ParameterView.FromDictionary(states[0]));
+        foreach (var state in states.Skip(1))
+        {
+            await renderer.SetAsync(ParameterView.FromDictionary(state));
+        }
+
+        Assert.True(renderer.AttributesSeen > 0);
+        Assert.Empty(renderer.OutOfOrder);
+    }
+
+    private Dictionary<string, object?> ButtonState(string? href, bool? pressed, bool disabled, bool loading) => new()
+    {
+        [nameof(Button.Href)] = href,
+        [nameof(Button.Pressed)] = href is null ? pressed : null,
+        [nameof(Button.Disabled)] = disabled,
+        [nameof(Button.Loading)] = loading,
+        [nameof(Button.OnClick)] = EventCallback.Factory.Create<MouseEventArgs>(this, () => { }),
+        ["data-x"] = "y",
+    };
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("/report.pdf")]
+    public Task A_buttons_sequence_numbers_ascend_in_every_state(string? href) => AscendsAsync<Button>(
+        ButtonState(href, true, false, false),
+        ButtonState(href, null, false, false),
+        ButtonState(href, false, true, false),
+        ButtonState(href, true, false, true),
+        ButtonState(href, null, false, false));
+
+    [Theory]
+    [InlineData(null)]
+    [InlineData("/report.pdf")]
+    public Task An_icon_buttons_sequence_numbers_ascend_in_every_state(string? href)
+    {
+        Dictionary<string, object?> State(bool? pressed, bool disabled, bool loading)
+        {
+            var state = ButtonState(href, pressed, disabled, loading);
+            state[nameof(IconButton.Icon)] = Lucide.Download;
+            state[nameof(IconButton.Label)] = "Report";
+            return state;
+        }
+
+        return AscendsAsync<IconButton>(State(true, false, false), State(null, false, false), State(false, true, false), State(true, false, true), State(null, false, false));
     }
 
     // On each state: what a fresh render has. The order above is what keeps this true on a page.
