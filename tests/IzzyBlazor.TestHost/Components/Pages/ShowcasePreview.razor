@@ -100,7 +100,7 @@
                     <PropertyColumn Property="o => o.Number" Title="Order" />
                     <PropertyColumn Property="o => o.Customer" Sortable />
                     <PropertyColumn Property="o => o.Date" Format="MMM d, yyyy" Sortable />
-                    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" FilterBy="o => o.Status" Sortable Filterable FilterMultiple>
+                    <TemplateColumn Title="Status" SortBy="o => o.Status" SortKey="status" FilterBy="o => o.Status" Sortable Filterable>
                         <Badge Status="StatusOf(context.Status)" Dot>@context.Status</Badge>
                     </TemplateColumn>
                     <PropertyColumn Property="o => o.Total" Format="C" Sortable />

@@ -512,6 +512,7 @@
     width: 14rem;
     font-weight: var(--ib-weight-normal);
     text-align: start;
+    white-space: normal;
   }
 
   .ib-table-filter-panel-actions {
@@ -589,6 +590,38 @@
 
   .ib-table-filter-date {
     min-width: 8.5rem;
+  }
+
+  /* A list filter: its rows scroll, under the search and Select all, which need script. */
+  ib-filter-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-filter-list-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    max-height: 16rem;
+    overflow-y: auto;
+    /* Room for a box's focus ring. */
+    padding: 0.125rem;
+    margin: -0.125rem;
+  }
+
+  .ib-filter-list-items > [hidden] {
+    display: none;
+  }
+
+  ib-filter-list[data-ib-failed] :is(.ib-filter-list-all, .ib-filter-list-search) {
+    display: none;
+  }
+
+  @media (scripting: none) {
+    ib-filter-list :is(.ib-filter-list-all, .ib-filter-list-search) {
+      display: none;
+    }
   }
 
   .ib-table-filter-form {

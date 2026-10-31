@@ -108,9 +108,6 @@ public class IzzyText
     /// <summary>A Table filter's accessible name: "Filter Customer".</summary>
     public virtual string FilterColumn { get; set; } = "Filter {0}";
 
-    /// <summary>The first option of a Table filter select, meaning no filter.</summary>
-    public virtual string All { get; set; } = "All";
-
     /// <summary>A Table filter menu with several values chosen: "2 selected".</summary>
     public virtual string FilterSelected { get; set; } = "{0} selected";
 
@@ -197,6 +194,21 @@ public class IzzyText
 
     /// <summary>A Table number filter with both ends: "100–500".</summary>
     public virtual string FilterBetween { get; set; } = "{0}–{1}";
+
+    /// <summary>A list filter's row for no value.</summary>
+    public virtual string FilterBlank { get; set; } = "(Blank)";
+
+    /// <summary>What a list filter with nothing ticked is set to, in its tag: "Status: none".</summary>
+    public virtual string FilterNone { get; set; } = "none";
+
+    /// <summary>The empty message of a table with a list filter that has nothing ticked; {0} is the column's title.</summary>
+    public virtual string FilterNoneEmpty { get; set; } = "Nothing is selected under {0}.";
+
+    /// <summary>A list filter's box for narrowing its rows.</summary>
+    public virtual string FilterSearchValues { get; set; } = "Search values";
+
+    /// <summary>A list filter's Select all while a search narrows it; {0} is how many rows it found.</summary>
+    public virtual string FilterSelectAllResults { get; set; } = "Select all {0} results";
 
     /// <summary>A Table filter option for true.</summary>
     public virtual string Yes { get; set; } = "Yes";

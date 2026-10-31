@@ -86,9 +86,9 @@ public class ColumnFilterOperatorTests : BunitContext
         Assert.Equal(DateWords, Options(cut, "f-day-op"));
         Assert.Equal([.. DateWords, "Is empty", "Is not empty"], Options(cut, "f-maybe-op"));
 
-        // An enum's is still its menu.
+        // An enum's is its list.
         Assert.Empty(cut.FindAll("select[name='f-status-op']"));
-        Assert.NotEmpty(cut.FindAll("a.ib-menu-item"));
+        Assert.NotEmpty(cut.FindAll("input[type=checkbox][name='f-status']"));
 
         // The default is chosen, and said so for the script.
         Assert.Equal("contains", Chosen(cut, "f-note-op"));

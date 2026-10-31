@@ -1357,6 +1357,10 @@
             "static": "The same links; Blazor's enhanced navigation swaps the page in without a full reload.",
             "interactive": "The same links; the table follows the URL." } },
         { "id": "table-filter-operators", "title": "Choosing an operator", "lead": "Use `FilterOperators` on a column to choose an operator in its filter; the first is the default." },
+        { "id": "table-filter-lists", "title": "Lists of values", "lead": "An enum or bool column's filter is a list of checkboxes. All ticked is no filter, and none ticked shows no rows.",
+          "notes": {
+            "noscript": "Tick and press Apply. There's no Select all or search, and none ticked is no filter.",
+            "static": "Ticks apply after a short pause." } },
         { "id": "table-filters", "title": "Column filters",
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it.",

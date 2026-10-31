@@ -8,7 +8,7 @@ namespace IzzyBlazor.Tests;
 public enum Paid { Yes, No, Refunded }
 
 // Filterable columns: query-string filters on static pages, component state when bound. Each
-// filter is a button in its column's header opening a menu (choices) or a popover with fields.
+// filter is a button in its column's header opening a popover with a list (choices) or fields.
 public class TableFilterRenderTests : BunitContext
 {
     // Filters wait for a pause in typing (a timer): room for a slow CI machine.
@@ -127,8 +127,9 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal("1", cut.Find("input[name='f-qty']").GetAttribute("value"));
         Assert.Equal("", cut.Find("input[name='f-qty-to']").GetAttribute("value") ?? "");
         var kept = cut.FindAll("input[type=hidden]").Select(i => $"{i.GetAttribute("name")}={i.GetAttribute("value")}").ToArray();
-        // A menu filter has no field in the form, so it travels with the rest of the address.
-        Assert.Equal(new[] { "sort=name", "tab=x", "f-status=Yes" }, kept);
+        Assert.Equal(new[] { "sort=name", "tab=x" }, kept);
+        Assert.True(cut.Find("input[name='f-status'][value='Yes']").HasAttribute("checked"));
+        Assert.False(cut.Find("input[name='f-status'][value='No']").HasAttribute("checked"));
         var clear = cut.FindAll(".ib-table-filter-tags a").Single(a => a.TextContent.Trim() == "Clear").GetAttribute("href")!;
         Assert.DoesNotContain("f-", clear);
     }
@@ -417,11 +418,11 @@ public class TableFilterRenderTests : BunitContext
         }, Timer);
         Assert.Equal(url, Nav.Uri);
 
-        cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "Refunded").Click();
+        Tick(cut, "Yes", false);
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(new[] { "adam" }, Names(cut));
-            Assert.Equal(Paid.Refunded, reported.Last()!.Find("status")!.Value);
+            Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported.Last()!.Find("status")!.Values);
         }, Timer);
     }
 
@@ -447,66 +448,49 @@ public class TableFilterRenderTests : BunitContext
         }, Timer);
     }
 
-    private static RenderFragment MultiColumns => b =>
-    {
-        b.AddContent(0, Col<string>(r => r.Name));
-        b.OpenComponent<PropertyColumn<Row, Paid>>(1);
-        b.AddComponentParameter(2, "Property", (Expression<Func<Row, Paid>>)(r => r.Status));
-        b.AddComponentParameter(3, "Filterable", true);
-        b.AddComponentParameter(4, "FilterMultiple", true);
-        b.CloseComponent();
-    };
+    // Unticks or ticks a bound list's row.
+    // Again if it fails: the filter applies on a timer, and its render can land between finding the box and ticking it.
+    private static void Tick(IRenderedComponent<Table<Row>> cut, string row, bool on) => cut.WaitForAssertion(
+        () => cut.FindAll("ib-filter-list .ib-filter-list-items label").First(l => l.TextContent.Trim() == row).QuerySelector("input")!.Change(on), Timer);
 
     [Theory]
     [InlineData("", "All", new[] { "Ada", "Grace", "adam" })]
     [InlineData("?f-status=No", "No", new[] { "Grace" })]
     [InlineData("?f-status=Yes&f-status=Refunded", "2 selected", new[] { "Ada", "adam" })]
-    [InlineData("?f-status=Yes&f-status=Bogus", "2 selected", new[] { "Ada" })]
-    public void Multiple_filter_keeps_any_chosen_value(string query, string summary, string[] expected)
+    [InlineData("?f-status=Yes&f-status=Bogus", "Yes", new[] { "Ada" })]
+    [InlineData("?f-status=Yes&f-status=No&f-status=Refunded", "All", new[] { "Ada", "Grace", "adam" })]
+    public void A_list_keeps_any_ticked_value_and_all_ticked_is_no_filter(string query, string summary, string[] expected)
     {
-        Nav.NavigateTo("/orders" + query);
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, MultiColumns));
+        var cut = RenderStatic("/orders" + query);
 
         Assert.Equal(expected, Names(cut));
-        Assert.Equal(summary == "All" ? "Filter Status" : $"Filter Status: {summary}", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
+        Assert.Equal(summary == "All" ? "Filter Status" : $"Filter Status: {summary}", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
     }
 
     [Fact]
-    public void Multiple_filter_items_link_to_the_url_with_their_value_toggled()
-    {
-        Nav.NavigateTo("/orders?f-status=Yes&page=2");
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, MultiColumns));
-
-        var items = cut.FindAll("a.ib-menu-item");
-        Assert.Equal(new[] { "All", "Yes", "No", "Refunded" }, items.Select(i => i.TextContent.Trim()));
-        Assert.Equal("http://localhost/orders", items[0].GetAttribute("href"));
-        Assert.Equal("true", items[1].GetAttribute("aria-current"));
-        Assert.Equal("http://localhost/orders", items[1].GetAttribute("href"));
-        Assert.Equal("http://localhost/orders?f-status=Yes&f-status=No", items[2].GetAttribute("href"));
-        Assert.All(items.Skip(1), i => Assert.True(i.HasAttribute("data-ib-keep-open")));
-    }
-
-    [Fact]
-    public void Bound_multiple_filter_toggles_in_place()
+    public void Bound_list_ticks_in_place_and_all_ticked_is_no_filter()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         Filter? reported = null;
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.FilterChanged, (Filter? f) => reported = f)
-            .Add(t => t.ChildContent, MultiColumns));
+            .Add(t => t.ChildContent, Columns));
+        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
 
-        cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "No").Click();
-        cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "Refunded").Click();
+        Tick(cut, "Yes", false);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(new[] { "Grace", "adam" }, Names(cut));
+            Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported!.Find("status")!.Values);
+        }, Timer);
 
-        Assert.Equal(new[] { "Grace", "adam" }, Names(cut));
-        Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported!.Find("status")!.Values);
-        Assert.Null(cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "No").GetAttribute("popovertargetaction"));
-
-        cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "All").Click();
-        Assert.Equal(3, Names(cut).Length);
+        Tick(cut, "Yes", true);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(3, Names(cut).Length);
+            Assert.Null(reported);
+        }, Timer);
     }
 
     [Fact]
@@ -515,7 +499,7 @@ public class TableFilterRenderTests : BunitContext
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
 
-        Assert.Equal(3, cut.FindAll("[data-ib-filter]").Count);   // Name, and Qty's two ends
+        Assert.Equal(8, cut.FindAll("[data-ib-filter]").Count);   // Name, Qty's two ends, and the lists' rows
         Assert.Single(cut.FindAll("form.ib-table-filter-form"));
     }
 
@@ -538,10 +522,11 @@ public class TableFilterRenderTests : BunitContext
         Assert.False(input.HasAttribute("aria-label"));
         Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty']").Id);
 
-        // A choice opens a menu whose items set that value (and close the menu).
-        var items = cut.FindAll("a.ib-menu-item").Where(a => a.GetAttribute("href")!.Contains("f-status", StringComparison.Ordinal) || a.TextContent.Trim() == "All").ToList();
-        Assert.Contains(items, a => a.GetAttribute("href") == "http://localhost/orders?f-status=No");
-        Assert.DoesNotContain(cut.FindAll("a.ib-menu-item"), a => a.HasAttribute("data-ib-keep-open"));
+        // A choice has a list of checkboxes on that form, all ticked.
+        var boxes = cut.FindAll("[popover] ib-filter-list input[name='f-status']");
+        Assert.Equal(new[] { "Yes", "No", "Refunded" }, boxes.Select(b => b.GetAttribute("value")));
+        Assert.All(boxes, b => Assert.True(b.HasAttribute("checked")));
+        Assert.All(boxes, b => Assert.Equal(input.GetAttribute("form"), b.GetAttribute("form")));
         Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
     }
 
@@ -606,13 +591,20 @@ public class TableFilterRenderTests : BunitContext
             .Add(t => t.FilterChanged, (Filter? f) => reported = f)
             .Add(t => t.ChildContent, Columns));
 
-        cut.FindAll("button.ib-menu-item").First(b => b.TextContent.Trim() == "No").Click();
-        Assert.Equal(new[] { "Grace" }, Names(cut));
-        Assert.Equal(new FieldFilter("status", FilterOperator.Equals, Paid.No), reported!.Find("status"));
+        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
+        Tick(cut, "Yes", false);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(new[] { "Grace", "adam" }, Names(cut));
+            Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported!.Find("status")!.Values);
+        }, Timer);
 
         cut.Find(".ib-table-filter-tags .ib-btn").Click();   // Clear
-        Assert.Equal(3, Names(cut).Length);
-        Assert.Null(reported);
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(3, Names(cut).Length);
+            Assert.Null(reported);
+        }, Timer);
     }
 
     private IRenderedComponent<Table<Row>> RenderHeader(string url)

@@ -271,7 +271,11 @@
                             <tr class="ib-table-empty">
                                 <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content">
-                                        @if (EmptyContent is not null)
+                                        @if (NoneTicked() is { } unticked)
+                                        {
+                                            @string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterNoneEmpty, unticked.HeaderText)
+                                        }
+                                        else if (EmptyContent is not null)
                                         {
                                             @EmptyContent
                                         }
@@ -522,6 +526,13 @@
         return _columns.Where(c => c.CanFilter && filters.GetValueOrDefault(c.Key!) is { IsFilter: true }).ToList();
     }
 
+    // The first column whose list has nothing ticked, which is why there are no rows.
+    private ColumnBase<TItem>? NoneTicked()
+    {
+        var filters = CurrentFilters();
+        return _columns.FirstOrDefault(c => c.CanFilter && filters.GetValueOrDefault(c.Key!) is { None: true });
+    }
+
     private IReadOnlyDictionary<string, ColumnFilterValue> StateFilters()
     {
         if (_hasUnsplitFilter && _columnsReady)
@@ -614,8 +625,7 @@
     // filters and page (a new filter starts at page 1).
     private IEnumerable<(string Key, string Value)> KeptQuery()
     {
-        // Not a menu's: it has no field in the form, so it's kept like the rest of the address.
-        var own = _columns.Where(c => c.CanFilter && c.FilterKind != ColumnFilterKind.Choice).SelectMany(FilterQueryKeys).Concat(ExtraFilterKeys).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var own = _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Concat(ExtraFilterKeys).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return QueryString.Of(Navigation.Uri)
             .Where(q => !own.Contains(q.Key))
             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
@@ -669,6 +679,11 @@
     // ("100–500", "100 or more"), or the operator and its value ("Starts with ada").
     private string FilterSummary(ColumnBase<TItem> column, ColumnFilterValue current)
     {
+        if (current.None)
+        {
+            return TextDefaults.FilterNone;
+        }
+
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         var (kind, value) = (column.FilterKind, current.Value.Trim());
         string Worded() => ColumnFilter.TextOf(kind, current.Op, TextDefaults) + (value.Length > 0 ? $" {value}" : "");
@@ -696,9 +711,8 @@
                 return string.Format(culture, TextDefaults.FilterSelected, current.Values.Count);
             case FilterOperator.Contains:
                 return value;
-            case FilterOperator.Equals when kind == ColumnFilterKind.Choice:
             case FilterOperator.In when kind == ColumnFilterKind.Choice:
-                return column.FilterChoices(TextDefaults).FirstOrDefault(c => string.Equals(c.Value, value, StringComparison.OrdinalIgnoreCase)).Text ?? value;
+                return ColumnFilter.ListOf(column, TextDefaults).FirstOrDefault(r => string.Equals(r.Value, current.Values[0], StringComparison.OrdinalIgnoreCase)).Text ?? value;
             case FilterOperator.Equals when kind != ColumnFilterKind.Text:
             case FilterOperator.In:
                 return value;
@@ -707,88 +721,75 @@
         }
     }
 
-    // A funnel button, marked when the column is filtered, that opens the
-    // filter. Choices open a menu (checkbox items for FilterMultiple); text, numbers and dates a
-    // popover with the field. Both popovers open with no script.
+    // A funnel button, marked when the column is filtered, that opens the filter in a popover, with
+    // no script too: a list of checkboxes for choices, the field for text, numbers and dates.
     private RenderFragment HeaderFilter(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
         var label = FilterLabel(column);
         var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label;
         var placement = column.EffectiveAlign == CellAlign.End ? Placement.BottomEnd : Placement.BottomStart;
-        if (column.FilterKind == ColumnFilterKind.Choice)
-        {
-            <Menu Placement="placement" data-ib-user-controlled>
-                <Trigger>
-                    <button type="button" class="ib-table-filter-button" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
-                        <Icon Role="IconRole.Filter" />
-                    </button>
-                </Trigger>
-                <ChildContent>
-                    @FilterMenuItems(column, current)
-                </ChildContent>
-            </Menu>
-        }
-        else
-        {
-            var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
-            <Popover Placement="placement" data-ib-user-controlled>
-                <Trigger>
-                    <button type="button" class="ib-table-filter-button" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
-                        <Icon Role="IconRole.Filter" />
-                    </button>
-                </Trigger>
-                <ChildContent>
-                    @{ var ops = ColumnFilter.OperatorsOf(column); }
-                    @if (current.Op == FilterOperator.In)
-                    {
-                        @* A list from the address that one box can't show: its values post as they came,
-                           so no script or form changes what the link means, and its tag removes it. *@
-                        <div class="ib-table-filter-panel ib-field-sm">
-                            <span class="ib-field-label ib-table-filter-label">@label</span>
-                            <span>@FilterSummary(column, current)</span>
-                            @if (!UseState)
+        var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
+        <Popover Placement="placement" data-ib-user-controlled>
+            <Trigger>
+                <button type="button" class="ib-table-filter-button" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
+                    <Icon Role="IconRole.Filter" />
+                </button>
+            </Trigger>
+            <ChildContent>
+                @{ var ops = ColumnFilter.OperatorsOf(column); }
+                @if (column.FilterKind == ColumnFilterKind.Choice)
+                {
+                    @FilterList(column, current, label, fieldId)
+                }
+                else if (current.Op == FilterOperator.In)
+                {
+                    @* A list from the address that one box can't show: its values post as they came,
+                       so no script or form changes what the link means, and its tag removes it. *@
+                    <div class="ib-table-filter-panel ib-field-sm">
+                        <span class="ib-field-label ib-table-filter-label">@label</span>
+                        <span>@FilterSummary(column, current)</span>
+                        @if (!UseState)
+                        {
+                            foreach (var value in current.Values)
                             {
-                                foreach (var value in current.Values)
-                                {
-                                    <input type="hidden" name="@FilterQueryKey(column)" value="@value" form="@FilterFormId" data-ib-filter />
-                                }
+                                <input type="hidden" name="@FilterQueryKey(column)" value="@value" form="@FilterFormId" data-ib-filter />
                             }
-                            @FilterPanelActions
-                        </div>
-                    }
-                    else if (ops.Count > 1 || ops is [FilterOperator.Between])
-                    {
-                        @* An operator above the values, and a range's two ends, in a group named by the
-                           panel's title. Which of them show follows the operator, in CSS. *@
-                        <div class="@(ops.Count == 1 ? "ib-table-filter-panel ib-table-filter-between ib-field-sm" : "ib-table-filter-panel ib-field-sm")" role="group" aria-labelledby="@($"{fieldId}-title")">
-                            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
-                            @if (ops.Count > 1)
+                        }
+                        @FilterPanelActions
+                    </div>
+                }
+                else if (ops.Count > 1 || ops is [FilterOperator.Between])
+                {
+                    @* An operator above the values, and a range's two ends, in a group named by the
+                       panel's title. Which of them show follows the operator, in CSS. *@
+                    <div class="@(ops.Count == 1 ? "ib-table-filter-panel ib-table-filter-between ib-field-sm" : "ib-table-filter-panel ib-field-sm")" role="group" aria-labelledby="@($"{fieldId}-title")">
+                        <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                        @if (ops.Count > 1)
+                        {
+                            @OperatorSelect(column, current, ops, $"{fieldId}-op")
+                        }
+                        <div class="ib-table-filter-range">
+                            @FilterInput(column, current.Value, $"{fieldId}-min", ValueLabel(column, ops, $"{fieldId}-min"), second: false, autofocus: !ColumnFilter.TakesNoValue(current.Op))
+                            @if (ops.Contains(FilterOperator.Between))
                             {
-                                @OperatorSelect(column, current, ops, $"{fieldId}-op")
+                                <div class="ib-table-filter-to">
+                                    @FilterInput(column, current.To ?? "", $"{fieldId}-max", UpperLabel(column, $"{fieldId}-max"), second: true, autofocus: false)
+                                </div>
                             }
-                            <div class="ib-table-filter-range">
-                                @FilterInput(column, current.Value, $"{fieldId}-min", ValueLabel(column, ops, $"{fieldId}-min"), second: false, autofocus: !ColumnFilter.TakesNoValue(current.Op))
-                                @if (ops.Contains(FilterOperator.Between))
-                                {
-                                    <div class="ib-table-filter-to">
-                                        @FilterInput(column, current.To ?? "", $"{fieldId}-max", UpperLabel(column, $"{fieldId}-max"), second: true, autofocus: false)
-                                    </div>
-                                }
-                            </div>
-                            @FilterPanelActions
                         </div>
-                    }
-                    else
-                    {
-                        <div class="ib-table-filter-panel ib-field-sm">
-                            <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
-                            @FilterInput(column, current.Value, fieldId, null, second: false, autofocus: true)
-                            @FilterPanelActions
-                        </div>
-                    }
-                </ChildContent>
-            </Popover>
-        }
+                        @FilterPanelActions
+                    </div>
+                }
+                else
+                {
+                    <div class="ib-table-filter-panel ib-field-sm">
+                        <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
+                        @FilterInput(column, current.Value, fieldId, null, second: false, autofocus: true)
+                        @FilterPanelActions
+                    </div>
+                }
+            </ChildContent>
+        </Popover>
     };
 
     // Without script (and on static pages before it arrives), Enter or Apply submits the filters'
@@ -803,28 +804,50 @@
         }
     };
 
-    // The menu of a choice filter: "All", then the values. FilterMultiple: checkbox items that
-    // toggle and keep the menu open. Otherwise choosing one sets it and closes the menu. Static
-    // pages: each item links to the URL with the new values. Bound: the items change state.
-    private RenderFragment FilterMenuItems(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
+    // A choice filter's list: a checkbox per value, all ticked with no filter. Static pages post them
+    // through the GET form under the column's key, and the blank row under its own; bound pages handle
+    // each change. Script adds Select all and the search, which narrows the rows and applies nothing.
+    private RenderFragment FilterList(ColumnBase<TItem> column, ColumnFilterValue current, string label, string fieldId) => __builder =>
     {
-        var chosen = current.Values;
-        <MenuItem Href="@(UseState ? null : FilterHref(column, null))"
-                  OnClick="@(UseState ? EventCallback.Factory.Create<MouseEventArgs>(this, () => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)) : default)">@TextDefaults.All</MenuItem>
-        <MenuDivider />
-        foreach (var (value, text) in column.FilterChoices(TextDefaults))
-        {
-            var on = chosen.Contains(value, StringComparer.OrdinalIgnoreCase);
-            var next = current with
-            {
-                Values = !column.FilterMultiple
-                    ? [value]
-                    : on ? chosen.Where(v => !string.Equals(v, value, StringComparison.OrdinalIgnoreCase)).ToList() : chosen.Append(value).ToList(),
-            };
-            <MenuItem Checked="on" KeepOpen="column.FilterMultiple"
-                      Href="@(UseState ? null : FilterHref(column, next))"
-                      CheckedChanged="@(UseState ? EventCallback.Factory.Create<bool>(this, () => SetFilterAsync(column, next, wait: false)) : default)">@text</MenuItem>
-        }
+        var key = FilterQueryKey(column);
+        var rows = ColumnFilter.ListOf(column, TextDefaults);
+        var search = rows.Count > 10;
+        <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
+            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+            <ib-filter-list data-ib-none="@(UseState ? null : $"{key}-none")" data-ib-ticked="@(string.Join(' ', rows.Where(r => ColumnFilter.IsTicked(current, r.Value)).Select(r => r.Value ?? "")))" data-ib-results="@TextDefaults.FilterSelectAllResults">
+                @if (search)
+                {
+                    <div class="ib-field ib-field-sm ib-filter-list-search">
+                        <div class="ib-field-control">
+                            <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchValues" autocomplete="off" autofocus data-ib-list-search />
+                        </div>
+                    </div>
+                }
+                <label class="ib-check ib-filter-list-all">
+                    <input type="checkbox" class="ib-check-input" autofocus="@(!search)" data-ib-list-all />
+                    <span>@TextDefaults.SelectAll</span><span data-ib-list-results hidden></span>
+                </label>
+                <div class="ib-filter-list-items">
+                    @foreach (var (value, text) in rows)
+                    {
+                        var on = ColumnFilter.IsTicked(current, value);
+                        <label class="ib-check">
+                            @if (UseState)
+                            {
+                                <input type="checkbox" class="ib-check-input" checked="@on"
+                                       @onchange="e => SetFilterAsync(column, ColumnFilter.Tick(column, StateOf(column), value, e.Value is true), wait: true)" />
+                            }
+                            else
+                            {
+                                <input type="checkbox" class="ib-check-input" name="@(value is null ? $"{key}-blank" : key)" value="@(value ?? "1")" checked="@on" form="@FilterFormId" data-ib-filter />
+                            }
+                            <span>@text</span>
+                        </label>
+                    }
+                </div>
+            </ib-filter-list>
+            @FilterPanelActions
+        </div>
     };
 
     // The word for a range's lower end, "Min" or "From".
@@ -889,7 +912,7 @@
 
     // A header filter's field, shown under its label: a date input, a box for a number with a numeric
     // keyboard, or a text box. Static pages post it under its own key (?f-total=, ?f-total-to=), joined
-    // to the GET form; bound pages handle its events. (Choices open a menu instead.)
+    // to the GET form; bound pages handle its events. (Choices have a list instead.)
     private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string id, RenderFragment? label, bool second, bool autofocus) => __builder =>
     {
         var (date, number) = (column.FilterKind == ColumnFilterKind.Date, column.FilterKind == ColumnFilterKind.Number);
@@ -988,7 +1011,7 @@
         return next;
     }
 
-    // Typing waits for a pause before filtering; a menu or a date applies at once.
+    // Typing and ticking wait for a pause before filtering; a date applies at once.
     private async Task SetFilterAsync(ColumnBase<TItem> column, ColumnFilterValue value, bool wait)
     {
         _stateFilters = WithState(column, value);

@@ -1,0 +1,32 @@
+@* An enum or bool column's filter is a list: all ticked is no filter, and none ticked shows no rows.
+   A nullable column gets a (Blank) row, and a list of more than ten gets a search. *@
+<Table Items="_tickets" PageSize="5" Caption="Support tickets" QueryPrefix="lists-" Grow>
+    <PropertyColumn Property="t => t.Subject" />
+    <PropertyColumn Property="t => t.Team" Sortable Filterable />
+    <PropertyColumn Property="t => t.Priority" Sortable Filterable />
+    <PropertyColumn Property="t => t.Open" Filterable />
+</Table>
+
+@code {
+    private enum Team { Billing, Design, Engineering, Finance, Legal, Marketing, Operations, Product, Research, Sales, Security, Support }
+
+    private enum Priority { High, Medium, Low }
+
+    private sealed record Ticket(string Subject, Team Team, Priority? Priority, bool Open);
+
+    private static readonly Ticket[] _tickets =
+    [
+        new("Refund not received", Team.Billing, Priority.High, true),
+        new("New logo files", Team.Design, Priority.Low, false),
+        new("Export times out", Team.Engineering, Priority.High, true),
+        new("Invoice has the wrong address", Team.Finance, Priority.Medium, true),
+        new("Terms of service question", Team.Legal, null, false),
+        new("Newsletter bounced", Team.Marketing, Priority.Low, true),
+        new("Server moved", Team.Operations, null, false),
+        new("Dark mode request", Team.Product, Priority.Low, true),
+        new("Survey results", Team.Research, Priority.Medium, false),
+        new("Quote for fifty seats", Team.Sales, Priority.High, true),
+        new("Password reset fails", Team.Security, Priority.High, true),
+        new("Can't sign in", Team.Support, Priority.Medium, true),
+    ];
+}

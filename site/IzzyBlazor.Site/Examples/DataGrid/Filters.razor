@@ -1,5 +1,5 @@
 @* A DataGrid's filters choose an operator above the value: Between adds a second, and Is empty needs
-   none. An enum's filter is a menu. The operators follow the column's type; FilterOperators narrows them,
+   none. An enum's filter is a list of checkboxes. The operators follow the column's type; FilterOperators narrows them,
    as on Customer. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" InitialSort="-number" Caption="Orders to filter" QueryPrefix="filtered-" Grow>
