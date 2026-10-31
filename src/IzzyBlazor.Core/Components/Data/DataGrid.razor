@@ -38,7 +38,7 @@
 
     A toolbar above the grid holds ToolbarContent (Toolbar's items), the search box with Searchable,
     export and the Columns button, which show their icons alone unless ToolbarLabels is set. Write
-    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the selection bar takes its place. Searchable
+    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the bar of SelectionActions takes its place. Searchable
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
@@ -47,7 +47,7 @@
     and Take, and returns the Total. On a static page it loads on scroll instead, by PageSize (50 if
     not set), up to 2,000 rows. If the focused row scrolls away, focus waits on the scroll box and goes back when it
     returns, or on the next key, which scrolls to it. Browser find, and Shift ranges of selection,
-    reach the rows drawn; Select all N reaches the rest.
+    reach the rows drawn, unless SelectAllMode is All.
 
     ExportExcelHref, and ExportCsvHref beside it if CSV is wanted too, add plain links to endpoints the
     app maps with DataExport. With both, one button with a chevron opens a menu of them. They
@@ -574,6 +574,9 @@
     bool IDataGridToolbar.HasSearch => HasSearchTool;
 
     bool IDataGridToolbar.HasColumnPicker => HasPicker;
+
+    /// <inheritdoc />
+    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool;
 
     bool IDataGridToolbar.HasExport => HasExportTool;
 

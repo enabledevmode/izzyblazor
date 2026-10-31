@@ -7,7 +7,8 @@
  * Select all on this page. Items are plain checkboxes that post with the form (and report their
  * own changes on interactive pages), so select-all only checks or clears the ones shown and fires
  * `change` on each it flips, then shows itself as checked, cleared or partly selected
- * (indeterminate). Marks the root data-ready while it runs, so CSS can show the checkbox.
+ * (indeterminate). Marks the root data-ready while it runs, so CSS can show the checkbox. One that
+ * selects every match (data-ib-all-matching) flips nothing: the selection says so, and the boxes follow.
  */
 export function setupSelectAll(root: HTMLElement, allSelector: string, itemSelector: string, signal: AbortSignal): void {
   if (!root.querySelector(allSelector)) return;
@@ -29,6 +30,7 @@ export function setupSelectAll(root: HTMLElement, allSelector: string, itemSelec
     (event) => {
       const target = event.target as HTMLInputElement;
       if (target.matches(allSelector)) {
+        if (target.hasAttribute("data-ib-all-matching")) return;
         // Read once: each item's change event below syncs select-all, which may change it.
         const on = target.checked;
         for (const box of items()) {
@@ -83,8 +85,8 @@ const fill = (format: string, n: number) => format.replace(/\{0(?::N0)?\}/g, for
  * - Shift-click on a checkbox selects or clears every box from the last one clicked (any page
  *   kind; on interactive pages each changed box fires `change`, and C# keeps the selection).
  * - On static pages the script owns the selection: it keeps the keys while enhanced navigation
- *   moves between pages, checks the boxes of each page as it arrives, runs the bar (its count,
- *   Clear selection, Select all N) and, when the form posts, writes the whole selection into what
+ *   moves between pages, checks the boxes of each page as it arrives, runs the count, Clear selection
+ *   and the bar of actions and, when the form posts, writes the whole selection into what
  *   it posts (`formdata`), so keys from other pages and "all matching" post too. With no script,
  *   only the page's own boxes post.
  */
@@ -95,6 +97,8 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
   signal.addEventListener("abort", () => delete root.dataset.ready);
 
   const boxes = () => [...root.querySelectorAll<HTMLInputElement>(itemSelector)];
+  const summary = root.querySelector<HTMLElement>(":scope > .ib-data-footer .ib-selection-summary");
+  if (summary) keepFocus(summary, boxes, signal);
   keepFocus(bar, boxes, signal);
   // On interactive pages C# keeps the selection; the script adds only the ranges and focus.
   if (root.hasAttribute("data-ib-interactive")) {
@@ -122,7 +126,6 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
   }
   const has = (key: string) => state.all !== state.keys.has(key);
   const save = () => selections.set(id, state);
-  const multiple = () => boxes().some((box) => box.type === "checkbox");
 
   const render = () => {
     const shown = boxes();
@@ -130,20 +133,20 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
     const total = bar.dataset.ibTotal ? Number(bar.dataset.ibTotal) : null;
     const count = state.all ? (total === null ? null : Math.max(0, total - state.keys.size)) : state.keys.size;
     const isEmpty = !state.all && state.keys.size === 0;
-    bar.hidden = isEmpty;
+    if (summary) summary.hidden = isEmpty;
+    const mode = bar.dataset.ibBar;
+    bar.hidden = mode === "none" || (mode === "toolbar" && isEmpty);
+    const actions = bar.querySelector<HTMLFieldSetElement>(".ib-selection-actions");
+    if (actions) actions.disabled = isEmpty;
     const text = isEmpty
       ? ""
       : count === null
         ? (bar.dataset.ibAllOpen ?? "")
         : fill((state.all ? bar.dataset.ibAllCount : bar.dataset.ibCount) ?? "{0}", count);
-    // The visible count, and the status region beside the bar that announces it.
-    for (const el of [bar.querySelector<HTMLElement>(".ib-selection-count"), root.querySelector<HTMLElement>(":scope > .ib-selection-status")]) {
+    // The visible count, and the status region that announces it.
+    for (const el of [summary?.querySelector<HTMLElement>(".ib-selection-count"), root.querySelector<HTMLElement>(":scope > .ib-selection-status")]) {
       if (el && el.textContent !== text) el.textContent = text;
     }
-    const selectable = shown.filter((box) => !box.disabled);
-    const pageAll = selectable.length > 0 && selectable.every((box) => box.checked);
-    const more = bar.querySelector<HTMLElement>(".ib-selection-more");
-    if (more) more.hidden = !(multiple() && !state.all && pageAll && bar.hasAttribute("data-ib-more"));
     // The page's select-all box follows the boxes (setupSelectAll).
     root.dispatchEvent(new Event("ib-selection"));
   };
@@ -152,6 +155,12 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
     "change",
     (event) => {
       const box = event.target as HTMLInputElement;
+      if (box.hasAttribute("data-ib-all-matching")) {
+        state = box.checked ? { keys: new Set(), all: true, ...scope } : empty();
+        save();
+        render();
+        return;
+      }
       if (!box.matches(itemSelector)) return;
       if (box.type === "radio") {
         state = { ...empty(), keys: new Set([box.value]) };
@@ -167,12 +176,11 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
     { signal }
   );
 
-  bar.addEventListener(
+  summary?.addEventListener(
     "click",
     (event) => {
-      const button = (event.target as Element).closest<HTMLElement>("[data-ib-selection]");
-      if (!button) return;
-      state = button.dataset.ibSelection === "all" ? { keys: new Set(), all: true, ...scope } : empty();
+      if (!(event.target as Element).closest("[data-ib-selection]")) return;
+      state = empty();
       save();
       render();
     },
@@ -206,9 +214,9 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
 }
 
 /**
- * When the focused button in the bar goes out of sight (Clear selection hides the bar, Select all
- * hides itself, an action empties the selection), focus moves on rather than falling to the page:
- * to Clear selection while the bar shows, else to the first box that can be selected.
+ * When the focused button in the count or the bar goes out of sight (Clear selection hides the
+ * count, an action empties the selection), focus moves on rather than falling to the page: to Clear
+ * selection while it shows, else to the first box that can be selected.
  */
 function keepFocus(bar: HTMLElement, boxes: () => HTMLInputElement[], signal: AbortSignal): void {
   let inBar = false;

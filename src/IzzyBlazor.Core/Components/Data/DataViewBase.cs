@@ -133,8 +133,16 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter] public Func<TItem, bool>? ItemSelectable { get; set; }
 
     /// <summary>
-    /// Actions on the selection, shown in the bar above the items while something is selected, after
-    /// its count and Clear selection: submit buttons in the surrounding form post the selection.
+    /// What the select-all checkbox selects: the items on this page, or every item the filters match,
+    /// on any page. Those aren't loaded, so act on them with <c>Selection.Apply</c>. With
+    /// virtual rows, <see cref="SelectAllMode.Page"/> reaches only the rows drawn.
+    /// </summary>
+    [Parameter] public SelectAllMode SelectAllMode { get; set; }
+
+    /// <summary>
+    /// Actions on the selection, in a bar above the items, disabled until something is selected
+    /// (on a DataGrid with a toolbar, the bar takes the toolbar's place while something is). Submit
+    /// buttons in the surrounding form post the selection. Without these there's no bar.
     /// </summary>
     [Parameter] public RenderFragment<Selection>? SelectionActions { get; set; }
 
@@ -274,17 +282,20 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.SelectionBarOf, name)
         : TextDefaults.SelectionBar;
 
-    /// <summary>There are matching items that aren't shown: on other pages, or not loaded yet.</summary>
-    internal bool HasMoreThanShown => _total is { } total ? total > _items.Count : _next is not null;
+    /// <summary>Whether the bar of actions takes a toolbar's place while something is selected, where otherwise it keeps a row of its own.</summary>
+    internal virtual bool SelectionTakesToolbar => false;
+
+    // The select-all box's own handling when it selects every match: on a static page, the script's.
+    internal Dictionary<string, object>? SelectAllMatching => SelectAllMode != SelectAllMode.All ? null : new()
+    {
+        ["data-ib-all-matching"] = "",
+        ["onchange"] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => e.Value is true ? SelectAllMatchingAsync() : ClearSelectionAsync()),
+    };
 
     /// <summary>"3 selected", "All 1,234 selected" or "All selected".</summary>
     internal string SelectionCountText => _selection.Count(_total) is { } count
         ? Format(_selection.All ? TextDefaults.SelectionAllCount : TextDefaults.SelectionCount, count)
         : TextDefaults.SelectionAllOpen;
-
-    internal string SelectAllMatchingText => _total is { } total
-        ? Format(TextDefaults.SelectAllMatching, total)
-        : TextDefaults.SelectAllMatchingOpen;
 
     private static string Format(string format, int value) =>
         string.Format(System.Globalization.CultureInfo.CurrentCulture, format, value);
@@ -992,7 +1003,17 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     }
 }
 
-/// <summary>Whether the items of a <see cref="Table{TItem}"/> or <c>ListView</c> can be selected.</summary>
+/// <summary>What a select-all checkbox selects.</summary>
+public enum SelectAllMode
+{
+    /// <summary>The items on this page.</summary>
+    Page,
+
+    /// <summary>Every item the filters match, on any page, as a <see cref="Selection"/> that says so rather than listing them.</summary>
+    All,
+}
+
+/// <summary>How many items can be selected.</summary>
 public enum SelectionMode
 {
     /// <summary>No selection. The default.</summary>

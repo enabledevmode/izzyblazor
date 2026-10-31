@@ -755,7 +755,7 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void With_virtual_rows_the_selection_bar_doesnt_speak_of_a_page()
+    public void With_virtual_rows_the_count_has_a_line_of_its_own()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         JSInterop.Mode = JSRuntimeMode.Loose;
@@ -772,11 +772,7 @@ public class DataGridRenderTests : BunitContext
             cut.Find($"tbody .ib-table-select[value='{box.GetAttribute("value")}']").Change(true);
         }
 
-        var more = cut.Find(".ib-selection-more");
-        Assert.False(more.HasAttribute("hidden"));
-        Assert.Contains("The rows in view are selected.", more.TextContent);
-        Assert.DoesNotContain("page", more.TextContent);
-        Assert.Contains("Select all 1,000", more.TextContent);
+        Assert.Contains("selected", cut.Find(".ib-selection-line .ib-selection-count").TextContent);
     }
 
     [Fact]
