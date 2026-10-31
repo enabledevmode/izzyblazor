@@ -47,7 +47,7 @@
 
                 <Stack Gap="3">
                     <Heading Level="2" Size="TextSize.Xl">4. Register the services</Heading>
-                    <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,9">@Startup</Code>
+                    <Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2">@Startup</Code>
                     <TextBlock Color="Color.Muted">Run it with <Code>dotnet watch</Code>; the next page adds toasts, dialogs and a first page.</TextBlock>
                 </Stack>
 
@@ -92,7 +92,6 @@
         var app = builder.Build();
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
-        app.MapIzzyBlazor();
 
         app.Run();
         """;

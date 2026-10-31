@@ -4,7 +4,7 @@
 @using Microsoft.Extensions.DependencyInjection
 @inject NavigationManager Navigation
 @inject IServiceProvider Services
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, choosing a scheme reloads the page, and other open tabs don't follow.")]
+@attribute [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, the switch is hidden, and the page follows the device or a choice saved earlier.")]
 
 @*
     Lets the user pick light, dark or system. The choice is kept in the ib-scheme cookie, which
@@ -16,20 +16,17 @@
     <ColorSchemeSwitch @bind-Value="scheme" />                    interactive pages: follow it from C#
 
     The icon shows the page's scheme as it is (sun or moon), worked out in CSS, so it's right even
-    when the device decides. Every option is a link to the endpoint app.MapIzzyBlazor() adds, which
-    sets the cookie and comes back, so it works with JavaScript off. With JavaScript the switch is
-    instant: the script sets the cookie and the page's scheme without a request, moves the check,
-    and tells other tabs.
+    when the device decides. The script sets the cookie and the page's scheme without a request,
+    moves the check, and tells other tabs. With JavaScript off the switch is hidden, and the page
+    follows the device or a choice saved earlier.
 
     Accessibility:
-    - The menu button is named "Color scheme" (`Label`). With JavaScript its items are radio menu
-      items with `aria-checked` and the menu's arrow keys; without it, links, the current one
-      marked with `aria-current`.
-    - `Toggle` is one link named for what it does, "Switch to dark mode" or "Switch to light mode";
-      with JavaScript, focus stays on the switch after a click.
-    - `Segmented` is a group named "Color scheme" whose current option has `aria-current`; with
+    - The menu button is named "Color scheme" (`Label`). Its items are radio menu items with
+      `aria-checked` and the menu's arrow keys.
+    - `Toggle` is one button named for what it does, "Switch to dark mode" or "Switch to light
+      mode"; focus stays on the switch after a click.
+    - `Segmented` is a group named "Color scheme" whose current option has `aria-pressed`; with
       `IconOnly` screen readers still hear each option's name.
-    - Every option is a link, so it works by keyboard with JavaScript off (the page reloads).
     See also: IzzyTheme, SegmentedControl, Menu.
 *@
 
@@ -41,22 +38,22 @@
     @switch (Variant)
     {
         case ColorSchemeSwitchVariant.Toggle:
-            @* Two links; CSS shows the one that leads away from the page's scheme. *@
-            <a class="@ButtonClass ib-scheme-if-light" href="@Href(ColorScheme.Dark)" data-ib-scheme="dark"
-               aria-label="@TextDefaults.SchemeToDark" title="@TextDefaults.SchemeToDark">
+            @* Two buttons; CSS shows the one that leads away from the page's scheme. *@
+            <button type="button" class="@ButtonClass ib-scheme-if-light" data-ib-scheme="dark"
+                    aria-label="@TextDefaults.SchemeToDark" title="@TextDefaults.SchemeToDark">
                 <Icon Role="IconRole.SchemeDark" />
-            </a>
-            <a class="@ButtonClass ib-scheme-if-dark" href="@Href(ColorScheme.Light)" data-ib-scheme="light"
-               aria-label="@TextDefaults.SchemeToLight" title="@TextDefaults.SchemeToLight">
+            </button>
+            <button type="button" class="@ButtonClass ib-scheme-if-dark" data-ib-scheme="light"
+                    aria-label="@TextDefaults.SchemeToLight" title="@TextDefaults.SchemeToLight">
                 <Icon Role="IconRole.SchemeLight" />
-            </a>
+            </button>
             break;
 
         case ColorSchemeSwitchVariant.Segmented:
             @foreach (var (scheme, icon, label) in Options)
             {
-                <a class="ib-segment" href="@Href(scheme)" data-ib-scheme="@ColorSchemes.Name(scheme)"
-                   aria-current="@(scheme == _current ? "true" : null)" title="@(IconOnly ? label : null)">
+                <button type="button" class="ib-segment" data-ib-scheme="@ColorSchemes.Name(scheme)"
+                        aria-pressed="@(scheme == _current ? "true" : "false")" title="@(IconOnly ? label : null)">
                     <Icon Name="icon" />
                     @if (IconOnly)
                     {
@@ -66,7 +63,7 @@
                     {
                         <span class="ib-segment-label">@label</span>
                     }
-                </a>
+                </button>
             }
             break;
 
@@ -84,14 +81,12 @@
                         var on = scheme == _current ? "true" : "false";
                         @* Radio items with a dot on every one; CSS shows the checked one's, so the
                            script moves the choice by changing attributes only. *@
-                        <a class="ib-menu-item ib-menu-item-checkable" href="@Href(scheme)" data-ib-scheme="@ColorSchemes.Name(scheme)"
-                           role="@(Live ? "menuitemradio" : null)" data-ib-role="@(Live ? null : "menuitemradio")"
-                           aria-checked="@(Live ? on : null)" data-ib-checked="@(Live ? null : on)"
-                           aria-current="@(!Live && scheme == _current ? "true" : null)">
+                        <button type="button" class="ib-menu-item ib-menu-item-checkable" data-ib-scheme="@ColorSchemes.Name(scheme)"
+                                role="menuitemradio" aria-checked="@on">
                             <span class="ib-menu-check" aria-hidden="true"><span class="ib-menu-dot ib-scheme-check"></span></span>
                             <Icon Name="icon" />
                             <span class="ib-menu-label">@label</span>
-                        </a>
+                        </button>
                     }
                 </ChildContent>
             </Menu>
@@ -198,10 +193,6 @@
             classes.Add("ib-segmented-icon-only", IconOnly);
         }
     }
-
-    // The no-script route: the endpoint sets the cookie and redirects back to this page.
-    private string Href(ColorScheme scheme) =>
-        $"_izzy/scheme?value={ColorSchemes.Name(scheme)}&return={Uri.EscapeDataString(Navigation.ToBaseRelativePath(Navigation.Uri))}";
 
     // The script already changed the page and the cookie; keep the component (and a binding) in step.
     // Compared with the bound Value, not _current: an interactive render that wasn't prerendered

@@ -16,7 +16,7 @@ public static class LlmsTxt
 
             > A Blazor component library for .NET 10 ({registry.ComponentCountLabel} components), built for static server rendering first: most components work on static pages, many with JavaScript off, and become interactive where a page has a render mode. This describes {api.Version}.
 
-            Install with `dotnet add package IzzyBlazor --prerelease`, add `@using IzzyBlazor` to `_Imports.razor`, and follow the Blazor Web App article for the stylesheet, `IzzyTheme`, `AddIzzyBlazor()` and `MapIzzyBlazor()`. Component names and parameters are IzzyBlazor's own; look them up rather than guessing.
+            Install with `dotnet add package IzzyBlazor --prerelease`, add `@using IzzyBlazor` to `_Imports.razor`, and follow the Blazor Web App article for the stylesheet, `IzzyTheme` and `AddIzzyBlazor()`. Component names and parameters are IzzyBlazor's own; look them up rather than guessing.
 
             For assistants: the MCP server at {Sitemap.Origin}mcp (Streamable HTTP, no sign-in) searches these docs and returns any component's API and examples' source as Markdown. Every component's API is also in one JSON file: [API metadata]({Sitemap.Origin}izzyblazor.api.json).
 

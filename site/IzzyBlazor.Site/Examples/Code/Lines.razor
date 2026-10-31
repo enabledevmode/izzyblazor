@@ -1,4 +1,4 @@
-<Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,9" Grow>@Startup</Code>
+<Code Block Language="csharp" Title="Program.cs" LineNumbers HighlightLines="2,7" Grow>@Startup</Code>
 
 @* hide *@
 @code {
@@ -12,7 +12,6 @@
         var app = builder.Build();
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
-        app.MapIzzyBlazor();
 
         app.Run();
         """;

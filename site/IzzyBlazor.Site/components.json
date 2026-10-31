@@ -224,14 +224,14 @@
     {
       "id": "color-scheme-switch", "icon": "SunMoon", "name": "ColorSchemeSwitch", "category": "App shell", "summary": "Lets people pick System, Light or Dark.", "keywords": ["dark mode", "theme toggle"],
       "features": [
-        { "feature": "Picks a scheme, kept in a cookie for every later page" },
+        { "feature": "Picks a scheme, kept in a cookie for every later page", "noscript": "none" },
         { "feature": "Changes the page at once, without a reload; other open tabs follow", "noscript": "none", "static": "full", "interactive": "full" },
         { "feature": "Value bound to C#", "member": "Value" }
       ],
       "examples": [
         { "id": "color-scheme-switch-variants", "title": "Menu, toggle and segmented",
           "notes": {
-            "noscript": "Each option is a link: the server saves the choice and sends you back.",
+            "noscript": "The switch is hidden, and the page follows the device or a choice saved earlier.",
             "static": "The scheme changes at once, and other open tabs follow.",
             "interactive": "The same, and @bind-Value gives you the choice in C#."
           } },

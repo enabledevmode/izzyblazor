@@ -1,7 +1,5 @@
-using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.Extensions.DependencyInjection;
 
 namespace IzzyBlazor.Tests;
@@ -35,15 +33,13 @@ public class ColorSchemeRenderTests : BunitContext
         Assert.NotNull(trigger.QuerySelector(".ib-scheme-if-light"));
         Assert.NotNull(trigger.QuerySelector(".ib-scheme-if-dark"));
 
-        var items = cut.FindAll("[popover] a.ib-menu-item");
+        var items = cut.FindAll("[popover] button.ib-menu-item");
         Assert.Equal(["system", "light", "dark"], items.Select(a => a.GetAttribute("data-ib-scheme")));
-        Assert.Equal("_izzy/scheme?value=dark&return=static%2Fbrand%3Fbrand%3D%25230af", items[2].GetAttribute("href"));
         Assert.Equal(["System", "Light", "Dark"], items.Select(a => a.QuerySelector(".ib-menu-label")!.TextContent));
 
-        // Static: radio roles wait for the script; no choice saved, so System is checked.
-        Assert.Equal("menuitemradio", items[0].GetAttribute("data-ib-role"));
-        Assert.Equal(["true", "false", "false"], items.Select(a => a.GetAttribute("data-ib-checked")));
-        Assert.Equal("true", items[0].GetAttribute("aria-current"));
+        // No choice saved, so System is checked.
+        Assert.Equal("menuitemradio", items[0].GetAttribute("role"));
+        Assert.Equal(["true", "false", "false"], items.Select(a => a.GetAttribute("aria-checked")));
         Assert.All(items, a => Assert.NotNull(a.QuerySelector(".ib-scheme-check")));
     }
 
@@ -51,11 +47,11 @@ public class ColorSchemeRenderTests : BunitContext
     public void Menu_checks_the_saved_choice_and_a_bound_value_wins()
     {
         UseCookie("ib-scheme=dark");
-        var saved = Render<ColorSchemeSwitch>().FindAll("a.ib-menu-item");
-        Assert.Equal(["false", "false", "true"], saved.Select(a => a.GetAttribute("data-ib-checked")));
+        var saved = Render<ColorSchemeSwitch>().FindAll("button.ib-menu-item");
+        Assert.Equal(["false", "false", "true"], saved.Select(a => a.GetAttribute("aria-checked")));
 
-        var bound = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Light)).FindAll("a.ib-menu-item");
-        Assert.Equal(["false", "true", "false"], bound.Select(a => a.GetAttribute("data-ib-checked")));
+        var bound = Render<ColorSchemeSwitch>(p => p.Add(s => s.Value, ColorScheme.Light)).FindAll("button.ib-menu-item");
+        Assert.Equal(["false", "true", "false"], bound.Select(a => a.GetAttribute("aria-checked")));
     }
 
     [Fact]
@@ -92,10 +88,10 @@ public class ColorSchemeRenderTests : BunitContext
     }
 
     [Fact]
-    public void Toggle_is_two_links_and_css_shows_the_one_away_from_the_page_scheme()
+    public void Toggle_is_two_buttons_and_css_shows_the_one_away_from_the_page_scheme()
     {
         UseCookie(null);
-        var links = Render<ColorSchemeSwitch>(p => p.Add(s => s.Variant, ColorSchemeSwitchVariant.Toggle)).FindAll("a");
+        var links = Render<ColorSchemeSwitch>(p => p.Add(s => s.Variant, ColorSchemeSwitchVariant.Toggle)).FindAll("button");
 
         Assert.Equal(2, links.Count);
         Assert.Equal("dark", links[0].GetAttribute("data-ib-scheme"));
@@ -122,8 +118,9 @@ public class ColorSchemeRenderTests : BunitContext
         Assert.Contains("ib-segmented-icon-only", root.ClassName);
         Assert.Contains("ib-scheme-switch-sm", root.ClassName);
 
-        var segments = cut.FindAll("a.ib-segment");
-        Assert.Equal("true", segments[2].GetAttribute("aria-current"));
+        var segments = cut.FindAll("button.ib-segment");
+        Assert.Equal("true", segments[2].GetAttribute("aria-pressed"));
+        Assert.Equal("false", segments[1].GetAttribute("aria-pressed"));
         Assert.Equal("Light", segments[1].GetAttribute("title"));
         Assert.Equal("Light", segments[1].QuerySelector(".ib-visually-hidden")!.TextContent);
     }
@@ -147,60 +144,5 @@ public class ColorSchemeRenderTests : BunitContext
         {
             Assert.Equal(expected, Assert.Single(meta).GetAttribute("content"));
         }
-    }
-}
-
-public class ColorSchemeEndpointTests
-{
-    [Theory]
-    [InlineData("", "static/brand?x=1", "/static/brand?x=1")]
-    [InlineData("/app", "static/brand", "/app/static/brand")]
-    [InlineData("", "", "/")]
-    [InlineData("", null, "/")]
-    [InlineData("", "//evil.example", "/")]
-    [InlineData("", "/\\evil.example", "/")]
-    [InlineData("", "a\\b", "/")]
-    [InlineData("/app", "/elsewhere", "/app/")]
-    [InlineData("", "\t/evil.com", "/")]
-    [InlineData("", "docs\0", "/")]
-    [InlineData("", "a\nb", "/")]
-    public void Return_url_stays_on_the_site(string pathBase, string? relative, string expected) =>
-        Assert.Equal(expected, IzzyBlazorEndpointRouteBuilderExtensions.ReturnUrl(new PathString(pathBase), relative));
-
-    [Fact]
-    public async Task Scheme_endpoint_sends_a_control_character_return_home_instead_of_failing()
-    {
-        var services = new Microsoft.Extensions.DependencyInjection.ServiceCollection().AddLogging().BuildServiceProvider();
-        var context = new DefaultHttpContext { RequestServices = services };
-
-        var result = IzzyBlazorEndpointRouteBuilderExtensions.SetScheme(context, "dark", "\t/evil.com");
-        await result.ExecuteAsync(context);
-
-        Assert.Equal(302, context.Response.StatusCode);
-        Assert.Equal("/", context.Response.Headers.Location.ToString());
-    }
-
-    [Fact]
-    public void Scheme_endpoint_saves_the_cookie_and_goes_back()
-    {
-        var context = new DefaultHttpContext();
-        context.Request.PathBase = "/app";
-
-        var result = IzzyBlazorEndpointRouteBuilderExtensions.SetScheme(context, "dark", "static/brand");
-
-        var cookie = context.Response.Headers.SetCookie.ToString();
-        Assert.StartsWith("ib-scheme=dark;", cookie);
-        Assert.Contains("path=/app", cookie);
-        Assert.Contains("samesite=lax", cookie);
-        Assert.DoesNotContain("httponly", cookie);
-        Assert.Equal("/app/static/brand", Assert.IsType<RedirectHttpResult>(result).Url);
-    }
-
-    [Fact]
-    public void An_unknown_value_saves_system()
-    {
-        var context = new DefaultHttpContext();
-        IzzyBlazorEndpointRouteBuilderExtensions.SetScheme(context, "purple", null);
-        Assert.StartsWith("ib-scheme=system;", context.Response.Headers.SetCookie.ToString());
     }
 }

@@ -238,7 +238,6 @@ public static class SiteApp
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode()
             .RequireRateLimiting(PagesRateLimit);
-        app.MapIzzyBlazor();
 
         return app;
     }

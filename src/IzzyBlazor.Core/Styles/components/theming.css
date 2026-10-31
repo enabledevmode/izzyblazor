@@ -36,13 +36,20 @@
     }
   }
 
+  /* Nothing here works with no script, and the page follows the device or a choice saved earlier. */
+  @media (scripting: none) {
+    .ib-scheme-switch {
+      display: none;
+    }
+  }
+
   /* Menu: every item has a dot; only the chosen one's shows, so the script moves the choice by
-     changing attributes (aria-checked with script; data-ib-checked or aria-current without). */
+     changing aria-checked. */
   .ib-scheme-switch .ib-menu-item .ib-scheme-check {
     visibility: hidden;
   }
 
-  .ib-scheme-switch .ib-menu-item:is([aria-checked="true"], :not([aria-checked])[data-ib-checked="true"], :not([aria-checked])[aria-current="true"]) .ib-scheme-check {
+  .ib-scheme-switch .ib-menu-item[aria-checked="true"] .ib-scheme-check {
     visibility: visible;
   }
 
@@ -73,10 +80,12 @@
   }
 
   .ib-scheme-switch > .ib-segment {
-    text-decoration: none;
+    background: none;
+    border: 0;
+    font-family: inherit;
   }
 
-  .ib-scheme-switch > .ib-segment[aria-current="true"] {
+  .ib-scheme-switch > .ib-segment[aria-pressed="true"] {
     background-color: var(--ib-segment-fill);
     color: var(--ib-color-on-segment, var(--ib-color-on-surface));
     box-shadow: var(--ib-segment-lift);
@@ -88,7 +97,7 @@
   }
 
   @media (forced-colors: active) {
-    .ib-scheme-switch > .ib-segment[aria-current="true"] {
+    .ib-scheme-switch > .ib-segment[aria-pressed="true"] {
       forced-color-adjust: none;
       background-color: Highlight;
       color: HighlightText;
