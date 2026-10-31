@@ -347,11 +347,17 @@ public class IzzyText
     /// <summary>DateField's message for a value that isn't a date. {0} is the field's label.</summary>
     public virtual string DateInvalid { get; set; } = "The {0} field must be a date.";
 
-    /// <summary>A date before the field's Min; {0} is its label and {1} the limit.</summary>
-    public virtual string DateTooEarly { get; set; } = "{0} must be {1} or later.";
+    /// <summary>TimeField's message for a value that isn't a time. {0} is the field's label.</summary>
+    public virtual string TimeInvalid { get; set; } = "The {0} field must be a time.";
 
-    /// <summary>A date after the field's Max; {0} is its label and {1} the limit.</summary>
-    public virtual string DateTooLate { get; set; } = "{0} must be {1} or earlier.";
+    /// <summary>A date or time before the field's Min; {0} is its label and {1} the limit.</summary>
+    public virtual string TooEarly { get; set; } = "{0} must be {1} or later.";
+
+    /// <summary>A date or time after the field's Max; {0} is its label and {1} the limit.</summary>
+    public virtual string TooLate { get; set; } = "{0} must be {1} or earlier.";
+
+    /// <summary>A time outside a window across midnight; {0} is the field's label, {1} its Min and {2} its Max.</summary>
+    public virtual string TimeOutsideWindow { get; set; } = "{0} must be between {1} and {2}.";
 
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";

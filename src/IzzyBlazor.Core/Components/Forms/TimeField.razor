@@ -1,0 +1,165 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+
+@*
+    A time of day: the browser's own time input, so it posts with the form, checks Min, Max and
+    Step before posting, and opens the browser's picker. Bind it to TimeOnly or TimeOnly?. For a
+    length of time, as in a timeout, a TimeSpan isn't a time of day and doesn't bind here.
+    <TimeField @bind-Value="Model.Opens" />
+    <TimeField @bind-Value="Model.Opens" Min="@nine" Max="@five" Step="TimeSpan.FromMinutes(15)" />
+    <TimeField @bind-Value="Model.Shift" Min="@ten" Max="@six" /> a window across midnight
+
+    A time has no date or zone, so nothing converts it. The input shows 12 or 24 hours as the browser
+    does, which the page can't set.
+
+    Accessibility:
+    - It renders the browser's own time `input` with a `label` linked to it: screen readers read
+      each part (hour, minute) and arrow keys change it.
+    - Label, hint and errors work as in `TextField`.
+    See also: DateField, TextField, Form.
+*@
+
+<FieldFrame Class="@WrapperClass("time")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
+        <ib-field-control class="ib-field-control">
+            <input @attributes="ControlAttributes"
+                   id="@FieldId"
+                   class="ib-field-input"
+                   type="@InputType"
+                   name="@NameAttributeValue"
+                   @bind="CurrentValueAsString"
+                   min="@MinAttribute"
+                   max="@FormatLimit(ResolvedMax)"
+                   step="@StepAttribute"
+                   required="@IsRequired"
+                   disabled="@IsDisabled"
+                   readonly="@IsReadOnly"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   aria-describedby="@DescribedBy" />
+        </ib-field-control>
+    </FieldAddons>
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>The earliest time. Defaults to <c>[Range]</c>'s minimum. After <see cref="Max"/>, the allowed times run across midnight.</summary>
+    [Parameter] public TimeOnly? Min { get; set; }
+
+    /// <summary>The latest time. Defaults to <c>[Range]</c>'s maximum.</summary>
+    [Parameter] public TimeOnly? Max { get; set; }
+
+    /// <summary>
+    /// The step between allowed times, counted from <see cref="Min"/>, or from midnight with no Min.
+    /// Any minute unless set. A step under a minute shows seconds; otherwise the time shows to the
+    /// minute, and seconds in the bound value are dropped when it posts.
+    /// </summary>
+    [Parameter] public TimeSpan? Step { get; set; }
+
+    /// <summary>Content attached before the control, outside its border. See <see cref="TextField.StartAddon"/>.</summary>
+    [Parameter] public RenderFragment? StartAddon { get; set; }
+
+    /// <summary>Content attached after the control, outside its border.</summary>
+    [Parameter] public RenderFragment? EndAddon { get; set; }
+
+    // Not written in the markup: there, Razor makes @bind format a time, and it binds text.
+    private const string InputType = "time";
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    private TimeOnly? ResolvedMin => Min ?? Annotated(Range?.Minimum);
+
+    private TimeOnly? ResolvedMax => Max ?? Annotated(Range?.Maximum);
+
+    private bool ShowsSeconds => Step is { } step && step.Ticks % TimeSpan.TicksPerMinute != 0;
+
+    // A browser counts steps from min, or else from the value it was drawn with, so a value off the
+    // step would move them: midnight holds them where Step says.
+    private string? MinAttribute => FormatLimit(ResolvedMin ?? (Step is null ? null : TimeOnly.MinValue));
+
+    private string? StepAttribute => Step is { } step
+        ? Math.Max(1, (long)Math.Round(step.TotalSeconds)).ToString(System.Globalization.CultureInfo.InvariantCulture)
+        : null;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if ((Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue)) != typeof(TimeOnly))
+        {
+            throw new InvalidOperationException($"TimeField doesn't support {typeof(TValue)}. Bind it to TimeOnly or TimeOnly?.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Min is not null || Max is not null;
+
+    // As the input shows the time.
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        var time = (TimeOnly)(object)value!;
+        var shown = ShowsSeconds ? time : new TimeOnly(time.Hour, time.Minute);
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        string Said(TimeOnly limit) => limit.ToString(HasSeconds(limit) ? "T" : "t", culture);
+        return (Min, Max) switch
+        {
+            ({ } min, { } max) when min > max => shown >= min || shown <= max
+                ? null
+                : string.Format(culture, TextDefaults.TimeOutsideWindow, ResolvedLabel, Said(min), Said(max)),
+            ({ } min, _) when shown < min => string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min)),
+            (_, { } max) when shown > max => string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(max)),
+            _ => null,
+        };
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) =>
+        value is TimeOnly time ? time.ToString(ShowsSeconds ? "HH:mm:ss" : "HH:mm", System.Globalization.CultureInfo.InvariantCulture) : null;
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+        result = default!;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            if (Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+            {
+                return true;
+            }
+        }
+        else if (TimeOnly.TryParseExact(value.Trim(), InputFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var time))
+        {
+            result = (TValue)(object)time;
+            return true;
+        }
+
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.TimeInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
+        return false;
+    }
+
+    private static bool HasSeconds(TimeOnly time) => time.Ticks % TimeSpan.TicksPerMinute != 0;
+
+    private static string? FormatLimit(TimeOnly? limit) =>
+        limit?.ToString(HasSeconds(limit.Value) ? "HH:mm:ss" : "HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+
+    // [Range]'s end: text from Range(typeof(TimeOnly), "09:00", "17:00").
+    private static TimeOnly? Annotated(object? end) => end switch
+    {
+        TimeOnly time => time,
+        string text when TimeOnly.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var time) => time,
+        _ => null,
+    };
+
+    // What time inputs post.
+    private static readonly string[] InputFormats = ["HH:mm", "HH:mm:ss", "HH:mm:ss.FFFFFFF"];
+}
