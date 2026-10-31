@@ -15,9 +15,7 @@ public sealed class SearchDialogTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task Ctrl_K_opens_search_and_results_show_as_you_type()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 
@@ -48,9 +46,7 @@ public sealed class SearchDialogTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task Back_with_search_open_leaves_the_page_usable()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 
@@ -69,9 +65,7 @@ public sealed class SearchDialogTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task Without_script_the_button_opens_search_and_Enter_goes_to_the_search_page()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { JavaScriptEnabled = false, ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/button").ToString());
 

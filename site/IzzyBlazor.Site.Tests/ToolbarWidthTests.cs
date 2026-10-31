@@ -33,9 +33,7 @@ public sealed partial class ToolbarWidthTests(SiteFixture site) : IClassFixture<
     [Fact]
     public async Task Nothing_moves_when_the_script_arrives()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var url = new Uri(site.Client.BaseAddress!, "docs/components/toolbar?mode=static").ToString();
 
         // Before: the page without its scripts, on a browser that runs script (so no `scripting: none`

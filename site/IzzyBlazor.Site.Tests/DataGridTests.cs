@@ -5,15 +5,13 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>DataGrid in Chromium: widths the server set, and Shift+click adding to the sort.</summary>
 public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(IPlaywright, IBrowser, IPage)> OpenAsync(string mode, int width = 1400)
+    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, int width = 1400)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        var playwright = await Playwright.CreateAsync();
-        var browser = await playwright.Chromium.LaunchAsync();
+        var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = width, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]").First.WaitForAsync();
-        return (playwright, browser, page);
+        return (browser, page);
     }
 
     [Theory]
@@ -21,8 +19,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("interactive")]
     public async Task Export_downloads_what_the_screen_shows_without_leaving_the_page(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to export" });
@@ -49,7 +46,9 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             Assert.Equal(totals.OrderDescending(), totals);
 
             var excel = grid.Locator(".ib-toolbar-end > .ib-toolbar-unit a[download]", new() { HasText = "Export Excel" });
-            if (!await excel.IsVisibleAsync()) await menu.ClickAsync();
+            // Choosing an item closes the menu, which takes a moment.
+            await excel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+            await menu.ClickAsync();
             download = await page.RunAndWaitForDownloadAsync(() => excel.ClickAsync());
             Assert.Equal("orders.xlsx", download.SuggestedFilename);
             using var zip = System.IO.Compression.ZipFile.OpenRead((await download.PathAsync())!);
@@ -64,9 +63,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task The_grids_tools_go_where_theyre_written_with_no_script_too()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         foreach (var script in new[] { true, false })
         {
             var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, ViewportSize = new() { Width = 1400, Height = 900 } });
@@ -126,8 +123,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task Virtual_rows_draw_only_whats_in_view_and_the_keys_reach_them_all()
     {
-        var (playwright, browser, page) = await OpenAsync("interactive");
-        using (playwright)
+        var (browser, page) = await OpenAsync("interactive");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Every order" });
@@ -251,8 +247,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task On_a_static_page_virtual_rows_load_on_scroll()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Every order" });
@@ -275,8 +270,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task Columns_keep_their_widths_share_the_rest_and_scroll_past_their_minimums()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             const string measure = """
@@ -308,8 +302,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task What_doesnt_fit_stays_in_its_cell()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             // Date and Total, both sortable, far narrower than their text; Total also sorted second.
@@ -364,8 +357,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("interactive")]
     public async Task Frozen_columns_stay_while_the_rest_scroll_and_focus_stops_clear_of_them(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var at = await page.EvaluateAsync<FrozenBoxes>(Frozen);
@@ -402,8 +394,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task An_end_aligned_title_with_no_sort_lines_up_with_its_values()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
@@ -416,8 +407,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [Fact]
     public async Task Frozen_columns_too_wide_for_a_phone_scroll_like_the_rest()
     {
-        var (playwright, browser, page) = await OpenAsync("static", 390);
-        using (playwright)
+        var (browser, page) = await OpenAsync("static", 390);
         await using (browser)
         {
             var at = await page.EvaluateAsync<FrozenBoxes>(Frozen);
@@ -443,8 +433,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("interactive")]
     public async Task Shift_click_adds_to_the_sort_and_a_plain_click_replaces_it(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid").First;
