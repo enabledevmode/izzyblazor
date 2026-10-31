@@ -1,6 +1,6 @@
 @* The grid's own tools among yours, in the order written. Export has its text; the others are as usual. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
-<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with placed tools" Searchable ColumnPicker LayoutKey="order-tools" QueryPrefix="placed-" ExportCsvHref="/examples/orders.csv" ExportExcelHref="/examples/orders.xlsx" Grow>
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with placed tools" Searchable ColumnPicker LayoutKey="order-tools" QueryPrefix="placed-" ExportCsvHref="/examples/orders.csv" ExportExcelHref="/examples/orders.xlsx" DefaultExport="ExportFormat.Excel" Grow>
     <ToolbarContent>
         <ToolbarButton StartIcon="Lucide.Plus" Variant="ButtonVariant.Outline" Priority="1">Add order</ToolbarButton>
         <DataGridSearch />

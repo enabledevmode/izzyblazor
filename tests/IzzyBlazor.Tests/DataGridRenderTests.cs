@@ -456,6 +456,32 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal(["Export CSV", "Export Excel"], links.Take(2).Select(l => l.TextContent.Trim()));
     }
 
+    [Theory]
+    [InlineData(ExportFormat.Excel, "/o.xlsx", "Export Excel", "/o.csv", "Export CSV")]
+    [InlineData(ExportFormat.Csv, "/o.csv", "Export CSV", "/o.xlsx", "Export Excel")]
+    public void A_default_export_is_one_click_with_the_other_behind_the_arrow(ExportFormat format, string main, string name, string other, string otherName)
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.DefaultExport, format));
+        var bar = cut.Find(".ib-toolbar-end > .ib-toolbar-unit");
+        var link = bar.QuerySelector(".ib-split-btn > a[download]")!;
+        Assert.StartsWith(main + "?", link.GetAttribute("href"));
+        Assert.Equal(name, link.GetAttribute("aria-label"));
+        var item = Assert.Single(bar.QuerySelectorAll(".ib-menu-item[download]"));
+        Assert.StartsWith(other + "?", item.GetAttribute("href"));
+        Assert.Contains(otherName, item.TextContent);
+
+        // In the toolbar's "…" menu, both are there to choose.
+        Assert.Equal(3, cut.FindAll(".ib-menu-item[download]").Count);
+    }
+
+    [Fact]
+    public void A_default_export_with_one_link_is_just_that_link()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.DefaultExport, ExportFormat.Excel));
+        Assert.Empty(cut.FindAll(".ib-split-btn"));
+        Assert.StartsWith("/o.csv?", cut.Find(".ib-btn[download]").GetAttribute("href"));
+    }
+
     [Fact]
     public void Export_links_leave_out_a_title_used_as_a_key_and_a_fragment()
     {
