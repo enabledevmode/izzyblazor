@@ -1,0 +1,11 @@
+<Row Gap="3" Wrap Align="Align.Center">
+    @* download goes to the main button. *@
+    <SplitButton Label="Download SVG" StartIcon="Lucide.Download" Href="favicon.svg" download="izzy.svg" MenuLabel="Other formats" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" id="split-download">
+        <MenuItem Href="apple-touch-icon.png" download="izzy.png">PNG</MenuItem>
+        <MenuItem Href="favicon.ico" download="izzy.ico">ICO</MenuItem>
+    </SplitButton>
+    <SplitButton Label="Blazor docs" Href="https://learn.microsoft.com/aspnet/core/blazor" External MenuLabel="More docs" Variant="ButtonVariant.Soft">
+        <MenuItem Href="docs/components/button">Button</MenuItem>
+        <MenuItem Href="docs/components/menu">Menu</MenuItem>
+    </SplitButton>
+</Row>

@@ -266,6 +266,20 @@ public sealed partial class SearchIndex
             if (pages.TryGetValue(overview, out var page))
             {
                 AddSections(page, component.Name, SearchGroup.Components);
+
+                // @KeyboardTable.Section draws these from the metadata, so the source doesn't have
+                // them: before Parameters, with what comes earlier deciding their ids.
+                if (api.Component(component.Name)?.Keyboard is { Count: > 0 } keyboard)
+                {
+                    var before = page.Headings.TakeWhile(h => h.Text != "Parameters").Select(h => (h.Text, (string?)h.Id)).ToList();
+                    var keys = keyboard.Select(g => g.Title).OfType<string>().Prepend("Keyboard").ToList();
+                    var keyIds = Ids(component.Name, before.Concat(keys.Select(k => (k, (string?)null)))).Skip(before.Count).ToList();
+                    for (var i = 0; i < keys.Count; i++)
+                    {
+                        Add(SearchKind.Section, keys[i], component.Name, null, $"{overview}#{keyIds[i]}", standard: StandardSections.Contains(keys[i]));
+                    }
+                }
+
                 foreach (var id in page.Examples)
                 {
                     if (registry.Example(id) is { } found && !page.Headings.Any(h => string.Equals(h.Text, found.Example.Title, StringComparison.OrdinalIgnoreCase)))

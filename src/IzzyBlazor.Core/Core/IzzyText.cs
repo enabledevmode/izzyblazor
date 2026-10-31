@@ -150,6 +150,9 @@ public class IzzyText
     /// <summary>A Toolbar's "…" button, which holds what doesn't fit.</summary>
     public virtual string MoreActions { get; set; } = "More actions";
 
+    /// <summary>A SplitButton's arrow, and its submenu in a Toolbar's "…" menu. {0} is its Label.</summary>
+    public virtual string SplitButtonMenu { get; set; } = "{0}: more options";
+
     /// <summary>Announced while busy. Button Loading, Spinner.</summary>
     public virtual string Loading { get; set; } = "Loading";
 

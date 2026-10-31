@@ -1,0 +1,251 @@
+@namespace IzzyBlazor
+@inherits LayoutItemBase
+@using System.Globalization
+@using Microsoft.AspNetCore.Components.Web
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, Notes = "OnClick runs only on interactive pages; Submit and Href work everywhere.", NoScriptNotes = "With JavaScript off, the menu opens and closes, but Alt+Down and the arrow keys don't work: Tab to the arrow and press Enter.")]
+
+@*
+    A button with a main action and, joined to it, an arrow that opens a menu of related actions.
+    Clicking the main button runs its action; choosing an item runs that item, and the main action
+    stays as it was. It's a ButtonGroup, a Button and a Menu, so the main action and the items work
+    as they do there, with links and form posts working with JavaScript off.
+
+    <SplitButton Label="Save" StartIcon="Lucide.Save" OnClick="Save" MenuLabel="More save options">
+        <MenuItem OnClick="SaveAs">Save as…</MenuItem>
+        <MenuItem Href="/drafts">Open drafts</MenuItem>
+    </SplitButton>
+
+    Attributes it doesn't know, such as `download` or `id`, go to the main button; `Class`, `Style`
+    and the layout props go to the group around both. In a Toolbar use ToolbarSplitButton. To change
+    the main action when an item is chosen, change `Label` and `Href` or `OnClick` yourself.
+
+    Accessibility:
+    - It renders a `group` named by `Label`, holding two native controls, each its own tab stop (in a
+      Toolbar, its arrow keys move between them).
+    - `MenuLabel` names the arrow and its menu, for screen readers and as its tooltip; it defaults to
+      "Save: more options".
+    - With `IconOnly`, `Label` becomes the main button's `aria-label` and tooltip.
+    - While `Loading`, both parts keep focus and stay in the tab order, a link too, and neither does
+      anything; the main button sets `aria-busy`, and both set `aria-disabled`.
+    - `Disabled`, `MainDisabled` and `MenuDisabled` take the part out of the tab order, and a part
+      that's focused as that happens loses focus, as a disabled button does.
+    - If the arrow is blocked while its menu is open, the menu closes, so nothing in it runs twice.
+    - With JavaScript off, the items are plain links and buttons with no menu roles, as in Menu, and
+      only Tab, Enter, Space and Escape work.
+
+    Keyboard:
+    On the main button
+    - Enter | Run its action
+    - Space | Run its action, when it isn't a link
+    - Alt+Down | Open the menu at its first item
+    - Tab | Go on to the arrow
+    On the arrow
+    - Enter, Space, Down, Alt+Down | Open the menu at its first item
+    - Up | Open the menu at its last item
+    In the menu
+    - Up, Down | Move through the items, wrapping and skipping disabled ones
+    - Home, End | Go to the first or last item
+    - Enter, Space | Choose the item
+    - Escape | Close the menu and go back to the part that opened it
+    - Tab | Close the menu and move on
+    See also: Button, ButtonGroup, Menu, Toolbar.
+*@
+
+<ButtonGroup Label="@Label" Accent="Accent" Variant="Variant" Size="Size" FullWidth="FullWidth" Class="@_class" Style="@_style">
+    @Main
+    <Menu Placement="Placement" PanelWidth="PanelWidth">
+        <Trigger Context="wiring">
+            <IconButton @attributes="ToggleAttributes(wiring)"
+                        Icon="IconSet.Current.Get(IconRole.ChevronDown)"
+                        Label="@ToggleLabel"
+                        Disabled="@(Disabled || MenuDisabled)" />
+        </Trigger>
+        <ChildContent>@ChildContent</ChildContent>
+    </Menu>
+</ButtonGroup>
+
+@code {
+    /// <summary>The main button's text, or with <see cref="IconOnly"/> its name for screen readers and its tooltip.</summary>
+    [Parameter, EditorRequired] public string Label { get; set; } = "";
+
+    /// <summary>An icon before the main button's text.</summary>
+    [Parameter] public IconData? StartIcon { get; set; }
+
+    /// <summary>Shows only <see cref="StartIcon"/> on the main button, which it needs. <see cref="Label"/> still names it.</summary>
+    [Parameter] public bool IconOnly { get; set; }
+
+    /// <summary>Runs when the main button is clicked on interactive pages (a link still navigates). Has no effect on static pages.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<MouseEventArgs> OnClick { get; set; }
+
+    /// <summary>
+    /// Makes the main button a link to this URL (an <c>a</c>). A link can't take <see cref="Submit"/>,
+    /// <see cref="Name"/>, <see cref="Value"/>, <see cref="FormAction"/> or <see cref="Form"/>.
+    /// </summary>
+    [Parameter] public string? Href { get; set; }
+
+    /// <summary>For a link: opens in a new tab with <c>rel="noopener noreferrer"</c> and shows an external-link icon.</summary>
+    [Parameter] public bool External { get; set; }
+
+    /// <summary>Makes the main button submit the form it's in (or <see cref="Form"/>), like <c>type="submit"</c>.</summary>
+    [Parameter] public bool Submit { get; set; }
+
+    /// <summary>
+    /// Posted with the form as <c>Name=Value</c> when the main button submits it, so one handler can
+    /// tell it from the menu's items. Not <c>action</c>, <c>method</c> or <c>target</c>: a control with
+    /// one of those names hides the form's own property.
+    /// </summary>
+    [Parameter] public string? Name { get; set; }
+
+    /// <summary>The value posted with <see cref="Name"/>.</summary>
+    [Parameter] public string? Value { get; set; }
+
+    /// <summary>Submits to this URL instead of the form's own action (native <c>formaction</c>).</summary>
+    [Parameter] public string? FormAction { get; set; }
+
+    /// <summary>The id of a form elsewhere on the page that the main button submits (native <c>form</c>).</summary>
+    [Parameter] public string? Form { get; set; }
+
+    /// <summary>
+    /// The name of the arrow that opens the menu, for screen readers and its tooltip, and of the
+    /// submenu in a Toolbar's "…" menu. Defaults to "{Label}: more options" (<see cref="IzzyText.SplitButtonMenu"/>).
+    /// </summary>
+    [Parameter] public string? MenuLabel { get; set; }
+
+    /// <summary>The color of both parts. Defaults to a <see cref="ButtonGroup"/>'s or <see cref="Toolbar"/>'s around it, else <see cref="Accent.Primary"/>.</summary>
+    [Parameter] public Accent? Accent { get; set; }
+
+    /// <summary>The weight of both parts. Defaults to a <see cref="ButtonGroup"/>'s or <see cref="Toolbar"/>'s around it, else <see cref="ButtonVariant.Solid"/>.</summary>
+    [Parameter] public ButtonVariant? Variant { get; set; }
+
+    /// <summary>The height of both parts. Defaults to a <see cref="ButtonGroup"/>'s or <see cref="Toolbar"/>'s around it, else <see cref="ControlSize.Md"/>.</summary>
+    [Parameter] public ControlSize? Size { get; set; }
+
+    /// <summary>Disables both parts.</summary>
+    [Parameter] public bool Disabled { get; set; }
+
+    /// <summary>Shows a spinner on the main button and blocks both parts, which keep focus.</summary>
+    [Parameter] public bool Loading { get; set; }
+
+    /// <summary>Read to screen readers while <see cref="Loading"/>. Defaults to "Loading".</summary>
+    [Parameter] public string? LoadingLabel { get; set; }
+
+    /// <summary>Read to screen readers after an external link's text. Defaults to "(opens in a new tab)".</summary>
+    [Parameter] public string? NewTabLabel { get; set; }
+
+    /// <summary>Stretches to the full width of its container; the main button takes the extra width.</summary>
+    [Parameter] public bool FullWidth { get; set; }
+
+    /// <summary>Disables only the main button, such as when no default is available but the items still are.</summary>
+    [Parameter] public bool MainDisabled { get; set; }
+
+    /// <summary>Disables only the arrow, such as when there's nothing else to choose.</summary>
+    [Parameter] public bool MenuDisabled { get; set; }
+
+    /// <summary>Where the menu opens. Defaults to <see cref="Placement.BottomEnd"/>.</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.BottomEnd;
+
+    /// <summary>The width of the menu panel, as on <see cref="Menu"/>. Defaults to the content's width, at least 10rem, up to 24rem.</summary>
+    [Parameter] public Length? PanelWidth { get; set; }
+
+    /// <summary>The <see cref="MenuItem"/>s, <see cref="MenuGroup"/>s and <see cref="MenuDivider"/>s.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    /// <summary>The <see cref="ButtonGroup"/> or toolbar settings around it.</summary>
+    [CascadingParameter] internal ButtonGroup? Group { get; set; }
+
+    /// <summary>The <see cref="Toolbar"/> it's directly in, where only a ToolbarSplitButton goes.</summary>
+    [CascadingParameter] internal ToolbarContext? Toolbar { get; set; }
+
+    private string? _class;
+    private string? _style;
+
+    // Button's parameters that make no sense here. Without this they'd reach the main button as
+    // other attributes do.
+    private static readonly string[] Refused = [nameof(Button.EndIcon), nameof(Button.Pressed), nameof(Button.PressedChanged), nameof(Button.Reset), nameof(Button.HideExternalIcon), nameof(SplitButtonMain.IconOnlyName)];
+
+    // The main button. Other attributes go on it, before the parameters so they can't override them.
+    private RenderFragment Main => builder =>
+    {
+        builder.OpenComponent<SplitButtonMain>(0);
+        builder.AddMultipleAttributes(1, AdditionalAttributes);
+        builder.AddComponentParameter(2, nameof(SplitButtonMain.IconOnlyName), IconOnly ? Label : null);
+        builder.AddComponentParameter(3, nameof(SplitButtonMain.StartIcon), StartIcon);
+        builder.AddComponentParameter(4, nameof(SplitButtonMain.Href), Href);
+        builder.AddComponentParameter(5, nameof(SplitButtonMain.External), External);
+        builder.AddComponentParameter(6, nameof(SplitButtonMain.HideExternalIcon), IconOnly);
+        builder.AddComponentParameter(7, nameof(SplitButtonMain.Submit), Submit);
+        builder.AddComponentParameter(8, nameof(SplitButtonMain.Name), Name);
+        builder.AddComponentParameter(9, nameof(SplitButtonMain.Value), Value);
+        builder.AddComponentParameter(10, nameof(SplitButtonMain.FormAction), FormAction);
+        builder.AddComponentParameter(11, nameof(SplitButtonMain.Form), Form);
+        builder.AddComponentParameter(12, nameof(SplitButtonMain.Loading), Loading);
+        builder.AddComponentParameter(13, nameof(SplitButtonMain.LoadingLabel), LoadingLabel);
+        builder.AddComponentParameter(14, nameof(SplitButtonMain.NewTabLabel), NewTabLabel);
+        builder.AddComponentParameter(15, nameof(SplitButtonMain.Disabled), Disabled || MainDisabled);
+        builder.AddComponentParameter(16, nameof(SplitButtonMain.OnClick), OnClick);
+        builder.AddComponentParameter(17, nameof(SplitButtonMain.Class), MainClass);
+        if (!IconOnly)
+        {
+            builder.AddComponentParameter(18, nameof(SplitButtonMain.ChildContent), (RenderFragment)(b => b.AddContent(0, Label)));
+        }
+
+        builder.CloseComponent();
+    };
+
+    /// <summary>A class for the main button: a ToolbarSplitButton's, when its label collapses.</summary>
+    private protected virtual string? MainClass => null;
+
+    /// <summary>The arrow's name.</summary>
+    private protected string ToggleLabel => !string.IsNullOrWhiteSpace(MenuLabel) ? MenuLabel : string.Format(CultureInfo.CurrentCulture, TextDefaults.SplitButtonMenu, Label);
+
+    /// <summary>The width in pixels (at a 16px root), for a toolbar: the two parts, less the border they share.</summary>
+    private protected double? EstimateWidth(bool collapsed)
+    {
+        var size = Size ?? Group?.DefaultSize ?? ControlSize.Md;
+        var iconOnly = IconOnly || collapsed;
+        var main = ButtonWidth.Estimate(size, iconOnly, !iconOnly, iconOnly ? null : Label, Loading || StartIcon is not null, endIcon: false, External && Href is not null);
+        return main + ButtonWidth.Estimate(size, iconOnly: true, hasLabel: false, null, startIcon: false, endIcon: false) - 1;
+    }
+
+    // While loading the arrow keeps focus, as the main button does, so it's aria-disabled rather than
+    // disabled, and with no popovertarget neither a click nor a key can open the menu.
+    private static IReadOnlyDictionary<string, object> Blocked(IReadOnlyDictionary<string, object> wiring)
+    {
+        var attributes = wiring.Where(a => a.Key != "popovertarget").ToDictionary();
+        attributes["aria-disabled"] = "true";
+        return attributes;
+    }
+
+    private IReadOnlyDictionary<string, object> ToggleAttributes(IReadOnlyDictionary<string, object> wiring) => Loading ? Blocked(wiring) : wiring;
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-split-btn");
+        base.BuildAttributes(classes, styles);
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        ToolbarControl.Refuse(this, Toolbar, Group);
+        var component = GetType().Name;
+        if (AdditionalAttributes is not null && Array.Find(Refused, r => AdditionalAttributes.Keys.Contains(r, StringComparer.OrdinalIgnoreCase)) is { } refused)
+        {
+            throw new InvalidOperationException($"{component} doesn't take {refused}: it's for a single Button.");
+        }
+
+        if (string.IsNullOrWhiteSpace(Label))
+        {
+            throw new InvalidOperationException($"{component} needs a Label: it is the main button's text or name.");
+        }
+
+        if (IconOnly && StartIcon is null)
+        {
+            throw new InvalidOperationException($"{component} with IconOnly needs a StartIcon, such as StartIcon=\"Lucide.Save\".");
+        }
+
+        (_class, _style) = BuildRootAttributes();
+    }
+}

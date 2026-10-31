@@ -1,0 +1,49 @@
+<Column Gap="3" Width="Length.Full">
+    <form method="post" @onsubmit="Posted" @formname="toolbar-split" data-enhance>
+        <AntiforgeryToken />
+        <Toolbar Label="Document">
+            <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
+            <ToolbarButton StartIcon="Lucide.Image">Image</ToolbarButton>
+            <ToolbarSeparator />
+            <ToolbarButton StartIcon="Lucide.Table">Table</ToolbarButton>
+            <ToolbarSplitButton Label="Save" StartIcon="Lucide.Save" Submit Name="intent" Value="save" OnClick='() => _pressed = "save"' MenuLabel="More save options" Variant="ButtonVariant.Outline" Disabled="_disabled" id="toolbar-save">
+                <MenuItem Submit Name="intent" Value="draft" OnClick='() => _pressed = "draft"'>Save as draft</MenuItem>
+                <MenuItem Href="docs/components/split-button">Open drafts</MenuItem>
+            </ToolbarSplitButton>
+            @* Only ever in the … menu. *@
+            <ToolbarSplitButton Label="Export" StartIcon="Lucide.Download" Href="favicon.svg" download="izzy.svg" MenuLabel="Export formats" Overflow="ToolbarOverflow.Always">
+                <MenuItem Href="favicon.ico" download="izzy.ico">ICO</MenuItem>
+            </ToolbarSplitButton>
+            <ToolbarSplitButton Label="Publish" MenuLabel="Publish options" Position="ToolbarPosition.End" Priority="1" Accent="Accent.Primary" Variant="ButtonVariant.Solid">
+                <MenuItem>Schedule</MenuItem>
+            </ToolbarSplitButton>
+        </Toolbar>
+    </form>
+    <Toolbar Label="Collapsing" CollapseLabels>
+        <ToolbarSplitButton Label="Share" StartIcon="Lucide.Share2" MenuLabel="Share options">
+            <MenuItem>Copy link</MenuItem>
+        </ToolbarSplitButton>
+        <ToolbarSplitButton Label="Print" StartIcon="Lucide.Printer" IconOnly MenuLabel="Print options">
+            <MenuItem>Print to PDF</MenuItem>
+        </ToolbarSplitButton>
+        <ToolbarButton StartIcon="Lucide.Link">Link</ToolbarButton>
+        <ToolbarButton StartIcon="Lucide.Image">Image</ToolbarButton>
+        <ToolbarSplitButton Label="Publish" StartIcon="Lucide.Send" MenuLabel="Publish options" Overflow="ToolbarOverflow.Never" Position="ToolbarPosition.End">
+            <MenuItem>Schedule</MenuItem>
+        </ToolbarSplitButton>
+    </Toolbar>
+    <Switch @bind-Value="_disabled" Label="Save disabled" />
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+</Column>
+
+@code {
+    // Static pages: the Name=Value of what was chosen; interactive pages say it with OnClick.
+    [SupplyParameterFromForm(FormName = "toolbar-split", Name = "intent")]
+    private string? Intent { get; set; }
+
+    private bool _disabled;
+    private string? _pressed;
+    private string _result = "Nothing saved yet";
+
+    private void Posted() => _result = $"Posted: {Intent ?? _pressed}";
+}

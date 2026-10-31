@@ -36,7 +36,8 @@ public sealed class Registry
 
         _byId = AllComponents.ToDictionary(c => c.Id, StringComparer.Ordinal);
         _byName = AllComponents.ToDictionary(c => c.Name, StringComparer.Ordinal);
-        _byPart = AllComponents.SelectMany(c => c.Parts.Select(p => (Part: p, Component: c))).ToDictionary(x => x.Part, x => x.Component, StringComparer.Ordinal);
+        // A part on two pages (ToolbarSplitButton: SplitButton's and Toolbar's) belongs to the first, where its API is.
+        _byPart = AllComponents.SelectMany(c => c.Parts.Select(p => (Part: p, Component: c))).DistinctBy(x => x.Part).ToDictionary(x => x.Part, x => x.Component, StringComparer.Ordinal);
         _examples = AllComponents
             .SelectMany(c => c.Examples.Concat(c.Scenarios.Select(s => s.Example)).Select(e => (Component: c, Example: e)))
             .ToDictionary(x => x.Example.Id, StringComparer.Ordinal);

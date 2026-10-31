@@ -243,26 +243,26 @@
   }
 
   .ib-btn-group-attached > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
-  .ib-btn-group-attached > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+  .ib-btn-group-attached > :nth-child(1 of .ib-btn, :has(> .ib-btn)):not(.ib-btn-group) > .ib-btn {
     border-start-start-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
-  .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn,
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-child(1 of .ib-btn, :has(> .ib-btn)):not(.ib-btn-group) > .ib-btn,
   .ib-btn-group-attached.ib-btn-group-vertical > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
-  .ib-btn-group-attached.ib-btn-group-vertical > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+  .ib-btn-group-attached.ib-btn-group-vertical > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)):not(.ib-btn-group) > .ib-btn {
     border-end-start-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
-  .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn,
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)):not(.ib-btn-group) > .ib-btn,
   .ib-btn-group-attached.ib-btn-group-vertical > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
-  .ib-btn-group-attached.ib-btn-group-vertical > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+  .ib-btn-group-attached.ib-btn-group-vertical > :nth-child(1 of .ib-btn, :has(> .ib-btn)):not(.ib-btn-group) > .ib-btn {
     border-start-end-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
   .ib-btn-group-attached > .ib-btn:nth-last-child(1 of .ib-btn, :has(> .ib-btn)),
-  .ib-btn-group-attached > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
+  .ib-btn-group-attached > :nth-last-child(1 of .ib-btn, :has(> .ib-btn)):not(.ib-btn-group) > .ib-btn {
     border-end-end-radius: var(--ib-btn-radius, var(--ib-radius-control, var(--ib-radius-md)));
   }
 
@@ -279,13 +279,57 @@
     box-shadow: inset 1px 0 0 var(--ib-btn-divider);
   }
 
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) :is(.ib-btn-solid, .ib-btn-soft):dir(rtl) {
+    box-shadow: inset -1px 0 0 var(--ib-btn-divider);
+  }
+
   .ib-btn-group-attached.ib-btn-group-vertical :is(.ib-btn-solid, .ib-btn-soft) {
     box-shadow: inset 0 1px 0 var(--ib-btn-divider);
+  }
+
+  /* SplitButton: a ghost's two parts need the line too, and the main button takes any extra width. */
+  .ib-split-btn .ib-btn-ghost {
+    --ib-btn-divider: color-mix(in oklab, var(--ib-accent-text) 25%, transparent);
+
+    box-shadow: inset 1px 0 0 var(--ib-btn-divider);
+  }
+
+  .ib-split-btn .ib-btn-ghost:dir(rtl) {
+    box-shadow: inset -1px 0 0 var(--ib-btn-divider);
+  }
+
+  .ib-split-btn.ib-btn-group > .ib-btn {
+    flex: 1 1 auto;
+  }
+
+  .ib-split-btn.ib-btn-group-full > ib-popover {
+    flex: none;
+  }
+
+  .ib-split-btn.ib-btn-group-full > ib-popover > .ib-btn {
+    width: var(--ib-btn-h);
   }
 
   .ib-btn-group-attached > .ib-btn:nth-child(1 of .ib-btn, :has(> .ib-btn)),
   .ib-btn-group-attached > :nth-child(1 of .ib-btn, :has(> .ib-btn)) > .ib-btn {
     box-shadow: none;
+  }
+
+  /* A SplitButton in a row of joined buttons: only the row's own ends are round, and it's divided
+     from the button before it. Each part keeps its own corners where it's at an end of the row. */
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-split-btn:not(:first-child) > .ib-btn {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
+    box-shadow: inset 1px 0 0 var(--ib-btn-divider, transparent);
+  }
+
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-split-btn:not(:first-child) > .ib-btn:dir(rtl) {
+    box-shadow: inset -1px 0 0 var(--ib-btn-divider, transparent);
+  }
+
+  .ib-btn-group-attached:not(.ib-btn-group-vertical) > .ib-split-btn.ib-btn-group:not(:last-child) > ib-popover > .ib-btn {
+    border-start-end-radius: 0;
+    border-end-end-radius: 0;
   }
 }
 
