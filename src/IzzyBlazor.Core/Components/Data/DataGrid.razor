@@ -472,7 +472,7 @@
 
     /// <inheritdoc />
     internal override bool HasHeaderMenu(ColumnBase<TItem> column) =>
-        CanResize(column) || CanMove(column) || (ColumnPicker && CanSave && column.Pickable);
+        CanResize(column) || CanMove(column);
 
     /// <inheritdoc />
     internal override RenderFragment? HeaderMenu(ColumnBase<TItem> column) => !HasHeaderMenu(column) ? null : __builder =>
@@ -492,14 +492,20 @@
                 {
                     <MenuItem Disabled="zone.FirstOrDefault() == column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
                     <MenuItem Disabled="zone.LastOrDefault() == column" data-ib-col-action="right" data-ib-col="@key">@TextDefaults.ColumnMoveEnd</MenuItem>
-                    <MenuDivider />
+                    @if (CanResize(column) || RowHref is null)
+                    {
+                        <MenuDivider />
+                    }
                 }
                 @if (CanResize(column))
                 {
                     <MenuItem data-ib-col-action="wider" data-ib-col="@key">@TextDefaults.ColumnWider</MenuItem>
                     <MenuItem data-ib-col-action="narrower" data-ib-col="@key">@TextDefaults.ColumnNarrower</MenuItem>
                     <MenuItem Disabled="CurrentLayout?.Column(key)?.Width is null || (frozen != ColumnFrozen.None && column.Width is null)" data-ib-col-action="reset-width" data-ib-col="@key">@TextDefaults.ColumnResetWidth</MenuItem>
-                    <MenuDivider />
+                    @if (CanMove(column) && RowHref is null)
+                    {
+                        <MenuDivider />
+                    }
                 }
                 @if (CanMove(column) && RowHref is null)
                 {
@@ -512,10 +518,6 @@
                     {
                         <MenuItem data-ib-col-action="unfreeze" data-ib-col="@key">@TextDefaults.ColumnUnfreeze</MenuItem>
                     }
-                }
-                @if (ColumnPicker && CanSave && column.Pickable)
-                {
-                    <MenuItem Disabled="Shown.Count <= 1" data-ib-col-action="hide" data-ib-col="@key">@TextDefaults.ColumnHide</MenuItem>
                 }
             </ChildContent>
         </Menu>
