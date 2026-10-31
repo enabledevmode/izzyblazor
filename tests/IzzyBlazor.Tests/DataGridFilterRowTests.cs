@@ -79,4 +79,25 @@ public class DataGridFilterRowTests : BunitContext
         Assert.Contains("f-name=a", href);
         Assert.DoesNotContain("page=", href);
     }
+
+    [Fact]
+    public void Virtual_rows_count_the_row_in_their_numbers()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        RenderFragment columns = b =>
+        {
+            b.OpenComponent<PropertyColumn<Row, string>>(0);
+            b.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, string>>)(r => r.Name));
+            b.AddComponentParameter(2, "Filterable", true);
+            b.CloseComponent();
+        };
+
+        var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.Virtualize, true).Add(g => g.MaxHeight, Length.Rem(20)).Add(g => g.ChildContent, columns));
+
+        var table = cut.Find("table");
+        Assert.Equal("4", table.GetAttribute("aria-rowcount"));
+        Assert.Equal("3", table.GetAttribute("data-ib-first"));
+        Assert.Equal("2", cut.Find(".ib-table-filter-row").GetAttribute("aria-rowindex"));
+    }
 }
+
