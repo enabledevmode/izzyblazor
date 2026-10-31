@@ -10,8 +10,6 @@ internal interface IDataGridToolbar
 
     bool HasColumnPicker { get; }
 
-    bool HasActiveFilters { get; }
-
     bool HasExport { get; }
 
     /// <summary>Whether export opens a menu of both formats, with a chevron beside its icon: a little wider.</summary>
@@ -21,15 +19,11 @@ internal interface IDataGridToolbar
 
     string ColumnPickerLabel { get; }
 
-    string ActiveFiltersLabel { get; }
-
     string ExportLabel { get; }
 
     RenderFragment SearchBar { get; }
 
     RenderFragment ColumnPickerBar(bool showText);
-
-    RenderFragment ActiveFiltersBar(bool showText);
 
     RenderFragment ExportBar(bool showText);
 
@@ -171,28 +165,6 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
     private protected override RenderFragment ItemBar => Grid.ColumnPickerBar(Text);
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ColumnPickerLabel, startIcon: true, endIcon: false);
-}
-
-/// <summary>
-/// Puts a <c>DataGrid</c>'s Filters button, from <c>ActiveFilters</c>, among your toolbar items. It
-/// stays in the bar, at the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
-/// </summary>
-[ModeSupport]
-public sealed class DataGridFilters : DataGridToolbarItem
-{
-    /// <summary>Creates it, at the toolbar's end.</summary>
-    public DataGridFilters() => Position = ToolbarPosition.End;
-
-    /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
-    [Parameter] public bool? ShowText { get; set; }
-
-    private bool Text => ShowText ?? Grid.ToolbarLabels;
-
-    private protected override bool On => Grid.HasActiveFilters;
-
-    private protected override RenderFragment ItemBar => Grid.ActiveFiltersBar(Text);
-
-    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ActiveFiltersLabel, startIcon: true, endIcon: false);
 }
 
 /// <summary>
