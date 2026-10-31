@@ -325,6 +325,10 @@
                     @if (FilterPanel)
                     {
                         <div class="ib-table-filter-clear-all">
+                            @if (BuilderPanelId is { } panel)
+                            {
+                                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-filter-builder-tool" popovertarget="@panel">@TextDefaults.FilterEdit</button>
+                            }
                             @ClearAction(count > 0, () => ClearFiltersHref, ClearFiltersAsync)
                         </div>
                     }
@@ -474,7 +478,7 @@
         get
         {
             StateFilters();
-            return UseState ? _stateExtra.Count : 0;
+            return UseState ? _stateExtra.Count : AddressFilter().Filter is null ? 0 : 1;
         }
     }
     private CancellationTokenSource? _filterDelay;
@@ -601,7 +605,7 @@
             .Where(c => c != except && c.CanFilter && filters.ContainsKey(c.Key!))
             .Select(c => ColumnFilter.Condition(c, filters[c.Key!]))
             .OfType<IzzyBlazor.Filter>()
-            .Concat(UseState ? _stateExtra : [])
+            .Concat(UseState ? _stateExtra : AddressFilter().Filter is { } address ? [address] : [])
             .ToArray();
         return conditions.Length == 0 ? null : IzzyBlazor.Filter.All(conditions);
     }
@@ -612,8 +616,8 @@
     {
         // First, as it's what splits a new Filter into what's read next.
         var filters = Signature(CurrentFilters());
-        return UseState && _stateExtra.Count > 0
-            ? $"{FilterCase}|{filters}|{string.Join("|", _stateExtra)}"
+        return UseState && _stateExtra.Count > 0 ? $"{FilterCase}|{filters}|{string.Join("|", _stateExtra)}"
+            : !UseState && AddressFilter().Filter is { } address ? $"{FilterCase}|{filters}|{address}"
             : $"{FilterCase}|{filters}";
     }
 
@@ -650,7 +654,47 @@
     }
 
     private string ClearFiltersHref => Navigation.GetUriWithQueryParameters(
-        _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
+        _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Append(FilterTextKey).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
+
+    /// <summary>The address's key for a whole filter as text, which a FilterBuilder writes. It's anded with the columns' own.</summary>
+    internal string FilterTextKey => $"{QueryPrefix}filter";
+
+    // That filter. One that can't be read matches nothing, and a tag says so, rather than quietly showing every row.
+    private (IzzyBlazor.Filter? Filter, bool Unreadable) AddressFilter()
+    {
+        var text = QueryString.Of(Navigation.Uri).GetValueOrDefault(FilterTextKey).ToString();
+        return string.IsNullOrWhiteSpace(text) ? (null, false)
+            : IzzyBlazor.Filter.TryParse(text, out var parsed) ? (parsed, false)
+            : (IzzyBlazor.Filter.Any(), true);
+    }
+
+    /// <summary>The fields a FilterBuilder on this view builds from: its columns.</summary>
+    internal IReadOnlyList<DataField<TItem>> BuilderFields => _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList();
+
+    /// <summary>A bound view's own conditions, as one filter: what a FilterBuilder on it edits.</summary>
+    internal IzzyBlazor.Filter? ExtraFilter
+    {
+        get
+        {
+            StateFilters();
+            return _stateExtra.Count switch
+            {
+                0 => null,
+                1 => _stateExtra[0],
+                _ => IzzyBlazor.Filter.All([.. _stateExtra]),
+            };
+        }
+    }
+
+    /// <summary>A FilterBuilder on a bound view applied this.</summary>
+    internal async Task SetExtraFilterAsync(IzzyBlazor.Filter? filter)
+    {
+        _stateExtra = filter is null ? [] : [filter];
+        await ReportFilterAsync();
+    }
+
+    /// <summary>The id of a FilterBuilder's panel, which the row of filters' Edit opens; null with none.</summary>
+    internal virtual string? BuilderPanelId => null;
 
     // The header's title: a sort control (a button when state is in the component, a link
     // otherwise) or plain text.
@@ -882,6 +926,11 @@
                 var condition = extra;
                 <Tag Label="@condition.ToString()" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => RemoveExtraAsync(condition)))" />
             }
+        }
+        else if (AddressFilter() is { Filter: { } address } read)
+        {
+            <Tag Label="@(read.Unreadable ? TextDefaults.FilterUnreadable : address.ToString())" Size="ControlSize.Sm"
+                 RemoveHref="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [FilterTextKey] = null, [PageKey] = null, [CursorKey] = null })" />
         }
     };
 
@@ -1866,6 +1915,7 @@
         if (UseState && Filter is null && StateFilters().Count == 0 && _stateExtra.Count == 0)
         {
             _stateFilters = ReadFilters();
+            _stateExtra = AddressFilter().Filter is { } address ? [address] : [];
         }
 
         if (ValuesAsked() is { } column)

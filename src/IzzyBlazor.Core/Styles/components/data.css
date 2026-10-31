@@ -652,7 +652,8 @@
   }
 
   @media (scripting: none) {
-    .ib-filter-builder {
+    .ib-filter-builder,
+    .ib-filter-builder-tool {
       display: none;
     }
   }

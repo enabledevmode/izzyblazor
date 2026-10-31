@@ -219,6 +219,12 @@ public class IzzyText
     /// <summary>FilterBuilder's name for screen readers.</summary>
     public virtual string FilterBuilderLabel { get; set; } = "Filter builder";
 
+    /// <summary>The row of filters' button that opens a FilterBuilder.</summary>
+    public virtual string FilterEdit { get; set; } = "Edit";
+
+    /// <summary>A tag for a filter in the address that can't be read, which shows no rows.</summary>
+    public virtual string FilterUnreadable { get; set; } = "A filter in the address can't be read";
+
     /// <summary>A FilterBuilder group's name.</summary>
     public virtual string FilterGroupLabel { get; set; } = "Group";
 

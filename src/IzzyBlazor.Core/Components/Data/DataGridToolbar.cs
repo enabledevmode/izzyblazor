@@ -10,6 +10,12 @@ internal interface IDataGridToolbar
 
     bool HasColumnPicker { get; }
 
+    bool HasFilterBuilder { get; }
+
+    string FilterBuilderLabel { get; }
+
+    RenderFragment FilterBuilderBar(bool showText);
+
     bool HasExport { get; }
 
     /// <summary>Whether export opens a menu of both formats, with a chevron beside its icon: a little wider.</summary>
@@ -143,6 +149,25 @@ public sealed class DataGridSearch : DataGridToolbarItem
 
     // What it can shrink to (data.css), so that the widths without script match the script's.
     private protected override double? ItemWidth => 96;
+}
+
+/// <summary>
+/// Puts a <c>DataGrid</c>'s Filter builder button, from <c>FilterBuilder</c>, among your toolbar items.
+/// It stays in the bar, at the start unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
+/// </summary>
+[ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off it isn't shown: the builder's rows need script.")]
+public sealed class DataGridFilterBuilder : DataGridToolbarItem
+{
+    /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
+    [Parameter] public bool? ShowText { get; set; }
+
+    private bool Text => ShowText ?? Grid.ToolbarLabels;
+
+    private protected override bool On => Grid.HasFilterBuilder;
+
+    private protected override RenderFragment ItemBar => Grid.FilterBuilderBar(Text);
+
+    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.FilterBuilderLabel, startIcon: true, endIcon: false);
 }
 
 /// <summary>

@@ -49,4 +49,29 @@ public sealed class FilterBuilderTests(SiteFixture site) : IClassFixture<SiteFix
 
         await Assertions.Expect(page.Locator("ib-filter-builder").First).ToBeHiddenAsync();
     }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_grids_builder_filters_it_and_closes(string mode)
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await (await browser.NewContextAsync(new() { Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } })).NewPageAsync();
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = "Orders by builder" }).WaitForAsync();
+        var grid = page.Locator("ib-table", new() { HasText = "Orders by builder" });
+        await grid.ScrollIntoViewSettledAsync();
+
+        await grid.GetByRole(AriaRole.Button, new() { Name = "Filter builder" }).ClickAsync();
+        var panel = page.Locator("[popover]:popover-open");
+        await panel.Locator("[data-ib-fb-root] [data-ib-fb-field-select]").First.SelectOptionAsync(new SelectOptionValue { Label = "Customer" });
+        await panel.Locator("[data-ib-fb-root] [data-ib-fb-from]").First.FillAsync("Ada");
+        await panel.Locator("[data-ib-fb-apply]").ClickAsync();
+
+        await page.WaitForURLAsync("**/*built-filter=*");
+        await Assertions.Expect(panel).ToHaveCountAsync(0);
+        await Assertions.Expect(grid.Locator("tbody tr").First).ToContainTextAsync("Ada");
+        await Assertions.Expect(grid.Locator(".ib-table-filter-tags")).ToContainTextAsync("contains(customer,'Ada')");
+    }
 }
+

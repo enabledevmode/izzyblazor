@@ -295,6 +295,49 @@
     /// </summary>
     [Parameter] public bool FilterRow { get; set; }
 
+    /// <summary>
+    /// Adds a Filter builder button to the toolbar, for groups of conditions no column's filter can
+    /// hold. What it builds goes in the address as <c>?filter=</c>, and applies along with the columns' filters.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off the button is hidden. A filter already in the address still applies.")]
+    public bool FilterBuilder { get; set; }
+
+    /// <inheritdoc />
+    internal override string? BuilderPanelId => FilterBuilder ? $"{FilterFormId}-builder" : null;
+
+    bool IDataGridToolbar.HasFilterBuilder => FilterBuilder;
+
+    string IDataGridToolbar.FilterBuilderLabel => TextDefaults.FilterBuilderLabel;
+
+    RenderFragment IDataGridToolbar.FilterBuilderBar(bool showText) => __builder =>
+    {
+        var active = UseState ? ExtraFilter is not null : QueryString.Of(Navigation.Uri).ContainsKey(FilterTextKey);
+        <div class="ib-toolbar-item ib-filter-builder-tool">
+            <Popover Id="@BuilderPanelId" Placement="Placement.BottomStart" PanelWidth="Length.Rem(48)" data-ib-user-controlled>
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconRole.Filter)" Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" data-active="@(active ? "" : null)" @attributes="context">@TextDefaults.FilterBuilderLabel</Button>
+                    }
+                    else
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconRole.Filter)" IconOnly Size="ControlSize.Sm" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" aria-label="@TextDefaults.FilterBuilderLabel" title="@TextDefaults.FilterBuilderLabel" data-active="@(active ? "" : null)" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>
+                    @if (UseState)
+                    {
+                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" Value="ExtraFilter" ValueChanged="SetExtraFilterAsync" />
+                    }
+                    else
+                    {
+                        <FilterBuilder TItem="TItem" Fields="BuilderFields" Name="@FilterTextKey" PageKey="@PageKey" />
+                    }
+                </ChildContent>
+            </Popover>
+        </div>
+    };
+
     /// <inheritdoc />
     internal override bool ShowsFilterRow => FilterRow;
 
@@ -608,7 +651,7 @@
     bool IDataGridToolbar.HasColumnPicker => HasPicker;
 
     /// <inheritdoc />
-    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool;
+    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder;
 
     bool IDataGridToolbar.HasExport => HasExportTool;
 
@@ -756,16 +799,20 @@
             <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
         }
 
-        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool)
+        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder)
         {
             var placed = DataGridToolbarItem.Placed(ToolbarContent);
-            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool ? "ib-grid-toolbar-picker-only" : null)">
+            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool && !FilterBuilder ? "ib-grid-toolbar-picker-only" : null)">
                 @* Around the toolbar, not inside it: its items keep the order they join in, and a wrapper would delay these. *@
                 <CascadingValue TValue="IDataGridToolbar" Value="this">
                     <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
                         @if (!placed.Contains(typeof(DataGridSearch)))
                         {
                             <DataGridSearch />
+                        }
+                        @if (!placed.Contains(typeof(DataGridFilterBuilder)))
+                        {
+                            <DataGridFilterBuilder />
                         }
                         @ToolbarContent
                         @if (!placed.Contains(typeof(DataGridExport)))
