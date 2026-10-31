@@ -1453,7 +1453,7 @@
             else
             {
                 var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-                <button type="button" class="ib-filter-cell-summary" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary">@summary</button>
+                <button type="button" class="ib-filter-cell-summary" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter>@summary</button>
             }
         </div>
     };
@@ -1536,6 +1536,11 @@
                 var current = filters.GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column);
                 var key = FilterQueryKey(column);
                 var fits = FitsInCell(column, current) && Shown.Contains(column);
+                @* An operator chosen with no value yet, which Write leaves out: the field's value goes with it. *@
+                if (!current.IsFilter && current.Op != ColumnFilter.DefaultOperator(column) && ColumnFilter.IsListState(current) == false)
+                {
+                    <input type="hidden" name="@($"{key}-op")" value="@ColumnFilter.WordOf(current.Op)" form="@FilterRowFormId" />
+                }
                 foreach (var (name, written) in ColumnFilter.Write(column, key, current))
                 {
                     @* A field in the row says its own value. *@

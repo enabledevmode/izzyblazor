@@ -50,6 +50,11 @@ export class TypingGuard {
     for (const control of [...this.#typed.keys()]) if (control instanceof HTMLSelectElement) this.#typed.delete(control);
   }
 
+  /** Lets go of what was typed in boxes focus has left: it's about to be in the address. */
+  forgetLeft(): void {
+    for (const control of [...this.#typed.keys()]) if (!isTick(control) && !(control instanceof HTMLSelectElement) && document.activeElement !== control) this.#typed.delete(control);
+  }
+
   /** Lets go of the ticks: they're about to be in the address, or already are. */
   forgetTicks(): void {
     for (const control of [...this.#typed.keys()]) if (isTick(control)) this.#typed.delete(control);
