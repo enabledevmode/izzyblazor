@@ -23,7 +23,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to export" });
-            await grid.ScrollIntoViewIfNeededAsync();
+            await grid.ScrollIntoViewSettledAsync();
             var url = page.Url;
             var menu = grid.GetByRole(AriaRole.Button, new() { Name = "Export" });
 
@@ -144,7 +144,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Every order" });
             var table = grid.Locator("table");
             var box = grid.Locator(".ib-table-scroll");
-            await grid.ScrollIntoViewIfNeededAsync();
+            await grid.ScrollIntoViewSettledAsync();
             await grid.Locator("tbody tr[aria-rowindex='2']").WaitForAsync();
             await page.WaitForFunctionAsync("() => [...document.querySelectorAll('table')].some(t => t.getAttribute('aria-rowcount') === '100001')");
 

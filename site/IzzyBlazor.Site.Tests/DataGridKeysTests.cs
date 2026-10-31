@@ -258,6 +258,44 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         }
     }
 
+    // macOS and Linux fire contextmenu with the button still down, and Windows after it's released. So
+    // that this runs the same on every machine, the browser's own event is held back and that order played.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_right_click_asked_with_the_button_down_stays_open_after_its_release(string mode)
+    {
+        var (browser, page) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
+            await grid.ScrollIntoViewSettledAsync();
+            var open = grid.Locator("[popover]:popover-open");
+            var cell = await grid.Locator("tbody tr").Nth(1).Locator("td").Nth(1).BoundingBoxAsync();
+            var (x, y) = (cell!.X + 10, cell.Y + 10);
+            await page.EvaluateAsync("""
+                () => window.addEventListener('contextmenu', e => {
+                  if (e.isTrusted) { e.preventDefault(); e.stopImmediatePropagation(); }
+                }, true)
+                """);
+
+            await page.Mouse.MoveAsync(x, y);
+            await page.Mouse.DownAsync(new() { Button = MouseButton.Right });
+            await page.EvaluateAsync("""
+                ({ x, y }) => document.elementFromPoint(x, y).dispatchEvent(
+                  new MouseEvent('contextmenu', { bubbles: true, cancelable: true, button: 2, buttons: 2, clientX: x, clientY: y, view: window }))
+                """, new { x = (double)x, y = (double)y });
+            await page.Mouse.UpAsync(new() { Button = MouseButton.Right });
+
+            await open.WaitForAsync();
+            await page.WaitForTimeoutAsync(300);
+            Assert.True(await open.IsVisibleAsync());
+            var box = await open.BoundingBoxAsync();
+            Assert.InRange(box!.X, x - 1, x + 1);
+            Assert.InRange(box.Y, y - 1, y + 1);
+        }
+    }
+
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
@@ -267,7 +305,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
-            await grid.ScrollIntoViewIfNeededAsync();
+            await grid.ScrollIntoViewSettledAsync();
             var row = grid.Locator("tbody tr").Nth(1);
             var open = grid.Locator("[popover]:popover-open");
 
