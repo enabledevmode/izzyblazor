@@ -694,6 +694,31 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void With_virtual_rows_the_selection_bar_doesnt_speak_of_a_page()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var cut = Render<DataGrid<Row>>(p => p
+            .Add(x => x.ChildContent, NameAndQty)
+            .Add(x => x.Virtualize, true)
+            .Add(x => x.MaxHeight, Length.Rem(20))
+            .Add(x => x.ItemKey, r => r.Name)
+            .Add(x => x.SelectionMode, SelectionMode.Multiple)
+            .Add(x => x.ItemsProvider, request => new ValueTask<DataResult<Row>>(Answer(request))));
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tbody .ib-table-select")));
+        foreach (var box in cut.FindAll("tbody .ib-table-select").ToList())
+        {
+            cut.Find($"tbody .ib-table-select[value='{box.GetAttribute("value")}']").Change(true);
+        }
+
+        var more = cut.Find(".ib-selection-more");
+        Assert.False(more.HasAttribute("hidden"));
+        Assert.Contains("The rows in view are selected.", more.TextContent);
+        Assert.DoesNotContain("page", more.TextContent);
+        Assert.Contains("Select all 1,000", more.TextContent);
+    }
+
+    [Fact]
     public void A_providers_own_timeout_in_a_window_is_a_failure_to_retry_not_a_crash()
     {
         var (cut, _) = VirtualGrid(request => request.Take > 1

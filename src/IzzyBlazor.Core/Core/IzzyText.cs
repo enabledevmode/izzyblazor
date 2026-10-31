@@ -280,6 +280,9 @@ public class IzzyText
     /// <summary>The selection bar when the page is selected and there are more: {0} is how many are on the page.</summary>
     public virtual string SelectionPage { get; set; } = "All {0:N0} on this page are selected.";
 
+    /// <summary>The selection bar with virtual rows, when those drawn are selected and there are more. No number: it changes as they scroll.</summary>
+    public virtual string SelectionInView { get; set; } = "The rows in view are selected.";
+
     /// <summary>The selection bar's button that selects every matching item: {0} is how many ("Select all 1,234").</summary>
     public virtual string SelectAllMatching { get; set; } = "Select all {0:N0}";
 

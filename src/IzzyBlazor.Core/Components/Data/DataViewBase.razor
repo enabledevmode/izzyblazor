@@ -162,7 +162,7 @@
              data-ib-count="@TextDefaults.SelectionCount" data-ib-all-count="@TextDefaults.SelectionAllCount" data-ib-all-open="@TextDefaults.SelectionAllOpen">
             <span class="ib-selection-count">@count</span>
             <span class="ib-selection-more" hidden="@(!offerAll)">
-                <span>@Format(TextDefaults.SelectionPage, _items.Count(CanSelect))</span>
+                <span>@(VirtualRows ? TextDefaults.SelectionInView : Format(TextDefaults.SelectionPage, _items.Count(CanSelect)))</span>
                 <button type="button" class="ib-btn ib-btn-primary ib-btn-link ib-btn-sm ib-selection-all" data-ib-selection="all"
                         @onclick="SelectAllMatchingAsync">@SelectAllMatchingText</button>
             </span>
