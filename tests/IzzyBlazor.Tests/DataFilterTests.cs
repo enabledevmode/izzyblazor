@@ -61,6 +61,8 @@ public sealed class Person
     public string Exact { get; set; } = "";
 
     public string AnyCase { get; set; } = "";
+
+    public string? Maybe { get; set; }
 }
 
 public sealed class PersonDb(DbContextOptions<PersonDb> options) : DbContext(options)
@@ -130,10 +132,97 @@ public sealed class DataFilterTests : IDisposable
     private PersonDb People()
     {
         var db = new PersonDb(new DbContextOptionsBuilder<PersonDb>().UseSqlite(_connection).Options);
-        db.Database.ExecuteSqlRaw("""CREATE TABLE IF NOT EXISTS "People" ("Id" INTEGER PRIMARY KEY, "Exact" TEXT NOT NULL, "AnyCase" TEXT NOT NULL COLLATE NOCASE)""");
-        db.People.AddRange(new Person { Id = 1, Exact = "Ada", AnyCase = "Ada" }, new Person { Id = 2, Exact = "Grace", AnyCase = "Grace" });
+        db.Database.ExecuteSqlRaw("""CREATE TABLE IF NOT EXISTS "People" ("Id" INTEGER PRIMARY KEY, "Exact" TEXT NOT NULL, "AnyCase" TEXT NOT NULL COLLATE NOCASE, "Maybe" TEXT NULL)""");
+        db.People.AddRange(new Person { Id = 1, Exact = "Ada", AnyCase = "Ada", Maybe = "Ada" }, new Person { Id = 2, Exact = "Grace", AnyCase = "Grace" });
         db.SaveChanges();
         return db;
+    }
+
+    // A null on the column: each mode keeps the same rows through EF as in memory, the operators that
+    // keep nulls keep it, and only IgnoreCase lowers.
+    [Theory]
+    [InlineData(FilterCase.IgnoreCase, FilterOperator.Equals, "ADA", new[] { 1 })]
+    [InlineData(FilterCase.IgnoreCase, FilterOperator.NotEquals, "ADA", new[] { 2 })]
+    [InlineData(FilterCase.IgnoreCase, FilterOperator.DoesNotContain, "ADA", new[] { 2 })]
+    [InlineData(FilterCase.Database, FilterOperator.Equals, "Ada", new[] { 1 })]
+    [InlineData(FilterCase.Database, FilterOperator.NotEquals, "Ada", new[] { 2 })]
+    [InlineData(FilterCase.Database, FilterOperator.Contains, "Ada", new[] { 1 })]
+    [InlineData(FilterCase.Database, FilterOperator.DoesNotContain, "Ada", new[] { 2 })]
+    [InlineData(FilterCase.MatchCase, FilterOperator.NotEquals, "ADA", new[] { 1, 2 })]
+    [InlineData(FilterCase.MatchCase, FilterOperator.DoesNotContain, "ADA", new[] { 1, 2 })]
+    public void FilterCase_on_a_nullable_column_keeps_the_same_rows_through_EF(FilterCase textCase, FilterOperator op, string value, int[] expected)
+    {
+        using var db = People();
+        DataField<Person>[] fields = [new() { Key = "maybe", Value = (Expression<Func<Person, string?>>)(p => p.Maybe), Filterable = true, Case = textCase }];
+        var memory = new[] { new Person { Id = 1, Exact = "Ada", AnyCase = "Ada", Maybe = "Ada" }, new Person { Id = 2, Exact = "Grace", AnyCase = "Grace" } };
+        var request = new DataRequest<Person> { Filter = Filter.Where("maybe", op, value) };
+
+        var query = request.Apply(db.People.AsNoTracking(), fields);
+        Assert.Equal(expected, query.Select(p => p.Id).OrderBy(i => i).ToArray());
+        Assert.Equal(expected, request.Apply(memory.AsQueryable(), fields).Select(p => p.Id).OrderBy(i => i).ToArray());
+        Assert.Equal(textCase == FilterCase.IgnoreCase, query.ToQueryString().Contains("lower(", StringComparison.OrdinalIgnoreCase));
+    }
+
+    // "Matches nothing, whoever writes it": a field's own condition doesn't get round its operators.
+    [Fact]
+    public void A_fields_own_condition_doesnt_get_round_its_operators()
+    {
+        DataField<Member>[] fields =
+        [
+            new()
+            {
+                Key = "name",
+                Value = (Expression<Func<Member, string>>)(m => m.Name),
+                Filterable = true,
+                Operators = [FilterOperator.Equals],
+                Filter = _ => m => true,
+            },
+        ];
+
+        int[] Ids(FilterOperator op) => new DataRequest<Member> { Filter = Filter.Where("name", op, "Ada") }.Apply(Members.AsQueryable(), fields).Select(m => m.Id).ToArray();
+
+        Assert.Equal(Members.Length, Ids(FilterOperator.Equals).Length);
+        Assert.Empty(Ids(FilterOperator.Contains));
+    }
+
+    // A number in a culture: as the person writes it when its groups are whole, else the invariant form.
+    [Theory]
+    [InlineData("de-DE", "1000.25", 1000.25)]
+    [InlineData("de-DE", "1.5", 1.5)]
+    [InlineData("de-DE", "1,5", 1.5)]
+    [InlineData("de-DE", "1.234,5", 1234.5)]
+    [InlineData("de-DE", "1.234", 1234.0)]
+    [InlineData("de-DE", "1.234.567", 1234567.0)]
+    [InlineData("en-US", "1,234.5", 1234.5)]
+    [InlineData("en-US", "1000.25", 1000.25)]
+    public void A_number_reads_by_its_culture_when_its_groups_are_whole(string culture, string text, double expected)
+    {
+        var was = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo(culture);
+        try
+        {
+            Assert.True(FilterConvert.TryParse(typeof(decimal), text, out var value), text);
+            Assert.Equal((decimal)expected, value);
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = was;
+        }
+    }
+
+    [Fact]
+    public void A_comma_that_isnt_a_group_isnt_a_number_in_english()
+    {
+        var was = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.GetCultureInfo("en-US");
+        try
+        {
+            Assert.False(FilterConvert.TryParse(typeof(decimal), "1,5", out _));
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = was;
+        }
     }
 
     public static TheoryData<FilterOperator, object> CaseConditions => new()

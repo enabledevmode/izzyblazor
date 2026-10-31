@@ -144,6 +144,12 @@ internal static class FilterExpression
             return False;
         }
 
+        // A list of operators holds whoever builds the condition.
+        if (field.Operators is { } allowed && !allowed.Contains(filter.Operator))
+        {
+            return False;
+        }
+
         if (field.Filter is { } custom)
         {
             // The field's own condition, given the values as its type (as far as they convert).

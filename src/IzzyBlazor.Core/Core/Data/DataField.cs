@@ -83,7 +83,11 @@ public enum FilterCase
     /// <summary>Upper and lower case are the same: both sides are lowered, which a database index can't serve. The default.</summary>
     IgnoreCase,
 
-    /// <summary>Upper and lower case differ.</summary>
+    /// <summary>
+    /// Upper and lower case differ, as far as the data's own comparison goes: text is compared as it
+    /// is. In memory, that's exact. A database still has its say: SQLite's <c>LIKE</c>, which EF Core
+    /// uses for a starts-with or ends-with, ignores case in ASCII.
+    /// </summary>
     MatchCase,
 
     /// <summary>

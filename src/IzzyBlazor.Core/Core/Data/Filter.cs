@@ -197,7 +197,8 @@ public enum FilterOperator
 
     /// <summary>
     /// A date on the day in the value. A <c>DateTime</c> keeps the day's range (an index can serve
-    /// it); a <c>DateTimeOffset</c> compares the day on the clock where it was recorded.
+    /// it); a <c>DateTimeOffset</c> compares the day on the clock where it was recorded, which EF Core
+    /// can't translate on SQLite.
     /// </summary>
     OnDay,
 }
