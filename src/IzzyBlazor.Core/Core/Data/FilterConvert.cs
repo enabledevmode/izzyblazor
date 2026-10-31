@@ -513,6 +513,21 @@ internal static class FilterConvert
         return IsNumeric(type) && TryParse(typeof(double), text, out var large) && large is not null ? large : text.Trim();
     }
 
+    /// <summary>Runs this with the invariant culture, for values that travel rather than ones people type.</summary>
+    public static T Invariantly<T>(Func<T> read)
+    {
+        var culture = CultureInfo.CurrentCulture;
+        CultureInfo.CurrentCulture = CultureInfo.InvariantCulture;
+        try
+        {
+            return read();
+        }
+        finally
+        {
+            CultureInfo.CurrentCulture = culture;
+        }
+    }
+
     /// <summary>A value as text a filter field shows: numbers in the current culture, days as yyyy-MM-dd, enums by name.</summary>
     public static string Format(object? value) => Unwrap(value) switch
     {

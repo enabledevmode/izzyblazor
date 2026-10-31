@@ -237,7 +237,8 @@ class Table extends IzzyElement {
           event.preventDefault();
           return;
         }
-        if (event.key !== "Enter" || !inPanel || target instanceof HTMLSelectElement || event.isComposing || this.#typing.composing) return;
+        // Enter on a list's Load more or Retry is that button's.
+        if (event.key !== "Enter" || !inPanel || target instanceof HTMLSelectElement || target instanceof HTMLButtonElement || event.isComposing || this.#typing.composing) return;
         event.preventDefault(); // Not the GET form's full reload.
         clearTimeout(this.#timer);
         this.#apply(false);

@@ -1,0 +1,24 @@
+@* FilterList reads a text column's values from Items. FilterValues finds them yourself, as from a
+   database: it gets what's typed in the list's box and what the other filters leave. *@
+<Table Items="_orders" PageSize="5" Caption="Orders by customer" QueryPrefix="values-" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" />
+    <PropertyColumn Property="o => o.Customer" Sortable Filterable FilterValues="LoadCustomers" />
+    <PropertyColumn Property="o => o.City" Sortable Filterable FilterList />
+    <PropertyColumn Property="o => o.Region" Filterable />
+</Table>
+
+@code {
+    private enum Region { East, West }
+
+    private sealed record Order(int Number, string Customer, string? City, Region Region);
+
+    private static readonly Order[] _orders = Enumerable.Range(1, 600)
+        .Select(i => new Order(1000 + i, $"Customer {i:000}", i % 25 == 0 ? null : $"City {i % 12:00}", i % 2 == 0 ? Region.East : Region.West))
+        .ToArray();
+
+    private static readonly IReadOnlyList<DataField<Order>> _fields = DataFields.Of<Order>();
+
+    // With a database, r.ToResultAsync(db.Orders, _fields, (q, ct) => q.ToListAsync(ct)).
+    private static ValueTask<FilterValuesResult> LoadCustomers(FilterValuesRequest r) =>
+        ValueTask.FromResult(r.ToResult(_orders.AsQueryable(), _fields));
+}

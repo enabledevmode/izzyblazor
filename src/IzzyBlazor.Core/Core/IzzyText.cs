@@ -213,6 +213,21 @@ public class IzzyText
     /// <summary>A list filter's Select all while a search narrows it; {0} is how many rows it found.</summary>
     public virtual string FilterSelectAllResults { get; set; } = "Select all {0} results";
 
+    /// <summary>What a list filter with some rows unticked is set to; {0} is the value, or how many: "All but Ada", "All but 3".</summary>
+    public virtual string FilterAllBut { get; set; } = "All but {0}";
+
+    /// <summary>A list filter whose search found nothing.</summary>
+    public virtual string FilterNoValues { get; set; } = "No values found";
+
+    /// <summary>A list filter with more rows than it will show or select.</summary>
+    public virtual string FilterKeepTyping { get; set; } = "Keep typing to see more";
+
+    /// <summary>A list filter whose values failed to load, before a Retry button.</summary>
+    public virtual string FilterValuesFailed { get; set; } = "Couldn't load the values.";
+
+    /// <summary>A list filter holding as many values as it can; {0} is how many.</summary>
+    public virtual string FilterValuesLimit { get; set; } = "A filter can hold {0} values at most.";
+
     /// <summary>A Table filter option for true.</summary>
     public virtual string Yes { get; set; } = "Yes";
 

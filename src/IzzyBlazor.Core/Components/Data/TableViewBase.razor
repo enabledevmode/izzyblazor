@@ -571,11 +571,11 @@
 
     // The filter tree for a request: each filtered column's condition and a bound filter's others,
     // all together; null when nothing is filtered.
-    private IzzyBlazor.Filter? CurrentFilter()
+    private IzzyBlazor.Filter? CurrentFilter(ColumnBase<TItem>? except = null)
     {
         var filters = CurrentFilters();
         var conditions = _columns
-            .Where(c => c.CanFilter && filters.ContainsKey(c.Key!))
+            .Where(c => c != except && c.CanFilter && filters.ContainsKey(c.Key!))
             .Select(c => ColumnFilter.Condition(c, filters[c.Key!]))
             .OfType<IzzyBlazor.Filter>()
             .Concat(UseState ? _stateExtra : [])
@@ -708,6 +708,10 @@
                 return value;
             case FilterOperator.In when kind == ColumnFilterKind.Choice:
                 return ColumnFilter.ListOf(column, TextDefaults).FirstOrDefault(r => string.Equals(r.Value, current.Values[0], StringComparison.OrdinalIgnoreCase)).Text ?? value;
+            case FilterOperator.In when column.HasValueList:
+                return ValueText(column, current.Values[0]);
+            case FilterOperator.NotIn:
+                return string.Format(culture, TextDefaults.FilterAllBut, current.Values.Count == 1 ? ValueText(column, current.Values[0]) : current.Values.Count);
             case FilterOperator.Equals when kind != ColumnFilterKind.Text:
             case FilterOperator.In:
                 return value;
@@ -724,7 +728,9 @@
         var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label;
         var placement = column.EffectiveAlign == CellAlign.End ? Placement.BottomEnd : Placement.BottomStart;
         var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
-        <Popover Placement="placement" data-ib-user-controlled>
+        var lists = column.HasValueList && RendererInfo.IsInteractive;
+        var toggled = lists ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
+        <Popover Placement="placement" data-ib-user-controlled OpenChanged="toggled">
             <Trigger>
                 <button type="button" class="ib-table-filter-button" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
                     <Icon Role="IconRole.Filter" />
@@ -736,7 +742,11 @@
                 {
                     @FilterList(column, current, label, fieldId)
                 }
-                else if (current.Op == FilterOperator.In)
+                else if (lists && ShowsValueList(column))
+                {
+                    @ValueList(column, label, fieldId)
+                }
+                else if (ColumnFilter.IsListState(current))
                 {
                     @* A list from the address that one box can't show: its values post as they came,
                        so no script or form changes what the link means, and Clear removes it. *@
@@ -745,9 +755,12 @@
                         <span>@FilterSummary(column, current)</span>
                         @if (!UseState)
                         {
-                            foreach (var value in current.Values)
+                            foreach (var (name, written) in ColumnFilter.Write(column, FilterQueryKey(column), current))
                             {
-                                <input type="hidden" name="@FilterQueryKey(column)" value="@value" form="@FilterFormId" data-ib-filter />
+                                foreach (var value in written as string[] ?? (written is string one ? [one] : []))
+                                {
+                                    <input type="hidden" name="@name" value="@value" form="@FilterFormId" data-ib-filter />
+                                }
                             }
                         }
                         @FilterPanelActions(column, current)
@@ -890,6 +903,381 @@
             @FilterPanelActions(column, current)
         </div>
     };
+
+    // What's kept of a list of looked-up values on an interactive page, by column. Rows stay while the
+    // next ones load, so opening a panel again doesn't flicker.
+    private sealed class ValueListState
+    {
+        public List<FilterValue> Rows = [];
+        public int NextSkip;
+        public bool HasMore;
+        public bool Loading;
+        public bool Failed;
+        public bool LastWasMore;
+
+        // What's in the box, and what the rows are for: the rows don't change until they've come.
+        public string Search = "";
+        public string RowsSearch = "";
+
+        public CancellationTokenSource? Load;
+        public CancellationTokenSource? SearchPause;
+
+        // On a page with no bound filter, ticks wait here for their pause, and until the address has them.
+        public ColumnFilterValue? Pending;
+        public CancellationTokenSource? Apply;
+        public bool Waiting;
+
+        // What the column's keys say in the address, to tell a move that's about them, and what these ticks will make them.
+        public string? Before;
+        public string? Sent;
+
+        // What must stay listed, as the first page was asked: a later page counts from it, whatever's ticked since.
+        public IReadOnlyList<string?> Ticked = [];
+        public IReadOnlyList<string?> Unticked = [];
+
+        // Whether these rows are every value there is, with nothing narrowing them.
+        public bool Whole;
+
+        // While open, which panel it opened as: clearing the usual panel doesn't swap it under the keyboard.
+        public bool? OpenAsList;
+
+        public bool Searching => !string.IsNullOrWhiteSpace(RowsSearch);
+
+        public bool Full => Rows.Count >= MaxValueRows;
+    }
+
+    // How many rows a list holds before asking for more typing instead.
+    private const int MaxValueRows = 500;
+
+    private readonly Dictionary<string, ValueListState> _valueLists = new(StringComparer.OrdinalIgnoreCase);
+
+    private ValueListState ValueListOf(ColumnBase<TItem> column)
+    {
+        if (!_valueLists.TryGetValue(column.Key!, out var list))
+        {
+            _valueLists[column.Key!] = list = new();
+        }
+
+        return list;
+    }
+
+    // What the list's boxes show: ticks waiting to reach the address, or the filter.
+    private ColumnFilterValue ValueListFilter(ColumnBase<TItem> column) =>
+        ValueListOf(column).Pending ?? CurrentFilters().GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column);
+
+    // A condition the list can't show (from a link, or a bound filter) has the column's usual panel.
+    private bool ShowsValueList(ColumnBase<TItem> column) =>
+        ValueListOf(column).OpenAsList ?? (ValueListFilter(column) is var value && (!value.IsFilter || ColumnFilter.IsListState(value)));
+
+    private StringComparer ValueComparer => FilterCase == FilterCase.IgnoreCase ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal;
+
+    // A value in words: the blank row's, or what the rows loaded say, as a loader can show a name for an id.
+    private string ValueText(ColumnBase<TItem> column, string? value) => value is null
+        ? TextDefaults.FilterBlank
+        : ValueListOf(column).Rows.FirstOrDefault(r => ValueComparer.Equals(r.Value, value))?.Text ?? value;
+
+    /// <summary>The words a DataGrid's search holds, for narrowing a list.</summary>
+    internal virtual string? ValuesGridSearch => null;
+
+    // A list of looked-up values, drawn here as C# holds them: rows, Select all and the search all come
+    // from the server, so the script leaves them alone (data-ib-list-remote). Static pages and no
+    // script have the column's usual panel.
+    private RenderFragment ValueList(ColumnBase<TItem> column, string label, string fieldId) => __builder =>
+    {
+        var list = ValueListOf(column);
+        var current = ValueListFilter(column);
+        var full = !current.None && current.Values.Count >= ColumnFilter.MaxListValues;
+        var searchTooLong = list.Searching && (list.HasMore || list.Full);
+        var message = list.Failed ? TextDefaults.FilterValuesFailed
+            : list.Searching && list.Rows.Count == 0 && !list.Loading ? TextDefaults.FilterNoValues
+            : full ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterValuesLimit, ColumnFilter.MaxListValues)
+            : searchTooLong || list.Full ? TextDefaults.FilterKeepTyping
+            : null;
+        <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
+            <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+            <ib-filter-list data-ib-list-remote data-ib-load-on-scroll data-ib-all="@AllTicked(list, current)" aria-busy="@(list.Loading ? "true" : null)">
+                <div class="ib-field ib-field-sm ib-filter-list-search">
+                    <div class="ib-field-control">
+                        <input type="search" class="ib-field-input" aria-label="@TextDefaults.FilterSearchValues" placeholder="@TextDefaults.FilterSearchValues" autocomplete="off" autofocus data-ib-bound-search
+                               @oninput="e => OnValueSearchAsync(column, list, e.Value?.ToString() ?? string.Empty)" />
+                    </div>
+                </div>
+                <label class="ib-check ib-filter-list-all">
+                    <input type="checkbox" class="ib-check-input" disabled="@(!CanSelectAll(list, current))" data-ib-list-all
+                           @onchange="e => OnValueSelectAllAsync(column, list, e.Value is true)" />
+                    <span hidden="@(list.Searching && !searchTooLong)">@TextDefaults.SelectAll</span><span data-ib-list-results hidden="@(!list.Searching || searchTooLong)">@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterSelectAllResults, list.Rows.Count)</span>
+                </label>
+                <div class="ib-filter-list-items">
+                    @foreach (var row in list.Rows)
+                    {
+                        var on = ColumnFilter.IsValueTicked(current, row.Value, ValueComparer);
+                        <label @key="row.Value ?? BlankRowKey" class="ib-check">
+                            <input type="checkbox" class="ib-check-input" checked="@on" disabled="@(full && on == (current.Op == FilterOperator.NotIn))"
+                                   @onchange="e => OnValueTickAsync(column, list, row.Value, e.Value is true)" />
+                            <span>@(row.Text ?? row.Value ?? TextDefaults.FilterBlank)</span>
+                        </label>
+                    }
+                    @if (list.HasMore && !list.Full && !list.Failed)
+                    {
+                        @* Script presses the hidden one as the last row comes into view; the other is the keyboard's. *@
+                        <Button Class="ib-data-more-on-focus" Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" Loading="list.Loading" data-ib-list-more OnClick="() => LoadValuesAsync(column, list, more: true)">@TextDefaults.LoadMore</Button>
+                        @if (!list.Loading)
+                        {
+                            <button type="button" hidden data-ib-load-next @onclick="() => LoadValuesAsync(column, list, more: true)"></button>
+                        }
+                    }
+                </div>
+                @if (list.Loading && list.Rows.Count == 0)
+                {
+                    <Spinner />
+                }
+                <div class="ib-filter-list-status" role="status">@message</div>
+                @if (list.Failed)
+                {
+                    <Button Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm" data-ib-list-retry OnClick="() => LoadValuesAsync(column, list, list.LastWasMore)">@TextDefaults.Retry</Button>
+                }
+            </ib-filter-list>
+            @FilterPanelActions(column, current)
+        </div>
+    };
+
+    // Rows are keyed by their value, and the blank has none. No value is this.
+    private static readonly object BlankRowKey = new();
+
+    // Select all acts on the rows it's about: not on rows from before what's in the box, or a search
+    // that failed, or a search with more than are here, or past the limit on what a filter holds.
+    private static bool CanSelectAll(ValueListState list, ColumnFilterValue current) =>
+        !list.Failed && list.Search.Trim() == list.RowsSearch
+        && (!list.Searching || (!list.HasMore && !list.Full && list.Rows.Count > 0 && (current.None || current.Values.Count < ColumnFilter.MaxListValues)));
+
+    // What Select all shows, which the script sets: as what's listed when a search narrows it, and
+    // otherwise as the filter, as there may be more rows than are here.
+    private string AllTicked(ValueListState list, ColumnFilterValue current)
+    {
+        if (!list.Searching)
+        {
+            return !current.IsFilter ? "on" : current.None ? "off" : "mixed";
+        }
+
+        var ticked = list.Rows.Count(r => ColumnFilter.IsValueTicked(current, r.Value, ValueComparer));
+        return ticked == 0 ? "off" : ticked == list.Rows.Count ? "on" : "mixed";
+    }
+
+    // Only a panel that's open asks for its values, and it asks each time, as what the other filters
+    // leave may have changed. Closing ends a search.
+    private Task OnValueListToggleAsync(ColumnBase<TItem> column, bool open)
+    {
+        var list = ValueListOf(column);
+        list.OpenAsList = null;
+        if (open)
+        {
+            list.OpenAsList = ShowsValueList(column);
+            return list.OpenAsList == true ? LoadValuesAsync(column, list, more: false) : Task.CompletedTask;
+        }
+
+        list.Load?.Cancel();
+        list.SearchPause?.Cancel();
+        (list.Loading, list.Search) = (false, "");
+        return Task.CompletedTask;
+    }
+
+    private async Task OnValueSearchAsync(ColumnBase<TItem> column, ValueListState list, string text)
+    {
+        list.Search = text;
+        list.SearchPause?.Cancel();
+        var pause = list.SearchPause = new CancellationTokenSource();
+        try
+        {
+            await Task.Delay(FilterDelay, pause.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        await LoadValuesAsync(column, list, more: false);
+    }
+
+    private async Task LoadValuesAsync(ColumnBase<TItem> column, ValueListState list, bool more)
+    {
+        list.Load?.Cancel();
+        var load = list.Load = new CancellationTokenSource();
+        (list.Loading, list.Failed, list.LastWasMore) = (true, false, more);
+        var search = list.Search.Trim();
+        if (!more)
+        {
+            var current = ValueListFilter(column);
+            list.Ticked = current is { None: false, Op: FilterOperator.In } ? current.Values : [];
+            list.Unticked = current.Op == FilterOperator.NotIn ? current.Values : [];
+        }
+
+        var request = new FilterValuesRequest
+        {
+            Field = column.Key!,
+            Search = search.Length > 0 ? search : null,
+            Skip = more ? list.NextSkip : 0,
+            OtherFilters = CurrentFilter(except: column),
+            GridSearch = ValuesGridSearch,
+            Ticked = list.Ticked,
+            Unticked = list.Unticked,
+            CancellationToken = load.Token,
+        };
+
+        FilterValuesResult result;
+        int asked;
+        try
+        {
+            if (column.FilterValues is { } loader)
+            {
+                result = await loader(request);
+                asked = result.Values.Count;
+                result = request.Keeping(result, FilterCase);
+            }
+            else
+            {
+                var fields = _columns.Select(c => c.ToField(TextDefaults)).OfType<DataField<TItem>>().ToList();
+                result = request.ToResult(AsQuery(SourceItems ?? []), fields);
+                asked = result.Values.Count;
+            }
+        }
+        catch (Exception) when (load.IsCancellationRequested)
+        {
+            return;
+        }
+        catch (Exception ex)
+        {
+            if (list.Load == load)
+            {
+                (list.Loading, list.Failed) = (false, true);
+                Logger?.LogError(ex, "The {View}'s list of values for \"{Column}\" failed to load.", ViewName, column.Key);
+            }
+
+            return;
+        }
+
+        if (list.Load != load || load.IsCancellationRequested)
+        {
+            return;
+        }
+
+        // A loader may well repeat a value it was told to keep.
+        var rows = more ? list.Rows : [];
+        var known = rows.Select(r => r.Value).ToHashSet();
+        rows = [.. rows, .. result.Values.Where(r => known.Add(r.Value))];
+        list.Rows = rows.Count > MaxValueRows ? rows.GetRange(0, MaxValueRows) : rows;
+        (list.HasMore, list.NextSkip, list.Loading, list.RowsSearch) = (result.HasMore, request.Skip + asked, false, search);
+        list.Whole = !list.HasMore && search.Length == 0 && request.OtherFilters is null && string.IsNullOrEmpty(request.GridSearch);
+    }
+
+    private Task OnValueTickAsync(ColumnBase<TItem> column, ValueListState list, string? value, bool on) =>
+        SetValueListAsync(column, list, ColumnFilter.TickValue(column, ValueListFilter(column), value, on, ValueComparer));
+
+    // With no search it takes in rows that aren't here yet, so it's simply no filter or none. With one,
+    // it's each row listed.
+    private Task OnValueSelectAllAsync(ColumnBase<TItem> column, ValueListState list, bool on)
+    {
+        var next = ValueListFilter(column);
+        if (!CanSelectAll(list, next))
+        {
+            return Task.CompletedTask;
+        }
+
+        if (list.Searching)
+        {
+            foreach (var row in list.Rows)
+            {
+                next = ColumnFilter.TickValue(column, next, row.Value, on, ValueComparer);
+            }
+        }
+        else
+        {
+            next = on ? ColumnFilter.Empty(column) : new(FilterOperator.In, [], None: true);
+        }
+
+        return SetValueListAsync(column, list, next);
+    }
+
+    // After the usual pause. With every value there is on these rows and every one the same, all
+    // ticked is no filter and none ticked is none, however it got there. Rows the other filters have
+    // narrowed aren't that: ticking all of those still means those.
+    private async Task SetValueListAsync(ColumnBase<TItem> column, ValueListState list, ColumnFilterValue value)
+    {
+        if (list.Whole && list.Rows.Count > 0 && value is { None: false, IsFilter: true } && list.Rows.All(r => value.Values.Contains(r.Value, ValueComparer)))
+        {
+            value = value.Op == FilterOperator.In ? ColumnFilter.Empty(column) : new(FilterOperator.In, [], None: true);
+        }
+
+        if (UseState)
+        {
+            await SetFilterAsync(column, value, wait: true);
+            return;
+        }
+
+        list.Before = list.Pending is null ? AddressKeys(column, Navigation.Uri) : list.Before;
+        list.Pending = value;
+        list.Apply?.Cancel();
+        var apply = list.Apply = new CancellationTokenSource();
+        list.Waiting = true;
+        try
+        {
+            await Task.Delay(FilterDelay, apply.Token);
+        }
+        catch (TaskCanceledException)
+        {
+            return;
+        }
+
+        list.Waiting = false;
+
+        // Not the section in the address, which Blazor would scroll back to. Ticks that came back to
+        // where they started aren't a place in the history.
+        var href = FilterHref(column, value).Split('#')[0];
+        if (AddressKeys(column, href) == AddressKeys(column, Navigation.Uri))
+        {
+            list.Pending = null;
+            StateHasChanged();
+            return;
+        }
+
+        list.Sent = AddressKeys(column, href);
+        Navigation.NavigateTo(href);
+    }
+
+    // The page and what a column's keys say there.
+    private string AddressKeys(ColumnBase<TItem> column, string uri) =>
+        $"{new Uri(uri).AbsolutePath}?{ColumnFilter.Read(column, FilterQueryKey(column), QueryString.Of(uri))?.Signature}";
+
+    /// <inheritdoc />
+    internal override void AddressChanged(string location)
+    {
+        // Ticks on their way are in the address now. Ticks waiting for their pause carry on through a
+        // sort, a page or another filter, as a static page's do, and go with a move that changes this
+        // column's own filter, or leaves the page.
+        foreach (var column in _columns.Where(c => c.CanFilter && c.HasValueList))
+        {
+            var list = ValueListOf(column);
+            var keys = AddressKeys(column, location);
+            if (keys == list.Sent)
+            {
+                (list.Before, list.Sent) = (keys, null);
+            }
+
+            if (list.Pending is null)
+            {
+                continue;
+            }
+
+            if (!list.Waiting)
+            {
+                list.Pending = null;
+            }
+            else if (keys != list.Before)
+            {
+                list.Apply?.Cancel();
+                (list.Pending, list.Sent, list.Waiting) = (null, null, false);
+            }
+        }
+    }
 
     // The word for a range's lower end, "Min" or "From".
     private string LowerWord(ColumnBase<TItem> column) => column.FilterKind == ColumnFilterKind.Date ? TextDefaults.FilterFrom : TextDefaults.FilterMin;
@@ -1420,5 +1808,11 @@
     {
         base.Dispose();
         _filterDelay?.Cancel();
+        foreach (var list in _valueLists.Values)
+        {
+            list.Load?.Cancel();
+            list.SearchPause?.Cancel();
+            list.Apply?.Cancel();
+        }
     }
 }

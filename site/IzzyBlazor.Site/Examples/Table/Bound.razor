@@ -4,7 +4,7 @@
     <Table Items="Orders.All" PageSize="5" InitialSort="-number" Caption="Order history" QueryPrefix="bound-"
            @bind-Sort="_sort" @bind-Page="_page" @bind-Filter="_filter">
         <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
-        <PropertyColumn Property="o => o.Customer" Sortable Filterable />
+        <PropertyColumn Property="o => o.Customer" Sortable Filterable FilterList />
         <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable />
         <PropertyColumn Property="o => o.Status" Sortable Filterable />
         <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable />

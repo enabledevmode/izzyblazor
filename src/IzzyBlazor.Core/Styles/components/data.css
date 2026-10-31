@@ -643,6 +643,15 @@
     display: none;
   }
 
+  .ib-filter-list-status {
+    color: var(--ib-color-muted);
+    font-size: var(--ib-text-sm);
+  }
+
+  .ib-filter-list-status:empty {
+    display: none;
+  }
+
   ib-filter-list[data-ib-failed] :is(.ib-filter-list-all, .ib-filter-list-search) {
     display: none;
   }

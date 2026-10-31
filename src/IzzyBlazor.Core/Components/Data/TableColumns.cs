@@ -47,6 +47,22 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public Func<FieldFilter, Expression<Func<TItem, bool>>?>? Filter { get; set; }
 
+    /// <summary>
+    /// Makes this column's filter a list of checkboxes with a search, its values found here when the
+    /// panel opens: a page at a time, narrowed by the other filters, and loading more on scroll. Use
+    /// <see cref="FilterValuesRequest.ToResultAsync"/> to read them from a query. Where a page has no
+    /// list yet, or no script, the column shows its usual filter. Not with <see cref="FilterOperators"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the column shows its usual filter in place of the list.")]
+    public FilterValuesLoader? FilterValues { get; set; }
+
+    /// <summary>
+    /// As <see cref="FilterValues"/>, reading a text column's values from the table's <c>Items</c>.
+    /// With an <c>ItemsProvider</c> there's nothing to read, so use <see cref="FilterValues"/>.
+    /// </summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the column shows its usual filter in place of the list.")]
+    public bool FilterList { get; set; }
+
     /// <summary>How the cells line up. Defaults to the end for numbers and the start otherwise.</summary>
     [Parameter] public CellAlign? Align { get; set; }
 
@@ -99,6 +115,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     internal bool CanSort => Sortable && Key is not null && HasSortExpression;
 
     internal bool CanFilter => Filterable && Key is not null && FilterKind != ColumnFilterKind.None;
+
+    /// <summary>Whether the column's filter lists values that are looked up, as an enum's aren't.</summary>
+    internal bool HasValueList => FilterValues is not null || FilterList;
 
     /// <summary>What kind of filter the column offers.</summary>
     internal virtual ColumnFilterKind FilterKind => ColumnFilterKind.None;
@@ -197,6 +216,11 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
         {
             throw new InvalidOperationException(operators);
         }
+
+        if (ColumnFilter.ValueListProblem(this) is { } list)
+        {
+            throw new InvalidOperationException(list);
+        }
     }
 
     /// <inheritdoc />
@@ -205,7 +229,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators));
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -327,6 +351,7 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
         Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
         Choices = FilterKind == ColumnFilterKind.Choice ? FilterChoices(text) : null,
         Filter = Filter,
+        FilterValues = FilterValues,
     };
 
     internal override RenderFragment Cell(TItem item) => builder =>
@@ -385,6 +410,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         Operators = ColumnFilter.FieldOperators(this),
         Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
         Filter = Filter,
+        FilterValues = FilterValues,
     };
 
     internal override RenderFragment Cell(TItem item) => ChildContent?.Invoke(item) ?? (_ => { });
