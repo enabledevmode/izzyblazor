@@ -73,7 +73,7 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
    renders. An element most pages won't have (a table, a combobox, a color picker) loads on
    demand instead: add it to the loaders in `Scripts/lazy.ts` and to `lazyElements` in
    `build/build-assets.mjs`, not to `index.ts`. Every page loads the main module (15 KB gzip
-   budget); each on-demand element is its own file (5 KB each). Its server-rendered markup must
+   budget); each on-demand element is its own file (6 KB each). Its server-rendered markup must
    work without script: with JavaScript off, and where its code can't load (lazy.ts then marks
    it `data-ib-failed`, and its CSS lays it out as with no script).
    **The script adds behavior, never layout.** IzzyBlazor's script arrives after the page first
