@@ -17,7 +17,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         await grid.ScrollIntoViewIfNeededAsync();
         if (mode == "interactive") await grid.Locator("xpath=ancestor-or-self::ib-table[@data-ib-interactive]").WaitForAsync();
         // The on-demand element's listeners are on once it has set up.
-        if (script) await page.WaitForFunctionAsync("() => customElements.get('ib-table')");
+        if (script) await page.WaitForFunctionAsync("() => !!customElements.get('ib-table')", null, new() { PollingInterval = 100 });
         return (browser, page, grid);
     }
 
@@ -446,7 +446,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         var context = await browser.NewContextAsync(new() { Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, address).ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        await page.WaitForFunctionAsync("() => customElements.get('ib-table')");
+        await page.WaitForFunctionAsync("() => !!customElements.get('ib-table')", null, new() { PollingInterval = 100 });
         return (browser, page);
     }
 
