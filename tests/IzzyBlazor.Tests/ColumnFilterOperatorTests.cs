@@ -477,6 +477,117 @@ public class ColumnFilterOperatorTests : BunitContext
     // Typing's pause ends on a timer, whose render can come between finding an element and using it.
     private static void Again<T>(IRenderedComponent<T> cut, Action act) where T : IComponent => cut.WaitForAssertion(act, Timer);
 
+    [Fact]
+    public void A_parent_restoring_the_last_filter_it_was_told_is_heard()
+    {
+        var reported = new List<Filter?>();
+        var cut = Bound(reported);
+        var note = () => Panel(cut, "Filter Note").Single();
+        Again(cut, () => note().QuerySelector("input")!.Input("fir"));
+        cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada" }, Names(cut)), Timer);
+        var told = reported[^1]!;
+
+        // The parent echoes it, clears it, then puts the same one back.
+        cut.Render(p => p.Add(t => t.Filter, told));
+        Assert.Equal(new[] { "Ada" }, Names(cut));
+        cut.Render(p => p.Add(t => t.Filter, null));
+        Assert.Equal(Lines.Length, Names(cut).Length);
+        cut.Render(p => p.Add(t => t.Filter, told));
+        Assert.Equal(new[] { "Ada" }, Names(cut));
+        Assert.Equal("fir", note().QuerySelector("input")!.GetAttribute("value"));
+    }
+
+    // What a panel's box can't hold as it is stays a condition of its own, meaning what it says.
+    [Theory]
+    [InlineData(FilterOperator.Equals, "", new[] { "Grace" }, "note eq ''")]
+    [InlineData(FilterOperator.Contains, "  ", new string[0], "contains(note,'  ')")]
+    [InlineData(FilterOperator.Contains, "fir ", new string[0], "contains(note,'fir ')")]
+    [InlineData(FilterOperator.StartsWith, " fir", new string[0], "startswith(note,' fir')")]
+    public void Text_a_panel_cant_hold_as_it_is_stays_a_tag(FilterOperator op, string value, string[] rows, string tag)
+    {
+        var reported = new List<Filter?>();
+        var cut = Bound(reported, filter: Filter.Where("note", op, value));
+
+        Assert.Equal(rows, Names(cut));
+        Assert.Contains(Tags(cut), t => t.Contains(tag, StringComparison.Ordinal));
+        Assert.Empty(cut.FindAll(".ib-table-filter-button[data-active]"));
+        Assert.Equal("", Panel(cut, "Filter Note").Single().QuerySelector("input")!.GetAttribute("value") ?? "");
+    }
+
+    // A filter from the parent that only a tag shows still counts as a change, and only once.
+    [Fact]
+    public void A_filter_only_a_tag_shows_starts_virtual_rows_again_and_a_parents_render_doesnt()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var asked = new List<DataRequest<Line>>();
+        var cut = Render<DataGrid<Line>>(p => p
+            .Add(t => t.Virtualize, true)
+            .Add(t => t.MaxHeight, Length.Rem(20))
+            .Add(t => t.PageSize, 2)
+            .Add(t => t.FilterChanged, (Filter? _) => { })
+            .Add(t => t.ItemsProvider, request =>
+            {
+                asked.Add(request);
+                return ValueTask.FromResult(new DataResult<Line>(request.ApplyFiltering(Lines.AsQueryable()).Skip(request.Skip).Take(request.Take ?? 2).ToList(), request.ApplyFiltering(Lines.AsQueryable()).Count()));
+            })
+            .Add(t => t.ChildContent, AllColumns));
+        cut.WaitForAssertion(() => Assert.NotEmpty(asked), Timer);
+        var load = cut.Find("table").GetAttribute("data-ib-load");
+
+        var only = Filter.In("qty", [1, 2]);
+        cut.Render(p => p.Add(t => t.Filter, only));
+        cut.WaitForAssertion(() =>
+        {
+            Assert.NotEqual(load, cut.Find("table").GetAttribute("data-ib-load"));
+            Assert.Equal(only, asked[^1].Filter?.Find("qty"));
+        }, Timer);
+        Assert.Contains(Tags(cut), t => t.Contains("qty in (1,2)", StringComparison.Ordinal));
+
+        var after = cut.Find("table").GetAttribute("data-ib-load");
+        var times = asked.Count;
+        cut.Render(p => p.Add(t => t.Caption, "Another"));
+        cut.Render(p => p.Add(t => t.Caption, "Again"));
+        Assert.Equal(after, cut.Find("table").GetAttribute("data-ib-load"));
+        Assert.Equal(times, asked.Count);
+    }
+
+    [Fact]
+    public void A_filter_only_a_tag_shows_starts_loading_on_scroll_again()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<Table<Line>>(p => p
+            .Add(t => t.Items, Lines)
+            .Add(t => t.Paging, DataPaging.LoadOnScroll)
+            .Add(t => t.PageSize, 2)
+            .Add(t => t.MaxHeight, Length.Rem(10))
+            .Add(t => t.FilterChanged, (Filter? _) => { })
+            .Add(t => t.ChildContent, b => b.AddContent(0, Col(r => r.Name))));
+        Assert.Equal(2, Names(cut).Length);
+        cut.Find("[data-ib-load-next]").Click();
+        cut.WaitForAssertion(() => Assert.Equal(4, Names(cut).Length), Timer);
+
+        cut.Render(p => p.Add(t => t.Filter, Filter.Any(Filter.Where("name", FilterOperator.Equals, "Ada"))));
+        cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada" }, Names(cut)), Timer);
+    }
+
+    // A number nobody can write back: as text, it matches nothing, on the screen and in the export.
+    [Theory]
+    [InlineData("f-qty=Infinity")]
+    [InlineData("f-qty=NaN")]
+    [InlineData("f-qty=-Infinity")]
+    [InlineData("f-qty-op=lt&f-qty=1e999")]
+    public void A_number_with_no_literal_still_exports(string query)
+    {
+        var cut = Grid("/lines?" + query);
+
+        var rows = Names(cut);
+        Assert.Empty(rows);
+        var href = cut.Find("a[download]").GetAttribute("href")!;
+        var text = Uri.UnescapeDataString(href[(href.IndexOf("filter=", StringComparison.Ordinal) + 7)..].Split('&')[0]);
+        Assert.True(Filter.TryParse(text, out _), text);
+    }
+
     private static IEnumerable<AngleSharp.Dom.IElement> Panel<T>(IRenderedComponent<T> cut, string title) where T : IComponent =>
         cut.FindAll(".ib-table-filter-panel").Where(p => p.QuerySelector(".ib-table-filter-label")!.TextContent == title);
 

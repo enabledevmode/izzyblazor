@@ -345,7 +345,9 @@ internal static class ColumnFilter
         }
 
         // A day is what a date panel holds; a date and time isn't one, and stays a condition of its own.
+        // Nor is text a box would read back as something else: empty, or with spaces at an end.
         string? Shown(object? end, bool optional) => FilterConvert.Unwrap(end) is null ? optional ? "" : null
+            : column.FilterKind == ColumnFilterKind.Text ? FilterConvert.Format(end) is { Length: > 0 } text && text.Trim() == text ? text : null
             : !date ? FilterConvert.Format(end)
             : filter.Operator == FilterOperator.OnDay && FilterConvert.TryDay(end, out var on) ? FilterConvert.Format(on)
             : FilterConvert.IsWholeDay(end, out var day) ? FilterConvert.Format(day)

@@ -102,7 +102,7 @@
             <ListItem>
                 <strong>Text ignores case</strong> by lowering both sides, which a database index can't serve.
                 <Code>FilterCase.Database</Code> on a Table or DataGrid, or as a field's <Code>Case</Code>, compares text as it is and
-                leaves it to the database's collation; <Code>FilterCase.MatchCase</Code> makes case count. The filter's text
+                leaves it to the database's collation; <Code>FilterCase.MatchCase</Code> compares text as it is too, which is exact in memory, though SQLite's <Code>LIKE</Code> for a starts-with or ends-with still ignores ASCII case. The filter's text
                 doesn't carry this, so an endpoint that reads it, such as an export, sets <Code>Case</Code> on its own fields.
             </ListItem>
             <ListItem>
@@ -116,6 +116,9 @@
                 <strong>Number bounds round the way the comparison means.</strong> On a whole-number field, "at least 2.5" is
                 3 or more and "at most 2.5" is 2 or less. A bound beyond what the type holds keeps every row or none.
                 <Code>Between</Code> includes both ends, and a null end has no limit.
+            </ListItem>
+            <ListItem>
+                <strong>A day on a <Code>DateTimeOffset</Code> doesn't translate on SQLite</strong>, as it reads the date on the clock where it was recorded.
             </ListItem>
             <ListItem>
                 <strong><Code>OnDay</Code> matches a day.</strong> A <Code>DateTime</Code> keeps the day's range, so an index

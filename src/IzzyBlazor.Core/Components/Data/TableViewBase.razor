@@ -442,6 +442,7 @@
     private IReadOnlyList<IzzyBlazor.Filter> _stateExtra = [];
     private IzzyBlazor.Filter? _lastFilterParam;
     private IzzyBlazor.Filter? _reportedFilter;
+    private bool _awaitingEcho;
     private IzzyBlazor.Filter? _unsplitFilter;
     private bool _hasUnsplitFilter;
 
@@ -578,10 +579,14 @@
 
     // What the filter is, for telling whether it changed since the last load.
     /// <inheritdoc />
-    internal override string FilterSignature() =>
-        UseState && _stateExtra.Count > 0
-            ? $"{FilterCase}|{Signature(CurrentFilters())}|{string.Join("|", _stateExtra)}"
-            : $"{FilterCase}|{Signature(CurrentFilters())}";
+    internal override string FilterSignature()
+    {
+        // First, as it's what splits a new Filter into what's read next.
+        var filters = Signature(CurrentFilters());
+        return UseState && _stateExtra.Count > 0
+            ? $"{FilterCase}|{filters}|{string.Join("|", _stateExtra)}"
+            : $"{FilterCase}|{filters}";
+    }
 
     private async Task RemoveExtraAsync(IzzyBlazor.Filter condition)
     {
@@ -595,6 +600,7 @@
         var (pageWas, cursorWas) = (_statePage, _stateCursor);
         (_statePage, _stateCursor) = (1, null);
         _reportedFilter = CurrentFilter();
+        _awaitingEcho = true;
         await FilterChanged.InvokeAsync(_reportedFilter);
         await ReportFirstPageAsync(pageWas, cursorWas);
 
@@ -1283,7 +1289,9 @@
         if (!ReferenceEquals(Filter, _lastFilterParam))
         {
             _lastFilterParam = Filter;
-            if (!ReferenceEquals(Filter, _reportedFilter))
+            var echo = _awaitingEcho && ReferenceEquals(Filter, _reportedFilter);
+            _awaitingEcho = false;
+            if (!echo)
             {
                 TakeFilter(Filter);
             }

@@ -323,8 +323,8 @@ internal static class FilterConvert
 
     /// <summary>
     /// Text as a value of the type: enums by name (ignoring case) or number, true or false, numbers
-    /// as the person writes them (the current culture, "1.234,5" in German) or the invariant form
-    /// ("1234.5"), dates and times in the invariant (ISO) form or the current culture's. A fraction
+    /// as the person writes them (the current culture, "1.234,5" in German, with its groups whole) or
+    /// the invariant form ("1234.5"), dates and times in the invariant (ISO) form or the current culture's. A fraction
     /// doesn't parse for a whole-number type.
     /// </summary>
     public static bool TryParse(Type type, string text, out object? value)
@@ -452,7 +452,9 @@ internal static class FilterConvert
             (CultureInfo.InvariantCulture, NumberStyles.Float),
         })
         {
-            if (!double.TryParse(text, styles, culture, out var number))
+            // Not as a culture's thousands unless its groups are whole: "1.5" in German isn't 15. Nor
+            // Infinity or NaN, which no filter's text can write back.
+            if (!GroupsAreWhole(text, culture) || !double.TryParse(text, styles, culture, out var number) || !double.IsFinite(number))
             {
                 continue;
             }
@@ -474,6 +476,21 @@ internal static class FilterConvert
         }
 
         return false;
+    }
+
+    private static bool GroupsAreWhole(string text, CultureInfo culture)
+    {
+        var format = culture.NumberFormat;
+        if (format.NumberGroupSeparator.Length == 0 || !text.Contains(format.NumberGroupSeparator, StringComparison.Ordinal))
+        {
+            return true;
+        }
+
+        var groups = text.Split(format.NumberDecimalSeparator)[0].TrimStart('-', '+').Split(format.NumberGroupSeparator);
+        var sizes = format.NumberGroupSizes;
+        return groups[0].Length >= 1 && groups[0].Length <= sizes.Max()
+            && groups[^1].Length == sizes[0]
+            && groups.Skip(1).All(g => sizes.Contains(g.Length));
     }
 
     /// <summary>
