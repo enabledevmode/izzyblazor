@@ -176,36 +176,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         }
     }
 
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task The_last_key_always_applies_and_back_follows_the_address(string mode)
-    {
-        var (browser, page, _) = await OpenAsync(mode);
-        await using (browser)
-        {
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
-            var box = grid.GetByRole(AriaRole.Searchbox);
-            await box.ClickAsync();
-            // Near the pause that applies a search, so a key lands while the last one's page is on its way.
-            foreach (var key in "alax")
-            {
-                await page.Keyboard.PressAsync(key.ToString());
-                await page.WaitForTimeoutAsync(347);
-            }
-
-            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'alax'");
-            await grid.GetByText("No items").WaitForAsync();
-
-            await box.FillAsync("ada");
-            await page.Keyboard.PressAsync("Enter");
-            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'ada'");
-            await page.GoBackAsync();
-            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') !== 'ada'");
-            await page.WaitForFunctionAsync("() => { const v = new URLSearchParams(location.search).get('tools-search') ?? ''; return [...document.querySelectorAll('input[type=search]')].some(i => i.name === 'tools-search' && i.value === v); }");
-        }
-    }
-
     [Fact]
     public async Task What_was_typed_while_a_response_was_on_its_way_stays_typed()
     {

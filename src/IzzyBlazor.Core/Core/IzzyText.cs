@@ -216,6 +216,42 @@ public class IzzyText
     /// <summary>What a list filter with some rows unticked is set to; {0} is the value, or how many: "All but Ada", "All but 3".</summary>
     public virtual string FilterAllBut { get; set; } = "All but {0}";
 
+    /// <summary>FilterBuilder's name for screen readers.</summary>
+    public virtual string FilterBuilderLabel { get; set; } = "Filter builder";
+
+    /// <summary>A FilterBuilder group's name.</summary>
+    public virtual string FilterGroupLabel { get; set; } = "Group";
+
+    /// <summary>A FilterBuilder rule's field.</summary>
+    public virtual string FilterFieldLabel { get; set; } = "Field";
+
+    /// <summary>A FilterBuilder group matching every rule.</summary>
+    public virtual string FilterAllOf { get; set; } = "All of";
+
+    /// <summary>A FilterBuilder group matching any rule.</summary>
+    public virtual string FilterAnyOf { get; set; } = "Any of";
+
+    /// <summary>A FilterBuilder group matching no rule.</summary>
+    public virtual string FilterNoneOf { get; set; } = "None of";
+
+    /// <summary>A FilterBuilder group not matching every rule.</summary>
+    public virtual string FilterNotAllOf { get; set; } = "Not all of";
+
+    /// <summary>FilterBuilder's button that adds a rule.</summary>
+    public virtual string FilterAddRule { get; set; } = "Add rule";
+
+    /// <summary>FilterBuilder's button that adds a group.</summary>
+    public virtual string FilterAddGroup { get; set; } = "Add group";
+
+    /// <summary>FilterBuilder's remove button; {0} is what it removes.</summary>
+    public virtual string FilterRemove { get; set; } = "Remove {0}";
+
+    /// <summary>A FilterBuilder operator for a list of values.</summary>
+    public virtual string FilterIsAnyOf { get; set; } = "Is any of";
+
+    /// <summary>A FilterBuilder operator for a list of values left out.</summary>
+    public virtual string FilterIsNoneOf { get; set; } = "Is none of";
+
     /// <summary>A filter row's list with nothing unticked.</summary>
     public virtual string FilterAll { get; set; } = "All";
 

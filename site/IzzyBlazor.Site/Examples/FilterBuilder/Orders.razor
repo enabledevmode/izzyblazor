@@ -1,0 +1,35 @@
+@* Apply puts the filter in the address, and the page reads it from there. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@using IzzyBlazor.Site.Examples.Table
+@inject NavigationManager Navigation
+<Stack Gap="4" Grow>
+    <FilterBuilder Fields="_fields" Name="orders-filter" />
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">
+        <Code>@(_filter?.ToString() ?? "No filter")</Code>: @Matches.Count of @Rows.All.Count orders
+    </TextBlock>
+</Stack>
+
+@code {
+    private static readonly IReadOnlyList<DataField<Order>> _fields = DataFields.Of<Order>();
+
+    private Filter? _filter;
+
+    private List<Order> Matches => new DataRequest<Order> { Filter = _filter }.ApplyFiltering(Rows.All.AsQueryable(), _fields).ToList();
+
+    protected override void OnInitialized()
+    {
+        Navigation.LocationChanged += (_, _) => InvokeAsync(() =>
+        {
+            Read();
+            StateHasChanged();
+        });
+        Read();
+    }
+
+    private void Read()
+    {
+        var query = new Uri(Navigation.Uri).Query;
+        var text = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(query).GetValueOrDefault("orders-filter").ToString();
+        _filter = Filter.TryParse(text, out var parsed) ? parsed : null;
+    }
+}

@@ -1,0 +1,220 @@
+@namespace IzzyBlazor
+@typeparam TItem
+@inherits LayoutItemBase
+@implements IDisposable
+@using Microsoft.AspNetCore.Components.Routing
+@inject NavigationManager Navigation
+@attribute [ModeSupport(NoScript = ModeLevel.None, NoScriptNotes = "With JavaScript off, the builder is hidden. A filter already in the address still applies.")]
+
+@*
+    Builds a filter of nested groups and rules from fields. Apply puts it in the address (?filter=),
+    or tells C# on an interactive page. A rule with nothing to compare is left out.
+
+    <FilterBuilder Fields="DataFields.Of<Order>()" />
+    <FilterBuilder Fields="fields" @bind-Value="filter" />     interactive pages
+
+    The rows are the script's in every mode: the server draws one copy of each field's controls in a
+    hidden block, and <ib-filter-builder> clones them. So a value's editor is a native input, a
+    date input or a list of checkboxes, chosen by the field's type. With JavaScript off it's hidden.
+
+    Accessibility:
+    - Each group is a `fieldset` whose legend names it, and every control has a name of its own.
+    - Tab moves through the controls in reading order.
+    - Adding a rule puts focus on its field; removing one puts it on the next rule, or the add button.
+    - Each remove button says what it removes.
+    See also: FilterForm, DataGrid, Table.
+*@
+
+<ib-filter-builder @attributes="AdditionalAttributes" class="@_class" style="@_style" role="group" aria-label="@(Label ?? TextDefaults.FilterBuilderLabel)"
+                   data-ib-value="@_model" data-ib-name="@Name" data-ib-page-key="@PageKey" data-ib-max-depth="@MaxDepth" data-ib-remove="@TextDefaults.FilterRemove">
+    <div data-ib-fb-root data-permanent="@($"fb-{Name}")"></div>
+    <div data-ib-fb-lib hidden>
+        <fieldset class="ib-fb-group" data-ib-fb-group>
+            <legend class="ib-visually-hidden">@TextDefaults.FilterGroupLabel</legend>
+            <div class="ib-fb-head">
+                @LogicSelect
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-fb-add-rule><Icon Role="IconRole.Plus" />@TextDefaults.FilterAddRule</button>
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-ib-fb-add-group><Icon Role="IconRole.Plus" />@TextDefaults.FilterAddGroup</button>
+                @RemoveButton
+            </div>
+            <div class="ib-fb-items" data-ib-fb-items></div>
+        </fieldset>
+        <div class="ib-fb-rule" data-ib-fb-rule>
+            @FieldSelect
+            <span class="ib-fb-slot" data-ib-fb-op-slot></span>
+            <span class="ib-fb-slot ib-fb-value" data-ib-fb-value-slot></span>
+            @RemoveButton
+        </div>
+        <div class="ib-fb-rule" data-ib-fb-raw>
+            <code class="ib-fb-raw-text" data-ib-fb-raw-text></code>
+            @RemoveButton
+        </div>
+        @foreach (var field in Offered)
+        {
+            <div data-ib-fb-field="@field.Key" data-ib-kind="@FilterBuilderModel.KindWord(field.Type)">
+                @OperatorSelect(field)
+                @ValueEditor(field)
+            </div>
+        }
+    </div>
+    <div class="ib-fb-actions">
+        <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-fb-clear>@TextDefaults.Clear</Button>
+        <Button Size="ControlSize.Sm" data-ib-fb-apply>@TextDefaults.Apply</Button>
+    </div>
+    @if (RendererInfo.IsInteractive && ValueChanged.HasDelegate)
+    {
+        <input type="hidden" data-ib-fb-out @onchange="OnAppliedAsync" />
+    }
+</ib-filter-builder>
+
+@code {
+    /// <summary>The fields to build from: <c>DataFields.Of&lt;Order&gt;()</c>, or your own. Only filterable text, numbers, dates, enums and booleans are offered.</summary>
+    [Parameter, EditorRequired] public IReadOnlyList<DataField<TItem>> Fields { get; set; } = [];
+
+    /// <summary>The filter. Bind it on an interactive page; otherwise it's read from the address.</summary>
+    [Parameter] public Filter? Value { get; set; }
+
+    /// <summary>Raised with the filter when Apply or Clear is pressed on an interactive page.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<Filter?> ValueChanged { get; set; }
+
+    /// <summary>The key in the address. Defaults to <c>filter</c>.</summary>
+    [Parameter] public string Name { get; set; } = "filter";
+
+    /// <summary>The address's page number, dropped on Apply, as a new filter starts at the first page. Defaults to <c>page</c>.</summary>
+    [Parameter] public string PageKey { get; set; } = "page";
+
+    /// <summary>How deeply groups can nest. Defaults to 5.</summary>
+    [Parameter] public int MaxDepth { get; set; } = 5;
+
+    /// <summary>Its name for screen readers. Defaults to "Filter builder".</summary>
+    [Parameter] public string? Label { get; set; }
+
+    private string? _class;
+    private string? _style;
+    private string _model = "";
+
+    // What the last Apply told C#: its echo through the binding isn't a new filter to draw.
+    private Filter? _reported;
+    private bool _awaitingEcho;
+
+    private IEnumerable<DataField<TItem>> Offered => Fields.Where(f => f.Filterable && FilterBuilderModel.KindWord(f.Type) is not null);
+
+    /// <inheritdoc />
+    protected override void OnInitialized() => Navigation.LocationChanged += OnLocationChanged;
+
+    private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(() =>
+    {
+        Draw();
+        StateHasChanged();
+    });
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        (_class, _style) = BuildRootAttributes();
+        Draw();
+    }
+
+    /// <inheritdoc />
+    protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
+    {
+        classes.Add("ib-filter-builder");
+        base.BuildAttributes(classes, styles);
+    }
+
+    private void Draw()
+    {
+        if (_awaitingEcho && ReferenceEquals(Value, _reported))
+        {
+            _awaitingEcho = false;
+            return;
+        }
+
+        var filter = ValueChanged.HasDelegate || Value is not null ? Value
+            : QueryString.Of(Navigation.Uri).TryGetValue(Name, out var text) && Filter.TryParse(text.ToString(), out var parsed) ? parsed
+            : null;
+        _model = FilterBuilderModel.Write(filter, Offered);
+    }
+
+    private async Task OnAppliedAsync(ChangeEventArgs e)
+    {
+        var text = e.Value?.ToString();
+        _reported = !string.IsNullOrEmpty(text) && Filter.TryParse(text, out var parsed) ? parsed : null;
+        _awaitingEcho = true;
+        await ValueChanged.InvokeAsync(_reported);
+    }
+
+    private RenderFragment Select(string name, string attribute, RenderFragment options) => __builder =>
+    {
+        <div class="ib-field ib-field-sm">
+            <div class="ib-field-control ib-has-end">
+                <select class="ib-field-input ib-field-select" aria-label="@name" @attributes="@(new Dictionary<string, object> { [attribute] = "" })">
+                    @options
+                </select>
+                <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+            </div>
+        </div>
+    };
+
+    private RenderFragment LogicSelect => Select(TextDefaults.FilterGroupLabel, "data-ib-fb-logic", LogicOptions);
+
+    private RenderFragment LogicOptions => __builder =>
+    {
+        <option value="all">@TextDefaults.FilterAllOf</option>
+        <option value="any">@TextDefaults.FilterAnyOf</option>
+        <option value="none">@TextDefaults.FilterNoneOf</option>
+        <option value="notall">@TextDefaults.FilterNotAllOf</option>
+    };
+
+    private RenderFragment FieldSelect => Select(TextDefaults.FilterFieldLabel, "data-ib-fb-field-select", FieldOptions);
+
+    private RenderFragment FieldOptions => __builder =>
+    {
+        foreach (var offered in Offered)
+        {
+            <option value="@offered.Key">@(offered.Caption ?? offered.Key)</option>
+        }
+    };
+
+    private RenderFragment RemoveButton => __builder =>
+    {
+        <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-btn-icon-only" data-ib-fb-remove aria-label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterRemove, TextDefaults.FilterGroupLabel)"><Icon Role="IconRole.Close" /></button>
+    };
+
+    private RenderFragment OperatorSelect(DataField<TItem> field) => Select(TextDefaults.FilterOperatorLabel, "data-ib-fb-op", OperatorOptions(field));
+
+    private RenderFragment OperatorOptions(DataField<TItem> field) => __builder =>
+    {
+        foreach (var (word, op) in FilterBuilderModel.OperatorsOf(field))
+        {
+            <option value="@word">@FilterBuilderModel.TextOf(field.Type, op, TextDefaults)</option>
+        }
+    };
+
+    // A value's editor for this field: boxes, or a list of checkboxes for choices.
+    private RenderFragment ValueEditor(DataField<TItem> field) => __builder =>
+    {
+        var kind = FilterBuilderModel.KindWord(field.Type);
+        @if (kind == "choice")
+        {
+            <span class="ib-fb-choices" data-ib-fb-editor>
+                @foreach (var (value, text) in field.Choices is { Count: > 0 } choices ? choices : ColumnFilter.Choices(field.Type, TextDefaults))
+                {
+                    <label class="ib-check"><input type="checkbox" class="ib-check-input" value="@value" /><span>@text</span></label>
+                }
+            </span>
+        }
+        else
+        {
+            var type = kind == "date" ? "date" : kind == "number" ? "number" : "text";
+            <span class="ib-fb-boxes" data-ib-fb-editor>
+                <span class="ib-field ib-field-sm"><span class="ib-field-control"><input type="@type" step="@(kind == "number" ? "any" : null)" class="ib-field-input" aria-label="@TextDefaults.FilterValueLabel" autocomplete="off" data-ib-fb-from /></span></span>
+                <span class="ib-field ib-field-sm" data-ib-fb-to-box hidden><span class="ib-field-control"><input type="@type" step="@(kind == "number" ? "any" : null)" class="ib-field-input" aria-label="@(kind == "date" ? TextDefaults.FilterTo : TextDefaults.FilterMax)" autocomplete="off" data-ib-fb-to /></span></span>
+            </span>
+        }
+    };
+
+    /// <inheritdoc />
+    public void Dispose() => Navigation.LocationChanged -= OnLocationChanged;
+}
