@@ -287,7 +287,7 @@
     box-shadow: inset 0 1px 0 var(--ib-btn-divider);
   }
 
-  /* SplitButton: a ghost's two parts need the line too, and the main button takes any extra width. */
+  /* SplitButton: the main button takes any extra width. A ghost's two parts have no line between them. */
   /* The menu opens against the whole button, not its arrow. Without anchor-scope, a page's split
      buttons would share the name, so there it stays against the arrow. */
   @supports (anchor-scope: --a) {
@@ -300,16 +300,6 @@
       /* Over the inline anchor a Menu gives its panel. */
       position-anchor: --ib-split !important;
     }
-  }
-
-  .ib-split-btn .ib-btn-ghost {
-    --ib-btn-divider: color-mix(in oklab, var(--ib-accent-text) 25%, transparent);
-
-    box-shadow: inset 1px 0 0 var(--ib-btn-divider);
-  }
-
-  .ib-split-btn .ib-btn-ghost:dir(rtl) {
-    box-shadow: inset -1px 0 0 var(--ib-btn-divider);
   }
 
   .ib-split-btn.ib-btn-group > .ib-btn {

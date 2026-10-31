@@ -849,7 +849,7 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
             var page = await OpenAsync(browser, "docs/components/split-button", "static");
             var looks = page.Locator(Example("split-button-looks"));
             const string shadow = "b => getComputedStyle(b).boxShadow";
-            foreach (var name in new[] { "Solid", "Soft", "Ghost" })
+            foreach (var name in new[] { "Solid", "Soft" })
             {
                 var arrow = looks.Locator($"[role=group][aria-label='{name}'] ib-popover > .ib-btn");
                 Assert.Contains(" 1px 0px 0px 0px inset", await arrow.EvaluateAsync<string>(shadow));
@@ -858,6 +858,9 @@ public sealed class SplitButtonTests(SiteFixture site) : IClassFixture<SiteFixtu
                 Assert.Contains(" -1px 0px 0px 0px inset", await arrow.EvaluateAsync<string>(shadow));
                 await page.EvaluateAsync("() => document.documentElement.dir = 'ltr'");
             }
+
+            // A ghost has no line between its two parts.
+            Assert.Equal("none", await looks.Locator("[role=group][aria-label='Ghost'] ib-popover > .ib-btn").EvaluateAsync<string>(shadow));
         }
     }
 
