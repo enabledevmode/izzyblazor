@@ -45,6 +45,8 @@
     <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
 }
 
+@KeyboardTable.Section(ApiComponent)
+
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
 

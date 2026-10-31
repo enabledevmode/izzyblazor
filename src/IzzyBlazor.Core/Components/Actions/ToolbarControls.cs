@@ -387,6 +387,158 @@ public sealed class ToolbarMenu : Menu, IToolbarItem, IDisposable
 }
 
 /// <summary>
+/// A <see cref="SplitButton"/> in a <see cref="Toolbar"/>. In the "…" menu it's a submenu named by its
+/// <c>MenuLabel</c>, with the main action as its first item, then the same items; with
+/// <c>MenuDisabled</c> it's just the main action.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;ToolbarSplitButton Label="Save" StartIcon="Lucide.Save" Submit MenuLabel="More save options" Priority="1"&gt;
+///     &lt;MenuItem Submit Name="intent" Value="draft"&gt;Save as draft&lt;/MenuItem&gt;
+/// &lt;/ToolbarSplitButton&gt;
+/// </code>
+/// </example>
+/// <seealso cref="Toolbar"/>
+/// <seealso cref="ToolbarMenu"/>
+[ModeSupport(NoScript = ModeLevel.Partial, Notes = "OnClick runs only on interactive pages, from the bar or the menu; Submit and Href work everywhere.", NoScriptNotes = "With JavaScript off, the menu opens and closes, but Alt+Down and the arrow keys don't work.")]
+public sealed class ToolbarSplitButton : SplitButton, IToolbarItem, IDisposable
+{
+    private readonly ToolbarSlot _slot;
+
+    /// <summary>Creates the button.</summary>
+    public ToolbarSplitButton() => _slot = new ToolbarSlot(this, nameof(ToolbarSplitButton));
+
+    /// <summary>Where it sits. Defaults to <see cref="ToolbarPosition.Start"/>.</summary>
+    [Parameter] public ToolbarPosition Position { get; set; }
+
+    /// <summary>
+    /// Which items stay longest when there's no room: higher stays longer. Defaults to 0. Items with
+    /// the same priority move into the menu from the middle of the toolbar outward.
+    /// </summary>
+    [Parameter] public int Priority { get; set; }
+
+    /// <summary>
+    /// When it moves into the "…" menu: <see cref="ToolbarOverflow.Never"/> for the main action,
+    /// <see cref="ToolbarOverflow.Always"/> for what only the menu needs. Defaults to <see cref="ToolbarOverflow.Auto"/>.
+    /// </summary>
+    [Parameter] public ToolbarOverflow Overflow { get; set; }
+
+    bool IToolbarItem.Separator => false;
+
+    RenderFragment IToolbarItem.Bar => builder => base.BuildRenderTree(builder);
+
+    // One wired up by its other attributes does more than a menu item can.
+    RenderFragment? IToolbarItem.Menu => !ToolbarControl.CopiesToMenu(AdditionalAttributes) ? null
+        : MenuDisabled && !Disabled && !Loading ? MainItem
+        : builder =>
+        {
+            builder.OpenComponent<MenuSub>(0);
+            builder.AddComponentParameter(1, nameof(MenuSub.Label), ToggleLabel);
+            builder.AddComponentParameter(2, nameof(MenuSub.Icon), StartIcon);
+            builder.AddComponentParameter(3, nameof(MenuSub.Disabled), Disabled || Loading);
+            builder.AddComponentParameter(4, nameof(MenuSub.ChildContent), (RenderFragment)(sub =>
+            {
+                // A submenu's trigger only opens, so the main action goes first in it.
+                sub.AddContent(0, MainItem);
+                sub.AddContent(1, ChildContent);
+            }));
+            builder.CloseComponent();
+        };
+
+    private RenderFragment MainItem => builder =>
+    {
+        builder.OpenComponent<MenuItem>(0);
+        builder.AddComponentParameter(1, nameof(MenuItem.Href), Href);
+        builder.AddComponentParameter(2, nameof(MenuItem.Submit), Submit);
+        builder.AddComponentParameter(3, nameof(MenuItem.Name), Name);
+        builder.AddComponentParameter(4, nameof(MenuItem.Value), Value);
+        builder.AddComponentParameter(5, nameof(MenuItem.FormAction), FormAction);
+        builder.AddComponentParameter(6, nameof(MenuItem.Form), Form);
+        builder.AddComponentParameter(7, nameof(MenuItem.Icon), StartIcon);
+        builder.AddComponentParameter(8, nameof(MenuItem.Disabled), Disabled || Loading || MainDisabled);
+        builder.AddComponentParameter(9, nameof(MenuItem.Accent), (Accent ?? Group?.DefaultAccent) == Accent.Danger ? Accent.Danger : Accent.Neutral);
+        if (OnClick.HasDelegate)
+        {
+            builder.AddComponentParameter(10, nameof(MenuItem.OnClick), OnClick);
+        }
+
+        if (External && Href is not null)
+        {
+            builder.AddAttribute(11, "target", "_blank");
+            builder.AddAttribute(12, "rel", "noopener noreferrer");
+        }
+
+        builder.AddComponentParameter(13, nameof(MenuItem.ChildContent), (RenderFragment)(b => b.AddContent(0, Label)));
+        ToolbarControl.CopyDownload(builder, AdditionalAttributes);
+        builder.CloseComponent();
+    };
+
+    double? IToolbarItem.Width => EstimateWidth(collapsed: false);
+
+    // With CollapseLabels, one with a start icon shows only that icon and the arrow, unless it never
+    // moves into the menu.
+    private bool Collapses => Toolbar?.CollapseLabels == true && Overflow != ToolbarOverflow.Never
+        && StartIcon is not null && !IconOnly && !(External && Href is not null);
+
+    double? IToolbarItem.CollapsedWidth => EstimateWidth(Collapses);
+
+    private protected override string? MainClass => Collapses ? "ib-toolbar-collapse ib-toolbar-collapse-square" : null;
+
+    /// <inheritdoc />
+    public override Task SetParametersAsync(ParameterView parameters)
+    {
+        var task = base.SetParametersAsync(parameters);
+        _slot.Join(Toolbar);
+        return task;
+    }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder) => _slot.Rendered();
+
+    /// <inheritdoc />
+    public void Dispose() => _slot.Dispose();
+}
+
+/// <summary>
+/// The main button of a <see cref="SplitButton"/>: a <see cref="Button"/> that with
+/// <see cref="IconOnlyName"/> shows only its icon, named by that, as an <see cref="IconButton"/> is.
+/// </summary>
+internal sealed class SplitButtonMain : Button
+{
+    /// <summary>The name when it shows only its icon; null with its text showing.</summary>
+    [Parameter] public string? IconOnlyName { get; set; }
+
+    /// <inheritdoc />
+    protected override bool IconOnly => IconOnlyName is not null;
+
+    /// <inheritdoc />
+    protected override IEnumerable<KeyValuePair<string, object>>? ExtraAttributes
+    {
+        get
+        {
+            var attributes = new List<KeyValuePair<string, object>>();
+
+            // A loading link has no href. It keeps focus and its tab stop, as a loading button does.
+            if (Loading && Href is not null)
+            {
+                attributes.Add(new("tabindex", "0"));
+            }
+
+            if (IconOnlyName is not null)
+            {
+                // An aria-label replaces the content, so it says what the hidden texts would.
+                var name = Loading ? $"{LoadingLabel ?? TextDefaults.Loading} {IconOnlyName}" : IconOnlyName;
+                name = External && Href is not null ? $"{name} {NewTabLabel ?? TextDefaults.OpensInNewTab}" : name;
+                attributes.Add(new("aria-label", name));
+                attributes.Add(new("title", IconOnlyName));
+            }
+
+            return attributes;
+        }
+    }
+}
+
+/// <summary>
 /// A toolbar button's place: an item of the toolbar at its top, or one of a
 /// <see cref="ToolbarButtonGroup"/>'s buttons, which the group's copy draws where it's written.
 /// </summary>
@@ -465,6 +617,7 @@ internal sealed class ToolbarControl(IToolbarItem button, string component) : ID
             : control.GetType() == typeof(IconButton) ? "ToolbarIconButton"
             : control.GetType() == typeof(ButtonGroup) ? "ToolbarButtonGroup"
             : control.GetType() == typeof(Menu) ? "ToolbarMenu"
+            : control.GetType() == typeof(SplitButton) ? "ToolbarSplitButton"
             : null;
         if (toolbar is not null && !ReferenceEquals(toolbar, ToolbarContext.Outside))
         {

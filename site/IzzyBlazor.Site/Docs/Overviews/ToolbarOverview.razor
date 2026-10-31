@@ -43,6 +43,10 @@
 <TextBlock>Use <Code>CollapseLabels</Code> to drop the text of buttons and menus with a <Code>StartIcon</Code> before anything moves into the … menu: they show only their icons, all at once, and the text stays for screen readers and as the tooltip. Narrow the window: once the icons alone don't fit, items move into the menu as before. One with <Code>Overflow="ToolbarOverflow.Never"</Code>, such as Publish here, keeps its text.</TextBlock>
 <ExampleViewer Example="toolbar-collapse-labels" />
 
+<Heading Level="2">Split buttons</Heading>
+<TextBlock>Use <Code>ToolbarSplitButton</Code> for a main action with a menu of related ones. In the … menu it's a submenu named by its <Code>MenuLabel</Code>, with the main action as the first item. See <Anchor Href="docs/components/split-button">SplitButton</Anchor>.</TextBlock>
+<ExampleViewer Example="toolbar-split-button" />
+
 <Heading Level="2">Wrapping instead</Heading>
 <TextBlock>Use <Code>Wrap</Code> for a toolbar where everything must show: it wraps onto more rows, with no menu.</TextBlock>
 <ExampleViewer Example="toolbar-wrap" />
@@ -75,6 +79,8 @@
     <Heading Level="2">Accessibility</Heading>
     <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
 }
+
+@KeyboardTable.Section(ApiComponent)
 
 <Heading Level="2">Parameters</Heading>
 <ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />

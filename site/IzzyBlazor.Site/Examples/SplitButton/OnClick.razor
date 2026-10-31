@@ -1,0 +1,26 @@
+<Column Gap="3" Align="Align.Start">
+    <SplitButton Label="Run" StartIcon="Lucide.Play" OnClick='() => Did("Run")' Loading="_loading" Disabled="_disabled" MenuLabel="More ways to run" id="split-run">
+        <MenuItem OnClick='() => Did("Run tests")'>Run tests</MenuItem>
+        <MenuItem OnClick='() => Did("Run all")'>Run all</MenuItem>
+    </SplitButton>
+    @* A link whose state changes: it keeps what it has. *@
+    <SplitButton Label="Report" Href="docs/components/menu" Loading="_loading" Disabled="_disabled" MainDisabled="_mainDisabled" OnClick='() => Did("Report")' MenuLabel="More reports" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" id="split-report">
+        <MenuItem OnClick='() => Did("Weekly")'>Weekly</MenuItem>
+    </SplitButton>
+    <Row Gap="4" Wrap>
+        <Switch @bind-Value="_loading" Label="Loading" />
+        <Switch @bind-Value="_disabled" Label="Disabled" />
+        <Switch @bind-Value="_mainDisabled" Label="Report's main button disabled" />
+    </Row>
+    <TextBlock Size="TextSize.Sm" Color="Color.Muted">@_result</TextBlock>
+</Column>
+
+@code {
+    private bool _loading;
+    private bool _disabled;
+    private bool _mainDisabled;
+    private int _count;
+    private string _result = "Nothing run yet";
+
+    private void Did(string what) => _result = $"{what} ({++_count})";
+}

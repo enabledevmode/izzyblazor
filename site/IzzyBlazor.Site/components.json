@@ -435,8 +435,36 @@
       ]
     },
     {
+      "id": "split-button", "icon": "SquareChevronDown", "name": "SplitButton", "category": "Actions", "summary": "A main action with a menu of related ones beside it.", "keywords": ["dropdown button", "menu button"],
+      "parts": ["ToolbarSplitButton"],
+      "features": [
+        { "feature": "Links, form posts and the menu opening and closing", "noscript": "full", "static": "full", "interactive": "full" },
+        { "feature": "Alt+Down on the main button; arrow keys, Home, End and type-ahead in the menu", "noscript": "none", "static": "full", "interactive": "full" },
+        { "feature": "OnClick on the main button and the items", "noscript": "none", "static": "none", "interactive": "full" }
+      ],
+      "examples": [
+        { "id": "split-button-actions", "title": "The main action and its menu",
+          "notes": {
+            "noscript": "Save and the items post the form and the page reloads; Open drafts is a link. The arrow keys don't move through the menu: Tab to the arrow and press Enter.",
+            "static": "The script adds the menu's keys, and Alt+Down on Save. Posts go without a full reload.",
+            "interactive": "Save and the items run the form's C# handler, and OnClick says which was chosen."
+          } },
+        { "id": "split-button-links", "title": "Links and downloads" },
+        { "id": "split-button-icon-only", "title": "Only an icon" },
+        { "id": "split-button-looks", "title": "Colors, weights and sizes" },
+        { "id": "split-button-in-group", "title": "In a row of buttons" },
+        { "id": "split-button-states", "title": "States" },
+        { "id": "split-button-panel-width", "title": "Where the menu opens" },
+        { "id": "split-button-on-click", "title": "Running C# on click",
+          "notes": {
+            "noscript": "OnClick and the switches need an interactive page: nothing happens here.",
+            "static": "OnClick and the switches need an interactive page: nothing happens here. See Live."
+          } }
+      ]
+    },
+    {
       "id": "toolbar", "icon": "RectangleEllipsis", "name": "Toolbar", "category": "Actions", "summary": "One row of controls; what doesn't fit moves into a … menu.", "keywords": ["action bar"],
-      "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
+      "parts": ["ToolbarButton", "ToolbarIconButton", "ToolbarButtonGroup", "ToolbarMenu", "ToolbarSplitButton", "ToolbarText", "ToolbarItem", "ToolbarSeparator"],
       "features": [
         { "feature": "What doesn't fit moves into the … menu, which opens and posts with no script", "noscript": "full", "static": "full", "interactive": "full" },
         { "feature": "Widths measured in the browser (without script, worked out on the server)", "noscript": "none", "static": "full", "interactive": "full" },
@@ -461,6 +489,11 @@
         { "id": "toolbar-on-click", "title": "Running C# on click", "modes": ["interactive"] },
         { "id": "toolbar-toggles", "title": "Toggle buttons", "modes": ["interactive"] },
         { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
+        { "id": "toolbar-split-button", "title": "Split buttons",
+          "notes": {
+            "noscript": "The switch needs an interactive page; the rest works.",
+            "static": "The switch needs an interactive page; the rest works."
+          } },
         { "id": "toolbar-wrap", "title": "Wrapping instead" }
       ],
       "scenarios": [

@@ -45,7 +45,8 @@ interface CssState {
 }
 
 const REGIONS = [".ib-toolbar-start", ".ib-toolbar-center", ".ib-toolbar-end"];
-const CONTROLS = "a[href], button, input, select, textarea";
+// A loading link has no href, but a SplitButton's stays focusable.
+const CONTROLS = "a[href], a[aria-busy], button, input, select, textarea";
 // Inputs that aren't typed into; every other input keeps its arrow keys (see #onKey).
 const NOT_TEXT = /^(button|submit|reset|checkbox|radio|image|file|color)$/;
 
@@ -329,7 +330,12 @@ class Toolbar extends IzzyElement {
     const inMore = active && more.contains(active) ? active : null;
     const fromMenu = inMore?.closest<HTMLElement>(".ib-toolbar-menu-unit")?.dataset.ibUnit;
 
-    for (const el of elements) el.toggleAttribute("data-ib-out", result.barHidden.has(el.dataset.ibUnit!));
+    for (const el of elements) {
+      const out = result.barHidden.has(el.dataset.ibUnit!);
+      el.toggleAttribute("data-ib-out", out);
+      // A menu open on a button that's leaving the bar would be left with nothing to anchor to.
+      if (out) for (const panel of el.querySelectorAll<HTMLElement>("[popover]:popover-open")) panel.hidePopover();
+    }
     for (const el of this.querySelectorAll<HTMLElement>(".ib-toolbar-menu-unit")) {
       el.toggleAttribute("data-ib-show", result.menuShown.has(el.dataset.ibUnit!) && !absent.has(el.dataset.ibUnit!));
     }
@@ -383,7 +389,9 @@ class Toolbar extends IzzyElement {
     this.#current = current[0];
     for (const s of stops) {
       for (const el of s) {
-        if (s === current) el.removeAttribute("tabindex");
+        // A link with no href needs its tabindex to be a stop at all.
+        if (s === current && el.matches("a:not([href])")) el.setAttribute("tabindex", "0");
+        else if (s === current) el.removeAttribute("tabindex");
         else el.setAttribute("tabindex", "-1");
         this.#touched.add(el);
       }

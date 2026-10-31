@@ -57,6 +57,8 @@ class PopoverRoot extends IzzyElement {
   // took focus from inside the panel from one that didn't.
   #focusLeftAt = 0;
   #hoverTimer = 0;
+  // A SplitButton's main button, when it opened the menu with Alt+Down.
+  #opener: HTMLElement | null = null;
 
   private get panel(): HTMLElement | null {
     return this.querySelector<HTMLElement>(":scope > [popover]");
@@ -64,7 +66,13 @@ class PopoverRoot extends IzzyElement {
 
   private get trigger(): HTMLElement | null {
     const id = this.panel?.id;
-    return id ? this.querySelector<HTMLElement>(`[popovertarget="${CSS.escape(id)}"]`) : null;
+    // Not an item that closes the menu, which names the panel too.
+    return id ? this.querySelector<HTMLElement>(`[popovertarget="${CSS.escape(id)}"]:not([popovertargetaction="hide"])`) : null;
+  }
+
+  /** The element naming the panel: a menu's trigger, even while a SplitButton's has no popovertarget. */
+  private get labelledBy(): HTMLElement | null {
+    return document.getElementById(this.panel?.getAttribute("aria-labelledby") ?? "");
   }
 
   private get isMenu(): boolean {
@@ -121,11 +129,33 @@ class PopoverRoot extends IzzyElement {
 
     if (this.isMenu) {
       panel.addEventListener("keydown", (event) => this.onMenuKey(event), { signal });
-      // A submenu's trigger is an item of the menu around it, which handles its keys.
+      // A submenu's trigger is an item of the menu around it, which handles its keys. Heard here
+      // rather than on the trigger, which a render can give up and take back (a loading SplitButton).
       if (!this.parentPanel) {
-        this.trigger?.addEventListener("keydown", (event) => this.onTriggerKey(event), { signal });
+        this.addEventListener(
+          "keydown",
+          (event) => {
+            if (event.target === this.trigger) this.onTriggerKey(event);
+          },
+          { signal }
+        );
+        // A SplitButton opens the menu with Alt+Down from either part.
+        const split = this.parentElement;
+        if (split?.classList.contains("ib-split-btn")) {
+          split.addEventListener("keydown", (event) => this.onSplitKey(event), { signal });
+        }
       } else {
         this.setupHover(panel, signal);
+      }
+      // A menu whose button gets blocked (a SplitButton turning Loading) closes, so that nothing
+      // in it runs a second time.
+      const opener = this.labelledBy;
+      if (opener) {
+        const blocked = new MutationObserver(() => {
+          if (panel.matches(":popover-open") && opener.matches(":disabled, [aria-disabled='true']")) this.rootPanel?.hidePopover();
+        });
+        blocked.observe(opener, { attributes: true, attributeFilter: ["disabled", "aria-disabled"] });
+        signal.addEventListener("abort", () => blocked.disconnect());
       }
       // Links and submit buttons don't close the menu by themselves; choosing one in a submenu
       // closes the whole menu.
@@ -202,7 +232,8 @@ class PopoverRoot extends IzzyElement {
       // A menu the user opened takes focus; one the server or C# opened (data-open) doesn't.
       if (this.isMenu && !this.#hoverOpen && !fromSync) {
         const items = this.items();
-        (this.#focusLast ? items[items.length - 1] : items[0])?.focus();
+        // Not if a key got there first: the toggle event comes a moment after the panel opens.
+        if (!panel.contains(document.activeElement)) (this.#focusLast ? items[items.length - 1] : items[0])?.focus();
       } else if (!this.isMenu && !fromSync) {
         // A popover opened by the user: focus its [autofocus] element, or the panel itself so it's
         // read by its title and Tab moves through it. One opened by the server or C# leaves focus.
@@ -222,14 +253,26 @@ class PopoverRoot extends IzzyElement {
       // dropped to the page by the click that dismissed it.
       const dropped = document.activeElement === document.body && Date.now() - this.#focusLeftAt < 300;
       if (panel.contains(document.activeElement) || dropped) {
-        this.trigger?.focus();
+        this.focusBack();
       }
+      this.#opener = null;
     }
+  }
+
+  /** Back to what opened the menu, or if that's since been disabled, the next best thing in reach. */
+  private focusBack(): void {
+    const back = [this.#opener, this.trigger ?? this.labelledBy].find((el) => el?.isConnected && !el.matches(":disabled, a:not([href], [tabindex])"));
+    const near = [...(this.closest("ib-toolbar")?.querySelectorAll<HTMLElement>(":is(a[href], button:not(:disabled)):not([popover] *)") ?? [])];
+    (back ?? near.find((el) => el.checkVisibility()))?.focus();
   }
 
   private onTriggerKey(event: KeyboardEvent): void {
     if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
-    if (event.altKey || event.ctrlKey || event.metaKey) return;
+    if (event.altKey || event.ctrlKey || event.metaKey) {
+      // Alt and an arrow scroll the page otherwise.
+      if (event.altKey) event.preventDefault();
+      return;
+    }
     const panel = this.panel;
     if (!panel) return;
     event.preventDefault();
@@ -243,6 +286,20 @@ class PopoverRoot extends IzzyElement {
     }
   }
 
+  private onSplitKey(event: KeyboardEvent): void {
+    const from = event.target as HTMLElement;
+    if (event.key !== "ArrowDown" || !event.altKey || event.ctrlKey || event.metaKey || event.shiftKey || from.closest("[popover]")) return;
+    // Whether or not it opens: Alt and an arrow scroll the page otherwise.
+    event.preventDefault();
+    const trigger = this.trigger;
+    if (!trigger || trigger.matches(":disabled")) return;
+    const panel = this.panel!;
+    // Escape or a choice brings focus back where it was, the main button or the arrow.
+    this.#opener = from;
+    if (panel.matches(":popover-open")) this.items()[0]?.focus();
+    else panel.showPopover();
+  }
+
   private onMenuKey(event: KeyboardEvent): void {
     // Keys in a submenu belong to the submenu's own element.
     if ((event.target as Element).closest("[popover]") !== this.panel) return;
@@ -250,7 +307,11 @@ class PopoverRoot extends IzzyElement {
     if (items.length === 0) return;
     const index = items.indexOf(document.activeElement as HTMLElement);
     let next: HTMLElement | undefined;
-    if ((event.altKey || event.ctrlKey || event.metaKey) && event.key !== "Tab") return;
+    if ((event.altKey || event.ctrlKey || event.metaKey) && event.key !== "Tab") {
+      // Alt and an arrow scroll the page behind the menu otherwise.
+      if (event.altKey && (event.key === "ArrowDown" || event.key === "ArrowUp")) event.preventDefault();
+      return;
+    }
 
     switch (event.key) {
       case "ArrowDown":

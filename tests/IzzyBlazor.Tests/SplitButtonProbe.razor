@@ -1,0 +1,64 @@
+@* SplitButtons for SplitButtonTests, by Kind. *@
+@switch (Kind)
+{
+    case "toolbar":
+        <Toolbar Label="Document">
+            <ToolbarSplitButton Label="Save" StartIcon="Lucide.Save" Submit Name="intent" Value="save" FormAction="/save" Form="f" MenuLabel="Save options" OnClick="() => Clicks++">
+                <MenuItem Href="/drafts">Drafts</MenuItem>
+            </ToolbarSplitButton>
+            <ToolbarSplitButton Label="Export" Href="/export.csv" download="data.csv" External MenuLabel="Formats" Priority="2" Position="ToolbarPosition.End" Overflow="ToolbarOverflow.Always">
+                <MenuItem Href="/export.xlsx">Excel</MenuItem>
+            </ToolbarSplitButton>
+            <ToolbarSplitButton Label="Delete" Accent="Accent.Danger" MenuDisabled MainDisabled="MainDisabled" MenuLabel="Delete options"><MenuItem>Hidden</MenuItem></ToolbarSplitButton>
+            <ToolbarSplitButton Label="Off" Disabled MenuLabel="Off options"><MenuItem>Off item</MenuItem></ToolbarSplitButton>
+            <ToolbarSplitButton Label="Busy" Loading MenuLabel="Busy options"><MenuItem>Busy item</MenuItem></ToolbarSplitButton>
+        </Toolbar>
+        break;
+    case "wired":
+        <Toolbar Label="Wired">
+            <ToolbarSplitButton Label="Wired" data-command="x" MenuLabel="Wired options"><MenuItem>One</MenuItem></ToolbarSplitButton>
+            <ToolbarButton>Plain</ToolbarButton>
+        </Toolbar>
+        break;
+    case "collapse":
+        <Toolbar Label="Collapse" CollapseLabels Size="ControlSize.Md">
+            <ToolbarSplitButton Label="Share" StartIcon="Lucide.Share2" MenuLabel="Share options"><MenuItem>One</MenuItem></ToolbarSplitButton>
+            <ToolbarSplitButton Label="Plain" MenuLabel="Plain options"><MenuItem>One</MenuItem></ToolbarSplitButton>
+            <ToolbarSplitButton Label="Square" StartIcon="Lucide.Printer" IconOnly MenuLabel="Square options"><MenuItem>One</MenuItem></ToolbarSplitButton>
+            <ToolbarSplitButton Label="Stays" StartIcon="Lucide.Send" Overflow="ToolbarOverflow.Never" MenuLabel="Stays options"><MenuItem>One</MenuItem></ToolbarSplitButton>
+        </Toolbar>
+        break;
+    case "raw-in-toolbar":
+        <Toolbar><SplitButton Label="Raw"><MenuItem>One</MenuItem></SplitButton></Toolbar>
+        break;
+    case "raw-in-group":
+        <Toolbar><ToolbarButtonGroup Label="Group"><SplitButton Label="Raw"><MenuItem>One</MenuItem></SplitButton></ToolbarButtonGroup></Toolbar>
+        break;
+    case "in-item":
+        <Toolbar><ToolbarItem><SplitButton Label="Allowed"><MenuItem>One</MenuItem></SplitButton></ToolbarItem></Toolbar>
+        break;
+    case "outside":
+        <ToolbarSplitButton Label="Alone"><MenuItem>One</MenuItem></ToolbarSplitButton>
+        break;
+    case "in-group":
+        <ButtonGroup Accent="Accent.Neutral" Variant="ButtonVariant.Outline" Size="ControlSize.Sm">
+            <SplitButton Label="Inherits"><MenuItem>One</MenuItem></SplitButton>
+            <SplitButton Label="Own" Accent="Accent.Danger" Variant="ButtonVariant.Solid" Size="ControlSize.Lg"><MenuItem>One</MenuItem></SplitButton>
+        </ButtonGroup>
+        break;
+    case "items":
+        <SplitButton Label="Run" OnClick="() => Clicks++" MenuLabel="More">
+            <MenuItem OnClick="() => ItemClicks++">Other</MenuItem>
+        </SplitButton>
+        break;
+}
+
+@code {
+    [Parameter] public string Kind { get; set; } = "toolbar";
+
+    [Parameter] public bool MainDisabled { get; set; }
+
+    public int Clicks { get; set; }
+
+    public int ItemClicks { get; set; }
+}

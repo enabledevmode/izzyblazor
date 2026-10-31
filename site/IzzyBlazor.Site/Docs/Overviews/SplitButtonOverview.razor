@@ -1,0 +1,98 @@
+@inject ApiMetadata Api
+@* SplitButton's Overview, written by hand after Button's: the main action and its menu, links and
+   downloads, icon only, its looks and states, OnClick, a Toolbar, and what it does without script.
+   Accessibility and See also come from the doc comment. *@
+
+<Heading Level="2">Usage</Heading>
+<Code Block Language="razor">@Usage</Code>
+<TextBlock>A SplitButton has a main action and, beside it, an arrow that opens a menu of related ones. Clicking the main button only runs its action, and the arrow only opens the menu. Use it when one action is the usual one; when none is, use a <Anchor Href="docs/components/menu">Menu</Anchor>.</TextBlock>
+
+<Heading Level="2">The main action and its menu</Heading>
+<TextBlock>Use <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code> to post a form, as on a <Anchor Href="docs/components/button">Button</Anchor>, and put <Code>MenuItem</Code>s inside for the other choices. <Code>MenuLabel</Code> names the arrow for screen readers.</TextBlock>
+<ExampleViewer Example="split-button-actions" />
+<TextBlock>Choosing an item runs that item, and the main action stays as it was. To make the last choice the default, change <Code>Label</Code> and <Code>Href</Code> or <Code>OnClick</Code> yourself: the library doesn't remember one.</TextBlock>
+
+<Heading Level="2">Links and downloads</Heading>
+<TextBlock>Use <Code>Href</Code> to make the main button a link, with <Code>External</Code> to open it in a new tab. Other attributes such as <Code>download</Code> go to the main button.</TextBlock>
+<ExampleViewer Example="split-button-links" />
+
+<Heading Level="2">Only an icon</Heading>
+<TextBlock>Use <Code>IconOnly</Code> with a <Code>StartIcon</Code> to leave out the text; <Code>Label</Code> stays as its name and tooltip.</TextBlock>
+<ExampleViewer Example="split-button-icon-only" />
+
+<Heading Level="2">Colors, weights and sizes</Heading>
+<TextBlock>Use <Code>Accent</Code>, <Code>Variant</Code> and <Code>Size</Code> for both parts together, and <Code>FullWidth</Code> to fill the container with the main button. Unset, they come from a <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> or <Anchor Href="docs/components/toolbar">Toolbar</Anchor> around it.</TextBlock>
+<ExampleViewer Example="split-button-looks" />
+
+<Heading Level="2">In a row of buttons</Heading>
+<TextBlock>Put it in a <Anchor Href="docs/components/button-group">ButtonGroup</Anchor> to join it to other buttons: only the row's own ends are round, and it takes the group's look.</TextBlock>
+<ExampleViewer Example="split-button-in-group" />
+
+<Heading Level="2">States</Heading>
+<TextBlock>Use <Code>MainDisabled</Code> when there's no usual action but the others still work, and <Code>MenuDisabled</Code> when there's nothing else to choose. <Code>Disabled</Code> and <Code>Loading</Code> are for the whole control.</TextBlock>
+<ExampleViewer Example="split-button-states" />
+
+<Heading Level="2">Where the menu opens</Heading>
+<TextBlock>Use <Code>Placement</Code> to open the menu elsewhere (by default it lines up with the arrow's far edge) and <Code>PanelWidth</Code> for long items, as on a Menu.</TextBlock>
+<ExampleViewer Example="split-button-panel-width" />
+
+<Heading Level="2">Running C# on click</Heading>
+<TextBlock>Use <Code>OnClick</Code> on interactive pages, on the button and on each <Code>MenuItem</Code>.</TextBlock>
+<ExampleViewer Example="split-button-on-click" />
+
+<Heading Level="2">In a Toolbar</Heading>
+<TextBlock>Use <Code>ToolbarSplitButton</Code>, with a Toolbar's <Code>Position</Code>, <Code>Priority</Code> and <Code>Overflow</Code>. In the … menu it's a submenu named by <Code>MenuLabel</Code>, with the main action as its first item, then the same items. With <Code>CollapseLabels</Code> the main button drops its text and keeps its icon. <Anchor Href="docs/components/toolbar#ex-toolbar-split-button">See it on the Toolbar's page</Anchor>, and narrow the window to see them move.</TextBlock>
+<Code Block Language="razor">@InToolbar</Code>
+
+<Heading Level="2">Without script</Heading>
+<TextBlock>The arrow opens and closes the menu natively, and links and form posts work, on the main button and on the items, as on a Menu. Alt+Down and the arrow keys need the script: Tab to the arrow and press Enter. <Code>OnClick</Code> runs only on interactive pages.</TextBlock>
+
+@if (OverviewParts.Of(Component, Api).Count > 0)
+{
+    <Heading Level="2">Parts</Heading>
+}
+<OverviewParts Component="Component" />
+
+<Heading Level="2">Mode support</Heading>
+<ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
+
+@if (ApiComponent.Accessibility is not null)
+{
+    <Heading Level="2">Accessibility</Heading>
+    <DocHtml Html="@ApiComponent.Accessibility" Context="@(Context with { Overview = true })" Size="ProseSize.Md" />
+}
+
+@KeyboardTable.Section(ApiComponent)
+
+<Heading Level="2">Parameters</Heading>
+<ParameterTable ApiComponent="ApiComponent" ApiHref="@Registry.ApiPageHref(Component)" Context="Context" Compact />
+
+<OverviewSeeAlso Component="Component" ApiComponent="ApiComponent" />
+
+@code {
+    [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiComponent ApiComponent { get; set; } = null!;
+
+    [Parameter, EditorRequired] public ApiPageContext Context { get; set; } = null!;
+
+    private const string Usage = """
+        <SplitButton Label="Save" StartIcon="Lucide.Save" OnClick="Save" MenuLabel="More save options">
+            <MenuItem OnClick="SaveAs">Save as…</MenuItem>
+            <MenuItem Href="/drafts">Open drafts</MenuItem>
+        </SplitButton>
+
+        @* A link and a download, which work with no script *@
+        <SplitButton Label="Download PDF" Href="/report.pdf" download MenuLabel="Other formats">
+            <MenuItem Href="/report.csv" download>CSV</MenuItem>
+        </SplitButton>
+        """;
+
+    private const string InToolbar = """
+        <Toolbar Label="Document">
+            <ToolbarSplitButton Label="Save" StartIcon="Lucide.Save" Submit MenuLabel="More save options" Priority="1">
+                <MenuItem Submit Name="intent" Value="draft">Save as draft</MenuItem>
+            </ToolbarSplitButton>
+        </Toolbar>
+        """;
+}

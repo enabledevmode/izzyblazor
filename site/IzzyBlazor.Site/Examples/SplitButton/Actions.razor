@@ -1,0 +1,32 @@
+@inject NavigationManager Navigation
+
+<form method="post" @onsubmit="Posted" @formname="split-button-save" data-enhance>
+    <AntiforgeryToken />
+    <Row Gap="3" Wrap Align="Align.Center">
+        <SplitButton Label="Save" StartIcon="Lucide.Save" Submit Name="intent" Value="save" OnClick='() => _pressed = "save"' MenuLabel="More save options" id="split-save">
+            <MenuItem Submit Name="intent" Value="draft" OnClick='() => _pressed = "draft"'>Save as draft</MenuItem>
+            <MenuItem Submit Name="intent" Value="close" OnClick='() => _pressed = "close"'>Save and close</MenuItem>
+            <MenuDivider />
+            <MenuItem Href="@Navigation.GetUriWithQueryParameter("save-open", "drafts")" Icon="Lucide.FileText">Open drafts</MenuItem>
+        </SplitButton>
+        <TextBlock As="span" Size="TextSize.Sm" Color="Color.Muted">@Result</TextBlock>
+    </Row>
+</form>
+
+@code {
+    // Open drafts is a link: ?save-open=drafts.
+    [SupplyParameterFromQuery(Name = "save-open")]
+    private string? Opened { get; set; }
+
+    // Static pages: the button's or item's Name=Value posts with the form.
+    [SupplyParameterFromForm(FormName = "split-button-save", Name = "intent")]
+    private string? Intent { get; set; }
+
+    // Interactive pages post nothing, so OnClick says which it was.
+    private string? _pressed;
+    private string? _posted;
+
+    private string Result => _posted is not null ? $"Posted: {_posted}" : Opened is not null ? $"Opened: {Opened}" : "Nothing saved yet";
+
+    private void Posted() => _posted = Intent ?? _pressed;
+}
