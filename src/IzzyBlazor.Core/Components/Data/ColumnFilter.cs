@@ -69,6 +69,25 @@ internal static class ColumnFilter
         };
     }
 
+    /// <summary>An operator as a filter row's button shows it: short, and the same in any language.</summary>
+    public static string ShortOf(FilterOperator op) => op switch
+    {
+        FilterOperator.Contains => "\u2026a\u2026",
+        FilterOperator.DoesNotContain => "\u2260a",
+        FilterOperator.Equals => "=",
+        FilterOperator.NotEquals => "\u2260",
+        FilterOperator.StartsWith => "a\u2026",
+        FilterOperator.EndsWith => "\u2026a",
+        FilterOperator.GreaterThan => ">",
+        FilterOperator.GreaterThanOrEqual => "\u2265",
+        FilterOperator.LessThan => "<",
+        FilterOperator.LessThanOrEqual => "\u2264",
+        FilterOperator.Between => "\u2194",
+        FilterOperator.IsEmpty => "\u2205",
+        FilterOperator.IsNotEmpty => "\u2260\u2205",
+        _ => "=",
+    };
+
     public static ColumnFilterKind KindOf(Type type) => FilterConvert.KindOf(type) switch
     {
         FieldKind.Text => ColumnFilterKind.Text,

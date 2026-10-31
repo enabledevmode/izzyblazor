@@ -77,7 +77,7 @@ export class TypingGuard {
       let input = known;
       if (!input.isConnected) {
         const value = isTick(input) ? `[value="${CSS.escape(input.value)}"]` : "";
-        const next = input.name ? this.#root.querySelector<HTMLInputElement | HTMLSelectElement>(`${input.localName}[name="${CSS.escape(input.name)}"]${value}`) : null;
+        const next = input.name ? this.#root.querySelector<HTMLInputElement | HTMLSelectElement>(`${input.localName}[name="${CSS.escape(input.name)}"]${input.hasAttribute("data-ib-row") ? "[data-ib-row]" : ""}${value}`) : null;
         this.#typed.delete(input);
         if (!next) continue;
         input = next;

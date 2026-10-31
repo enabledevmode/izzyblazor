@@ -204,6 +204,25 @@
                             }
                             @LastHeaderCell
                         </tr>
+                        @if (ShowsFilterRow && headerFilters is not null)
+                        {
+                            <tr class="ib-table-filter-row">
+                                @if (Selectable)
+                                {
+                                    <td class="@SelectCellClass"></td>
+                                }
+                                @foreach (var column in Shown)
+                                {
+                                    <td class="@CellClass(column)" style="@HeaderStyle(column)">
+                                        @if (column.CanFilter)
+                                        {
+                                            @FilterCell(column, headerFilters.GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column))
+                                        }
+                                    </td>
+                                }
+                                @LastEmptyCell
+                            </tr>
+                        }
                     </thead>
                     <tbody>
                         @if (_loadError is not null)
@@ -323,6 +342,10 @@
                         <input type="hidden" name="@key" value="@value" form="@FilterFormId" />
                     }
                 </div>
+                @if (ShowsFilterRow)
+                {
+                    @FilterRowForm
+                }
             }
             @Footer(PagesLabel)
     };
@@ -730,7 +753,7 @@
         var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
         var lists = column.HasValueList && RendererInfo.IsInteractive;
         var toggled = lists ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
-        <Popover Placement="placement" data-ib-user-controlled OpenChanged="toggled">
+        <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" Placement="placement" data-ib-user-controlled OpenChanged="toggled">
             <Trigger>
                 <button type="button" class="ib-table-filter-button" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
                     <Icon Role="IconRole.Filter" />
@@ -1380,6 +1403,152 @@
             }
         }
     }
+
+    /// <summary>Whether a row of filters sits under the titles: a DataGrid's <c>FilterRow</c>.</summary>
+    internal virtual bool ShowsFilterRow => false;
+
+    private string FilterRowFormId => $"{FilterFormId}-row";
+
+    private string FilterPanelId(ColumnBase<TItem> column) => $"{FilterFormId}-{column.Key}-panel";
+
+    // Whether a filter fits in its cell as a field: not a list or a range, which open the column's panel.
+    private static bool FitsInCell(ColumnBase<TItem> column, ColumnFilterValue current) =>
+        column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && !current.None
+        && current.Op is not (FilterOperator.Between or FilterOperator.In or FilterOperator.NotIn) && !ColumnFilter.TakesNoValue(current.Op);
+
+    // A column's filter in the row: its operator's menu, if it has a choice, then the field, or what the
+    // filter's set to as a button that opens the column's panel.
+    private RenderFragment FilterCell(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
+    {
+        var ops = ColumnFilter.OperatorsOf(column);
+        var label = FilterLabel(column);
+        var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList;
+        <div class="ib-filter-cell ib-field-sm">
+            @if (!list && ops.Count > 1)
+            {
+                @OperatorMenu(column, current, ops)
+            }
+            @if (FitsInCell(column, current))
+            {
+                var (date, number) = (column.FilterKind == ColumnFilterKind.Date, column.FilterKind == ColumnFilterKind.Number);
+                var value = !date ? current.Value : ColumnFilter.TryParseDay(current.Value, out var day) ? day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
+                var type = date ? "date" : number ? "text" : "search";
+                <div class="ib-field ib-field-sm">
+                    <div class="ib-field-control">
+                        @if (UseState)
+                        {
+                            <input type="@type" class="ib-field-input" aria-label="@label" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter @attributes="InputEvents(column, false, date)" />
+                        }
+                        else
+                        {
+                            <input type="@type" class="ib-field-input" aria-label="@label" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter
+                                   name="@FilterQueryKey(column)" form="@FilterRowFormId" data-ib-filter data-ib-row />
+                        }
+                    </div>
+                </div>
+            }
+            else
+            {
+                var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
+                <button type="button" class="ib-filter-cell-summary" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary">@summary</button>
+            }
+        </div>
+    };
+
+    // The operators in full words, the current one checked, and Reset. Links on static pages, so the row
+    // needs no script for them; on bound pages, C#.
+    private RenderFragment OperatorMenu(ColumnBase<TItem> column, ColumnFilterValue current, IReadOnlyList<FilterOperator> ops) => __builder =>
+    {
+        var word = ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
+        var name = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterChangeOperator, column.HeaderText, word);
+        <Menu Placement="Placement.BottomStart" data-ib-user-controlled>
+            <Trigger>
+                <button type="button" class="ib-filter-cell-op" data-ib-menu aria-label="@name" title="@name" @attributes="context">@ColumnFilter.ShortOf(current.Op)</button>
+            </Trigger>
+            <ChildContent>
+                @foreach (var op in ops)
+                {
+                    var opens = op == FilterOperator.Between ? FilterPanelId(column) : null;
+                    if (UseState)
+                    {
+                        <MenuItem Checked="op == current.Op" data-ib-opens-panel="@opens" OnClick="() => OnOperatorAsync(column, new ChangeEventArgs { Value = ColumnFilter.WordOf(op) })">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
+                    }
+                    else
+                    {
+                        <MenuItem Checked="op == current.Op" data-ib-opens-panel="@opens" Href="@OperatorHref(column, current, op)">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
+                    }
+                }
+                <MenuDivider />
+                @if (UseState)
+                {
+                    <MenuItem OnClick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)">@TextDefaults.Reset</MenuItem>
+                }
+                else
+                {
+                    <MenuItem Href="@FilterHref(column, null)">@TextDefaults.Reset</MenuItem>
+                }
+            </ChildContent>
+        </Menu>
+    };
+
+    // The address with this operator chosen, keeping the values it takes. With none to apply to, it
+    // only shapes the cell and the panel, as the reader takes it.
+    private string OperatorHref(ColumnBase<TItem> column, ColumnFilterValue current, FilterOperator op)
+    {
+        var key = FilterQueryKey(column);
+        var next = current with
+        {
+            Op = op,
+            Values = ColumnFilter.TakesNoValue(op) ? [] : current.Values,
+            To = op == FilterOperator.Between ? current.To : null,
+        };
+        var changes = ColumnFilter.Write(column, key, next);
+        if (!next.IsFilter && op != ColumnFilter.DefaultOperator(column))
+        {
+            changes[$"{key}-op"] = ColumnFilter.WordOf(op);
+        }
+
+        changes[PageKey] = null;
+        changes[CursorKey] = null;
+        return Navigation.GetUriWithQueryParameters(changes);
+    }
+
+    // The row's GET form, for no script. It holds every filter, as the panels' form does, so either posts
+    // the whole state: the row's fields join it themselves, and this says the rest.
+    private RenderFragment FilterRowForm => __builder =>
+    {
+        <form id="@FilterRowFormId" method="get" action="@ActionPath" class="ib-table-filter-form"><button type="submit" tabindex="-1">@TextDefaults.Apply</button></form>
+        <div class="ib-table-filter-kept">
+            @foreach (var (key, value) in KeptQuery())
+            {
+                <input type="hidden" name="@key" value="@value" form="@FilterRowFormId" />
+            }
+            @foreach (var key in ExtraFilterKeys)
+            {
+                <input type="hidden" name="@key" value="@QueryString.Of(Navigation.Uri).GetValueOrDefault(key).ToString()" form="@FilterRowFormId" />
+            }
+            @{ var filters = CurrentFilters(); }
+            @foreach (var column in _columns.Where(c => c.CanFilter))
+            {
+                var current = filters.GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column);
+                var key = FilterQueryKey(column);
+                var fits = FitsInCell(column, current) && Shown.Contains(column);
+                foreach (var (name, written) in ColumnFilter.Write(column, key, current))
+                {
+                    @* A field in the row says its own value. *@
+                    if (fits && name == key)
+                    {
+                        continue;
+                    }
+
+                    foreach (var value in written as string[] ?? (written is string one ? [one] : []))
+                    {
+                        <input type="hidden" name="@name" value="@value" form="@FilterRowFormId" />
+                    }
+                }
+            }
+        </div>
+    };
 
     // The word for a range's lower end, "Min" or "From".
     private string LowerWord(ColumnBase<TItem> column) => column.FilterKind == ColumnFilterKind.Date ? TextDefaults.FilterFrom : TextDefaults.FilterMin;

@@ -70,6 +70,11 @@ class Table extends IzzyElement {
   // show what a link has just changed, and the address is what's right about them.
   #changed = new Set<string>();
   #typing = new TypingGuard(this);
+  // A filter row's fields edited since the last apply: each hands its value to its panel's field, which
+  // is what's read, so one filter has one place that says it.
+  #rowEdits = new Set<HTMLInputElement | HTMLSelectElement>();
+  // The row's button that opened a panel, which gets focus back from it.
+  #rowOpener: HTMLElement | null = null;
 
   protected setup(signal: AbortSignal): void {
     this.#setupFilters(signal);
@@ -79,9 +84,25 @@ class Table extends IzzyElement {
     this.#setupScrollStop(signal);
     this.#setupBoundPanels(signal);
     this.addEventListener(
+      "toggle",
+      (event) => {
+        const opener = this.#rowOpener;
+        if (!opener || (event as ToggleEvent).newState !== "closed" || opener.getAttribute("popovertarget") !== (event.target as HTMLElement).id) return;
+        this.#rowOpener = null;
+        // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
+        const panel = event.target as HTMLElement;
+        const active = document.activeElement;
+        if (!active || active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) opener.focus();
+      },
+      { capture: true, signal }
+    );
+    this.addEventListener(
       "click",
       (event) => {
         // A panel's Clear is done with the panel.
+        const opens = (event.target as Element).closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel;
+        if (opens) document.getElementById(opens)?.showPopover();
+        this.#rowOpener = (event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary") ?? this.#rowOpener;
         const clear = (event.target as Element).closest("[data-ib-filter-clear]");
         if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
@@ -115,7 +136,7 @@ class Table extends IzzyElement {
       "change",
       (event) => {
         const target = event.target;
-        if (this.#releasing || !(target instanceof HTMLInputElement) || !this.contains(target) || target.type !== "date" || target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel")) return;
+        if (this.#releasing || !(target instanceof HTMLInputElement) || !this.contains(target) || target.type !== "date" || target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel, .ib-filter-cell")) return;
         event.stopPropagation();
         clearTimeout(this.#boundDate);
         if (unfinished(target)) return;
@@ -325,6 +346,7 @@ class Table extends IzzyElement {
   #touch(control: Element): void {
     // A panel's controls go together; the toolbar's search is on its own.
     this.#changed.add((control as HTMLInputElement).name);
+    if (control.hasAttribute("data-ib-row")) this.#rowEdits.add(control as HTMLInputElement);
     for (const c of control.closest(".ib-table-filter-panel")?.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]") ?? []) this.#changed.add(c.name);
   }
 
@@ -343,7 +365,12 @@ class Table extends IzzyElement {
     if (this.#typing.composing || !this.isConnected) return false;
     this.#typing.restore();
     const url = new URL(location.href);
-    const own = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name);
+    const own = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name && !c.hasAttribute("data-ib-row"));
+    for (const edit of this.#rowEdits) {
+      const twin = own.find((c) => c.name === edit.name);
+      if (twin) twin.value = edit.value;
+    }
+    this.#rowEdits.clear();
     const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c));
     if (controls.length === 0) return false;
     // A name can repeat: all of them go, then each control with something to say comes back.
