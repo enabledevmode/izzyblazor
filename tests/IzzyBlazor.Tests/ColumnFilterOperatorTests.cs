@@ -361,6 +361,79 @@ public class ColumnFilterOperatorTests : BunitContext
         Assert.Equal(new[] { "Less than", "Between" }, changed.FindAll("select option").Select(o => o.TextContent));
     }
 
+    // A grid's FilterCase reaches its fields, for the rows and for a provider's own query, and a change
+    // to it loads again.
+    [Theory]
+    [InlineData(FilterCase.IgnoreCase, new[] { "Ada" }, "tolower(name)")]
+    [InlineData(FilterCase.MatchCase, new string[0], "contains(name,'ADA')")]
+    [InlineData(FilterCase.Database, new string[0], "contains(name,'ADA')")]
+    public void FilterCase_reaches_the_columns_fields(FilterCase textCase, string[] expected, string odata)
+    {
+        Nav.NavigateTo("/lines?f-name=ADA");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        DataRequest<Line>? seen = null;
+        var cut = Render<DataGrid<Line>>(p => p
+            .Add(t => t.FilterCase, textCase)
+            .Add(t => t.ItemsProvider, request =>
+            {
+                seen = request;
+                return ValueTask.FromResult(request.ToResult(Lines.AsQueryable()));
+            })
+            .Add(t => t.PageSize, 10)
+            .Add(t => t.ChildContent, AllColumns));
+
+        Assert.Equal(expected, Names(cut));
+        Assert.Contains(odata, Uri.UnescapeDataString(seen!.ToODataQuery()), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void A_template_column_and_a_changed_FilterCase_follow_it()
+    {
+        Nav.NavigateTo("/lines?f-who=ADA");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        RenderFragment columns = b =>
+        {
+            b.OpenComponent<TemplateColumn<Line>>(0);
+            b.AddComponentParameter(1, "Title", "Who");
+            b.AddComponentParameter(2, "SortKey", "who");
+            b.AddComponentParameter(3, "FilterBy", (Expression<Func<Line, string?>>)(r => r.Name));
+            b.AddComponentParameter(4, "Filterable", true);
+            b.AddComponentParameter(5, "ChildContent", (RenderFragment<Line>)(r => c => c.AddContent(0, r.Name)));
+            b.CloseComponent();
+        };
+        var cut = Render<Table<Line>>(p => p.Add(t => t.Items, Lines).Add(t => t.FilterCase, FilterCase.MatchCase).Add(t => t.ChildContent, columns));
+        Assert.Empty(Names(cut));
+
+        cut.Render(p => p.Add(t => t.FilterCase, FilterCase.IgnoreCase));
+        Assert.Equal(new[] { "Ada" }, Names(cut));
+        cut.Render(p => p.Add(t => t.FilterCase, FilterCase.MatchCase));
+        Assert.Empty(Names(cut));
+    }
+
+    // Virtual rows stay as they are through a parent's render, unless the filter changed.
+    [Fact]
+    public void A_changed_FilterCase_starts_virtual_rows_again()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var cut = Render<DataGrid<Line>>(p => p
+            .Add(t => t.Virtualize, true)
+            .Add(t => t.MaxHeight, Length.Rem(20))
+            .Add(t => t.PageSize, 2)
+            .Add(t => t.FilterCase, FilterCase.MatchCase)
+            .Add(t => t.ItemsProvider, request => ValueTask.FromResult(new DataResult<Line>(Lines.Skip(request.Skip).Take(request.Take ?? 2).ToList(), Lines.Length)))
+            .Add(t => t.ChildContent, b => b.AddContent(0, Col(r => r.Name))));
+        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("table").GetAttribute("data-ib-load")), Timer);
+        var load = cut.Find("table").GetAttribute("data-ib-load");
+
+        // Nothing new: stays.
+        cut.Render(p => p.Add(t => t.Caption, "Another"));
+        Assert.Equal(load, cut.Find("table").GetAttribute("data-ib-load"));
+
+        cut.Render(p => p.Add(t => t.FilterCase, FilterCase.IgnoreCase));
+        cut.WaitForAssertion(() => Assert.NotEqual(load, cut.Find("table").GetAttribute("data-ib-load")), Timer);
+    }
+
     private IRenderedComponent<DataGrid<Line>> Bound(List<Filter?> reported, Filter? filter = null)
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));

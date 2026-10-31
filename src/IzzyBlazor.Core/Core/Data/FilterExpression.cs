@@ -97,7 +97,7 @@ internal static class FilterExpression
         var contains = new FieldFilter("", FilterOperator.Contains, search);
         var parts = fields
             .Where(f => f.Searchable && FilterConvert.KindOf(f.Type) == FieldKind.Text)
-            .Select(f => Default(contains, Rebind(f.Value, x), f.Type))
+            .Select(f => Default(contains, Rebind(f.Value, x), f.Type, f.Case))
             .ToList();
         return Expression.Lambda<Func<TItem, bool>>(Join(parts, and: false), x);
     }
@@ -159,7 +159,7 @@ internal static class FilterExpression
         }
 
         var body = Rebind(field.Value, x);
-        return FilterConvert.DayCondition(filter, field.Type) is { } days ? Days(days, body, field.Type) : Default(filter, body, field.Type);
+        return FilterConvert.DayCondition(filter, field.Type) is { } days ? Days(days, body, field.Type) : Default(filter, body, field.Type, field.Case);
     }
 
     // What a comparison with a whole day came to (FilterConvert.DayCondition). On an offset, the day is
@@ -182,7 +182,7 @@ internal static class FilterExpression
             }
 
             case FieldFilter f:
-                return Default(f, body, type);
+                return Default(f, body, type, FilterCase.IgnoreCase);
             default:
                 return False;
         }
@@ -202,11 +202,11 @@ internal static class FilterExpression
     }
 
     // A condition on the value expression `body`, of `type`.
-    private static Expression Default(FieldFilter filter, Expression body, Type type)
+    private static Expression Default(FieldFilter filter, Expression body, Type type, FilterCase textCase)
     {
         var kind = FilterConvert.KindOf(type);
         var text = kind == FieldKind.Text;
-        var ignoreCase = text && !filter.MatchCase;
+        var ignoreCase = text && !filter.MatchCase && textCase == FilterCase.IgnoreCase;
         switch (filter.Operator)
         {
             case FilterOperator.IsNull:
@@ -475,7 +475,7 @@ internal static class FilterExpression
     /// </summary>
     public static Filter TypedFor<TItem>(Filter filter, IReadOnlyList<DataField<TItem>> fields) => !WithinLimits(filter) ? filter : filter switch
     {
-        FieldFilter f => fields.FirstOrDefault(d => string.Equals(d.Key, f.Field, StringComparison.OrdinalIgnoreCase)) is { } field ? TypedDays(FilterConvert.DayCondition(f, field.Type) ?? f, field.Type) : f,
+        FieldFilter f => fields.FirstOrDefault(d => string.Equals(d.Key, f.Field, StringComparison.OrdinalIgnoreCase)) is { } field ? TypedDays(FilterConvert.DayCondition(f, field.Type) ?? Cased(f, field), field.Type) : f,
         FilterGroup g => g with { Filters = g.Filters.Select(c => TypedFor(c, fields)).ToList() },
         NotFilter n => new NotFilter(TypedFor(n.Filter, fields)),
         _ => filter,
@@ -516,6 +516,10 @@ internal static class FilterExpression
             ? typed
             : typed with { Value = Day(filter.Value, typed.Value), Value2 = Day(filter.Value2, typed.Value2) };
     }
+
+    // OData lowers text to ignore case; a field that doesn't ignore it says so, as MatchCase does.
+    private static FieldFilter Cased<TItem>(FieldFilter filter, DataField<TItem> field) =>
+        field.Case == FilterCase.IgnoreCase ? filter : filter with { MatchCase = true };
 
     // A lambda's body on another parameter, so conditions on several fields share one.
     private static Expression Rebind(LambdaExpression lambda, ParameterExpression x) =>

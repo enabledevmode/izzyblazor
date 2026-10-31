@@ -365,6 +365,14 @@
     [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
     public EventCallback<IzzyBlazor.Filter?> FilterChanged { get; set; }
 
+    /// <summary>
+    /// How text compares in the column filters and search. Defaults to <see cref="FilterCase.IgnoreCase"/>,
+    /// which lowers both sides. <see cref="FilterCase.Database"/> compares text as it is and leaves it
+    /// to the database's collation, so an index can serve it. An export endpoint sets
+    /// <see cref="DataField{TItem}.Case"/> on its own fields, or the file and the screen can differ.
+    /// </summary>
+    [Parameter] public FilterCase FilterCase { get; set; }
+
     /// <summary>The table's name for screen readers (a visually hidden caption).</summary>
     [Parameter] public string? Caption { get; set; }
 
@@ -572,8 +580,8 @@
     /// <inheritdoc />
     internal override string FilterSignature() =>
         UseState && _stateExtra.Count > 0
-            ? $"{Signature(CurrentFilters())}|{string.Join("|", _stateExtra)}"
-            : Signature(CurrentFilters());
+            ? $"{FilterCase}|{Signature(CurrentFilters())}|{string.Join("|", _stateExtra)}"
+            : $"{FilterCase}|{Signature(CurrentFilters())}";
 
     private async Task RemoveExtraAsync(IzzyBlazor.Filter condition)
     {

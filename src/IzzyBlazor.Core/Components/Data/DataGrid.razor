@@ -54,7 +54,8 @@
     endpoint's fields decide what's written, and head the file. A download matches the screen when
     they have the grid's keys: a column whose key they don't have is left out, a filter on it matches
     nothing, and a sort on it is ignored. Search covers their searchable fields, which may not be the
-    grid's text columns.
+    grid's text columns. Text doesn't carry FilterCase, so a grid that sets it needs the same Case on
+    those fields.
 
     RowMenu gives each row a ⋮ menu of MenuItems in a last column, working with no script. With script
     a right-click on the row, a long press, Shift+F10 or the menu key opens the same menu. It acts on
@@ -210,15 +211,16 @@
     /// <summary>
     /// A link in the toolbar, in a menu with <see cref="ExportExcelHref"/>, to an endpoint that writes the rows as CSV with <c>DataExport</c>. It adds
     /// the current <c>filter</c>, <c>sort</c>, <c>search</c> and <c>columns</c> to the address. The
-    /// endpoint's fields need the grid's keys for the file to match the screen.
+    /// endpoint's fields need the grid's keys, and its <c>FilterCase</c> as their <c>Case</c>, for the
+    /// file to match the screen.
     /// </summary>
     [Parameter] public string? ExportCsvHref { get; set; }
 
     /// <summary>
     /// A link in the toolbar, in a menu with <see cref="ExportCsvHref"/>, to an endpoint that writes the rows as an Excel workbook with
     /// <c>DataExport</c>. It adds the current <c>filter</c>, <c>sort</c>, <c>search</c> and
-    /// <c>columns</c> to the address. The endpoint's fields need the grid's keys for the file to match
-    /// the screen.
+    /// <c>columns</c> to the address. The endpoint's fields need the grid's keys, and its
+    /// <c>FilterCase</c> as their <c>Case</c>, for the file to match the screen.
     /// </summary>
     [Parameter] public string? ExportExcelHref { get; set; }
 

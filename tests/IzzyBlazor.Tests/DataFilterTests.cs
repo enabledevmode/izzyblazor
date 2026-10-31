@@ -53,6 +53,23 @@ public sealed class Member
     public List<string> Tags { get; set; } = [];
 }
 
+// The same text under SQLite's two collations, for what FilterCase leaves to the database.
+public sealed class Person
+{
+    public int Id { get; set; }
+
+    public string Exact { get; set; } = "";
+
+    public string AnyCase { get; set; } = "";
+}
+
+public sealed class PersonDb(DbContextOptions<PersonDb> options) : DbContext(options)
+{
+    public DbSet<Person> People => Set<Person>();
+
+    protected override void OnModelCreating(ModelBuilder model) => model.Entity<Person>().Property(p => p.AnyCase).UseCollation("NOCASE");
+}
+
 public sealed class MemberDb(DbContextOptions<MemberDb> options) : DbContext(options)
 {
     public DbSet<Member> Members => Set<Member>();
@@ -103,6 +120,90 @@ public sealed class DataFilterTests : IDisposable
 
     private int[] InSqlite(Filter filter) =>
         new DataRequest<Member> { Filter = filter }.Apply(_db.Members.AsNoTracking(), Fields).Select(m => m.Id).ToList().OrderBy(i => i).ToArray();
+
+    private static DataField<Person>[] PeopleFields(FilterCase textCase) =>
+    [
+        new() { Key = "exact", Value = (Expression<Func<Person, string>>)(p => p.Exact), Filterable = true, Searchable = true, Case = textCase },
+        new() { Key = "anycase", Value = (Expression<Func<Person, string>>)(p => p.AnyCase), Filterable = true, Case = textCase },
+    ];
+
+    private PersonDb People()
+    {
+        var db = new PersonDb(new DbContextOptionsBuilder<PersonDb>().UseSqlite(_connection).Options);
+        db.Database.ExecuteSqlRaw("""CREATE TABLE IF NOT EXISTS "People" ("Id" INTEGER PRIMARY KEY, "Exact" TEXT NOT NULL, "AnyCase" TEXT NOT NULL COLLATE NOCASE)""");
+        db.People.AddRange(new Person { Id = 1, Exact = "Ada", AnyCase = "Ada" }, new Person { Id = 2, Exact = "Grace", AnyCase = "Grace" });
+        db.SaveChanges();
+        return db;
+    }
+
+    public static TheoryData<FilterOperator, object> CaseConditions => new()
+    {
+        { FilterOperator.Equals, "ADA" },
+        { FilterOperator.NotEquals, "ADA" },
+        { FilterOperator.Contains, "ADA" },
+        { FilterOperator.DoesNotContain, "ADA" },
+        { FilterOperator.StartsWith, "ADA" },
+        { FilterOperator.EndsWith, "ADA" },
+        { FilterOperator.In, new List<object?> { "ADA", "x" } },
+        { FilterOperator.NotIn, new List<object?> { "ADA", "x" } },
+    };
+
+    // Whatever the operator, Database and MatchCase write no LOWER and IgnoreCase does, and one
+    // condition's MatchCase goes first.
+    [Theory]
+    [MemberData(nameof(CaseConditions))]
+    public void FilterCase_decides_whether_the_sql_lowers_text(FilterOperator op, object value)
+    {
+        using var db = People();
+        string Sql(FilterCase textCase, bool matchCase = false) =>
+            new DataRequest<Person> { Filter = new FieldFilter("exact", op, value, MatchCase: matchCase) }.Apply(db.People.AsNoTracking(), PeopleFields(textCase)).ToQueryString();
+
+        Assert.Contains("lower(", Sql(FilterCase.IgnoreCase), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("lower(", Sql(FilterCase.Database), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("lower(", Sql(FilterCase.MatchCase), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("lower(", Sql(FilterCase.IgnoreCase, matchCase: true), StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void FilterCase_decides_whether_a_search_lowers_text()
+    {
+        using var db = People();
+        string Sql(FilterCase textCase) => new DataRequest<Person> { Search = "ADA" }.Apply(db.People.AsNoTracking(), PeopleFields(textCase)).ToQueryString();
+        int[] Ids(FilterCase textCase) => new DataRequest<Person> { Search = "ADA" }.Apply(db.People.AsNoTracking(), PeopleFields(textCase)).Select(p => p.Id).ToArray();
+
+        Assert.Contains("lower(", Sql(FilterCase.IgnoreCase), StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("lower(", Sql(FilterCase.Database), StringComparison.OrdinalIgnoreCase);
+        Assert.Equal([1], Ids(FilterCase.IgnoreCase));
+    }
+
+    // The rows: lowering finds it anywhere; with none, the column's collation decides, so only the
+    // NOCASE column does; matching case is exact in memory.
+    [Theory]
+    [InlineData(FilterCase.IgnoreCase, "exact", new[] { 1 }, new[] { 1 })]
+    [InlineData(FilterCase.IgnoreCase, "anycase", new[] { 1 }, new[] { 1 })]
+    [InlineData(FilterCase.Database, "exact", new int[0], new int[0])]
+    [InlineData(FilterCase.Database, "anycase", new[] { 1 }, new int[0])]
+    [InlineData(FilterCase.MatchCase, "exact", new int[0], new int[0])]
+    public void FilterCase_finds_what_it_says(FilterCase textCase, string field, int[] inSqlite, int[] inMemory)
+    {
+        using var db = People();
+        var request = new DataRequest<Person> { Filter = Filter.Where(field, FilterOperator.Equals, "ADA") };
+        var memory = new[] { new Person { Id = 1, Exact = "Ada", AnyCase = "Ada" }, new Person { Id = 2, Exact = "Grace", AnyCase = "Grace" } };
+
+        Assert.Equal(inSqlite, request.Apply(db.People.AsNoTracking(), PeopleFields(textCase)).Select(p => p.Id).ToArray());
+        Assert.Equal(inMemory, request.Apply(memory.AsQueryable(), PeopleFields(textCase)).Select(p => p.Id).ToArray());
+    }
+
+    [Theory]
+    [InlineData(FilterCase.IgnoreCase, "tolower(exact)")]
+    [InlineData(FilterCase.Database, "contains(exact,'Ada')")]
+    [InlineData(FilterCase.MatchCase, "contains(exact,'Ada')")]
+    public void An_odata_query_follows_the_fields_case(FilterCase textCase, string expected)
+    {
+        var request = new DataRequest<Person> { Filter = Filter.Where("exact", FilterOperator.Contains, "Ada") };
+
+        Assert.Contains(expected, Uri.UnescapeDataString(request.ToODataQuery(PeopleFields(textCase))), StringComparison.Ordinal);
+    }
 
     // A day on a field with a time means the whole day: rows around 3 Jan, with their ids in time order.
     private static readonly DateTime[] AroundTheDay =
