@@ -114,6 +114,75 @@ public class IzzyText
     /// <summary>A Table filter menu with several values chosen: "2 selected".</summary>
     public virtual string FilterSelected { get; set; } = "{0} selected";
 
+    /// <summary>A column filter's operator, for screen readers.</summary>
+    public virtual string FilterOperatorLabel { get; set; } = "Operator";
+
+    /// <summary>A column filter's one value, for screen readers.</summary>
+    public virtual string FilterValueLabel { get; set; } = "Value";
+
+    /// <summary>A text filter's operator.</summary>
+    public virtual string FilterContains { get; set; } = "Contains";
+
+    /// <summary>A text filter's operator.</summary>
+    public virtual string FilterDoesNotContain { get; set; } = "Does not contain";
+
+    /// <summary>A text or number filter's operator.</summary>
+    public virtual string FilterEquals { get; set; } = "Equals";
+
+    /// <summary>A text or number filter's operator.</summary>
+    public virtual string FilterDoesNotEqual { get; set; } = "Does not equal";
+
+    /// <summary>A text filter's operator.</summary>
+    public virtual string FilterStartsWith { get; set; } = "Starts with";
+
+    /// <summary>A text filter's operator.</summary>
+    public virtual string FilterEndsWith { get; set; } = "Ends with";
+
+    /// <summary>A number filter's operator.</summary>
+    public virtual string FilterGreaterThan { get; set; } = "Greater than";
+
+    /// <summary>A number filter's operator.</summary>
+    public virtual string FilterGreaterOrEqual { get; set; } = "Greater or equal";
+
+    /// <summary>A number filter's operator.</summary>
+    public virtual string FilterLessThan { get; set; } = "Less than";
+
+    /// <summary>A number filter's operator.</summary>
+    public virtual string FilterLessOrEqual { get; set; } = "Less or equal";
+
+    /// <summary>A date filter's operator.</summary>
+    public virtual string FilterOn { get; set; } = "On";
+
+    /// <summary>A date filter's operator.</summary>
+    public virtual string FilterNotOn { get; set; } = "Not on";
+
+    /// <summary>A date filter's operator.</summary>
+    public virtual string FilterAfter { get; set; } = "After";
+
+    /// <summary>A date filter's operator.</summary>
+    public virtual string FilterOnOrAfter { get; set; } = "On or after";
+
+    /// <summary>A date filter's operator.</summary>
+    public virtual string FilterBefore { get; set; } = "Before";
+
+    /// <summary>A date filter's operator.</summary>
+    public virtual string FilterOnOrBefore { get; set; } = "On or before";
+
+    /// <summary>A number or date filter's operator.</summary>
+    public virtual string FilterIsBetween { get; set; } = "Between";
+
+    /// <summary>A column filter's operator.</summary>
+    public virtual string FilterIsEmpty { get; set; } = "Is empty";
+
+    /// <summary>A column filter's operator.</summary>
+    public virtual string FilterIsNotEmpty { get; set; } = "Is not empty";
+
+    /// <summary>A date filter's lower end: "From".</summary>
+    public virtual string FilterFrom { get; set; } = "From";
+
+    /// <summary>A date filter's upper end: "To".</summary>
+    public virtual string FilterTo { get; set; } = "To";
+
     /// <summary>A Table number filter's lower end: "Min".</summary>
     public virtual string FilterMin { get; set; } = "Min";
 

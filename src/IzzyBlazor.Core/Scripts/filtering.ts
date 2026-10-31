@@ -14,7 +14,13 @@ interface BlazorNavigator {
  */
 export class TypingGuard {
   #typed = new Map<HTMLInputElement, string>();
+  #root: ParentNode;
   composing = false;
+
+  /** Where a new box of the same name is looked for. */
+  constructor(root: ParentNode = document) {
+    this.#root = root;
+  }
 
   get size(): number {
     return this.#typed.size;
@@ -39,7 +45,7 @@ export class TypingGuard {
       // The response may have brought a new box of the same name, which has the old one's focus.
       let input = known;
       if (!input.isConnected) {
-        const next = input.name ? document.querySelector<HTMLInputElement>(`input[name="${CSS.escape(input.name)}"]`) : null;
+        const next = input.name ? this.#root.querySelector<HTMLInputElement>(`input[name="${CSS.escape(input.name)}"]`) : null;
         this.#typed.delete(input);
         if (!next) continue;
         input = next;

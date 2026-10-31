@@ -12,8 +12,10 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  * - Live filters. Without script the header filters' fields are a GET form you submit with Enter
  *   or Apply. Here the boxes apply after a pause in typing, dates when they change and Enter at once:
  *   the element puts the values in the URL, drops this table's page number and navigates through
- *   Blazor, which keeps the page in place. (Filters kept in the component on interactive pages
- *   don't carry data-ib-filter, so this leaves them alone.) A header filter's panel stays open
+ *   Blazor, which keeps the page in place. An operator's select applies at once if there's a value;
+ *   with none, the address stays as it is, and the choice only shapes the panel until the next
+ *   navigation. (Filters kept in the component on interactive pages don't carry data-ib-filter, so
+ *   this leaves them alone.) A header filter's panel stays open
  *   while you type; Enter applies and closes it, Escape closes it as it is, and either puts focus
  *   back on its button.
  * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
@@ -26,11 +28,30 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   It also gives the box its visible width (--ib-table-view), which keeps the "no items" message
  *   centered in view when the columns are wider than the box.
  */
+const NO_VALUE = ["isempty", "isnotempty"];
+
+/**
+ * What a filter's control puts in the address, given the operator chosen in its panel: nothing for a
+ * value the operator doesn't take, and the operator only with something for it to apply to, as an
+ * operator alone is no filter, and not when it's the column's default.
+ */
+function written(control: HTMLInputElement | HTMLSelectElement): string {
+  const value = control.value.trim();
+  const panel = control.closest(".ib-table-filter-panel");
+  const op = panel?.querySelector<HTMLSelectElement>("select[data-ib-filter]");
+  if (!panel || !op) return value;
+  const noValue = NO_VALUE.includes(op.value);
+  const used = (c: Element) => !noValue && (op.value === "between" || !c.hasAttribute("data-ib-to"));
+  if (control !== op) return used(control) ? value : "";
+  const hasValue = [...panel.querySelectorAll<HTMLInputElement>("input[data-ib-filter]")].some((c) => c.value.trim() && used(c));
+  return (noValue || hasValue) && value !== op.dataset.ibDefault ? value : "";
+}
+
 class Table extends IzzyElement {
   // Kept when setup runs again as a response arrives: the key pressed after that request still counts.
   #timer = 0;
   #popped = false;
-  #typing = new TypingGuard();
+  #typing = new TypingGuard(this);
 
   protected setup(signal: AbortSignal): void {
     this.#setupFilters(signal);
@@ -71,8 +92,10 @@ class Table extends IzzyElement {
       (event) => {
         const target = event.target;
         if (event.key === "Enter" && isBoundSearch(target)) event.preventDefault();
-        if ((event.key !== "Enter" && event.key !== "Escape") || event.isComposing || !(target instanceof HTMLInputElement)) return;
+        if ((event.key !== "Enter" && event.key !== "Escape") || event.isComposing || !(target instanceof HTMLInputElement || target instanceof HTMLSelectElement)) return;
         if (target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel")) return;
+        // Enter on the operator is for its own list.
+        if (event.key === "Enter" && target instanceof HTMLSelectElement) return;
         if (this.#closePanel(target)) event.preventDefault();
       },
       { signal }
@@ -157,7 +180,7 @@ class Table extends IzzyElement {
           event.preventDefault();
           return;
         }
-        if (event.key !== "Enter" || !isFilter(event.target) || this.#typing.composing) return;
+        if (event.key !== "Enter" || !isFilter(event.target) || event.target instanceof HTMLSelectElement || this.#typing.composing) return;
         event.preventDefault(); // Not the GET form's full reload.
         clearTimeout(this.#timer);
         this.#apply(false);
@@ -181,8 +204,10 @@ class Table extends IzzyElement {
     }, { signal });
     if (this.#popped) {
       this.#popped = false;
-      for (const control of this.querySelectorAll<HTMLInputElement>("input[data-ib-filter]")) {
-        if (control.closest("ib-table") === this) control.value = control.defaultValue;
+      for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
+        if (control.closest("ib-table") !== this) continue;
+        if (control instanceof HTMLInputElement) control.value = control.defaultValue;
+        else if (control instanceof HTMLSelectElement) for (const option of control.options) option.selected = option.defaultSelected;
       }
     }
 
@@ -226,11 +251,12 @@ class Table extends IzzyElement {
     if (this.#typing.composing || !this.isConnected) return;
     this.#typing.restore();
     const url = new URL(location.href);
-    for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
-      if (control.closest("ib-table") !== this || !control.name) continue;
-      const value = control.value.trim();
-      if (value) url.searchParams.set(control.name, value);
-      else url.searchParams.delete(control.name);
+    const controls = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name);
+    // A name can repeat: all of them go, then each control with something to say comes back.
+    for (const control of controls) url.searchParams.delete(control.name);
+    for (const control of controls) {
+      const value = written(control);
+      if (value) url.searchParams.append(control.name, value);
     }
     const pageKey = this.dataset.ibPageKey;
     if (pageKey) url.searchParams.delete(pageKey);

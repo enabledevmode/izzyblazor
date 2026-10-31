@@ -542,11 +542,49 @@
     min-width: 6rem;
   }
 
-  /* A number filter's range: at least and at most, side by side. */
+  /* A filter's values: one, or a range's two ends side by side (dates, too wide for that, stacked). */
   .ib-table-filter-range {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
     gap: var(--ib-space-2);
+  }
+
+  .ib-table-filter-range:has(input[type="date"]) {
+    grid-auto-flow: row;
+  }
+
+  /* The panel's shape follows its operator, with no script: Between shows the second value and names
+     both ends, and an operator that takes no value hides them. */
+  .ib-table-filter-to,
+  .ib-table-filter-if-range,
+  .ib-table-filter-panel:has(option:is([value="isempty"], [value="isnotempty"]):checked) .ib-table-filter-range {
+    display: none;
+  }
+
+  .ib-table-filter-value-label {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
+  }
+
+  .ib-table-filter-panel:is(.ib-table-filter-between, :has(option[value="between"]:checked)) :is(.ib-table-filter-to, .ib-table-filter-if-range) {
+    display: block;
+  }
+
+  .ib-table-filter-panel:has(option[value="between"]:checked) .ib-table-filter-if-one {
+    display: none;
+  }
+
+  .ib-table-filter-panel:has(option[value="between"]:checked) .ib-table-filter-value-label {
+    position: static;
+    width: auto;
+    height: auto;
+    overflow: visible;
+    clip-path: none;
   }
 
   .ib-table-filter-date {

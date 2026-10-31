@@ -16,6 +16,9 @@
 <ExampleViewer Example="table-filters" />
 <TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (here <Code>?orders-f-customer=ada</Code>: this table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the one above, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). A number's two ends go in as <Code>?f-total=100&amp;f-total-to=500</Code>, so the form needs no script. <Code>FilterMultiple</Code> lets an enum column match several values. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
 
+<TextBlock>Use <Code>FilterOperators</Code> to choose an operator in a column's filter, as a DataGrid's columns do by default, or to limit the ones it offers. The first is the default, and a condition with any other matches nothing, even in an address written by hand. It goes in the address when it isn't the default, with its value: <Code>?f-total-op=between&amp;f-total=100&amp;f-total-to=500</Code>.</TextBlock>
+<ExampleViewer Example="table-filter-operators" />
+
 <Heading Level="2">Selection</Heading>
 <TextBlock>Use <Code>SelectionMode="SelectionMode.Multiple"</Code> with an <Code>ItemKey</Code> for a checkbox per row (<Code>Single</Code> for a radio button). In a form, the checked rows post their keys, so this works with JavaScript off.</TextBlock>
 <ExampleViewer Example="table-select-rows" />
