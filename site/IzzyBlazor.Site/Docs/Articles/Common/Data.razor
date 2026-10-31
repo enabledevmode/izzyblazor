@@ -100,6 +100,12 @@
                 it. <Code>IsEmpty</Code> matches empty text and null; <Code>DoesNotContain</Code> keeps null.
             </ListItem>
             <ListItem>
+                <strong>Text ignores case</strong> by lowering both sides, which a database index can't serve.
+                <Code>FilterCase.Database</Code> on a Table or DataGrid, or as a field's <Code>Case</Code>, compares text as it is and
+                leaves it to the database's collation; <Code>FilterCase.MatchCase</Code> makes case count. The filter's text
+                doesn't carry this, so an endpoint that reads it, such as an export, sets <Code>Case</Code> on its own fields.
+            </ListItem>
+            <ListItem>
                 <strong>Values are parsed for the field's type</strong>, so <Code>"10"</Code> filters a number and
                 <Code>"Paid"</Code> an enum. Numbers are read as the person writes them in the current culture
                 (<Code>"1.234,5"</Code> in German), then in the invariant form (<Code>"1234.5"</Code>); dates and times in ISO

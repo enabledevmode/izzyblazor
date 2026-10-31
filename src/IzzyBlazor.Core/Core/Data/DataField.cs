@@ -42,8 +42,15 @@ public sealed class DataField<TItem>
     /// <summary>Whether a filter can name it. A condition on a field that isn't filterable matches nothing.</summary>
     public bool Filterable { get; init; }
 
-    /// <summary>Whether a request's <c>Search</c> looks in it (text that contains the search, ignoring case).</summary>
+    /// <summary>Whether a request's <c>Search</c> looks in it (text that contains the search, by its <see cref="Case"/>).</summary>
     public bool Searchable { get; init; }
+
+    /// <summary>
+    /// How text compares in a filter or search on it. <see cref="FieldFilter.MatchCase"/> goes first
+    /// for one condition. A grid's <c>FilterCase</c> comes here through its columns; an endpoint that
+    /// reads the same filter, such as an export, sets it on its own fields.
+    /// </summary>
+    public FilterCase Case { get; init; }
 
     /// <summary>The operators it takes, of those its type takes (see <see cref="FilterOperator"/>); null for all of them.</summary>
     public IReadOnlyList<FilterOperator>? Operators { get; init; }
@@ -68,6 +75,22 @@ public sealed class DataField<TItem>
 
     /// <inheritdoc />
     public override string ToString() => Key;
+}
+
+/// <summary>How text compares in a filter.</summary>
+public enum FilterCase
+{
+    /// <summary>Upper and lower case are the same: both sides are lowered, which a database index can't serve. The default.</summary>
+    IgnoreCase,
+
+    /// <summary>Upper and lower case differ.</summary>
+    MatchCase,
+
+    /// <summary>
+    /// Text is compared as it is, and the database's collation decides, so an index can serve it. On
+    /// a list in memory, that's the same as <see cref="MatchCase"/>.
+    /// </summary>
+    Database,
 }
 
 /// <summary>Reads fields from a type, for a FilterBuilder, export, forms, or a server that applies requests.</summary>

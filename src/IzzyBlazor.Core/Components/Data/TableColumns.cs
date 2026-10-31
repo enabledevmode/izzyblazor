@@ -330,6 +330,7 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
         Filterable = CanFilter,
         Searchable = FilterKind == ColumnFilterKind.Text,
         Operators = ColumnFilter.FieldOperators(this),
+        Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
         Choices = FilterKind == ColumnFilterKind.Choice ? FilterChoices(text) : null,
         Filter = Filter,
     };
@@ -388,6 +389,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         Filterable = CanFilter,
         Searchable = FilterBy is not null,
         Operators = ColumnFilter.FieldOperators(this),
+        Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
         Filter = Filter,
     };
 
