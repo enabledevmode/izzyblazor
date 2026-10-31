@@ -139,6 +139,8 @@
                     <tr><td><code>eq ne gt ge lt le</code></td><td>Comparisons; <code>eq null</code> and <code>ne null</code> for the null checks</td></tr>
                     <tr><td><code>status in ('Paid','Pending')</code></td><td>Any of the values; <code>not (status in (...))</code> for none</td></tr>
                     <tr><td><code>customer contains 'ada'</code></td><td>Also <code>contains(customer,'ada')</code>, and <code>startswith</code>, <code>endswith</code></td></tr>
+                    <tr><td><code>between(total,100,500)</code></td><td>Either end can be <code>null</code>, for no limit</td></tr>
+                    <tr><td><code>isempty(email)</code></td><td>No value or empty text; also <code>isnotempty</code></td></tr>
                     <tr><td><code>date(placed) eq 2026-10-28</code></td><td>On that day</td></tr>
                     <tr><td><code>and or not ( )</code></td><td>Groups; <code>and</code> binds before <code>or</code></td></tr>
                     <tr><td><code>'O''Brien'</code>, <code>-1.5</code>, <code>true</code>, <code>2026-10-28T09:30:00Z</code></td><td>Values: text in single quotes (a quote doubled), numbers, true or false, dates and times, Guids</td></tr>

@@ -1,0 +1,10 @@
+@* The builder holds what a column's filter can't, such as "this or that" across columns. Its filter goes in
+   the address and applies along with the columns' own, and FilterPanel lists both. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" InitialSort="-number" Caption="Orders by builder" QueryPrefix="built-" FilterBuilder FilterPanel Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable Width="9.Rem" />
+    <PropertyColumn Property="o => o.Status" Sortable Filterable Width="9.Rem" />
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable Width="9.Rem" />
+</DataGrid>

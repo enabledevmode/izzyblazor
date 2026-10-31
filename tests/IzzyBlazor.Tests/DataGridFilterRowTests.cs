@@ -99,5 +99,22 @@ public class DataGridFilterRowTests : BunitContext
         Assert.Equal("3", table.GetAttribute("data-ib-first"));
         Assert.Equal("2", cut.Find(".ib-table-filter-row").GetAttribute("aria-rowindex"));
     }
+
+    [Theory]
+    [InlineData("?filter=name%20eq%20'Ada'%20or%20total%20eq%2020&f-kind=B", new[] { "Grace" })]
+    [InlineData("?filter=name%20eq%20'Ada'%20or%20total%20eq%2020", new[] { "Ada", "Grace" })]
+    [InlineData("?filter=not%20a%20filter(", new string[0])]
+    public void A_filter_in_the_address_applies_with_the_columns(string query, string[] names) =>
+        Assert.Equal(names, Grid("/orders" + query).FindAll("tbody tr:not(.ib-table-empty) td:first-child").Select(c => c.TextContent.Trim()));
+
+    [Fact]
+    public void Its_tag_removes_it_and_Clear_clears_it()
+    {
+        var cut = Grid("/orders?filter=total%20gt%205&page=1");
+
+        var remove = cut.Find(".ib-table-filter-tags a").GetAttribute("href")!;
+        Assert.DoesNotContain("filter=", remove);
+    }
 }
+
 

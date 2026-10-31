@@ -84,6 +84,8 @@ class Table extends IzzyElement {
     setupLoadOnScroll(this, ":scope > .ib-table-scroll > table > tbody > tr:last-child", ":scope > .ib-table-scroll > .ib-data-more [data-ib-load-next]", signal);
     this.#setupScrollStop(signal);
     this.#setupBoundPanels(signal);
+    // A FilterBuilder in a panel is done with the panel.
+    this.addEventListener("ibfilterapplied", (event) => (event.target as Element).closest<HTMLElement>("[popover]:popover-open")?.hidePopover(), { signal });
     this.addEventListener(
       "toggle",
       (event) => {
