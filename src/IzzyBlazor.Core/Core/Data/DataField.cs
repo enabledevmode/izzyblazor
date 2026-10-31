@@ -67,6 +67,12 @@ public sealed class DataField<TItem>
     /// <example><code>Filter = f =&gt; f.Operator == FilterOperator.Contains ? o =&gt; o.Tags.Any(t =&gt; t.Name == (string)f.Value!) : null</code></example>
     public Func<FieldFilter, Expression<Func<TItem, bool>>?>? Filter { get; init; }
 
+    /// <summary>
+    /// Finds the values a filter on this field can list, for <see cref="DataFields.LoadValuesAsync"/>.
+    /// A column's own <c>FilterValues</c> comes here.
+    /// </summary>
+    public FilterValuesLoader? FilterValues { get; init; }
+
     /// <summary>What to sort by when it isn't <see cref="Value"/> (a template column's SortBy beside its FilterBy).</summary>
     internal LambdaExpression? SortValue { get; init; }
 
@@ -147,6 +153,21 @@ public static class DataFields
 
             return fields;
         }
+    }
+
+    /// <summary>
+    /// Runs the <see cref="DataField{TItem}.FilterValues"/> of the field a request names, on a server
+    /// answering a list. A field that isn't filterable, or has no loader, gives nothing, so a request
+    /// can't read other columns' values.
+    /// </summary>
+    public static async ValueTask<FilterValuesResult> LoadValuesAsync<TItem>(IReadOnlyList<DataField<TItem>> fields, FilterValuesRequest request)
+    {
+        if (fields.FirstOrDefault(f => f.Filterable && string.Equals(f.Key, request.Field, StringComparison.OrdinalIgnoreCase)) is not { FilterValues: { } loader } field)
+        {
+            return FilterValuesResult.Empty;
+        }
+
+        return request.Keeping(await loader(request), field.Case);
     }
 
     // [DisplayFormat(DataFormatString = "{0:C}")] is "C"; else what [DataType] implies.
