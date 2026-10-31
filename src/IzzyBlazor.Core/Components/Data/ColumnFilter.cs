@@ -14,7 +14,7 @@ internal enum ColumnFilterKind
     /// <summary>Two number boxes, at least and at most; keeps the values between them (either may be empty).</summary>
     Number,
 
-    /// <summary>A menu (enums and booleans); matches the chosen value, or any of them with FilterMultiple.</summary>
+    /// <summary>A list of checkboxes (enums and booleans); matches any value ticked, and all ticked is no filter.</summary>
     Choice,
 
     /// <summary>A date input (DateOnly, DateTime, DateTimeOffset); matches that day.</summary>
@@ -23,24 +23,25 @@ internal enum ColumnFilterKind
 
 /// <summary>
 /// One column's filter, as its panel and the address hold it: the operator, the values as they were
-/// typed (several for a list, so a comma in one is just a comma), and a range's upper end.
+/// typed (several for a list, so a comma in one is just a comma, and null is its blank row), a range's
+/// upper end, and whether a list has nothing ticked, which keeps no rows.
 /// </summary>
-internal sealed record ColumnFilterValue(FilterOperator Op, IReadOnlyList<string?> Values, string? To = null)
+internal sealed record ColumnFilterValue(FilterOperator Op, IReadOnlyList<string?> Values, string? To = null, bool None = false)
 {
     /// <summary>The first value, or "" for none.</summary>
     public string Value => Values.Count > 0 ? Values[0] ?? "" : "";
 
     /// <summary>Whether it's a condition at all: an empty field isn't, nor an operator with no value, which only draws the panel that way.</summary>
-    public bool IsFilter => ColumnFilter.TakesNoValue(Op) || Values.Count > 0 || (Op == FilterOperator.Between && !string.IsNullOrWhiteSpace(To));
+    public bool IsFilter => None || ColumnFilter.TakesNoValue(Op) || Values.Count > 0 || (Op == FilterOperator.Between && !string.IsNullOrWhiteSpace(To));
 
     /// <summary>What it is, for telling whether it changed.</summary>
-    public string Signature => $"{Op}\u001f{string.Join('\u001f', Values)}\u001f{To}";
+    public string Signature => $"{Op}\u001f{string.Join('\u001f', Values.Select(v => v ?? "\u0000"))}\u001f{To}\u001f{None}";
 }
 
 /// <summary>
 /// A Table column's filter as people type it (<see cref="ColumnFilterValue"/>, in its panel and in
 /// the address) and as the condition it stands for: contains for text, between for numbers, equals
-/// for dates, equals or in for choices. The conditions themselves are built by
+/// for dates, in for choices. The conditions themselves are built by
 /// <see cref="FilterExpression"/>.
 /// </summary>
 internal static class ColumnFilter
@@ -83,8 +84,37 @@ internal static class ColumnFilter
             ? [("true", text.Yes), ("false", text.No)]
             : DataFields.EnumChoices(type) ?? [];
 
+    /// <summary>A list filter's rows: its choices, then a blank row where the column can be null.</summary>
+    public static IReadOnlyList<(string? Value, string Text)> ListOf<TItem>(ColumnBase<TItem> column, IzzyText text)
+    {
+        var rows = column.FilterChoices(text).Select(c => ((string?)c.Value, c.Text)).ToList();
+        if (column.ValueType is { } type && FilterConvert.CanBeNull(type))
+        {
+            rows.Add((null, text.FilterBlank));
+        }
+
+        return rows;
+    }
+
+    /// <summary>Whether a list filter's row is ticked: all of them are, with no filter.</summary>
+    public static bool IsTicked(ColumnFilterValue current, string? value) =>
+        !current.IsFilter || current.Values.Contains(value, StringComparer.OrdinalIgnoreCase);
+
+    /// <summary>A list filter with one row ticked or unticked: all ticked is no filter, none ticked keeps no rows.</summary>
+    public static ColumnFilterValue Tick<TItem>(ColumnBase<TItem> column, ColumnFilterValue current, string? value, bool on)
+    {
+        var rows = ListOf(column, Words).Select(r => r.Value).ToList();
+        var ticked = rows.Where(r => string.Equals(r, value, StringComparison.OrdinalIgnoreCase) ? on : IsTicked(current, r)).ToList();
+        return ticked.Count == rows.Count ? Empty(column)
+            : ticked.Count == 0 ? new(FilterOperator.In, [], None: true)
+            : new(FilterOperator.In, ticked);
+    }
+
+    // For a list's values alone, where the words don't matter.
+    private static readonly IzzyText Words = new();
+
     /// <summary>The operators with a word in the address, the same as in the filter's text form.</summary>
-    private static readonly (FilterOperator Op, string Word)[] Words =
+    private static readonly (FilterOperator Op, string Word)[] OperatorWords =
     [
         (FilterOperator.Equals, "eq"), (FilterOperator.NotEquals, "ne"), (FilterOperator.GreaterThan, "gt"), (FilterOperator.GreaterThanOrEqual, "ge"),
         (FilterOperator.LessThan, "lt"), (FilterOperator.LessThanOrEqual, "le"), (FilterOperator.Contains, "contains"), (FilterOperator.DoesNotContain, "notcontains"),
@@ -93,12 +123,12 @@ internal static class ColumnFilter
     ];
 
     /// <summary>An operator's word in the address.</summary>
-    public static string WordOf(FilterOperator op) => Words.First(w => w.Op == op).Word;
+    public static string WordOf(FilterOperator op) => OperatorWords.First(w => w.Op == op).Word;
 
     /// <summary>The operator a word in the address names, or null for an unknown word.</summary>
     public static FilterOperator? OperatorOf(string? word)
     {
-        foreach (var (op, known) in Words)
+        foreach (var (op, known) in OperatorWords)
         {
             if (string.Equals(known, word, StringComparison.OrdinalIgnoreCase))
             {
@@ -146,7 +176,7 @@ internal static class ColumnFilter
     {
         if (column.FilterKind == ColumnFilterKind.Choice)
         {
-            return [column.FilterMultiple ? FilterOperator.In : FilterOperator.Equals];
+            return [FilterOperator.In];
         }
 
         var panel = PanelOperators(column.FilterKind, column.ValueType);
@@ -218,7 +248,7 @@ internal static class ColumnFilter
     /// them and to carry the rest of the address past them.
     /// </summary>
     public static IEnumerable<string> KeysOf<TItem>(ColumnBase<TItem> column, string key) => column.FilterKind == ColumnFilterKind.Choice
-        ? [key]
+        ? [key, $"{key}-blank", $"{key}-none"]
         : [key, $"{key}-op", $"{key}-to"];
 
     /// <summary>
@@ -229,6 +259,11 @@ internal static class ColumnFilter
     /// </summary>
     public static ColumnFilterValue? Read<TItem>(ColumnBase<TItem> column, string key, IReadOnlyDictionary<string, StringValues> query)
     {
+        if (column.FilterKind == ColumnFilterKind.Choice)
+        {
+            return ReadList(column, key, query);
+        }
+
         var ops = OperatorsOf(column);
         var fallback = ops.FirstOrDefault();
         var op = OperatorOf(query.GetValueOrDefault($"{key}-op").FirstOrDefault()) is { } named && ops.Contains(named) ? named : fallback;
@@ -248,6 +283,37 @@ internal static class ColumnFilter
         return value.IsFilter || op != fallback ? value : null;
     }
 
+    // A list's ticks, each as its row: a value with no row ticks nothing, so the boxes always say what
+    // the rows are. Every row ticked is no filter, which is what a form with no script posts when it's
+    // left alone. A tick outweighs the none marker, as a form posting both has been ticked since.
+    private static ColumnFilterValue? ReadList<TItem>(ColumnBase<TItem> column, string key, IReadOnlyDictionary<string, StringValues> query)
+    {
+        static bool On(StringValues value) => value.Any(v => !string.IsNullOrWhiteSpace(v));
+
+        var rows = ListOf(column, Words).Select(r => r.Value).ToList();
+        var written = query.GetValueOrDefault(key).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
+        var values = rows.Where(r => r is not null && written.Any(v => Names(column, v!, r))).ToList();
+        if (rows.Contains(null) && On(query.GetValueOrDefault($"{key}-blank")))
+        {
+            values.Add(null);
+        }
+
+        if (values.Count == 0)
+        {
+            return written.Count > 0 || On(query.GetValueOrDefault($"{key}-none")) ? new(FilterOperator.In, [], None: true) : null;
+        }
+
+        return values.Count == rows.Count ? null : new(FilterOperator.In, values);
+    }
+
+    // Whether text in the address means this row: its name in any case, or anything the column's type reads as it.
+    private static bool Names<TItem>(ColumnBase<TItem> column, string text, string? row)
+    {
+        text = text.Trim();
+        return string.Equals(text, row, StringComparison.OrdinalIgnoreCase)
+            || (column.ValueType is { } type && FilterConvert.Unwrap(FilterConvert.Read(type, text)) is { } typed && typed is not string && string.Equals(FilterConvert.Format(typed), row, StringComparison.OrdinalIgnoreCase));
+    }
+
     /// <summary>
     /// What a column's filter makes of the address: its value for each of the column's keys, null
     /// for one it doesn't use. Null clears them all. <see cref="Read"/> reads it back. The default
@@ -256,7 +322,13 @@ internal static class ColumnFilter
     public static Dictionary<string, object?> Write<TItem>(ColumnBase<TItem> column, string key, ColumnFilterValue? value)
     {
         var keys = KeysOf(column, key).ToDictionary(k => k, _ => (object?)null);
-        if (value is { IsFilter: true })
+        if (value is { IsFilter: true } && column.FilterKind == ColumnFilterKind.Choice)
+        {
+            keys[key] = value.Values.OfType<string>().ToArray();
+            keys[$"{key}-blank"] = value.Values.Contains(null) ? "1" : null;
+            keys[$"{key}-none"] = value.None ? "1" : null;
+        }
+        else if (value is { IsFilter: true })
         {
             if (keys.ContainsKey($"{key}-op") && value.Op != DefaultOperator(column) && value.Op != FilterOperator.In)
             {
@@ -306,9 +378,8 @@ internal static class ColumnFilter
 
     /// <summary>
     /// What a column's panel shows for a condition on it, or null when the panel can't show it
-    /// (an operator it doesn't offer, matching case, several values on a single choice, a date and
-    /// time where it takes days): a bound filter's other conditions still apply, and show as tags of
-    /// their own.
+    /// (an operator it doesn't offer, matching case, a date and time where it takes days): a bound
+    /// filter's other conditions still apply, and show as tags of their own.
     /// </summary>
     public static ColumnFilterValue? StateOf<TItem>(ColumnBase<TItem> column, FieldFilter filter)
     {
@@ -323,9 +394,9 @@ internal static class ColumnFilter
         {
             return filter.Operator switch
             {
-                FilterOperator.Equals when value is not null => new(ops[0], [FilterConvert.Format(value)]),
-                FilterOperator.In when filter.Values.Count > 0 && (column.FilterMultiple || filter.Values.Count == 1) && filter.Values.All(v => FilterConvert.Unwrap(v) is not null)
-                    => new(ops[0], filter.Values.Select(FilterConvert.Format).ToList()),
+                FilterOperator.Equals when value is not null => ListState(column, [FilterConvert.Format(value)]),
+                FilterOperator.IsNull => ListState(column, [null]),
+                FilterOperator.In => ListState(column, filter.Values.Select(v => FilterConvert.Unwrap(v) is null ? null : FilterConvert.Format(v)).ToList()),
                 _ => null,
             };
         }
@@ -382,6 +453,17 @@ internal static class ColumnFilter
         }
 
         return Shown(filter.Value, optional: false) is { } shown ? new(op, [shown]) : null;
+    }
+
+    // A list ticked this way, by the rules a person ticking it would get: all of them is no filter, and
+    // a blank on a column that can't be null ticks nothing.
+    private static ColumnFilterValue ListState<TItem>(ColumnBase<TItem> column, IReadOnlyList<string?> values)
+    {
+        var canBeNull = column.ValueType is { } type && FilterConvert.CanBeNull(type);
+        var ticked = values.Where(v => v is not null || canBeNull).ToList();
+        return ticked.Count == 0 ? new(FilterOperator.In, [], None: true)
+            : ListOf(column, Words).All(r => ticked.Contains(r.Value, StringComparer.OrdinalIgnoreCase)) ? Empty(column)
+            : new(FilterOperator.In, ticked);
     }
 
     internal static bool TryParseDay(string text, out DateOnly day) => FilterConvert.TryParseDay(text, out day);

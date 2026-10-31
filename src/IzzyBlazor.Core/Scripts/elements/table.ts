@@ -16,9 +16,10 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   Blazor, which keeps the page in place. An operator's select applies at once if there's a value;
  *   with none, the address stays as it is, and the choice only shapes the panel until the next
  *   navigation. (Filters kept in the component on interactive pages don't carry data-ib-filter, so
- *   this leaves them alone.) A header filter's panel stays open
- *   while you type; Enter applies and closes it, Escape closes it as it is, and either puts focus
- *   back on its button.
+ *   this leaves them alone.) A list's ticks apply after the same pause, and only those it needs: all
+ *   ticked says nothing, and none ticked says so under the list's own key. A header filter's panel
+ *   stays open while you type; Enter applies and closes it, Escape closes it as it is, and either
+ *   puts focus back on its button.
  * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
  *   it presses the table's hidden "load next" button, as Load more does without moving focus.
  *   The visible button stays for the keyboard.
@@ -37,12 +38,17 @@ function unfinished(control: Element): boolean {
   return control instanceof HTMLInputElement && control.type === "date" && (control.validity.badInput || control.value.startsWith("0"));
 }
 
+function isTick(control: Element): control is HTMLInputElement {
+  return control instanceof HTMLInputElement && control.type === "checkbox";
+}
+
 /**
  * What a filter's control puts in the address, given the operator chosen in its panel: nothing for a
  * value the operator doesn't take, and the operator only with something for it to apply to, as an
  * operator alone is no filter, and not when it's the column's default.
  */
 function written(control: HTMLInputElement | HTMLSelectElement): string {
+  if (isTick(control)) return control.checked && control.closest("ib-filter-list")?.querySelector("input[data-ib-filter]:not(:checked)") ? control.value : "";
   const value = control.value.trim();
   const panel = control.closest(".ib-table-filter-panel");
   const op = panel?.querySelector<HTMLSelectElement>("select[data-ib-filter]");
@@ -60,6 +66,8 @@ class Table extends IzzyElement {
   #boundDate = 0;
   #releasing = false;
   #popped = false;
+  // A tag's link has been followed: until its response arrives the boxes still show what it removed.
+  #removing = 0;
   #typing = new TypingGuard(this);
 
   protected setup(signal: AbortSignal): void {
@@ -176,6 +184,8 @@ class Table extends IzzyElement {
       (event) => {
         this.#typing.composing = false;
         if (event.target instanceof HTMLInputElement && isFilter(event.target)) this.#typed(event.target);
+        // Composing in a list's search held back a tick's apply: it's due now.
+        else if (this.#typing.size) this.#timer = window.setTimeout(() => this.#apply(false), PAUSE);
       },
       { signal }
     );
@@ -198,6 +208,11 @@ class Table extends IzzyElement {
           this.#typing.forget(target);
           // With nothing to apply, it only shapes the panel: a response on its way mustn't undo it.
           if (!this.#apply(false)) this.#typing.chosen(target);
+        } else if (isTick(target)) {
+          // A response for earlier ticks mustn't undo this one.
+          this.#typing.typed(target);
+          clearTimeout(this.#timer);
+          this.#timer = window.setTimeout(() => this.#apply(false), PAUSE);
         } else if (target.type === "date") {
           clearTimeout(this.#timer);
           if (!unfinished(target)) this.#timer = window.setTimeout(() => this.#apply(false), PAUSE);
@@ -210,22 +225,26 @@ class Table extends IzzyElement {
       (event) => {
         // Escape closes the panel and leaves the filter as it is (a search box would clear itself first); a value
         // typed before it still applies after the usual pause. Not while an IME is composing: Escape cancels that.
-        if (event.key === "Escape" && isFilter(event.target) && !event.isComposing && !this.#typing.composing && this.#closePanel(event.target)) {
+        const target = event.target;
+        // A list's search box isn't a filter, but its keys are the panel's.
+        const inPanel = isFilter(target) || (target instanceof HTMLElement && !!target.closest("ib-filter-list"));
+        if (event.key === "Escape" && inPanel && !event.isComposing && !this.#typing.composing && this.#closePanel(target)) {
           event.preventDefault();
           return;
         }
-        if (event.key !== "Enter" || !isFilter(event.target) || event.target instanceof HTMLSelectElement || this.#typing.composing) return;
+        if (event.key !== "Enter" || !inPanel || target instanceof HTMLSelectElement || event.isComposing || this.#typing.composing) return;
         event.preventDefault(); // Not the GET form's full reload.
         clearTimeout(this.#timer);
         this.#apply(false);
-        this.#closePanel(event.target);
+        this.#closePanel(target);
       },
       { signal }
     );
     this.addEventListener(
       "focusout",
       (event) => {
-        if (event.target instanceof HTMLInputElement) this.#typing.forget(event.target);
+        // A tick waits for its pause wherever focus goes.
+        if (event.target instanceof HTMLInputElement && !isTick(event.target)) this.#typing.forget(event.target);
       },
       { signal }
     );
@@ -233,15 +252,36 @@ class Table extends IzzyElement {
     // arrives, which puts the boxes back to what the server drew.
     window.addEventListener("popstate", () => {
       clearTimeout(this.#timer);
+      this.#typing.undoTicks();
       this.#typing.clear();
       this.#popped = true;
     }, { signal });
+    // A link in a table carries on with what's waiting to apply, as sorting and paging do, except a
+    // tag's or Clear, which removes it. A link out of the tables leaves it behind.
+    document.addEventListener(
+      "click",
+      (event) => {
+        const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
+        if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
+        const table = link.closest("ib-table");
+        const tag = table === this && !!link.closest(".ib-table-filter-tags");
+        if (table && !tag) return;
+        clearTimeout(this.#timer);
+        this.#typing.undoTicks();
+        this.#typing.clear();
+        if (tag && !this.hasAttribute("data-ib-interactive")) this.#removing = window.setTimeout(() => (this.#removing = 0), 5000);
+      },
+      { signal }
+    );
+    clearTimeout(this.#removing);
+    this.#removing = 0;
     if (this.#popped) {
       this.#popped = false;
       // An interactive page's render sets its values as properties, so the defaults here are old.
       if (!this.hasAttribute("data-ib-interactive")) for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
         if (control.closest("ib-table") !== this) continue;
-        if (control instanceof HTMLInputElement) control.value = control.defaultValue;
+        if (isTick(control)) control.checked = control.defaultChecked;
+        else if (control instanceof HTMLInputElement) control.value = control.defaultValue;
         else if (control instanceof HTMLSelectElement) for (const option of control.options) option.selected = option.defaultSelected;
       }
     }
@@ -256,7 +296,8 @@ class Table extends IzzyElement {
     // Not on an interactive page, whose render sets values as properties (see filter-form.ts).
     if (!this.hasAttribute("data-ib-interactive") && changedFromServer(filters)) {
       const active = document.activeElement;
-      if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date") this.#typed(active);
+      // A tick keeps its own place in the history, where typing replaces its own.
+      if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date" && !isTick(active)) this.#typed(active);
       else this.#apply(false);
     }
   }
@@ -286,7 +327,8 @@ class Table extends IzzyElement {
    * whether that changed it. A date part way through stays as the address has it.
    */
   #apply(replace: boolean): boolean {
-    if (this.#typing.composing || !this.isConnected) return false;
+    // Held by #removing, a change waits for setup, below, which applies it from what the response drew.
+    if (this.#typing.composing || !this.isConnected || this.#removing) return false;
     this.#typing.restore();
     const url = new URL(location.href);
     const controls = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name && !unfinished(c));
@@ -296,6 +338,12 @@ class Table extends IzzyElement {
       const value = written(control);
       if (value) url.searchParams.append(control.name, value);
     }
+    for (const list of this.querySelectorAll<HTMLElement>("ib-filter-list[data-ib-none]")) {
+      if (list.closest("ib-table") !== this) continue;
+      url.searchParams.delete(list.dataset.ibNone!);
+      if (!list.querySelector("input[data-ib-filter]:checked")) url.searchParams.append(list.dataset.ibNone!, "1");
+    }
+    this.#typing.forgetTicks();
     const pageKey = this.dataset.ibPageKey;
     if (pageKey) url.searchParams.delete(pageKey);
     const cursorKey = this.dataset.ibCursorKey;

@@ -431,6 +431,7 @@ public sealed class DataFilterTests : IDisposable
         { "enum by number", Filter.Where("tier", FilterOperator.Equals, 2), [3] },
         { "enum not equals", Filter.Where("tier", FilterOperator.NotEquals, "Basic"), [1, 3] },
         { "enum in", Filter.In("tier", ["Gold", Tier.Platinum]), [1, 3] },
+        { "enum in, nothing", Filter.In("tier", []), [] },
         { "enum not in", new FieldFilter("tier", FilterOperator.NotIn, new object?[] { "Gold", "Platinum" }), [2, 4] },
         { "enum that isn't one", Filter.Where("tier", FilterOperator.Equals, "Silver"), [] },
         { "bool equals", Filter.Where("active", FilterOperator.Equals, false), [2] },

@@ -270,7 +270,7 @@ public class TableDataTests : BunitContext
             .Add(t => t.FilterChanged, (Filter? f) => reported = f)
             .Add(t => t.ChildContent, Columns));
 
-        // Status's menu shows Yes; the starts-with condition has no panel, so it's a tag.
+        // Status's list shows Yes; the starts-with condition has no panel, so it's a tag.
         Assert.Equal(new[] { "Ada", "Alan" }, Names(cut));
         Assert.Equal("Filter Status: Yes", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
         var tags = cut.FindAll(".ib-table-filter-tags .ib-tag").Select(t => t.TextContent.Trim()).ToArray();
@@ -280,7 +280,7 @@ public class TableDataTests : BunitContext
         // Removing that tag reports the filter without it.
         cut.FindAll(".ib-table-filter-tags .ib-tag").Single(t => t.TextContent.Contains("startswith", StringComparison.Ordinal)).QuerySelector("button")!.Click();
         Assert.Equal(new[] { "Ada", "Alan" }, Names(cut));
-        Assert.Equal("status eq 'Yes'", reported!.ToString());
+        Assert.Equal("status in ('Yes')", reported!.ToString());
 
         // A new filter from the parent replaces it.
         cut.Render(p => p.Add(t => t.Filter, Filter.Where("qty", FilterOperator.GreaterThanOrEqual, 3)));
@@ -452,13 +452,13 @@ public class TableDataTests : BunitContext
     }
 
     [Fact]
-    public void A_single_choice_column_reads_the_first_of_a_repeated_key()
+    public void A_choice_column_reads_each_of_a_repeated_key()
     {
         Static("/rows?f-status=Yes&f-status=No");
         var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
 
-        Assert.Equal(new[] { "Ada", "Alan" }, Names(cut));
-        Assert.Equal("Filter Status: Yes", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
+        Assert.Equal(new[] { "Ada", "Grace", "Alan" }, Names(cut));
+        Assert.Equal("Filter Status: 2 selected", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
     }
 
     [Fact]

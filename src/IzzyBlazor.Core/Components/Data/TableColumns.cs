@@ -25,8 +25,8 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>
     /// Adds a filter button to this column's header. In a Table: a text box for text (matching
     /// anywhere, ignoring case), Min and Max boxes for numbers (keeping the values between them;
-    /// either may be empty), a date input for dates (matching the day), a menu for enums and
-    /// booleans. In a DataGrid, text, numbers and dates choose an operator above the value. A
+    /// either may be empty), a date input for dates (matching the day), a list of checkboxes for enums
+    /// and booleans. In a DataGrid, text, numbers and dates choose an operator above the value. A
     /// <see cref="TemplateColumn{TItem}"/> filters by its <c>FilterBy</c> text.
     /// </summary>
     [Parameter] public bool Filterable { get; set; }
@@ -38,12 +38,6 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// as a DataGrid's does. For text, numbers and dates.
     /// </summary>
     [Parameter] public IReadOnlyList<FilterOperator>? FilterOperators { get; set; }
-
-    /// <summary>
-    /// For an enum filter: choose several values from a menu of checkboxes, and keep the items
-    /// that have any of them. The URL repeats the key (<c>?f-status=Paid&amp;f-status=Pending</c>).
-    /// </summary>
-    [Parameter] public bool FilterMultiple { get; set; }
 
     /// <summary>
     /// Builds this column's filter condition yourself, for a computed value or one stored
@@ -109,7 +103,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>What kind of filter the column offers.</summary>
     internal virtual ColumnFilterKind FilterKind => ColumnFilterKind.None;
 
-    /// <summary>The options of a select filter: value and text.</summary>
+    /// <summary>The rows of a list filter: value and text.</summary>
     internal virtual IReadOnlyList<(string Value, string Text)> FilterChoices(IzzyText text) => [];
 
     /// <summary>The type of the value the column filters, or null when it can't.</summary>
@@ -211,7 +205,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterMultiple, FilterOperators is null ? null : string.Join(',', FilterOperators));
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators));
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)

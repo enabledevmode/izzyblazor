@@ -15,6 +15,8 @@ interface BlazorNavigator {
  */
 export class TypingGuard {
   #typed = new Map<HTMLInputElement | HTMLSelectElement, string>();
+  // What each box ticked since the last apply was before that.
+  #before = new Map<HTMLInputElement, boolean>();
   #root: ParentNode;
   composing = false;
 
@@ -28,7 +30,8 @@ export class TypingGuard {
   }
 
   typed(input: HTMLInputElement | HTMLSelectElement): void {
-    this.#typed.set(input, input.value);
+    if (isTick(input) && !this.#before.has(input)) this.#before.set(input, !input.checked);
+    this.#typed.set(input, isTick(input) ? String(input.checked) : input.value);
   }
 
   forget(input: HTMLInputElement | HTMLSelectElement): void {
@@ -47,6 +50,21 @@ export class TypingGuard {
     for (const control of [...this.#typed.keys()]) if (control instanceof HTMLSelectElement) this.#typed.delete(control);
   }
 
+  /** Lets go of the ticks: they're about to be in the address, or already are. */
+  forgetTicks(): void {
+    for (const control of [...this.#typed.keys()]) if (isTick(control)) this.#typed.delete(control);
+    this.#before.clear();
+  }
+
+  /** Puts back the ticks not yet applied, which a page's render wouldn't if its own values haven't changed. */
+  undoTicks(): void {
+    for (const [box, checked] of this.#before) {
+      box.checked = checked;
+      box.closest("ib-filter-list")?.dispatchEvent(new Event("change"));
+    }
+    this.forgetTicks();
+  }
+
   /** Forgets everything typed, so nothing is put back. */
   clear(): void {
     this.#typed.clear();
@@ -58,13 +76,16 @@ export class TypingGuard {
       // The response may have brought a new box of the same name, which has the old one's focus.
       let input = known;
       if (!input.isConnected) {
-        const next = input.name ? this.#root.querySelector<HTMLInputElement | HTMLSelectElement>(`${input.localName}[name="${CSS.escape(input.name)}"]`) : null;
+        const value = isTick(input) ? `[value="${CSS.escape(input.value)}"]` : "";
+        const next = input.name ? this.#root.querySelector<HTMLInputElement | HTMLSelectElement>(`${input.localName}[name="${CSS.escape(input.name)}"]${value}`) : null;
         this.#typed.delete(input);
         if (!next) continue;
         input = next;
         this.#typed.set(input, typed);
       }
-      if (input.value !== typed) {
+      if (isTick(input)) {
+        input.checked = typed === "true";
+      } else if (input.value !== typed) {
         const focused = document.activeElement === input;
         input.value = typed;
         // Only text-like inputs have a caret (a date or number input throws).
@@ -80,6 +101,10 @@ export class TypingGuard {
       setTimeout(() => this.restore(), delay);
     }
   }
+}
+
+function isTick(control: Element): control is HTMLInputElement {
+  return control instanceof HTMLInputElement && control.type === "checkbox";
 }
 
 /** Navigates to a URL through Blazor (keeping the page in place), or loads it without Blazor. */
