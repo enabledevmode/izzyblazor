@@ -50,8 +50,9 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>
     /// Makes this column's filter a list of checkboxes with a search, its values found here when the
     /// panel opens: a page at a time, narrowed by the other filters, and loading more on scroll. Use
-    /// <see cref="FilterValuesRequest.ToResultAsync"/> to read them from a query. Where a page has no
-    /// list yet, or no script, the column shows its usual filter. Not with <see cref="FilterOperators"/>.
+    /// <see cref="FilterValuesRequest.ToResultAsync"/> to read them from a query. On a static page the
+    /// script asks the page's own address for them, so a search renders the page again. With no script,
+    /// the column shows its usual filter. Not with <see cref="FilterOperators"/>.
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the column shows its usual filter in place of the list.")]
     public FilterValuesLoader? FilterValues { get; set; }

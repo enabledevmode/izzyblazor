@@ -1363,7 +1363,8 @@
             "static": "Ticks apply after a short pause." } },
         { "id": "table-filter-values", "title": "Lists of looked-up values", "lead": "Use `FilterList` to list a text column's values from `Items`, or `FilterValues` to find them yourself. The list asks when its panel opens, a page at a time, and the other filters narrow it.",
           "notes": {
-            "noscript": "The columns show their usual filter in place of the list." } },
+            "noscript": "The columns show their usual filter in place of the list.",
+            "static": "The script asks this page's own address for the values, with one more key, and takes the list from the response." } },
         { "id": "table-filters", "title": "Column filters",
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it.",
