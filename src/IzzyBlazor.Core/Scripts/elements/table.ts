@@ -73,8 +73,9 @@ class Table extends IzzyElement {
   // A filter row's fields edited since the last apply: each hands its value to its panel's field, which
   // is what's read, so one filter has one place that says it.
   #rowEdits = new Set<HTMLInputElement | HTMLSelectElement>();
-  // The row's button that opened a panel, which gets focus back from it.
-  #rowOpener: HTMLElement | null = null;
+  // A panel the row opened, whose button in the row gets focus back from it. An id: choosing Between
+  // draws that button only as the panel opens.
+  #rowPanel: string | null = null;
 
   protected setup(signal: AbortSignal): void {
     this.#setupFilters(signal);
@@ -86,13 +87,14 @@ class Table extends IzzyElement {
     this.addEventListener(
       "toggle",
       (event) => {
-        const opener = this.#rowOpener;
-        if (!opener || (event as ToggleEvent).newState !== "closed" || opener.getAttribute("popovertarget") !== (event.target as HTMLElement).id) return;
-        this.#rowOpener = null;
-        // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
         const panel = event.target as HTMLElement;
+        if ((event as ToggleEvent).newState !== "closed" || panel.id !== this.#rowPanel) return;
+        this.#rowPanel = null;
+        // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
         const active = document.activeElement;
-        if (!active || active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) opener.focus();
+        if (!active || active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) {
+          this.querySelector<HTMLElement>(`.ib-filter-cell-summary[popovertarget="${CSS.escape(panel.id)}"]`)?.focus();
+        }
       },
       { capture: true, signal }
     );
@@ -102,7 +104,7 @@ class Table extends IzzyElement {
         // A panel's Clear is done with the panel.
         const opens = (event.target as Element).closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel;
         if (opens) document.getElementById(opens)?.showPopover();
-        this.#rowOpener = (event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary") ?? this.#rowOpener;
+        this.#rowPanel = opens ?? (event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget") ?? this.#rowPanel;
         const clear = (event.target as Element).closest("[data-ib-filter-clear]");
         if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
@@ -270,8 +272,9 @@ class Table extends IzzyElement {
     this.addEventListener(
       "focusout",
       (event) => {
-        // A tick waits for its pause wherever focus goes.
-        if (event.target instanceof HTMLInputElement && !isTick(event.target)) this.#typing.forget(event.target);
+        // A tick waits for its pause wherever focus goes, and so does what's typed, which a response
+        // for a sort or a page clicked in the pause would otherwise blank.
+        if (event.target instanceof HTMLInputElement && !isTick(event.target) && !this.#changed.has(event.target.name)) this.#typing.forget(event.target);
       },
       { signal }
     );
@@ -281,7 +284,7 @@ class Table extends IzzyElement {
       clearTimeout(this.#timer);
       this.#typing.undoTicks();
       this.#typing.clear();
-      this.#changed.clear();
+      this.#changed.clear(); this.#rowEdits.clear();
       this.#popped = true;
     }, { signal });
     // A link in a table carries on with what's waiting to apply, as sorting and paging do, except a
@@ -297,7 +300,7 @@ class Table extends IzzyElement {
         clearTimeout(this.#timer);
         this.#typing.undoTicks();
         this.#typing.clear();
-        this.#changed.clear();
+        this.#changed.clear(); this.#rowEdits.clear();
       },
       { signal }
     );
@@ -366,9 +369,10 @@ class Table extends IzzyElement {
     this.#typing.restore();
     const url = new URL(location.href);
     const own = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name && !c.hasAttribute("data-ib-row"));
+    // A date part way through stays as the address has it, as in a panel.
     for (const edit of this.#rowEdits) {
       const twin = own.find((c) => c.name === edit.name);
-      if (twin) twin.value = edit.value;
+      if (twin && edit.isConnected && !unfinished(edit)) twin.value = edit.value;
     }
     this.#rowEdits.clear();
     const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c));
@@ -392,6 +396,7 @@ class Table extends IzzyElement {
     if (cursorKey) url.searchParams.delete(cursorKey);
     if (!navigateTo(url, replace)) return false;
     this.#typing.forgetChosen();
+    this.#typing.forgetLeft();
     // An operator with no value doesn't outlast a new filter. A static page's response redraws it, and an interactive page's render doesn't.
     for (const control of own) if (control instanceof HTMLSelectElement && control.dataset.ibDefault && !written(control)) control.value = control.dataset.ibDefault;
     this.#typing.guard();

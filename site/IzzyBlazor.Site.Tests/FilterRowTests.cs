@@ -97,5 +97,23 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.Keyboard.PressAsync("ArrowUp");
         await Assertions.Expect(grid.Locator("thead th").Nth(1)).ToBeFocusedAsync();
     }
+
+    [Fact]
+    public async Task Between_takes_a_new_value_over_the_one_typed_in_the_row()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using var _ = browser;
+
+        await grid.Locator(".ib-table-filter-row input[name='row-f-total']").FillAsync("50");
+        await page.WaitForURLAsync("**/*row-f-total=50*");
+        await grid.Locator(".ib-table-filter-row [data-ib-menu][aria-label^='Total']").ClickAsync();
+        await page.Locator("[popover]:popover-open a", new() { HasText = "Between" }).ClickAsync();
+        await page.WaitForURLAsync("**/*row-f-total-op=between*");
+
+        await grid.Locator("[popover]:popover-open input[name='row-f-total']").FillAsync("100");
+
+        await page.WaitForURLAsync("**/*row-f-total=100*");
+    }
 }
+
 

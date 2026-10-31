@@ -645,6 +645,8 @@
 
   /* A DataGrid's FilterRow. */
   .ib-table-filter-row > td {
+    /* Painted as a header is, so a sticky one covers the rows scrolling under it. */
+    background-color: var(--ib-table-bg, var(--ib-color-surface));
     padding-block: 0.25rem;
     border-block-end: 1px solid var(--ib-table-line, var(--ib-color-border));
   }
@@ -1090,7 +1092,7 @@
   }
 
   @media (scripting: none) {
-    .ib-datagrid [data-ib-menu],
+    .ib-datagrid [data-ib-menu]:not(.ib-filter-cell-op),
     .ib-col-resize,
     .ib-grid-toolbar .ib-toolbar-unit:has(> .ib-col-picker),
     .ib-grid-toolbar-picker-only {
