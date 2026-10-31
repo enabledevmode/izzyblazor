@@ -1,11 +1,12 @@
 @* A DataGrid's filters choose an operator above the value: Between adds a second, and Is empty needs
-   none. An enum's filter is a menu. FilterOperators limits a column's, as on Date. *@
+   none. An enum's filter is a menu. The operators follow the column's type; FilterOperators narrows them,
+   as on Customer. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" InitialSort="-number" Caption="Orders to filter" QueryPrefix="filtered-" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable Width="6.Rem" />
-    <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem" />
-    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable Width="9.Rem"
-                    FilterOperators="[FilterOperator.Equals, FilterOperator.GreaterThanOrEqual, FilterOperator.LessThanOrEqual, FilterOperator.Between]" />
+    <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem"
+                    FilterOperators="[FilterOperator.Contains, FilterOperator.StartsWith, FilterOperator.Equals, FilterOperator.IsEmpty]" />
+    <PropertyColumn Property="o => o.Date" Format="MMM d" Sortable Filterable Width="9.Rem" />
     <PropertyColumn Property="o => o.Status" Sortable Filterable Width="9.Rem" />
     <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable Width="9.Rem" />
 </DataGrid>
