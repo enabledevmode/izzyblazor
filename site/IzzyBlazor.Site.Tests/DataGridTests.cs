@@ -27,6 +27,9 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             var url = page.Url;
             var menu = grid.GetByRole(AriaRole.Button, new() { Name = "Export" });
 
+            // As wide as the toolbar reckons on the first paint.
+            Assert.Equal(48, (await menu.BoundingBoxAsync())!.Width);
+
             // Sorted by total, highest first: the links follow.
             var total = grid.Locator("thead th", new() { HasText = "Total" }).Locator("a, button").First;
             var csv = grid.Locator(".ib-toolbar-end > .ib-toolbar-unit a[download]", new() { HasText = "Export CSV" });
@@ -90,10 +93,20 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             Assert.Equal(script, await picker.IsVisibleAsync());
             if (!script) Assert.Equal("none", await page.Locator(".ib-col-resize").First.EvaluateAsync<string>("e => getComputedStyle(e).display"));
 
-            // One click for the default, and the other behind the arrow, with no script too.
-            var main = await page.RunAndWaitForDownloadAsync(() => end.Nth(2).Locator(".ib-split-btn > a[download]").ClickAsync());
-            Assert.Equal("orders.xlsx", main.SuggestedFilename);
+            // One button opens both, Excel first, with no script too.
             await end.Nth(2).Locator("button").ClickAsync();
+            var excel = end.Nth(2).Locator("a[download]", new() { HasText = "Export Excel" });
+            await excel.WaitForAsync();
+            var main = await page.RunAndWaitForDownloadAsync(() => excel.ClickAsync());
+            Assert.Equal("orders.xlsx", main.SuggestedFilename);
+
+            // With script, choosing closes the menu. With none, it stays open.
+            if (script)
+            {
+                await excel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+                await end.Nth(2).Locator("button").ClickAsync();
+            }
+
             var csv = end.Nth(2).Locator("a[download]", new() { HasText = "Export CSV" });
             await csv.WaitForAsync();
             var download = await page.RunAndWaitForDownloadAsync(() => csv.ClickAsync());

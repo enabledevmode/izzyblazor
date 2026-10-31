@@ -1,0 +1,8 @@
+@* With CSV as well as Excel, one button with a chevron opens a menu of both. The endpoints are in the
+   app: DataExport.WriteExcelAsync and WriteCsvAsync, in Results.Stream. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders to export" ExportExcelHref="/examples/orders.xlsx" ExportCsvHref="/examples/orders.csv" QueryPrefix="export-" Grow>
+    <PropertyColumn Property="o => o.Number" Align="CellAlign.Start" Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" Sortable />
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="8.Rem" />
+</DataGrid>
