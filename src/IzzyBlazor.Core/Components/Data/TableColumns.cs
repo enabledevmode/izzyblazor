@@ -215,7 +215,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <inheritdoc />
     public void Dispose() => Table?.RemoveColumn(this);
 
-    internal static bool IsNumeric(Type type) => FilterValues.IsNumeric(type);
+    internal static bool IsNumeric(Type type) => FilterConvert.IsNumeric(type);
 }
 
 /// <summary>Where a <c>DataGrid</c> column stays in view while the rest scrolls sideways.</summary>

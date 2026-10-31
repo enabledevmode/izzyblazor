@@ -16,12 +16,12 @@ internal sealed class FilterValueConverter : JsonConverter<object?>
     public override object? Read(ref Utf8JsonReader reader, Type typeToConvert, JsonSerializerOptions options)
     {
         using var document = JsonDocument.ParseValue(ref reader);
-        return FilterValues.Unwrap(document.RootElement.Clone());
+        return FilterConvert.Unwrap(document.RootElement.Clone());
     }
 
     public override void Write(Utf8JsonWriter writer, object? value, JsonSerializerOptions options)
     {
-        switch (FilterValues.Unwrap(value))
+        switch (FilterConvert.Unwrap(value))
         {
             case null:
                 writer.WriteNullValue();
@@ -65,7 +65,7 @@ internal sealed class FilterValueConverter : JsonConverter<object?>
             case ulong u:
                 writer.WriteNumberValue(u);
                 break;
-            case var n when FilterValues.IsNumeric(n.GetType()):
+            case var n when FilterConvert.IsNumeric(n.GetType()):
                 writer.WriteNumberValue(Convert.ToInt64(n, CultureInfo.InvariantCulture));
                 break;
             case System.Collections.IEnumerable list:
