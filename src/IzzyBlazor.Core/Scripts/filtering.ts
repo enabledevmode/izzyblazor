@@ -107,11 +107,15 @@ function isTick(control: Element): control is HTMLInputElement {
   return control instanceof HTMLInputElement && control.type === "checkbox";
 }
 
-/** Navigates to a URL through Blazor (keeping the page in place), or loads it without Blazor. */
+/**
+ * Navigates to a URL through Blazor (keeping the page in place), or loads it without Blazor. Not to
+ * its hash: Blazor would scroll back to that section, as someone filters further down the page.
+ */
 export function navigateTo(url: URL, replace: boolean): boolean {
   if (sameQuery(url.searchParams, new URLSearchParams(location.search)) && url.pathname === location.pathname) return false;
+  url.hash = "";
   const blazor = (window as unknown as { Blazor?: BlazorNavigator }).Blazor;
-  if (blazor?.navigateTo) blazor.navigateTo(url.pathname + url.search + url.hash, { replaceHistoryEntry: replace });
+  if (blazor?.navigateTo) blazor.navigateTo(url.pathname + url.search, { replaceHistoryEntry: replace });
   else location.assign(url);
   return true;
 }
