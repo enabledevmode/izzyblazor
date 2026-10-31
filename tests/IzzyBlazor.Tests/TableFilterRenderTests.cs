@@ -76,8 +76,8 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(form.Id, name.GetAttribute("form"));
 
         // A number is a range: two fields, Min and Max, each posting under its own key.
-        var min = cut.Find("input[name='f-qty-min']");
-        var max = cut.Find("input[name='f-qty-max']");
+        var min = cut.Find("input[name='f-qty']");
+        var max = cut.Find("input[name='f-qty-to']");
         Assert.All(new[] { min, max }, i => Assert.Equal("decimal", i.GetAttribute("inputmode")));
         Assert.Equal("Min", cut.Find($"label[for='{min.Id}']").TextContent);
         Assert.Equal("Max", cut.Find($"label[for='{max.Id}']").TextContent);
@@ -93,19 +93,22 @@ public class TableFilterRenderTests : BunitContext
     [InlineData("?f-name=AD", new[] { "Ada", "adam" })]
     [InlineData("?f-name=ad&f-shipped=true", new[] { "Ada", "adam" })]
     [InlineData("?f-status=no", new[] { "Grace" })]
-    [InlineData("?f-qty-min=3&f-qty-max=3", new[] { "Grace" })]
-    [InlineData("?f-qty-min=2", new[] { "Ada", "Grace" })]
-    [InlineData("?f-qty-max=2", new[] { "Ada", "adam" })]
-    [InlineData("?f-qty-min=2&f-qty-max=", new[] { "Ada", "Grace" })]
-    [InlineData("?f-qty-min=1.5&f-qty-max=2.5", new[] { "Ada" })]
-    [InlineData("?f-qty-min=3&f-qty-max=1", new string[0])]
-    [InlineData("?f-qty-min=abc", new string[0])]
-    [InlineData("?f-qty=3", new[] { "Ada", "Grace", "adam" })]
-    [InlineData("?f-qty-min=2.", new[] { "Ada", "Grace" })]
-    [InlineData("?f-qty-min=1.&f-qty-max=.5", new string[0])]
-    [InlineData("?f-qty-max=99999999999", new[] { "Ada", "Grace", "adam" })]
-    [InlineData("?f-qty-min=99999999999", new string[0])]
-    [InlineData("?f-qty-min=-99999999999&f-qty-max=1", new[] { "adam" })]
+    [InlineData("?f-qty=3&f-qty-to=3", new[] { "Grace" })]
+    [InlineData("?f-qty=2", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty-to=2", new[] { "Ada", "adam" })]
+    [InlineData("?f-qty=2&f-qty-to=", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty=1.5&f-qty-to=2.5", new[] { "Ada" })]
+    [InlineData("?f-qty=3&f-qty-to=1", new string[0])]
+    [InlineData("?f-qty=abc", new string[0])]
+    [InlineData("?f-qty=3", new[] { "Grace" })]
+    [InlineData("?f-qty=&f-qty-to=", new[] { "Ada", "Grace", "adam" })]
+    [InlineData("?f-qty=%20&f-qty-to=%20", new[] { "Ada", "Grace", "adam" })]
+    [InlineData("?f-qty=2&f-qty=3", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty=2.", new[] { "Ada", "Grace" })]
+    [InlineData("?f-qty=1.&f-qty-to=.5", new string[0])]
+    [InlineData("?f-qty-to=99999999999", new[] { "Ada", "Grace", "adam" })]
+    [InlineData("?f-qty=99999999999", new string[0])]
+    [InlineData("?f-qty=-99999999999&f-qty-to=1", new[] { "adam" })]
     [InlineData("?f-status=Unknown", new string[0])]
     [InlineData("?f-shipped=false", new[] { "Grace" })]
     public void Url_filters_keep_matching_rows(string query, string[] expected)
@@ -118,11 +121,11 @@ public class TableFilterRenderTests : BunitContext
     [Fact]
     public void Filters_show_their_values_and_the_form_carries_the_rest_of_the_url()
     {
-        var cut = RenderStatic("/orders?sort=name&page=2&tab=x&f-name=ad&f-status=Yes&f-qty-min=1");
+        var cut = RenderStatic("/orders?sort=name&page=2&tab=x&f-name=ad&f-status=Yes&f-qty=1");
 
         Assert.Equal("ad", cut.Find("input[name='f-name']").GetAttribute("value"));
-        Assert.Equal("1", cut.Find("input[name='f-qty-min']").GetAttribute("value"));
-        Assert.Equal("", cut.Find("input[name='f-qty-max']").GetAttribute("value") ?? "");
+        Assert.Equal("1", cut.Find("input[name='f-qty']").GetAttribute("value"));
+        Assert.Equal("", cut.Find("input[name='f-qty-to']").GetAttribute("value") ?? "");
         var kept = cut.FindAll("input[type=hidden]").Select(i => $"{i.GetAttribute("name")}={i.GetAttribute("value")}").ToArray();
         // A menu filter has no field in the form, so it travels with the rest of the address.
         Assert.Equal(new[] { "sort=name", "tab=x", "f-status=Yes" }, kept);
@@ -130,37 +133,13 @@ public class TableFilterRenderTests : BunitContext
         Assert.DoesNotContain("f-", clear);
     }
 
-    [Theory]
-    [InlineData("1.", "", "1..")]
-    [InlineData("1.", "5", "1..5")]
-    [InlineData("1", ".5", "1..0.5")]
-    [InlineData("", "-.5", "..-0.5")]
-    [InlineData(" ", "", "")]
-    public void Range_ends_join_unambiguously_while_typing(string min, string max, string joined)
-    {
-        Assert.Equal(joined, ColumnFilter.JoinRange(min, max));
-        if (joined.Length > 0)
-        {
-            var (low, high) = ColumnFilter.SplitRange(joined);
-            Assert.Equal(joined, ColumnFilter.JoinRange(low, high));
-        }
-    }
-
     [Fact]
     public void Range_boxes_show_what_was_typed()
     {
-        var cut = RenderStatic("/orders?f-qty-min=2.");
+        var cut = RenderStatic("/orders?f-qty=2.");
 
-        Assert.Equal("2.", cut.Find("input[name='f-qty-min']").GetAttribute("value"));
-        Assert.Equal("", cut.Find("input[name='f-qty-max']").GetAttribute("value") ?? "");
-    }
-
-    [Fact]
-    public void Old_plain_number_key_is_dropped_not_carried()
-    {
-        var cut = RenderStatic("/orders?f-qty=3&tab=x");
-
-        Assert.DoesNotContain(cut.FindAll("input[type=hidden]"), i => i.GetAttribute("name") == "f-qty");
+        Assert.Equal("2.", cut.Find("input[name='f-qty']").GetAttribute("value"));
+        Assert.Equal("", cut.Find("input[name='f-qty-to']").GetAttribute("value") ?? "");
     }
 
     [Fact]
@@ -174,11 +153,120 @@ public class TableFilterRenderTests : BunitContext
                 b.AddContent(0, Col<int>(r => r.Qty));
                 b.OpenComponent<PropertyColumn<Row, string>>(1);
                 b.AddComponentParameter(2, "Property", (Expression<Func<Row, string>>)(r => r.Name));
-                b.AddComponentParameter(3, "SortKey", "qty-min");
+                b.AddComponentParameter(3, "SortKey", "qty-to");
                 b.AddComponentParameter(4, "Filterable", true);
                 b.CloseComponent();
             })));
-        Assert.Contains("?f-qty-min", ex.Message);
+        Assert.Contains("?f-qty-to", ex.Message);
+    }
+
+    // Each value stays whole, however it's punctuated, through the address and back.
+    [Theory]
+    [InlineData("Smith, John")]
+    [InlineData("Smith, John", "Ada")]
+    [InlineData("a&b=c", "d+e", "100%")]
+    public void A_text_filter_round_trips_through_the_address(params string[] values)
+    {
+        var rows = values.Select(v => new Row(v, 1, Paid.Yes, true, new(2026, 1, 1))).Append(new("Other", 1, Paid.No, true, new(2026, 1, 1))).ToArray();
+        var query = string.Join('&', values.Select(v => $"f-name={Uri.EscapeDataString(v)}"));
+        Nav.NavigateTo($"/orders?{query}&sort=name");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        DataRequest<Row>? seen = null;
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.ItemsProvider, request =>
+            {
+                seen = request;
+                return ValueTask.FromResult(request.ToResult(rows.AsQueryable()));
+            })
+            .Add(t => t.PageSize, 10)
+            .Add(t => t.ChildContent, Columns));
+
+        // The rows and the condition, and the condition's text for an export link.
+        Assert.Equal(values.Order(StringComparer.OrdinalIgnoreCase), Names(cut));
+        var condition = seen!.Filter!.Find("name")!;
+        Assert.Equal(values, values.Length == 1 ? [(string)condition.Value!] : condition.Values.Cast<string>().ToArray());
+        var back = DataRequest<Row>.Parse(seen.ToQueryString()).ApplyFiltering(rows.AsQueryable(), DataFields.Of<Row>()).Select(r => r.Name).ToArray();
+        Assert.Equal(values.Order(StringComparer.OrdinalIgnoreCase), back.Order(StringComparer.OrdinalIgnoreCase));
+
+        // The reader and the writer agree: what's written reads back, and it's the address it came from.
+        var column = cut.Instance.Columns[0];
+        var read = ColumnFilter.Read(column, "f-name", QueryString.Of(Nav.Uri))!;
+        Assert.Equal(values, read.Values);
+        var written = Assert.IsType<string[]>(ColumnFilter.Write(column, "f-name", read)["f-name"]);
+        Assert.Equal(values, written);
+        Assert.Equal(values, ColumnFilter.Read(column, "f-name", QueryString.Parse(string.Join('&', written.Select(v => $"f-name={Uri.EscapeDataString(v)}"))))!.Values);
+
+        // The tag's link clears all of them, and leaves the rest.
+        Assert.Contains("http://localhost/orders?sort=name", cut.Find(".ib-table-filter-tags").QuerySelectorAll("a").Select(a => a.GetAttribute("href")));
+    }
+
+    [Fact]
+    public void A_bound_text_filter_keeps_a_comma_in_its_one_value()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        Filter? reported = null;
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows.Append(new("Smith, John", 1, Paid.Yes, true, new(2026, 1, 1))).ToArray())
+            .Add(t => t.FilterChanged, (Filter? f) => reported = f)
+            .Add(t => t.ChildContent, Columns));
+        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
+
+        cut.Find(".ib-table-filter input[type=search]").Input("Smith, J");
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Equal(new[] { "Smith, John" }, Names(cut));
+            Assert.Equal(new FieldFilter("name", FilterOperator.Contains, "Smith, J"), reported!.Find("name"));
+            Assert.Equal("Smith, J", cut.Find(".ib-table-filter input[type=search]").GetAttribute("value"));
+        }, Timer);
+    }
+
+    // A day stays a day for a column's own condition, whatever the field's type holds.
+    [Fact]
+    public void A_custom_condition_on_a_date_column_gets_a_day()
+    {
+        Nav.NavigateTo("/orders?f-when=2026-01-02");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        FieldFilter? seen = null;
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, Col<string>(r => r.Name));
+                b.OpenComponent<PropertyColumn<Row, DateTime>>(1);
+                b.AddComponentParameter(2, "Property", (Expression<Func<Row, DateTime>>)(r => r.When));
+                b.AddComponentParameter(3, "Filterable", true);
+                b.AddComponentParameter(4, "Filter", (Func<FieldFilter, Expression<Func<Row, bool>>?>)(f =>
+                {
+                    seen = f;
+                    return null;
+                }));
+                b.CloseComponent();
+            }));
+
+        Assert.Equal(new DateOnly(2026, 1, 2), seen!.Value);
+        Assert.Equal(new[] { "Grace" }, Names(cut));
+    }
+
+    [Theory]
+    [InlineData(FilterOperator.OnDay)]
+    [InlineData(FilterOperator.Equals)]
+    public void A_day_set_in_code_shows_in_the_date_panel(FilterOperator op)
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.Filter, Filter.Where("when", op, new DateOnly(2026, 1, 2)))
+            .Add(t => t.FilterChanged, (Filter? _) => { })
+            .Add(t => t.ChildContent, b =>
+            {
+                b.AddContent(0, Col<string>(r => r.Name));
+                b.AddContent(1, Col<DateTime>(r => r.When));
+            }));
+
+        Assert.Equal(new[] { "Grace" }, Names(cut));
+        Assert.Equal("2026-01-02", cut.Find("input[type=date]").GetAttribute("value"));
+        Assert.Equal("Filter When: 2026-01-02", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
     }
 
     [Fact]
@@ -448,7 +536,7 @@ public class TableFilterRenderTests : BunitContext
         var label = cut.Find($"[popover] label[for='{input.Id}']");
         Assert.Equal("Filter Name", label.TextContent);
         Assert.False(input.HasAttribute("aria-label"));
-        Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty-min']").Id);
+        Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty']").Id);
 
         // A choice opens a menu whose items set that value (and close the menu).
         var items = cut.FindAll("a.ib-menu-item").Where(a => a.GetAttribute("href")!.Contains("f-status", StringComparison.Ordinal) || a.TextContent.Trim() == "All").ToList();
@@ -495,9 +583,9 @@ public class TableFilterRenderTests : BunitContext
     }
 
     [Theory]
-    [InlineData("?f-qty-min=2&f-qty-max=3", "2–3")]
-    [InlineData("?f-qty-min=2", "2 or more")]
-    [InlineData("?f-qty-max=3", "3 or less")]
+    [InlineData("?f-qty=2&f-qty-to=3", "2–3")]
+    [InlineData("?f-qty=2", "2 or more")]
+    [InlineData("?f-qty-to=3", "3 or less")]
     public void Number_filter_reads_as_a_range_and_its_tag_clears_both_ends(string query, string summary)
     {
         var cut = RenderHeader("/orders" + query + "&sort=name");

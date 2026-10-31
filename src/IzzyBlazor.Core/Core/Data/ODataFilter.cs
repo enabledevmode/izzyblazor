@@ -494,9 +494,9 @@ internal static partial class ODataFilter
 
         // OData compares text with case; lower both sides to ignore it. Only for text values: a
         // number or date isn't text, and tolower() of a number field is an error there.
-        var lower = forOData && !f.MatchCase && FilterValues.Unwrap(f.Value) is string;
+        var lower = forOData && !f.MatchCase && FilterConvert.Unwrap(f.Value) is string;
         var operand = lower ? $"tolower({field})" : field;
-        string Value(object? v) => Literal(lower && FilterValues.Unwrap(v) is string s ? s.ToLowerInvariant() : v);
+        string Value(object? v) => Literal(lower && FilterConvert.Unwrap(v) is string s ? s.ToLowerInvariant() : v);
 
         void Wrap(string inner)
         {
@@ -506,10 +506,10 @@ internal static partial class ODataFilter
         switch (f.Operator)
         {
             case FilterOperator.Equals:
-                text.Append(FilterValues.Unwrap(f.Value) is null ? $"{field} eq null" : $"{operand} eq {Value(f.Value)}");
+                text.Append(FilterConvert.Unwrap(f.Value) is null ? $"{field} eq null" : $"{operand} eq {Value(f.Value)}");
                 break;
             case FilterOperator.NotEquals:
-                text.Append(FilterValues.Unwrap(f.Value) is null ? $"{field} ne null" : $"{operand} ne {Value(f.Value)}");
+                text.Append(FilterConvert.Unwrap(f.Value) is null ? $"{field} ne null" : $"{operand} ne {Value(f.Value)}");
                 break;
             case FilterOperator.LessThan:
                 text.Append($"{field} lt {Literal(f.Value)}");
@@ -561,11 +561,11 @@ internal static partial class ODataFilter
             case FilterOperator.In or FilterOperator.NotIn:
             {
                 var values = f.Values;
-                var listLower = forOData && !f.MatchCase && values.Count > 0 && values.All(v => FilterValues.Unwrap(v) is string);
+                var listLower = forOData && !f.MatchCase && values.Count > 0 && values.All(v => FilterConvert.Unwrap(v) is string);
                 var inOperand = listLower ? $"tolower({field})" : field;
                 var list = values.Count == 0
                     ? null
-                    : string.Join(",", values.Select(v => Literal(listLower ? ((string)FilterValues.Unwrap(v)!).ToLowerInvariant() : v)));
+                    : string.Join(",", values.Select(v => Literal(listLower ? ((string)FilterConvert.Unwrap(v)!).ToLowerInvariant() : v)));
                 if (f.Operator == FilterOperator.In)
                 {
                     text.Append(list is null ? "false" : $"{inOperand} in ({list})");
@@ -591,17 +591,17 @@ internal static partial class ODataFilter
                 Wrap($"{field} ne null and {field} ne ''");
                 break;
             case FilterOperator.OnDay:
-                text.Append(FilterValues.TryDay(f.Value, out var day)
+                text.Append(FilterConvert.TryDay(f.Value, out var day)
                     ? $"date({field}) eq {day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)}"
                     : $"date({field}) eq {Literal(f.Value)}");
                 break;
         }
     }
 
-    private static bool Present(object? value) => FilterValues.Unwrap(value) is not (null or string { Length: 0 });
+    private static bool Present(object? value) => FilterConvert.Unwrap(value) is not (null or string { Length: 0 });
 
     /// <summary>A value as an OData literal: text quoted (a quote doubled), numbers in the invariant form, dates in ISO form, enums by name.</summary>
-    public static string Literal(object? value) => FilterValues.Unwrap(value) switch
+    public static string Literal(object? value) => FilterConvert.Unwrap(value) switch
     {
         null => "null",
         string s => $"'{s.Replace("'", "''", StringComparison.Ordinal)}'",
@@ -614,7 +614,7 @@ internal static partial class ODataFilter
         Guid g => g.ToString("D"),
         double d => d.ToString("R", CultureInfo.InvariantCulture),
         float f => f.ToString("R", CultureInfo.InvariantCulture),
-        IFormattable n when FilterValues.IsNumeric(n.GetType()) => n.ToString(null, CultureInfo.InvariantCulture),
+        IFormattable n when FilterConvert.IsNumeric(n.GetType()) => n.ToString(null, CultureInfo.InvariantCulture),
         IFormattable other => $"'{other.ToString(null, CultureInfo.InvariantCulture).Replace("'", "''", StringComparison.Ordinal)}'",
         var other => $"'{(other.ToString() ?? "").Replace("'", "''", StringComparison.Ordinal)}'",
     };

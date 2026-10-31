@@ -247,7 +247,7 @@ public class TableDataTests : BunitContext
     public void A_column_takes_a_custom_condition()
     {
         // "Qty" filters by ten times the number typed: 0.2..0.3 keeps 2 and 3.
-        Static("/rows?f-qty-min=0.2&f-qty-max=0.3");
+        Static("/rows?f-qty=0.2&f-qty-to=0.3");
         var cut = Render<Table<Row>>(p => p
             .Add(t => t.Items, Rows)
             .Add(t => t.ChildContent, Col<int>(r => r.Qty, filter: f => f.Operator == FilterOperator.Between && f.Value is decimal min && f.Value2 is decimal max

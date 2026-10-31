@@ -54,7 +54,7 @@ public sealed class DataField<TItem>
     /// <summary>
     /// Builds the condition for this field yourself: for a computed value, full-text search, or a
     /// value stored differently from how it's shown. It gets the condition with its values parsed
-    /// for the field's type (a list for In and NotIn, a <c>DateOnly</c> for OnDay) and returns the
+    /// for the field's type (a list for In and NotIn, a <c>DateOnly</c> for a whole day) and returns the
     /// filter on the item, or null for the usual one.
     /// </summary>
     /// <example><code>Filter = f =&gt; f.Operator == FilterOperator.Contains ? o =&gt; o.Tags.Any(t =&gt; t.Name == (string)f.Value!) : null</code></example>
@@ -64,7 +64,7 @@ public sealed class DataField<TItem>
     internal LambdaExpression? SortValue { get; init; }
 
     internal IReadOnlyList<FilterOperator> EffectiveOperators =>
-        Operators is null ? FilterValues.OperatorsFor(Type) : FilterValues.OperatorsFor(Type).Intersect(Operators).ToList();
+        Operators is null ? FilterConvert.OperatorsFor(Type) : FilterConvert.OperatorsFor(Type).Intersect(Operators).ToList();
 
     /// <inheritdoc />
     public override string ToString() => Key;
@@ -93,7 +93,7 @@ public static class DataFields
             var fields = new List<DataField<TItem>>();
             foreach (var property in typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance))
             {
-                if (property.GetMethod is null || property.GetIndexParameters().Length > 0 || FilterValues.KindOf(property.PropertyType) == FieldKind.None)
+                if (property.GetMethod is null || property.GetIndexParameters().Length > 0 || FilterConvert.KindOf(property.PropertyType) == FieldKind.None)
                 {
                     continue;
                 }
@@ -113,7 +113,7 @@ public static class DataFields
                     Format = FormatOf(property),
                     Sortable = true,
                     Filterable = true,
-                    Searchable = FilterValues.KindOf(property.PropertyType) == FieldKind.Text,
+                    Searchable = FilterConvert.KindOf(property.PropertyType) == FieldKind.Text,
                     Choices = EnumChoices(property.PropertyType),
                 });
             }

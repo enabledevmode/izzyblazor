@@ -32,7 +32,7 @@ internal enum FieldKind
 /// Turns filter values into the field's type: text as the person writes it (the current culture,
 /// then the invariant form), numbers, dates and the values JSON gives back.
 /// </summary>
-internal static class FilterValues
+internal static class FilterConvert
 {
     public static FieldKind KindOf(Type type)
     {

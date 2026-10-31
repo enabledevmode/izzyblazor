@@ -14,7 +14,7 @@
 <Heading Level="2">Column filters</Heading>
 <TextBlock>Use <Code>Filterable</Code> on a column for a filter in its header. Text matches anywhere, a date its day, enums and booleans get a menu, and a number takes a range: at least, at most, or both.</TextBlock>
 <ExampleViewer Example="table-filters" />
-<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (here <Code>?orders-f-customer=ada</Code>: this table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the one above, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). A number's two ends go in as <Code>?f-total-min=100&amp;f-total-max=500</Code>, so the form needs no script. <Code>FilterMultiple</Code> lets an enum column match several values. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
+<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (here <Code>?orders-f-customer=ada</Code>: this table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the one above, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). A number's two ends go in as <Code>?f-total=100&amp;f-total-to=500</Code>, so the form needs no script. <Code>FilterMultiple</Code> lets an enum column match several values. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
 
 <Heading Level="2">Selection</Heading>
 <TextBlock>Use <Code>SelectionMode="SelectionMode.Multiple"</Code> with an <Code>ItemKey</Code> for a checkbox per row (<Code>Single</Code> for a radio button). In a form, the checked rows post their keys, so this works with JavaScript off.</TextBlock>
@@ -29,7 +29,7 @@
 <TextBlock>Use <Code>@@bind-Sort</Code>, <Code>@@bind-Page</Code> and <Code>@@bind-Filter</Code> on an interactive page to keep them in C# instead of the URL: for a table in a dialog, or anywhere the address shouldn't change.</TextBlock>
 <ExampleViewer Example="table-bound" />
 <TextBlock>The table starts from the URL if it has values, and a new sort or filter goes back to page 1. Set the page back to 1 yourself when your own filters change.</TextBlock>
-<TextBlock>The filter is a <Code>Filter</Code>: <Code>Filter.All</Code> of one condition per filtered column (contains for text, between for a number, on day for a date, equals or in for a choice). Set one in C# to filter from code. A condition no column's panel can show, such as an or, still applies, and shows as a tag that removes it:</TextBlock>
+<TextBlock>The filter is a <Code>Filter</Code>: <Code>Filter.All</Code> of one condition per filtered column (contains for text, between for a number, equals for a date, equals or in for a choice). Set one in C# to filter from code. A condition no column's panel can show, such as an or, still applies, and shows as a tag that removes it:</TextBlock>
 <Code Block Language="razor">@BoundFilter</Code>
 
 <Heading Level="2">Data from a database</Heading>

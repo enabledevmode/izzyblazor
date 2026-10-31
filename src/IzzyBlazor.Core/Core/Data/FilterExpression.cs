@@ -96,7 +96,7 @@ internal static class FilterExpression
         var x = Expression.Parameter(typeof(TItem), "x");
         var contains = new FieldFilter("", FilterOperator.Contains, search);
         var parts = fields
-            .Where(f => f.Searchable && FilterValues.KindOf(f.Type) == FieldKind.Text)
+            .Where(f => f.Searchable && FilterConvert.KindOf(f.Type) == FieldKind.Text)
             .Select(f => Default(contains, Rebind(f.Value, x), f.Type))
             .ToList();
         return Expression.Lambda<Func<TItem, bool>>(Join(parts, and: false), x);
@@ -147,8 +147,7 @@ internal static class FilterExpression
         if (field.Filter is { } custom)
         {
             // The field's own condition, given the values as its type (as far as they convert).
-            var typed = Typed(filter, field.Type);
-            if (custom(typed) is { } own)
+            if (custom(Own(filter, field.Type)) is { } own)
             {
                 return Rebind(own, x);
             }
@@ -160,10 +159,10 @@ internal static class FilterExpression
         }
 
         var body = Rebind(field.Value, x);
-        return FilterValues.DayCondition(filter, field.Type) is { } days ? Days(days, body, field.Type) : Default(filter, body, field.Type);
+        return FilterConvert.DayCondition(filter, field.Type) is { } days ? Days(days, body, field.Type) : Default(filter, body, field.Type);
     }
 
-    // What a comparison with a whole day came to (FilterValues.DayCondition). On an offset, the day is
+    // What a comparison with a whole day came to (FilterConvert.DayCondition). On an offset, the day is
     // the one on its clock, as OnDay reads it.
     private static Expression Days(Filter filter, Expression body, Type type)
     {
@@ -174,7 +173,7 @@ internal static class FilterExpression
             case FilterGroup group:
                 return Join(group.Filters.Select(f => Days(f, body, type)).ToList(), group.Logic == FilterLogic.And);
             case FieldFilter { Operator: FilterOperator.GreaterThanOrEqual or FilterOperator.LessThan } f
-                when (Nullable.GetUnderlyingType(type) ?? type) == typeof(DateTimeOffset) && FilterValues.IsWholeDay(f.Value, out var day):
+                when (Nullable.GetUnderlyingType(type) ?? type) == typeof(DateTimeOffset) && FilterConvert.IsWholeDay(f.Value, out var day):
             {
                 var (date, hasValue) = ClockDate(body, type);
                 var start = Capture(day.ToDateTime(TimeOnly.MinValue));
@@ -205,15 +204,15 @@ internal static class FilterExpression
     // A condition on the value expression `body`, of `type`.
     private static Expression Default(FieldFilter filter, Expression body, Type type)
     {
-        var kind = FilterValues.KindOf(type);
+        var kind = FilterConvert.KindOf(type);
         var text = kind == FieldKind.Text;
         var ignoreCase = text && !filter.MatchCase;
         switch (filter.Operator)
         {
             case FilterOperator.IsNull:
-                return FilterValues.CanBeNull(type) ? Expression.Equal(body, Expression.Constant(null, type)) : False;
+                return FilterConvert.CanBeNull(type) ? Expression.Equal(body, Expression.Constant(null, type)) : False;
             case FilterOperator.IsNotNull:
-                return FilterValues.CanBeNull(type) ? Expression.NotEqual(body, Expression.Constant(null, type)) : True;
+                return FilterConvert.CanBeNull(type) ? Expression.NotEqual(body, Expression.Constant(null, type)) : True;
             case FilterOperator.IsEmpty:
                 return Expression.OrElse(Expression.Equal(body, Expression.Constant(null, type)), Expression.Equal(body, Expression.Constant("")));
             case FilterOperator.IsNotEmpty:
@@ -226,7 +225,7 @@ internal static class FilterExpression
 
             case FilterOperator.Contains or FilterOperator.DoesNotContain or FilterOperator.StartsWith or FilterOperator.EndsWith:
             {
-                if (FilterValues.Unwrap(filter.Value) is not { } raw || raw.ToString() is not { } value)
+                if (FilterConvert.Unwrap(filter.Value) is not { } raw || raw.ToString() is not { } value)
                 {
                     return filter.Operator == FilterOperator.DoesNotContain ? False : True;
                 }
@@ -272,12 +271,12 @@ internal static class FilterExpression
     // underlying number, as the C# compiler writes it. A null value is x == null.
     private static Expression Equal(Expression body, Type type, object? value, bool ignoreCase)
     {
-        if (FilterValues.Unwrap(value) is null)
+        if (FilterConvert.Unwrap(value) is null)
         {
-            return FilterValues.CanBeNull(type) ? Expression.Equal(body, Expression.Constant(null, type)) : False;
+            return FilterConvert.CanBeNull(type) ? Expression.Equal(body, Expression.Constant(null, type)) : False;
         }
 
-        if (!FilterValues.TryConvert(type, value, out var parsed))
+        if (!FilterConvert.TryConvert(type, value, out var parsed))
         {
             return False;
         }
@@ -310,12 +309,12 @@ internal static class FilterExpression
     /// </summary>
     private static Expression Compare(Expression body, Type type, object? value, ExpressionType op, bool open)
     {
-        if (FilterValues.Unwrap(value) is null || FilterValues.Unwrap(value) is string { Length: 0 })
+        if (FilterConvert.Unwrap(value) is null || FilterConvert.Unwrap(value) is string { Length: 0 })
         {
             return open ? True : False;
         }
 
-        if (!FilterValues.TryConvert(type, value, out var parsed) || parsed is null)
+        if (!FilterConvert.TryConvert(type, value, out var parsed) || parsed is null)
         {
             var (outcome, bound) = NumberBound(type, value, op);
             if (outcome != Bound.Value)
@@ -352,7 +351,7 @@ internal static class FilterExpression
     private static (Bound Outcome, object? Value) NumberBound(Type type, object? value, ExpressionType op)
     {
         var t = Nullable.GetUnderlyingType(type) ?? type;
-        if (!FilterValues.IsNumeric(t) || !FilterValues.TryNumber(value, out var number))
+        if (!FilterConvert.IsNumeric(t) || !FilterConvert.TryNumber(value, out var number))
         {
             return (Bound.None, null);
         }
@@ -373,7 +372,7 @@ internal static class FilterExpression
             return (above ? Bound.All : Bound.None, null);
         }
 
-        return FilterValues.TryParse(type, whole.ToString("R", CultureInfo.InvariantCulture), out var parsed) ? (Bound.Value, parsed) : (Bound.None, null);
+        return FilterConvert.TryParse(type, whole.ToString("R", CultureInfo.InvariantCulture), out var parsed) ? (Bound.Value, parsed) : (Bound.None, null);
     }
 
     // What a numeric type holds, as doubles.
@@ -400,7 +399,7 @@ internal static class FilterExpression
     /// </summary>
     private static Expression OnDay(Expression body, Type type, object? value)
     {
-        if (!FilterValues.TryDay(value, out var day))
+        if (!FilterConvert.TryDay(value, out var day))
         {
             return False;
         }
@@ -437,11 +436,11 @@ internal static class FilterExpression
         var withNull = false;
         foreach (var value in values)
         {
-            if (FilterValues.Unwrap(value) is null)
+            if (FilterConvert.Unwrap(value) is null)
             {
-                withNull |= FilterValues.CanBeNull(type);
+                withNull |= FilterConvert.CanBeNull(type);
             }
-            else if (FilterValues.TryConvert(type, value, out var typed) && typed is not null)
+            else if (FilterConvert.TryConvert(type, value, out var typed) && typed is not null)
             {
                 parsed.Add(ignoreCase ? ((string)typed).ToLower(CultureInfo.CurrentCulture) : typed);
             }
@@ -476,7 +475,7 @@ internal static class FilterExpression
     /// </summary>
     public static Filter TypedFor<TItem>(Filter filter, IReadOnlyList<DataField<TItem>> fields) => !WithinLimits(filter) ? filter : filter switch
     {
-        FieldFilter f => fields.FirstOrDefault(d => string.Equals(d.Key, f.Field, StringComparison.OrdinalIgnoreCase)) is { } field ? TypedDays(FilterValues.DayCondition(f, field.Type) ?? f, field.Type) : f,
+        FieldFilter f => fields.FirstOrDefault(d => string.Equals(d.Key, f.Field, StringComparison.OrdinalIgnoreCase)) is { } field ? TypedDays(FilterConvert.DayCondition(f, field.Type) ?? f, field.Type) : f,
         FilterGroup g => g with { Filters = g.Filters.Select(c => TypedFor(c, fields)).ToList() },
         NotFilter n => new NotFilter(TypedFor(n.Filter, fields)),
         _ => filter,
@@ -495,16 +494,27 @@ internal static class FilterExpression
     // field's own condition.
     private static FieldFilter Typed(FieldFilter filter, Type type)
     {
-        object? Convert(object? value) => FilterValues.TryConvert(type, value, out var typed) ? typed : FilterValues.Unwrap(value);
+        object? Convert(object? value) => FilterConvert.TryConvert(type, value, out var typed) ? typed : FilterConvert.Unwrap(value);
 
         if (filter.Operator == FilterOperator.OnDay)
         {
-            return FilterValues.TryDay(filter.Value, out var day) ? filter with { Value = day } : filter;
+            return FilterConvert.TryDay(filter.Value, out var day) ? filter with { Value = day } : filter;
         }
 
         return filter.Operator is FilterOperator.In or FilterOperator.NotIn
             ? filter with { Value = filter.Values.Select(Convert).ToList() }
             : filter with { Value = Convert(filter.Value), Value2 = Convert(filter.Value2) };
+    }
+
+    // The condition as a field's own Filter gets it: typed, and a day still a day, which a field with
+    // a time would otherwise turn into its first instant.
+    private static FieldFilter Own(FieldFilter filter, Type type)
+    {
+        var typed = Typed(filter, type);
+        object? Day(object? value, object? otherwise) => FilterConvert.IsWholeDay(value, out var day) ? day : otherwise;
+        return FilterConvert.KindOf(type) != FieldKind.Date || filter.Operator is FilterOperator.In or FilterOperator.NotIn
+            ? typed
+            : typed with { Value = Day(filter.Value, typed.Value), Value2 = Day(filter.Value2, typed.Value2) };
     }
 
     // A lambda's body on another parameter, so conditions on several fields share one.
