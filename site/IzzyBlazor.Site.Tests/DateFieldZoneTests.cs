@@ -11,9 +11,7 @@ public sealed class DateFieldZoneTests(SiteFixture site) : IClassFixture<SiteFix
     [Fact]
     public async Task A_static_post_keeps_the_time_in_the_fields_zone()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/date-field?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 

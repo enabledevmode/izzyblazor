@@ -7,11 +7,9 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 {
     private string Url(string mode) => new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString();
 
-    private async Task<(IPlaywright, IBrowser, IPage, ILocator)> OpenAsync(string mode)
+    private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        var playwright = await Playwright.CreateAsync();
-        var browser = await playwright.Chromium.LaunchAsync();
+        var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(Url(mode), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var grid = page.Locator(".ib-datagrid", new() { HasText = "Status" }).Nth(1);
@@ -20,7 +18,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         await grid.Locator("table[role=grid]").WaitForAsync();
         await grid.Locator("thead").ScrollIntoViewIfNeededAsync();
         await page.WaitForTimeoutAsync(200);
-        return (playwright, browser, page, grid);
+        return (browser, page, grid);
     }
 
     private static Task<string[]> TitlesAsync(ILocator grid) =>
@@ -45,8 +43,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("interactive")]
     public async Task Dragging_a_handle_resizes_and_a_reload_keeps_it(string mode)
     {
-        var (playwright, browser, page, grid) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page, grid) = await OpenAsync(mode);
         await using (browser)
         {
             var before = await WidthAsync(grid, "Customer");
@@ -74,8 +71,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("interactive")]
     public async Task Keys_move_and_resize_a_header_and_focus_stays_on_it(string mode)
     {
-        var (playwright, browser, page, grid) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page, grid) = await OpenAsync(mode);
         await using (browser)
         {
             await grid.Locator("thead th", new() { HasText = "Customer" }).FocusAsync();
@@ -97,8 +93,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("interactive")]
     public async Task The_menu_and_the_picker_hide_show_and_reset(string mode)
     {
-        var (playwright, browser, page, grid) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page, grid) = await OpenAsync(mode);
         await using (browser)
         {
             await grid.Locator("thead th", new() { HasText = "Status" }).Locator("[data-ib-menu]").ClickAsync();
@@ -129,8 +124,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("interactive")]
     public async Task Dragging_a_header_moves_its_column_and_doesnt_sort(string mode)
     {
-        var (playwright, browser, page, grid) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page, grid) = await OpenAsync(mode);
         await using (browser)
         {
             var from = await grid.Locator("thead th", new() { HasText = "Customer" }).BoundingBoxAsync();
@@ -160,8 +154,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("interactive")]
     public async Task Search_filters_as_you_type_and_the_selection_bar_takes_the_toolbars_place(string mode)
     {
-        var (playwright, browser, page, _) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page, _) = await OpenAsync(mode);
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
@@ -188,8 +181,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("interactive")]
     public async Task The_last_key_always_applies_and_back_follows_the_address(string mode)
     {
-        var (playwright, browser, page, _) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page, _) = await OpenAsync(mode);
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
@@ -217,8 +209,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [Fact]
     public async Task What_was_typed_while_a_response_was_on_its_way_stays_typed()
     {
-        var (playwright, browser, page, _) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page, _) = await OpenAsync("static");
         await using (browser)
         {
             await page.RouteAsync("**/docs/components/data-grid*", async route =>
@@ -245,8 +236,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [Fact]
     public async Task At_phone_width_the_search_box_stops_short_of_the_tools()
     {
-        var (playwright, browser, page, _) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page, _) = await OpenAsync("static");
         await using (browser)
         {
             foreach (var width in new[] { 390, 320 })
@@ -264,8 +254,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [Fact]
     public async Task A_bad_cookie_is_ignored_and_tools_sit_at_the_far_edge()
     {
-        var (playwright, browser, page, grid) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page, grid) = await OpenAsync("static");
         await using (browser)
         {
             var title = await grid.Locator("thead th", new() { HasText = "Customer" }).Locator(".ib-table-sort").BoundingBoxAsync();
@@ -291,8 +280,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [Fact]
     public async Task A_column_that_opted_out_has_no_controls_and_frozen_keeps_it_at_its_edge()
     {
-        var (playwright, browser, page, grid) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page, grid) = await OpenAsync("static");
         await using (browser)
         {
             Assert.Equal(0, await grid.Locator("thead th", new() { HasText = "Order" }).Locator(".ib-col-resize, [data-ib-menu]").CountAsync());

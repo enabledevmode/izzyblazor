@@ -34,4 +34,8 @@
     <Compile Include="..\IzzyBlazor.DocsGen\TypeNames.cs" Link="DocsGen\TypeNames.cs" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>

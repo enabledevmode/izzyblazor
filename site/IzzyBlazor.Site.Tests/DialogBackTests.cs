@@ -13,9 +13,7 @@ public sealed class DialogBackTests(SiteFixture site) : IClassFixture<SiteFixtur
     [InlineData("filters")]
     public async Task Back_with_a_dialog_open_leaves_the_page_usable(string id)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/dialog").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
 

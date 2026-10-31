@@ -97,7 +97,7 @@ public sealed class SlowServerToggleTests(SiteFixture site) : IClassFixture<Site
             """,
     };
 
-    private static async Task<IPage> OpenAsync(IBrowser browser, SiteFixture site, string component)
+    private static async Task<IPage> OpenAsync(TestBrowser browser, SiteFixture site, string component)
     {
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/{component}?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
@@ -116,9 +116,7 @@ public sealed class SlowServerToggleTests(SiteFixture site) : IClassFixture<Site
     [InlineData("accordion", "close open", true, 2500)]
     public async Task Quick_opens_and_closes_end_where_the_user_left_them(string component, string steps, bool open, int latency)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await OpenAsync(browser, site, component);
 
         await page.EvaluateAsync($"() => window.__parts = {Parts(component)}");
@@ -160,9 +158,7 @@ public sealed class SlowServerToggleTests(SiteFixture site) : IClassFixture<Site
     [InlineData(2500)]
     public async Task Quick_clicks_in_an_exclusive_Accordion_end_where_the_user_left_them(int latency)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await OpenAsync(browser, site, "accordion");
         await page.EvaluateAsync($"latency => ({Servers})({{ roots: ({GroupRoots})(), latency }})", latency);
 
@@ -186,9 +182,7 @@ public sealed class SlowServerToggleTests(SiteFixture site) : IClassFixture<Site
     [InlineData(2500)]
     public async Task Opening_an_exclusive_item_from_the_server_reports_its_sibling_closed(int after)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await OpenAsync(browser, site, "accordion");
         await page.EvaluateAsync($"latency => ({Servers})({{ roots: ({GroupRoots})(), latency }})", 150);
 
@@ -209,9 +203,7 @@ public sealed class SlowServerToggleTests(SiteFixture site) : IClassFixture<Site
     [InlineData("dialog")]
     public async Task A_render_between_a_close_and_its_report_doesnt_undo_it(string component)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await OpenAsync(browser, site, component);
         await page.EvaluateAsync($"() => window.__parts = {Parts(component)}");
         await page.EvaluateAsync($"latency => ({Servers})({{ roots: [window.__parts], latency }})", 50);
@@ -237,9 +229,7 @@ public sealed class SlowServerToggleTests(SiteFixture site) : IClassFixture<Site
     [Fact]
     public async Task An_interactive_Disclosure_rendered_open_is_open_before_it_paints()
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        using var playwright = await Playwright.CreateAsync();
-        await using var browser = await playwright.Chromium.LaunchAsync();
+        await using var browser = await TestBrowser.OpenAsync();
         var page = await OpenAsync(browser, site, "accordion");
 
         // As the interactive render brings it after prerendering: data-open, no open attribute.

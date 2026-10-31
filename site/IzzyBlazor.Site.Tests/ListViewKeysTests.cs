@@ -7,16 +7,14 @@ namespace IzzyBlazor.Site.Tests;
 /// </summary>
 public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(IPlaywright, IBrowser, IPage)> OpenAsync(string mode)
+    private async Task<(TestBrowser, IPage)> OpenAsync(string mode)
     {
-        Assert.Equal(0, Microsoft.Playwright.Program.Main(["install", "chromium"]));
-        var playwright = await Playwright.CreateAsync();
-        var browser = await playwright.Chromium.LaunchAsync();
+        var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/list-view?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         // Interactive: the lists render this once the circuit is up and their boxes answer.
         if (mode == "interactive") await page.Locator("ib-listview[data-ib-interactive]").First.WaitForAsync();
-        return (playwright, browser, page);
+        return (browser, page);
     }
 
     private static Task<string?> FocusedNameAsync(IPage page) =>
@@ -27,8 +25,7 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task Arrows_go_between_the_same_kind_of_control(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var links = page.Locator("ib-listview", new() { Has = page.GetByRole(AriaRole.Link, new() { Name = "Ada Lovelace" }) });
@@ -69,8 +66,7 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task Cards_take_all_four_arrows()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             var cards = page.Locator("ib-listview.ib-listview-cards", new() { Has = page.Locator(".ib-listview-action") }).First.Locator(".ib-listview-action");
@@ -91,8 +87,7 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [Fact]
     public async Task A_focused_card_is_wholly_in_view()
     {
-        var (playwright, browser, page) = await OpenAsync("static");
-        using (playwright)
+        var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
             await page.SetViewportSizeAsync(390, 500);
@@ -123,8 +118,7 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
     [InlineData("interactive")]
     public async Task Shift_arrows_and_ctrl_a_select_from_a_checkbox(string mode)
     {
-        var (playwright, browser, page) = await OpenAsync(mode);
-        using (playwright)
+        var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
             var list = page.Locator("ib-listview", new() { Has = page.GetByRole(AriaRole.Checkbox, new() { Name = "Select all messages" }) });
