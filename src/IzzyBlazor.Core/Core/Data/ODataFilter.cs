@@ -257,6 +257,29 @@ internal static partial class ODataFilter
                 return condition;
             }
 
+            // between(field, low, high), with null for an open end, and isempty(field), isnotempty(field):
+            // what this writes for them, so a filter reads back in the shape it was.
+            if (IsWord("between") && IsKind(TokenKind.Open, 1))
+            {
+                _at += 2;
+                var field = Operand();
+                Expect(TokenKind.Comma);
+                var low = Literal();
+                Expect(TokenKind.Comma);
+                var high = Literal();
+                Expect(TokenKind.Close);
+                return new FieldFilter(field, FilterOperator.Between, low, high);
+            }
+
+            if ((IsWord("isempty") || IsWord("isnotempty")) && IsKind(TokenKind.Open, 1))
+            {
+                var empty = IsWord("isempty");
+                _at += 2;
+                var field = Operand();
+                Expect(TokenKind.Close);
+                return new FieldFilter(field, empty ? FilterOperator.IsEmpty : FilterOperator.IsNotEmpty);
+            }
+
             // date(field) eq 2026-01-31: the day.
             if (IsWord("date") && IsKind(TokenKind.Open, 1))
             {
@@ -456,8 +479,9 @@ internal static partial class ODataFilter
                     text.Append('(');
                 }
 
-                // A group inside one of the same logic needs no parentheses: a and (b and c) is a and b and c.
-                var parts = Flatten(g).ToList();
+                // For OData, a group inside one of the same logic needs no parentheses. Here it keeps them,
+                // so a filter reads back in the shape it was: a builder redraws from this text.
+                var parts = forOData ? Flatten(g).ToList() : g.Filters;
                 for (var i = 0; i < parts.Count; i++)
                 {
                     if (i > 0)
@@ -526,7 +550,11 @@ internal static partial class ODataFilter
             case FilterOperator.Between:
             {
                 var (low, high) = (Present(f.Value), Present(f.Value2));
-                if (low && high)
+                if (!forOData && (low || high))
+                {
+                    text.Append($"between({field},{Literal(low ? f.Value : null)},{Literal(high ? f.Value2 : null)})");
+                }
+                else if (low && high)
                 {
                     Wrap($"{field} ge {Literal(f.Value)} and {field} le {Literal(f.Value2)}");
                 }
@@ -585,10 +613,26 @@ internal static partial class ODataFilter
                 text.Append($"{field} ne null");
                 break;
             case FilterOperator.IsEmpty:
-                Wrap($"{field} eq null or {field} eq ''");
+                if (forOData)
+                {
+                    Wrap($"{field} eq null or {field} eq ''");
+                }
+                else
+                {
+                    text.Append($"isempty({field})");
+                }
+
                 break;
             case FilterOperator.IsNotEmpty:
-                Wrap($"{field} ne null and {field} ne ''");
+                if (forOData)
+                {
+                    Wrap($"{field} ne null and {field} ne ''");
+                }
+                else
+                {
+                    text.Append($"isnotempty({field})");
+                }
+
                 break;
             case FilterOperator.OnDay:
                 text.Append(FilterConvert.TryDay(f.Value, out var day)

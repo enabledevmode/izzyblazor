@@ -747,4 +747,26 @@ public sealed class DataFilterTests : IDisposable
 
     private static DataField<T> Field<T, TValue>(string key, Expression<Func<T, TValue>> value) =>
         new() { Key = key, Value = value, Sortable = true, Filterable = true };
+
+    // A builder redraws from this text, so it has to keep the filter's shape, and old links still mean the same.
+    [Theory]
+    [InlineData("a eq 1 and (b eq 2 and c eq 3)")]
+    [InlineData("between(total,100,500)")]
+    [InlineData("between(total,100,null)")]
+    [InlineData("isempty(email) and isnotempty(name)")]
+    [InlineData("not (a eq 1 or (b eq 2 or c eq 3))")]
+    public void Text_keeps_the_shape_of_the_filter(string text) =>
+        Assert.Equal(text, Filter.Parse(text).ToString());
+
+    [Fact]
+    public void OData_still_gets_what_it_understands()
+    {
+        var filter = Filter.All(Filter.Between("total", 100, 500), new FieldFilter("email", FilterOperator.IsEmpty), Filter.All(Filter.Where("a", FilterOperator.Equals, 1)));
+        var odata = ODataFilter.Write(filter, forOData: true);
+
+        Assert.DoesNotContain("between(", odata);
+        Assert.DoesNotContain("isempty(", odata);
+        Assert.Contains("total ge 100", odata);
+    }
 }
+
