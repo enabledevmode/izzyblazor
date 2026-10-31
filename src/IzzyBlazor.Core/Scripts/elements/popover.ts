@@ -228,7 +228,7 @@ class PopoverRoot extends IzzyElement {
     if (open) {
       this.#stopTracking?.();
       // Not one a context menu has opened at the pointer.
-      if (!panel.hasAttribute("data-ib-at-pointer")) this.#stopTracking = track(panel, this, this.dataset.placement ?? "bottom-start");
+      if (!panel.hasAttribute("data-ib-at-pointer")) this.#stopTracking = track(panel, this.closest(".ib-split-btn") ?? this, this.dataset.placement ?? "bottom-start");
       // A menu the user opened takes focus; one the server or C# opened (data-open) doesn't.
       if (this.isMenu && !this.#hoverOpen && !fromSync) {
         const items = this.items();

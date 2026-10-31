@@ -142,8 +142,8 @@
     /// <summary>Disables only the arrow, such as when there's nothing else to choose.</summary>
     [Parameter] public bool MenuDisabled { get; set; }
 
-    /// <summary>Where the menu opens. Defaults to <see cref="Placement.BottomEnd"/>.</summary>
-    [Parameter] public Placement Placement { get; set; } = Placement.BottomEnd;
+    /// <summary>Where the menu opens, against the whole button. Defaults to <see cref="Placement.BottomStart"/>.</summary>
+    [Parameter] public Placement Placement { get; set; } = Placement.BottomStart;
 
     /// <summary>The width of the menu panel, as on <see cref="Menu"/>. Defaults to the content's width, at least 10rem, up to 24rem.</summary>
     [Parameter] public Length? PanelWidth { get; set; }
