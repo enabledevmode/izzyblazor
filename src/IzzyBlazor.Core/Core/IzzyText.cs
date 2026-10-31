@@ -231,17 +231,14 @@ public class IzzyText
     /// <summary>A FilterBuilder rule's field.</summary>
     public virtual string FilterFieldLabel { get; set; } = "Field";
 
+    /// <summary>What names a FilterBuilder group's And and Or.</summary>
+    public virtual string FilterMatchLabel { get; set; } = "Match";
+
     /// <summary>A FilterBuilder group matching every rule.</summary>
-    public virtual string FilterAllOf { get; set; } = "All of";
+    public virtual string FilterAnd { get; set; } = "And";
 
     /// <summary>A FilterBuilder group matching any rule.</summary>
-    public virtual string FilterAnyOf { get; set; } = "Any of";
-
-    /// <summary>A FilterBuilder group matching no rule.</summary>
-    public virtual string FilterNoneOf { get; set; } = "None of";
-
-    /// <summary>A FilterBuilder group not matching every rule.</summary>
-    public virtual string FilterNotAllOf { get; set; } = "Not all of";
+    public virtual string FilterOr { get; set; } = "Or";
 
     /// <summary>FilterBuilder's button that adds a rule.</summary>
     public virtual string FilterAddRule { get; set; } = "Add rule";

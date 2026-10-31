@@ -5,8 +5,8 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// What FilterBuilder needs from a filter and its fields: which operators a field offers, and a filter
-/// as the JSON its script draws from. A condition it can't draw as a rule stays as its text, so nothing
-/// in a filter is lost by opening it in the builder.
+/// as the JSON its script draws from. What it can't draw as a rule, such as a not around a group, stays
+/// as its text, so nothing in a filter is lost by opening it in the builder.
 /// </summary>
 internal static class FilterBuilderModel
 {
@@ -71,12 +71,6 @@ internal static class FilterBuilderModel
                 case FilterGroup { Logic: var logic } g:
                     WriteGroup(json, logic == FilterLogic.And ? "all" : "any", g.Filters, offered);
                     break;
-                case NotFilter { Filter: FilterGroup { Logic: var logic } g }:
-                    WriteGroup(json, logic == FilterLogic.And ? "notall" : "none", g.Filters, offered);
-                    break;
-                case NotFilter { Filter: var inner } when RuleOf(inner, offered) is not null:
-                    WriteGroup(json, "none", [inner], offered);
-                    break;
                 default:
                     WriteGroup(json, "all", [filter], offered);
                     break;
@@ -123,12 +117,6 @@ internal static class FilterBuilderModel
         {
             case FilterGroup { Logic: var logic } g:
                 WriteGroup(json, logic == FilterLogic.And ? "all" : "any", g.Filters, fields);
-                break;
-            case NotFilter { Filter: FilterGroup { Logic: var logic } g }:
-                WriteGroup(json, logic == FilterLogic.And ? "notall" : "none", g.Filters, fields);
-                break;
-            case NotFilter { Filter: FieldFilter } n when RuleOf(n.Filter, fields) is not null:
-                WriteGroup(json, "none", [n.Filter], fields);
                 break;
             default:
                 json.WriteStartObject();

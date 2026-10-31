@@ -32,6 +32,7 @@ const quoted = (text: string) => `'${text.replace(/'/g, "''")}'`;
 
 class FilterBuilder extends IzzyElement {
   #drawn: string | null = null;
+  #ids = 0;
 
   get #root(): HTMLElement {
     return this.querySelector<HTMLElement>(":scope > [data-ib-fb-root]")!;
@@ -84,13 +85,27 @@ class FilterBuilder extends IzzyElement {
   #group(group: Group, depth: number, top = false): HTMLElement {
     const box = this.#clone("[data-ib-fb-group]");
     box.dataset.ibDepth = String(depth);
-    box.querySelector<HTMLSelectElement>("[data-ib-fb-logic]")!.value = group.logic;
+    this.#setLogic(box, group.logic);
     const head = box.querySelector(":scope > .ib-fb-head")!;
     if (top) head.querySelector("[data-ib-fb-remove]")!.remove();
-    if (depth >= Number(this.dataset.ibMaxDepth)) head.querySelector("[data-ib-fb-add-group]")!.remove();
     const items = box.querySelector(":scope > [data-ib-fb-items]")!;
-    for (const item of group.items) items.append(isGroup(item) ? this.#group(item, depth + 1) : item.raw !== undefined ? this.#raw(item.raw) : this.#rule(item));
+
+    // At the depth limit, only rules can be added, so there's no menu. Otherwise its menu needs ids of its own.
+    const atLimit = depth >= Number(this.dataset.ibMaxDepth);
+    items.querySelector(atLimit ? ":scope > [data-ib-fb-add]" : ":scope > [data-ib-fb-add-plain]")!.remove();
+    if (!atLimit) {
+      const add = items.querySelector<HTMLElement>(":scope > [data-ib-fb-add]")!;
+      let html = add.outerHTML;
+      for (const el of add.querySelectorAll("[id]")) html = html.replaceAll(el.id, `${el.id}-${++this.#ids}`);
+      add.outerHTML = html;
+    }
+    const last = items.lastElementChild;
+    for (const item of group.items) items.insertBefore(isGroup(item) ? this.#group(item, depth + 1) : item.raw !== undefined ? this.#raw(item.raw) : this.#rule(item), last);
     return box;
+  }
+
+  #setLogic(group: HTMLElement, logic: string): void {
+    for (const button of group.querySelectorAll<HTMLElement>(":scope > .ib-fb-head [data-ib-logic]")) button.setAttribute("aria-pressed", String(button.dataset.ibLogic === logic));
   }
 
   #raw(text: string): HTMLElement {
@@ -180,6 +195,7 @@ class FilterBuilder extends IzzyElement {
     if (!button) return;
     if (button.matches("[data-ib-fb-apply]")) this.#apply();
     else if (button.matches("[data-ib-fb-clear]")) this.#clear();
+    else if (button.matches("[data-ib-logic]")) this.#setLogic(button.closest<HTMLElement>("[data-ib-fb-group]")!, button.dataset.ibLogic!);
     else if (button.matches("[data-ib-fb-add-rule], [data-ib-fb-add-group]")) this.#add(button);
     else if (button.matches("[data-ib-fb-remove]")) this.#remove(button);
   }
@@ -188,7 +204,7 @@ class FilterBuilder extends IzzyElement {
     const group = button.closest<HTMLElement>("[data-ib-fb-group]")!;
     const items = group.querySelector(":scope > [data-ib-fb-items]")!;
     const added = button.matches("[data-ib-fb-add-rule]") ? this.#rule({}) : this.#group({ logic: "all", items: [{}] }, Number(group.dataset.ibDepth) + 1);
-    items.append(added);
+    items.insertBefore(added, items.lastElementChild);
     added.querySelector<HTMLElement>("[data-ib-fb-field-select]")?.focus();
   }
 
@@ -212,13 +228,15 @@ class FilterBuilder extends IzzyElement {
   #groupText(group: HTMLElement, top: boolean): string {
     const parts: string[] = [];
     for (const item of group.querySelector(":scope > [data-ib-fb-items]")!.children) {
-      const text = item.matches("[data-ib-fb-group]") ? this.#groupText(item as HTMLElement, false) : item.matches("[data-ib-fb-raw]") ? (item as HTMLElement).dataset.ibText! : this.#ruleText(item as HTMLElement);
+      const text = item.matches("[data-ib-fb-group]") ? this.#groupText(item as HTMLElement, false)
+        : item.matches("[data-ib-fb-raw]") ? (item as HTMLElement).dataset.ibText!
+        : item.matches("[data-ib-fb-rule]") ? this.#ruleText(item as HTMLElement)
+        : "";
       if (text) parts.push(text);
     }
     if (parts.length === 0) return "";
-    const logic = group.querySelector<HTMLSelectElement>(":scope > .ib-fb-head [data-ib-fb-logic]")!.value;
-    const joined = parts.join(logic === "all" || logic === "notall" ? " and " : " or ");
-    if (logic === "none" || logic === "notall") return `not (${joined})`;
+    const logic = group.querySelector<HTMLElement>(':scope > .ib-fb-head [data-ib-logic][aria-pressed="true"]')!.dataset.ibLogic;
+    const joined = parts.join(logic === "all" ? " and " : " or ");
     return top || parts.length === 1 ? joined : `(${joined})`;
   }
 

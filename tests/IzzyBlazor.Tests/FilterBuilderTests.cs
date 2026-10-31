@@ -31,19 +31,13 @@ public class FilterBuilderTests : BunitContext
         Assert.Equal("5", between.GetProperty("to").GetString());
     }
 
-    [Theory]
-    [InlineData("not (name eq 'a' or total eq 1)", "none")]
-    [InlineData("not (name eq 'a' and total eq 1)", "notall")]
-    [InlineData("not (total gt 1)", "none")]
-    public void A_not_is_on_its_group(string text, string logic) =>
-        Assert.Equal(logic, Model(text).GetProperty("logic").GetString());
-
     // Nothing in a filter is lost by opening it in the builder.
     [Theory]
     [InlineData("nosuchfield eq 1")]
     [InlineData("day gt 2026-01-02T09:30:00")]
     [InlineData("kind in ('Nope')")]
     [InlineData("total eq 'abc'")]
+    [InlineData("not (name eq 'a' or total eq 1)")]
     public void What_cant_be_a_rule_stays_as_its_text(string text) =>
         Assert.Equal(Filter.Parse(text).ToString(), Model(text).GetProperty("items")[0].GetProperty("raw").GetString());
 

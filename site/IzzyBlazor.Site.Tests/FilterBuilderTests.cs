@@ -19,15 +19,17 @@ public sealed class FilterBuilderTests(SiteFixture site) : IClassFixture<SiteFix
         var first = builder.Locator(".ib-fb-rule").First;
         await first.Locator("[data-ib-fb-field-select]").SelectOptionAsync(new SelectOptionValue { Label = "Customer" });
         await first.Locator("[data-ib-fb-from]").FillAsync("a");
-        await builder.Locator("[data-ib-fb-add-group]").First.ClickAsync();
+        var add = builder.Locator("[data-ib-fb-items] > [data-ib-fb-add]").Last;
+        await add.Locator("button[popovertarget]").First.ClickAsync();
+        await page.Locator("[popover]:popover-open [data-ib-fb-add-group]").ClickAsync();
         var inner = builder.Locator(".ib-fb-group .ib-fb-group");
-        await inner.Locator("[data-ib-fb-logic]").SelectOptionAsync("any");
+        await inner.Locator("[data-ib-logic='any']").ClickAsync();
         await inner.Locator("[data-ib-fb-field-select]").SelectOptionAsync(new SelectOptionValue { Label = "Total" });
         await inner.Locator("[data-ib-fb-op]").SelectOptionAsync("between");
         await inner.Locator("[data-ib-fb-from]").FillAsync("10");
 
         // A rule with nothing in it is left out.
-        await builder.Locator("[data-ib-fb-add-rule]").First.ClickAsync();
+        await add.GetByRole(AriaRole.Button, new() { Name = "Add rule", Exact = true }).ClickAsync();
         await page.Locator("[data-ib-fb-apply]").First.ClickAsync();
 
         await page.WaitForURLAsync("**/*orders-filter=*");
