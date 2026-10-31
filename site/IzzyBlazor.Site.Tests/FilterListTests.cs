@@ -121,6 +121,60 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
+    public async Task A_panels_Clear_removes_its_filter_and_closes(string mode)
+    {
+        var (browser, page, table) = await OpenAsync(mode, query: "&lists-f-priority=High&lists-f-open=true");
+        await using (browser)
+        {
+            var panel = await OpenPanelAsync(page, table, "Priority");
+            await Box(panel, "Medium").CheckAsync();
+            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+
+            await AddressIsAsync(page, "f-open=true");
+            await page.WaitForTimeoutAsync(700);
+            await AddressIsAsync(page, "f-open=true");
+            await Assertions.Expect(page.Locator("[popover]:popover-open .ib-table-filter-panel")).ToHaveCountAsync(0);
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Priority']")).ToBeFocusedAsync();
+
+            panel = await OpenPanelAsync(page, table, "Priority");
+            await Assertions.Expect(Box(panel, "Low")).ToBeCheckedAsync();
+            await Assertions.Expect(panel.GetByRole(AriaRole.Button, new() { Name = "Clear" })).ToBeDisabledAsync();
+        }
+    }
+
+    [Fact]
+    public async Task A_bound_panels_Clear_removes_its_filter_and_closes()
+    {
+        var (browser, page, table) = await OpenAsync("interactive", "Order history");
+        await using (browser)
+        {
+            var panel = await OpenPanelAsync(page, table, "Status");
+            await Assertions.Expect(panel.GetByRole(AriaRole.Button, new() { Name = "Clear" })).ToBeDisabledAsync();
+            await Box(panel, "Refunded").UncheckAsync();
+            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+
+            await Assertions.Expect(table.Locator(".ib-table-filter-tags")).ToBeHiddenAsync();
+            await Assertions.Expect(page.Locator("[popover]:popover-open .ib-table-filter-panel")).ToHaveCountAsync(0);
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status']")).ToBeFocusedAsync();
+        }
+    }
+
+    [Fact]
+    public async Task With_no_script_a_panels_Clear_is_a_link()
+    {
+        var (browser, page, table) = await OpenAsync("static", script: false, query: "&lists-f-priority=High");
+        await using (browser)
+        {
+            var panel = await OpenPanelAsync(page, table, "Priority");
+            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+            await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
+            await AddressIsAsync(page, "");
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
     public async Task Removing_a_tag_drops_a_tick_waiting_on_its_pause(string mode)
     {
         var (browser, page, table) = await OpenAsync(mode, query: "&lists-f-priority=High&lists-f-priority=Low&lists-f-open=true");
