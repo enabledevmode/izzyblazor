@@ -168,8 +168,9 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
             var top = await grid.Locator("table").EvaluateAsync<double>("t => t.getBoundingClientRect().top");
             await grid.Locator("tbody .ib-table-select").First.CheckAsync();
-            await grid.Locator(".ib-selection-clear").WaitForAsync();
-            Assert.Equal(await toolbar.IsVisibleAsync(), await grid.Locator(".ib-selection-bar").IsHiddenAsync());
+            await grid.Locator(".ib-selection-bar:not([hidden])").WaitForAsync();
+            await Assertions.Expect(grid.Locator(".ib-selection-count")).ToBeVisibleAsync();
+            Assert.False(await toolbar.IsVisibleAsync());
             Assert.Equal(top, await grid.Locator("table").EvaluateAsync<double>("t => t.getBoundingClientRect().top"), 1);
             await grid.Locator(".ib-selection-clear").ClickAsync();
             await toolbar.WaitForAsync();

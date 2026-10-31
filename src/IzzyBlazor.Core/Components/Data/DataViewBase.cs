@@ -142,7 +142,8 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>
     /// Actions on the selection, in a bar above the items, disabled until something is selected
     /// (on a DataGrid with a toolbar, the bar takes the toolbar's place while something is). Submit
-    /// buttons in the surrounding form post the selection. Without these there's no bar.
+    /// buttons in the surrounding form post the selection. A link can't be disabled, so it stays live.
+    /// Without these there's no bar.
     /// </summary>
     [Parameter] public RenderFragment<Selection>? SelectionActions { get; set; }
 
@@ -272,6 +273,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal bool CanSelect(TItem item) => ItemSelectable?.Invoke(item) ?? true;
 
+    // The select-all box as the server draws it: for every match, whether they all are.
+    internal bool SelectAllChecked => SelectAllMode == SelectAllMode.All ? _selection.All && _selection.Keys is not { Length: > 0 } : AllOnPageSelected;
+
     internal bool AllOnPageSelected =>
         _items.Any(CanSelect) && _items.Where(CanSelect).All(i => _selection.Contains(KeyOf(i)));
 
@@ -292,9 +296,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         ["onchange"] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => e.Value is true ? SelectAllMatchingAsync() : ClearSelectionAsync()),
     };
 
-    /// <summary>"3 selected", "All 1,234 selected" or "All selected".</summary>
+    /// <summary>"3 selected", "All 1,234 selected" or "All selected". With one left out it isn't all of them, so it's the number.</summary>
     internal string SelectionCountText => _selection.Count(_total) is { } count
-        ? Format(_selection.All ? TextDefaults.SelectionAllCount : TextDefaults.SelectionCount, count)
+        ? Format(_selection.All && _selection.Keys is not { Length: > 0 } ? TextDefaults.SelectionAllCount : TextDefaults.SelectionCount, count)
         : TextDefaults.SelectionAllOpen;
 
     private static string Format(string format, int value) =>
@@ -1022,7 +1026,7 @@ public enum SelectionMode
     /// <summary>One item, with a radio button on each.</summary>
     Single,
 
-    /// <summary>Any number, with a checkbox on each; with script, a box to select every item on the page.</summary>
+    /// <summary>Any number, with a checkbox on each; with script, a box to select them all (see <c>SelectAllMode</c>).</summary>
     Multiple,
 }
 

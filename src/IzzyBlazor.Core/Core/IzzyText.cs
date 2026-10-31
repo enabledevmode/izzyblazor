@@ -364,7 +364,7 @@ public class IzzyText
     /// <summary>The selection's count when every matching item is selected and the total isn't known (cursor paging).</summary>
     public virtual string SelectionAllOpen { get; set; } = "All selected";
 
-    /// <summary>The selection bar's button that clears the selection.</summary>
+    /// <summary>The button beside the selection's count that clears it.</summary>
     public virtual string ClearSelection { get; set; } = "Clear selection";
 
     /// <summary>Table's scroll region name when it has no Caption.</summary>

@@ -168,6 +168,9 @@
              data-ib-count="@TextDefaults.SelectionCount" data-ib-all-count="@TextDefaults.SelectionAllCount" data-ib-all-open="@TextDefaults.SelectionAllOpen">
             @if (SelectionActions is not null)
             {
+                @* The form's default button, ahead of the actions: Enter in another field submits the form,
+                   and a disabled action in that place would stop it. *@
+                <button type="submit" class="ib-data-default-submit" tabindex="-1" aria-hidden="true"></button>
                 @* Disabled by the script on a static page, so with no script they work. *@
                 <fieldset class="ib-selection-actions" disabled="@(RendererInfo.IsInteractive && _selection.IsEmpty)">@SelectionActions(_selection)</fieldset>
             }

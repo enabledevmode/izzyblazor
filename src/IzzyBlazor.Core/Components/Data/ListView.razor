@@ -48,7 +48,7 @@
       which open its menu; fields keep theirs.
     - With `SelectionMode`, each item has a checkbox (or, for Single, a radio button) named
       "Select" and the item's label; with script, a "Select all rows" checkbox above a Multiple
-      list checks the page.
+      list takes the page, or every match with SelectAllMode.All.
     - The range under a paged list ("1–10 of 42") is read when it changes, and a failed load is
       announced from a status region.
 
@@ -59,7 +59,7 @@
     - Home, End | Move to the first or last item, except from a handle or ⋯ button
     - Alt+Up, Alt+Down, Alt+Home, Alt+End | On a handle, move the item
     - Shift+Up, Shift+Down, Shift+Left, Shift+Right | On a checkbox, extend the selection
-    - Ctrl+A | On an item's checkbox, select the page
+    - Ctrl+A | On an item's checkbox, select the page, or every match with SelectAllMode.All
     - Shift+F10, Menu | Open the item's menu
     See also: Table, List.
 *@
@@ -75,7 +75,7 @@
            CSS hides it while there are no items. *@
         <div class="ib-listview-select-all-row">
             <label class="ib-listview-select-all-label">
-                <input type="checkbox" class="ib-check-input ib-listview-select-all" checked="@AllOnPageSelected" @attributes="SelectAllMatching" />
+                <input type="checkbox" class="ib-check-input ib-listview-select-all" checked="@SelectAllChecked" @attributes="SelectAllMatching" />
                 @(SelectAllLabel ?? TextDefaults.SelectAllRows)
             </label>
         </div>
@@ -85,7 +85,7 @@
         @* The form's default button, ahead of the items' buttons: Enter in another field submits the
            form, rather than pressing the first item's (often disabled) Move up or its Delete. On an
            interactive page it only raises the form's submit. *@
-        <button type="submit" class="ib-listview-default-submit" tabindex="-1" aria-hidden="true"></button>
+        <button type="submit" class="ib-data-default-submit" tabindex="-1" aria-hidden="true"></button>
     }
     @* The items and, in a list that grows, Load more after them: one box, which scrolls with a MaxHeight. *@
     <div class="@(MaxHeight is null ? "ib-listview-body" : "ib-listview-body ib-listview-scroll")" style="@BodyStyle" role="@(MaxHeight is null ? null : "region")"
@@ -593,7 +593,7 @@
                 }
                 @if (Selectable)
                 {
-                    <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-listview-select" name="@SelectionKeysName" value="@key"
+                    <input @key="key" type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-listview-select" name="@SelectionKeysName" value="@key"
                            aria-label="@SelectLabel(item)" checked="@IsSelected(item, key)" disabled="@(disabled || !CanSelect(item))"
                            @onchange="e => OnSelectChanged(key, e)" />
                     @if (disabled && !Live && IsSelected(item, key))

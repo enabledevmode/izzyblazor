@@ -6,7 +6,7 @@ namespace IzzyBlazor;
 
 /// <summary>
 /// The items selected in a <c>Table</c> or <c>ListView</c>: some keys, or every item matching a
-/// filter and search except some keys ("Select all 1,234"). Bind it with <c>@bind-Selection</c>, or
+/// filter and search except some keys (<c>SelectAllMode.All</c>). Bind it with <c>@bind-Selection</c>, or
 /// on a static page with <c>[SupplyParameterFromForm(FormName = "...", Name = "...")]</c> under the
 /// view's <c>SelectionName</c>. For a bulk action, <see cref="Apply{TItem}(IQueryable{TItem}, Expression{Func{TItem, string}}, IReadOnlyList{DataField{TItem}})"/>
 /// gives the selected items from a query.

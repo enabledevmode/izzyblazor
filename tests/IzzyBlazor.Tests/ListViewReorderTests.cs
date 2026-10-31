@@ -64,7 +64,7 @@ public class ListViewReorderTests : BunitContext
 
         // The first submit button in the form is the one Enter presses.
         var first = cut.FindAll("button[type=submit]")[0];
-        Assert.Contains("ib-listview-default-submit", first.ClassName);
+        Assert.Contains("ib-data-default-submit", first.ClassName);
         Assert.Null(first.GetAttribute("name"));
     }
 

@@ -420,6 +420,20 @@ public class TableFilterListTests : BunitContext
     }
 
     [Fact]
+    public void FilterPanel_lists_a_bound_filter_with_no_filterable_column()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        var cut = Render<Table<Row>>(p => p
+            .Add(t => t.Items, Rows)
+            .Add(t => t.FilterPanel, true)
+            .Add(t => t.Filter, Filter.Where("status", FilterOperator.Equals, "Yes"))
+            .Add(t => t.FilterChanged, (Filter? _) => { })
+            .Add(t => t.ChildContent, b => b.AddContent(0, Col<string>(r => r.Name, filterable: false))));
+
+        Assert.Single(cut.FindAll(".ib-table-filter-tags .ib-tag"));
+    }
+
+    [Fact]
     public void A_grid_has_FilterPanel_too()
     {
         var cut = Grid("/orders?f-status=Yes", filterPanel: true);
