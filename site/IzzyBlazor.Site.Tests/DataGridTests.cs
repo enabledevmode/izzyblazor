@@ -80,7 +80,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             Assert.Equal(3, await end.CountAsync());
             Assert.Equal(1, await end.Nth(0).Locator(".ib-col-picker").CountAsync());
             Assert.Equal("Help", await end.Nth(1).Locator("button").GetAttributeAsync("aria-label"));
-            Assert.Contains("Export", await end.Nth(2).TextContentAsync());
+            Assert.Contains("Export Excel", await end.Nth(2).TextContentAsync());
 
             // Icons alone unless told otherwise, named all the same.
             var picker = end.Nth(0).Locator("button").First;
@@ -90,7 +90,9 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             Assert.Equal(script, await picker.IsVisibleAsync());
             if (!script) Assert.Equal("none", await page.Locator(".ib-col-resize").First.EvaluateAsync<string>("e => getComputedStyle(e).display"));
 
-            // The menu of links opens and downloads with no script.
+            // One click for the default, and the other behind the arrow, with no script too.
+            var main = await page.RunAndWaitForDownloadAsync(() => end.Nth(2).Locator(".ib-split-btn > a[download]").ClickAsync());
+            Assert.Equal("orders.xlsx", main.SuggestedFilename);
             await end.Nth(2).Locator("button").ClickAsync();
             var csv = end.Nth(2).Locator("a[download]", new() { HasText = "Export CSV" });
             await csv.WaitForAsync();

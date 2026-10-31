@@ -196,6 +196,12 @@
     internal override double VirtualRowHeight => RowHeight;
 
     /// <summary>
+    /// With both export links, the format one click downloads: a split button, with the other format
+    /// behind its arrow. Without it, one button opens a menu of both.
+    /// </summary>
+    [Parameter] public ExportFormat? DefaultExport { get; set; }
+
+    /// <summary>
     /// Text beside the icons of the toolbar's own tools, for a grid people use now and then. Without it
     /// they're icons with a tooltip, for one used all day. A tool's own <c>ShowText</c> goes first.
     /// </summary>
@@ -574,11 +580,17 @@
 
     bool IDataGridToolbar.HasExport => HasExportTool;
 
+    bool IDataGridToolbar.ExportSplits => ExportSplits;
+
+    private bool ExportSplits => DefaultExport is not null && ExportCsvHref is not null && ExportExcelHref is not null;
+
     bool IDataGridToolbar.ToolbarLabels => ToolbarLabels;
 
     string IDataGridToolbar.ColumnPickerLabel => TextDefaults.ColumnPicker;
 
-    string IDataGridToolbar.ExportLabel => ExportCsvHref is null ? TextDefaults.ExportExcel : ExportExcelHref is null ? TextDefaults.ExportCsv : TextDefaults.Export;
+    string IDataGridToolbar.ExportLabel => ExportCsvHref is null || (ExportSplits && DefaultExport == ExportFormat.Excel) ? TextDefaults.ExportExcel
+        : ExportExcelHref is null || ExportSplits ? TextDefaults.ExportCsv
+        : TextDefaults.Export;
 
     RenderFragment IDataGridToolbar.SearchBar => __builder =>
     {
@@ -652,7 +664,14 @@
 
         var label = ((IDataGridToolbar)this).ExportLabel;
         var icon = IconSet.Current.Get(IconRole.Export);
-        if (ExportCsvHref is not null && ExportExcelHref is not null)
+        if (ExportSplits)
+        {
+            var excel = DefaultExport == ExportFormat.Excel;
+            <SplitButton Label="@label" StartIcon="icon" IconOnly="@(!showText)" Href="@ExportHref((excel ? ExportExcelHref : ExportCsvHref)!)" MenuLabel="@TextDefaults.Export" Disabled="@(_loadedRequest is null)" download>
+                <MenuItem Href="@ExportHref((excel ? ExportCsvHref : ExportExcelHref)!)" Disabled="@(_loadedRequest is null)" download>@(excel ? TextDefaults.ExportCsv : TextDefaults.ExportExcel)</MenuItem>
+            </SplitButton>
+        }
+        else if (ExportCsvHref is not null && ExportExcelHref is not null)
         {
             <Menu Placement="Placement.BottomEnd">
                 <Trigger>

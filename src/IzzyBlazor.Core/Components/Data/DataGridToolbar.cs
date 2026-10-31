@@ -12,6 +12,9 @@ internal interface IDataGridToolbar
 
     bool HasExport { get; }
 
+    /// <summary>Whether export is a split button, with a main format and an arrow: a little wider.</summary>
+    bool ExportSplits { get; }
+
     bool ToolbarLabels { get; }
 
     string ColumnPickerLabel { get; }
@@ -163,7 +166,8 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
 
 /// <summary>
 /// Puts a <c>DataGrid</c>'s export, from <c>ExportCsvHref</c> and <c>ExportExcelHref</c>, among your
-/// toolbar items: a link with one of them, a menu of links with both. At the end unless
+/// toolbar items: a link with one of them, a menu of links with both, or with the grid's
+/// <c>DefaultExport</c> a split button. At the end unless
 /// <see cref="DataGridToolbarItem.Position"/> says otherwise.
 /// </summary>
 [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the links download. A menu of them opens and closes, but arrow keys don't move between items.")]
@@ -193,5 +197,5 @@ public sealed class DataGridExport : DataGridToolbarItem
 
     private protected override RenderFragment ItemMenu => Grid.ExportMenu;
 
-    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false);
+    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false) + (Grid.ExportSplits ? 32 : 0);
 }
