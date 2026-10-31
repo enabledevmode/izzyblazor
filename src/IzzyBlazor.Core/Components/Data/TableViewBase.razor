@@ -755,7 +755,7 @@
                                 <input type="hidden" name="@FilterQueryKey(column)" value="@value" form="@FilterFormId" data-ib-filter />
                             }
                         }
-                        @FilterPanelActions
+                        @FilterPanelActions(column, current)
                     </div>
                 }
                 else if (ops.Count > 1 || ops is [FilterOperator.Between])
@@ -777,7 +777,7 @@
                                 </div>
                             }
                         </div>
-                        @FilterPanelActions
+                        @FilterPanelActions(column, current)
                     </div>
                 }
                 else
@@ -785,23 +785,38 @@
                     <div class="ib-table-filter-panel ib-field-sm">
                         <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
                         @FilterInput(column, current.Value, fieldId, null, second: false, autofocus: true)
-                        @FilterPanelActions
+                        @FilterPanelActions(column, current)
                     </div>
                 }
             </ChildContent>
         </Popover>
     };
 
-    // Without script (and on static pages before it arrives), Enter or Apply submits the filters'
-    // GET form; with script the fields apply as they change and CSS hides the button.
-    private RenderFragment FilterPanelActions => __builder =>
+    // Clear removes this column's filter: a link on static pages, so it needs no script, and with
+    // nothing to clear it's disabled, so the panel keeps its shape. Without script (and on static pages
+    // before it arrives), Enter or Apply submits the filters' GET form; with script the fields apply
+    // as they change and CSS hides that button.
+    private RenderFragment FilterPanelActions(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
-        if (!UseState)
-        {
-            <div class="ib-table-filter-panel-actions">
-                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm">@TextDefaults.Apply</button>
-            </div>
-        }
+        const string clear = "ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm";
+        <div class="ib-table-filter-panel-actions">
+            @if (!current.IsFilter)
+            {
+                <button type="button" class="@clear" disabled>@TextDefaults.Clear</button>
+            }
+            else if (UseState)
+            {
+                <button type="button" class="@clear" data-ib-filter-clear @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)">@TextDefaults.Clear</button>
+            }
+            else
+            {
+                <a href="@FilterHref(column, null)" class="@clear" data-ib-filter-clear>@TextDefaults.Clear</a>
+            }
+            @if (!UseState)
+            {
+                <button type="submit" form="@FilterFormId" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-filter-apply">@TextDefaults.Apply</button>
+            }
+        </div>
     };
 
     // A choice filter's list: a checkbox per value, all ticked with no filter. Static pages post them
@@ -846,7 +861,7 @@
                     }
                 </div>
             </ib-filter-list>
-            @FilterPanelActions
+            @FilterPanelActions(column, current)
         </div>
     };
 

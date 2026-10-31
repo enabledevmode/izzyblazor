@@ -254,6 +254,42 @@ public class TableFilterListTests : BunitContext
     }
 
     [Fact]
+    public void A_panels_Clear_links_to_the_address_without_that_column()
+    {
+        var cut = Static("/orders?f-status=Yes&f-status-blank=1&f-size=A&tab=x");
+
+        var clears = cut.FindAll("a[data-ib-filter-clear]");
+        Assert.Equal(2, clears.Count);
+        Assert.Equal("http://localhost/orders?f-size=A&tab=x", clears[0].GetAttribute("href"));
+    }
+
+    [Fact]
+    public void A_panel_with_nothing_to_clear_has_its_Clear_disabled()
+    {
+        var cut = Static("/orders?f-size=A");
+
+        var actions = cut.FindAll(".ib-table-filter-panel-actions");
+        Assert.True(actions[0].QuerySelector("button[type=button]")!.HasAttribute("disabled"));
+        Assert.NotNull(actions[1].QuerySelector("a[data-ib-filter-clear]"));
+    }
+
+    [Fact]
+    public void A_bound_panels_Clear_removes_its_filter()
+    {
+        Filter? reported = Filter.In("status", ["No"]);
+        var cut = Bound(f => reported = f, reported);
+
+        cut.Find("button[data-ib-filter-clear]").Click();
+
+        cut.WaitForAssertion(() =>
+        {
+            Assert.Null(reported);
+            Assert.Equal(3, Names(cut).Length);
+            Assert.Equal("Filter Status", Label(cut));
+        }, Timer);
+    }
+
+    [Fact]
     public void A_filter_link_keeps_the_meaning_of_nothing_ticked()
     {
         var request = new DataRequest<Row> { Filter = Filter.Parse(Filter.In("status", []).ToString()) };

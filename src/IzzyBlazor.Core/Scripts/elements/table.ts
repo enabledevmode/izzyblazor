@@ -80,6 +80,9 @@ class Table extends IzzyElement {
     this.addEventListener(
       "click",
       (event) => {
+        // A panel's Clear is done with the panel.
+        const clear = (event.target as Element).closest("[data-ib-filter-clear]");
+        if (clear) this.#closePanel(clear);
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
         if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();
@@ -257,14 +260,14 @@ class Table extends IzzyElement {
       this.#popped = true;
     }, { signal });
     // A link in a table carries on with what's waiting to apply, as sorting and paging do, except a
-    // tag's or Clear, which removes it. A link out of the tables leaves it behind.
+    // tag's or a Clear, which removes it. A link out of the tables leaves it behind.
     document.addEventListener(
       "click",
       (event) => {
         const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
         if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
         const table = link.closest("ib-table");
-        const tag = table === this && !!link.closest(".ib-table-filter-tags");
+        const tag = table === this && !!link.closest(".ib-table-filter-tags, [data-ib-filter-clear]");
         if (table && !tag) return;
         clearTimeout(this.#timer);
         this.#typing.undoTicks();

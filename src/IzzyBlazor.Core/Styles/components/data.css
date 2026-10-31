@@ -518,11 +518,12 @@
   .ib-table-filter-panel-actions {
     display: flex;
     justify-content: flex-end;
+    gap: var(--ib-space-2);
   }
 
   /* With script the filters apply as they change: no Apply button, from the first paint. */
   @media (scripting: enabled) {
-    ib-table:not([data-ib-failed]) .ib-table-filter-panel-actions {
+    ib-table:not([data-ib-failed]) .ib-table-filter-apply {
       display: none;
     }
   }
