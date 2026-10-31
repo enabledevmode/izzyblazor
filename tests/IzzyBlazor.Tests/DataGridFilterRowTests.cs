@@ -12,7 +12,7 @@ public class DataGridFilterRowTests : BunitContext
 
     private static readonly Row[] Rows = [new("Ada", 10, Kind.A), new("Grace", 20, Kind.B)];
 
-    private IRenderedComponent<DataGrid<Row>> Grid(string url = "/orders")
+    private IRenderedComponent<DataGrid<Row>> Grid(string url = "/orders", bool builder = true)
     {
         Services.GetRequiredService<BunitNavigationManager>().NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -31,7 +31,7 @@ public class DataGridFilterRowTests : BunitContext
             b.AddComponentParameter(8, "Filterable", true);
             b.CloseComponent();
         };
-        return Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.ChildContent, columns));
+        return Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.FilterBuilder, builder).Add(g => g.ChildContent, columns));
     }
 
     [Fact]
@@ -106,6 +106,11 @@ public class DataGridFilterRowTests : BunitContext
     [InlineData("?filter=not%20a%20filter(", new string[0])]
     public void A_filter_in_the_address_applies_with_the_columns(string query, string[] names) =>
         Assert.Equal(names, Grid("/orders" + query).FindAll("tbody tr:not(.ib-table-empty) td:first-child").Select(c => c.TextContent.Trim()));
+
+    // The page may use that name itself.
+    [Fact]
+    public void Without_a_builder_a_grid_leaves_the_address_filter_alone() =>
+        Assert.Equal(2, Grid("/orders?filter=open", builder: false).FindAll("tbody tr:not(.ib-table-empty)").Count);
 
     [Fact]
     public void Its_tag_removes_it_and_Clear_clears_it()

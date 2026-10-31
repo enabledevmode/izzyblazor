@@ -65,13 +65,16 @@ internal static class FilterBuilderModel
                 case null:
                     WriteGroup(json, "all", [], offered);
                     break;
+                case FieldFilter or NotFilter when RuleOf(filter, offered) is not null:
+                    WriteGroup(json, "all", [filter], offered);
+                    break;
                 case FilterGroup { Logic: var logic } g:
                     WriteGroup(json, logic == FilterLogic.And ? "all" : "any", g.Filters, offered);
                     break;
                 case NotFilter { Filter: FilterGroup { Logic: var logic } g }:
                     WriteGroup(json, logic == FilterLogic.And ? "notall" : "none", g.Filters, offered);
                     break;
-                case NotFilter { Filter: var inner } when RuleOf(inner, offered) is null:
+                case NotFilter { Filter: var inner } when RuleOf(inner, offered) is not null:
                     WriteGroup(json, "none", [inner], offered);
                     break;
                 default:
@@ -169,9 +172,31 @@ internal static class FilterBuilderModel
         }
 
         var date = KindWord(field.Type) == "date";
-        string? Text(object? value) => FilterConvert.Unwrap(value) is null ? null
-            : date ? FilterConvert.IsWholeDay(value, out var day) || FilterConvert.TryParseDay(value!.ToString() ?? "", out day) ? FilterConvert.Format(day) : null
-            : FilterConvert.Invariantly(() => FilterConvert.Format(value));
+        var kind = KindWord(field.Type);
+        var choices = kind == "choice" ? (field.Choices is { Count: > 0 } listed ? listed : ColumnFilter.Choices(field.Type, new IzzyText())) : [];
+
+        // A value as its control holds it, or null for one it can't, which then stays as text and isn't
+        // quietly dropped: a box would show nothing, and Apply would leave the rule out.
+        string? Text(object? value)
+        {
+            if (FilterConvert.Unwrap(value) is null)
+            {
+                return null;
+            }
+
+            if (date)
+            {
+                return FilterConvert.IsWholeDay(value, out var day) || FilterConvert.TryParseDay(value!.ToString() ?? "", out day) ? FilterConvert.Format(day) : null;
+            }
+
+            var text = FilterConvert.Invariantly(() => FilterConvert.Format(value));
+            return kind switch
+            {
+                "choice" => choices.Where(c => string.Equals(c.Value, text, StringComparison.OrdinalIgnoreCase)).Select(c => c.Value).FirstOrDefault(),
+                "number" => double.TryParse(text, System.Globalization.NumberStyles.Float, System.Globalization.CultureInfo.InvariantCulture, out _) ? text : null,
+                _ => text.Length > 0 ? text : null,
+            };
+        }
 
         switch (op)
         {

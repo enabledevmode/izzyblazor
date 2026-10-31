@@ -58,20 +58,27 @@ class FilterBuilder extends IzzyElement {
 
     // A Value set from C#, or a navigation's new address. Not the same one over, which would lose edits.
     const observer = new MutationObserver(() => this.#draw());
-    observer.observe(this, { attributes: true, attributeFilter: ["data-ib-value"] });
+    observer.observe(this, { attributes: true, attributeFilter: ["data-ib-value", "data-ib-fields"] });
     signal.addEventListener("abort", () => observer.disconnect());
     this.#draw();
   }
 
   #draw(): void {
     const json = this.dataset.ibValue ?? "";
-    if (json === this.#drawn) return;
-    this.#drawn = json;
+    // With the fields: a navigation to another page's builder keeps these rows, and those are its fields' no longer.
+    const drawn = `${this.dataset.ibFields}|${json}`;
+    if (drawn === this.#drawn) return;
+    this.#drawn = drawn;
     const group: Group = json ? (JSON.parse(json) as Group) : { logic: "all", items: [] };
     if (group.items.length === 0) group.items.push({});
-    const active = this.#root.contains(document.activeElement);
+    // Focus stays at its place: Apply draws again, as the address has changed.
+    const controls = () => [...this.#root.querySelectorAll<HTMLElement>("select, input, button")];
+    const at = controls().indexOf(document.activeElement as HTMLElement);
     this.#root.replaceChildren(this.#group(group, 1, true));
-    if (active) this.#root.querySelector<HTMLElement>("select")?.focus();
+    if (at >= 0) {
+      const now = controls();
+      now[Math.min(at, now.length - 1)]?.focus();
+    }
   }
 
   #group(group: Group, depth: number, top = false): HTMLElement {
@@ -256,6 +263,7 @@ class FilterBuilder extends IzzyElement {
     if (text) url.searchParams.set(this.dataset.ibName!, text);
     else url.searchParams.delete(this.dataset.ibName!);
     if (this.dataset.ibPageKey) url.searchParams.delete(this.dataset.ibPageKey);
+    if (this.dataset.ibCursorKey) url.searchParams.delete(this.dataset.ibCursorKey);
     navigateTo(url, false);
   }
 }
