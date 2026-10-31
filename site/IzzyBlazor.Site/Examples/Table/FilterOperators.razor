@@ -1,0 +1,10 @@
+@* FilterOperators puts an operator above a column's value; the first is the default. Without it, a
+   Table's column keeps its simple field, as Status does. *@
+<Table Items="Orders.All" PageSize="5" InitialSort="-number" Caption="Orders by operator" QueryPrefix="ops-" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable />
+    <PropertyColumn Property="o => o.Customer" Sortable Filterable
+                    FilterOperators="[FilterOperator.Contains, FilterOperator.StartsWith, FilterOperator.Equals]" />
+    <PropertyColumn Property="o => o.Status" Sortable Filterable />
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable
+                    FilterOperators="[FilterOperator.GreaterThanOrEqual, FilterOperator.LessThanOrEqual, FilterOperator.Between]" />
+</Table>

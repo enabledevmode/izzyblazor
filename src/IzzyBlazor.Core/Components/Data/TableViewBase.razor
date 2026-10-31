@@ -484,8 +484,8 @@
         return filters;
     }
 
-    // A number column "price" posts f-price and f-price-to: a column keyed "price-to" would share
-    // one.
+    // A column "price" posts f-price, f-price-op and f-price-to: a column keyed "price-to" would
+    // share one.
     private void CheckFilterKeys()
     {
         var taken = new Dictionary<string, ColumnBase<TItem>>(StringComparer.OrdinalIgnoreCase);
@@ -651,32 +651,46 @@
     private string FilterLabel(ColumnBase<TItem> column) =>
         string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterColumn, column.HeaderText);
 
-    // What a filter is set to, in words: the text typed, the choice's name, "2 selected", or a
-    // range ("100–500", "100 or more").
+    // What a filter is set to, in words: the text typed, the choice's name, "2 selected", a range
+    // ("100–500", "100 or more"), or the operator and its value ("Starts with ada").
     private string FilterSummary(ColumnBase<TItem> column, ColumnFilterValue current)
     {
         var culture = System.Globalization.CultureInfo.CurrentCulture;
-        if (current.Op == FilterOperator.Between)
+        var (kind, value) = (column.FilterKind, current.Value.Trim());
+        string Worded() => ColumnFilter.TextOf(kind, current.Op, TextDefaults) + (value.Length > 0 ? $" {value}" : "");
+        switch (current.Op)
         {
-            var (min, max) = (current.Value.Trim(), current.To?.Trim() ?? "");
-            return (min.Length > 0, max.Length > 0) switch
+            case FilterOperator.Between:
             {
-                (true, true) when min == max => min,
-                (true, true) => string.Format(culture, TextDefaults.FilterBetween, min, max),
-                (true, false) => string.Format(culture, TextDefaults.FilterAtLeast, min),
-                (false, true) => string.Format(culture, TextDefaults.FilterAtMost, max),
-                _ => "",
-            };
-        }
+                var max = current.To?.Trim() ?? "";
+                var date = kind == ColumnFilterKind.Date;
+                return (value.Length > 0, max.Length > 0) switch
+                {
+                    (true, true) when value == max => value,
+                    (true, true) => string.Format(culture, TextDefaults.FilterBetween, value, max),
+                    (true, false) => date ? $"{TextDefaults.FilterOnOrAfter} {value}" : string.Format(culture, TextDefaults.FilterAtLeast, value),
+                    (false, true) => date ? $"{TextDefaults.FilterOnOrBefore} {max}" : string.Format(culture, TextDefaults.FilterAtMost, max),
+                    _ => "",
+                };
+            }
 
-        if (current.Values.Count > 1)
-        {
-            return string.Format(culture, TextDefaults.FilterSelected, current.Values.Count);
+            case FilterOperator.GreaterThanOrEqual when kind == ColumnFilterKind.Number:
+                return string.Format(culture, TextDefaults.FilterAtLeast, value);
+            case FilterOperator.LessThanOrEqual when kind == ColumnFilterKind.Number:
+                return string.Format(culture, TextDefaults.FilterAtMost, value);
+            case FilterOperator.In when current.Values.Count > 1:
+                return string.Format(culture, TextDefaults.FilterSelected, current.Values.Count);
+            case FilterOperator.Contains:
+                return value;
+            case FilterOperator.Equals when kind == ColumnFilterKind.Choice:
+            case FilterOperator.In when kind == ColumnFilterKind.Choice:
+                return column.FilterChoices(TextDefaults).FirstOrDefault(c => string.Equals(c.Value, value, StringComparison.OrdinalIgnoreCase)).Text ?? value;
+            case FilterOperator.Equals when kind != ColumnFilterKind.Text:
+            case FilterOperator.In:
+                return value;
+            default:
+                return Worded();
         }
-
-        return column.FilterKind != ColumnFilterKind.Choice
-            ? current.Value
-            : column.FilterChoices(TextDefaults).FirstOrDefault(c => string.Equals(c.Value, current.Value, StringComparison.OrdinalIgnoreCase)).Text ?? current.Value;
     }
 
     // A funnel button, marked when the column is filtered, that opens the
@@ -710,15 +724,25 @@
                     </button>
                 </Trigger>
                 <ChildContent>
-                    @if (column.FilterKind == ColumnFilterKind.Number)
+                    @{ var ops = ColumnFilter.OperatorsOf(column); }
+                    @if (ops.Count > 1 || ops is [FilterOperator.Between])
                     {
-                        @* A range: at least and at most, each with its own label, in a group named
-                           by the panel's title. *@
-                        <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
+                        @* An operator above the values, and a range's two ends, in a group named by the
+                           panel's title. Which of them show follows the operator, in CSS. *@
+                        <div class="@(ops.Count == 1 ? "ib-table-filter-panel ib-table-filter-between ib-field-sm" : "ib-table-filter-panel ib-field-sm")" role="group" aria-labelledby="@($"{fieldId}-title")">
                             <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                            @if (ops.Count > 1)
+                            {
+                                @OperatorSelect(column, current, ops, $"{fieldId}-op")
+                            }
                             <div class="ib-table-filter-range">
-                                @RangeInput(column, current.Value, atLeast: true, id: $"{fieldId}-min")
-                                @RangeInput(column, current.To ?? "", atLeast: false, id: $"{fieldId}-max")
+                                @FilterInput(column, current.Value, $"{fieldId}-min", ValueLabel(column, ops, $"{fieldId}-min"), second: false, autofocus: !ColumnFilter.TakesNoValue(current.Op))
+                                @if (ops.Contains(FilterOperator.Between))
+                                {
+                                    <div class="ib-table-filter-to">
+                                        @FilterInput(column, current.To ?? "", $"{fieldId}-max", UpperLabel(column, $"{fieldId}-max"), second: true, autofocus: false)
+                                    </div>
+                                }
                             </div>
                             @FilterPanelActions
                         </div>
@@ -727,7 +751,7 @@
                     {
                         <div class="ib-table-filter-panel ib-field-sm">
                             <label class="ib-field-label ib-table-filter-label" for="@fieldId">@label</label>
-                            @FilterInput(column, current.Value, fieldId)
+                            @FilterInput(column, current.Value, fieldId, null, second: false, autofocus: true)
                             @FilterPanelActions
                         </div>
                     }
@@ -772,66 +796,97 @@
         }
     };
 
-    // A header filter's field, shown under its label (id): a date input, or a text box. Static
-    // pages join it to the GET form; bound pages handle its events. (Choices open a menu instead.)
-    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string id) => __builder =>
+    // The word for a range's lower end, "Min" or "From".
+    private string LowerWord(ColumnBase<TItem> column) => column.FilterKind == ColumnFilterKind.Date ? TextDefaults.FilterFrom : TextDefaults.FilterMin;
+
+    // What names a filter's first value. With only one value in sight there's nothing to tell it from,
+    // so its name is for screen readers; once Between shows a second, it's the range's lower end.
+    private RenderFragment ValueLabel(ColumnBase<TItem> column, IReadOnlyList<FilterOperator> ops, string id) => __builder =>
     {
-        if (column.FilterKind == ColumnFilterKind.Date)
+        if (ops.Count == 1)
         {
-            @* A date input sends yyyy-MM-dd whatever the person's locale shows; it applies when a
-               whole date is chosen, so there's no pause to wait for. *@
-            var day = ColumnFilter.TryParseDay(current, out var parsed) ? parsed.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
-            <div class="ib-field ib-field-sm ib-table-filter ib-table-filter-date">
-                <div class="ib-field-control">
-                    @if (UseState)
-                    {
-                        <input type="date" class="ib-field-input" id="@id" autofocus value="@day" @onchange="e => OnFilterTextAsync(column, e, wait: false)" />
-                    }
-                    else
-                    {
-                        <input type="date" class="ib-field-input" id="@id" autofocus value="@day" name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
-                    }
-                </div>
-            </div>
+            <label class="ib-field-label" for="@id">@LowerWord(column)</label>
+        }
+        else if (ops.Contains(FilterOperator.Between))
+        {
+            <label class="ib-field-label ib-table-filter-value-label" for="@id"><span class="ib-table-filter-if-range">@LowerWord(column)</span><span class="ib-table-filter-if-one">@TextDefaults.FilterValueLabel</span></label>
         }
         else
         {
-            <div class="ib-field ib-field-sm ib-table-filter">
-                <div class="ib-field-control">
-                    @if (UseState)
-                    {
-                        <input type="search" class="ib-field-input" id="@id" autofocus value="@current" autocomplete="off"
-                               @oninput="e => OnFilterTextAsync(column, e, wait: true)" />
-                    }
-                    else
-                    {
-                        <input type="search" class="ib-field-input" id="@id" autofocus value="@current" autocomplete="off"
-                               name="@FilterQueryKey(column)" form="@FilterFormId" data-ib-filter />
-                    }
-                </div>
-            </div>
+            <label class="ib-visually-hidden" for="@id">@TextDefaults.FilterValueLabel</label>
         }
     };
 
-    // One end of a number filter's range, labeled "Min" or "Max", with a numeric keyboard. Static
-    // pages post it under its own key (?f-total=, ?f-total-to=); bound pages hold the two ends.
-    private RenderFragment RangeInput(ColumnBase<TItem> column, string value, bool atLeast, string id) => __builder =>
+    private RenderFragment UpperLabel(ColumnBase<TItem> column, string id) => __builder =>
     {
+        <label class="ib-field-label" for="@id">@(column.FilterKind == ColumnFilterKind.Date ? TextDefaults.FilterTo : TextDefaults.FilterMax)</label>
+    };
+
+    // The operator's native select: joined to the GET form on static pages, so it posts with no
+    // script, and handled here on bound pages.
+    private RenderFragment OperatorSelect(ColumnBase<TItem> column, ColumnFilterValue current, IReadOnlyList<FilterOperator> ops, string id) => __builder =>
+    {
+        var chosen = ColumnFilter.WordOf(current.Op);
         <div class="ib-field ib-field-sm ib-table-filter">
-            <label class="ib-field-label" for="@id">@(atLeast ? TextDefaults.FilterMin : TextDefaults.FilterMax)</label>
-            <div class="ib-field-control">
+            <div class="ib-field-control ib-has-end">
                 @if (UseState)
                 {
-                    <input type="text" class="ib-field-input" id="@id" autofocus="@atLeast" value="@value" inputmode="decimal" autocomplete="off"
-                           @oninput="e => OnRangeAsync(column, e, atLeast)" />
+                    <select class="ib-field-input ib-field-select" id="@id" aria-label="@TextDefaults.FilterOperatorLabel" value="@chosen" autofocus="@ColumnFilter.TakesNoValue(current.Op)"
+                            @onchange="e => OnOperatorAsync(column, e)">
+                        @OperatorOptions(column, ops)
+                    </select>
                 }
                 else
                 {
-                    <input type="text" class="ib-field-input" id="@id" autofocus="@atLeast" value="@value" inputmode="decimal" autocomplete="off"
-                           name="@(atLeast ? FilterQueryKey(column) : $"{FilterQueryKey(column)}-to")" form="@FilterFormId" data-ib-filter />
+                    <select class="ib-field-input ib-field-select" id="@id" aria-label="@TextDefaults.FilterOperatorLabel" value="@chosen" autofocus="@ColumnFilter.TakesNoValue(current.Op)"
+                            name="@($"{FilterQueryKey(column)}-op")" form="@FilterFormId" data-ib-filter data-ib-default="@ColumnFilter.WordOf(ops[0])">
+                        @OperatorOptions(column, ops)
+                    </select>
+                }
+                <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+            </div>
+        </div>
+    };
+
+    private RenderFragment OperatorOptions(ColumnBase<TItem> column, IReadOnlyList<FilterOperator> ops) => __builder =>
+    {
+        foreach (var op in ops)
+        {
+            <option value="@ColumnFilter.WordOf(op)">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</option>
+        }
+    };
+
+    // A header filter's field, shown under its label: a date input, a box for a number with a numeric
+    // keyboard, or a text box. Static pages post it under its own key (?f-total=, ?f-total-to=), joined
+    // to the GET form; bound pages handle its events. (Choices open a menu instead.)
+    private RenderFragment FilterInput(ColumnBase<TItem> column, string current, string id, RenderFragment? label, bool second, bool autofocus) => __builder =>
+    {
+        var (date, number) = (column.FilterKind == ColumnFilterKind.Date, column.FilterKind == ColumnFilterKind.Number);
+        @* A date input sends yyyy-MM-dd whatever the person's locale shows; it applies when a whole
+           date is chosen, so there's no pause to wait for. *@
+        var value = !date ? current : ColumnFilter.TryParseDay(current, out var day) ? day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
+        var type = date ? "date" : number ? "text" : "search";
+        <div class="@(date ? "ib-field ib-field-sm ib-table-filter ib-table-filter-date" : "ib-field ib-field-sm ib-table-filter")">
+            @label
+            <div class="ib-field-control">
+                @if (UseState)
+                {
+                    <input type="@type" class="ib-field-input" id="@id" autofocus="@autofocus" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="@(date ? null : "off")"
+                           @attributes="InputEvents(column, second, date)" />
+                }
+                else
+                {
+                    <input type="@type" class="ib-field-input" id="@id" autofocus="@autofocus" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="@(date ? null : "off")"
+                           name="@(second ? $"{FilterQueryKey(column)}-to" : FilterQueryKey(column))" form="@FilterFormId" data-ib-filter data-ib-to="@(second ? "" : null)" />
                 }
             </div>
         </div>
+    };
+
+    // A bound field's events: typing waits for a pause, a date applies when it's chosen.
+    private Dictionary<string, object> InputEvents(ColumnBase<TItem> column, bool second, bool date) => new()
+    {
+        [date ? "onchange" : "oninput"] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => OnFilterTextAsync(column, e, second, wait: !date)),
     };
 
     // The URL with a column's filter set to this, from page 1. Null clears every key it uses.
@@ -852,28 +907,37 @@
 
     private ColumnFilterValue StateOf(ColumnBase<TItem> column) => StateFilters().GetValueOrDefault(column.Key!) ?? ColumnFilter.Empty(column);
 
-    // A text box or date input changed.
-    private Task OnFilterTextAsync(ColumnBase<TItem> column, ChangeEventArgs e, bool wait)
-    {
-        var typed = e.Value?.ToString() ?? "";
-        return SetFilterAsync(column, StateOf(column) with { Values = string.IsNullOrWhiteSpace(typed) ? [] : [typed] }, wait);
-    }
-
-    // One end of a bound range changed.
-    private Task OnRangeAsync(ColumnBase<TItem> column, ChangeEventArgs e, bool atLeast)
+    // One of a bound filter's fields changed.
+    private Task OnFilterTextAsync(ColumnBase<TItem> column, ChangeEventArgs e, bool second, bool wait)
     {
         var typed = e.Value?.ToString() ?? "";
         var state = StateOf(column);
-        return SetFilterAsync(column, atLeast
-            ? state with { Values = string.IsNullOrWhiteSpace(typed) ? [] : [typed] }
-            : state with { To = typed }, wait: true);
+        return SetFilterAsync(column, second
+            ? state with { To = typed }
+            : state with { Values = string.IsNullOrWhiteSpace(typed) ? [] : [typed] }, wait);
     }
 
-    // Typing waits for a pause before filtering; a menu or a date applies at once.
-    private async Task SetFilterAsync(ColumnBase<TItem> column, ColumnFilterValue value, bool wait)
+    // A bound filter's operator changed: it applies at once if there's a value, and with none it's
+    // only how the panel draws, so nothing is told or loaded.
+    private async Task OnOperatorAsync(ColumnBase<TItem> column, ChangeEventArgs e)
+    {
+        var state = StateOf(column);
+        var next = state with { Op = ColumnFilter.OperatorOf(e.Value?.ToString()) ?? ColumnFilter.DefaultOperator(column) };
+        if (state.IsFilter || next.IsFilter)
+        {
+            await SetFilterAsync(column, next, wait: false);
+        }
+        else
+        {
+            _stateFilters = WithState(column, next);
+        }
+    }
+
+    // The bound filters with this column's.
+    private Dictionary<string, ColumnFilterValue> WithState(ColumnBase<TItem> column, ColumnFilterValue value)
     {
         var next = new Dictionary<string, ColumnFilterValue>(StateFilters(), StringComparer.OrdinalIgnoreCase);
-        if (value.IsFilter)
+        if (value.IsFilter || value.Op != ColumnFilter.DefaultOperator(column))
         {
             next[column.Key!] = value;
         }
@@ -882,7 +946,13 @@
             next.Remove(column.Key!);
         }
 
-        _stateFilters = next;
+        return next;
+    }
+
+    // Typing waits for a pause before filtering; a menu or a date applies at once.
+    private async Task SetFilterAsync(ColumnBase<TItem> column, ColumnFilterValue value, bool wait)
+    {
+        _stateFilters = WithState(column, value);
         _filterDelay?.Cancel();
         if (wait)
         {

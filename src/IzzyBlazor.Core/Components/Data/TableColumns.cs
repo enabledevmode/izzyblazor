@@ -23,12 +23,21 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter] public string? SortKey { get; set; }
 
     /// <summary>
-    /// Adds a filter button to this column's header: a text box for text (matching anywhere,
-    /// ignoring case), Min and Max boxes for numbers (keeping the values between them; either may
-    /// be empty), a date input for dates (matching the day), a menu for enums and booleans. A
+    /// Adds a filter button to this column's header. In a Table: a text box for text (matching
+    /// anywhere, ignoring case), Min and Max boxes for numbers (keeping the values between them;
+    /// either may be empty), a date input for dates (matching the day), a menu for enums and
+    /// booleans. In a DataGrid, text, numbers and dates choose an operator above the value. A
     /// <see cref="TemplateColumn{TItem}"/> filters by its <c>FilterBy</c> text.
     /// </summary>
     [Parameter] public bool Filterable { get; set; }
+
+    /// <summary>
+    /// The operators this column's filter offers, the first being the default, such as
+    /// <c>[FilterOperator.GreaterThanOrEqual, FilterOperator.Between]</c>; a condition with any other
+    /// matches nothing, whoever writes it. With more than one, a Table's column chooses in a Select
+    /// as a DataGrid's does. For text, numbers and dates.
+    /// </summary>
+    [Parameter] public IReadOnlyList<FilterOperator>? FilterOperators { get; set; }
 
     /// <summary>
     /// For an enum filter: choose several values from a menu of checkboxes, and keep the items
@@ -189,6 +198,11 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
         {
             throw new InvalidOperationException($"The \"{HeaderText}\" column needs a {nameof(SortKey)} to name its filter.");
         }
+
+        if (ColumnFilter.OperatorsProblem(this) is { } operators)
+        {
+            throw new InvalidOperationException(operators);
+        }
     }
 
     /// <inheritdoc />
@@ -196,8 +210,8 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
 
     private object? _shown;
 
-    /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterMultiple);
+    /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterMultiple, FilterOperators is null ? null : string.Join(',', FilterOperators));
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -315,6 +329,7 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
         Sortable = CanSort,
         Filterable = CanFilter,
         Searchable = FilterKind == ColumnFilterKind.Text,
+        Operators = ColumnFilter.FieldOperators(this),
         Choices = FilterKind == ColumnFilterKind.Choice ? FilterChoices(text) : null,
         Filter = Filter,
     };
@@ -372,6 +387,7 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         Sortable = CanSort,
         Filterable = CanFilter,
         Searchable = FilterBy is not null,
+        Operators = ColumnFilter.FieldOperators(this),
         Filter = Filter,
     };
 
