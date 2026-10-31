@@ -113,6 +113,66 @@ internal static class ColumnFilter
     // For a list's values alone, where the words don't matter.
     private static readonly IzzyText Words = new();
 
+    /// <summary>How many values a list of looked-up values can hold ticked or unticked, as an address has a limit.</summary>
+    public const int MaxListValues = 100;
+
+    /// <summary>Whether a filter is one a list of looked-up values can show.</summary>
+    public static bool IsListState(ColumnFilterValue value) => value.None || value.Op is FilterOperator.In or FilterOperator.NotIn;
+
+    /// <summary>Whether a row of a list of looked-up values is ticked: all are, unless the filter says otherwise.</summary>
+    public static bool IsValueTicked(ColumnFilterValue current, string? value, StringComparer same) => current switch
+    {
+        { None: true } => false,
+        { Op: FilterOperator.In, IsFilter: true } => current.Values.Contains(value, same),
+        { Op: FilterOperator.NotIn } => !current.Values.Contains(value, same),
+        _ => true,
+    };
+
+    /// <summary>
+    /// A list of looked-up values with one row ticked or unticked. Its whole length may not be known,
+    /// so it's written as what's ticked once Select all has been cleared, and as what's unticked
+    /// starting from all ticked. Past <see cref="MaxListValues"/>, nothing is added.
+    /// </summary>
+    public static ColumnFilterValue TickValue<TItem>(ColumnBase<TItem> column, ColumnFilterValue current, string? value, bool on, StringComparer same)
+    {
+        if (IsValueTicked(current, value, same) == on)
+        {
+            return current;
+        }
+
+        var inList = current is { None: false, Op: FilterOperator.In, IsFilter: true };
+        var names = inList || current is { None: false, Op: FilterOperator.NotIn } ? current.Values : [];
+        var op = inList || current.None ? FilterOperator.In : FilterOperator.NotIn;
+
+        // In the list means ticked, or not in it does.
+        var adding = on == (op == FilterOperator.In);
+        if (adding && names.Count >= MaxListValues)
+        {
+            return current;
+        }
+
+        IReadOnlyList<string?> next = adding ? [.. names, value] : names.Where(v => !same.Equals(v, value)).ToList();
+        return next.Count > 0 ? new(op, next)
+            : op == FilterOperator.In ? new(FilterOperator.In, [], None: true)
+            : Empty(column);
+    }
+
+    /// <summary>Why a column can't list values this way, or null when it can.</summary>
+    public static string? ValueListProblem<TItem>(ColumnBase<TItem> column)
+    {
+        if (!column.HasValueList)
+        {
+            return null;
+        }
+
+        var name = column.FilterValues is not null ? nameof(column.FilterValues) : nameof(column.FilterList);
+        return column.FilterKind == ColumnFilterKind.Choice ? $"The \"{column.HeaderText}\" column has {name}, but its type has a list of its own."
+            : column.FilterOperators is not null ? $"The \"{column.HeaderText}\" column has both {name} and {nameof(column.FilterOperators)}: a list has no operator to choose."
+            : column.FilterValues is null && column.FilterKind != ColumnFilterKind.Text ? $"The \"{column.HeaderText}\" column has {nameof(column.FilterList)}, which reads text. Use {nameof(column.FilterValues)} to list other values."
+            : column.FilterValues is null && column.Table is { ItemsProvider: not null } ? $"The \"{column.HeaderText}\" column has {nameof(column.FilterList)}, but with an ItemsProvider there are no Items to read. Use {nameof(column.FilterValues)}."
+            : null;
+    }
+
     /// <summary>The operators with a word in the address, the same as in the filter's text form.</summary>
     private static readonly (FilterOperator Op, string Word)[] OperatorWords =
     [
@@ -247,8 +307,9 @@ internal static class ColumnFilter
     /// Every key in the address a column's filter uses, given its first (<c>f-total</c>), to clear
     /// them and to carry the rest of the address past them.
     /// </summary>
-    public static IEnumerable<string> KeysOf<TItem>(ColumnBase<TItem> column, string key) => column.FilterKind == ColumnFilterKind.Choice
-        ? [key, $"{key}-blank", $"{key}-none"]
+    public static IEnumerable<string> KeysOf<TItem>(ColumnBase<TItem> column, string key) =>
+        column.FilterKind == ColumnFilterKind.Choice ? [key, $"{key}-blank", $"{key}-none"]
+        : column.HasValueList ? [key, $"{key}-op", $"{key}-to", $"{key}-blank", $"{key}-none"]
         : [key, $"{key}-op", $"{key}-to"];
 
     /// <summary>
@@ -262,6 +323,11 @@ internal static class ColumnFilter
         if (column.FilterKind == ColumnFilterKind.Choice)
         {
             return ReadList(column, key, query);
+        }
+
+        if (column.HasValueList && ReadValueList(key, query) is { } list)
+        {
+            return list.IsFilter ? list : null;
         }
 
         var ops = OperatorsOf(column);
@@ -306,6 +372,30 @@ internal static class ColumnFilter
         return values.Count == rows.Count ? null : new(FilterOperator.In, values);
     }
 
+    // A list of looked-up values, or null when the address holds what the column's usual filter wrote.
+    // It always names its operator, as f-x=ada on its own is that filter's, and means the same with or
+    // without the list. The list's rows aren't known here, so its values are taken as they come.
+    private static ColumnFilterValue? ReadValueList(string key, IReadOnlyDictionary<string, StringValues> query)
+    {
+        var op = OperatorOf(query.GetValueOrDefault($"{key}-op").FirstOrDefault());
+        var none = query.GetValueOrDefault($"{key}-none").Any(v => !string.IsNullOrWhiteSpace(v));
+        if (op is not (FilterOperator.In or FilterOperator.NotIn) && !none)
+        {
+            return null;
+        }
+
+        // As they came, as a value can have spaces at its ends, or be nothing but.
+        List<string?> values = [.. query.GetValueOrDefault(key).Where(v => !string.IsNullOrEmpty(v))];
+        if (query.GetValueOrDefault($"{key}-blank").Any(v => !string.IsNullOrWhiteSpace(v)))
+        {
+            values.Add(null);
+        }
+
+        // As a tick outweighs the none marker in a list of choices.
+        return values.Count == 0 && op != FilterOperator.NotIn && none ? new(FilterOperator.In, [], None: true)
+            : new(op == FilterOperator.NotIn ? FilterOperator.NotIn : FilterOperator.In, values);
+    }
+
     // Whether text in the address means this row: its name in any case, or anything the column's type reads as it.
     private static bool Names<TItem>(ColumnBase<TItem> column, string text, string? row)
     {
@@ -327,6 +417,13 @@ internal static class ColumnFilter
             keys[key] = value.Values.OfType<string>().ToArray();
             keys[$"{key}-blank"] = value.Values.Contains(null) ? "1" : null;
             keys[$"{key}-none"] = value.None ? "1" : null;
+        }
+        else if (value is { IsFilter: true } && column.HasValueList && IsListState(value))
+        {
+            keys[key] = value.Values.OfType<string>().ToArray();
+            keys[$"{key}-blank"] = value.Values.Contains(null) ? "1" : null;
+            keys[$"{key}-none"] = value.None ? "1" : null;
+            keys[$"{key}-op"] = value.None ? null : WordOf(value.Op);
         }
         else if (value is { IsFilter: true })
         {
@@ -371,7 +468,9 @@ internal static class ColumnFilter
             FilterOperator.IsEmpty => new FieldFilter(key, text ? FilterOperator.IsEmpty : FilterOperator.IsNull),
             FilterOperator.IsNotEmpty => new FieldFilter(key, text ? FilterOperator.IsNotEmpty : FilterOperator.IsNotNull),
             FilterOperator.Between => new FieldFilter(key, FilterOperator.Between, Typed(value.Value), Typed(value.To)),
-            FilterOperator.In => new FieldFilter(key, FilterOperator.In, value.Values.Select(Typed).ToList()),
+            // A looked-up value is exactly what was listed: text as it is, and others in the invariant form.
+            FilterOperator.In or FilterOperator.NotIn when column.HasValueList => new FieldFilter(key, value.Op, value.Values.Select(v => text ? v : FilterConvert.Invariantly(() => Typed(v))).ToList()),
+            FilterOperator.In or FilterOperator.NotIn => new FieldFilter(key, value.Op, value.Values.Select(Typed).ToList()),
             _ => new FieldFilter(key, value.Op, Typed(value.Value)),
         };
     }
@@ -399,6 +498,12 @@ internal static class ColumnFilter
                 FilterOperator.In => ListState(column, filter.Values.Select(v => FilterConvert.Unwrap(v) is null ? null : FilterConvert.Format(v)).ToList()),
                 _ => null,
             };
+        }
+
+        if (column.HasValueList && filter.Operator is FilterOperator.In or FilterOperator.NotIn)
+        {
+            List<string?> listed = [.. filter.Values.Select(v => FilterConvert.Unwrap(v) is null ? null : FilterConvert.Invariantly(() => FilterConvert.Format(v)))];
+            return listed.Count == 0 && filter.Operator == FilterOperator.In ? new(FilterOperator.In, [], None: true) : new(filter.Operator, listed);
         }
 
         var date = column.FilterKind == ColumnFilterKind.Date;

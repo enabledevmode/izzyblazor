@@ -561,11 +561,11 @@ internal static partial class ODataFilter
             case FilterOperator.In or FilterOperator.NotIn:
             {
                 var values = f.Values;
-                var listLower = forOData && !f.MatchCase && values.Count > 0 && values.All(v => FilterConvert.Unwrap(v) is string);
+                var listLower = forOData && !f.MatchCase && values.Any(v => FilterConvert.Unwrap(v) is string) && values.All(v => FilterConvert.Unwrap(v) is string or null);
                 var inOperand = listLower ? $"tolower({field})" : field;
                 var list = values.Count == 0
                     ? null
-                    : string.Join(",", values.Select(v => Literal(listLower ? ((string)FilterConvert.Unwrap(v)!).ToLowerInvariant() : v)));
+                    : string.Join(",", values.Select(v => Literal(listLower && FilterConvert.Unwrap(v) is string s ? s.ToLowerInvariant() : v)));
                 if (f.Operator == FilterOperator.In)
                 {
                     text.Append(list is null ? "false" : $"{inOperand} in ({list})");

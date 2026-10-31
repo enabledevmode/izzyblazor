@@ -272,6 +272,9 @@
         : null;
 
     /// <inheritdoc />
+    internal override string? ValuesGridSearch => CurrentSearch;
+
+    /// <inheritdoc />
     internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate;
 
     /// <inheritdoc />

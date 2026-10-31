@@ -172,12 +172,13 @@ public sealed record FilterValuesRequest
         }
 
         // Empty text and no text are one row, as the blank filter treats them.
-        var kept = Kept(field.Case);
+        // A list, not an array: under C# 14 an array's Contains binds to a span, which not every provider can translate.
+        var kept = Kept(field.Case).ToList();
         var values = source.Provider.CreateQuery<string?>(
                 Expression.Call(typeof(Queryable), nameof(Queryable.Select), [typeof(TItem), typeof(string)], source.Expression, Expression.Quote(field.Value)))
             .Select(v => v == "" ? null : v)
             .Distinct();
-        if (kept.Length > 0)
+        if (kept.Count > 0)
         {
             values = values.Where(v => !kept.Contains(v));
         }
@@ -187,7 +188,7 @@ public sealed record FilterValuesRequest
         // The kept ones are the first rows, and take their room from the page they fall on.
         var skip = Math.Max(0, Skip);
         var first = kept.Skip(skip).ToArray();
-        return (values.Skip(Math.Max(0, skip - kept.Length)).Take(Math.Max(0, EffectiveTake + 1 - first.Length)), first);
+        return (values.Skip(Math.Max(0, skip - kept.Count)).Take(Math.Max(0, EffectiveTake + 1 - first.Length)), first);
     }
 
     private FilterValuesResult Finish(string?[] first, List<string?> found)

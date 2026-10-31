@@ -446,6 +446,11 @@ internal static class FilterExpression
             {
                 withNull |= FilterConvert.CanBeNull(type);
             }
+            else if (type == typeof(string) && FilterConvert.Unwrap(value) is string text)
+            {
+                // Text in a list is exactly that, spaces and all, as parsing would trim it.
+                parsed.Add(ignoreCase ? text.ToLower(CultureInfo.CurrentCulture) : text);
+            }
             else if (FilterConvert.TryConvert(type, value, out var typed) && typed is not null)
             {
                 parsed.Add(ignoreCase ? ((string)typed).ToLower(CultureInfo.CurrentCulture) : typed);
@@ -453,7 +458,10 @@ internal static class FilterExpression
         }
 
         parsed = parsed.Distinct().ToList();
-        var isNull = withNull ? Expression.Equal(body, Expression.Constant(null, type)) : False;
+        // A blank is no value at all, and on text that takes in empty text too.
+        var isNull = !withNull ? False
+            : type == typeof(string) ? Or(Expression.Equal(body, Expression.Constant(null, type)), Expression.Equal(body, Expression.Constant("")))
+            : Expression.Equal(body, Expression.Constant(null, type));
         if (parsed.Count == 0)
         {
             return isNull;

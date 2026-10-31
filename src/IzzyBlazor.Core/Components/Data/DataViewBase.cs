@@ -521,10 +521,16 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     internal (string? Sort, string? Page, string? Cursor) CurrentState() =>
         UseState ? (_stateSort, _statePage.ToString(System.Globalization.CultureInfo.InvariantCulture), _stateCursor) : ReadQuery();
 
+    /// <summary>The address has changed, before anything is loaded for it.</summary>
+    internal virtual void AddressChanged(string location)
+    {
+    }
+
     // Only this view's own sort or page changing calls for a reload here; anything else that
     // changes the data (filters) re-renders the page, which reloads through the parameters.
     private void OnLocationChanged(object? sender, LocationChangedEventArgs e) => _ = InvokeAsync(async () =>
     {
+        AddressChanged(e.Location);
         if (!ReadyToLoad || UseState)
         {
             return;
