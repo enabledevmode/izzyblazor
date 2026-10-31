@@ -95,7 +95,7 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         Assert.Equal("ab", await field.InputValueAsync());
 
         await page.Keyboard.PressAsync("ArrowUp");
-        await Assertions.Expect(grid.Locator("thead th").Nth(1).Locator("[data-ib-primary]")).ToBeFocusedAsync();
+        await Assertions.Expect(grid.Locator("thead th").Nth(1)).ToBeFocusedAsync();
     }
 }
 
