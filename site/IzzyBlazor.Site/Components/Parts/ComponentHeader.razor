@@ -10,6 +10,10 @@
     <Row Gap="3" Align="Align.Center" Wrap>
         <Pictogram Name="@Component.Icon" Size="ControlSize.Lg" />
         <Heading Level="1" Size="TextSize.Xl3">@Component.Name</Heading>
+        @if (Component.Preview)
+        {
+            <Badge Variant="BadgeVariant.Outline">Preview</Badge>
+        }
         @if (ApiComponent is not null)
         {
             @* Only Pro is marked: nearly everything is free, so "Free" would say nothing. *@

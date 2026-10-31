@@ -2,7 +2,8 @@
 @inject Registry Registry
 @inject ApiMetadata Api
 
-@* Every component by category, from the registry, as one dense list to find a name by eye. *@
+@* Every component by category, from the registry, as one dense list to find a name by eye. The only
+   list with the previews, each marked. *@
 
 <PageMeta Title="Components · IzzyBlazor" Description="Every IzzyBlazor component by category: what works as plain HTML, on static SSR pages with no circuit, and on interactive pages." />
 
@@ -10,7 +11,7 @@
     <Stack Gap="3" Class="site-pagehead">
         <Heading Level="1" Size="TextSize.Xl3">Components</Heading>
         <TextBlock Size="TextSize.Lg" Color="Color.Muted">
-            @Registry.Components.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
+            @Registry.AllComponents.Count components in @Registry.Categories.Count groups. Every one renders in static SSR;
             a label says so where one needs an interactive page.
         </TextBlock>
     </Stack>
@@ -28,6 +29,10 @@
                         var api = Api.Component(component.Name);
                         <li>
                             <a href="@Registry.OverviewHref(component)" title="@component.Summary">@component.Name</a>
+                            @if (component.Preview)
+                            {
+                                <Badge Size="BadgeSize.Sm" Variant="BadgeVariant.Outline">Preview</Badge>
+                            }
                             @if (api?.Modes is { } modes)
                             {
                                 <ModeChips Modes="modes" Compact />
@@ -48,7 +53,7 @@
 
     protected override void OnInitialized() =>
         _groups = Registry.Categories
-            .Select(c => (Category: c, Components: Registry.InCategory(c).ToList()))
+            .Select(c => (Category: c, Components: Registry.AllComponents.Where(x => x.Category == c).ToList()))
             .Where(g => g.Components.Count > 0)
             .ToList();
 }
