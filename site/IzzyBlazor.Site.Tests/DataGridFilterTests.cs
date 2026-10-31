@@ -10,7 +10,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
     private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode, bool script = true, string query = "")
     {
         var browser = await TestBrowser.OpenAsync();
-        var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, ViewportSize = new() { Width = 1400, Height = 900 } });
+        var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to filter" });
@@ -180,16 +180,274 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
             await AddressIsAsync(page, "");
             await grid.Locator("th .ib-table-filter-button[data-active]").WaitForAsync(new() { State = WaitForSelectorState.Detached });
 
-            // Typing replaces its history entry, so Back goes to the Between before it, operator and
-            // both ends, and Forward on again.
-            await page.GoBackAsync();
-            await AddressIsAsync(page, "f-total-op=between&f-total-to=400&f-total=300");
-            await page.WaitForFunctionAsync($"document.querySelector(\"select[name='{Prefix}f-total-op']\").value === 'between' && document.querySelector(\"[popover] input[name='{Prefix}f-total']\").value === '300' && document.querySelector(\"[popover] input[name='{Prefix}f-total-to']\").value === '400'");
-            await RowsMatchAsync(grid, t => t is >= 300 and <= 400);
-            await page.GoForwardAsync();
-            await AddressIsAsync(page, "");
-            await page.WaitForFunctionAsync($"document.querySelector(\"select[name='{Prefix}f-total-op']\").value === 'eq' && document.querySelector(\"[popover] input[name='{Prefix}f-total']\").value === ''");
         }
+    }
+
+    // A moment after a response or a render, nothing more is on its way.
+    private static Task SettledAsync(IPage page) => page.WaitForTimeoutAsync(600);
+
+    private static async Task OperatorAndValuesAreAsync(IPage page, string op, string value, string to)
+    {
+        Assert.Equal(op, await page.Locator($"select[name='{Prefix}f-total-op']").InputValueAsync());
+        Assert.Equal(value, await page.Locator($"[popover] input[name='{Prefix}f-total']").InputValueAsync());
+        Assert.Equal(to, await page.Locator($"[popover] input[name='{Prefix}f-total-to']").InputValueAsync());
+    }
+
+    // The panels show what the address says once everything has settled, and the next filter keeps it.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Back_and_forward_leave_the_panels_showing_the_address(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var panel = await OpenPanelAsync(page, grid, "Total");
+            var select = panel.Locator("select");
+            await panel.Locator($"input[name='{Prefix}f-total']").FillAsync("300");
+            await AddressIsAsync(page, "f-total=300");
+            await select.SelectOptionAsync("gt");
+            await AddressIsAsync(page, "f-total-op=gt&f-total=300");
+            await select.SelectOptionAsync("lt");
+            await AddressIsAsync(page, "f-total-op=lt&f-total=300");
+            await SettledAsync(page);
+
+            await page.GoBackAsync();
+            await AddressIsAsync(page, "f-total-op=gt&f-total=300");
+            await RowsMatchAsync(grid, t => t > 300);
+            await SettledAsync(page);
+            await OperatorAndValuesAreAsync(page, "gt", "300", "");
+
+            await page.GoForwardAsync();
+            await AddressIsAsync(page, "f-total-op=lt&f-total=300");
+            await RowsMatchAsync(grid, t => t < 300);
+            await SettledAsync(page);
+            await OperatorAndValuesAreAsync(page, "lt", "300", "");
+
+            // And twice back, then a filter on another column, which keeps this one.
+            await page.GoBackAsync();
+            await AddressIsAsync(page, "f-total-op=gt&f-total=300");
+            await SettledAsync(page);
+            await page.Keyboard.PressAsync("Escape");
+            var customer = await OpenPanelAsync(page, grid, "Customer");
+            await customer.Locator($"input[name='{Prefix}f-customer']").FillAsync("a");
+            await AddressIsAsync(page, "f-total-op=gt&f-total=300&f-customer=a");
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Back_over_a_sort_leaves_a_Tables_fields_and_the_next_filter_keeps_them(string mode)
+    {
+        var (browser, page) = await OpenPageAsync($"docs/components/table?mode={mode}&orders-f-customer=a&orders-f-total=100");
+        await using (browser)
+        {
+            var table = page.Locator(".ib-table:has(caption:text-is('Filtered orders'))");
+            await table.ScrollIntoViewIfNeededAsync();
+            if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Filtered orders'))").WaitForAsync();
+            await table.Locator("thead a.ib-table-sort, thead button.ib-table-sort").First.ClickAsync();
+            await page.WaitForURLAsync(u => u.Contains("sort=", StringComparison.Ordinal));
+            await SettledAsync(page);
+            await page.GoBackAsync();
+            await page.WaitForURLAsync(u => !u.Contains("sort=", StringComparison.Ordinal));
+            await SettledAsync(page);
+
+            Assert.Equal("a", await table.Locator("[popover] input[name='orders-f-customer']").InputValueAsync());
+            Assert.Equal("100", await table.Locator("[popover] input[name='orders-f-total']").InputValueAsync());
+
+            await table.Locator("th .ib-table-filter-button[aria-label^='Filter Total']").ClickAsync();
+            await table.Locator("[popover]:popover-open input[name='orders-f-total-to']").FillAsync("400");
+            await page.WaitForURLAsync(u => u.Contains("orders-f-total-to=400", StringComparison.Ordinal));
+            Assert.Contains("orders-f-customer=a", page.Url, StringComparison.Ordinal);
+            Assert.Contains("orders-f-total=100", page.Url, StringComparison.Ordinal);
+        }
+    }
+
+    // Script mustn't change what a link means, on load or at the next filter.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_repeated_key_keeps_every_value_with_script(string mode)
+    {
+        const string Both = "f-customer=Ada%20Lovelace&f-customer=Grace%20Hopper";
+        var (browser, page) = await OpenPageAsync($"docs/components/data-grid?mode={mode}&{Both}");
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid:has(caption:text-is('Orders'))");
+            await grid.ScrollIntoViewIfNeededAsync();
+            var entries = await page.EvaluateAsync<int>("history.length");
+            await SettledAsync(page);
+
+            var keys = () => new Uri(page.Url).Query.Split(['?', '&'], StringSplitOptions.RemoveEmptyEntries).Where(k => k.StartsWith("f-customer=", StringComparison.Ordinal)).ToArray();
+            Assert.Equal(2, keys().Length);
+            Assert.Equal(entries, await page.EvaluateAsync<int>("history.length"));
+            Assert.Contains("Customer: 2 selected", await grid.Locator(".ib-table-filter-tags").TextContentAsync());
+            var names = (await grid.Locator("tbody tr").AllTextContentsAsync()).Select(r => r.Contains("Ada Lovelace", StringComparison.Ordinal) ? "Ada" : r.Contains("Grace Hopper", StringComparison.Ordinal) ? "Grace" : r).ToHashSet();
+            Assert.Equal(new HashSet<string> { "Ada", "Grace" }, names);
+        }
+
+        (browser, page) = await OpenPageAsync($"docs/components/table?mode={mode}&orders-{Both.Replace("&f-", "&orders-f-", StringComparison.Ordinal)}");
+        await using (browser)
+        {
+            var table = page.Locator(".ib-table:has(caption:text-is('Filtered orders'))");
+            await table.ScrollIntoViewIfNeededAsync();
+            if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Filtered orders'))").WaitForAsync();
+            await SettledAsync(page);
+            await table.Locator("th .ib-table-filter-button[aria-label^='Filter Total']").ClickAsync();
+            await table.Locator("[popover]:popover-open input[name='orders-f-total']").FillAsync("100");
+            await page.WaitForURLAsync(u => u.Contains("orders-f-total=100", StringComparison.Ordinal));
+            Assert.Contains("orders-f-customer=Ada", page.Url, StringComparison.Ordinal);
+            Assert.Contains("orders-f-customer=Grace", page.Url, StringComparison.Ordinal);
+        }
+    }
+
+    // A date applies when it's whole: not year 0002 on the way to 2026, and not a field half edited.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_date_typed_by_keyboard_applies_once_when_whole(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode);
+        await using (browser)
+        {
+            await page.EvaluateAsync("""
+                () => {
+                  window.addresses = [];
+                  for (const name of ["pushState", "replaceState"]) {
+                    const was = history[name];
+                    history[name] = function (state, title, url) { if (url) window.addresses.push(String(url)); return was.apply(this, arguments); };
+                  }
+                }
+                """);
+            var panel = await OpenPanelAsync(page, grid, "Date");
+            var input = panel.Locator($"input[name='{Prefix}f-date']");
+            await input.FocusAsync();
+            var entries = await page.EvaluateAsync<int>("history.length");
+            await page.Keyboard.TypeAsync("09122026", new() { Delay = 180 });
+
+            await AddressIsAsync(page, "f-date=2026-09-12");
+            await SettledAsync(page);
+            Assert.Equal("2026-09-12", await input.InputValueAsync());
+            var addresses = (await page.EvaluateAsync<string[]>("window.addresses")).Where(a => a.Contains("f-date", StringComparison.Ordinal)).Distinct().ToArray();
+            Assert.DoesNotContain(addresses, a => a.Contains("f-date=0", StringComparison.Ordinal));
+            Assert.Equal(entries + 1, await page.EvaluateAsync<int>("history.length"));
+
+            // One segment emptied: a partly edited date applies nothing, and the filter stays.
+            await page.Keyboard.PressAsync("Backspace");
+            await SettledAsync(page);
+            await AddressIsAsync(page, "f-date=2026-09-12");
+            Assert.Contains("2026-09-12", await grid.Locator(".ib-table-filter-tags").TextContentAsync());
+
+            // Nor does a filter on another column drop it.
+            await page.Keyboard.PressAsync("Escape");
+            var customer = await OpenPanelAsync(page, grid, "Customer");
+            await customer.Locator($"input[name='{Prefix}f-customer']").FillAsync("a");
+            await AddressIsAsync(page, "f-date=2026-09-12&f-customer=a");
+            await page.Keyboard.PressAsync("Escape");
+
+            // Emptied on purpose, it goes.
+            panel = await OpenPanelAsync(page, grid, "Date");
+            await panel.Locator($"input[name='{Prefix}f-date']").FillAsync("");
+            await AddressIsAsync(page, "f-customer=a");
+        }
+    }
+
+    [Fact]
+    public async Task A_bound_date_typed_by_keyboard_is_the_date_typed()
+    {
+        var (browser, page) = await OpenPageAsync("docs/components/table?mode=interactive");
+        await using (browser)
+        {
+            var table = page.Locator("ib-table[data-ib-interactive]:has(caption:text-is('Order history'))");
+            await table.WaitForAsync();
+            await table.ScrollIntoViewIfNeededAsync();
+            var shown = table.Locator("xpath=..").Locator("code").Last;
+            await table.Locator("th .ib-table-filter-button[aria-label^='Filter Date']").ClickAsync();
+            var input = table.Locator("[popover]:popover-open input[type=date]");
+            await input.FocusAsync();
+            await shown.EvaluateAsync("code => { window.filters = []; new MutationObserver(() => window.filters.push(code.textContent)).observe(code, { characterData: true, childList: true, subtree: true }); }");
+            await page.Keyboard.TypeAsync("09122026", new() { Delay = 180 });
+
+            await Assertions.Expect(shown).ToHaveTextAsync("date eq 2026-09-12");
+            await SettledAsync(page);
+            Assert.Equal("date eq 2026-09-12", await shown.TextContentAsync());
+            Assert.Equal("2026-09-12", await input.InputValueAsync());
+
+            // C# heard the whole date, and nothing on the way to it.
+            Assert.Equal(["date eq 2026-09-12"], await page.EvaluateAsync<string[]>("window.filters"));
+
+            // One segment emptied: the filter stays until the date is whole again.
+            await page.Keyboard.PressAsync("Backspace");
+            await SettledAsync(page);
+            Assert.Equal("date eq 2026-09-12", await shown.TextContentAsync());
+            await page.Keyboard.TypeAsync("2026", new() { Delay = 180 });
+            await SettledAsync(page);
+            Assert.Equal("date eq 2026-09-12", await shown.TextContentAsync());
+        }
+    }
+
+    // A response already on its way draws the panel as it was when that was asked for.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task An_operator_chosen_with_a_response_on_its_way_stays(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode);
+        await using (browser)
+        {
+            await page.RouteAsync("**/docs/components/data-grid*", async route =>
+            {
+                await Task.Delay(700);
+                await route.ContinueAsync();
+            });
+            var customer = await OpenPanelAsync(page, grid, "Customer");
+            await customer.Locator($"input[name='{Prefix}f-customer']").FillAsync("a");
+            await page.Keyboard.PressAsync("Enter");
+            await AddressIsAsync(page, "f-customer=a");
+
+            var panel = await OpenPanelAsync(page, grid, "Total");
+            var select = panel.Locator("select");
+            await select.SelectOptionAsync("gt");
+            await RowsChangedOrWaitAsync(page);
+            Assert.Equal("gt", await select.InputValueAsync());
+            await AddressIsAsync(page, "f-customer=a");
+
+            await panel.Locator($"input[name='{Prefix}f-total']").FillAsync("300");
+            await AddressIsAsync(page, "f-customer=a&f-total-op=gt&f-total=300");
+        }
+    }
+
+    private static Task RowsChangedOrWaitAsync(IPage page) => page.WaitForTimeoutAsync(1500);
+
+    // The design's rule: an operator with no value doesn't outlast the next filter.
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task An_operator_with_no_value_resets_when_another_column_filters(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var panel = await OpenPanelAsync(page, grid, "Total");
+            await panel.Locator("select").SelectOptionAsync("gt");
+            await page.Keyboard.PressAsync("Escape");
+            var customer = await OpenPanelAsync(page, grid, "Customer");
+            await customer.Locator($"input[name='{Prefix}f-customer']").FillAsync("a");
+            await AddressIsAsync(page, "f-customer=a");
+            await SettledAsync(page);
+            Assert.Equal("eq", await page.Locator($"select[name='{Prefix}f-total-op']").InputValueAsync());
+        }
+    }
+
+    private async Task<(TestBrowser, IPage)> OpenPageAsync(string address)
+    {
+        var browser = await TestBrowser.OpenAsync();
+        var context = await browser.NewContextAsync(new() { Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
+        var page = await context.NewPageAsync();
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, address).ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.WaitForFunctionAsync("() => customElements.get('ib-table')");
+        return (browser, page);
     }
 
     [Theory]
@@ -213,10 +471,18 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
             await panel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
             await page.WaitForFunctionAsync("document.activeElement?.classList.contains('ib-table-filter-button')");
 
-            // On the select, arrows change the operator, not the grid's cell. Each new operator applies.
+            // On the select, an arrow opens its list; the grid's cell stays where it was.
             panel = await OpenPanelAsync(page, grid, "Total");
             select = panel.Locator("select");
             await select.FocusAsync();
+            await page.Keyboard.PressAsync("ArrowDown");
+            await page.Locator("select:open").WaitForAsync();
+            Assert.True(await panel.IsVisibleAsync());
+            await page.Keyboard.PressAsync("Escape");
+            await page.Locator("select:open").WaitForAsync(new() { State = WaitForSelectorState.Detached });
+            await AddressIsAsync(page, "f-total=300");
+
+            // Each new operator applies.
             await select.SelectOptionAsync("gt");
             await AddressIsAsync(page, "f-total-op=gt&f-total=300");
 

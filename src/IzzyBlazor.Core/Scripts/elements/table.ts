@@ -10,7 +10,8 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   or clears the rows on this page and fires `change` on each one it flips, then shows the
  *   header as checked, cleared or partly selected (indeterminate).
  * - Live filters. Without script the header filters' fields are a GET form you submit with Enter
- *   or Apply. Here the boxes apply after a pause in typing, dates when they change and Enter at once:
+ *   or Apply. Here the boxes apply after a pause in typing, dates after the same pause once they're
+ *   whole (no segment empty, and a year of four digits, so not 0002 on the way to 2026), and Enter at once:
  *   the element puts the values in the URL, drops this table's page number and navigates through
  *   Blazor, which keeps the page in place. An operator's select applies at once if there's a value;
  *   with none, the address stays as it is, and the choice only shapes the panel until the next
@@ -29,6 +30,12 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   centered in view when the columns are wider than the box.
  */
 const NO_VALUE = ["isempty", "isnotempty"];
+const PAUSE = 350;
+
+// A date input someone is part way through: a segment is empty, or the year has yet to reach four digits.
+function unfinished(control: Element): boolean {
+  return control instanceof HTMLInputElement && control.type === "date" && (control.validity.badInput || control.value.startsWith("0"));
+}
 
 /**
  * What a filter's control puts in the address, given the operator chosen in its panel: nothing for a
@@ -43,13 +50,15 @@ function written(control: HTMLInputElement | HTMLSelectElement): string {
   const noValue = NO_VALUE.includes(op.value);
   const used = (c: Element) => !noValue && (op.value === "between" || !c.hasAttribute("data-ib-to"));
   if (control !== op) return used(control) ? value : "";
-  const hasValue = [...panel.querySelectorAll<HTMLInputElement>("input[data-ib-filter]")].some((c) => c.value.trim() && used(c));
+  const hasValue = [...panel.querySelectorAll<HTMLInputElement>("input[data-ib-filter]")].some((c) => (c.value.trim() || unfinished(c)) && used(c));
   return (noValue || hasValue) && value !== op.dataset.ibDefault ? value : "";
 }
 
 class Table extends IzzyElement {
   // Kept when setup runs again as a response arrives: the key pressed after that request still counts.
   #timer = 0;
+  #boundDate = 0;
+  #releasing = false;
   #popped = false;
   #typing = new TypingGuard(this);
 
@@ -87,6 +96,25 @@ class Table extends IzzyElement {
     this.addEventListener("compositionend", (event) => {
       if (isBoundSearch(event.target)) event.target.dispatchEvent(new Event("input", { bubbles: true }));
     }, { signal });
+    // A bound date: C# hears it once it's whole and the keys have paused. Heard on each change, its
+    // answer writes back an older value over the keys pressed since. On the window, in the capture
+    // phase, as Blazor's own listener is on the document in that phase.
+    window.addEventListener(
+      "change",
+      (event) => {
+        const target = event.target;
+        if (this.#releasing || !(target instanceof HTMLInputElement) || !this.contains(target) || target.type !== "date" || target.hasAttribute("data-ib-filter") || !target.closest(".ib-table-filter-panel")) return;
+        event.stopPropagation();
+        clearTimeout(this.#boundDate);
+        if (unfinished(target)) return;
+        this.#boundDate = window.setTimeout(() => {
+          this.#releasing = true;
+          target.dispatchEvent(new Event("change", { bubbles: true }));
+          this.#releasing = false;
+        }, PAUSE);
+      },
+      { capture: true, signal }
+    );
     this.addEventListener(
       "keydown",
       (event) => {
@@ -155,7 +183,7 @@ class Table extends IzzyElement {
       "input",
       (event) => {
         if ((event as InputEvent).isComposing || this.#typing.composing) return;
-        // Date inputs apply on change, once a whole date is chosen.
+        // Date inputs apply from their change, below.
         if (event.target instanceof HTMLInputElement && event.target.type !== "date" && isFilter(event.target)) this.#typed(event.target);
       },
       { signal }
@@ -164,9 +192,15 @@ class Table extends IzzyElement {
       "change",
       (event) => {
         const target = event.target;
-        if ((target instanceof HTMLSelectElement || (target instanceof HTMLInputElement && target.type === "date")) && isFilter(target)) {
+        if (!isFilter(target)) return;
+        if (target instanceof HTMLSelectElement) {
           clearTimeout(this.#timer);
-          this.#apply(false);
+          this.#typing.forget(target);
+          // With nothing to apply, it only shapes the panel: a response on its way mustn't undo it.
+          if (!this.#apply(false)) this.#typing.chosen(target);
+        } else if (target.type === "date") {
+          clearTimeout(this.#timer);
+          if (!unfinished(target)) this.#timer = window.setTimeout(() => this.#apply(false), PAUSE);
         }
       },
       { signal }
@@ -204,7 +238,8 @@ class Table extends IzzyElement {
     }, { signal });
     if (this.#popped) {
       this.#popped = false;
-      for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
+      // An interactive page's render sets its values as properties, so the defaults here are old.
+      if (!this.hasAttribute("data-ib-interactive")) for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
         if (control.closest("ib-table") !== this) continue;
         if (control instanceof HTMLInputElement) control.value = control.defaultValue;
         else if (control instanceof HTMLSelectElement) for (const option of control.options) option.selected = option.defaultSelected;
@@ -243,15 +278,18 @@ class Table extends IzzyElement {
   #typed(input: HTMLInputElement): void {
     this.#typing.typed(input);
     clearTimeout(this.#timer);
-    this.#timer = window.setTimeout(() => this.#apply(true), 350);
+    this.#timer = window.setTimeout(() => this.#apply(true), PAUSE);
   }
 
-  /** Navigates to the current URL with this table's filter values, without its page number. */
-  #apply(replace: boolean): void {
-    if (this.#typing.composing || !this.isConnected) return;
+  /**
+   * Navigates to the current URL with this table's filter values, without its page number, and says
+   * whether that changed it. A date part way through stays as the address has it.
+   */
+  #apply(replace: boolean): boolean {
+    if (this.#typing.composing || !this.isConnected) return false;
     this.#typing.restore();
     const url = new URL(location.href);
-    const controls = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name);
+    const controls = [...this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this && c.name && !unfinished(c));
     // A name can repeat: all of them go, then each control with something to say comes back.
     for (const control of controls) url.searchParams.delete(control.name);
     for (const control of controls) {
@@ -262,7 +300,12 @@ class Table extends IzzyElement {
     if (pageKey) url.searchParams.delete(pageKey);
     const cursorKey = this.dataset.ibCursorKey;
     if (cursorKey) url.searchParams.delete(cursorKey);
-    if (navigateTo(url, replace)) this.#typing.guard();
+    if (!navigateTo(url, replace)) return false;
+    this.#typing.forgetChosen();
+    // An operator with no value doesn't outlast a new filter. A static page's response redraws it, and an interactive page's render doesn't.
+    for (const control of controls) if (control instanceof HTMLSelectElement && control.dataset.ibDefault && !written(control)) control.value = control.dataset.ibDefault;
+    this.#typing.guard();
+    return true;
   }
 }
 
