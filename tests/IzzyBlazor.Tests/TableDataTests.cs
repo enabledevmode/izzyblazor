@@ -199,8 +199,9 @@ public class TableDataTests : BunitContext
         Assert.True(reported!.All);
         Assert.Equal("All 4 selected", cut.Find(".ib-selection-count").TextContent);
 
+        // One left out, it isn't all of them.
         cut.FindAll("tbody .ib-table-select")[0].Change(false);
-        Assert.Equal("All 3 selected", cut.Find(".ib-selection-count").TextContent);
+        Assert.Equal("3 selected", cut.Find(".ib-selection-count").TextContent);
 
         cut.Find(".ib-table-select-all").Change(false);
         Assert.True(reported!.IsEmpty);
@@ -213,6 +214,33 @@ public class TableDataTests : BunitContext
         Static();
         Assert.True(SelectingAll(_ => { }).Find(".ib-table-select-all").HasAttribute("data-ib-all-matching"));
         Assert.False(SelectingAll(_ => { }, SelectAllMode.Page).Find(".ib-table-select-all").HasAttribute("data-ib-all-matching"));
+    }
+
+    [Fact]
+    public void A_disabled_action_isnt_the_forms_default_button()
+    {
+        Static();
+        var cut = Paged(null);
+
+        var bar = cut.Find(".ib-selection-bar");
+        Assert.Equal("ib-data-default-submit", bar.QuerySelector("button[type=submit]")!.ClassName);
+    }
+
+    [Fact]
+    public void In_All_mode_the_header_is_checked_only_for_all_of_them()
+    {
+        Interactive();
+        var cut = SelectingAll(_ => { });
+
+        cut.FindAll("tbody .ib-table-select")[0].Change(true);
+        cut.FindAll("tbody .ib-table-select")[1].Change(true);
+        Assert.False(cut.Find(".ib-table-select-all").HasAttribute("checked"));
+
+        cut.Find(".ib-table-select-all").Change(true);
+        Assert.True(cut.Find(".ib-table-select-all").HasAttribute("checked"));
+
+        cut.FindAll("tbody .ib-table-select")[0].Change(false);
+        Assert.False(cut.Find(".ib-table-select-all").HasAttribute("checked"));
     }
 
     [Fact]

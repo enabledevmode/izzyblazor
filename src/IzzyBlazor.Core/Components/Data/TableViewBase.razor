@@ -34,7 +34,9 @@
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
-                    <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
+                    @* Keyed by its item: rows are keyed by place, and a tick C# hasn't heard of yet would stay on the
+                       next item to take this place. *@
+                    <input @key="key" type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
                            aria-label="@SelectLabel(item)"
                            checked="@IsSelected(item, key)"
                            disabled="@(!CanSelect(item))"
@@ -154,15 +156,7 @@
                 @ColumnsReadyNotifier
             </CascadingValue>
             @AboveGrid
-            @* A grid's bar takes the toolbar's place, so it comes before the filter tags. *@
-            @if (GridColumns)
-            {
-                @SelectionBar
-            }
-            @if (!GridColumns)
-            {
-                @SelectionBar
-            }
+            @SelectionBar
             @ErrorStatus
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
                 <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + 1 + (HasFooterRow ? 1 : 0) : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
@@ -181,7 +175,7 @@
                                     <span class="ib-visually-hidden ib-table-select-heading">@(SelectRowLabel ?? TextDefaults.SelectRow)</span>
                                     @if (MultiSelect)
                                     {
-                                        <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@AllOnPageSelected" @attributes="SelectAllMatching" />
+                                        <input type="checkbox" class="ib-check-input ib-table-select-all" aria-label="@(SelectAllLabel ?? TextDefaults.SelectAllRows)" checked="@SelectAllChecked" @attributes="SelectAllMatching" />
                                     }
                                 </th>
                             }
@@ -295,7 +289,7 @@
                 @* Loading on scroll: the keyboard's way on, under the last row, inside the scroll box. *@
                 @MoreRow
             </div>
-            @if (HasFilters && (FilterPanel || GridColumns || ExtraCount > 0))
+            @if (FilterPanel || ExtraCount > 0 || (HasFilters && GridColumns))
             {
                 @* Below the rows, so nothing here can move them. FilterPanel lists every filter. Without it, this
                    is only for what no funnel can show: a bound filter's conditions that no column's panel holds,

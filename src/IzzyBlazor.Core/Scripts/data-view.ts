@@ -18,6 +18,17 @@ export function setupSelectAll(root: HTMLElement, allSelector: string, itemSelec
   const sync = () => {
     const all = root.querySelector<HTMLInputElement>(allSelector);
     if (!all) return;
+    // One that selects every match shows the selection, whatever this page's boxes say: checked only
+    // for all of them, so that a click from anything less takes them all.
+    if (all.hasAttribute("data-ib-all-matching")) {
+      const bar = root.querySelector<HTMLElement>(":scope > .ib-selection-bar");
+      const every = !!bar?.hasAttribute("data-ib-all");
+      const some = bar?.dataset.ibKeys !== "[]";
+      all.checked = every && !some;
+      all.indeterminate = some;
+      all.disabled = bar?.dataset.ibTotal === "0";
+      return;
+    }
     const boxes = items();
     const checked = boxes.filter((box) => box.checked).length;
     all.checked = boxes.length > 0 && checked === boxes.length;
@@ -98,8 +109,7 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
 
   const boxes = () => [...root.querySelectorAll<HTMLInputElement>(itemSelector)];
   const summary = root.querySelector<HTMLElement>(":scope > .ib-data-footer .ib-selection-summary");
-  if (summary) keepFocus(summary, boxes, signal);
-  keepFocus(bar, boxes, signal);
+  keepFocus(root, boxes, signal);
   // On interactive pages C# keeps the selection; the script adds only the ranges and focus.
   if (root.hasAttribute("data-ib-interactive")) {
     setupRanges(root, boxes, signal);
@@ -129,7 +139,11 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
 
   const render = () => {
     const shown = boxes();
-    for (const box of shown) box.checked = has(box.value);
+    // Under all of them, one that can't be selected isn't.
+    for (const box of shown) box.checked = has(box.value) && !(state.all && box.disabled);
+    // Where the header reads it.
+    bar.toggleAttribute("data-ib-all", state.all);
+    bar.dataset.ibKeys = JSON.stringify([...state.keys]);
     const total = bar.dataset.ibTotal ? Number(bar.dataset.ibTotal) : null;
     const count = state.all ? (total === null ? null : Math.max(0, total - state.keys.size)) : state.keys.size;
     const isEmpty = !state.all && state.keys.size === 0;
@@ -142,7 +156,7 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
       ? ""
       : count === null
         ? (bar.dataset.ibAllOpen ?? "")
-        : fill((state.all ? bar.dataset.ibAllCount : bar.dataset.ibCount) ?? "{0}", count);
+        : fill((state.all && !state.keys.size ? bar.dataset.ibAllCount : bar.dataset.ibCount) ?? "{0}", count);
     // The visible count, and the status region that announces it.
     for (const el of [summary?.querySelector<HTMLElement>(".ib-selection-count"), root.querySelector<HTMLElement>(":scope > .ib-selection-status")]) {
       if (el && el.textContent !== text) el.textContent = text;
@@ -156,6 +170,7 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
     (event) => {
       const box = event.target as HTMLInputElement;
       if (box.hasAttribute("data-ib-all-matching")) {
+        if (box.closest(root.localName) !== root) return;
         state = box.checked ? { keys: new Set(), all: true, ...scope } : empty();
         save();
         render();
@@ -218,28 +233,29 @@ export function setupSelection(root: HTMLElement, itemSelector: string, signal: 
  * count, an action empties the selection), focus moves on rather than falling to the page: to Clear
  * selection while it shows, else to the first box that can be selected.
  */
-function keepFocus(bar: HTMLElement, boxes: () => HTMLInputElement[], signal: AbortSignal): void {
-  let inBar = false;
-  bar.addEventListener("focusin", () => (inBar = true), { signal });
-  bar.addEventListener(
-    "focusout",
-    (event) => {
-      const next = (event as FocusEvent).relatedTarget as Node | null;
-      if (next && !bar.contains(next)) inBar = false;
-    },
-    { signal }
-  );
+function keepFocus(root: HTMLElement, boxes: () => HTMLInputElement[], signal: AbortSignal): void {
+  let inside = false;
+  root.addEventListener("focusin", (event) => (inside = !!(event.target as Element).closest(".ib-selection-summary, .ib-selection-bar")), { signal });
   const check = () => {
-    if (!inBar) return;
+    if (!inside) return;
     const active = document.activeElement as HTMLElement | null;
-    if (active && active !== document.body && active.checkVisibility()) return;
-    const clear = bar.querySelector<HTMLElement>(".ib-selection-clear");
-    const target = !bar.hidden && clear?.checkVisibility() ? clear : boxes().find((box) => !box.disabled);
-    inBar = target === clear;
-    target?.focus();
+    // The count keeps its room while hidden, so this has to ask about visibility too.
+    const seen = (el: Element) => el.checkVisibility({ visibilityProperty: true });
+    if (active && active !== document.body && seen(active) && !active.matches(":disabled")) return;
+    // Looked up each time: an interactive render can swap the footer for a line, and back.
+    const clear = root.querySelector<HTMLElement>(":scope > .ib-data-footer .ib-selection-clear");
+    // The first box in view: focus shouldn't scroll the items away from where someone is. With no
+    // boxes, the way back from no items, or the view itself, which a plain table can't otherwise take.
+    const free = boxes().filter((box) => !box.disabled);
+    const top = root.querySelector("thead")?.getBoundingClientRect().bottom ?? -Infinity;
+    const box = free.find((b) => b.getBoundingClientRect().top >= top) ?? free[0];
+    const target = clear && seen(clear) ? clear : box ?? root.querySelector<HTMLElement>(".ib-table-empty-clear > *") ?? root;
+    if (target === root) root.tabIndex = -1;
+    inside = target === clear;
+    target.focus({ preventScroll: true });
   };
   const observer = new MutationObserver(check);
-  observer.observe(bar, { attributes: true, subtree: true, attributeFilter: ["hidden"] });
+  observer.observe(root, { attributes: true, subtree: true, attributeFilter: ["hidden", "disabled"] });
   signal.addEventListener("abort", () => observer.disconnect());
 }
 

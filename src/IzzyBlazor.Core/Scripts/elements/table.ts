@@ -6,9 +6,9 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  * <ib-table> adds two things to a Table:
  *
  * - The header "select all" checkbox of a selectable table. Rows are plain checkboxes that post
- *   with the form (and report their own changes on interactive pages), so select-all only checks
- *   or clears the rows on this page and fires `change` on each one it flips, then shows the
- *   header as checked, cleared or partly selected (indeterminate).
+ *   with the form (and report their own changes on interactive pages), so select-all for the page
+ *   only checks or clears its rows and fires `change` on each one it flips, then shows the header as
+ *   checked, cleared or partly selected (indeterminate). For every match, it sets the selection.
  * - Live filters. Without script the header filters' fields are a GET form you submit with Enter
  *   or Apply. Here the boxes apply after a pause in typing, dates after the same pause once they're
  *   whole (no segment empty, and a year of four digits, so not 0002 on the way to 2026), and Enter at once:

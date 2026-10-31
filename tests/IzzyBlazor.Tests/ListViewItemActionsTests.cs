@@ -107,7 +107,7 @@ public class ListViewItemActionsTests : BunitContext
         var cut = RenderList(p => p.Add(l => l.ItemMenu, DeleteMenu()));
 
         var first = cut.Find("button[type=submit]");
-        Assert.Contains("ib-listview-default-submit", first.ClassName);
+        Assert.Contains("ib-data-default-submit", first.ClassName);
     }
 
     [Fact]
@@ -115,7 +115,7 @@ public class ListViewItemActionsTests : BunitContext
     {
         var cut = RenderList();
 
-        Assert.Empty(cut.FindAll(".ib-listview-default-submit"));
+        Assert.Empty(cut.FindAll(".ib-data-default-submit"));
     }
 
     [Fact]
@@ -125,7 +125,7 @@ public class ListViewItemActionsTests : BunitContext
         _live = true;
         var cut = RenderList(p => p.Add(l => l.ItemMenu, DeleteMenu()));
 
-        Assert.Contains("ib-listview-default-submit", cut.Find("button[type=submit]").ClassName);
+        Assert.Contains("ib-data-default-submit", cut.Find("button[type=submit]").ClassName);
         Assert.Equal(3, cut.FindAll("[role=menu]").Count);
     }
 

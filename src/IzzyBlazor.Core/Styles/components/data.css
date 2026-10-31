@@ -1155,8 +1155,17 @@
     gap: var(--ib-space-1) var(--ib-space-2);
   }
 
+  /* In the footer it keeps its room while hidden, so a first tick doesn't wrap the pages on a narrow
+     screen. */
+  .ib-data-footer:not(.ib-selection-line) .ib-selection-summary[hidden] {
+    display: inline-flex;
+    visibility: hidden;
+  }
+
   .ib-selection-count {
-    font-weight: var(--ib-weight-medium);
+    min-width: 5.5rem;
+    color: var(--ib-color-on-surface);
+    font-size: var(--ib-text-sm);
   }
 
   /* With no pages to show, the footer is only the count: nothing while there's none. */
@@ -1972,7 +1981,7 @@
   }
 
   /* Out of sight but not display: none, which some browsers skip when Enter submits a form. */
-  .ib-listview-default-submit {
+  .ib-data-default-submit {
     position: absolute;
     width: 1px;
     height: 1px;
