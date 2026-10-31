@@ -363,74 +363,68 @@ public class TableFilterListTests : BunitContext
     [Fact]
     public void A_grids_row_of_tags_is_there_but_hidden_while_every_filter_has_its_funnel()
     {
-        var cut = Grid("/orders?f-status=Yes", activeFilters: false);
+        var cut = Grid("/orders?f-status=Yes");
 
         Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
         Assert.Empty(cut.FindAll(".ib-table-filter-tags .ib-tag"));
     }
 
-    private IRenderedComponent<DataGrid<Row>> Grid(string url, bool activeFilters = true, RenderFragment? toolbar = null)
+    private IRenderedComponent<DataGrid<Row>> Grid(string url, bool filterPanel = false)
     {
         Nav.NavigateTo(url);
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        return Render<DataGrid<Row>>(p =>
-        {
-            p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Name).Add(t => t.ActiveFilters, activeFilters).Add(t => t.ChildContent, Columns);
-            if (toolbar is not null)
-            {
-                p.Add(t => t.ToolbarContent, toolbar);
-            }
-        });
+        return Render<DataGrid<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Name).Add(t => t.FilterPanel, filterPanel).Add(t => t.ChildContent, Columns));
+    }
+
+    private IRenderedComponent<Table<Row>> WithPanel(string url)
+    {
+        Nav.NavigateTo(url);
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        return Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.FilterPanel, true).Add(t => t.ChildContent, Columns));
     }
 
     [Fact]
-    public void A_grids_Filters_button_is_there_with_nothing_filtered_and_lists_none()
+    public void FilterPanel_is_there_with_nothing_filtered_and_comes_after_the_rows()
     {
-        var cut = Grid("/orders");
+        var cut = WithPanel("/orders");
 
-        var button = cut.Find(".ib-grid-toolbar .ib-grid-filters-button");
-        Assert.False(button.HasAttribute("data-active"));
-        Assert.Equal("Filters", button.GetAttribute("aria-label"));
-        Assert.Empty(cut.FindAll(".ib-grid-filters-panel .ib-tag"));
-        Assert.False(cut.Find(".ib-grid-filters-none").HasAttribute("hidden"));
-        Assert.True(cut.Find(".ib-grid-filters-panel .ib-table-filter-panel-actions button").HasAttribute("disabled"));
+        var row = cut.Find(".ib-table-filter-tags");
+        Assert.False(row.HasAttribute("hidden"));
+        Assert.Contains("No filters", row.TextContent);
+        Assert.Empty(row.QuerySelectorAll(".ib-tag"));
+        Assert.True(row.QuerySelector("button")!.HasAttribute("disabled"));
+        Assert.NotNull(cut.Find(".ib-table-scroll ~ .ib-table-filter-tags"));
     }
 
     [Fact]
-    public void A_grids_Filters_button_lists_each_filter_to_remove_or_clear()
+    public void FilterPanel_lists_each_filter_to_remove_or_clear()
     {
-        var cut = Grid("/orders?f-status=Yes&f-size=A&tab=x");
+        var cut = WithPanel("/orders?f-status=Yes&f-size=A&tab=x");
 
-        var button = cut.Find(".ib-grid-filters-button");
-        Assert.True(button.HasAttribute("data-active"));
-        Assert.Equal("Filters: 2 active", button.GetAttribute("aria-label"));
-        var tags = cut.FindAll(".ib-grid-filters-panel .ib-tag");
-        Assert.Equal(2, tags.Count);
+        var row = cut.Find(".ib-table-filter-tags");
+        Assert.DoesNotContain("No filters", row.TextContent);
+        var tags = row.QuerySelectorAll(".ib-tag");
+        Assert.Equal(2, tags.Length);
         Assert.Contains("Status: Yes", tags[0].TextContent);
         Assert.Equal("http://localhost/orders?f-size=A&tab=x", tags[0].QuerySelector("a")!.GetAttribute("href"));
-        Assert.Equal("http://localhost/orders?tab=x", cut.Find(".ib-grid-filters-panel a[data-ib-filter-clear]").GetAttribute("href"));
-        Assert.True(cut.Find(".ib-grid-filters-none").HasAttribute("hidden"));
+        Assert.Equal("http://localhost/orders?tab=x", row.QuerySelector("a[data-ib-filter-clear]")!.GetAttribute("href"));
     }
 
     [Fact]
-    public void A_grid_without_ActiveFilters_has_no_Filters_button()
+    public void With_FilterPanel_no_rows_leaves_Clear_to_it()
     {
-        var cut = Grid("/orders?f-status=Yes", activeFilters: false);
+        var cut = WithPanel("/orders?f-size=K");
 
-        Assert.Empty(cut.FindAll(".ib-grid-filters-button"));
+        Assert.Empty(cut.FindAll(".ib-table-empty-clear"));
+        Assert.Single(cut.FindAll(".ib-table-filter-tags a[data-ib-filter-clear]"));
     }
 
     [Fact]
-    public void DataGridFilters_places_the_button_among_a_toolbars_items()
+    public void A_grid_has_FilterPanel_too()
     {
-        var cut = Grid("/orders", toolbar: b =>
-        {
-            b.OpenComponent<DataGridFilters>(0);
-            b.AddComponentParameter(1, nameof(DataGridFilters.Position), ToolbarPosition.Start);
-            b.CloseComponent();
-        });
+        var cut = Grid("/orders?f-status=Yes", filterPanel: true);
 
-        Assert.Single(cut.FindAll(".ib-grid-filters-button"));
+        Assert.Contains("Status: Yes", cut.Find(".ib-table-filter-tags .ib-tag").TextContent);
     }
 
     [Fact]

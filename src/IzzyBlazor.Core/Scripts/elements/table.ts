@@ -81,11 +81,9 @@ class Table extends IzzyElement {
     this.addEventListener(
       "click",
       (event) => {
-        // A panel's Clear is done with the panel, as is removing the last tag in a list of them.
-        const clear = (event.target as Element).closest("[data-ib-filter-clear], .ib-tag a, .ib-tag button");
-        const list = clear?.closest(".ib-table-filter-panel");
-        const inPlace = !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey;
-        if (inPlace && (clear?.matches("[data-ib-filter-clear]") || list?.querySelectorAll(".ib-tag").length === 1)) this.#closePanel(clear);
+        // A panel's Clear is done with the panel.
+        const clear = (event.target as Element).closest("[data-ib-filter-clear]");
+        if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
         if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();

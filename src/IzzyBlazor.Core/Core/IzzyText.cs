@@ -195,10 +195,7 @@ public class IzzyText
     /// <summary>A Table number filter with both ends: "100–500".</summary>
     public virtual string FilterBetween { get; set; } = "{0}–{1}";
 
-    /// <summary>A DataGrid's Filters button with filters active; {0} is how many.</summary>
-    public virtual string FiltersActive { get; set; } = "Filters: {0} active";
-
-    /// <summary>A DataGrid's list of active filters with none.</summary>
+    /// <summary>A table's FilterPanel with nothing filtered.</summary>
     public virtual string FiltersNone { get; set; } = "No filters";
 
     /// <summary>The way back from a table with no rows while filters are active.</summary>

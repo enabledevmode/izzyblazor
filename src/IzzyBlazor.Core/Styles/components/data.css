@@ -528,8 +528,8 @@
     }
   }
 
-  /* The active filters as removable tags: in a DataGrid's Filters button, or above the table for a
-     bound filter's conditions that no column shows. */
+  /* The active filters as removable tags, below the rows: all of them with FilterPanel, otherwise
+     what no funnel can show. */
   .ib-table-filter-tags[hidden] {
     display: none;
   }
@@ -541,44 +541,23 @@
     gap: var(--ib-space-2);
   }
 
-  .ib-grid-filters-panel {
-    width: 18rem;
-  }
-
-  /* A long value wraps, with its remove button still in the panel. */
-  .ib-grid-filters-panel .ib-tag {
+  /* A long value wraps, with its remove button still in the row. */
+  .ib-table-filter-tags .ib-tag {
     height: auto;
     min-height: var(--ib-tag-h);
+    padding-block: 0.125rem;
     white-space: normal;
     overflow-wrap: anywhere;
     line-height: var(--ib-leading-tight, 1.25);
   }
 
-  .ib-grid-filters-none {
+  .ib-table-filter-none {
     color: var(--ib-color-muted);
     font-size: var(--ib-text-sm);
   }
 
-  .ib-grid-filters-none[hidden] {
-    display: none;
-  }
-
-  /* A DataGrid's Filters button while any are active. */
-  .ib-grid-filters-button[data-active] {
-    position: relative;
-  }
-
-  .ib-grid-filters-button[data-active]::after {
-    content: "";
-    position: absolute;
-    inset-block-start: 0.1875rem;
-    inset-inline-end: 0.1875rem;
-    width: 0.4375rem;
-    height: 0.4375rem;
-    border-radius: 50%;
-    background: var(--ib-color-primary);
-    box-shadow: 0 0 0 1px var(--ib-color-surface);
-    forced-color-adjust: none;
+  .ib-table-filter-clear-all {
+    margin-inline-start: auto;
   }
 
   /* The tint doesn't paint in forced colors, and the funnel is what says a column is filtered. */
@@ -586,12 +565,6 @@
     .ib-table-filter-button[data-active] {
       outline: 2px solid Highlight;
       outline-offset: -2px;
-    }
-  }
-
-  @media (forced-colors: active) {
-    .ib-grid-filters-button[data-active]::after {
-      background: Highlight;
     }
   }
 

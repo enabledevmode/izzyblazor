@@ -159,18 +159,6 @@
             {
                 @SelectionBar
             }
-            @if (HasFilters && !ListsActiveFilters && (GridColumns || ExtraCount > 0))
-            {
-                @* What no funnel can show would hide rows with nothing to say why, so it shows here: a bound
-                   filter's conditions that no column's panel holds, and a filter on a hidden column. Nothing a
-                   person ticks or types brings this row, so the table doesn't move under them. On a grid it's
-                   always rendered, hidden while empty, as enhanced navigation's merge would otherwise turn the
-                   scroll box into it and rebuild the table. *@
-                var unseen = FilteredColumns().Where(c => !Shown.Contains(c)).ToList();
-                <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(unseen.Count + ExtraCount == 0)">
-                    @ActiveFilterTags(unseen)
-                </div>
-            }
             @if (!GridColumns)
             {
                 @SelectionBar
@@ -261,7 +249,7 @@
                                         {
                                             @(EmptyText ?? TextDefaults.NoItems)
                                         }
-                                        @if (HasFilters && ActiveFilterCount > 0)
+                                        @if (HasFilters && !FilterPanel && ActiveFilterCount > 0)
                                         {
                                             @* The way back from no rows, wherever the filters that did it are. *@
                                             <div class="ib-table-empty-clear">
@@ -307,6 +295,28 @@
                 @* Loading on scroll: the keyboard's way on, under the last row, inside the scroll box. *@
                 @MoreRow
             </div>
+            @if (HasFilters && (FilterPanel || GridColumns || ExtraCount > 0))
+            {
+                @* Below the rows, so nothing here can move them. FilterPanel lists every filter. Without it, this
+                   is only for what no funnel can show: a bound filter's conditions that no column's panel holds,
+                   and a filter on a hidden column. On a grid it's always rendered, hidden while empty, as enhanced
+                   navigation's merge would otherwise turn the footer into it. *@
+                var listed = FilterPanel ? FilteredColumns() : FilteredColumns().Where(c => !Shown.Contains(c)).ToList();
+                var count = listed.Count + ExtraCount;
+                <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(!FilterPanel && count == 0)">
+                    @if (FilterPanel && count == 0)
+                    {
+                        <span class="ib-table-filter-none">@TextDefaults.FiltersNone</span>
+                    }
+                    @ActiveFilterTags(listed)
+                    @if (FilterPanel)
+                    {
+                        <div class="ib-table-filter-clear-all">
+                            @ClearAction(count > 0, () => ClearFiltersHref, ClearFiltersAsync)
+                        </div>
+                    }
+                </div>
+            }
             @if (NeedsFilterForm && !StateLayout)
             {
                 @* The filters' GET form. Its fields join it through form="", not by nesting, so a table
@@ -361,6 +371,12 @@
     /// <see cref="DataField{TItem}.Case"/> on its own fields, or the file and the screen can differ.
     /// </summary>
     [Parameter] public FilterCase FilterCase { get; set; }
+
+    /// <summary>
+    /// A row below the rows that lists the active filters, each with a button to remove it, and Clear
+    /// for all of them. It's there whether or not anything is filtered, so nothing moves.
+    /// </summary>
+    [Parameter] public bool FilterPanel { get; set; }
 
     /// <summary>The table's name for screen readers (a visually hidden caption).</summary>
     [Parameter] public string? Caption { get; set; }
@@ -796,9 +812,6 @@
         }
     };
 
-    /// <summary>Whether the active filters are listed elsewhere, so a bound filter's other conditions needn't show above the table.</summary>
-    internal virtual bool ListsActiveFilters => false;
-
     /// <summary>How many filters are active: a column's, and a bound filter's that no column shows.</summary>
     internal int ActiveFilterCount => FilteredColumns().Count + ExtraCount;
 
@@ -822,22 +835,6 @@
                 <Tag Label="@condition.ToString()" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => RemoveExtraAsync(condition)))" />
             }
         }
-    };
-
-    /// <summary>What a list of the active filters holds: a tag each, and Clear for all of them. The tags' box stays while empty, for enhanced navigation's merge.</summary>
-    internal RenderFragment ActiveFiltersPanel => __builder =>
-    {
-        var count = ActiveFilterCount;
-        <div class="ib-table-filter-panel ib-grid-filters-panel">
-            <span class="ib-field-label ib-table-filter-label">@TextDefaults.Filters</span>
-            <span class="ib-grid-filters-none" hidden="@(count > 0)">@TextDefaults.FiltersNone</span>
-            <div class="ib-table-filter-tags" role="group" aria-label="@TextDefaults.Filters" hidden="@(count == 0)">
-                @ActiveFilterTags(FilteredColumns())
-            </div>
-            <div class="ib-table-filter-panel-actions">
-                @ClearAction(count > 0, () => ClearFiltersHref, ClearFiltersAsync)
-            </div>
-        </div>
     };
 
     // A column's Clear removes its filter. Without script (and on static pages before it arrives), Enter
