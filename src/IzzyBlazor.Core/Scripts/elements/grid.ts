@@ -37,6 +37,12 @@ class Grid extends IzzyElement {
   // PageUp or PageDown asked for a page: where focus goes, once this first row has gone.
   #arrive: { to: "first" | "last"; from: string | null } | null = null;
   #run: RangeRun | null = null;
+  // With rows drawn as they scroll: the focused row's number, whether focus is waiting on the scroll
+  // box for it, the row the keys asked for that isn't drawn yet, and which load the rows are of.
+  #number = 0;
+  #parked = false;
+  #seek: number | null = null;
+  #load: string | undefined;
   // The frozen columns' widths at each edge, as a scroll padding.
   #clearOf = "";
 
@@ -50,8 +56,18 @@ class Grid extends IzzyElement {
     // focusable: focus goes there after Retry, and on to a cell.
     this.#box = table.closest<HTMLElement>(".ib-table-scroll");
     this.#box?.setAttribute("tabindex", "-1");
-    this.#on(this.#box!, "focus", () => this.#focusCell(this.#current ?? undefined), signal);
+    this.#on(this.#box!, "focus", () => {
+      if (this.#count) this.#parked = true;
+      else this.#focusCell(this.#current ?? undefined);
+    }, signal);
+    this.#on(this.#box!, "keydown", (event) => {
+      const key = (event as KeyboardEvent).key;
+      if ((!this.#parked && this.#seek === null) || event.target !== this.#box || !/^(Arrow|Page|Home|End)/.test(key)) return;
+      event.preventDefault();
+      if (this.#seek === null) this.#goTo(this.#number);
+    }, signal);
 
+    this.#box?.addEventListener("wheel", () => { this.#seek = null; }, { signal, passive: true });
     this.#prepare();
     const changes = new MutationObserver(() => this.#rowsChanged());
     changes.observe(table, { childList: true, subtree: true, attributes: true, attributeFilter: ["data-ib-key", "disabled", "hidden"] });
@@ -78,7 +94,9 @@ class Grid extends IzzyElement {
     this.#on(document, "pointerdown", (event) => {
       this.#run = null;
       this.#arrive = null;
+      this.#seek = null;
       if (!table.contains(event.target as Node)) this.#inGrid = false;
+      else this.#parked = false;
     }, signal);
     this.#rowsChanged();
   }
@@ -127,7 +145,66 @@ class Grid extends IzzyElement {
     target.addEventListener(type, handler, { signal, capture });
   }
 
-  // The table's own rows, without placeholders.
+  get #count(): number {
+    return Number(this.#table?.getAttribute("aria-rowcount") ?? 0);
+  }
+
+  #nth(row: HTMLTableRowElement): number {
+    return Number(row.getAttribute("aria-rowindex"));
+  }
+
+  #row(number: number): HTMLTableRowElement | undefined {
+    return this.#rows.find((row) => this.#nth(row) === number);
+  }
+
+  // To a row by its number, scrolling it into being first if it isn't drawn.
+  #goTo(number: number): void {
+    this.#parked = false;
+    const to = Math.min(this.#count, Math.max(1, number));
+    const row = this.#row(to);
+    this.#seek = row ? null : to;
+    if (row) this.#focusCell(this.#atColumn(row, this.#column));
+    else {
+      const box = this.#box!, height = this.#bodyRows[0]?.offsetHeight ?? 48;
+      box.scrollTop = (to - 2) * height - (to > this.#number ? box.clientHeight - this.#table!.tHead!.offsetHeight - height : 0);
+    }
+  }
+
+  #window(rows: HTMLTableRowElement[]): void {
+    const load = this.#table!.dataset.ibLoad;
+    if (load !== this.#load) {
+      this.#box!.scrollTop = 0;
+      this.#load = load;
+      this.#seek = null;
+      this.#number = 2;
+    }
+    if (this.#seek !== null) {
+      // The row asked for failed to load: Retry is what's there.
+      const first = this.#bodyRows[0];
+      if (first && !first.hasAttribute("aria-rowindex")) {
+        this.#seek = null;
+        this.#focusCell(first.cells[0]);
+      } else if (document.activeElement !== document.body && !this.#box!.contains(document.activeElement)) this.#seek = null;
+      else if (this.#row(this.#seek)) this.#goTo(this.#seek);
+      else if (document.activeElement === document.body) this.#box!.focus({ preventScroll: true });
+      return;
+    }
+    if (!this.#inGrid) return;
+    const active = document.activeElement;
+    const row = this.#key === null ? undefined : rows.find((r) => r.dataset.ibKey === this.#key);
+    if (row && (this.#parked ? active === this.#box : active === document.body)) {
+      // It's back in reach: focus returns without moving what's being scrolled.
+      this.#parked = false;
+      const cell = this.#atColumn(row, this.#column)!;
+      this.#rove(cell);
+      this.#targetOf(cell).focus({ preventScroll: true });
+    } else if (!row && active === document.body) {
+      this.#parked = true;
+      this.#box?.focus({ preventScroll: true });
+    }
+  }
+
+  // The table's own rows, without placeholders or spacers (both aria-hidden).
   get #rows(): HTMLTableRowElement[] {
     return this.#table ? [...this.#table.rows].filter((row) => !row.hasAttribute("aria-hidden")) : [];
   }
@@ -275,12 +352,17 @@ class Grid extends IzzyElement {
     }
     const cell = this.#cellOf(target);
     if (!cell) return;
+    if (this.#parked) {
+      this.#goTo(this.#number);
+      return;
+    }
     this.#chosen = true;
     this.#rove(cell);
     const row = cell.parentElement as HTMLTableRowElement;
     this.#inGrid = true;
     this.#key = row.dataset.ibKey ?? null;
     this.#rowIndex = this.#rows.indexOf(row);
+    this.#number = this.#nth(row);
     const start = this.#columnOf(cell);
     // A cell that spans the wanted column (an empty row, a detail row) leaves it as it was.
     if (this.#column < start || this.#column >= start + cell.colSpan) this.#column = start;
@@ -312,6 +394,10 @@ class Grid extends IzzyElement {
     this.#prepare();
     this.#frozen();
     const rows = this.#rows;
+    if (this.#count) {
+      this.#window(rows);
+      return;
+    }
     const data = this.#bodyRows.filter((row) => row.cells.length > 1);
     if (this.#arrive && data[0] && data[0].dataset.ibKey !== this.#arrive.from) {
       const row = this.#arrive.to === "first" ? data[0] : data[data.length - 1];
@@ -323,7 +409,7 @@ class Grid extends IzzyElement {
       // The page failed: Retry takes focus. An empty row with nothing in it may be a page on its way.
       const message = this.#bodyRows[0];
       const active = document.activeElement;
-      if (message && this.#controlsOf(message).length > 0 && (!active || active === document.body)) {
+      if (message && this.#controlsOf(message).length > 0 && active === document.body) {
         this.#arrive = null;
         this.#focusCell(message.cells[0]);
       }
@@ -332,7 +418,7 @@ class Grid extends IzzyElement {
     if (!this.#inGrid || rows.length === 0 || this.#arrive) return;
     // Lost: its row went, or enhanced navigation took the cell's tabindex (a header's too).
     const active = document.activeElement;
-    const lost = !active || active === document.body;
+    const lost = active === document.body;
     const row = this.#key === null ? null : rows.find((r) => r.dataset.ibKey === this.#key);
     if (row && !row.contains(active)) {
       this.#focusCell(this.#atColumn(row, this.#column));
@@ -470,7 +556,7 @@ class Grid extends IzzyElement {
     if (!box || box.type !== "checkbox") return false;
     const rows = this.#rows.filter((row) => row.querySelector(":scope > td > .ib-table-select:not(:disabled)"));
     const next = rows[rows.indexOf(cell.parentElement as HTMLTableRowElement) + (key === "ArrowDown" ? 1 : -1)];
-    if (!next) return true;
+    if (!next || (this.#run && !this.#run.anchor.isConnected)) return true;
     this.#run = extendRange(this.#run, rows.map((row) => this.#boxOf(row.cells[0])!), box, this.#boxOf(next.cells[0])!);
     this.#focusCell(this.#atColumn(next, this.#column));
     return true;
@@ -484,6 +570,10 @@ class Grid extends IzzyElement {
     const row = cell.parentElement as HTMLTableRowElement;
     const cells = this.#visibleCells(row);
     const body = this.#bodyRows;
+    if (modifier && this.#count && (event.key === "Home" || event.key === "End")) {
+      this.#goTo(event.key === "Home" ? 2 : this.#count - (this.#table!.tFoot ? 1 : 0));
+      return true;
+    }
     if (modifier) {
       if (event.key === "Home") {
         const first = body[0] ?? rows[0];
@@ -499,6 +589,10 @@ class Grid extends IzzyElement {
     switch (event.key) {
       case "ArrowDown":
       case "ArrowUp": {
+        if (this.#count) {
+          this.#goTo((this.#seek ?? this.#nth(row)) + (event.key === "ArrowDown" ? 1 : -1));
+          return true;
+        }
         const next = rows[rows.indexOf(row) + (event.key === "ArrowDown" ? 1 : -1)];
         if (next) this.#focusCell(this.#atColumn(next, this.#column));
         return true;
@@ -529,6 +623,11 @@ class Grid extends IzzyElement {
     if (body.length === 0) return;
     const down = event.key === "PageDown";
     const row = cell.parentElement as HTMLTableRowElement;
+    if (this.#count) {
+      const rows = Math.max(1, Math.floor(this.#box!.clientHeight / body[0].offsetHeight) - 1);
+      this.#goTo(Math.max(2, this.#nth(row) + (down ? rows : -rows)));
+      return;
+    }
     const at = body.indexOf(row);
     if (at < 0) {
       // From a header, down to the first row; from a footer, up to the last.

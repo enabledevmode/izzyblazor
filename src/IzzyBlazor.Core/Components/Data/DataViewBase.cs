@@ -198,6 +198,17 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <summary>A bound parameter of the derived view that also keeps state in the component (a Table's sort or filter).</summary>
     internal virtual bool ExtraBound => false;
 
+    /// <summary>Whether the rows draw as they scroll into view: then there are no pages, and this loads the first for the total.</summary>
+    internal virtual bool VirtualRows => false;
+
+    /// <summary>Virtual rows, drawn or falling back to loading on scroll: the provider gives a total, and there's no cursor to follow.</summary>
+    internal virtual bool ByTotal => false;
+
+    /// <summary>The request a load made is now the one to read from: a view drawing virtual rows starts them.</summary>
+    internal virtual void Requested()
+    {
+    }
+
     /// <summary>The bound sort, for a view that sorts.</summary>
     internal virtual string? SortParameter => null;
 
@@ -531,6 +542,8 @@ public abstract partial class DataViewBase<TItem> : IDisposable
                 query.TryGetValue(CursorKey, out var c) ? c.ToString() : null);
     }
 
+    private const int MaxGrownRows = 2000;
+
     internal sealed record LoadKey(string? Sort, string? Page, string? Cursor, string Filters, object? Items, object? Provider, int? PageSize);
 
     internal LoadKey? _loadedKey;
@@ -540,7 +553,7 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     // found by reflection; the DynamicDependency keeps them in a trimmed app.
     [System.Diagnostics.CodeAnalysis.DynamicDependency(System.Diagnostics.CodeAnalysis.DynamicallyAccessedMemberTypes.PublicMethods, typeof(Enumerable))]
     [System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026", Justification = "The DynamicDependency keeps the Enumerable methods the in-memory query binds to.")]
-    private static IQueryable<TItem> AsQuery(IEnumerable<TItem> items) => items as IQueryable<TItem> ?? items.AsQueryable();
+    internal static IQueryable<TItem> AsQuery(IEnumerable<TItem> items) => items as IQueryable<TItem> ?? items.AsQueryable();
 
     internal async Task LoadAsync()
     {
@@ -563,14 +576,15 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         // page is page 1 whatever the URL says.
         var maxPage = pageSize is > 0 and var size0 ? int.MaxValue / size0 : int.MaxValue;
         var asked = int.TryParse(pageRaw, out var number) ? Math.Clamp(number, 1, maxPage) : 1;
-        var shownPages = growing ? asked : 1;
-        var page = growing || (byCursor && cursor is null) ? 1 : asked;
+        // A static fallback for a long list stops somewhere, or ?page=999999 would draw it all.
+        var shownPages = !growing ? 1 : ByTotal ? Math.Min(asked, Math.Max(1, MaxGrownRows / pageSize!.Value)) : asked;
+        var page = growing || VirtualRows || (byCursor && cursor is null) ? 1 : asked;
         var request = Shape(new DataRequest<TItem>
         {
             Skip = pageSize is { } size1 ? (page - 1) * size1 : 0,
             Take = pageSize * shownPages,
             Cursor = cursor,
-            NeedsTotal = !byCursor,
+            NeedsTotal = !byCursor || ByTotal,
             CancellationToken = cts.Token,
             // No fields of its own (a Table's columns add theirs), so request.Apply(query) works in a provider.
             Fields = [],
@@ -605,6 +619,11 @@ public abstract partial class DataViewBase<TItem> : IDisposable
                 }
 
                 (items, total, next, previous) = (result.Items, result.Total, result.Next, result.Previous);
+                if (ByTotal && growing && total > items.Count)
+                {
+                    next ??= "more";
+                }
+
                 noTotal = !byCursor && pageSize is not null && result.Total is null;
 
                 // A page past the end shows the last page.
@@ -656,8 +675,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
         if (noTotal)
         {
-            throw new InvalidOperationException(
-                $"The {ViewName}'s {nameof(ItemsProvider)} returned no {nameof(DataResult<TItem>.Total)}, which numbered pages need. " +
+            throw new InvalidOperationException(VirtualRows
+                ? $"A {ViewName} with virtual rows needs its {nameof(ItemsProvider)} to return a {nameof(DataResult<TItem>.Total)}."
+                : $"The {ViewName}'s {nameof(ItemsProvider)} returned no {nameof(DataResult<TItem>.Total)}, which numbered pages need. " +
                 $"Return the total, or set {nameof(Paging)} to page by cursor (DataPaging.{nameof(DataPaging.NextPrevious)} or DataPaging.{nameof(DataPaging.LoadMore)}).");
         }
 
@@ -678,6 +698,16 @@ public abstract partial class DataViewBase<TItem> : IDisposable
         (_cursor, _next, _previous) = byCursor ? (cursor, next, previous) : (null, null, null);
         // Pages added later are one page each, after the ones loaded here.
         (_loadedRequest, _loadedSize) = (request with { Take = pageSize }, pageSize ?? 0);
+        if (ByTotal && growing && (shownPages + 1) * pageSize!.Value > MaxGrownRows)
+        {
+            _next = null;
+        }
+
+        if (VirtualRows)
+        {
+            Requested();
+        }
+
         _pageStarts.Clear();
         _rowRefs.Clear();
         _focusRow = null;
@@ -844,7 +874,8 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     // and no Load more under way, it reloads, as the other modes do: the same list may have changed.)
     private bool KeepsAddedPages()
     {
-        if (!Appending || (_lastPage == _page && !_loadingMore) || _loadedKey is not { } loaded)
+        // Nor do virtual rows go back to the top, or ask again, for a parent's re-render.
+        if ((!VirtualRows && (!Appending || (_lastPage == _page && !_loadingMore))) || _loadedKey is not { } loaded)
         {
             return false;
         }

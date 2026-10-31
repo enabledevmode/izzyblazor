@@ -2,12 +2,150 @@
 @typeparam TItem
 @inherits DataViewBase<TItem>
 @using Microsoft.AspNetCore.Components.Routing
+@using Microsoft.AspNetCore.Components.Web.Virtualization
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
 
 @* What Table and DataGrid share: columns, sort, filters, and the table they draw. See Table.razor. *@
 
 @code {
+    private RenderFragment SkeletonRow => __builder =>
+    {
+        <tr class="ib-table-skeleton-row" aria-hidden="true" style="@VirtualRowStyle">
+            @if (Selectable)
+            {
+                <td class="@SelectCellClass"></td>
+            }
+            @foreach (var column in Shown)
+            {
+                <td class="@CellClass(column)" style="@CellStyle(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
+            }
+            @LastEmptyCell
+        </tr>
+    };
+
+    // One row. With virtual rows, absolute is its place among all the rows, and it's kept by that.
+    private RenderFragment DataRow(TItem item, int row, int? absolute) => __builder =>
+    {
+        var key = KeyOf(item);
+        var href = RowHref?.Invoke(item);
+        @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + 2)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@VirtualRowStyle" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+            @if (Selectable)
+            {
+                <td class="@SelectCellClass">
+                    <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
+                           aria-label="@SelectLabel(item)"
+                           checked="@IsSelected(item, key)"
+                           disabled="@(!CanSelect(item))"
+                           @onchange="e => OnSelectChanged(key, e)" />
+                </td>
+            }
+            @{ var first = true; }
+            @foreach (var column in Shown)
+            {
+                <td class="@CellClass(column)" style="@CellStyle(column)">
+                    @if (first && href is not null)
+                    {
+                        @* One link per row, stretched over it; controls in the row stay clickable above it. *@
+                        <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
+                    }
+                    @column.Cell(item)
+                </td>
+                first = false;
+            }
+            @LastCell(item)
+        </tr>
+    };
+
+    private readonly record struct VirtualRow(int Index, TItem Item);
+
+    /// <summary>The rows draw through Virtualize, as they scroll into view.</summary>
+    internal virtual double VirtualRowHeight => 48;
+
+    private ItemsProviderDelegate<VirtualRow>? _windowProvider;
+    private RenderFragment<VirtualRow>? _virtualRowContent;
+    private Virtualize<VirtualRow>? _virtualize;
+    // Which list the rows are of: a new sort or filter starts them again from the top, and the same
+    // one loaded again (an edit) stays where it is.
+    private int _virtualLoad;
+    private object? _virtualShape;
+    private bool _firstWindowLoaded;
+
+    // Called directly, not added as content: that would put each row in a region of its own, where its
+    // key has no neighbors to match, and a row staying in view would be rebuilt, focus and all.
+    private RenderFragment<VirtualRow> VirtualRowContent => _virtualRowContent ??= drawn => builder => DataRow(drawn.Item, drawn.Index, drawn.Index)(builder);
+
+    private ItemsProviderDelegate<VirtualRow> WindowProvider => _windowProvider ??= LoadWindowAsync;
+
+    private string? VirtualRowStyle => VirtualRows ? $"height:{VirtualRowHeight.ToString(System.Globalization.CultureInfo.InvariantCulture)}px" : null;
+
+    private bool HasFooterRow => Shown.Any(c => c.HasFooter);
+
+    private async ValueTask<ItemsProviderResult<VirtualRow>> LoadWindowAsync(ItemsProviderRequest window)
+    {
+        if (_loadedRequest is not { } basis)
+        {
+            return new([], 0);
+        }
+
+        // The first page has just loaded, for the total: no need to ask again.
+        if (_firstWindowLoaded && window.StartIndex == 0 && window.Count <= _items.Count)
+        {
+            _firstWindowLoaded = false;
+            _items = _items.Take(window.Count).ToList();
+            return new(_items.Select((item, i) => new VirtualRow(i, item)), _total ?? 0);
+        }
+
+        _firstWindowLoaded = false;
+        // A slower answer to an older list must not touch this one.
+        var version = _loadVersion;
+        var request = basis with { Skip = window.StartIndex, Take = window.Count, Cursor = null, NeedsTotal = true, CancellationToken = window.CancellationToken };
+        try
+        {
+            IReadOnlyList<TItem> items;
+            int total;
+            if (ItemsProvider is not null)
+            {
+                var result = await ItemsProvider(request);
+                (items, total) = (result.Items, result.Total ?? throw new InvalidOperationException($"A {ViewName} with virtual rows needs its {nameof(ItemsProvider)} to return a {nameof(DataResult<TItem>.Total)}."));
+            }
+            else
+            {
+                var sorted = request.ApplySorting(request.ApplyFiltering(AsQuery(SourceItems ?? [])));
+                (items, total) = (sorted.Skip(window.StartIndex).Take(window.Count).ToList(), sorted.Count());
+            }
+
+            if (version != _loadVersion)
+            {
+                return new([], _total ?? 0);
+            }
+
+            // What's drawn, for Select all's state, and the total, for the count. None back isn't "no rows".
+            if (items.Count > 0 || total == 0)
+            {
+                _items = items;
+            }
+
+            _total = total;
+            await InvokeAsync(StateHasChanged);
+            return new(items.Select((item, i) => new VirtualRow(window.StartIndex + i, item)), total);
+        }
+        // Only Virtualize's own cancelling is expected: a provider's timeout is a failure like any other.
+        catch (Exception ex) when (ex is not OperationCanceledException || !window.CancellationToken.IsCancellationRequested)
+        {
+            if (version != _loadVersion)
+            {
+                return new([], _total ?? 0);
+            }
+
+            Logger?.LogError(ex, "The {View}'s rows failed to load.", ViewName);
+            _loadError = ex;
+            await InvokeAsync(StateHasChanged);
+            return new([], _total ?? 0);
+        }
+    }
+
     // The inside of the root element, which each view draws itself.
     internal RenderFragment Body => __builder =>
     {
@@ -61,14 +199,14 @@
             }
             @ErrorStatus
             <div class="ib-table-scroll" role="region" aria-label="@(Caption ?? TextDefaults.TableName)" tabindex="0" style="@ScrollStyle" @ref="_scrollRef">
-                <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)">
+                <table class="ib-table-grid" style="@GridStyle" aria-busy="@(IsLoading ? "true" : null)" aria-rowcount="@(VirtualRows ? (_total ?? 0) + 1 + (HasFooterRow ? 1 : 0) : null)" data-ib-load="@(VirtualRows ? _virtualLoad : null)">
                     @if (Caption is not null)
                     {
                         <caption class="ib-visually-hidden">@Caption</caption>
                     }
                     @ColGroup
                 <thead>
-                        <tr>
+                        <tr aria-rowindex="@(VirtualRows ? 1 : null)">
                             @if (Selectable)
                             {
                                 @* Select all (this page): script only; it checks the rows, which report their own changes. *@
@@ -111,6 +249,7 @@
                         @if (_loadError is not null)
                         {
                             @* In place of the rows: what went wrong and a way to try again. *@
+                            _virtualShape = null;
                             <tr class="ib-table-empty ib-table-error">
                                 <td colspan="@Math.Max(1, Shown.Count + (Selectable ? 1 : 0) + (LastHeaderCell is null ? 0 : 1))">
                                     <div class="ib-table-empty-content ib-data-error-content">
@@ -124,17 +263,7 @@
                         {
                             @for (var i = 0; i < SkeletonRows; i++)
                             {
-                                <tr class="ib-table-skeleton-row" aria-hidden="true">
-                                    @if (Selectable)
-                                    {
-                                        <td class="@SelectCellClass"></td>
-                                    }
-                                    @foreach (var column in Shown)
-                                    {
-                                        <td class="@CellClass(column)" style="@CellStyle(column)"><span class="ib-skeleton ib-table-skeleton"></span></td>
-                                    }
-                                    @LastEmptyCell
-                                </tr>
+                                @SkeletonRow
                             }
                         }
                         else if (_items.Count == 0)
@@ -156,46 +285,23 @@
                         }
                         else
                         {
-                            @for (var index = 0; index < _items.Count; index++)
+                            @if (VirtualRows)
                             {
-                                var row = index;
-                                var item = _items[row];
-                                var key = KeyOf(item);
-                                var href = RowHref?.Invoke(item);
-                                @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-                                <tr class="@RowClasses(item, href)" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[row]">
-                                    @if (Selectable)
-                                    {
-                                        <td class="@SelectCellClass">
-                                            <input type="@(MultiSelect ? "checkbox" : "radio")" class="ib-check-input ib-table-select" name="@SelectionKeysName" value="@key"
-                                                   aria-label="@SelectLabel(item)"
-                                                   checked="@IsSelected(item, key)"
-                                                   disabled="@(!CanSelect(item))"
-                                                   @onchange="e => OnSelectChanged(key, e)" />
-                                        </td>
-                                    }
-                                    @{ var first = true; }
-                                    @foreach (var column in Shown)
-                                    {
-                                        <td class="@CellClass(column)" style="@CellStyle(column)">
-                                            @if (first && href is not null)
-                                            {
-                                                @* One link per row, stretched over it; controls in the row stay clickable above it. *@
-                                                <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
-                                            }
-                                            @column.Cell(item)
-                                        </td>
-                                        first = false;
-                                    }
-                                    @LastCell(item)
-                                </tr>
+                                <Virtualize @key="_virtualLoad" @ref="_virtualize" TItem="VirtualRow" ItemsProvider="WindowProvider" ItemContent="VirtualRowContent" Placeholder="@(_ => SkeletonRow)" ItemSize="(float)VirtualRowHeight" OverscanCount="5" SpacerElement="tr" />
+                            }
+                            else
+                            {
+                                @for (var index = 0; index < _items.Count; index++)
+                                {
+                                    @DataRow(_items[index], index, null)
+                                }
                             }
                         }
                     </tbody>
                     @if (Shown.Any(c => c.HasFooter))
                     {
                         <tfoot>
-                            <tr>
+                            <tr aria-rowindex="@(VirtualRows ? (_total ?? 0) + 2 : null)">
                                 @if (Selectable)
                                 {
                                     <td class="@SelectCellClass"></td>
@@ -1140,7 +1246,26 @@
     internal override string? AccessibleName => Caption;
 
     /// <inheritdoc />
-    internal override void Loaded() => _sorts = _shapedSort;
+    internal override void Loaded()
+    {
+        _sorts = _shapedSort;
+    }
+
+    /// <inheritdoc />
+    internal override void Requested()
+    {
+        var shape = (_loadedKey?.Sort, _loadedKey?.Filters, _loadedKey?.PageSize);
+        if (!shape.Equals(_virtualShape))
+        {
+            _virtualShape = shape;
+            _virtualLoad++;
+            _firstWindowLoaded = true;
+        }
+        else if (_virtualize is not null)
+        {
+            _ = _virtualize.RefreshDataAsync();
+        }
+    }
 
     /// <inheritdoc />
     internal override ValueTask FocusAfterRetryAsync() => _scrollRef.FocusAsync();

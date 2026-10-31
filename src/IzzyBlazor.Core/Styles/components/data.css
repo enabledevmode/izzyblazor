@@ -393,8 +393,16 @@
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
-  .ib-table-striped .ib-table-grid tbody tr:nth-child(even) > td {
+  .ib-table-striped .ib-table-grid tbody tr:nth-child(even):where(:not([aria-rowindex])) > td,
+  .ib-table-striped .ib-table-grid tbody tr[data-ib-even] > td {
     background-color: var(--ib-table-stripe);
+  }
+
+  /* Rows that draw as they scroll are all one height, or the scroll bar would wander. */
+  .ib-datagrid-virtual .ib-table-grid tbody tr:is([aria-rowindex], .ib-table-skeleton-row) > td {
+    padding-block: 0;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   /* The whole head sticks with the rows scrolling under it. */
@@ -1109,7 +1117,8 @@
     background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
   }
 
-  .ib-table-striped.ib-datagrid .ib-table-grid tbody tr:nth-child(even) > .ib-frozen {
+  .ib-table-striped.ib-datagrid .ib-table-grid tbody tr:nth-child(even):where(:not([aria-rowindex])) > .ib-frozen,
+  .ib-table-striped.ib-datagrid .ib-table-grid tbody tr[data-ib-even] > .ib-frozen {
     --ib-frozen-tint: var(--ib-table-stripe);
   }
 

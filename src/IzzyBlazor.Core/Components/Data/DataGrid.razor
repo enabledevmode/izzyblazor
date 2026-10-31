@@ -42,6 +42,13 @@
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
+    Virtualize draws only the rows in view, for tens of thousands of them, on an interactive page: give
+    it a MaxHeight, and keep rows to one line of RowHeight. An ItemsProvider gets each window as a Skip
+    and Take, and returns the Total. On a static page it loads on scroll instead, by PageSize (50 if
+    not set), up to 2,000 rows. If the focused row scrolls away, focus waits on the scroll box and goes back when it
+    returns, or on the next key, which scrolls to it. Browser find, and Shift ranges of selection,
+    reach the rows drawn; Select all N reaches the rest.
+
     ExportCsvHref and ExportExcelHref add plain links to endpoints the app maps with DataExport. They
     carry the filter, sort, search and visible columns, in every mode and with no script. The
     endpoint's fields decide what's written, and head the file. A download matches the screen when
@@ -134,6 +141,31 @@
     /// </summary>
     [Parameter, ModeSupport(NoScript = ModeLevel.None)]
     public bool ColumnPicker { get; set; }
+
+    /// <summary>
+    /// Draws only the rows in view, on an interactive page; on a static page they load on scroll
+    /// instead, by <c>PageSize</c> (50 if not set), up to 2,000 rows. Needs a <c>MaxHeight</c>, and rows
+    /// of one line, as tall as <see cref="RowHeight"/>. An <c>ItemsProvider</c> must return a
+    /// <c>Total</c>, and read each window's <c>Skip</c> and <c>Take</c>, not <c>Page</c>, as a window
+    /// needn't start on a page. It can't take paging by cursor. Pages, and their footer, don't apply.
+    /// </summary>
+    [Parameter] public bool Virtualize { get; set; }
+
+    /// <summary>
+    /// The height of every row, in pixels, with <see cref="Virtualize"/>. Text past it is cut short.
+    /// A control in a cell can't be cut short: a row with a checkbox or a ⋮ button needs at least 33.
+    /// Defaults to 48.
+    /// </summary>
+    [Parameter] public double RowHeight { get; set; } = 48;
+
+    /// <inheritdoc />
+    internal override bool VirtualRows => Virtualize && RendererInfo.IsInteractive;
+
+    /// <inheritdoc />
+    internal override bool ByTotal => Virtualize;
+
+    /// <inheritdoc />
+    internal override double VirtualRowHeight => RowHeight;
 
     /// <summary>
     /// Text beside the icons of the toolbar's own tools, for a grid people use now and then. Without it
@@ -319,6 +351,23 @@
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
+        if (Virtualize)
+        {
+            if (MaxHeight is null)
+            {
+                throw new InvalidOperationException("A DataGrid with Virtualize needs a MaxHeight, for its rows to scroll inside.");
+            }
+
+            if (Paging is not (DataPaging.Pages or DataPaging.LoadOnScroll))
+            {
+                throw new InvalidOperationException("A DataGrid with Virtualize has no pages, so it can't take a Paging.");
+            }
+
+            // Without a runtime to draw rows as they scroll, they load on scroll.
+            Paging = RendererInfo.IsInteractive ? DataPaging.Pages : DataPaging.LoadOnScroll;
+            PageSize ??= 50;
+        }
+
         _shown = null;
         // Bound, it starts from the address, as sort and page do, and then follows the parent.
         if (!_searchReady)
@@ -868,6 +917,7 @@
     protected override void BuildAttributes(ClassBuilder classes, StyleBuilder styles)
     {
         classes.Add("ib-datagrid");
+        classes.Add("ib-datagrid-virtual", VirtualRows);
         base.BuildAttributes(classes, styles);
     }
 }

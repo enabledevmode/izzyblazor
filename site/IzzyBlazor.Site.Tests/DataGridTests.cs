@@ -113,6 +113,155 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
     }
 
+    private static readonly string Focused = """
+        () => {
+          const a = document.activeElement;
+          return a?.closest?.('tr')?.getAttribute('aria-rowindex') ?? (a?.matches?.('.ib-table-scroll') ? 'box' : 'none');
+        }
+        """;
+
+    private static async Task WaitForFocusAsync(IPage page, string row) =>
+        await page.WaitForFunctionAsync($"() => ({Focused})() === '{row}'");
+
+    [Fact]
+    public async Task Virtual_rows_draw_only_whats_in_view_and_the_keys_reach_them_all()
+    {
+        var (playwright, browser, page) = await OpenAsync("interactive");
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Every order" });
+            var table = grid.Locator("table");
+            var box = grid.Locator(".ib-table-scroll");
+            await grid.ScrollIntoViewIfNeededAsync();
+            await grid.Locator("tbody tr[aria-rowindex='2']").WaitForAsync();
+            await page.WaitForFunctionAsync("() => [...document.querySelectorAll('table')].some(t => t.getAttribute('aria-rowcount') === '100001')");
+
+            // A real table, a window of its rows, and no footer of pages.
+            Assert.Equal("grid", await table.GetAttributeAsync("role"));
+            Assert.True(await grid.Locator("tbody tr[aria-rowindex]").CountAsync() < 40);
+            Assert.Equal(0, await grid.Locator(".ib-data-footer").CountAsync());
+
+            // One height, so the scroll bar doesn't wander.
+            var heights = await grid.Locator("tbody tr[aria-rowindex]").EvaluateAllAsync<double[]>("rows => rows.map(r => r.getBoundingClientRect().height)");
+            Assert.All(heights, h => Assert.Equal(40, h, 0.5));
+
+            // Keys, past what's drawn.
+            await grid.Locator("tbody tr[aria-rowindex='2'] td").First.ClickAsync();
+            await page.Keyboard.PressAsync("ArrowDown");
+            await WaitForFocusAsync(page, "3");
+            await page.Keyboard.PressAsync("Control+End");
+            await WaitForFocusAsync(page, "100001");
+            await page.Keyboard.PressAsync("PageUp");
+            await page.WaitForFunctionAsync($"() => +({Focused})() < 100001");
+            await page.Keyboard.PressAsync("Control+Home");
+            await WaitForFocusAsync(page, "2");
+            await page.Keyboard.PressAsync("ArrowUp");
+            await WaitForFocusAsync(page, "1");
+            await page.Keyboard.PressAsync("ArrowDown");
+            await WaitForFocusAsync(page, "2");
+
+            // Held down, past the rows first drawn: focus is never lost, and the keys keep moving it on.
+            for (var i = 0; i < 60; i++)
+            {
+                await page.Keyboard.PressAsync("ArrowDown");
+                await page.WaitForTimeoutAsync(30);
+                Assert.NotEqual("none", await page.EvaluateAsync<string>(Focused));
+            }
+
+            await page.WaitForFunctionAsync($"() => +({Focused})() > 30");
+
+            // A row staying in view is kept as a scroll shifts the window, with whatever's in it.
+            var kept = await page.EvaluateHandleAsync("() => document.activeElement.closest('tr')");
+            await box.EvaluateAsync("b => b.scrollTop += 40");
+            await page.WaitForTimeoutAsync(400);
+            Assert.True(await kept.AsElement()!.EvaluateAsync<bool>("r => r.isConnected"));
+            await page.Keyboard.PressAsync("Control+Home");
+            await WaitForFocusAsync(page, "2");
+
+            // A row on its way: focus waits on the box, not on the page, and goes to it when it comes.
+            await page.Keyboard.PressAsync("Control+End");
+            Assert.NotEqual("none", await page.EvaluateAsync<string>(Focused));
+            await WaitForFocusAsync(page, "100001");
+            await page.Keyboard.PressAsync("Control+Home");
+            await WaitForFocusAsync(page, "2");
+
+            // Keys on the way back to a row scrolled away stay with the grid, not the page behind it.
+            var scrollY = await page.EvaluateAsync<double>("() => scrollY");
+            await box.EvaluateAsync("b => b.scrollTop = 200000");
+            await WaitForFocusAsync(page, "box");
+            for (var i = 0; i < 12; i++)
+            {
+                await page.Keyboard.PressAsync("PageUp");
+            }
+
+            await WaitForFocusAsync(page, "2");
+            Assert.Equal(scrollY, await page.EvaluateAsync<double>("() => scrollY"), 1);
+
+            // Scrolled or left while it's on its way, it doesn't take focus when it comes.
+            await page.Keyboard.PressAsync("Control+End");
+            var search = page.GetByRole(AriaRole.Searchbox).First;
+            await search.FocusAsync();
+            await page.WaitForTimeoutAsync(500);
+            Assert.Equal("INPUT", await page.EvaluateAsync<string>("() => document.activeElement.tagName"));
+            await box.EvaluateAsync("b => b.scrollTop = 0");
+            await grid.Locator("tbody tr[aria-rowindex='2']").WaitForAsync();
+            await grid.Locator("tbody tr[aria-rowindex='2'] td").Nth(1).ClickAsync();
+
+            // A focused row scrolled away: focus waits, and comes back with the next key.
+            await box.EvaluateAsync("b => b.scrollTop = 200000");
+            await WaitForFocusAsync(page, "box");
+            await grid.Locator("tbody tr[aria-rowindex='5001']").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await page.Keyboard.PressAsync("ArrowDown");
+            await WaitForFocusAsync(page, "2");
+            Assert.True(await box.EvaluateAsync<double>("b => b.scrollTop") < 200);
+
+            // Tab from there goes to the row it remembers, not the first one drawn.
+            await box.EvaluateAsync("b => b.scrollTop = 200000");
+            await WaitForFocusAsync(page, "box");
+            await grid.Locator("tbody tr[aria-rowindex='5001']").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await page.Keyboard.PressAsync("Tab");
+            await WaitForFocusAsync(page, "2");
+
+            // Or when the row is back, with what's being scrolled left where it is.
+            await box.EvaluateAsync("b => b.scrollTop = 200000");
+            await WaitForFocusAsync(page, "box");
+            await box.EvaluateAsync("b => b.scrollTop = 0");
+            await WaitForFocusAsync(page, "2");
+
+            // Selection is by key, so it outlasts the row's being drawn.
+            var check = grid.Locator("tbody tr[aria-rowindex='3'] .ib-table-select");
+            await check.CheckAsync();
+            await box.EvaluateAsync("b => b.scrollTop = 200000");
+            await grid.Locator("tbody tr[aria-rowindex='5001']").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            Assert.Equal(0, await check.CountAsync());
+            await box.EvaluateAsync("b => b.scrollTop = 0");
+            await check.WaitForAsync();
+            Assert.True(await check.IsCheckedAsync());
+
+            // A new sort starts from the top.
+            await box.EvaluateAsync("b => b.scrollTop = 200000");
+            await grid.Locator("tbody tr[aria-rowindex='5001']").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+            await page.EvaluateAsync("() => document.querySelector('.ib-datagrid:has(table[aria-rowcount]) thead a, .ib-datagrid:has(table[aria-rowcount]) thead button[data-ib-primary]').click()");
+            await page.WaitForFunctionAsync("() => document.querySelector('table[aria-rowcount]').closest('.ib-table-scroll').scrollTop === 0");
+            await grid.Locator("tbody tr[aria-rowindex='2']").WaitForAsync();
+        }
+    }
+
+    [Fact]
+    public async Task On_a_static_page_virtual_rows_load_on_scroll()
+    {
+        var (playwright, browser, page) = await OpenAsync("static");
+        using (playwright)
+        await using (browser)
+        {
+            var grid = page.Locator(".ib-datagrid", new() { HasText = "Every order" });
+            Assert.Equal(20, await grid.Locator("tbody tr").CountAsync());
+            Assert.Equal(0, await grid.Locator("table[aria-rowcount]").CountAsync());
+            Assert.NotNull(await grid.GetAttributeAsync("data-ib-load-on-scroll"));
+        }
+    }
+
     private static async Task Expect(ILocator link, string part)
     {
         for (var i = 0; i < 50 && !((await link.GetAttributeAsync("href")) ?? "").Contains(part, StringComparison.Ordinal); i++)

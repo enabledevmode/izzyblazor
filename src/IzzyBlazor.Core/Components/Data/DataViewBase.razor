@@ -8,7 +8,7 @@
     // control is inline, after the last item (MoreRow). Its classes are Table's, which drew it first.
     internal RenderFragment Footer(string pagesLabel) => __builder =>
     {
-        if (EffectivePageSize is not { } size || !ShowFooter || Appending)
+        if (EffectivePageSize is not { } size || !ShowFooter || Appending || VirtualRows)
         {
             return;
         }
