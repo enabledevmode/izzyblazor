@@ -469,7 +469,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
             await total.ClickAsync(new() { Modifiers = [KeyboardModifier.Shift] });
             await SortIs("customer,-total");
-            await page.Locator(".ib-datagrid >> nth=0 >> th", new() { HasText = "Sort 2, descending" }).WaitForAsync();
+            await grid.Locator("th", new() { HasText = "Sort 2, descending" }).WaitForAsync();
 
             await total.ClickAsync(new() { Modifiers = [KeyboardModifier.Shift] });
             await SortIs("customer");
