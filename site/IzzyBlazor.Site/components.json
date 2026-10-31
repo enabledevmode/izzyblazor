@@ -686,7 +686,7 @@
     {
       "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Forms", "summary": "A date, or a date and time, in the browser's own input.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
       "features": [
-        { "feature": "The browser's calendar, with Min, Max and Step checked before posting" },
+        { "feature": "The browser's calendar, with Min, Max and Step checked before posting, and Min and Max checked again on the server" },
         { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
         { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
