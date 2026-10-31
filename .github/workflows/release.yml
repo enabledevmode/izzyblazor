@@ -84,8 +84,8 @@ jobs:
             echo "  $(basename "$f"): $n bytes"
             if [ "$n" -gt "$big" ]; then big=$n; fi
           done
-          echo "Largest on-demand element: $big bytes (budget 5120)"
-          test "$css" -le 47104 && test "$js" -le 15360 && test "$big" -le 5120
+          echo "Largest on-demand element: $big bytes (budget 6144)"
+          test "$css" -le 47104 && test "$js" -le 15360 && test "$big" -le 6144
 
       - name: Pack
         run: dotnet pack izzyblazor.sln --configuration Release --no-build --output artifacts

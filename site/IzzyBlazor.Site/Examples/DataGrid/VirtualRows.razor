@@ -1,0 +1,25 @@
+@* 100,000 rows, of which only those in view are drawn, each window read as a database would be. Switch
+   this page to Interactive to see it; a static page loads more on scroll instead. *@
+@using IzzyBlazor.Site.Examples.Table
+<DataGrid TItem="Order" ItemsProvider="LoadAsync" ItemKey="o => o.Number.ToString()" Caption="Every order" Virtualize RowHeight="40" MaxHeight="24.Rem" PageSize="20" SelectionMode="SelectionMode.Multiple" SelectionName="every" QueryPrefix="every-" Grow>
+    <PropertyColumn Property="o => o.Number" Sortable Align="CellAlign.Start" Width="8.Rem" />
+    <PropertyColumn Property="o => o.Customer" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+</DataGrid>
+
+@code {
+    private static readonly IReadOnlyList<Order> Many = Enumerable.Range(1, 100_000)
+        .Select(i => Orders.All[i % Orders.All.Count] with { Number = i })
+        .ToList();
+
+    private async ValueTask<DataResult<Order>> LoadAsync(DataRequest<Order> request)
+    {
+        // As long as a query takes, so you can see rows on their way.
+        if (RendererInfo.IsInteractive)
+        {
+            await Task.Delay(150, request.CancellationToken);
+        }
+
+        return request.ToResult(Many.AsQueryable());
+    }
+}

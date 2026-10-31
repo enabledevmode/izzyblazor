@@ -596,6 +596,136 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void Virtual_rows_need_a_height_to_scroll_in_and_cant_take_a_paging()
+    {
+        var error = Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.Virtualize, true)));
+        Assert.Contains("MaxHeight", error.Message);
+
+        error = Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.Virtualize, true).Add(x => x.MaxHeight, Length.Rem(20)).Add(x => x.Paging, DataPaging.NextPrevious).Add(x => x.PageSize, 1)));
+        Assert.Contains("Paging", error.Message);
+    }
+
+    [Fact]
+    public void Without_a_runtime_virtual_rows_load_on_scroll_and_are_a_plain_table()
+    {
+        var cut = Grid(NameAndQty, p => p.Add(x => x.Virtualize, true).Add(x => x.MaxHeight, Length.Rem(20)).Add(x => x.PageSize, 1));
+        Assert.True(cut.Find("ib-table").HasAttribute("data-ib-load-on-scroll"));
+        Assert.Null(cut.Find("table").GetAttribute("aria-rowcount"));
+        Assert.Single(cut.FindAll("tbody tr"));
+    }
+
+    // A grid drawing virtual rows, from a provider of many rows. A window (Take isn't the page size)
+    // waits for the test, when one is set.
+    private (IRenderedComponent<DataGrid<Row>> Cut, List<DataRequest<Row>> Asked) VirtualGrid(Func<DataRequest<Row>, ValueTask<DataResult<Row>>>? answer = null, int pageSize = 1)
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var asked = new List<DataRequest<Row>>();
+        var cut = Render<DataGrid<Row>>(p => p
+            .Add(x => x.ChildContent, NameAndQty)
+            .Add(x => x.Virtualize, true)
+            .Add(x => x.MaxHeight, Length.Rem(20))
+            .Add(x => x.PageSize, pageSize)
+            .Add(x => x.ItemsProvider, request =>
+            {
+                asked.Add(request);
+                return answer?.Invoke(request) ?? new ValueTask<DataResult<Row>>(Answer(request));
+            }));
+        return (cut, asked);
+    }
+
+    private static DataResult<Row> Answer(DataRequest<Row> request, int total = 1000) =>
+        new(Enumerable.Range(request.Skip, Math.Min(request.Take ?? 1, 2100)).Select(i => new Row($"r{i}", i)).ToList(), total);
+
+    [Fact]
+    public void Virtual_rows_stay_where_they_are_for_a_parents_render_and_dont_ask_again()
+    {
+        var (cut, asked) = VirtualGrid();
+        cut.WaitForAssertion(() => Assert.Equal("1001", cut.Find("table").GetAttribute("aria-rowcount")));
+        var load = cut.Find("table").GetAttribute("data-ib-load");
+        var times = asked.Count;
+
+        cut.Render(p => p.Add(x => x.Caption, "Another"));
+        Assert.Equal(load, cut.Find("table").GetAttribute("data-ib-load"));
+        Assert.Equal(times, asked.Count);
+    }
+
+    [Fact]
+    public async Task Virtual_rows_loaded_again_stay_where_they_are_and_a_new_sort_starts_over()
+    {
+        var (cut, asked) = VirtualGrid();
+        cut.WaitForAssertion(() => Assert.Equal("1001", cut.Find("table").GetAttribute("aria-rowcount")));
+        var load = cut.Find("table").GetAttribute("data-ib-load");
+        var times = asked.Count;
+
+        await cut.InvokeAsync(() => cut.Instance.ReloadAsync());
+        cut.WaitForAssertion(() => Assert.True(asked.Count > times));
+        Assert.Equal(load, cut.Find("table").GetAttribute("data-ib-load"));
+
+        cut.Render(p => p.Add(x => x.InitialSort, "-qty"));
+        Nav.NavigateTo("?sort=name");
+        cut.WaitForAssertion(() => Assert.NotEqual(load, cut.Find("table").GetAttribute("data-ib-load")));
+    }
+
+    [Fact]
+    public async Task An_older_windows_answer_doesnt_touch_a_newer_list()
+    {
+        var slow = new TaskCompletionSource<DataResult<Row>>();
+        DataRequest<Row>? held = null;
+        var (cut, _) = VirtualGrid(request =>
+        {
+            // The window on the first list waits; everything else is the new list, of 50.
+            if (held is null && request.Take > 1)
+            {
+                held = request;
+                return new ValueTask<DataResult<Row>>(slow.Task);
+            }
+
+            return new ValueTask<DataResult<Row>>(Answer(request, held is null ? 1000 : 50));
+        });
+        cut.WaitForAssertion(() => Assert.NotNull(held));
+
+        Nav.NavigateTo("?sort=name");
+        cut.WaitForAssertion(() => Assert.Equal("51", cut.Find("table").GetAttribute("aria-rowcount")));
+
+        await cut.InvokeAsync(() => slow.SetResult(Answer(held!, 1000)));
+        Assert.Equal("51", cut.Find("table").GetAttribute("aria-rowcount"));
+        Assert.DoesNotContain("r999", cut.Markup);
+    }
+
+    [Fact]
+    public void A_providers_own_timeout_in_a_window_is_a_failure_to_retry_not_a_crash()
+    {
+        var (cut, _) = VirtualGrid(request => request.Take > 1
+            ? ValueTask.FromException<DataResult<Row>>(new TaskCanceledException("Timed out."))
+            : new ValueTask<DataResult<Row>>(Answer(request)));
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".ib-table-error")));
+    }
+
+    [Fact]
+    public void Without_a_runtime_a_providers_total_is_enough_to_load_more_and_the_rows_stop_somewhere()
+    {
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        var asked = new List<DataRequest<Row>>();
+        var cut = Render<DataGrid<Row>>(p => p
+            .Add(x => x.ChildContent, NameAndQty)
+            .Add(x => x.Virtualize, true)
+            .Add(x => x.MaxHeight, Length.Rem(20))
+            .Add(x => x.PageSize, 500)
+            .Add(x => x.ItemsProvider, request =>
+            {
+                asked.Add(request);
+                return new ValueTask<DataResult<Row>>(request.NeedsTotal ? Answer(request) : new(Answer(request).Items, null));
+            }));
+        Assert.Single(cut.FindAll("[data-ib-load-next]"));
+
+        Nav.NavigateTo("?page=999999");
+        cut.Render();
+        cut.WaitForAssertion(() => Assert.Equal(2000, asked[^1].Take));
+        Assert.Empty(cut.FindAll("[data-ib-load-next]"));
+    }
+
+    [Fact]
     public void A_tool_outside_a_grid_says_where_it_goes()
     {
         var error = Assert.Throws<InvalidOperationException>(() => Render<DataGridSearch>());
