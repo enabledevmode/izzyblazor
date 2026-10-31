@@ -109,8 +109,8 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             Assert.False(await Box(panel, "High").IsCheckedAsync());
             await AddressIsAsync(page, "f-priority-none=1");
             await RowsAreAsync(table, 0);
-            await Assertions.Expect(table.Locator(".ib-table-empty-content")).ToHaveTextAsync("Nothing is selected under Priority.");
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags .ib-tag")).ToContainTextAsync("Priority: none");
+            await Assertions.Expect(table.Locator(".ib-table-empty-content")).ToContainTextAsync("Nothing is selected under Priority.");
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Priority: none']")).ToBeVisibleAsync();
 
             await all.ClickAsync();
             await AddressIsAsync(page, "");
@@ -153,7 +153,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             await Box(panel, "Refunded").UncheckAsync();
             await panel.Locator("[data-ib-filter-clear]").ClickAsync();
 
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags")).ToBeHiddenAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(0);
             await Assertions.Expect(page.Locator("[popover]:popover-open .ib-table-filter-panel")).ToHaveCountAsync(0);
             await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status']")).ToBeFocusedAsync();
         }
@@ -172,45 +172,8 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         }
     }
 
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task Removing_a_tag_drops_a_tick_waiting_on_its_pause(string mode)
-    {
-        var (browser, page, table) = await OpenAsync(mode, query: "&lists-f-priority=High&lists-f-priority=Low&lists-f-open=true");
-        await using (browser)
-        {
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            await Box(panel, "Low").UncheckAsync();
-            await table.Locator(".ib-table-filter-tags .ib-tag", new() { HasText = "Priority" }).Locator("a").ClickAsync();
-
-            await AddressIsAsync(page, "f-open=true");
-            await page.WaitForTimeoutAsync(700);
-            await AddressIsAsync(page, "f-open=true");
-            await Assertions.Expect(table.Locator("input[name='lists-f-priority'][value='Low']")).ToBeCheckedAsync();
-        }
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task Clear_drops_a_tick_waiting_on_its_pause(string mode)
-    {
-        var (browser, page, table) = await OpenAsync(mode, query: "&lists-f-priority=High&lists-f-priority=Low&lists-f-open=true");
-        await using (browser)
-        {
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            await Box(panel, "Low").UncheckAsync();
-            await table.Locator(".ib-table-filter-tags a", new() { HasText = "Clear" }).ClickAsync();
-
-            await AddressIsAsync(page, "");
-            await page.WaitForTimeoutAsync(700);
-            await AddressIsAsync(page, "");
-        }
-    }
-
     [Fact]
-    public async Task A_tick_made_while_a_removal_is_on_its_way_doesnt_bring_it_back()
+    public async Task A_tick_made_while_a_Clear_is_on_its_way_doesnt_bring_it_back()
     {
         var (browser, page, table) = await OpenAsync("static", query: "&lists-f-open=true");
         await using (browser)
@@ -220,7 +183,8 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
                 await Task.Delay(1200);
                 await route.ContinueAsync();
             });
-            await table.Locator(".ib-table-filter-tags .ib-tag a").ClickAsync();
+            var open = await OpenPanelAsync(page, table, "Open");
+            await open.Locator("[data-ib-filter-clear]").ClickAsync();
             var panel = await OpenPanelAsync(page, table, "Priority");
             await Box(panel, "Low").UncheckAsync();
 
@@ -271,6 +235,26 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             await page.WaitForTimeoutAsync(1200);
 
             Assert.DoesNotContain("lists-", page.Url, StringComparison.Ordinal);
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Filtering_doesnt_move_the_table(string mode)
+    {
+        var (browser, page, table) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var head = table.Locator("thead");
+            const string top = "h => h.getBoundingClientRect().top";
+            var before = await head.EvaluateAsync<double>(top);
+            var panel = await OpenPanelAsync(page, table, "Priority");
+            await Box(panel, "Low").UncheckAsync();
+            await AddressIsAsync(page, "f-priority=High&f-priority=Medium&f-priority-blank=1");
+            await page.WaitForTimeoutAsync(500);
+
+            Assert.Equal(before, await head.EvaluateAsync<double>(top));
         }
     }
 
@@ -420,8 +404,8 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             await panel.GetByRole(AriaRole.Button, new() { Name = "Apply" }).ClickAsync();
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await RowsAreAsync(table, 5);
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags .ib-tag")).ToHaveCountAsync(1);
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags .ib-tag")).ToContainTextAsync("Priority: 3 selected");
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Priority: 3 selected']")).ToBeVisibleAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(1);
             Assert.DoesNotContain("f-priority=Low", page.Url, StringComparison.Ordinal);
 
             // Everything ticked and posted reads as no filter, and draws no tag.
@@ -430,7 +414,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             await panel.GetByRole(AriaRole.Button, new() { Name = "Apply" }).ClickAsync();
             await page.WaitForLoadStateAsync(LoadState.NetworkIdle);
             await RowsAreAsync(table, 5);
-            Assert.True(await table.Locator(".ib-table-filter-tags").IsHiddenAsync());
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(0);
 
             // A search box and Select all aren't there to post.
             panel = await OpenPanelAsync(page, table, "Team");
@@ -439,7 +423,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Fact]
-    public async Task A_bound_list_applies_in_C_sharp_and_a_removed_tag_redraws_it()
+    public async Task A_bound_list_applies_in_C_sharp_and_Clear_redraws_it()
     {
         var (browser, page, table) = await OpenAsync("interactive", "Order history");
         await using (browser)
@@ -449,19 +433,18 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             var all = Box(panel, "Select all");
 
             await Box(panel, "Refunded").UncheckAsync();
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags .ib-tag")).ToContainTextAsync("Status: 3 selected");
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status: 3 selected']")).ToBeVisibleAsync();
             Assert.True(await all.EvaluateAsync<bool>("b => b.indeterminate"));
 
             await all.ClickAsync();
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags")).ToBeHiddenAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(0);
             await all.ClickAsync();
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags .ib-tag")).ToContainTextAsync("Status: none");
-            await Assertions.Expect(table.Locator(".ib-table-empty-content")).ToHaveTextAsync("Nothing is selected under Status.");
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label='Filter Status: none']")).ToBeVisibleAsync();
+            await Assertions.Expect(table.Locator(".ib-table-empty-content")).ToContainTextAsync("Nothing is selected under Status.");
             Assert.Equal(url, page.Url);
 
-            await page.Keyboard.PressAsync("Escape");
-            await table.Locator(".ib-table-filter-tags .ib-tag button").ClickAsync();
-            await Assertions.Expect(table.Locator(".ib-table-filter-tags")).ToBeHiddenAsync();
+            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+            await Assertions.Expect(table.Locator("th .ib-table-filter-button[data-active]")).ToHaveCountAsync(0);
             panel = await OpenPanelAsync(page, table, "Status");
             all = Box(panel, "Select all");
             await Assertions.Expect(all).ToBeCheckedAsync();

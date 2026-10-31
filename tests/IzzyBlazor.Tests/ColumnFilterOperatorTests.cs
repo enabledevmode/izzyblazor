@@ -67,8 +67,10 @@ public class ColumnFilterOperatorTests : BunitContext
     private static string? Chosen<T>(IRenderedComponent<T> cut, string name) where T : IComponent =>
         cut.Find($"select[name='{name}'] option[selected]").GetAttribute("value");
 
+    // What the marked funnels say is filtered, and the tags of what no panel shows.
     private static string[] Tags<T>(IRenderedComponent<T> cut) where T : IComponent =>
-        cut.FindAll(".ib-table-filter-tags .ib-tag").Select(t => t.TextContent.Trim()).ToArray();
+        cut.FindAll(".ib-table-filter-button[data-active]").Select(b => b.GetAttribute("aria-label")!["Filter ".Length..])
+            .Concat(cut.FindAll(".ib-table-filter-tags .ib-tag").Select(t => t.TextContent.Trim())).ToArray();
 
     private static readonly string[] TextWords = ["Contains", "Does not contain", "Equals", "Does not equal", "Starts with", "Ends with", "Is empty", "Is not empty"];
     private static readonly string[] NumberWords = ["Equals", "Does not equal", "Greater than", "Greater or equal", "Less than", "Less or equal", "Between"];
@@ -275,7 +277,6 @@ public class ColumnFilterOperatorTests : BunitContext
 
         Assert.Equal(Lines.Length, Names(cut).Length);
         Assert.Empty(Tags(cut));
-        Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
         Assert.Empty(cut.FindAll(".ib-table-filter-button[data-active]"));
         Assert.DoesNotContain("filter=", cut.Find("a[download]").GetAttribute("href")!, StringComparison.Ordinal);
         Assert.Equal(chosen, Chosen(cut, select));
@@ -636,8 +637,8 @@ public class ColumnFilterOperatorTests : BunitContext
 
         Assert.Equal(url, Nav.Uri);
 
-        // Removing the tag goes back to the default operator.
-        Again(cut, () => cut.FindAll(".ib-table-filter-tags .ib-tag button").Single().Click());
+        // Clear goes back to the default operator.
+        Again(cut, () => cut.FindAll("button[data-ib-filter-clear]").Single().Click());
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(Lines.Length, Names(cut).Length);

@@ -71,6 +71,138 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         Assert.All(totals, t => Assert.True(test(t), $"{t} shouldn't be here."));
     }
 
+    private static async Task<ILocator> OpenFiltersAsync(IPage page, ILocator grid)
+    {
+        await grid.Locator(".ib-grid-filters-button").ClickAsync();
+        var panel = page.Locator("[popover]:popover-open .ib-grid-filters-panel");
+        await panel.WaitForAsync();
+        return panel;
+    }
+
+    [Theory]
+    [InlineData("static", true)]
+    [InlineData("interactive", true)]
+    [InlineData("static", false)]
+    public async Task The_Filters_button_removes_one_then_the_rest(string mode, bool script)
+    {
+        var (browser, page, grid) = await OpenAsync(mode, script, $"&{Prefix}f-status=Paid&{Prefix}f-total=100&{Prefix}f-customer=a");
+        await using (browser)
+        {
+            Assert.Equal("Filters: 3 active", await grid.Locator(".ib-grid-filters-button").GetAttributeAsync("aria-label"));
+            var panel = await OpenFiltersAsync(page, grid);
+            await panel.Locator(".ib-tag", new() { HasText = "Status" }).Locator("a").ClickAsync();
+            await AddressIsAsync(page, "f-total=100&f-customer=a");
+
+            if (!script) panel = await OpenFiltersAsync(page, grid);
+            await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+            await AddressIsAsync(page, "");
+            await Assertions.Expect(grid.Locator(".ib-grid-filters-button[data-active]")).ToHaveCountAsync(0);
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Removing_the_last_tag_closes_the_list_and_focus_goes_back(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode, query: $"&{Prefix}f-total=100");
+        await using (browser)
+        {
+            var panel = await OpenFiltersAsync(page, grid);
+            await panel.Locator(".ib-tag a").ClickAsync();
+
+            await AddressIsAsync(page, "");
+            await Assertions.Expect(page.Locator("[popover]:popover-open .ib-grid-filters-panel")).ToHaveCountAsync(0);
+            await Assertions.Expect(grid.Locator(".ib-grid-filters-button")).ToBeFocusedAsync();
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_change_in_one_panel_leaves_what_a_Clear_just_removed(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode, query: $"&{Prefix}f-total=100&{Prefix}f-status=Paid&{Prefix}f-status=Failed&{Prefix}f-status=Refunded");
+        await using (browser)
+        {
+            // A response that takes its time, whichever way this mode gets one.
+            if (mode == "interactive")
+            {
+                await page.Context.RouteWebSocketAsync("**/_blazor**", ws =>
+                {
+                    var server = ws.ConnectToServer();
+                    ws.OnMessage(async message =>
+                    {
+                        await Task.Delay(900);
+                        if (message.Binary is { } binary) server.Send(binary);
+                        else server.Send(message.Text!);
+                    });
+                });
+                await page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
+                await grid.Locator("xpath=ancestor-or-self::ib-table[@data-ib-interactive]").WaitForAsync();
+                await page.WaitForTimeoutAsync(2000);
+            }
+            else
+            {
+                await page.RouteAsync("**/docs/components/data-grid**", async route =>
+                {
+                    await Task.Delay(900);
+                    await route.ContinueAsync();
+                });
+            }
+
+            var total = await OpenPanelAsync(page, grid, "Total");
+            await total.Locator("[data-ib-filter-clear]").ClickAsync();
+            var status = await OpenPanelAsync(page, grid, "Status");
+            await status.GetByRole(AriaRole.Checkbox, new() { Name = "Paid", Exact = true }).UncheckAsync();
+
+            await page.WaitForTimeoutAsync(3000);
+            Assert.DoesNotContain("f-total", page.Url, StringComparison.Ordinal);
+            Assert.Contains("f-status=Failed", page.Url, StringComparison.Ordinal);
+            Assert.DoesNotContain("f-status=Paid", page.Url, StringComparison.Ordinal);
+        }
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_long_tag_stays_in_its_list_with_its_remove_button(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode, query: $"&{Prefix}f-customer=Ada%20Lovelace%20and%20Grace%20Hopper%20Consulting%20Group%20International&{Prefix}f-total=100");
+        await using (browser)
+        {
+            var panel = await OpenFiltersAsync(page, grid);
+            var popover = panel.Locator("xpath=ancestor::*[@popover]");
+            Assert.True(await popover.EvaluateAsync<bool>("p => p.scrollWidth <= p.clientWidth"));
+            var edge = await popover.EvaluateAsync<double>("p => p.getBoundingClientRect().right");
+            var remove = await panel.Locator(".ib-tag a").First.EvaluateAsync<double>("a => a.getBoundingClientRect().right");
+            Assert.True(remove <= edge, $"The remove button ends at {remove}, the list at {edge}.");
+        }
+    }
+
+    [Theory]
+    [InlineData("static", "tag")]
+    [InlineData("interactive", "tag")]
+    [InlineData("static", "clear")]
+    [InlineData("interactive", "clear")]
+    public async Task Removing_drops_what_waits_on_its_pause(string mode, string how)
+    {
+        var (browser, page, grid) = await OpenAsync(mode, query: $"&{Prefix}f-status=Paid&{Prefix}f-status=Pending&{Prefix}f-total=100");
+        await using (browser)
+        {
+            var status = await OpenPanelAsync(page, grid, "Status");
+            await status.GetByRole(AriaRole.Checkbox, new() { Name = "Pending", Exact = true }).UncheckAsync();
+            var panel = await OpenFiltersAsync(page, grid);
+            if (how == "tag") await panel.Locator(".ib-tag", new() { HasText = "Status" }).Locator("a").ClickAsync();
+            else await panel.Locator("[data-ib-filter-clear]").ClickAsync();
+
+            var left = how == "tag" ? "f-total=100" : "";
+            await AddressIsAsync(page, left);
+            await page.WaitForTimeoutAsync(700);
+            await AddressIsAsync(page, left);
+        }
+    }
+
     [Theory]
     [InlineData("static", true)]
     [InlineData("interactive", true)]
@@ -282,7 +414,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
             var keys = () => new Uri(page.Url).Query.Split(['?', '&'], StringSplitOptions.RemoveEmptyEntries).Where(k => k.StartsWith("f-customer=", StringComparison.Ordinal)).ToArray();
             Assert.Equal(2, keys().Length);
             Assert.Equal(entries, await page.EvaluateAsync<int>("history.length"));
-            Assert.Contains("Customer: 2 selected", await grid.Locator(".ib-table-filter-tags").TextContentAsync());
+            Assert.Equal(1, await grid.Locator("th .ib-table-filter-button[aria-label='Filter Customer: 2 selected']").CountAsync());
             var names = (await grid.Locator("tbody tr").AllTextContentsAsync()).Select(r => r.Contains("Ada Lovelace", StringComparison.Ordinal) ? "Ada" : r.Contains("Grace Hopper", StringComparison.Ordinal) ? "Grace" : r).ToHashSet();
             Assert.Equal(new HashSet<string> { "Ada", "Grace" }, names);
         }
@@ -538,7 +670,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
             grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to filter" });
             Assert.Contains($"{Prefix}f-total-op=gt", page.Url, StringComparison.Ordinal);
             Assert.Equal(5, await grid.Locator("tbody tr").CountAsync());
-            Assert.True(await grid.Locator(".ib-table-filter-tags").IsHiddenAsync());
+            Assert.Equal(0, await grid.Locator(".ib-grid-filters-button[data-active]").CountAsync());
             Assert.Equal(0, await grid.Locator("th .ib-table-filter-button[data-active]").CountAsync());
             Assert.Equal("gt", await page.Locator($"select[name='{Prefix}f-total-op']").InputValueAsync());
 

@@ -274,7 +274,7 @@ public class TableDataTests : BunitContext
         Assert.Equal(new[] { "Ada", "Alan" }, Names(cut));
         Assert.Equal("Filter Status: Yes", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
         var tags = cut.FindAll(".ib-table-filter-tags .ib-tag").Select(t => t.TextContent.Trim()).ToArray();
-        Assert.Contains(tags, t => t.Contains("Status: Yes", StringComparison.Ordinal));
+        Assert.DoesNotContain(tags, t => t.Contains("Status", StringComparison.Ordinal));
         Assert.Contains(tags, t => t.Contains("startswith(name,'a')", StringComparison.Ordinal));
 
         // Removing that tag reports the filter without it.

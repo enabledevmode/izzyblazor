@@ -1439,7 +1439,7 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "preview": true, "parts": ["DataGridSearch", "DataGridExport", "DataGridColumnPicker"], "summary": "A table with state in the URL, widths set by the server, and sorting by several columns.", "keywords": [],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "preview": true, "parts": ["DataGridSearch", "DataGridFilters", "DataGridExport", "DataGridColumnPicker"], "summary": "A table with state in the URL, widths set by the server, and sorting by several columns.", "keywords": [],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
@@ -1463,8 +1463,8 @@
         { "id": "data-grid-export", "title": "Export", "lead": "`ExportExcelHref` adds a link to an endpoint you map with `DataExport.WriteExcelAsync`, which streams rows from the database with flat memory. The link carries the filter, sort, search and visible columns, and works with no script. The fields you give `DataExport` decide what can be written, whatever the address says, and their captions head the file. Give them the grid's keys so a download matches the screen: a filter on a key they don't have matches nothing." },
         { "id": "data-grid-export-both", "title": "Excel and CSV", "lead": "Add `ExportCsvHref` to offer CSV too: one button with a chevron then opens a menu of both, Excel first." },
         { "id": "data-grid-virtual-rows", "title": "Virtual rows", "lead": "`Virtualize` draws only the rows in view, on an interactive page, so 100,000 rows scroll as easily as 100. Give it a `MaxHeight`, and keep rows to one line of `RowHeight`. On a static page, as here unless you switch this page to Interactive, the same grid loads more rows on scroll instead." },
-        { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "Write `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` in `ToolbarContent` to place the grid's own tools among yours, in the order written; one you don't write keeps its usual place, and the grid's parameter still turns it on. Write them directly in `ToolbarContent`, not inside a component of your own. Export and Columns show only their icons with a hover tooltip, as suits a grid used all day: `ToolbarLabels` adds text to both, and `ShowText` to one." },
-        { "id": "data-grid-filters", "title": "Column filters", "lead": "Use `Filterable` on a column for a filter in its header, where text, numbers and dates choose an operator above the value, and `FilterOperators` to limit them; the first is the default.",
+        { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "Write `DataGridSearch`, `DataGridFilters`, `DataGridExport` or `DataGridColumnPicker` in `ToolbarContent` to place the grid's own tools among yours, in the order written; one you don't write keeps its usual place, and the grid's parameter still turns it on. Write them directly in `ToolbarContent`, not inside a component of your own. Export and Columns show only their icons with a hover tooltip, as suits a grid used all day: `ToolbarLabels` adds text to both, and `ShowText` to one." },
+        { "id": "data-grid-filters", "title": "Column filters", "lead": "Use `Filterable` on a column for a filter in its header, where text, numbers and dates choose an operator above the value, and `FilterOperators` to limit them; the first is the default. `ActiveFilters` adds a button that lists what's in use.",
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it. An operator with no value is no filter.",
             "static": "Filters apply as you type, and a new operator at once if there's a value." } }

@@ -37,8 +37,9 @@
     need somewhere to keep the result: a LayoutKey, or Layout with a LayoutSaveUrl.
 
     A toolbar above the grid holds ToolbarContent (Toolbar's items), the search box with Searchable,
-    export and the Columns button, which show their icons alone unless ToolbarLabels is set. Write
-    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the selection bar takes its place. Searchable
+    the Filters button with ActiveFilters, export and the Columns button, which show their icons alone
+    unless ToolbarLabels is set. Write DataGridSearch, DataGridFilters, DataGridExport or
+    DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the selection bar takes its place. Searchable
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
@@ -173,6 +174,13 @@
     public bool ColumnPicker { get; set; }
 
     /// <summary>
+    /// A button above the grid, marked while any column is filtered, that lists the active filters to
+    /// remove one or clear them all. It takes its place whether or not anything is filtered, so the rows
+    /// don't move.
+    /// </summary>
+    [Parameter] public bool ActiveFilters { get; set; }
+
+    /// <summary>
     /// Draws only the rows in view, on an interactive page; on a static page they load on scroll
     /// instead, by <c>PageSize</c> (50 if not set), up to 2,000 rows. Needs a <c>MaxHeight</c>, and rows
     /// of one line, as tall as <see cref="RowHeight"/>. An <c>ItemsProvider</c> must return a
@@ -229,8 +237,8 @@
 
     /// <summary>
     /// The page's own controls in the toolbar above the grid: <c>ToolbarButton</c>,
-    /// <c>ToolbarMenu</c> and the like. Write <see cref="DataGridSearch"/>, <see cref="DataGridExport"/> or
-    /// <see cref="DataGridColumnPicker"/> here to place the grid's own among them. While rows are selected,
+    /// <c>ToolbarMenu</c> and the like. Write <see cref="DataGridSearch"/>, <see cref="DataGridFilters"/>,
+    /// <see cref="DataGridExport"/> or <see cref="DataGridColumnPicker"/> here to place the grid's own among them. While rows are selected,
     /// the selection bar takes its place. The grid reads this once more on each render, to see which of
     /// its tools are here, so nothing in it should count or consume anything.
     /// </summary>
@@ -575,6 +583,11 @@
 
     bool IDataGridToolbar.HasColumnPicker => HasPicker;
 
+    bool IDataGridToolbar.HasActiveFilters => ActiveFilters;
+
+    /// <inheritdoc />
+    internal override bool ListsActiveFilters => ActiveFilters;
+
     bool IDataGridToolbar.HasExport => HasExportTool;
 
     bool IDataGridToolbar.ExportHasMenu => ExportHasMenu;
@@ -584,6 +597,8 @@
     bool IDataGridToolbar.ToolbarLabels => ToolbarLabels;
 
     string IDataGridToolbar.ColumnPickerLabel => TextDefaults.ColumnPicker;
+
+    string IDataGridToolbar.ActiveFiltersLabel => TextDefaults.Filters;
 
     string IDataGridToolbar.ExportLabel => ExportCsvHref is null ? TextDefaults.ExportExcel
         : ExportExcelHref is null ? TextDefaults.ExportCsv
@@ -604,6 +619,29 @@
                     }
                 </div>
             </div>
+        </div>
+    };
+
+    RenderFragment IDataGridToolbar.ActiveFiltersBar(bool showText) => __builder =>
+    {
+        var count = ActiveFilterCount;
+        var name = count > 0 ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FiltersActive, count) : TextDefaults.Filters;
+        <div class="ib-toolbar-item">
+            <Popover Placement="Placement.BottomEnd" data-ib-user-controlled>
+                <Trigger>
+                    @if (showText)
+                    {
+                        <Button StartIcon="IconSet.Current.Get(IconRole.Filter)" Class="ib-grid-filters-button" data-active="@(count > 0 ? "" : null)" aria-label="@name" @attributes="context">@TextDefaults.Filters</Button>
+                    }
+                    else
+                    {
+                        <IconButton Icon="IconSet.Current.Get(IconRole.Filter)" Label="@name" Class="ib-grid-filters-button" data-active="@(count > 0 ? "" : null)" @attributes="context" />
+                    }
+                </Trigger>
+                <ChildContent>
+                    @ActiveFiltersPanel
+                </ChildContent>
+            </Popover>
         </div>
     };
 
@@ -721,10 +759,10 @@
             <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
         }
 
-        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool)
+        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || ActiveFilters)
         {
             var placed = DataGridToolbarItem.Placed(ToolbarContent);
-            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool ? "ib-grid-toolbar-picker-only" : null)">
+            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool && !ActiveFilters ? "ib-grid-toolbar-picker-only" : null)">
                 @* Around the toolbar, not inside it: its items keep the order they join in, and a wrapper would delay these. *@
                 <CascadingValue TValue="IDataGridToolbar" Value="this">
                     <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
@@ -733,6 +771,10 @@
                             <DataGridSearch />
                         }
                         @ToolbarContent
+                        @if (!placed.Contains(typeof(DataGridFilters)))
+                        {
+                            <DataGridFilters />
+                        }
                         @if (!placed.Contains(typeof(DataGridExport)))
                         {
                             <DataGridExport />

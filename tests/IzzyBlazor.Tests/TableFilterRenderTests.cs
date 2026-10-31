@@ -130,8 +130,6 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(new[] { "sort=name", "tab=x" }, kept);
         Assert.True(cut.Find("input[name='f-status'][value='Yes']").HasAttribute("checked"));
         Assert.False(cut.Find("input[name='f-status'][value='No']").HasAttribute("checked"));
-        var clear = cut.FindAll(".ib-table-filter-tags a").Single(a => a.TextContent.Trim() == "Clear").GetAttribute("href")!;
-        Assert.DoesNotContain("f-", clear);
     }
 
     [Fact]
@@ -197,8 +195,8 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(values, written);
         Assert.Equal(values, ColumnFilter.Read(column, "f-name", QueryString.Parse(string.Join('&', written.Select(v => $"f-name={Uri.EscapeDataString(v)}"))))!.Values);
 
-        // The tag's link clears all of them, and leaves the rest.
-        Assert.Contains("http://localhost/orders?sort=name", cut.Find(".ib-table-filter-tags").QuerySelectorAll("a").Select(a => a.GetAttribute("href")));
+        // Clear's link clears all of them, and leaves the rest.
+        Assert.Contains("http://localhost/orders?sort=name", cut.FindAll("a[data-ib-filter-clear]").Select(a => a.GetAttribute("href")));
     }
 
     [Fact]
@@ -527,7 +525,7 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(new[] { "Yes", "No", "Refunded" }, boxes.Select(b => b.GetAttribute("value")));
         Assert.All(boxes, b => Assert.True(b.HasAttribute("checked")));
         Assert.All(boxes, b => Assert.Equal(input.GetAttribute("form"), b.GetAttribute("form")));
-        Assert.True(cut.Find(".ib-table-filter-tags").HasAttribute("hidden"));
+        Assert.Empty(cut.FindAll(".ib-table-filter-tags"));
     }
 
     [Fact]
@@ -549,7 +547,7 @@ public class TableFilterRenderTests : BunitContext
     }
 
     [Fact]
-    public void Header_placement_marks_filtered_columns_and_lists_them_as_tags()
+    public void Header_placement_marks_filtered_columns_and_each_panel_clears_its_own()
     {
         var cut = RenderHeader("/orders?f-name=ad&f-status=No&sort=name");
 
@@ -559,30 +557,25 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal("Filter Name: ad", name.GetAttribute("aria-label"));
         Assert.Equal("Filter Status: No", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
 
-        var tags = cut.Find(".ib-table-filter-tags");
-        Assert.Contains("Name: ad", tags.TextContent);
-        Assert.Contains("Status: No", tags.TextContent);
-        var hrefs = tags.QuerySelectorAll("a").Select(a => a.GetAttribute("href")).ToList();
+        var hrefs = cut.FindAll("a[data-ib-filter-clear]").Select(a => a.GetAttribute("href")).ToList();
         Assert.Contains("http://localhost/orders?f-status=No&sort=name", hrefs);
-        Assert.Contains("http://localhost/orders?sort=name", hrefs);
+        Assert.Contains("http://localhost/orders?f-name=ad&sort=name", hrefs);
     }
 
     [Theory]
     [InlineData("?f-qty=2&f-qty-to=3", "2–3")]
     [InlineData("?f-qty=2", "2 or more")]
     [InlineData("?f-qty-to=3", "3 or less")]
-    public void Number_filter_reads_as_a_range_and_its_tag_clears_both_ends(string query, string summary)
+    public void Number_filter_reads_as_a_range_and_Clear_clears_both_ends(string query, string summary)
     {
         var cut = RenderHeader("/orders" + query + "&sort=name");
 
         Assert.Equal($"Filter Qty: {summary}", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
-        var tags = cut.Find(".ib-table-filter-tags");
-        Assert.Contains($"Qty: {summary}", tags.TextContent);
-        Assert.Contains("http://localhost/orders?sort=name", tags.QuerySelectorAll("a").Select(a => a.GetAttribute("href")));
+        Assert.Contains("http://localhost/orders?sort=name", cut.FindAll("a[data-ib-filter-clear]").Select(a => a.GetAttribute("href")));
     }
 
     [Fact]
-    public void Bound_header_filters_change_in_place_and_tags_remove_them()
+    public void Bound_header_filters_change_in_place_and_Clear_removes_them()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         Filter? reported = null;
@@ -599,7 +592,7 @@ public class TableFilterRenderTests : BunitContext
             Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported!.Find("status")!.Values);
         }, Timer);
 
-        cut.Find(".ib-table-filter-tags .ib-btn").Click();   // Clear
+        cut.Find("button[data-ib-filter-clear]").Click();
         cut.WaitForAssertion(() =>
         {
             Assert.Equal(3, Names(cut).Length);
