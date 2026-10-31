@@ -61,8 +61,8 @@ public class SplitButtonTests : BunitContext
         Assert.Equal("/drafts", panel.QuerySelector("a.ib-menu-item")!.GetAttribute("href"));
 
         // The arrow's end lines up with the group's.
-        Assert.Equal("bottom-end", cut.Find("ib-popover").GetAttribute("data-placement"));
-        Assert.Contains("ib-place-bottom-end", panel.ClassList);
+        Assert.Equal("bottom-start", cut.Find("ib-popover").GetAttribute("data-placement"));
+        Assert.Contains("ib-place-bottom-start", panel.ClassList);
     }
 
     [Fact]
