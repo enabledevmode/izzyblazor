@@ -643,6 +643,65 @@
     display: none;
   }
 
+  /* A DataGrid's FilterRow. */
+  .ib-table-filter-row > td {
+    padding-block: 0.25rem;
+    border-block-end: 1px solid var(--ib-table-line, var(--ib-color-border));
+  }
+
+  .ib-filter-cell {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    min-width: 0;
+  }
+
+  .ib-filter-cell > ib-popover {
+    flex: none;
+  }
+
+  .ib-filter-cell > .ib-field {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .ib-filter-cell-op,
+  .ib-filter-cell-summary {
+    height: var(--ib-field-h);
+    border: 1px solid var(--ib-color-border);
+    border-radius: var(--ib-radius-control, var(--ib-radius-md));
+    background: none;
+    color: var(--ib-color-muted);
+    font: inherit;
+    font-size: var(--ib-text-xs);
+    white-space: nowrap;
+    cursor: pointer;
+  }
+
+  .ib-filter-cell-op {
+    min-width: var(--ib-field-h);
+    padding-inline: 0.25rem;
+  }
+
+  .ib-filter-cell-summary {
+    flex: 1;
+    min-width: 0;
+    padding-inline: 0.5rem;
+    overflow: hidden;
+    text-align: start;
+    text-overflow: ellipsis;
+  }
+
+  .ib-filter-cell-op:hover,
+  .ib-filter-cell-summary:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  /* The scrollbar starts under the row too. */
+  .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-row) {
+    --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px + var(--ib-control-h-sm) + 0.5rem + 1px);
+  }
+
   /* A list the script fetches, or the usual panel where there's no script to do that. */
   @media (scripting: enabled) {
     .ib-filter-no-script {

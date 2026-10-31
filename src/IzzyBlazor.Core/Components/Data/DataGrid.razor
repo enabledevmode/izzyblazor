@@ -271,6 +271,15 @@
         : QueryString.Of(Navigation.Uri).TryGetValue(SearchKey, out var words) ? (string.IsNullOrWhiteSpace(words.ToString()) ? null : words.ToString().Trim())
         : null;
 
+    /// <summary>
+    /// Adds a row of filters under the titles, a field for each column, with its operator in a menu
+    /// beside it. A range or a list shows what it's set to, and opens the column's panel.
+    /// </summary>
+    [Parameter] public bool FilterRow { get; set; }
+
+    /// <inheritdoc />
+    internal override bool ShowsFilterRow => FilterRow;
+
     /// <inheritdoc />
     internal override string? ValuesGridSearch => CurrentSearch;
 
