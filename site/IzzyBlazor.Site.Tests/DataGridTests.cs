@@ -151,7 +151,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             // A real table, a window of its rows, and no footer of pages.
             Assert.Equal("grid", await table.GetAttributeAsync("role"));
             Assert.True(await grid.Locator("tbody tr[aria-rowindex]").CountAsync() < 40);
-            Assert.Equal(0, await grid.Locator(".ib-data-footer").CountAsync());
+            Assert.Equal(0, await grid.Locator(".ib-pagination").CountAsync());
 
             // One height, so the scroll bar doesn't wander.
             var heights = await grid.Locator("tbody tr[aria-rowindex]").EvaluateAllAsync<double[]>("rows => rows.map(r => r.getBoundingClientRect().height)");

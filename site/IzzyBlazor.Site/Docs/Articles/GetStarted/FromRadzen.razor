@@ -95,8 +95,8 @@
             <ListItem>
                 <strong>Selection is a checkbox column, kept by key.</strong> Each row has a checkbox (a radio button for
                 <Code>Single</Code>) rather than selecting on a row click, and the table keeps the rows' <Code>ItemKey</Code>,
-                not the items, so a selection survives paging and reloading. While rows are selected, a bar above them
-                counts them and holds your <Code>SelectionActions</Code>; after the page is selected it offers every row the
+                not the items, so a selection survives paging and reloading. The footer counts what's selected, and <Code>SelectionActions</Code> go in a
+                bar above the rows. <Code>SelectAllMode</Code> says whether the header checkbox takes the page or every row the
                 filters match. In a form the selection posts, so a bulk action is a submit button. Shift-click selects a range.
             </ListItem>
             <ListItem>

@@ -1,12 +1,12 @@
-@* Bulk actions: select rows on any page, or, once the page is selected, every order the filters
-   match. The bar above the rows counts them and holds Archive, which posts the selection;
-   Selection.Apply finds the orders it means. *@
+@* Bulk actions: select rows on any page, or, with the header checkbox, every order the filters
+   match. The bar above the rows holds Archive, which posts the selection; Selection.Apply finds
+   the orders it means. *@
 <form method="post" @onsubmit="Archive" @formname="bulk-archive" style="width: 100%">
     <AntiforgeryToken />
     <Stack Gap="3">
         <Table Items="Orders.All" PageSize="5" Caption="Orders to archive" QueryPrefix="bulk-" Grow
                ItemKey="o => o.Number.ToString()" RowLabel='o => $"order {o.Number}"'
-               SelectionMode="SelectionMode.Multiple" @bind-Selection="_selection">
+               SelectionMode="SelectionMode.Multiple" SelectAllMode="SelectAllMode.All" @bind-Selection="_selection">
             <SelectionActions>
                 <Button Submit Size="ControlSize.Sm" Variant="ButtonVariant.Outline" Accent="Accent.Neutral" StartIcon="Lucide.Archive">Archive</Button>
             </SelectionActions>

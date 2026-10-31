@@ -90,7 +90,7 @@ public class TableDataTests : BunitContext
         Assert.Equal(2, cut.FindAll("tbody .ib-table-select[checked]").Count);
     }
 
-    // The selection bar: the count, Select all N after the page, Clear selection, the page's actions.
+    // The selection: its count and Clear selection in the footer, and a bar for the page's actions.
 
     private IRenderedComponent<Table<Row>> Paged(Selection? selection, Action<Selection>? report = null) => Render<Table<Row>>(p => p
         .Add(t => t.Items, Rows)
@@ -103,64 +103,133 @@ public class TableDataTests : BunitContext
         .Add(t => t.ChildContent, Columns));
 
     [Fact]
-    public void The_bar_is_hidden_until_something_is_selected()
+    public void The_bar_of_actions_keeps_its_row_with_nothing_selected()
     {
         Static();
         var bar = Paged(null).Find(".ib-selection-bar");
 
-        Assert.True(bar.HasAttribute("hidden"));
+        Assert.False(bar.HasAttribute("hidden"));
         Assert.Equal("Selection", bar.GetAttribute("aria-label"));
-        Assert.Equal("Orders selection", Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Caption, "Orders")
-            .Add(t => t.SelectionMode, SelectionMode.Single).Add(t => t.ChildContent, Columns)).Find(".ib-selection-bar").GetAttribute("aria-label"));
         Assert.Equal("4", bar.GetAttribute("data-ib-total"));
-        Assert.Equal("", bar.QuerySelector(".ib-selection-count")!.TextContent);
     }
 
     [Fact]
-    public void The_bar_counts_the_selection_and_holds_the_actions()
+    public void A_static_bars_actions_work_until_script_disables_them()
+    {
+        Static();
+        Assert.False(Paged(null).Find(".ib-selection-actions").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void An_interactive_bars_actions_are_disabled_until_something_is_selected()
+    {
+        Interactive();
+        Assert.True(Paged(null).Find(".ib-selection-actions").HasAttribute("disabled"));
+        Assert.False(Paged(Selection.Of("1")).Find(".ib-selection-actions").HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void Without_actions_nothing_shows_above_the_rows()
+    {
+        Static();
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Caption, "Orders").Add(t => t.PageSize, 2)
+            .Add(t => t.ItemKey, r => r.Id.ToString())
+            .Add(t => t.SelectionMode, SelectionMode.Multiple).Add(t => t.Selection, Selection.Of("1")).Add(t => t.ChildContent, Columns));
+
+        var bar = cut.Find(".ib-selection-bar");
+        Assert.True(bar.HasAttribute("hidden"));
+        Assert.Equal("Orders selection", bar.GetAttribute("aria-label"));
+        Assert.Equal("1 selected", cut.Find(".ib-selection-count").TextContent);
+    }
+
+    [Fact]
+    public void The_footer_counts_the_selection_and_the_bar_holds_the_actions()
     {
         Static();
         var cut = Paged(Selection.Of("1", "3"));
-        var bar = cut.Find(".ib-selection-bar");
 
-        Assert.False(bar.HasAttribute("hidden"));
-        Assert.Equal("2 selected", bar.QuerySelector(".ib-selection-count")!.TextContent);
-        // Announced from a status region outside the bar, which is in the page while the bar is hidden.
+        var summary = cut.Find(".ib-data-footer .ib-selection-summary");
+        Assert.False(summary.HasAttribute("hidden"));
+        Assert.Equal("2 selected", summary.QuerySelector(".ib-selection-count")!.TextContent);
+        // Announced from a status region that's in the page while the count is hidden.
         var status = cut.Find(".ib-selection-status");
         Assert.Equal("status", status.GetAttribute("role"));
         Assert.Equal("2 selected", status.TextContent);
-        Assert.Null(status.Closest(".ib-selection-bar"));
-        Assert.Equal("Archive 2", bar.QuerySelector(".ib-selection-actions .act")!.TextContent);
-        // Only the first row of this page is selected: no step to all yet.
-        Assert.True(bar.QuerySelector(".ib-selection-more")!.HasAttribute("hidden"));
+        Assert.Null(status.Closest(".ib-data-footer"));
+        Assert.Equal("Archive 2", cut.Find(".ib-selection-bar .ib-selection-actions .act").TextContent);
     }
 
     [Fact]
-    public void After_the_page_the_bar_offers_every_matching_row()
+    public void With_nothing_selected_the_count_is_hidden()
+    {
+        Static();
+        var cut = Paged(null);
+
+        Assert.True(cut.Find(".ib-selection-summary").HasAttribute("hidden"));
+        Assert.Equal("", cut.Find(".ib-selection-count").TextContent);
+    }
+
+    [Fact]
+    public void With_no_pages_the_count_has_a_line_of_its_own()
+    {
+        Static();
+        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Id.ToString())
+            .Add(t => t.SelectionMode, SelectionMode.Multiple).Add(t => t.Selection, Selection.Of("1")).Add(t => t.ChildContent, Columns));
+
+        Assert.Equal("1 selected", cut.Find(".ib-selection-line .ib-selection-count").TextContent);
+    }
+
+    private IRenderedComponent<Table<Row>> SelectingAll(Action<Selection> report, SelectAllMode mode = SelectAllMode.All) => Render<Table<Row>>(p => p
+        .Add(t => t.Items, Rows)
+        .Add(t => t.PageSize, 2)
+        .Add(t => t.ItemKey, r => r.Id.ToString())
+        .Add(t => t.SelectionMode, SelectionMode.Multiple)
+        .Add(t => t.SelectAllMode, mode)
+        .Add(t => t.SelectionChanged, report)
+        .Add(t => t.ChildContent, Columns));
+
+    [Fact]
+    public void SelectAllMode_All_selects_every_match_and_clears()
+    {
+        Interactive();
+        Selection? reported = null;
+        var cut = SelectingAll(s => reported = s);
+
+        cut.Find(".ib-table-select-all").Change(true);
+        Assert.True(reported!.All);
+        Assert.Equal("All 4 selected", cut.Find(".ib-selection-count").TextContent);
+
+        cut.FindAll("tbody .ib-table-select")[0].Change(false);
+        Assert.Equal("All 3 selected", cut.Find(".ib-selection-count").TextContent);
+
+        cut.Find(".ib-table-select-all").Change(false);
+        Assert.True(reported!.IsEmpty);
+        Assert.True(cut.Find(".ib-selection-summary").HasAttribute("hidden"));
+    }
+
+    [Fact]
+    public void Only_SelectAllMode_All_marks_the_box_for_the_script()
+    {
+        Static();
+        Assert.True(SelectingAll(_ => { }).Find(".ib-table-select-all").HasAttribute("data-ib-all-matching"));
+        Assert.False(SelectingAll(_ => { }, SelectAllMode.Page).Find(".ib-table-select-all").HasAttribute("data-ib-all-matching"));
+    }
+
+    [Fact]
+    public void Clear_selection_empties_it()
     {
         Interactive();
         Selection? reported = null;
         var cut = Paged(Selection.Of("1", "2"), s => reported = s);
 
-        var more = cut.Find(".ib-selection-more");
-        Assert.False(more.HasAttribute("hidden"));
-        Assert.Contains("All 2 on this page are selected.", more.TextContent);
-
-        cut.Find(".ib-selection-all").Click();
-        Assert.True(reported!.All);
-        Assert.Equal("All 4 selected", cut.Find(".ib-selection-count").TextContent);
-        Assert.True(cut.Find(".ib-selection-more").HasAttribute("hidden"));
-
-        cut.FindAll("tbody .ib-table-select")[0].Change(false);
-        Assert.Equal("All 3 selected", cut.Find(".ib-selection-count").TextContent);
-
         cut.Find(".ib-selection-clear").Click();
+
         Assert.True(reported!.IsEmpty);
-        Assert.True(cut.Find(".ib-selection-bar").HasAttribute("hidden"));
+        Assert.True(cut.Find(".ib-selection-summary").HasAttribute("hidden"));
     }
 
     [Fact]
-    public void Single_selection_has_a_bar_but_no_step_to_all()
+    public void Single_selection_counts_too()
     {
         Static();
         var cut = Render<Table<Row>>(p => p
@@ -172,7 +241,6 @@ public class TableDataTests : BunitContext
             .Add(t => t.ChildContent, Columns));
 
         Assert.Equal("1 selected", cut.Find(".ib-selection-count").TextContent);
-        Assert.True(cut.Find(".ib-selection-more").HasAttribute("hidden"));
     }
 
     [Fact]

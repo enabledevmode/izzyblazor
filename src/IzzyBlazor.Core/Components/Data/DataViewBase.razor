@@ -10,6 +10,12 @@
     {
         if (EffectivePageSize is not { } size || !ShowFooter || Appending || VirtualRows)
         {
+            @* No pages to show: the same place holds the selection's count, seen only while there is one. *@
+            if (Selectable)
+            {
+                <div class="ib-data-footer ib-selection-line"><div class="ib-data-footer-info">@SelectionSummary</div></div>
+            }
+
             return;
         }
 
@@ -41,6 +47,7 @@
                 }
                 @* A status region, so screen readers hear the new range after sorting, paging or filtering. *@
                 <span class="ib-data-summary" role="status">@Summary(size)</span>
+                @SelectionSummary
             </div>
             @if (Paging == DataPaging.Pages && UseState)
             {
@@ -141,10 +148,10 @@
         }
     };
 
-    // While something is selected: the count, Clear selection, the step to every matching item
-    // after the page is selected, and the page's actions. Always rendered (hidden while empty), and
-    // its status region sits outside it, in the page from the start, so the first count is announced. On static pages the script keeps it (the
-    // count, the buttons and what they post); the data attributes give it what it can't know.
+    // The page's actions on the selection, with what the script needs to keep a static page's selection.
+    // Always rendered, as that holder, and its status region sits outside it, in the page from the
+    // start, so the first count is announced. Without actions nothing here shows. With them, it keeps a
+    // row of its own, so the items don't move, or takes a toolbar's place while something is selected.
     internal RenderFragment SelectionBar => __builder =>
     {
         if (!Selectable)
@@ -152,27 +159,33 @@
             return;
         }
 
-        var offerAll = MultiSelect && !_selection.All && AllOnPageSelected && HasMoreThanShown;
-        var count = _selection.IsEmpty ? null : SelectionCountText;
-        <span class="ib-visually-hidden ib-selection-status" role="status">@count</span>
-        <div class="ib-selection-bar" role="group" aria-label="@SelectionBarName" hidden="@_selection.IsEmpty"
+        var mode = SelectionActions is null ? "none" : SelectionTakesToolbar ? "toolbar" : "row";
+        <span class="ib-visually-hidden ib-selection-status" role="status">@(_selection.IsEmpty ? null : SelectionCountText)</span>
+        <div class="ib-selection-bar" role="group" aria-label="@SelectionBarName" hidden="@(mode == "none" || (mode == "toolbar" && _selection.IsEmpty))" data-ib-bar="@mode"
              data-ib-name="@EffectiveSelectionName" data-ib-keys="@System.Text.Json.JsonSerializer.Serialize(_selection.Keys ?? [], PersistedStateJson.Default.StringArray)" data-ib-all="@(_selection.All ? "" : null)"
-             data-ib-scope-filter="@_selection.Filter" data-ib-scope-search="@_selection.Search" data-ib-more="@(HasMoreThanShown ? "" : null)"
+             data-ib-scope-filter="@_selection.Filter" data-ib-scope-search="@_selection.Search"
              data-ib-total="@_total" data-ib-filter="@_loadedRequest?.Filter?.ToString()" data-ib-search="@_loadedRequest?.Search"
              data-ib-count="@TextDefaults.SelectionCount" data-ib-all-count="@TextDefaults.SelectionAllCount" data-ib-all-open="@TextDefaults.SelectionAllOpen">
-            <span class="ib-selection-count">@count</span>
-            <span class="ib-selection-more" hidden="@(!offerAll)">
-                <span>@(VirtualRows ? TextDefaults.SelectionInView : Format(TextDefaults.SelectionPage, _items.Count(CanSelect)))</span>
-                <button type="button" class="ib-btn ib-btn-primary ib-btn-link ib-btn-sm ib-selection-all" data-ib-selection="all"
-                        @onclick="SelectAllMatchingAsync">@SelectAllMatchingText</button>
-            </span>
-            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-selection-clear" data-ib-selection="clear"
-                    @onclick="ClearSelectionAsync">@TextDefaults.ClearSelection</button>
             @if (SelectionActions is not null)
             {
-                <span class="ib-selection-actions">@SelectionActions(_selection)</span>
+                @* Disabled by the script on a static page, so with no script they work. *@
+                <fieldset class="ib-selection-actions" disabled="@(RendererInfo.IsInteractive && _selection.IsEmpty)">@SelectionActions(_selection)</fieldset>
             }
         </div>
+    };
+
+    // How many are selected, and Clear selection, which matter most when the selection reaches items
+    // out of sight: in the footer, beside the range. On a static page the script keeps them.
+    private RenderFragment SelectionSummary => __builder =>
+    {
+        if (Selectable)
+        {
+            <span class="ib-selection-summary" hidden="@_selection.IsEmpty">
+                <span class="ib-selection-count">@(_selection.IsEmpty ? null : SelectionCountText)</span>
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm ib-selection-clear" data-ib-selection="clear"
+                        @onclick="ClearSelectionAsync">@TextDefaults.ClearSelection</button>
+            </span>
+        }
     };
 
     // Says a load failed when it does: present from the start, so the change is announced.

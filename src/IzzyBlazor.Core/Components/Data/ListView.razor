@@ -70,12 +70,12 @@
     @SelectionBar
     @if (MultiSelect)
     {
-        @* Select all (this page): script only; it checks the items, which report their own changes.
+        @* Select all: script only. For the page, it checks the items, which report their own changes.
            Always rendered, so the script finds it when items arrive after an empty first render;
            CSS hides it while there are no items. *@
         <div class="ib-listview-select-all-row">
             <label class="ib-listview-select-all-label">
-                <input type="checkbox" class="ib-check-input ib-listview-select-all" checked="@AllOnPageSelected" />
+                <input type="checkbox" class="ib-check-input ib-listview-select-all" checked="@AllOnPageSelected" @attributes="SelectAllMatching" />
                 @(SelectAllLabel ?? TextDefaults.SelectAllRows)
             </label>
         </div>

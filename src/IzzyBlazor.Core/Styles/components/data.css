@@ -1115,8 +1115,7 @@
     font-weight: var(--ib-weight-semibold);
   }
 
-  /* The selection bar, above the items while something is selected: the count, the step to every
-     matching item, Clear selection, then the page's actions. */
+  /* The bar of a page's actions on the selection, above the items. Tinted while something is selected. */
   .ib-selection-bar {
     display: flex;
     flex-wrap: wrap;
@@ -1129,44 +1128,56 @@
     font-size: var(--ib-text-sm);
   }
 
+  .ib-selection-bar:has(> .ib-selection-actions:disabled) {
+    background-color: transparent;
+  }
+
   .ib-selection-bar[hidden],
-  .ib-selection-more[hidden] {
+  .ib-selection-summary[hidden] {
     display: none;
+  }
+
+  .ib-selection-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--ib-space-2);
+    min-width: 0;
+    margin: 0;
+    padding: 0;
+    border: 0;
+  }
+
+  /* How many are selected, and Clear selection, beside the footer's range. */
+  .ib-selection-summary {
+    display: inline-flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-1) var(--ib-space-2);
   }
 
   .ib-selection-count {
     font-weight: var(--ib-weight-medium);
   }
 
-  .ib-selection-more {
-    display: inline-flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: var(--ib-space-1);
+  /* With no pages to show, the footer is only the count: nothing while there's none. */
+  .ib-selection-line:not(:has(.ib-selection-summary:not([hidden]))) {
+    display: none;
   }
 
-  /* The page's actions at the end of the bar. */
-  .ib-selection-actions {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--ib-space-2);
-    margin-inline-start: auto;
-  }
-
-  /* Clear and Select all work with script (or on interactive pages); until it's ready, out of sight
-     but holding their place. With no script they aren't there. */
-  :is(ib-table, ib-listview):not([data-ready], [data-ib-interactive]) :is(.ib-selection-clear, .ib-selection-more) {
+  /* Clear works with script (or on interactive pages); until it's ready, out of sight but holding its
+     place. With no script it isn't there. */
+  :is(ib-table, ib-listview):not([data-ready], [data-ib-interactive]) .ib-selection-clear {
     visibility: hidden;
   }
 
   /* With no script nothing can show the bar when a box is checked, so it's always there with its
-     actions; Clear and Select all need script. */
+     actions; Clear needs script. */
   @media (scripting: none) {
     .ib-selection-bar[hidden]:has(.ib-selection-actions) {
       display: flex;
     }
 
-    :is(.ib-selection-clear, .ib-selection-more) {
+    .ib-selection-clear {
       display: none !important;
     }
   }
@@ -1174,11 +1185,6 @@
   @media (forced-colors: active) {
     .ib-selection-bar {
       border: 1px solid CanvasText;
-    }
-
-    /* A link button gets a border in forced colors: room for it inside. */
-    .ib-selection-all {
-      padding-inline: var(--ib-space-1);
     }
   }
 

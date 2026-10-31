@@ -355,26 +355,14 @@ public class IzzyText
     /// <summary>The name of the selection bar of a named view (a Table's Caption, a ListView's AriaLabel): {0} is that name ("Orders selection").</summary>
     public virtual string SelectionBarOf { get; set; } = "{0} selection";
 
-    /// <summary>The selection bar of a Table or ListView: {0} is how many are selected ("3 selected").</summary>
+    /// <summary>The selection's count in a Table or ListView: {0} is how many are selected ("3 selected").</summary>
     public virtual string SelectionCount { get; set; } = "{0:N0} selected";
 
-    /// <summary>The selection bar when every matching item is selected: {0} is how many ("All 1,234 selected").</summary>
+    /// <summary>The selection's count when every matching item is selected: {0} is how many ("All 1,234 selected").</summary>
     public virtual string SelectionAllCount { get; set; } = "All {0:N0} selected";
 
-    /// <summary>The selection bar when every matching item is selected and the total isn't known (cursor paging).</summary>
+    /// <summary>The selection's count when every matching item is selected and the total isn't known (cursor paging).</summary>
     public virtual string SelectionAllOpen { get; set; } = "All selected";
-
-    /// <summary>The selection bar when the page is selected and there are more: {0} is how many are on the page.</summary>
-    public virtual string SelectionPage { get; set; } = "All {0:N0} on this page are selected.";
-
-    /// <summary>The selection bar with virtual rows, when those drawn are selected and there are more. No number: it changes as they scroll.</summary>
-    public virtual string SelectionInView { get; set; } = "The rows in view are selected.";
-
-    /// <summary>The selection bar's button that selects every matching item: {0} is how many ("Select all 1,234").</summary>
-    public virtual string SelectAllMatching { get; set; } = "Select all {0:N0}";
-
-    /// <summary>The same button when the total isn't known (cursor paging).</summary>
-    public virtual string SelectAllMatchingOpen { get; set; } = "Select all matching";
 
     /// <summary>The selection bar's button that clears the selection.</summary>
     public virtual string ClearSelection { get; set; } = "Clear selection";
