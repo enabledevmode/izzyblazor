@@ -12,7 +12,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(Url(mode), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        var grid = page.Locator(".ib-datagrid", new() { HasText = "Status" }).Nth(1);
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders you arrange'])");
         await grid.Locator("ib-grid-columns").WaitForAsync(new() { State = WaitForSelectorState.Attached });
         if (mode == "interactive") await grid.Locator("ib-grid-columns[data-ib-interactive]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
         await grid.Locator("table[role=grid]").WaitForAsync();

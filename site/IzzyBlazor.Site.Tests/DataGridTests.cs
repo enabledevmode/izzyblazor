@@ -284,7 +284,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         {
             const string measure = """
                 () => {
-                  const table = document.querySelector('.ib-datagrid table');
+                  const table = document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) table`);
                   const box = table.closest('.ib-table-scroll');
                   const widths = [...table.querySelectorAll('thead th')].map(th => th.getBoundingClientRect().width);
                   return { widths, scrolls: box.scrollWidth > box.clientWidth + 1, rem: parseFloat(getComputedStyle(document.documentElement).fontSize) };
@@ -318,7 +318,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static&sort=customer,total").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
             var overflow = await page.EvaluateAsync<string[]>("""
                 () => {
-                  const table = document.querySelector('.ib-datagrid table');
+                  const table = document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) table`);
                   table.style.setProperty('--ib-col-2', '3rem');
                   table.style.setProperty('--ib-col-4', '3rem');
                   const problems = [];
@@ -343,7 +343,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     // The Frozen columns example: the first two columns frozen at the start, the last at the end.
     private const string Frozen = """
         () => {
-          const table = document.querySelectorAll('.ib-datagrid table')[2];
+          const table = document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table`);
           const box = table.closest('.ib-table-scroll');
           const row = table.tBodies[0].rows[0];
           const edges = (c) => { const r = c.getBoundingClientRect(); return [r.left, r.right]; };
@@ -372,7 +372,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             var at = await page.EvaluateAsync<FrozenBoxes>(Frozen);
             Assert.True(at.Scrolls);
             Assert.False(at.Unfrozen);
-            await page.Locator(".ib-datagrid table").Nth(2).EvaluateAsync("t => { t.closest('.ib-table-scroll').scrollLeft = 300; }");
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync("t => { t.closest('.ib-table-scroll').scrollLeft = 300; }");
             var moved = await page.EvaluateAsync<FrozenBoxes>(Frozen);
             Assert.Equal(at.First[0], moved.First[0], 0.5);
             Assert.Equal(at.Second[0], moved.Second[0], 0.5);
@@ -380,20 +380,20 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             Assert.Equal(moved.Box[1], moved.Last[1], 1.5);
 
             // Opaque on every row, stripes included.
-            var colors = await page.Locator(".ib-datagrid table").Nth(2).EvaluateAsync<string[]>("t => [...t.tBodies[0].rows].map(r => getComputedStyle(r.cells[0]).backgroundColor)");
+            var colors = await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync<string[]>("t => [...t.tBodies[0].rows].map(r => getComputedStyle(r.cells[0]).backgroundColor)");
             Assert.All(colors, c => Assert.DoesNotContain("/", c));
             Assert.All(colors, c => Assert.DoesNotContain("rgba", c));
 
             // Focus on a frozen cell leaves the grid where it is.
-            await page.Locator(".ib-datagrid table").Nth(2).Locator("tbody tr").First.Locator("td").First.FocusAsync();
-            await page.Locator(".ib-datagrid table").Nth(2).EvaluateAsync("t => { t.closest('.ib-table-scroll').scrollLeft = 300; }");
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").Locator("tbody tr").First.Locator("td").First.FocusAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync("t => { t.closest('.ib-table-scroll').scrollLeft = 300; }");
             await page.Keyboard.PressAsync("ArrowDown");
-            Assert.Equal(300, await page.Locator(".ib-datagrid table").Nth(2).EvaluateAsync<double>("t => t.closest('.ib-table-scroll').scrollLeft"), 1);
-            await page.Locator(".ib-datagrid table").Nth(2).Locator("tbody tr").Nth(2).Locator("td").First.ClickAsync();
-            Assert.Equal(300, await page.Locator(".ib-datagrid table").Nth(2).EvaluateAsync<double>("t => t.closest('.ib-table-scroll').scrollLeft"), 1);
+            Assert.Equal(300, await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync<double>("t => t.closest('.ib-table-scroll').scrollLeft"), 1);
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").Locator("tbody tr").Nth(2).Locator("td").First.ClickAsync();
+            Assert.Equal(300, await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").EvaluateAsync<double>("t => t.closest('.ib-table-scroll').scrollLeft"), 1);
 
             // A cell the arrows reach isn't left under them.
-            await page.Locator(".ib-datagrid table").Nth(2).Locator("tbody tr").First.Locator("td").Nth(3).FocusAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table").Locator("tbody tr").First.Locator("td").Nth(3).FocusAsync();
             await page.Keyboard.PressAsync("ArrowLeft");
             var clear = await page.EvaluateAsync<double[]>("() => { const r = document.activeElement.getBoundingClientRect(); const t = document.activeElement.closest('tr').cells[1].getBoundingClientRect(); return [r.left, t.right]; }");
             Assert.True(clear[0] >= clear[1] - 1, $"focused cell starts at {clear[0]}, frozen columns end at {clear[1]}");
@@ -424,9 +424,9 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
             // Widening looks again, and so does narrowing.
             await page.SetViewportSizeAsync(1400, 900);
-            await page.WaitForFunctionAsync("() => !document.querySelectorAll('.ib-datagrid table')[2].hasAttribute('data-ib-unfrozen')");
+            await page.WaitForFunctionAsync("() => !document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table`).hasAttribute('data-ib-unfrozen')");
             await page.SetViewportSizeAsync(500, 900);
-            await page.WaitForFunctionAsync("() => document.querySelectorAll('.ib-datagrid table')[2].hasAttribute('data-ib-unfrozen')");
+            await page.WaitForFunctionAsync("() => document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table`).hasAttribute('data-ib-unfrozen')");
         }
     }
 
@@ -445,7 +445,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").First;
+            var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders'])");
             var customer = grid.Locator("th a.ib-table-sort", new() { HasText = "Customer" });
             var total = grid.Locator("th a.ib-table-sort", new() { HasText = "Total" });
 
@@ -457,7 +457,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
             await customer.ClickAsync();
             await SortIs("customer");
-            await page.Locator(".ib-datagrid >> nth=0 >> th[aria-sort=ascending]", new() { HasText = "Customer" }).WaitForAsync();
+            await grid.Locator("th[aria-sort=ascending]", new() { HasText = "Customer" }).WaitForAsync();
 
             await total.ClickAsync(new() { Modifiers = [KeyboardModifier.Shift] });
             await SortIs("customer,total");

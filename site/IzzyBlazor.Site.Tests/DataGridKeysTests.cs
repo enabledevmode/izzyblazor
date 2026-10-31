@@ -11,7 +11,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]").First.WaitForAsync();
-        await page.Locator(".ib-datagrid >> nth=0 >> table[role=grid]").WaitForAsync();
+        await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> table[role=grid]").WaitForAsync();
         return (browser, page);
     }
 
@@ -40,13 +40,13 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
-            var stops = await page.EvaluateAsync<int>("() => [...document.querySelector('.ib-datagrid .ib-table-scroll').querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
+            var stops = await page.EvaluateAsync<int>("() => [...document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) .ib-table-scroll`).querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
             Assert.Equal(1, stops);
             // Nor is the scroll box a stop of its own.
-            Assert.Equal(-1, await page.Locator(".ib-datagrid >> nth=0 >> .ib-table-scroll").EvaluateAsync<int>("e => e.tabIndex"));
+            Assert.Equal(-1, await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> .ib-table-scroll").EvaluateAsync<int>("e => e.tabIndex"));
 
             // First row's checkbox, then text, and Up reaches the header's sort link.
-            await page.Locator(".ib-datagrid >> nth=0 >> tbody tr td").First.Locator("input").FocusAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr td").First.Locator("input").FocusAsync();
             Assert.Equal("r1c0 input", await FocusAsync(page));
             await PressAsync(page, "ArrowRight");
             Assert.Equal("r1c1", await FocusAsync(page));
@@ -79,7 +79,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         await using (browser)
         {
             // Customer: a sort link and a filter button, so focus stays on the cell.
-            await page.Locator(".ib-datagrid >> nth=0 >> tbody tr td").Nth(2).FocusAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr td").Nth(2).FocusAsync();
             await PressAsync(page, "ArrowUp");
             Assert.Equal("r0c2", await FocusAsync(page));
 
@@ -95,13 +95,13 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
 
             // Alt+Down opens its filter; Enter sorts.
             await PressAsync(page, "Alt+ArrowDown");
-            await page.Locator(".ib-datagrid >> nth=0 >> th [popover]:popover-open").First.WaitForAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> th [popover]:popover-open").First.WaitForAsync();
             await PressAsync(page, "Escape");
-            await page.Locator(".ib-datagrid >> nth=0 >> th[aria-sort] [popover]:popover-open").WaitForAsync(new() { State = WaitForSelectorState.Detached });
-            await page.Locator(".ib-datagrid >> nth=0 >> tbody tr td").Nth(2).FocusAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> th[aria-sort] [popover]:popover-open").WaitForAsync(new() { State = WaitForSelectorState.Detached });
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr td").Nth(2).FocusAsync();
             await PressAsync(page, "ArrowUp", "Enter");
             await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('sort') === 'customer'");
-            await page.Locator(".ib-datagrid >> nth=0 >> th[aria-sort=ascending]", new() { HasText = "Customer" }).WaitForAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> th[aria-sort=ascending]", new() { HasText = "Customer" }).WaitForAsync();
             await PressAsync(page, "ArrowRight", "ArrowRight");
             // Status has a sort link only, so it's focused directly: Shift+Enter adds it.
             Assert.Equal("r0c4 a", await FocusAsync(page));
@@ -119,8 +119,8 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
-            var boxes = page.Locator(".ib-datagrid >> nth=0 >> tbody .ib-table-select");
-            await page.Locator(".ib-datagrid >> nth=0 >> tbody tr").First.Locator("td").Nth(1).FocusAsync();
+            var boxes = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody .ib-table-select");
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr").First.Locator("td").Nth(1).FocusAsync();
 
             // Arrows never select.
             await PressAsync(page, "ArrowDown", "ArrowUp");
@@ -128,7 +128,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
 
             await PressAsync(page, "Space");
             await Assertions.Expect(boxes.First).ToBeCheckedAsync();
-            Assert.Equal("true", await page.Locator(".ib-datagrid >> nth=0 >> tbody tr").First.GetAttributeAsync("aria-selected"));
+            Assert.Equal("true", await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr").First.GetAttributeAsync("aria-selected"));
             await PressAsync(page, "Space");
             await Assertions.Expect(boxes.First).Not.ToBeCheckedAsync();
 
@@ -152,14 +152,14 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync(mode);
         await using (browser)
         {
-            await page.Locator(".ib-datagrid >> nth=0 >> tbody tr").First.Locator("td").Nth(2).FocusAsync();
+            await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr").First.Locator("td").Nth(2).FocusAsync();
             await PressAsync(page, "PageDown");
             Assert.Equal("r5c2", await FocusAsync(page));
-            var first = await page.Locator(".ib-datagrid >> nth=0 >> tbody tr").First.GetAttributeAsync("data-ib-key");
+            var first = await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr").First.GetAttributeAsync("data-ib-key");
 
             await PressAsync(page, "PageDown");
             await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('page') === '2'");
-            await page.WaitForFunctionAsync("key => document.querySelector('.ib-datagrid tbody tr').dataset.ibKey !== key", first);
+            await page.WaitForFunctionAsync("key => document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) tbody tr`).dataset.ibKey !== key", first);
             await page.WaitForFunctionAsync("() => document.activeElement.closest('tr')?.rowIndex === 1");
             Assert.Equal("r1c2", await FocusAsync(page));
 
@@ -176,7 +176,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").Nth(5);
+            var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders to review'])");
             var stops = () => grid.EvaluateAsync<int>("g => [...g.querySelector('.ib-table-scroll').querySelectorAll('*')].filter(e => e.tabIndex === 0 && !e.closest('[popover]') && e.checkVisibility()).length");
             Task<bool> Focused(string selector) => grid.Locator(selector).First.EvaluateAsync<bool>("e => e === document.activeElement || e.contains(document.activeElement)");
             await grid.Locator("tbody tr").First.Locator("td").Nth(4).FocusAsync();
@@ -249,12 +249,12 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
-            var grid = page.Locator(".ib-datagrid").First;
+            var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders'])");
             await grid.Locator("tbody tr").First.Locator("td").Nth(1).FocusAsync();
             await PressAsync(page, "Control+a");
             Assert.Equal("true", await grid.Locator("tbody tr").Nth(2).GetAttributeAsync("aria-selected"));
             await grid.Locator(".ib-selection-clear").ClickAsync();
-            await page.WaitForFunctionAsync("() => [...document.querySelector('.ib-datagrid').querySelectorAll('tbody tr')].every(r => r.getAttribute('aria-selected') === 'false') || false");
+            await page.WaitForFunctionAsync("() => [...document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders'])`).querySelectorAll('tbody tr')].every(r => r.getAttribute('aria-selected') === 'false') || false");
         }
     }
 
@@ -351,7 +351,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         await using (browser)
         {
             // What a SplitButton draws with its arrow blocked, and a closed panel holding an item.
-            var cell = page.Locator(".ib-datagrid >> nth=0 >> tbody tr >> nth=0 >> td >> nth=2");
+            var cell = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> tbody tr >> nth=0 >> td >> nth=2");
             await cell.EvaluateAsync("""
                 c => {
                   c.insertAdjacentHTML('beforeend', '<button type="button" popovertarget="blocked" disabled>More</button><div popover id="blocked"><button type="button" popovertarget="blocked" popovertargetaction="hide">Delete</button></div>');
@@ -393,7 +393,7 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = false });
         var page = await context.NewPageAsync();
         await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString());
-        Assert.Null(await page.Locator(".ib-datagrid >> nth=0 >> table").GetAttributeAsync("role"));
-        Assert.Equal("0", await page.Locator(".ib-datagrid >> nth=0 >> .ib-table-scroll").GetAttributeAsync("tabindex"));
+        Assert.Null(await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> table").GetAttributeAsync("role"));
+        Assert.Equal("0", await page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) >> .ib-table-scroll").GetAttributeAsync("tabindex"));
     }
 }
