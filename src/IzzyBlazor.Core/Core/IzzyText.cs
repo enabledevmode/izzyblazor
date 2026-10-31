@@ -69,9 +69,6 @@ public class IzzyText
     /// <summary>A DataGrid column menu: back to the column's declared width.</summary>
     public virtual string ColumnResetWidth { get; set; } = "Reset width";
 
-    /// <summary>A DataGrid column menu: hides the column.</summary>
-    public virtual string ColumnHide { get; set; } = "Hide column";
-
     /// <summary>A DataGrid column menu: freezes the column at the grid's start.</summary>
     public virtual string ColumnFreezeStart { get; set; } = "Freeze at start";
 

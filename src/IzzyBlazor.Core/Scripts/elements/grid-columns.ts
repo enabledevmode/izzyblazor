@@ -219,10 +219,6 @@ class GridColumns extends IzzyElement {
     else if (th && action === "reset-width") {
       delete this.#entry(columns, key!).w;
       void this.#save(columns, true, key!);
-    } else if (key && th && action === "hide") {
-      const headers = this.#headers;
-      const next = headers[headers.indexOf(th) + 1] ?? headers[headers.indexOf(th) - 1];
-      this.#setHidden(columns, key, true, next?.dataset.ibCol ?? null);
     }
     else if (th && (action === "freeze-start" || action === "freeze-end" || action === "unfreeze")) {
       const entry = this.#entry(columns, key!);
@@ -233,14 +229,14 @@ class GridColumns extends IzzyElement {
     }
   }
 
-  #setHidden(columns: ColumnEntry[], key: string, hidden: boolean, focus: string | null = null): void {
+  #setHidden(columns: ColumnEntry[], key: string, hidden: boolean): void {
     const entry = this.#entry(columns, key);
     if (hidden) {
       // At least one stays.
       if (this.#headers.length <= 1) return;
       entry.h = true;
     } else delete entry.h;
-    void this.#save(columns, true, focus);
+    void this.#save(columns, true, null);
   }
 
   #onChange(event: Event): void {

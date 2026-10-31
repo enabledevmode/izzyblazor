@@ -91,16 +91,15 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
-    public async Task The_menu_and_the_picker_hide_show_and_reset(string mode)
+    public async Task The_picker_hides_shows_and_resets(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
         await using (browser)
         {
-            await grid.Locator("thead th", new() { HasText = "Status" }).Locator("[data-ib-menu]").ClickAsync();
-            await page.GetByRole(AriaRole.Menuitem, new() { Name = "Hide column" }).ClickAsync();
+            await grid.Locator(".ib-col-picker button").First.ClickAsync();
+            await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).UncheckAsync();
             await Until(grid, ["Order", "Customer", "Date", "Total"]);
 
-            await grid.Locator(".ib-col-picker button").First.ClickAsync();
             var box = await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).BoundingBoxAsync();
             Assert.Equal(16, box!.Width, 1);
             // Hiding a column leaves its row as it was: the arrows stay, greyed out.
