@@ -71,11 +71,12 @@ public class TableFilterValuesTests : BunitContext
     private static string[] Names(IRenderedComponent<Table<Row>> cut) =>
         cut.FindAll("tbody tr:not(.ib-table-empty) td:first-child").Select(c => c.TextContent.Trim()).ToArray();
 
-    private static void Toggle(IRenderedComponent<Table<Row>> cut, int column, bool open)
+    // Again if it fails, as with a tick: a render on a timer can land between finding the panel and telling it.
+    private static void Toggle(IRenderedComponent<Table<Row>> cut, int column, bool open) => cut.WaitForAssertion(() =>
     {
         var panel = cut.FindAll("[popover]")[column];
         panel.TriggerEvent("onibtoggle", new IzzyToggleEventArgs { Id = panel.Id!, Open = open, Seq = open ? 1 : 2 });
-    }
+    }, Timer);
 
     private static string[] Listed(IRenderedComponent<Table<Row>> cut, int column) =>
         cut.FindAll("[popover]")[column].QuerySelectorAll("ib-filter-list .ib-filter-list-items label").Select(l => l.TextContent.Trim()).ToArray();
@@ -108,9 +109,10 @@ public class TableFilterValuesTests : BunitContext
         Tick(cut, 0, "Ada", false);
         Assert.Single(_asked);
 
+        // The tick's timer renders on its own thread, so the panel's handlers can be new by now.
         Toggle(cut, 0, open: false);
         Toggle(cut, 0, open: true);
-        Assert.Equal(2, _asked.Count);
+        cut.WaitForAssertion(() => Assert.Equal(2, _asked.Count), Timer);
     }
 
     private IRenderedComponent<Table<Row>> Static(string url, RenderFragment? columns = null)
@@ -521,7 +523,7 @@ public class TableFilterValuesTests : BunitContext
     public void A_sort_during_the_pause_keeps_the_ticks_waiting()
     {
         var cut = Unbound();
-        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(100);
+        cut.Instance.FilterDelay = TimeSpan.FromSeconds(1);
         Toggle(cut, 0, open: true);
 
         Tick(cut, 0, "Ada", false);
@@ -535,13 +537,13 @@ public class TableFilterValuesTests : BunitContext
     public void A_move_that_changes_the_column_drops_the_ticks_waiting()
     {
         var cut = Unbound();
-        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(100);
+        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(500);
         Toggle(cut, 0, open: true);
 
         Tick(cut, 0, "Ada", false);
         Nav.NavigateTo("/orders?f-name=x");
 
-        Thread.Sleep(350);
+        Thread.Sleep(800);
         Assert.Contains("f-name=x", Nav.Uri);
         Assert.DoesNotContain("notin", Nav.Uri);
     }
@@ -686,8 +688,8 @@ public class TableFilterValuesTests : BunitContext
 
         Toggle(cut, 0, open: false);
         Toggle(cut, 0, open: true);
-        Assert.Single(_asked);
-        Assert.NotEmpty(Listed(cut, 0));
+        cut.WaitForAssertion(() => Assert.Single(_asked), Timer);
+        cut.WaitForAssertion(() => Assert.NotEmpty(Listed(cut, 0)), Timer);
     }
 
     [Fact]
