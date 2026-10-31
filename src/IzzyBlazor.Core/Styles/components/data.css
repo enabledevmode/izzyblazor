@@ -643,6 +643,98 @@
     display: none;
   }
 
+  /* FilterBuilder. Its rows are the script's, so with none it's hidden. */
+  .ib-filter-builder {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-3);
+    min-height: 7rem;
+  }
+
+  @media (scripting: none) {
+    .ib-filter-builder {
+      display: none;
+    }
+  }
+
+  .ib-fb-group {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    min-width: 0;
+  }
+
+  .ib-fb-head,
+  .ib-fb-rule {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-fb-head .ib-field,
+  .ib-fb-rule .ib-field {
+    margin: 0;
+  }
+
+  /* The guide line down a group's rows. */
+  .ib-fb-items {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-2);
+    margin-block-start: var(--ib-space-2);
+    margin-inline-start: var(--ib-space-3);
+    padding-inline-start: var(--ib-space-3);
+    border-inline-start: 1px solid var(--ib-color-border);
+  }
+
+  .ib-fb-slot[hidden] {
+    display: none;
+  }
+
+  /* Rows line up, and the value takes what's left. */
+  .ib-fb-rule > .ib-field,
+  .ib-fb-rule > [data-ib-fb-op-slot] {
+    flex: 0 1 11rem;
+    min-width: 8rem;
+  }
+
+  .ib-fb-head > .ib-field {
+    flex: 0 0 8.5rem;
+  }
+
+  .ib-fb-value {
+    flex: 1 1 12rem;
+    min-width: 0;
+  }
+
+  .ib-fb-boxes > .ib-field {
+    flex: 1 1 8rem;
+  }
+
+  .ib-fb-boxes,
+  .ib-fb-choices {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+  }
+
+  .ib-fb-boxes [hidden] {
+    display: none;
+  }
+
+  .ib-fb-raw-text {
+    font-size: var(--ib-text-sm);
+    overflow-wrap: anywhere;
+  }
+
+  .ib-fb-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--ib-space-2);
+  }
+
   /* A DataGrid's FilterRow. */
   .ib-table-filter-row > td {
     /* Painted as a header is, so a sticky one covers the rows scrolling under it. */

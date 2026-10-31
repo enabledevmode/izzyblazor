@@ -793,6 +793,16 @@
       ]
     },
     {
+      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Forms", "preview": true, "summary": "Builds a filter of nested groups and rules from fields.",
+      "features": [
+        { "feature": "Groups and rules, from a type's fields, applied with a button", "noscript": "none" },
+        { "feature": "The filter in the address, or bound to C#", "noscript": "partial" }
+      ],
+      "examples": [
+        { "id": "filter-builder-orders", "title": "Filtering a list", "lead": "Use `Fields` to say what to build from. Apply puts the filter in the address as `?filter=`, which the page reads with `Filter.TryParse`." }
+      ]
+    },
+    {
       "id": "filter-form", "icon": "Funnel", "name": "FilterForm", "category": "Forms", "summary": "Search and filters kept in the URL.", "keywords": ["search bar", "filters"], "parts": ["FilterSearch", "FilterSelect", "FilterDate", "FilterCheckbox"],
       "features": [
         { "feature": "Filters in the address, applied with Apply or Enter; Clear removes them" },
