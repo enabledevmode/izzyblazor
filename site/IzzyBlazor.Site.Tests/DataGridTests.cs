@@ -495,10 +495,11 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
-    public async Task A_preview_is_left_out_of_the_index_and_the_sitemap()
+    public async Task A_preview_is_marked_on_the_components_page_and_left_out_of_the_sitemap()
     {
         var index = await site.Client.GetStringAsync("docs/components");
-        Assert.DoesNotContain("/components/data-grid", index);
+        Assert.Contains("/components/data-grid", index);
+        Assert.Contains("Preview", index);
         var sitemap = await site.Client.GetStringAsync("sitemap.xml");
         Assert.DoesNotContain("data-grid", sitemap);
         var page = await site.Client.GetStringAsync("docs/components/data-grid");

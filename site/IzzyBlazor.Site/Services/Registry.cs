@@ -48,7 +48,7 @@ public sealed class Registry
     /// <summary>Every listed component, in category order, then file order.</summary>
     public IReadOnlyList<RegistryComponent> Components { get; }
 
-    /// <summary>The listed components and the previews, whose pages work but nothing links to.</summary>
+    /// <summary>The listed components and the previews, whose pages only the components page links to.</summary>
     public IReadOnlyList<RegistryComponent> AllComponents { get; }
 
     /// <summary>The component count rounded down to ten, as "80+", for links and marketing copy.</summary>
