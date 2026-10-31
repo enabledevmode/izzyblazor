@@ -60,8 +60,6 @@ Then add the stylesheet and the namespace, register the services and map the end
 ```csharp
 // Program.cs
 builder.Services.AddIzzyBlazor();
-// after app.MapRazorComponents<App>():
-app.MapIzzyBlazor();
 ```
 
 IzzyBlazor loads its JavaScript automatically. For toasts, add `<ToastRegion />` to your layout. For WebAssembly and

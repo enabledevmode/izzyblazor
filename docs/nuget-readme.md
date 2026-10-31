@@ -51,9 +51,6 @@ Register the services and map the endpoints in `Program.cs`:
 
 ```csharp
 builder.Services.AddIzzyBlazor();
-
-// After app.MapRazorComponents<App>():
-app.MapIzzyBlazor();
 ```
 
 IzzyBlazor loads its JavaScript automatically. To display toasts, add `<ToastRegion />` to your layout.

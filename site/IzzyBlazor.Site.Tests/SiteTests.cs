@@ -81,7 +81,7 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
             {
                 var href = WebUtility.HtmlDecode(match.Groups[1].Value);
                 if (href.StartsWith("http", StringComparison.Ordinal) || href.StartsWith('#') || href.StartsWith("mailto:", StringComparison.Ordinal) ||
-                    href.StartsWith("_", StringComparison.Ordinal) || href.Contains("/_izzy/", StringComparison.Ordinal))
+                    href.StartsWith("_", StringComparison.Ordinal))
                 {
                     continue;
                 }

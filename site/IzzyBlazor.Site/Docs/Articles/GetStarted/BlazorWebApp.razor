@@ -41,12 +41,10 @@
 
         <Heading Level="2">Register the services</Heading>
         <TextBlock>Add the services, and map IzzyBlazor's endpoints after your components:</TextBlock>
-        <Code Block Language="csharp" Title="Program.cs" HighlightLines="2,10">@ProgramCs</Code>
+        <Code Block Language="csharp" Title="Program.cs" HighlightLines="2">@ProgramCs</Code>
         <TextBlock>
             <Code>AddIzzyBlazor</Code> adds the toast and dialog services, carries toasts over a redirect, and lets components
-            read their cookies on the server, such as the color scheme someone picked. <Code>MapIzzyBlazor</Code> adds the
-            endpoint <Anchor Href="docs/components/color-scheme-switch">ColorSchemeSwitch</Anchor> uses with JavaScript off.
-            Other components need neither.
+            read their cookies on the server, such as the color scheme someone picked. Other components don't need it.
         </TextBlock>
 
         <Heading Level="2">Add toasts and dialogs</Heading>
@@ -124,7 +122,6 @@
         // ...
         app.MapRazorComponents<App>()
             .AddInteractiveServerRenderMode();
-        app.MapIzzyBlazor();
 
         app.Run();
         """;

@@ -12,7 +12,7 @@
 <TextBlock>These three share the reader's choice with the site's own switch, so picking one here changes this site's scheme too. <Code>Toggle</Code> has no way back to System; use it where following the device isn't needed.</TextBlock>
 
 <Heading Level="2">Where the choice is kept</Heading>
-<TextBlock>The choice goes in the <Code>ib-scheme</Code> cookie, which IzzyTheme reads on the server, so every later page arrives in that scheme with no flash. <Code>AddIzzyBlazor()</Code> lets the server read it, and <Code>MapIzzyBlazor()</Code> adds the endpoint the options link to with JavaScript off.</TextBlock>
+<TextBlock>The choice goes in the <Code>ib-scheme</Code> cookie, which IzzyTheme reads on the server, so every later page arrives in that scheme with no flash. <Code>AddIzzyBlazor()</Code> lets the server read it. With JavaScript off the switch is hidden, and pages follow the device or a choice saved earlier.</TextBlock>
 <Code Block Language="csharp" Title="Program.cs">@Setup</Code>
 
 <Heading Level="2">Following it from C#</Heading>
@@ -54,7 +54,5 @@
 
     private const string Setup = """
         builder.Services.AddIzzyBlazor();
-        // …
-        app.MapIzzyBlazor();
         """;
 }

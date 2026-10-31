@@ -552,6 +552,7 @@ public class TableFilterValuesTests : BunitContext
     public void Ticks_that_come_back_to_where_they_started_are_no_move()
     {
         var cut = Unbound();
+        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(500);
         var moves = 0;
         Nav.LocationChanged += (_, _) => moves++;
         Toggle(cut, 0, open: true);
@@ -559,7 +560,7 @@ public class TableFilterValuesTests : BunitContext
         Tick(cut, 0, "Ada", false);
         Tick(cut, 0, "Ada", true);
         cut.WaitForAssertion(() => Assert.True(Ticked(cut, 0, "Ada")), Timer);
-        Thread.Sleep(150);
+        Thread.Sleep(800);
 
         Assert.Equal(0, moves);
     }
