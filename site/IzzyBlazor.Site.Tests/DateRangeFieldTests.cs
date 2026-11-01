@@ -207,4 +207,18 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await Assertions.Expect(field.GetByRole(AriaRole.Button, new() { Name = "Last 7 days" })).ToHaveAttributeAsync("aria-pressed", "true");
         await Assertions.Expect(field.GetByRole(AriaRole.Button, new() { Name = "This month" })).ToHaveAttributeAsync("aria-pressed", "false");
     }
+
+    [Fact]
+    public async Task With_only_an_end_the_months_open_on_it()
+    {
+        var (page, _, _, _, browser) = await OpenAsync("static");
+        await using var _ = browser;
+        var form = page.Locator("[data-ex='date-range-field-states']");
+        await form.GetByLabel("Until").FillAsync("2027-06-20");
+
+        await form.Locator(".ib-date-toggle").First.ClickAsync();
+
+        await Assertions.Expect(form.Locator(".ib-calendar-sheet .ib-calendar-month").First).ToHaveTextAsync("June 2027");
+        await Assertions.Expect(form.Locator("td[aria-selected='true'] [aria-label='Sunday, June 20, 2027']")).ToHaveCountAsync(1);
+    }
 }

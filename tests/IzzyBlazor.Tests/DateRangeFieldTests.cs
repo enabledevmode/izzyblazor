@@ -230,6 +230,24 @@ public class DateRangeFieldTests : BunitContext
     }
 
     [Fact]
+    public void Required_with_no_attribute_turns_away_no_value_as_a_read_only_input_cant()
+    {
+        Field(null, p => p.Add(f => f.Required, true).Add(f => f.Label, "Stay"));
+
+        Assert.Equal(new[] { "Stay needs a start and an end." }, Errors());
+    }
+
+    [Fact]
+    public void To_utc_stops_at_the_ends_of_the_calendar()
+    {
+        var tokyo = TimeZoneInfo.FindSystemTimeZoneById("Asia/Tokyo");
+
+        var (from, _) = new DateRange(DateOnly.MinValue, null).ToUtc(tokyo);
+
+        Assert.Equal(DateTimeOffset.MinValue, from);
+    }
+
+    [Fact]
     public void A_range_contains_its_ends_and_all_of_the_last_day()
     {
         var range = new DateRange(Day(3, 8), Day(3, 12));

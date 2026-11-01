@@ -160,7 +160,8 @@
             var slots = new List<TimeOnly>();
             if (step >= TimeSpan.FromMinutes(1))
             {
-                var first = (ResolvedMin ?? TimeOnly.MinValue).ToTimeSpan();
+                // A list holds whole minutes, so a Min with seconds starts at the next one.
+                var first = TimeSpan.FromMinutes(Math.Ceiling((ResolvedMin ?? TimeOnly.MinValue).ToTimeSpan().TotalMinutes));
                 var last = (ResolvedMax ?? new TimeOnly(23, 59, 59)).ToTimeSpan();
                 if (last < first)
                 {

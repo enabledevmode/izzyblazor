@@ -55,6 +55,14 @@ public class TimeFieldRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_min_with_seconds_starts_the_list_at_the_next_minute()
+    {
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.Min, new TimeOnly(9, 0, 30)).Add(f => f.Max, new TimeOnly(9, 3)).Add(f => f.Step, TimeSpan.FromMinutes(1)));
+
+        Assert.Equal(new[] { "09:01", "09:02", "09:03" }, Slots(cut));
+    }
+
+    [Fact]
     public void A_window_across_midnight_runs_through_it()
     {
         var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.Min, new TimeOnly(23, 0)).Add(f => f.Max, new TimeOnly(1, 0)).Add(f => f.Step, TimeSpan.FromHours(1)));

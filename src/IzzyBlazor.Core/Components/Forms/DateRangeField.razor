@@ -25,8 +25,9 @@
 
     Min, Max, MinDays, MaxDays and DateDisabled are checked on the server, along with the end not
     being before the start, so they hold against a phone, no script or a crafted post. DateDisabled
-    turns away a span with a disabled day in it, unless AllowDisabledInRange. An empty field is no
-    value; with Required, a field with only one end is turned away too.
+    turns away a span with a disabled day in it, unless AllowDisabledInRange. With Required, a field
+    with only one end is turned away too. An empty field is null on an interactive page, and after a
+    static post it can be a range with no ends: test IsEmpty rather than null.
 
     Accessibility:
     - It renders a `fieldset` named by the label, with a `label` linked to each date input, and the
@@ -109,7 +110,8 @@
                     </button>
                 </Trigger>
                 <ChildContent>
-                    <ib-calendar class="ib-calendar ib-calendar-range"
+                    <ib-calendar @key="(DisplayMonths, Presets?.Count)"
+                                 class="ib-calendar ib-calendar-range"
                                  @attributes="CalendarAttributes"
                                  data-ib-value-end="@FormatDate(CurrentValue?.End)"
                                  data-ib-min-days="@MinDays"
@@ -271,6 +273,9 @@
     /// <inheritdoc />
     private protected override bool HasOwnRules => true;
 
+    /// <inheritdoc />
+    private protected override bool RulesCoverEmpty => true;
+
     private Task ChangeAsync(ChangeEventArgs e, bool end)
     {
         DateOnly? day = DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var read) ? read : null;
@@ -292,12 +297,15 @@
     /// <inheritdoc />
     private protected override string? OwnRuleError(DateRange? value)
     {
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
         if (value is not { } range)
         {
-            return null;
+            // [Required] says so itself, and Required with no attribute has only this.
+            return IsRequired && Attribute<System.ComponentModel.DataAnnotations.RequiredAttribute>() is null
+                ? string.Format(culture, TextDefaults.DateRangeIncomplete, ResolvedLabel)
+                : null;
         }
 
-        var culture = System.Globalization.CultureInfo.CurrentCulture;
         string Said(DateOnly day) => day.ToString("d", culture);
         string Say(string text, object argument) => string.Format(culture, text, ResolvedLabel, argument);
 
