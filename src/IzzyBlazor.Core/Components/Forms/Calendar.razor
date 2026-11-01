@@ -1,6 +1,6 @@
 @namespace IzzyBlazor
 @typeparam TValue
-@inherits FieldBase<TValue>
+@inherits CalendarFieldBase<TValue>
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the date is typed or picked in the browser's own input, above a month that shows it and can't change.")]
 
 @*
@@ -49,15 +49,7 @@
 <FieldFrame Class="@WrapperClass("calendar")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-calendar class="ib-calendar"
-                 data-ib-value="@FormatDate(Chosen)"
-                 data-ib-min="@FormatDate(ShownMin)"
-                 data-ib-max="@FormatDate(ShownMax)"
-                 data-ib-off="@_offRuns"
-                 data-ib-classes="@_classRuns"
-                 data-ib-culture="@Current.Culture.Name"
-                 data-ib-first-day="@((int)Current.FirstDay)"
-                 data-ib-week-anchor="@(ShowWeekNumbers ? CalendarGrid.WeekAnchor(Current.Culture.DateTimeFormat.CalendarWeekRule) : null)"
-                 data-ib-hide-adjacent="@(ShowAdjacentDays ? null : "")"
+                 @attributes="CalendarAttributes"
                  data-ib-disabled="@(IsDisabled ? "" : null)"
                  data-ib-readonly="@(IsReadOnly ? "" : null)">
         <ib-field-control class="ib-field-control ib-calendar-text">
@@ -95,105 +87,6 @@
     /// <summary>The latest date. Defaults to <c>[Range]</c>'s maximum.</summary>
     [Parameter] public DateOnly? Max { get; set; }
 
-    /// <summary>The first column. Defaults to the culture's first day of the week.</summary>
-    [Parameter] public DayOfWeek? FirstDayOfWeek { get; set; }
-
-    /// <summary>The culture for the month and day names, the first day and the week numbers. Defaults to the current culture.</summary>
-    [Parameter] public System.Globalization.CultureInfo? Culture { get; set; }
-
-    /// <summary>Adds a first column with the week of the year, counted as the culture counts them.</summary>
-    [Parameter] public bool ShowWeekNumbers { get; set; }
-
-    /// <summary>Whether to show the days of the months before and after, muted, in the first and last weeks. Defaults to true.</summary>
-    [Parameter] public bool ShowAdjacentDays { get; set; } = true;
-
-    /// <summary>
-    /// Whether a day can't be chosen. Checked on the server too, so it stops <c>OnValidSubmit</c> whatever
-    /// was posted. It's called for every day in the window on every render, so keep it cheap.
-    /// </summary>
-    [Parameter] public Func<DateOnly, bool>? DateDisabled { get; set; }
-
-    /// <summary>
-    /// How far each way from the value or today to call <see cref="DateDisabled"/> and <see cref="DayClass"/>,
-    /// in whole days, for an end <see cref="Min"/> or <see cref="Max"/> doesn't set. About a year unless set.
-    /// With DateDisabled, the month stops at the window's edge.
-    /// </summary>
-    [Parameter] public TimeSpan? DateDisabledWindow { get; set; }
-
-    /// <summary>A class for a day's button, or null. Called like <see cref="DateDisabled"/>, so keep it cheap.</summary>
-    [Parameter] public Func<DateOnly, string?>? DayClass { get; set; }
-
-    private const int DefaultWindowDays = 366;
-
-    private DateOnly? _windowFrom;
-    private DateOnly? _windowTo;
-    private HashSet<int>? _off;
-    private Dictionary<int, string>? _dayClasses;
-    private string? _offRuns;
-    private string? _classRuns;
-
-    // Past the window the server hasn't said what's allowed, so the script stops there.
-    private DateOnly? ShownMin => DateDisabled is null ? ResolvedMin : _windowFrom;
-
-    private DateOnly? ShownMax => DateDisabled is null ? ResolvedMax : _windowTo;
-
-    // Asks once for every day in the window, and writes the answers as runs of days, for the script:
-    // "2027-03-06/2027-03-07,2027-03-13".
-    private void AskAboutDays()
-    {
-        (_windowFrom, _windowTo, _off, _dayClasses, _offRuns, _classRuns) = (null, null, null, null, null, null);
-        if (DateDisabled is null && DayClass is null)
-        {
-            return;
-        }
-
-        var (min, max) = (ResolvedMin, ResolvedMax);
-        var anchor = Chosen ?? DateOnly.FromDateTime(DateTime.UtcNow);
-        anchor = anchor < min ? min.Value : anchor > max ? max.Value : anchor;
-        var each = DateDisabledWindow is { } window ? (int)Math.Max(0, Math.Min(window.TotalDays, DateOnly.MaxValue.DayNumber)) : DefaultWindowDays;
-        var from = min?.DayNumber ?? Math.Max(anchor.DayNumber - each, DateOnly.MinValue.DayNumber);
-        var to = max?.DayNumber ?? (int)Math.Min((long)anchor.DayNumber + each, DateOnly.MaxValue.DayNumber);
-        (_windowFrom, _windowTo) = (DateOnly.FromDayNumber(from), DateOnly.FromDayNumber(to));
-
-        var off = new List<(int From, int To)>();
-        var classed = new Dictionary<string, List<(int From, int To)>>();
-        for (var number = from; number <= to; number++)
-        {
-            var day = DateOnly.FromDayNumber(number);
-            if (DateDisabled?.Invoke(day) == true)
-            {
-                (_off ??= []).Add(number);
-                Extend(off, number);
-            }
-
-            if (DayClass?.Invoke(day) is { Length: > 0 } name)
-            {
-                (_dayClasses ??= [])[number] = name;
-                Extend(classed.TryGetValue(name, out var runs) ? runs : classed[name] = [], number);
-            }
-        }
-
-        _offRuns = off.Count > 0 ? Runs(off) : null;
-        _classRuns = classed.Count > 0 ? string.Join('\n', classed.Select(entry => $"{Runs(entry.Value)}={entry.Key}")) : null;
-    }
-
-    private static void Extend(List<(int From, int To)> runs, int number)
-    {
-        if (runs.Count > 0 && runs[^1].To == number - 1)
-        {
-            runs[^1] = (runs[^1].From, number);
-        }
-        else
-        {
-            runs.Add((number, number));
-        }
-    }
-
-    private static string Runs(List<(int From, int To)> runs) => string.Join(',', runs.Select(run =>
-        run.From == run.To
-            ? FormatDate(DateOnly.FromDayNumber(run.From))
-            : $"{FormatDate(DateOnly.FromDayNumber(run.From))}/{FormatDate(DateOnly.FromDayNumber(run.To))}"));
-
     // Not written in the markup: there, Razor makes @bind format a date, and it binds text.
     private const string InputType = "date";
 
@@ -204,79 +97,16 @@
 
     private DateOnly? ResolvedMax => Max ?? Annotated(Range?.Maximum);
 
-    private System.Globalization.CultureInfo ResolvedCulture =>
-        CalendarGrid.Gregorian(Culture ?? System.Globalization.CultureInfo.CurrentCulture);
-
     private DateOnly? Chosen => CurrentValue is DateOnly date && date != default ? date : null;
 
-    private string LabelId => FieldId + "-label";
+    /// <inheritdoc />
+    private protected override DateOnly? ChosenDay => Chosen;
 
-    private CalendarView Current
-    {
-        get
-        {
-            var culture = ResolvedCulture;
-            var monthId = FieldId + "-month";
-            return new(
-                FirstMonth,
-                Chosen,
-                ShownMin,
-                ShownMax,
-                FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
-                culture,
-                ShowWeekNumbers,
-                ShowAdjacentDays,
-                IsDisabled,
-                IsReadOnly,
-                Size,
-                monthId,
-                string.IsNullOrEmpty(ResolvedLabel) ? monthId : $"{LabelId} {monthId}",
-                TextDefaults,
-                _off,
-                _dayClasses);
-        }
-    }
+    /// <inheritdoc />
+    private protected override DateOnly? FirstDay => ResolvedMin;
 
-    private CalendarView? _drawn;
-
-    // The first render stays, so Blazor's diff never writes the cells the script has moved on from:
-    // what changes reaches it in the element's attributes. Only a change of the grid's shape draws
-    // again, and those attributes then have the script draw over it.
-    private CalendarView Drawn
-    {
-        get
-        {
-            var now = Current;
-            if (_drawn is not { } drawn
-                || drawn.Culture.Name != now.Culture.Name
-                || drawn.FirstDay != now.FirstDay
-                || drawn.ShowWeekNumbers != now.ShowWeekNumbers
-                || drawn.ShowAdjacentDays != now.ShowAdjacentDays
-                || drawn.Size != now.Size
-                || drawn.LabelledBy != now.LabelledBy)
-            {
-                _drawn = now;
-            }
-
-            return _drawn.Value;
-        }
-    }
-
-    // The chosen day's month. With none, this month in UTC, as the server doesn't know the person's
-    // zone, or the nearest with a day that can be chosen.
-    private DateOnly FirstMonth
-    {
-        get
-        {
-            if (Chosen is { } chosen)
-            {
-                return chosen;
-            }
-
-            var today = DateOnly.FromDateTime(DateTime.UtcNow);
-            return today < ResolvedMin ? ResolvedMin.Value : today > ResolvedMax ? ResolvedMax.Value : today;
-        }
-    }
+    /// <inheritdoc />
+    private protected override DateOnly? LastDay => ResolvedMax;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
@@ -329,8 +159,6 @@
         validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DateInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
         return false;
     }
-
-    private static string? FormatDate(DateOnly? date) => date?.ToString(InputFormat, System.Globalization.CultureInfo.InvariantCulture);
 
     // [Range]'s end: text from Range(typeof(DateOnly), "2027-01-01", "2027-12-31").
     private static DateOnly? Annotated(object? end) => end switch

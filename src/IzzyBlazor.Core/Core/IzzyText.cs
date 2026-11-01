@@ -371,6 +371,15 @@ public class IzzyText
     /// <summary>The heading shown over a calendar's week numbers, in a day's width.</summary>
     public virtual string CalendarWeekText { get; set; } = "Wk";
 
+    /// <summary>A date field's button that opens its calendar.</summary>
+    public virtual string CalendarChoose { get; set; } = "Choose date";
+
+    /// <summary>That button once there's a date; {0} is the date in full.</summary>
+    public virtual string CalendarChange { get; set; } = "Change date, {0}";
+
+    /// <summary>A calendar's button that chooses today.</summary>
+    public virtual string CalendarToday { get; set; } = "Today";
+
     /// <summary>A date or time before the field's Min; {0} is its label and {1} the limit.</summary>
     public virtual string TooEarly { get; set; } = "{0} must be {1} or later.";
 

@@ -2644,6 +2644,58 @@
     display: none;
   }
 
+  /* DateField's calendar button waits for the script, so the browser's icon works until then, and
+     with none or where its code can't load. On a phone the browser's stays, unless the field needs
+     the library's. Firefox's icon can't be hidden, so the button has a background to cover it. */
+  .ib-date-control > ib-popover {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: calc(var(--ib-field-px) - 0.375rem);
+    display: flex;
+    align-items: center;
+  }
+
+  .ib-date-toggle {
+    display: none;
+    padding: 0.375rem;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: var(--ib-field-bg, var(--ib-color-surface));
+    color: var(--ib-color-subtle);
+    cursor: pointer;
+  }
+
+  .ib-date-toggle:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-date-toggle .ib-field-icon {
+    position: static;
+  }
+
+  /* Read-only only so a phone's calendar stays shut: this one still changes it. */
+  .ib-date-own > .ib-field-input[readonly] {
+    background-color: var(--ib-field-bg);
+  }
+
+  .ib-date-own:has(ib-calendar[data-ready]) .ib-date-toggle {
+    display: inline-flex;
+  }
+
+  .ib-date-own:has(ib-calendar[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
+    display: none;
+  }
+
+  @media not (pointer: coarse) {
+    .ib-date-control:has(ib-calendar[data-ready]) .ib-date-toggle {
+      display: inline-flex;
+    }
+
+    .ib-date-control:has(ib-calendar[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
+      display: none;
+    }
+  }
+
   /* DurationField: a box per unit, and one text input that posts. The boxes wait for the script, so
      with none, or where its code can't load, the text input shows in their place. */
   .ib-duration-boxes {

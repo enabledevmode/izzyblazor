@@ -1,15 +1,23 @@
 @namespace IzzyBlazor
 @typeparam TValue
-@inherits FieldBase<TValue>
-@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, a posted DateTime or DateTimeOffset isn't read in TimeZone: Blazor reads a DateTimeOffset in the server's time zone and a DateTime as UTC. A DateOnly isn't affected, nor is a TimeZone of UTC on a server that runs in UTC.")]
+@inherits CalendarFieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own calendar opens in place of the library's, and a posted DateTime or DateTimeOffset isn't read in TimeZone: Blazor reads a DateTimeOffset in the server's time zone and a DateTime as UTC. A DateOnly isn't affected, nor is a TimeZone of UTC on a server that runs in UTC.")]
 
 @*
-    A date field, or a date and time field: the browser's own date input, so it posts with the
-    form, checks Min and Max before posting, and opens the browser's calendar. Bind it to
-    DateOnly, DateTime or DateTimeOffset, or a nullable one.
+    A date field, or a date and time field: the browser's own input, so it posts with the form and
+    takes a typed date, and for a date the library's calendar to choose from. Bind it to DateOnly,
+    DateTime or DateTimeOffset, or a nullable one.
     <DateField @bind-Value="Model.Due" />
     <DateField @bind-Value="Model.From" Max="@DateOnly.FromDateTime(DateTime.UtcNow)" />
+    <DateField @bind-Value="Model.Due" DateDisabled="d => d.DayOfWeek == DayOfWeek.Sunday" />
+    <DateField @bind-Value="Model.Due" UseNative />
     <DateField @bind-Value="Model.StartsAt" TimeZone="@zone" />
+
+    The calendar writes to the input, so posting and binding don't change. UseNative keeps the
+    browser's calendar. So does a date and time for now, and with no script or on a phone, unless the
+    field has DateDisabled, which a browser's calendar can't show: there it's the library's, and on a
+    phone the input can't be typed in. Min, Max and DateDisabled are checked again on the server, so a
+    typed date is turned away when the form posts.
 
     A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
     Type="DateFieldType.Date" or [DataType(DataType.Date)] on the property (midnight in TimeZone).
@@ -27,13 +35,32 @@
     - Label, hint and errors work as in `TextField`.
     - The time zone isn't announced: put it in the label when it matters, as in "Starts (UTC)",
       since add-on text isn't part of the field's name.
+    - The calendar's button is named "Choose date" (`ChooseLabel`), or "Change date" and the date
+      once there is one. Its panel is a non-modal `dialog`, named by the button, with the month as
+      in `Calendar`. Focus goes to the chosen date or today, and on closing back to where it opened from.
+
+    Keyboard:
+    In the date field
+    - Up, Down | Change the focused part of the date
+    - Left, Right | Move between the parts of the date
+    - Alt+Down | Open the calendar
+    In the calendar's days
+    - Left, Right | Move a day (reversed in right-to-left)
+    - Up, Down | Move a week
+    - Home, End | Go to the start or end of the week
+    - Page Up, Page Down | Move a month, keeping the day number or the month's last day
+    - Shift+Page Up, Shift+Page Down | Move a year
+    - Enter, Space | Choose the date and close
+    In the calendar
+    - Tab, Shift+Tab | Move through the header, the days and the buttons, and close past either end
+    - Escape | Close without changing the value
     See also: TimeField, TextField, NumberField, Form.
 *@
 
 <FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
-        <ib-field-control class="ib-field-control">
+        <ib-field-control class="@ControlClass">
             <input @attributes="ControlAttributes"
                    id="@FieldId"
                    class="ib-field-input"
@@ -50,6 +77,34 @@
                    data-ib-post="@(PostedZone is null ? null : IsOffset ? "offset" : "utc")"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
+            @if (HasPanel)
+            {
+                <Popover Placement="Placement.BottomEnd">
+                    <Trigger Context="trigger">
+                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                            <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                        </button>
+                    </Trigger>
+                    <ChildContent>
+                        <ib-calendar class="ib-calendar"
+                                     @attributes="CalendarAttributes"
+                                     data-ib-change="@(ChooseLabel is null ? TextDefaults.CalendarChange : null)"
+                                     data-ib-choose="@ChooseText">
+                            <div class="ib-calendar-view">
+                                <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                                @CalendarGrid.Month(Drawn, null)
+                                <div class="ib-calendar-foot">
+                                    <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-today>@TextDefaults.CalendarToday</Button>
+                                    @if (ShowsClear)
+                                    {
+                                        <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
+                                    }
+                                </div>
+                            </div>
+                        </ib-calendar>
+                    </ChildContent>
+                </Popover>
+            }
         </ib-field-control>
     </FieldAddons>
 </FieldFrame>
@@ -94,6 +149,18 @@
     /// <summary>Content attached after the control, outside its border, such as the time zone.</summary>
     [Parameter] public RenderFragment? EndAddon { get; set; }
 
+    /// <summary>
+    /// Keeps the browser's calendar in place of the library's. <see cref="CalendarFieldBase{TValue}.DateDisabled"/>
+    /// is then checked only on the server, as the browser's calendar can't show it.
+    /// </summary>
+    [Parameter] public bool UseNative { get; set; }
+
+    /// <summary>Whether the calendar has a Clear button. Defaults to true for a nullable value that isn't required.</summary>
+    [Parameter] public bool? Clearable { get; set; }
+
+    /// <summary>The name of the calendar's button, in place of "Choose date" and "Change date" with the date.</summary>
+    [Parameter] public string? ChooseLabel { get; set; }
+
     private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
 
     private static bool IsDateOnly => Underlying == typeof(DateOnly);
@@ -101,6 +168,36 @@
     private static bool IsOffset => Underlying == typeof(DateTimeOffset);
 
     private TimeZoneInfo Zone => TimeZone ?? TimeZoneInfo.Utc;
+
+    // Only for a date for now. Nothing to choose from on a field that can't change.
+    private bool HasPanel => !UseNative && ResolvedType == DateFieldType.Date && !IsDisabled && !IsReadOnly;
+
+    private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChoose;
+
+    private bool ShowsClear => Clearable ?? (Nullable.GetUnderlyingType(typeof(TValue)) is not null && !IsRequired);
+
+    // A field whose rules a browser's calendar can't show keeps the library's on a phone too.
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control")
+        .Add("ib-date-control", HasPanel)
+        .Add("ib-date-own", HasPanel && DateDisabled is not null)
+        .Build()!;
+
+    private static DateOnly? DayOf(string? text) =>
+        text is null ? null : DateOnly.ParseExact(text.AsSpan(0, 10), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    /// <inheritdoc />
+    private protected override bool LabelNamesMonth => false;
+
+    /// <inheritdoc />
+    private protected override DateOnly? ChosenDay =>
+        CurrentValue is DateOnly date && date == default ? null : DayOf(Format(CurrentValue));
+
+    /// <inheritdoc />
+    private protected override DateOnly? FirstDay => DayOf(FormatLimit(Min, Range?.Minimum));
+
+    /// <inheritdoc />
+    private protected override DateOnly? LastDay => DayOf(FormatLimit(Max, Range?.Maximum));
 
     private DateFieldType ResolvedType => Type
         ?? (IsDateOnly || Attribute<System.ComponentModel.DataAnnotations.DataTypeAttribute>()?.DataType == System.ComponentModel.DataAnnotations.DataType.Date
@@ -141,10 +238,14 @@
         }
 
         base.OnParametersSet();
+        if (HasPanel)
+        {
+            AskAboutDays();
+        }
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Min is not null || Max is not null;
+    private protected override bool HasOwnRules => Min is not null || Max is not null || DateDisabled is not null;
 
     // As the input shows them, in Zone: fixed-width text sorts as the times do.
     /// <inheritdoc />
@@ -158,6 +259,7 @@
         return shown is null ? null
             : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min))
             : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(max))
+            : DayOf(shown) is { } day && DateDisabled?.Invoke(day) == true ? string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(shown))
             : null;
     }
 
