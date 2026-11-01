@@ -808,7 +808,8 @@
     {
         var label = FilterLabel(column);
         var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label;
-        var placement = column.EffectiveAlign == CellAlign.End ? Placement.BottomEnd : Placement.BottomStart;
+        // Opening from the button, along the column: which way depends on which side of the cell it's on.
+        var placement = column.EffectiveAlign == CellAlign.End != FilterButtonAtFarEdge ? Placement.BottomEnd : Placement.BottomStart;
         var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
         var lists = column.HasValueList && RendererInfo.IsInteractive;
         var toggled = lists ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
@@ -1468,6 +1469,9 @@
         }
     }
 
+    /// <summary>Whether a column's filter button is at the far side of its cell from the title, as a DataGrid's is, not beside it.</summary>
+    internal virtual bool FilterButtonAtFarEdge => false;
+
     /// <summary>Whether a row of filters sits under the titles: a DataGrid's <c>FilterRow</c>.</summary>
     internal virtual bool ShowsFilterRow => false;
 
@@ -1514,7 +1518,7 @@
                 else
                 {
                     var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-                    <button type="button" class="ib-filter-cell-summary" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter>@summary</button>
+                    <button type="button" class="ib-filter-cell-summary" style="anchor-name:@StyleValues.AnchorName(FilterPanelId(column) + "-summary")" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter>@summary</button>
                 }
             </FieldAddons>
         </div>
