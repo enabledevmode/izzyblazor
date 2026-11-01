@@ -63,11 +63,14 @@ public class DurationFieldRenderTests : BunitContext
     [Fact]
     public void A_sign_shows_only_when_min_or_the_value_is_negative()
     {
-        Assert.Empty(DurationFor(() => _model.Length).FindAll("select"));
-        Assert.NotEmpty(DurationFor(() => _model.Length, p => p.Add(f => f.Min, TimeSpan.FromHours(-1))).FindAll("select"));
+        Assert.Empty(DurationFor(() => _model.Length).FindAll(".ib-duration-sign"));
+        var allowed = DurationFor(() => _model.Length, p => p.Add(f => f.Min, TimeSpan.FromHours(-1)));
+        Assert.Equal("false", allowed.Find(".ib-duration-sign").GetAttribute("aria-pressed"));
 
         _model.Length = TimeSpan.FromMinutes(-5);
-        Assert.Equal(["0", "5", "0"], Boxes(DurationFor(() => _model.Length)));
+        var negative = DurationFor(() => _model.Length);
+        Assert.Equal("true", negative.Find(".ib-duration-sign").GetAttribute("aria-pressed"));
+        Assert.Equal(["0", "5", "0"], Boxes(negative));
     }
 
     [Fact]

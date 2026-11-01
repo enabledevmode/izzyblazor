@@ -2598,12 +2598,30 @@
     color: var(--ib-color-subtle);
   }
 
+  /* Square, in line with the boxes above their captions. */
+  button.ib-duration-sign {
+    flex: none;
+    width: var(--ib-field-h);
+    padding: 0;
+    font-weight: var(--ib-weight-medium);
+    cursor: pointer;
+  }
+
+  button.ib-duration-sign:disabled {
+    cursor: not-allowed;
+  }
+
+  .ib-duration-sign[aria-pressed="true"] > :first-child,
+  .ib-duration-sign[aria-pressed="false"] > :last-child {
+    display: none;
+  }
+
   .ib-duration-format {
     display: none;
     margin-top: var(--ib-space-1);
   }
 
-  .ib-field-invalid .ib-duration-unit > .ib-field-input {
+  .ib-field-invalid .ib-duration-unit .ib-field-input {
     border-color: var(--ib-color-danger);
   }
 

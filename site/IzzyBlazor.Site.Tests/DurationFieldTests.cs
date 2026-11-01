@@ -56,6 +56,29 @@ public sealed class DurationFieldTests(SiteFixture site) : IClassFixture<SiteFix
         }
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task The_sign_button_flips_what_posts(string mode)
+    {
+        var (page, _, browser) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var states = page.Locator("[data-ex='duration-field-states']");
+            var negative = states.GetByRole(AriaRole.Group, new() { Name = "Clock offset" }).GetByRole(AriaRole.Button, new() { Name = "Negative" });
+            var text = states.Locator(".ib-duration-text input").Nth(1);
+            await Assertions.Expect(text).ToHaveValueAsync("-05:00:00");
+
+            await negative.ClickAsync();
+            await Assertions.Expect(text).ToHaveValueAsync("05:00:00");
+            await Assertions.Expect(negative).ToHaveAttributeAsync("aria-pressed", "false");
+
+            await negative.ClickAsync();
+            await Assertions.Expect(text).ToHaveValueAsync("-05:00:00");
+            await Assertions.Expect(negative).ToHaveAttributeAsync("aria-pressed", "true");
+        }
+    }
+
     [Fact]
     public async Task With_no_script_the_text_input_takes_the_format_and_posts()
     {

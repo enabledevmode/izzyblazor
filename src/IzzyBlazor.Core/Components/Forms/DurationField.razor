@@ -18,7 +18,7 @@
     Accessibility:
     - The boxes are a `group` named by the label, each a native number `input` named by its unit, one
       tab stop each. Up and Down arrows change a box.
-    - A sign shows only when Min is negative or the value is, as a `select` named "Sign".
+    - A sign shows only when Min is negative or the value is, as a toggle button named "Negative".
     - The hint and errors are linked to the group, and label, hint and errors work as in `TextField`.
     See also: TimeField, NumberField, Form.
 *@
@@ -45,13 +45,10 @@
         <div class="ib-duration-boxes" role="group" aria-labelledby="@LabelId" aria-describedby="@DescribedBy">
             @if (ShowsSign)
             {
-                <label class="ib-duration-unit">
-                    <select class="ib-field-input ib-duration-sign" disabled="@(IsDisabled || IsReadOnly)">
-                        <option value="" selected="@(!IsNegative)">+</option>
-                        <option value="-" selected="@IsNegative">&minus;</option>
-                    </select>
-                    <span>@TextDefaults.DurationSign</span>
-                </label>
+                @* Both signs are drawn and CSS shows one by aria-pressed, so the script changes no content. *@
+                <button type="button" class="ib-field-input ib-duration-sign" aria-pressed="@(IsNegative ? "true" : "false")" aria-label="@TextDefaults.DurationNegative" disabled="@(IsDisabled || IsReadOnly)">
+                    <span aria-hidden="true">+</span><span aria-hidden="true">&minus;</span>
+                </button>
             }
             @{ var left = WholeSeconds is { } whole ? (long?)Math.Abs(whole) : null; }
             @foreach (var unit in Units)
