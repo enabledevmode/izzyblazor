@@ -85,7 +85,7 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.WaitForURLAsync("**/*row-f-customer=ada*");
         await Assertions.Expect(grid.Locator("tbody tr").First).ToContainTextAsync("Ada");
         await Assertions.Expect(field).ToHaveValueAsync("ada");
-        await Assertions.Expect(grid.Locator("th .ib-table-filter-button[aria-label^='Filter Customer']")).ToHaveAttributeAsync("data-active", "");
+        await Assertions.Expect(grid.Locator("th .ib-table-filter-button[aria-label^='Filter']:visible")).ToHaveCountAsync(0);
         Assert.Equal("ada", await grid.Locator("[popover] input[name='row-f-customer']").InputValueAsync());
     }
 
@@ -148,7 +148,8 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         Assert.Equal("ab", await field.InputValueAsync());
 
         await page.Keyboard.PressAsync("ArrowUp");
-        await Assertions.Expect(grid.Locator("thead th").Nth(1)).ToBeFocusedAsync();
+        // The header, or its title's link where that's all it holds.
+        await Assertions.Expect(grid.Locator("thead th:nth-child(2):focus-within, thead th:nth-child(2):focus")).ToHaveCountAsync(1);
     }
 
     [Fact]

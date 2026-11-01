@@ -80,23 +80,23 @@ class Table extends IzzyElement {
   // A panel the row opened, whose button in the row gets focus back from it. The element, as its id
   // changes with each response, and choosing Between draws that button only as the panel opens.
   #rowPanel: HTMLElement | null = null;
-  // A panel opened from the row's summary, which opens under that and not under its button in the header.
-  #underSummary: HTMLElement | null = null;
+  // A panel the row opened, which opens under the row's cell: its button in the header isn't shown.
+  #underCell: HTMLElement | null = null;
   // Kept for the same reason: setup runs again after the response that made the table shorter.
   #tallest = 0;
   #heldFor = "";
 
   // Again after each response while it's open, as enhanced navigation puts the server's style back.
-  #placeUnderSummary(): void {
-    const panel = this.#underSummary;
-    const summary = panel && this.querySelector<HTMLElement>(`.ib-filter-cell-summary[popovertarget="${CSS.escape(panel.id)}"]`);
-    if (!panel || !summary) return;
-    panel.style.setProperty("position-anchor", summary.style.getPropertyValue("anchor-name"));
+  #placeUnderCell(): void {
+    const panel = this.#underCell;
+    const cell = panel && this.querySelector<HTMLElement>(`.ib-filter-cell[data-ib-panel="${CSS.escape(panel.id)}"]`);
+    if (!panel || !cell) return;
+    panel.style.setProperty("position-anchor", cell.style.getPropertyValue("anchor-name"));
     panel.classList.replace("ib-place-bottom-end", "ib-place-bottom-start");
   }
 
   protected setup(signal: AbortSignal): void {
-    this.#placeUnderSummary();
+    this.#placeUnderCell();
     this.#setupHold(signal);
     this.#setupFilters(signal);
     setupSelectAll(this, ".ib-table-select-all", "tbody .ib-table-select", signal);
@@ -111,8 +111,8 @@ class Table extends IzzyElement {
       (event) => {
         const panel = event.target as HTMLElement;
         if ((event as ToggleEvent).newState !== "closed") return;
-        if (panel === this.#underSummary) {
-          this.#underSummary = null;
+        if (panel === this.#underCell) {
+          this.#underCell = null;
           panel.style.setProperty("position-anchor", panel.closest<HTMLElement>("ib-popover")!.style.getPropertyValue("anchor-name"));
           panel.className = panel.className.replace("ib-place-bottom-start", `ib-place-${panel.closest<HTMLElement>("ib-popover")!.dataset.placement}`);
         }
@@ -132,13 +132,12 @@ class Table extends IzzyElement {
         // A panel's Clear is done with the panel.
         const panelOf = (id: string | null | undefined) => (id ? document.getElementById(id) : null);
         const opens = panelOf((event.target as Element).closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel);
-        opens?.showPopover();
-        const opened = panelOf((event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget"));
-        this.#rowPanel = opens ?? opened ?? this.#rowPanel;
+        const opened = opens ?? panelOf((event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget"));
         if (opened) {
-          this.#underSummary = opened;
-          this.#placeUnderSummary();
+          this.#rowPanel = this.#underCell = opened;
+          this.#placeUnderCell();
         }
+        opens?.showPopover();
         const clear = (event.target as Element).closest("[data-ib-filter-clear]");
         if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
         // An operator is a link on a static page, so what it changes would wait for the response.

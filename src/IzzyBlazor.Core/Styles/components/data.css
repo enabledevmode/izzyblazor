@@ -829,22 +829,63 @@
     border-radius: inherit;
   }
 
+  .ib-field-group > .ib-filter-cell-summary {
+    flex: 1;
+    min-width: 0;
+  }
+
   .ib-field-group:has(> .ib-field-addon-start) > .ib-filter-cell-summary {
     border-start-start-radius: 0;
     border-end-start-radius: 0;
   }
 
-  .ib-filter-cell-op,
-  .ib-filter-cell-summary {
+  .ib-filter-cell-op {
     height: var(--ib-field-h);
     border: 1px solid var(--ib-color-border);
-    border-radius: var(--ib-radius-control, var(--ib-radius-md));
-    background: none;
-    color: var(--ib-color-muted);
     font: inherit;
-    font-size: var(--ib-text-xs);
     white-space: nowrap;
     cursor: pointer;
+  }
+
+  /* Drawn as the fields beside it are, and as a Select, since it opens a list of its own. */
+  .ib-filter-cell-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ib-space-1);
+    height: var(--ib-field-h);
+    padding-inline: var(--ib-field-px);
+    border: 1px solid var(--ib-field-border);
+    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    background-color: var(--ib-field-bg);
+    color: var(--ib-color-on-surface);
+    font: inherit;
+    font-size: var(--ib-field-font);
+    cursor: pointer;
+  }
+
+  .ib-filter-cell-summary[data-empty] {
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-filter-cell-summary > span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-filter-cell-summary > .ib-icon {
+    --ib-icon-size: 0.875rem;
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-filter-cell-summary:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-table-filter-button[hidden] {
+    display: none;
   }
 
   .ib-filter-cell-op {
@@ -877,19 +918,6 @@
     width: 1rem;
   }
 
-  .ib-filter-cell-summary {
-    flex: 1;
-    min-width: 0;
-    padding-inline: 0.5rem;
-    overflow: hidden;
-    text-align: start;
-    text-overflow: ellipsis;
-  }
-
-  .ib-filter-cell-op:hover,
-  .ib-filter-cell-summary:hover {
-    color: var(--ib-color-on-surface);
-  }
 
   /* The scrollbar starts under the row too. */
   .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-row) {
