@@ -17,13 +17,58 @@
 
   .ib-calendar {
     --ib-calendar-cell: var(--ib-field-h);
-    visibility: visible;
-    min-height: 0;
-    margin-top: var(--ib-space-2);
     font-size: var(--ib-field-font);
   }
 
+  .ib-calendar-view {
+    visibility: visible;
+    min-height: 0;
+  }
+
+  .ib-calendar-head {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-1);
+    height: var(--ib-calendar-cell);
+  }
+
+  .ib-calendar-head .ib-calendar-nav {
+    flex: none;
+    width: var(--ib-calendar-cell);
+    height: var(--ib-calendar-cell);
+  }
+
+  .ib-calendar-nav:dir(rtl) .ib-icon {
+    scale: -1 1;
+  }
+
+  /* Tighter than a field, as two of them and the buttons share a month's width. */
+  .ib-calendar-selects {
+    --ib-field-px: var(--ib-space-2);
+    flex: 1 1 0;
+    gap: var(--ib-space-1);
+    min-width: 0;
+  }
+
+  .ib-calendar-selects > :first-child {
+    flex: 1 1 0;
+    min-width: 0;
+  }
+
+  .ib-calendar-selects > :last-child {
+    flex: none;
+    width: calc(var(--ib-calendar-cell) * 2 + 0.25rem);
+  }
+
+  /* Room for the month's name on a phone. */
+  @media (max-width: 400px) {
+    .ib-calendar-head .ib-calendar-nav {
+      width: 1.75rem;
+    }
+  }
+
   .ib-calendar-month {
+    flex: 1 1 0;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -71,6 +116,10 @@
     text-align: center;
   }
 
+  .ib-calendar-day[hidden] {
+    display: none;
+  }
+
   .ib-calendar-outside > .ib-calendar-day {
     color: var(--ib-color-muted);
   }
@@ -99,10 +148,6 @@
 
   .ib-calendar-day:is(:disabled, [aria-disabled="true"]) {
     color: var(--ib-color-disabled);
-  }
-
-  .ib-calendar-day[aria-disabled="true"] {
-    text-decoration: line-through;
   }
 
   td[aria-selected="true"] > .ib-calendar-day {

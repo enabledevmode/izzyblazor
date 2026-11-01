@@ -2581,12 +2581,47 @@
     }
   }
 
-  /* Calendar: the rest is in date.css, which it links. Held back at its size until that arrives,
-     so a calendar brought by enhanced navigation doesn't draw unstyled or move the page. */
+  /* Calendar: the rest is in date.css, which it links. The month is held back at its size until that
+     arrives, so one brought by enhanced navigation doesn't draw unstyled or move the page. The month
+     and its controls wait for the script, so with none, or where its code can't load, the date input
+     shows above a month that only shows. */
   .ib-calendar {
     display: block;
+  }
+
+  .ib-calendar-view {
     visibility: hidden;
     min-height: calc(var(--ib-field-h) * 8);
+  }
+
+  .ib-calendar-text {
+    margin-bottom: var(--ib-space-2);
+  }
+
+  .ib-calendar-selects {
+    display: flex;
+  }
+
+  @media (scripting: enabled) {
+    ib-calendar:not([data-ib-failed]) > .ib-calendar-text,
+    ib-calendar:not([data-ib-failed]) .ib-calendar-month {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+  }
+
+  @media (scripting: none) {
+    .ib-calendar-nav,
+    .ib-calendar-selects {
+      display: none;
+    }
+  }
+
+  ib-calendar[data-ib-failed] :is(.ib-calendar-nav, .ib-calendar-selects) {
+    display: none;
   }
 
   /* DurationField: a box per unit, and one text input that posts. The boxes wait for the script, so

@@ -70,7 +70,9 @@ scale factor of 2, in light and dark. The other full-page previews are `/preview
 3. **Browser behavior,** if it needs any: add a custom element under
    `src/IzzyBlazor.Core/Scripts/elements/` extending `IzzyElement`, and import it in
    `Scripts/index.ts`. Elements change attributes, classes and ARIA state, never content Blazor
-   renders. An element most pages won't have (a table, a combobox, a color picker) loads on
+   renders. The one exception is `<ib-calendar>`, which rewrites its cells to change month: C#
+   keeps its first render of them fixed, so Blazor's diff never writes there, and what can change
+   reaches the script in attributes on the element. An element most pages won't have (a table, a combobox, a color picker) loads on
    demand instead: add it to the loaders in `Scripts/lazy.ts` and to `lazyElements` in
    `build/build-assets.mjs`, not to `index.ts`. Every page loads the main module (15 KB gzip
    budget); each on-demand element is its own file (6 KB each). Its server-rendered markup must

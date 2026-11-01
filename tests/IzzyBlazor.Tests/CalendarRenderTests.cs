@@ -46,7 +46,8 @@ public class CalendarRenderTests : BunitContext
         var cut = CalendarFor(() => _model.Day);
         var grid = cut.Find("[role=grid]");
 
-        Assert.Equal("February 2027", cut.Find("#" + grid.GetAttribute("aria-labelledby")).TextContent);
+        var names = grid.GetAttribute("aria-labelledby")!.Split(' ').Select(id => cut.Find("#" + id).TextContent).ToList();
+        Assert.Equal(["Day", "February 2027"], names);
         Assert.Equal(42, cut.FindAll("tbody td").Count);
         Assert.Equal("Sunday", cut.Find("thead th").GetAttribute("abbr"));
         Assert.Equal("Monday, February 15, 2027", cut.Find("td[aria-selected=true] button").GetAttribute("aria-label"));
@@ -111,7 +112,19 @@ public class CalendarRenderTests : BunitContext
         // December 30, 2024 is ISO week 1 of 2025.
         var weeks = cut.FindAll("tbody th").Select(th => th.TextContent).ToList();
         Assert.Equal(["48", "49", "50", "51", "52", "1"], weeks);
-        Assert.Equal(31, cut.FindAll("tbody button").Count);
+        Assert.Equal(31, cut.FindAll("tbody button:not([hidden])").Count);
+    }
+
+    [Fact]
+    public void On_an_interactive_page_a_new_value_reaches_the_script_and_the_cells_stay_as_first_drawn()
+    {
+        var cut = CalendarFor(() => _model.Day);
+
+        cut.Render(p => p.Add(f => f.Value, new DateOnly(2027, 8, 20)));
+
+        Assert.Equal("2027-08-20", cut.Find("ib-calendar").GetAttribute("data-ib-value"));
+        Assert.Equal("February 2027", cut.Find(".ib-calendar-month").TextContent);
+        Assert.Equal("Monday, February 15, 2027", cut.Find("td[aria-selected=true] button").GetAttribute("aria-label"));
     }
 
     [Fact]
