@@ -128,6 +128,48 @@ public enum IconRole
 
     /// <summary>Open a side panel.</summary>
     Panel,
+
+    /// <summary>A filter for text that contains the value.</summary>
+    FilterContains,
+
+    /// <summary>A filter for text that doesn't contain the value.</summary>
+    FilterDoesNotContain,
+
+    /// <summary>A filter for what equals the value.</summary>
+    FilterEquals,
+
+    /// <summary>A filter for what doesn't equal the value.</summary>
+    FilterNotEquals,
+
+    /// <summary>A filter for text that starts with the value.</summary>
+    FilterStartsWith,
+
+    /// <summary>A filter for text that ends with the value.</summary>
+    FilterEndsWith,
+
+    /// <summary>A filter for what is greater than the value.</summary>
+    FilterGreaterThan,
+
+    /// <summary>A filter for what is at least the value.</summary>
+    FilterGreaterOrEqual,
+
+    /// <summary>A filter for what is less than the value.</summary>
+    FilterLessThan,
+
+    /// <summary>A filter for what is at most the value.</summary>
+    FilterLessOrEqual,
+
+    /// <summary>A filter for what is between two values.</summary>
+    FilterBetween,
+
+    /// <summary>A filter for what is empty.</summary>
+    FilterIsEmpty,
+
+    /// <summary>A filter for what isn't empty.</summary>
+    FilterIsNotEmpty,
+
+    /// <summary>Put something back as it was.</summary>
+    Reset,
 }
 
 /// <summary>
@@ -136,7 +178,7 @@ public enum IconRole
 /// </summary>
 public class IconSet
 {
-    /// <summary>The bundled Lucide mapping.</summary>
+    /// <summary>The bundled Lucide mapping, with Tabler's for the filter operators Lucide has none for.</summary>
     public static IconSet Lucide { get; } = new(role => role switch
     {
         IconRole.Close => IzzyBlazor.Lucide.X,
@@ -180,6 +222,20 @@ public class IconSet
         IconRole.Upload => IzzyBlazor.Lucide.Upload,
         IconRole.FirstPage => IzzyBlazor.Lucide.ChevronsLeft,
         IconRole.Panel => IzzyBlazor.Lucide.PanelRight,
+        IconRole.FilterContains => OperatorIcons.Contains,
+        IconRole.FilterDoesNotContain => OperatorIcons.DoesNotContain,
+        IconRole.FilterEquals => IzzyBlazor.Lucide.Equal,
+        IconRole.FilterNotEquals => IzzyBlazor.Lucide.EqualNot,
+        IconRole.FilterStartsWith => OperatorIcons.StartsWith,
+        IconRole.FilterEndsWith => OperatorIcons.EndsWith,
+        IconRole.FilterGreaterThan => OperatorIcons.GreaterThan,
+        IconRole.FilterGreaterOrEqual => OperatorIcons.GreaterOrEqual,
+        IconRole.FilterLessThan => OperatorIcons.LessThan,
+        IconRole.FilterLessOrEqual => OperatorIcons.LessOrEqual,
+        IconRole.FilterBetween => IzzyBlazor.Lucide.MoveHorizontal,
+        IconRole.FilterIsEmpty => IzzyBlazor.Lucide.CircleDashed,
+        IconRole.FilterIsNotEmpty => IzzyBlazor.Lucide.CircleDot,
+        IconRole.Reset => IzzyBlazor.Lucide.RotateCcw,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 

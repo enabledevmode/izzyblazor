@@ -57,7 +57,8 @@ SOFTWARE.
 
 The outline logos in the `IzzyBlazor.Brands` class come from Tabler Icons (https://tabler.io/icons),
 via the `@tabler/icons` package (3.49.0), except NuGet and .NET, which were drawn for IzzyBlazor and
-are covered by IzzyBlazor's own MIT license.
+are covered by IzzyBlazor's own MIT license. So do the filter operators' icons in `OperatorIcons`
+(3.50.0), where "does not contain" adds a line through `brackets-contain`.
 
 ```
 MIT License

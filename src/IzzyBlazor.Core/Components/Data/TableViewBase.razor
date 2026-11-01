@@ -1530,7 +1530,7 @@
         var name = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterChangeOperator, column.HeaderText, word);
         <Menu Placement="Placement.BottomStart" data-ib-user-controlled>
             <Trigger>
-                <button type="button" class="ib-filter-cell-op" data-ib-menu aria-label="@name" title="@name" @attributes="context">@ColumnFilter.ShortOf(current.Op)</button>
+                <button type="button" class="ib-filter-cell-op" data-ib-menu aria-label="@name" title="@name" @attributes="context"><Icon Role="ColumnFilter.IconOf(current.Op)" /></button>
             </Trigger>
             <ChildContent>
                 @foreach (var op in ops)
@@ -1538,21 +1538,21 @@
                     var opens = op == FilterOperator.Between ? FilterPanelId(column) : null;
                     if (UseState)
                     {
-                        <MenuItem Checked="op == current.Op" data-ib-opens-panel="@opens" OnClick="() => OnOperatorAsync(column, new ChangeEventArgs { Value = ColumnFilter.WordOf(op) })">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
+                        <MenuItem Icon="IconSet.Current.Get(ColumnFilter.IconOf(op))" Checked="op == current.Op" data-ib-opens-panel="@opens" OnClick="() => OnOperatorAsync(column, new ChangeEventArgs { Value = ColumnFilter.WordOf(op) })">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
                     }
                     else
                     {
-                        <MenuItem Checked="op == current.Op" data-ib-opens-panel="@opens" Href="@OperatorHref(column, current, op)">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
+                        <MenuItem Icon="IconSet.Current.Get(ColumnFilter.IconOf(op))" Checked="op == current.Op" data-ib-opens-panel="@opens" Href="@OperatorHref(column, current, op)">@ColumnFilter.TextOf(column.FilterKind, op, TextDefaults)</MenuItem>
                     }
                 }
                 <MenuDivider />
                 @if (UseState)
                 {
-                    <MenuItem OnClick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)">@TextDefaults.Reset</MenuItem>
+                    <MenuItem Icon="IconSet.Current.Get(IconRole.Reset)" data-ib-reset OnClick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)">@TextDefaults.Reset</MenuItem>
                 }
                 else
                 {
-                    <MenuItem Href="@FilterHref(column, null)">@TextDefaults.Reset</MenuItem>
+                    <MenuItem Icon="IconSet.Current.Get(IconRole.Reset)" data-ib-reset Href="@FilterHref(column, null)">@TextDefaults.Reset</MenuItem>
                 }
             </ChildContent>
         </Menu>
