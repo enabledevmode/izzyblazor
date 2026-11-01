@@ -72,6 +72,47 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
         }
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_date_and_time_waits_for_ok_and_saves_in_the_fields_zone(string mode)
+    {
+        var (page, _, browser) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var form = page.Locator("[data-ex='date-field-time-zones'] form");
+            var input = form.GetByLabel("Standup (New York)");
+            var panel = form.Locator("[popover]").Nth(1);
+            var day = panel.GetByRole(AriaRole.Button, new() { Name = "Monday, March 15, 2027", Exact = true });
+            var open = form.GetByRole(AriaRole.Button, new() { Name = "Change date, Tuesday, March 2, 2027, 09:30" });
+
+            // A day alone changes nothing, and Escape drops it.
+            await open.ClickAsync();
+            await day.ClickAsync();
+            await Assertions.Expect(panel.Locator("td[aria-selected=true] button")).ToHaveAttributeAsync("aria-label", "Monday, March 15, 2027");
+            await Assertions.Expect(input).ToHaveValueAsync("2027-03-02T09:30");
+            await page.Keyboard.PressAsync("Escape");
+            await Assertions.Expect(panel).ToBeHiddenAsync();
+            await Assertions.Expect(input).ToHaveValueAsync("2027-03-02T09:30");
+
+            // It opens on the input's day and time again, and Enter in the time is OK, not a post.
+            await open.ClickAsync();
+            await Assertions.Expect(panel.Locator("td[aria-selected=true] button")).ToHaveAttributeAsync("aria-label", "Tuesday, March 2, 2027");
+            await day.ClickAsync();
+            var time = panel.GetByLabel("Time");
+            await Assertions.Expect(time).ToHaveValueAsync("09:30");
+            await time.FillAsync("14:45");
+            await time.PressAsync("Enter");
+            await Assertions.Expect(panel).ToBeHiddenAsync();
+            await Assertions.Expect(input).ToHaveValueAsync("2027-03-15T14:45");
+            await Assertions.Expect(form.GetByRole(AriaRole.Alert)).ToHaveCountAsync(0);
+
+            // March 15 is after New York's clocks change, so the offset is the panel's day's.
+            await form.GetByRole(AriaRole.Button, new() { Name = "Schedule" }).ClickAsync();
+            await Assertions.Expect(form).ToContainTextAsync("2027-03-15 14:45 -04:00");
+        }
+    }
+
     [Fact]
     public async Task With_no_script_the_browser_has_the_only_calendar()
     {

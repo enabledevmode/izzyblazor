@@ -377,6 +377,9 @@ public class IzzyText
     /// <summary>That button once there's a date; {0} is the date in full.</summary>
     public virtual string CalendarChange { get; set; } = "Change date, {0}";
 
+    /// <summary>The label of a calendar's time input.</summary>
+    public virtual string CalendarTime { get; set; } = "Time";
+
     /// <summary>A calendar's button that chooses today.</summary>
     public virtual string CalendarToday { get; set; } = "Today";
 

@@ -173,10 +173,27 @@
     outline-offset: 2px;
   }
 
+  .ib-calendar-time {
+    display: flex;
+    align-items: center;
+    gap: var(--ib-space-2);
+    margin-top: var(--ib-space-2);
+  }
+
+  .ib-calendar-time > .ib-field-control {
+    flex: 1;
+  }
+
   .ib-calendar-foot {
     display: flex;
     justify-content: space-between;
+    gap: var(--ib-space-1);
     margin-top: var(--ib-space-2);
+  }
+
+  /* Today and Clear at the start, and what ends the choice at the end. */
+  .ib-calendar-foot > [data-ib-cancel] {
+    margin-inline-start: auto;
   }
 
   @media (forced-colors: active) {

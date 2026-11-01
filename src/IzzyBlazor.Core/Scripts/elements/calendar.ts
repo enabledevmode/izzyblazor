@@ -12,7 +12,8 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * element. Enhanced navigation resets the cells to the server's, and the observer draws them again.
  *
  * In a DateField it's inside a Popover, beside the date input: that input stays as it is, for typing,
- * choosing a day closes the panel, and the panel reads what was typed each time it opens.
+ * choosing a day closes the panel, and the panel reads what was typed each time it opens. With a
+ * time, a day is only the panel's until OK, so anything else that closes it drops the choice.
  *
  * Dates are whole days since 1970, so moving one is adding to it.
  */
@@ -25,7 +26,7 @@ const at = (year: number, month: number, day: number): number => {
 const date = (n: number): Date => new Date(n * DAY);
 const parse = (text: string | undefined): number | null => {
   if (!text) return null;
-  const [year, month, day] = text.split("-").map(Number);
+  const [year, month, day] = text.slice(0, 10).split("-").map(Number);
   return at(year, month - 1, day);
 };
 const FIRST = at(1, 0, 1);
@@ -67,7 +68,10 @@ class Calendar extends IzzyElement {
     const panel = this.closest<HTMLElement>("[popover]");
     const toggle = panel?.previousElementSibling as HTMLButtonElement | null | undefined;
     const control = panel?.closest(".ib-field-control");
-    const text = (control ?? this).querySelector<HTMLInputElement>("input[type=date]");
+    const text = (control ?? this).querySelector<HTMLInputElement>("input");
+    const time = panel && this.querySelector<HTMLInputElement>("input[type=time]");
+    const okButton = this.querySelector<HTMLButtonElement>("[data-ib-ok]");
+    const cancelButton = this.querySelector<HTMLButtonElement>("[data-ib-cancel]");
     const todayButton = this.querySelector<HTMLButtonElement>("[data-ib-today]");
     const clearButton = this.querySelector<HTMLButtonElement>("[data-ib-clear]");
     const grid = this.querySelector("table");
@@ -79,8 +83,15 @@ class Calendar extends IzzyElement {
     const live = this.querySelector("[data-ib-live]");
     if (!text || !grid || !prev || !next || !months || !years || !title || !live) return;
 
+    // In the field's zone if it has one. en-CA writes a date as an input does.
     const findToday = (): number => {
       const now = new Date();
+      const zone = this.dataset.ibTimeZone;
+      try {
+        if (zone) return parse(new Intl.DateTimeFormat("en-CA", { timeZone: zone }).format(now))!;
+      } catch {
+        // A browser that doesn't know the zone: its own day is the nearest.
+      }
       return at(now.getFullYear(), now.getMonth(), now.getDate());
     };
 
@@ -213,7 +224,10 @@ class Calendar extends IzzyElement {
       set(months, "disabled", disabled);
 
       if (panel) {
-        if (toggle) put(toggle, "aria-label", chosen !== null && data.ibChange ? data.ibChange.replace("{0}", dayName.format(date(chosen))) : data.ibChoose ?? null);
+        // What the input holds, not a choice still waiting for OK.
+        const written = parse(text.value);
+        if (toggle) put(toggle, "aria-label", written !== null && data.ibChange ? data.ibChange.replace("{0}", dayName.format(date(written)) + (time ? `, ${text.value.slice(11)}` : "")) : data.ibChoose ?? null);
+        if (okButton) set(okButton, "disabled", chosen === null);
         if (todayButton) set(todayButton, "disabled", blocked(today));
         // A phone's own calendar would open on a tap, and could choose what this field turns off.
         if (control?.classList.contains("ib-date-own") && matchMedia("(pointer: coarse)").matches) set(text, "readOnly", true);
@@ -244,7 +258,7 @@ class Calendar extends IzzyElement {
 
     const write = (n: number | null): void => {
       chosen = n;
-      text.value = n === null ? "" : date(n).toISOString().slice(0, 10);
+      text.value = n === null ? "" : date(n).toISOString().slice(0, 10) + (time ? `T${time.value || "00:00"}` : "");
       text.dispatchEvent(new Event("input", { bubbles: true }));
       text.dispatchEvent(new Event("change", { bubbles: true }));
     };
@@ -258,7 +272,9 @@ class Calendar extends IzzyElement {
 
     const choose = (n: number): void => {
       const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && !blocked(n);
-      if (allowed) {
+      if (allowed && time) {
+        chosen = n;
+      } else if (allowed) {
         write(n);
         if (panel) {
           draw();
@@ -276,11 +292,14 @@ class Calendar extends IzzyElement {
       panel.addEventListener(
         "beforetoggle",
         (event) => {
-          if ((event as ToggleEvent).newState !== "open") return;
-          // Back to the input if the keys opened it from there.
-          opener = document.activeElement === text ? text : toggle;
+          // Opening or closing, a choice that wasn't written is gone.
           chosen = parse(text.value);
-          cursor = chosen ?? clamp(findToday(), min ?? FIRST, max ?? LAST);
+          if ((event as ToggleEvent).newState === "open") {
+            // Back to the input if the keys opened it from there.
+            opener = document.activeElement === text ? text : toggle;
+            cursor = chosen ?? clamp(findToday(), min ?? FIRST, max ?? LAST);
+            if (time) time.value = text.value.slice(11);
+          }
           draw();
         },
         { signal }
@@ -289,8 +308,13 @@ class Calendar extends IzzyElement {
       panel.addEventListener(
         "keydown",
         (event) => {
+          // In the time input, Enter would post the form.
+          if (event.key === "Enter" && event.target === time) {
+            event.preventDefault();
+            okButton?.click();
+          }
           if (event.key !== "Tab") return;
-          const stops = [...panel.querySelectorAll<HTMLElement>("button, select")].filter((stop) => stop.tabIndex >= 0 && !stop.matches(":disabled") && stop.checkVisibility());
+          const stops = [...panel.querySelectorAll<HTMLElement>("button, select, input")].filter((stop) => stop.tabIndex >= 0 && !stop.matches(":disabled") && stop.checkVisibility());
           if (document.activeElement !== (event.shiftKey ? stops[0] : stops[stops.length - 1])) return;
           if (event.shiftKey) event.preventDefault();
           close(toggle);
@@ -332,9 +356,11 @@ class Calendar extends IzzyElement {
         } else if (target === todayButton) {
           cursor = findToday();
           choose(cursor);
-        } else if (target === clearButton) {
-          write(null);
+        } else if (target === clearButton || target === okButton) {
+          write(target === okButton ? chosen : null);
           draw();
+          close();
+        } else if (target === cancelButton) {
           close();
         }
       },
