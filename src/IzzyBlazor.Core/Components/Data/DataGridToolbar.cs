@@ -73,6 +73,9 @@ public abstract class DataGridToolbarItem : ComponentBase, IToolbarItem, IDispos
     /// <summary>What the toolbar reckons for it on the first paint.</summary>
     internal double? EstimatedWidth => ItemWidth;
 
+    // A table's small icons are 18px (data.css), where the estimate counts a small button's 16.
+    private protected const double TableIconExtra = 2;
+
     int IToolbarItem.Priority => ItemPriority;
 
     ToolbarOverflow IToolbarItem.Overflow => ItemOverflow;
@@ -167,7 +170,7 @@ public sealed class DataGridFilterBuilder : DataGridToolbarItem
 
     private protected override RenderFragment ItemBar => Grid.FilterBuilderBar(Text);
 
-    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.FilterBuilderLabel, startIcon: true, endIcon: false);
+    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.FilterBuilderLabel, startIcon: true, endIcon: false) + (Text ? TableIconExtra : 0);
 }
 
 /// <summary>
@@ -189,7 +192,7 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
 
     private protected override RenderFragment ItemBar => Grid.ColumnPickerBar(Text);
 
-    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ColumnPickerLabel, startIcon: true, endIcon: false);
+    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ColumnPickerLabel, startIcon: true, endIcon: false) + (Text ? TableIconExtra : 0);
 }
 
 /// <summary>
@@ -224,9 +227,9 @@ public sealed class DataGridExport : DataGridToolbarItem
 
     private protected override RenderFragment ItemMenu => Grid.ExportMenu;
 
-    // With a menu: two icons with a 2px gap, a 12px chevron (data.css), in 8px of padding and a border; or with
-    // text, the usual button with that smaller chevron.
-    private protected override double? ItemWidth => !Grid.ExportHasMenu ? ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false)
-        : Text ? ButtonWidth.Estimate(ControlSize.Sm, false, true, Grid.ExportLabel, startIcon: true, endIcon: true) - 4
-        : 48;
+    // With a menu: an 18px icon, a 2px gap and a 14px chevron (data.css), in 8px of padding and a border; or
+    // with text, the usual button, where those two come to what its two 16px icons would.
+    private protected override double? ItemWidth => !Grid.ExportHasMenu ? ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ExportLabel, startIcon: true, endIcon: false) + (Text ? TableIconExtra : 0)
+        : Text ? ButtonWidth.Estimate(ControlSize.Sm, false, true, Grid.ExportLabel, startIcon: true, endIcon: true)
+        : 52;
 }

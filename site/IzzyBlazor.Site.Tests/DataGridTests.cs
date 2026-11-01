@@ -28,7 +28,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             var menu = grid.GetByRole(AriaRole.Button, new() { Name = "Export" });
 
             // As wide as the toolbar reckons on the first paint.
-            Assert.Equal(48, (await menu.BoundingBoxAsync())!.Width);
+            Assert.Equal(52, (await menu.BoundingBoxAsync())!.Width);
 
             // Sorted by total, highest first: the links follow.
             var total = grid.Locator("thead th", new() { HasText = "Total" }).Locator("a, button").First;
