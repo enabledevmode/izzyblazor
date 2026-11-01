@@ -278,6 +278,8 @@
  */
 @layer izzy.components {
   .ib-table {
+    /* One size for every icon in a table: its toolbar, header, filter row, menus and pager. */
+    --ib-control-icon-sm: 1.125rem;
     --ib-table-py: var(--ib-table-cell-py);
     --ib-table-px: var(--ib-table-cell-px, var(--ib-space-4));
     --ib-table-font: var(--ib-text-sm);
@@ -485,8 +487,8 @@
   }
 
   .ib-table-filter-button > .ib-icon {
-    width: 1.125rem;
-    height: 1.125rem;
+    width: var(--ib-control-icon-sm);
+    height: var(--ib-control-icon-sm);
   }
 
   .ib-table-filter-button:hover {
@@ -855,7 +857,7 @@
     border-radius: inherit;
     background-color: var(--ib-color-fill);
     color: var(--ib-color-on-surface);
-    --ib-icon-size: 1.125rem;
+    --ib-icon-size: var(--ib-control-icon-sm);
   }
 
   .ib-filter-cell-op:hover,
@@ -1016,8 +1018,8 @@
   }
 
   .ib-table-sort-icon {
-    width: 0.875rem;
-    height: 0.875rem;
+    width: var(--ib-control-icon-sm);
+    height: var(--ib-control-icon-sm);
     opacity: 0.45;
   }
 
@@ -1187,7 +1189,7 @@
   /* As tall as the bar, so the rows don't move when one takes the other's place. */
   /* Export's two formats: the icon and a small chevron, both inside one button. */
   .ib-grid-export > .ib-icon:last-child {
-    --ib-icon-size: 0.75rem;
+    --ib-icon-size: 0.875rem;
   }
 
   .ib-btn.ib-grid-export-icons {

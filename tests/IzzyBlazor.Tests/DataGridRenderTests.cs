@@ -511,7 +511,7 @@ public class DataGridRenderTests : BunitContext
         var one = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv"));
 
         Assert.Equal(32, one.FindComponent<DataGridExport>().Instance.EstimatedWidth);
-        Assert.Equal(48, both.FindComponent<DataGridExport>().Instance.EstimatedWidth);
+        Assert.Equal(52, both.FindComponent<DataGridExport>().Instance.EstimatedWidth);
         var labeled = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarLabels, true));
         var plainText = ButtonWidth.Estimate(ControlSize.Sm, false, true, "Export", startIcon: true, endIcon: false);
         Assert.True(labeled.FindComponent<DataGridExport>().Instance.EstimatedWidth > plainText + 12, "the chevron's room");
