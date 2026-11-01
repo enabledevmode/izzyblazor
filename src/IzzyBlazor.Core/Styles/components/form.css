@@ -2598,13 +2598,20 @@
     color: var(--ib-color-subtle);
   }
 
-  /* Square, in line with the boxes above their captions. */
+  /* Square, in line with the boxes above their captions. Icons, as a font's + sits off its line's center. */
   button.ib-duration-sign {
     flex: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     width: var(--ib-field-h);
     padding: 0;
-    font-weight: var(--ib-weight-medium);
     cursor: pointer;
+  }
+
+  .ib-duration-sign .ib-icon {
+    width: var(--ib-control-icon-sm);
+    height: var(--ib-control-icon-sm);
   }
 
   button.ib-duration-sign:disabled {
