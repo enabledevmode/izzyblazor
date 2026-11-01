@@ -25,7 +25,7 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
         var (_, form, input, browser) = await OpenAsync(mode);
         await using var _ = browser;
         var toggle = form.Locator(".ib-date-toggle");
-        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-label", "Change time, 10:30 AM");
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-label", new System.Text.RegularExpressions.Regex(@"^Change time, 10:30\sAM$"));
         await toggle.ClickAsync();
         await Assertions.Expect(Slot(form, "10:30")).ToBeFocusedAsync();
         await Assertions.Expect(Slot(form, "10:30")).ToHaveAttributeAsync("aria-selected", "true");
@@ -35,7 +35,7 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(input).ToHaveValueAsync("14:15");
         await Assertions.Expect(form.Locator("[popover]").First).ToBeHiddenAsync();
         await Assertions.Expect(toggle).ToBeFocusedAsync();
-        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-label", "Change time, 2:15 PM");
+        await Assertions.Expect(toggle).ToHaveAttributeAsync("aria-label", new System.Text.RegularExpressions.Regex(@"^Change time, 2:15\sPM$"));
 
         await form.GetByRole(AriaRole.Button, new() { Name = "Book the visit" }).ClickAsync();
         await Assertions.Expect(form).ToContainTextAsync("Booked for 14:15.");

@@ -169,7 +169,7 @@ public class DateRangeFieldTests : BunitContext
     [Fact]
     public void Months_in_a_row_are_drawn_each_named_by_its_title_with_one_pair_of_arrows()
     {
-        var cut = Field(new(Day(12, 8), Day(12, 12)));
+        var cut = Field(new(Day(12, 8), Day(12, 12)), p => p.Add(f => f.Culture, System.Globalization.CultureInfo.GetCultureInfo("en-US")));
 
         Assert.Equal(new[] { "December 2027", "January 2028" }, cut.FindAll(".ib-calendar-sheet .ib-calendar-month").Select(m => m.TextContent));
         Assert.Equal(2, cut.FindAll(".ib-calendar-nav").Count);
