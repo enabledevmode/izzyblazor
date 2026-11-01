@@ -14,7 +14,8 @@ class TimeSlots extends IzzyElement {
     const toggle = panel?.previousElementSibling as HTMLButtonElement | null | undefined;
     const control = panel?.closest(".ib-field-control");
     const text = control?.querySelector<HTMLInputElement>("input");
-    const slots = [...this.querySelectorAll<HTMLButtonElement>("[role=option]")];
+    // Limits can change on an interactive page, and the server draws the list again.
+    let slots: HTMLButtonElement[] = [];
     if (!panel || !toggle || !control || !text) return;
 
     let stop: HTMLButtonElement | undefined;
@@ -29,15 +30,21 @@ class TimeSlots extends IzzyElement {
     const startingPoint = (): HTMLButtonElement | undefined => {
       const now = new Date();
       const clock = `${String(now.getHours()).padStart(2, "0")}:${String(now.getMinutes()).padStart(2, "0")}`;
+      // Round from now, as a list can cross midnight.
+      const ahead = (slot: HTMLButtonElement): number => {
+        const minutes = (text: string): number => Number(text.slice(0, 2)) * 60 + Number(text.slice(3));
+        return (minutes(slot.dataset.value!) - minutes(clock) + 1440) % 1440;
+      };
       const free = slots.filter((slot) => !slot.ariaDisabled);
-      return held() ?? free.find((slot) => slot.dataset.value! >= clock) ?? free[0] ?? slots[0];
+      return held() ?? free.reduce<HTMLButtonElement | undefined>((best, slot) => (!best || ahead(slot) < ahead(best) ? slot : best), undefined) ?? slots[0];
     };
 
     const observer = new MutationObserver(() => draw());
-    observer.observe(this, { attributes: true, subtree: true, attributeFilter: ["data-ib-value", "data-ready", "tabindex", "aria-selected", "autofocus"] });
+    observer.observe(this, { attributes: true, childList: true, subtree: true, attributeFilter: ["data-ib-value", "data-ready", "tabindex", "aria-selected", "autofocus"] });
     signal.addEventListener("abort", () => observer.disconnect());
     const draw = (): void => {
       try {
+        slots = [...this.querySelectorAll<HTMLButtonElement>("[role=option]")];
         const chosen = held();
         stop = slots.includes(stop!) ? stop : startingPoint();
         for (const slot of slots) {

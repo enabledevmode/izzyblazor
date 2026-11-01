@@ -309,7 +309,9 @@
     flex-grow: 1;
   }
 
+  /* Positioned, so what's clipped for screen readers scrolls in here, and doesn't widen the page. */
   .ib-table-scroll {
+    position: relative;
     overflow: auto;
     border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-lg);

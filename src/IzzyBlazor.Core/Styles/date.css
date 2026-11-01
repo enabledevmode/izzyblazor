@@ -325,6 +325,11 @@
   }
 
   @media (forced-colors: active) {
+    .ib-calendar-span {
+      outline: 1px solid CanvasText;
+      outline-offset: -1px;
+    }
+
     .ib-time-slot[aria-selected="true"],
     td[aria-selected="true"] > .ib-calendar-day {
       forced-color-adjust: none;

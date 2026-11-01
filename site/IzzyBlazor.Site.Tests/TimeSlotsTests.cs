@@ -83,4 +83,17 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
         await form.GetByRole(AriaRole.Button, new() { Name = "Book the visit" }).ClickAsync();
         await Assertions.Expect(form).ToContainTextAsync("Booked for 10:15.");
     }
+
+    // A browser draws the time left to right on any page, so a button at the line's start would cover it.
+    [Fact]
+    public async Task In_right_to_left_the_button_doesnt_cover_the_time()
+    {
+        var (page, form, input, browser) = await OpenAsync("static");
+        await using var _ = browser;
+        await page.EvaluateAsync("document.documentElement.dir = 'rtl'");
+
+        var (field, toggle) = ((await input.BoundingBoxAsync())!, (await form.Locator(".ib-date-toggle").BoundingBoxAsync())!);
+
+        Assert.True(toggle.X > field.X + field.Width / 2, $"{toggle.X} in {field.X}+{field.Width}");
+    }
 }

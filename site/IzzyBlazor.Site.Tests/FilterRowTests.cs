@@ -314,6 +314,16 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         Assert.Contains("row-f-total-op=between", page.Url, StringComparison.Ordinal);
         Assert.DoesNotContain("row-f-total=50", page.Url, StringComparison.Ordinal);
     }
+
+    // What's clipped for screen readers stays in the grid's scrolling box.
+    [Fact]
+    public async Task A_grid_wider_than_a_phone_doesnt_widen_the_page()
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using var _ = browser;
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 }, Locale = "en-US" });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+
+        Assert.Equal(390, await page.EvaluateAsync<int>("document.documentElement.scrollWidth"));
+    }
 }
-
-

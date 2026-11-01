@@ -107,10 +107,13 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// </summary>
     private protected virtual string? OwnRuleError(TValue value) => null;
 
+    /// <summary>Whether <see cref="OwnRuleError"/> has something to say about no value, as a read-only input isn't checked by the browser.</summary>
+    private protected virtual bool RulesCoverEmpty => false;
+
     private void CheckRules(object? sender, ValidationRequestedEventArgs e)
     {
         _rulesStore!.Clear(FieldIdentifier);
-        if (!IsDisabled && !IsReadOnly && CurrentValue is { } value && OwnRuleError(value) is { } error)
+        if (!IsDisabled && !IsReadOnly && (CurrentValue is not null || RulesCoverEmpty) && OwnRuleError(CurrentValue!) is { } error)
         {
             _rulesStore.Add(FieldIdentifier, error);
         }

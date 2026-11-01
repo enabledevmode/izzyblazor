@@ -167,6 +167,8 @@ class Calendar extends IzzyElement {
       // post, and an interactive page's echo of a choice mustn't pull focus back from where it's gone.
       if (!seen || data.ibValue !== served) {
         served = data.ibValue;
+        // A new value from the app: a first day waiting would write over it.
+        pending = hover = null;
         const server = parse(served);
         if (!seen || server !== chosen) {
           chosen = server;
@@ -300,6 +302,8 @@ class Calendar extends IzzyElement {
     const move = (n: number, focus: boolean, announce = true): void => {
       const before = views[0].title.textContent;
       cursor = n;
+      // The keys' preview, or the mouse's would stay.
+      if (focus) hover = null;
       draw();
       if (focus) focusCursor();
       if (announce && views[0].title.textContent !== before) live.textContent = views[0].title.textContent;
@@ -380,7 +384,7 @@ class Calendar extends IzzyElement {
           if ((event as ToggleEvent).newState === "open") {
             // Back to the input if the keys opened it from there.
             opener = document.activeElement === text || document.activeElement === end ? (document.activeElement as HTMLElement) : toggle;
-            cursor = chosen ?? clamp(findToday(), min ?? FIRST, max ?? LAST);
+            cursor = chosen ?? (end && parse(end.value)) ?? clamp(findToday(), min ?? FIRST, max ?? LAST);
             if (time) time.value = text.value.slice(11);
           }
           draw();

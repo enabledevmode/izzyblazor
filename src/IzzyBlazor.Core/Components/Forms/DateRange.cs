@@ -15,6 +15,9 @@ public sealed record DateRange
     /// <summary>The last day, included, or null for no limit.</summary>
     public DateOnly? End { get; set; }
 
+    /// <summary>Whether it has no ends, as a static post of an empty field can bind to.</summary>
+    public bool IsEmpty => Start is null && End is null;
+
     /// <summary>How many days it spans, both ends counted, or null with an open end.</summary>
     public int? Days => Start is { } start && End is { } end ? end.DayNumber - start.DayNumber + 1 : null;
 
@@ -42,6 +45,11 @@ public sealed record DateRange
     {
         var midnight = day.ToDateTime(TimeOnly.MinValue);
         var offset = zone.IsAmbiguousTime(midnight) ? zone.GetAmbiguousTimeOffsets(midnight).Max() : zone.GetUtcOffset(midnight);
-        return new DateTimeOffset(midnight, offset).ToUniversalTime();
+
+        // At the very ends of the calendar there's no such instant in UTC.
+        var utc = midnight.Ticks - offset.Ticks;
+        return utc < DateTime.MinValue.Ticks ? DateTimeOffset.MinValue
+            : utc > DateTime.MaxValue.Ticks ? DateTimeOffset.MaxValue
+            : new DateTimeOffset(midnight, offset).ToUniversalTime();
     }
 }

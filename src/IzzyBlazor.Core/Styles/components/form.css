@@ -2655,6 +2655,11 @@
     align-items: center;
   }
 
+  /* A browser draws a date or time left to right on any page, so the button stays on the right of it. */
+  .ib-date-control:dir(rtl) > ib-popover {
+    inset-inline: calc(var(--ib-field-px) - 0.375rem) auto;
+  }
+
   .ib-date-toggle {
     display: none;
     padding: 0.375rem;
@@ -2718,7 +2723,8 @@
     transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
   }
 
-  .ib-date-range-box > ib-popover {
+  .ib-date-range-box > ib-popover,
+  .ib-date-range-box:dir(rtl) > ib-popover {
     position: static;
     margin-inline-end: var(--ib-space-1);
   }
