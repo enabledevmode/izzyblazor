@@ -9,12 +9,15 @@
     <DateRangeField @bind-Value="Model.Period" />
     <DateRangeField @bind-Value="Model.Period" Min="@today" MaxDays="90" />
     <DateRangeField @bind-Value="Model.Period" DisplayMonths="1" />
+    <DateRangeField @bind-Value="Model.Period" Presets="DateRangePreset.Common(today)" />
     <DateRangeField @bind-Value="Model.Period" UseNative />
 
     The months write the inputs when the second day is chosen, so anything else that closes them
     changes nothing. A first day shades the days it can run to, and days past MinDays, MaxDays or a
     disabled day can't end it. UseNative keeps the browser's calendars. So do no script and a phone,
-    unless the field has rules a browser's calendar can't show: DateDisabled, MinDays or MaxDays.
+    unless the field has what a browser's calendar can't show: DateDisabled, MinDays, MaxDays or
+    Presets. Presets the field's rules would turn away are disabled, and they're absolute days from a
+    today the app passes in, so they follow its zone.
 
     A DateRange holds days, so midnight never enters it. To query a time column:
     range.Contains(order.PlacedAt)        a DateTime compares by its clock date
@@ -35,6 +38,7 @@
       named by its title. Both ends are selected in the grid. Focus goes to the start or today, and
       on closing back to where it opened from. A line under the months says how many days are chosen,
       and that a first day is waiting for its second.
+    - Presets are a labelled group of buttons, and the one the field is set to is marked pressed.
 
     Keyboard:
     In a date
@@ -50,7 +54,7 @@
     - Shift+Page Up, Shift+Page Down | Move a year
     - Enter, Space | Choose the first day, or the last, which saves both and closes
     In the months
-    - Tab, Shift+Tab | Move through the arrows, the days and Clear, and close past either end
+    - Tab, Shift+Tab | Move through the presets, the arrows, the days and Clear, and close past either end
     - Escape | Close without changing the value
     See also: DateField, Calendar, Form.
 *@
@@ -118,13 +122,27 @@
                                  data-ib-pick-end="@TextDefaults.CalendarPickEnd">
                         <div class="ib-calendar-view">
                             <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
-                            @CalendarGrid.Months(DrawnMonths(DisplayMonths))
-                            <div class="ib-calendar-foot">
-                                <span class="ib-calendar-summary" data-ib-summary aria-live="polite"></span>
-                                @if (ShowsClear)
+                            <div class="ib-calendar-range-body">
+                                @if (Presets is { Count: > 0 })
                                 {
-                                    <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
+                                    <div class="ib-calendar-presets" role="group" aria-label="@TextDefaults.CalendarPresets">
+                                        @foreach (var preset in Presets)
+                                        {
+                                            <button type="button" class="ib-btn ib-btn-neutral ib-btn-ghost ib-btn-sm" data-start="@FormatDate(preset.Start)" data-end="@FormatDate(preset.End)"
+                                                    disabled="@(OwnRuleError(new DateRange(preset.Start, preset.End)) is not null)">@preset.Label</button>
+                                        }
+                                    </div>
                                 }
+                                <div>
+                                    @CalendarGrid.Months(DrawnMonths(DisplayMonths))
+                                    <div class="ib-calendar-foot">
+                                        <span class="ib-calendar-summary" data-ib-summary aria-live="polite"></span>
+                                        @if (ShowsClear)
+                                        {
+                                            <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
+                                        }
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </ib-calendar>
@@ -171,6 +189,12 @@
     /// <summary>Whether the months have a Clear button. Defaults to true unless the field is required.</summary>
     [Parameter] public bool? Clearable { get; set; }
 
+    /// <summary>
+    /// Ranges to choose in one click, beside the months, such as <see cref="DateRangePreset.Common"/>.
+    /// They show with the months, so not with <see cref="UseNative"/> or no script.
+    /// </summary>
+    [Parameter] public IReadOnlyList<DateRangePreset>? Presets { get; set; }
+
     /// <summary>The name of the months' button, in place of "Choose dates" and "Change dates" with both days.</summary>
     [Parameter] public string? ChooseLabel { get; set; }
 
@@ -196,7 +220,7 @@
     private string BoxClass => new ClassBuilder()
         .Add("ib-field-control ib-date-range-box")
         .Add("ib-date-control", HasPanel)
-        .Add("ib-date-own", HasPanel && (DateDisabled is not null || MinDays is not null || MaxDays is not null))
+        .Add("ib-date-own", HasPanel && (DateDisabled is not null || MinDays is not null || MaxDays is not null || Presets is { Count: > 0 }))
         .Build()!;
 
     /// <inheritdoc />
@@ -211,6 +235,11 @@
         if (DisplayMonths is < 1 or > 6)
         {
             throw new InvalidOperationException($"DateRangeField's DisplayMonths is {DisplayMonths}. It takes 1 to 6.");
+        }
+
+        if (UseNative && Presets is { Count: > 0 })
+        {
+            throw new InvalidOperationException("DateRangeField has both UseNative and Presets: the presets show beside the library's months, so they'd have nowhere to go.");
         }
 
         base.OnParametersSet();

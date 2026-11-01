@@ -204,6 +204,45 @@
     inset-inline: auto 0;
   }
 
+  /* The presets down the months' side, or across their top on a phone. */
+  .ib-calendar-range-body {
+    display: flex;
+    gap: var(--ib-space-3);
+  }
+
+  .ib-calendar-presets {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+    padding-inline-end: var(--ib-space-3);
+    border-inline-end: 1px solid var(--ib-color-border);
+  }
+
+  .ib-calendar-presets > .ib-btn {
+    justify-content: flex-start;
+    white-space: nowrap;
+  }
+
+  .ib-calendar-presets > [aria-pressed="true"] {
+    background-color: var(--ib-color-primary-soft);
+    color: var(--ib-color-primary-text);
+  }
+
+  @media (width < 40rem) {
+    .ib-calendar-range-body {
+      flex-direction: column;
+    }
+
+    .ib-calendar-presets {
+      flex-direction: row;
+      flex-wrap: wrap;
+      padding-inline-end: 0;
+      padding-block-end: var(--ib-space-2);
+      border-inline-end: 0;
+      border-block-end: 1px solid var(--ib-color-border);
+    }
+  }
+
   .ib-calendar-span {
     background-color: var(--ib-color-primary-soft);
   }

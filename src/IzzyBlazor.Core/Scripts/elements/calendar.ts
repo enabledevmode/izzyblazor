@@ -82,6 +82,7 @@ class Calendar extends IzzyElement {
     const end = control?.querySelector<HTMLInputElement>("[data-ib-end]");
     const rangeValue = control?.querySelector<HTMLInputElement>("[data-ib-range-value]");
     const summary = this.querySelector("[data-ib-summary]");
+    const presets = [...this.querySelectorAll<HTMLButtonElement>("[data-start]")];
     const sheets = this.querySelectorAll(".ib-calendar-sheet");
     const views = (sheets.length ? [...sheets] : [this as Element]).map((root) => ({
       grid: root.querySelector("table")!,
@@ -273,6 +274,7 @@ class Calendar extends IzzyElement {
         if (toggle) put(toggle, "aria-label", named !== null && data.ibChange ? data.ibChange.replace("{0}", named) : data.ibChoose ?? null);
         if (okButton) set(okButton, "disabled", chosen === null);
         if (todayButton) set(todayButton, "disabled", blocked(today));
+        for (const preset of presets) put(preset, "aria-pressed", String(preset.dataset.start === text.value && preset.dataset.end === end!.value));
         if (summary) {
           const length = started !== null && ended !== null ? ended - started + 1 : 0;
           setText(summary, pending !== null ? data.ibPickEnd ?? "" : length === 1 ? data.ibOneDay ?? "" : length > 1 ? (data.ibDays ?? "").replace("{0}", String(length)) : "");
@@ -447,7 +449,11 @@ class Calendar extends IzzyElement {
       (event) => {
         const target = (event.target as Element).closest("button");
         if (!target) return;
-        if (target === prev || target === next) {
+        if (target.dataset.start) {
+          writeRange(parse(target.dataset.start), parse(target.dataset.end));
+          draw();
+          close();
+        } else if (target === prev || target === next) {
           // Together, so a cursor in a later month doesn't leave the months where they are.
           shown += target === prev ? -1 : 1;
           move(moveMonths(target === prev ? -1 : 1), false);
