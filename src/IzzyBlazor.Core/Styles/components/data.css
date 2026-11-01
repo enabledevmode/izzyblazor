@@ -429,7 +429,7 @@
 
   /* Header filters: the 22px filter button is taller than a small table's 18px line. */
   .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-button) {
-    --ib-table-head-line: max(round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px), 1.375rem);
+    --ib-table-head-line: max(round(up, calc(var(--ib-table-font) * var(--ib-leading-normal)), 2px), 1.5rem);
   }
 
   .ib-table-sticky > .ib-table-scroll::-webkit-scrollbar-track:vertical {
@@ -473,8 +473,8 @@
     flex: none;
     align-items: center;
     justify-content: center;
-    width: 1.375rem;
-    height: 1.375rem;
+    width: 1.5rem;
+    height: 1.5rem;
     margin-inline: -0.25rem;
     padding: 0;
     border: 0;
@@ -485,9 +485,8 @@
   }
 
   .ib-table-filter-button > .ib-icon {
-    width: 0.875rem;
-    height: 0.875rem;
-    opacity: 0.6;
+    width: 1.125rem;
+    height: 1.125rem;
   }
 
   .ib-table-filter-button:hover {
@@ -839,6 +838,8 @@
     justify-content: center;
     width: var(--ib-field-h);
     padding: 0;
+    color: var(--ib-color-on-surface);
+    --ib-icon-size: 1.125rem;
   }
 
   /* Past the slot the operators have for their check, so its icon lines up with theirs. */
