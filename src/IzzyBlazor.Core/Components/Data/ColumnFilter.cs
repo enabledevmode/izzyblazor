@@ -69,23 +69,22 @@ internal static class ColumnFilter
         };
     }
 
-    /// <summary>An operator as a filter row's button shows it: short, and the same in any language.</summary>
-    public static string ShortOf(FilterOperator op) => op switch
+    /// <summary>An operator as a filter row shows it, on its button and in its menu, the same in any language.</summary>
+    public static IconRole IconOf(FilterOperator op) => op switch
     {
-        FilterOperator.Contains => "\u2026a\u2026",
-        FilterOperator.DoesNotContain => "\u2260a",
-        FilterOperator.Equals => "=",
-        FilterOperator.NotEquals => "\u2260",
-        FilterOperator.StartsWith => "a\u2026",
-        FilterOperator.EndsWith => "\u2026a",
-        FilterOperator.GreaterThan => ">",
-        FilterOperator.GreaterThanOrEqual => "\u2265",
-        FilterOperator.LessThan => "<",
-        FilterOperator.LessThanOrEqual => "\u2264",
-        FilterOperator.Between => "\u2194",
-        FilterOperator.IsEmpty => "\u2205",
-        FilterOperator.IsNotEmpty => "\u2260\u2205",
-        _ => "=",
+        FilterOperator.Contains => IconRole.FilterContains,
+        FilterOperator.DoesNotContain => IconRole.FilterDoesNotContain,
+        FilterOperator.NotEquals => IconRole.FilterNotEquals,
+        FilterOperator.StartsWith => IconRole.FilterStartsWith,
+        FilterOperator.EndsWith => IconRole.FilterEndsWith,
+        FilterOperator.GreaterThan => IconRole.FilterGreaterThan,
+        FilterOperator.GreaterThanOrEqual => IconRole.FilterGreaterOrEqual,
+        FilterOperator.LessThan => IconRole.FilterLessThan,
+        FilterOperator.LessThanOrEqual => IconRole.FilterLessOrEqual,
+        FilterOperator.Between => IconRole.FilterBetween,
+        FilterOperator.IsEmpty => IconRole.FilterIsEmpty,
+        FilterOperator.IsNotEmpty => IconRole.FilterIsNotEmpty,
+        _ => IconRole.FilterEquals,
     };
 
     public static ColumnFilterKind KindOf(Type type) => FilterConvert.KindOf(type) switch

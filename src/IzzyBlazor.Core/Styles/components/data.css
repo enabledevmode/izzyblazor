@@ -829,8 +829,19 @@
   }
 
   .ib-filter-cell-op {
-    min-width: var(--ib-field-h);
-    padding-inline: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: var(--ib-field-h);
+    padding: 0;
+    --ib-icon-size: 1.25rem;
+  }
+
+  /* Past the slot the operators have for their check, so its icon lines up with theirs. */
+  .ib-menu-item[data-ib-reset]::before {
+    content: "";
+    flex: none;
+    width: 1rem;
   }
 
   .ib-filter-cell-summary {
