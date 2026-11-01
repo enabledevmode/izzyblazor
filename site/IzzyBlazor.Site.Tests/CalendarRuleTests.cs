@@ -169,6 +169,40 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Fact]
+    public async Task Something_else_writing_attributes_as_the_calendar_changes_doesnt_set_it_off_again()
+    {
+        var (page, form, browser) = await OpenAsync("static");
+        await using (browser)
+        {
+            var delivery = form.Locator("ib-calendar").First;
+            await Assertions.Expect(delivery).ToHaveAttributeAsync("data-ready", "");
+
+            // As a browser extension might, marking what changes. Capped: unchecked, this and the calendar's
+            // own observer answer each other forever, with no chance to paint or take input.
+            await delivery.EvaluateAsync("""
+                c => {
+                  window.__writes = 0;
+                  new MutationObserver(records => {
+                    if (window.__writes < 2000 && records.some(r => r.attributeName !== 'data-marked')) {
+                      window.__writes++;
+                      c.querySelector('.ib-calendar-day').setAttribute('data-marked', window.__writes);
+                    }
+                  }).observe(c, { attributes: true, subtree: true });
+                }
+                """);
+            await Choose(delivery, "Thursday, March 11, 2027");
+            await Assertions.Expect(delivery.Locator("input[type=date]")).ToHaveValueAsync("2027-03-11");
+
+            Assert.True(await page.EvaluateAsync<int>("window.__writes") < 10);
+
+            // Choosing the same day again changes nothing, so it writes nothing.
+            var before = await page.EvaluateAsync<int>("window.__writes");
+            await Choose(delivery, "Thursday, March 11, 2027");
+            Assert.Equal(before, await page.EvaluateAsync<int>("window.__writes"));
+        }
+    }
+
+    [Fact]
     public async Task With_no_script_the_input_takes_the_date_above_a_month_that_shows_it()
     {
         var (page, form, browser) = await OpenAsync("noscript", script: false);
