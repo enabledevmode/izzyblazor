@@ -184,7 +184,8 @@ internal static class ColumnFilter
         }
 
         var name = column.FilterValues is not null ? nameof(column.FilterValues) : nameof(column.FilterList);
-        return column.FilterKind == ColumnFilterKind.Choice ? $"The \"{column.HeaderText}\" column has {name}, but its type has a list of its own."
+        return column.FilterTemplate is not null ? $"The \"{column.HeaderText}\" column has both {name} and {nameof(column.FilterTemplate)}: a template brings its own controls."
+            : column.FilterKind == ColumnFilterKind.Choice ? $"The \"{column.HeaderText}\" column has {name}, but its type has a list of its own."
             : column.FilterOperators is not null ? $"The \"{column.HeaderText}\" column has both {name} and {nameof(column.FilterOperators)}: a list has no operator to choose."
             : column.FilterValues is null && column.FilterKind != ColumnFilterKind.Text ? $"The \"{column.HeaderText}\" column has {nameof(column.FilterList)}, which reads text. Use {nameof(column.FilterValues)} to list other values."
             : column.FilterValues is null && column.Table is { ItemsProvider: not null } ? $"The \"{column.HeaderText}\" column has {nameof(column.FilterList)}, but with an ItemsProvider there are no Items to read. Use {nameof(column.FilterValues)}."
@@ -352,7 +353,7 @@ internal static class ColumnFilter
         var fallback = ops.FirstOrDefault();
         var op = OperatorOf(query.GetValueOrDefault($"{key}-op").FirstOrDefault()) is { } named && ops.Contains(named) ? named : fallback;
         var values = query.GetValueOrDefault(key).Where(v => !string.IsNullOrWhiteSpace(v)).ToList();
-        if (values.Count > 1 && column.FilterKind == ColumnFilterKind.Text && op == fallback && column.FilterOperators is null)
+        if (values.Count > 1 && (column.FilterKind == ColumnFilterKind.Text || column.FilterTemplate is not null) && op == fallback && column.FilterOperators is null)
         {
             op = FilterOperator.In;
         }

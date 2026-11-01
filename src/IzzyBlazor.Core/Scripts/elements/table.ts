@@ -36,7 +36,6 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  * - A page of rows holds its height (data-ib-hold, the page size): the tallest it's been, so filters
  *   that leave fewer rows don't pull up what's below. Changing the page size or the page starts again.
  */
-const NO_VALUE = ["isempty", "isnotempty"];
 const PAUSE = 350;
 
 // A date input someone is part way through: a segment is empty, or the year has yet to reach four digits.
@@ -45,7 +44,7 @@ function unfinished(control: Element): boolean {
 }
 
 function isTick(control: Element): control is HTMLInputElement {
-  return control instanceof HTMLInputElement && control.type === "checkbox";
+  return control instanceof HTMLInputElement && /box|radio/.test(control.type);
 }
 
 /**
@@ -54,12 +53,14 @@ function isTick(control: Element): control is HTMLInputElement {
  * operator alone is no filter, and not when it's the column's default.
  */
 function written(control: HTMLInputElement | HTMLSelectElement): string {
-  if (isTick(control)) return control.checked && control.closest("ib-filter-list")?.querySelector("input[data-ib-filter]:not(:checked)") ? control.value : "";
+  // All of a list ticked is no filter. A column's own checkboxes mean what they say.
+  if (isTick(control)) return control.checked && control.closest("ib-filter-list")?.querySelector("input[data-ib-filter]:not(:checked)") !== null ? control.value : "";
   const value = control.value.trim();
   const panel = control.closest(".ib-table-filter-panel");
-  const op = panel?.querySelector<HTMLSelectElement>("select[data-ib-filter]");
+  const op = panel?.querySelector<HTMLSelectElement>("select[data-ib-default]");
   if (!panel || !op) return value;
-  const noValue = NO_VALUE.includes(op.value);
+  // Is empty, Is not empty.
+  const noValue = op.value.endsWith("empty");
   const used = (c: Element) => !noValue && (op.value === "between" || !c.hasAttribute("data-ib-to"));
   if (control !== op) return used(control) ? value : "";
   const hasValue = [...panel.querySelectorAll<HTMLInputElement>("input[data-ib-filter]")].some((c) => (c.value.trim() || unfinished(c)) && used(c));
@@ -120,8 +121,8 @@ class Table extends IzzyElement {
         const panel = event.target as HTMLElement;
         if ((event as ToggleEvent).newState !== "closed" || panel !== this.#rowPanel) return;
         // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
-        const active = document.activeElement;
-        if (!active || active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) {
+        const active = document.activeElement!;
+        if (active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) {
           this.querySelector<HTMLElement>(`.ib-filter-cell-summary[popovertarget="${CSS.escape(panel.id)}"]`)?.focus();
         }
       },
@@ -141,7 +142,7 @@ class Table extends IzzyElement {
           this.#rowPanel = opened;
           this.#placeUnderCell();
           // A cell half scrolled out of the grid leaves no room for its panel on a phone.
-          target.closest(".ib-filter-cell")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+          target.closest(".ib-filter-cell")?.scrollIntoView({ block: "nearest" });
         }
         // This was drawn before any filter still on its way, which only the address has so far.
         const stale = target.closest<HTMLAnchorElement>("a.ib-table-sort, a.ib-pagination-item");
@@ -160,6 +161,7 @@ class Table extends IzzyElement {
         if (operatorField) {
           event.preventDefault();
           operatorField.value = "between";
+          this.#typing.chosen(operatorField);
           this.#touch(operatorField);
           // The row's field hands over now: from here what's in the panel is what's meant.
           for (const edit of this.#rowEdits) {
@@ -530,8 +532,7 @@ class Table extends IzzyElement {
       if (twin && edit.isConnected && !unfinished(edit)) twin.value = edit.value;
     }
     this.#rowEdits.clear();
-    // A row's field has handed over to its panel's, which is the one to read.
-    const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c) && !c.hasAttribute("data-ib-row"));
+    const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c));
     if (controls.length === 0) return false;
     // A name can repeat: all of them go, then each control with something to say comes back.
     for (const control of controls) url.searchParams.delete(control.name);
@@ -554,7 +555,7 @@ class Table extends IzzyElement {
     this.#typing.forgetChosen();
     this.#typing.forgetLeft();
     // An operator with no value doesn't outlast a new filter. A static page's response redraws it, and an interactive page's render doesn't.
-    for (const control of own) if (control instanceof HTMLSelectElement && control.dataset.ibDefault && !written(control)) control.value = control.dataset.ibDefault;
+    for (const control of own) if (control.dataset.ibDefault && !written(control)) control.value = control.dataset.ibDefault;
     this.#typing.guard();
     return true;
   }

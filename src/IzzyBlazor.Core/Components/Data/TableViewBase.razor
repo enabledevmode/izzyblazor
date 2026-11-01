@@ -761,6 +761,11 @@
             return TextDefaults.FilterNone;
         }
 
+        if (column.FilterText is { } text)
+        {
+            return text(current.Values);
+        }
+
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         var (kind, value) = (column.FilterKind, current.Value.Trim());
         string Worded() => ColumnFilter.TextOf(kind, current.Op, TextDefaults) + (value.Length > 0 ? $" {value}" : "");
@@ -821,7 +826,15 @@
                 </button>
             </Trigger>
             <ChildContent>
-                @if (column.FilterKind == ColumnFilterKind.Choice)
+                @if (column.FilterTemplate is { } template)
+                {
+                    <div class="ib-table-filter-panel ib-field-sm" role="group" aria-labelledby="@($"{fieldId}-title")">
+                        <span class="ib-field-label ib-table-filter-label" id="@($"{fieldId}-title")">@label</span>
+                        @template(FilterContextOf(column, current))
+                        @FilterPanelActions(column, current)
+                    </div>
+                }
+                else if (column.FilterKind == ColumnFilterKind.Choice)
                 {
                     @FilterList(column, current, label, fieldId)
                 }
@@ -844,6 +857,52 @@
             </ChildContent>
         </Popover>
     };
+
+    // What a column's own controls get. In the address, a control posts through the GET form as the panel's own
+    // do, and the script finds it the same way; bound, its changes come here.
+    private FilterTemplateContext FilterContextOf(ColumnBase<TItem> column, ColumnFilterValue current)
+    {
+        var key = FilterQueryKey(column);
+        Dictionary<string, object> Posted(string name, bool to = false)
+        {
+            Dictionary<string, object> attributes = new() { ["name"] = name, ["form"] = FilterFormId, ["data-ib-filter"] = "" };
+            if (to) attributes["data-ib-to"] = "";
+            return attributes;
+        }
+
+        Dictionary<string, object> Bound(Action<string> changed) => new()
+        {
+            ["onchange"] = EventCallback.Factory.Create<ChangeEventArgs>(this, e => changed(e.Value?.ToString() ?? "")),
+        };
+
+        async Task SetValues(IReadOnlyList<string?> values)
+        {
+            var state = UseState ? StateOf(column) : current;
+            var op = values.Count > 1 ? FilterOperator.In : ColumnFilter.DefaultOperator(column);
+            var next = values.Count == 0 && string.IsNullOrEmpty(state.To) ? ColumnFilter.Empty(column) : new ColumnFilterValue(op, values, state.To);
+            if (UseState) await SetFilterAsync(column, next, wait: false);
+            else Navigation.NavigateTo(FilterHref(column, next));
+        }
+
+        void SetTo(string to)
+        {
+            var state = StateOf(column);
+            _ = SetFilterAsync(column, state with { Op = ColumnFilter.DefaultOperator(column), To = to }, wait: false);
+        }
+
+        return new(
+            current,
+            key,
+            UseState ? Bound(v => _ = SetValues(string.IsNullOrEmpty(v) ? [] : [v])) : Posted(key),
+            UseState ? Bound(SetTo) : Posted($"{key}-to", to: true),
+            UseState ? new Dictionary<string, object>() : Posted(key),
+            SetValues,
+            !UseState ? null : value => EventCallback.Factory.Create<ChangeEventArgs>(this, e =>
+            {
+                var state = StateOf(column);
+                return SetValues(e.Value is true ? [.. state.Values, value] : state.Values.Where(v => !string.Equals(v, value, StringComparison.OrdinalIgnoreCase)).ToList());
+            }));
+    }
 
     // A column's filter as a field or a summary: the operator and values it takes, or what's in the
     // address that one box can't show.
@@ -1486,14 +1545,14 @@
 
     // Whether a filter fits in its cell as a field: not a list or a range, which open the column's panel.
     private static bool FitsInCell(ColumnBase<TItem> column, ColumnFilterValue current) =>
-        column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && !current.None
+        column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && column.FilterTemplate is null && !current.None
         && current.Op is not (FilterOperator.Between or FilterOperator.In or FilterOperator.NotIn) && !ColumnFilter.TakesNoValue(current.Op);
 
     // A few choices by name, in a row's list; null past that, where the count says more than a clipped
     // line of names. Null too for a loader's values until its rows are here: they may be ids.
     private string? RowListSummary(ColumnBase<TItem> column, ColumnFilterValue current)
     {
-        if (current.Op != FilterOperator.In || current.Values.Count is < 2 or > 3)
+        if (current.Op != FilterOperator.In || current.Values.Count is < 2 or > 3 || column.FilterText is not null)
         {
             return null;
         }
@@ -1513,7 +1572,7 @@
     {
         var ops = ColumnFilter.OperatorsOf(column);
         var label = FilterLabel(column);
-        var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList;
+        var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList || column.FilterTemplate is not null;
         <div class="ib-filter-cell ib-field ib-field-sm" data-ib-panel="@FilterPanelId(column)" style="anchor-name:@StyleValues.AnchorName(FilterPanelId(column) + "-cell")">
             <FieldAddons StartAddon="@(!list && ops.Count > 1 ? OperatorMenu(column, current, ops) : null)">
                 @if (FitsInCell(column, current))

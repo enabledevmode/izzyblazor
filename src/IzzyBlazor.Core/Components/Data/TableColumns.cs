@@ -64,6 +64,21 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter, ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the column shows its usual filter in place of the list.")]
     public bool FilterList { get; set; }
 
+    /// <summary>
+    /// This column's own controls, in its filter panel above Clear and Apply. Spread the context's
+    /// <see cref="FilterTemplateContext.Attributes"/> on a control and its value filters by the
+    /// column's first operator, or several values by <see cref="FilterOperator.In"/>. With
+    /// <see cref="Filter"/>, a value can mean anything. Works with no script. In a filter row, the cell
+    /// opens the panel. Not with <see cref="FilterValues"/> or <see cref="FilterList"/>.
+    /// </summary>
+    [Parameter] public RenderFragment<FilterTemplateContext>? FilterTemplate { get; set; }
+
+    /// <summary>
+    /// What a <see cref="FilterTemplate"/>'s filter says in its row and tag, given its values, for
+    /// values that aren't what people read. Defaults to the values themselves.
+    /// </summary>
+    [Parameter] public Func<IReadOnlyList<string?>, string>? FilterText { get; set; }
+
     /// <summary>How the cells line up. Defaults to the end for numbers and the start otherwise.</summary>
     [Parameter] public CellAlign? Align { get; set; }
 
@@ -230,7 +245,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
