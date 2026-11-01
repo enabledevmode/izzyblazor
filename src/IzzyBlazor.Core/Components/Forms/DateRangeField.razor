@@ -66,7 +66,7 @@
         <label for="@FieldId">@(StartText ?? TextDefaults.DateRangeStart)</label>
         <label for="@EndId">@(EndText ?? TextDefaults.DateRangeEnd)</label>
     </div>
-    <div class="@BoxClass">
+    <div class="@BoxClass" style="@(HasPanel ? $"anchor-name:{StyleValues.AnchorName(FieldId + "-box")}" : null)">
         <input @attributes="ControlAttributes"
                id="@FieldId"
                class="ib-field-input"
@@ -103,7 +103,7 @@
             {
                 <input type="hidden" data-ib-range-value value="@FormatValueAsString(CurrentValue)" @onchange="ChangeBothAsync" />
             }
-            <Popover Placement="Placement.BottomEnd" PanelWidth="Length.FitContent">
+            <Popover Placement="Placement.BottomStart" PanelWidth="Length.FitContent">
                 <Trigger Context="trigger">
                     <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
                         <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
