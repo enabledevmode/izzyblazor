@@ -1483,42 +1483,40 @@
         column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && !current.None
         && current.Op is not (FilterOperator.Between or FilterOperator.In or FilterOperator.NotIn) && !ColumnFilter.TakesNoValue(current.Op);
 
-    // A column's filter in the row: its operator's menu, if it has a choice, then the field, or what the
+    // A column's filter in the row: its operator's menu as the field's add-on, if it has a choice, then the field, or what the
     // filter's set to as a button that opens the column's panel.
     private RenderFragment FilterCell(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
         var ops = ColumnFilter.OperatorsOf(column);
         var label = FilterLabel(column);
         var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList;
-        <div class="ib-filter-cell ib-field-sm">
-            @if (!list && ops.Count > 1)
-            {
-                @OperatorMenu(column, current, ops)
-            }
-            @if (FitsInCell(column, current))
-            {
-                var (date, number) = (column.FilterKind == ColumnFilterKind.Date, column.FilterKind == ColumnFilterKind.Number);
-                var value = !date ? current.Value : ColumnFilter.TryParseDay(current.Value, out var day) ? day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
-                var type = date ? "date" : number ? "text" : "search";
-                <div class="ib-field ib-field-sm">
+        <div class="ib-filter-cell ib-field ib-field-sm">
+            <FieldAddons StartAddon="@(!list && ops.Count > 1 ? OperatorMenu(column, current, ops) : null)">
+                @if (FitsInCell(column, current))
+                {
+                    var (date, number) = (column.FilterKind == ColumnFilterKind.Date, column.FilterKind == ColumnFilterKind.Number);
+                    var value = !date ? current.Value : ColumnFilter.TryParseDay(current.Value, out var day) ? day.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture) : "";
+                    var type = date ? "date" : number ? "text" : "search";
+                    // The operator in words, while there's room: a date input can't show one.
+                    var word = !date && ops.Count > 1 ? ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults) : null;
                     <div class="ib-field-control">
                         @if (UseState)
                         {
-                            <input type="@type" class="ib-field-input" aria-label="@label" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter @attributes="InputEvents(column, false, date)" />
+                            <input type="@type" class="ib-field-input" aria-label="@label" placeholder="@word" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter @attributes="InputEvents(column, false, date)" />
                         }
                         else
                         {
-                            <input type="@type" class="ib-field-input" aria-label="@label" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter
+                            <input type="@type" class="ib-field-input" aria-label="@label" placeholder="@word" value="@value" inputmode="@(number ? "decimal" : null)" autocomplete="off" data-ib-enter
                                    name="@FilterQueryKey(column)" form="@FilterRowFormId" data-ib-filter data-ib-row />
                         }
                     </div>
-                </div>
-            }
-            else
-            {
-                var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-                <button type="button" class="ib-filter-cell-summary" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter>@summary</button>
-            }
+                }
+                else
+                {
+                    var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
+                    <button type="button" class="ib-filter-cell-summary" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter>@summary</button>
+                }
+            </FieldAddons>
         </div>
     };
 

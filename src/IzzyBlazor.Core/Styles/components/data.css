@@ -803,20 +803,33 @@
     border-block-end: 1px solid var(--ib-table-line, var(--ib-color-border));
   }
 
+  /* In a row, whichever it holds: with no operator there's no add-on's group round the rest. */
   .ib-filter-cell {
     display: flex;
+    flex-direction: row;
     align-items: center;
-    gap: 0.25rem;
     min-width: 0;
   }
 
-  .ib-filter-cell > ib-popover {
-    flex: none;
-  }
-
-  .ib-filter-cell > .ib-field {
+  .ib-filter-cell > :is(.ib-field-group, .ib-field-control, .ib-filter-cell-summary) {
     flex: 1;
     min-width: 0;
+  }
+
+  /* The operator is the field's add-on: the button is the add-on's box, as a Button in one is. */
+  .ib-filter-cell .ib-field-addon:has(> ib-popover) {
+    padding: 0;
+    border: 0;
+    background: none;
+  }
+
+  .ib-filter-cell .ib-field-addon > ib-popover {
+    border-radius: inherit;
+  }
+
+  .ib-field-group:has(> .ib-field-addon-start) > .ib-filter-cell-summary {
+    border-start-start-radius: 0;
+    border-end-start-radius: 0;
   }
 
   .ib-filter-cell-op,
@@ -838,8 +851,21 @@
     justify-content: center;
     width: var(--ib-field-h);
     padding: 0;
+    border-color: var(--ib-field-border);
+    border-radius: inherit;
+    background-color: var(--ib-color-fill);
     color: var(--ib-color-on-surface);
     --ib-icon-size: 1.125rem;
+  }
+
+  .ib-filter-cell-op:hover,
+  .ib-filter-cell ib-popover:has(> :popover-open) > .ib-filter-cell-op {
+    background-color: var(--ib-color-fill-strong, var(--ib-color-fill));
+  }
+
+  .ib-filter-cell-op:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
   }
 
   /* Past the slot the operators have for their check, so its icon lines up with theirs. */
