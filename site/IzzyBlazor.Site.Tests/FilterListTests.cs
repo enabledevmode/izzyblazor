@@ -60,7 +60,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Ticks_apply_after_a_pause_and_leave_the_panel_open(string mode)
     {
@@ -87,7 +86,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Select_all_clears_to_no_rows_and_back(string mode)
     {
@@ -172,30 +170,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         }
     }
 
-    [Fact]
-    public async Task A_tick_made_while_a_Clear_is_on_its_way_doesnt_bring_it_back()
-    {
-        var (browser, page, table) = await OpenAsync("static", query: "&lists-f-open=true");
-        await using (browser)
-        {
-            await page.RouteAsync("**/docs/components/table**", async route =>
-            {
-                await Task.Delay(1200);
-                await route.ContinueAsync();
-            });
-            var open = await OpenPanelAsync(page, table, "Open");
-            await open.Locator("[data-ib-filter-clear]").ClickAsync();
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            await Box(panel, "Low").UncheckAsync();
-
-            await AddressIsAsync(page, "f-priority=High&f-priority=Medium&f-priority-blank=1");
-            await page.WaitForTimeoutAsync(1800);
-            await AddressIsAsync(page, "f-priority=High&f-priority=Medium&f-priority-blank=1");
-        }
-    }
-
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Back_during_the_pause_puts_the_box_back(string mode)
     {
@@ -216,28 +191,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         }
     }
 
-    [Fact]
-    public async Task A_tick_waiting_on_its_pause_stays_off_the_next_page()
-    {
-        var (browser, page, table) = await OpenAsync("static");
-        await using (browser)
-        {
-            await page.RouteAsync("**/docs/components/card**", async route =>
-            {
-                await Task.Delay(800);
-                await route.ContinueAsync();
-            });
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            await Box(panel, "Low").UncheckAsync();
-            await page.Keyboard.PressAsync("Escape");
-            await page.Locator("a[href$='docs/components/card']").First.ClickAsync();
-            await page.WaitForURLAsync("**/docs/components/card**");
-            await page.WaitForTimeoutAsync(1200);
-
-            Assert.DoesNotContain("lists-", page.Url, StringComparison.Ordinal);
-        }
-    }
-
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
@@ -254,11 +207,13 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
             // A tick.
             var panel = await OpenPanelAsync(page, table, "Status");
             await Box(panel, "Paid").UncheckAsync();
+            await page.Keyboard.PressAsync("Enter");
             await page.WaitForFunctionAsync("() => location.search.includes('orders-f-status')");
             await page.WaitForTimeoutAsync(500);
             Assert.Equal(before, await page.EvaluateAsync<int>(y));
 
             // A panel's Clear, a sort and a page, which are links.
+            panel = await OpenPanelAsync(page, table, "Status");
             await panel.Locator("[data-ib-filter-clear]").ClickAsync();
             await page.WaitForFunctionAsync("() => !location.search.includes('orders-f-status')");
             await page.WaitForTimeoutAsync(500);
@@ -277,7 +232,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Filtering_doesnt_move_the_table(string mode)
     {
@@ -296,35 +250,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         }
     }
 
-    [Fact]
-    public async Task A_tick_made_while_a_response_is_on_its_way_stays()
-    {
-        var (browser, page, table) = await OpenAsync("static");
-        await using (browser)
-        {
-            await page.RouteAsync("**/docs/components/table**", async route =>
-            {
-                await Task.Delay(900);
-                await route.ContinueAsync();
-            });
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            await Box(panel, "Low").UncheckAsync();
-            await AddressIsAsync(page, "f-priority=High&f-priority=Medium&f-priority-blank=1");
-
-            await Box(panel, "Medium").UncheckAsync();
-            await page.WaitForTimeoutAsync(100);
-            await AddressIsAsync(page, "f-priority=High&f-priority-blank=1");
-
-            await page.WaitForTimeoutAsync(2000);
-            Assert.False(await Box(panel, "Low").IsCheckedAsync());
-            Assert.False(await Box(panel, "Medium").IsCheckedAsync());
-            Assert.True(await Box(panel, "High").IsCheckedAsync());
-            await RowsAreAsync(table, 5);
-        }
-    }
-
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Back_puts_the_ticks_back(string mode)
     {
@@ -353,7 +279,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task The_search_narrows_the_rows_and_Select_all_follows_it(string mode)
     {

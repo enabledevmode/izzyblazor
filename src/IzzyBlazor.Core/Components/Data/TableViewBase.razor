@@ -951,9 +951,9 @@
         }
     };
 
-    // A column's Clear removes its filter. Without script (and on static pages before it arrives), Enter
-    // or Apply submits the filters' GET form; with script the fields apply as they change and CSS hides
-    // that button.
+    // A column's Clear removes its filter. Enter or Apply submits the filters' GET form, or with script
+    // goes to the address the same way without a reload. On an interactive page the fields apply as they
+    // change, and CSS hides that button.
     private RenderFragment FilterPanelActions(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
         <div class="ib-table-filter-panel-actions">
@@ -1228,6 +1228,7 @@
             </ib-filter-list>
             <div class="ib-table-filter-panel-actions">
                 @ClearAction(current.IsFilter, () => FilterHref(column, null), () => Task.CompletedTask)
+                <button type="button" class="ib-btn ib-btn-neutral ib-btn-outline ib-btn-sm ib-table-filter-apply">@TextDefaults.Apply</button>
             </div>
         </div>
     };

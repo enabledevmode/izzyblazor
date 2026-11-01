@@ -13,8 +13,8 @@ import { navigateTo } from "../filtering";
  * boxes. On an interactive page C# does Select all and the search, and says what Select all shows in
  * data-ib-all (data-ib-list-remote). On a static page there's no C# to ask (data-ib-list-fetch): this
  * fetches the page's own address with one more key, takes the list out of the response, and writes
- * ticks to the address itself. Its children are data-permanent, so a navigation leaves them, and
- * the ticks are set from the address. Either way it keeps its keys and its one Tab stop as rows
+ * ticks to the address itself, when Apply or Enter says so; closing the panel any other way drops
+ * them. Its children are data-permanent, so a navigation leaves them, and the ticks are set from the address. Either way it keeps its keys and its one Tab stop as rows
  * arrive, loads more as the last row comes into view, and takes focus from Load more to the first
  * new row.
  */
@@ -33,7 +33,7 @@ class FilterList extends IzzyElement {
 
   // A fetched list's, kept the same way.
   #pending: Ticks | null = null;
-  #timer = 0;
+  #applied = false;
   #searchTimer = 0;
   #request: AbortController | null = null;
   #first = "";
@@ -222,19 +222,24 @@ class FilterList extends IzzyElement {
     this.addEventListener("compositionend", (event) => {
       if (event.target === search) asked();
     }, { signal });
-    // Enter is done with the panel, which <ib-table> closes, so what's waiting goes now.
+    // Enter and Apply are done with the panel, which <ib-table> closes, so what's waiting goes now.
     this.addEventListener("keydown", (event) => {
-      if (event.key !== "Enter" || event.isComposing || event.target instanceof HTMLButtonElement || !this.#timer) return;
+      if (event.key !== "Enter" || event.isComposing || event.target instanceof HTMLButtonElement) return;
       this.#apply();
+    }, { signal });
+    panel?.addEventListener("click", (event) => {
+      if ((event.target as Element).closest(".ib-table-filter-apply")) this.#apply();
     }, { signal });
     // Back or Forward: the address decides. A tag's link or a Clear removes what's waiting, as <ib-table>'s own ticks.
     const drop = () => {
-      clearTimeout(this.#timer);
-      this.#timer = 0;
       this.#pending = null;
       narrow();
     };
     window.addEventListener("popstate", drop, { signal });
+    // Closed without Apply, what's waiting is gone. After Apply, it was on its way already.
+    panel?.addEventListener("toggle", (event) => {
+      if ((event as ToggleEvent).newState === "closed" && !this.#applied) drop();
+    }, { signal });
     document.addEventListener("click", (event) => {
       const link = event.target instanceof Element ? event.target.closest("a[href]") : null;
       if (!link || event.ctrlKey || event.metaKey || event.shiftKey) return;
@@ -242,8 +247,10 @@ class FilterList extends IzzyElement {
       if (!table || (table === this.closest("ib-table") && link.closest(".ib-table-filter-tags, [data-ib-filter-clear]"))) drop();
     }, { signal });
 
-    // This setup runs as a response arrives: what was on its way is in the address, and it's the one to believe.
-    if (!this.#timer) this.#pending = null;
+    // This setup runs as a response arrives: what was on its way is in the address, and it's the one to
+    // believe. What's still being ticked in an open panel stays.
+    if (this.#applied || !panel?.matches(":popover-open")) this.#pending = null;
+    this.#applied = false;
 
     // Opened before this script arrived.
     if (panel?.matches(":popover-open") && !this.#first && !this.#loading) this.#load(0, search, narrow);
@@ -304,19 +311,15 @@ class FilterList extends IzzyElement {
     this.#wait(next, boxes);
   }
 
-  // After the usual pause. With every value there is on these rows and every one the same, all ticked
-  // is no filter and none ticked is none, however it got there.
+  // With every value there is on these rows and every one the same, all ticked is no filter and none
+  // ticked is none, however it got there.
   #wait(ticks: Ticks, boxes: HTMLInputElement[]): void {
     const every = this.#whole && boxes.length > 0 && !ticks.none && ticks.values.length > 0 && boxes.every((b) => ticks.values.some((v) => this.#same(v, this.#valueOf(b))));
     this.#pending = every ? { op: "", none: ticks.op === "notin", values: [] } : ticks;
-    clearTimeout(this.#timer);
-    this.#timer = window.setTimeout(() => this.#apply(), PAUSE);
   }
 
   // Onto the address as it is now, so a sort or a page made in the pause stands.
   #apply(): void {
-    clearTimeout(this.#timer);
-    this.#timer = 0;
     const ticks = this.#pending;
     if (!ticks || !this.isConnected) return;
     const key = this.dataset.ibListKey!;
@@ -332,7 +335,8 @@ class FilterList extends IzzyElement {
     if (table?.dataset.ibPageKey) url.searchParams.delete(table.dataset.ibPageKey);
     if (table?.dataset.ibCursorKey) url.searchParams.delete(table.dataset.ibCursorKey);
     // Ticks that came back to where they started aren't a place in the history.
-    if (!navigateTo(url, false)) this.#pending = null;
+    this.#applied = navigateTo(url, false);
+    if (!this.#applied) this.#pending = null;
   }
 
   #canSelectAll(ticks: Ticks, boxes: HTMLInputElement[], search: HTMLInputElement | null): boolean {
