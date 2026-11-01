@@ -410,19 +410,17 @@ public sealed class DataGridKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         var (browser, page) = await OpenAsync("static");
         await using (browser)
         {
-            Assert.Equal(1, await page.GetByRole(AriaRole.Heading, new() { Name = "Keyboard", Exact = true }).CountAsync());
+            Assert.Equal(1, await page.GetByRole(AriaRole.Heading, new() { Name = "Keyboard navigation", Exact = true }).CountAsync());
             var rows = page.GetByRole(AriaRole.Heading, new() { Name = "On a header" });
             Assert.Equal(1, await rows.CountAsync());
             Assert.Contains("Press this key", await page.Locator("table", new() { HasText = "Add the column to the sort" }).TextContentAsync());
             Assert.True(await page.Locator("table", new() { HasText = "Add the column to the sort" }).Locator(".ib-kbd").CountAsync() > 5);
 
-            // Listed in "On this page" where they are on it.
+            // The section is listed in "On this page" where it is on it, with nothing under it.
             var outline = await page.EvaluateAsync<string[]>("() => [...document.querySelectorAll('ib-on-this-page a')].map(a => a.textContent.trim())");
-            var at = Array.IndexOf(outline, "Keyboard");
+            var at = Array.IndexOf(outline, "Keyboard navigation");
             Assert.Equal("Accessibility", outline[at - 1]);
-            var parameters = Array.IndexOf(outline, "Parameters");
-            Assert.Equal("In the rows", outline[at + 1]);
-            Assert.True(parameters > at + 1 && Array.IndexOf(outline, "In the filter row") is var row && row > at && row < parameters);
+            Assert.Equal("Parameters", outline[at + 1]);
         }
     }
 

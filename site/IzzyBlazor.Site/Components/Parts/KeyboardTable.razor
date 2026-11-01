@@ -21,19 +21,20 @@
 
     [Parameter, EditorRequired] public string Name { get; set; } = "";
 
-    /// <summary>The Keyboard section of a page, if the component has keys: <c>@KeyboardTable.Section(ApiComponent)</c>.</summary>
+    /// <summary>The Keyboard navigation section of a page, if the component has keys: <c>@KeyboardTable.Section(ApiComponent)</c>.</summary>
     public static RenderFragment Section(ApiComponent api) => __builder =>
     {
         if (api.Keyboard is { Count: > 0 } groups)
         {
-            <Heading Level="2">Keyboard</Heading>
+            <Heading Level="2">Keyboard navigation</Heading>
             <div class="site-key-groups">
                 @foreach (var group in groups)
                 {
                     <div class="site-key-group">
                         @if (group.Title is not null)
                         {
-                            <Heading Level="3" Size="TextSize.Md">@group.Title</Heading>
+                            @* Only the section is listed in "On this page": some have nine of these. *@
+                            <Heading Level="3" Size="TextSize.Md" Outline="false">@group.Title</Heading>
                         }
                         <KeyboardTable Group="group" Name="@api.Name" />
                     </div>
