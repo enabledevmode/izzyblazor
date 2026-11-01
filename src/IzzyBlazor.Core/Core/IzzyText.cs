@@ -404,6 +404,21 @@ public class IzzyText
     /// <summary>The label of a calendar's time input.</summary>
     public virtual string CalendarTime { get; set; } = "Time";
 
+    /// <summary>A date range field's button that opens its months.</summary>
+    public virtual string CalendarChooseRange { get; set; } = "Choose dates";
+
+    /// <summary>That button once both days are set; {0} is both in full.</summary>
+    public virtual string CalendarChangeRange { get; set; } = "Change dates, {0}";
+
+    /// <summary>A date range's length, under its months; {0} is how many days.</summary>
+    public virtual string CalendarDays { get; set; } = "{0} days";
+
+    /// <summary>A date range of one day, under its months.</summary>
+    public virtual string CalendarOneDay { get; set; } = "1 day";
+
+    /// <summary>Under a date range's months, while its first day waits for its second.</summary>
+    public virtual string CalendarPickEnd { get; set; } = "Choose the last day";
+
     /// <summary>A calendar's button that chooses today.</summary>
     public virtual string CalendarToday { get; set; } = "Today";
 

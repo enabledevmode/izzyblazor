@@ -1,12 +1,20 @@
 @namespace IzzyBlazor
 @inherits CalendarFieldBase<DateRange?>
-@attribute [ModeSupport]
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own calendar opens on each date in place of the library's two months, and the end's minimum follows the start only after the form posts.")]
 
 @*
     Two whole days, both included: the browser's own date inputs in one box, so each posts with the
-    form, as {name}.Start and {name}.End, and takes a typed date. Bind it to a DateRange.
+    form, as {name}.Start and {name}.End, and takes a typed date, and the library's months to choose
+    from. Bind it to a DateRange.
     <DateRangeField @bind-Value="Model.Period" />
     <DateRangeField @bind-Value="Model.Period" Min="@today" MaxDays="90" />
+    <DateRangeField @bind-Value="Model.Period" DisplayMonths="1" />
+    <DateRangeField @bind-Value="Model.Period" UseNative />
+
+    The months write the inputs when the second day is chosen, so anything else that closes them
+    changes nothing. A first day shades the days it can run to, and days past MinDays, MaxDays or a
+    disabled day can't end it. UseNative keeps the browser's calendars. So do no script and a phone,
+    unless the field has rules a browser's calendar can't show: DateDisabled, MinDays or MaxDays.
 
     A DateRange holds days, so midnight never enters it. To query a time column:
     range.Contains(order.PlacedAt)        a DateTime compares by its clock date
@@ -22,12 +30,28 @@
       hint and errors linked to the group.
     - Screen readers read each part of each date, and arrow keys change it.
     - The arrow between the inputs is hidden from screen readers.
+    - The months' button is named "Choose dates" (`ChooseLabel`), or "Change dates" and both days once
+      they're set. Its panel is a non-modal `dialog`, named by the button, with each month a `grid`
+      named by its title. Both ends are selected in the grid. Focus goes to the start or today, and
+      on closing back to where it opened from. A line under the months says how many days are chosen,
+      and that a first day is waiting for its second.
 
     Keyboard:
     In a date
     - Up, Down | Change the focused part of the date
     - Left, Right | Move between the parts of the date
     - Tab | Move to the next part, then the other date
+    - Alt+Down | Open the months
+    In the months' days
+    - Left, Right | Move a day (reversed in right-to-left)
+    - Up, Down | Move a week
+    - Home, End | Go to the start or end of the week
+    - Page Up, Page Down | Move a month, keeping the day number or the month's last day
+    - Shift+Page Up, Shift+Page Down | Move a year
+    - Enter, Space | Choose the first day, or the last, which saves both and closes
+    In the months
+    - Tab, Shift+Tab | Move through the arrows, the days and Clear, and close past either end
+    - Escape | Close without changing the value
     See also: DateField, Calendar, Form.
 *@
 
@@ -37,7 +61,7 @@
         <label for="@FieldId">@(StartText ?? TextDefaults.DateRangeStart)</label>
         <label for="@EndId">@(EndText ?? TextDefaults.DateRangeEnd)</label>
     </div>
-    <div class="ib-field-control ib-date-range-box">
+    <div class="@BoxClass">
         <input @attributes="ControlAttributes"
                id="@FieldId"
                class="ib-field-input"
@@ -56,6 +80,7 @@
         <Icon Role="IconRole.RangeTo" />
         <input @attributes="ControlAttributes"
                id="@EndId"
+               data-ib-end
                class="ib-field-input"
                type="@InputType"
                name="@PartName("End")"
@@ -67,6 +92,45 @@
                disabled="@IsDisabled"
                readonly="@IsReadOnly"
                aria-invalid="@(Invalid ? "true" : null)" />
+        @if (HasPanel)
+        {
+            @if (RendererInfo.IsInteractive)
+            {
+                <input type="hidden" data-ib-range-value value="@FormatValueAsString(CurrentValue)" @onchange="ChangeBothAsync" />
+            }
+            <Popover Placement="Placement.BottomEnd" PanelWidth="Length.FitContent">
+                <Trigger Context="trigger">
+                    <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                        <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                    </button>
+                </Trigger>
+                <ChildContent>
+                    <ib-calendar class="ib-calendar ib-calendar-range"
+                                 @attributes="CalendarAttributes"
+                                 data-ib-value-end="@FormatDate(CurrentValue?.End)"
+                                 data-ib-min-days="@MinDays"
+                                 data-ib-max-days="@MaxDays"
+                                 data-ib-allow-off="@(AllowDisabledInRange ? "" : null)"
+                                 data-ib-change="@(ChooseLabel is null ? TextDefaults.CalendarChangeRange : null)"
+                                 data-ib-choose="@ChooseText"
+                                 data-ib-days="@TextDefaults.CalendarDays"
+                                 data-ib-one-day="@TextDefaults.CalendarOneDay"
+                                 data-ib-pick-end="@TextDefaults.CalendarPickEnd">
+                        <div class="ib-calendar-view">
+                            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                            @CalendarGrid.Months(DrawnMonths(DisplayMonths))
+                            <div class="ib-calendar-foot">
+                                <span class="ib-calendar-summary" data-ib-summary aria-live="polite"></span>
+                                @if (ShowsClear)
+                                {
+                                    <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
+                                }
+                            </div>
+                        </div>
+                    </ib-calendar>
+                </ChildContent>
+            </Popover>
+        }
     </div>
 </FieldFrame>
 
@@ -95,6 +159,21 @@
     /// </summary>
     [Parameter] public bool AllowDisabledInRange { get; set; }
 
+    /// <summary>
+    /// Keeps the browser's calendars in place of the library's months. <see cref="CalendarFieldBase{TValue}.DateDisabled"/>,
+    /// <see cref="MinDays"/> and <see cref="MaxDays"/> are then checked only on the server.
+    /// </summary>
+    [Parameter] public bool UseNative { get; set; }
+
+    /// <summary>How many months show side by side, from 1 to 6. Defaults to 2. A phone shows one.</summary>
+    [Parameter] public int DisplayMonths { get; set; } = 2;
+
+    /// <summary>Whether the months have a Clear button. Defaults to true unless the field is required.</summary>
+    [Parameter] public bool? Clearable { get; set; }
+
+    /// <summary>The name of the months' button, in place of "Choose dates" and "Change dates" with both days.</summary>
+    [Parameter] public string? ChooseLabel { get; set; }
+
     /// <summary>The caption of the first date, in place of "Start".</summary>
     [Parameter] public string? StartText { get; set; }
 
@@ -105,6 +184,41 @@
     private const string InputType = "date";
 
     private string EndId => FieldId + "-end";
+
+    // Nothing to choose from on a field that can't change.
+    private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
+
+    private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChooseRange;
+
+    private bool ShowsClear => Clearable ?? !IsRequired;
+
+    // A field whose rules a browser's calendar can't show keeps the library's on a phone too.
+    private string BoxClass => new ClassBuilder()
+        .Add("ib-field-control ib-date-range-box")
+        .Add("ib-date-control", HasPanel)
+        .Add("ib-date-own", HasPanel && (DateDisabled is not null || MinDays is not null || MaxDays is not null))
+        .Build()!;
+
+    /// <inheritdoc />
+    private protected override bool ShowsAdjacent => false;
+
+    /// <inheritdoc />
+    private protected override bool LabelNamesMonth => false;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (DisplayMonths is < 1 or > 6)
+        {
+            throw new InvalidOperationException($"DateRangeField's DisplayMonths is {DisplayMonths}. It takes 1 to 6.");
+        }
+
+        base.OnParametersSet();
+        if (HasPanel)
+        {
+            AskAboutDays();
+        }
+    }
 
     private string? PartName(string part) => string.IsNullOrEmpty(NameAttributeValue) ? null : $"{NameAttributeValue}.{part}";
 
@@ -132,6 +246,16 @@
     {
         DateOnly? day = DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var read) ? read : null;
         var (start, last) = end ? (CurrentValue?.Start, day) : (day, CurrentValue?.End);
+        CurrentValue = start is null && last is null ? null : new DateRange(start, last);
+        return Task.CompletedTask;
+    }
+
+    // Both ends from the months: one change, as an app would see a range with one new end from two.
+    private Task ChangeBothAsync(ChangeEventArgs e)
+    {
+        var parts = (e.Value?.ToString() ?? "").Split('/');
+        DateOnly? Read(int index) => parts.Length > index && DateOnly.TryParseExact(parts[index], "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var day) ? day : null;
+        var (start, last) = (Read(0), Read(1));
         CurrentValue = start is null && last is null ? null : new DateRange(start, last);
         return Task.CompletedTask;
     }
