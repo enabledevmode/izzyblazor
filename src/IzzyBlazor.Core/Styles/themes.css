@@ -48,7 +48,7 @@
     --ib-color-fill-subtle: light-dark(#f3f2ee, #161719);
     --ib-color-fill: light-dark(#eae8e2, #1d1f22);
     --ib-color-fill-strong: light-dark(#e0ddd5, #25272a);
-    --ib-color-surface-overlay: light-dark(#ffffff, #18191b);
+    --ib-color-surface-overlay: light-dark(#ffffff, #131416);
     --ib-color-on-surface: light-dark(#1b1d1f, #ecebe6);
     --ib-color-muted: light-dark(#5b6168, #a3a7ad);
     --ib-color-subtle: light-dark(#646970, #92969c);
@@ -67,7 +67,7 @@
     --ib-color-fill-subtle: light-dark(#f1f4f8, #171b22);
     --ib-color-fill: light-dark(#e7ebf1, #1e222a);
     --ib-color-fill-strong: light-dark(#dce2ea, #262b34);
-    --ib-color-surface-overlay: light-dark(#ffffff, #191d24);
+    --ib-color-surface-overlay: light-dark(#ffffff, #14171d);
     --ib-color-on-surface: light-dark(#0f172a, #e7ebf0);
     --ib-color-muted: light-dark(#526072, #9aa4b2);
     --ib-color-subtle: light-dark(#5a6779, #8892a0);
@@ -88,7 +88,7 @@
     --ib-color-fill-subtle: light-dark(#f3f3f5, #141416);
     --ib-color-fill: light-dark(#e9e9ec, #1b1b1e);
     --ib-color-fill-strong: light-dark(#dfdfe3, #232326);
-    --ib-color-surface-overlay: light-dark(#ffffff, #17171a);
+    --ib-color-surface-overlay: light-dark(#ffffff, #121215);
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);
     --ib-color-subtle: light-dark(#66666d, #929299);
