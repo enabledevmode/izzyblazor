@@ -712,15 +712,20 @@
       ]
     },
     {
-      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Forms", "preview": true, "summary": "A time of day, in the browser's own input.", "keywords": ["time picker", "clock", "hours"],
+      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Forms", "preview": true, "summary": "A time of day, in the browser's own input, with a list of times to choose from.", "keywords": ["time picker", "clock", "hours"],
       "features": [
-        { "feature": "The browser's picker, with Min, Max and Step checked before posting, and Min and Max checked again on the server" },
+        { "feature": "The browser's input, with Min, Max and Step checked before posting, and Min, Max and disabled times checked again on the server" },
+        { "feature": "A list of times from Step, within Min and Max", "noscript": "none" },
         { "feature": "Binds TimeOnly, and a window across midnight when Min is after Max" }
       ],
       "examples": [
         { "id": "time-field-limits", "title": "Limits", "lead": "`Min` and `Max` come from `[Range]`, or set them on the field, as Closes's `Min` follows Opens. Set `Min` after `Max` for a window across midnight, as Night shift does.",
           "notes": {
             "static": "The server turns away a time outside the limits, whatever the browser let through."
+          } },
+        { "id": "time-field-slots", "title": "The list of times", "lead": "The list has a time every `Step`, or every 30 minutes with none, in which case the input still takes any minute. `TimeDisabled` turns times off, and holds on the server too. `UseNative` keeps the browser's picker.",
+          "notes": {
+            "noscript": "The browser's picker opens instead, so `TimeDisabled` holds only as the form posts."
           } },
         { "id": "time-field-states", "title": "Steps, sizes, read-only and disabled", "lead": "Use `Step` for the allowed increments; one under a minute shows seconds." }
       ]

@@ -34,6 +34,60 @@ public class TimeFieldRenderTests : BunitContext
             more?.Invoke(p);
         });
 
+    private static string[] Slots(IRenderedComponent<TimeField<TimeOnly?>> cut) =>
+        cut.FindAll("[role=option]").Select(o => o.GetAttribute("data-value")!).ToArray();
+
+    [Fact]
+    public void The_list_runs_every_step_within_the_limits()
+    {
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.Min, new TimeOnly(9, 0)).Add(f => f.Max, new TimeOnly(10, 0)).Add(f => f.Step, TimeSpan.FromMinutes(20)));
+
+        Assert.Equal(new[] { "09:00", "09:20", "09:40", "10:00" }, Slots(cut));
+    }
+
+    [Fact]
+    public void With_no_step_the_list_is_half_hours_and_the_input_takes_any_minute()
+    {
+        var cut = TimeFor(() => _model.Night);
+
+        Assert.Equal(48, cut.FindAll("[role=option]").Count);
+        Assert.False(cut.Find("input").HasAttribute("step"));
+    }
+
+    [Fact]
+    public void A_window_across_midnight_runs_through_it()
+    {
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.Min, new TimeOnly(23, 0)).Add(f => f.Max, new TimeOnly(1, 0)).Add(f => f.Step, TimeSpan.FromHours(1)));
+
+        Assert.Equal(new[] { "23:00", "00:00", "01:00" }, Slots(cut));
+    }
+
+    [Fact]
+    public void A_disabled_time_is_marked_and_turned_away()
+    {
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.Min, new TimeOnly(9, 0)).Add(f => f.Max, new TimeOnly(10, 0)).Add(f => f.Step, TimeSpan.FromHours(1))
+            .Add(f => f.TimeDisabled, t => t.Hour == 9).Add(f => f.Label, "Opens"));
+
+        Assert.Equal("true", cut.Find("[data-value='09:00']").GetAttribute("aria-disabled"));
+        Assert.Null(cut.Find("[data-value='10:00']").GetAttribute("aria-disabled"));
+        Assert.NotEmpty(cut.FindAll(".ib-date-own"));
+        _context.Validate();
+        Assert.Contains("can't be", Assert.Single(_context.GetValidationMessages()));
+    }
+
+    [Theory]
+    [InlineData(true, false, false, 30 * 60)]
+    [InlineData(false, true, false, 30 * 60)]
+    [InlineData(false, false, true, 30 * 60)]
+    [InlineData(false, false, false, 30)]
+    [InlineData(false, false, false, 60)]
+    public void There_is_no_list_where_the_browser_serves_better(bool native, bool readOnly, bool disabled, int stepSeconds)
+    {
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.UseNative, native).Add(f => f.ReadOnly, readOnly).Add(f => f.Disabled, disabled).Add(f => f.Step, TimeSpan.FromSeconds(stepSeconds)));
+
+        Assert.Empty(cut.FindAll("ib-time-slots"));
+    }
+
     [Fact]
     public void A_time_renders_a_time_input_with_the_range_from_annotations()
     {

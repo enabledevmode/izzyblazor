@@ -374,7 +374,7 @@ public class IzzyText
     /// <summary>A range with a day its DateDisabled turns off inside it; {0} is its label and {1} the date.</summary>
     public virtual string DateRangeHasUnavailable { get; set; } = "{0} can't include {1}.";
 
-    /// <summary>A date a field's DateDisabled turns off; {0} is its label and {1} the date.</summary>
+    /// <summary>A date or time a field's DateDisabled or TimeDisabled turns off; {0} is its label and {1} the value.</summary>
     public virtual string DateUnavailable { get; set; } = "{0} can't be {1}.";
 
     /// <summary>A calendar's button to the month before.</summary>
@@ -424,6 +424,15 @@ public class IzzyText
 
     /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
     public virtual string PresetThisYear { get; set; } = "This year";
+
+    /// <summary>A time field's button that opens its list.</summary>
+    public virtual string TimeChoose { get; set; } = "Choose time";
+
+    /// <summary>That button once there's a time; {0} is the time.</summary>
+    public virtual string TimeChange { get; set; } = "Change time, {0}";
+
+    /// <summary>The name of a time field's list.</summary>
+    public virtual string TimeList { get; set; } = "Times";
 
     /// <summary>A date range field's button that opens its months.</summary>
     public virtual string CalendarChooseRange { get; set; } = "Choose dates";

@@ -2678,20 +2678,20 @@
     background-color: var(--ib-field-bg);
   }
 
-  .ib-date-own:has(ib-calendar[data-ready]) .ib-date-toggle {
+  .ib-date-own:has(:is(ib-calendar, ib-time-slots)[data-ready]) .ib-date-toggle {
     display: inline-flex;
   }
 
-  .ib-date-own:has(ib-calendar[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
+  .ib-date-own:has(:is(ib-calendar, ib-time-slots)[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
     display: none;
   }
 
   @media not (pointer: coarse) {
-    .ib-date-control:has(ib-calendar[data-ready]) .ib-date-toggle {
+    .ib-date-control:has(:is(ib-calendar, ib-time-slots)[data-ready]) .ib-date-toggle {
       display: inline-flex;
     }
 
-    .ib-date-control:has(ib-calendar[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
+    .ib-date-control:has(:is(ib-calendar, ib-time-slots)[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
       display: none;
     }
   }
