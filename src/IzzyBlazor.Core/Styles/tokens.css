@@ -157,9 +157,9 @@
     --ib-color-fill-subtle: light-dark(#f3f3f5, #141416);
     --ib-color-fill: light-dark(#e9e9ec, #1b1b1e);
     --ib-color-fill-strong: light-dark(#dfdfe3, #232326);
-    /* Overlays (dialogs, menus, popovers, toasts): a step lighter than cards in dark mode, since
+    /* Overlays (dialogs, menus, popovers, toasts): a small step lighter than cards in dark mode, under the fills so its buttons show, since
        shadows barely show there; the border does most of the separating. */
-    --ib-color-surface-overlay: light-dark(#ffffff, #17171a);
+    --ib-color-surface-overlay: light-dark(#ffffff, #121215);
     --ib-color-overlay-border: light-dark(transparent, rgb(255 255 255 / 0.08));
     --ib-color-on-surface: light-dark(#18181b, #ececee);
     --ib-color-muted: light-dark(#5f5f66, #a1a1a8);

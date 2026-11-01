@@ -712,7 +712,7 @@
       ]
     },
     {
-      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Forms", "preview": true, "summary": "A time of day, in the browser's own input, with a list of times to choose from.", "keywords": ["time picker", "clock", "hours"],
+      "id": "time-field", "icon": "Clock", "name": "TimeField", "category": "Forms", "summary": "A time of day, in the browser's own input, with a list of times to choose from.", "keywords": ["time picker", "clock", "hours"],
       "features": [
         { "feature": "The browser's input, with Min, Max and Step checked before posting, and Min, Max and disabled times checked again on the server" },
         { "feature": "A list of times from Step, within Min and Max", "noscript": "none" },
@@ -731,7 +731,7 @@
       ]
     },
     {
-      "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Forms", "preview": true, "summary": "Two whole days, both included, in the browser's own date inputs.", "keywords": ["date range", "date range picker", "from to", "period"],
+      "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Forms", "summary": "Two whole days, both included, in the browser's own date inputs.", "keywords": ["date range", "date range picker", "from to", "period"],
       "features": [
         { "feature": "Two date inputs in one field, posting each end, with the end's minimum following the start" },
         { "feature": "Months side by side to choose from, and presets beside them", "noscript": "none" },
@@ -751,7 +751,7 @@
       ]
     },
     {
-      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Forms", "preview": true, "summary": "A month on the page, with the browser's own date input posting the day.", "keywords": ["month", "date", "inline calendar", "week numbers"],
+      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Forms", "summary": "A month on the page, with the browser's own date input posting the day.", "keywords": ["month", "date", "inline calendar", "week numbers"],
       "features": [
         { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
         { "feature": "The browser's date input posts the value, with Min and Max checked before posting and on the server" },
@@ -771,7 +771,7 @@
       ]
     },
     {
-      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Forms", "preview": true, "summary": "A length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
+      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Forms", "summary": "A length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
       "features": [
         { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },
         { "feature": "Min and Max checked on the server" },
@@ -873,7 +873,7 @@
       ]
     },
     {
-      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Forms", "preview": true, "summary": "Builds a filter of nested groups and rules from fields.",
+      "id": "filter-builder", "icon": "ListFilter", "name": "FilterBuilder", "category": "Forms", "summary": "Builds a filter of nested groups and rules from fields.",
       "features": [
         { "feature": "Groups and rules, from a type's fields, applied with a button", "noscript": "none" },
         { "feature": "The filter in the address, or bound to C#", "noscript": "partial" }
