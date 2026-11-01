@@ -38,11 +38,26 @@ const parseRuns = (text: string): Runs =>
   });
 const inRuns = (runs: Runs, n: number): boolean => runs.some(([from, to]) => n >= from && n <= to);
 
-// Keeps the text node Blazor made, if it did.
+// These write only what changed. A draw that changes nothing leaves nothing for an observer to see,
+// here or in anything else on the page, such as a browser extension answering what changes: answering
+// each other, two observers never let the browser paint or take input again.
 const setText = (node: Node, text: string): void => {
+  // Keeps the text node Blazor made, if it did.
+  if (node.textContent === text) return;
   if (node.firstChild) node.firstChild.nodeValue = text;
   else node.textContent = text;
 };
+const set = <T extends Element, K extends keyof T>(element: T, name: K, value: T[K]): void => {
+  if (element[name] !== value) element[name] = value;
+};
+const put = (element: Element, name: string, value: string | null): void => {
+  if (element.getAttribute(name) === value) return;
+  if (value === null) element.removeAttribute(name);
+  else element.setAttribute(name, value);
+};
+
+// What the server can change, and what enhanced navigation resets.
+const WATCHED = ["data-ib-value", "data-ib-min", "data-ib-max", "data-ib-off", "data-ib-classes", "data-ib-culture", "data-ib-first-day", "data-ib-week-anchor", "data-ib-hide-adjacent", "data-ib-disabled", "data-ib-readonly", "data-ready", "tabindex", "readonly", "aria-hidden"];
 
 class Calendar extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -75,10 +90,19 @@ class Calendar extends IzzyElement {
     const blocked = (n: number): boolean => (min !== null && n < min) || (max !== null && n > max) || inRuns(off, n);
 
     const observer = new MutationObserver(() => draw());
-    observer.observe(this, { attributes: true, subtree: true });
+    observer.observe(this, { attributes: true, subtree: true, attributeFilter: WATCHED });
     signal.addEventListener("abort", () => observer.disconnect());
 
+    // Its own writes aren't news, even if it stops halfway with an error.
     const draw = (): void => {
+      try {
+        paint();
+      } finally {
+        observer.takeRecords();
+      }
+    };
+
+    const paint = (): void => {
       const now = new Date();
       const today = at(now.getFullYear(), now.getMonth(), now.getDate());
       min = parse(data.ibMin);
@@ -130,19 +154,16 @@ class Calendar extends IzzyElement {
         const shown = n >= FIRST && n <= LAST;
         const outside = shown && date(n).getUTCMonth() !== month;
         const cell = day.parentElement!;
-        day.hidden = !shown || (outside && hideAdjacent);
+        set(day, "hidden", !shown || (outside && hideAdjacent));
         setText(day, shown ? String(date(n).getUTCDate()) : "");
-        day.tabIndex = n === cursor ? 0 : -1;
-        day.disabled = disabled;
-        if (shown) day.setAttribute("aria-label", dayName.format(date(n)));
-        if (blocked(n)) day.setAttribute("aria-disabled", "true");
-        else day.removeAttribute("aria-disabled");
-        day.className = ["ib-calendar-day", inRuns(off, n) ? "ib-calendar-off" : "", ...classed.filter(([runs]) => inRuns(runs, n)).map(([, name]) => name)].join(" ").trim();
-        if (n === today) day.setAttribute("aria-current", "date");
-        else day.removeAttribute("aria-current");
-        cell.classList.toggle("ib-calendar-outside", outside);
-        if (n === chosen) cell.setAttribute("aria-selected", "true");
-        else cell.removeAttribute("aria-selected");
+        set(day, "tabIndex", n === cursor ? 0 : -1);
+        set(day, "disabled", disabled);
+        if (shown) put(day, "aria-label", dayName.format(date(n)));
+        put(day, "aria-disabled", blocked(n) ? "true" : null);
+        set(day, "className", ["ib-calendar-day", inRuns(off, n) ? "ib-calendar-off" : "", ...classed.filter(([runs]) => inRuns(runs, n)).map(([, name]) => name)].join(" ").trim());
+        put(day, "aria-current", n === today ? "date" : null);
+        put(cell, "class", outside ? "ib-calendar-outside" : null);
+        put(cell, "aria-selected", n === chosen ? "true" : null);
       });
 
       const anchor = data.ibWeekAnchor;
@@ -154,10 +175,9 @@ class Calendar extends IzzyElement {
       }
 
       setText(title, monthName.format(date(first)));
-      if (data.ibReadonly !== undefined) grid.setAttribute("aria-readonly", "true");
-      else grid.removeAttribute("aria-readonly");
-      prev.disabled = disabled || first <= low;
-      next.disabled = disabled || at(year, month + 1, 0) >= high;
+      put(grid, "aria-readonly", data.ibReadonly !== undefined ? "true" : null);
+      set(prev, "disabled", disabled || first <= low);
+      set(next, "disabled", disabled || at(year, month + 1, 0) >= high);
 
       // The years: Min's to Max's, or a long way back and a little ahead, always with the one shown.
       const thisYear = date(today).getUTCFullYear();
@@ -167,22 +187,21 @@ class Calendar extends IzzyElement {
       while (years.options.length > count) years.options[years.options.length - 1].remove();
       while (years.options.length < count) years.add(new Option());
       [...years.options].forEach((option, index) => {
-        option.value = String(fromYear + index);
+        set(option, "value", String(fromYear + index));
         setText(option, option.value);
       });
-      years.value = String(year);
-      years.disabled = disabled;
+      set(years, "value", String(year));
+      set(years, "disabled", disabled);
       [...months.options].forEach((option, index) => {
-        option.disabled = at(year, index + 1, 0) < low || at(year, index, 1) > high;
+        set(option, "disabled", at(year, index + 1, 0) < low || at(year, index, 1) > high);
       });
-      months.value = String(month);
-      months.disabled = disabled;
+      set(months, "value", String(month));
+      set(months, "disabled", disabled);
 
-      text.readOnly = true;
-      text.tabIndex = -1;
-      text.setAttribute("aria-hidden", "true");
-      data.ready = "";
-      observer.takeRecords();
+      set(text, "readOnly", true);
+      set(text, "tabIndex", -1);
+      put(text, "aria-hidden", "true");
+      if (data.ready === undefined) data.ready = "";
     };
 
     const focusCursor = (): void => days[cursor - start].focus();
