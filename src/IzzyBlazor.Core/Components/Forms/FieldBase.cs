@@ -560,3 +560,19 @@ public enum DateFieldType
     /// <summary>A date and a time of day.</summary>
     DateTime,
 }
+
+/// <summary>A unit with a box in a <see cref="DurationField{TValue}"/>.</summary>
+public enum DurationUnit
+{
+    /// <summary>Seconds.</summary>
+    Seconds,
+
+    /// <summary>Minutes.</summary>
+    Minutes,
+
+    /// <summary>Hours.</summary>
+    Hours,
+
+    /// <summary>Days.</summary>
+    Days,
+}

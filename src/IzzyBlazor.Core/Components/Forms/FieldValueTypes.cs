@@ -38,3 +38,6 @@ public partial class DateField<[DynamicallyAccessedMembers(DynamicallyAccessedMe
 
 /// <summary>A time of day.</summary>
 public partial class TimeField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;
+
+/// <summary>A length of time.</summary>
+public partial class DurationField<[DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue>;

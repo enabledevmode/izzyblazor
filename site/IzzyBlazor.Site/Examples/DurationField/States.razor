@@ -1,0 +1,25 @@
+<Form Model="Model" FormName="duration-field-states" MaxWidth="24.Rem" Grow>
+    <DurationField @bind-Value="Model!.Slot" Label="Quarter hours" SmallestUnit="DurationUnit.Minutes" Step="TimeSpan.FromMinutes(15)" />
+    <DurationField @bind-Value="Model!.Offset" Label="Clock offset" Min="TimeSpan.FromHours(-12)" Max="TimeSpan.FromHours(14)" SmallestUnit="DurationUnit.Minutes" />
+    <DurationField @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
+    <DurationField @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
+    <DurationField @bind-Value="Model!.Signed" Label="Signed length" ReadOnly Hint="Read-only: posted, but can't be changed." />
+    <DurationField @bind-Value="Model!.Renews" Label="Renews after" Disabled Hint="Disabled: not posted." />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "duration-field-states")]
+    private Contract? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Contract
+    {
+        public TimeSpan Slot { get; set; } = TimeSpan.FromMinutes(45);
+        public TimeSpan Offset { get; set; } = TimeSpan.FromHours(-5);
+        public TimeSpan Small { get; set; } = new(1, 30, 0);
+        public TimeSpan Large { get; set; } = new(1, 30, 0);
+        public TimeSpan Signed { get; set; } = new(26, 0, 0);
+        public TimeSpan Renews { get; set; } = new(0, 45, 10);
+    }
+}

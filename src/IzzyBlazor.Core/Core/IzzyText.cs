@@ -359,6 +359,33 @@ public class IzzyText
     /// <summary>A time outside a window across midnight; {0} is the field's label, {1} its Min and {2} its Max.</summary>
     public virtual string TimeOutsideWindow { get; set; } = "{0} must be between {1} and {2}.";
 
+    /// <summary>DurationField's message for a value that isn't a length of time. {0} is the field's label.</summary>
+    public virtual string DurationInvalid { get; set; } = "The {0} field must be a length of time.";
+
+    /// <summary>A length under the field's Min; {0} is its label and {1} the limit.</summary>
+    public virtual string DurationTooShort { get; set; } = "{0} must be at least {1}.";
+
+    /// <summary>A length over the field's Max; {0} is its label and {1} the limit.</summary>
+    public virtual string DurationTooLong { get; set; } = "{0} must be at most {1}.";
+
+    /// <summary>How to type a length, where DurationField's boxes can't show.</summary>
+    public virtual string DurationFormat { get; set; } = "As hh:mm:ss, or d.hh:mm:ss with days.";
+
+    /// <summary>DurationField's box for days.</summary>
+    public virtual string DurationDays { get; set; } = "Days";
+
+    /// <summary>DurationField's box for hours.</summary>
+    public virtual string DurationHours { get; set; } = "Hours";
+
+    /// <summary>DurationField's box for minutes.</summary>
+    public virtual string DurationMinutes { get; set; } = "Minutes";
+
+    /// <summary>DurationField's box for seconds.</summary>
+    public virtual string DurationSeconds { get; set; } = "Seconds";
+
+    /// <summary>DurationField's choice of plus or minus.</summary>
+    public virtual string DurationSign { get; set; } = "Sign";
+
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
 
