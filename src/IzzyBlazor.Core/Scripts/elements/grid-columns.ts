@@ -7,7 +7,9 @@ import { readCookie, writeCookie } from "../cookies";
  * and saves the result as a DataGridLayout: in the cookie (data-ib-layout-key), at an address the app
  * maps (data-ib-save-url), and on interactive pages to C# (iblayout), which draws it. A static page
  * asks for itself again by enhanced navigation, so the server stays the one that draws columns.
- * Only a width changed by dragging needs no round trip: it's a variable the table already uses.
+ * Only a width changed by dragging needs no round trip: it's a variable the table already uses. A
+ * column dropped stays where it was dropped until the server has drawn it there, as it would otherwise
+ * go back for as long as the response takes.
  */
 
 interface ColumnEntry {
@@ -28,6 +30,8 @@ class GridColumns extends IzzyElement {
   #table: HTMLTableElement | null = null;
   // The column whose header takes focus when the new layout has been drawn.
   #refocus: string | null = null;
+  // Cells kept where a drop put them, until the layout they're waiting for is drawn.
+  #held: HTMLElement[] = [];
 
   protected setup(signal: AbortSignal): void {
     const host = this.closest<HTMLElement>("ib-table");
@@ -63,7 +67,13 @@ class GridColumns extends IzzyElement {
     if (this.hasAttribute("data-ib-interactive")) this.dispatchEvent(new CustomEvent("iblayout", { bubbles: true, detail: { layout: saved } }));
   }
 
+  #letGo(): void {
+    for (const cell of this.#held) cell.style.transform = "";
+    this.#held = [];
+  }
+
   #arrive(): void {
+    this.#letGo();
     if (!this.#refocus) return;
     const header = this.#header(this.#refocus);
     const grid = this.closest("ib-table")?.querySelector("ib-grid") as (Element & { focusCell?: (cell: HTMLTableCellElement) => void }) | null;
@@ -96,8 +106,8 @@ class GridColumns extends IzzyElement {
     return entry;
   }
 
-  /** Saves a layout, then has it drawn. */
-  async #save(columns: ColumnEntry[], draw: boolean, focus: string | null): Promise<void> {
+  /** Saves a layout, then has it drawn, and says whether it went ahead. */
+  async #save(columns: ColumnEntry[], draw: boolean, focus: string | null): Promise<boolean> {
     const kept = columns.filter((c) => c.w !== undefined || c.p !== undefined || c.h !== undefined || c.f !== undefined);
     const json = kept.length > 0 ? JSON.stringify({ c: kept }) : "";
     const key = this.dataset.ibLayoutKey;
@@ -105,7 +115,7 @@ class GridColumns extends IzzyElement {
     // As the browser counts it: a cookie too long is dropped with no word.
     if (key && encodeURIComponent(`ib-grid-${key}=${json}`).length > COOKIE_LIMIT) {
       console.warn(`IzzyBlazor: the "${key}" grid's layout is too large for a cookie, and wasn't saved. Bind Layout to keep it elsewhere.`);
-      if (!interactive) return;
+      if (!interactive) return false;
     } else if (key) {
       writeCookie(`ib-grid-${key}`, json, true, location.pathname);
     }
@@ -114,7 +124,7 @@ class GridColumns extends IzzyElement {
       const saved = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: json || "{}" }).then((r) => r.ok, () => false);
       if (!saved) {
         console.warn(`IzzyBlazor: a grid's layout couldn't be saved to ${url}.`);
-        if (!interactive) return;
+        if (!interactive) return false;
       }
     }
     this.dataset.ibLayout = json;
@@ -127,6 +137,7 @@ class GridColumns extends IzzyElement {
       if (blazor?.navigateTo) blazor.navigateTo(location.pathname + location.search + location.hash, { replaceHistoryEntry: true });
       else location.reload();
     }
+    return true;
   }
 
   #say(th: HTMLElement): void {
@@ -152,7 +163,9 @@ class GridColumns extends IzzyElement {
     order.splice(order.indexOf(zone[target]) + (target > from ? 1 : 0), 0, th);
     const columns = this.#layout();
     order.forEach((header, index) => (this.#entry(columns, header.dataset.ibCol!).p = index));
-    void this.#save(columns, true, focus ? th.dataset.ibCol! : null);
+    void this.#save(columns, true, focus ? th.dataset.ibCol! : null).then((drawing) => {
+      if (!drawing) this.#letGo();
+    });
   }
 
   #move(th: HTMLTableCellElement, by: number, focus: boolean): void {
@@ -372,7 +385,16 @@ class GridColumns extends IzzyElement {
     };
     const finish = (commit: boolean) => {
       abort.abort();
-      for (const column of cells) for (const cell of column) cell.style.transform = "";
+      const dropped = commit && dragging && to !== from;
+      if (dropped) {
+        // Exactly where the server will draw it: past the columns it crossed.
+        const [low, high] = to > from ? [from + 1, to] : [to, from - 1];
+        const crossed = rects.slice(low, high + 1).reduce((sum, r) => sum + r.width, 0);
+        paint(crossed * (to > from ? 1 : -1) * (rtl ? -1 : 1));
+        this.#held = cells.flat();
+      } else {
+        for (const column of cells) for (const cell of column) cell.style.transform = "";
+      }
       table.removeAttribute("data-ib-dragging");
       for (const cell of cells[from]) cell.removeAttribute("data-ib-lifted");
       if (!dragging) return;
