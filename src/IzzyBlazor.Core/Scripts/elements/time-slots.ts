@@ -44,6 +44,8 @@ class TimeSlots extends IzzyElement {
     signal.addEventListener("abort", () => observer.disconnect());
     const draw = (): void => {
       try {
+        // Under the whole field, as a Select's list is: the server anchors a popover to its button.
+        panel.style.setProperty("position-anchor", (control as HTMLElement).style.getPropertyValue("anchor-name"));
         slots = [...this.querySelectorAll<HTMLButtonElement>("[role=option]")];
         const chosen = held();
         stop = slots.includes(stop!) ? stop : startingPoint();
