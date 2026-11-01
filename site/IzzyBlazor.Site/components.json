@@ -684,9 +684,10 @@
       ]
     },
     {
-      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Forms", "summary": "A date, or a date and time, in the browser's own input.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
+      "id": "date-field", "icon": "Calendar", "name": "DateField", "category": "Forms", "summary": "A date to type or choose from a calendar, or a date and time.", "keywords": ["date picker", "datetime", "calendar", "time zone"],
       "features": [
-        { "feature": "The browser's calendar, with Min, Max and Step checked before posting, and Min and Max checked again on the server" },
+        { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
+        { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
         { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
         { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
@@ -701,6 +702,11 @@
           "notes": {
             "noscript": "Without the script the server reads the New York time in its own zone, so the saved offset is the server's.",
             "static": "The script posts the New York time with its offset, so the saved value is right."
+          } },
+        { "id": "date-field-days", "title": "Disabled days and the browser's calendar", "lead": "Use `DateDisabled` to turn days off, which the server checks too, and `UseNative` to keep the browser's calendar.",
+          "notes": {
+            "noscript": "The browser's calendar opens on both, and the server turns away a day that's off.",
+            "static": "On a phone Reminder opens the browser's calendar and Delivery this one, as a browser's can't show which days are off."
           } },
         { "id": "date-field-states", "title": "Sizes, read-only and disabled" }
       ]

@@ -261,9 +261,8 @@ Form controls are named by what they render:
 - `...Field`: renders its own label, hint and errors in the field box (`TextField`, `NumberField`,
   `DateField`, `TimeField`; later `SearchField`). Most form controls are fields.
 - `...Input`: a bare control with no label, for custom layouts. None today.
-- `...Picker`: opens a panel to choose from (`ColorPicker`; later a calendar `DatePicker` and a
-  `DateRangePicker` for a start and end date), so a `DateField` and a `DatePicker` differ in
-  whether a panel opens.
+- `...Picker`: opens a panel to choose from, with no input to type in (`ColorPicker`). A field that
+  takes typing and also opens a panel stays a `...Field` (`DateField`).
 
 `TextArea`, `Select`, `Checkbox`, `Switch`, `Slider` and the groups keep their usual names.
 Blazor's own form components are `InputText`, `InputNumber` and so on; don't add names that read as

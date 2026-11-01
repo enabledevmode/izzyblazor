@@ -173,6 +173,12 @@
     outline-offset: 2px;
   }
 
+  .ib-calendar-foot {
+    display: flex;
+    justify-content: space-between;
+    margin-top: var(--ib-space-2);
+  }
+
   @media (forced-colors: active) {
     td[aria-selected="true"] > .ib-calendar-day {
       forced-color-adjust: none;

@@ -159,6 +159,35 @@ public class DateFieldRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_date_has_a_calendar_unless_it_cant_change_or_keeps_the_browsers()
+    {
+        Assert.NotEmpty(DateFor(() => _model.Due).FindAll("ib-calendar"));
+        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.UseNative, true)).FindAll("ib-calendar"));
+        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.Disabled, true)).FindAll("ib-calendar"));
+        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.ReadOnly, true)).FindAll("ib-calendar"));
+        Assert.Empty(DateFor(() => _model.StartsAt).FindAll("ib-calendar"));
+    }
+
+    [Fact]
+    public void Its_grid_is_named_by_the_month_alone_and_clear_needs_a_value_it_can_empty()
+    {
+        var cut = DateFor(() => _model.Due);
+        Assert.DoesNotContain("-label", cut.Find("table").GetAttribute("aria-labelledby"));
+        Assert.NotEmpty(cut.FindAll("[data-ib-clear]"));
+        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.Required, true)).FindAll("[data-ib-clear]"));
+    }
+
+    [Fact]
+    public void A_day_thats_off_is_turned_away_whatever_was_posted_and_with_the_browsers_calendar_too()
+    {
+        DateFor(() => _model.Due, p => p
+            .Add(f => f.UseNative, true)
+            .Add(f => f.DateDisabled, day => day == new DateOnly(2026, 3, 4)));
+
+        Assert.False(_context.Validate());
+    }
+
+    [Fact]
     public void It_refuses_types_it_cant_show_and_a_time_on_a_date()
     {
         Assert.Throws<InvalidOperationException>(() => DateFor(() => _model.Name));

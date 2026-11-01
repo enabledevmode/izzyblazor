@@ -11,6 +11,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * the cells, and they're this element's from then on. What can change comes in attributes on the
  * element. Enhanced navigation resets the cells to the server's, and the observer draws them again.
  *
+ * In a DateField it's inside a Popover, beside the date input: that input stays as it is, for typing,
+ * choosing a day closes the panel, and the panel reads what was typed each time it opens.
+ *
  * Dates are whole days since 1970, so moving one is adding to it.
  */
 const DAY = 86400000;
@@ -61,7 +64,12 @@ const WATCHED = ["data-ib-value", "data-ib-min", "data-ib-max", "data-ib-off", "
 
 class Calendar extends IzzyElement {
   protected setup(signal: AbortSignal): void {
-    const text = this.querySelector<HTMLInputElement>("input[type=date]");
+    const panel = this.closest<HTMLElement>("[popover]");
+    const toggle = panel?.previousElementSibling as HTMLButtonElement | null | undefined;
+    const control = panel?.closest(".ib-field-control");
+    const text = (control ?? this).querySelector<HTMLInputElement>("input[type=date]");
+    const todayButton = this.querySelector<HTMLButtonElement>("[data-ib-today]");
+    const clearButton = this.querySelector<HTMLButtonElement>("[data-ib-clear]");
     const grid = this.querySelector("table");
     const days = [...this.querySelectorAll<HTMLButtonElement>(".ib-calendar-day")];
     const weeks = [...this.querySelectorAll("tbody th")];
@@ -70,6 +78,11 @@ class Calendar extends IzzyElement {
     const title = this.querySelector(".ib-calendar-month");
     const live = this.querySelector("[data-ib-live]");
     if (!text || !grid || !prev || !next || !months || !years || !title || !live) return;
+
+    const findToday = (): number => {
+      const now = new Date();
+      return at(now.getFullYear(), now.getMonth(), now.getDate());
+    };
 
     const data = this.dataset;
     let seen = false;
@@ -103,8 +116,7 @@ class Calendar extends IzzyElement {
     };
 
     const paint = (): void => {
-      const now = new Date();
-      const today = at(now.getFullYear(), now.getMonth(), now.getDate());
+      const today = findToday();
       min = parse(data.ibMin);
       max = parse(data.ibMax);
       if (data.ibOff !== offText) {
@@ -162,6 +174,8 @@ class Calendar extends IzzyElement {
         put(day, "aria-disabled", blocked(n) ? "true" : null);
         set(day, "className", ["ib-calendar-day", inRuns(off, n) ? "ib-calendar-off" : "", ...classed.filter(([runs]) => inRuns(runs, n)).map(([, name]) => name)].join(" ").trim());
         put(day, "aria-current", n === today ? "date" : null);
+        // Where the popover puts focus as it opens.
+        if (panel) put(day, "autofocus", n === cursor ? "" : null);
         put(cell, "class", outside ? "ib-calendar-outside" : null);
         put(cell, "aria-selected", n === chosen ? "true" : null);
       });
@@ -198,9 +212,16 @@ class Calendar extends IzzyElement {
       set(months, "value", String(month));
       set(months, "disabled", disabled);
 
-      set(text, "readOnly", true);
-      set(text, "tabIndex", -1);
-      put(text, "aria-hidden", "true");
+      if (panel) {
+        if (toggle) put(toggle, "aria-label", chosen !== null && data.ibChange ? data.ibChange.replace("{0}", dayName.format(date(chosen))) : data.ibChoose ?? null);
+        if (todayButton) set(todayButton, "disabled", blocked(today));
+        // A phone's own calendar would open on a tap, and could choose what this field turns off.
+        if (control?.classList.contains("ib-date-own") && matchMedia("(pointer: coarse)").matches) set(text, "readOnly", true);
+      } else {
+        set(text, "readOnly", true);
+        set(text, "tabIndex", -1);
+        put(text, "aria-hidden", "true");
+      }
       if (data.ready === undefined) data.ready = "";
     };
 
@@ -221,13 +242,29 @@ class Calendar extends IzzyElement {
       return Math.min(at(year, month, from.getUTCDate()), at(year, month + 1, 0));
     };
 
+    const write = (n: number | null): void => {
+      chosen = n;
+      text.value = n === null ? "" : date(n).toISOString().slice(0, 10);
+      text.dispatchEvent(new Event("input", { bubbles: true }));
+      text.dispatchEvent(new Event("change", { bubbles: true }));
+    };
+
+    // Focus first, so the browser has nothing to restore and a Tab goes on from there.
+    let opener: HTMLElement | null | undefined = toggle;
+    const close = (to = opener): void => {
+      to?.focus();
+      panel?.hidePopover();
+    };
+
     const choose = (n: number): void => {
       const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && !blocked(n);
       if (allowed) {
-        chosen = n;
-        text.value = date(n).toISOString().slice(0, 10);
-        text.dispatchEvent(new Event("input", { bubbles: true }));
-        text.dispatchEvent(new Event("change", { bubbles: true }));
+        write(n);
+        if (panel) {
+          draw();
+          close();
+          return;
+        }
       }
       // A day that's off takes focus, but doesn't change the month.
       move(allowed || date(n).getUTCMonth() === date(cursor).getUTCMonth() ? n : cursor, true);
@@ -235,7 +272,53 @@ class Calendar extends IzzyElement {
 
     draw();
 
-    text.addEventListener("focus", focusCursor, { signal });
+    if (panel) {
+      panel.addEventListener(
+        "beforetoggle",
+        (event) => {
+          if ((event as ToggleEvent).newState !== "open") return;
+          // Back to the input if the keys opened it from there.
+          opener = document.activeElement === text ? text : toggle;
+          chosen = parse(text.value);
+          cursor = chosen ?? clamp(findToday(), min ?? FIRST, max ?? LAST);
+          draw();
+        },
+        { signal }
+      );
+      // Past either end it closes, and Tab goes on from its button; backward, it stops on the button.
+      panel.addEventListener(
+        "keydown",
+        (event) => {
+          if (event.key !== "Tab") return;
+          const stops = [...panel.querySelectorAll<HTMLElement>("button, select")].filter((stop) => stop.tabIndex >= 0 && !stop.matches(":disabled") && stop.checkVisibility());
+          if (document.activeElement !== (event.shiftKey ? stops[0] : stops[stops.length - 1])) return;
+          if (event.shiftKey) event.preventDefault();
+          close(toggle);
+        },
+        { signal }
+      );
+      text.addEventListener(
+        "change",
+        () => {
+          chosen = parse(text.value);
+          draw();
+        },
+        { signal }
+      );
+      // In place of the browser's own calendar, once this one's button is showing.
+      text.addEventListener(
+        "keydown",
+        (event) => {
+          if (event.altKey && event.key === "ArrowDown" && toggle?.checkVisibility()) {
+            event.preventDefault();
+            toggle.click();
+          }
+        },
+        { signal }
+      );
+    } else {
+      text.addEventListener("focus", focusCursor, { signal });
+    }
     this.addEventListener(
       "click",
       (event) => {
@@ -246,6 +329,13 @@ class Calendar extends IzzyElement {
           if (target.disabled) (target === prev ? next : prev).focus();
         } else if (target.classList.contains("ib-calendar-day")) {
           choose(start + days.indexOf(target));
+        } else if (target === todayButton) {
+          cursor = findToday();
+          choose(cursor);
+        } else if (target === clearButton) {
+          write(null);
+          draw();
+          close();
         }
       },
       { signal }

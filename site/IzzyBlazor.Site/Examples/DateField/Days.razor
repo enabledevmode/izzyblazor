@@ -1,0 +1,32 @@
+<Form Model="Model" FormName="date-field-days" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <DateField @bind-Value="Model!.Delivery" Hint="We don't deliver at weekends." DateDisabled="IsWeekend" Min="@First" Max="@Last" />
+    <DateField @bind-Value="Model!.Reminder" UseNative Hint="The browser's calendar." />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Delivery on @saved.ToString("MMM d, yyyy").</Alert>
+    }
+</Form>
+
+@code {
+    private static readonly DateOnly First = new(2027, 3, 1);
+    private static readonly DateOnly Last = new(2027, 5, 31);
+
+    [SupplyParameterFromForm(FormName = "date-field-days")]
+    private Order? Model { get; set; }
+
+    private DateOnly? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Delivery;
+
+    private static bool IsWeekend(DateOnly day) => day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    public sealed class Order
+    {
+        public DateOnly? Delivery { get; set; } = new DateOnly(2027, 3, 15);
+
+        public DateOnly? Reminder { get; set; }
+    }
+}
