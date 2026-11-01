@@ -1,0 +1,35 @@
+@* A column can bring its own controls to its filter panel. Spread the context's attributes on a control,
+   and its value filters by the column's first operator; Clear and Apply stay. Each works with no script. *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+<DataGrid Items="Rows.All" ItemKey="o => o.Number.ToString()" PageSize="5" InitialSort="-number" Caption="Orders by custom filter" QueryPrefix="own-" FilterRow Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Sortable Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" Sortable Filterable MinWidth="12.Rem">
+        <FilterTemplate>
+            @foreach (var customer in Pioneers)
+            {
+                <label class="ib-check">
+                    <input class="ib-check-input" @attributes="context.CheckboxAttributes(customer)" />
+                    <span>@customer</span>
+                </label>
+            }
+        </FilterTemplate>
+    </PropertyColumn>
+    <PropertyColumn Property="o => o.Total" Format="C" Sortable Filterable Width="14.Rem"
+                    FilterOperators="[FilterOperator.GreaterThanOrEqual]" FilterText="values => Minimums[values[0]!]">
+        <FilterTemplate>
+            <Select TValue="string" Label="Minimum" HideLabel Items="Minimums.Keys" ItemText="key => Minimums[key]" Placeholder="Any total"
+                    Value="@context.Value" ValueChanged="context.SetAsync" ValueExpression="() => context.Value" @attributes="context.Attributes" />
+        </FilterTemplate>
+    </PropertyColumn>
+</DataGrid>
+
+@code {
+    private static readonly string[] Pioneers = ["Ada Lovelace", "Grace Hopper", "Alan Turing"];
+
+    private static readonly Dictionary<string, string> Minimums = new()
+    {
+        ["100"] = "$100 or more",
+        ["250"] = "$250 or more",
+        ["400"] = "$400 or more",
+    };
+}
