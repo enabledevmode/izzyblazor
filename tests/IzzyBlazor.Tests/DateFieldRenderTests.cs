@@ -174,7 +174,8 @@ public class DateFieldRenderTests : BunitContext
 
         var cut = DateFor(() => _model.StartsAt);
         Assert.NotEmpty(cut.FindAll("[data-ib-ok]"));
-        Assert.False(cut.Find("input[type=time]").HasAttribute("name"));
+        Assert.All(cut.FindAll(".ib-calendar-time input, .ib-calendar-time select"), box => Assert.False(box.HasAttribute("name")));
+        Assert.Equal(new[] { "Hour", "Minute" }, cut.FindAll(".ib-calendar-time input").Select(box => box.GetAttribute("aria-label")));
     }
 
     [Fact]

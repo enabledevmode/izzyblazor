@@ -401,7 +401,19 @@ public class IzzyText
     /// <summary>That button once there's a date; {0} is the date in full.</summary>
     public virtual string CalendarChange { get; set; } = "Change date, {0}";
 
-    /// <summary>The label of a calendar's time input.</summary>
+    /// <summary>A calendar's box for the hour.</summary>
+    public virtual string CalendarHour { get; set; } = "Hour";
+
+    /// <summary>A calendar's box for the minute.</summary>
+    public virtual string CalendarMinute { get; set; } = "Minute";
+
+    /// <summary>A calendar's box for the second.</summary>
+    public virtual string CalendarSecond { get; set; } = "Second";
+
+    /// <summary>A calendar's choice of AM or PM.</summary>
+    public virtual string CalendarDayPart { get; set; } = "AM or PM";
+
+    /// <summary>The name of a calendar's group of time boxes.</summary>
     public virtual string CalendarTime { get; set; } = "Time";
 
     /// <summary>The name of a date range field's group of presets.</summary>

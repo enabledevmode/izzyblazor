@@ -74,7 +74,9 @@ class Calendar extends IzzyElement {
     const toggle = panel?.previousElementSibling as HTMLButtonElement | null | undefined;
     const control = panel?.closest(".ib-field-control");
     const text = (control ?? this).querySelector<HTMLInputElement>("input");
-    const time = panel && this.querySelector<HTMLInputElement>("input[type=time]");
+    const time = panel?.querySelector(".ib-calendar-time");
+    const [hourBox, minuteBox, secondBox] = time ? time.querySelectorAll("input") : [];
+    const dayPart = time?.querySelector("select");
     const okButton = this.querySelector<HTMLButtonElement>("[data-ib-ok]");
     const cancelButton = this.querySelector<HTMLButtonElement>("[data-ib-cancel]");
     const todayButton = this.querySelector<HTMLButtonElement>("[data-ib-today]");
@@ -331,10 +333,26 @@ class Calendar extends IzzyElement {
       }
     };
 
+    // A box left empty is nought, and past its limits it's the limit.
+    const boxed = (box: HTMLInputElement): number => clamp(Number(box.value), Number(box.min), Number(box.max));
+    const two = (n: number): string => String(n).padStart(2, "0");
+    const readTime = (): string => {
+      const hour = dayPart ? (hourBox.value ? boxed(hourBox) % 12 : 0) + (dayPart.value === "pm" ? 12 : 0) : boxed(hourBox);
+      return `${two(hour)}:${two(boxed(minuteBox))}${secondBox ? `:${two(boxed(secondBox))}` : ""}`;
+    };
+    const showTime = (value: string): void => {
+      const [hour, minute, second] = value.split(":").map(Number);
+      const has = value !== "";
+      hourBox.value = !has ? "" : dayPart ? String(hour % 12 || 12) : two(hour);
+      minuteBox.value = has ? two(minute) : "";
+      if (secondBox) secondBox.value = has ? two(second || 0) : "";
+      if (dayPart) dayPart.value = has && hour >= 12 ? "pm" : "am";
+    };
+
     const write = (n: number | null): void => {
       if (end) return writeRange(n, n);
       chosen = n;
-      text.value = n === null ? "" : date(n).toISOString().slice(0, 10) + (time ? `T${time.value || "00:00"}` : "");
+      text.value = n === null ? "" : date(n).toISOString().slice(0, 10) + (time ? `T${readTime()}` : "");
       text.dispatchEvent(new Event("input", { bubbles: true }));
       text.dispatchEvent(new Event("change", { bubbles: true }));
     };
@@ -387,7 +405,7 @@ class Calendar extends IzzyElement {
             // Back to the input if the keys opened it from there.
             opener = document.activeElement === text || document.activeElement === end ? (document.activeElement as HTMLElement) : toggle;
             cursor = chosen ?? (end && parse(end.value)) ?? clamp(findToday(), min ?? FIRST, max ?? LAST);
-            if (time) time.value = text.value.slice(11);
+            if (time) showTime(text.value.slice(11));
           }
           draw();
         },
@@ -397,8 +415,8 @@ class Calendar extends IzzyElement {
       panel.addEventListener(
         "keydown",
         (event) => {
-          // In the time input, Enter would post the form.
-          if (event.key === "Enter" && event.target === time) {
+          // In the time's boxes, Enter would post the form.
+          if (event.key === "Enter" && time && (event.target as Element).matches(".ib-calendar-time input")) {
             event.preventDefault();
             okButton?.click();
           }
