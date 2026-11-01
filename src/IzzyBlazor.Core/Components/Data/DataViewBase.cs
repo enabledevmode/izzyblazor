@@ -379,6 +379,9 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     internal int? EffectivePageSize => UseState ? _statePageSize ?? DefaultPageSize : ReadSizeQuery() ?? DefaultPageSize;
 
+    // A page of rows keeps its height as filters leave fewer, so what's below stays. Not a list that grows.
+    internal int? HeldFor => Appending || VirtualRows ? null : EffectivePageSize;
+
     // The page that holds the first item on view now, at another size. A cursor is for one size,
     // so paging by cursor starts over.
     internal int PageAt(int newSize) => !CursorPaging && EffectivePageSize is { } current ? (_page - 1) * current / newSize + 1 : 1;

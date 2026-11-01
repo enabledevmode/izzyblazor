@@ -302,6 +302,11 @@
   }
 
   /* A bordered table is a surface, like a card: it stays white on a tinted page. */
+  /* With a height held (table.ts), the box takes the room, so the pager stays where it was. */
+  .ib-table[data-ib-hold] > .ib-table-scroll {
+    flex-grow: 1;
+  }
+
   .ib-table-scroll {
     overflow: auto;
     border: 1px solid var(--ib-color-border);
@@ -834,7 +839,6 @@
     justify-content: center;
     width: var(--ib-field-h);
     padding: 0;
-    --ib-icon-size: 1.25rem;
   }
 
   /* Past the slot the operators have for their check, so its icon lines up with theirs. */
