@@ -720,6 +720,21 @@
       ]
     },
     {
+      "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Forms", "preview": true, "summary": "A length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
+      "features": [
+        { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },
+        { "feature": "Min and Max checked on the server" },
+        { "feature": "Binds TimeSpan, with a sign when Min is negative" }
+      ],
+      "examples": [
+        { "id": "duration-field-limits", "title": "Units and limits", "lead": "Use `LargestUnit` and `SmallestUnit` for the boxes it shows. `Min` and `Max` come from `[Range]`, or set them on the field; the server checks them on submit.",
+          "notes": {
+            "noscript": "One text box takes the length as hh:mm:ss, or d.hh:mm:ss with days."
+          } },
+        { "id": "duration-field-states", "title": "Steps, signs, sizes, read-only and disabled", "lead": "Use `Step` for the increments of the smallest box. A negative `Min` shows a sign." }
+      ]
+    },
+    {
       "id": "slider", "icon": "SlidersHorizontal", "name": "Slider", "category": "Forms", "summary": "A range input bound to a number.", "keywords": ["range"],
       "features": [
         { "feature": "Drag, arrow keys, Page Up/Down and Home/End; posted with the form" },

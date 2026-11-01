@@ -1,0 +1,218 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, one text box takes the length as hh:mm:ss, or d.hh:mm:ss with days, in place of a box per unit.")]
+
+@*
+    A length of time, as in a timeout or a video's running time: a number box per unit, and one text
+    input that holds the value and posts it. Bind it to TimeSpan or TimeSpan?. For a time of day, use
+    TimeField. With JavaScript off the text input shows in place of the boxes.
+    <DurationField @bind-Value="Model.Timeout" />
+    <DurationField @bind-Value="Model.Runtime" SmallestUnit="DurationUnit.Minutes" />
+    <DurationField @bind-Value="Model.Retention" LargestUnit="DurationUnit.Days" SmallestUnit="DurationUnit.Hours" Max="TimeSpan.FromDays(90)" />
+
+    A value past LargestUnit shows in that unit, so 26 hours shows 26 in Hours. Typing 90 in Minutes
+    becomes 1 hour and 30 minutes when the box is left. A value has whole seconds: anything finer is
+    dropped when it posts, and so is anything under SmallestUnit once a box is edited.
+
+    Accessibility:
+    - The boxes are a `group` named by the label, each a native number `input` named by its unit, one
+      tab stop each. Up and Down arrows change a box.
+    - A sign shows only when Min is negative or the value is, as a `select` named "Sign".
+    - The hint and errors are linked to the group, and label, hint and errors work as in `TextField`.
+    See also: TimeField, NumberField, Form.
+*@
+
+<FieldFrame Class="@WrapperClass("duration")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-duration-field class="ib-duration">
+        <div class="ib-field-control ib-duration-text">
+            <input @attributes="ControlAttributes"
+                   id="@FieldId"
+                   class="ib-field-input"
+                   type="text"
+                   name="@NameAttributeValue"
+                   @bind="CurrentValueAsString"
+                   pattern="@Pattern"
+                   title="@TextDefaults.DurationFormat"
+                   required="@IsRequired"
+                   disabled="@IsDisabled"
+                   readonly="@IsReadOnly"
+                   aria-invalid="@(Invalid ? "true" : null)"
+                   aria-describedby="@FormatDescribedBy" />
+        </div>
+        <p class="ib-field-hint ib-duration-format" id="@FormatId">@TextDefaults.DurationFormat</p>
+        <div class="ib-duration-boxes" role="group" aria-labelledby="@LabelId" aria-describedby="@DescribedBy">
+            @if (ShowsSign)
+            {
+                <label class="ib-duration-unit">
+                    <select class="ib-field-input ib-duration-sign" disabled="@(IsDisabled || IsReadOnly)">
+                        <option value="" selected="@(!IsNegative)">+</option>
+                        <option value="-" selected="@IsNegative">&minus;</option>
+                    </select>
+                    <span>@TextDefaults.DurationSign</span>
+                </label>
+            }
+            @{ var left = WholeSeconds is { } whole ? (long?)Math.Abs(whole) : null; }
+            @foreach (var unit in Units)
+            {
+                var seconds = SecondsIn(unit);
+                <label class="ib-duration-unit">
+                    <input class="ib-field-input ib-field-number"
+                           type="number"
+                           inputmode="numeric"
+                           value="@(left / seconds)"
+                           min="0"
+                           max="@(unit == LargestUnit ? null : SecondsIn(unit + 1) / seconds - 1)"
+                           step="@(unit == SmallestUnit ? BoxStep : null)"
+                           disabled="@IsDisabled"
+                           readonly="@IsReadOnly"
+                           aria-invalid="@(Invalid ? "true" : null)"
+                           data-ib-seconds="@seconds" />
+                    <span>@UnitName(unit)</span>
+                </label>
+                left %= seconds;
+            }
+        </div>
+    </ib-duration-field>
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>The largest unit with a box. Longer values show in it. Defaults to hours.</summary>
+    [Parameter] public DurationUnit LargestUnit { get; set; } = DurationUnit.Hours;
+
+    /// <summary>The smallest unit with a box. Defaults to seconds.</summary>
+    [Parameter] public DurationUnit SmallestUnit { get; set; } = DurationUnit.Seconds;
+
+    /// <summary>The shortest length, checked on the server. Defaults to <c>[Range]</c>'s minimum. A negative one shows a sign.</summary>
+    [Parameter] public TimeSpan? Min { get; set; }
+
+    /// <summary>The longest length, checked on the server. Defaults to <c>[Range]</c>'s maximum.</summary>
+    [Parameter] public TimeSpan? Max { get; set; }
+
+    /// <summary>
+    /// The step of <see cref="SmallestUnit"/>'s box, such as 15 minutes: whole units of it, under the
+    /// next unit up. The browser checks it. One unit unless set.
+    /// </summary>
+    [Parameter] public TimeSpan? Step { get; set; }
+
+    // Blazor's own form binding reads a post as a TimeSpan, whose hours stop at 23.
+    private const string Pattern = @"-?(\d+\.)?([01]?\d|2[0-3]):[0-5]\d:[0-5]\d";
+
+    private string? _labelId;
+
+    private string LabelId => _labelId ??= FieldId + "-label";
+
+    private string FormatId => FieldId + "-format";
+
+    private string FormatDescribedBy => DescribedBy is { } ids ? $"{FormatId} {ids}" : FormatId;
+
+    private long? WholeSeconds => CurrentValue is TimeSpan value ? value.Ticks / TimeSpan.TicksPerSecond : null;
+
+    private bool IsNegative => WholeSeconds < 0;
+
+    private bool ShowsSign => IsNegative || (Min ?? Annotated(Range?.Minimum)) < TimeSpan.Zero;
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    private IEnumerable<DurationUnit> Units =>
+        Enum.GetValues<DurationUnit>().Where(unit => unit >= SmallestUnit && unit <= LargestUnit).Reverse();
+
+    private long? BoxStep => Step is { } step ? step.Ticks / (SecondsIn(SmallestUnit) * TimeSpan.TicksPerSecond) : null;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if ((Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue)) != typeof(TimeSpan))
+        {
+            throw new InvalidOperationException($"DurationField doesn't support {typeof(TValue)}. Bind it to TimeSpan or TimeSpan?.");
+        }
+
+        if (SmallestUnit > LargestUnit)
+        {
+            throw new InvalidOperationException($"DurationField's SmallestUnit, {SmallestUnit}, is larger than its LargestUnit, {LargestUnit}.");
+        }
+
+        if (Step is { } step)
+        {
+            var unit = SecondsIn(SmallestUnit) * TimeSpan.TicksPerSecond;
+            if (step <= TimeSpan.Zero || step.Ticks % unit != 0 || (SmallestUnit != LargestUnit && step.Ticks >= SecondsIn(SmallestUnit + 1) * TimeSpan.TicksPerSecond))
+            {
+                throw new InvalidOperationException($"DurationField's Step, {step}, must be whole {SmallestUnit}, under the next unit up. Change SmallestUnit for a coarser step.");
+            }
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Min is not null || Max is not null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        var length = TimeSpan.FromSeconds(((TimeSpan)(object)value!).Ticks / TimeSpan.TicksPerSecond);
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        return length < Min ? string.Format(culture, TextDefaults.DurationTooShort, ResolvedLabel, Min.Value.ToString("c", culture))
+            : length > Max ? string.Format(culture, TextDefaults.DurationTooLong, ResolvedLabel, Max.Value.ToString("c", culture))
+            : null;
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => value is TimeSpan length
+        ? new TimeSpan(length.Ticks / TimeSpan.TicksPerSecond * TimeSpan.TicksPerSecond).ToString("c", System.Globalization.CultureInfo.InvariantCulture)
+        : null;
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+        result = default!;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            if (Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+            {
+                return true;
+            }
+        }
+        else if (TimeSpan.TryParse(value.Trim(), System.Globalization.CultureInfo.InvariantCulture, out var length))
+        {
+            result = (TValue)(object)length;
+            return true;
+        }
+
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DurationInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
+        return false;
+    }
+
+    private string UnitName(DurationUnit unit) => unit switch
+    {
+        DurationUnit.Days => TextDefaults.DurationDays,
+        DurationUnit.Hours => TextDefaults.DurationHours,
+        DurationUnit.Minutes => TextDefaults.DurationMinutes,
+        _ => TextDefaults.DurationSeconds,
+    };
+
+    private static long SecondsIn(DurationUnit unit) => unit switch
+    {
+        DurationUnit.Days => 86400,
+        DurationUnit.Hours => 3600,
+        DurationUnit.Minutes => 60,
+        _ => 1,
+    };
+
+    // [Range]'s end: text from Range(typeof(TimeSpan), "00:01:00", "01:00:00").
+    private static TimeSpan? Annotated(object? end) => end switch
+    {
+        TimeSpan length => length,
+        string text when TimeSpan.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var length) => length,
+        _ => null,
+    };
+}

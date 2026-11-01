@@ -20,6 +20,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-filter-builder": () => import("./elements/filter-builder.js"),
   "ib-file-upload": () => import("./elements/file-upload.js"),
   "ib-color-picker": () => import("./elements/color-picker.js"),
+  "ib-duration-field": () => import("./elements/duration-field.js"),
   "ib-video": () => import("./elements/video.js"),
   "ib-code": () => import("./elements/code.js"),
   "ib-copy": () => import("./elements/copy.js"),
