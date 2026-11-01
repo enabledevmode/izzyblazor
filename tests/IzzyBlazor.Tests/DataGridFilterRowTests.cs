@@ -6,7 +6,7 @@ namespace IzzyBlazor.Tests;
 
 public class DataGridFilterRowTests : BunitContext
 {
-    public enum Kind { A, B }
+    public enum Kind { A, B, C, D, E }
 
     public sealed record Row(string Name, int Total, Kind Kind);
 
@@ -53,6 +53,21 @@ public class DataGridFilterRowTests : BunitContext
         }
 
         Assert.Equal(new[] { "Ada" }, cut.FindAll("tbody td:first-child").Select(c => c.TextContent.Trim()));
+    }
+
+    [Theory]
+    [InlineData("", "", false)]
+    [InlineData("?f-kind=A", "A", true)]
+    [InlineData("?f-kind=A&f-kind=B&f-kind=C", "A, B, C", true)]
+    [InlineData("?f-kind=A&f-kind=B&f-kind=C&f-kind=D", "4 selected", true)]
+    public void A_list_reads_as_its_choices_then_their_count(string query, string shown, bool clears)
+    {
+        var cell = Grid("/orders" + query).FindAll(".ib-table-filter-row td")[2];
+
+        var summary = cell.QuerySelector(".ib-filter-cell-summary")!;
+        Assert.Equal(shown, summary.TextContent.Trim());
+        Assert.StartsWith("Filter Kind: ", summary.GetAttribute("aria-label"));
+        Assert.Equal(clears, cell.QuerySelector("a.ib-filter-cell-clear") is not null);
     }
 
     [Fact]

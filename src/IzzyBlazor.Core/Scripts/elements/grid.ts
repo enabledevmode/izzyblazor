@@ -258,6 +258,11 @@ class Grid extends IzzyElement {
     if (table.closest("ib-table")?.querySelector(".ib-table-select-all")) table.setAttribute("aria-multiselectable", "true");
     else table.removeAttribute("aria-multiselectable");
 
+    // A control that came beside the focused one, as a filter's × does: focus is in that cell now, and Tab reaches it.
+    const active = document.activeElement;
+    const at = active && !this.#inOverlay(active) ? this.#cellOf(active) : null;
+    if (at && !this.#inside && active !== at && active !== this.#targetOf(at)) this.#inside = at;
+
     // Whatever their state now: a disabled or hidden control can come back with no mutation here.
     const seen = new Set<HTMLElement>();
     for (const control of table.querySelectorAll<HTMLElement>(CONTROLS)) {
