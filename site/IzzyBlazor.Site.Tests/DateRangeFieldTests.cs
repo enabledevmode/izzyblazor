@@ -221,4 +221,17 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await Assertions.Expect(form.Locator(".ib-calendar-sheet .ib-calendar-month").First).ToHaveTextAsync("June 2027");
         await Assertions.Expect(form.Locator("td[aria-selected='true'] [aria-label='Sunday, June 20, 2027']")).ToHaveCountAsync(1);
     }
+
+    [Fact]
+    public async Task With_room_the_months_start_at_the_fields_left_edge()
+    {
+        var (_, form, _, _, browser) = await OpenAsync("static");
+        await using var _ = browser;
+        await Toggle(form).ClickAsync();
+        await Assertions.Expect(form.Locator("[popover]").First).ToBeVisibleAsync();
+
+        var (box, panel) = ((await form.Locator(".ib-date-range-box").BoundingBoxAsync())!, (await form.Locator("[popover]").First.BoundingBoxAsync())!);
+
+        Assert.Equal(box.X, panel.X, 0);
+    }
 }

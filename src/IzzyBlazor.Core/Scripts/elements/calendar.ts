@@ -270,6 +270,8 @@ class Calendar extends IzzyElement {
       }
 
       if (panel) {
+        // A range's months line up with its box, not its button: the server anchors a popover to that.
+        if (end) panel.style.setProperty("position-anchor", (control as HTMLElement).style.getPropertyValue("anchor-name"));
         // What the input holds, not a choice still waiting for OK.
         const written = parse(text.value);
         const named = end && ended !== null && written !== null ? `${dayName.format(date(written))} – ${dayName.format(date(ended))}` : written !== null && !end ? dayName.format(date(written)) + (time ? `, ${text.value.slice(11)}` : "") : null;
