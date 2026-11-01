@@ -1489,7 +1489,8 @@
         column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && !current.None
         && current.Op is not (FilterOperator.Between or FilterOperator.In or FilterOperator.NotIn) && !ColumnFilter.TakesNoValue(current.Op);
 
-    // A few choices by name, in a row's list; null past that, where the count says more than a clipped line of names.
+    // A few choices by name, in a row's list; null past that, where the count says more than a clipped
+    // line of names. Null too for a loader's values until its rows are here: they may be ids.
     private string? RowListSummary(ColumnBase<TItem> column, ColumnFilterValue current)
     {
         if (current.Op != FilterOperator.In || current.Values.Count is < 2 or > 3)
@@ -1497,9 +1498,13 @@
             return null;
         }
 
-        return string.Join(", ", current.Values.Select(v => column.FilterKind == ColumnFilterKind.Choice
-            ? ColumnFilter.ListOf(column, TextDefaults).FirstOrDefault(r => string.Equals(r.Value, v, StringComparison.OrdinalIgnoreCase)).Text ?? v
-            : ValueText(column, v)));
+        if (column.FilterKind == ColumnFilterKind.Choice)
+        {
+            return string.Join(", ", current.Values.Select(v => ColumnFilter.ListOf(column, TextDefaults).FirstOrDefault(r => string.Equals(r.Value, v, StringComparison.OrdinalIgnoreCase)).Text ?? v));
+        }
+
+        var known = column.FilterValues is null || current.Values.All(v => v is null || ValueListOf(column).Rows.Any(r => ValueComparer.Equals(r.Value, v)));
+        return known ? string.Join(", ", current.Values.Select(v => ValueText(column, v))) : null;
     }
 
     // A column's filter in the row: its operator's menu as the field's add-on, if it has a choice, then the field, or what the
@@ -1545,7 +1550,7 @@
                         }
                         else
                         {
-                            <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" aria-label="@clearName" title="@clearName"><Icon Role="IconRole.Close" /></a>
+                            <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" data-ib-filter-clear aria-label="@clearName" title="@clearName"><Icon Role="IconRole.Close" /></a>
                         }
                     }
                 }
@@ -1982,7 +1987,6 @@
         StateHasChanged();
     }
 
-    // Ascending first; a second click on the sorted column turns it descending.
     // Ascending, descending, then no sort. "-" says none, or InitialSort would come straight back.
     private string? NextSort(ColumnBase<TItem> column)
     {

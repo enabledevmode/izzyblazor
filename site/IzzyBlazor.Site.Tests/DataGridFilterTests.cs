@@ -512,6 +512,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     // A response already on its way draws the panel as it was when that was asked for.
     [Theory]
+    [InlineData("static")]
     [InlineData("interactive")]
     public async Task An_operator_chosen_with_a_response_on_its_way_stays(string mode)
     {
@@ -536,7 +537,34 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
             await AddressIsAsync(page, "f-customer=a");
 
             await panel.Locator($"input[name='{Prefix}f-total']").FillAsync("300");
+            if (mode == "static") await panel.Locator(".ib-table-filter-apply").ClickAsync();
             await AddressIsAsync(page, "f-customer=a&f-total-op=gt&f-total=300");
+        }
+    }
+
+    // What the address says wins over a panel's last Apply.
+    [Fact]
+    public async Task Back_on_a_static_page_leaves_a_panel_showing_the_address()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using (browser)
+        {
+            var panel = await OpenPanelAsync(page, grid, "Total");
+            await panel.Locator($"input[name='{Prefix}f-total']").FillAsync("300");
+            await page.Keyboard.PressAsync("Enter");
+            await AddressIsAsync(page, "f-total=300");
+
+            panel = await OpenPanelAsync(page, grid, "Total");
+            await panel.Locator("select").SelectOptionAsync("gt");
+            await panel.Locator(".ib-table-filter-apply").ClickAsync();
+            await AddressIsAsync(page, "f-total-op=gt&f-total=300");
+
+            await page.GoBackAsync();
+            await AddressIsAsync(page, "f-total=300");
+            await SettledAsync(page);
+            panel = await OpenPanelAsync(page, grid, "Total");
+            Assert.NotEqual("gt", await panel.Locator("select").InputValueAsync());
+            Assert.Equal("300", await panel.Locator($"input[name='{Prefix}f-total']").First.InputValueAsync());
         }
     }
 
