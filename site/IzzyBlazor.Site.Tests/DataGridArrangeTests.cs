@@ -118,6 +118,37 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         }
     }
 
+    [Fact]
+    public async Task Moving_a_column_leaves_the_page_where_it_was_scrolled_to()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using (browser)
+        {
+            await page.EvaluateAsync("""
+                () => {
+                  const section = document.querySelector('[data-ex="data-grid-arrange"]').closest('section')?.querySelector('h2')
+                    ?? document.getElementById('rearranging-columns');
+                  location.hash = section.id;
+                }
+                """);
+            await page.WaitForTimeoutAsync(200);
+            await page.EvaluateAsync("() => window.scrollBy(0, 60)");
+            await page.WaitForTimeoutAsync(200);
+            var scrolled = await page.EvaluateAsync<double>("() => window.scrollY");
+
+            var from = await grid.Locator("thead th", new() { HasText = "Customer" }).BoundingBoxAsync();
+            var to = await grid.Locator("thead th", new() { HasText = "Status" }).BoundingBoxAsync();
+            await page.Mouse.MoveAsync(from!.X + 12, from.Y + from.Height / 2);
+            await page.Mouse.DownAsync();
+            await page.Mouse.MoveAsync(to!.X + to.Width - 4, from.Y + from.Height / 2, new() { Steps = 6 });
+            await page.Mouse.UpAsync();
+            await Until(grid, ["Order", "Date", "Status", "Customer", "Total"]);
+            await page.WaitForTimeoutAsync(300);
+
+            Assert.Equal(scrolled, await page.EvaluateAsync<double>("() => window.scrollY"), 0);
+        }
+    }
+
     // Not back where it came from for as long as the response takes.
     [Fact]
     public async Task A_dropped_column_stays_where_it_was_dropped_until_the_new_order_arrives()

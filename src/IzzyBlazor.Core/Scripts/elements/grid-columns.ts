@@ -134,7 +134,8 @@ class GridColumns extends IzzyElement {
       this.dispatchEvent(new CustomEvent("iblayout", { bubbles: true, detail: { layout: json } }));
     } else if (draw) {
       const blazor = (window as unknown as { Blazor?: { navigateTo?: (url: string, options: object) => void } }).Blazor;
-      if (blazor?.navigateTo) blazor.navigateTo(location.pathname + location.search + location.hash, { replaceHistoryEntry: true });
+      // Not to its hash: Blazor would scroll back to that section, from wherever someone has got to.
+      if (blazor?.navigateTo) blazor.navigateTo(location.pathname + location.search, { replaceHistoryEntry: true });
       else location.reload();
     }
     return true;
