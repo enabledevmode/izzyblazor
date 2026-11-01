@@ -71,6 +71,47 @@ public class DataGridFilterRowTests : BunitContext
     }
 
     [Fact]
+    public void A_loaders_values_read_as_a_count_as_they_may_be_ids()
+    {
+        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("/orders?f-name=17&f-name=23");
+        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
+        FilterValuesLoader loader = _ => ValueTask.FromResult(new FilterValuesResult([]));
+        RenderFragment columns = b =>
+        {
+            b.OpenComponent<PropertyColumn<Row, string>>(0);
+            b.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, string>>)(r => r.Name));
+            b.AddComponentParameter(2, "Filterable", true);
+            b.AddComponentParameter(3, "FilterValues", loader);
+            b.CloseComponent();
+        };
+
+        var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.ChildContent, columns));
+
+        Assert.Equal("2 selected", cut.Find(".ib-filter-cell-summary").TextContent.Trim());
+    }
+
+    [Fact]
+    public void A_bound_grids_x_clears_the_filter()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        RenderFragment columns = b =>
+        {
+            b.OpenComponent<PropertyColumn<Row, Kind>>(0);
+            b.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, Kind>>)(r => r.Kind));
+            b.AddComponentParameter(2, "Filterable", true);
+            b.CloseComponent();
+        };
+        var (raised, heard) = (false, (IzzyBlazor.Filter?)Filter.Where("kind", FilterOperator.Equals, "A"));
+        var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.Filter, heard)
+            .Add(g => g.FilterChanged, (IzzyBlazor.Filter? f) => { raised = true; heard = f; }).Add(g => g.ChildContent, columns));
+
+        cut.Find("button.ib-filter-cell-clear").Click();
+
+        Assert.True(raised);
+        Assert.Null(heard);
+    }
+
+    [Fact]
     public void The_rows_form_carries_every_other_filter_so_it_posts_the_whole_state()
     {
         var cut = Grid("/orders?f-name-op=startswith&f-name=a&f-total-op=between&f-total=5&f-kind=A&sort=name");

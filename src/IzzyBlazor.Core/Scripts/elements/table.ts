@@ -66,6 +66,13 @@ function written(control: HTMLInputElement | HTMLSelectElement): string {
   return (noValue || hasValue) && value !== op.dataset.ibDefault ? value : "";
 }
 
+// Back to what the server drew.
+function asDrawn(control: HTMLInputElement | HTMLSelectElement): void {
+  if (isTick(control)) control.checked = control.defaultChecked;
+  else if (control instanceof HTMLInputElement) control.value = control.defaultValue;
+  else for (const option of control.options) option.selected = option.defaultSelected;
+}
+
 class Table extends IzzyElement {
   // Kept when setup runs again as a response arrives: the key pressed after that request still counts.
   #timer = 0;
@@ -79,22 +86,21 @@ class Table extends IzzyElement {
   // A filter row's fields edited since the last apply: each hands its value to its panel's field, which
   // is what's read, so one filter has one place that says it.
   #rowEdits = new Set<HTMLInputElement | HTMLSelectElement>();
-  // A panel the row opened, whose button in the row gets focus back from it. The element, as its id
-  // changes with each response, and choosing Between draws that button only as the panel opens.
+  // The panel the row last opened, under the row's cell as its button in the header isn't shown, and whose
+  // button in the row gets focus back from it. The element, as its id changes with each response, and
+  // choosing Between draws that button only as the panel opens.
   #rowPanel: HTMLElement | null = null;
-  // A panel the row opened, which opens under the row's cell: its button in the header isn't shown.
-  #underCell: HTMLElement | null = null;
   // Kept for the same reason: setup runs again after the response that made the table shorter.
   #tallest = 0;
   #heldFor = "";
 
-  // Again after each response while it's open, as enhanced navigation puts the server's style back.
+  // Again after each response, closing too, as enhanced navigation puts the server's style back.
   #placeUnderCell(): void {
-    const panel = this.#underCell;
+    const panel = this.#rowPanel;
     const cell = panel && this.querySelector<HTMLElement>(`.ib-filter-cell[data-ib-panel="${CSS.escape(panel.id)}"]`);
-    if (!panel || !cell) return;
-    panel.style.setProperty("position-anchor", cell.style.getPropertyValue("anchor-name"));
-    panel.classList.replace("ib-place-bottom-end", "ib-place-bottom-start");
+    if (!cell) return;
+    panel!.style.setProperty("position-anchor", cell.style.getPropertyValue("anchor-name"));
+    panel!.classList.replace("ib-place-bottom-end", "ib-place-bottom-start");
   }
 
   protected setup(signal: AbortSignal): void {
@@ -112,14 +118,7 @@ class Table extends IzzyElement {
       "toggle",
       (event) => {
         const panel = event.target as HTMLElement;
-        if ((event as ToggleEvent).newState !== "closed") return;
-        if (panel === this.#underCell) {
-          this.#underCell = null;
-          panel.style.setProperty("position-anchor", panel.closest<HTMLElement>("ib-popover")!.style.getPropertyValue("anchor-name"));
-          panel.className = panel.className.replace("ib-place-bottom-start", `ib-place-${panel.closest<HTMLElement>("ib-popover")!.dataset.placement}`);
-        }
-        if (panel !== this.#rowPanel) return;
-        this.#rowPanel = null;
+        if ((event as ToggleEvent).newState !== "closed" || panel !== this.#rowPanel) return;
         // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
         const active = document.activeElement;
         if (!active || active === document.body || panel.contains(active) || active.closest("ib-popover")?.contains(panel)) {
@@ -131,16 +130,33 @@ class Table extends IzzyElement {
     this.addEventListener(
       "click",
       (event) => {
+        const target = event.target as Element;
+        const staticPage = !this.hasAttribute("data-ib-interactive");
+        const plain = !event.ctrlKey && !event.metaKey && !event.shiftKey;
         // A panel's Clear is done with the panel.
         const panelOf = (id: string | null | undefined) => (id ? document.getElementById(id) : null);
-        const opens = panelOf((event.target as Element).closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel);
-        const opened = opens ?? panelOf((event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget"));
+        const opens = panelOf(target.closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel);
+        const opened = opens ?? panelOf(target.closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget"));
         if (opened) {
-          this.#rowPanel = this.#underCell = opened;
+          this.#rowPanel = opened;
           this.#placeUnderCell();
+          // A cell half scrolled out of the grid leaves no room for its panel on a phone.
+          target.closest(".ib-filter-cell")?.scrollIntoView({ block: "nearest", inline: "nearest" });
+        }
+        // This was drawn before any filter still on its way, which only the address has so far.
+        const stale = target.closest<HTMLAnchorElement>("a.ib-table-sort, a.ib-pagination-item");
+        if (stale) {
+          const to = new URL(stale.href);
+          const now = new URLSearchParams(location.search);
+          // A list's own key says it has nothing ticked.
+          for (const key of new Set([...this.querySelectorAll<HTMLInputElement>("[data-ib-filter], ib-filter-list[data-ib-none]")].map((c) => c.name ?? c.dataset.ibNone!))) {
+            to.searchParams.delete(key);
+            for (const value of now.getAll(key)) to.searchParams.append(key, value);
+          }
+          stale.href = to.href;
         }
         // On a static page Between waits for Apply like the rest of the panel, with no trip of its own.
-        const operatorField = opens && !this.hasAttribute("data-ib-interactive") ? opens.querySelector<HTMLSelectElement>("select[data-ib-filter]") : null;
+        const operatorField = opens && staticPage ? opens.querySelector<HTMLSelectElement>("select[data-ib-filter]") : null;
         if (operatorField) {
           event.preventDefault();
           operatorField.value = "between";
@@ -153,29 +169,29 @@ class Table extends IzzyElement {
           this.#rowEdits.clear();
         }
         opens?.showPopover();
-        const clear = (event.target as Element).closest("[data-ib-filter-clear]");
-        if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
+        const clear = target.closest("[data-ib-filter-clear]");
+        if (clear && plain) this.#closePanel(clear);
         // An operator is a link on a static page, so what it changes would wait for the response.
         // Reset would show the column's default, which only the server knows.
-        const operator = (event.target as Element).closest("a.ib-menu-item:not([data-ib-reset], [data-ib-opens-panel])");
+        const operator = target.closest("a.ib-menu-item:not([data-ib-reset], [data-ib-opens-panel])");
         const cell = operator?.closest(".ib-filter-cell");
         const icon = operator?.querySelector(":scope > .ib-icon");
-        if (cell && icon && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        if (cell && icon && staticPage && plain) {
           cell.querySelector(".ib-filter-cell-op")?.replaceChildren(icon.cloneNode(true));
           const field = cell.querySelector<HTMLInputElement>("input[placeholder]");
-          if (field) field.placeholder = operator!.querySelector(".ib-menu-label")?.textContent ?? "";
+          if (field) field.placeholder = operator!.querySelector(".ib-menu-label")!.textContent!;
         }
         // The × goes with the filter, so focus moves to what stays. A static page's is a link, so it shows now too.
-        const wipe = (event.target as Element).closest<HTMLElement>(".ib-filter-cell-clear");
-        if (wipe && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+        const wipe = target.closest<HTMLElement>(".ib-filter-cell-clear");
+        if (wipe && plain) {
           const summary = wipe.previousElementSibling as HTMLElement;
           summary.focus();
-          if (!this.hasAttribute("data-ib-interactive")) {
+          if (staticPage) {
             wipe.hidden = true;
             summary.firstElementChild!.textContent = "";
           }
         }
-        const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
+        const add = target.closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
         if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();
         navigateTo(new URL(add, location.href), false);
@@ -325,7 +341,12 @@ class Table extends IzzyElement {
         const target = event.target;
         if (!isFilter(target)) return;
         this.#touch(target);
-        if (this.#waits(target)) return;
+        if (this.#waits(target)) {
+          // It isn't applied yet, but a response for something else mustn't undo it.
+          if (target instanceof HTMLSelectElement) this.#typing.chosen(target);
+          else if (isTick(target)) this.#typing.typed(target);
+          return;
+        }
         if (target instanceof HTMLSelectElement) {
           clearTimeout(this.#timer);
           this.#typing.forget(target);
@@ -389,9 +410,7 @@ class Table extends IzzyElement {
         for (const control of controls) {
           this.#changed.delete(control.name);
           this.#typing.forget(control);
-          if (isTick(control)) control.checked = control.defaultChecked;
-          else if (control instanceof HTMLInputElement) control.value = control.defaultValue;
-          else for (const option of control.options) option.selected = option.defaultSelected;
+          asDrawn(control);
         }
         panel.querySelector("ib-filter-list")?.dispatchEvent(new Event("change", { bubbles: true }));
       },
@@ -436,10 +455,7 @@ class Table extends IzzyElement {
       this.#popped = false;
       // An interactive page's render sets its values as properties, so the defaults here are old.
       if (!this.hasAttribute("data-ib-interactive")) for (const control of this.querySelectorAll<HTMLInputElement | HTMLSelectElement>("[data-ib-filter]")) {
-        if (control.closest("ib-table") !== this) continue;
-        if (isTick(control)) control.checked = control.defaultChecked;
-        else if (control instanceof HTMLInputElement) control.value = control.defaultValue;
-        else if (control instanceof HTMLSelectElement) for (const option of control.options) option.selected = option.defaultSelected;
+        if (control.closest("ib-table") === this) asDrawn(control);
       }
     }
 
@@ -447,8 +463,8 @@ class Table extends IzzyElement {
     // being a change from what the server drew, it applies after the usual pause.
     this.#typing.restore();
 
-    // A filter changed before this script arrived (the table shows no Apply button where script
-    // runs): apply it now rather than drop it; one still being typed in, after the usual pause.
+    // A filter changed before this script arrived, or put back above: apply it now rather than drop
+    // it; one still being typed in, after the usual pause. A panel's goes on waiting for its Apply.
     const filters = [...this.querySelectorAll("[data-ib-filter]")].filter((c) => c.closest("ib-table") === this);
     // Not on an interactive page, whose render sets values as properties (see filter-form.ts).
     if (!this.hasAttribute("data-ib-interactive") && changedFromServer(filters)) {
@@ -456,7 +472,7 @@ class Table extends IzzyElement {
       const active = document.activeElement;
       // A tick keeps its own place in the history, where typing replaces its own.
       if (active instanceof HTMLInputElement && filters.includes(active) && active.type !== "date" && !isTick(active)) this.#typed(active);
-      else this.#apply(false);
+      else if (filters.some((control) => changedFromServer([control]) && !this.#waits(control))) this.#apply(false);
     }
   }
 
