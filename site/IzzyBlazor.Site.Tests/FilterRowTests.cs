@@ -18,6 +18,32 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         return (browser, page, grid);
     }
 
+    [Fact]
+    public async Task A_static_operator_shows_before_the_response_arrives()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using var _ = browser;
+        var release = new TaskCompletionSource();
+        await page.RouteAsync("**/*row-f-customer-op=startswith*", async route =>
+        {
+            await release.Task;
+            await route.ContinueAsync();
+        });
+        var button = grid.Locator(".ib-filter-cell-op[aria-label^='Customer']");
+        var field = button.Locator("xpath=ancestor::*[contains(@class,'ib-filter-cell')][1]").Locator("input");
+
+        await button.ClickAsync();
+        var item = page.Locator("[popover]:popover-open a", new() { HasText = "Starts with" });
+        var icon = await item.Locator("svg").InnerHTMLAsync();
+        await item.ClickAsync();
+
+        await Assertions.Expect(field).ToHaveAttributeAsync("placeholder", "Starts with");
+        Assert.Equal(icon, await button.Locator("svg").InnerHTMLAsync());
+        release.SetResult();
+        await page.WaitForURLAsync("**/*row-f-customer-op=startswith*");
+        await Assertions.Expect(field).ToHaveAttributeAsync("placeholder", "Starts with");
+    }
+
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
