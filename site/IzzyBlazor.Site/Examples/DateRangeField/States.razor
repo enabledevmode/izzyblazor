@@ -1,0 +1,11 @@
+<Stack Gap="4" MaxWidth="24.Rem" Grow>
+    <DateRangeField @bind-Value="_open" Label="Open ended" StartText="From" EndText="Until" Hint="Either end can stay empty." />
+    <DateRangeField @bind-Value="_period" Label="Small" Size="ControlSize.Sm" />
+    <DateRangeField @bind-Value="_period" Label="Read-only" ReadOnly />
+    <DateRangeField @bind-Value="_period" Label="Disabled" Disabled />
+</Stack>
+
+@code {
+    private DateRange? _open;
+    private DateRange? _period = new(new DateOnly(2027, 3, 8), new DateOnly(2027, 3, 12));
+}

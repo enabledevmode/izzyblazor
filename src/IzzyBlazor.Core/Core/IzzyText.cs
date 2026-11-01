@@ -353,6 +353,27 @@ public class IzzyText
     /// <summary>TimeField's message for a value that isn't a time. {0} is the field's label.</summary>
     public virtual string TimeInvalid { get; set; } = "The {0} field must be a time.";
 
+    /// <summary>DateRangeField's caption for its first date.</summary>
+    public virtual string DateRangeStart { get; set; } = "Start";
+
+    /// <summary>DateRangeField's caption for its second date.</summary>
+    public virtual string DateRangeEnd { get; set; } = "End";
+
+    /// <summary>A required DateRangeField with one end; {0} is its label.</summary>
+    public virtual string DateRangeIncomplete { get; set; } = "{0} needs a start and an end.";
+
+    /// <summary>A DateRangeField that ends before it starts; {0} is its label.</summary>
+    public virtual string DateRangeReversed { get; set; } = "{0} can't end before it starts.";
+
+    /// <summary>A range under a DateRangeField's MinDays; {0} is its label and {1} the days.</summary>
+    public virtual string DateRangeTooShort { get; set; } = "{0} must span at least {1} days.";
+
+    /// <summary>A range over a DateRangeField's MaxDays; {0} is its label and {1} the days.</summary>
+    public virtual string DateRangeTooLong { get; set; } = "{0} can span at most {1} days.";
+
+    /// <summary>A range with a day its DateDisabled turns off inside it; {0} is its label and {1} the date.</summary>
+    public virtual string DateRangeHasUnavailable { get; set; } = "{0} can't include {1}.";
+
     /// <summary>A date a field's DateDisabled turns off; {0} is its label and {1} the date.</summary>
     public virtual string DateUnavailable { get; set; } = "{0} can't be {1}.";
 

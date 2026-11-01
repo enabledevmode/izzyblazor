@@ -1,0 +1,33 @@
+@using System.ComponentModel.DataAnnotations
+
+<Form Model="Model" FormName="date-range-limits" OnValidSubmit="Save" MaxWidth="24.Rem" Grow>
+    <DateRangeField @bind-Value="Model!.Stay" Min="First" MinDays="2" MaxDays="14" DateDisabled="NoArrivals" AllowDisabledInRange
+                    Hint="Two nights to two weeks. No one arrives or leaves on a Sunday." />
+    <Row><Button Submit>Book the stay</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Booked: @saved.Start to @saved.End, @saved.Days days.</Alert>
+    }
+</Form>
+
+@code {
+    private static readonly DateOnly First = new(2027, 3, 1);
+
+    [SupplyParameterFromForm(FormName = "date-range-limits")]
+    private Booking? Model { get; set; }
+
+    // What was saved, not the field: on an interactive page it follows typing.
+    private DateRange? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static bool NoArrivals(DateOnly day) => day.DayOfWeek == DayOfWeek.Sunday;
+
+    private void Save() => _saved = Model!.Stay;
+
+    public sealed class Booking
+    {
+        [Required]
+        public DateRange? Stay { get; set; } = new(new DateOnly(2027, 3, 8), new DateOnly(2027, 3, 12));
+    }
+}
