@@ -66,10 +66,10 @@
     margin: 0;
   }
 
-  /* Menus are at least 15rem wide (more with long labels or shortcuts), so a short menu doesn't
+  /* Menus are at least 10rem wide (more with long labels or shortcuts), so a short menu doesn't
      read as cramped. */
   .ib-pop.ib-menu {
-    min-width: min(15rem, calc(100vw - 1rem));
+    min-width: min(10rem, calc(100vw - 1rem));
   }
 
   @supports (anchor-name: --a) {
@@ -81,7 +81,7 @@
     }
 
     .ib-pop.ib-menu {
-      min-width: max(min(15rem, calc(100vw - 1rem)), anchor-size(width));
+      min-width: max(min(10rem, calc(100vw - 1rem)), anchor-size(width));
     }
 
     .ib-place-bottom-start { position-area: block-end span-inline-end; margin-block-start: var(--ib-pop-gap); }
@@ -131,7 +131,7 @@
     /* No room beside the item on either side (a phone): below it, over the menu, lined up with
        whichever edge keeps it on screen. */
     .ib-pop.ib-menu-sub {
-      min-width: min(15rem, calc(100vw - 1rem));
+      min-width: min(10rem, calc(100vw - 1rem));
       position-try-fallbacks: flip-inline, --ib-sub-below-end, --ib-sub-below-start, flip-block;
     }
   }

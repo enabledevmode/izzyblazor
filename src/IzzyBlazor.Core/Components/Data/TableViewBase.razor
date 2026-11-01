@@ -815,7 +815,8 @@
         var toggled = lists ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
         <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" Placement="placement" data-ib-user-controlled OpenChanged="toggled">
             <Trigger>
-                <button type="button" class="ib-table-filter-button" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
+                @* With a row of filters the row is the way in, so the panel stays for it and the button goes. *@
+                <button type="button" class="ib-table-filter-button" hidden="@ShowsFilterRow" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
                     <Icon Role="IconRole.Filter" />
                 </button>
             </Trigger>
@@ -1494,7 +1495,7 @@
         var ops = ColumnFilter.OperatorsOf(column);
         var label = FilterLabel(column);
         var list = column.FilterKind == ColumnFilterKind.Choice || column.HasValueList;
-        <div class="ib-filter-cell ib-field ib-field-sm">
+        <div class="ib-filter-cell ib-field ib-field-sm" data-ib-panel="@FilterPanelId(column)" style="anchor-name:@StyleValues.AnchorName(FilterPanelId(column) + "-cell")">
             <FieldAddons StartAddon="@(!list && ops.Count > 1 ? OperatorMenu(column, current, ops) : null)">
                 @if (FitsInCell(column, current))
                 {
@@ -1518,7 +1519,7 @@
                 else
                 {
                     var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-                    <button type="button" class="ib-filter-cell-summary" style="anchor-name:@StyleValues.AnchorName(FilterPanelId(column) + "-summary")" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter>@summary</button>
+                    <button type="button" class="ib-filter-cell-summary" data-empty="@(current.IsFilter ? null : "")" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter><span>@summary</span><Icon Role="IconRole.ChevronDown" /></button>
                 }
             </FieldAddons>
         </div>
