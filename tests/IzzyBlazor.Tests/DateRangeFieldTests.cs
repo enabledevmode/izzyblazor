@@ -148,6 +148,57 @@ public class DateRangeFieldTests : BunitContext
     }
 
     [Fact]
+    public void Both_ends_from_the_months_are_one_change()
+    {
+        var changes = 0;
+        _model.Stay = new(Day(3, 8), Day(3, 12));
+        var cut = Render<DateRangeField>(p =>
+        {
+            p.AddCascadingValue(_context);
+            p.Add(f => f.ValueExpression, () => _model.Stay);
+            p.Add(f => f.Value, _model.Stay);
+            p.Add(f => f.ValueChanged, v => { changes++; _model.Stay = v; });
+        });
+
+        cut.Find("[data-ib-range-value]").Change("2027-04-01/2027-04-05");
+
+        Assert.Equal(1, changes);
+        Assert.Equal(new DateRange(Day(4, 1), Day(4, 5)), _model.Stay);
+    }
+
+    [Fact]
+    public void Months_in_a_row_are_drawn_each_named_by_its_title_with_one_pair_of_arrows()
+    {
+        var cut = Field(new(Day(12, 8), Day(12, 12)));
+
+        Assert.Equal(new[] { "December 2027", "January 2028" }, cut.FindAll(".ib-calendar-sheet .ib-calendar-month").Select(m => m.TextContent));
+        Assert.Equal(2, cut.FindAll(".ib-calendar-nav").Count);
+        Assert.Empty(cut.FindAll(".ib-calendar select"));
+        Assert.Equal(cut.FindAll(".ib-calendar-month")[1].Id, cut.FindAll("table")[1].GetAttribute("aria-labelledby"));
+    }
+
+    [Theory]
+    [InlineData(0)]
+    [InlineData(7)]
+    public void Months_outside_one_to_six_are_refused(int months) =>
+        Assert.Throws<InvalidOperationException>(() => Field(null, p => p.Add(f => f.DisplayMonths, months)));
+
+    [Fact]
+    public void Native_read_only_and_disabled_have_no_months()
+    {
+        Assert.Empty(Field(null, p => p.Add(f => f.UseNative, true)).FindAll("ib-calendar"));
+        Assert.Empty(Field(null, p => p.Add(f => f.ReadOnly, true)).FindAll("ib-calendar"));
+        Assert.Empty(Field(null, p => p.Add(f => f.Disabled, true)).FindAll("ib-calendar"));
+    }
+
+    [Fact]
+    public void The_rules_a_browser_cant_show_keep_the_months_on_a_phone()
+    {
+        Assert.Empty(Field(null).FindAll(".ib-date-own"));
+        Assert.NotEmpty(Field(null, p => p.Add(f => f.MaxDays, 5)).FindAll(".ib-date-own"));
+    }
+
+    [Fact]
     public void A_range_contains_its_ends_and_all_of_the_last_day()
     {
         var range = new DateRange(Day(3, 8), Day(3, 12));

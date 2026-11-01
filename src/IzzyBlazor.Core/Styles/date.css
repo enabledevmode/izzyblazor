@@ -173,6 +173,47 @@
     outline-offset: 2px;
   }
 
+  /* A range's months, side by side up to three to a row, with the arrows at the outer edges. A phone
+     shows one, which is what the script counts on. */
+  .ib-calendar-months {
+    position: relative;
+    display: grid;
+    grid-template-columns: repeat(min(var(--ib-calendar-months), 3), auto);
+    gap: var(--ib-space-2) var(--ib-space-4);
+  }
+
+  @media (width < 40rem) {
+    .ib-calendar-months {
+      grid-template-columns: auto;
+    }
+
+    .ib-calendar-sheet:not(:first-of-type) {
+      display: none;
+    }
+  }
+
+  .ib-calendar-months > .ib-calendar-nav {
+    position: absolute;
+    inset-block-start: 0;
+    inset-inline-start: 0;
+    width: var(--ib-calendar-cell);
+    height: var(--ib-calendar-cell);
+  }
+
+  .ib-calendar-months > .ib-calendar-nav ~ .ib-calendar-nav {
+    inset-inline: auto 0;
+  }
+
+  .ib-calendar-span {
+    background-color: var(--ib-color-primary-soft);
+  }
+
+  .ib-calendar-summary {
+    align-self: center;
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-muted);
+  }
+
   .ib-calendar-time {
     display: flex;
     align-items: center;

@@ -2624,7 +2624,7 @@
 
   @media (scripting: enabled) {
     ib-calendar:not([data-ib-failed]) > .ib-calendar-text,
-    ib-calendar:not([data-ib-failed]) .ib-calendar-month {
+    ib-calendar:not([data-ib-failed], .ib-calendar-range) .ib-calendar-month {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -2709,13 +2709,18 @@
 
   .ib-date-range-box {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 1.5rem minmax(0, 1fr);
+    grid-template-columns: minmax(0, 1fr) 1.5rem minmax(0, 1fr) auto;
     align-items: center;
     justify-items: center;
     border: 1px solid var(--ib-field-border);
     border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
     background-color: var(--ib-field-bg);
     transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-date-range-box > ib-popover {
+    position: static;
+    margin-inline-end: var(--ib-space-1);
   }
 
   .ib-date-range-box > .ib-icon {

@@ -87,11 +87,8 @@ internal static class CalendarGrid
     /// <param name="describedBy">The ids that describe the grid, which change as errors come and go.</param>
     public static RenderFragment Month(CalendarView view, string? describedBy) => builder =>
     {
-        var culture = view.Culture;
-        var names = culture.DateTimeFormat;
+        var names = view.Culture.DateTimeFormat;
         var first = new DateOnly(view.Month.Year, view.Month.Month, 1);
-        var start = first.DayNumber - (((int)first.DayOfWeek - (int)view.FirstDay + DaysInWeek) % DaysInWeek);
-        var anchor = WeekAnchor(names.CalendarWeekRule);
 
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-calendar-head");
@@ -99,7 +96,7 @@ internal static class CalendarGrid
         builder.OpenElement(3, "div");
         builder.AddAttribute(4, "class", "ib-calendar-month");
         builder.AddAttribute(5, "id", view.MonthId);
-        builder.AddContent(6, first.ToString("Y", culture));
+        builder.AddContent(6, first.ToString("Y", view.Culture));
         builder.CloseElement();
         builder.OpenElement(7, "div");
         builder.AddAttribute(8, "class", "ib-calendar-selects");
@@ -125,6 +122,56 @@ internal static class CalendarGrid
         builder.CloseElement();
         builder.AddContent(11, NavButton(view, view.Text.CalendarNext, IconRole.ChevronRight));
         builder.CloseElement();
+        builder.AddContent(12, Days(view, describedBy));
+        builder.AddContent(13, Live);
+    };
+
+    /// <summary>
+    /// Months side by side, moved together by one pair of arrows at the outer edges, each named by its
+    /// title: a year's select on each would make them move apart.
+    /// </summary>
+    /// <param name="views">What to draw, a month each.</param>
+    public static RenderFragment Months(IReadOnlyList<CalendarView> views) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-calendar-months");
+        builder.AddAttribute(2, "style", $"--ib-calendar-months:{views.Count}");
+        builder.AddContent(3, NavButton(views[0], views[0].Text.CalendarPrevious, IconRole.ChevronLeft));
+        builder.AddContent(4, NavButton(views[0], views[0].Text.CalendarNext, IconRole.ChevronRight));
+        foreach (var view in views)
+        {
+            builder.OpenElement(5, "div");
+            builder.SetKey(view.MonthId);
+            builder.AddAttribute(6, "class", "ib-calendar-sheet");
+            builder.OpenElement(7, "div");
+            builder.AddAttribute(8, "class", "ib-calendar-month");
+            builder.AddAttribute(9, "id", view.MonthId);
+            builder.AddContent(10, new DateOnly(view.Month.Year, view.Month.Month, 1).ToString("Y", view.Culture));
+            builder.CloseElement();
+            builder.AddContent(11, Days(view, null));
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+        builder.AddContent(12, Live);
+    };
+
+    private static readonly RenderFragment Live = builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-visually-hidden");
+        builder.AddAttribute(2, "aria-live", "polite");
+        builder.AddAttribute(3, "data-ib-live", true);
+        builder.CloseElement();
+    };
+
+    private static RenderFragment Days(CalendarView view, string? describedBy) => builder =>
+    {
+        var culture = view.Culture;
+        var names = culture.DateTimeFormat;
+        var first = new DateOnly(view.Month.Year, view.Month.Month, 1);
+        var start = first.DayNumber - (((int)first.DayOfWeek - (int)view.FirstDay + DaysInWeek) % DaysInWeek);
+        var anchor = WeekAnchor(names.CalendarWeekRule);
 
         builder.OpenElement(12, "table");
         builder.AddAttribute(13, "class", "ib-calendar-grid");
@@ -200,12 +247,6 @@ internal static class CalendarGrid
         }
 
         builder.CloseElement();
-        builder.CloseElement();
-
-        builder.OpenElement(45, "div");
-        builder.AddAttribute(46, "class", "ib-visually-hidden");
-        builder.AddAttribute(47, "aria-live", "polite");
-        builder.AddAttribute(48, "data-ib-live", true);
         builder.CloseElement();
     };
 

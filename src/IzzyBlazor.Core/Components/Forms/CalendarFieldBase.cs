@@ -57,6 +57,9 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
     /// <summary>The latest day that can be chosen.</summary>
     private protected abstract DateOnly? LastDay { get; }
 
+    /// <summary>Whether the cells before and after a month show their days.</summary>
+    private protected virtual bool ShowsAdjacent => ShowAdjacentDays;
+
     /// <summary>Whether the field's label is part of the month's name. In a panel, the panel has its own name.</summary>
     private protected virtual bool LabelNamesMonth => true;
 
@@ -86,7 +89,7 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
             Add("data-ib-off", _offRuns);
             Add("data-ib-classes", _classRuns);
             Add("data-ib-week-anchor", ShowWeekNumbers ? CalendarGrid.WeekAnchor(culture.DateTimeFormat.CalendarWeekRule).ToString(CultureInfo.InvariantCulture) : null);
-            Add("data-ib-hide-adjacent", ShowAdjacentDays ? null : "");
+            Add("data-ib-hide-adjacent", ShowsAdjacent ? null : "");
             return attributes;
 
             void Add(string name, string? value)
@@ -115,7 +118,7 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
                 FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
                 culture,
                 ShowWeekNumbers,
-                ShowAdjacentDays,
+                ShowsAdjacent,
                 IsDisabled,
                 IsReadOnly,
                 Size,
@@ -150,6 +153,18 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
 
             return _drawn.Value;
         }
+    }
+
+    /// <summary>Months in a row from <see cref="Drawn"/>, each named by its own title.</summary>
+    private protected IReadOnlyList<CalendarView> DrawnMonths(int count)
+    {
+        var first = Drawn;
+        return Enumerable.Range(0, count).Select(index =>
+        {
+            var id = $"{first.MonthId}-{index}";
+            var beyond = first.Month.Year * 12 + first.Month.Month - 1 + index > (9999 * 12) + 11;
+            return first with { Month = beyond ? first.Month : first.Month.AddDays(1 - first.Month.Day).AddMonths(index), MonthId = id, LabelledBy = id };
+        }).ToList();
     }
 
     // The chosen day's month. With none, this month in UTC, as the server doesn't know the person's
