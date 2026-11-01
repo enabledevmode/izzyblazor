@@ -253,32 +253,37 @@
     color: var(--ib-color-muted);
   }
 
-  /* TimeField's list. */
+  /* TimeField's list, drawn as a Select's is: the field's width, the chosen time with a check. */
+  .ib-popover.ib-popover:has(ib-time-slots) {
+    width: anchor-size(width);
+    max-width: none;
+    max-height: min(20rem, 45dvh);
+    --ib-pop-gap: 0.25rem;
+  }
+
   .ib-time-slots-list {
     display: flex;
     flex-direction: column;
-    gap: 1px;
-    min-width: 7rem;
-    max-height: 16rem;
-    overflow-y: auto;
   }
 
   .ib-time-slot {
     flex: none;
-    height: var(--ib-control-h-sm);
-    padding-inline: var(--ib-space-3);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: var(--ib-control-h-sm);
+    padding: var(--ib-space-1) var(--ib-space-2);
     border: 0;
-    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    border-radius: var(--ib-radius-sm);
     background: none;
     color: var(--ib-color-on-surface);
     font: inherit;
-    font-size: var(--ib-field-font);
     font-variant-numeric: tabular-nums;
     text-align: start;
     cursor: pointer;
   }
 
-  .ib-time-slot:hover:not([aria-disabled="true"], [aria-selected="true"]) {
+  .ib-time-slot:is(:hover, :focus-visible):not([aria-disabled="true"]) {
     background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
@@ -293,12 +298,16 @@
   }
 
   .ib-time-slot[aria-selected="true"] {
-    background-color: var(--ib-color-primary);
-    color: var(--ib-color-on-primary);
+    font-weight: 500;
   }
 
-  .ib-time-slot[aria-selected="true"]:focus-visible {
-    outline-offset: 1px;
+  .ib-time-slot[aria-selected="true"]::after {
+    content: "";
+    flex: none;
+    width: 1rem;
+    height: 1rem;
+    background-color: var(--ib-color-primary-text);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
   }
 
   .ib-calendar-time {
@@ -330,7 +339,11 @@
       outline-offset: -1px;
     }
 
-    .ib-time-slot[aria-selected="true"],
+    .ib-time-slot[aria-selected="true"]::after {
+      forced-color-adjust: none;
+      background-color: CanvasText;
+    }
+
     td[aria-selected="true"] > .ib-calendar-day {
       forced-color-adjust: none;
       background-color: Highlight;

@@ -96,4 +96,19 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
 
         Assert.True(toggle.X > field.X + field.Width / 2, $"{toggle.X} in {field.X}+{field.Width}");
     }
+
+    [Fact]
+    public async Task The_list_opens_under_the_whole_field_as_a_selects_does()
+    {
+        var (_, form, input, browser) = await OpenAsync("static");
+        await using var _ = browser;
+        await form.Locator(".ib-date-toggle").ClickAsync();
+        await Assertions.Expect(Slot(form, "10:30")).ToBeFocusedAsync();
+
+        var (field, list) = ((await input.BoundingBoxAsync())!, (await form.Locator("[popover]").First.BoundingBoxAsync())!);
+
+        Assert.Equal(field.X, list.X, 0);
+        Assert.Equal(field.Width, list.Width, 0);
+        Assert.True(list.Y >= field.Y + field.Height || list.Y + list.Height <= field.Y, $"{list.Y} against {field.Y}");
+    }
 }
