@@ -731,6 +731,10 @@
           "notes": {
             "static": "The server turns away a date outside the limits, whatever the browser let through."
           } },
+        { "id": "calendar-days", "title": "Disabled days and classes", "lead": "Use `DateDisabled` to turn days off and `DayClass` to give days a class of your own. The server asks about every day in a window, so keep them cheap; `DateDisabledWindow` sets how far.",
+          "notes": {
+            "static": "The server turns away a day that's off, whatever the browser let through."
+          } },
         { "id": "calendar-culture", "title": "Culture and weeks", "lead": "Use `Culture` for the names and the first day, `FirstDayOfWeek` for the first day alone, `ShowWeekNumbers` for a column of weeks and `ShowAdjacentDays` to leave out other months' days." },
         { "id": "calendar-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` for the field and the month together." }
       ]

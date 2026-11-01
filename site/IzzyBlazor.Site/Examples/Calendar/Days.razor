@@ -1,0 +1,36 @@
+<style>
+    .pay-day {
+        font-weight: 600;
+        box-shadow: inset 0 0 0 1px currentColor;
+    }
+</style>
+
+<Form Model="Model" FormName="calendar-days" OnValidSubmit="Save" Columns="2">
+    <Calendar @bind-Value="Model!.Visit" DateDisabled="IsWeekend" DateDisabledWindow="TimeSpan.FromDays(90)" Hint="On a weekday, within 90 days." />
+    <Calendar @bind-Value="Model!.Transfer" DayClass="@(day => day.Day == 15 ? "pay-day" : null)" Hint="Paydays are outlined." />
+    <Row ColSpan="GridSpan.Full"><Button Submit>Save dates</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert ColSpan="GridSpan.Full" Status="Status.Success">Saved: visit on @saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "calendar-days")]
+    private Dates? Model { get; set; }
+
+    // What was saved, not the field: on an interactive page it follows the choice.
+    private DateOnly? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Visit;
+
+    private static bool IsWeekend(DateOnly day) => day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    public sealed class Dates
+    {
+        public DateOnly Visit { get; set; } = new(2027, 3, 10);
+        public DateOnly Transfer { get; set; } = new(2027, 3, 10);
+    }
+}

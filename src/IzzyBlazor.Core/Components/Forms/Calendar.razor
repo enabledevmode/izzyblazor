@@ -14,11 +14,22 @@
     so it posts with the form on a static page and binds on an interactive one. Min and Max stop the
     month and its days, and are checked again on the server.
 
+    DateDisabled turns days off, with a line through them, and is checked again on the server.
+    DayClass gives days a class of your own.
+    <Calendar @bind-Value="Model.Day" DateDisabled="d => d.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday" />
+    <Calendar @bind-Value="Model.Day" DayClass="d => holidays.Contains(d) ? "holiday" : null" />
+
+    The script can't call C#, so the server calls these for every day in a window and writes down the
+    answers, on every render, so keep them cheap. The window is Min to Max, with DateDisabledWindow
+    (about a year) each way from the value or today for an end not set: 730 calls by default. Past
+    the window the server hasn't said what's allowed, so with DateDisabled the month stops there, and
+    with DayClass alone the days have no class.
+
     Accessibility:
     - The month is a `grid` named by the field's label and the month, with full day names on its
       columns and the full date on each day. The chosen day has `aria-selected`, and today
       `aria-current`.
-    - One day is a tab stop, and arrow keys move it. A day outside Min and Max can take focus so the
+    - One day is a tab stop, and arrow keys move it. A day that can't be chosen can take focus so the
       keys move evenly, and has `aria-disabled`.
     - A polite announcement gives the month when it changes.
     - Hint and errors are linked to the grid. The label and an error's link focus the day.
@@ -39,8 +50,10 @@
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <ib-calendar class="ib-calendar"
                  data-ib-value="@FormatDate(Chosen)"
-                 data-ib-min="@FormatDate(ResolvedMin)"
-                 data-ib-max="@FormatDate(ResolvedMax)"
+                 data-ib-min="@FormatDate(ShownMin)"
+                 data-ib-max="@FormatDate(ShownMax)"
+                 data-ib-off="@_offRuns"
+                 data-ib-classes="@_classRuns"
                  data-ib-culture="@Current.Culture.Name"
                  data-ib-first-day="@((int)Current.FirstDay)"
                  data-ib-week-anchor="@(ShowWeekNumbers ? CalendarGrid.WeekAnchor(Current.Culture.DateTimeFormat.CalendarWeekRule) : null)"
@@ -94,6 +107,93 @@
     /// <summary>Whether to show the days of the months before and after, muted, in the first and last weeks. Defaults to true.</summary>
     [Parameter] public bool ShowAdjacentDays { get; set; } = true;
 
+    /// <summary>
+    /// Whether a day can't be chosen. Checked on the server too, so it stops <c>OnValidSubmit</c> whatever
+    /// was posted. It's called for every day in the window on every render, so keep it cheap.
+    /// </summary>
+    [Parameter] public Func<DateOnly, bool>? DateDisabled { get; set; }
+
+    /// <summary>
+    /// How far each way from the value or today to call <see cref="DateDisabled"/> and <see cref="DayClass"/>,
+    /// in whole days, for an end <see cref="Min"/> or <see cref="Max"/> doesn't set. About a year unless set.
+    /// With DateDisabled, the month stops at the window's edge.
+    /// </summary>
+    [Parameter] public TimeSpan? DateDisabledWindow { get; set; }
+
+    /// <summary>A class for a day's button, or null. Called like <see cref="DateDisabled"/>, so keep it cheap.</summary>
+    [Parameter] public Func<DateOnly, string?>? DayClass { get; set; }
+
+    private const int DefaultWindowDays = 366;
+
+    private DateOnly? _windowFrom;
+    private DateOnly? _windowTo;
+    private HashSet<int>? _off;
+    private Dictionary<int, string>? _dayClasses;
+    private string? _offRuns;
+    private string? _classRuns;
+
+    // Past the window the server hasn't said what's allowed, so the script stops there.
+    private DateOnly? ShownMin => DateDisabled is null ? ResolvedMin : _windowFrom;
+
+    private DateOnly? ShownMax => DateDisabled is null ? ResolvedMax : _windowTo;
+
+    // Asks once for every day in the window, and writes the answers as runs of days, for the script:
+    // "2027-03-06/2027-03-07,2027-03-13".
+    private void AskAboutDays()
+    {
+        (_windowFrom, _windowTo, _off, _dayClasses, _offRuns, _classRuns) = (null, null, null, null, null, null);
+        if (DateDisabled is null && DayClass is null)
+        {
+            return;
+        }
+
+        var (min, max) = (ResolvedMin, ResolvedMax);
+        var anchor = Chosen ?? DateOnly.FromDateTime(DateTime.UtcNow);
+        anchor = anchor < min ? min.Value : anchor > max ? max.Value : anchor;
+        var each = DateDisabledWindow is { } window ? (int)Math.Max(0, Math.Min(window.TotalDays, DateOnly.MaxValue.DayNumber)) : DefaultWindowDays;
+        var from = min?.DayNumber ?? Math.Max(anchor.DayNumber - each, DateOnly.MinValue.DayNumber);
+        var to = max?.DayNumber ?? (int)Math.Min((long)anchor.DayNumber + each, DateOnly.MaxValue.DayNumber);
+        (_windowFrom, _windowTo) = (DateOnly.FromDayNumber(from), DateOnly.FromDayNumber(to));
+
+        var off = new List<(int From, int To)>();
+        var classed = new Dictionary<string, List<(int From, int To)>>();
+        for (var number = from; number <= to; number++)
+        {
+            var day = DateOnly.FromDayNumber(number);
+            if (DateDisabled?.Invoke(day) == true)
+            {
+                (_off ??= []).Add(number);
+                Extend(off, number);
+            }
+
+            if (DayClass?.Invoke(day) is { Length: > 0 } name)
+            {
+                (_dayClasses ??= [])[number] = name;
+                Extend(classed.TryGetValue(name, out var runs) ? runs : classed[name] = [], number);
+            }
+        }
+
+        _offRuns = off.Count > 0 ? Runs(off) : null;
+        _classRuns = classed.Count > 0 ? string.Join('\n', classed.Select(entry => $"{Runs(entry.Value)}={entry.Key}")) : null;
+    }
+
+    private static void Extend(List<(int From, int To)> runs, int number)
+    {
+        if (runs.Count > 0 && runs[^1].To == number - 1)
+        {
+            runs[^1] = (runs[^1].From, number);
+        }
+        else
+        {
+            runs.Add((number, number));
+        }
+    }
+
+    private static string Runs(List<(int From, int To)> runs) => string.Join(',', runs.Select(run =>
+        run.From == run.To
+            ? FormatDate(DateOnly.FromDayNumber(run.From))
+            : $"{FormatDate(DateOnly.FromDayNumber(run.From))}/{FormatDate(DateOnly.FromDayNumber(run.To))}"));
+
     // Not written in the markup: there, Razor makes @bind format a date, and it binds text.
     private const string InputType = "date";
 
@@ -120,8 +220,8 @@
             return new(
                 FirstMonth,
                 Chosen,
-                ResolvedMin,
-                ResolvedMax,
+                ShownMin,
+                ShownMax,
                 FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
                 culture,
                 ShowWeekNumbers,
@@ -131,7 +231,9 @@
                 Size,
                 monthId,
                 string.IsNullOrEmpty(ResolvedLabel) ? monthId : $"{LabelId} {monthId}",
-                TextDefaults);
+                TextDefaults,
+                _off,
+                _dayClasses);
         }
     }
 
@@ -185,10 +287,11 @@
         }
 
         base.OnParametersSet();
+        AskAboutDays();
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Min is not null || Max is not null;
+    private protected override bool HasOwnRules => Min is not null || Max is not null || DateDisabled is not null;
 
     /// <inheritdoc />
     private protected override string? OwnRuleError(TValue value)
@@ -198,6 +301,7 @@
         string Said(DateOnly limit) => limit.ToString("d", CalendarGrid.Gregorian(culture));
         return date < Min ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(Min.Value))
             : date > Max ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(Max.Value))
+            : DateDisabled?.Invoke(date) == true ? string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(date))
             : null;
     }
 

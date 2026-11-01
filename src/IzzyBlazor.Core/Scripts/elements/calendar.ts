@@ -29,6 +29,15 @@ const FIRST = at(1, 0, 1);
 const LAST = at(9999, 11, 31);
 const clamp = (n: number, low: number, high: number): number => Math.min(Math.max(n, low), high);
 
+// What the server wrote: "2027-03-06/2027-03-07,2027-03-13".
+type Runs = number[][];
+const parseRuns = (text: string): Runs =>
+  text.split(",").map((run) => {
+    const [from, to] = run.split("/");
+    return [parse(from)!, parse(to ?? from)!];
+  });
+const inRuns = (runs: Runs, n: number): boolean => runs.some(([from, to]) => n >= from && n <= to);
+
 // Keeps the text node Blazor made, if it did.
 const setText = (node: Node, text: string): void => {
   if (node.firstChild) node.firstChild.nodeValue = text;
@@ -58,6 +67,12 @@ class Calendar extends IzzyElement {
     let culture: string | undefined;
     let dayName: Intl.DateTimeFormat;
     let monthName: Intl.DateTimeFormat;
+    let off: Runs = [];
+    let offText: string | undefined;
+    let classed: [Runs, string][] = [];
+    let classedText: string | undefined;
+
+    const blocked = (n: number): boolean => (min !== null && n < min) || (max !== null && n > max) || inRuns(off, n);
 
     const observer = new MutationObserver(() => draw());
     observer.observe(this, { attributes: true, subtree: true });
@@ -68,6 +83,17 @@ class Calendar extends IzzyElement {
       const today = at(now.getFullYear(), now.getMonth(), now.getDate());
       min = parse(data.ibMin);
       max = parse(data.ibMax);
+      if (data.ibOff !== offText) {
+        offText = data.ibOff;
+        off = offText ? parseRuns(offText) : [];
+      }
+      if (data.ibClasses !== classedText) {
+        classedText = data.ibClasses;
+        classed = (classedText ?? "").split("\n").filter(Boolean).map((line) => {
+          const at = line.indexOf("=");
+          return [parseRuns(line.slice(0, at)), line.slice(at + 1)];
+        });
+      }
       // Only a new value from the server: on a static page this one stays while a choice waits to
       // post, and an interactive page's echo of a choice mustn't pull focus back from where it's gone.
       if (!seen || data.ibValue !== served) {
@@ -109,8 +135,9 @@ class Calendar extends IzzyElement {
         day.tabIndex = n === cursor ? 0 : -1;
         day.disabled = disabled;
         if (shown) day.setAttribute("aria-label", dayName.format(date(n)));
-        day.toggleAttribute("aria-disabled", false);
-        if ((min !== null && n < min) || (max !== null && n > max)) day.setAttribute("aria-disabled", "true");
+        if (blocked(n)) day.setAttribute("aria-disabled", "true");
+        else day.removeAttribute("aria-disabled");
+        day.className = ["ib-calendar-day", inRuns(off, n) ? "ib-calendar-off" : "", ...classed.filter(([runs]) => inRuns(runs, n)).map(([, name]) => name)].join(" ").trim();
         if (n === today) day.setAttribute("aria-current", "date");
         else day.removeAttribute("aria-current");
         cell.classList.toggle("ib-calendar-outside", outside);
@@ -176,14 +203,15 @@ class Calendar extends IzzyElement {
     };
 
     const choose = (n: number): void => {
-      const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && (min === null || n >= min) && (max === null || n <= max);
+      const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && !blocked(n);
       if (allowed) {
         chosen = n;
         text.value = date(n).toISOString().slice(0, 10);
         text.dispatchEvent(new Event("input", { bubbles: true }));
         text.dispatchEvent(new Event("change", { bubbles: true }));
       }
-      move(allowed ? n : cursor, true);
+      // A day that's off takes focus, but doesn't change the month.
+      move(allowed || date(n).getUTCMonth() === date(cursor).getUTCMonth() ? n : cursor, true);
     };
 
     draw();

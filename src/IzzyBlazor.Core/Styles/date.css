@@ -150,6 +150,15 @@
     color: var(--ib-color-disabled);
   }
 
+  /* Turned off by DateDisabled: a day among days that can be chosen, so more than its color. */
+  .ib-calendar-off {
+    text-decoration: line-through;
+  }
+
+  .ib-calendar-off[aria-current="date"] {
+    text-decoration-line: underline line-through;
+  }
+
   td[aria-selected="true"] > .ib-calendar-day {
     background-color: var(--ib-color-primary);
     color: var(--ib-color-on-primary);
