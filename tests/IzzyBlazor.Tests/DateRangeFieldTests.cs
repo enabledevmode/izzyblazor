@@ -199,6 +199,37 @@ public class DateRangeFieldTests : BunitContext
     }
 
     [Fact]
+    public void Common_presets_count_from_the_day_given()
+    {
+        var presets = DateRangePreset.Common(Day(3, 15));
+
+        Assert.Equal(new DateRangePreset("Today", Day(3, 15), Day(3, 15)), presets[0]);
+        Assert.Equal(new DateRangePreset("Last 7 days", Day(3, 9), Day(3, 15)), presets[1]);
+        Assert.Equal(new DateRangePreset("This month", Day(3, 1), Day(3, 31)), presets[3]);
+        Assert.Equal(new DateRangePreset("Last month", Day(2, 1), Day(2, 28)), presets[4]);
+        Assert.Equal(new DateRangePreset("This year", Day(1, 1), Day(12, 31)), presets[5]);
+    }
+
+    [Fact]
+    public void A_preset_the_rules_would_turn_away_is_disabled()
+    {
+        var cut = Field(null, p => p.Add(f => f.MaxDays, 7).Add(f => f.Presets, [new("Week", Day(3, 1), Day(3, 7)), new("Month", Day(3, 1), Day(3, 31))]));
+
+        var buttons = cut.FindAll(".ib-calendar-presets button");
+        Assert.Equal("2027-03-01", buttons[0].GetAttribute("data-start"));
+        Assert.False(buttons[0].HasAttribute("disabled"));
+        Assert.True(buttons[1].HasAttribute("disabled"));
+    }
+
+    [Fact]
+    public void Presets_keep_the_months_on_a_phone_and_refuse_use_native()
+    {
+        DateRangePreset[] presets = [new("Week", Day(3, 1), Day(3, 7))];
+        Assert.NotEmpty(Field(null, p => p.Add(f => f.Presets, presets)).FindAll(".ib-date-own"));
+        Assert.Throws<InvalidOperationException>(() => Field(null, p => p.Add(f => f.Presets, presets).Add(f => f.UseNative, true)));
+    }
+
+    [Fact]
     public void A_range_contains_its_ends_and_all_of_the_last_day()
     {
         var range = new DateRange(Day(3, 8), Day(3, 12));

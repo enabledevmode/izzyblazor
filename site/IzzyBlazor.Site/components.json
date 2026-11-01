@@ -729,6 +729,7 @@
       "id": "date-range-field", "icon": "CalendarRange", "name": "DateRangeField", "category": "Forms", "preview": true, "summary": "Two whole days, both included, in the browser's own date inputs.", "keywords": ["date range", "date range picker", "from to", "period"],
       "features": [
         { "feature": "Two date inputs in one field, posting each end, with the end's minimum following the start" },
+        { "feature": "Months side by side to choose from, and presets beside them", "noscript": "none" },
         { "feature": "Min, Max, MinDays, MaxDays and disabled days checked on the server" },
         { "feature": "Binds DateRange, whose days keep midnight out of it, with Contains and ToUtc for queries" }
       ],
@@ -736,6 +737,10 @@
         { "id": "date-range-field-limits", "title": "Limits", "lead": "`Min`, `Max`, `MinDays` and `MaxDays` hold on the server. `DateDisabled` turns away a range with a disabled day in it; `AllowDisabledInRange` keeps that to its ends.",
           "notes": {
             "static": "The server turns away a range outside the rules, whatever the browser let through."
+          } },
+        { "id": "date-range-field-presets", "title": "Presets", "lead": "Use `Presets` for ranges one click away, and `DateRangePreset.Common` for the usual ones, or list your own. They're absolute days from a today you pass in, so they follow your zone. One the field's rules would turn away is disabled.",
+          "notes": {
+            "noscript": "The presets show with the months, so the two date inputs are all there is."
           } },
         { "id": "date-range-field-states", "title": "Open ends, sizes, read-only and disabled", "lead": "Either end can stay empty unless the field is `Required`. `StartText` and `EndText` change the captions." }
       ]

@@ -404,6 +404,27 @@ public class IzzyText
     /// <summary>The label of a calendar's time input.</summary>
     public virtual string CalendarTime { get; set; } = "Time";
 
+    /// <summary>The name of a date range field's group of presets.</summary>
+    public virtual string CalendarPresets { get; set; } = "Ranges";
+
+    /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
+    public virtual string PresetToday { get; set; } = "Today";
+
+    /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
+    public virtual string PresetLast7Days { get; set; } = "Last 7 days";
+
+    /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
+    public virtual string PresetLast30Days { get; set; } = "Last 30 days";
+
+    /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
+    public virtual string PresetThisMonth { get; set; } = "This month";
+
+    /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
+    public virtual string PresetLastMonth { get; set; } = "Last month";
+
+    /// <summary>A preset range from <see cref="DateRangePreset.Common"/>.</summary>
+    public virtual string PresetThisYear { get; set; } = "This year";
+
     /// <summary>A date range field's button that opens its months.</summary>
     public virtual string CalendarChooseRange { get; set; } = "Choose dates";
 

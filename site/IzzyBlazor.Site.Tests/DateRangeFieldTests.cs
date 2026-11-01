@@ -186,4 +186,25 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await Assertions.Expect(start).ToHaveValueAsync("");
         await Assertions.Expect(end).ToHaveValueAsync("");
     }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_preset_writes_both_and_shows_as_pressed(string mode)
+    {
+        var (page, _, _, _, browser) = await OpenAsync(mode);
+        await using var _ = browser;
+        var field = page.Locator("[data-ex='date-range-field-presets']");
+        await field.Locator(".ib-date-toggle").ClickAsync();
+
+        await field.GetByRole(AriaRole.Button, new() { Name = "Last 7 days" }).ClickAsync();
+
+        await Assertions.Expect(field.GetByLabel("Start")).ToHaveValueAsync("2027-03-09");
+        await Assertions.Expect(field.GetByLabel("End")).ToHaveValueAsync("2027-03-15");
+        await Assertions.Expect(field.Locator("[popover]").First).ToBeHiddenAsync();
+
+        await field.Locator(".ib-date-toggle").ClickAsync();
+        await Assertions.Expect(field.GetByRole(AriaRole.Button, new() { Name = "Last 7 days" })).ToHaveAttributeAsync("aria-pressed", "true");
+        await Assertions.Expect(field.GetByRole(AriaRole.Button, new() { Name = "This month" })).ToHaveAttributeAsync("aria-pressed", "false");
+    }
 }
