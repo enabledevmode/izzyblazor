@@ -19,6 +19,8 @@ namespace IzzyBlazor;
 /// <param name="MonthId">The id for the month's name.</param>
 /// <param name="LabelledBy">The ids that name the grid.</param>
 /// <param name="Text">The text defaults.</param>
+/// <param name="Off">The day numbers of days that can't be chosen, from a disabled-date function.</param>
+/// <param name="DayClasses">The classes of days that have one, by day number.</param>
 internal readonly record struct CalendarView(
     DateOnly Month,
     DateOnly? Selected,
@@ -33,7 +35,9 @@ internal readonly record struct CalendarView(
     ControlSize Size,
     string MonthId,
     string LabelledBy,
-    IzzyText Text);
+    IzzyText Text,
+    IReadOnlySet<int>? Off = null,
+    IReadOnlyDictionary<int, string>? DayClasses = null);
 
 /// <summary>
 /// The month grid, drawn by everything with a calendar. It's a fragment and not a
@@ -170,17 +174,22 @@ internal static class CalendarGrid
             {
                 var date = Day(row + column);
                 var outside = date is { } inMonth && (inMonth.Month != first.Month || inMonth.Year != first.Year);
+                var off = view.Off?.Contains(row + column) == true;
                 builder.OpenElement(33, "td");
                 builder.AddAttribute(34, "class", outside ? "ib-calendar-outside" : null);
                 builder.AddAttribute(35, "aria-selected", date is not null && date == view.Selected ? "true" : null);
                 builder.OpenElement(36, "button");
                 builder.AddAttribute(37, "type", "button");
-                builder.AddAttribute(38, "class", "ib-calendar-day");
+                builder.AddAttribute(38, "class", new ClassBuilder()
+                    .Add("ib-calendar-day")
+                    .Add("ib-calendar-off", off)
+                    .Add(view.DayClasses?.GetValueOrDefault(row + column))
+                    .Build());
                 // Out of the tab order until the script makes one day the grid's stop.
                 builder.AddAttribute(39, "tabindex", "-1");
                 builder.AddAttribute(40, "hidden", date is null || (outside && !view.ShowAdjacentDays));
                 builder.AddAttribute(41, "aria-label", date?.ToString("D", culture));
-                builder.AddAttribute(42, "aria-disabled", date < view.Min || date > view.Max ? "true" : null);
+                builder.AddAttribute(42, "aria-disabled", off || date < view.Min || date > view.Max ? "true" : null);
                 builder.AddAttribute(43, "disabled", view.Disabled);
                 builder.AddContent(44, date?.Day.ToString(CultureInfo.InvariantCulture) ?? "");
                 builder.CloseElement();

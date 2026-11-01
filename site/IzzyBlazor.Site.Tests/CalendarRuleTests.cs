@@ -126,6 +126,48 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
         }
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_disabled_day_cant_be_chosen_the_month_stops_at_the_window_and_the_server_refuses_it(string mode)
+    {
+        var (page, _, browser) = await OpenAsync(mode);
+        await using (browser)
+        {
+            var form = page.Locator("[data-ex='calendar-days'] form");
+            var visit = form.Locator("ib-calendar").First;
+            await Assertions.Expect(visit).ToHaveAttributeAsync("data-ready", "");
+
+            // A weekend day takes focus, so the keys move evenly, and isn't chosen.
+            await visit.GetByRole(AriaRole.Button, new() { Name = "Saturday, March 13, 2027" }).ClickAsync(new() { Force = true });
+            await Assertions.Expect(visit.GetByRole(AriaRole.Button, new() { Name = "Saturday, March 13, 2027" })).ToBeFocusedAsync();
+            await Assertions.Expect(visit.Locator("input[type=date]")).ToHaveValueAsync("2027-03-10");
+
+            // It's still off in a month the script drew, with the look of a day that's off.
+            await visit.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
+            var off = visit.GetByRole(AriaRole.Button, new() { Name = "Saturday, April 10, 2027" });
+            await Assertions.Expect(off).ToHaveAttributeAsync("aria-disabled", "true");
+            await Assertions.Expect(off).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("ib-calendar-off"));
+
+            // 90 days from March 10 is June 8: nothing past it is known.
+            await visit.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
+            await visit.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
+            await Assertions.Expect(visit.GetByRole(AriaRole.Button, new() { Name = "Next month" })).ToBeDisabledAsync();
+            await Assertions.Expect(visit.GetByRole(AriaRole.Button, new() { Name = "Wednesday, June 9, 2027" })).ToHaveAttributeAsync("aria-disabled", "true");
+
+            // A class is there in a month the script drew too.
+            var transfer = form.Locator("ib-calendar").Nth(1);
+            await transfer.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
+            await Assertions.Expect(transfer.GetByRole(AriaRole.Button, new() { Name = "Thursday, April 15, 2027" })).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("pay-day"));
+
+            // As a crafted post would.
+            await visit.Locator("input[type=date]").EvaluateAsync("i => { i.value = '2027-03-13'; i.dispatchEvent(new Event('change', { bubbles: true })); }");
+            await form.GetByRole(AriaRole.Button, new() { Name = "Save dates" }).ClickAsync();
+            await Assertions.Expect(form).ToContainTextAsync("can't be");
+            await Assertions.Expect(form).Not.ToContainTextAsync("Saved:");
+        }
+    }
+
     [Fact]
     public async Task With_no_script_the_input_takes_the_date_above_a_month_that_shows_it()
     {

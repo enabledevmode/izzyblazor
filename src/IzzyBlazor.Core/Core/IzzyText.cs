@@ -350,6 +350,9 @@ public class IzzyText
     /// <summary>TimeField's message for a value that isn't a time. {0} is the field's label.</summary>
     public virtual string TimeInvalid { get; set; } = "The {0} field must be a time.";
 
+    /// <summary>A date a field's DateDisabled turns off; {0} is its label and {1} the date.</summary>
+    public virtual string DateUnavailable { get; set; } = "{0} can't be {1}.";
+
     /// <summary>A calendar's button to the month before.</summary>
     public virtual string CalendarPrevious { get; set; } = "Previous month";
 
