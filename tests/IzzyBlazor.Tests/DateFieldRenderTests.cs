@@ -165,7 +165,16 @@ public class DateFieldRenderTests : BunitContext
         Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.UseNative, true)).FindAll("ib-calendar"));
         Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.Disabled, true)).FindAll("ib-calendar"));
         Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.ReadOnly, true)).FindAll("ib-calendar"));
-        Assert.Empty(DateFor(() => _model.StartsAt).FindAll("ib-calendar"));
+    }
+
+    [Fact]
+    public void Only_a_date_and_time_has_a_time_and_ok_and_none_of_it_posts()
+    {
+        Assert.Empty(DateFor(() => _model.Due).FindAll(".ib-calendar-time, [data-ib-ok]"));
+
+        var cut = DateFor(() => _model.StartsAt);
+        Assert.NotEmpty(cut.FindAll("[data-ib-ok]"));
+        Assert.False(cut.Find("input[type=time]").HasAttribute("name"));
     }
 
     [Fact]

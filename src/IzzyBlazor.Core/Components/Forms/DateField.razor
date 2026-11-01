@@ -5,7 +5,7 @@
 
 @*
     A date field, or a date and time field: the browser's own input, so it posts with the form and
-    takes a typed date, and for a date the library's calendar to choose from. Bind it to DateOnly,
+    takes a typed date, and the library's calendar to choose from. Bind it to DateOnly,
     DateTime or DateTimeOffset, or a nullable one.
     <DateField @bind-Value="Model.Due" />
     <DateField @bind-Value="Model.From" Max="@DateOnly.FromDateTime(DateTime.UtcNow)" />
@@ -14,10 +14,13 @@
     <DateField @bind-Value="Model.StartsAt" TimeZone="@zone" />
 
     The calendar writes to the input, so posting and binding don't change. UseNative keeps the
-    browser's calendar. So does a date and time for now, and with no script or on a phone, unless the
-    field has DateDisabled, which a browser's calendar can't show: there it's the library's, and on a
-    phone the input can't be typed in. Min, Max and DateDisabled are checked again on the server, so a
-    typed date is turned away when the form posts.
+    browser's calendar. So do no script and a phone, unless the field has DateDisabled, which a
+    browser's calendar can't show: there it's the library's, and on a phone the input can't be typed
+    in. Min, Max and DateDisabled are checked again on the server, so a typed date is turned away
+    when the form posts.
+
+    With a time, the calendar has a time input and OK and Cancel: nothing is written until OK. Min
+    and Max stop the days, and their times are checked as the form posts.
 
     A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
     Type="DateFieldType.Date" or [DataType(DataType.Date)] on the property (midnight in TimeZone).
@@ -27,7 +30,9 @@
     UTC. On an interactive page its Kind is Utc. After a static post Blazor's form binding sets it,
     as Unspecified (the time is still UTC): use DateTime.SpecifyKind before ToUniversalTime or a
     timestamptz column, or bind a DateTimeOffset. On a server, TimeZoneInfo.Local is the server's zone, not the user's: ask the
-    user for theirs, or keep UTC and say so in the label, as in "From (UTC)".
+    user for theirs, or keep UTC and say so in the label, as in "From (UTC)". A time a change of
+    the clocks skips, such as 02:30, is taken with the zone's standard offset, so it's an hour later.
+    The calendar marks today in TimeZone if it's set, and otherwise on the person's clock.
 
     Accessibility:
     - It renders the browser's own date or date-and-time `input` with a `label` linked to it:
@@ -50,7 +55,9 @@
     - Home, End | Go to the start or end of the week
     - Page Up, Page Down | Move a month, keeping the day number or the month's last day
     - Shift+Page Up, Shift+Page Down | Move a year
-    - Enter, Space | Choose the date and close
+    - Enter, Space | Choose the date and close; with a time, choose the date and stay open
+    In the calendar's time
+    - Enter | Save the date and time, and close
     In the calendar
     - Tab, Shift+Tab | Move through the header, the days and the buttons, and close past either end
     - Escape | Close without changing the value
@@ -89,15 +96,30 @@
                         <ib-calendar class="ib-calendar"
                                      @attributes="CalendarAttributes"
                                      data-ib-change="@(ChooseLabel is null ? TextDefaults.CalendarChange : null)"
-                                     data-ib-choose="@ChooseText">
+                                     data-ib-choose="@ChooseText"
+                                     data-ib-time-zone="@(TimeZone is null || IsDateOnly ? null : DateFieldZones.ScriptId(TimeZone))">
                             <div class="ib-calendar-view">
                                 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
                                 @CalendarGrid.Month(Drawn, null)
+                                @if (ResolvedType == DateFieldType.DateTime)
+                                {
+                                    <div class="ib-calendar-time">
+                                        <label for="@TimeId">@TextDefaults.CalendarTime</label>
+                                        <div class="ib-field-control">
+                                            <input id="@TimeId" class="ib-field-input" type="time" step="@StepAttribute" />
+                                        </div>
+                                    </div>
+                                }
                                 <div class="ib-calendar-foot">
                                     <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-today>@TextDefaults.CalendarToday</Button>
                                     @if (ShowsClear)
                                     {
                                         <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
+                                    }
+                                    @if (ResolvedType == DateFieldType.DateTime)
+                                    {
+                                        <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-cancel>@TextDefaults.Cancel</Button>
+                                        <Button Size="ControlSize.Sm" data-ib-ok>@TextDefaults.Ok</Button>
                                     }
                                 </div>
                             </div>
@@ -169,8 +191,10 @@
 
     private TimeZoneInfo Zone => TimeZone ?? TimeZoneInfo.Utc;
 
-    // Only for a date for now. Nothing to choose from on a field that can't change.
-    private bool HasPanel => !UseNative && ResolvedType == DateFieldType.Date && !IsDisabled && !IsReadOnly;
+    // Nothing to choose from on a field that can't change.
+    private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
+
+    private string TimeId => FieldId + "-time";
 
     private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChoose;
 
