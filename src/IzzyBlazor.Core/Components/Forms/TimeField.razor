@@ -1,29 +1,55 @@
 @namespace IzzyBlazor
 @typeparam TValue
 @inherits FieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own picker opens in place of the library's list.")]
 
 @*
     A time of day: the browser's own time input, so it posts with the form, checks Min, Max and
-    Step before posting, and opens the browser's picker. Bind it to TimeOnly or TimeOnly?. For a
-    length of time, as in a timeout, a TimeSpan isn't a time of day and doesn't bind here.
+    Step before posting and takes a typed time, and the library's list of times to choose from. Bind
+    it to TimeOnly or TimeOnly?. For a length of time, as in a timeout, a TimeSpan isn't a time of
+    day and doesn't bind here.
     <TimeField @bind-Value="Model.Opens" />
     <TimeField @bind-Value="Model.Opens" Min="@nine" Max="@five" Step="TimeSpan.FromMinutes(15)" />
     <TimeField @bind-Value="Model.Shift" Min="@ten" Max="@six" /> a window across midnight
+    <TimeField @bind-Value="Model.Opens" TimeDisabled="t => t.Hour == 12" />
+    <TimeField @bind-Value="Model.Opens" UseNative />
 
     A time has no date or zone, so nothing converts it. The input shows 12 or 24 hours as the browser
-    does, which the page can't set.
+    does, which the page can't set; the list follows the page's culture.
+
+    The list has a time every Step, or every 30 minutes with no Step, in which case the input still
+    takes any minute. UseNative keeps the browser's picker. So do no script, a Step of seconds, one so
+    short the list would pass 288 times, and a phone, unless the field has TimeDisabled, which a
+    browser's picker can't show: there it's the library's, and on a phone the input can't be typed in.
+    Min, Max and TimeDisabled are checked again on the server.
 
     Accessibility:
     - It renders the browser's own time `input` with a `label` linked to it: screen readers read
       each part (hour, minute) and arrow keys change it.
     - Label, hint and errors work as in `TextField`.
+    - The list's button is named "Choose time" (`ChooseLabel`), or "Change time" and the time once
+      there is one. Its panel is a non-modal `dialog`, named by the button, holding a `listbox`, with
+      the chosen time selected. Focus goes there, or to the next time from now, and on closing back
+      to where it opened from.
+
+    Keyboard:
+    In the time field
+    - Up, Down | Change the focused part of the time
+    - Left, Right | Move between the parts of the time
+    - Alt+Down | Open the list
+    In the list
+    - Up, Down | Move a time
+    - Home, End | Go to the first or last time
+    - Enter, Space | Choose the time and close
+    - Tab, Shift+Tab | Close, and go on from its button
+    - Escape | Close without changing the value
     See also: DateField, TextField, Form.
 *@
 
 <FieldFrame Class="@WrapperClass("time")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
-        <ib-field-control class="ib-field-control">
+        <ib-field-control class="@ControlClass">
             <input @attributes="ControlAttributes"
                    id="@FieldId"
                    class="ib-field-input"
@@ -38,6 +64,34 @@
                    readonly="@IsReadOnly"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
+            @if (HasPanel)
+            {
+                <Popover Placement="Placement.BottomEnd" PanelWidth="Length.FitContent">
+                    <Trigger Context="trigger">
+                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                            <Icon Role="IconRole.Clock" Class="ib-field-icon" />
+                        </button>
+                    </Trigger>
+                    <ChildContent>
+                        <ib-time-slots class="ib-time-slots"
+                                       data-ib-value="@CurrentValueAsString"
+                                       data-ib-change="@(ChooseLabel is null ? TextDefaults.TimeChange : null)"
+                                       data-ib-choose="@ChooseText">
+                            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                            <div class="ib-time-slots-list" role="listbox" aria-label="@TextDefaults.TimeList">
+                                @foreach (var slot in Slots)
+                                {
+                                    var off = TimeDisabled?.Invoke(slot) == true;
+                                    <button type="button" role="option" class="@(off ? "ib-time-slot ib-calendar-off" : "ib-time-slot")" tabindex="-1"
+                                            data-value="@slot.ToString("HH:mm", System.Globalization.CultureInfo.InvariantCulture)"
+                                            aria-selected="false"
+                                            aria-disabled="@(off ? "true" : null)">@slot.ToString("t", System.Globalization.CultureInfo.CurrentCulture)</button>
+                                }
+                            </div>
+                        </ib-time-slots>
+                    </ChildContent>
+                </Popover>
+            }
         </ib-field-control>
     </FieldAddons>
 </FieldFrame>
@@ -62,11 +116,71 @@
     /// </summary>
     [Parameter] public TimeSpan? Step { get; set; }
 
+    /// <summary>Whether a time can't be chosen. Checked on the server too, and called for each time in the list on every render, so keep it cheap.</summary>
+    [Parameter] public Func<TimeOnly, bool>? TimeDisabled { get; set; }
+
+    /// <summary>Keeps the browser's picker in place of the library's list. <see cref="TimeDisabled"/> is then checked only on the server.</summary>
+    [Parameter] public bool UseNative { get; set; }
+
+    /// <summary>The name of the list's button, in place of "Choose time" and "Change time" with the time.</summary>
+    [Parameter] public string? ChooseLabel { get; set; }
+
     /// <summary>Content attached before the control, outside its border. See <see cref="TextField.StartAddon"/>.</summary>
     [Parameter] public RenderFragment? StartAddon { get; set; }
 
     /// <summary>Content attached after the control, outside its border.</summary>
     [Parameter] public RenderFragment? EndAddon { get; set; }
+
+    // A list past this would be a long way to scroll, and a lot to draw for each field.
+    private const int MostSlots = 288;
+
+    private string ChooseText => ChooseLabel ?? TextDefaults.TimeChoose;
+
+    private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly && !ShowsSeconds && Slots.Count > 0;
+
+    // A field whose rule a browser's picker can't show keeps the library's on a phone too.
+    private string ControlClass => new ClassBuilder()
+        .Add("ib-field-control")
+        .Add("ib-date-control", HasPanel)
+        .Add("ib-date-own", HasPanel && TimeDisabled is not null)
+        .Build()!;
+
+    // From Min, or midnight, every Step to Max, or the end of the day. With Min after Max, across
+    // midnight. None if there would be too many, as the browser's picker serves those better.
+    private List<TimeOnly> Slots
+    {
+        get
+        {
+            if (_slots is not null && _slotsFor == (ResolvedMin, ResolvedMax, Step))
+            {
+                return _slots;
+            }
+
+            var step = Step ?? TimeSpan.FromMinutes(30);
+            var slots = new List<TimeOnly>();
+            if (step >= TimeSpan.FromMinutes(1))
+            {
+                var first = (ResolvedMin ?? TimeOnly.MinValue).ToTimeSpan();
+                var last = (ResolvedMax ?? new TimeOnly(23, 59, 59)).ToTimeSpan();
+                if (last < first)
+                {
+                    last += TimeSpan.FromDays(1);
+                }
+
+                var count = (last - first).Ticks / step.Ticks + 1;
+                for (var index = 0; index < count && count <= MostSlots; index++)
+                {
+                    slots.Add(TimeOnly.FromTimeSpan(TimeSpan.FromTicks((first + step * index).Ticks % TimeSpan.TicksPerDay)));
+                }
+            }
+
+            _slotsFor = (ResolvedMin, ResolvedMax, Step);
+            return _slots = slots;
+        }
+    }
+
+    private List<TimeOnly>? _slots;
+    private (TimeOnly?, TimeOnly?, TimeSpan?) _slotsFor;
 
     // Not written in the markup: there, Razor makes @bind format a time, and it binds text.
     private const string InputType = "time";
@@ -100,7 +214,7 @@
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Min is not null || Max is not null;
+    private protected override bool HasOwnRules => Min is not null || Max is not null || TimeDisabled is not null;
 
     // As the input shows the time.
     /// <inheritdoc />
@@ -110,6 +224,11 @@
         var shown = ShowsSeconds ? time : new TimeOnly(time.Hour, time.Minute);
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         string Said(TimeOnly limit) => limit.ToString(HasSeconds(limit) ? "T" : "t", culture);
+        if (TimeDisabled?.Invoke(shown) == true)
+        {
+            return string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(shown));
+        }
+
         return (Min, Max) switch
         {
             ({ } min, { } max) when min > max => shown >= min || shown <= max

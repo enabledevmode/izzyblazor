@@ -253,6 +253,54 @@
     color: var(--ib-color-muted);
   }
 
+  /* TimeField's list. */
+  .ib-time-slots-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 7rem;
+    max-height: 16rem;
+    overflow-y: auto;
+  }
+
+  .ib-time-slot {
+    flex: none;
+    height: var(--ib-control-h-sm);
+    padding-inline: var(--ib-space-3);
+    border: 0;
+    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    background: none;
+    color: var(--ib-color-on-surface);
+    font: inherit;
+    font-size: var(--ib-field-font);
+    font-variant-numeric: tabular-nums;
+    text-align: start;
+    cursor: pointer;
+  }
+
+  .ib-time-slot:hover:not([aria-disabled="true"], [aria-selected="true"]) {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-time-slot:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-time-slot[aria-disabled="true"] {
+    color: var(--ib-color-disabled);
+    cursor: default;
+  }
+
+  .ib-time-slot[aria-selected="true"] {
+    background-color: var(--ib-color-primary);
+    color: var(--ib-color-on-primary);
+  }
+
+  .ib-time-slot[aria-selected="true"]:focus-visible {
+    outline-offset: 1px;
+  }
+
   .ib-calendar-time {
     display: flex;
     align-items: center;
@@ -277,6 +325,7 @@
   }
 
   @media (forced-colors: active) {
+    .ib-time-slot[aria-selected="true"],
     td[aria-selected="true"] > .ib-calendar-day {
       forced-color-adjust: none;
       background-color: Highlight;

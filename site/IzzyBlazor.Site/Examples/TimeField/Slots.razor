@@ -1,0 +1,27 @@
+<Form Model="Model" FormName="time-field-slots" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <TimeField @bind-Value="Model!.Visit" Min="new TimeOnly(9, 0)" Max="new TimeOnly(17, 0)" Step="TimeSpan.FromMinutes(15)" TimeDisabled="AtLunch" Hint="Every 15 minutes, 9 to 5, with no visits over lunch." />
+    <Row><Button Submit>Book the visit</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Booked for @saved.ToString("HH:mm").</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "time-field-slots")]
+    private Booking? Model { get; set; }
+
+    // What was saved, not the field: on an interactive page it follows typing.
+    private TimeOnly? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private static bool AtLunch(TimeOnly time) => time.Hour == 12;
+
+    private void Save() => _saved = Model!.Visit;
+
+    public sealed class Booking
+    {
+        public TimeOnly? Visit { get; set; } = new TimeOnly(10, 30);
+    }
+}
