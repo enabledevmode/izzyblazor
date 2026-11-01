@@ -18,6 +18,33 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         return (browser, page, grid);
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_list_opened_from_the_row_stays_under_it_as_ticks_apply(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode);
+        await using var _ = browser;
+        var summary = grid.Locator(".ib-filter-cell-summary").First;
+        var panel = page.Locator("[popover]:popover-open");
+        await summary.ClickAsync();
+
+        async Task UnderSummaryAsync()
+        {
+            var (under, list) = ((await summary.BoundingBoxAsync())!, (await panel.BoundingBoxAsync())!);
+            Assert.Equal(under.X, list.X, 0);
+            Assert.True(list.Y >= under.Y + under.Height);
+        }
+
+        await UnderSummaryAsync();
+        await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
+        await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
+        await UnderSummaryAsync();
+
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(summary).ToBeFocusedAsync();
+    }
+
     [Fact]
     public async Task A_static_operator_shows_before_the_response_arrives()
     {

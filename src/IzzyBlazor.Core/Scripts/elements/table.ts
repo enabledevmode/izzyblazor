@@ -77,14 +77,26 @@ class Table extends IzzyElement {
   // A filter row's fields edited since the last apply: each hands its value to its panel's field, which
   // is what's read, so one filter has one place that says it.
   #rowEdits = new Set<HTMLInputElement | HTMLSelectElement>();
-  // A panel the row opened, whose button in the row gets focus back from it. An id: choosing Between
-  // draws that button only as the panel opens.
-  #rowPanel: string | null = null;
+  // A panel the row opened, whose button in the row gets focus back from it. The element, as its id
+  // changes with each response, and choosing Between draws that button only as the panel opens.
+  #rowPanel: HTMLElement | null = null;
+  // A panel opened from the row's summary, which opens under that and not under its button in the header.
+  #underSummary: HTMLElement | null = null;
   // Kept for the same reason: setup runs again after the response that made the table shorter.
   #tallest = 0;
   #heldFor = "";
 
+  // Again after each response while it's open, as enhanced navigation puts the server's style back.
+  #placeUnderSummary(): void {
+    const panel = this.#underSummary;
+    const summary = panel && this.querySelector<HTMLElement>(`.ib-filter-cell-summary[popovertarget="${CSS.escape(panel.id)}"]`);
+    if (!panel || !summary) return;
+    panel.style.setProperty("position-anchor", summary.style.getPropertyValue("anchor-name"));
+    panel.classList.replace("ib-place-bottom-end", "ib-place-bottom-start");
+  }
+
   protected setup(signal: AbortSignal): void {
+    this.#placeUnderSummary();
     this.#setupHold(signal);
     this.#setupFilters(signal);
     setupSelectAll(this, ".ib-table-select-all", "tbody .ib-table-select", signal);
@@ -98,7 +110,13 @@ class Table extends IzzyElement {
       "toggle",
       (event) => {
         const panel = event.target as HTMLElement;
-        if ((event as ToggleEvent).newState !== "closed" || panel.id !== this.#rowPanel) return;
+        if ((event as ToggleEvent).newState !== "closed") return;
+        if (panel === this.#underSummary) {
+          this.#underSummary = null;
+          panel.style.setProperty("position-anchor", panel.closest<HTMLElement>("ib-popover")!.style.getPropertyValue("anchor-name"));
+          panel.className = panel.className.replace("ib-place-bottom-start", `ib-place-${panel.closest<HTMLElement>("ib-popover")!.dataset.placement}`);
+        }
+        if (panel !== this.#rowPanel) return;
         this.#rowPanel = null;
         // Past the panel's own trigger, which it hands focus to first. Not if it's gone somewhere of its own.
         const active = document.activeElement;
@@ -112,9 +130,15 @@ class Table extends IzzyElement {
       "click",
       (event) => {
         // A panel's Clear is done with the panel.
-        const opens = (event.target as Element).closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel;
-        if (opens) document.getElementById(opens)?.showPopover();
-        this.#rowPanel = opens ?? (event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget") ?? this.#rowPanel;
+        const panelOf = (id: string | null | undefined) => (id ? document.getElementById(id) : null);
+        const opens = panelOf((event.target as Element).closest<HTMLElement>("[data-ib-opens-panel]")?.dataset.ibOpensPanel);
+        opens?.showPopover();
+        const opened = panelOf((event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget"));
+        this.#rowPanel = opens ?? opened ?? this.#rowPanel;
+        if (opened) {
+          this.#underSummary = opened;
+          this.#placeUnderSummary();
+        }
         const clear = (event.target as Element).closest("[data-ib-filter-clear]");
         if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
         // An operator is a link on a static page, so what it changes would wait for the response.
