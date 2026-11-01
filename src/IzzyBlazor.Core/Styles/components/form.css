@@ -959,6 +959,26 @@
       opacity: 1;
     }
 
+    /* As the scroll areas in base.css, which can't list a pseudo-element in their :is(). */
+    :root:not(.ib-scrollbars-native, :has(> head > meta[name="ib-scrollbars"][content="native"])) select.ib-field-select::picker(select)::-webkit-scrollbar {
+      width: 8px;
+    }
+
+    :root:not(.ib-scrollbars-native, :has(> head > meta[name="ib-scrollbars"][content="native"])) select.ib-field-select::picker(select)::-webkit-scrollbar-thumb {
+      border: 1px solid transparent;
+      border-radius: 999px;
+      background-color: var(--ib-color-scrollbar, color-mix(in oklab, var(--ib-color-on-surface) 26%, transparent));
+      background-clip: padding-box;
+    }
+
+    :root:not(.ib-scrollbars-native, :has(> head > meta[name="ib-scrollbars"][content="native"])) select.ib-field-select::picker(select)::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    :root:not(.ib-scrollbars-native, :has(> head > meta[name="ib-scrollbars"][content="native"])) select.ib-field-select::picker(select)::-webkit-scrollbar-button {
+      display: none;
+    }
+
     @starting-style {
       select.ib-field-select:open::picker(select) {
         opacity: 0;

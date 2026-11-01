@@ -29,6 +29,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
@@ -55,6 +58,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
@@ -75,6 +81,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
@@ -97,6 +106,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
@@ -116,6 +128,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
@@ -131,6 +146,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
@@ -149,6 +167,9 @@
         .ib-dialog,
         .ib-dialog-body,
         .ib-code-pre,
+        .ib-diff-body,
+        .ib-filter-list-items,
+        .ib-site-nav-sheet,
         .ib-scroll
       ),
       :root:is(.ib-scrollbars, :has(> head > meta[name="ib-scrollbars"][content="themed"]))
