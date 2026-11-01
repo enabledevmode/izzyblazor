@@ -170,6 +170,9 @@ public enum IconRole
 
     /// <summary>Put something back as it was.</summary>
     Reset,
+
+    /// <summary>From one end of a range to the other.</summary>
+    RangeTo,
 }
 
 /// <summary>
@@ -236,6 +239,7 @@ public class IconSet
         IconRole.FilterIsEmpty => IzzyBlazor.Lucide.CircleDashed,
         IconRole.FilterIsNotEmpty => IzzyBlazor.Lucide.CircleDot,
         IconRole.Reset => IzzyBlazor.Lucide.RotateCcw,
+        IconRole.RangeTo => IzzyBlazor.Lucide.ArrowRight,
         _ => throw new ArgumentOutOfRangeException(nameof(role), role, null),
     });
 

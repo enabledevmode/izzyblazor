@@ -259,7 +259,7 @@ namespace-matches-folder check for `src/`.
 Form controls are named by what they render:
 
 - `...Field`: renders its own label, hint and errors in the field box (`TextField`, `NumberField`,
-  `DateField`, `TimeField`; later `SearchField`). Most form controls are fields.
+  `DateField`, `DateRangeField`, `TimeField`; later `SearchField`). Most form controls are fields.
 - `...Input`: a bare control with no label, for custom layouts. None today.
 - `...Picker`: opens a panel to choose from, with no input to type in (`ColorPicker`). A field that
   takes typing and also opens a panel stays a `...Field` (`DateField`).

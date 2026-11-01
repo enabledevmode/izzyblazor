@@ -1,0 +1,220 @@
+@namespace IzzyBlazor
+@inherits CalendarFieldBase<DateRange?>
+@attribute [ModeSupport]
+
+@*
+    Two whole days, both included: the browser's own date inputs in one box, so each posts with the
+    form, as {name}.Start and {name}.End, and takes a typed date. Bind it to a DateRange.
+    <DateRangeField @bind-Value="Model.Period" />
+    <DateRangeField @bind-Value="Model.Period" Min="@today" MaxDays="90" />
+
+    A DateRange holds days, so midnight never enters it. To query a time column:
+    range.Contains(order.PlacedAt)        a DateTime compares by its clock date
+    var (from, until) = range.ToUtc(zone) from <= x && x < until, either may be null
+
+    Min, Max, MinDays, MaxDays and DateDisabled are checked on the server, along with the end not
+    being before the start, so they hold against a phone, no script or a crafted post. DateDisabled
+    turns away a span with a disabled day in it, unless AllowDisabledInRange. An empty field is no
+    value; with Required, a field with only one end is turned away too.
+
+    Accessibility:
+    - It renders a `fieldset` named by the label, with a `label` linked to each date input, and the
+      hint and errors linked to the group.
+    - Screen readers read each part of each date, and arrow keys change it.
+    - The arrow between the inputs is hidden from screen readers.
+
+    Keyboard:
+    In a date
+    - Up, Down | Change the focused part of the date
+    - Left, Right | Move between the parts of the date
+    - Tab | Move to the next part, then the other date
+    See also: DateField, Calendar, Form.
+*@
+
+<FieldFrame Class="@WrapperClass("date-range")" Style="@WrapperStyle" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired" Group
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <div class="ib-date-range-captions">
+        <label for="@FieldId">@(StartText ?? TextDefaults.DateRangeStart)</label>
+        <label for="@EndId">@(EndText ?? TextDefaults.DateRangeEnd)</label>
+    </div>
+    <div class="ib-field-control ib-date-range-box">
+        <input @attributes="ControlAttributes"
+               id="@FieldId"
+               class="ib-field-input"
+               type="@InputType"
+               name="@PartName("Start")"
+               value="@FormatDate(CurrentValue?.Start)"
+               @onchange="e => ChangeAsync(e, end: false)"
+               min="@FormatDate(Min)"
+               max="@FormatDate(Max)"
+               required="@IsRequired"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               autofocus="@FocusesGroup"
+               data-ib-autofocus="@(FocusesGroup ? "" : null)"
+               aria-invalid="@(Invalid ? "true" : null)" />
+        <Icon Role="IconRole.RangeTo" />
+        <input @attributes="ControlAttributes"
+               id="@EndId"
+               class="ib-field-input"
+               type="@InputType"
+               name="@PartName("End")"
+               value="@FormatDate(CurrentValue?.End)"
+               @onchange="e => ChangeAsync(e, end: true)"
+               min="@FormatDate(EarliestEnd)"
+               max="@FormatDate(Max)"
+               required="@IsRequired"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               aria-invalid="@(Invalid ? "true" : null)" />
+    </div>
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>The earliest day either end can be.</summary>
+    [Parameter] public DateOnly? Min { get; set; }
+
+    /// <summary>The latest day either end can be.</summary>
+    [Parameter] public DateOnly? Max { get; set; }
+
+    /// <summary>The fewest days a range can span, both ends counted.</summary>
+    [Parameter] public int? MinDays { get; set; }
+
+    /// <summary>The most days a range can span, both ends counted.</summary>
+    [Parameter] public int? MaxDays { get; set; }
+
+    /// <summary>
+    /// Lets a range span days that <see cref="CalendarFieldBase{TValue}.DateDisabled"/> turns off, as
+    /// a stay can span a day with no arrivals. Its ends still can't be those days.
+    /// </summary>
+    [Parameter] public bool AllowDisabledInRange { get; set; }
+
+    /// <summary>The caption of the first date, in place of "Start".</summary>
+    [Parameter] public string? StartText { get; set; }
+
+    /// <summary>The caption of the second date, in place of "End".</summary>
+    [Parameter] public string? EndText { get; set; }
+
+    // Not written in the markup: there, Razor makes the value format a date, and it binds text.
+    private const string InputType = "date";
+
+    private string EndId => FieldId + "-end";
+
+    private string? PartName(string part) => string.IsNullOrEmpty(NameAttributeValue) ? null : $"{NameAttributeValue}.{part}";
+
+    // The end can't be before the start, or Min.
+    private DateOnly? EarliestEnd => (CurrentValue?.Start, Min) switch
+    {
+        ({ } start, { } min) => start > min ? start : min,
+        ({ } start, null) => start,
+        (null, var min) => min,
+    };
+
+    /// <inheritdoc />
+    private protected override DateOnly? ChosenDay => CurrentValue?.Start;
+
+    /// <inheritdoc />
+    private protected override DateOnly? FirstDay => Min;
+
+    /// <inheritdoc />
+    private protected override DateOnly? LastDay => Max;
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => true;
+
+    private Task ChangeAsync(ChangeEventArgs e, bool end)
+    {
+        DateOnly? day = DateOnly.TryParseExact(e.Value?.ToString(), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var read) ? read : null;
+        var (start, last) = end ? (CurrentValue?.Start, day) : (day, CurrentValue?.End);
+        CurrentValue = start is null && last is null ? null : new DateRange(start, last);
+        return Task.CompletedTask;
+    }
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(DateRange? value)
+    {
+        if (value is not { } range)
+        {
+            return null;
+        }
+
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        string Said(DateOnly day) => day.ToString("d", culture);
+        string Say(string text, object argument) => string.Format(culture, text, ResolvedLabel, argument);
+
+        // A post of two empty inputs can bind to a range with no ends, which [Required] would pass.
+        if (IsRequired && (range.Start is null || range.End is null))
+        {
+            return string.Format(culture, TextDefaults.DateRangeIncomplete, ResolvedLabel);
+        }
+
+        foreach (var day in new[] { range.Start, range.End }.OfType<DateOnly>())
+        {
+            if (day < Min)
+            {
+                return Say(TextDefaults.TooEarly, Said(Min.Value));
+            }
+
+            if (day > Max)
+            {
+                return Say(TextDefaults.TooLate, Said(Max.Value));
+            }
+
+            if (DateDisabled?.Invoke(day) == true)
+            {
+                return Say(TextDefaults.DateUnavailable, Said(day));
+            }
+        }
+
+        if (range.Days is not { } days)
+        {
+            return null;
+        }
+
+        if (days < 1)
+        {
+            return string.Format(culture, TextDefaults.DateRangeReversed, ResolvedLabel);
+        }
+
+        if (days < MinDays)
+        {
+            return Say(TextDefaults.DateRangeTooShort, MinDays.Value);
+        }
+
+        if (days > MaxDays)
+        {
+            return Say(TextDefaults.DateRangeTooLong, MaxDays.Value);
+        }
+
+        if (DateDisabled is not null && !AllowDisabledInRange)
+        {
+            for (var number = range.Start!.Value.DayNumber + 1; number < range.End!.Value.DayNumber; number++)
+            {
+                if (DateDisabled(DateOnly.FromDayNumber(number)))
+                {
+                    return Say(TextDefaults.DateRangeHasUnavailable, Said(DateOnly.FromDayNumber(number)));
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(DateRange? value) => $"{FormatDate(value?.Start)}/{FormatDate(value?.End)}";
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out DateRange result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        // Each input is read on its own, above: nothing goes through one string.
+        result = CurrentValue!;
+        validationErrorMessage = null;
+        return true;
+    }
+}

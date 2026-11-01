@@ -2696,6 +2696,66 @@
     }
   }
 
+  /* DateRangeField: two inputs drawn as one field, the box taking the border and the focus ring. */
+  .ib-date-range-captions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    padding-inline: var(--ib-field-px);
+    margin-block-end: var(--ib-space-1);
+    font-size: var(--ib-field-hint-font);
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-date-range-box {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) 1.5rem minmax(0, 1fr);
+    align-items: center;
+    justify-items: center;
+    border: 1px solid var(--ib-field-border);
+    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    background-color: var(--ib-field-bg);
+    transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-date-range-box > .ib-icon {
+    --ib-icon-size: 1rem;
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-date-range-box > .ib-icon:dir(rtl) {
+    scale: -1 1;
+  }
+
+  .ib-date-range-box > .ib-field-input {
+    height: calc(var(--ib-field-h) - 2px);
+    border: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  /* Room for a whole date on a phone. */
+  @media (width < 26rem) {
+    .ib-date-range-box > .ib-field-input {
+      padding-inline: var(--ib-space-2) 0;
+    }
+  }
+
+  .ib-date-range-box:has(> :focus-visible) {
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
+  }
+
+  .ib-field-invalid > .ib-date-range-box,
+  .ib-date-range-box:has(> :user-invalid) {
+    border-color: var(--ib-color-danger);
+  }
+
+  .ib-field-disabled > .ib-date-range-box,
+  .ib-field-readonly > .ib-date-range-box {
+    background-color: var(--ib-color-fill);
+  }
+
   /* DurationField: a box per unit, and one text input that posts. The boxes wait for the script, so
      with none, or where its code can't load, the text input shows in their place. */
   .ib-duration-boxes {
