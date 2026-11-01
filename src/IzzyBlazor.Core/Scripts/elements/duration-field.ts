@@ -12,7 +12,7 @@ class DurationField extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     const text = this.querySelector<HTMLInputElement>(".ib-duration-text input");
     const boxes = [...this.querySelectorAll<HTMLInputElement>("[data-ib-seconds]")];
-    const sign = this.querySelector("select");
+    const sign = this.querySelector<HTMLButtonElement>(".ib-duration-sign");
     const first = boxes[0];
     if (!text || !first) return;
     const size = (box: HTMLInputElement): number => Number(box.dataset.ibSeconds);
@@ -44,7 +44,7 @@ class DurationField extends IzzyElement {
       let left = Math.round(boxes.reduce((sum, box) => sum + Number(box.value) * size(box), 0));
       left -= left % smallest;
       const [days, hours] = [Math.floor(left / 86400), Math.floor(left / 3600) % 24];
-      text.value = `${sign?.value === "-" && left > 0 ? "-" : ""}${days ? `${days}.` : ""}${pad(hours)}:${pad(Math.floor(left / 60) % 60)}:${pad(left % 60)}`;
+      text.value = `${sign?.ariaPressed === "true" && left > 0 ? "-" : ""}${days ? `${days}.` : ""}${pad(hours)}:${pad(Math.floor(left / 60) % 60)}:${pad(left % 60)}`;
       if (!settle) return;
       // What C# would draw, which leaves a box alone if its part didn't change: 60 minutes on 0 stays
       // 60. A blank box stays blank unless a value carries into it.
@@ -56,6 +56,15 @@ class DurationField extends IzzyElement {
     };
 
     text.addEventListener("focus", () => first.focus(), { signal });
+    sign?.addEventListener(
+      "click",
+      () => {
+        sign.ariaPressed = String(sign.ariaPressed !== "true");
+        write(sign, true);
+        text.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      { signal }
+    );
     this.addEventListener("input", (event) => { if (event.target !== text) write(event.target, false); }, { signal });
     this.addEventListener(
       "change",

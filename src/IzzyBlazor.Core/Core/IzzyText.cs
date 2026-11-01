@@ -383,8 +383,8 @@ public class IzzyText
     /// <summary>DurationField's box for seconds.</summary>
     public virtual string DurationSeconds { get; set; } = "Seconds";
 
-    /// <summary>DurationField's choice of plus or minus.</summary>
-    public virtual string DurationSign { get; set; } = "Sign";
+    /// <summary>DurationField's button that makes the length negative.</summary>
+    public virtual string DurationNegative { get; set; } = "Negative";
 
     /// <summary>The button that opens a Combobox or MultiSelect list.</summary>
     public virtual string ShowOptions { get; set; } = "Show options";
