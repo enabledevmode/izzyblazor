@@ -5,6 +5,7 @@
 // 1. Generates the responsive style-prop CSS from STYLE_PROPS below
 //    (src/IzzyBlazor.Core/Styles/_generated/*.css).
 // 2. Bundles src/IzzyBlazor.Core/Styles/izzyblazor.css -> wwwroot/izzyblazor.css
+//    and src/IzzyBlazor.Core/Styles/date.css -> wwwroot/date.css
 // 3. Bundles src/IzzyBlazor.Core/Scripts/index.ts      -> wwwroot/IzzyBlazor.Core.lib.module.js
 //    (Blazor loads "<AssemblyName>.lib.module.js" automatically as a JS initializer.)
 //
@@ -198,6 +199,13 @@ const builds = [
     outfile: join(lib, "wwwroot", "izzyblazor.css"),
     // Font files are served beside the stylesheet (wwwroot/fonts), so their URLs stay as written.
     external: ["*.woff2"],
+  },
+  {
+    // A sheet of its own, linked by the components that draw a calendar.
+    ...common,
+    sourcemap: false,
+    entryPoints: [join(lib, "Styles", "date.css")],
+    outfile: join(lib, "wwwroot", "date.css"),
   },
   {
     ...common,

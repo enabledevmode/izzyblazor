@@ -1,0 +1,129 @@
+/*
+ * The calendar's styles, built to wwwroot/date.css and linked by the components that draw one, so
+ * pages without one don't pay for them. The main sheet sets the layer order, and holds the calendar
+ * back until this arrives. No @media (scripting: ...) here: the docs' Off pages rewrite only the
+ * main sheet, so those rules go there.
+ */
+@layer izzy.components {
+  .ib-field-calendar {
+    width: fit-content;
+    max-width: 100%;
+  }
+
+  /* The month decides the field's width, so a long hint or error wraps to it. */
+  .ib-field-calendar > :is(.ib-field-hint, .ib-field-error) {
+    contain: inline-size;
+  }
+
+  .ib-calendar {
+    --ib-calendar-cell: var(--ib-field-h);
+    visibility: visible;
+    min-height: 0;
+    margin-top: var(--ib-space-2);
+    font-size: var(--ib-field-font);
+  }
+
+  .ib-calendar-month {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: var(--ib-calendar-cell);
+    font-weight: var(--ib-weight-medium);
+    color: var(--ib-color-on-surface);
+  }
+
+  /* Square days, narrowing together where the screen has too little room for them. */
+  .ib-calendar-grid {
+    width: calc(var(--ib-calendar-cell) * 7);
+    max-width: 100%;
+    border-collapse: collapse;
+    table-layout: fixed;
+  }
+
+  .ib-calendar-grid:has(tbody th) {
+    width: calc(var(--ib-calendar-cell) * 8);
+  }
+
+  .ib-calendar-grid th {
+    height: var(--ib-calendar-cell);
+    padding: 0;
+    font-size: var(--ib-field-hint-font);
+    font-weight: var(--ib-weight-normal);
+    color: var(--ib-color-muted);
+    text-align: center;
+  }
+
+  .ib-calendar-grid td {
+    padding: 0;
+  }
+
+  .ib-calendar-day {
+    display: block;
+    width: 100%;
+    height: var(--ib-calendar-cell);
+    padding: 0;
+    border: 0;
+    border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
+    background: none;
+    color: var(--ib-color-on-surface);
+    font: inherit;
+    font-variant-numeric: tabular-nums;
+    text-align: center;
+  }
+
+  .ib-calendar-outside > .ib-calendar-day {
+    color: var(--ib-color-muted);
+  }
+
+  /* Hovers only once the script can act on a click: until then the month only shows. */
+  .ib-calendar[data-ready] .ib-calendar-day:not(:disabled, [aria-disabled="true"]) {
+    cursor: pointer;
+  }
+
+  .ib-calendar[data-ready] td:not([aria-selected="true"]) > .ib-calendar-day:not(:disabled, [aria-disabled="true"]):hover {
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-calendar-day:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  /* Today: an underline, since a ring would read as focus and a fill as the chosen day. */
+  .ib-calendar-day[aria-current="date"] {
+    font-weight: var(--ib-weight-semibold);
+    text-decoration: underline;
+    text-decoration-thickness: 2px;
+    text-underline-offset: 3px;
+  }
+
+  .ib-calendar-day:is(:disabled, [aria-disabled="true"]) {
+    color: var(--ib-color-disabled);
+  }
+
+  .ib-calendar-day[aria-disabled="true"] {
+    text-decoration: line-through;
+  }
+
+  td[aria-selected="true"] > .ib-calendar-day {
+    background-color: var(--ib-color-primary);
+    color: var(--ib-color-on-primary);
+  }
+
+  td[aria-selected="true"] > .ib-calendar-day:disabled {
+    background-color: var(--ib-color-fill-strong);
+    color: var(--ib-color-disabled);
+  }
+
+  td[aria-selected="true"] > .ib-calendar-day:focus-visible {
+    outline-offset: 2px;
+  }
+
+  @media (forced-colors: active) {
+    td[aria-selected="true"] > .ib-calendar-day {
+      forced-color-adjust: none;
+      background-color: Highlight;
+      color: HighlightText;
+    }
+  }
+}

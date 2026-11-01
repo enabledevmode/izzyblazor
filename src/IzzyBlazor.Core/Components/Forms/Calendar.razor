@@ -1,0 +1,191 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits FieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the date is typed or picked in the browser's own input above a month that shows it and can't change.")]
+
+@*
+    A month on the page, with the chosen day marked, and the browser's own date input that posts it.
+    Bind it to DateOnly or DateOnly?.
+    <Calendar @bind-Value="Model.Day" />
+    <Calendar @bind-Value="Model.Day" Min="@today" Max="@lastDay" ShowWeekNumbers />
+
+    In a preview for now: the month follows the input, and clicking a day comes next.
+
+    Names and the first day of the week follow the page's culture, or Culture. It's always the
+    Gregorian calendar, which is what a date input posts. Min and Max are checked in the browser
+    and again on the server.
+
+    Accessibility:
+    - It renders the browser's own date `input` with a `label` linked to it: screen readers read
+      each part (day, month, year) and arrow keys change it.
+    - The month is a `grid` named by the month and year, with full day names on its columns and the
+      full date on each day. The chosen day has `aria-selected`.
+    - A day outside Min and Max has `aria-disabled`, and a line through it as well as its color.
+    - Label, hint and errors work as in `TextField`.
+    See also: DateField, TimeField, Form.
+*@
+
+<FieldFrame Class="@WrapperClass("calendar")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    <ib-field-control class="ib-field-control">
+        <input @attributes="ControlAttributes"
+               id="@FieldId"
+               class="ib-field-input"
+               type="@InputType"
+               name="@NameAttributeValue"
+               @bind="CurrentValueAsString"
+               min="@FormatDate(ResolvedMin)"
+               max="@FormatDate(ResolvedMax)"
+               required="@IsRequired"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy" />
+    </ib-field-control>
+    <ib-calendar class="ib-calendar">
+        <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+        @CalendarGrid.Month(View)
+    </ib-calendar>
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>The earliest date. Defaults to <c>[Range]</c>'s minimum.</summary>
+    [Parameter] public DateOnly? Min { get; set; }
+
+    /// <summary>The latest date. Defaults to <c>[Range]</c>'s maximum.</summary>
+    [Parameter] public DateOnly? Max { get; set; }
+
+    /// <summary>The first column. Defaults to the culture's first day of the week.</summary>
+    [Parameter] public DayOfWeek? FirstDayOfWeek { get; set; }
+
+    /// <summary>The culture for the month and day names, the first day and the week numbers. Defaults to the current culture.</summary>
+    [Parameter] public System.Globalization.CultureInfo? Culture { get; set; }
+
+    /// <summary>Adds a first column with the week of the year, counted as the culture counts them.</summary>
+    [Parameter] public bool ShowWeekNumbers { get; set; }
+
+    /// <summary>Whether to show the days of the months before and after, muted, in the first and last weeks. Defaults to true.</summary>
+    [Parameter] public bool ShowAdjacentDays { get; set; } = true;
+
+    // Not written in the markup: there, Razor makes @bind format a date, and it binds text.
+    private const string InputType = "date";
+
+    private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
+        Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
+
+    private DateOnly? ResolvedMin => Min ?? Annotated(Range?.Minimum);
+
+    private DateOnly? ResolvedMax => Max ?? Annotated(Range?.Maximum);
+
+    private System.Globalization.CultureInfo ResolvedCulture =>
+        CalendarGrid.Gregorian(Culture ?? System.Globalization.CultureInfo.CurrentCulture);
+
+    private DateOnly? Chosen => CurrentValue is DateOnly date && date != default ? date : null;
+
+    private CalendarView View
+    {
+        get
+        {
+            var culture = ResolvedCulture;
+            return new(
+                FirstMonth,
+                Chosen,
+                ResolvedMin,
+                ResolvedMax,
+                FirstDayOfWeek ?? culture.DateTimeFormat.FirstDayOfWeek,
+                culture,
+                ShowWeekNumbers,
+                ShowAdjacentDays,
+                IsDisabled,
+                IsReadOnly,
+                FieldId + "-month",
+                TextDefaults.CalendarWeekText,
+                TextDefaults.CalendarWeek);
+        }
+    }
+
+    // The chosen day's month. With none, this month in UTC, as the server doesn't know the person's
+    // zone, or the nearest with a day that can be chosen.
+    private DateOnly FirstMonth
+    {
+        get
+        {
+            if (Chosen is { } chosen)
+            {
+                return chosen;
+            }
+
+            var today = DateOnly.FromDateTime(DateTime.UtcNow);
+            return today < ResolvedMin ? ResolvedMin.Value : today > ResolvedMax ? ResolvedMax.Value : today;
+        }
+    }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if ((Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue)) != typeof(DateOnly))
+        {
+            throw new InvalidOperationException($"Calendar doesn't support {typeof(TValue)}. Bind it to DateOnly or DateOnly?.");
+        }
+
+        base.OnParametersSet();
+    }
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => Min is not null || Max is not null;
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        var date = (DateOnly)(object)value!;
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        string Said(DateOnly limit) => limit.ToString("d", CalendarGrid.Gregorian(culture));
+        return date < Min ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(Min.Value))
+            : date > Max ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(Max.Value))
+            : null;
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => value is DateOnly date ? FormatDate(date) : null;
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        validationErrorMessage = null;
+        result = default!;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            if (Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+            {
+                return true;
+            }
+        }
+        else if (DateOnly.TryParseExact(value.Trim(), InputFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date))
+        {
+            result = (TValue)(object)date;
+            return true;
+        }
+
+        validationErrorMessage = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DateInvalid, ResolvedLabel ?? FieldIdentifier.FieldName);
+        return false;
+    }
+
+    private static string? FormatDate(DateOnly? date) => date?.ToString(InputFormat, System.Globalization.CultureInfo.InvariantCulture);
+
+    // [Range]'s end: text from Range(typeof(DateOnly), "2027-01-01", "2027-12-31").
+    private static DateOnly? Annotated(object? end) => end switch
+    {
+        DateOnly date => date,
+        string text when DateOnly.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var date) => date,
+        _ => null,
+    };
+
+    // What date inputs post.
+    private const string InputFormat = "yyyy-MM-dd";
+}

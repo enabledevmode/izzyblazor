@@ -2581,6 +2581,14 @@
     }
   }
 
+  /* Calendar: the rest is in date.css, which it links. Held back at its size until that arrives,
+     so a calendar brought by enhanced navigation doesn't draw unstyled or move the page. */
+  .ib-calendar {
+    display: block;
+    visibility: hidden;
+    min-height: calc(var(--ib-field-h) * 8);
+  }
+
   /* DurationField: a box per unit, and one text input that posts. The boxes wait for the script, so
      with none, or where its code can't load, the text input shows in their place. */
   .ib-duration-boxes {

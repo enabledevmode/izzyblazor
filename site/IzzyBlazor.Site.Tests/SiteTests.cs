@@ -233,6 +233,12 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
 
         Assert.Contains(".ib-btn", css);
         Assert.DoesNotContain(":defined", css);
+
+        // The calendar's sheet too, and no scripting rules there: Off pages rewrite only the main sheet.
+        var date = await site.Client.GetStringAsync("_content/IzzyBlazor.Core/date.css");
+        Assert.Contains(".ib-calendar", date);
+        Assert.DoesNotContain(":defined", date);
+        Assert.DoesNotContain("scripting:", date);
     }
 
     [Fact]
