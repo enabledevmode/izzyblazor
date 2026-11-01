@@ -29,6 +29,8 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   no script; here it's a Tab stop only while there's something to scroll. Focused, it stays.
  *   It also gives the box its visible width (--ib-table-view), which keeps the "no items" message
  *   centered in view when the columns are wider than the box.
+ * - A filter row's operator shows at once on a static page, on its button and in its field's
+ *   placeholder, ahead of the response to its link.
  * - A page of rows holds its height (data-ib-hold, the page size): the tallest it's been, so filters
  *   that leave fewer rows don't pull up what's below. Changing the page size or the page starts again.
  */
@@ -115,6 +117,16 @@ class Table extends IzzyElement {
         this.#rowPanel = opens ?? (event.target as Element).closest<HTMLElement>(".ib-filter-cell-summary")?.getAttribute("popovertarget") ?? this.#rowPanel;
         const clear = (event.target as Element).closest("[data-ib-filter-clear]");
         if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
+        // An operator is a link on a static page, so what it changes would wait for the response.
+        // Reset would show the column's default, which only the server knows.
+        const operator = (event.target as Element).closest("a.ib-menu-item:not([data-ib-reset])");
+        const cell = operator?.closest(".ib-filter-cell");
+        const icon = operator?.querySelector(":scope > .ib-icon");
+        if (cell && icon && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+          cell.querySelector(".ib-filter-cell-op")?.replaceChildren(icon.cloneNode(true));
+          const field = cell.querySelector<HTMLInputElement>("input[placeholder]");
+          if (field) field.placeholder = operator!.querySelector(".ib-menu-label")?.textContent ?? "";
+        }
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
         if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();
