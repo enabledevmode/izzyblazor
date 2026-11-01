@@ -16,8 +16,10 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   Blazor, which keeps the page in place. An operator's select applies at once if there's a value;
  *   with none, the address stays as it is, and the choice only shapes the panel until the next
  *   navigation. (Filters kept in the component on interactive pages don't carry data-ib-filter, so
- *   this leaves them alone.) A list's ticks apply after the same pause, and only those it needs: all
- *   ticked says nothing, and none ticked says so under the list's own key. A header filter's panel
+ *   this leaves them alone.) On a static page, where each would be a trip to the server, what's in a
+ *   panel waits for Apply or Enter, and closing the panel any other way drops it; a filter row's own
+ *   fields still apply as above, as do an interactive page's panels. A list writes only the ticks it
+ *   needs: all ticked says nothing, and none ticked says so under the list's own key. A header filter's panel
  *   stays open while you type; Enter applies and closes it, Escape closes it as it is, and either
  *   puts focus back on its button.
  * - Loading on scroll (Paging LoadOnScroll, interactive pages): when the last row comes into view,
@@ -137,12 +139,25 @@ class Table extends IzzyElement {
           this.#rowPanel = this.#underCell = opened;
           this.#placeUnderCell();
         }
+        // On a static page Between waits for Apply like the rest of the panel, with no trip of its own.
+        const operatorField = opens && !this.hasAttribute("data-ib-interactive") ? opens.querySelector<HTMLSelectElement>("select[data-ib-filter]") : null;
+        if (operatorField) {
+          event.preventDefault();
+          operatorField.value = "between";
+          this.#touch(operatorField);
+          // The row's field hands over now: from here what's in the panel is what's meant.
+          for (const edit of this.#rowEdits) {
+            const twin = opens!.querySelector<HTMLInputElement>(`input[name="${CSS.escape(edit.name)}"]`);
+            if (twin) twin.value = edit.value;
+          }
+          this.#rowEdits.clear();
+        }
         opens?.showPopover();
         const clear = (event.target as Element).closest("[data-ib-filter-clear]");
         if (clear && !(event as MouseEvent).ctrlKey && !(event as MouseEvent).metaKey && !(event as MouseEvent).shiftKey) this.#closePanel(clear);
         // An operator is a link on a static page, so what it changes would wait for the response.
         // Reset would show the column's default, which only the server knows.
-        const operator = (event.target as Element).closest("a.ib-menu-item:not([data-ib-reset])");
+        const operator = (event.target as Element).closest("a.ib-menu-item:not([data-ib-reset], [data-ib-opens-panel])");
         const cell = operator?.closest(".ib-filter-cell");
         const icon = operator?.querySelector(":scope > .ib-icon");
         if (cell && icon && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
@@ -300,6 +315,7 @@ class Table extends IzzyElement {
         const target = event.target;
         if (!isFilter(target)) return;
         this.#touch(target);
+        if (this.#waits(target)) return;
         if (target instanceof HTMLSelectElement) {
           clearTimeout(this.#timer);
           this.#typing.forget(target);
@@ -337,6 +353,39 @@ class Table extends IzzyElement {
         this.#closePanel(target);
       },
       { signal }
+    );
+    // A static list's Apply, which is the GET form's button with no script.
+    this.addEventListener(
+      "click",
+      (event) => {
+        const apply = (event.target as Element).closest(".ib-table-filter-apply");
+        if (!apply || !apply.closest("[popover]")) return;
+        event.preventDefault();
+        clearTimeout(this.#timer);
+        this.#apply(false);
+        this.#closePanel(apply);
+      },
+      { signal }
+    );
+    // Closed any other way, what wasn't applied is gone. Once applied, nothing's waiting (#changed is
+    // empty), and the response says what the panel's controls hold.
+    this.addEventListener(
+      "toggle",
+      (event) => {
+        const panel = event.target as HTMLElement;
+        if ((event as ToggleEvent).newState !== "closed" || !this.#changed.size) return;
+        const controls = [...panel.querySelectorAll<HTMLInputElement | HTMLSelectElement>(".ib-table-filter-panel [data-ib-filter]")];
+        if (!controls.some((control) => this.#waits(control) && this.#changed.has(control.name))) return;
+        for (const control of controls) {
+          this.#changed.delete(control.name);
+          this.#typing.forget(control);
+          if (isTick(control)) control.checked = control.defaultChecked;
+          else if (control instanceof HTMLInputElement) control.value = control.defaultValue;
+          else for (const option of control.options) option.selected = option.defaultSelected;
+        }
+        panel.querySelector("ib-filter-list")?.dispatchEvent(new Event("change", { bubbles: true }));
+      },
+      { capture: true, signal }
     );
     this.addEventListener(
       "focusout",
@@ -415,6 +464,11 @@ class Table extends IzzyElement {
     return true;
   }
 
+  // Whether a change waits for Apply: on a static page, in a panel, not a filter row's own field.
+  #waits(control: Element): boolean {
+    return !this.hasAttribute("data-ib-interactive") && !!control.closest(".ib-table-filter-panel");
+  }
+
   #touch(control: Element): void {
     // A panel's controls go together; the toolbar's search is on its own.
     this.#changed.add((control as HTMLInputElement).name);
@@ -423,6 +477,12 @@ class Table extends IzzyElement {
   }
 
   #typed(input: HTMLInputElement): void {
+    if (this.#waits(input)) {
+      // It isn't applied yet, but a response for something else mustn't undo it.
+      this.#touch(input);
+      this.#typing.typed(input);
+      return;
+    }
     this.#touch(input);
     this.#typing.typed(input);
     clearTimeout(this.#timer);
@@ -444,7 +504,8 @@ class Table extends IzzyElement {
       if (twin && edit.isConnected && !unfinished(edit)) twin.value = edit.value;
     }
     this.#rowEdits.clear();
-    const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c));
+    // A row's field has handed over to its panel's, which is the one to read.
+    const controls = own.filter((c) => this.#changed.has(c.name) && !unfinished(c) && !c.hasAttribute("data-ib-row"));
     if (controls.length === 0) return false;
     // A name can repeat: all of them go, then each control with something to say comes back.
     for (const control of controls) url.searchParams.delete(control.name);

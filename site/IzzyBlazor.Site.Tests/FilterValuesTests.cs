@@ -27,6 +27,19 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         return panel;
     }
 
+    // A static page's list waits for Apply, which closes it, so this opens it again; an interactive one's has applied.
+    private static async Task<ILocator> AppliedAsync(IPage page, ILocator table, ILocator panel, string column, string mode)
+    {
+        if (mode != "static")
+        {
+            return panel;
+        }
+
+        await panel.Locator(".ib-table-filter-apply").ClickAsync();
+        await panel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
+        return await OpenPanelAsync(page, table, column);
+    }
+
     private static ILocator Rows(ILocator panel) => panel.Locator(".ib-filter-list-items > label");
 
     private static ILocator Box(ILocator panel, string name) => panel.GetByRole(AriaRole.Checkbox, new() { Name = name, Exact = true });
@@ -83,6 +96,7 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         await CountIsAsync(Rows(panel), 50);
 
         await Box(panel, "Customer 001").UncheckAsync();
+        panel = await AppliedAsync(page, table, panel, "Customer", mode);
 
         await AddressHasAsync(page, "values-f-customer-op=notin");
         await AddressHasAsync(page, "values-f-customer=Customer%20001");
@@ -108,10 +122,12 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         await CountIsAsync(Rows(panel), 50);
 
         await All(panel).UncheckAsync();
+        panel = await AppliedAsync(page, table, panel, "Customer", mode);
         await AddressHasAsync(page, "values-f-customer-none=1");
         await CountIsAsync(table.Locator("tbody tr:not(.ib-table-empty)"), 0);
 
         await Box(panel, "Customer 002").CheckAsync();
+        await AppliedAsync(page, table, panel, "Customer", mode);
         await AddressHasAsync(page, "values-f-customer-none", has: false);
         await AddressHasAsync(page, "values-f-customer-op=in");
         await CountIsAsync(table.Locator("tbody tr:not(.ib-table-empty)"), 1);
@@ -134,10 +150,19 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         Assert.Contains("Select all 9 results", await panel.Locator(".ib-filter-list-all").InnerTextAsync(), StringComparison.Ordinal);
 
         await All(panel).UncheckAsync();
+        if (mode == "static")
+        {
+            await panel.Locator(".ib-table-filter-apply").ClickAsync();
+        }
+
         await AddressHasAsync(page, "values-f-customer-op=notin");
         Assert.Contains("Customer%20009", Address(page), StringComparison.Ordinal);
 
-        await page.Keyboard.PressAsync("Escape");
+        if (mode != "static")
+        {
+            await page.Keyboard.PressAsync("Escape");
+        }
+
         await panel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
 
         panel = await OpenPanelAsync(page, table, "Customer");
@@ -174,9 +199,11 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         await CountIsAsync(Rows(panel), 13);
 
         await Box(panel, "(Blank)").UncheckAsync();
+        panel = await AppliedAsync(page, table, panel, "City", mode);
         await AddressHasAsync(page, "values-f-city-blank=1");
 
         await Box(panel, "(Blank)").CheckAsync();
+        await AppliedAsync(page, table, panel, "City", mode);
         await AddressHasAsync(page, "values-f-city", has: false);
     }
 
@@ -253,27 +280,6 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         await AddressHasAsync(page, "values-f-city=City");
         await AddressHasAsync(page, "values-f-customer-op=notin");
         await AddressHasAsync(page, "values-f-customer=Customer");
-    }
-
-    [Fact]
-    public async Task A_static_list_stays_open_with_its_rows_through_its_own_filtering()
-    {
-        var (browser, page, table) = await OpenAsync("static");
-        await using var _ = browser;
-        var panel = await OpenPanelAsync(page, table, "Customer");
-        await CountIsAsync(Rows(panel), 50);
-        await Rows(panel).Last.ScrollIntoViewSettledAsync();
-        await CountIsAsync(Rows(panel), 100);
-
-        await Box(panel, "Customer 003").UncheckAsync();
-        await AddressHasAsync(page, "values-f-customer-op=notin");
-        await Assertions.Expect(table.Locator("tbody tr").First).ToContainTextAsync("Customer");
-        await page.WaitForTimeoutAsync(400);
-
-        Assert.True(await panel.IsVisibleAsync());
-        Assert.True(await Rows(panel).CountAsync() >= 100);
-        Assert.False(await Box(panel, "Customer 003").IsCheckedAsync());
-        Assert.True(await Box(panel, "Customer 004").IsCheckedAsync());
     }
 
     [Fact]
@@ -388,6 +394,7 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
 
         await HasFocusAsync(Box(panel, "Customer 003"));
         await page.Keyboard.PressAsync("Space");
+        await panel.Locator(".ib-table-filter-apply").ClickAsync();
         await AddressHasAsync(page, "values-f-customer=Customer%20003");
     }
 

@@ -528,10 +528,9 @@
   }
 
   /* With script the filters apply as they change: no Apply button, from the first paint. */
-  @media (scripting: enabled) {
-    ib-table:not([data-ib-failed]) .ib-table-filter-apply {
-      display: none;
-    }
+  /* A static page's panel waits for it. An interactive page's applies as it changes. */
+  ib-table[data-ib-interactive] .ib-table-filter-apply {
+    display: none;
   }
 
   /* The active filters as removable tags, below the rows: all of them with FilterPanel, otherwise

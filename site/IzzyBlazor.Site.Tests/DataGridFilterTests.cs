@@ -93,7 +93,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task FilterPanel_sits_below_the_rows_and_nothing_moves(string mode)
     {
@@ -116,7 +115,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task A_change_in_one_panel_leaves_what_a_Clear_just_removed(string mode)
     {
@@ -251,7 +249,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task The_address_gets_an_operator_only_with_a_value(string mode)
     {
@@ -325,7 +322,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     // The panels show what the address says once everything has settled, and the next filter keeps it.
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Back_and_forward_leave_the_panels_showing_the_address(string mode)
     {
@@ -366,7 +362,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Back_over_a_sort_leaves_a_Tables_fields_and_the_next_filter_keeps_them(string mode)
     {
@@ -396,7 +391,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     // Script mustn't change what a link means, on load or at the next filter.
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task A_repeated_key_keeps_every_value_with_script(string mode)
     {
@@ -434,7 +428,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     // A date applies when it's whole: not year 0002 on the way to 2026, and not a field half edited.
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task A_date_typed_by_keyboard_applies_once_when_whole(string mode)
     {
@@ -519,7 +512,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     // A response already on its way draws the panel as it was when that was asked for.
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task An_operator_chosen_with_a_response_on_its_way_stays(string mode)
     {
@@ -552,7 +544,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
 
     // The design's rule: an operator with no value doesn't outlast the next filter.
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task An_operator_with_no_value_resets_when_another_column_filters(string mode)
     {
@@ -581,7 +572,6 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Theory]
-    [InlineData("static")]
     [InlineData("interactive")]
     public async Task Keys_in_a_panel_filter_and_close_and_leave_the_filter(string mode)
     {

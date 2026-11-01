@@ -21,7 +21,7 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
-    public async Task A_list_opened_from_the_row_stays_under_it_as_ticks_apply(string mode)
+    public async Task A_list_opens_under_the_row_and_gives_focus_back_there(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
         await using var _ = browser;
@@ -38,11 +38,50 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
 
         await UnderSummaryAsync();
         await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
+        if (mode == "static")
+        {
+            await panel.Locator(".ib-table-filter-apply").ClickAsync();
+        }
+        else
+        {
+            await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
+            await UnderSummaryAsync();
+            await page.Keyboard.PressAsync("Escape");
+        }
+
         await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
-        await UnderSummaryAsync();
+        await Assertions.Expect(summary).ToBeFocusedAsync();
+    }
+
+    [Fact]
+    public async Task A_static_list_waits_for_apply_and_closing_drops_its_ticks()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using var _ = browser;
+        var summary = grid.Locator(".ib-filter-cell-summary").First;
+        var panel = page.Locator("[popover]:popover-open");
+        var requests = 0;
+        page.Request += (_, request) =>
+        {
+            if (request.Url.Contains("row-f-status", StringComparison.Ordinal)) requests++;
+        };
+
+        await summary.ClickAsync();
+        await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
+        await panel.GetByLabel("Failed", new() { Exact = true }).ClickAsync();
+        await page.WaitForTimeoutAsync(600);
+        Assert.Equal(0, requests);
 
         await page.Keyboard.PressAsync("Escape");
-        await Assertions.Expect(summary).ToBeFocusedAsync();
+        await summary.ClickAsync();
+        await Assertions.Expect(panel.GetByLabel("Paid", new() { Exact = true })).ToBeCheckedAsync();
+        Assert.Equal(0, requests);
+
+        await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
+        await panel.Locator(".ib-table-filter-apply").ClickAsync();
+        await page.WaitForURLAsync("**/*row-f-status=*");
+        await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
+        Assert.Equal(1, requests);
     }
 
     [Fact]
@@ -103,6 +142,15 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
 
         var from = grid.Locator("[popover]:popover-open input[name='row-f-total']");
         await from.WaitForAsync();
+        await Assertions.Expect(from).ToBeFocusedAsync();
+
+        // On a static page the row shows it once it's applied.
+        if (mode == "static")
+        {
+            await from.FillAsync("100");
+            await page.Keyboard.PressAsync("Enter");
+        }
+
         await Assertions.Expect(grid.Locator(".ib-table-filter-row .ib-filter-cell-summary[aria-label^='Filter Total']")).ToBeVisibleAsync();
     }
 
@@ -162,11 +210,13 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.WaitForURLAsync("**/*row-f-total=50*");
         await grid.Locator(".ib-table-filter-row [data-ib-menu][aria-label^='Total']").ClickAsync();
         await page.Locator("[popover]:popover-open a", new() { HasText = "Between" }).ClickAsync();
-        await page.WaitForURLAsync("**/*row-f-total-op=between*");
 
         await grid.Locator("[popover]:popover-open input[name='row-f-total']").FillAsync("100");
+        await page.Keyboard.PressAsync("Enter");
 
         await page.WaitForURLAsync("**/*row-f-total=100*");
+        Assert.Contains("row-f-total-op=between", page.Url, StringComparison.Ordinal);
+        Assert.DoesNotContain("row-f-total=50", page.Url, StringComparison.Ordinal);
     }
 }
 

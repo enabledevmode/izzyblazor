@@ -162,8 +162,8 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
             await table.Locator("tbody .ib-table-select").First.CheckAsync();
             await table.Locator("th .ib-table-filter-button[aria-label^='Filter Customer']").ClickAsync();
             await page.Locator("[popover]:popover-open input[type=search]").FillAsync("zzzzz");
+            await page.Keyboard.PressAsync("Enter");
             await Assertions.Expect(table.Locator("tbody .ib-table-select")).ToHaveCountAsync(0);
-            await page.Keyboard.PressAsync("Escape");
 
             await table.Locator(".ib-selection-clear").FocusAsync();
             await page.Keyboard.PressAsync("Enter");
