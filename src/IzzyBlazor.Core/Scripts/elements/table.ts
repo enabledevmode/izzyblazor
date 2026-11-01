@@ -29,6 +29,8 @@ import { setupLoadOnScroll, setupSelectAll, setupSelection } from "../data-view"
  *   no script; here it's a Tab stop only while there's something to scroll. Focused, it stays.
  *   It also gives the box its visible width (--ib-table-view), which keeps the "no items" message
  *   centered in view when the columns are wider than the box.
+ * - A page of rows holds its height (data-ib-hold, the page size): the tallest it's been, so filters
+ *   that leave fewer rows don't pull up what's below. Changing the page size or the page starts again.
  */
 const NO_VALUE = ["isempty", "isnotempty"];
 const PAUSE = 350;
@@ -76,8 +78,12 @@ class Table extends IzzyElement {
   // A panel the row opened, whose button in the row gets focus back from it. An id: choosing Between
   // draws that button only as the panel opens.
   #rowPanel: string | null = null;
+  // Kept for the same reason: setup runs again after the response that made the table shorter.
+  #tallest = 0;
+  #heldFor = "";
 
   protected setup(signal: AbortSignal): void {
+    this.#setupHold(signal);
     this.#setupFilters(signal);
     setupSelectAll(this, ".ib-table-select-all", "tbody .ib-table-select", signal);
     setupSelection(this, "tbody .ib-table-select", signal);
@@ -165,6 +171,32 @@ class Table extends IzzyElement {
       },
       { signal }
     );
+  }
+
+  #setupHold(signal: AbortSignal): void {
+    const hold = () => {
+      const size = this.dataset.ibHold;
+      const key = size ? location.pathname + size : "";
+      if (key !== this.#heldFor) {
+        this.#heldFor = key;
+        this.#tallest = 0;
+        this.style.removeProperty("min-height");
+      }
+      if (!key) return;
+      this.#tallest = Math.max(this.#tallest, this.offsetHeight);
+      const height = this.#tallest ? `${this.#tallest}px` : "";
+      if (this.style.minHeight !== height) this.style.minHeight = height;
+    };
+    // Enhanced navigation's merge takes the style off, and a microtask puts it back before a paint.
+    const sizes = new ResizeObserver(hold);
+    sizes.observe(this);
+    const attributes = new MutationObserver(hold);
+    attributes.observe(this, { attributes: true, attributeFilter: ["style", "data-ib-hold"] });
+    signal.addEventListener("abort", () => {
+      sizes.disconnect();
+      attributes.disconnect();
+    });
+    hold();
   }
 
   #setupScrollStop(signal: AbortSignal): void {

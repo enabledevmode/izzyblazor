@@ -213,7 +213,7 @@ public class IconSet
         IconRole.TrendUp => IzzyBlazor.Lucide.ArrowUpRight,
         IconRole.TrendDown => IzzyBlazor.Lucide.ArrowDownRight,
         IconRole.TrendFlat => IzzyBlazor.Lucide.ArrowRight,
-        IconRole.Filter => IzzyBlazor.Lucide.Funnel,
+        IconRole.Filter => IzzyBlazor.Lucide.ListFilter,
         IconRole.SchemeLight => IzzyBlazor.Lucide.Sun,
         IconRole.SchemeDark => IzzyBlazor.Lucide.Moon,
         IconRole.SchemeSystem => IzzyBlazor.Lucide.Monitor,

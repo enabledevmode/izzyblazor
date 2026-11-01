@@ -77,7 +77,7 @@
     - Space | Tick or untick the value
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-hold="@HeldFor" data-ib-page-key="@(HasFilters && !UseState ? PageKey : null)" data-ib-cursor-key="@(HasFilters && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     @Body
 </ib-table>
 
