@@ -44,12 +44,12 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         }
         else
         {
-            await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
+            await Assertions.Expect(summary).ToHaveTextAsync("Pending, Refunded, Failed");
             await UnderSummaryAsync();
             await page.Keyboard.PressAsync("Escape");
         }
 
-        await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
+        await Assertions.Expect(summary).ToHaveTextAsync("Pending, Refunded, Failed");
         await Assertions.Expect(summary).ToBeFocusedAsync();
     }
 
@@ -80,8 +80,38 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
         await panel.Locator(".ib-table-filter-apply").ClickAsync();
         await page.WaitForURLAsync("**/*row-f-status=*");
-        await Assertions.Expect(summary).ToHaveTextAsync("3 selected");
+        await Assertions.Expect(summary).ToHaveTextAsync("Pending, Refunded, Failed");
         Assert.Equal(1, requests);
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_list_shows_its_names_then_a_count_and_its_x_clears_it(string mode)
+    {
+        var (browser, page, grid) = await OpenAsync(mode);
+        await using var _ = browser;
+        var summary = grid.Locator(".ib-filter-cell-summary").First;
+        var clear = grid.Locator(".ib-filter-cell-clear");
+        var panel = page.Locator("[popover]:popover-open");
+        await Assertions.Expect(summary).ToHaveTextAsync("");
+        await Assertions.Expect(clear).ToHaveCountAsync(0);
+
+        await summary.ClickAsync();
+        await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
+        await panel.GetByLabel("Failed", new() { Exact = true }).ClickAsync();
+        if (mode == "static") await panel.Locator(".ib-table-filter-apply").ClickAsync();
+        else await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(summary).ToHaveTextAsync("Pending, Refunded");
+
+        await Assertions.Expect(summary).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Tab");
+        await Assertions.Expect(clear).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(summary).ToHaveTextAsync("");
+        await Assertions.Expect(clear).ToHaveCountAsync(0);
+        await Assertions.Expect(summary).ToBeFocusedAsync();
+        await Assertions.Expect(panel).ToHaveCountAsync(0);
     }
 
     [Theory]

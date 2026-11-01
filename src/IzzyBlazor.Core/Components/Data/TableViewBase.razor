@@ -1489,8 +1489,21 @@
         column.FilterKind != ColumnFilterKind.Choice && !column.HasValueList && !current.None
         && current.Op is not (FilterOperator.Between or FilterOperator.In or FilterOperator.NotIn) && !ColumnFilter.TakesNoValue(current.Op);
 
+    // A few choices by name, in a row's list; null past that, where the count says more than a clipped line of names.
+    private string? RowListSummary(ColumnBase<TItem> column, ColumnFilterValue current)
+    {
+        if (current.Op != FilterOperator.In || current.Values.Count is < 2 or > 3)
+        {
+            return null;
+        }
+
+        return string.Join(", ", current.Values.Select(v => column.FilterKind == ColumnFilterKind.Choice
+            ? ColumnFilter.ListOf(column, TextDefaults).FirstOrDefault(r => string.Equals(r.Value, v, StringComparison.OrdinalIgnoreCase)).Text ?? v
+            : ValueText(column, v)));
+    }
+
     // A column's filter in the row: its operator's menu as the field's add-on, if it has a choice, then the field, or what the
-    // filter's set to as a button that opens the column's panel.
+    // filter's set to as a button that opens the column's panel, and clears it from here.
     private RenderFragment FilterCell(ColumnBase<TItem> column, ColumnFilterValue current) => __builder =>
     {
         var ops = ColumnFilter.OperatorsOf(column);
@@ -1519,8 +1532,22 @@
                 }
                 else
                 {
+                    // A list with no filter is blank, as an empty field is. It still has a name to be read by.
                     var summary = current.IsFilter ? FilterSummary(column, current) : list ? TextDefaults.FilterAll : ColumnFilter.TextOf(column.FilterKind, current.Op, TextDefaults);
-                    <button type="button" class="ib-filter-cell-summary" data-empty="@(current.IsFilter ? null : "")" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {summary}")" title="@summary" data-ib-enter><span>@summary</span><Icon Role="IconRole.ChevronDown" /></button>
+                    var shown = current.IsFilter ? list ? RowListSummary(column, current) ?? summary : summary : list ? "" : summary;
+                    <button type="button" class="ib-filter-cell-summary" data-empty="@(current.IsFilter ? null : "")" popovertarget="@FilterPanelId(column)" aria-label="@($"{label}: {(shown.Length > 0 ? shown : summary)}")" title="@(shown.Length > 0 ? shown : null)" data-ib-enter><span>@shown</span><Icon Role="IconRole.ChevronDown" /></button>
+                    if (current.IsFilter)
+                    {
+                        var clearName = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.FilterClearColumn, column.HeaderText);
+                        if (UseState)
+                        {
+                            <button type="button" class="ib-filter-cell-clear" aria-label="@clearName" title="@clearName" @onclick="() => SetFilterAsync(column, ColumnFilter.Empty(column), wait: false)"><Icon Role="IconRole.Close" /></button>
+                        }
+                        else
+                        {
+                            <a class="ib-filter-cell-clear" href="@FilterHref(column, null)" aria-label="@clearName" title="@clearName"><Icon Role="IconRole.Close" /></a>
+                        }
+                    }
                 }
             </FieldAddons>
         </div>

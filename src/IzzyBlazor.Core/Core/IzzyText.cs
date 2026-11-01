@@ -207,6 +207,9 @@ public class IzzyText
     /// <summary>The empty message of a table with a list filter that has nothing ticked; {0} is the column's title.</summary>
     public virtual string FilterNoneEmpty { get; set; } = "Nothing is selected under {0}.";
 
+    /// <summary>A filter row's button that clears a column's filter; {0} is the column's title.</summary>
+    public virtual string FilterClearColumn { get; set; } = "Clear the {0} filter";
+
     /// <summary>A list filter's box for narrowing its rows.</summary>
     public virtual string FilterSearchValues { get; set; } = "Search values";
 

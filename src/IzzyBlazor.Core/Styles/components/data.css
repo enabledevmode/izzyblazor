@@ -806,6 +806,7 @@
 
   /* In a row, whichever it holds: with no operator there's no add-on's group round the rest. */
   .ib-filter-cell {
+    position: relative;
     display: flex;
     flex-direction: row;
     align-items: center;
@@ -878,9 +879,40 @@
     color: var(--ib-color-subtle);
   }
 
-  .ib-filter-cell-summary:focus-visible {
+  .ib-filter-cell-summary:focus-visible,
+  .ib-filter-cell-clear:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
+  }
+
+  /* Laid over the summary, before its chevron: one button can't hold another. */
+  .ib-filter-cell-clear {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: calc(var(--ib-field-px) + 0.875rem);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.5rem;
+    padding: 0;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: none;
+    color: var(--ib-color-subtle);
+    cursor: pointer;
+    --ib-icon-size: 0.875rem;
+  }
+
+  .ib-filter-cell-clear[hidden] {
+    display: none;
+  }
+
+  .ib-filter-cell-clear:hover {
+    color: var(--ib-color-on-surface);
+  }
+
+  .ib-filter-cell-summary:has(+ .ib-filter-cell-clear) > span {
+    margin-inline-end: 1.5rem;
   }
 
   .ib-table-filter-button[hidden] {

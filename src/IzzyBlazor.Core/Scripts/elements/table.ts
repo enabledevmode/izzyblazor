@@ -165,6 +165,16 @@ class Table extends IzzyElement {
           const field = cell.querySelector<HTMLInputElement>("input[placeholder]");
           if (field) field.placeholder = operator!.querySelector(".ib-menu-label")?.textContent ?? "";
         }
+        // The × goes with the filter, so focus moves to what stays. A static page's is a link, so it shows now too.
+        const wipe = (event.target as Element).closest<HTMLElement>(".ib-filter-cell-clear");
+        if (wipe && !event.ctrlKey && !event.metaKey && !event.shiftKey) {
+          const summary = wipe.previousElementSibling as HTMLElement;
+          summary.focus();
+          if (!this.hasAttribute("data-ib-interactive")) {
+            wipe.hidden = true;
+            summary.firstElementChild!.textContent = "";
+          }
+        }
         const add = (event.target as Element).closest<HTMLElement>("[data-ib-sort-add]")?.dataset.ibSortAdd;
         if (!add || !event.shiftKey || event.ctrlKey || event.metaKey) return;
         event.preventDefault();
