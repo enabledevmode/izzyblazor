@@ -350,6 +350,12 @@ public class IzzyText
     /// <summary>TimeField's message for a value that isn't a time. {0} is the field's label.</summary>
     public virtual string TimeInvalid { get; set; } = "The {0} field must be a time.";
 
+    /// <summary>The heading of a calendar's week numbers, for screen readers.</summary>
+    public virtual string CalendarWeek { get; set; } = "Week";
+
+    /// <summary>The heading shown over a calendar's week numbers, in a day's width.</summary>
+    public virtual string CalendarWeekText { get; set; } = "Wk";
+
     /// <summary>A date or time before the field's Min; {0} is its label and {1} the limit.</summary>
     public virtual string TooEarly { get; set; } = "{0} must be {1} or later.";
 

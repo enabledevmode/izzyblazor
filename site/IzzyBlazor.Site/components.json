@@ -720,6 +720,22 @@
       ]
     },
     {
+      "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Forms", "preview": true, "summary": "A month on the page, with the browser's own date input posting the day.", "keywords": ["month", "date", "inline calendar", "week numbers"],
+      "features": [
+        { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
+        { "feature": "The browser's date input posts the value, with Min and Max checked before posting and on the server" },
+        { "feature": "Binds DateOnly, on the Gregorian calendar" }
+      ],
+      "examples": [
+        { "id": "calendar-limits", "title": "Limits", "lead": "`Min` and `Max` come from `[Range]`, or set them on the field. Days outside them are marked.",
+          "notes": {
+            "static": "The server turns away a date outside the limits, whatever the browser let through."
+          } },
+        { "id": "calendar-culture", "title": "Culture and weeks", "lead": "Use `Culture` for the names and the first day, `FirstDayOfWeek` for the first day alone, `ShowWeekNumbers` for a column of weeks and `ShowAdjacentDays` to leave out other months' days." },
+        { "id": "calendar-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` for the field and the month together." }
+      ]
+    },
+    {
       "id": "duration-field", "icon": "Timer", "name": "DurationField", "category": "Forms", "preview": true, "summary": "A length of time, with a box for each unit.", "keywords": ["timespan", "timeout", "hours minutes seconds"],
       "features": [
         { "feature": "A number box per unit, days to seconds, posted as one value", "noscript": "partial" },

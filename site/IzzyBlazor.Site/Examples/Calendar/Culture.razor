@@ -1,0 +1,19 @@
+@using System.Globalization
+
+<Form Model="Model" FormName="calendar-culture" Columns="2">
+    <Calendar @bind-Value="Model!.Day" Label="German, with week numbers" Culture="@(new CultureInfo("de-DE"))" ShowWeekNumbers />
+    <Calendar @bind-Value="Model!.Other" Label="Monday first, this month only" FirstDayOfWeek="DayOfWeek.Monday" ShowAdjacentDays="false" />
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "calendar-culture")]
+    private Dates? Model { get; set; }
+
+    protected override void OnInitialized() => Model ??= new();
+
+    public sealed class Dates
+    {
+        public DateOnly Day { get; set; } = new(2027, 1, 14);
+        public DateOnly Other { get; set; } = new(2027, 1, 14);
+    }
+}
