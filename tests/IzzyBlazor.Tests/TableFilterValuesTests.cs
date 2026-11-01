@@ -598,7 +598,7 @@ public class TableFilterValuesTests : BunitContext
         cut.WaitForAssertion(() => Assert.True(Ticked(cut, 0, "v100")), Timer);
         cut.Find("[data-ib-load-next]").Click();
 
-        Assert.Contains("v049", Listed(cut, 0));
+        cut.WaitForAssertion(() => Assert.Contains("v049", Listed(cut, 0)), Timer);
         Assert.Contains("v050", Listed(cut, 0));
         Assert.Equal(100, Listed(cut, 0).Distinct().Count());
     }
