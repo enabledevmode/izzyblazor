@@ -99,10 +99,15 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
             await open.ClickAsync();
             await Assertions.Expect(panel.Locator("td[aria-selected=true] button")).ToHaveAttributeAsync("aria-label", "Tuesday, March 2, 2027");
             await day.ClickAsync();
-            var time = panel.GetByLabel("Time");
-            await Assertions.Expect(time).ToHaveValueAsync("09:30");
-            await time.FillAsync("14:45");
-            await time.PressAsync("Enter");
+            // By the server's culture: CI's has 24 hours.
+            var (hour, minute, part) = (panel.GetByLabel("Hour"), panel.GetByLabel("Minute"), panel.GetByLabel("AM or PM"));
+            var twelve = await part.CountAsync() > 0;
+            await Assertions.Expect(hour).ToHaveValueAsync(twelve ? "9" : "09");
+            await Assertions.Expect(minute).ToHaveValueAsync("30");
+            if (twelve) await part.SelectOptionAsync("pm");
+            await hour.FillAsync(twelve ? "2" : "14");
+            await minute.FillAsync("45");
+            await minute.PressAsync("Enter");
             await Assertions.Expect(panel).ToBeHiddenAsync();
             await Assertions.Expect(input).ToHaveValueAsync("2027-03-15T14:45");
             await Assertions.Expect(form.GetByRole(AriaRole.Alert)).ToHaveCountAsync(0);

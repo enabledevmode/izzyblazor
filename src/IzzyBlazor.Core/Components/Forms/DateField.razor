@@ -19,7 +19,8 @@
     in. Min, Max and DateDisabled are checked again on the server, so a typed date is turned away
     when the form posts.
 
-    With a time, the calendar has a time input and OK and Cancel: nothing is written until OK. Min
+    With a time, the calendar has a box each for the hour and minute, with seconds if Step has them
+    and AM or PM if the culture does, and OK and Cancel: nothing is written until OK. Min
     and Max stop the days, and their times are checked as the form posts.
 
     A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
@@ -103,11 +104,31 @@
                                 @CalendarGrid.Month(Drawn, null)
                                 @if (ResolvedType == DateFieldType.DateTime)
                                 {
-                                    <div class="ib-calendar-time">
-                                        <label for="@TimeId">@TextDefaults.CalendarTime</label>
+                                    <div class="ib-calendar-time" role="group" aria-label="@TextDefaults.CalendarTime">
                                         <div class="ib-field-control">
-                                            <input id="@TimeId" class="ib-field-input" type="time" step="@StepAttribute" />
+                                            <input class="ib-field-input" type="number" inputmode="numeric" min="@(TwelveHours ? 1 : 0)" max="@(TwelveHours ? 12 : 23)" aria-label="@TextDefaults.CalendarHour" />
                                         </div>
+                                        <span aria-hidden="true">:</span>
+                                        <div class="ib-field-control">
+                                            <input class="ib-field-input" type="number" inputmode="numeric" min="0" max="59" step="@MinuteStep" aria-label="@TextDefaults.CalendarMinute" />
+                                        </div>
+                                        @if (ShowsSeconds)
+                                        {
+                                            <span aria-hidden="true">:</span>
+                                            <div class="ib-field-control">
+                                                <input class="ib-field-input" type="number" inputmode="numeric" min="0" max="59" aria-label="@TextDefaults.CalendarSecond" />
+                                            </div>
+                                        }
+                                        @if (TwelveHours)
+                                        {
+                                            <div class="ib-field-control ib-has-end">
+                                                <select class="ib-field-input ib-field-select" aria-label="@TextDefaults.CalendarDayPart">
+                                                    <option value="am">@ResolvedCulture.DateTimeFormat.AMDesignator</option>
+                                                    <option value="pm">@ResolvedCulture.DateTimeFormat.PMDesignator</option>
+                                                </select>
+                                                <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+                                            </div>
+                                        }
                                     </div>
                                 }
                                 <div class="ib-calendar-foot">
@@ -194,7 +215,10 @@
     // Nothing to choose from on a field that can't change.
     private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
 
-    private string TimeId => FieldId + "-time";
+    private bool TwelveHours => ResolvedCulture.DateTimeFormat.ShortTimePattern.Contains('t') && ResolvedCulture.DateTimeFormat.AMDesignator.Length > 0;
+
+    // A minute's box steps by Step, when that's whole minutes under an hour.
+    private int? MinuteStep => Step is { TotalMinutes: > 1 and < 60 } step && step.Ticks % TimeSpan.TicksPerMinute == 0 ? (int)step.TotalMinutes : null;
 
     private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChoose;
 

@@ -102,7 +102,7 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
         }
     }
 
-    private CultureInfo ResolvedCulture => CalendarGrid.Gregorian(Culture ?? CultureInfo.CurrentCulture);
+    private protected CultureInfo ResolvedCulture => CalendarGrid.Gregorian(Culture ?? CultureInfo.CurrentCulture);
 
     private CalendarView Current
     {
