@@ -15,9 +15,10 @@ namespace IzzyBlazor;
 /// <param name="ShowAdjacentDays">Whether the cells before and after the month show their days.</param>
 /// <param name="Disabled">Whether nothing can be chosen, and the month shows it.</param>
 /// <param name="ReadOnly">Whether nothing can be chosen.</param>
-/// <param name="LabelId">The id for the month's name, which names the grid.</param>
-/// <param name="WeekText">The week column's short heading.</param>
-/// <param name="WeekLabel">The week column's full heading.</param>
+/// <param name="Size">The size of its controls.</param>
+/// <param name="MonthId">The id for the month's name.</param>
+/// <param name="LabelledBy">The ids that name the grid.</param>
+/// <param name="Text">The text defaults.</param>
 internal readonly record struct CalendarView(
     DateOnly Month,
     DateOnly? Selected,
@@ -29,13 +30,16 @@ internal readonly record struct CalendarView(
     bool ShowAdjacentDays,
     bool Disabled,
     bool ReadOnly,
-    string LabelId,
-    string WeekText,
-    string WeekLabel);
+    ControlSize Size,
+    string MonthId,
+    string LabelledBy,
+    IzzyText Text);
 
 /// <summary>
 /// The month grid, drawn by everything with a calendar. It's a fragment and not a
 /// <see cref="Calendar{TValue}"/>, as a field inside a field's panel would register twice on the form.
+/// Every cell has its day's button, even a hidden one, as the script moves the month in these cells
+/// and adds none (see <c>Scripts/elements/calendar.ts</c>).
 /// </summary>
 internal static class CalendarGrid
 {
@@ -63,88 +67,123 @@ internal static class CalendarGrid
         return copy;
     }
 
-    /// <summary>The month's name and its grid: always six weeks, so another month moves nothing.</summary>
-    public static RenderFragment Month(CalendarView view) => builder =>
+    /// <summary>
+    /// How many days into a week its number is counted from: the week of the year is that day's,
+    /// so the culture's rule is one number, for the script too.
+    /// </summary>
+    public static int WeekAnchor(CalendarWeekRule rule) => rule switch
+    {
+        CalendarWeekRule.FirstFullWeek => 0,
+        CalendarWeekRule.FirstFourDayWeek => 3,
+        _ => DaysInWeek - 1,
+    };
+
+    /// <summary>The month's header, its grid (always six weeks, so another month moves nothing) and its announcements.</summary>
+    /// <param name="view">What to draw.</param>
+    /// <param name="describedBy">The ids that describe the grid, which change as errors come and go.</param>
+    public static RenderFragment Month(CalendarView view, string? describedBy) => builder =>
     {
         var culture = view.Culture;
         var names = culture.DateTimeFormat;
         var first = new DateOnly(view.Month.Year, view.Month.Month, 1);
         var start = first.DayNumber - (((int)first.DayOfWeek - (int)view.FirstDay + DaysInWeek) % DaysInWeek);
+        var anchor = WeekAnchor(names.CalendarWeekRule);
 
         builder.OpenElement(0, "div");
-        builder.AddAttribute(1, "class", "ib-calendar-month");
-        builder.AddAttribute(2, "id", view.LabelId);
-        builder.AddContent(3, first.ToString("Y", culture));
+        builder.AddAttribute(1, "class", "ib-calendar-head");
+        builder.AddContent(2, NavButton(view, view.Text.CalendarPrevious, IconRole.ChevronLeft));
+        builder.OpenElement(3, "div");
+        builder.AddAttribute(4, "class", "ib-calendar-month");
+        builder.AddAttribute(5, "id", view.MonthId);
+        builder.AddContent(6, first.ToString("Y", culture));
+        builder.CloseElement();
+        builder.OpenElement(7, "div");
+        builder.AddAttribute(8, "class", "ib-calendar-selects");
+        builder.AddContent(9, Pick(view, view.Text.CalendarMonth, options =>
+        {
+            for (var month = 0; month < 12; month++)
+            {
+                options.OpenElement(0, "option");
+                options.AddAttribute(1, "value", month);
+                options.AddAttribute(2, "selected", month == first.Month - 1);
+                options.AddContent(3, names.MonthNames[month]);
+                options.CloseElement();
+            }
+        }));
+        builder.AddContent(10, Pick(view, view.Text.CalendarYear, options =>
+        {
+            // The script adds the rest.
+            options.OpenElement(0, "option");
+            options.AddAttribute(1, "value", first.Year);
+            options.AddContent(2, first.Year);
+            options.CloseElement();
+        }));
+        builder.CloseElement();
+        builder.AddContent(11, NavButton(view, view.Text.CalendarNext, IconRole.ChevronRight));
         builder.CloseElement();
 
-        builder.OpenElement(4, "table");
-        builder.AddAttribute(5, "class", "ib-calendar-grid");
-        builder.AddAttribute(6, "role", "grid");
-        builder.AddAttribute(7, "aria-labelledby", view.LabelId);
-        builder.AddAttribute(8, "aria-readonly", view.ReadOnly ? "true" : null);
+        builder.OpenElement(12, "table");
+        builder.AddAttribute(13, "class", "ib-calendar-grid");
+        builder.AddAttribute(14, "role", "grid");
+        builder.AddAttribute(15, "aria-labelledby", view.LabelledBy);
+        builder.AddAttribute(16, "aria-describedby", describedBy);
+        builder.AddAttribute(17, "aria-readonly", view.ReadOnly ? "true" : null);
 
-        builder.OpenElement(9, "thead");
-        builder.OpenElement(10, "tr");
+        builder.OpenElement(18, "thead");
+        builder.OpenElement(19, "tr");
         if (view.ShowWeekNumbers)
         {
-            builder.OpenElement(11, "th");
-            builder.AddAttribute(12, "scope", "col");
-            builder.AddAttribute(13, "abbr", view.WeekLabel);
-            builder.AddContent(14, view.WeekText);
+            builder.OpenElement(20, "th");
+            builder.AddAttribute(21, "scope", "col");
+            builder.AddAttribute(22, "abbr", view.Text.CalendarWeek);
+            builder.AddContent(23, view.Text.CalendarWeekText);
             builder.CloseElement();
         }
 
         for (var column = 0; column < DaysInWeek; column++)
         {
             var day = ((int)view.FirstDay + column) % DaysInWeek;
-            builder.OpenElement(15, "th");
-            builder.AddAttribute(16, "scope", "col");
-            builder.AddAttribute(17, "abbr", names.DayNames[day]);
-            builder.AddContent(18, names.AbbreviatedDayNames[day]);
+            builder.OpenElement(24, "th");
+            builder.AddAttribute(25, "scope", "col");
+            builder.AddAttribute(26, "abbr", names.DayNames[day]);
+            builder.AddContent(27, names.AbbreviatedDayNames[day]);
             builder.CloseElement();
         }
 
         builder.CloseElement();
         builder.CloseElement();
 
-        builder.OpenElement(19, "tbody");
+        builder.OpenElement(28, "tbody");
         for (var week = 0; week < Weeks; week++)
         {
-            builder.OpenElement(20, "tr");
+            var row = start + (week * DaysInWeek);
+            builder.OpenElement(29, "tr");
             if (view.ShowWeekNumbers)
             {
-                builder.OpenElement(21, "th");
-                builder.AddAttribute(22, "scope", "row");
-                if (Day(start + (week * DaysInWeek)) is { } monday)
-                {
-                    builder.AddContent(23, WeekOfYear(monday, view));
-                }
-
+                builder.OpenElement(30, "th");
+                builder.AddAttribute(31, "scope", "row");
+                builder.AddContent(32, Day(row) is not null && Day(row + anchor) is { } counted ? ((counted.DayOfYear - 1) / DaysInWeek) + 1 : "");
                 builder.CloseElement();
             }
 
             for (var column = 0; column < DaysInWeek; column++)
             {
-                var date = Day(start + (week * DaysInWeek) + column);
-                var outside = date is not { } inMonth || inMonth.Month != first.Month || inMonth.Year != first.Year;
-                builder.OpenElement(24, "td");
-                builder.AddAttribute(25, "class", outside ? "ib-calendar-outside" : null);
-                builder.AddAttribute(26, "aria-selected", date is not null && date == view.Selected ? "true" : null);
-                if (date is { } shown && (!outside || view.ShowAdjacentDays))
-                {
-                    var allowed = !(shown < view.Min || shown > view.Max);
-                    builder.OpenElement(27, "button");
-                    builder.AddAttribute(28, "type", "button");
-                    builder.AddAttribute(29, "class", "ib-calendar-day");
-                    // Out of the tab order until the script makes one day the grid's stop.
-                    builder.AddAttribute(30, "tabindex", "-1");
-                    builder.AddAttribute(31, "aria-label", shown.ToString("D", culture));
-                    builder.AddAttribute(32, "aria-disabled", allowed ? null : "true");
-                    builder.AddAttribute(33, "disabled", view.Disabled);
-                    builder.AddContent(34, shown.Day);
-                    builder.CloseElement();
-                }
-
+                var date = Day(row + column);
+                var outside = date is { } inMonth && (inMonth.Month != first.Month || inMonth.Year != first.Year);
+                builder.OpenElement(33, "td");
+                builder.AddAttribute(34, "class", outside ? "ib-calendar-outside" : null);
+                builder.AddAttribute(35, "aria-selected", date is not null && date == view.Selected ? "true" : null);
+                builder.OpenElement(36, "button");
+                builder.AddAttribute(37, "type", "button");
+                builder.AddAttribute(38, "class", "ib-calendar-day");
+                // Out of the tab order until the script makes one day the grid's stop.
+                builder.AddAttribute(39, "tabindex", "-1");
+                builder.AddAttribute(40, "hidden", date is null || (outside && !view.ShowAdjacentDays));
+                builder.AddAttribute(41, "aria-label", date?.ToString("D", culture));
+                builder.AddAttribute(42, "aria-disabled", date < view.Min || date > view.Max ? "true" : null);
+                builder.AddAttribute(43, "disabled", view.Disabled);
+                builder.AddContent(44, date?.Day.ToString(CultureInfo.InvariantCulture) ?? "");
+                builder.CloseElement();
                 builder.CloseElement();
             }
 
@@ -152,21 +191,51 @@ internal static class CalendarGrid
         }
 
         builder.CloseElement();
+        builder.CloseElement();
+
+        builder.OpenElement(45, "div");
+        builder.AddAttribute(46, "class", "ib-visually-hidden");
+        builder.AddAttribute(47, "aria-live", "polite");
+        builder.AddAttribute(48, "data-ib-live", true);
+        builder.CloseElement();
+    };
+
+    private static RenderFragment NavButton(CalendarView view, string label, IconRole icon) => builder =>
+    {
+        builder.OpenElement(0, "button");
+        builder.AddAttribute(1, "type", "button");
+        builder.AddAttribute(2, "class", new ClassBuilder()
+            .Add("ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-calendar-nav")
+            .Add("ib-btn-sm", view.Size == ControlSize.Sm)
+            .Add("ib-btn-lg", view.Size == ControlSize.Lg)
+            .Build());
+        builder.AddAttribute(3, "aria-label", label);
+        builder.AddAttribute(4, "disabled", view.Disabled);
+        builder.OpenComponent<Icon>(5);
+        builder.AddComponentParameter(6, nameof(Icon.Role), (IconRole?)icon);
+        builder.CloseComponent();
+        builder.CloseElement();
+    };
+
+    // A select with no name, as it isn't a value of the form.
+    private static RenderFragment Pick(CalendarView view, string label, RenderFragment options) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-field-control ib-has-end");
+        builder.OpenElement(2, "select");
+        builder.AddAttribute(3, "class", "ib-field-input ib-field-select");
+        builder.AddAttribute(4, "aria-label", label);
+        builder.AddAttribute(5, "disabled", view.Disabled);
+        builder.AddContent(6, options);
+        builder.CloseElement();
+        builder.OpenComponent<Icon>(7);
+        builder.AddComponentParameter(8, nameof(Icon.Role), (IconRole?)IconRole.ChevronDown);
+        builder.AddComponentParameter(9, nameof(Icon.Class), "ib-field-icon ib-field-icon-end");
+        builder.CloseComponent();
         builder.CloseElement();
     };
 
     // Null past the ends of the calendar, which January of year 1 and December of 9999 reach.
     private static DateOnly? Day(int dayNumber) =>
         dayNumber < DateOnly.MinValue.DayNumber || dayNumber > DateOnly.MaxValue.DayNumber ? null : DateOnly.FromDayNumber(dayNumber);
-
-    private static int WeekOfYear(DateOnly day, CalendarView view)
-    {
-        var at = day.ToDateTime(TimeOnly.MinValue);
-        var rule = view.Culture.DateTimeFormat.CalendarWeekRule;
-
-        // Calendar.GetWeekOfYear calls the last days of 2024 week 53 by this rule, where ISO 8601 says week 1.
-        return rule == CalendarWeekRule.FirstFourDayWeek && view.FirstDay == DayOfWeek.Monday
-            ? ISOWeek.GetWeekOfYear(at)
-            : view.Culture.DateTimeFormat.Calendar.GetWeekOfYear(at, rule, view.FirstDay);
-    }
 }
