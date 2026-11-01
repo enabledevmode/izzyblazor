@@ -1956,10 +1956,15 @@
     }
 
     // Ascending first; a second click on the sorted column turns it descending.
+    // Ascending, descending, then no sort. "-" says none, or InitialSort would come straight back.
     private string? NextSort(ColumnBase<TItem> column)
     {
-        var ascendingNow = SortIndex(column) == 0 && !_sorts[0].Descending;
-        return ascendingNow ? $"-{column.Key}" : column.Key;
+        if (SortIndex(column) != 0)
+        {
+            return column.Key;
+        }
+
+        return !_sorts[0].Descending ? $"-{column.Key}" : string.IsNullOrEmpty(InitialSort) ? null : "-";
     }
 
     // Shift: this column joins the sort, or goes on to descending, then out of it. From the sort last

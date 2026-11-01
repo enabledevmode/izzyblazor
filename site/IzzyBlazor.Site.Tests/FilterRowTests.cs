@@ -84,6 +84,26 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         Assert.Equal(1, requests);
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_header_sorts_up_then_down_then_not_at_all(string mode)
+    {
+        var (browser, _, grid) = await OpenAsync(mode);
+        await using var __ = browser;
+        var header = grid.Locator("thead th", new() { HasText = "Status" });
+        var sort = header.Locator("a, button").First;
+
+        await sort.ClickAsync();
+        await Assertions.Expect(header).ToHaveAttributeAsync("aria-sort", "ascending");
+        await sort.ClickAsync();
+        await Assertions.Expect(header).ToHaveAttributeAsync("aria-sort", "descending");
+        await sort.ClickAsync();
+        await Assertions.Expect(header).ToHaveAttributeAsync("aria-sort", "none");
+        await sort.ClickAsync();
+        await Assertions.Expect(header).ToHaveAttributeAsync("aria-sort", "ascending");
+    }
+
     [Fact]
     public async Task A_static_operator_shows_before_the_response_arrives()
     {
