@@ -25,7 +25,7 @@ public sealed partial class SearchIndex
     /// <summary>Headings every Overview or article has. They match only with their page's name.</summary>
     public static readonly IReadOnlySet<string> StandardSections = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
     {
-        "Usage", "Details", "Parts", "Mode support", "Accessibility", "Keyboard", "Parameters", "See also",
+        "Usage", "Details", "Parts", "Mode support", "Accessibility", "Keyboard navigation", "Parameters", "See also",
         "Problem", "Cause", "Fix", "Related", "Next steps",
     };
 
@@ -267,17 +267,14 @@ public sealed partial class SearchIndex
             {
                 AddSections(page, component.Name, SearchGroup.Components);
 
-                // @KeyboardTable.Section draws these from the metadata, so the source doesn't have
-                // them: before Parameters, with what comes earlier deciding their ids.
-                if (api.Component(component.Name)?.Keyboard is { Count: > 0 } keyboard)
+                // @KeyboardTable.Section draws this from the metadata, so the source doesn't have it:
+                // before Parameters, with what comes earlier deciding its id.
+                if (api.Component(component.Name)?.Keyboard is { Count: > 0 })
                 {
+                    const string keys = "Keyboard navigation";
                     var before = page.Headings.TakeWhile(h => h.Text != "Parameters").Select(h => (h.Text, (string?)h.Id)).ToList();
-                    var keys = keyboard.Select(g => g.Title).OfType<string>().Prepend("Keyboard").ToList();
-                    var keyIds = Ids(component.Name, before.Concat(keys.Select(k => (k, (string?)null)))).Skip(before.Count).ToList();
-                    for (var i = 0; i < keys.Count; i++)
-                    {
-                        Add(SearchKind.Section, keys[i], component.Name, null, $"{overview}#{keyIds[i]}", standard: StandardSections.Contains(keys[i]));
-                    }
+                    var keyId = Ids(component.Name, before.Append((keys, (string?)null))).Last();
+                    Add(SearchKind.Section, keys, component.Name, null, $"{overview}#{keyId}", standard: StandardSections.Contains(keys));
                 }
 
                 foreach (var id in page.Examples)
@@ -309,10 +306,9 @@ public sealed partial class SearchIndex
                     headings.Add("Accessibility");
                 }
 
-                if (apiComponent.Keyboard is { Count: > 0 } keyboard)
+                if (apiComponent.Keyboard is { Count: > 0 })
                 {
-                    headings.Add("Keyboard");
-                    headings.AddRange(keyboard.Select(g => g.Title).OfType<string>());
+                    headings.Add("Keyboard navigation");
                 }
 
                 headings.Add("Parameters");
