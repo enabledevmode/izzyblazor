@@ -93,23 +93,25 @@ public class Icon : IzzyComponentBase
             builder.AddAttribute(5, "stroke-width", (StrokeWidth ?? _icon.StrokeWidth).ToString(CultureInfo.InvariantCulture));
             builder.AddAttribute(6, "stroke-linecap", "round");
             builder.AddAttribute(7, "stroke-linejoin", "round");
+            // Straight lines through the middle: at 1px, centered on a whole pixel, they'd blur across two.
+            builder.AddAttribute(8, "shape-rendering", _icon.Name is "plus" or "minus" ? "crispEdges" : null);
         }
 
         if (labeled)
         {
-            builder.AddAttribute(8, "role", "img");
-            builder.AddAttribute(9, "aria-label", Label);
+            builder.AddAttribute(9, "role", "img");
+            builder.AddAttribute(10, "aria-label", Label);
         }
         else
         {
-            builder.AddAttribute(10, "aria-hidden", "true");
+            builder.AddAttribute(11, "aria-hidden", "true");
         }
 
-        builder.AddAttribute(11, "focusable", "false");
-        builder.AddMultipleAttributes(12, AdditionalAttributes);
-        builder.AddAttribute(13, "class", cssClass);
-        builder.AddAttribute(14, "style", style);
-        builder.AddMarkupContent(15, IconMarkup.Verify(_icon.Body, _icon.Name));
+        builder.AddAttribute(12, "focusable", "false");
+        builder.AddMultipleAttributes(13, AdditionalAttributes);
+        builder.AddAttribute(14, "class", cssClass);
+        builder.AddAttribute(15, "style", style);
+        builder.AddMarkupContent(16, IconMarkup.Verify(_icon.Body, _icon.Name));
         builder.CloseElement();
     }
 }

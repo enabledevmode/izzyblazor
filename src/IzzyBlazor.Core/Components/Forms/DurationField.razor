@@ -47,7 +47,7 @@
             {
                 @* Both signs are drawn and CSS shows one by aria-pressed, so the script changes no content. *@
                 <button type="button" class="ib-field-input ib-duration-sign" aria-pressed="@(IsNegative ? "true" : "false")" aria-label="@TextDefaults.DurationNegative" disabled="@(IsDisabled || IsReadOnly)">
-                    <span aria-hidden="true">+</span><span aria-hidden="true">&minus;</span>
+                    <Icon Role="IconRole.Plus" /><Icon Role="IconRole.Minus" />
                 </button>
             }
             @{ var left = WholeSeconds is { } whole ? (long?)Math.Abs(whole) : null; }
