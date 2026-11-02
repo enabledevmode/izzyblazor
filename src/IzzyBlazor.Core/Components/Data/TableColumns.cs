@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Linq.Expressions;
 using System.Reflection;
@@ -109,6 +110,18 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>In a grid with a <c>ColumnPicker</c>, whether people can hide this column. Defaults to true.</summary>
     [Parameter] public bool Pickable { get; set; } = true;
 
+    /// <summary>
+    /// Gives this column a field for editing a row, chosen by its type, in a <c>DataGrid</c> with an
+    /// <c>EditMode</c>. Only editable columns take a value from a save, so a forged one changes nothing.
+    /// </summary>
+    [Parameter] public bool Editable { get; set; }
+
+    /// <summary>
+    /// A field for editing a row, with no column: for a property the grid doesn't show. Implies
+    /// <see cref="Editable"/>.
+    /// </summary>
+    [Parameter] public bool EditOnly { get; set; }
+
     /// <summary>A class for this column's cells and header.</summary>
     [Parameter] public string? Class { get; set; }
 
@@ -167,6 +180,17 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>The cell content for an item.</summary>
     internal abstract RenderFragment Cell(TItem item);
 
+    internal bool IsEditable => Editable || EditOnly;
+
+    /// <summary>The property a save writes.</summary>
+    internal virtual PropertyInfo? EditProperty => null;
+
+    /// <summary>Why <see cref="Editable"/> can't work on this column, or null when it can.</summary>
+    protected virtual string? EditProblem => $"The \"{HeaderText}\" column can't be edited: only a PropertyColumn can, for now.";
+
+    /// <summary>The field that edits this column on <paramref name="model"/>, posting under <paramref name="name"/>.</summary>
+    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus) => _ => { };
+
     /// <inheritdoc />
     protected override void OnInitialized()
     {
@@ -189,6 +213,19 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
         if (Frozen != ColumnFrozen.None && Table is { GridColumns: false })
         {
             throw new InvalidOperationException($"The \"{HeaderText}\" column is {nameof(Frozen)}, which only a DataGrid's columns can be.");
+        }
+
+        if (IsEditable)
+        {
+            if (Table is { GridColumns: false })
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column is {nameof(Editable)}, which only a DataGrid's columns can be.");
+            }
+
+            if (EditProblem is { } editProblem)
+            {
+                throw new InvalidOperationException(editProblem);
+            }
         }
 
         if (Table is { GridColumns: true })
@@ -245,7 +282,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, EditOnly);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -284,7 +321,7 @@ public enum ColumnFrozen
 /// sort key come from the property ([Display(Name)] is used when present).
 /// </summary>
 /// <example><code>&lt;PropertyColumn Property="o =&gt; o.Total" Format="C" Sortable /&gt;</code></example>
-public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
+public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccessedMemberTypes.All)] TValue> : ColumnBase<TItem>
 {
     private Expression<Func<TItem, TValue>>? _lastProperty;
     private Func<TItem, TValue>? _compiled;
@@ -377,6 +414,93 @@ public class PropertyColumn<TItem, TValue> : ColumnBase<TItem>
             ? formattable.ToString(Format, CultureInfo.CurrentCulture)
             : value?.ToString());
     };
+
+    private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+    // A row's own property: one further along would be shared with the row, as its copy is shallow.
+    internal override PropertyInfo? EditProperty =>
+        Property?.Body is MemberExpression { Expression: ParameterExpression, Member: PropertyInfo property } ? property : null;
+
+    /// <inheritdoc />
+    protected override string? EditProblem
+    {
+        get
+        {
+            if (EditProperty is not { CanWrite: true })
+            {
+                return $"The \"{HeaderText}\" column can't be edited: only a settable property of the row itself can, not a nested one or a computed one.";
+            }
+
+            return Underlying == typeof(string) || Underlying.IsEnum || typeof(TValue) == typeof(bool) || IsNumeric(Underlying)
+                || Underlying == typeof(DateOnly) || Underlying == typeof(DateTime) || Underlying == typeof(DateTimeOffset)
+                || Underlying == typeof(TimeOnly) || Underlying == typeof(TimeSpan)
+                ? null
+                : $"The \"{HeaderText}\" column can't be edited: there's no field for {typeof(TValue).Name} values.";
+        }
+    }
+
+    /// <inheritdoc />
+    internal override RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus)
+    {
+        var property = EditProperty!;
+        var value = Expression.Lambda<Func<TValue>>(Expression.Property(Expression.Constant(model, typeof(TItem)), property));
+        var changed = EventCallback.Factory.Create<TValue>(receiver, v => property.SetValue(model, v));
+        return builder =>
+        {
+            OpenField(builder);
+            builder.AddComponentParameter(1, "Label", HeaderText);
+            builder.AddComponentParameter(2, "Value", (TValue)property.GetValue(model)!);
+            builder.AddComponentParameter(3, "ValueChanged", changed);
+            builder.AddComponentParameter(4, "ValueExpression", value);
+            builder.AddComponentParameter(5, "name", name);
+            if (autofocus())
+            {
+                builder.AddComponentParameter(6, "autofocus", true);
+            }
+
+            if (Underlying.IsEnum)
+            {
+                var choices = DataFields.EnumChoices(Underlying)!;
+                builder.AddComponentParameter(7, "Items", choices.Select(c => (TValue)Enum.Parse(Underlying, c.Value)).ToList());
+                builder.AddComponentParameter(8, "ItemText", (Func<TValue, string>)(v => choices.FirstOrDefault(c => c.Value == v?.ToString()).Text ?? ""));
+            }
+
+            builder.CloseComponent();
+        };
+    }
+
+    // Each named outright, so trimming keeps what the column's type can use.
+    private static void OpenField(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    {
+        if (Underlying == typeof(string))
+        {
+            builder.OpenComponent<TextField>(0);
+        }
+        else if (typeof(TValue) == typeof(bool))
+        {
+            builder.OpenComponent<Checkbox>(0);
+        }
+        else if (Underlying.IsEnum)
+        {
+            builder.OpenComponent<Select<TValue>>(0);
+        }
+        else if (Underlying == typeof(TimeOnly))
+        {
+            builder.OpenComponent<TimeField<TValue>>(0);
+        }
+        else if (Underlying == typeof(TimeSpan))
+        {
+            builder.OpenComponent<DurationField<TValue>>(0);
+        }
+        else if (Underlying == typeof(DateOnly) || Underlying == typeof(DateTime) || Underlying == typeof(DateTimeOffset))
+        {
+            builder.OpenComponent<DateField<TValue>>(0);
+        }
+        else
+        {
+            builder.OpenComponent<NumberField<TValue>>(0);
+        }
+    }
 }
 
 /// <summary>

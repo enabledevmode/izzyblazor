@@ -37,6 +37,14 @@ class DialogRoot extends IzzyElement {
     this.#observer.observe(dialog, { attributes: true, attributeFilter: ["open"] });
 
     dialog.addEventListener("close", () => this.clearQuery(dialog), { signal });
+    // A grid editor's Cancel is a link, for no script. With it, closing here keeps the page and hands focus back.
+    dialog.addEventListener("click", (event) => {
+      if ((event.target as Element).closest("[data-ib-edit-cancel]")) {
+        event.preventDefault();
+        event.stopPropagation();
+        dialog.close();
+      }
+    }, { signal });
 
     if (this.hasAttribute("data-close-on-backdrop") && !("closedBy" in HTMLDialogElement.prototype)) {
       // Only a press that starts and ends on the backdrop closes it: dragging a text selection
@@ -143,7 +151,8 @@ function clearDialogQuery(root: HTMLElement, dialog: HTMLDialogElement): void {
   // data-query-key is the dialog's QueryKey; without one, no link opens it.
   const key = root.dataset.queryKey;
   const url = new URL(location.href);
-  if (key && dialog.id && url.searchParams.get(key) === dialog.id) {
+  // A grid's editor is opened by its row's key in the address, not by the dialog's id.
+  if (key && dialog.id && (url.searchParams.get(key) === dialog.id || dialog.hasAttribute("data-ib-edit-for"))) {
     url.searchParams.delete(key);
     history.replaceState(history.state, "", url);
   }

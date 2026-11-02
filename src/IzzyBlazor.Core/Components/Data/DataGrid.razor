@@ -5,6 +5,9 @@
 @implements IDataGridToolbar
 @using Microsoft.Extensions.DependencyInjection
 @using Microsoft.Extensions.Logging
+@using System.Reflection
+@using Microsoft.AspNetCore.Components.Forms
+@using Microsoft.AspNetCore.Components.Forms.Mapping
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, there's no select-all checkbox and Shift+click doesn't add to the sort; filters apply when you press Apply.")]
 
 @*
@@ -63,6 +66,20 @@
     the row it opened on, and doesn't change the selection; actions on the selection go in the bar. A
     right-click on a link keeps the browser's menu, with its "open in new tab": that includes the
     whole of a row with RowHref, whose ⋮ button and Shift+F10 still open the menu.
+
+    EditMode with OnSave edits a row, with no script needed. Each Editable column gets a field chosen by
+    its type, and an EditOnly property gets one with no column. Each row has an Edit link, which puts
+    its key in the address (?edit=42), and a save is a form post. Only editable columns take a value
+    from it, so a forged field changes nothing. OnSave gets a copy of the row, and either finishes,
+    which closes the editor and loads the rows again, or adds errors, which stay on the fields. A grid
+    with editing can't be inside another form, as forms can't nest. It needs an ItemKey, and on a
+    static page, a row type Blazor can fill from a form: public settable properties.
+
+    <DataGrid Items="orders" ItemKey="o => o.Id.ToString()" EditMode="DataGridEditMode.Dialog" OnSave="SaveAsync">
+        <PropertyColumn Property="o => o.Id" />
+        <PropertyColumn Property="o => o.Customer" Editable />
+        <PropertyColumn Property="o => o.Notes" EditOnly />
+    </DataGrid>
 
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
@@ -143,6 +160,187 @@
 
 @code {
     private const string DefaultMinWidth = "8rem";
+
+    /// <summary>How a row is edited. Needs <see cref="OnSave"/>, an <c>ItemKey</c>, and <c>Editable</c> columns.</summary>
+    [Parameter] public DataGridEditMode EditMode { get; set; }
+
+    /// <summary>
+    /// Saves an edited row. With no errors added, the editor closes and the rows load again; with
+    /// errors, it stays open and shows them. It's called only when the row is valid by its rules.
+    /// </summary>
+    [Parameter] public EventCallback<DataGridSave<TItem>> OnSave { get; set; }
+
+    /// <summary>
+    /// The key of the row being edited, or null. Binding it (<c>@bind-EditKey</c>) on an interactive page
+    /// keeps it, with sort and page, in the component. Otherwise it's in the address (<c>?edit=42</c>).
+    /// </summary>
+    [Parameter] public string? EditKey { get; set; }
+
+    /// <summary>Raised when the row being edited changes, on interactive pages.</summary>
+    [Parameter, ModeSupport(NoScript = ModeLevel.None, Static = ModeLevel.None)]
+    public EventCallback<string?> EditKeyChanged { get; set; }
+
+    /// <summary>
+    /// Makes the copy of a row that's edited, on an interactive page, in place of a shallow copy: for a
+    /// type that holds what a copy mustn't share.
+    /// </summary>
+    [Parameter] public Func<TItem, TItem>? EditCopy { get; set; }
+
+    private string EditQueryKey => $"{QueryPrefix}edit";
+
+    private bool CanEdit => EditMode != DataGridEditMode.None;
+
+    private string? CurrentEditKey =>
+        !CanEdit ? null
+        : UseState ? EditKey
+        : QueryString.Of(Navigation.Uri).TryGetValue(EditQueryKey, out var key) && key.ToString().Length > 0 ? key.ToString()
+        : null;
+
+    private string EditEndHref => Navigation.GetUriWithQueryParameter(EditQueryKey, (string?)null);
+
+    private List<ColumnBase<TItem>> EditColumns => Columns.Where(c => c.IsEditable).ToList();
+
+    private List<PropertyInfo> EditProperties => EditColumns.Select(c => c.EditProperty!).ToList();
+
+    private string? _editKeyFor;
+    private TItem? _editItem;
+    private TItem? _editModel;
+    private EditContext? _editContext;
+    private ValidationMessageStore? _editMessages;
+    private Dictionary<ColumnBase<TItem>, RenderFragment>? _editors;
+
+    // Matches the editor to the key and what's loaded. Before the row is found the form still draws, on
+    // nothing, as a post for a form that isn't there fails outright.
+    private void SyncEdit(string key, TItem? posted)
+    {
+        if (key != _editKeyFor)
+        {
+            (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors) = (key, default, default, null, null, null);
+        }
+
+        if (_editModel is not null)
+        {
+            return;
+        }
+
+        if (_items.FirstOrDefault(i => KeyOf(i) == key) is { } item)
+        {
+            _editItem = item;
+            _editModel = posted is not null ? DataGridEditCopy.Restore(posted, item, EditProperties)
+                : EditCopy is not null ? EditCopy(item)
+                : DataGridEditCopy.Of(item);
+            _editContext = new EditContext(_editModel!);
+            _editMessages = new ValidationMessageStore(_editContext);
+            _editContext.OnValidationRequested += (_, _) => _editMessages.Clear();
+        }
+        else
+        {
+            _editContext ??= new EditContext(new object());
+        }
+    }
+
+    private RenderFragment EditorOf(ColumnBase<TItem> column) =>
+        (_editors ??= []).TryGetValue(column, out var editor)
+            ? editor
+            : _editors[column] = column.Editor(_editModel!, $"{DataGridEditBinding<TItem>.Prefix}.{column.EditProperty!.Name}", this,
+                // Opening goes to the first field. After a failed save, FormErrors takes focus instead.
+                () => column == EditColumns.FirstOrDefault() && _editContext?.GetValidationMessages().Any() != true);
+
+    private async Task SaveEditAsync(EditContext context)
+    {
+        if (_editModel is null || _editMessages is null)
+        {
+            return;
+        }
+
+        var save = new DataGridSave<TItem>(_editModel, _editItem!, EditProperties, context, _editMessages);
+        await OnSave.InvokeAsync(save);
+        if (!save.HasErrors)
+        {
+            await EndEditAsync(saved: true);
+        }
+    }
+
+    private async Task EndEditAsync(bool saved)
+    {
+        // Cleared whether or not the key changes: a bound parent may keep it, and the next edit starts afresh.
+        (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors) = (null, default, default, null, null, null);
+        if (UseState)
+        {
+            await EditKeyChanged.InvokeAsync(null);
+        }
+        else
+        {
+            Navigation.NavigateTo(EditEndHref);
+        }
+
+        if (saved)
+        {
+            await ReloadAsync();
+        }
+
+        StateHasChanged();
+    }
+
+    // Closed by Escape, the ✕ or the backdrop. With script its own query key has left the address by now.
+    private Task OnEditDialogChangedAsync(bool open) => open ? Task.CompletedTask : EndEditAsync(saved: false);
+
+    /// <inheritdoc />
+    internal override RenderFragment? BelowGrid => CurrentEditKey is not { } key ? null : __builder =>
+    {
+        if (RendererInfo.IsInteractive)
+        {
+            @EditDialog(key, default)
+        }
+        else
+        {
+            @* Named for this grid, so that a post reaches only its own form. *@
+            <FormMappingScope Name="@($"ib-grid-{QueryPrefix}")" Context="scope">
+                @EditBinding(key)
+            </FormMappingScope>
+        }
+    };
+
+    private RenderFragment EditBinding(string key) => builder =>
+    {
+        builder.OpenComponent<DataGridEditBinding<TItem>>(0);
+        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => EditDialog(key, posted)));
+        builder.CloseComponent();
+    };
+
+    private RenderFragment EditDialog(string key, TItem? posted) => __builder =>
+    {
+        SyncEdit(key, posted);
+        var missing = _editModel is null && !IsLoading;
+        var title = _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@EditQueryKey" Title="@title" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@key">
+            <Form EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
+                @if (missing)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                }
+                else if (_editModel is not null)
+                {
+                    <FormErrors />
+                    @foreach (var column in EditColumns)
+                    {
+                        @EditorOf(column)
+                    }
+                }
+                <DialogFooter>
+                    @* A link, which leaves the address clean with no script. With script, the dialog closes
+                       in the browser instead, with no round trip, and gives focus back to the row. *@
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+                    @if (!missing)
+                    {
+                        <Button Submit>@TextDefaults.Save</Button>
+                    }
+                </DialogFooter>
+            </Form>
+        </Dialog>
+    };
+
+    private bool HasActionCell => RowMenu is not null || CanEdit;
 
     /// <summary>
     /// Remembers how each person has arranged the columns, in a cookie under this name, so the server
@@ -348,7 +546,7 @@
     internal override string? ValuesGridSearch => CurrentSearch;
 
     /// <inheritdoc />
-    internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate;
+    internal override bool ExtraBound => base.ExtraBound || SearchChanged.HasDelegate || EditKeyChanged.HasDelegate;
 
     /// <inheritdoc />
     internal override bool NeedsFilterForm => base.NeedsFilterForm || Searchable;
@@ -458,6 +656,16 @@
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
+        if (CanEdit && (!OnSave.HasDelegate || ItemKey is null))
+        {
+            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, and an {nameof(ItemKey)} to know which row is being edited.");
+        }
+
+        if (CanEdit && !WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
+        {
+            throw new InvalidOperationException($"A DataGrid on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
+        }
+
         if (Virtualize)
         {
             if (MaxHeight is null)
@@ -617,22 +825,28 @@
         : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item));
 
     /// <inheritdoc />
-    internal override RenderFragment? LastHeaderCell => RowMenu is null ? null : __builder =>
+    internal override RenderFragment? LastHeaderCell => !HasActionCell ? null : __builder =>
     {
         <th scope="col" class="@MenuCellClass"><span class="ib-visually-hidden">@TextDefaults.RowActions</span></th>
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? LastEmptyCell => RowMenu is null ? null : __builder =>
+    internal override RenderFragment? LastEmptyCell => !HasActionCell ? null : __builder =>
     {
         <td class="@MenuCellClass"></td>
     };
 
     /// <inheritdoc />
-    internal override RenderFragment? LastCell(TItem item) => RowMenu is null ? null : __builder =>
+    internal override RenderFragment? LastCell(TItem item) => !HasActionCell ? null : __builder =>
     {
         <td class="@MenuCellClass">
-            @if (HasContent(RowMenu(item)))
+            @if (CanEdit)
+            {
+                <IconButton Icon="Lucide.Pencil" Label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item))"
+                            Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, KeyOf(item))"
+                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
+            }
+            @if (RowMenu is not null && HasContent(RowMenu(item)))
             {
                 <Menu>
                     <Trigger Context="wire">
@@ -704,7 +918,7 @@
                 </Trigger>
                 <ChildContent>
                     <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
-                    @foreach (var column in Columns.Where(c => c.Pickable))
+                    @foreach (var column in Columns.Where(c => c.Pickable && !c.EditOnly))
                     {
                         var key = KeyOf(column);
                         var shown = Shown.Contains(column);
@@ -867,8 +1081,9 @@
     {
         var layout = CurrentLayout;
         // One the page says can't be hidden isn't, whatever a stored layout says.
-        var visible = Columns.Where(c => !c.Pickable || layout?.Column(KeyOf(c))?.Hidden != true).ToList();
-        return (visible.Count > 0 ? visible : Columns)
+        var columns = Columns.Where(c => !c.EditOnly).ToList();
+        var visible = columns.Where(c => !c.Pickable || layout?.Column(KeyOf(c))?.Hidden != true).ToList();
+        return (visible.Count > 0 ? visible : columns)
             .Select((column, index) => (column, index))
             .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
             .ThenBy(x => layout?.Column(KeyOf(x.column))?.Position ?? x.index)
@@ -888,7 +1103,7 @@
             {
                 <col style="@(WidthOf(Shown[i]) is null ? null : $"width:var(--ib-col-{i})")" />
             }
-            @if (RowMenu is not null)
+            @if (HasActionCell)
             {
                 <col class="ib-datagrid-menu-col" />
             }
@@ -931,8 +1146,14 @@
                 parts.Add("var(--ib-datagrid-select)");
             }
 
-            if (RowMenu is not null)
+            if (HasActionCell)
             {
+                // The edit button and the ⋮ side by side need more than the one's width.
+                if (RowMenu is not null && CanEdit)
+                {
+                    style.Append("--ib-datagrid-menu:5rem;");
+                }
+
                 parts.Add("var(--ib-datagrid-menu)");
             }
 
@@ -1005,7 +1226,7 @@
                 parts.Add($"var(--ib-col-{i})");
             }
 
-            if (RowMenu is not null)
+            if (HasActionCell)
             {
                 parts.Add("var(--ib-datagrid-menu)");
             }

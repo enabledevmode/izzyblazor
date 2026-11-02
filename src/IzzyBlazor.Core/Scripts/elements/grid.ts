@@ -45,6 +45,8 @@ class Grid extends IzzyElement {
   #load: string | undefined;
   // The frozen columns' widths at each edge, as a scroll padding.
   #clearOf = "";
+  // The row being saved, whose edit button gets focus back. Kept here, as a navigation sets this element up again.
+  #saving: string | null = null;
 
   protected setup(signal: AbortSignal): void {
     const table = this.closest("ib-table")?.querySelector<HTMLTableElement>(":scope > .ib-table-scroll > table");
@@ -91,6 +93,7 @@ class Grid extends IzzyElement {
     this.#on(table, "change", () => this.#syncSelected(), signal);
     setupContextMenu(table, "tbody > tr, thead > tr > th", "[data-ib-row-menu], [data-ib-menu]", () => true, signal);
     this.#on(this.closest("ib-table")!, "ib-selection", () => this.#syncSelected(), signal);
+    this.#watchEditor(this.closest("ib-table")!, signal);
     this.#on(document, "pointerdown", (event) => {
       this.#run = null;
       this.#arrive = null;
@@ -99,6 +102,24 @@ class Grid extends IzzyElement {
       else this.#parked = false;
     }, signal);
     this.#rowsChanged();
+  }
+
+  // A save takes the editor away with the next render, so it can't hand focus back as closing it
+  // does: focus goes to the row's edit button when it's gone.
+  #watchEditor(root: Element, signal: AbortSignal): void {
+    this.#on(root, "submit", (event) => {
+      this.#saving = (event.target as Element).closest("dialog")?.getAttribute("data-ib-edit-for") ?? null;
+    }, signal);
+    const check = () => {
+      if (this.#saving === null || root.querySelector("dialog[data-ib-edit-for]")) return;
+      root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(this.#saving)}"] [data-ib-edit]`)?.focus();
+      this.#saving = null;
+    };
+    const gone = new MutationObserver(check);
+    gone.observe(root, { childList: true, subtree: true });
+    // Set up again by an enhanced navigation that has already taken the editor away.
+    check();
+    signal.addEventListener("abort", () => gone.disconnect());
   }
 
   /** Puts focus where the keys would in this cell, for a header that has just been rearranged. */
