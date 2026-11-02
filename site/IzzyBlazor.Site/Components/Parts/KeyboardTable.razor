@@ -2,8 +2,8 @@
    heading registers with the outline when it renders, so in a component of its own, or a Stack, these
    would be listed after the sections that follow them. *@
 
-<Table Items="Group.Rows" Caption="@($"{Name} keys{(Group.Title is null ? "" : $", {Group.Title}")}")" Size="ControlSize.Sm">
-    <TemplateColumn Title="Press this key" Width="Length.Rem(14)">
+<Table Items="Group.Rows" Caption="@($"{Name} keys{(Group.Title is null ? "" : $", {Group.Title}")}")">
+    <TemplateColumn Title="Press this key" Width="Length.Rem(19)">
         @for (var i = 0; i < context!.Keys.Count; i++)
         {
             @if (i > 0)
