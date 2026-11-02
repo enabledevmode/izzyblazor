@@ -662,7 +662,8 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         return found is not null && IsPreview(found.Name) ? null : found;
     }
 
-    private bool IsPreview(string name) => registry.ByName(name)?.Preview == true;
+    // A part of a preview too: what it would point to isn't there.
+    private bool IsPreview(string name) => (registry.ByName(name) ?? registry.OwnerOfPart(name))?.Preview == true;
 
     // "<Select TValue>", "Select<TValue>", "IzzyBlazor.Button" and " button " all mean the type's name.
     private static string Bare(string name)

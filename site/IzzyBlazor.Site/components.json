@@ -1625,7 +1625,7 @@
         {
           "id": "export", "title": "Export", "summary": "Download what's on screen as Excel or CSV.",
           "examples": [
-            { "id": "data-grid-export", "title": "Export", "lead": "`ExportExcelHref` adds a link to an endpoint you map with `DataExport.WriteExcelAsync`, which streams rows from the database with flat memory. The link carries the filter, sort, search and visible columns, and works with no script. The fields you give `DataExport` decide what can be written, whatever the address says, and their captions head the file. Give them the grid's keys so a download matches the screen: a filter on a key they don't have matches nothing." },
+            { "id": "data-grid-export", "title": "Export to Excel", "lead": "`ExportExcelHref` adds a link to an endpoint you map with `DataExport.WriteExcelAsync`, which streams rows from the database with flat memory. The link carries the filter, sort, search and visible columns, and works with no script. The fields you give `DataExport` decide what can be written, whatever the address says, and their captions head the file. Give them the grid's keys so a download matches the screen: a filter on a key they don't have matches nothing." },
             { "id": "data-grid-export-both", "title": "Excel and CSV", "lead": "Add `ExportCsvHref` to offer CSV too: one button with a chevron then opens a menu of both, Excel first." }
           ]
         }
