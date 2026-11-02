@@ -125,15 +125,6 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public bool? Editable { get; set; }
 
-    /// <summary>The field's label in the editor, if not the column's title.</summary>
-    [Parameter] public string? EditLabel { get; set; }
-
-    /// <summary>The field's hint in the editor.</summary>
-    [Parameter] public string? EditHint { get; set; }
-
-    /// <summary>The columns the field spans in a dialog with <c>EditFormColumns</c>, such as <c>GridSpan.Full</c>.</summary>
-    [Parameter] public Responsive<int> EditColSpan { get; set; }
-
     /// <summary>
     /// Your own field for the column, in place of the one for its type. Bind it to <c>context.Item</c>,
     /// and pass <c>context.Attributes</c>: <c>&lt;Select @bind-Value="context.Item.OwnerId" Items="owners" @attributes="context.Attributes" /&gt;</c>.
@@ -218,17 +209,18 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     protected virtual string? EditProblem => $"The \"{HeaderText}\" column can't be edited: only a PropertyColumn can, for now.";
 
     /// <summary>The field that edits this column on <paramref name="model"/>, posting under <paramref name="name"/>.</summary>
-    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus) => builder =>
+    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed) => builder =>
     {
-        var attributes = new Dictionary<string, object> { ["name"] = name, ["Label"] = EditLabel ?? HeaderText };
-        if (EditHint is not null)
+        var field = placed();
+        var attributes = new Dictionary<string, object> { ["name"] = name, ["Label"] = field?.Label ?? HeaderText };
+        if (field?.Hint is { } hint)
         {
-            attributes["Hint"] = EditHint;
+            attributes["Hint"] = hint;
         }
 
-        if (!EditColSpan.IsEmpty)
+        if (field is { ColSpan.IsEmpty: false })
         {
-            attributes["ColSpan"] = EditColSpan;
+            attributes["ColSpan"] = field.ColSpan;
         }
 
         if (autofocus())
@@ -493,11 +485,11 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     }
 
     /// <inheritdoc />
-    internal override RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus)
+    internal override RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed)
     {
         if (EditTemplate is not null)
         {
-            return base.Editor(model, name, receiver, autofocus);
+            return base.Editor(model, name, receiver, autofocus, placed);
         }
 
         var property = EditProperty!;
@@ -505,8 +497,9 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         var changed = EventCallback.Factory.Create<TValue>(receiver, v => property.SetValue(model, v));
         return builder =>
         {
+            var field = placed();
             OpenField(builder);
-            builder.AddComponentParameter(1, "Label", EditLabel ?? HeaderText);
+            builder.AddComponentParameter(1, "Label", field?.Label ?? HeaderText);
             builder.AddComponentParameter(2, "Value", (TValue)property.GetValue(model)!);
             builder.AddComponentParameter(3, "ValueChanged", changed);
             builder.AddComponentParameter(4, "ValueExpression", value);
@@ -523,14 +516,14 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
                 builder.AddComponentParameter(8, "ItemText", (Func<TValue, string>)(v => choices.FirstOrDefault(c => c.Value == v?.ToString()).Text ?? ""));
             }
 
-            if (EditHint is not null)
+            if (field?.Hint is { } hint)
             {
-                builder.AddComponentParameter(9, "Hint", EditHint);
+                builder.AddComponentParameter(9, "Hint", hint);
             }
 
-            if (!EditColSpan.IsEmpty)
+            if (field is { ColSpan.IsEmpty: false })
             {
-                builder.AddComponentParameter(10, "ColSpan", EditColSpan);
+                builder.AddComponentParameter(10, "ColSpan", field.ColSpan);
             }
 
             builder.CloseComponent();
