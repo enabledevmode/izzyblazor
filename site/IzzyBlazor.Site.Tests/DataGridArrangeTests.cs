@@ -109,6 +109,13 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Status" }).CheckAsync();
             await Until(grid, ["Order", "Customer", "Date", "Status", "Total"]);
 
+            // One that starts hidden: the picker shows it, and it stays shown.
+            await grid.GetByRole(AriaRole.Checkbox, new() { Name = "Weekday" }).CheckAsync();
+            await Until(grid, ["Order", "Customer", "Date", "Status", "Total", "Weekday"]);
+            await page.ReloadAsync(new() { WaitUntil = WaitUntilState.NetworkIdle });
+            await Until(grid, ["Order", "Customer", "Date", "Status", "Total", "Weekday"]);
+
+            await grid.Locator(".ib-col-picker button").First.ClickAsync();
             await grid.Locator("[data-ib-col-action=reset]").ClickAsync();
             await page.WaitForFunctionAsync("() => !document.cookie.includes('ib-grid-arrange-example')");
             await Until(grid, ["Order", "Customer", "Date", "Status", "Total"]);

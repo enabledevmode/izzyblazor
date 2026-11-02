@@ -111,17 +111,19 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter] public bool Pickable { get; set; } = true;
 
     /// <summary>
-    /// Whether the column shows in a <c>DataGrid</c>. Hidden, it's left out of the column picker and
-    /// exports too, but can still be filtered by and, with <see cref="Editable"/> set, edited.
+    /// Whether the column shows at first in a <c>DataGrid</c>. Hidden, it's still in the column picker,
+    /// where people can show it, unless <see cref="Pickable"/> is false, and can still be filtered by and
+    /// edited. This isn't access control: its values are sent once it's shown, so leave out a column
+    /// someone mustn't see.
     /// </summary>
     [Parameter] public bool Visible { get; set; } = true;
 
     /// <summary>
     /// Whether a row's editor has a field for this column, in a <c>DataGrid</c> with an <c>EditMode</c>.
     /// Only editable columns take a value from a save, so a forged one changes nothing. By default a
-    /// visible column is editable if it can be: a settable property of the row, of a type with a field,
-    /// without <c>[Key]</c>, <c>[Editable(false)]</c> or <c>[ReadOnly(true)]</c>. A hidden one isn't
-    /// unless this is set. Set it to false on what people mustn't change, such as the row's key.
+    /// column is editable if it can be, shown or not: a settable property of the row, of a type with a
+    /// field, without <c>[Key]</c>, <c>[Editable(false)]</c> or <c>[ReadOnly(true)]</c>. Set it to false
+    /// on what people mustn't change, such as the row's key.
     /// </summary>
     [Parameter] public bool? Editable { get; set; }
 
@@ -189,7 +191,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>The cell content for an item.</summary>
     internal abstract RenderFragment Cell(TItem item);
 
-    internal bool IsEditable => Editable ?? (Visible && EditableByDefault);
+    internal bool IsEditable => Editable ?? EditableByDefault;
 
     /// <summary>Whether it's editable when <see cref="Editable"/> isn't set.</summary>
     internal bool EditableByDefault =>

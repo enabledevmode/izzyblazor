@@ -55,10 +55,12 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         Assert.DoesNotContain("edits-edit", page.Url);
     }
 
-    [Fact]
-    public async Task Add_makes_a_row_and_delete_asks_then_removes_it()
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Add_makes_a_row_and_delete_asks_then_removes_it(string mode)
     {
-        var (browser, page) = await OpenAsync("static");
+        var (browser, page) = await OpenAsync(mode);
         await using var _ = browser;
         var rows = page.Locator(Grid).Locator(".ib-table-scroll tbody tr");
         await page.Locator(Grid).Locator(".ib-grid-toolbar [data-ib-edit]").ClickAsync();

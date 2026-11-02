@@ -69,10 +69,10 @@
     browser's menu, with its "open in new tab": that includes the whole of a row with RowHref, whose ⋮
     button and Shift+F10 still open the menu.
 
-    EditMode with OnSave edits a row, with no script needed. Each visible column gets a field chosen by
-    its type (a text area for text with [DataType(DataType.MultilineText)]) if it can be edited: set
-    Editable="false" on what can't be, such as the key, which a save can't change. A property the grid
-    doesn't show gets a field with Visible="false" and Editable="true". Each row has an Edit link, which puts
+    EditMode with OnSave edits a row, with no script needed. Each column gets a field chosen by its type
+    (a text area for text with [DataType(DataType.MultilineText)]) if it can be edited, shown or not:
+    set Editable="false" on what can't be, such as the key, which a save can't change. Visible="false"
+    starts a column hidden, for a field the table doesn't show, or for people to show from the picker. Each row has an Edit link, which puts
     its key in the address (?edit=42), and a save is a form post. Only editable columns take a value
     from it, so a forged field changes nothing. OnSave gets a copy of the row, and either finishes,
     which closes the editor and loads the rows again, or adds errors, which stay on the fields. A grid
@@ -82,7 +82,7 @@
     <DataGrid Items="orders" ItemKey="o => o.Id.ToString()" EditMode="DataGridEditMode.Dialog" OnSave="SaveAsync">
         <PropertyColumn Property="o => o.Id" Editable="false" />
         <PropertyColumn Property="o => o.Customer" />
-        <PropertyColumn Property="o => o.Notes" Visible="false" Editable="true" />
+        <PropertyColumn Property="o => o.Notes" Visible="false" />
     </DataGrid>
 
     Accessibility:
@@ -152,7 +152,7 @@
     See also: Table.
 *@
 
-<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
+<ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <ib-grid hidden></ib-grid>
     @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
     @Editor
@@ -1308,7 +1308,7 @@
                 </Trigger>
                 <ChildContent>
                     <ul class="ib-col-picker-list" aria-label="@TextDefaults.ColumnPicker">
-                    @foreach (var column in Columns.Where(c => c.Pickable && c.Visible))
+                    @foreach (var column in Columns.Where(c => c.Pickable))
                     {
                         var key = KeyOf(column);
                         var shown = Shown.Contains(column);
@@ -1475,9 +1475,9 @@
     {
         var layout = CurrentLayout;
         // One the page says can't be hidden isn't, whatever a stored layout says.
-        var columns = Columns.Where(c => c.Visible).ToList();
-        var visible = columns.Where(c => !c.Pickable || layout?.Column(KeyOf(c))?.Hidden != true).ToList();
-        return (visible.Count > 0 ? visible : columns)
+        // Visible says how it starts. What someone chose goes first, on a column they can choose.
+        var visible = Columns.Where(c => c.Pickable && layout?.Column(KeyOf(c))?.Hidden is { } hidden ? !hidden : c.Visible).ToList();
+        return (visible.Count > 0 ? visible : Columns)
             .Select((column, index) => (column, index))
             .OrderBy(x => FrozenOf(x.column) switch { ColumnFrozen.Start => 0, ColumnFrozen.End => 2, _ => 1 })
             .ThenBy(x => layout?.Column(KeyOf(x.column))?.Position ?? x.index)
