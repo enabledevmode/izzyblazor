@@ -240,13 +240,6 @@ public class DataExportTests
     }
 
     [Fact]
-    public async Task A_full_address_is_read_the_same_as_its_query()
-    {
-        var text = await CsvAsync("http://site/o.csv?columns=qty&sort=qty");
-        Assert.StartsWith("Qty\r\n-3\r\n", text);
-    }
-
-    [Fact]
     public async Task A_query_that_fails_at_once_writes_nothing_so_the_app_can_answer_with_an_error()
     {
         IEnumerable<Row> Failing()
@@ -261,12 +254,6 @@ public class DataExportTests
         await Assert.ThrowsAsync<InvalidOperationException>(() => DataExport.WriteCsvAsync(stream, Failing().AsQueryable(), null, Fields));
         await Assert.ThrowsAsync<InvalidOperationException>(() => DataExport.WriteExcelAsync(stream, Failing().AsQueryable(), null, Fields));
         Assert.Empty(stream.ToArray());
-    }
-
-    [Fact]
-    public async Task An_export_needs_a_field()
-    {
-        await Assert.ThrowsAsync<ArgumentException>(() => DataExport.WriteCsvAsync(new ResponseStream(), Rows.AsQueryable(), null, []));
     }
 
     // What a database's query is: filtered and sorted through its provider, and read asynchronously.

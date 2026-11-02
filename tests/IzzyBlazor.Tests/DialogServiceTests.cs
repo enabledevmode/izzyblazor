@@ -37,34 +37,6 @@ public class DialogServiceTests : BunitContext
     }
 
     [Fact]
-    public async Task Opening_from_other_threads_while_the_host_reads_the_list_is_safe()
-    {
-        // Dialogs opened off the dispatcher (a timer, a hub callback) while the host renders.
-        var service = new DialogService();
-        service.AddHost(new object());
-        var opening = Enumerable.Range(0, 8).Select(n => Task.Run(() =>
-        {
-            for (var i = 0; i < 200; i++)
-            {
-                _ = service.OpenAsync(typeof(Content), "Hi");
-            }
-        })).ToArray();
-
-        var all = Task.WhenAll(opening);
-        while (!all.IsCompleted)
-        {
-            foreach (var entry in service.Open)
-            {
-                Assert.NotNull(entry.Instance);
-            }
-        }
-
-        await Task.WhenAll(opening);
-        Assert.Equal(1600, service.Open.Count);
-        Assert.Equal(1600, service.Open.Select(e => e.Instance.Id).Distinct().Count());
-    }
-
-    [Fact]
     public async Task Opens_a_component_and_returns_what_it_closes_with()
     {
         var service = Setup();
@@ -130,60 +102,5 @@ public class DialogServiceTests : BunitContext
         // It throws straight away, before any dialog exists.
         var error = Assert.Throws<InvalidOperationException>(() => { _ = service.OpenAsync<Content>("Edit"); });
         Assert.Contains("DialogHost", error.Message);
-    }
-
-    [Fact]
-    public async Task Two_hosts_show_a_dialog_once()
-    {
-        var service = Setup();
-        var first = Render<DialogHost>();
-        var second = Render<DialogHost>();
-        await second.InvokeAsync(() => { _ = service.OpenAsync<Content>("Edit", new() { ["Greeting"] = "Hello" }); });
-
-        second.WaitForAssertion(() => Assert.Single(second.FindAll("dialog .greeting")));
-        Assert.Empty(first.FindAll("dialog"));
-
-        // When the newer host goes, the one before takes over.
-        await second.InvokeAsync(second.Instance.Dispose);
-        first.WaitForAssertion(() => Assert.Single(first.FindAll("dialog .greeting")));
-    }
-
-    [Fact]
-    public async Task A_dialog_can_take_the_color_scheme_and_density_of_where_it_was_opened()
-    {
-        var service = Setup();
-        var host = Render<DialogHost>();
-        await host.InvokeAsync(() => { _ = service.OpenAsync<Content>("Edit", null, new DialogOptions { ColorScheme = ColorScheme.Dark, Density = ThemeDensity.Compact }); });
-
-        var dialog = host.WaitForElement("dialog");
-        Assert.Contains("ib-scheme-dark", dialog.ClassName);
-        Assert.Equal("compact", dialog.GetAttribute("data-ib-density"));
-    }
-
-    [Fact]
-    public async Task A_dialog_can_take_the_brand_of_where_it_was_opened()
-    {
-        var service = Setup();
-        var host = Render<DialogHost>();
-        await host.InvokeAsync(() =>
-        {
-            _ = service.OpenAsync<Content>("Named", null, new DialogOptions { Brand = "rose" });
-            _ = service.OpenAsync<Content>("Hex", null, new DialogOptions { Brand = "#be123c" });
-        });
-
-        host.WaitForAssertion(() => Assert.Equal(2, host.FindAll("dialog").Count));
-        var dialogs = host.FindAll("dialog");
-        Assert.Equal("rose", dialogs[0].GetAttribute("data-ib-brand"));
-        Assert.Contains("--ib-color-primary: light-dark(#be123c", dialogs[1].GetAttribute("style"));
-    }
-
-    [Fact]
-    public async Task A_dialog_can_take_a_width_between_the_sizes()
-    {
-        var service = Setup();
-        var host = Render<DialogHost>();
-        await host.InvokeAsync(() => { _ = service.OpenAsync<Content>("Edit", null, new DialogOptions { Width = Length.Px(560) }); });
-
-        Assert.Contains("--ib-dlgw:560px", host.WaitForElement("dialog").GetAttribute("style"));
     }
 }

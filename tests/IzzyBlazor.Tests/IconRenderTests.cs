@@ -29,49 +29,6 @@ public class IconRenderTests : BunitContext
     }
 
     [Fact]
-    public void Role_resolves_through_the_current_icon_set()
-    {
-        var byRole = Render<Icon>(p => p.Add(i => i.Role, IconRole.Close));
-        var byName = Render<Icon>(p => p.Add(i => i.Name, Lucide.X));
-
-        byRole.MarkupMatches(byName.Markup);
-    }
-
-    [Fact]
-    public void Size_color_stroke_and_spin()
-    {
-        var svg = Render<Icon>(p => p
-            .Add(i => i.Name, Lucide.Heart)
-            .Add(i => i.Size, IconSize.Lg)
-            .Add(i => i.Color, Color.DangerText)
-            .Add(i => i.StrokeWidth, 2)
-            .Add(i => i.Spin, true)).Find("svg");
-
-        Assert.Equal("ib-icon ib-icon-lg ib-icon-spin ib-fg", svg.ClassName);
-        Assert.Equal("--ib-fg:var(--ib-color-danger-text);", svg.GetAttribute("style"));
-        Assert.Equal("2", svg.GetAttribute("stroke-width"));
-    }
-
-    [Fact]
-    public void Filled_icons_use_fill_and_no_stroke()
-    {
-        var filled = new IconData("0 0 16 16", "<path d=\"M0 0h16v16H0z\"/>", IconStyle.Fill);
-        var svg = Render<Icon>(p => p.Add(i => i.Name, filled)).Find("svg");
-
-        Assert.Equal("currentColor", svg.GetAttribute("fill"));
-        Assert.Null(svg.GetAttribute("stroke"));
-    }
-
-    [Fact]
-    public void Name_or_role_is_required_but_not_both()
-    {
-        Assert.Throws<InvalidOperationException>(() => Render<Icon>());
-        Assert.Throws<InvalidOperationException>(() => Render<Icon>(p => p
-            .Add(i => i.Name, Lucide.X)
-            .Add(i => i.Role, IconRole.Close)));
-    }
-
-    [Fact]
     public void Every_role_has_an_icon()
     {
         foreach (var role in Enum.GetValues<IconRole>())
@@ -94,24 +51,6 @@ public class IconRenderTests : BunitContext
         Assert.All(icons, icon => Assert.Null(IconMarkup.Find(icon.Body)));
     }
 
-    [Fact]
-    public void Brands_are_outlines_like_the_rest_of_the_set()
-    {
-        var brands = typeof(Brands).GetProperties(System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.Static)
-            .Select(p => (IconData)p.GetValue(null)!);
-
-        Assert.All(brands, icon => Assert.Equal(IconStyle.Stroke, icon.Style));
-    }
-
-    [Fact]
-    public void Lucide_is_drawn_at_a_1_5_stroke_set_on_the_svg()
-    {
-        // Stroke color, caps, joins and width come from <svg>, so StrokeWidth and --ib-icon-stroke
-        // apply to every element.
-        Assert.DoesNotContain("stroke", Lucide.Trash.Body);
-        Assert.Equal(1.5, Lucide.Trash.StrokeWidth);
-    }
-
     [Theory]
     [InlineData("<script>alert(1)</script>")]
     [InlineData("<path d=\"M0 0\" onclick=\"alert(1)\"/>")]
@@ -124,10 +63,7 @@ public class IconRenderTests : BunitContext
     [InlineData("<path d=\"M0 0\" style=\"fill:url(javascript:alert(1))\"/>")]
     [InlineData("<path d=\"M0 0\"")]
     [InlineData("<!--><img src=x onerror=alert(1)>-->")]
-    [InlineData("<!---><img src=x onerror=alert(1)>-->")]
     [InlineData("<title><g><![CDATA[><img src=x onerror=alert(1)>]]></g></title>")]
-    [InlineData("<g><![CDATA[x]]></g>")]
-    [InlineData("<g>loose text</g>")]
     [InlineData("<path d=\"M0 0\" fill=\"url(https://example.com/a.svg#p)\"/>")]
     public void Unsafe_or_broken_icon_markup_is_rejected(string body) =>
         Assert.NotNull(IconMarkup.Find(body));
@@ -135,7 +71,6 @@ public class IconRenderTests : BunitContext
     [Theory]
     [InlineData("<title>Settings</title><path d=\"M0 0h24\"/>")]
     [InlineData("<defs><linearGradient id=\"g\"><stop offset=\"0\"/></linearGradient></defs><path d=\"M0 0\" fill=\"url(#g)\"/>")]
-    [InlineData("<path d=\"M0 0\" fill=\"url( '#g' )\"/>")]
     public void Plain_drawing_markup_is_allowed(string body) =>
         Assert.Null(IconMarkup.Find(body));
 

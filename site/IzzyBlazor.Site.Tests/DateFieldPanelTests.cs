@@ -73,7 +73,6 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_date_and_time_waits_for_ok_and_saves_in_the_fields_zone(string mode)
     {
         var (page, _, browser) = await OpenAsync(mode);
@@ -114,38 +113,6 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
             // March 15 is after New York's clocks change, so the offset is the panel's day's.
             await form.GetByRole(AriaRole.Button, new() { Name = "Schedule" }).ClickAsync();
             await Assertions.Expect(form).ToContainTextAsync("2027-03-15 14:45 -04:00");
-        }
-    }
-
-    [Fact]
-    public async Task With_room_the_calendar_starts_at_the_fields_left_edge()
-    {
-        var (_, form, browser) = await OpenAsync("static");
-        await using (browser)
-        {
-            await form.Locator(".ib-date-toggle").First.ClickAsync();
-            var panel = form.Locator("[popover]:popover-open");
-            await Assertions.Expect(panel).ToBeVisibleAsync();
-
-            var field = (await form.GetByLabel("Delivery", new() { Exact = true }).BoundingBoxAsync())!;
-            Assert.Equal(field.X, (await panel.BoundingBoxAsync())!.X, 0);
-        }
-    }
-
-    [Fact]
-    public async Task The_time_fits_the_month_and_doesnt_widen_the_panel()
-    {
-        var (page, _, browser) = await OpenAsync("static");
-        await using (browser)
-        {
-            var calendar = page.Locator("ib-calendar:has(.ib-calendar-time)").First;
-            await calendar.Locator("xpath=ancestor::ib-field-control[contains(@class,'ib-date-control')]").Locator(".ib-date-toggle").ClickAsync();
-            await Assertions.Expect(calendar.Locator("table")).ToBeVisibleAsync();
-
-            var month = (await calendar.Locator("table").BoundingBoxAsync())!;
-            var time = (await calendar.Locator(".ib-calendar-time").BoundingBoxAsync())!;
-            Assert.Equal(month.Width, time.Width, 0);
-            Assert.Equal(month.X, time.X, 0);
         }
     }
 

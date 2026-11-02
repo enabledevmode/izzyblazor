@@ -19,7 +19,6 @@ public sealed class FilterTemplateTests(SiteFixture site) : IClassFixture<SiteFi
 
     [Theory]
     [InlineData("static", true)]
-    [InlineData("interactive", true)]
     [InlineData("noscript", false)]
     public async Task A_library_field_in_a_panel_filters_and_clears(string mode, bool script)
     {

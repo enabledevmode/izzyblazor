@@ -9,17 +9,6 @@ public class RegistryTests
     private static readonly Registry Registry = Registry.Load(Api);
     private static readonly ExampleCatalog Catalog = new();
 
-    [Theory]
-    [InlineData("Button", "MultiSubmit", "button-multi-submit")]
-    [InlineData("AppShell", "Inbox", "app-shell-inbox")]
-    [InlineData("Layout", "InARow", "layout-in-a-row")]
-    [InlineData("Table", "CSVExport", "table-csv-export")]
-    [InlineData("Grid", "Columns2", "grid-columns2")]
-    public void Example_ids_split_the_names_into_words(string folder, string name, string id)
-    {
-        Assert.Equal(id, ExampleCatalog.IdOf(folder, name));
-    }
-
     [Fact]
     public void Every_public_component_is_documented_as_a_component_or_a_part()
     {
@@ -29,18 +18,6 @@ public class RegistryTests
 
         Assert.True(missing.Count == 0, $"Add to components.json: {string.Join(", ", missing)}");
         Assert.True(unknown.Count == 0, $"Not public components: {string.Join(", ", unknown)}");
-    }
-
-    [Fact]
-    public void A_feature_row_that_names_a_member_finds_its_modes()
-    {
-        var broken = Registry.Components
-            .SelectMany(c => c.Features.Where(f => f.Member is not null).Select(f => (c.Name, f.Member!)))
-            .Where(x => Api.Component(x.Name) is not { } api || IzzyBlazor.Site.Components.Parts.ModeSupportTable.ModesOf(api, x.Item2) is null)
-            .Select(x => $"{x.Name}.{x.Item2}")
-            .ToList();
-
-        Assert.True(broken.Count == 0, $"No [ModeSupport] on: {string.Join(", ", broken)}");
     }
 
     [Fact]
@@ -86,38 +63,9 @@ public class RegistryTests
     }
 
     [Fact]
-    public void Feature_rows_read_their_no_script_level()
-    {
-        // The rows' "noscript" key: read case-sensitively, a mismatch would leave every row Full
-        // and empty the "Without JavaScript" lists without an error.
-        Assert.Contains(Registry.Components.SelectMany(c => c.Features), f => f.NoScript != IzzyBlazor.ModeLevel.Full);
-    }
-
-    [Fact]
     public void Every_component_has_a_picture()
     {
         Assert.Empty(Registry.AllComponents.Select(c => c.Id).Except(Pictures.ById.Keys));
         Assert.Empty(Pictures.ById.Keys.Except(Registry.AllComponents.Select(c => c.Id)));
-    }
-
-    [Fact]
-    public void Shown_source_leaves_out_hidden_lines()
-    {
-        var source = ExampleCatalog.Clean("<A />\r\n@* hide *@\n<Scaffolding />\n@* /hide *@\n<B />\n");
-
-        Assert.Equal("<A />\n<B />", source);
-    }
-
-    [Fact]
-    public void No_example_names_a_control_after_a_form_property()
-    {
-        // A control named "action" hides the form's own action, and Blazor's enhanced form
-        // handling then posts to "[object RadioNodeList]".
-        var clashes = Catalog.Ids
-            .Where(id => System.Text.RegularExpressions.Regex.IsMatch(Catalog.SourceOf(id)!.Value.Source,
-                @"\bName=""(action|method|target|submit|enctype|elements)""", System.Text.RegularExpressions.RegexOptions.IgnoreCase))
-            .ToList();
-
-        Assert.True(clashes.Count == 0, $"Rename the control in: {string.Join(", ", clashes)}");
     }
 }

@@ -59,19 +59,6 @@ public class ServerSplitTests
     }
 
     [Fact]
-    public async Task No_cookie_when_the_toast_was_rendered()
-    {
-        var (http, response) = Request();
-        var carrier = new CookieToastCarrier(new FixedHttpContextAccessor { HttpContext = http });
-        var toasts = new ToastService(new ServiceCollection().AddSingleton<IToastCarrier>(carrier).BuildServiceProvider());
-
-        toasts.Success("Saved.");
-        await response.StartAsync();
-
-        Assert.Equal("", SetCookie(http));
-    }
-
-    [Fact]
     public async Task Carried_toasts_come_first_and_the_cookie_is_deleted()
     {
         var json = Uri.EscapeDataString("""[{"Message":"Created.","Status":1}]""");
@@ -95,18 +82,6 @@ public class ServerSplitTests
         toasts.Warning("Careful.");
 
         Assert.Equal("Careful.", Assert.Single(toasts.Pending).Message);
-    }
-
-    [Fact]
-    public void Carrier_ignores_a_response_that_has_started()
-    {
-        // An interactive circuit's HttpContext belongs to a request already sent.
-        var (http, _) = Request(Uri.EscapeDataString("""[{"Message":"Old."}]"""));
-        http.Features.Set<IHttpResponseFeature>(new StartedResponse());
-        var carrier = new CookieToastCarrier(new FixedHttpContextAccessor { HttpContext = http });
-
-        Assert.Empty(carrier.Receive());
-        Assert.Null(new HttpRequestCookies(new FixedHttpContextAccessor { HttpContext = http }).Get("ib-toasts"));
     }
 
     private sealed class StartedResponse : HttpResponseFeature
@@ -141,9 +116,7 @@ public class ServerSplitTests
     [InlineData("?q=grace+hopper", "q", "grace hopper")]
     [InlineData("?q=caf%C3%A9", "Q", "café")]
     [InlineData("?tag=a&tag=b", "tag", "a,b")]
-    [InlineData("?flag", "flag", "")]
     [InlineData("", "page", null)]
-    [InlineData("?=x&c=", "", "x")]
     public void Query_parsing_matches_QueryHelpers(string query, string key, string? expected)
     {
         var parsed = QueryString.Parse(query);

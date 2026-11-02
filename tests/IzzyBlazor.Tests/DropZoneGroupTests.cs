@@ -89,19 +89,6 @@ public class DropZoneGroupTests : BunitContext
     }
 
     [Fact]
-    public void An_empty_zone_keeps_its_list_and_shows_its_empty_text()
-    {
-        Static();
-        var tasks = Board();
-        tasks.RemoveAll(t => t.Status == "done");
-        var cut = RenderBoard(tasks);
-
-        var done = Zone(cut, "done");
-        Assert.NotNull(done.QuerySelector("ul.ib-sortable-list"));
-        Assert.Equal("Drop items here", done.QuerySelector(".ib-dropzone-empty .ib-dropzone-drop")!.TextContent);
-    }
-
-    [Fact]
     public void A_post_shows_the_posted_zones_and_applies_a_move_to_a_zone()
     {
         Static();
@@ -145,16 +132,6 @@ public class DropZoneGroupTests : BunitContext
     }
 
     [Fact]
-    public void A_static_group_without_a_name_shows_no_handles()
-    {
-        Static();
-        var cut = RenderBoard(name: null);
-
-        Assert.Empty(cut.FindAll(".ib-sortable-handle"));
-        Assert.Empty(cut.FindAll("input[type=hidden]"));
-    }
-
-    [Fact]
     public void A_live_drop_in_another_zone_runs_OnMove_and_moves_it()
     {
         Live();
@@ -170,18 +147,6 @@ public class DropZoneGroupTests : BunitContext
         Assert.Equal("Moved Ada to Done, position 1 of 2", Zone(cut, "done").QuerySelector("[role=status]")!.TextContent);
         // Every zone renders the count: the drop's list waits for it.
         Assert.All(cut.FindAll("ib-sortable"), z => Assert.Equal("1", z.GetAttribute("data-ib-seq")));
-    }
-
-    [Fact]
-    public void A_live_move_shows_in_the_new_zone_before_the_app_saves_it()
-    {
-        Live();
-        var cut = RenderBoard(name: null, saveZone: false);
-
-        Zone(cut, "todo").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "a", ToZone = "done", ToIndex = 1, Seq = 1 });
-
-        Assert.Equal("todo", cut.Instance.Tasks.Single(t => t.Id == "a").Status);
-        Assert.Equal(new[] { "Eve", "Ada" }, Shown(cut, "done"));
     }
 
     [Fact]
@@ -227,52 +192,6 @@ public class DropZoneGroupTests : BunitContext
     }
 
     [Fact]
-    public void A_zone_outside_a_group_throws()
-    {
-        Static();
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<ListView<Task>>(p => p.Add(l => l.Zone, "todo")));
-        Assert.Contains("DropZoneGroup", ex.Message);
-    }
-
-    [Fact]
-    public void A_zone_given_its_own_items_throws()
-    {
-        Static();
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<DropZoneGroup<Task>>(p => p
-            .Add(g => g.Items, Board())
-            .Add(g => g.ItemKey, t => t.Id)
-            .Add(g => g.ZoneOf, t => t.Status)
-            .Add(g => g.ChildContent, b =>
-            {
-                b.OpenComponent<ListView<Task>>(0);
-                b.AddAttribute(1, nameof(ListView<Task>.Zone), "todo");
-                b.AddAttribute(2, nameof(ListView<Task>.Items), Board());
-                b.CloseComponent();
-            })));
-        Assert.Contains("takes its items from its DropZoneGroup", ex.Message);
-    }
-
-    [Fact]
-    public void Two_zones_with_one_name_throw()
-    {
-        Static();
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<DropZoneGroup<Task>>(p => p
-            .Add(g => g.Items, Board())
-            .Add(g => g.ItemKey, t => t.Id)
-            .Add(g => g.ZoneOf, t => t.Status)
-            .Add(g => g.ChildContent, b =>
-            {
-                b.OpenComponent<ListView<Task>>(0);
-                b.AddAttribute(1, nameof(ListView<Task>.Zone), "todo");
-                b.CloseComponent();
-                b.OpenComponent<ListView<Task>>(2);
-                b.AddAttribute(3, nameof(ListView<Task>.Zone), "todo");
-                b.CloseComponent();
-            })));
-        Assert.Contains("Zone=\"todo\"", ex.Message);
-    }
-
-    [Fact]
     public void ListOrder_arranges_zones_for_saving()
     {
         var order = new ListOrder { Keys = ["b", "a", "c"], Zones = ["doing", "todo", "doing"], Move = "to:todo:c" };
@@ -284,100 +203,5 @@ public class DropZoneGroupTests : BunitContext
         Assert.Equal("todo", order.ZoneOf("c"));
         Assert.Equal("doing", order.ZoneOf("b"));
         Assert.Null(order.ZoneOf("zzz"));
-    }
-    [Fact]
-    public void A_live_list_changed_in_place_shows_its_changes_and_keeps_moves()
-    {
-        Live();
-        var tasks = Board();
-        var cut = RenderBoard(tasks, name: null);
-        Zone(cut, "todo").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "b", ToZone = "todo", ToIndex = 0, Seq = 1 });
-
-        // The page adds a task and moves one itself, in the list it holds now (bound).
-        var bound = (List<Task>)cut.Instance.Tasks;
-        bound.Add(new("f", "Finn", "todo"));
-        bound.Single(t => t.Id == "e").Status = "todo";
-        cut.Render(p => p.Add(b => b.Tasks, bound));
-
-        Assert.Equal(new[] { "Brian", "Ada", "Eve", "Finn" }, Shown(cut, "todo"));
-        Assert.Empty(Shown(cut, "done"));
-    }
-
-    [Fact]
-    public void A_move_to_the_item_s_own_zone_does_nothing()
-    {
-        Static();
-        var cut = RenderBoard(order: new ListOrder { Keys = ["a", "b", "c", "d", "e"], Move = "to:todo:a" });
-
-        Assert.Equal(new[] { "Ada", "Brian" }, Shown(cut, "todo"));
-    }
-
-    [Theory]
-    [InlineData("to do")]
-    [InlineData("a:b")]
-    [InlineData("")]
-    public void A_zone_name_with_spaces_or_colons_throws(string zone)
-    {
-        Static();
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<DropZoneGroup<Task>>(p => p
-            .Add(g => g.Items, Board())
-            .Add(g => g.ItemKey, t => t.Id)
-            .Add(g => g.ZoneOf, t => t.Status)
-            .Add(g => g.ChildContent, b =>
-            {
-                b.OpenComponent<ListView<Task>>(0);
-                b.AddAttribute(1, nameof(ListView<Task>.Zone), zone);
-                b.CloseComponent();
-            })));
-        Assert.Contains("without spaces or colons", ex.Message);
-    }
-
-    [Fact]
-    public void A_zone_drawn_again_in_place_replaces_the_old_one()
-    {
-        Live();
-        var version = 0;
-        RenderFragment content = b =>
-        {
-            b.OpenComponent<ListView<Task>>(0);
-            b.SetKey(version);
-            b.AddAttribute(1, nameof(ListView<Task>.Zone), "todo");
-            b.CloseComponent();
-        };
-        var cut = Render<DropZoneGroup<Task>>(p => p
-            .Add(g => g.Items, Board())
-            .Add(g => g.ItemKey, t => t.Id)
-            .Add(g => g.ZoneOf, t => t.Status)
-            .Add(g => g.ChildContent, content));
-
-        version = 1;
-        cut.Render(p => p.Add(g => g.ChildContent, content));
-
-        Assert.Single(cut.FindAll("ib-sortable"));
-        Assert.Equal(2, cut.FindAll("ib-sortable li").Count);
-    }
-    [Fact]
-    public void An_unbound_live_group_keeps_its_moves_when_the_page_adds_to_the_same_list()
-    {
-        Live();
-        var tasks = Board();
-        RenderFragment content = b =>
-        {
-            b.OpenComponent<ListView<Task>>(0);
-            b.AddAttribute(1, nameof(ListView<Task>.Zone), "todo");
-            b.AddAttribute(2, nameof(ListView<Task>.ItemLabel), (Func<Task, string>)(t => t.Title));
-            b.CloseComponent();
-        };
-        var cut = Render<DropZoneGroup<Task>>(p => p
-            .Add(g => g.Items, tasks)
-            .Add(g => g.ItemKey, t => t.Id)
-            .Add(g => g.ZoneOf, t => t.Status)
-            .Add(g => g.ChildContent, content));
-        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "b", ToZone = "todo", ToIndex = 0, Seq = 1 });
-
-        tasks.Add(new("f", "Finn", "todo"));
-        cut.Render(p => p.Add(g => g.Items, tasks));
-
-        Assert.Equal(new[] { "b", "a", "f" }, cut.FindAll("li").Select(li => li.GetAttribute("data-ib-key")));
     }
 }

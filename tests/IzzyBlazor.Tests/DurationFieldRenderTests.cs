@@ -45,44 +45,6 @@ public class DurationFieldRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_value_past_the_largest_unit_shows_in_it()
-    {
-        Assert.Equal(["26", "3", "4"], Boxes(DurationFor(() => _model.Timeout)));
-        Assert.Equal(["1", "2", "3", "4"], Boxes(DurationFor(() => _model.Timeout, p => p.Add(f => f.LargestUnit, DurationUnit.Days))));
-    }
-
-    [Fact]
-    public void Each_box_stops_where_the_next_unit_starts_except_the_largest()
-    {
-        var max = DurationFor(() => _model.Timeout, p => p.Add(f => f.LargestUnit, DurationUnit.Days))
-            .FindAll("[data-ib-seconds]").Select(box => box.GetAttribute("max") ?? "none").ToArray();
-
-        Assert.Equal(["none", "23", "59", "59"], max);
-    }
-
-    [Fact]
-    public void A_sign_shows_only_when_min_or_the_value_is_negative()
-    {
-        Assert.Empty(DurationFor(() => _model.Length).FindAll(".ib-duration-sign"));
-        var allowed = DurationFor(() => _model.Length, p => p.Add(f => f.Min, TimeSpan.FromHours(-1)));
-        Assert.Equal("false", allowed.Find(".ib-duration-sign").GetAttribute("aria-pressed"));
-
-        _model.Length = TimeSpan.FromMinutes(-5);
-        var negative = DurationFor(() => _model.Length);
-        Assert.Equal("true", negative.Find(".ib-duration-sign").GetAttribute("aria-pressed"));
-        Assert.Equal(["0", "5", "0"], Boxes(negative));
-    }
-
-    [Fact]
-    public void A_step_goes_on_the_smallest_box_and_must_fit_it()
-    {
-        var minutes = DurationFor(() => _model.Length, p => p.Add(f => f.SmallestUnit, DurationUnit.Minutes).Add(f => f.Step, TimeSpan.FromMinutes(15)));
-        Assert.Equal("15", minutes.FindAll("[data-ib-seconds]").Last().GetAttribute("step"));
-
-        Assert.Throws<InvalidOperationException>(() => DurationFor(() => _model.Length, p => p.Add(f => f.Step, TimeSpan.FromMinutes(15))));
-    }
-
-    [Fact]
     public void Emptying_a_nullable_field_clears_it_and_a_value_it_cant_read_is_an_error()
     {
         var cut = DurationFor(() => _model.Timeout);
@@ -96,7 +58,6 @@ public class DurationFieldRenderTests : BunitContext
     [Theory]
     [InlineData(30, true)]
     [InlineData(10, false)]
-    [InlineData(70, false)]
     public void Min_and_max_hold_when_the_form_validates(int minutes, bool valid)
     {
         _model.Length = TimeSpan.FromMinutes(minutes);

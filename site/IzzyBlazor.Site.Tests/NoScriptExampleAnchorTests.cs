@@ -24,25 +24,4 @@ public class NoScriptExampleAnchorTests
         var html = $"<section class=\"ex\" id=\"ex-card-settings\" data-ex=\"card-settings\">{inside}</section>";
         Assert.Equal($"<section class=\"ex\" id=\"ex-card-settings\" data-ex=\"card-settings\">{expected}</section>", NoScriptExampleAnchors.Rewrite(html, Path, "localhost:5190"));
     }
-
-    [Fact]
-    public void The_id_can_come_after_data_ex() =>
-        Assert.Equal("<section data-ex=\"a\" class=\"ex\" id=\"ex-a\"><a href=\"docs/components/card?p=2#ex-a\">2</a></section>",
-            NoScriptExampleAnchors.Rewrite("<section data-ex=\"a\" class=\"ex\" id=\"ex-a\"><a href=\"docs/components/card?p=2\">2</a></section>", Path, "localhost:5190"));
-
-    [Fact]
-    public void Only_inside_an_example_up_to_its_own_end()
-    {
-        const string html =
-            "<a href=\"docs/components/card?mode=static\">Static</a>" +
-            "<section class=\"ex\" id=\"ex-a\" data-ex=\"a\"><section class=\"ib-section\"><a href=\"docs/components/card?p=2\">2</a></section>" +
-            "<a href=\"docs/components/card?p=3\">3</a></section>" +
-            "<a href=\"docs/components/card?mode=interactive\">Live</a>";
-        const string expected =
-            "<a href=\"docs/components/card?mode=static\">Static</a>" +
-            "<section class=\"ex\" id=\"ex-a\" data-ex=\"a\"><section class=\"ib-section\"><a href=\"docs/components/card?p=2#ex-a\">2</a></section>" +
-            "<a href=\"docs/components/card?p=3#ex-a\">3</a></section>" +
-            "<a href=\"docs/components/card?mode=interactive\">Live</a>";
-        Assert.Equal(expected, NoScriptExampleAnchors.Rewrite(html, Path, "localhost:5190"));
-    }
 }

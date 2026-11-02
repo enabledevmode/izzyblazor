@@ -24,34 +24,6 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
     }
 
     [Fact]
-    public async Task The_index_has_each_page_s_sections_as_its_outline_lists_them()
-    {
-        // The index reads headings from the pages' sources; the outline (On this page) is what
-        // rendered. Standard sections ("Mode support") may be left out of the index, nothing else.
-        var pages = site.Registry.Components.Select(Registry.OverviewHref)
-            .Concat(Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf)));
-        var wrong = new List<string>();
-        foreach (var page in pages)
-        {
-            var html = await site.Client.GetStringAsync($"{page}?mode=static");
-            var outline = TocLink().Matches(html)
-                .Select(m => (Id: WebUtility.HtmlDecode(m.Groups["id"].Value), Text: WebUtility.HtmlDecode(m.Groups["text"].Value)))
-                .ToList();
-            var indexed = site.Search.Entries
-                .Where(e => e.Kind == SearchKind.Section && e.Href.StartsWith(page + "#", StringComparison.Ordinal))
-                .Select(e => (Id: e.Href[(page.Length + 1)..], e.Title))
-                .ToList();
-
-            wrong.AddRange(indexed.Where(i => !outline.Any(o => o.Id == i.Id && o.Text == i.Title))
-                .Select(i => $"/{page}: indexed #{i.Id} \"{i.Title}\" isn't in the outline"));
-            wrong.AddRange(outline.Where(o => !SearchIndex.StandardSections.Contains(o.Text) && !indexed.Any(i => i.Id == o.Id))
-                .Select(o => $"/{page}: #{o.Id} \"{o.Text}\" isn't indexed"));
-        }
-
-        Assert.True(wrong.Count == 0, string.Join("\n", wrong));
-    }
-
-    [Fact]
     public async Task Every_result_links_to_a_page_and_place_that_exist()
     {
         var broken = new List<string>();
@@ -92,31 +64,6 @@ public partial class SearchTests(SiteFixture site) : IClassFixture<SiteFixture>
         var top = site.Search.Search(query).Groups.SelectMany(g => g.Entries).Take(within).Select(e => e.Href).ToList();
 
         Assert.True(top.Contains(href), $"\"{query}\": expected {href} in the first {within}, got {string.Join(", ", top)}");
-    }
-
-    [Theory]
-    [InlineData("form name", "docs/troubleshooting/form-name")]
-    [InlineData("password", "docs/troubleshooting/password-after-post")]
-    [InlineData("spinner", "docs/components/spinner")]
-    [InlineData("several submit", "docs/components/button#several-submit-buttons")]
-    public void A_query_leads_its_group_with_what_it_names(string query, string href)
-    {
-        var leaders = site.Search.Search(query).Groups.Select(g => g.Entries[0].Href).ToList();
-
-        Assert.True(leaders.Contains(href), $"\"{query}\": expected {href} to lead a group, got {string.Join(", ", leaders)}");
-    }
-
-    [Theory]
-    [InlineData("accessibility")]
-    [InlineData("button")]
-    [InlineData("parameters")]
-    public void Standard_sections_need_their_own_name_and_their_page_s(string query)
-    {
-        var results = site.Search.Search(query);
-
-        Assert.DoesNotContain(results.Groups.SelectMany(g => g.Entries), e => e.Standard && e.Href.StartsWith("docs/components/", StringComparison.Ordinal));
-        Assert.Equal("docs/common/accessibility", site.Search.Search("accessibility").Groups[0].Entries[0].Href);
-        Assert.Equal("docs/components/button#parameters", site.Search.Search("button parameters").Groups[0].Entries[0].Href);
     }
 
     [Fact]

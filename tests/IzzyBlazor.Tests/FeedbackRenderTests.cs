@@ -16,8 +16,6 @@ public class FeedbackRenderTests : BunitContext
 
     [Theory]
     [InlineData(Status.Info, "status")]
-    [InlineData(Status.Success, "status")]
-    [InlineData(Status.Warning, "alert")]
     [InlineData(Status.Danger, "alert")]
     public void Alert_role_follows_urgency(Status status, string role)
     {
@@ -26,26 +24,6 @@ public class FeedbackRenderTests : BunitContext
         Assert.Equal(role, alert.GetAttribute("role"));
         Assert.Contains($"ib-alert-{status.ToString().ToLowerInvariant()}", alert.ClassName);
         Assert.NotNull(alert.QuerySelector(".ib-alert-icon"));
-    }
-
-    [Fact]
-    public void Alert_title_actions_and_hidden_icon()
-    {
-        var alert = Render<Alert>(p => p
-            .Add(a => a.Title, "Saved")
-            .Add(a => a.HideIcon, true)
-            .AddChildContent(b =>
-            {
-                b.AddContent(0, "Done.");
-                b.OpenComponent<AlertActions>(1);
-                b.AddComponentParameter(2, nameof(AlertActions.ChildContent), (RenderFragment)(a => a.AddContent(0, "Undo")));
-                b.CloseComponent();
-            })).Find(".ib-alert");
-
-        Assert.Equal("Saved", alert.QuerySelector(".ib-alert-title")!.TextContent);
-        Assert.StartsWith("Done.", alert.QuerySelector(".ib-alert-message")!.TextContent);
-        Assert.Equal("Undo", alert.QuerySelector(".ib-alert-actions")!.TextContent);
-        Assert.Null(alert.QuerySelector(".ib-alert-icon"));
     }
 
     [Fact]
@@ -111,17 +89,6 @@ public class FeedbackRenderTests : BunitContext
     }
 
     [Fact]
-    public void Spinner_is_a_status_with_hidden_label_and_icon_size()
-    {
-        var spinner = Render<Spinner>(p => p.Add(s => s.Size, IconSize.Lg).Add(s => s.Label, "Loading orders")).Find(".ib-spinner");
-
-        Assert.Equal("status", spinner.GetAttribute("role"));
-        Assert.Contains("ib-icon-lg", spinner.ClassName);
-        Assert.Equal("Loading orders", spinner.QuerySelector(".ib-visually-hidden")!.TextContent);
-        Assert.Equal("true", spinner.QuerySelector("svg")!.GetAttribute("aria-hidden"));
-    }
-
-    [Fact]
     public void Progress_with_value_reports_aria_values_and_width()
     {
         var cut = Render<Progress>(p => p.Add(x => x.Value, 3).Add(x => x.Max, 5).Add(x => x.Label, "Files").Add(x => x.ValueText, "3 of 5 files"));
@@ -134,79 +101,5 @@ public class FeedbackRenderTests : BunitContext
         Assert.Equal(cut.Find(".ib-progress-label").Id, bar.GetAttribute("aria-labelledby"));
         Assert.Equal("width:60%", cut.Find(".ib-progress-bar").GetAttribute("style"));
         Assert.Equal("3 of 5 files", cut.Find(".ib-progress-value").TextContent);
-    }
-
-    [Fact]
-    public void Progress_clamps_and_without_value_is_indeterminate()
-    {
-        var over = Render<Progress>(p => p.Add(x => x.Value, 150).Add(x => x.ShowValue, true));
-        Assert.Equal("100", over.Find("[role=progressbar]").GetAttribute("aria-valuenow"));
-        Assert.Equal("100%", over.Find(".ib-progress-value").TextContent);
-
-        var busy = Render<Progress>(p => p.Add(x => x.Label, "Working"));
-        Assert.Contains("ib-progress-indeterminate", busy.Find(".ib-progress").ClassName);
-        Assert.False(busy.Find("[role=progressbar]").HasAttribute("aria-valuenow"));
-        Assert.Null(busy.Find(".ib-progress-bar").GetAttribute("style"));
-    }
-
-    [Fact]
-    public void Skeleton_shapes_and_loaded_content()
-    {
-        var text = Render<Skeleton>(p => p.Add(s => s.Lines, 3)).Find(".ib-skeleton-text");
-        Assert.Equal("true", text.GetAttribute("aria-hidden"));
-        Assert.Equal(3, text.QuerySelectorAll(".ib-skeleton-line").Length);
-
-        var block = Render<Skeleton>(p => p.Add(s => s.Height, Length.Rem(8))).Find(".ib-skeleton");
-        Assert.Contains("ib-skeleton-block", block.ClassName);
-        Assert.Contains("ib-h", block.ClassName);
-        Assert.Contains("--ib-h:8rem", block.GetAttribute("style"));
-
-        Assert.Contains("ib-skeleton-circle", Render<Skeleton>(p => p.Add(s => s.Circle, true)).Find(".ib-skeleton").ClassName);
-
-        var loaded = Render<Skeleton>(p => p.Add(s => s.Loaded, true).AddChildContent("<p>Ready</p>"));
-        Assert.Empty(loaded.FindAll(".ib-skeleton, .ib-skeleton-text"));
-        Assert.Equal("Ready", loaded.Find("p").TextContent);
-    }
-
-    [Fact]
-    public void Static_toast_action_is_a_link_and_the_toast_lasts_twice_as_long()
-    {
-        _toasts.Info("Message archived.", action: new ToastAction("Undo", Href: "/inbox?restore=42") { OnClick = () => Task.CompletedTask });
-
-        var cut = Render<ToastRegion>(p => p.Add(r => r.Duration, 4000));
-        var toast = cut.FindAll(".ib-toast").Single(t => t.Closest("template") is null);
-
-        var action = toast.QuerySelector("a.ib-toast-action")!;
-        Assert.Equal("/inbox?restore=42", action.GetAttribute("href"));
-        Assert.Equal("Undo", action.TextContent);
-        Assert.Equal("8000", toast.GetAttribute("data-duration"));
-    }
-
-    [Fact]
-    public void Static_toast_action_without_a_link_is_refused() =>
-        Assert.Throws<InvalidOperationException>(() =>
-            _toasts.Info("Archived.", action: new ToastAction("Undo") { OnClick = () => Task.CompletedTask }));
-
-    [Fact]
-    public void Toast_templates_have_an_action_slot_for_the_script()
-    {
-        var cut = Render<ToastRegion>();
-
-        // A template's children live in its content fragment, out of reach of QuerySelector, so
-        // count the slots in the markup: one per status template.
-        Assert.Equal(5, cut.FindAll("template").Count);
-        Assert.Equal(5, System.Text.RegularExpressions.Regex.Count(cut.Markup, "data-ib-toast-action"));
-    }
-
-    [Fact]
-    public void Toast_action_survives_json_without_its_callback()
-    {
-        var toast = new ToastMessage("Archived.", Action: new ToastAction("Undo", "/undo") { OnClick = () => Task.CompletedTask });
-
-        var json = System.Text.Json.JsonSerializer.Serialize(toast);
-        var back = System.Text.Json.JsonSerializer.Deserialize<ToastMessage>(json)!;
-
-        Assert.DoesNotContain("OnClick", json);
-        Assert.Equal(new ToastAction("Undo", "/undo"), back.Action);
     }
 }

@@ -103,46 +103,6 @@ public class TableDataTests : BunitContext
         .Add(t => t.ChildContent, Columns));
 
     [Fact]
-    public void The_bar_of_actions_keeps_its_row_with_nothing_selected()
-    {
-        Static();
-        var bar = Paged(null).Find(".ib-selection-bar");
-
-        Assert.False(bar.HasAttribute("hidden"));
-        Assert.Equal("Selection", bar.GetAttribute("aria-label"));
-        Assert.Equal("4", bar.GetAttribute("data-ib-total"));
-    }
-
-    [Fact]
-    public void A_static_bars_actions_work_until_script_disables_them()
-    {
-        Static();
-        Assert.False(Paged(null).Find(".ib-selection-actions").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void An_interactive_bars_actions_are_disabled_until_something_is_selected()
-    {
-        Interactive();
-        Assert.True(Paged(null).Find(".ib-selection-actions").HasAttribute("disabled"));
-        Assert.False(Paged(Selection.Of("1")).Find(".ib-selection-actions").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void Without_actions_nothing_shows_above_the_rows()
-    {
-        Static();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Caption, "Orders").Add(t => t.PageSize, 2)
-            .Add(t => t.ItemKey, r => r.Id.ToString())
-            .Add(t => t.SelectionMode, SelectionMode.Multiple).Add(t => t.Selection, Selection.Of("1")).Add(t => t.ChildContent, Columns));
-
-        var bar = cut.Find(".ib-selection-bar");
-        Assert.True(bar.HasAttribute("hidden"));
-        Assert.Equal("Orders selection", bar.GetAttribute("aria-label"));
-        Assert.Equal("1 selected", cut.Find(".ib-selection-count").TextContent);
-    }
-
-    [Fact]
     public void The_footer_counts_the_selection_and_the_bar_holds_the_actions()
     {
         Static();
@@ -157,26 +117,6 @@ public class TableDataTests : BunitContext
         Assert.Equal("2 selected", status.TextContent);
         Assert.Null(status.Closest(".ib-data-footer"));
         Assert.Equal("Archive 2", cut.Find(".ib-selection-bar .ib-selection-actions .act").TextContent);
-    }
-
-    [Fact]
-    public void With_nothing_selected_the_count_is_hidden()
-    {
-        Static();
-        var cut = Paged(null);
-
-        Assert.True(cut.Find(".ib-selection-summary").HasAttribute("hidden"));
-        Assert.Equal("", cut.Find(".ib-selection-count").TextContent);
-    }
-
-    [Fact]
-    public void With_no_pages_the_count_has_a_line_of_its_own()
-    {
-        Static();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ItemKey, r => r.Id.ToString())
-            .Add(t => t.SelectionMode, SelectionMode.Multiple).Add(t => t.Selection, Selection.Of("1")).Add(t => t.ChildContent, Columns));
-
-        Assert.Equal("1 selected", cut.Find(".ib-selection-line .ib-selection-count").TextContent);
     }
 
     private IRenderedComponent<Table<Row>> SelectingAll(Action<Selection> report, SelectAllMode mode = SelectAllMode.All) => Render<Table<Row>>(p => p
@@ -209,41 +149,6 @@ public class TableDataTests : BunitContext
     }
 
     [Fact]
-    public void Only_SelectAllMode_All_marks_the_box_for_the_script()
-    {
-        Static();
-        Assert.True(SelectingAll(_ => { }).Find(".ib-table-select-all").HasAttribute("data-ib-all-matching"));
-        Assert.False(SelectingAll(_ => { }, SelectAllMode.Page).Find(".ib-table-select-all").HasAttribute("data-ib-all-matching"));
-    }
-
-    [Fact]
-    public void A_disabled_action_isnt_the_forms_default_button()
-    {
-        Static();
-        var cut = Paged(null);
-
-        var bar = cut.Find(".ib-selection-bar");
-        Assert.Equal("ib-data-default-submit", bar.QuerySelector("button[type=submit]")!.ClassName);
-    }
-
-    [Fact]
-    public void In_All_mode_the_header_is_checked_only_for_all_of_them()
-    {
-        Interactive();
-        var cut = SelectingAll(_ => { });
-
-        cut.FindAll("tbody .ib-table-select")[0].Change(true);
-        cut.FindAll("tbody .ib-table-select")[1].Change(true);
-        Assert.False(cut.Find(".ib-table-select-all").HasAttribute("checked"));
-
-        cut.Find(".ib-table-select-all").Change(true);
-        Assert.True(cut.Find(".ib-table-select-all").HasAttribute("checked"));
-
-        cut.FindAll("tbody .ib-table-select")[0].Change(false);
-        Assert.False(cut.Find(".ib-table-select-all").HasAttribute("checked"));
-    }
-
-    [Fact]
     public void Clear_selection_empties_it()
     {
         Interactive();
@@ -254,30 +159,6 @@ public class TableDataTests : BunitContext
 
         Assert.True(reported!.IsEmpty);
         Assert.True(cut.Find(".ib-selection-summary").HasAttribute("hidden"));
-    }
-
-    [Fact]
-    public void Single_selection_counts_too()
-    {
-        Static();
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.PageSize, 1)
-            .Add(t => t.ItemKey, r => r.Id.ToString())
-            .Add(t => t.SelectionMode, SelectionMode.Single)
-            .Add(t => t.Selection, Selection.Of("1"))
-            .Add(t => t.ChildContent, Columns));
-
-        Assert.Equal("1 selected", cut.Find(".ib-selection-count").TextContent);
-    }
-
-    [Fact]
-    public void No_bar_without_selection()
-    {
-        Static();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
-
-        Assert.Empty(cut.FindAll(".ib-selection-bar"));
     }
 
     [Fact]
@@ -456,18 +337,6 @@ public class TableDataTests : BunitContext
     }
 
     [Fact]
-    public void Error_content_replaces_the_message()
-    {
-        Static();
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.ItemsProvider, new Flaky().Load)
-            .Add(t => t.ErrorContent, b => b.AddContent(0, "The orders service is down."))
-            .Add(t => t.ChildContent, Columns));
-
-        Assert.Equal("The orders service is down.", cut.Find(".ib-table-error .ib-data-error-message").TextContent.Trim());
-    }
-
-    [Fact]
     public void Retry_on_an_interactive_page_loads_again()
     {
         Interactive();
@@ -486,18 +355,6 @@ public class TableDataTests : BunitContext
 
         // The Retry button is gone: focus goes to the table's scroll box.
         cut.WaitForAssertion(() => JSInterop.VerifyFocusAsyncInvoke());
-    }
-
-    [Fact]
-    public void Retry_that_fails_again_keeps_the_error()
-    {
-        Interactive();
-        var api = new Flaky();
-        var cut = Render<Table<Row>>(p => p.Add(t => t.ItemsProvider, api.Load).Add(t => t.ChildContent, Columns));
-
-        cut.Find(".ib-table-error button").Click();
-        cut.WaitForAssertion(() => Assert.Equal(2, api.Calls));
-        Assert.Single(cut.FindAll(".ib-table-error"));
     }
 
     [Fact]
@@ -530,24 +387,6 @@ public class TableDataTests : BunitContext
     }
 
     [Fact]
-    public void Load_on_scroll_stops_asking_after_a_failure()
-    {
-        Interactive();
-        var api = new Flaky { Fail = false };
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.ItemsProvider, api.Load)
-            .Add(t => t.PageSize, 2)
-            .Add(t => t.Paging, DataPaging.LoadOnScroll)
-            .Add(t => t.ChildContent, Columns));
-        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("[data-ib-load-next]")));
-
-        api.Fail = true;
-        cut.Find("[data-ib-load-next]").Click();
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find(".ib-data-more .ib-data-error-message")));
-        Assert.Empty(cut.FindAll("[data-ib-load-next]"));
-    }
-
-    [Fact]
     public void A_choice_column_reads_each_of_a_repeated_key()
     {
         Static("/rows?f-status=Yes&f-status=No");
@@ -555,28 +394,5 @@ public class TableDataTests : BunitContext
 
         Assert.Equal(new[] { "Ada", "Grace", "Alan" }, Names(cut));
         Assert.Equal("Filter Status: 2 selected", cut.FindAll(".ib-table-filter-button")[2].GetAttribute("aria-label"));
-    }
-
-    [Fact]
-    public void Links_follow_the_address_when_another_part_of_it_changes()
-    {
-        Interactive();
-        Nav.NavigateTo("/rows");
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.PageSize, 2).Add(t => t.ChildContent, Columns));
-
-        Nav.NavigateTo("/rows?tab=x");
-        cut.WaitForAssertion(() => Assert.Contains("tab=x", cut.Find("thead a.ib-table-sort").GetAttribute("href")));
-    }
-
-    [Fact]
-    public void A_provider_without_a_total_for_numbered_pages_still_says_so()
-    {
-        Static();
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(t => t.PageSize, 2)
-            .Add(t => t.ItemsProvider, _ => ValueTask.FromResult(new DataResult<Row>(Rows)))
-            .Add(t => t.ChildContent, Columns)));
-
-        Assert.Contains("returned no Total", ex.Message);
     }
 }

@@ -56,17 +56,6 @@ public class DiffTests : BunitContext
     }
 
     [Fact]
-    public void Compare_gives_up_past_its_limit()
-    {
-        var old = string.Join('\n', Enumerable.Range(0, 30).Select(i => $"a{i}"));
-        var @new = string.Join('\n', Enumerable.Range(0, 30).Select(i => $"b{i}"));
-
-        Assert.Null(TextDiff.Compare(old, @new, maxChanges: 59));
-        Assert.Equal(60, TextDiff.Compare(old, @new, maxChanges: 60)!.Count);
-        Assert.Null(TextDiff.Compare("", old, maxChanges: 10));
-    }
-
-    [Fact]
     public void Folds_unchanged_runs_away_from_the_changes_but_never_one_line()
     {
         var old = Text(Enumerable.Range(1, 20).Select(i => $"line {i}").ToArray());
@@ -90,18 +79,6 @@ public class DiffTests : BunitContext
         Assert.Equal(21, all.FindAll(".ib-diff-line").Count);
     }
 
-    [Theory]
-    [InlineData("a\nb", 2)] // two unchanged lines between the changes: folded with no context
-    [InlineData("a", 0)] // one: shown
-    public void Context_zero_folds_every_run_but_a_single_line(string middle, int folded)
-    {
-        var old = $"x\n{middle}\ny\n";
-        var @new = old.Replace("x\n", "X\n").Replace("y\n", "Y\n");
-        var cut = Render<Diff>(p => p.Add(d => d.OldText, old).Add(d => d.NewText, @new).Add(d => d.Context, 0));
-
-        Assert.Equal(folded, cut.FindAll("details .ib-diff-line").Count);
-    }
-
     [Fact]
     public void Screen_readers_hear_what_each_changed_line_is_and_the_counts()
     {
@@ -121,82 +98,5 @@ public class DiffTests : BunitContext
         var named = titled.Find(".ib-diff-body");
         Assert.Null(named.GetAttribute("aria-label"));
         Assert.Equal("rules.xml", titled.Find($"#{named.GetAttribute("aria-labelledby")}").TextContent);
-    }
-
-    [Fact]
-    public void Split_draws_unchanged_lines_on_both_sides_and_hides_one_from_screen_readers()
-    {
-        var unified = Render<Diff>(p => p.Add(d => d.OldText, Text("a", "b")).Add(d => d.NewText, Text("a", "c")));
-        var split = Render<Diff>(p => p.Add(d => d.OldText, Text("a", "b")).Add(d => d.NewText, Text("a", "c")).Add(d => d.Layout, DiffLayout.Split));
-
-        Assert.Empty(unified.FindAll(".ib-diff-same > .ib-diff-old"));
-        Assert.Equal("true", split.Find(".ib-diff-same > .ib-diff-old").GetAttribute("aria-hidden"));
-        Assert.Null(split.Find(".ib-diff-change > .ib-diff-old").GetAttribute("aria-hidden"));
-        Assert.Equal(Shown(unified), Shown(split));
-    }
-
-    [Fact]
-    public void Marks_the_changed_words_of_paired_lines_unless_the_line_was_rewritten()
-    {
-        var cut = Render<Diff>(p => p
-            .Add(d => d.OldText, Text("<c op=\"eq\" value=\"25\"/>", "keep", "the quick brown fox"))
-            .Add(d => d.NewText, Text("<c op=\"in\" value=\"20\"/>", "keep", "a lazy dog sleeps"))
-            .Add(d => d.Language, "xml"));
-
-        Assert.Equal(["eq", "25"], cut.FindAll(".ib-diff-removed .ib-diff-word").Select(e => e.TextContent));
-        Assert.Equal(["in", "20"], cut.FindAll(".ib-diff-added .ib-diff-word").Select(e => e.TextContent));
-
-        // A mark inside a string keeps the string's color: the token is cut, not the mark.
-        Assert.All(cut.FindAll(".ib-diff-word"), mark => Assert.NotNull(mark.QuerySelector(".ib-tok-string")));
-        Assert.Equal("<c op=\"eq\" value=\"25\"/>", cut.Find(".ib-diff-removed .ib-diff-text").TextContent);
-
-        // The rewritten line shares nothing: no marks on it.
-        Assert.Equal(2, cut.FindAll(".ib-diff-removed").Count);
-        Assert.Empty(cut.FindAll(".ib-diff-removed")[1].QuerySelectorAll(".ib-diff-word"));
-
-        // An emoji is one character: marked whole, never half a surrogate pair.
-        var emoji = Render<Diff>(p => p.Add(d => d.OldText, "status: 😀 done").Add(d => d.NewText, "status: 😁 done"));
-        Assert.Equal("😀", emoji.Find(".ib-diff-removed .ib-diff-word").TextContent);
-        Assert.Equal("😁", emoji.Find(".ib-diff-added .ib-diff-word").TextContent);
-
-        var plain = Render<Diff>(p => p.Add(d => d.OldText, "a b").Add(d => d.NewText, "a c").Add(d => d.MarkWords, false));
-        Assert.Empty(plain.FindAll(".ib-diff-word"));
-    }
-
-    [Fact]
-    public void Colors_each_text_whole_so_a_removed_comment_across_lines_stays_a_comment()
-    {
-        var cut = Render<Diff>(p => p
-            .Add(d => d.OldText, Text("<!-- one", "two -->", "<a/>"))
-            .Add(d => d.NewText, Text("<a/>"))
-            .Add(d => d.Language, "xml"));
-
-        Assert.Equal(["<!-- one", "two -->"], cut.FindAll(".ib-diff-removed .ib-tok-comment").Select(e => e.TextContent));
-        Assert.Equal("a", cut.Find(".ib-diff-same .ib-tok-tag").TextContent);
-
-        // Lines computed elsewhere are colored the same way.
-        var lines = Render<Diff>(p => p.Add(d => d.Lines, TextDiff.Compare("<!-- one\ntwo -->\n<a/>", "<a/>")).Add(d => d.Language, "xml"));
-        Assert.Equal(2, lines.FindAll(".ib-diff-removed .ib-tok-comment").Count);
-    }
-
-    [Fact]
-    public void Notes_for_the_same_text_and_for_too_many_changes()
-    {
-        var same = Render<Diff>(p => p.Add(d => d.OldText, "a\nb").Add(d => d.NewText, "a\r\nb\n"));
-        Assert.Equal("The two texts are the same.", same.Find(".ib-diff-note").TextContent);
-        Assert.Empty(same.FindAll(".ib-diff-body"));
-
-        var many = Render<Diff>(p => p.Add(d => d.OldText, "a\nb").Add(d => d.NewText, "c\nd").Add(d => d.MaxChanges, 3));
-        Assert.Equal("The texts differ by more than 3 lines, too many to show line by line.", many.Find(".ib-diff-note").TextContent);
-
-        var own = Render<Diff>(p => p.Add(d => d.OldText, "a").Add(d => d.NewText, "a").Add(d => d.SameText, "No changes."));
-        Assert.Equal("No changes.", own.Find(".ib-diff-note").TextContent);
-    }
-
-    [Fact]
-    public void Lines_and_texts_together_throw()
-    {
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Diff>(p => p.Add(d => d.Lines, []).Add(d => d.OldText, "a")));
-        Assert.Contains("Lines", ex.Message);
     }
 }

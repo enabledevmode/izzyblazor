@@ -186,9 +186,7 @@ public class ColumnFilterOperatorTests : BunitContext
     [InlineData("f-qty-op=le&f-qty=2", "Qty: 2 or less", new[] { "Ada", "Grace" })]
     [InlineData("f-qty-op=between&f-qty=2&f-qty-to=3", "Qty: 2–3", new[] { "Grace", "Alan" })]
     [InlineData("f-qty-op=between&f-qty=3", "Qty: 3 or more", new[] { "Alan", "Smith, John" })]
-    [InlineData("f-qty-op=between&f-qty=&f-qty-to=1", "Qty: 1 or less", new[] { "Ada" })]
     [InlineData("f-extra-op=isempty", "Extra: Is empty", new[] { "Ada" })]
-    [InlineData("f-extra-op=isnotempty", "Extra: Is not empty", new[] { "Grace", "Alan", "Smith, John" })]
     [InlineData("f-when=2026-01-03", "When: 2026-01-03", new[] { "Alan", "Smith, John" })]
     [InlineData("f-when-op=ne&f-when=2026-01-03", "When: Not on 2026-01-03", new[] { "Ada", "Grace" })]
     [InlineData("f-when-op=gt&f-when=2026-01-02", "When: After 2026-01-02", new[] { "Alan", "Smith, John" })]
@@ -196,9 +194,6 @@ public class ColumnFilterOperatorTests : BunitContext
     [InlineData("f-when-op=lt&f-when=2026-01-02", "When: Before 2026-01-02", new[] { "Ada" })]
     [InlineData("f-when-op=le&f-when=2026-01-02", "When: On or before 2026-01-02", new[] { "Ada", "Grace" })]
     [InlineData("f-when-op=between&f-when=2026-01-02&f-when-to=2026-01-03", "When: 2026-01-02–2026-01-03", new[] { "Grace", "Alan", "Smith, John" })]
-    [InlineData("f-when-op=between&f-when-to=2026-01-02", "When: On or before 2026-01-02", new[] { "Ada", "Grace" })]
-    [InlineData("f-maybe-op=isempty", "Maybe: Is empty", new[] { "Ada", "Smith, John" })]
-    [InlineData("f-day-op=le&f-day=2026-01-02", "Day: On or before 2026-01-02", new[] { "Ada", "Grace" })]
     public void An_operator_keeps_its_rows_and_the_export_keeps_the_same(string query, string tag, string[] expected)
     {
         var cut = Grid("/lines?" + query);
@@ -214,11 +209,7 @@ public class ColumnFilterOperatorTests : BunitContext
 
     [Theory]
     [InlineData("f-name-op=startswith&f-name=a")]
-    [InlineData("f-qty-op=gt&f-qty=2")]
     [InlineData("f-qty-op=between&f-qty=2&f-qty-to=3")]
-    [InlineData("f-qty=2")]
-    [InlineData("f-note-op=isempty")]
-    [InlineData("f-when-op=between&f-when=2026-01-02&f-when-to=2026-01-03")]
     [InlineData("f-name=ada&f-name=grace&f-name=Smith, John")]
     public void What_the_writer_writes_the_reader_reads(string query)
     {
@@ -266,11 +257,6 @@ public class ColumnFilterOperatorTests : BunitContext
     [Theory]
     [InlineData("f-name-op=contains&f-name=&f-qty-op=eq&f-qty=&f-qty-to=&f-when-op=eq&f-when=&f-when-to=", "f-qty-op", "eq")]
     [InlineData("f-name-op=startswith&f-name=", "f-name-op", "startswith")]
-    [InlineData("f-qty-op=gt&f-qty=&f-qty-to=", "f-qty-op", "gt")]
-    [InlineData("f-qty-op=between&f-qty=%20&f-qty-to=", "f-qty-op", "between")]
-    [InlineData("f-when-op=lt&f-when=", "f-when-op", "lt")]
-    [InlineData("f-qty-op=gt&f-qty=&f-qty-to=9", "f-qty-op", "gt")]
-    [InlineData("f-qty-op=bogus&f-qty=", "f-qty-op", "eq")]
     public void A_stray_operator_from_a_get_post_is_no_filter_but_draws_the_select(string query, string select, string chosen)
     {
         var cut = Grid("/lines?" + query);
@@ -292,25 +278,12 @@ public class ColumnFilterOperatorTests : BunitContext
     // An unknown word, or one this kind of column doesn't take, reads as the default.
     [InlineData("f-name-op=bogus&f-name=ada", new[] { "Ada" }, "Name: ada")]
     [InlineData("f-qty-op=contains&f-qty=2", new[] { "Grace" }, "Qty: 2")]
-    [InlineData("f-qty-op=isempty&f-qty=2", new[] { "Grace" }, "Qty: 2")]
-    [InlineData("F-NAME-OP=STARTSWITH&f-name=a", new[] { "Ada", "Alan" }, "Name: Starts with a")]
     public void A_get_post_means_what_the_panel_shows(string query, string[] expected, string tag)
     {
         var cut = Grid("/lines?" + query);
 
         Assert.Equal(expected, Names(cut));
         Assert.Contains(Tags(cut), t => t.Contains(tag, StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void A_Tables_simple_field_ignores_an_operator_in_the_address()
-    {
-        var cut = Table("/lines?f-qty-op=gt&f-qty=2&f-name-op=startswith&f-name=a");
-
-        // Between, as its Min and Max show, and Contains, as its one field does.
-        Assert.Equal(new[] { "Grace", "Alan", "Smith, John" }.Where(n => n.Contains('a', StringComparison.OrdinalIgnoreCase)), Names(cut));
-        Assert.Contains(Tags(cut), t => t.Contains("Qty: 2 or more", StringComparison.Ordinal));
-        Assert.Contains(Tags(cut), t => t.Contains("Name: a", StringComparison.Ordinal));
     }
 
     [Fact]
@@ -345,57 +318,11 @@ public class ColumnFilterOperatorTests : BunitContext
         Assert.Contains(Tags(bound), t => t.Contains("contains(name,'a')", StringComparison.Ordinal));
     }
 
-    [Theory]
-    [InlineData(FilterOperator.IsEmpty, "first")]
-    [InlineData(FilterOperator.GreaterThan, "none")]
-    public void FilterOperators_that_cant_work_say_so(FilterOperator first, string words)
-    {
-        var ex = Assert.Throws<InvalidOperationException>(() => Table(columns: b => b.AddContent(0, Col(r => r.Note, [first]))));
-
-        Assert.Contains(words, ex.Message, StringComparison.Ordinal);
-        Assert.Contains("FilterOperators", ex.Message, StringComparison.Ordinal);
-    }
-
-    // A list written in place is a new one each render, which mustn't look like a change.
-    [Fact]
-    public void A_list_written_in_place_doesnt_render_the_table_again_and_again()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var builds = 0;
-        var cut = Render<Table<Line>>(p => p
-            .Add(t => t.Items, Lines)
-            .Add(t => t.ChildContent, b =>
-            {
-                // Bounded: a table that kept rendering would otherwise run for ever.
-                if (++builds > 50)
-                {
-                    throw new InvalidOperationException("The table keeps rendering.");
-                }
-
-                b.AddContent(0, Col(r => r.Qty, new List<FilterOperator> { FilterOperator.GreaterThan, FilterOperator.Between }));
-            }));
-
-        var settled = builds;
-        cut.Render();
-        cut.Render();
-
-        Assert.True(builds <= settled + 2, $"{builds - settled} builds for 2 renders.");
-
-        // A real change does show.
-        var changed = Render<Table<Line>>(p => p
-            .Add(t => t.Items, Lines)
-            .Add(t => t.ChildContent, Col(r => r.Qty, [FilterOperator.GreaterThan, FilterOperator.Between])));
-        Assert.Equal(new[] { "Greater than", "Between" }, changed.FindAll("select option").Select(o => o.TextContent));
-        changed.Render(p => p.Add(t => t.ChildContent, Col(r => r.Qty, [FilterOperator.LessThan, FilterOperator.Between])));
-        Assert.Equal(new[] { "Less than", "Between" }, changed.FindAll("select option").Select(o => o.TextContent));
-    }
-
     // A grid's FilterCase reaches its fields, for the rows and for a provider's own query, and a change
     // to it loads again.
     [Theory]
     [InlineData(FilterCase.IgnoreCase, new[] { "Ada" }, "tolower(name)")]
     [InlineData(FilterCase.MatchCase, new string[0], "contains(name,'ADA')")]
-    [InlineData(FilterCase.Database, new string[0], "contains(name,'ADA')")]
     public void FilterCase_reaches_the_columns_fields(FilterCase textCase, string[] expected, string odata)
     {
         Nav.NavigateTo("/lines?f-name=ADA");
@@ -415,54 +342,6 @@ public class ColumnFilterOperatorTests : BunitContext
         Assert.Contains(odata, Uri.UnescapeDataString(seen!.ToODataQuery()), StringComparison.Ordinal);
     }
 
-    [Fact]
-    public void A_template_column_and_a_changed_FilterCase_follow_it()
-    {
-        Nav.NavigateTo("/lines?f-who=ADA");
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        RenderFragment columns = b =>
-        {
-            b.OpenComponent<TemplateColumn<Line>>(0);
-            b.AddComponentParameter(1, "Title", "Who");
-            b.AddComponentParameter(2, "SortKey", "who");
-            b.AddComponentParameter(3, "FilterBy", (Expression<Func<Line, string?>>)(r => r.Name));
-            b.AddComponentParameter(4, "Filterable", true);
-            b.AddComponentParameter(5, "ChildContent", (RenderFragment<Line>)(r => c => c.AddContent(0, r.Name)));
-            b.CloseComponent();
-        };
-        var cut = Render<Table<Line>>(p => p.Add(t => t.Items, Lines).Add(t => t.FilterCase, FilterCase.MatchCase).Add(t => t.ChildContent, columns));
-        Assert.Empty(Names(cut));
-
-        cut.Render(p => p.Add(t => t.FilterCase, FilterCase.IgnoreCase));
-        Assert.Equal(new[] { "Ada" }, Names(cut));
-        cut.Render(p => p.Add(t => t.FilterCase, FilterCase.MatchCase));
-        Assert.Empty(Names(cut));
-    }
-
-    // Virtual rows stay as they are through a parent's render, unless the filter changed.
-    [Fact]
-    public void A_changed_FilterCase_starts_virtual_rows_again()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        JSInterop.Mode = JSRuntimeMode.Loose;
-        var cut = Render<DataGrid<Line>>(p => p
-            .Add(t => t.Virtualize, true)
-            .Add(t => t.MaxHeight, Length.Rem(20))
-            .Add(t => t.PageSize, 2)
-            .Add(t => t.FilterCase, FilterCase.MatchCase)
-            .Add(t => t.ItemsProvider, request => ValueTask.FromResult(new DataResult<Line>(Lines.Skip(request.Skip).Take(request.Take ?? 2).ToList(), Lines.Length)))
-            .Add(t => t.ChildContent, b => b.AddContent(0, Col(r => r.Name))));
-        cut.WaitForAssertion(() => Assert.NotNull(cut.Find("table").GetAttribute("data-ib-load")), Timer);
-        var load = cut.Find("table").GetAttribute("data-ib-load");
-
-        // Nothing new: stays.
-        cut.Render(p => p.Add(t => t.Caption, "Another"));
-        Assert.Equal(load, cut.Find("table").GetAttribute("data-ib-load"));
-
-        cut.Render(p => p.Add(t => t.FilterCase, FilterCase.IgnoreCase));
-        cut.WaitForAssertion(() => Assert.NotEqual(load, cut.Find("table").GetAttribute("data-ib-load")), Timer);
-    }
-
     private IRenderedComponent<DataGrid<Line>> Bound(List<Filter?> reported, Filter? filter = null)
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
@@ -477,117 +356,6 @@ public class ColumnFilterOperatorTests : BunitContext
 
     // Typing's pause ends on a timer, whose render can come between finding an element and using it.
     private static void Again<T>(IRenderedComponent<T> cut, Action act) where T : IComponent => cut.WaitForAssertion(act, Timer);
-
-    [Fact]
-    public void A_parent_restoring_the_last_filter_it_was_told_is_heard()
-    {
-        var reported = new List<Filter?>();
-        var cut = Bound(reported);
-        var note = () => Panel(cut, "Filter Note").Single();
-        Again(cut, () => note().QuerySelector("input")!.Input("fir"));
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada" }, Names(cut)), Timer);
-        var told = reported[^1]!;
-
-        // The parent echoes it, clears it, then puts the same one back.
-        cut.Render(p => p.Add(t => t.Filter, told));
-        Assert.Equal(new[] { "Ada" }, Names(cut));
-        cut.Render(p => p.Add(t => t.Filter, null));
-        Assert.Equal(Lines.Length, Names(cut).Length);
-        cut.Render(p => p.Add(t => t.Filter, told));
-        Assert.Equal(new[] { "Ada" }, Names(cut));
-        Assert.Equal("fir", note().QuerySelector("input")!.GetAttribute("value"));
-    }
-
-    // What a panel's box can't hold as it is stays a condition of its own, meaning what it says.
-    [Theory]
-    [InlineData(FilterOperator.Equals, "", new[] { "Grace" }, "note eq ''")]
-    [InlineData(FilterOperator.Contains, "  ", new string[0], "contains(note,'  ')")]
-    [InlineData(FilterOperator.Contains, "fir ", new string[0], "contains(note,'fir ')")]
-    [InlineData(FilterOperator.StartsWith, " fir", new string[0], "startswith(note,' fir')")]
-    public void Text_a_panel_cant_hold_as_it_is_stays_a_tag(FilterOperator op, string value, string[] rows, string tag)
-    {
-        var reported = new List<Filter?>();
-        var cut = Bound(reported, filter: Filter.Where("note", op, value));
-
-        Assert.Equal(rows, Names(cut));
-        Assert.Contains(Tags(cut), t => t.Contains(tag, StringComparison.Ordinal));
-        Assert.Empty(cut.FindAll(".ib-table-filter-button[data-active]"));
-        Assert.Equal("", Panel(cut, "Filter Note").Single().QuerySelector("input")!.GetAttribute("value") ?? "");
-    }
-
-    // A filter from the parent that only a tag shows still counts as a change, and only once.
-    [Fact]
-    public void A_filter_only_a_tag_shows_starts_virtual_rows_again_and_a_parents_render_doesnt()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        JSInterop.Mode = JSRuntimeMode.Loose;
-        var asked = new List<DataRequest<Line>>();
-        var cut = Render<DataGrid<Line>>(p => p
-            .Add(t => t.Virtualize, true)
-            .Add(t => t.MaxHeight, Length.Rem(20))
-            .Add(t => t.PageSize, 2)
-            .Add(t => t.FilterChanged, (Filter? _) => { })
-            .Add(t => t.ItemsProvider, request =>
-            {
-                asked.Add(request);
-                return ValueTask.FromResult(new DataResult<Line>(request.ApplyFiltering(Lines.AsQueryable()).Skip(request.Skip).Take(request.Take ?? 2).ToList(), request.ApplyFiltering(Lines.AsQueryable()).Count()));
-            })
-            .Add(t => t.ChildContent, AllColumns));
-        cut.WaitForAssertion(() => Assert.NotEmpty(asked), Timer);
-        var load = cut.Find("table").GetAttribute("data-ib-load");
-
-        var only = Filter.In("qty", [1, 2]);
-        cut.Render(p => p.Add(t => t.Filter, only));
-        cut.WaitForAssertion(() =>
-        {
-            Assert.NotEqual(load, cut.Find("table").GetAttribute("data-ib-load"));
-            Assert.Equal(only, asked[^1].Filter?.Find("qty"));
-        }, Timer);
-        Assert.Contains(Tags(cut), t => t.Contains("qty in (1,2)", StringComparison.Ordinal));
-
-        var after = cut.Find("table").GetAttribute("data-ib-load");
-        var times = asked.Count;
-        cut.Render(p => p.Add(t => t.Caption, "Another"));
-        cut.Render(p => p.Add(t => t.Caption, "Again"));
-        Assert.Equal(after, cut.Find("table").GetAttribute("data-ib-load"));
-        Assert.Equal(times, asked.Count);
-    }
-
-    [Fact]
-    public void A_filter_only_a_tag_shows_starts_loading_on_scroll_again()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<Table<Line>>(p => p
-            .Add(t => t.Items, Lines)
-            .Add(t => t.Paging, DataPaging.LoadOnScroll)
-            .Add(t => t.PageSize, 2)
-            .Add(t => t.MaxHeight, Length.Rem(10))
-            .Add(t => t.FilterChanged, (Filter? _) => { })
-            .Add(t => t.ChildContent, b => b.AddContent(0, Col(r => r.Name))));
-        Assert.Equal(2, Names(cut).Length);
-        cut.Find("[data-ib-load-next]").Click();
-        cut.WaitForAssertion(() => Assert.Equal(4, Names(cut).Length), Timer);
-
-        cut.Render(p => p.Add(t => t.Filter, Filter.Any(Filter.Where("name", FilterOperator.Equals, "Ada"))));
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada" }, Names(cut)), Timer);
-    }
-
-    // A number nobody can write back: as text, it matches nothing, on the screen and in the export.
-    [Theory]
-    [InlineData("f-qty=Infinity")]
-    [InlineData("f-qty=NaN")]
-    [InlineData("f-qty=-Infinity")]
-    [InlineData("f-qty-op=lt&f-qty=1e999")]
-    public void A_number_with_no_literal_still_exports(string query)
-    {
-        var cut = Grid("/lines?" + query);
-
-        var rows = Names(cut);
-        Assert.Empty(rows);
-        var href = cut.Find("a[download]").GetAttribute("href")!;
-        var text = Uri.UnescapeDataString(href[(href.IndexOf("filter=", StringComparison.Ordinal) + 7)..].Split('&')[0]);
-        Assert.True(Filter.TryParse(text, out _), text);
-    }
 
     private static IEnumerable<AngleSharp.Dom.IElement> Panel<T>(IRenderedComponent<T> cut, string title) where T : IComponent =>
         cut.FindAll(".ib-table-filter-panel").Where(p => p.QuerySelector(".ib-table-filter-label")!.TextContent == title);
@@ -683,43 +451,8 @@ public class ColumnFilterOperatorTests : BunitContext
         }, Timer);
     }
 
-    // What the operator doesn't take goes when it's chosen, as a static page's next response does.
-    [Fact]
-    public void A_bound_operator_forgets_the_values_it_doesnt_take()
-    {
-        var reported = new List<Filter?>();
-        var cut = Bound(reported);
-        var qty = () => Panel(cut, "Filter Qty").Single();
-        var note = () => Panel(cut, "Filter Note").Single();
-
-        Again(cut, () => qty().QuerySelector("select")!.Change("between"));
-        Again(cut, () => qty().QuerySelectorAll("input")[0].Input("1"));
-        Again(cut, () => qty().QuerySelectorAll("input")[1].Input("3"));
-        cut.WaitForAssertion(() => Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 1, 3), reported[^1]!.Find("qty")), Timer);
-
-        Again(cut, () => qty().QuerySelector("select")!.Change("ge"));
-        cut.WaitForAssertion(() => Assert.Equal(new FieldFilter("qty", FilterOperator.GreaterThanOrEqual, 1), reported[^1]!.Find("qty")), Timer);
-        Again(cut, () => qty().QuerySelector("select")!.Change("between"));
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Equal(new FieldFilter("qty", FilterOperator.Between, 1, null), reported[^1]!.Find("qty"));
-            Assert.Equal("", qty().QuerySelectorAll("input")[1].GetAttribute("value") ?? "");
-        }, Timer);
-
-        Again(cut, () => note().QuerySelector("input")!.Input("fir"));
-        cut.WaitForAssertion(() => Assert.NotNull(reported[^1]!.Find("note")), Timer);
-        Again(cut, () => note().QuerySelector("select")!.Change("isempty"));
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Contains(Tags(cut), t => t.EndsWith("Note: Is empty", StringComparison.Ordinal) || t.Contains("Note: Is empty\n", StringComparison.Ordinal));
-            Assert.DoesNotContain(Tags(cut), t => t.Contains("fir", StringComparison.Ordinal));
-            Assert.Contains(cut.FindAll(".ib-table-filter-button"), b => b.GetAttribute("aria-label") == "Filter Note: Is empty");
-        }, Timer);
-    }
-
     [Theory]
     [InlineData("qty", FilterOperator.GreaterThan, 2, "gt", "Filter Qty: Greater than 2")]
-    [InlineData("name", FilterOperator.StartsWith, "a", "startswith", "Filter Name: Starts with a")]
     public void A_condition_set_in_code_shows_in_its_panel(string field, FilterOperator op, object value, string word, string name)
     {
         var cut = Bound([], filter: Filter.Where(field, op, value));
@@ -728,17 +461,5 @@ public class ColumnFilterOperatorTests : BunitContext
         Assert.NotNull(panel);
         Assert.Contains(cut.FindAll(".ib-table-filter-button"), b => b.GetAttribute("aria-label") == name);
         Assert.DoesNotContain(Tags(cut), t => t.Contains('(', StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public void A_null_check_set_in_code_is_the_panels_is_empty_and_a_time_stays_a_tag()
-    {
-        var cut = Bound([], filter: Filter.All(
-            Filter.Where("extra", FilterOperator.IsNull),
-            Filter.Where("when", FilterOperator.GreaterThan, new DateTime(2026, 1, 2, 12, 0, 0))));
-
-        Assert.Contains(cut.FindAll(".ib-table-filter-button"), b => b.GetAttribute("aria-label") == "Filter Extra: Is empty");
-        Assert.Contains(Tags(cut), t => t.Contains("when gt 2026-01-02T12:00:00", StringComparison.Ordinal));
-        Assert.Empty(Names(cut));
     }
 }

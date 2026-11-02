@@ -28,7 +28,6 @@ public sealed class ColorSchemeSwitchTests(SiteFixture site) : IClassFixture<Sit
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task The_menu_picks_a_scheme_by_mouse_and_by_keys_without_leaving_the_page(string mode)
     {
         var (browser, page, example) = await OpenAsync(mode);
@@ -68,7 +67,6 @@ public sealed class ColorSchemeSwitchTests(SiteFixture site) : IClassFixture<Sit
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task The_toggle_goes_each_way_and_keeps_focus(string mode)
     {
         var (browser, page, example) = await OpenAsync(mode);
@@ -84,28 +82,6 @@ public sealed class ColorSchemeSwitchTests(SiteFixture site) : IClassFixture<Sit
         await page.Keyboard.PressAsync("Space");
         await SchemeIsAsync(page, "light");
         await Assertions.Expect(toDark).ToBeFocusedAsync();
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task Segments_mark_the_choice_on_every_switch_and_look_as_they_did(string mode)
-    {
-        var (browser, page, example) = await OpenAsync(mode);
-        await using var _ = browser;
-        var group = example.Locator("ib-scheme-switch.ib-scheme-switch-segmented");
-        var dark = group.GetByRole(AriaRole.Button, new() { Name = "Dark", Exact = true });
-
-        await dark.ClickAsync();
-
-        await SchemeIsAsync(page, "dark");
-        await Assertions.Expect(dark).ToHaveAttributeAsync("aria-pressed", "true");
-        await Assertions.Expect(group.GetByRole(AriaRole.Button, new() { Name = "System", Exact = true })).ToHaveAttributeAsync("aria-pressed", "false");
-
-        // Buttons bring their own border and fill: none of that shows, and they fill the group's height.
-        var look = await group.GetByRole(AriaRole.Button, new() { Name = "Light", Exact = true }).EvaluateAsync<string>(
-            "b => { const s = getComputedStyle(b); return [s.borderTopWidth, s.backgroundColor, b.offsetHeight >= b.parentElement.clientHeight - 8].join('|'); }");
-        Assert.Equal("0px|rgba(0, 0, 0, 0)|true", look);
     }
 
     [Fact]

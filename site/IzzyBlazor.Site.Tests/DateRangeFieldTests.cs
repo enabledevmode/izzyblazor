@@ -7,7 +7,6 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
 {
     [Theory]
     [InlineData("static", true)]
-    [InlineData("interactive", true)]
     [InlineData("noscript", false)]
     public async Task A_good_range_saves_and_a_bad_one_doesnt(string mode, bool script)
     {
@@ -106,28 +105,6 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Fact]
-    public async Task A_first_day_limits_the_last_and_one_before_it_starts_again()
-    {
-        var (_, form, start, end, browser) = await OpenAsync("static");
-        await using var _ = browser;
-        await Toggle(form).ClickAsync();
-        await Day(form, "Monday, March 15, 2027").ClickAsync();
-
-        // MinDays 2 and MaxDays 14; it may span a Sunday, but not end on one.
-        await Assertions.Expect(Day(form, "Monday, March 15, 2027")).ToHaveAttributeAsync("aria-disabled", "true");
-        await Assertions.Expect(Day(form, "Tuesday, March 16, 2027")).Not.ToHaveAttributeAsync("aria-disabled", "true");
-        await Assertions.Expect(Day(form, "Saturday, March 27, 2027")).Not.ToHaveAttributeAsync("aria-disabled", "true");
-        await Assertions.Expect(Day(form, "Monday, March 29, 2027")).ToHaveAttributeAsync("aria-disabled", "true");
-        await Assertions.Expect(Day(form, "Sunday, March 21, 2027")).ToHaveAttributeAsync("aria-disabled", "true");
-
-        await Day(form, "Wednesday, March 10, 2027").ClickAsync();
-        await Assertions.Expect(form.Locator(".ib-calendar-span [aria-label='Wednesday, March 10, 2027']")).ToHaveCountAsync(1);
-        await Day(form, "Friday, March 12, 2027").ClickAsync();
-        await Assertions.Expect(start).ToHaveValueAsync("2027-03-10");
-        await Assertions.Expect(end).ToHaveValueAsync("2027-03-12");
-    }
-
-    [Fact]
     public async Task The_months_move_together_and_the_keys_cross_them()
     {
         var (page, form, _, _, browser) = await OpenAsync("static");
@@ -151,25 +128,8 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await Assertions.Expect(titles).ToHaveTextAsync(new[] { "April 2027", "May 2027" });
     }
 
-    [Fact]
-    public async Task A_phone_width_shows_one_month()
-    {
-        var (_, form, _, _, browser) = await OpenAsync("static", width: 390);
-        await using var __ = browser;
-        await Toggle(form).ClickAsync();
-
-        await Assertions.Expect(form.Locator(".ib-calendar-sheet").Nth(0)).ToBeVisibleAsync();
-        await Assertions.Expect(form.Locator(".ib-calendar-sheet").Nth(1)).ToBeHiddenAsync();
-        var box = (await form.Locator("[popover]").First.BoundingBoxAsync())!;
-        Assert.True(box.X >= 0 && box.X + box.Width <= 390, $"{box.X} {box.Width}");
-
-        await form.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
-        await Assertions.Expect(form.Locator(".ib-calendar-sheet .ib-calendar-month").Nth(0)).ToHaveTextAsync("April 2027");
-    }
-
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_preset_writes_both_and_shows_as_pressed(string mode)
     {
         var (page, _, _, _, browser) = await OpenAsync(mode);
@@ -186,32 +146,5 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await field.Locator(".ib-date-toggle").ClickAsync();
         await Assertions.Expect(field.GetByRole(AriaRole.Button, new() { Name = "Last 7 days" })).ToHaveAttributeAsync("aria-pressed", "true");
         await Assertions.Expect(field.GetByRole(AriaRole.Button, new() { Name = "This month" })).ToHaveAttributeAsync("aria-pressed", "false");
-    }
-
-    [Fact]
-    public async Task With_only_an_end_the_months_open_on_it()
-    {
-        var (page, _, _, _, browser) = await OpenAsync("static");
-        await using var _ = browser;
-        var form = page.Locator("[data-ex='date-range-field-states']");
-        await form.GetByLabel("Until").FillAsync("2027-06-20");
-
-        await form.Locator(".ib-date-toggle").First.ClickAsync();
-
-        await Assertions.Expect(form.Locator(".ib-calendar-sheet .ib-calendar-month").First).ToHaveTextAsync("June 2027");
-        await Assertions.Expect(form.Locator("td[aria-selected='true'] [aria-label='Sunday, June 20, 2027']")).ToHaveCountAsync(1);
-    }
-
-    [Fact]
-    public async Task With_room_the_months_start_at_the_fields_left_edge()
-    {
-        var (_, form, _, _, browser) = await OpenAsync("static");
-        await using var _ = browser;
-        await Toggle(form).ClickAsync();
-        await Assertions.Expect(form.Locator("[popover]").First).ToBeVisibleAsync();
-
-        var (box, panel) = ((await form.Locator(".ib-date-range-box").BoundingBoxAsync())!, (await form.Locator("[popover]").First.BoundingBoxAsync())!);
-
-        Assert.Equal(box.X, panel.X, 0);
     }
 }

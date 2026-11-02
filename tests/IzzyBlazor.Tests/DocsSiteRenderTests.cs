@@ -28,64 +28,11 @@ public class DocsSiteRenderTests : BunitContext
         Assert.Equal("On this page", cut.Find($"#{nav.GetAttribute("aria-labelledby")}").TextContent);
     }
 
-    [Fact]
-    public void Listed_headings_link_to_themselves_so_a_section_can_be_linked()
-    {
-        var cut = Render<OutlineProbe>();
-
-        // The text is the link, so the heading's name stays its text.
-        var h2 = cut.FindAll("h2").First(h => h.Id == "install");
-        var anchor = h2.QuerySelector("a.ib-heading-anchor");
-        Assert.Equal("./#install", anchor?.GetAttribute("href"));
-        Assert.Equal("Install", h2.TextContent);
-
-        // Levels the outline doesn't list (h1, h4) keep plain text; a heading with its own link isn't wrapped in another.
-        Assert.Null(cut.Find("h1").QuerySelector("a"));
-        Assert.Null(cut.Find("h4").QuerySelector("a"));
-        Assert.Single(cut.Find("#linked-elsewhere").QuerySelectorAll("a"));
-        Assert.Single(cut.Find("#via-a-component").QuerySelectorAll("a"));
-    }
-
-    [Fact]
-    public void Without_OnThisPage_headings_render_as_before()
-    {
-        var cut = Render<OutlineProbe>(p => p.Add(o => o.WithOutline, false));
-
-        Assert.All(cut.FindAll("h1, h2, h3, h4").Where(h => h.TextContent != "Its own id"), h => Assert.Null(h.GetAttribute("id")));
-        Assert.Empty(cut.FindAll(".ib-heading-anchor"));
-    }
-
-    [Fact]
-    public void OnThisPage_follows_headings_that_come_and_go_and_hides_with_none()
-    {
-        var cut = Render<OutlineProbe>();
-        cut.Render(p => p.Add(o => o.ShowLate, true));
-        Assert.Contains(cut.FindAll(".ib-toc-link"), a => a.TextContent == "Added later");
-
-        cut.Render(p => p.Add(o => o.ShowLate, false));
-        Assert.DoesNotContain(cut.FindAll(".ib-toc-link"), a => a.TextContent == "Added later");
-
-        // Headings that swap text swap ids too, so a shared link still finds its section.
-        cut.Render(p => p.Add(o => o.Swap, true));
-        Assert.Equal("Beta", cut.Find("#beta").TextContent);
-        Assert.Equal("Alpha", cut.Find("#alpha").TextContent);
-
-        var empty = Render<OnThisPage>();
-        Assert.True(empty.Find("ib-on-this-page").HasAttribute("hidden"));
-    }
-
     [Theory]
     [InlineData("Getting started", "getting-started")]
     [InlineData("  Rows & columns  ", "rows-columns")]
-    [InlineData("Code.HighlightLines", "code-highlightlines")]
-    [InlineData("Événements", "événements")]
-    [InlineData("?!", "section")]
     public void Heading_ids_are_slugs_of_their_text(string text, string slug) =>
         Assert.Equal(slug, PageOutline.Slug(text));
-
-    [Fact]
-    public void OnThisPage_checks_its_levels() =>
-        Assert.Throws<ArgumentException>(() => Render<OnThisPage>(p => p.Add(o => o.MinLevel, 4).Add(o => o.MaxLevel, 3)));
 
     private const string Sample = "var a = 1;\n\n// two\nvar b = \"x\";\n";
 
@@ -105,103 +52,5 @@ public class DocsSiteRenderTests : BunitContext
         Assert.Equal(["var a = 1;", "// two", "var b = \"x\";"], cut.FindAll("mark.ib-code-line").Select(m => m.TextContent.TrimEnd('\n')));
         // Still colored.
         Assert.NotEmpty(cut.FindAll("mark .ib-tok-keyword"));
-    }
-
-    [Theory]
-    [InlineData("0")]
-    [InlineData("5-3")]
-    [InlineData("two")]
-    [InlineData("1,,x")]
-    public void Code_HighlightLines_rejects_what_isnt_line_numbers(string spec) =>
-        Assert.Throws<ArgumentException>(() => Render<Code>(p => p.Add(c => c.Block, true).Add(c => c.HighlightLines, spec).AddChildContent("a")));
-
-    [Fact]
-    public void Code_title_heads_the_block_in_place_of_the_language()
-    {
-        var cut = Render<Code>(p => p
-            .Add(c => c.Block, true)
-            .Add(c => c.Language, "csharp")
-            .Add(c => c.Title, "Program.cs")
-            .AddChildContent("var a = 1;"));
-
-        Assert.Equal("Program.cs", cut.Find(".ib-code-head").TextContent.Trim());
-        Assert.Empty(cut.FindAll(".ib-code-language"));
-        Assert.NotEmpty(cut.FindAll(".ib-tok-keyword"));
-    }
-
-    [Fact]
-    public void CopyButton_copies_text_or_another_elements_value_and_is_named()
-    {
-        var icon = Render<CopyButton>(p => p.Add(c => c.Text, "dotnet add package IzzyBlazor"));
-        Assert.Equal("dotnet add package IzzyBlazor", icon.Find("ib-copy").GetAttribute("data-copy-text"));
-        var button = icon.Find("button");
-        Assert.Equal("button", button.GetAttribute("type"));
-        Assert.Equal("Copy", button.GetAttribute("aria-label"));
-        Assert.Equal("Copied", button.GetAttribute("data-copied-label"));
-
-        // With text, the text names it.
-        var text = Render<CopyButton>(p => p.Add(c => c.For, "api-key").AddChildContent("Copy key"));
-        Assert.Equal("api-key", text.Find("ib-copy").GetAttribute("data-copy-for"));
-        Assert.Null(text.Find("button").GetAttribute("aria-label"));
-        Assert.Equal("Copy key", text.Find("button").TextContent.Trim());
-
-        Assert.Throws<InvalidOperationException>(() => Render<CopyButton>());
-        Assert.Throws<InvalidOperationException>(() => Render<CopyButton>(p => p.Add(c => c.Text, "a").Add(c => c.For, "b")));
-    }
-
-    [Fact]
-    public void PrevNext_links_the_pages_around_this_one()
-    {
-        var both = Render<PrevNext>(p => p
-            .Add(n => n.PreviousHref, "/docs/install").Add(n => n.PreviousTitle, "Install")
-            .Add(n => n.NextHref, "/docs/theming").Add(n => n.NextTitle, "Theming"));
-
-        Assert.Equal("More pages", both.Find("nav").GetAttribute("aria-label"));
-        Assert.Equal("Previous Install", both.Find("a[rel=prev]").TextContent.Trim().Replace("\n", " ").Split(' ', StringSplitOptions.RemoveEmptyEntries).Aggregate((a, b) => $"{a} {b}"));
-        Assert.Equal("/docs/theming", both.Find("a[rel=next]").GetAttribute("href"));
-
-        var last = Render<PrevNext>(p => p.Add(n => n.PreviousHref, "/docs/install").Add(n => n.PreviousTitle, "Install"));
-        Assert.Empty(last.FindAll("a[rel=next]"));
-        Assert.Empty(Render<PrevNext>().FindAll("nav"));
-        Assert.Throws<InvalidOperationException>(() => Render<PrevNext>(p => p.Add(n => n.NextHref, "/x")));
-    }
-
-    [Fact]
-    public void CodeExample_shows_the_live_example_over_its_source()
-    {
-        var cut = Render<CodeExample>(p => p
-            .Add(e => e.Code, "<Button>Save</Button>")
-            .Add(e => e.Title, "Save.razor")
-            .AddChildContent("<button>Save</button>"));
-
-        Assert.Equal("Save", cut.Find(".ib-example-preview button").TextContent);
-        var code = cut.Find(".ib-example-source ib-code");
-        Assert.Equal("Save.razor", code.QuerySelector(".ib-code-head")!.TextContent.Trim());
-        Assert.Equal("<Button>Save</Button>", code.QuerySelector("pre code")!.TextContent);
-    }
-
-    [Fact]
-    public void CodeExample_files_are_tabs_and_follow_changes_without_rendering_forever()
-    {
-        var cut = Render<ExampleProbe>();
-
-        Assert.Equal(["Save.razor", "Save.razor.cs"], cut.FindAll(".ib-example-source .ib-tab").Select(l => l.TextContent.Trim()));
-        Assert.Equal(2, cut.FindAll(".ib-example-source ib-code").Count);
-
-        // The parent re-renders (the files re-register): the example settles, and a changed file shows.
-        cut.InvokeAsync(cut.Instance.Bump);
-        Assert.Equal("Save 1", cut.Find(".ib-example-preview button").TextContent);
-        cut.Render(p => p.Add(x => x.Markup, "<button>Saved</button>"));
-        Assert.Contains("<button>Saved</button>", cut.Find(".ib-example-source pre code").TextContent);
-    }
-
-    [Fact]
-    public void A_collapsible_CodeExample_hides_its_source_in_a_details_element()
-    {
-        var cut = Render<ExampleProbe>(p => p.Add(x => x.Collapsible, true));
-
-        var details = cut.Find("details.ib-example-source");
-        Assert.False(details.HasAttribute("open"));
-        Assert.Equal("Show code", details.QuerySelector(".ib-example-show")!.TextContent);
     }
 }

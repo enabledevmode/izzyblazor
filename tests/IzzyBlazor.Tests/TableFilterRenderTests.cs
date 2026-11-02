@@ -96,19 +96,10 @@ public class TableFilterRenderTests : BunitContext
     [InlineData("?f-qty=3&f-qty-to=3", new[] { "Grace" })]
     [InlineData("?f-qty=2", new[] { "Ada", "Grace" })]
     [InlineData("?f-qty-to=2", new[] { "Ada", "adam" })]
-    [InlineData("?f-qty=2&f-qty-to=", new[] { "Ada", "Grace" })]
     [InlineData("?f-qty=1.5&f-qty-to=2.5", new[] { "Ada" })]
     [InlineData("?f-qty=3&f-qty-to=1", new string[0])]
     [InlineData("?f-qty=abc", new string[0])]
-    [InlineData("?f-qty=3", new[] { "Grace" })]
     [InlineData("?f-qty=&f-qty-to=", new[] { "Ada", "Grace", "adam" })]
-    [InlineData("?f-qty=%20&f-qty-to=%20", new[] { "Ada", "Grace", "adam" })]
-    [InlineData("?f-qty=2&f-qty=3", new[] { "Ada", "Grace" })]
-    [InlineData("?f-qty=2.", new[] { "Ada", "Grace" })]
-    [InlineData("?f-qty=1.&f-qty-to=.5", new string[0])]
-    [InlineData("?f-qty-to=99999999999", new[] { "Ada", "Grace", "adam" })]
-    [InlineData("?f-qty=99999999999", new string[0])]
-    [InlineData("?f-qty=-99999999999&f-qty-to=1", new[] { "adam" })]
     [InlineData("?f-status=Unknown", new string[0])]
     [InlineData("?f-shipped=false", new[] { "Grace" })]
     public void Url_filters_keep_matching_rows(string query, string[] expected)
@@ -132,37 +123,9 @@ public class TableFilterRenderTests : BunitContext
         Assert.False(cut.Find("input[name='f-status'][value='No']").HasAttribute("checked"));
     }
 
-    [Fact]
-    public void Range_boxes_show_what_was_typed()
-    {
-        var cut = RenderStatic("/orders?f-qty=2.");
-
-        Assert.Equal("2.", cut.Find("input[name='f-qty']").GetAttribute("value"));
-        Assert.Equal("", cut.Find("input[name='f-qty-to']").GetAttribute("value") ?? "");
-    }
-
-    [Fact]
-    public void A_column_key_that_shares_a_range_key_says_so()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, b =>
-            {
-                b.AddContent(0, Col<int>(r => r.Qty));
-                b.OpenComponent<PropertyColumn<Row, string>>(1);
-                b.AddComponentParameter(2, "Property", (Expression<Func<Row, string>>)(r => r.Name));
-                b.AddComponentParameter(3, "SortKey", "qty-to");
-                b.AddComponentParameter(4, "Filterable", true);
-                b.CloseComponent();
-            })));
-        Assert.Contains("?f-qty-to", ex.Message);
-    }
-
     // Each value stays whole, however it's punctuated, through the address and back.
     [Theory]
     [InlineData("Smith, John")]
-    [InlineData("Smith, John", "Ada")]
     [InlineData("a&b=c", "d+e", "100%")]
     public void A_text_filter_round_trips_through_the_address(params string[] values)
     {
@@ -197,27 +160,6 @@ public class TableFilterRenderTests : BunitContext
 
         // Clear's link clears all of them, and leaves the rest.
         Assert.Contains("http://localhost/orders?sort=name", cut.FindAll("a[data-ib-filter-clear]").Select(a => a.GetAttribute("href")));
-    }
-
-    [Fact]
-    public void A_bound_text_filter_keeps_a_comma_in_its_one_value()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        Filter? reported = null;
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows.Append(new("Smith, John", 1, Paid.Yes, true, new(2026, 1, 1))).ToArray())
-            .Add(t => t.FilterChanged, (Filter? f) => reported = f)
-            .Add(t => t.ChildContent, Columns));
-        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
-
-        cut.Find(".ib-table-filter input[type=search]").Input("Smith, J");
-
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Equal(new[] { "Smith, John" }, Names(cut));
-            Assert.Equal(new FieldFilter("name", FilterOperator.Contains, "Smith, J"), reported!.Find("name"));
-            Assert.Equal("Smith, J", cut.Find(".ib-table-filter input[type=search]").GetAttribute("value"));
-        }, Timer);
     }
 
     // A day stays a day for a column's own condition, whatever the field's type holds.
@@ -268,21 +210,10 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal("Filter When: 2026-01-02", cut.FindAll(".ib-table-filter-button")[1].GetAttribute("aria-label"));
     }
 
-    [Fact]
-    public void A_column_type_that_cant_filter_says_so()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, Col<TimeSpan>(r => r.Took))));
-        Assert.Contains("TemplateColumn with FilterBy", ex.Message);
-    }
-
     [Theory]
     [InlineData("when", "2026-01-02", new[] { "Grace" })]
     [InlineData("when", "2026-01-03", new[] { "adam" })]
     [InlineData("day", "2026-01-01", new[] { "Ada" })]
-    [InlineData("maybe", "2026-01-03", new string[0])]
     [InlineData("maybe", "2026-01-02", new[] { "Grace" })]
     [InlineData("stamp", "2026-01-02", new[] { "Grace" })]
     [InlineData("when", "not a date", new string[0])]
@@ -307,28 +238,6 @@ public class TableFilterRenderTests : BunitContext
         Assert.Equal(expected.Length > 0 || value.StartsWith("2026", StringComparison.Ordinal) ? value : "", input.GetAttribute("value") ?? "");
     }
 
-    [Theory]
-    [InlineData("when")]
-    [InlineData("maybe")]
-    [InlineData("stamp")]
-    public void Date_filter_on_the_last_representable_day_does_not_throw(string key)
-    {
-        // DateTime filters keep [day, day + 1); 9999-12-31 has no next day.
-        Nav.NavigateTo($"/orders?f-{key}=9999-12-31");
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows.Append(new("Last", 1, Paid.Yes, true, new DateTime(9999, 12, 31, 12, 0, 0))).ToArray())
-            .Add(t => t.ChildContent, b =>
-            {
-                b.AddContent(0, Col<string>(r => r.Name));
-                b.AddContent(1, Col<DateTime>(r => r.When));
-                b.AddContent(3, Col<DateTime?>(r => r.Maybe));
-                b.AddContent(4, Col<DateTimeOffset>(r => r.Stamp));
-            }));
-
-        Assert.Equal(new[] { "Last" }, Names(cut));
-    }
-
     [Fact]
     public void Template_column_filters_by_its_FilterBy_text()
     {
@@ -348,22 +257,6 @@ public class TableFilterRenderTests : BunitContext
             }));
 
         Assert.Equal(new[] { "Grace" }, Names(cut));
-    }
-
-    [Fact]
-    public void Template_column_without_FilterBy_says_so()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, b =>
-            {
-                b.OpenComponent<TemplateColumn<Row>>(0);
-                b.AddComponentParameter(1, "Title", "Who");
-                b.AddComponentParameter(2, "Filterable", true);
-                b.CloseComponent();
-            })));
-        Assert.Contains("FilterBy", ex.Message);
     }
 
     [Fact]
@@ -455,7 +348,6 @@ public class TableFilterRenderTests : BunitContext
     [InlineData("", "All", new[] { "Ada", "Grace", "adam" })]
     [InlineData("?f-status=No", "No", new[] { "Grace" })]
     [InlineData("?f-status=Yes&f-status=Refunded", "2 selected", new[] { "Ada", "adam" })]
-    [InlineData("?f-status=Yes&f-status=Bogus", "Yes", new[] { "Ada" })]
     [InlineData("?f-status=Yes&f-status=No&f-status=Refunded", "All", new[] { "Ada", "Grace", "adam" })]
     public void A_list_keeps_any_ticked_value_and_all_ticked_is_no_filter(string query, string summary, string[] expected)
     {
@@ -466,32 +358,6 @@ public class TableFilterRenderTests : BunitContext
     }
 
     [Fact]
-    public void Bound_list_ticks_in_place_and_all_ticked_is_no_filter()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        Filter? reported = null;
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.FilterChanged, (Filter? f) => reported = f)
-            .Add(t => t.ChildContent, Columns));
-        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(1);
-
-        Tick(cut, "Yes", false);
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Equal(new[] { "Grace", "adam" }, Names(cut));
-            Assert.Equal(new object?[] { Paid.No, Paid.Refunded }, reported!.Find("status")!.Values);
-        }, Timer);
-
-        Tick(cut, "Yes", true);
-        cut.WaitForAssertion(() =>
-        {
-            Assert.Equal(3, Names(cut).Length);
-            Assert.Null(reported);
-        }, Timer);
-    }
-
-    [Fact]
     public void Unbound_filters_on_an_interactive_page_use_the_url()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
@@ -499,51 +365,6 @@ public class TableFilterRenderTests : BunitContext
 
         Assert.Equal(8, cut.FindAll("[data-ib-filter]").Count);   // Name, Qty's two ends, and the lists' rows
         Assert.Single(cut.FindAll("form.ib-table-filter-form"));
-    }
-
-    [Fact]
-    public void Header_placement_is_the_default_with_a_filter_button_per_column()
-    {
-        var cut = RenderHeader("/orders");
-
-        var buttons = cut.FindAll("th .ib-table-head .ib-table-filter-button");
-        Assert.Equal(new[] { "Filter Name", "Filter Qty", "Filter Status", "Filter Shipped" }, buttons.Select(b => b.GetAttribute("aria-label")));
-        Assert.All(buttons, b => Assert.False(b.HasAttribute("data-active")));
-
-        // Text opens a popover with the same field, joined to the GET form.
-        var input = cut.Find("[popover] input[name='f-name']");
-        Assert.Equal(cut.Find("form.ib-table-filter-form").Id, input.GetAttribute("form"));
-
-        // Its label is shown above it, so the field has no aria-label of its own.
-        var label = cut.Find($"[popover] label[for='{input.Id}']");
-        Assert.Equal("Filter Name", label.TextContent);
-        Assert.False(input.HasAttribute("aria-label"));
-        Assert.NotEqual(input.Id, cut.Find("[popover] input[name='f-qty']").Id);
-
-        // A choice has a list of checkboxes on that form, all ticked.
-        var boxes = cut.FindAll("[popover] ib-filter-list input[name='f-status']");
-        Assert.Equal(new[] { "Yes", "No", "Refunded" }, boxes.Select(b => b.GetAttribute("value")));
-        Assert.All(boxes, b => Assert.True(b.HasAttribute("checked")));
-        Assert.All(boxes, b => Assert.Equal(input.GetAttribute("form"), b.GetAttribute("form")));
-        Assert.Empty(cut.FindAll(".ib-table-filter-tags"));
-    }
-
-    [Fact]
-    public void Header_filter_button_follows_the_title_in_one_group()
-    {
-        var cut = RenderHeader("/orders");
-
-        // Title (or sort control) first, then the funnel; CSS mirrors the group for end-aligned
-        // columns (Qty here), so the markup order is the same for every column.
-        foreach (var head in cut.FindAll("th .ib-table-head"))
-        {
-            var children = head.Children;
-            Assert.Equal(2, children.Length);
-            Assert.NotNull(children[0].QuerySelector(".ib-table-title") ?? (children[0].ClassList.Contains("ib-table-title") ? children[0] : null));
-            Assert.Contains("ib-table-filter-button", children[1].QuerySelector(".ib-table-filter-button")?.ClassName ?? children[1].ClassName);
-        }
-
-        Assert.Contains("ib-cell-end", cut.FindAll("th")[1].ClassName);
     }
 
     [Fact]

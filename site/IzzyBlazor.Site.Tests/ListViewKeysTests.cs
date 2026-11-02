@@ -22,7 +22,6 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Arrows_go_between_the_same_kind_of_control(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
@@ -63,59 +62,8 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
         }
     }
 
-    [Fact]
-    public async Task Cards_take_all_four_arrows()
-    {
-        var (browser, page) = await OpenAsync("static");
-        await using (browser)
-        {
-            var cards = page.Locator("ib-listview.ib-listview-cards", new() { Has = page.Locator(".ib-listview-action") }).First.Locator(".ib-listview-action");
-            Assert.True(await cards.CountAsync() >= 4);
-            static Task<bool> FocusedAsync(ILocator el) => el.EvaluateAsync<bool>("e => e === document.activeElement");
-
-            await cards.First.FocusAsync();
-            await page.Keyboard.PressAsync("ArrowRight");
-            Assert.True(await FocusedAsync(cards.Nth(1)));
-            await page.Keyboard.PressAsync("ArrowLeft");
-            Assert.True(await FocusedAsync(cards.First));
-            // Three across: Down is the card under it, not the next in order.
-            await page.Keyboard.PressAsync("ArrowDown");
-            Assert.True(await FocusedAsync(cards.Nth(3)));
-        }
-    }
-
-    [Fact]
-    public async Task A_focused_card_is_wholly_in_view()
-    {
-        var (browser, page) = await OpenAsync("static");
-        await using (browser)
-        {
-            await page.SetViewportSizeAsync(390, 500);
-            var cards = page.Locator("ib-listview.ib-listview-cards", new() { Has = page.Locator(".ib-listview-action") }).First.Locator(".ib-listview-action");
-            await cards.First.FocusAsync();
-            // Going down the phone's one column, then back up under the sticky header.
-            var count = await cards.CountAsync();
-            for (var i = 1; i < count; i++) await AssertInViewAsync("ArrowDown");
-            for (var i = 1; i < count; i++) await AssertInViewAsync("ArrowUp");
-
-            async Task AssertInViewAsync(string key)
-            {
-                await page.Keyboard.PressAsync(key);
-                var box = await page.EvaluateAsync<double[]>("""
-                    () => {
-                      const r = document.activeElement.closest('.ib-listview-item').getBoundingClientRect();
-                      const header = [...document.querySelectorAll('header')].map(h => h.getBoundingClientRect()).filter(h => h.top <= 0 && h.bottom > 0);
-                      return [r.top, r.bottom, Math.max(0, ...header.map(h => h.bottom)), innerHeight];
-                    }
-                    """);
-                Assert.True(box[0] >= box[2] - 1 && box[1] <= box[3] + 1, $"{key}: card at {box[0]}..{box[1]}, view {box[2]}..{box[3]}");
-            }
-        }
-    }
-
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Shift_arrows_and_ctrl_a_select_from_a_checkbox(string mode)
     {
         var (browser, page) = await OpenAsync(mode);

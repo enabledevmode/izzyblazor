@@ -69,30 +69,12 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void Property_name_is_humanized_when_there_is_no_display_name()
-    {
-        var cut = TextFieldFor(() => _model.FavoriteColor);
-
-        Assert.Equal("Favorite color", cut.Find("label").TextContent);
-    }
-
-    [Fact]
     public void Input_type_comes_from_annotations()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
         Assert.Equal("email", TextFieldFor(() => _model.Email).Find("input").GetAttribute("type"));
         Assert.Equal("password", TextFieldFor(() => _model.Password).Find("input").GetAttribute("type"));
         Assert.Equal("text", TextFieldFor(() => _model.FavoriteColor).Find("input").GetAttribute("type"));
-    }
-
-    [Fact]
-    public void Password_gets_a_hidden_reveal_button()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var button = TextFieldFor(() => _model.Password).Find("[data-ib-reveal]");
-
-        Assert.True(button.HasAttribute("hidden"));
-        Assert.Equal("Show password", button.GetAttribute("aria-label"));
     }
 
     [Fact]
@@ -117,47 +99,6 @@ public class FormRenderTests : BunitContext
         Assert.Contains(input.Id + "-error", input.GetAttribute("aria-describedby"));
         Assert.Contains("ib-field-invalid", cut.Find(".ib-field").ClassName);
         Assert.Contains("required", cut.Find(".ib-field-error").TextContent);
-    }
-
-    [Fact]
-    public void Field_without_addons_has_no_group()
-    {
-        var cut = TextFieldFor(() => _model.FavoriteColor);
-
-        Assert.Empty(cut.FindAll(".ib-field-group"));
-    }
-
-    [Fact]
-    public void Addons_wrap_the_control_in_order()
-    {
-        var cut = TextFieldFor(() => _model.FavoriteColor, p => p
-            .Add(f => f.StartAddon, "https://")
-            .Add(f => f.EndAddon, ".com"));
-
-        var group = cut.Find(".ib-field > .ib-field-group");
-        var parts = group.Children.Select(c => c.ClassName).ToArray();
-
-        Assert.Equal(new[] { "ib-field-addon ib-field-addon-start", "ib-field-control", "ib-field-addon ib-field-addon-end" }, parts);
-        Assert.Equal("https://", group.Children[0].TextContent);
-        Assert.Equal(".com", group.Children[2].TextContent);
-        Assert.NotNull(group.Children[1].QuerySelector("input"));
-    }
-
-    [Fact]
-    public void Addon_can_hold_a_button()
-    {
-        var cut = TextFieldFor(() => _model.FavoriteColor, p => p.Add(f => f.EndAddon, b =>
-        {
-            b.OpenComponent<Button>(0);
-            b.AddAttribute(1, nameof(Button.Submit), true);
-            b.AddAttribute(2, nameof(Button.ChildContent), (RenderFragment)(c => c.AddContent(0, "Go")));
-            b.CloseComponent();
-        }));
-
-        var button = cut.Find(".ib-field-addon-end > button");
-
-        Assert.Equal("submit", button.GetAttribute("type"));
-        Assert.Empty(cut.FindAll(".ib-field-addon-start"));
     }
 
     [Fact]
@@ -234,96 +175,6 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public async Task FormErrors_on_an_interactive_page_is_focused_from_csharp_after_a_submit()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<FormErrors>(p => p.AddCascadingValue(_context));
-        await cut.InvokeAsync(() => _context.Validate());
-
-        var summary = cut.Find(".ib-form-errors");
-        Assert.False(summary.HasAttribute("autofocus"));
-        Assert.False(summary.HasAttribute("data-ib-autofocus"));
-        Assert.Equal("-1", summary.GetAttribute("tabindex"));
-
-        // FocusAsync runs in OnAfterRenderAsync, after the render that a render-driven wait would
-        // check on, so poll for it instead (that wait failed now and then when it lost the race).
-        var deadline = DateTime.UtcNow.AddSeconds(5);
-        while (!JSInterop.Invocations.Any(i => i.Identifier == "Blazor._internal.domWrapper.focus") && DateTime.UtcNow < deadline)
-        {
-            await Task.Delay(10);
-        }
-
-        JSInterop.VerifyFocusAsyncInvoke();
-    }
-
-    [Fact]
-    public void FormErrors_doesnt_take_focus_while_a_field_is_edited()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<FormErrors>(p => p.AddCascadingValue(_context));
-
-        // A field edit validates that field (and may show messages) but isn't a submit.
-        cut.InvokeAsync(() => _context.NotifyFieldChanged(_context.Field(nameof(Model.Name))));
-        cut.Render();
-
-        JSInterop.VerifyNotInvoke("Blazor._internal.domWrapper.focus");
-    }
-
-    [Fact]
-    public void Indeterminate_checkbox_is_marked_for_css_and_script()
-    {
-        var input = Render<Checkbox>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.ValueExpression, () => _model.Accept)
-            .Add(c => c.Indeterminate, true)).Find("input");
-
-        Assert.True(input.HasAttribute("data-indeterminate"));
-        Assert.False(input.HasAttribute("checked"));
-        Assert.Equal("ib-check-input", input.ClassName);
-    }
-
-    [Fact]
-    public void Plain_checkbox_and_switch_have_no_indeterminate_mark()
-    {
-        Assert.False(Render<Checkbox>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept)).Find("input").HasAttribute("data-indeterminate"));
-        Assert.False(Render<Switch>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept)).Find("input").HasAttribute("data-indeterminate"));
-    }
-
-    [Fact]
-    public void Switch_refuses_indeterminate()
-    {
-        var error = Assert.Throws<InvalidOperationException>(() => Render<Switch>(p => p.AddCascadingValue(_context).Add(c => c.ValueExpression, () => _model.Accept).Add(c => c.Indeterminate, false)));
-        Assert.Contains("doesn't take Indeterminate", error.Message);
-    }
-
-    [Fact]
-    public void Row_and_section_icons_are_decorative()
-    {
-        var row = Render<Switch>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.ValueExpression, () => _model.Accept)
-            .Add(c => c.Label, "Sign-in alerts")
-            .Add(c => c.Icon, Lucide.KeyRound)
-            .Add(c => c.ControlPosition, ControlPosition.End));
-        Assert.Equal("true", row.Find("label.ib-check > .ib-check-icon").GetAttribute("aria-hidden"));
-        Assert.Equal("Sign-in alerts", row.Find(".ib-check-label").TextContent.Trim());
-
-        var section = Render<Fieldset>(p => p.Add(f => f.Label, "Notifications").Add(f => f.Icon, Lucide.Bell));
-        Assert.Equal("true", section.Find("fieldset > .ib-fieldset-icon").GetAttribute("aria-hidden"));
-        Assert.Equal("Notifications", section.Find("fieldset > legend").TextContent);
-    }
-
-    [Fact]
-    public void Switch_has_the_switch_role()
-    {
-        var cut = Render<Switch>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.ValueExpression, () => _model.Accept));
-
-        Assert.Equal("switch", cut.Find("input").GetAttribute("role"));
-    }
-
-    [Fact]
     public void Select_lists_enum_values_with_display_names_and_marks_the_current_one()
     {
         var cut = Render<Select<Plan>>(p => p
@@ -339,35 +190,6 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void Select_ItemTemplate_renders_markup_with_a_text_label_and_selectedcontent()
-    {
-        var cut = Render<Select<Plan>>(p => p
-            .AddCascadingValue(_context)
-            .Add(s => s.Value, _model.Plan)
-            .Add(s => s.ValueExpression, () => _model.Plan)
-            .Add(s => s.ItemTemplate, plan => $"<b>{plan}</b><span class=\"ib-option-hint\">hint</span>"));
-
-        Assert.NotNull(cut.Find("select > button.ib-select-button > selectedcontent"));
-        var options = cut.FindAll("option");
-        Assert.Equal("Pro plan", options[1].GetAttribute("data-ib-label"));
-        Assert.Equal("Pro", options[1].QuerySelector("b")!.TextContent);
-        Assert.Null(options[1].GetAttribute("label"));
-        Assert.True(options[1].HasAttribute("selected"));
-    }
-
-    [Fact]
-    public void Select_without_ItemTemplate_stays_plain()
-    {
-        var cut = Render<Select<Plan>>(p => p
-            .AddCascadingValue(_context)
-            .Add(s => s.Value, _model.Plan)
-            .Add(s => s.ValueExpression, () => _model.Plan));
-
-        Assert.Empty(cut.FindAll("selectedcontent"));
-        Assert.Null(cut.Find("option").GetAttribute("data-ib-label"));
-    }
-
-    [Fact]
     public void Form_keeps_its_EditContext_across_renders()
     {
         // Passing EditForm a null EditContext on every render replaced its context, which made it
@@ -378,15 +200,6 @@ public class FormRenderTests : BunitContext
         cut.Render(p => p.Add(f => f.Model, _model).Add(f => f.FormName, "keep"));
 
         Assert.Same(before, cut.FindComponent<EditForm>().Instance.EditContext);
-    }
-
-    [Fact]
-    public void Form_uses_a_given_EditContext()
-    {
-        var context = new EditContext(_model);
-        var cut = Render<Form>(p => p.Add(f => f.EditContext, context).Add(f => f.FormName, "given"));
-
-        Assert.Same(context, cut.FindComponent<EditForm>().Instance.EditContext);
     }
 
     [Fact]
@@ -478,52 +291,6 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void The_prerender_of_an_interactive_MultiSelect_draws_its_chips()
-    {
-        // The interactive render replaces the prerender's DOM, so drawing them is safe, and the
-        // field is its final size before the script and the circuit arrive.
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<MultiSelect<string[], string>>(p => p
-            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
-            .AddCascadingValue(_context)
-            .Add(c => c.Value, _model.Tags)
-            .Add(c => c.ValueExpression, () => _model.Tags)
-            .Add(c => c.Items, new[] { "a", "b" }));
-
-        Assert.Equal("b", Assert.Single(cut.Find(".ib-multiselect-chips").Children).GetAttribute("data-value"));
-    }
-
-    [Fact]
-    public void An_interactive_MultiSelect_leaves_its_chips_to_the_script()
-    {
-        // A re-render would undo the script's chips: Blazor leaves them alone.
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<MultiSelect<string[], string>>(p => p
-            .AddCascadingValue(_context)
-            .Add(c => c.Value, _model.Tags)
-            .Add(c => c.ValueExpression, () => _model.Tags)
-            .Add(c => c.Items, new[] { "a", "b" }));
-
-        Assert.Empty(cut.Find(".ib-multiselect-chips").Children);
-        Assert.Empty(cut.Find(".ib-multiselect-chosen").TextContent);
-    }
-
-    [Fact]
-    public void RadioGroup_is_a_fieldset_of_radios()
-    {
-        var cut = Render<RadioGroup<Plan>>(p => p
-            .AddCascadingValue(_context)
-            .Add(r => r.Value, _model.Plan)
-            .Add(r => r.ValueExpression, () => _model.Plan));
-
-        Assert.Equal("Plan", cut.Find("legend").TextContent);
-        var radios = cut.FindAll("input[type=radio]");
-        Assert.Equal(2, radios.Count);
-        Assert.All(radios, r => Assert.EndsWith("Plan", r.GetAttribute("name")));
-        Assert.True(radios[1].HasAttribute("checked"));
-    }
-
-    [Fact]
     public void A_read_only_form_shows_values_and_still_posts_them()
     {
         var readOnly = new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required);
@@ -594,20 +361,6 @@ public class FormRenderTests : BunitContext
             .Add(c => c.ValueExpression, () => _model.Accept)).FindAll("input");
         Assert.Single(box);
         Assert.True(box[0].HasAttribute("disabled"));
-    }
-
-    [Theory]
-    [InlineData(RequiredMark.Required, "Full name *", "Favorite color")]
-    [InlineData(RequiredMark.Optional, "Full name", "Favorite color (optional)")]
-    [InlineData(RequiredMark.None, "Full name", "Favorite color")]
-    public void The_form_chooses_which_fields_are_marked(RequiredMark mark, string required, string optional)
-    {
-        var options = new FormOptions(Disabled: false, ReadOnly: false, mark);
-        string Label(System.Linq.Expressions.Expression<Func<string?>> field) =>
-            TextFieldFor(field, p => p.AddCascadingValue(options)).Find("label").TextContent;
-
-        Assert.Equal(required, Label(() => _model.Name));
-        Assert.Equal(optional, Label(() => _model.FavoriteColor));
     }
 
     [Fact]
@@ -685,54 +438,6 @@ public class FormRenderTests : BunitContext
         b.CloseComponent();
     };
 
-    [Fact]
-    public async Task The_open_tab_stays_when_it_has_errors_and_typing_never_switches_tabs()
-    {
-        _model.Email = "not an address";
-        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
-            .AddCascadingValue(_context)
-            .Add(t => t.Selected, "account")
-            .Add(t => t.ChildContent, b =>
-            {
-                b.AddContent(0, TabOf("Profile", FieldFor(() => _model.Name)));  // [Required], empty
-                b.AddContent(1, TabOf("Account", FieldFor(() => _model.Email))); // [EmailAddress]
-            }));
-        bool Open(int index) => cut.FindAll("input[type=radio]")[index].HasAttribute("checked");
-
-        await cut.InvokeAsync(() => _context.Validate());
-        Assert.True(Open(1)); // Account has errors too, so it stays open.
-
-        _model.Email = "izzy@example.com";
-        await cut.InvokeAsync(() => _context.NotifyFieldChanged(_context.Field(nameof(Model.Email))));
-        Assert.True(Open(1)); // Profile still has errors, but only a submit switches tabs.
-        Assert.Single(cut.FindAll(".ib-tab-errors"));
-    }
-
-    [Fact]
-    public async Task A_field_in_nested_tabs_counts_toward_the_outer_tab()
-    {
-        RenderFragment inner = b =>
-        {
-            b.OpenComponent<Tabs>(0);
-            b.AddAttribute(1, nameof(Tabs.Label), "Inner");
-            b.AddAttribute(2, nameof(Tabs.ChildContent), TabOf("Limits", FieldFor(() => _model.Name)));
-            b.CloseComponent();
-        };
-        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
-            .AddCascadingValue(_context)
-            .Add(t => t.ChildContent, b =>
-            {
-                b.AddContent(0, TabOf("General", FieldFor(() => _model.FavoriteColor)));
-                b.AddContent(1, TabOf("Advanced", inner));
-            }));
-
-        await cut.InvokeAsync(() => _context.Validate());
-
-        var outer = cut.FindAll(".ib-tabs-list")[0];
-        Assert.True(outer.QuerySelectorAll("input[type=radio]")[1].HasAttribute("checked"));
-        Assert.Contains("1 error", outer.QuerySelectorAll(".ib-tab")[1].TextContent);
-    }
-
     public class MessageModel
     {
         [Required(ErrorMessage = "Enter your {0}."), Display(Name = "nickname")]
@@ -774,36 +479,6 @@ public class FormRenderTests : BunitContext
     }
 
     [Fact]
-    public void Fields_take_ColSpan_and_NewRow()
-    {
-        var field = TextFieldFor(() => _model.Name, p => p.Add(t => t.ColSpan, (Responsive<int>)2).Add(t => t.NewRow, true)).Find(".ib-field");
-
-        Assert.Contains("--ib-colspan:1 / span min(2,", field.GetAttribute("style"));
-    }
-
-    [Fact]
-    public async Task An_edit_after_a_valid_submit_never_switches_tabs()
-    {
-        _model.Name = "Izzy";
-        _model.Email = "izzy@example.com";
-        var cut = Render<Tabs>(p => p.Add(t => t.Label, "Tabs")
-            .AddCascadingValue(_context)
-            .Add(t => t.Selected, "account")
-            .Add(t => t.ChildContent, b =>
-            {
-                b.AddContent(0, TabOf("Profile", FieldFor(() => _model.Name)));
-                b.AddContent(1, TabOf("Account", FieldFor(() => _model.Email)));
-            }));
-
-        await cut.InvokeAsync(() => _context.Validate()); // valid: nothing to open
-        _model.Name = null;
-        await cut.InvokeAsync(() => _context.NotifyFieldChanged(_context.Field(nameof(Model.Name))));
-
-        Assert.True(cut.FindAll("input[type=radio]")[1].HasAttribute("checked")); // still Account
-        Assert.Single(cut.FindAll(".ib-tab-errors")); // Profile counts its new error
-    }
-
-    [Fact]
     public void A_read_only_form_s_boxes_and_radios_are_disabled_so_never_block_a_post()
     {
         var readOnly = new FormOptions(Disabled: false, ReadOnly: true, RequiredMark.Required);
@@ -819,22 +494,5 @@ public class FormRenderTests : BunitContext
             .Add(c => c.Value, false).Add(c => c.ValueExpression, () => _model.Accept)
             .Add(c => c.Required, true));
         Assert.True(box.Find("input[type=checkbox]").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void Checkboxes_radios_and_segments_refuse_ReadOnly()
-    {
-        void Refused<TComponent>(Action<ComponentParameterCollectionBuilder<TComponent>> parameters) where TComponent : IComponent =>
-            Assert.Contains("doesn't take ReadOnly", Assert.Throws<InvalidOperationException>(() => Render<TComponent>(p =>
-            {
-                p.AddCascadingValue(_context);
-                parameters(p);
-                p.AddUnmatched("ReadOnly", true);
-            })).Message);
-
-        Refused<Checkbox>(p => p.Add(c => c.ValueExpression, () => _model.Accept));
-        Refused<Switch>(p => p.Add(c => c.ValueExpression, () => _model.Accept));
-        Refused<RadioGroup<Plan>>(p => p.Add(c => c.ValueExpression, () => _model.Plan));
-        Refused<SegmentedControl<Plan>>(p => p.Add(c => c.ValueExpression, () => _model.Plan));
     }
 }

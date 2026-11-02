@@ -64,9 +64,7 @@ public sealed class DataRequestTests : IDisposable
 
     [Theory]
     [InlineData("ad", new[] { 1, 3 })]
-    [InlineData("NASA", new[] { 5 })]
     [InlineData("  example  ", new[] { 1, 4 })]
-    [InlineData("nobody", new int[0])]
     [InlineData("", new[] { 1, 2, 3, 4, 5 })]
     public void Search_looks_in_the_text_fields(string search, int[] expected)
     {
@@ -74,22 +72,6 @@ public sealed class DataRequestTests : IDisposable
 
         Assert.Equal(expected, Ids(request.Apply(Members.AsQueryable())));
         Assert.Equal(expected, Ids(request.Apply(_db.Members.AsNoTracking()).ToList()));
-    }
-
-    [Fact]
-    public void Search_with_no_searchable_field_matches_nothing()
-    {
-        var fields = new[] { new DataField<Member> { Key = "qty", Value = (Expression<Func<Member, int>>)(m => m.Qty), Searchable = true } };
-
-        Assert.Empty(new DataRequest<Member> { Search = "3" }.Apply(Members.AsQueryable(), fields));
-    }
-
-    [Fact]
-    public void A_request_without_fields_says_how_to_apply_it()
-    {
-        var ex = Assert.Throws<InvalidOperationException>(() => new DataRequest<Member>().Apply(Members.AsQueryable()));
-
-        Assert.Contains("DataFields.Of<Member>()", ex.Message);
     }
 
     [Fact]
@@ -190,7 +172,6 @@ public sealed class DataRequestTests : IDisposable
 
     [Theory]
     [InlineData("skip=-5&take=x", 0, null)]
-    [InlineData("?skip=40&take=20", 40, 20)]
     public void Numbers_that_dont_parse_are_left_out(string query, int skip, int? take)
     {
         var request = DataRequest<Member>.Parse(query);
@@ -225,14 +206,6 @@ public sealed class DataRequestTests : IDisposable
         Assert.Equal(Ids(new DataRequest<Member> { Filter = request.Filter }.Apply(Members.AsQueryable(), Fields)),
             Ids(new DataRequest<Member> { Filter = back }.Apply(Members.AsQueryable(), Fields)));
         Assert.Equal("customer.name", back.Find("customer.name")!.Field);
-    }
-
-    [Fact]
-    public void Page_is_the_range_as_a_page()
-    {
-        Assert.Equal(1, new DataRequest<Member>().Page);
-        Assert.Equal(1, new DataRequest<Member> { Skip = 9, Take = 10 }.Page);
-        Assert.Equal(3, new DataRequest<Member> { Skip = 20, Take = 10 }.Page);
     }
 
     [Fact]

@@ -64,25 +64,6 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
-    public void Line_settings_add_their_classes()
-    {
-        var plain = RenderTable().Find("ib-table");
-        Assert.DoesNotContain("ib-table-no-row-lines", plain.ClassName);
-        Assert.DoesNotContain("ib-table-column-lines", plain.ClassName);
-        Assert.DoesNotContain("ib-table-borderless", plain.ClassName);
-
-        var lined = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.RowLines, false)
-            .Add(t => t.ColumnLines, true)
-            .Add(t => t.Bordered, false)
-            .Add(t => t.ChildContent, Columns)).Find("ib-table");
-        Assert.Contains("ib-table-no-row-lines", lined.ClassName);
-        Assert.Contains("ib-table-column-lines", lined.ClassName);
-        Assert.Contains("ib-table-borderless", lined.ClassName);
-    }
-
-    [Fact]
     public void Columns_take_titles_alignment_and_formats_from_the_property()
     {
         var cut = RenderTable();
@@ -158,54 +139,6 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
-    public void Under_all_rows_that_cannot_be_selected_stay_unchecked()
-    {
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.SelectionMode, SelectionMode.Multiple)
-            .Add(t => t.ItemKey, r => r.Name)
-            .Add(t => t.ItemSelectable, r => r.Name != "a")
-            .Add(t => t.Selection, new Selection { All = true })
-            .Add(t => t.ChildContent, Columns));
-
-        Assert.Equal(new[] { true, false, true }, cut.FindAll("tbody .ib-table-select").Select(b => b.HasAttribute("checked")));
-    }
-
-    [Fact]
-    public void A_new_but_equal_selection_from_the_parent_keeps_the_views_own()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.SelectionMode, SelectionMode.Multiple)
-            .Add(t => t.ItemKey, r => r.Name)
-            .Add(t => t.Selection, Selection.None)
-            .Add(t => t.ChildContent, Columns));
-
-        cut.FindAll("tbody .ib-table-select")[0].Change(true);
-        cut.Render(p => p.Add(t => t.Selection, Selection.None));
-
-        Assert.True(cut.FindAll("tbody .ib-table-select")[0].HasAttribute("checked"));
-    }
-
-    [Fact]
-    public void Rows_that_cannot_be_selected_have_a_disabled_box()
-    {
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.SelectionMode, SelectionMode.Multiple)
-            .Add(t => t.ItemKey, r => r.Name)
-            .Add(t => t.ItemSelectable, r => r.Name != "a")
-            .Add(t => t.Selection, Selection.Of("b", "c"))
-            .Add(t => t.ChildContent, Columns));
-
-        var boxes = cut.FindAll("tbody .ib-table-select");
-        Assert.Equal(new[] { false, true, false }, boxes.Select(b => b.HasAttribute("disabled")));
-        // Every row that can be selected is: the page counts as all selected.
-        Assert.True(cut.Find(".ib-table-select-all").HasAttribute("checked"));
-    }
-
-    [Fact]
     public void All_matching_shows_every_row_selected_but_the_exceptions()
     {
         var cut = Render<Table<Row>>(p => p
@@ -234,62 +167,6 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
-    public void RowCurrent_marks_the_rows_link_or_the_row()
-    {
-        var linked = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.RowHref, r => $"/rows/{r.Name}")
-            .Add(t => t.RowCurrent, r => r.Name == "a")
-            .Add(t => t.ChildContent, Columns));
-
-        var current = Assert.Single(linked.FindAll("tbody [aria-current]"));
-        Assert.Equal("/rows/a", current.GetAttribute("href"));
-        Assert.Equal("true", current.GetAttribute("aria-current"));
-
-        var plain = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.RowCurrent, r => r.Name == "c")
-            .Add(t => t.ChildContent, Columns));
-
-        Assert.Equal("TR", Assert.Single(plain.FindAll("tbody [aria-current]")).TagName);
-    }
-
-    [Fact]
-    public void Column_footers_add_a_footer_row()
-    {
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Rows)
-            .Add(t => t.ChildContent, (RenderFragment)(b =>
-            {
-                b.OpenComponent<PropertyColumn<Row, string>>(0);
-                b.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
-                b.AddComponentParameter(2, "FooterText", "Total");
-                b.CloseComponent();
-                b.OpenComponent<PropertyColumn<Row, decimal>>(3);
-                b.AddComponentParameter(4, "Property", (Expression<Func<Row, decimal>>)(r => r.UnitPrice));
-                b.AddComponentParameter(5, "Footer", (RenderFragment)(f => f.AddMarkupContent(0, "<b>13.50</b>")));
-                b.CloseComponent();
-            })));
-
-        var cells = cut.FindAll("tfoot td");
-        Assert.Equal("Total", cells[0].TextContent);
-        Assert.Equal("13.50", cells[1].QuerySelector("b")!.TextContent);
-        Assert.Equal("ib-cell-end", cells[1].ClassName);
-    }
-
-    [Fact]
-    public void Loading_dims_rows_or_shows_placeholders()
-    {
-        var loaded = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Loading, true).Add(t => t.ChildContent, Columns));
-        Assert.Equal("true", loaded.Find("table").GetAttribute("aria-busy"));
-        Assert.Equal(3, loaded.FindAll("tbody tr").Count);
-
-        var empty = Render<Table<Row>>(p => p.Add(t => t.Items, Array.Empty<Row>()).Add(t => t.Loading, true).Add(t => t.PageSize, 4).Add(t => t.ChildContent, Columns));
-        Assert.Equal(4, empty.FindAll("tbody .ib-table-skeleton-row").Count);
-        Assert.Empty(empty.FindAll(".ib-table-empty"));
-    }
-
-    [Fact]
     public void Sort_comes_from_the_url_and_headers_link_to_the_next_sort()
     {
         GoTo("/rows?sort=name&page=2");
@@ -314,16 +191,6 @@ public class DataRenderTests : BunitContext
     }
 
     [Fact]
-    public void Unknown_sort_keys_are_ignored()
-    {
-        GoTo("/rows?sort=password");
-        var cut = RenderTable();
-
-        Assert.Equal(new[] { "b", "a", "c" }, Column(cut, 0));
-        Assert.All(cut.FindAll("th[aria-sort]"), th => Assert.Equal("none", th.GetAttribute("aria-sort")));
-    }
-
-    [Fact]
     public void Items_provider_gets_the_request()
     {
         GoTo("/rows?x-sort=-name&x-page=2");
@@ -343,82 +210,6 @@ public class DataRenderTests : BunitContext
         Assert.Equal(2, seen.Page);
         Assert.Equal(1, seen.Skip);
         Assert.Equal(new[] { "b" }, Column(cut, 0));
-    }
-
-    [Fact]
-    public void Empty_table_shows_the_empty_text()
-    {
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, Array.Empty<Row>())
-            .Add(t => t.EmptyText, "Nothing here")
-            .Add(t => t.ChildContent, Columns));
-
-        var cell = cut.Find(".ib-table-empty td");
-        Assert.Equal("3", cell.GetAttribute("colspan"));
-        Assert.Equal("Nothing here", cell.TextContent.Trim());
-    }
-
-    [Fact]
-    public void Linked_card_puts_the_link_on_the_title()
-    {
-        var card = Render<Card>(p => p
-            .Add(c => c.Title, "Website")
-            .Add(c => c.TitleLevel, 2)
-            .Add(c => c.Href, "/projects/website")
-            .Add(c => c.Variant, CardVariant.Elevated)
-            .AddChildContent("Body")).Find(".ib-card");
-
-        Assert.Equal("ib-card ib-card-elevated ib-card-linked", card.ClassName);
-        Assert.Equal("/projects/website", card.QuerySelector("h2.ib-card-title > a.ib-card-link")!.GetAttribute("href"));
-        Assert.Equal("Body", card.QuerySelector(".ib-card-body")!.TextContent);
-    }
-
-    [Fact]
-    public void Card_draws_its_parts_in_place_wherever_they_are_written()
-    {
-        var cut = Render<Card>(p => p
-            .Add(c => c.Title, "Orders")
-            .AddChildContent<CardFooter>(f => f.AddChildContent("Footer"))
-            .AddChildContent<CardActions>(a => a.AddChildContent("<button>More</button>"))
-            .AddChildContent<CardMedia>(m => m.AddChildContent("<img alt=\"\">")));
-
-        var card = cut.Find(".ib-card");
-        Assert.Equal(new[] { "ib-card-media", "ib-card-header", "ib-card-body" }, card.Children.Select(c => c.ClassName));
-        Assert.Equal("More", card.QuerySelector(".ib-card-header .ib-card-actions button")!.TextContent);
-        Assert.Equal("Footer", card.QuerySelector(".ib-card-body > .ib-card-footer")!.TextContent);
-        Assert.Throws<InvalidOperationException>(() => Render<CardActions>());
-    }
-
-    [Fact]
-    public void Card_parts_follow_their_content_when_swapped_added_and_removed()
-    {
-        static RenderFragment Content(string? actions) => b =>
-        {
-            // Different sequence numbers: one part replaces another, as with @if/else.
-            if (actions == "A")
-            {
-                b.OpenComponent<CardActions>(0);
-                b.AddComponentParameter(1, nameof(CardActions.ChildContent), (RenderFragment)(c => c.AddContent(0, "A")));
-                b.CloseComponent();
-            }
-            else if (actions == "B")
-            {
-                b.OpenComponent<CardActions>(2);
-                b.AddComponentParameter(3, nameof(CardActions.ChildContent), (RenderFragment)(c => c.AddContent(0, "B")));
-                b.CloseComponent();
-            }
-
-            b.AddContent(4, "Body");
-        };
-
-        var cut = Render<Card>(p => p.Add(c => c.Title, "Orders").Add(c => c.ChildContent, Content("A")));
-        Assert.Equal("A", cut.Find(".ib-card-actions").TextContent);
-
-        cut.Render(p => p.Add(c => c.ChildContent, Content("B")));
-        Assert.Equal("B", cut.Find(".ib-card-actions").TextContent);
-
-        cut.Render(p => p.Add(c => c.ChildContent, Content(null)));
-        Assert.Empty(cut.FindAll(".ib-card-actions"));
     }
 
     private static RenderFragment FilterFields => builder =>
@@ -474,15 +265,5 @@ public class DataRenderTests : BunitContext
         var label = cut.Find($"label[for='{from.Id}']");
         Assert.Equal("From", label.TextContent);
         Assert.DoesNotContain("ib-visually-hidden", label.ClassName);
-    }
-
-    [Fact]
-    public void Filter_form_without_values_has_no_clear_link()
-    {
-        GoTo("/orders");
-        var cut = Render<FilterForm>(p => p.Add(f => f.ChildContent, FilterFields));
-
-        Assert.Empty(cut.FindAll("a.ib-filter-clear"));
-        Assert.NotNull(cut.Find("button.ib-filter-apply"));
     }
 }

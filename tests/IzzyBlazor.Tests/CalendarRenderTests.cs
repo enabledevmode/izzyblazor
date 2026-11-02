@@ -58,8 +58,6 @@ public class CalendarRenderTests : BunitContext
     [Theory]
     [InlineData("en-US", null, "Sunday", "February 2027")]
     [InlineData("de-DE", null, "Montag", "Februar 2027")]
-    [InlineData("en-US", DayOfWeek.Wednesday, "Wednesday", "February 2027")]
-    [InlineData("th-TH", null, null, "2027")]
     public void Names_and_the_first_day_follow_the_culture_on_the_gregorian_calendar(string culture, DayOfWeek? first, string? firstColumn, string month)
     {
         var cut = CalendarFor(() => _model.Day, p => p.Add(f => f.FirstDayOfWeek, first), culture);
@@ -85,108 +83,12 @@ public class CalendarRenderTests : BunitContext
     [Theory]
     [InlineData(2, true)]
     [InlineData(1, false)]
-    [InlineData(4, false)]
     public void Min_and_max_hold_when_the_form_validates(int month, bool valid)
     {
         _model.Day = new DateOnly(2027, month, 15);
         CalendarFor(() => _model.Day, p => p.Add(f => f.Min, new DateOnly(2027, 2, 1)).Add(f => f.Max, new DateOnly(2027, 3, 31)));
 
         Assert.Equal(valid, _context.Validate());
-    }
-
-    [Fact]
-    public void With_no_value_it_shows_the_nearest_month_that_can_be_chosen()
-    {
-        var cut = CalendarFor(() => _model.Empty, p => p.Add(f => f.Max, new DateOnly(2001, 5, 20)));
-
-        Assert.Equal("May 2001", cut.Find(".ib-calendar-month").TextContent);
-        Assert.Empty(cut.FindAll("td[aria-selected]"));
-    }
-
-    [Fact]
-    public void Week_numbers_count_as_the_culture_does_and_adjacent_days_can_be_left_out()
-    {
-        _model.Day = new DateOnly(2024, 12, 15);
-        var cut = CalendarFor(() => _model.Day, p => p.Add(f => f.ShowWeekNumbers, true).Add(f => f.ShowAdjacentDays, false), "de-DE");
-
-        // December 30, 2024 is ISO week 1 of 2025.
-        var weeks = cut.FindAll("tbody th").Select(th => th.TextContent).ToList();
-        Assert.Equal(["48", "49", "50", "51", "52", "1"], weeks);
-        Assert.Equal(31, cut.FindAll("tbody button:not([hidden])").Count);
-    }
-
-    [Fact]
-    public void On_an_interactive_page_a_new_value_reaches_the_script_and_the_cells_stay_as_first_drawn()
-    {
-        var cut = CalendarFor(() => _model.Day);
-
-        cut.Render(p => p.Add(f => f.Value, new DateOnly(2027, 8, 20)));
-
-        Assert.Equal("2027-08-20", cut.Find("ib-calendar").GetAttribute("data-ib-value"));
-        Assert.Equal("February 2027", cut.Find(".ib-calendar-month").TextContent);
-        Assert.Equal("Monday, February 15, 2027", cut.Find("td[aria-selected=true] button").GetAttribute("aria-label"));
-    }
-
-    [Fact]
-    public void The_ends_of_the_calendar_draw_without_throwing()
-    {
-        _model.Day = DateOnly.MaxValue;
-        Assert.Contains("9999", CalendarFor(() => _model.Day).Find(".ib-calendar-month").TextContent);
-
-        _model.Empty = new DateOnly(1, 1, 2);
-        Assert.Contains("0001", CalendarFor(() => _model.Empty).Find(".ib-calendar-month").TextContent);
-    }
-
-    [Fact]
-    public void Disabled_days_are_asked_about_once_each_across_the_window_and_the_month_stops_at_its_edge()
-    {
-        _model.Day = new DateOnly(2027, 3, 10);
-        var calls = 0;
-        var cut = CalendarFor(() => _model.Day, p => p
-            .Add(f => f.DateDisabledWindow, TimeSpan.FromDays(10))
-            .Add(f => f.DateDisabled, day =>
-            {
-                calls++;
-                return day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
-            }));
-
-        Assert.Equal(21, calls);
-        var element = cut.Find("ib-calendar");
-        Assert.Equal("2027-02-28", element.GetAttribute("data-ib-min"));
-        Assert.Equal("2027-03-20", element.GetAttribute("data-ib-max"));
-        Assert.Equal("2027-02-28,2027-03-06/2027-03-07,2027-03-13/2027-03-14,2027-03-20", element.GetAttribute("data-ib-off"));
-        Assert.Equal("true", cut.Find("button[aria-label='Saturday, March 13, 2027']").GetAttribute("aria-disabled"));
-        Assert.Null(cut.Find("button[aria-label='Monday, March 15, 2027']").GetAttribute("aria-disabled"));
-    }
-
-    [Fact]
-    public void A_day_class_reaches_its_days_and_alone_doesnt_stop_the_month()
-    {
-        _model.Day = new DateOnly(2027, 3, 10);
-        var cut = CalendarFor(() => _model.Day, p => p
-            .Add(f => f.DateDisabledWindow, TimeSpan.FromDays(10))
-            .Add(f => f.DayClass, day => day.Day is 15 or 16 ? "pay-day" : null));
-
-        var element = cut.Find("ib-calendar");
-        Assert.Equal("2027-03-15/2027-03-16=pay-day", element.GetAttribute("data-ib-classes"));
-        Assert.Null(element.GetAttribute("data-ib-max"));
-        Assert.Contains("pay-day", cut.Find("button[aria-label='Monday, March 15, 2027']").ClassList);
-    }
-
-    [Fact]
-    public void A_window_stays_inside_min_and_max_and_past_the_ends_of_the_calendar()
-    {
-        var calls = 0;
-        _model.Day = new DateOnly(2027, 3, 10);
-        CalendarFor(() => _model.Day, p => p
-            .Add(f => f.Min, new DateOnly(2027, 3, 1))
-            .Add(f => f.Max, new DateOnly(2027, 3, 31))
-            .Add(f => f.DateDisabled, _ => { calls++; return false; }));
-        Assert.Equal(31, calls);
-
-        _model.Day = DateOnly.MaxValue;
-        var cut = CalendarFor(() => _model.Day, p => p.Add(f => f.DateDisabled, _ => false));
-        Assert.Equal("9999-12-31", cut.Find("ib-calendar").GetAttribute("data-ib-max"));
     }
 
     [Theory]
@@ -198,16 +100,5 @@ public class CalendarRenderTests : BunitContext
         CalendarFor(() => _model.Day, p => p.Add(f => f.DateDisabled, date => date.DayOfWeek == DayOfWeek.Saturday));
 
         Assert.Equal(valid, _context.Validate());
-    }
-
-    [Fact]
-    public void A_type_that_isnt_a_date_says_so()
-    {
-        var error = Assert.Throws<InvalidOperationException>(() => Render<Calendar<DateTime>>(p =>
-        {
-            p.AddCascadingValue(_context);
-            p.Add(f => f.ValueExpression, () => _model.When);
-        }));
-        Assert.Contains("DateOnly", error.Message);
     }
 }

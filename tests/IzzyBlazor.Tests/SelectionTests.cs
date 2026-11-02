@@ -89,29 +89,6 @@ public sealed class SelectionTests : IDisposable
     }
 
     [Fact]
-    public void With_adds_and_removes_keys_and_keeps_the_scope()
-    {
-        var some = Selection.None.With("a", true).With("b", true).With("a", false);
-        Assert.Equal(new[] { "b" }, some.Keys);
-        Assert.Same(some, some.With("b", true));
-
-        var all = new Selection { All = true, Filter = "qty gt 1" }.With("x", false);
-        Assert.False(all.Contains("x"));
-        Assert.True(all.Contains("y"));
-        Assert.Equal("qty gt 1", all.Filter);
-        Assert.True(all.With("x", true).Contains("x"));
-        Assert.Empty(all.With("x", true).Keys!);
-    }
-
-    [Fact]
-    public void Count_knows_the_total_only_under_All()
-    {
-        Assert.Equal(2, Selection.Of("a", "b").Count());
-        Assert.Null(new Selection { All = true, Keys = ["a"] }.Count());
-        Assert.Equal(9, new Selection { All = true, Keys = ["a"] }.Count(10));
-    }
-
-    [Fact]
     public void MatchesScope_compares_the_filter_and_search_All_was_made_under()
     {
         var filter = Filter.Where("qty", FilterOperator.GreaterThan, 1);

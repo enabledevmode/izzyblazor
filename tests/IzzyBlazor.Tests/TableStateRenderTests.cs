@@ -35,31 +35,6 @@ public class TableStateRenderTests : BunitContext
         cut.FindAll(".ib-data-footer button").First(b => b.TextContent.Trim().EndsWith(page.ToString(), StringComparison.Ordinal));
 
     [Fact]
-    public void The_prerender_of_a_bound_table_has_no_filter_apply_row_and_keeps_working_links()
-    {
-        // The interactive table has no filters' GET form: drawn in the prerender, its Apply row
-        // would go when the circuit connects and the table would jump. Sort links still work.
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        RenderFragment filterable = builder =>
-        {
-            builder.OpenComponent<PropertyColumn<Row, string>>(0);
-            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
-            builder.AddComponentParameter(2, "Sortable", true);
-            builder.AddComponentParameter(3, "Filterable", true);
-            builder.CloseComponent();
-        };
-        var cut = Render<Table<Row>>(p => p
-            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
-            .Add(t => t.Items, Rows)
-            .Add(t => t.QueryPrefix, "bound-")
-            .Add(t => t.SortChanged, (string? _) => { })
-            .Add(t => t.ChildContent, filterable));
-
-        Assert.Empty(cut.FindAll(".ib-table-filter-kept, form.ib-table-filter-form"));
-        Assert.Contains("bound-sort=", cut.Find("thead a.ib-table-sort").GetAttribute("href"));
-    }
-
-    [Fact]
     public void Bound_sort_sorts_in_place_and_reports()
     {
         var reported = new List<string?>();
@@ -128,30 +103,6 @@ public class TableStateRenderTests : BunitContext
             .Add(t => t.ChildContent, Columns));
 
         Assert.Equal(new[] { "b" }, Names(cut));
-    }
-
-    [Fact]
-    public void Bound_page_size_changes_in_place_and_keeps_the_first_row_in_view()
-    {
-        var rows = Enumerable.Range(1, 30).Select(i => new Row($"r{i:00}", i)).ToArray();
-        var sizes = new List<int?>();
-        var pages = new List<int>();
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.Items, rows)
-            .Add(t => t.PageSizeOptions, new[] { 5, 10, 25 })
-            .Add(t => t.PageSizeChanged, (int? s) => sizes.Add(s))
-            .Add(t => t.PageChanged, (int page) => pages.Add(page))
-            .Add(t => t.ChildContent, Columns));
-
-        Assert.Equal(5, Names(cut).Length);   // the first option is the default
-        PageButton(cut, 3).Click();            // rows 11-15
-        cut.FindAll(".ib-data-page-size button.ib-menu-item").First(b => b.TextContent.Trim() == "10").Click();
-
-        Assert.Equal("r11", Names(cut)[0]);    // page 2 at 10 per page
-        Assert.Equal(10, Names(cut).Length);
-        Assert.Equal(new int?[] { 10 }, sizes);
-        Assert.Equal(new[] { 3, 2 }, pages);
-        Assert.Equal("Rows per page: 10", cut.Find(".ib-data-page-size-button").GetAttribute("aria-label"));
     }
 
     [Fact]

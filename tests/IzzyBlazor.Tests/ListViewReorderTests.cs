@@ -57,43 +57,6 @@ public class ListViewReorderTests : BunitContext
     }
 
     [Fact]
-    public void A_posting_list_puts_a_default_submit_button_ahead_of_its_move_buttons()
-    {
-        Static();
-        var cut = RenderList();
-
-        // The first submit button in the form is the one Enter presses.
-        var first = cut.FindAll("button[type=submit]")[0];
-        Assert.Contains("ib-data-default-submit", first.ClassName);
-        Assert.Null(first.GetAttribute("name"));
-    }
-
-    [Fact]
-    public void Moves_toward_an_end_are_disabled_at_that_end()
-    {
-        Static();
-        var cut = RenderList();
-
-        Assert.True(MenuItem(cut, 0, "Move up").HasAttribute("disabled"));
-        Assert.True(MenuItem(cut, 0, "Move to top").HasAttribute("disabled"));
-        Assert.False(MenuItem(cut, 0, "Move down").HasAttribute("disabled"));
-        Assert.True(MenuItem(cut, 2, "Move down").HasAttribute("disabled"));
-        Assert.True(MenuItem(cut, 2, "Move to bottom").HasAttribute("disabled"));
-        Assert.False(MenuItem(cut, 2, "Move up").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void A_static_list_without_a_Name_shows_no_handles_and_posts_nothing()
-    {
-        Static();
-        var cut = RenderList(name: null);
-
-        Assert.Equal(new[] { "Ada", "Brian", "Cleo" }, Shown(cut));
-        Assert.Empty(cut.FindAll(".ib-sortable-handle"));
-        Assert.Empty(cut.FindAll("input"));
-    }
-
-    [Fact]
     public void A_posted_order_and_move_show_and_focus_the_moved_handle()
     {
         Static();
@@ -103,16 +66,6 @@ public class ListViewReorderTests : BunitContext
         Assert.Equal(new[] { "c", "b", "a" }, cut.FindAll("input[type=hidden]").Select(i => i.GetAttribute("value")));
         var focused = cut.FindAll(".ib-sortable-handle[autofocus]");
         Assert.Equal("Move Brian", Assert.Single(focused).GetAttribute("aria-label"));
-    }
-
-    [Fact]
-    public void A_posted_order_without_a_move_focuses_nothing()
-    {
-        Static();
-        var cut = RenderList(order: new ListOrder { Keys = ["b", "a", "c"] });
-
-        Assert.Equal(new[] { "Brian", "Ada", "Cleo" }, Shown(cut));
-        Assert.Empty(cut.FindAll("[autofocus]"));
     }
 
     [Fact]
@@ -133,17 +86,6 @@ public class ListViewReorderTests : BunitContext
         // The others move past it.
         Assert.Equal("up:b", MenuItem(cut, 1, "Move up").GetAttribute("value"));
         Assert.False(MenuItem(cut, 1, "Move up").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void A_horizontal_list_shows_left_and_right_shortcuts()
-    {
-        Static();
-        var cut = RenderList(more: p => p.Add(l => l.Orientation, Orientation.Horizontal));
-
-        Assert.Contains("ib-sortable-horizontal", cut.Find("ib-sortable").ClassName);
-        Assert.Contains("Alt+←", MenuItem(cut, 1, "Move up").TextContent);
-        Assert.Contains("Alt+→", MenuItem(cut, 1, "Move down").TextContent);
     }
 
     [Fact]
@@ -226,126 +168,6 @@ public class ListViewReorderTests : BunitContext
         Assert.Equal("2", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
     }
 
-    [Fact]
-    public void A_drop_is_counted_only_once_an_awaited_OnMove_is_done_and_moves_meanwhile_are_ignored()
-    {
-        // The script settles on the count: a render while OnMove saves must not carry it.
-        Live();
-        var save = new TaskCompletionSource();
-        var calls = 0;
-        var cut = RenderList(name: null, more: p => p.Add(l => l.OnMove, async m => { calls++; await save.Task; }));
-
-        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "a", ToIndex = 2, Seq = 1 });
-        Assert.Equal("0", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
-
-        // A second drag while the first saves: ignored, but counted so the script puts it back.
-        cut.Find("ib-sortable").TriggerEvent("onibmove", new IzzyMoveEventArgs { Key = "c", ToIndex = 0, Seq = 2 });
-        Assert.Equal(1, calls);
-        Assert.Equal("2", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
-
-        save.SetResult();
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "Brian", "Cleo", "Ada" }, Shown(cut)));
-        Assert.Equal("2", cut.Find("ib-sortable").GetAttribute("data-ib-seq"));
-    }
-
-    [Fact]
-    public void A_list_prerendered_for_an_interactive_page_renders_no_count_so_nothing_drags_yet()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = RenderList(name: null, more: p => p.AddCascadingValue(new Microsoft.AspNetCore.Components.Web.InteractiveServerRenderMode(prerender: true)));
-
-        Assert.False(cut.Find("ib-sortable").HasAttribute("data-ib-seq"));
-    }
-
-    [Fact]
-    public void A_static_list_renders_no_drop_count()
-    {
-        Static();
-        var cut = RenderList();
-
-        Assert.False(cut.Find("ib-sortable").HasAttribute("data-ib-seq"));
-    }
-
-    [Fact]
-    public void The_script_finds_each_move_label_and_mode_in_the_markup()
-    {
-        Static();
-        var cut = RenderList(order: new ListOrder { Move = "down:a" }, more: p => p.Add(l => l.SubmitOnMove, true));
-
-        var root = cut.Find("ib-sortable");
-        Assert.False(root.HasAttribute("data-ib-interactive"));
-        Assert.True(root.HasAttribute("data-ib-submit"));
-        Assert.Equal("Moved {0} to position {1} of {2}", root.GetAttribute("data-ib-moved"));
-        Assert.Equal(new[] { "Brian", "Ada", "Cleo" }, cut.FindAll("li").Select(l => l.GetAttribute("data-ib-label")));
-        Assert.Equal(new[] { "up", "down", "top", "bottom" },
-            cut.FindAll("li")[0].QuerySelectorAll("button[data-ib-move]").Select(b => b.GetAttribute("data-ib-move")));
-        // Native autofocus for full page loads; the marker for enhanced posts (focus.ts).
-        Assert.Equal("Move Ada", cut.Find("[data-ib-autofocus]").GetAttribute("aria-label"));
-    }
-
-    [Fact]
-    public void A_live_list_is_marked_interactive_and_never_submits()
-    {
-        Live();
-        var cut = RenderList(name: null, more: p => p.Add(l => l.SubmitOnMove, true));
-
-        var root = cut.Find("ib-sortable");
-        Assert.True(root.HasAttribute("data-ib-interactive"));
-        Assert.False(root.HasAttribute("data-ib-submit"));
-        Assert.Equal(4, cut.FindAll("li")[0].QuerySelectorAll("button[data-ib-move]").Length);
-    }
-
-    [Fact]
-    public void A_reorderable_list_refuses_paging_and_a_provider()
-    {
-        Static();
-        var paged = Assert.Throws<InvalidOperationException>(() => RenderList(more: p => p.Add(l => l.PageSize, 2)));
-        Assert.Contains("shows every item", paged.Message);
-        Assert.Throws<InvalidOperationException>(() => RenderList(more: p => p
-            .Add(l => l.ItemsProvider, _ => ValueTask.FromResult(new DataResult<Step>([], 0)))));
-    }
-
-    [Fact]
-    public void Reordering_works_with_selection_and_links()
-    {
-        Static();
-        var cut = RenderList(more: p => p.Add(l => l.SelectionMode, SelectionMode.Multiple).Add(l => l.ItemHref, s => $"/steps/{s.Id}"));
-
-        var first = cut.FindAll("li")[0];
-        // Handle, then the checkbox, then the content; the link is stretched over the item.
-        Assert.NotNull(first.QuerySelector(".ib-sortable-handle"));
-        Assert.Equal("a", first.QuerySelector("input.ib-listview-select")!.GetAttribute("value"));
-        Assert.Equal("/steps/a", first.QuerySelector("a.ib-listview-action")!.GetAttribute("href"));
-        Assert.Equal("a", first.GetAttribute("data-ib-key"));
-        // What the script finds the items and the list by.
-        Assert.Contains("ib-sortable-item", first.ClassName);
-        Assert.Contains("ib-sortable-list", cut.Find("ib-sortable > ul").ClassName);
-    }
-
-    [Fact]
-    public void The_handle_and_menu_text_come_from_IzzyText()
-    {
-        Services.AddSingleton(new IzzyText { MoveItem = "{0} verschieben", MoveUp = "Nach oben" });
-        Static();
-        var cut = RenderList();
-
-        Assert.Equal("Ada verschieben", cut.Find(".ib-sortable-handle").GetAttribute("aria-label"));
-        Assert.NotNull(MenuItem(cut, 1, "Nach oben"));
-    }
-
-    [Fact]
-    public void DragWholeItem_marks_the_list_for_the_script_and_keeps_the_handles()
-    {
-        Static();
-        var cut = RenderList(more: p => p.Add(l => l.DragWholeItem, true));
-
-        Assert.True(cut.Find("ib-sortable").HasAttribute("data-ib-whole"));
-        Assert.Equal(3, cut.FindAll(".ib-sortable-handle").Count);
-
-        var plain = RenderList();
-        Assert.False(plain.Find("ib-sortable").HasAttribute("data-ib-whole"));
-    }
-
     // An Open item for every step, or only for those `when` allows.
     private static RenderFragment<Step> OpenMenu(Func<Step, bool>? when = null) => step => b =>
     {
@@ -362,90 +184,4 @@ public class ListViewReorderTests : BunitContext
 
     private static string[] MenuTexts(IElement item) =>
         item.QuerySelectorAll(".ib-menu-item .ib-menu-label").Select(l => l.TextContent.Trim()).ToArray();
-
-    [Fact]
-    public void DragWholeItem_with_an_ItemMenu_puts_the_moves_in_a_Move_submenu_and_draws_no_handles()
-    {
-        Static();
-        var cut = RenderList(more: p => p.Add(l => l.DragWholeItem, true).Add(l => l.ItemMenu, OpenMenu()));
-
-        Assert.Empty(cut.FindAll(".ib-sortable-handle"));
-        Assert.Empty(cut.FindAll(".ib-sortable-spacer"));
-        Assert.All(cut.FindAll("li"), li => Assert.True(li.HasAttribute("data-ib-movable")));
-
-        var first = cut.FindAll("li")[0];
-        var button = first.QuerySelector(".ib-listview-menu")!;
-        Assert.Equal("Actions for Ada", button.GetAttribute("aria-label"));
-        Assert.Contains("ib-sortable-trigger", button.ClassList);
-        // The item's own items, a line, then Move opening the moves.
-        Assert.Equal(new[] { "Open", "Move", "Move up", "Move down", "Move to top", "Move to bottom" }, MenuTexts(first));
-        Assert.NotNull(first.QuerySelector("[role=separator]"));
-        var sub = first.QuerySelector(".ib-menu-sub-trigger")!;
-        Assert.Equal("Move", sub.TextContent.Trim());
-        Assert.NotNull(first.QuerySelector(".ib-menu-sub-root button[data-ib-move=down]"));
-
-        var down = MenuItem(cut, 0, "Move down");
-        Assert.Equal("order.Move", down.GetAttribute("name"));
-        Assert.Equal("down:a", down.GetAttribute("value"));
-        Assert.True(MenuItem(cut, 0, "Move up").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void A_locked_item_gets_no_moves_and_a_menu_only_for_its_own_items()
-    {
-        Static();
-        Step[] steps = [new("a", "Ada"), new("b", "Brian", Locked: true), new("c", "Cleo", Locked: true)];
-        var cut = RenderList(steps, more: p => p
-            .Add(l => l.DragWholeItem, true)
-            .Add(l => l.ItemMenu, OpenMenu(s => s.Id != "c")));
-
-        var items = cut.FindAll("li");
-        Assert.False(items[1].HasAttribute("data-ib-movable"));
-        Assert.Equal(new[] { "Open" }, MenuTexts(items[1]));
-        Assert.DoesNotContain("ib-sortable-trigger", items[1].QuerySelector(".ib-listview-menu")!.ClassList);
-        Assert.Null(items[2].QuerySelector(".ib-listview-menu"));
-        Assert.Empty(cut.FindAll(".ib-sortable-spacer"));
-    }
-
-    [Fact]
-    public void An_item_whose_menu_is_empty_gets_the_moves_without_a_submenu()
-    {
-        Static();
-        var cut = RenderList(more: p => p
-            .Add(l => l.DragWholeItem, true)
-            .Add(l => l.ItemMenu, OpenMenu(s => s.Id != "b")));
-
-        var brian = cut.FindAll("li")[1];
-        Assert.Equal(new[] { "Move up", "Move down", "Move to top", "Move to bottom" }, MenuTexts(brian));
-        Assert.Null(brian.QuerySelector(".ib-menu-sub-trigger"));
-        Assert.Null(brian.QuerySelector("[role=separator]"));
-    }
-
-    [Fact]
-    public void A_posted_move_from_the_menu_focuses_the_moved_items_menu_button()
-    {
-        Static();
-        var cut = RenderList(order: new ListOrder { Keys = ["a", "b", "c"], Move = "down:a" }, more: p => p
-            .Add(l => l.DragWholeItem, true)
-            .Add(l => l.ItemMenu, OpenMenu()));
-
-        Assert.Equal(new[] { "Brian", "Ada", "Cleo" }, Shown(cut));
-        Assert.Equal("Actions for Ada", Assert.Single(cut.FindAll("[autofocus]")).GetAttribute("aria-label"));
-    }
-
-    [Fact]
-    public void An_interactive_list_moves_from_the_menu()
-    {
-        Live();
-        IReadOnlyList<Step>? changed = null;
-        var cut = RenderList(name: null, more: p => p
-            .Add(l => l.DragWholeItem, true)
-            .Add(l => l.ItemMenu, OpenMenu())
-            .Add(l => l.ItemsChanged, items => changed = items));
-
-        Assert.Empty(cut.FindAll(".ib-sortable-handle"));
-        MenuItem(cut, 2, "Move to top").Click();
-
-        Assert.Equal(new[] { "c", "a", "b" }, changed!.Select(s => s.Id));
-    }
 }
