@@ -111,16 +111,19 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     [Parameter] public bool Pickable { get; set; } = true;
 
     /// <summary>
-    /// Gives this column a field for editing a row, chosen by its type, in a <c>DataGrid</c> with an
-    /// <c>EditMode</c>. Only editable columns take a value from a save, so a forged one changes nothing.
+    /// Whether the column shows in a <c>DataGrid</c>. Hidden, it's left out of the column picker and
+    /// exports too, but can still be filtered by and, with <see cref="Editable"/> set, edited.
     /// </summary>
-    [Parameter] public bool Editable { get; set; }
+    [Parameter] public bool Visible { get; set; } = true;
 
     /// <summary>
-    /// A field for editing a row, with no column: for a property the grid doesn't show. Implies
-    /// <see cref="Editable"/>.
+    /// Whether a row's editor has a field for this column, in a <c>DataGrid</c> with an <c>EditMode</c>.
+    /// Only editable columns take a value from a save, so a forged one changes nothing. By default a
+    /// visible column is editable if it can be: a settable property of the row, of a type with a field,
+    /// without <c>[Key]</c>, <c>[Editable(false)]</c> or <c>[ReadOnly(true)]</c>. A hidden one isn't
+    /// unless this is set. Set it to false on what people mustn't change, such as the row's key.
     /// </summary>
-    [Parameter] public bool EditOnly { get; set; }
+    [Parameter] public bool? Editable { get; set; }
 
     /// <summary>A class for this column's cells and header.</summary>
     [Parameter] public string? Class { get; set; }
@@ -180,7 +183,10 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>The cell content for an item.</summary>
     internal abstract RenderFragment Cell(TItem item);
 
-    internal bool IsEditable => Editable || EditOnly;
+    internal bool IsEditable => Editable ?? (Visible && EditableByDefault);
+
+    /// <summary>Whether it's editable when <see cref="Editable"/> isn't set.</summary>
+    internal virtual bool EditableByDefault => false;
 
     /// <summary>The property a save writes.</summary>
     internal virtual PropertyInfo? EditProperty => null;
@@ -215,7 +221,12 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"The \"{HeaderText}\" column is {nameof(Frozen)}, which only a DataGrid's columns can be.");
         }
 
-        if (IsEditable)
+        if (!Visible && Table is { GridColumns: false })
+        {
+            throw new InvalidOperationException($"The \"{HeaderText}\" column sets {nameof(Visible)}, which only a DataGrid's columns take.");
+        }
+
+        if (Editable == true)
         {
             if (Table is { GridColumns: false })
             {
@@ -282,7 +293,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, EditOnly);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible);
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -420,6 +431,14 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     // A row's own property: one further along would be shared with the row, as its copy is shallow.
     internal override PropertyInfo? EditProperty =>
         Property?.Body is MemberExpression { Expression: ParameterExpression, Member: PropertyInfo property } ? property : null;
+
+    /// <inheritdoc />
+    internal override bool EditableByDefault =>
+        EditProblem is null
+        && EditProperty is { } property
+        && property.GetCustomAttribute<KeyAttribute>() is null
+        && property.GetCustomAttribute<EditableAttribute>() is not { AllowEdit: false }
+        && property.GetCustomAttribute<System.ComponentModel.ReadOnlyAttribute>() is not { IsReadOnly: true };
 
     /// <inheritdoc />
     protected override string? EditProblem
