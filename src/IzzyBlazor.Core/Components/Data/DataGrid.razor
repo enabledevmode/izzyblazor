@@ -229,7 +229,8 @@
 
     /// <summary>
     /// The key of the row being edited, or null. Binding it (<c>@bind-EditKey</c>) on an interactive page
-    /// keeps it, with sort and page, in the component. Otherwise it's in the address (<c>?edit=42</c>).
+    /// keeps it, with sort and page, in the component. Otherwise it's in the address (<c>?edit=42</c>), or
+    /// where another of them is bound, such as <c>Page</c>, kept in the component.
     /// </summary>
     [Parameter] public string? EditKey { get; set; }
 
@@ -262,7 +263,34 @@
     private string? QueryValue(string key) =>
         QueryString.Of(Navigation.Uri).TryGetValue(key, out var value) && value.ToString().Length > 0 ? value.ToString() : null;
 
-    private string? CurrentEditKey => !CanEdit || CellMode ? null : UseState ? EditKey : QueryValue(EditQueryKey);
+    // Never the new row's own stand-in, which a typed address could name.
+    private string? CurrentEditKey =>
+        !CanEdit || CellMode ? null
+        : (UseState ? (EditKeyChanged.HasDelegate ? EditKey : _stateEditKey) : QueryValue(EditQueryKey)) is { } key && key != NewRowKey ? key
+        : null;
+
+    private string? _stateEditKey;
+
+    private Task StartEdit(string key)
+    {
+        _stateEditKey = key;
+        return EditKeyChanged.InvokeAsync(key);
+    }
+
+    // An edit the address or a parent has ended, not this grid: the next one mustn't find what was typed.
+    private void ForgetEndedEdit()
+    {
+        if (_editKeyFor is not null && _cellKey is null && _editKeyFor != (Adding ? NewRowKey : CurrentEditKey))
+        {
+            (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, default, default, null, null, null, null);
+            (_foundKey, _found) = (null, default);
+        }
+
+        if (CurrentDeleteKey is null)
+        {
+            (_deleteContext, _deleteMessages) = (null, null);
+        }
+    }
 
     private bool Adding => CanAdd && (UseState ? _stateAdding : QueryValue(AddQueryKey) is not null);
 
@@ -288,7 +316,7 @@
 
     private string? _cellKey;
     private ColumnBase<TItem>? _cellColumn;
-    private bool _cellSaving;
+    private bool _saving;
     private string? _cellNext;
 
     private void EndCell() =>
@@ -311,7 +339,7 @@
 
         if (string.IsNullOrEmpty(e.Layout))
         {
-            if (!_cellSaving)
+            if (!_saving)
             {
                 EndCell();
                 StateHasChanged();
@@ -320,11 +348,12 @@
             return Task.CompletedTask;
         }
 
-        if (_cellSaving)
+        if (_saving)
         {
             _cellNext = e.Layout;
         }
-        else if (_cellKey is null)
+        // One whose row has left the page can't be closed any other way.
+        else if (_cellKey is null || RowOf(_cellKey) is null)
         {
             StartCellFrom(e.Layout);
             StateHasChanged();
@@ -411,11 +440,19 @@
         (_foundKey, _found, _finding) = (key, default, true);
         try
         {
-            _found = await FindItem(key);
+            var found = await FindItem(key);
+            // Not if a later link has since asked for another row.
+            if (_foundKey == key)
+            {
+                _found = found;
+            }
         }
         finally
         {
-            _finding = false;
+            if (_foundKey == key)
+            {
+                _finding = false;
+            }
         }
     }
 
@@ -431,11 +468,12 @@
         base.AddressChanged(location);
         _ending = false;
         // Sorting or changing page ends it, as it does a row's.
-        if (_cellKey is not null && !_cellSaving)
+        if (_cellKey is not null && !_saving)
         {
             EndCell();
         }
 
+        ForgetEndedEdit();
         if (FindItem is not null)
         {
             _ = InvokeAsync(async () =>
@@ -560,19 +598,27 @@
 
     private async Task SaveEditAsync(EditContext context)
     {
-        if (_editModel is null || _editMessages is null)
+        // A second click while the first is saving would save twice: for a new row, two rows.
+        if (_editModel is null || _editMessages is null || _saving)
         {
             return;
         }
 
-        // Moving through cells saves only what changed.
-        if (_cellKey is not null && !context.IsModified())
+        // Moving through cells saves only what changed, by its value, as a field of your own may not say.
+        if (_cellColumn?.EditProperty is { } edited && Equals(edited.GetValue(_editModel), edited.GetValue(_editItem)))
         {
             EndCellAndGoOn(_cellNext);
             return;
         }
 
         var save = new DataGridSave<TItem>(_editModel, _editItem, _editIsNew, EditProperties, context, _editMessages);
+        // It may have been locked since the editor opened.
+        if (!_editIsNew && _editItem is { } loaded && !CanEditRow(loaded))
+        {
+            save.AddError(TextDefaults.EditRowGone);
+            return;
+        }
+
         // A key column left editable: a save to another key would be a save to another row.
         if (!_editIsNew && KeyOf(_editModel) != _editKeyFor)
         {
@@ -580,14 +626,14 @@
             return;
         }
 
-        _cellSaving = _cellKey is not null;
+        _saving = true;
         try
         {
             await OnSave.InvokeAsync(save);
         }
         finally
         {
-            _cellSaving = false;
+            _saving = false;
         }
 
         if (_cellKey is not null)
@@ -598,7 +644,13 @@
             {
                 EndCell();
                 await ReloadAsync();
-                EndCellAndGoOn(next);
+                // The script may have started the next cell itself as this one left, while the rows loaded.
+                if (next is not null && _cellKey is null)
+                {
+                    StartCellFrom(next);
+                }
+
+                StateHasChanged();
             }
 
             return;
@@ -625,9 +677,11 @@
     {
         // Cleared whether or not the key changes: a bound parent may keep it, and the next edit starts afresh.
         (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, default, default, null, null, null, null);
+        // The row may have changed or gone, so the next link looks it up again.
+        (_foundKey, _found) = (null, default);
         if (UseState)
         {
-            (_stateAdding, _stateDeleteKey) = (false, null);
+            (_stateAdding, _stateDeleteKey, _stateEditKey) = (false, null, null);
             if (EditKey is not null)
             {
                 await EditKeyChanged.InvokeAsync(null);
@@ -686,18 +740,33 @@
     }
 
     private readonly object _deleteModel = new();
+    private string? _deleteFor;
     private EditContext? _deleteContext;
     private ValidationMessageStore? _deleteMessages;
 
     private async Task DeleteAsync(TItem item, EditContext context)
     {
+        if (_saving)
+        {
+            return;
+        }
+
         _deleteMessages!.Clear();
         var delete = new DataGridDelete<TItem>(item, message =>
         {
             _deleteMessages.Add(new FieldIdentifier(_deleteModel, ""), message);
             context.NotifyValidationStateChanged();
         });
-        await OnDelete.InvokeAsync(delete);
+        _saving = true;
+        try
+        {
+            await OnDelete.InvokeAsync(delete);
+        }
+        finally
+        {
+            _saving = false;
+        }
+
         if (!delete.HasErrors)
         {
             (_deleteContext, _deleteMessages) = (null, null);
@@ -711,8 +780,10 @@
         var item = RowOf(key);
         var found = item is not null && CanDeleteRow(item);
         var culture = System.Globalization.CultureInfo.CurrentCulture;
-        if (_deleteContext is null)
+        // Another row's error isn't this one's.
+        if (_deleteContext is null || _deleteFor != key)
         {
+            _deleteFor = key;
             _deleteContext = new EditContext(_deleteModel);
             _deleteMessages = new ValidationMessageStore(_deleteContext);
         }
@@ -814,7 +885,7 @@
         var key = KeyOf(item);
         @if (inMenu && UseState)
         {
-            <MenuItem Icon="Lucide.Pencil" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" data-ib-edit data-ib-edit-start>@label</MenuItem>
+            <MenuItem Icon="Lucide.Pencil" OnClick="@(() => StartEdit(key))" data-ib-edit data-ib-edit-start>@label</MenuItem>
         }
         else if (inMenu)
         {
@@ -822,7 +893,7 @@
         }
         else if (UseState)
         {
-            <IconButton Icon="Lucide.Pencil" Label="@label" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit data-ib-edit-start />
+            <IconButton Icon="Lucide.Pencil" Label="@label" OnClick="@(() => StartEdit(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit data-ib-edit-start />
         }
         else
         {
@@ -871,7 +942,7 @@
         var plus = IconSet.Current.Get(IconRole.Plus);
         @if (UseState)
         {
-            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => _stateAdding = true)" data-ib-edit />
+            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => { EndCell(); _stateAdding = true; })" data-ib-edit />
         }
         else if (showText)
         {
@@ -1300,6 +1371,7 @@
         }
 
         _shown = null;
+        ForgetEndedEdit();
         // Bound, it starts from the address, as sort and page do, and then follows the parent.
         if (!_searchReady)
         {
@@ -1468,7 +1540,8 @@
     {
         <td class="@MenuCellClass">
             <div class="ib-grid-actions">
-                @if (RowEditKey is { } editing && (editing == NewRowKey || IsEditingRow(item)))
+                @{ var edited = RowEditKey is { } editing && (editing == NewRowKey ? ReferenceEquals(item, _editModel) : IsEditingRow(item)); }
+                @if (edited)
                 {
                     @RowEditActions
                 }
@@ -1476,7 +1549,7 @@
                 {
                     <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
                 }
-                @if (RowEditKey is null && ActionCount(item).Menu)
+                @if (!edited && ActionCount(item).Menu)
                 {
                     <Menu>
                         <Trigger Context="wire">

@@ -16,6 +16,9 @@ class GridEdit extends IzzyElement {
   #after: "cell" | "next" | "" = "";
   #next = "";
   #typed = "";
+  // A value set from here, which no change event will tell C# of, and the address a post was made from.
+  #set = false;
+  #address = "";
 
   protected setup(signal: AbortSignal): void {
     const root = this.closest("ib-table");
@@ -23,6 +26,11 @@ class GridEdit extends IzzyElement {
     root.addEventListener("submit", (event) => {
       const form = event.target as Element;
       this.#saving = (form.closest("dialog") ?? form).getAttribute("data-ib-edit-for");
+      this.#address = location.href;
+      // A second post from a row's Save, which is outside the form, so that the form's own guard misses it.
+      // Blazor's merge takes this away again. Enter waits on it too, as it's the form's default button.
+      const save = root.hasAttribute("data-ib-stays-static") && form.id ? root.querySelector<HTMLButtonElement>(`button[form="${CSS.escape(form.id)}"]`) : null;
+      if (save) setTimeout(() => (save.disabled = true));
     }, { signal });
     // A closed dialog gives focus back by itself, but a circuit starting may have redrawn the button.
     root.addEventListener("close", (event) => {
@@ -34,7 +42,13 @@ class GridEdit extends IzzyElement {
       this.#check(root);
       this.#checkCell(root);
     };
-    if (root.querySelector("td[data-ib-edit-col]")) this.#setupCells(root, signal);
+    // Set up again after an enhanced load: a post that left the editor open has Blazor go back to the
+    // address it last knew, which isn't one this element pushed.
+    if (this.#address && (root.querySelector("[data-ib-edit-for]") || root.querySelector("tr[data-ib-editing]")) && location.href !== this.#address) {
+      history.replaceState(history.state, "", this.#address);
+    }
+    this.#address = "";
+    this.#setupCells(root, signal);
     const gone = new MutationObserver(check);
     gone.observe(root, { childList: true, subtree: true });
     // Set up again by an enhanced navigation that has already taken the editor away.
@@ -67,23 +81,27 @@ class GridEdit extends IzzyElement {
       field?.focus();
       this.#began(editing, field as HTMLInputElement);
     }
+    // Not gone just for the moment an enhanced load is merging the page.
+    const open = root.querySelector("[data-ib-edit-for]") ?? editing;
     if (this.#saving === null) return;
-    if (root.querySelector("[data-ib-edit-for]")) {
+    if (open) {
       // A failed save in a row: to its first invalid field, whose message is beside it.
       const invalid = this.#field(editing, '[aria-invalid="true"]');
       if (invalid) {
         this.#saving = null;
         invalid.focus();
-      }
+      } else if (root.querySelector("[data-ib-edit-for] .ib-form-errors")) this.#saving = null;
       return;
     }
     this.#focusAction(root, this.#saving);
     this.#saving = null;
   }
 
-  // The row's first action, or for a row deleted or added, the first there is.
+  // The row's first action, not one in a closed menu but its ⋮, or for a row deleted or added, the first there is.
   #focusAction(root: Element, key: string): void {
-    (root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(key)}"] [data-ib-edit]`) ?? root.querySelector<HTMLElement>("[data-ib-edit]"))?.focus();
+    const row = `tr[data-ib-key="${CSS.escape(key)}"]`;
+    const action = "[data-ib-edit]:not([popover] *)";
+    (root.querySelector<HTMLElement>(`${row} ${action}`) ?? root.querySelector<HTMLElement>(`${row} [data-ib-row-menu]`) ?? root.querySelector<HTMLElement>(action))?.focus();
   }
 
   // A row or cell has its field: the cursor goes after its text, and what started a cell by typing goes
@@ -94,10 +112,15 @@ class GridEdit extends IzzyElement {
       this.#after = "";
     }
     if (field?.matches("textarea, input:is([type=text], [type=number], [type=email], [type=tel], [type=url], [type=search])")) {
-      const value = field.value + this.#typed;
+      const was = field.value;
       field.value = "";
-      field.value = value;
-      if (this.#typed) field.dispatchEvent(new Event("input", { bubbles: true }));
+      field.value = was + this.#typed;
+      // A letter in a number: the browser empties it, and the key is ignored.
+      if (!field.value) field.value = was;
+      if (field.value !== was) {
+        this.#set = true;
+        field.dispatchEvent(new Event("input", { bubbles: true }));
+      }
     }
     this.#typed = "";
   }
@@ -144,6 +167,8 @@ class GridEdit extends IzzyElement {
     if (!form?.reportValidity()) return;
     this.#after = after;
     this.#committed = this.#committing = true;
+    if (this.#set) field.dispatchEvent(new Event("change", { bubbles: true }));
+    this.#set = false;
     field.blur();
     this.#committing = false;
     form.requestSubmit();
@@ -166,15 +191,19 @@ class GridEdit extends IzzyElement {
     on("keydown", (event) => {
       const key = event as KeyboardEvent;
       const target = key.target as HTMLElement;
+      if (key.isComposing) return;
       const open = target.closest<HTMLElement>("td[data-ib-editing]");
-      if (open && !target.closest("[popover]") && !target.matches('[aria-expanded="true"]')) {
-        const field = target as HTMLInputElement;
+      if (open && !target.closest("[popover]") && !target.matches('[aria-expanded="true"]') && !this.#listOpen(target)) {
+        const field = this.#field(open, "input:not([type=hidden]), select, textarea") as HTMLInputElement;
         if (key.key === "Escape") {
           key.preventDefault();
           key.stopPropagation();
           this.#after = "cell";
           this.dispatchEvent(new CustomEvent("iblayout", { bubbles: true, detail: { layout: "" } }));
         } else if (key.key === "Tab") {
+          // Its own controls first, such as a date's picker button.
+          const own = [...open.querySelectorAll<HTMLElement>("input:not([type=hidden]), select, textarea, button, a[href]")].filter((c) => !c.closest("[popover]") && !c.matches(":disabled") && c.checkVisibility());
+          if (own[own.indexOf(target) + (key.shiftKey ? -1 : 1)]) return;
           key.preventDefault();
           key.stopPropagation();
           const cells = [...root.querySelectorAll<HTMLElement>("tbody td[data-ib-edit-col]")];
@@ -183,7 +212,7 @@ class GridEdit extends IzzyElement {
           // Told to C# first, to wait for how the save ends: an invalid cell stays open.
           if (this.#next) this.#commit(field, "next");
           else this.#commit(field, "cell");
-        } else if (key.key === "Enter" && !target.matches("textarea")) {
+        } else if (key.key === "Enter" && target.matches("input, select")) {
           key.preventDefault();
           key.stopPropagation();
           this.#commit(field, "cell");
@@ -195,7 +224,8 @@ class GridEdit extends IzzyElement {
       if (key.key === "Enter" || key.key === "F2" || (key.key.length === 1 && key.key !== " ")) {
         key.preventDefault();
         key.stopPropagation();
-        if (key.key.length === 1) this.#typed = key.key;
+        // All of them, if they come quicker than the field does.
+        if (key.key.length === 1) this.#typed += key.key;
         this.#start(this.#addressOf(cell));
       }
     }, true);
@@ -210,6 +240,14 @@ class GridEdit extends IzzyElement {
     }, true);
   }
 
+  #listOpen(target: Element): boolean {
+    try {
+      return !!target.closest("select")?.matches(":open");
+    } catch {
+      return false;
+    }
+  }
+
   // Not in a closed picker, which has controls of its own and can't take focus.
   #field(row: HTMLElement | null, selector: string): HTMLElement | null | undefined {
     return row?.querySelector<HTMLElement>(`:is(${selector}):not([popover] *)`);
@@ -221,7 +259,7 @@ class GridEdit extends IzzyElement {
     try {
       const page = new DOMParser().parseFromString(await (await fetch(link.href)).text(), "text/html");
       if (link.hasAttribute("data-ib-edit-row")) {
-        this.#takeRow(root, page);
+        this.#takeRow(root, page, link);
         history.pushState(null, "", link.href);
         return;
       }
@@ -231,7 +269,7 @@ class GridEdit extends IzzyElement {
       root.querySelector(named)?.remove();
       history.pushState(null, "", link.href);
       // Where the server draws it, so that a later merge leaves it be.
-      root.querySelector(":scope > ib-grid")?.after(document.adoptNode(editor));
+      this.after(document.adoptNode(editor));
       // After its own close handler, which takes the key out of the address.
       editor.querySelector("dialog")?.addEventListener("close", () => setTimeout(() => editor.remove()));
     } catch {
@@ -242,12 +280,13 @@ class GridEdit extends IzzyElement {
   }
 
   // A row starts or stops being edited: only it, and its form, come from the page the link leads to.
-  #takeRow(root: Element, page: Document): void {
+  #takeRow(root: Element, page: Document, link: Element): void {
     const fresh = page.querySelectorAll("ib-table")[[...document.querySelectorAll("ib-table")].indexOf(root)];
     const body = ":scope > .ib-table-scroll > table > tbody";
     const from = fresh?.querySelector(body);
     const into = root.querySelector(body);
-    if (!from || !into) throw new Error();
+    // Rows still streaming, or a row that's gone, whose message is only in the whole page.
+    if (!from || !into || page.querySelector("blazor-ssr") || (!link.hasAttribute("data-ib-edit-cancel") && !from.querySelector("tr[data-ib-editing]"))) throw new Error();
     const rowIn = (rows: Element, key?: string) => key && rows.querySelector(`tr[data-ib-key="${CSS.escape(key)}"]`);
     for (const row of into.querySelectorAll<HTMLElement>("tr[data-ib-editing]")) row.replaceWith(rowIn(from, row.dataset.ibKey) || "");
     for (const row of [...from.querySelectorAll<HTMLElement>("tr[data-ib-editing]")]) {
@@ -255,10 +294,19 @@ class GridEdit extends IzzyElement {
       if (old) old.replaceWith(row);
       else into.prepend(row);
     }
+    // The rest of the rows' actions and the toolbar's Add are drawn for the old address.
+    for (const cell of from.querySelectorAll<HTMLElement>(":scope > tr[data-ib-key] > .ib-grid-menu-cell")) {
+      const old = rowIn(into, (cell.parentElement as HTMLElement).dataset.ibKey);
+      if (old) old.querySelector(":scope > .ib-grid-menu-cell")?.replaceWith(cell);
+    }
+    for (const tool of root.querySelectorAll<HTMLAnchorElement>(".ib-grid-toolbar a[data-ib-edit]")) {
+      const href = fresh.querySelector(`.ib-grid-toolbar a[data-ib-edit="${CSS.escape(tool.dataset.ibEdit!)}"]`)?.getAttribute("href");
+      if (href) tool.setAttribute("href", href);
+    }
     const form = ":scope > form[data-ib-edit-for]";
     root.querySelector(form)?.remove();
     const next = fresh.querySelector(form);
-    if (next) root.querySelector(":scope > ib-grid")?.after(next);
+    if (next) this.after(next);
   }
 }
 

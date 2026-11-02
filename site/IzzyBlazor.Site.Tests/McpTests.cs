@@ -45,7 +45,7 @@ public partial class McpTests(SiteFixture site) : IClassFixture<SiteFixture>
     public void Every_component_and_part_answers_in_Markdown()
     {
         var wrong = new List<string>();
-        foreach (var component in site.Api.File.Components.Where(c => c.Obsolete is null && site.Registry.ByName(c.Name)?.Preview != true))
+        foreach (var component in site.Api.File.Components.Where(c => c.Obsolete is null && (site.Registry.ByName(c.Name) ?? site.Registry.OwnerOfPart(c.Name))?.Preview != true))
         {
             Check(wrong, component.Name, Docs.GetComponent(component.Name));
         }

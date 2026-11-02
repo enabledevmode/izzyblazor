@@ -105,6 +105,25 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await Assertions.Expect(row).ToContainTextAsync("An order can't be over 10,000.");
         await Assertions.Expect(row.GetByLabel("Customer")).ToHaveValueAsync("Kept when it fails");
         await Assertions.Expect(row.GetByLabel("Total")).ToBeFocusedAsync();
+        await Assertions.Expect(page).ToHaveURLAsync(new System.Text.RegularExpressions.Regex("row-edit=1001"));
+
+        // And the next try saves.
+        await row.GetByLabel("Total").FillAsync("123");
+        await row.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(page.Locator($"{Grid} tr[data-ib-editing]")).ToHaveCountAsync(0);
+        await Assertions.Expect(FirstRow(page)).ToContainTextAsync("$123.00");
+    }
+
+    [Fact]
+    public async Task Cancelling_on_a_static_page_leaves_the_other_rows_links_clean()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using var _ = browser;
+        await EditFirstRowAsync(page);
+        await page.Locator($"{Grid} tr[data-ib-editing]").GetByRole(AriaRole.Link, new() { Name = "Cancel" }).ClickAsync();
+        await Assertions.Expect(page.Locator($"{Grid} tr[data-ib-editing]")).ToHaveCountAsync(0);
+        Assert.DoesNotContain("row-edit=", await page.Locator($"{Grid} tr[data-ib-key='1003'] a[aria-label^='Delete']").GetAttributeAsync("href"));
+        Assert.DoesNotContain("row-edit=", await page.Locator(Grid).GetByRole(AriaRole.Link, new() { Name = "Add" }).GetAttributeAsync("href"));
     }
 
     [Fact]

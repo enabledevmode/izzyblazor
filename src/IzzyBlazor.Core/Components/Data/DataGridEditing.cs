@@ -135,7 +135,8 @@ internal static class DataGridEditCopy
     {
         foreach (var property in typeof(TItem).GetProperties(BindingFlags.Public | BindingFlags.Instance))
         {
-            if (property.CanRead && property.CanWrite && property.GetIndexParameters().Length == 0 && !editable.Contains(property))
+            // By name: a column's property, on a base class of the row, isn't the same object as this one.
+            if (property.CanRead && property.CanWrite && property.GetIndexParameters().Length == 0 && !editable.Any(e => e.Name == property.Name))
             {
                 property.SetValue(posted, property.GetValue(item));
             }

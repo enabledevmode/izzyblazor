@@ -318,6 +318,101 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal(2, target.Qty);
     }
 
+    public class BaseRow
+    {
+        public string Name { get; set; } = "";
+    }
+
+    public sealed class DerivedRow : BaseRow
+    {
+        public string Other { get; set; } = "";
+    }
+
+    [Fact]
+    public void A_post_keeps_an_editable_property_of_a_base_class_and_not_a_forged_one()
+    {
+        Expression<Func<DerivedRow, string>> column = r => r.Name;
+        var posted = new DerivedRow { Name = "typed", Other = "forged" };
+
+        DataGridEditCopy.Restore(posted, new DerivedRow { Name = "old", Other = "kept" }, [(System.Reflection.PropertyInfo)((MemberExpression)column.Body).Member]);
+
+        Assert.Equal("typed", posted.Name);
+        Assert.Equal("kept", posted.Other);
+    }
+
+    [Fact]
+    public void Cancelling_a_row_by_its_link_forgets_what_was_typed()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Nav.NavigateTo("http://localhost/?edit=b2");
+        var cut = Grid(NameAndQty, p => p.Add(x => x.ItemKey, r => r.Name + r.Qty).Add(x => x.EditMode, DataGridEditMode.Row).Add(x => x.OnSave, (DataGridSave<Row> _) => { }));
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tr[data-ib-editing] input")));
+        cut.Find("tr[data-ib-editing] input").Change("typed");
+
+        Nav.NavigateTo(cut.Find("a[data-ib-edit-cancel]").GetAttribute("href")!);
+        cut.WaitForAssertion(() => Assert.Empty(cut.FindAll("tr[data-ib-editing]")));
+        Nav.NavigateTo("http://localhost/?edit=b2");
+
+        cut.WaitForAssertion(() => Assert.Equal("b", cut.Find("tr[data-ib-editing] input").GetAttribute("value")));
+    }
+
+    [Fact]
+    public void A_new_row_has_Save_and_Cancel_and_the_others_keep_their_actions()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Nav.NavigateTo("http://localhost/?add=1");
+        var cut = Grid(NameAndQty, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.EditMode, DataGridEditMode.Row)
+            .Add(x => x.OnSave, (DataGridSave<Row> _) => { })
+            .Add(x => x.NewItem, () => new Row("", 0)));
+
+        cut.WaitForAssertion(() => Assert.Single(cut.FindAll("tr[data-ib-editing]")));
+        Assert.Single(cut.FindAll("[data-ib-edit-cancel]"));
+        Assert.Equal(Rows.Length, cut.FindAll("tr[data-ib-key] [data-ib-edit-start]").Count);
+    }
+
+    [Fact]
+    public void A_bound_page_with_no_bound_EditKey_still_edits()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        var cut = Grid(NameAndQty, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.EditMode, DataGridEditMode.Dialog)
+            .Add(x => x.OnSave, (DataGridSave<Row> _) => { })
+            .Add(x => x.Page, 1)
+            .Add(x => x.PageChanged, (int _) => { }));
+
+        cut.FindAll("button[data-ib-edit-start]")[0].Click();
+
+        cut.WaitForAssertion(() => Assert.Contains("b2", cut.Find("dialog").TextContent));
+    }
+
+    [Fact]
+    public void A_double_click_on_Save_saves_once()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        JSInterop.Mode = JSRuntimeMode.Loose;
+        Nav.NavigateTo("http://localhost/?add=1");
+        var saves = 0;
+        var finish = new TaskCompletionSource();
+        var cut = Grid(NameAndQty, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.EditMode, DataGridEditMode.Row)
+            .Add(x => x.NewItem, () => new Row("n", 1))
+            .Add(x => x.OnSave, async (DataGridSave<Row> _) => { saves++; await finish.Task; }));
+        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("form.ib-grid-edit-form")));
+
+        cut.Find("form.ib-grid-edit-form").Submit();
+        cut.Find("form.ib-grid-edit-form").Submit();
+        finish.SetResult();
+
+        Assert.Equal(1, saves);
+    }
+
     public sealed class PostableRow
     {
         public string Name { get; set; } = "";

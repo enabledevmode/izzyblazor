@@ -87,6 +87,46 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
     }
 
     [Fact]
+    public async Task A_key_typed_to_start_a_cell_saves_with_nothing_more_typed()
+    {
+        var (browser, page) = await OpenAsync();
+        await using var _ = browser;
+        var before = (await Cell(page, 1003, "customer").TextContentAsync())!.Trim();
+        await Cell(page, 1003, "customer").FocusAsync();
+        await page.Keyboard.PressAsync("X");
+        await Assertions.Expect(Open(page).GetByLabel("Customer")).ToHaveValueAsync(before + "X");
+        await page.Keyboard.PressAsync("Enter");
+        await Assertions.Expect(Cell(page, 1003, "customer")).ToHaveTextAsync(before + "X");
+    }
+
+    [Fact]
+    public async Task An_open_list_keeps_its_keys_and_a_dates_button_is_a_stop_on_the_way_out()
+    {
+        var (browser, page) = await OpenAsync();
+        await using var _ = browser;
+        await Cell(page, 1001, "status").ClickAsync();
+        await Assertions.Expect(Open(page).GetByLabel("Status")).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Alt+ArrowDown");
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(Open(page)).ToHaveCountAsync(1);
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(Open(page)).ToHaveCountAsync(0);
+
+        await Cell(page, 1001, "date").ClickAsync();
+        await Assertions.Expect(Open(page).GetByLabel("Date", new() { Exact = true })).ToBeFocusedAsync();
+        // Through the date's own parts, as many as the browser gives it, and then its button.
+        var toggle = Open(page).Locator(".ib-date-toggle");
+        for (var i = 0; i < 4 && !await toggle.EvaluateAsync<bool>("e => document.activeElement === e"); i++)
+        {
+            await page.Keyboard.PressAsync("Tab");
+        }
+
+        await Assertions.Expect(toggle).ToBeFocusedAsync();
+        await page.Keyboard.PressAsync("Tab");
+        await Assertions.Expect(Open(page).GetByLabel("Total")).ToBeFocusedAsync();
+    }
+
+    [Fact]
     public async Task A_cell_starts_with_the_cursor_after_its_text()
     {
         var (browser, page) = await OpenAsync();

@@ -1179,6 +1179,19 @@
     cursor: text;
   }
 
+  /* Shadows are gone in forced colors, and with them the only mark of where focus is. */
+  @media (forced-colors: active) {
+    .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]):has(.ib-field-input:focus:not([popover] *)) {
+      outline: 2px solid Highlight;
+      outline-offset: -2px;
+    }
+
+    .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]):has(.ib-field-invalid:not([popover] *)) {
+      outline: 2px solid Mark;
+      outline-offset: -2px;
+    }
+  }
+
   /* A new row in an empty grid. */
   tr[data-ib-editing] ~ .ib-table-empty {
     display: none;
@@ -1194,7 +1207,7 @@
   }
 
   /* The column's title says it, for a checkbox whose label would repeat it. It's still its name. */
-  [data-ib-editing] .ib-check:not([popover] *) {
+  :is(tr[data-ib-editing] > td, td[data-ib-editing]) > .ib-field-checkbox .ib-check {
     font-size: 0;
   }
 
