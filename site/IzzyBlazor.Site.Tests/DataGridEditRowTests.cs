@@ -120,6 +120,18 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
     }
 
     [Fact]
+    public async Task A_picker_in_a_row_keeps_its_own_look()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using var _ = browser;
+        var row = await EditFirstRowAsync(page);
+        await row.Locator(".ib-date-toggle").ClickAsync();
+        var day = row.Locator(".ib-calendar-grid tbody td").First;
+        await day.WaitForAsync();
+        Assert.Equal("0px", await day.EvaluateAsync<string>("e => getComputedStyle(e).borderBottomWidth"));
+    }
+
+    [Fact]
     public async Task A_sort_link_ends_the_edit()
     {
         var (browser, page) = await OpenAsync("static");

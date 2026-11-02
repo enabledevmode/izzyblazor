@@ -332,7 +332,7 @@
     font-variant-numeric: tabular-nums;
   }
 
-  .ib-table-grid :is(th, td) {
+  .ib-table-grid > * > * > :is(th, td) {
     padding: var(--ib-table-py) var(--ib-table-px);
     /* Row lines are a step lighter than the table's own edges and the header line. */
     border-bottom: 1px solid var(--ib-table-row-line, color-mix(in oklab, var(--ib-color-border) 65%, var(--ib-color-surface)));
@@ -350,20 +350,20 @@
    * a whole number of pixels tall (a badge made rows 48.5px). The cell still centers its content.
    * Text elements (code, small, sup) keep their baseline.
    */
-  .ib-table-grid :is(th, td) > :is(.ib-badge, .ib-tag, .ib-table-sort, .ib-icon, .ib-btn, .ib-avatar, input) {
+  .ib-table-grid > * > * > :is(th, td) > :is(.ib-badge, .ib-tag, .ib-table-sort, .ib-icon, .ib-btn, .ib-avatar, input) {
     vertical-align: top;
   }
 
-  .ib-table-grid tbody tr:last-child > td {
+  .ib-table-grid > tbody > tr:last-child > td {
     border-bottom: 0;
   }
 
   /* RowLines=false: the lines turn transparent rather than going, so rows keep their height. */
-  .ib-table-no-row-lines .ib-table-grid tbody td {
+  .ib-table-no-row-lines .ib-table-grid > tbody > * > td {
     border-bottom-color: transparent;
   }
 
-  .ib-table-column-lines .ib-table-grid :is(th, td) + :is(th, td) {
+  .ib-table-column-lines .ib-table-grid > * > * > :is(th, td) + :is(th, td) {
     border-inline-start: 1px solid var(--ib-color-border);
   }
 
@@ -381,7 +381,7 @@
 
   /* The header has no tint: bolder text in the body color over a full-strength line carries it.
      It is painted the table's own color, so a sticky header covers the rows scrolling under it. */
-  .ib-table-grid th {
+  .ib-table-grid > * > * > th {
     border-bottom-color: var(--ib-color-border);
     background-color: var(--ib-table-bg, var(--ib-color-surface));
     color: var(--ib-color-on-surface);
@@ -389,33 +389,33 @@
     white-space: nowrap;
   }
 
-  .ib-table-grid :is(th, td).ib-cell-end {
+  .ib-table-grid > * > * > :is(th, td).ib-cell-end {
     text-align: end;
   }
 
-  .ib-table-grid :is(th, td).ib-cell-center {
+  .ib-table-grid > * > * > :is(th, td).ib-cell-center {
     text-align: center;
   }
 
   /* A state layer over the cell's own background, so it shows on striped rows too. */
-  .ib-table-grid tbody tr:hover > td {
+  .ib-table-grid > tbody > tr:hover > td {
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
-  .ib-table-striped .ib-table-grid tbody tr:nth-child(even):where(:not([aria-rowindex])) > td,
-  .ib-table-striped .ib-table-grid tbody tr[data-ib-even] > td {
+  .ib-table-striped .ib-table-grid > tbody > tr:nth-child(even):where(:not([aria-rowindex])) > td,
+  .ib-table-striped .ib-table-grid > tbody > tr[data-ib-even] > td {
     background-color: var(--ib-table-stripe);
   }
 
   /* Rows that draw as they scroll are all one height, or the scroll bar would wander. */
-  .ib-datagrid-virtual .ib-table-grid tbody tr:is([aria-rowindex], .ib-table-skeleton-row) > td {
+  .ib-datagrid-virtual .ib-table-grid > tbody > tr:is([aria-rowindex], .ib-table-skeleton-row) > td {
     padding-block: 0;
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   /* The whole head sticks with the rows scrolling under it. */
-  .ib-table-sticky .ib-table-grid thead {
+  .ib-table-sticky .ib-table-grid > thead {
     position: sticky;
     top: 0;
     z-index: 1;
@@ -1129,11 +1129,11 @@
   }
 
   /* The row reads as the same row: its fields have no box, and line up with the text they replace. */
-  .ib-table-grid tbody tr[data-ib-editing] > td {
+  .ib-table-grid > tbody > tr[data-ib-editing] > td {
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
-  .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input {
+  .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input:not([popover] *) {
     padding-inline: 0;
     border: 0;
     border-radius: 0;
@@ -1144,7 +1144,7 @@
     text-align: inherit;
   }
 
-  .ib-datagrid tr[data-ib-editing] .ib-field-control > :not(textarea).ib-field-input {
+  .ib-datagrid tr[data-ib-editing] .ib-field-control > :not(textarea).ib-field-input:not([popover] *) {
     height: 1lh;
   }
 
@@ -1154,11 +1154,11 @@
   }
 
   /* Focus and errors mark the whole cell, along its bottom edge: at rest a field is only its text. */
-  .ib-table-grid tbody tr[data-ib-editing] > td:has(.ib-field-input:focus) {
+  .ib-table-grid > tbody > tr[data-ib-editing] > td:has(.ib-field-input:focus:not([popover] *)) {
     box-shadow: inset 0 -2px var(--ib-color-primary);
   }
 
-  .ib-table-grid tbody tr[data-ib-editing] > td:has(.ib-field-invalid, .ib-field-input:user-invalid) {
+  .ib-table-grid > tbody > tr[data-ib-editing] > td:has(.ib-field-invalid:not([popover] *), .ib-field-input:user-invalid:not([popover] *)) {
     box-shadow: inset 0 -2px var(--ib-color-danger);
   }
 
@@ -1181,16 +1181,16 @@
   }
 
   /* The arrow keys still step. */
-  tr[data-ib-editing] [data-ib-steppers] {
+  tr[data-ib-editing] [data-ib-steppers]:not([popover] *) {
     display: none;
   }
 
-  tr[data-ib-editing] .ib-date-toggle {
+  tr[data-ib-editing] .ib-date-toggle:not([popover] *) {
     background: none;
   }
 
   /* The column's title says it, for a checkbox whose label would repeat it. It's still its name. */
-  tr[data-ib-editing] .ib-check {
+  tr[data-ib-editing] .ib-check:not([popover] *) {
     font-size: 0;
   }
 
@@ -1211,26 +1211,26 @@
 
   /* What can't fit stays in its cell (its padding leaves room for a focus ring). Text wraps;
      numbers stay on one line, as a split one misreads. */
-  .ib-datagrid .ib-table-grid :is(th, td):not(.ib-table-select-cell) {
+  .ib-datagrid .ib-table-grid > * > * > :is(th, td):not(.ib-table-select-cell) {
     overflow: clip;
   }
 
-  .ib-datagrid .ib-table-grid td {
+  .ib-datagrid .ib-table-grid > * > * > td {
     overflow-wrap: anywhere;
   }
 
-  .ib-datagrid .ib-table-grid td.ib-cell-end {
+  .ib-datagrid .ib-table-grid > * > * > td.ib-cell-end {
     text-overflow: ellipsis;
     white-space: nowrap;
   }
 
   /* Grid keys: an inset ring, since the scroll box clips one outside the cell. */
-  .ib-datagrid .ib-table-grid :is(th, td):focus-visible {
+  .ib-datagrid .ib-table-grid > * > * > :is(th, td):focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
 
-  .ib-datagrid .ib-table-grid td {
+  .ib-datagrid .ib-table-grid > * > * > td {
     scroll-margin-block-start: var(--ib-shell-top, 0px);
   }
 
@@ -1292,16 +1292,16 @@
   }
 
   .ib-datagrid .ib-table-grid[data-ib-dragging],
-  .ib-datagrid .ib-table-grid[data-ib-dragging] th {
+  .ib-datagrid .ib-table-grid[data-ib-dragging] > * > * > th {
     cursor: grabbing;
     user-select: none;
   }
 
-  .ib-datagrid .ib-table-grid[data-ib-dragging] :is(th, td) {
+  .ib-datagrid .ib-table-grid[data-ib-dragging] > * > * > :is(th, td) {
     transition: transform 0.12s;
   }
 
-  .ib-datagrid .ib-table-grid :is(th, td)[data-ib-lifted] {
+  .ib-datagrid .ib-table-grid > * > * > :is(th, td)[data-ib-lifted] {
     position: relative;
     z-index: 3;
     transition: none;
@@ -1310,7 +1310,7 @@
   }
 
   /* Fitting a column: as wide as the contents want, not the cell. */
-  .ib-datagrid .ib-table-grid[data-ib-measuring] :is(th, td) {
+  .ib-datagrid .ib-table-grid[data-ib-measuring] > * > * > :is(th, td) {
     white-space: nowrap;
   }
 
@@ -1474,18 +1474,18 @@
     border-inline-start: 1px solid var(--ib-color-border);
   }
 
-  .ib-table-sticky.ib-datagrid .ib-table-grid thead {
+  .ib-table-sticky.ib-datagrid .ib-table-grid > thead {
     z-index: 2;
   }
 
   /* A footer stays in view with the header. */
-  .ib-table-sticky.ib-datagrid .ib-table-grid tfoot {
+  .ib-table-sticky.ib-datagrid .ib-table-grid > tfoot {
     position: sticky;
     bottom: 0;
     z-index: 2;
   }
 
-  .ib-table-sticky.ib-datagrid .ib-table-grid tfoot td {
+  .ib-table-sticky.ib-datagrid .ib-table-grid > tfoot > * > td {
     background-color: var(--ib-frozen-bg);
   }
 
@@ -1527,7 +1527,7 @@
   }
 
   /* Footer row (column FooterText or Footer): totals and the like. */
-  .ib-table-grid tfoot td {
+  .ib-table-grid > tfoot > * > td {
     border-top: 1px solid var(--ib-color-border);
     border-bottom: 0;
     background-color: transparent;
@@ -1617,7 +1617,7 @@
   }
 
   /* Selection: a checkbox column; checked rows are tinted, with or without script. */
-  .ib-table-grid :is(th, td).ib-table-select-cell {
+  .ib-table-grid > * > * > :is(th, td).ib-table-select-cell {
     width: 1%;
     padding-inline-end: 0;
   }
@@ -1641,45 +1641,45 @@
   }
 
   /* A selected row, or the current one (RowCurrent): a faint accent tint, and an accent edge at its start. */
-  .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
-  .ib-table-striped .ib-table-grid tbody tr:has(.ib-table-select:checked) > td,
-  .ib-table-grid tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td,
-  .ib-table-striped .ib-table-grid tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td {
+  .ib-table-grid > tbody > tr:has(.ib-table-select:checked) > td,
+  .ib-table-striped .ib-table-grid > tbody > tr:has(.ib-table-select:checked) > td,
+  .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td,
+  .ib-table-striped .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td {
     background-color: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
   }
 
-  .ib-table-grid tbody tr:has(.ib-table-select:checked) > td:first-child,
-  .ib-table-grid tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
+  .ib-table-grid > tbody > tr:has(.ib-table-select:checked) > td:first-child,
+  .ib-table-grid > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset 2px 0 0 var(--ib-color-primary);
   }
 
-  .ib-table-grid:dir(rtl) tbody tr:has(.ib-table-select:checked) > td:first-child,
-  .ib-table-grid:dir(rtl) tbody tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
+  .ib-table-grid:dir(rtl) > tbody > tr:has(.ib-table-select:checked) > td:first-child,
+  .ib-table-grid:dir(rtl) > tbody > tr:is([aria-current], :has(> td > .ib-table-row-link[aria-current])) > td:first-child {
     box-shadow: inset -2px 0 0 var(--ib-color-primary);
   }
 
   /* Frozen cells are opaque, since rows scroll under them: a row's stripe, tint and hover go over the
      surface as images. After the rules above, which they replace. */
-  .ib-datagrid.ib-table .ib-table-grid tr > :is(td, th).ib-frozen {
+  .ib-datagrid.ib-table .ib-table-grid > * > tr > :is(td, th).ib-frozen {
     background-color: var(--ib-frozen-bg);
     background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
   }
 
-  .ib-table-striped.ib-datagrid .ib-table-grid tbody tr:nth-child(even):where(:not([aria-rowindex])) > .ib-frozen,
-  .ib-table-striped.ib-datagrid .ib-table-grid tbody tr[data-ib-even] > .ib-frozen {
+  .ib-table-striped.ib-datagrid .ib-table-grid > tbody > tr:nth-child(even):where(:not([aria-rowindex])) > .ib-frozen,
+  .ib-table-striped.ib-datagrid .ib-table-grid > tbody > tr[data-ib-even] > .ib-frozen {
     --ib-frozen-tint: var(--ib-table-stripe);
   }
 
-  .ib-datagrid .ib-table-grid tbody tr:is(:has(.ib-table-select:checked), [aria-current], :has(> td > .ib-table-row-link[aria-current])) > .ib-frozen {
+  .ib-datagrid .ib-table-grid > tbody > tr:is(:has(.ib-table-select:checked), [aria-current], :has(> td > .ib-table-row-link[aria-current])) > .ib-frozen {
     --ib-frozen-tint: var(--ib-color-selected, light-dark(color-mix(in oklab, var(--ib-color-primary) 5%, transparent), color-mix(in oklab, var(--ib-color-primary) 12%, transparent)));
   }
 
-  .ib-datagrid .ib-table-grid tbody tr:hover > .ib-frozen {
+  .ib-datagrid .ib-table-grid > tbody > tr:hover > .ib-frozen {
     --ib-frozen-hover: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
   /* Linked rows: one link per row, stretched over it; controls inside stay above it. */
-  .ib-table-grid tbody tr.ib-table-row-linked {
+  .ib-table-grid > tbody > tr.ib-table-row-linked {
     position: relative;
     cursor: pointer;
   }
@@ -1694,7 +1694,7 @@
     outline: none;
   }
 
-  .ib-table-grid tbody tr:has(> td > .ib-table-row-link:focus-visible) {
+  .ib-table-grid > tbody > tr:has(> td > .ib-table-row-link:focus-visible) {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
@@ -1830,7 +1830,7 @@
   }
 
   /* The first row Load more added takes focus (tabindex -1) when the button was pressed. */
-  .ib-table-grid tbody tr:focus-visible {
+  .ib-table-grid > tbody > tr:focus-visible {
     outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
     outline-offset: -2px;
   }
