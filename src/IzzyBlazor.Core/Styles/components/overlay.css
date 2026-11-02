@@ -471,7 +471,8 @@
     padding: 0;
     border: 1px solid var(--ib-color-overlay-border);
     border-radius: var(--ib-radius-lg);
-    background-color: var(--ib-color-surface-overlay);
+    /* The page's own surface: the backdrop already sets it apart, so it needn't be lifted as well. */
+    background-color: var(--ib-color-surface);
     color: var(--ib-color-on-surface);
     box-shadow: var(--ib-shadow-lg);
     opacity: 0;
@@ -809,7 +810,7 @@
     padding: var(--ib-space-4) var(--ib-space-6);
     border-top: 1px solid var(--ib-color-border);
     /* A step off the dialog's own surface: a little darker in light mode, lighter in dark. */
-    background-color: color-mix(in oklab, var(--ib-color-surface-overlay), var(--ib-color-on-surface) 4%);
+    background-color: color-mix(in oklab, var(--ib-color-surface), var(--ib-color-on-surface) 4%);
   }
 
   /* In a form, the form's gap already spaces it from the fields, and it takes the whole grid row. */
