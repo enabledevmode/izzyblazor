@@ -38,17 +38,18 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
     }
 
     [Fact]
-    public async Task Typing_starts_a_cell_with_what_was_typed_and_Enter_saves_it()
+    public async Task Typing_starts_a_cell_adding_to_its_text_and_Enter_saves_it()
     {
         var (browser, page) = await OpenAsync();
         await using var _ = browser;
+        var before = (await Cell(page, 1002, "customer").TextContentAsync())!.Trim();
         await Cell(page, 1002, "customer").FocusAsync();
         await page.Keyboard.PressAsync("X");
-        await Assertions.Expect(Open(page).GetByLabel("Customer")).ToHaveValueAsync("X");
+        await Assertions.Expect(Open(page).GetByLabel("Customer")).ToHaveValueAsync(before + "X");
         await page.Keyboard.TypeAsync("yz");
         await page.Keyboard.PressAsync("Enter");
         await Assertions.Expect(Open(page)).ToHaveCountAsync(0);
-        await Assertions.Expect(Cell(page, 1002, "customer")).ToHaveTextAsync("Xyz");
+        await Assertions.Expect(Cell(page, 1002, "customer")).ToHaveTextAsync(before + "Xyz");
         await Assertions.Expect(Cell(page, 1002, "customer")).ToBeFocusedAsync();
     }
 
@@ -83,6 +84,27 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         await Cell(page, 1005, "customer").ClickAsync();
         await Assertions.Expect(Row(page, 1004)).ToContainTextAsync("$123.00");
         await Assertions.Expect(Open(page).GetByLabel("Customer")).ToBeFocusedAsync();
+    }
+
+    [Fact]
+    public async Task A_cell_starts_with_the_cursor_after_its_text()
+    {
+        var (browser, page) = await OpenAsync();
+        await using var _ = browser;
+        await Cell(page, 1001, "customer").ClickAsync();
+        var customer = Open(page).GetByLabel("Customer");
+        await Assertions.Expect(customer).ToBeFocusedAsync();
+        var before = await customer.InputValueAsync();
+        await page.Keyboard.TypeAsync("!");
+        await Assertions.Expect(customer).ToHaveValueAsync(before + "!");
+        await page.Keyboard.PressAsync("Escape");
+
+        await Cell(page, 1001, "total").ClickAsync();
+        var total = Open(page).GetByLabel("Total");
+        await Assertions.Expect(total).ToBeFocusedAsync();
+        before = await total.InputValueAsync();
+        await page.Keyboard.TypeAsync("1");
+        await Assertions.Expect(total).ToHaveValueAsync(before + "1");
     }
 
     [Fact]
