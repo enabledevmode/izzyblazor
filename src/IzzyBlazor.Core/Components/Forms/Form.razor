@@ -158,7 +158,19 @@ else
 
     private int ColumnCount => Math.Clamp(Columns, 1, 4);
 
-    private RenderFragment Body => __builder =>
+    private RenderFragment Body => builder =>
+    {
+        if (!string.IsNullOrEmpty(FormName))
+        {
+            builder.OpenComponent<FormNamedErrors>(0);
+            builder.AddComponentParameter(1, nameof(FormNamedErrors.FormName), FormName);
+            builder.CloseComponent();
+        }
+
+        builder.AddContent(2, Fields);
+    };
+
+    private RenderFragment Fields => __builder =>
     {
         if (Validator is null)
         {
