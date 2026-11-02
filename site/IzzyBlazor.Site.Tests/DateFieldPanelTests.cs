@@ -119,6 +119,21 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Fact]
+    public async Task With_room_the_calendar_starts_at_the_fields_left_edge()
+    {
+        var (_, form, browser) = await OpenAsync("static");
+        await using (browser)
+        {
+            await form.Locator(".ib-date-toggle").First.ClickAsync();
+            var panel = form.Locator("[popover]:popover-open");
+            await Assertions.Expect(panel).ToBeVisibleAsync();
+
+            var field = (await form.GetByLabel("Delivery", new() { Exact = true }).BoundingBoxAsync())!;
+            Assert.Equal(field.X, (await panel.BoundingBoxAsync())!.X, 0);
+        }
+    }
+
+    [Fact]
     public async Task With_no_script_the_browser_has_the_only_calendar()
     {
         var (_, form, browser) = await OpenAsync("noscript", script: false);

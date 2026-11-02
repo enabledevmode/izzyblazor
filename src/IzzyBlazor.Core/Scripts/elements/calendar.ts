@@ -78,7 +78,6 @@ class Calendar extends IzzyElement {
     const [hourBox, minuteBox, secondBox] = time ? time.querySelectorAll("input") : [];
     const dayPart = time?.querySelector("select");
     const okButton = this.querySelector<HTMLButtonElement>("[data-ib-ok]");
-    const cancelButton = this.querySelector<HTMLButtonElement>("[data-ib-cancel]");
     const todayButton = this.querySelector<HTMLButtonElement>("[data-ib-today]");
     const clearButton = this.querySelector<HTMLButtonElement>("[data-ib-clear]");
     const end = control?.querySelector<HTMLInputElement>("[data-ib-end]");
@@ -272,8 +271,8 @@ class Calendar extends IzzyElement {
       }
 
       if (panel) {
-        // A range's months line up with its box, not its button: the server anchors a popover to that.
-        if (end) panel.style.setProperty("position-anchor", (control as HTMLElement).style.getPropertyValue("anchor-name"));
+        // It lines up with the field, not its button: the server anchors a popover to that.
+        panel.style.setProperty("position-anchor", (control as HTMLElement).style.getPropertyValue("anchor-name"));
         // What the input holds, not a choice still waiting for OK.
         const written = parse(text.value);
         const named = end && ended !== null && written !== null ? `${dayName.format(date(written))} – ${dayName.format(date(ended))}` : written !== null && !end ? dayName.format(date(written)) + (time ? `, ${text.value.slice(11)}` : "") : null;
@@ -491,8 +490,6 @@ class Calendar extends IzzyElement {
         } else if (target === clearButton || target === okButton) {
           write(target === okButton ? chosen : null);
           draw();
-          close();
-        } else if (target === cancelButton) {
           close();
         }
       },
