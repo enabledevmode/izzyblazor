@@ -2704,58 +2704,83 @@
     .ib-date-control:has(:is(ib-calendar, ib-time-slots, ib-period-grid)[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
       display: none;
     }
+  }
 
-    /* A month's button is the whole field, as most browsers have no month input to show. The input
-       stays under it with its text hidden, as it draws the field's box. */
-    .ib-date-month:has(ib-period-grid[data-ready]) > .ib-field-input {
-      background-color: var(--ib-field-bg);
-      color: transparent;
+  /* A button that's the whole field, for a month, which most browsers have no input for, and for
+     several dates, which none does. The input stays under it with its text hidden, as it draws the
+     field's box. The script says when, as a phone keeps its own month input. */
+  .ib-date-control:has([data-ib-cover]) > .ib-field-input {
+    background-color: var(--ib-field-bg);
+    color: transparent;
+  }
+
+  .ib-date-control:has([data-ib-cover]) > .ib-field-input::-webkit-datetime-edit {
+    visibility: hidden;
+  }
+
+  :not(.ib-field-invalid) > .ib-date-control:has([data-ib-cover]):not(:has(:focus-visible)):hover > .ib-field-input:not(:user-invalid) {
+    border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
+  }
+
+  .ib-date-control:has([data-ib-cover]):has(.ib-date-toggle:focus-visible) > .ib-field-input {
+    border-color: var(--ib-color-focus, var(--ib-color-primary));
+    box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
+  }
+
+  .ib-date-control:has([data-ib-cover]) > ib-popover {
+    inset-inline: 0;
+  }
+
+  .ib-date-control:has([data-ib-cover]) .ib-date-toggle {
+    display: flex;
+    flex: 1;
+    min-width: 0;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--ib-space-2);
+    height: 100%;
+    padding-inline: var(--ib-field-px);
+    background: none;
+    font: inherit;
+    text-align: start;
+  }
+
+  .ib-date-control:has([data-ib-cover]) .ib-date-toggle:focus-visible {
+    outline: none;
+  }
+
+  .ib-date-control:has([data-ib-cover]) .ib-date-text {
+    display: inline;
+    overflow: hidden;
+    color: var(--ib-color-on-surface);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .ib-date-control:has([data-ib-cover]) .ib-date-text[data-ib-empty] {
+    color: var(--ib-color-subtle);
+  }
+
+  .ib-date-control:has([data-ib-cover]) > .ib-field-clear {
+    z-index: 1;
+  }
+
+  /* Several dates post from these. With no script they're the field; with one it shows the dates. */
+  .ib-date-posts {
+    display: flex;
+    flex-direction: column;
+    gap: var(--ib-space-1);
+  }
+
+  @media (scripting: enabled) {
+    .ib-date-posts {
+      display: none;
     }
+  }
 
-    :not(.ib-field-invalid) > .ib-date-month:not(:has(:focus-visible)):hover > .ib-field-input:not(:user-invalid) {
-      border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
-    }
-
-    .ib-date-month:has(.ib-date-toggle:focus-visible) > .ib-field-input {
-      border-color: var(--ib-color-focus, var(--ib-color-primary));
-      box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
-    }
-
-    .ib-date-month .ib-date-toggle:focus-visible {
-      outline: none;
-    }
-
-    .ib-date-month:has(ib-period-grid[data-ready]) > .ib-field-input::-webkit-datetime-edit {
-      visibility: hidden;
-    }
-
-    .ib-date-month:has(ib-period-grid[data-ready]) > ib-popover {
-      inset-inline: 0;
-    }
-
-    .ib-date-month:has(ib-period-grid[data-ready]) .ib-date-toggle {
-      flex: 1;
-      align-items: center;
-      justify-content: space-between;
-      height: 100%;
-      padding-inline: var(--ib-field-px);
-      background: none;
-      color: var(--ib-color-subtle);
-      font: inherit;
-      text-align: start;
-    }
-
-    .ib-date-month:has(ib-period-grid[data-ready]) .ib-date-text {
-      display: inline;
-      color: var(--ib-color-on-surface);
-    }
-
-    .ib-date-month .ib-date-text[data-ib-empty] {
-      color: var(--ib-color-subtle);
-    }
-
-    .ib-date-month > .ib-field-clear {
-      z-index: 1;
+  @media (scripting: none) {
+    .ib-date-many {
+      display: none;
     }
   }
 

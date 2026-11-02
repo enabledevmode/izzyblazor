@@ -452,6 +452,15 @@ public class IzzyText
     /// <summary>That button once both days are set; {0} is both in full.</summary>
     public virtual string CalendarChangeRange { get; set; } = "Change dates, {0}";
 
+    /// <summary>Announced as a day joins a MultiDateField's dates, with {0} the day.</summary>
+    public virtual string CalendarAdded { get; set; } = "{0} added";
+
+    /// <summary>Announced as a day leaves a MultiDateField's dates, with {0} the day.</summary>
+    public virtual string CalendarRemoved { get; set; } = "{0} removed";
+
+    /// <summary>The message for a required MultiDateField with no dates, with {0} its label.</summary>
+    public virtual string DatesRequired { get; set; } = "{0} needs at least one date.";
+
     /// <summary>The name of a month picker's button, with no month yet, and what it shows.</summary>
     public virtual string CalendarChooseMonth { get; set; } = "Choose month";
 

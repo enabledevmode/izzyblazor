@@ -761,6 +761,21 @@
       ]
     },
     {
+      "id": "multi-date-field", "icon": "CalendarDays", "name": "MultiDateField", "category": "Forms", "summary": "Several separate days to choose from a month.", "keywords": ["multiple dates", "date picker", "several dates"],
+      "features": [
+        { "feature": "A month where each day toggles, in a panel or on the page", "noscript": "partial" },
+        { "feature": "Min, Max and DateDisabled checked for each date on the server" },
+        { "feature": "Binds an array, List or HashSet of DateOnly" }
+      ],
+      "examples": [
+        { "id": "multi-date-field-days-off", "title": "Days off", "lead": "A day toggles and writes at once, so the panel stays open. `Required` needs at least one, and the rules hold for each date on the server.",
+          "notes": {
+            "noscript": "A date input for each date, and one empty, so one more can be added each time it posts."
+          } },
+        { "id": "multi-date-field-inline", "title": "On the page", "lead": "Use `Inline` for the month on the page, in place of the button." }
+      ]
+    },
+    {
       "id": "calendar", "icon": "CalendarDays", "name": "Calendar", "category": "Forms", "summary": "A month on the page, with the browser's own date input posting the day.", "keywords": ["month", "date", "inline calendar", "week numbers"],
       "features": [
         { "feature": "A month grid that follows the page's culture, with the chosen day marked" },
