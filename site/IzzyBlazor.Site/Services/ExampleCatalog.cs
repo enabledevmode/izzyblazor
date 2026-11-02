@@ -9,6 +9,8 @@ namespace IzzyBlazor.Site.Services;
 /// <c>{folder}-{name}</c> (<c>Examples/Button/MultiSubmit.razor</c> is <c>button-multi-submit</c>).
 /// Its source is embedded at build time, so production never reads the source tree; lines between
 /// <c>@* hide *@</c> and <c>@* /hide *@</c> (scaffolding, sample data) are left out of what's shown.
+/// A line <c>@* file: Name.cs *@</c> names a .cs file in its folder to show on a tab beside it, such as
+/// a model that would crowd the example.
 /// </summary>
 public sealed partial class ExampleCatalog
 {
@@ -16,6 +18,7 @@ public sealed partial class ExampleCatalog
 
     private readonly Dictionary<string, Type> _types = new(StringComparer.Ordinal);
     private readonly Dictionary<string, (string FileName, string Source)> _sources = new(StringComparer.Ordinal);
+    private readonly Dictionary<string, List<(string FileName, string Source)>> _files = new(StringComparer.Ordinal);
 
     public ExampleCatalog()
     {
@@ -39,7 +42,20 @@ public sealed partial class ExampleCatalog
             using var stream = assembly.GetManifestResourceStream(resource)!;
             using var reader = new StreamReader(stream);
             var name = path[(slash + 1)..];
-            _sources[IdOf(path[..slash].Replace('/', '.'), name)] = (name + ".razor", Clean(reader.ReadToEnd()));
+            var folder = path[..slash];
+            var raw = reader.ReadToEnd();
+            var id = IdOf(folder.Replace('/', '.'), name);
+            _sources[id] = (name + ".razor", Clean(raw));
+            foreach (Match file in FileLine().Matches(raw))
+            {
+                var fileName = file.Groups[1].Value;
+                var named = $"examplefile:{folder}/{Path.GetFileNameWithoutExtension(fileName)}";
+                using var fileStream = assembly.GetManifestResourceStream(named)
+                    ?? assembly.GetManifestResourceStream(named.Replace('/', '\\'))
+                    ?? throw new InvalidOperationException($"The example {id} names {fileName}, which isn't in its folder.");
+                using var fileReader = new StreamReader(fileStream);
+                (_files.TryGetValue(id, out var files) ? files : _files[id] = []).Add((fileName, Clean(fileReader.ReadToEnd())));
+            }
         }
     }
 
@@ -48,6 +64,9 @@ public sealed partial class ExampleCatalog
     public Type? TypeOf(string id) => _types.GetValueOrDefault(id);
 
     public (string FileName, string Source)? SourceOf(string id) => _sources.TryGetValue(id, out var source) ? source : null;
+
+    /// <summary>The files an example shows on tabs beside its own source.</summary>
+    public IReadOnlyList<(string FileName, string Source)> FilesOf(string id) => _files.TryGetValue(id, out var files) ? files : [];
 
     /// <summary><c>Button</c> and <c>MultiSubmit</c> make <c>button-multi-submit</c>.</summary>
     public static string IdOf(string folder, string name) => $"{Kebab(folder.Replace('.', '-'))}-{Kebab(name)}";
@@ -74,6 +93,11 @@ public sealed partial class ExampleCatalog
                 continue;
             }
 
+            if (FileLine().IsMatch(trimmed))
+            {
+                continue;
+            }
+
             if (!hiding)
             {
                 shown.Append(line).Append('\n');
@@ -87,4 +111,7 @@ public sealed partial class ExampleCatalog
     // a word follows: InARow is in-a-row, CsvExport csv-export, CSVExport csv-export.
     [GeneratedRegex("(?<=[a-z0-9])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])")]
     private static partial Regex WordStart();
+
+    [GeneratedRegex(@"^\s*@\* file: (\S+\.cs) \*@\s*$", RegexOptions.Multiline)]
+    private static partial Regex FileLine();
 }
