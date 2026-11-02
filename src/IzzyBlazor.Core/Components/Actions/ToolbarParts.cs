@@ -357,7 +357,6 @@ internal sealed class ToolbarMore : ComponentBase
         builder.OpenElement(3, "div");
         builder.AddAttribute(4, "class", "ib-toolbar-more");
         builder.OpenComponent<Menu>(5);
-        builder.AddComponentParameter(6, nameof(Menu.Placement), Placement.BottomEnd);
         builder.AddComponentParameter(7, nameof(Menu.Trigger), (RenderFragment<IReadOnlyDictionary<string, object>>)(attributes => t =>
         {
             t.OpenComponent<IconButton>(0);
