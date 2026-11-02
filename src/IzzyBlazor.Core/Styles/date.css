@@ -280,7 +280,6 @@
     background: none;
     color: var(--ib-color-on-surface);
     font: inherit;
-    font-variant-numeric: tabular-nums;
     text-align: start;
     cursor: pointer;
   }
@@ -289,9 +288,9 @@
     background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
+  /* The fill says where the keys are, as a Select's list does. */
   .ib-time-slot:focus-visible {
-    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
-    outline-offset: -2px;
+    outline: none;
   }
 
   .ib-time-slot[aria-disabled="true"] {
