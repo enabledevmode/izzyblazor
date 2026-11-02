@@ -5,6 +5,7 @@
     <DurationField @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
     <DurationField @bind-Value="Model!.Signed" Label="Signed length" ReadOnly Hint="Read-only: posted, but can't be changed." />
     <DurationField @bind-Value="Model!.Renews" Label="Renews after" Disabled Hint="Disabled: not posted." />
+    <DurationField @bind-Value="Model!.Timeout" Label="Timeout" Clearable />
 </Form>
 
 @code {
@@ -15,6 +16,8 @@
 
     public sealed class Contract
     {
+        public TimeSpan? Timeout { get; set; } = TimeSpan.FromMinutes(90);
+
         public TimeSpan Slot { get; set; } = TimeSpan.FromMinutes(45);
         public TimeSpan Offset { get; set; } = TimeSpan.FromHours(-5);
         public TimeSpan Small { get; set; } = new(1, 30, 0);

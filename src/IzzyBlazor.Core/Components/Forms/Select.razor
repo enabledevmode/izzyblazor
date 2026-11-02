@@ -75,6 +75,10 @@
             }
         </select>
         <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
+        @if (Clearable && !IsDisabled && default(TValue) is null)
+        {
+            @ClearButton
+        }
     </ib-field-control>
     }
     @if (PostsReadOnlyValue)
@@ -90,6 +94,23 @@
 
     /// <inheritdoc />
     protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>
+    /// A button in the field that goes back to <see cref="Placeholder"/>, which it needs, for a value
+    /// that can be empty, there while one is chosen. Off by default.
+    /// </summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (Clearable && Placeholder is null)
+        {
+            throw new InvalidOperationException($"The \"{ResolvedLabel}\" Select is Clearable but has no Placeholder: clearing it goes back to its Placeholder.");
+        }
+
+        base.OnParametersSet();
+    }
 
     /// <summary>The options. Not needed for enums, whose values are listed automatically.</summary>
     [Parameter] public IEnumerable<TValue>? Items { get; set; }

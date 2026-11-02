@@ -1,4 +1,5 @@
 <Form Model="Model" FormName="select-states" MaxWidth="24.Rem" Grow>
+    <Select @bind-Value="Model!.Preferred" Label="Preferred region" Placeholder="No preference" Clearable />
     <Select @bind-Value="Model!.Small" Label="Small" Size="ControlSize.Sm" />
     <Select @bind-Value="Model!.Large" Label="Large" Size="ControlSize.Lg" />
     <Select @bind-Value="Model!.Region" Label="Region" ReadOnly Hint="Read-only: posted, but can't be changed." />
@@ -13,6 +14,7 @@
 
     public sealed class Settings
     {
+        public Region? Preferred { get; set; } = Region.Europe;
         public Region Small { get; set; }
         public Region Large { get; set; }
         public Region Region { get; set; } = Region.Europe;

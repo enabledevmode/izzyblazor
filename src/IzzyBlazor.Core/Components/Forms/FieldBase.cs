@@ -193,13 +193,16 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     /// </summary>
     protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
 
+    /// <summary>Whether there's something for <see cref="ClearButton"/> to empty.</summary>
+    private protected virtual bool HoldsValue => !string.IsNullOrEmpty(CurrentValueAsString?.Trim('/'));
+
     /// <summary>
     /// A button that empties the field, for a field with <c>Clearable</c>: there while it holds
     /// something, and hidden with no script (<c>Scripts/elements/field-clear.ts</c>).
     /// </summary>
     private protected RenderFragment ClearButton => builder =>
     {
-        var has = !string.IsNullOrEmpty(CurrentValueAsString?.Trim('/'));
+        var has = HoldsValue;
         builder.OpenElement(0, "ib-field-clear");
         builder.AddAttribute(1, "class", "ib-field-clear");
         builder.AddAttribute(2, "hidden", !has);

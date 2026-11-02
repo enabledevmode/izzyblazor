@@ -137,8 +137,11 @@ public sealed class ListViewKeysTests(SiteFixture site) : IClassFixture<SiteFixt
             await Assertions.Expect(boxes.First).ToBeCheckedAsync();
             await Assertions.Expect(boxes.Nth(1)).ToBeCheckedAsync();
             await Assertions.Expect(boxes.Nth(2)).Not.ToBeCheckedAsync();
+            // The next key goes from here, once the render has settled and focus has arrived.
+            await Assertions.Expect(boxes.Nth(1)).ToBeFocusedAsync();
             await page.Keyboard.PressAsync("Shift+ArrowDown");
             await Assertions.Expect(boxes.Nth(2)).ToBeCheckedAsync();
+            await Assertions.Expect(boxes.Nth(2)).ToBeFocusedAsync();
             await page.Keyboard.PressAsync("Shift+ArrowUp");
             await Assertions.Expect(boxes.Nth(2)).Not.ToBeCheckedAsync();
             await Assertions.Expect(boxes.Nth(1)).ToBeCheckedAsync();

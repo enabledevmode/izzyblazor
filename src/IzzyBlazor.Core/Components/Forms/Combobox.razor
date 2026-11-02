@@ -129,6 +129,10 @@
                first results again, not the last search's. *@
             <input type="hidden" class="ib-combobox-reset" value="" @attributes="SearchAttributes" />
         }
+        @if (Clearable && !IsDisabled && default(TValue) is null)
+        {
+            @ClearButton
+        }
     </ib-combobox>
     }
     @if (PostsReadOnlyValue)
@@ -139,6 +143,9 @@
 </FieldFrame>
 
 @code {
+    /// <summary>A button in the field that empties it, for a value that can be empty, there while one is chosen. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
     /// <summary>Makes the field read-only: the chosen text shows in a read-only text field, and the value still posts.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
