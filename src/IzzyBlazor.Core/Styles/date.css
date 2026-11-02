@@ -26,15 +26,19 @@
   }
 
   .ib-calendar-head {
+    /* The days decide the width: a long month's name in a select mustn't stretch the popup past them. */
+    width: 0;
+    min-width: 100%;
     display: flex;
     align-items: center;
     gap: var(--ib-space-1);
     height: var(--ib-calendar-cell);
   }
 
+  /* Narrower than a day, for a long month's name. */
   .ib-calendar-head .ib-calendar-nav {
     flex: none;
-    width: var(--ib-calendar-cell);
+    width: 1.75rem;
     height: var(--ib-calendar-cell);
   }
 
@@ -58,13 +62,6 @@
   .ib-calendar-selects > :last-child {
     flex: none;
     width: calc(var(--ib-calendar-cell) * 2 + 0.25rem);
-  }
-
-  /* Room for the month's name on a phone. */
-  @media (max-width: 400px) {
-    .ib-calendar-head .ib-calendar-nav {
-      width: 1.75rem;
-    }
   }
 
   .ib-calendar-month {
