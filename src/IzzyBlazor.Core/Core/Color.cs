@@ -107,7 +107,7 @@ public readonly partial struct Color : IEquatable<Color>
     /// <summary>The strongest fill: selected and pressed states, chips, tracks, skeletons.</summary>
     public static Color FillStrong { get; } = Token("fill-strong");
 
-    /// <summary>Overlays that float above the page: menus, popovers, dialogs, toasts. White like <see cref="Surface"/> in light mode, where a shadow sets it apart; a step lighter in dark mode.</summary>
+    /// <summary>Overlays that float above the page with no backdrop: menus, popovers, toasts. White like <see cref="Surface"/> in light mode, where a shadow sets it apart; a step lighter in dark mode.</summary>
     public static Color SurfaceOverlay { get; } = Token("surface-overlay");
 
     /// <summary>Text on any surface.</summary>
