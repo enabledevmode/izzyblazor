@@ -1,9 +1,9 @@
-@using IzzyBlazor.Site.Examples.Table
+@using System.ComponentModel.DataAnnotations
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
 @* The dialog in two columns, with Notes across both, and Status edited by a field of your own. A paid
    order's Delete stays, disabled, and says why. *@
-<DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders in two columns" ItemKey="o => o.Number.ToString()" QueryPrefix="two-"
-          EditMode="DataGridEditMode.Dialog" OnSave="Save" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid"
-          Grow>
+<DataGrid TItem="Order" Items="_orders" PageSize="5" Caption="Orders in two columns" ItemKey="o => o.Number.ToString()" QueryPrefix="two-"
+          EditMode="DataGridEditMode.Dialog" OnSave="Save" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
     <PropertyColumn Property="o => o.Customer" />
     <PropertyColumn Property="o => o.Status">
@@ -30,11 +30,34 @@
 @code {
     [CascadingParameter] private HttpContext? Http { get; set; }
 
-    private List<EditableOrder> _orders = [];
+    private List<Order> _orders = [];
 
-    protected override void OnInitialized() => _orders = EditableOrders.For(Http);
+    // Stands in for your database, with a copy of the rows for each visitor to this site.
+    protected override void OnInitialized() => _orders = ExampleRows.For(Http, "two-columns", () => Rows.All
+        .Select(o => new Order { Number = o.Number, Customer = o.Customer, Date = o.Date, Status = (OrderStatus)o.Status, Total = o.Total })
+        .ToList());
 
-    private void Save(DataGridSave<EditableOrder> save) => save.CopyTo(_orders.First(o => o.Number == save.Item.Number));
+    private void Save(DataGridSave<Order> save) => save.CopyTo(_orders.First(o => o.Number == save.Item.Number));
 
-    private void Delete(DataGridDelete<EditableOrder> delete) => _orders.RemoveAll(o => o.Number == delete.Item.Number);
+    private void Delete(DataGridDelete<Order> delete) => _orders.RemoveAll(o => o.Number == delete.Item.Number);
+
+    public enum OrderStatus { Paid, Pending, Refunded, Failed }
+
+    public sealed class Order
+    {
+        public int Number { get; set; }
+
+        [Required, StringLength(60)]
+        public string? Customer { get; set; }
+
+        public DateOnly Date { get; set; }
+
+        public OrderStatus Status { get; set; }
+
+        [Range(0, 1_000_000)]
+        public decimal Total { get; set; }
+
+        [StringLength(200), DataType(DataType.MultilineText)]
+        public string? Notes { get; set; }
+    }
 }
