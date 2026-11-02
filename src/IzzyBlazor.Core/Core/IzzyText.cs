@@ -297,6 +297,18 @@ public class IzzyText
     /// <summary>Cancel in ConfirmButton's dialog and DialogService.ConfirmAsync.</summary>
     public virtual string Cancel { get; set; } = "Cancel";
 
+    /// <summary>A DataGrid editor's title, before it knows its row.</summary>
+    public virtual string Edit { get; set; } = "Edit";
+
+    /// <summary>A DataGrid row's edit button and editor. {0} is the row's label.</summary>
+    public virtual string EditItem { get; set; } = "Edit {0}";
+
+    /// <summary>A DataGrid editor's save button.</summary>
+    public virtual string Save { get; set; } = "Save";
+
+    /// <summary>A DataGrid editor, when its row is no longer among those on the page.</summary>
+    public virtual string EditRowGone { get; set; } = "That row is no longer on this page, so nothing was saved.";
+
     /// <summary>A Toolbar's "…" button, which holds what doesn't fit.</summary>
     public virtual string MoreActions { get; set; } = "More actions";
 
