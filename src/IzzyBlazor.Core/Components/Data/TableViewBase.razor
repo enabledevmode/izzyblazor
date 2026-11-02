@@ -813,12 +813,10 @@
     {
         var label = FilterLabel(column);
         var name = current.IsFilter ? $"{label}: {FilterSummary(column, current)}" : label;
-        // Opening from the button, along the column: which way depends on which side of the cell it's on.
-        var placement = column.EffectiveAlign == CellAlign.End != FilterButtonAtFarEdge ? Placement.BottomEnd : Placement.BottomStart;
         var fieldId = $"{FilterFormId}-{_columns.IndexOf(column)}";
         var lists = column.HasValueList && RendererInfo.IsInteractive;
         var toggled = lists ? EventCallback.Factory.Create<bool>(this, open => OnValueListToggleAsync(column, open)) : default;
-        <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" Placement="placement" data-ib-user-controlled OpenChanged="toggled">
+        <Popover Id="@(ShowsFilterRow ? FilterPanelId(column) : null)" data-ib-user-controlled OpenChanged="toggled">
             <Trigger>
                 @* With a row of filters the row is the way in, so the panel stays for it and the button goes. *@
                 <button type="button" class="ib-table-filter-button" hidden="@ShowsFilterRow" data-active="@(current.IsFilter ? "" : null)" aria-label="@name" title="@name" @attributes="context">
