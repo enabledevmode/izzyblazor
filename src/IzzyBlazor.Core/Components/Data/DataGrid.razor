@@ -560,7 +560,7 @@
         var frozen = FrozenOf(column);
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.ColumnOptions, column.HeaderText);
         var zone = Shown.Where(c => FrozenOf(c) == frozen && CanMove(c)).ToList();
-        <Menu Placement="Placement.BottomEnd" Class="ib-col-menu" data-ib-user-controlled>
+        <Menu Class="ib-col-menu" data-ib-user-controlled>
             <Trigger>
                 <button type="button" class="ib-table-filter-button" data-ib-menu aria-label="@label" title="@label" @attributes="context">
                     <Icon Role="IconRole.MoreVertical" />
@@ -637,7 +637,7 @@
         <td class="@MenuCellClass">
             @if (HasContent(RowMenu(item)))
             {
-                <Menu Placement="Placement.BottomEnd">
+                <Menu>
                     <Trigger Context="wire">
                         <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)"
                                     Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
@@ -694,7 +694,7 @@
     RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
     {
         <div class="ib-toolbar-item ib-col-picker">
-            <Popover Placement="Placement.BottomStart" data-ib-user-controlled>
+            <Popover data-ib-user-controlled>
                 <Trigger>
                     @if (showText)
                     {
@@ -749,7 +749,7 @@
         {
             // Both inside one button, not a split button: one click only ever opens the menu.
             var chevron = IconSet.Current.Get(IconRole.ChevronDown);
-            <Menu Placement="Placement.BottomStart">
+            <Menu>
                 <Trigger>
                     @if (showText)
                     {

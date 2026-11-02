@@ -758,7 +758,7 @@
     private RenderFragment MenuButton(TItem item, string key, int index, bool moves, bool own) => __builder =>
     {
         var focus = moves && !Live && key == _focusKey;
-        <Menu Placement="Placement.BottomEnd">
+        <Menu>
             <Trigger Context="wire">
                 <IconButton Icon="IconSet.Current.Get(IconRole.MoreHorizontal)" Label="@string.Format(CultureInfo.CurrentCulture, TextDefaults.ItemMenu, LabelOf(item))"
                             Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" Class="@(moves ? "ib-listview-menu ib-sortable-trigger" : "ib-listview-menu")"
