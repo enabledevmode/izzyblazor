@@ -22,7 +22,7 @@ public sealed class PageText(IServiceProvider services, Registry registry, Examp
 
     private readonly ConcurrentDictionary<string, Lazy<Task<string>>> _pages = new(StringComparer.Ordinal);
 
-    /// <summary>The Markdown of an article (<c>docs/common/forms</c>) or an Overview (<c>docs/components/button</c>), or null if it isn't one.</summary>
+    /// <summary>The Markdown of an article (<c>docs/common/forms</c>), an Overview (<c>docs/components/button</c>) or a topic (<c>docs/components/data-grid/editing</c>), or null if it isn't one.</summary>
     public async Task<string?> OfAsync(string path)
     {
         RazorComponentResult page;
@@ -33,6 +33,10 @@ public sealed class PageText(IServiceProvider services, Registry registry, Examp
         else if (registry.Components.FirstOrDefault(c => Registry.OverviewHref(c) == path) is { } component)
         {
             page = new RazorComponentResult<ComponentPage>(new { component.Id });
+        }
+        else if (registry.Components.SelectMany(c => c.Topics.Select(t => (Component: c, Topic: t))).FirstOrDefault(x => Registry.TopicHref(x.Component, x.Topic) == path) is { Topic: not null } found)
+        {
+            page = new RazorComponentResult<ComponentTopicPage>(new { found.Component.Id, Topic = found.Topic.Id });
         }
         else
         {

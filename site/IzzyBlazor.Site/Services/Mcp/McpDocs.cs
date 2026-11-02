@@ -240,7 +240,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         {
             // A part can be listed on more than one component (ToolbarSplitButton on SplitButton and Toolbar).
             var sources = registry.Components.Where(c => c.Parts.Contains(component.Name)).Append(owner).Distinct();
-            var examples = sources.SelectMany(c => c.Examples.Select(e => (e.Id, e.Title, Lead: e.Lead))
+            var examples = sources.SelectMany(c => c.AllExamples.Select(e => (e.Id, e.Title, Lead: e.Lead))
                 .Concat(c.Scenarios.Select(s => (s.Example.Id, $"Demo: {s.Title}", Lead: (string?)s.Description)))).ToList();
             if (owner.Name != component.Name)
             {
@@ -256,7 +256,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
                 }
             }
 
-            text.Append($"\nThe Overview as prose, with every example's source: get_article(\"{Registry.OverviewHref(owner)}\").\n");
+            text.Append($"\nThe Overview as prose, with its examples' source: get_article(\"{Registry.OverviewHref(owner)}\").\n");
+            foreach (var topic in owner.Topics)
+            {
+                text.Append($"Its {topic.Title} page, with its own examples: get_article(\"{Registry.TopicHref(owner, topic)}\").\n");
+            }
         }
 
         Section(text, "Accessibility", component.Accessibility);
@@ -381,7 +385,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         {
             if (FindComponentOrNull(key) is { } component && (registry.ByName(component.Name) ?? registry.OwnerOfPart(component.Name)) is { } owner)
             {
-                var ids = owner.Examples.Select(e => e.Id).Concat(owner.Scenarios.Select(s => s.Example.Id)).ToList();
+                var ids = owner.AllExamples.Select(e => e.Id).Concat(owner.Scenarios.Select(s => s.Example.Id)).ToList();
                 throw new McpDocsException($"\"{id}\" is a component, not an example id. {owner.Name}'s examples: {string.Join(", ", ids)}.");
             }
 
@@ -392,7 +396,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         if (registry.Example(key) is { } found && !found.Component.Preview)
         {
             var (owner, example) = found;
-            text.Append($"# {example.Title}\n\n{Release} · an example on {owner.Name}'s page, {Url(Registry.OverviewHref(owner))}");
+            text.Append($"# {example.Title}\n\n{Release} · an example on {owner.Name}'s page, {Url(Registry.ExamplePageHref(owner, example))}");
             var scenario = owner.Scenarios.FirstOrDefault(s => s.Example.Id == key);
             if (scenario is not null)
             {
@@ -445,7 +449,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         }
 
         // The whole path, its end (troubleshooting/onclick, onclick), a title, or a component for its Overview.
-        var resolved = ArticlePaths().FirstOrDefault(p => string.Equals(p, wanted, StringComparison.OrdinalIgnoreCase))
+        var resolved = ArticlePaths().Concat(registry.Components.SelectMany(c => c.Topics.Select(t => Registry.TopicHref(c, t)))).FirstOrDefault(p => string.Equals(p, wanted, StringComparison.OrdinalIgnoreCase))
             ?? ArticlePaths().FirstOrDefault(p => p.EndsWith("/" + wanted, StringComparison.OrdinalIgnoreCase))
             ?? Articles.Sections.SelectMany(s => s.Articles.Select(a => (Path: s.HrefOf(a), a.Title)))
                 .FirstOrDefault(a => string.Equals(a.Title, wanted, StringComparison.OrdinalIgnoreCase)).Path
@@ -475,7 +479,7 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
             }
         }
 
-        return text.Append("\nA component's Overview is docs/components/{id} (docs/components/button).\n").ToString();
+        return text.Append("\nA component's Overview is docs/components/{id} (docs/components/button). Its Overview names any topics of its own, at docs/components/{id}/{topic}.\n").ToString();
     }
 
     private static IEnumerable<string> ArticlePaths() => Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf));

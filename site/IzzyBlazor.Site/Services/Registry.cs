@@ -39,7 +39,7 @@ public sealed class Registry
         // A part on two pages (ToolbarSplitButton: SplitButton's and Toolbar's) belongs to the first, where its API is.
         _byPart = AllComponents.SelectMany(c => c.Parts.Select(p => (Part: p, Component: c))).DistinctBy(x => x.Part).ToDictionary(x => x.Part, x => x.Component, StringComparer.Ordinal);
         _examples = AllComponents
-            .SelectMany(c => c.Examples.Concat(c.Scenarios.Select(s => s.Example)).Select(e => (Component: c, Example: e)))
+            .SelectMany(c => c.AllExamples.Concat(c.Scenarios.Select(s => s.Example)).Select(e => (Component: c, Example: e)))
             .ToDictionary(x => x.Example.Id, StringComparer.Ordinal);
     }
 
@@ -81,6 +81,12 @@ public sealed class Registry
     public static string OverviewHref(RegistryComponent component) => $"docs/components/{component.Id}";
 
     public static string ApiPageHref(RegistryComponent component) => $"docs/components/{component.Id}/api";
+
+    public static string TopicHref(RegistryComponent component, RegistryTopic topic) => $"docs/components/{component.Id}/{topic.Id}";
+
+    /// <summary>The page an example is shown on: its topic's, or the component's Overview.</summary>
+    public static string ExamplePageHref(RegistryComponent component, RegistryExample example) =>
+        component.Topics.FirstOrDefault(t => t.Examples.Contains(example)) is { } topic ? TopicHref(component, topic) : OverviewHref(component);
 
     /// <summary>Where a component's Demos tab goes: its first scenario (it has no demos page of its own).</summary>
     public static string DemosHref(RegistryComponent component) => ScenarioHref(component, component.Scenarios[0]);
@@ -149,8 +155,31 @@ public sealed record RegistryComponent
 
     /// <summary>What works in each mode, a row per feature, for the Overview's table.</summary>
     public List<RegistryFeature> Features { get; init; } = [];
+
+    /// <summary>The examples on its Overview. Those on a topic's page are <see cref="RegistryTopic.Examples"/>.</summary>
     public List<RegistryExample> Examples { get; init; } = [];
     public List<RegistryScenario> Scenarios { get; init; } = [];
+
+    /// <summary>Pages of its own for what's too big for its Overview, as a grid's editing is, in the sidebar under it.</summary>
+    public List<RegistryTopic> Topics { get; init; } = [];
+
+    /// <summary>The examples on its Overview, then its topics'.</summary>
+    public IEnumerable<RegistryExample> AllExamples => Examples.Concat(Topics.SelectMany(t => t.Examples));
+}
+
+/// <summary>A page of a component's own, under it, at <c>docs/components/{id}/{topic}</c>.</summary>
+public sealed record RegistryTopic
+{
+    /// <summary>The URL segment: <c>editing</c>. Not <c>api</c>, which is the API page's.</summary>
+    public required string Id { get; init; }
+    public required string Title { get; init; }
+
+    /// <summary>One line, under its title and in the list on the Overview.</summary>
+    public required string Summary { get; init; }
+
+    /// <summary>Paragraphs before its examples, with <c>`code`</c> as in an example's lead.</summary>
+    public List<string> Intro { get; init; } = [];
+    public List<RegistryExample> Examples { get; init; } = [];
 }
 
 public sealed record RegistryFeature

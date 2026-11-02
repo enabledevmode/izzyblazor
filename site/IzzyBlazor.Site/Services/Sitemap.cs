@@ -31,6 +31,10 @@ public static class Sitemap
         {
             yield return Registry.OverviewHref(component);
             yield return Registry.ApiPageHref(component);
+            foreach (var topic in component.Topics)
+            {
+                yield return Registry.TopicHref(component, topic);
+            }
         }
 
         yield return "demos";

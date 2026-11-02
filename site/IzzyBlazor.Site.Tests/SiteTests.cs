@@ -126,8 +126,27 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
     // Every page that shows examples: component pages, articles, the docs overview and home.
     private IEnumerable<string> ExamplePages =>
         site.Registry.AllComponents.Select(Registry.OverviewHref)
+            .Concat(site.Registry.AllComponents.SelectMany(c => c.Topics.Select(t => Registry.TopicHref(c, t))))
             .Concat(Articles.Sections.SelectMany(s => s.Articles.Select(s.HrefOf)))
             .Concat(["docs", ""]);
+
+    [Fact]
+    public async Task A_components_topics_are_pages_under_it_in_the_sidebar()
+    {
+        var html = await site.Client.GetStringAsync("docs/components/data-grid/editing");
+        Assert.Contains("data-ex=\"data-grid-edit-in-row\"", html);
+        Assert.DoesNotContain("data-ex=\"data-grid-columns\"", html);
+        Assert.Contains("href=\"docs/components/data-grid/filtering\"", html);
+
+        var overview = await site.Client.GetStringAsync("docs/components/data-grid");
+        Assert.Contains("data-ex=\"data-grid-columns\"", overview);
+        Assert.DoesNotContain("data-ex=\"data-grid-edit-in-row\"", overview);
+        Assert.Contains("href=\"docs/components/data-grid/editing\"", overview);
+
+        // The API page keeps its address, and a topic that isn't one isn't found.
+        Assert.Contains("docs/components/data-grid/api", await site.Client.GetStringAsync("docs/components/data-grid/api"));
+        Assert.Equal(HttpStatusCode.NotFound, (await site.Client.GetAsync("docs/components/data-grid/nonsense")).StatusCode);
+    }
 
     [Theory]
     [MemberData(nameof(Modes))]

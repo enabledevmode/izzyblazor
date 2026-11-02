@@ -11,7 +11,7 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=interactive").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/editing?mode=interactive").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         await page.Locator($"{Grid}[data-ib-interactive]").WaitForAsync();
         return (browser, page);
     }
@@ -114,9 +114,12 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         await using var _ = browser;
         static Task<string> Layer(ILocator cell) => cell.EvaluateAsync<string>("e => getComputedStyle(e).backgroundImage");
 
-        var asked = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders with stripes and lines']) .ib-table-scroll tbody tr").First;
+        var overview = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await overview.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString());
+        var asked = overview.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders with stripes and lines']) .ib-table-scroll tbody tr").First;
         await asked.HoverAsync();
         Assert.NotEqual("none", await Layer(asked.Locator("td").First));
+        await overview.CloseAsync();
 
         // This grid doesn't ask for it, so it's turned on here for the moment a cell is edited.
         await page.Locator(Grid).EvaluateAsync("e => e.classList.add('ib-table-row-hover')");

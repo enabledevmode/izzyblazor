@@ -294,6 +294,11 @@ public sealed partial class SearchIndex
                     headings.Add("Usage");
                 }
 
+                if (component.Topics.Count > 0)
+                {
+                    headings.Add("Topics");
+                }
+
                 headings.AddRange(component.Examples.Select(e => e.Title));
                 if (apiComponent.Remarks is not null)
                 {
@@ -317,6 +322,17 @@ public sealed partial class SearchIndex
                 {
                     var example = component.Examples.FirstOrDefault(e => e.Title == headings[i]);
                     Add(SearchKind.Section, headings[i], component.Name, Lead(example?.Lead), $"{overview}#{ids[i]}", standard: StandardSections.Contains(headings[i]));
+                }
+            }
+
+            foreach (var topic in component.Topics)
+            {
+                var topicPage = Registry.TopicHref(component, topic);
+                Add(SearchKind.Section, topic.Title, component.Name, topic.Summary, topicPage);
+                var topicIds = Ids(topic.Title, topic.Examples.Select(e => (e.Title, (string?)null)));
+                for (var i = 0; i < topic.Examples.Count; i++)
+                {
+                    Add(SearchKind.Section, topic.Examples[i].Title, $"{component.Name}: {topic.Title}", Lead(topic.Examples[i].Lead), $"{topicPage}#{topicIds[i]}");
                 }
             }
 

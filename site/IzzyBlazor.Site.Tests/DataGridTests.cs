@@ -5,11 +5,11 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>DataGrid in Chromium: widths the server set, and Shift+click adding to the sort.</summary>
 public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, int width = 1400)
+    private async Task<(TestBrowser, IPage)> OpenAsync(string mode, int width = 1400, string topic = "")
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = width, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid{topic}?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]").First.WaitForAsync();
         return (browser, page);
     }
@@ -18,7 +18,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("static")]
     public async Task Export_downloads_what_the_screen_shows_without_leaving_the_page(string mode)
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync(mode, topic: "/export");
         await using (browser)
         {
             var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to export" });
@@ -283,7 +283,7 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
     [InlineData("static")]
     public async Task Frozen_columns_stay_while_the_rest_scroll_and_focus_stops_clear_of_them(string mode)
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync(mode, topic: "/columns");
         await using (browser)
         {
             var at = await page.EvaluateAsync<FrozenBoxes>(Frozen);
