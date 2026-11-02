@@ -1142,8 +1142,10 @@
     text-align: inherit;
   }
 
+  /* Its line and no more, so the row keeps its height. A select has a minimum of its own from the browser. */
   .ib-datagrid [data-ib-editing] .ib-field-control > :not(textarea).ib-field-input:not([popover] *) {
     height: 1lh;
+    min-height: 0;
   }
 
   /* Chrome indents a date's text a pixel. */
