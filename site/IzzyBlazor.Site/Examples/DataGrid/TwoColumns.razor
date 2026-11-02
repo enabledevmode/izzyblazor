@@ -3,7 +3,7 @@
    order's Delete stays, disabled, and says why. *@
 <DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders in two columns" ItemKey="o => o.Number.ToString()" QueryPrefix="two-"
           EditMode="DataGridEditMode.Dialog" OnSave="Save" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid"
-          EditFormColumns="2" EditDialogSize="DialogSize.Lg" Grow>
+          Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
     <PropertyColumn Property="o => o.Customer" />
     <PropertyColumn Property="o => o.Status">
@@ -13,7 +13,14 @@
     </PropertyColumn>
     <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
     <PropertyColumn Property="o => o.Date" Visible="false" Editable="true" />
-    <PropertyColumn Property="o => o.Notes" Visible="false" Editable="true" EditColSpan="2" />
+    <PropertyColumn Property="o => o.Notes" Visible="false" Editable="true" />
+    <EditLayout Columns="2" Size="DialogSize.Lg">
+        <EditField Key="customer" />
+        <EditField Key="status" />
+        <EditField Key="total" />
+        <EditField Key="date" />
+        <EditField Key="notes" ColSpan="2" />
+    </EditLayout>
     <ActionColumn Context="order">
         <EditAction />
         <DeleteAction DisabledReason="A paid order can't be deleted." />

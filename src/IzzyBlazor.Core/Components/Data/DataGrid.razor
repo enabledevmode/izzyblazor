@@ -176,15 +176,6 @@
     /// </summary>
     [Parameter] public EventCallback<DataGridSave<TItem>> OnSave { get; set; }
 
-    /// <summary>How many columns the generated dialog lays its fields out in, as <c>Form</c>'s <c>Columns</c>. Defaults to 1.</summary>
-    [Parameter] public int EditFormColumns { get; set; } = 1;
-
-    /// <summary>The edit dialog's size.</summary>
-    [Parameter] public DialogSize EditDialogSize { get; set; } = DialogSize.Md;
-
-    /// <summary>The edit dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label.</summary>
-    [Parameter] public Func<TItem?, string>? EditDialogTitle { get; set; }
-
     /// <summary>
     /// Finds a row that isn't among those loaded, by its key, for the edit dialog and the delete
     /// confirmation: a link to a row on another page, say. A grid that loads rows as they're needed
@@ -394,7 +385,11 @@
             ? editor
             : _editors[column] = column.Editor(_editModel!, $"{DataGridEditBinding<TItem>.Prefix}.{column.EditProperty!.Name}", this,
                 // Opening goes to the first field. After a failed save, FormErrors takes focus instead.
-                () => column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true);
+                () => column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true,
+                () => _placedFields.GetValueOrDefault(column));
+
+    // What an EditField set for its column, read as the column's field draws.
+    private readonly Dictionary<ColumnBase<TItem>, EditField> _placedFields = [];
 
     private DataGridEditFields? _editFields;
 
@@ -404,8 +399,16 @@
     private ColumnBase<TItem>? FirstEditColumn =>
         PlacedKeys.Select(k => EditColumns.FirstOrDefault(c => c.EditKey == k)).FirstOrDefault(c => c is not null) ?? EditColumns.FirstOrDefault();
 
-    private DataGridEditFields EditFieldsOf => _editFields ??= new(key =>
-        EditColumns.FirstOrDefault(c => c.EditKey == key) is { } column ? EditorOf(column) : null);
+    private DataGridEditFields EditFieldsOf => _editFields ??= new(placed =>
+    {
+        if (EditColumns.FirstOrDefault(c => c.EditKey == placed.Key) is not { } column)
+        {
+            return null;
+        }
+
+        _placedFields[column] = placed;
+        return EditorOf(column);
+    });
 
     private async Task SaveEditAsync(EditContext context)
     {
@@ -559,9 +562,9 @@
         var isNew = key == NewRowKey;
         var item = isNew ? default : RowOf(key);
         var found = isNew || (item is not null && CanEditRow(item));
-        var label = EditDialogTitle?.Invoke(item)
+        var label = FormTemplate!.Title?.Invoke(item)
             ?? (isNew ? TextDefaults.Add : item is null ? TextDefaults.Edit : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)));
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="FormTemplate.Size" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
             @if (found)
             {
                 @FormTemplate!.ChildContent?.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
@@ -701,9 +704,9 @@
     {
         SyncEdit(key, posted);
         var missing = _editModel is null && !IsLoading && !_finding;
-        var title = EditDialogTitle is not null && _editModel is not null ? EditDialogTitle(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
-            <Form Columns="EditFormColumns" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
+        var title = EditLayoutPart?.Title is { } titled && _editModel is not null ? titled(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditLayoutPart?.Size ?? DialogSize.Md" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+            <Form Columns="EditLayoutPart?.Columns ?? 1" Layout="EditLayoutPart?.Layout ?? FormLayout.Vertical" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
                 @if (missing)
                 {
                     <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
