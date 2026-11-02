@@ -17,7 +17,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
 
     private static async Task<ILocator> EditFirstRowAsync(IPage page)
     {
-        await page.Locator(Grid).Locator("tbody tr").First.Locator("a[aria-label^='Edit']").ClickAsync();
+        await page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("a[aria-label^='Edit']").ClickAsync();
         var dialog = page.Locator($"{Grid} dialog[open]");
         await dialog.WaitForAsync();
         return dialog;
@@ -34,9 +34,9 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await dialog.GetByLabel("Customer").FillAsync("Saved Customer");
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(page.Locator($"{Grid} dialog[open]")).ToHaveCountAsync(0);
-        await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First).ToContainTextAsync("Saved Customer");
+        await Assertions.Expect(page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First).ToContainTextAsync("Saved Customer");
         Assert.DoesNotContain("edits-edit", page.Url);
-        await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
+        await Assertions.Expect(page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
     }
 
     [Theory]
@@ -50,9 +50,47 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await dialog.GetByLabel("Customer").FillAsync("Not saved");
         await dialog.Locator("[data-ib-edit-cancel]").ClickAsync();
         await Assertions.Expect(page.Locator($"{Grid} dialog[open]")).ToHaveCountAsync(0);
-        await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First).Not.ToContainTextAsync("Not saved");
-        await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
+        await Assertions.Expect(page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First).Not.ToContainTextAsync("Not saved");
+        await Assertions.Expect(page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
         Assert.DoesNotContain("edits-edit", page.Url);
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Add_makes_a_row_and_delete_asks_then_removes_it(string mode)
+    {
+        var (browser, page) = await OpenAsync(mode);
+        await using var _ = browser;
+        var rows = page.Locator(Grid).Locator(".ib-table-scroll tbody tr");
+        await page.Locator(Grid).Locator(".ib-grid-toolbar [data-ib-edit]").ClickAsync();
+        var dialog = page.Locator($"{Grid} dialog[open]");
+        await dialog.GetByLabel("Customer").FillAsync("Brand New");
+        await dialog.GetByLabel("Status").SelectOptionAsync("Pending");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        await Assertions.Expect(rows.First).ToContainTextAsync("Brand New");
+
+        await rows.First.Locator("[aria-label^='Delete']").ClickAsync();
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Delete" }).ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        await Assertions.Expect(rows.First).Not.ToContainTextAsync("Brand New");
+    }
+
+    // The button isn't drawn for a paid order, but anyone can type the address.
+    [Fact]
+    public async Task A_row_that_cant_be_deleted_cant_be_by_its_address()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using var _ = browser;
+        var paid = page.Locator(Grid).Locator(".ib-table-scroll tbody tr", new() { HasText = "Paid" }).First;
+        Assert.Equal(0, await paid.Locator("[aria-label^='Delete']").CountAsync());
+        var number = await paid.Locator("td").First.InnerTextAsync();
+
+        await page.GotoAsync($"{page.Url}&edits-delete={number}", new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var dialog = page.Locator($"{Grid} dialog[open]");
+        await Assertions.Expect(dialog).ToContainTextAsync("isn't available");
+        Assert.Equal(0, await dialog.GetByRole(AriaRole.Button, new() { Name = "Delete" }).CountAsync());
     }
 
     [Fact]
@@ -73,7 +111,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
     {
         var (browser, page) = await OpenAsync("static");
         await using var _ = browser;
-        var number = await page.Locator(Grid).Locator("tbody tr").First.Locator("td").First.InnerTextAsync();
+        var number = await page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("td").First.InnerTextAsync();
 
         var dialog = await EditFirstRowAsync(page);
         await dialog.Locator("input[name='ib-edit.Total']").EvaluateAsync("i => { i.type = 'text'; i.value = 'abc'; i.form.noValidate = true; }");
@@ -84,6 +122,6 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await dialog.Locator("input[name='ib-edit.Total']").EvaluateAsync("i => { i.type = 'number'; i.value = '5'; i.insertAdjacentHTML('afterend', '<input type=\"hidden\" name=\"ib-edit.Number\" value=\"999999\">'); }");
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(page.Locator($"{Grid} dialog[open]")).ToHaveCountAsync(0);
-        Assert.Equal(number, await page.Locator(Grid).Locator("tbody tr").First.Locator("td").First.InnerTextAsync());
+        Assert.Equal(number, await page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("td").First.InnerTextAsync());
     }
 }

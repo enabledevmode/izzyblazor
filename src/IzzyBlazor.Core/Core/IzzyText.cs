@@ -303,14 +303,29 @@ public class IzzyText
     /// <summary>A DataGrid row's edit button and editor. {0} is the row's label.</summary>
     public virtual string EditItem { get; set; } = "Edit {0}";
 
+    /// <summary>A DataGrid's Add button, and its editor's title for a new row.</summary>
+    public virtual string Add { get; set; } = "Add";
+
+    /// <summary>A DataGrid's delete button in its confirmation.</summary>
+    public virtual string Delete { get; set; } = "Delete";
+
+    /// <summary>A DataGrid row's delete action. {0} is the row's label.</summary>
+    public virtual string DeleteItem { get; set; } = "Delete {0}";
+
+    /// <summary>A DataGrid's delete confirmation's title. {0} is the row's label.</summary>
+    public virtual string DeleteConfirm { get; set; } = "Delete {0}?";
+
+    /// <summary>A DataGrid's delete confirmation.</summary>
+    public virtual string DeleteWarning { get; set; } = "This can't be undone.";
+
     /// <summary>A DataGrid editor's save button.</summary>
     public virtual string Save { get; set; } = "Save";
 
     /// <summary>A DataGrid editor, when a save would change the row's key.</summary>
     public virtual string EditKeyChanged { get; set; } = "A row's key can't be changed.";
 
-    /// <summary>A DataGrid editor, when its row is no longer among those on the page.</summary>
-    public virtual string EditRowGone { get; set; } = "That row is no longer on this page, so nothing was saved.";
+    /// <summary>A DataGrid editor, when its row isn't on the page, or can't be edited.</summary>
+    public virtual string EditRowGone { get; set; } = "That row isn't available here, so nothing was changed.";
 
     /// <summary>A Toolbar's "…" button, which holds what doesn't fit.</summary>
     public virtual string MoreActions { get; set; } = "More actions";

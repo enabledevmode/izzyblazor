@@ -352,11 +352,7 @@
                 }
             }
             @Footer(PagesLabel)
-            @BelowGrid
     };
-
-    /// <summary>What a view draws below everything else: a grid's editor.</summary>
-    internal virtual RenderFragment? BelowGrid => null;
 
     /// <summary>The columns: <see cref="PropertyColumn{TItem, TValue}"/> and <see cref="TemplateColumn{TItem}"/>.</summary>
     [Parameter] public RenderFragment? ChildContent { get; set; }

@@ -3,16 +3,11 @@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 @inject NavigationManager Navigation
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders with menus" ItemKey="o => o.Number.ToString()" QueryPrefix="menus-" Grow>
-    <ChildContent>
-        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
-        <PropertyColumn Property="o => o.Customer" />
-        <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
-    </ChildContent>
-    <RowMenu Context="order">
-        <MenuItem Href="@Navigation.GetUriWithQueryParameter("order", order.Number)">View @order.Number</MenuItem>
-        @if (order.Status != Table.OrderStatus.Paid)
-        {
-            <MenuItem Href="@Navigation.GetUriWithQueryParameter("cancel", order.Number)">Cancel @order.Number</MenuItem>
-        }
-    </RowMenu>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" />
+    <ActionColumn Context="order" Overflow="RowActionOverflow.Always">
+        <RowAction Label="@($"View {order.Number}")" Href="@Navigation.GetUriWithQueryParameter("order", order.Number)" />
+        <RowAction Label="@($"Cancel {order.Number}")" Href="@Navigation.GetUriWithQueryParameter("cancel", order.Number)" Visible="order.Status != Table.OrderStatus.Paid" />
+    </ActionColumn>
 </DataGrid>

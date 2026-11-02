@@ -113,7 +113,8 @@ class Grid extends IzzyElement {
     }, signal);
     const check = () => {
       if (this.#saving === null || root.querySelector("dialog[data-ib-edit-for]")) return;
-      root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(this.#saving)}"] [data-ib-edit]`)?.focus();
+      // The row's first action, or for a row deleted or added, the first there is.
+      (root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(this.#saving)}"] [data-ib-edit]`) ?? root.querySelector<HTMLElement>("[data-ib-edit]"))?.focus();
       this.#saving = null;
     };
     const gone = new MutationObserver(check);
@@ -144,7 +145,8 @@ class Grid extends IzzyElement {
       if (!editor) throw new Error();
       root.querySelector(named)?.remove();
       history.pushState(null, "", link.href);
-      root.append(document.adoptNode(editor));
+      // Where the server draws it, so that a later merge leaves it be.
+      root.querySelector(":scope > ib-grid")?.after(document.adoptNode(editor));
       // After its own close handler, which takes the key out of the address.
       editor.querySelector("dialog")?.addEventListener("close", () => setTimeout(() => editor.remove()));
     } catch {

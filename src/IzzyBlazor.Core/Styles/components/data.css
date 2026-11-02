@@ -1118,6 +1118,18 @@
     text-align: center;
   }
 
+  /* The editor's dialog is in the top layer: no flex item, no gap, nothing moves as it opens. */
+  .ib-datagrid > ib-dialog {
+    display: contents;
+  }
+
+  /* From the start, so a row without one action keeps the others in line with the rows above. */
+  .ib-grid-actions {
+    display: flex;
+    gap: var(--ib-space-1);
+    padding-inline: var(--ib-space-2);
+  }
+
   .ib-datagrid .ib-table-grid {
     table-layout: fixed;
   }

@@ -61,11 +61,13 @@
     grid's text columns. Text doesn't carry FilterCase, so a grid that sets it needs the same Case on
     those fields.
 
-    RowMenu gives each row a ⋮ menu of MenuItems in a last column, working with no script. With script
-    a right-click on the row, a long press, Shift+F10 or the menu key opens the same menu. It acts on
-    the row it opened on, and doesn't change the selection; actions on the selection go in the bar. A
-    right-click on a link keeps the browser's menu, with its "open in new tab": that includes the
-    whole of a row with RowHref, whose ⋮ button and Shift+F10 still open the menu.
+    ActionColumn holds a row's actions in a last column: EditAction, DeleteAction and your own
+    RowActions, each a button, or with Overflow="RowActionOverflow.Always" in a ⋮ menu, which works
+    with no script. A grid with editing has one by itself. With script a right-click on the row, a long
+    press, Shift+F10 or the menu key opens the row's menu. It acts on the row it opened on, and doesn't
+    change the selection; actions on the selection go in the bar. A right-click on a link keeps the
+    browser's menu, with its "open in new tab": that includes the whole of a row with RowHref, whose ⋮
+    button and Shift+F10 still open the menu.
 
     EditMode with OnSave edits a row, with no script needed. Each visible column gets a field chosen by
     its type (a text area for text with [DataType(DataType.MultilineText)]) if it can be edited: set
@@ -152,6 +154,8 @@
 
 <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <ib-grid hidden></ib-grid>
+    @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
+    @Editor
     @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive))
     {
         <ib-grid-columns hidden data-ib-layout="@CurrentLayout?.ToJson()" data-ib-layout-key="@LayoutKey" data-ib-save-url="@LayoutSaveUrl"
@@ -173,6 +177,24 @@
     [Parameter] public EventCallback<DataGridSave<TItem>> OnSave { get; set; }
 
     /// <summary>
+    /// A new row's starting values. Setting it adds an Add button to the toolbar, and <c>OnSave</c> gets
+    /// the row with <c>IsNew</c> set.
+    /// </summary>
+    [Parameter] public Func<TItem>? NewItem { get; set; }
+
+    /// <summary>
+    /// Deletes a row, once someone has confirmed it. Setting it adds a Delete action to each row. With no
+    /// error added, the dialog closes and the rows load again.
+    /// </summary>
+    [Parameter] public EventCallback<DataGridDelete<TItem>> OnDelete { get; set; }
+
+    /// <summary>Which rows can be edited; all of them when it's not set. It's checked on a save too, not just when drawing the button.</summary>
+    [Parameter] public Func<TItem, bool>? ItemEditable { get; set; }
+
+    /// <summary>Which rows can be deleted; all of them when it's not set. It's checked on a delete too, not just when drawing the button.</summary>
+    [Parameter] public Func<TItem, bool>? ItemDeletable { get; set; }
+
+    /// <summary>
     /// The key of the row being edited, or null. Binding it (<c>@bind-EditKey</c>) on an interactive page
     /// keeps it, with sort and page, in the component. Otherwise it's in the address (<c>?edit=42</c>).
     /// </summary>
@@ -192,13 +214,31 @@
 
     private bool CanEdit => EditMode != DataGridEditMode.None;
 
-    private string? CurrentEditKey =>
-        !CanEdit ? null
-        : UseState ? EditKey
-        : QueryString.Of(Navigation.Uri).TryGetValue(EditQueryKey, out var key) && key.ToString().Length > 0 ? key.ToString()
-        : null;
+    private string AddQueryKey => $"{QueryPrefix}add";
 
-    private string EditEndHref => Navigation.GetUriWithQueryParameter(EditQueryKey, (string?)null);
+    private string DeleteQueryKey => $"{QueryPrefix}delete";
+
+    private bool CanAdd => CanEdit && NewItem is not null;
+
+    private bool CanDelete => OnDelete.HasDelegate;
+
+    private bool CanEditRow(TItem item) => CanEdit && ItemEditable?.Invoke(item) != false;
+
+    private bool CanDeleteRow(TItem item) => CanDelete && ItemDeletable?.Invoke(item) != false;
+
+    private string? QueryValue(string key) =>
+        QueryString.Of(Navigation.Uri).TryGetValue(key, out var value) && value.ToString().Length > 0 ? value.ToString() : null;
+
+    private string? CurrentEditKey => !CanEdit ? null : UseState ? EditKey : QueryValue(EditQueryKey);
+
+    private bool Adding => CanAdd && (UseState ? _stateAdding : QueryValue(AddQueryKey) is not null);
+
+    private string? CurrentDeleteKey => !CanDelete ? null : UseState ? _stateDeleteKey : QueryValue(DeleteQueryKey);
+
+    private bool _stateAdding;
+    private string? _stateDeleteKey;
+
+    private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
 
     private List<ColumnBase<TItem>> EditColumns => Columns.Where(c => c.IsEditable).ToList();
 
@@ -210,6 +250,9 @@
     private EditContext? _editContext;
     private ValidationMessageStore? _editMessages;
     private Dictionary<ColumnBase<TItem>, RenderFragment>? _editors;
+    private bool _editIsNew;
+    // Stands for "a new row" where the key goes: no ItemKey gives a control character.
+    private const string NewRowKey = "\u0001new";
 
     // Matches the editor to the key and what's loaded. Before the row is found the form still draws, on
     // nothing, as a post for a form that isn't there fails outright.
@@ -225,10 +268,14 @@
             return;
         }
 
-        if (_items.FirstOrDefault(i => KeyOf(i) == key) is { } item)
+        _editIsNew = key == NewRowKey;
+        // A row that can't be edited isn't found, so a link or a post made by hand gets no further.
+        if (_editIsNew || (_items.FirstOrDefault(i => KeyOf(i) == key) is { } found && CanEditRow(found)))
         {
-            _editItem = item;
+            var item = _editIsNew ? NewItem!() : _items.First(i => KeyOf(i) == key);
+            _editItem = _editIsNew ? default : item;
             _editModel = posted is not null ? DataGridEditCopy.Restore(posted, item, EditProperties)
+                : _editIsNew ? item
                 : EditCopy is not null ? EditCopy(item)
                 : DataGridEditCopy.Of(item);
             _editContext = new EditContext(_editModel!);
@@ -255,9 +302,9 @@
             return;
         }
 
-        var save = new DataGridSave<TItem>(_editModel, _editItem!, EditProperties, context, _editMessages);
+        var save = new DataGridSave<TItem>(_editModel, _editItem, _editIsNew, EditProperties, context, _editMessages);
         // A key column left editable: a save to another key would be a save to another row.
-        if (KeyOf(_editModel) != _editKeyFor)
+        if (!_editIsNew && KeyOf(_editModel) != _editKeyFor)
         {
             save.AddError(TextDefaults.EditKeyChanged);
             return;
@@ -276,7 +323,11 @@
         (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors) = (null, default, default, null, null, null);
         if (UseState)
         {
-            await EditKeyChanged.InvokeAsync(null);
+            (_stateAdding, _stateDeleteKey) = (false, null);
+            if (EditKey is not null)
+            {
+                await EditKeyChanged.InvokeAsync(null);
+            }
         }
         else
         {
@@ -294,19 +345,179 @@
     // Closed by Escape, the ✕ or the backdrop. With script its own query key has left the address by now.
     private Task OnEditDialogChangedAsync(bool open) => open ? Task.CompletedTask : EndEditAsync(saved: false);
 
-    /// <inheritdoc />
-    internal override RenderFragment? BelowGrid => CurrentEditKey is not { } key ? null : __builder =>
+    private RenderFragment? Editor
     {
-        if (RendererInfo.IsInteractive)
+        get
         {
-            @EditDialog(key, default)
+            var delete = CurrentDeleteKey;
+            var key = Adding ? NewRowKey : CurrentEditKey;
+            if (delete is null && key is null)
+            {
+                return null;
+            }
+
+            return __builder =>
+            {
+                if (RendererInfo.IsInteractive)
+                {
+                    @(delete is not null ? DeleteDialog(delete) : EditDialog(key!, default))
+                }
+                else
+                {
+                    @* Named for this grid, so that a post reaches only its own form. *@
+                    <FormMappingScope Name="@($"ib-grid-{QueryPrefix}")" Context="scope">
+                        @(delete is not null ? DeleteDialog(delete) : EditBinding(key!))
+                    </FormMappingScope>
+                }
+            };
+        }
+    }
+
+    private readonly object _deleteModel = new();
+    private EditContext? _deleteContext;
+    private ValidationMessageStore? _deleteMessages;
+
+    private async Task DeleteAsync(TItem item, EditContext context)
+    {
+        _deleteMessages!.Clear();
+        var delete = new DataGridDelete<TItem>(item, message =>
+        {
+            _deleteMessages.Add(new FieldIdentifier(_deleteModel, ""), message);
+            context.NotifyValidationStateChanged();
+        });
+        await OnDelete.InvokeAsync(delete);
+        if (!delete.HasErrors)
+        {
+            (_deleteContext, _deleteMessages) = (null, null);
+            await EndEditAsync(saved: true);
+        }
+    }
+
+    private RenderFragment DeleteDialog(string key) => __builder =>
+    {
+        // A row that can't be deleted isn't found, so a link or a post made by hand gets no further.
+        var item = _items.FirstOrDefault(i => KeyOf(i) == key && CanDeleteRow(i));
+        var found = item is not null;
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        if (_deleteContext is null)
+        {
+            _deleteContext = new EditContext(_deleteModel);
+            _deleteMessages = new ValidationMessageStore(_deleteContext);
+        }
+
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@DeleteQueryKey" Title="@(found ? string.Format(culture, TextDefaults.DeleteConfirm, LabelOf(item!)) : TextDefaults.Delete)" Size="DialogSize.Sm" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@key">
+            <Form EditContext="_deleteContext" FormName="@(RendererInfo.IsInteractive ? null : "delete")" OnValidSubmit="@(context => found ? DeleteAsync(item!, context) : Task.CompletedTask)">
+                @if (found)
+                {
+                    <FormErrors />
+                    @TextDefaults.DeleteWarning
+                }
+                else if (!IsLoading)
+                {
+                    <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                }
+                <DialogFooter>
+                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+                    @if (found)
+                    {
+                        <Button Submit Accent="Accent.Danger">@TextDefaults.Delete</Button>
+                    }
+                </DialogFooter>
+            </Form>
+        </Dialog>
+    };
+
+    /// <summary>The column holding a row's actions, when one is written.</summary>
+    internal ActionColumn<TItem>? ActionColumn { get; set; }
+
+    private RenderFragment ActionsOf(TItem item) => ActionColumn?.ChildContent is { } written ? written(item) : AutoActions;
+
+    private RowActionOverflow ActionOverflow => ActionColumn?.Overflow ?? RowActionOverflow.Never;
+
+    private RenderFragment AutoActions => builder =>
+    {
+        if (CanEdit)
+        {
+            builder.OpenComponent<EditAction>(0);
+            builder.CloseComponent();
+        }
+
+        if (CanDelete)
+        {
+            builder.OpenComponent<DeleteAction>(1);
+            builder.CloseComponent();
+        }
+    };
+
+    private RenderFragment? EditControl(TItem item, bool inMenu) => !CanEditRow(item) ? null : __builder =>
+    {
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item));
+        var key = KeyOf(item);
+        @if (inMenu && UseState)
+        {
+            <MenuItem Icon="Lucide.Pencil" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" data-ib-edit>@label</MenuItem>
+        }
+        else if (inMenu)
+        {
+            <MenuItem Icon="Lucide.Pencil" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" data-ib-edit="@EditQueryKey">@label</MenuItem>
+        }
+        else if (UseState)
+        {
+            <IconButton Icon="Lucide.Pencil" Label="@label" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
         }
         else
         {
-            @* Named for this grid, so that a post reaches only its own form. *@
-            <FormMappingScope Name="@($"ib-grid-{QueryPrefix}")" Context="scope">
-                @EditBinding(key)
-            </FormMappingScope>
+            <IconButton Icon="Lucide.Pencil" Label="@label" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@EditQueryKey" />
+        }
+    };
+
+    private void StartDelete(string key) => (_stateDeleteKey, _deleteContext) = (key, null);
+
+    private RenderFragment? DeleteControl(TItem item, bool inMenu) => !CanDeleteRow(item) ? null : __builder =>
+    {
+        var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item));
+        var key = KeyOf(item);
+        @if (inMenu && UseState)
+        {
+            <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger" OnClick="@(() => StartDelete(key))" data-ib-edit>@label</MenuItem>
+        }
+        else if (inMenu)
+        {
+            <MenuItem Icon="Lucide.Trash" Accent="Accent.Danger" Href="@Navigation.GetUriWithQueryParameter(DeleteQueryKey, key)" data-ib-edit="@DeleteQueryKey">@label</MenuItem>
+        }
+        else if (UseState)
+        {
+            <IconButton Icon="Lucide.Trash" Label="@label" OnClick="@(() => StartDelete(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.Trash" Label="@label" Href="@Navigation.GetUriWithQueryParameter(DeleteQueryKey, key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@DeleteQueryKey" />
+        }
+    };
+
+    private RowActionScope ScopeOf(TItem item, bool inMenu) =>
+        new(inMenu, ActionOverflow, menu => EditControl(item, menu), menu => DeleteControl(item, menu));
+
+    private (int Buttons, bool Menu) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item), CanDeleteRow(item));
+
+    bool IDataGridToolbar.HasAdd => CanAdd;
+
+    string IDataGridToolbar.AddLabel => TextDefaults.Add;
+
+    RenderFragment IDataGridToolbar.AddBar(bool showText) => __builder =>
+    {
+        var plus = IconSet.Current.Get(IconRole.Plus);
+        @if (UseState)
+        {
+            <IconButton Icon="plus" Label="@TextDefaults.Add" OnClick="@(() => _stateAdding = true)" data-ib-edit />
+        }
+        else if (showText)
+        {
+            <Button StartIcon="plus" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey">@TextDefaults.Add</Button>
+        }
+        else
+        {
+            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" />
         }
     };
 
@@ -321,8 +532,8 @@
     {
         SyncEdit(key, posted);
         var missing = _editModel is null && !IsLoading;
-        var title = _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@EditQueryKey" Title="@title" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@key">
+        var title = _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
             <Form EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
                 @if (missing)
                 {
@@ -349,7 +560,7 @@
         </Dialog>
     };
 
-    private bool HasActionCell => RowMenu is not null || CanEdit;
+    private bool HasActionCell => ActionColumn is not null || CanEdit || CanDelete;
 
     /// <summary>
     /// Remembers how each person has arranged the columns, in a cookie under this name, so the server
@@ -443,14 +654,6 @@
     /// <c>FilterCase</c> as their <c>Case</c>, for the file to match the screen.
     /// </summary>
     [Parameter] public string? ExportExcelHref { get; set; }
-
-    /// <summary>
-    /// A menu for each row, of <c>MenuItem</c>s, in a ⋮ button in a last column. A row whose menu
-    /// renders nothing has no button. With script, a right-click on the row, a long press, Shift+F10
-    /// or the menu key open it too; on a link, a right-click keeps the browser's menu. With frozen
-    /// End columns, the button's column stays in view with them.
-    /// </summary>
-    [Parameter] public RenderFragment<TItem>? RowMenu { get; set; }
 
     /// <summary>
     /// The page's own controls in the toolbar above the grid: <c>ToolbarButton</c>,
@@ -670,6 +873,11 @@
             throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, and an {nameof(ItemKey)} to know which row is being edited.");
         }
 
+        if (CanDelete && ItemKey is null)
+        {
+            throw new InvalidOperationException($"A DataGrid with an {nameof(OnDelete)} needs an {nameof(ItemKey)} to know which row to delete.");
+        }
+
         if (CanEdit && !WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
         {
             throw new InvalidOperationException($"A DataGrid on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
@@ -849,22 +1057,19 @@
     internal override RenderFragment? LastCell(TItem item) => !HasActionCell ? null : __builder =>
     {
         <td class="@MenuCellClass">
-            @if (CanEdit)
-            {
-                <IconButton Icon="Lucide.Pencil" Label="@string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item))"
-                            Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, KeyOf(item))"
-                            Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@EditQueryKey" />
-            }
-            @if (RowMenu is not null && HasContent(RowMenu(item)))
-            {
-                <Menu>
-                    <Trigger Context="wire">
-                        <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)"
-                                    Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
-                    </Trigger>
-                    <ChildContent>@RowMenu(item)</ChildContent>
-                </Menu>
-            }
+            <div class="ib-grid-actions">
+                <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
+                @if (ActionCount(item).Menu)
+                {
+                    <Menu>
+                        <Trigger Context="wire">
+                            <IconButton Icon="IconSet.Current.Get(IconRole.MoreVertical)" Label="@RowMenuLabel(item)"
+                                        Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-row-menu @attributes="wire" />
+                        </Trigger>
+                        <ChildContent><CascadingValue TValue="RowActionScope" Value="ScopeOf(item, true)">@ActionsOf(item)</CascadingValue></ChildContent>
+                    </Menu>
+                }
+            </div>
         </td>
     };
 
@@ -877,7 +1082,7 @@
     bool IDataGridToolbar.HasColumnPicker => HasPicker;
 
     /// <inheritdoc />
-    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder;
+    internal override bool SelectionTakesToolbar => ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder || CanAdd;
 
     bool IDataGridToolbar.HasExport => HasExportTool;
 
@@ -1025,10 +1230,10 @@
             <span class="ib-visually-hidden" role="status" data-ib-col-say></span>
         }
 
-        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder)
+        if (ToolbarContent is not null || HasSearchTool || HasPicker || HasExportTool || FilterBuilder || CanAdd)
         {
             var placed = DataGridToolbarItem.Placed(ToolbarContent);
-            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool && !FilterBuilder ? "ib-grid-toolbar-picker-only" : null)">
+            <div class="ib-grid-toolbar @(ToolbarContent is null && !HasSearchTool && !HasExportTool && !FilterBuilder && !CanAdd ? "ib-grid-toolbar-picker-only" : null)">
                 @* Around the toolbar, not inside it: its items keep the order they join in, and a wrapper would delay these. *@
                 <CascadingValue TValue="IDataGridToolbar" Value="this">
                     <Toolbar Label="@($"{Caption ?? TextDefaults.TableName}: {TextDefaults.GridToolbar}")">
@@ -1048,6 +1253,10 @@
                         @if (!placed.Contains(typeof(DataGridColumnPicker)))
                         {
                             <DataGridColumnPicker />
+                        }
+                        @if (!placed.Contains(typeof(DataGridAdd)))
+                        {
+                            <DataGridAdd />
                         }
                     </Toolbar>
                 </CascadingValue>
@@ -1157,10 +1366,11 @@
 
             if (HasActionCell)
             {
-                // The edit button and the ⋮ side by side need more than the one's width.
-                if (RowMenu is not null && CanEdit)
+                // As wide as the most buttons a row has, the ⋮ among them.
+                var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu) ? count + (menu ? 1 : 0) : 0);
+                if (buttons > 1)
                 {
-                    style.Append("--ib-datagrid-menu:5rem;");
+                    style.Append(System.FormattableString.Invariant($"--ib-datagrid-menu:{0.75 + 2.25 * buttons}rem;"));
                 }
 
                 parts.Add("var(--ib-datagrid-menu)");
