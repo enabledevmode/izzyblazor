@@ -29,6 +29,10 @@ public class RegistryTests
         Assert.Empty(registered.Except(files));
         Assert.Empty(files.Except(registered));
         Assert.All(files, id => Assert.NotNull(Catalog.SourceOf(id)));
+
+        // A model on a tab of its own, and the line that names it left out of what's shown.
+        Assert.Equal("EditableOrder.cs", Assert.Single(Catalog.FilesOf("data-grid-editing")).FileName);
+        Assert.DoesNotContain("file:", Catalog.SourceOf("data-grid-editing")!.Value.Source);
     }
 
     [Fact]

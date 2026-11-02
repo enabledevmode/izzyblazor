@@ -222,7 +222,24 @@
     private RenderFragment Source => __builder =>
     {
         <div class="ex-box ex-source">
-            <Code Block Language="razor" Title="@_source!.Value.FileName" HighlightLines="@HighlightLines" MaxHeight="Length.Rem(32)">@_source.Value.Source</Code>
+            @if (Catalog.FilesOf(Example) is { Count: > 0 } files)
+            {
+                <Tabs Label="Source files" Size="ControlSize.Sm" ContentPadding="0" Class="ib-example-files">
+                    <Tab Label="@_source!.Value.FileName">
+                        <Code Block Language="razor" HighlightLines="@HighlightLines" MaxHeight="Length.Rem(32)">@_source.Value.Source</Code>
+                    </Tab>
+                    @foreach (var file in files)
+                    {
+                        <Tab Label="@file.FileName">
+                            <Code Block Language="csharp" MaxHeight="Length.Rem(32)">@file.Source</Code>
+                        </Tab>
+                    }
+                </Tabs>
+            }
+            else
+            {
+                <Code Block Language="razor" Title="@_source!.Value.FileName" HighlightLines="@HighlightLines" MaxHeight="Length.Rem(32)">@_source.Value.Source</Code>
+            }
         </div>
     };
 

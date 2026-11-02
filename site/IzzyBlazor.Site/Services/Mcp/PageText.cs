@@ -96,6 +96,6 @@ public sealed class PageText(IServiceProvider services, Registry registry, Examp
 
         // The notes shown under the preview in a mode ("Static: The browser checks before posting").
         var notes = registry.Example(id)?.Example.Notes.Select(n => $"\n\n{ModeChip.Name(n.Key)}: {n.Value}") ?? [];
-        return $"Example: {(title.Length > 0 ? title : id)} (`{id}`)\n\n{Markdown.Fence(source.Source, "razor")}{string.Concat(notes)}";
+        return $"Example: {(title.Length > 0 ? title : id)} (`{id}`)\n\n{Markdown.Fence(source.Source, "razor")}{string.Concat(catalog.FilesOf(id).Select(f => $"\n\n{f.FileName}\n\n{Markdown.Fence(f.Source, "csharp")}"))}{string.Concat(notes)}";
     }
 }

@@ -421,6 +421,11 @@ public sealed partial class McpDocs(ApiMetadata api, Registry registry, ExampleC
         }
 
         text.Append($"\n`{source.FileName}`:\n\n{Markdown.Fence(source.Source, "razor")}\n");
+        foreach (var file in catalog.FilesOf(key))
+        {
+            text.Append($"\n`{file.FileName}`:\n\n{Markdown.Fence(file.Source, "csharp")}\n");
+        }
+
         text.Append("\nLines the docs hide (sample data, scaffolding) are left out.\n");
         return text.ToString();
     }
