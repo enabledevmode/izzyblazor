@@ -187,6 +187,26 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         var day = row.Locator(".ib-calendar-grid tbody td").First;
         await day.WaitForAsync();
         Assert.Equal("0px", await day.EvaluateAsync<string>("e => getComputedStyle(e).borderBottomWidth"));
+
+        // Every month's name and every year in full, in English, beside their chevrons.
+        var head = row.Locator(".ib-calendar-head select");
+        const string overflowing = """
+            select => {
+                const style = getComputedStyle(select);
+                const room = select.getBoundingClientRect().width - parseFloat(style.paddingInlineStart) - parseFloat(style.paddingInlineEnd) - parseFloat(style.borderLeftWidth) - parseFloat(style.borderRightWidth);
+                const text = document.createElement("span");
+                text.style.cssText = "position:absolute;white-space:nowrap";
+                text.style.fontFamily = style.fontFamily;
+                text.style.fontSize = style.fontSize;
+                text.style.fontWeight = style.fontWeight;
+                document.body.append(text);
+                const over = [...select.options].filter(o => { text.textContent = o.text; return text.getBoundingClientRect().width > room; }).map(o => o.text);
+                text.remove();
+                return over;
+            }
+            """;
+        Assert.Empty(await head.Nth(0).EvaluateAsync<string[]>(overflowing));
+        Assert.Empty(await head.Nth(1).EvaluateAsync<string[]>(overflowing));
     }
 
     [Fact]

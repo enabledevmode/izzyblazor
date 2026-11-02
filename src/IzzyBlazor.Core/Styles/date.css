@@ -38,7 +38,7 @@
   /* Narrower than a day, for a long month's name. */
   .ib-calendar-head .ib-calendar-nav {
     flex: none;
-    width: 1.75rem;
+    width: 1.5rem;
     height: var(--ib-calendar-cell);
   }
 
@@ -48,9 +48,9 @@
 
   /* Tighter than a field, as two of them and the buttons share a month's width. */
   .ib-calendar-selects {
-    --ib-field-px: var(--ib-space-2);
+    --ib-field-px: var(--ib-space-1);
     flex: 1 1 0;
-    gap: var(--ib-space-1);
+    gap: 2px;
     min-width: 0;
   }
 
@@ -59,9 +59,20 @@
     min-width: 0;
   }
 
+  /* Four digits and its chevron; the month has the rest. */
   .ib-calendar-selects > :last-child {
     flex: none;
-    width: calc(var(--ib-calendar-cell) * 2 + 0.25rem);
+    width: calc(var(--ib-field-font) * 2.7 + var(--ib-field-px) * 2 + var(--ib-icon-size) + var(--ib-space-1));
+  }
+
+  /* English's longest month fits. Longer, in another language, it's cut short, clear of the chevron
+     (a styleable select's text can't end in an ellipsis). */
+  .ib-calendar-selects .ib-has-end select.ib-field-input {
+    overflow: hidden;
+    overflow: clip;
+    overflow-clip-margin: content-box;
+    padding-inline-end: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-1));
+    text-overflow: ellipsis;
   }
 
   .ib-calendar-month {
