@@ -210,11 +210,21 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>Why <see cref="Editable"/> can't work on this column, or null when it can.</summary>
     protected virtual string? EditProblem => $"The \"{HeaderText}\" column can't be edited: only a PropertyColumn can, for now.";
 
-    /// <summary>The field that edits this column on <paramref name="model"/>, posting under <paramref name="name"/>.</summary>
-    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed) => builder =>
+    /// <summary>
+    /// The field that edits this column on <paramref name="model"/>, posting under <paramref name="name"/>.
+    /// With <paramref name="rowForm"/> it's in a row, and joins that form from there.
+    /// </summary>
+    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed, string? rowForm) => builder =>
     {
         var field = placed();
         var attributes = new Dictionary<string, object> { ["name"] = name, ["Label"] = field?.Label ?? HeaderText };
+        if (rowForm is not null)
+        {
+            attributes["form"] = rowForm;
+            attributes["HideLabel"] = true;
+            attributes["Size"] = ControlSize.Sm;
+        }
+
         if (field?.Hint is { } hint)
         {
             attributes["Hint"] = hint;
@@ -487,11 +497,11 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     }
 
     /// <inheritdoc />
-    internal override RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed)
+    internal override RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus, Func<EditField?> placed, string? rowForm)
     {
         if (EditTemplate is not null)
         {
-            return base.Editor(model, name, receiver, autofocus, placed);
+            return base.Editor(model, name, receiver, autofocus, placed, rowForm);
         }
 
         var property = EditProperty!;
@@ -526,6 +536,16 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
             if (field is { ColSpan.IsEmpty: false })
             {
                 builder.AddComponentParameter(10, "ColSpan", field.ColSpan);
+            }
+
+            if (rowForm is not null)
+            {
+                builder.AddComponentParameter(11, "form", rowForm);
+                builder.AddComponentParameter(12, "Size", ControlSize.Sm);
+                if (typeof(TValue) != typeof(bool))
+                {
+                    builder.AddComponentParameter(13, "HideLabel", true);
+                }
             }
 
             builder.CloseComponent();

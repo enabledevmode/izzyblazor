@@ -55,7 +55,7 @@
             }
             else if (Paging == DataPaging.Pages)
             {
-                <Pagination Page="_page" TotalItems="_total ?? 0" PageSize="size" QueryKey="@PageKey" Size="ControlSize.Sm" Label="@pagesLabel" />
+                <Pagination Page="_page" TotalItems="_total ?? 0" PageSize="size" QueryKey="@PageKey" ClearKeys="LinkClears" Size="ControlSize.Sm" Label="@pagesLabel" />
             }
             else
             {

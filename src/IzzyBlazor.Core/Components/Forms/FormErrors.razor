@@ -42,10 +42,15 @@
     /// <summary>The heading. Defaults to "Please fix the following".</summary>
     [Parameter] public string? Title { get; set; }
 
+    /// <summary>Properties of the form's model whose messages it leaves out, for fields that say so themselves, in a form where this summary is far from them.</summary>
+    [Parameter] public IReadOnlyList<string>? ExceptFields { get; set; }
+
     private IzzyText TextDefaults => IzzyText.From(Services);
 
     private IReadOnlyList<string> Messages =>
-        EditContext is null ? [] : EditContext.GetValidationMessages().ToList();
+        EditContext is null ? []
+        : ExceptFields is null ? EditContext.GetValidationMessages().ToList()
+        : EditContext.GetValidationMessages().Except(ExceptFields.SelectMany(f => EditContext.GetValidationMessages(new FieldIdentifier(EditContext.Model, f)))).ToList();
 
     private EditContext? _subscribed;
     private ElementReference _element;

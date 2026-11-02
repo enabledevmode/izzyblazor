@@ -386,10 +386,24 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     // so paging by cursor starts over.
     internal int PageAt(int newSize) => !CursorPaging && EffectivePageSize is { } current ? (_page - 1) * current / newSize + 1 : 1;
 
+    /// <summary>Address keys the view's links take out, along with what they change: what's open that they end.</summary>
+    internal virtual IReadOnlyList<string> LinkClears => [];
+
+    /// <summary>The address with these changed, for a link of the view's.</summary>
+    internal string LinkWith(Dictionary<string, object?> changes)
+    {
+        foreach (var key in LinkClears)
+        {
+            changes[key] = null;
+        }
+
+        return Navigation.GetUriWithQueryParameters(changes);
+    }
+
     internal string PageSizeHref(int size)
     {
         var page = PageAt(size);
-        return Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        return LinkWith(new Dictionary<string, object?>
         {
             [SizeKey] = size == DefaultPageSize ? null : size,
             [PageKey] = page == 1 ? null : page,
@@ -995,14 +1009,14 @@ public abstract partial class DataViewBase<TItem> : IDisposable
 
     // A list that grows, on a static page: the same list with one more page.
     internal string MoreHref =>
-        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        LinkWith(new Dictionary<string, object?>
         {
             [PageKey] = _lastPage + 1,
             [CursorKey] = null,
         });
 
     internal string CursorHref(PageTarget target) =>
-        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        LinkWith(new Dictionary<string, object?>
         {
             [CursorKey] = target.Cursor,
             [PageKey] = target.Cursor is null || target.Page <= 1 ? null : target.Page,

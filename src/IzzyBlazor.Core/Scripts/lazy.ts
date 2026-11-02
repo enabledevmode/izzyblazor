@@ -15,6 +15,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-table": () => import("./elements/table.js"),
   "ib-grid": () => import("./elements/grid.js"),
   "ib-grid-columns": () => import("./elements/grid-columns.js"),
+  "ib-grid-edit": () => import("./elements/grid-edit.js"),
   "ib-filter-form": () => import("./elements/filter-form.js"),
   "ib-filter-list": () => import("./elements/filter-list.js"),
   "ib-filter-builder": () => import("./elements/filter-builder.js"),

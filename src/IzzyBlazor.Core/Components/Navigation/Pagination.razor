@@ -88,6 +88,9 @@
     /// <summary>The query-string key for the page. Defaults to <c>page</c>. Page 1 leaves it out of the URL.</summary>
     [Parameter] public string QueryKey { get; set; } = "page";
 
+    /// <summary>Other address keys its links take out, for what a new page ends.</summary>
+    [Parameter] public IReadOnlyList<string>? ClearKeys { get; set; }
+
     /// <summary>Pages shown on each side of the current one. Defaults to 1.</summary>
     [Parameter] public int Siblings { get; set; } = 1;
 
@@ -180,7 +183,9 @@
     }
 
     private string Href(int page) =>
-        Navigation.GetUriWithQueryParameter(QueryKey, page == 1 ? null : (int?)page);
+        ClearKeys is { Count: > 0 } keys
+            ? Navigation.GetUriWithQueryParameters(keys.Append(QueryKey).ToDictionary(k => k, k => k == QueryKey && page != 1 ? (object?)page : null))
+            : Navigation.GetUriWithQueryParameter(QueryKey, page == 1 ? null : (int?)page);
 
     private static string ItemClass(string extra) =>
         extra.Length == 0 ? "ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item" : $"ib-btn ib-btn-neutral ib-btn-ghost ib-pagination-item {extra}";

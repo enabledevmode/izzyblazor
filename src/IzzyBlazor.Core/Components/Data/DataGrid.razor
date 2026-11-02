@@ -85,6 +85,11 @@
         <PropertyColumn Property="o => o.Notes" Visible="false" />
     </DataGrid>
 
+    DataGridEditMode.Row edits where the row stands, with Save and Cancel in place of its actions, also
+    with no script. Only the columns shown have a field, so a hidden one keeps its value. A new row
+    starts at the top of the page. Sorting, filtering or changing page ends the edit, and what's typed
+    goes with it. It can't be used with Virtualize or loading on scroll, or with an EditFormTemplate.
+
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
     - With script it's an ARIA grid, one Tab stop, with the keys below. A cell with one link, button or
@@ -107,6 +112,7 @@
     - Ctrl+Home, Ctrl+End | Move to the first cell of the first row, or the last cell of the last
     - PageUp, PageDown | Move by the rows in view; from the edge of a page, to the next page
     - Enter, F2 | Go into a cell with several controls or a field
+    - F2 | Edit the row, from a cell of text, in a grid that edits rows
     - Enter | On a row that's a link, follow it, from a cell of text
     - Alt+Down | Open the cell's menu
     - Shift+F10, Menu | Open the row's menu (on a link, only Shift+F10)
@@ -114,6 +120,10 @@
     - Tab | Move among its controls, and back out past either end
     - Up, Down, Left, Right | On a button or link, move on to another cell; a field keeps them
     - Escape, F2 | Go back to the cell
+    In a row being edited
+    - Tab, Shift+Tab | Move through its fields, then Save and Cancel
+    - Enter | In a field, save
+    - Escape | Cancel, once any open list or picker has closed
     Selecting rows
     - Space | Select or clear the row, from a cell of text
     - Shift+Space | Select or clear the row, from anywhere in it but a field
@@ -154,6 +164,10 @@
 
 <ib-table @attributes="AdditionalAttributes" class="@_class" style="@_style" data-ib-stays-static="@(WillBeInteractive ? null : "")" data-ib-hold="@HeldFor" data-ib-page-key="@(NeedsFilterForm && !UseState ? PageKey : null)" data-ib-cursor-key="@(NeedsFilterForm && !UseState && CursorPaging ? CursorKey : null)" data-ib-load-on-scroll="@(Paging == DataPaging.LoadOnScroll ? "" : null)" data-ib-interactive="@(RendererInfo.IsInteractive ? "" : null)">
     <ib-grid hidden></ib-grid>
+    @if (CanEdit || CanDelete)
+    {
+        <ib-grid-edit hidden></ib-grid-edit>
+    }
     @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
     @Editor
     @if (Rearrangeable || (LayoutKey is not null && RendererInfo.IsInteractive))
@@ -249,7 +263,33 @@
 
     private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
 
-    private List<ColumnBase<TItem>> EditColumns => Columns.Where(c => c.IsEditable).ToList();
+    // In a row, only what's shown has a field to post; the rest stays as loaded.
+    private List<ColumnBase<TItem>> EditColumns => (InRow ? Shown : Columns).Where(c => c.IsEditable).ToList();
+
+    private bool InRow => EditMode == DataGridEditMode.Row;
+
+    /// <inheritdoc />
+    internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, DeleteQueryKey] : [];
+
+    private string? _rowFormId;
+
+    private string RowFormId => _rowFormId ??= IdGenerator.Next("ib-grid-edit");
+
+    // The row with a form going, once it's been matched to the address.
+    private string? RowEditKey => InRow && !_ending && _editModel is not null && CurrentDeleteKey is null && (Adding ? NewRowKey : CurrentEditKey) is { } key && key == _editKeyFor ? key : null;
+
+    /// <inheritdoc />
+    internal override bool IsEditingRow(TItem item) => RowEditKey is { } key && key != NewRowKey && KeyOf(item) == key;
+
+    /// <inheritdoc />
+    internal override TItem? NewRowItem => RowEditKey == NewRowKey ? _editModel : default;
+
+    /// <inheritdoc />
+    internal override RenderFragment? EditCell(ColumnBase<TItem> column) => !column.IsEditable ? null : __builder =>
+    {
+        @* Keyed by it: a field can't take another context, as a bound parent keeping the key after a save gives it. *@
+        <CascadingValue @key="_editContext" TValue="EditContext" Value="_editContext">@EditorOf(column)</CascadingValue>
+    };
 
     /// <summary>The form written in place of the generated one.</summary>
     internal EditFormTemplate<TItem>? FormTemplate { get; set; }
@@ -277,7 +317,8 @@
 
     private async Task FindRowAsync()
     {
-        var key = Adding ? null : CurrentDeleteKey ?? CurrentEditKey;
+        // A row edited in place is on the page, or there's nowhere to edit it.
+        var key = Adding ? null : CurrentDeleteKey ?? (InRow ? null : CurrentEditKey);
         if (FindItem is null || key is null || key == _foundKey || _items.Any(i => KeyOf(i) == key))
         {
             return;
@@ -318,6 +359,11 @@
     // Here and not with the parameters: the parts that decide these are written among the columns.
     private void CheckEditing()
     {
+        if (InRow && FormTemplate is not null)
+        {
+            throw new InvalidOperationException($"An EditFormTemplate replaces the edit dialog, so it needs {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+        }
+
         if (!CanEdit || FormTemplate is not null)
         {
             return;
@@ -384,16 +430,23 @@
         (_editors ??= []).TryGetValue(column, out var editor)
             ? editor
             : _editors[column] = column.Editor(_editModel!, $"{DataGridEditBinding<TItem>.Prefix}.{column.EditProperty!.Name}", this,
-                // Opening goes to the first field. After a failed save, FormErrors takes focus instead.
-                () => column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true,
-                () => _placedFields.GetValueOrDefault(column));
+                // Opening goes to the first field. After a failed save, a dialog's FormErrors takes focus
+                // instead, and a row's first invalid field, its message beside it.
+                () => InRow
+                    ? column == (EditColumns.FirstOrDefault(c => HasError(c)) ?? EditColumns.FirstOrDefault())
+                    : column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true,
+                () => _placedFields.GetValueOrDefault(column),
+                InRow ? RowFormId : null);
+
+    private bool HasError(ColumnBase<TItem> column) =>
+        _editContext?.GetValidationMessages(new FieldIdentifier(_editModel!, column.EditProperty!.Name)).Any() == true;
 
     // What an EditField set for its column, read as the column's field draws.
     private readonly Dictionary<ColumnBase<TItem>, EditField> _placedFields = [];
 
     private DataGridEditFields? _editFields;
 
-    private List<string> PlacedKeys => EditField.KeysIn(EditLayoutPart?.ChildContent);
+    private List<string> PlacedKeys => InRow ? [] : EditField.KeysIn(EditLayoutPart?.ChildContent);
 
     // In the order the dialog draws them: those placed, then the rest.
     private ColumnBase<TItem>? FirstEditColumn =>
@@ -483,7 +536,7 @@
                 }
                 else if (RendererInfo.IsInteractive)
                 {
-                    @(delete is not null ? DeleteDialog(delete) : EditDialog(key!, default))
+                    @(delete is not null ? DeleteDialog(delete) : InRow ? RowForm(key!, default) : EditDialog(key!, default))
                 }
                 else
                 {
@@ -624,19 +677,19 @@
         var key = KeyOf(item);
         @if (inMenu && UseState)
         {
-            <MenuItem Icon="Lucide.Pencil" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" data-ib-edit>@label</MenuItem>
+            <MenuItem Icon="Lucide.Pencil" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" data-ib-edit data-ib-edit-start>@label</MenuItem>
         }
         else if (inMenu)
         {
-            <MenuItem Icon="Lucide.Pencil" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" data-ib-edit="@EditQueryKey">@label</MenuItem>
+            <MenuItem Icon="Lucide.Pencil" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" data-ib-edit="@EditQueryKey" data-ib-edit-start data-ib-edit-row="@(InRow ? "" : null)">@label</MenuItem>
         }
         else if (UseState)
         {
-            <IconButton Icon="Lucide.Pencil" Label="@label" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit />
+            <IconButton Icon="Lucide.Pencil" Label="@label" OnClick="@(() => EditKeyChanged.InvokeAsync(key))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit data-ib-edit-start />
         }
         else
         {
-            <IconButton Icon="Lucide.Pencil" Label="@label" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@EditQueryKey" />
+            <IconButton Icon="Lucide.Pencil" Label="@label" Href="@Navigation.GetUriWithQueryParameter(EditQueryKey, key)" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit="@EditQueryKey" data-ib-edit-start data-ib-edit-row="@(InRow ? "" : null)" />
         }
     };
 
@@ -685,19 +738,57 @@
         }
         else if (showText)
         {
-            <Button StartIcon="plus" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey">@TextDefaults.Add</Button>
+            <Button StartIcon="plus" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)">@TextDefaults.Add</Button>
         }
         else
         {
-            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" />
+            <IconButton Icon="plus" Label="@TextDefaults.Add" Href="@Navigation.GetUriWithQueryParameter(AddQueryKey, 1)" data-ib-edit="@AddQueryKey" data-ib-edit-row="@(InRow ? "" : null)" />
         }
     };
 
     private RenderFragment EditBinding(string key) => builder =>
     {
         builder.OpenComponent<DataGridEditBinding<TItem>>(0);
-        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => EditDialog(key, posted)));
+        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => InRow ? RowForm(key, posted) : EditDialog(key, posted)));
         builder.CloseComponent();
+    };
+
+    // The form of a row being edited: empty but for errors no field shows, as a form can't hold rows of a
+    // table, and the row's fields and Save join it by its id.
+    private RenderFragment RowForm(string key, TItem? posted) => __builder =>
+    {
+        var had = _editModel is not null;
+        SyncEdit(key, posted);
+        // On a static page this is drawn after the row's cells, which have the model to draw now.
+        if (!had && _editModel is not null && !RendererInfo.IsInteractive)
+        {
+            StateHasChanged();
+        }
+
+        if (_editModel is null && !IsLoading)
+        {
+            <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+        }
+
+        <Form Class="ib-grid-edit-form" id="@RowFormId" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync" OnInvalidSubmit="@(() => StateHasChanged())" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+            @if (_editModel is not null)
+            {
+                <FormErrors ExceptFields="@EditProperties.Select(p => p.Name).ToList()" />
+            }
+        </Form>
+    };
+
+    private RenderFragment RowEditActions => __builder =>
+    {
+        <IconButton Icon="Lucide.Save" Label="@TextDefaults.Save" Submit Form="@RowFormId" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+        @if (UseState)
+        {
+            <IconButton Icon="Lucide.Undo2" Label="@TextDefaults.Cancel" OnClick="@(() => EndEditAsync(saved: false))" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit-cancel />
+        }
+        else
+        {
+            <IconButton Icon="Lucide.Undo2" Label="@TextDefaults.Cancel" Href="@EditEndHref" Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" data-ib-edit-cancel data-ib-edit-row />
+        }
     };
 
     private RenderFragment EditDialog(string key, TItem? posted) => __builder =>
@@ -1095,6 +1186,11 @@
             Logger?.LogWarning("A DataGrid on a static page needs a {Key} or {Url} for people to rearrange its columns, so it shows no controls.", nameof(LayoutKey), nameof(LayoutSaveUrl));
         }
 
+        if (InRow && (Virtualize || Appending))
+        {
+            throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Row)} can't edit rows that load as they're needed, as an edited row could scroll away with what's typed in it: use {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+        }
+
         // Rows that load as they're needed can't be counted on to hold the one a link names.
         if (CanEdit && FindItem is null && (Virtualize || Appending))
         {
@@ -1234,8 +1330,15 @@
     {
         <td class="@MenuCellClass">
             <div class="ib-grid-actions">
-                <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
-                @if (ActionCount(item).Menu)
+                @if (RowEditKey is { } editing && (editing == NewRowKey || IsEditingRow(item)))
+                {
+                    @RowEditActions
+                }
+                else
+                {
+                    <CascadingValue TValue="RowActionScope" Value="ScopeOf(item, false)">@ActionsOf(item)</CascadingValue>
+                }
+                @if (RowEditKey is null && ActionCount(item).Menu)
                 {
                     <Menu>
                         <Trigger Context="wire">
@@ -1545,6 +1648,8 @@
             {
                 // As wide as the most buttons a row has, the ⋮ among them.
                 var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu) ? count + (menu ? 1 : 0) : 0);
+                // Save and Cancel have to fit, and starting an edit mustn't move the columns.
+                buttons = InRow ? Math.Max(buttons, 2) : buttons;
                 if (buttons > 1)
                 {
                     style.Append(System.FormattableString.Invariant($"--ib-datagrid-menu:{0.75 + 2.25 * buttons}rem;"));

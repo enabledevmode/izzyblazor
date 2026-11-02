@@ -15,6 +15,12 @@ public enum DataGridEditMode
 
     /// <summary>In a dialog, with a field for each editable column.</summary>
     Dialog,
+
+    /// <summary>
+    /// In the row, with a field in each editable column that's shown. A new row starts at the top of the
+    /// page. Not with rows that load as they're needed, which could scroll it away.
+    /// </summary>
+    Row,
 }
 
 /// <summary>

@@ -1123,6 +1123,71 @@
     display: contents;
   }
 
+  /* A row's form holds only its hidden fields, and errors no field shows. */
+  .ib-grid-edit-form {
+    display: contents;
+  }
+
+  /* The row reads as the same row: its fields have no box, and line up with the text they replace. */
+  .ib-table-grid tbody tr[data-ib-editing] > td {
+    background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
+  }
+
+  .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input {
+    padding-inline: 0;
+    border-width: 0 0 1px;
+    border-radius: 0;
+    background: none;
+    text-align: inherit;
+  }
+
+  .ib-datagrid tr[data-ib-editing] .ib-field-control > :not(textarea).ib-field-input {
+    height: 1.5em;
+  }
+
+  .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input:focus-visible {
+    border-color: var(--ib-color-primary);
+    outline: 0;
+    box-shadow: 0 1px 0 var(--ib-color-primary);
+  }
+
+  .ib-datagrid tr[data-ib-editing] .ib-field-invalid .ib-field-control > .ib-field-input {
+    border-color: var(--ib-color-danger);
+    box-shadow: 0 1px 0 var(--ib-color-danger);
+  }
+
+  /* An error wraps, where a number's cell otherwise stays on one line. */
+  .ib-datagrid .ib-table-grid tr[data-ib-editing] > td {
+    white-space: normal;
+  }
+
+  tr[data-ib-editing] .ib-field-error {
+    text-align: start;
+  }
+
+  tr[data-ib-editing] .ib-field-error p {
+    align-items: start;
+  }
+
+  /* A new row in an empty grid. */
+  tr[data-ib-editing] ~ .ib-table-empty {
+    display: none;
+  }
+
+  /* The arrow keys still step. */
+  tr[data-ib-editing] [data-ib-steppers] {
+    display: none;
+  }
+
+  tr[data-ib-editing] .ib-date-toggle {
+    background: none;
+  }
+
+  /* The column's title says it, for a checkbox whose label would repeat it. It's still its name. */
+  tr[data-ib-editing] .ib-check {
+    font-size: 0;
+  }
+
   /* From the start, so a row without one action keeps the others in line with the rows above. */
   .ib-grid-actions {
     display: flex;

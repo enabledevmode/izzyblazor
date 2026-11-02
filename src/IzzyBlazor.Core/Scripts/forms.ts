@@ -128,7 +128,7 @@ export function installStaleErrors(): void {
     if (target.classList.contains("ib-combobox-input")) return;
     const field = target.closest<HTMLElement>(".ib-field-invalid");
     // Only static forms: Blazor owns an interactive form's markup.
-    if (!field || !field.closest("form")?.querySelector('input[name="_handler"]')) return;
+    if (!field || !((target as HTMLInputElement).form ?? field.closest("form"))?.querySelector('input[name="_handler"]')) return;
     const error = field.querySelector<HTMLElement>(":scope > .ib-field-error");
     const saved: [Element, string | null, string | null][] = [];
     field.classList.remove("ib-field-invalid");
