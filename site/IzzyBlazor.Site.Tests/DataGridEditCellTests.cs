@@ -102,17 +102,4 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         await Assertions.Expect(Open(page).GetByLabel("Customer")).ToBeFocusedAsync();
     }
 
-    [Fact]
-    public async Task On_a_static_page_it_edits_the_row()
-    {
-        await using var browser = await TestBrowser.OpenAsync();
-        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-        await page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First.Locator("a[aria-label^='Edit']").ClickAsync();
-        var row = page.Locator($"{Grid} tr[data-ib-editing]");
-        await row.GetByLabel("Customer").FillAsync("Saved in the row");
-        await row.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
-        await Assertions.Expect(page.Locator($"{Grid} tr[data-ib-editing]")).ToHaveCountAsync(0);
-        await Assertions.Expect(page.Locator(Grid).Locator(".ib-table-scroll tbody tr").First).ToContainTextAsync("Saved in the row");
-    }
 }

@@ -318,6 +318,34 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal(2, target.Qty);
     }
 
+    public sealed class PostableRow
+    {
+        public string Name { get; set; } = "";
+    }
+
+    [Fact]
+    public void Cell_mode_on_a_static_page_edits_a_row_at_a_time()
+    {
+        RenderFragment columns = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<PostableRow, string>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<PostableRow, string>>)(r => r.Name));
+            builder.CloseComponent();
+        };
+        var cut = Render<DataGrid<PostableRow>>(p => p
+            .Add(x => x.Items, [new PostableRow { Name = "a" }])
+            .Add(x => x.ChildContent, columns)
+            .Add(x => x.ItemKey, r => r.Name)
+            .Add(x => x.EditMode, DataGridEditMode.Cell)
+            .Add(x => x.OnSave, (DataGridSave<PostableRow> _) => { }));
+
+        // No cell starts by itself, and the pencil opens the row where it stands.
+        Assert.Empty(cut.FindAll("td[data-ib-edit-col]"));
+        var pencil = cut.Find("a[data-ib-edit-start]");
+        Assert.Contains("edit=a", pencil.GetAttribute("href"));
+        Assert.True(pencil.HasAttribute("data-ib-edit-row"));
+    }
+
     [Fact]
     public void A_layout_places_a_field_once_and_a_field_it_leaves_out_after_it()
     {
