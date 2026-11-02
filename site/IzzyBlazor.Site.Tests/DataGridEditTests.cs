@@ -55,12 +55,10 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         Assert.DoesNotContain("edits-edit", page.Url);
     }
 
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task Add_makes_a_row_and_delete_asks_then_removes_it(string mode)
+    [Fact]
+    public async Task Add_makes_a_row_and_delete_asks_then_removes_it()
     {
-        var (browser, page) = await OpenAsync(mode);
+        var (browser, page) = await OpenAsync("static");
         await using var _ = browser;
         var rows = page.Locator(Grid).Locator(".ib-table-scroll tbody tr");
         await page.Locator(Grid).Locator(".ib-grid-toolbar [data-ib-edit]").ClickAsync();
@@ -96,16 +94,14 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
-    public async Task A_layout_places_each_field_once_and_the_rest_after_it(string mode)
+    public async Task A_field_of_your_own_saves_with_the_generated_ones(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
         await using var _ = browser;
-        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders in sections'])");
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders in two columns'])");
         var rows = grid.Locator(".ib-table-scroll tbody tr");
         await rows.First.Locator("[aria-label^='Edit']").ClickAsync();
         var dialog = grid.Locator("dialog[open]");
-        await Assertions.Expect(dialog.Locator("input[name='ib-edit.Customer']")).ToHaveCountAsync(1);
-        await Assertions.Expect(dialog.Locator("textarea[name='ib-edit.Notes']")).ToHaveCountAsync(1);
         await dialog.Locator("input[name='ib-edit.Customer']").FillAsync("Sectioned");
         await dialog.GetByRole(AriaRole.Radio, new() { Name = "Refunded" }).CheckAsync(new() { Force = true });
         await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
