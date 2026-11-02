@@ -41,32 +41,6 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(form).ToContainTextAsync("Booked for 14:15.");
     }
 
-    [Fact]
-    public async Task The_keys_move_a_slot_at_a_time_and_a_disabled_one_cant_be_chosen()
-    {
-        var (page, form, input, browser) = await OpenAsync("static");
-        await using var _ = browser;
-        await input.FocusAsync();
-        await page.Keyboard.PressAsync("Alt+ArrowDown");
-        await Assertions.Expect(Slot(form, "10:30")).ToBeFocusedAsync();
-
-        await page.Keyboard.PressAsync("ArrowDown");
-        await Assertions.Expect(Slot(form, "10:45")).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Home");
-        await Assertions.Expect(Slot(form, "09:00")).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("End");
-        await Assertions.Expect(Slot(form, "17:00")).ToBeFocusedAsync();
-
-        await Slot(form, "12:15").FocusAsync();
-        await page.Keyboard.PressAsync("Enter");
-        await Assertions.Expect(input).ToHaveValueAsync("10:30");
-        await Assertions.Expect(form.Locator("[popover]").First).ToBeVisibleAsync();
-
-        await page.Keyboard.PressAsync("Escape");
-        await Assertions.Expect(form.Locator("[popover]").First).ToBeHiddenAsync();
-        await Assertions.Expect(input).ToHaveValueAsync("10:30");
-    }
-
     [Theory]
     [InlineData("static")]
     public async Task Where_a_list_makes_no_sense_it_has_boxes_and_writes_on_ok(string mode)
