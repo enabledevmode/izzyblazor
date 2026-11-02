@@ -2701,6 +2701,63 @@
     }
   }
 
+  /* A field's clear button, inside its end, past whatever else is there. It waits for the script, and
+     until there's something to clear. */
+  .ib-field-clear {
+    position: absolute;
+    inset-block: 0;
+    inset-inline-end: var(--ib-clear-end, var(--ib-space-1));
+    display: flex;
+    align-items: center;
+  }
+
+  .ib-field-clear:not([data-ready]),
+  .ib-field-clear[hidden] {
+    display: none;
+  }
+
+  .ib-field-clear > button {
+    display: inline-flex;
+    padding: 0.25rem;
+    border: 0;
+    border-radius: var(--ib-radius-sm);
+    background: none;
+    color: var(--ib-color-subtle);
+    cursor: pointer;
+    --ib-icon-size: 0.875rem;
+  }
+
+  .ib-field-clear > button:hover {
+    color: var(--ib-color-on-surface);
+    background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
+  }
+
+  .ib-field-clear > button:focus-visible {
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
+  }
+
+  .ib-has-end {
+    --ib-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-1));
+  }
+
+  /* Past the calendar or list's button, which has padding of its own. */
+  .ib-date-control {
+    --ib-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + 0.5rem);
+  }
+
+  .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) {
+    --ib-clear-end: 1.75rem;
+  }
+
+  .ib-has-split-steppers:has(> [data-ib-steppers]:not([hidden])) {
+    --ib-clear-end: calc(var(--ib-field-h) + var(--ib-space-1));
+  }
+
+  .ib-field-control:has(> .ib-field-clear[data-ready]:not([hidden])) > .ib-field-input {
+    padding-inline-end: calc(var(--ib-clear-end, var(--ib-space-1)) + 1.5rem);
+  }
+
   /* DateRangeField: two inputs drawn as one field, the box taking the border and the focus ring. */
   .ib-date-range-captions {
     display: grid;
@@ -2714,13 +2771,21 @@
 
   .ib-date-range-box {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) 1.5rem minmax(0, 1fr) auto;
+    grid-template-columns: minmax(0, 1fr) 1.5rem minmax(0, 1fr) auto auto;
     align-items: center;
     justify-items: center;
     border: 1px solid var(--ib-field-border);
     border-radius: var(--ib-field-radius, var(--ib-radius-control, var(--ib-radius-md)));
     background-color: var(--ib-field-bg);
     transition: border-color var(--ib-duration-fast) var(--ib-ease), box-shadow var(--ib-duration-fast) var(--ib-ease);
+  }
+
+  .ib-date-range-box > .ib-field-clear {
+    position: static;
+  }
+
+  .ib-date-range-box:has(> .ib-field-clear[data-ready]:not([hidden])) > .ib-field-input {
+    padding-inline-end: var(--ib-field-px);
   }
 
   .ib-date-range-box > ib-popover,

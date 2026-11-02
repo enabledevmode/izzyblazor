@@ -1,5 +1,5 @@
 <Form Model="Model" FormName="date-field-days" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
-    <DateField @bind-Value="Model!.Delivery" Hint="We don't deliver at weekends." DateDisabled="IsWeekend" Min="@First" Max="@Last" />
+    <DateField @bind-Value="Model!.Delivery" Hint="We don't deliver at weekends." DateDisabled="IsWeekend" Min="@First" Max="@Last" Clearable />
     <DateField @bind-Value="Model!.Reminder" UseNative Hint="The browser's calendar." />
     <Row><Button Submit>Save</Button></Row>
     @if (_saved is { } saved)

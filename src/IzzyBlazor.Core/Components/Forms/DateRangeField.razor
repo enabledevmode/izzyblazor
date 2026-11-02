@@ -55,7 +55,7 @@
     - Shift+Page Up, Shift+Page Down | Move a year
     - Enter, Space | Choose the first day, or the last, which saves both and closes
     In the months
-    - Tab, Shift+Tab | Move through the presets, the arrows, the days and Clear, and close past either end
+    - Tab, Shift+Tab | Move through the presets, the arrows and the days, and close past either end
     - Escape | Close without changing the value
     See also: DateField, Calendar, Form.
 *@
@@ -97,6 +97,10 @@
                disabled="@IsDisabled"
                readonly="@IsReadOnly"
                aria-invalid="@(Invalid ? "true" : null)" />
+        @if (Clearable && !IsDisabled && !IsReadOnly)
+        {
+            @ClearButton
+        }
         @if (HasPanel)
         {
             @if (RendererInfo.IsInteractive)
@@ -139,10 +143,6 @@
                                     @CalendarGrid.Months(DrawnMonths(DisplayMonths))
                                     <div class="ib-calendar-foot">
                                         <span class="ib-calendar-summary" data-ib-summary aria-live="polite"></span>
-                                        @if (ShowsClear)
-                                        {
-                                            <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
-                                        }
                                     </div>
                                 </div>
                             </div>
@@ -188,8 +188,8 @@
     /// <summary>How many months show side by side, from 1 to 6. Defaults to 2. A phone shows one.</summary>
     [Parameter] public int DisplayMonths { get; set; } = 2;
 
-    /// <summary>Whether the months have a Clear button. Defaults to true unless the field is required.</summary>
-    [Parameter] public bool? Clearable { get; set; }
+    /// <summary>A button in the field that empties both ends, there while it holds something. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
 
     /// <summary>
     /// Ranges to choose in one click, beside the months, such as <see cref="DateRangePreset.Common"/>.
@@ -215,8 +215,6 @@
     private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
 
     private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChooseRange;
-
-    private bool ShowsClear => Clearable ?? !IsRequired;
 
     // A field whose rules a browser's calendar can't show keeps the library's on a phone too.
     private string BoxClass => new ClassBuilder()

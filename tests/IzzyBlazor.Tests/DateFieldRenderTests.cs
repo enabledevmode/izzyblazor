@@ -179,12 +179,13 @@ public class DateFieldRenderTests : BunitContext
     }
 
     [Fact]
-    public void Its_grid_is_named_by_the_month_alone_and_clear_needs_a_value_it_can_empty()
+    public void Its_grid_is_named_by_the_month_alone_and_a_clear_button_needs_a_value_it_can_empty()
     {
         var cut = DateFor(() => _model.Due);
         Assert.DoesNotContain("-label", cut.Find("table").GetAttribute("aria-labelledby"));
-        Assert.NotEmpty(cut.FindAll("[data-ib-clear]"));
-        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.Required, true)).FindAll("[data-ib-clear]"));
+        Assert.Empty(cut.FindAll("ib-field-clear"));
+        Assert.NotEmpty(DateFor(() => _model.Due, p => p.Add(f => f.Clearable, true)).FindAll("ib-field-clear"));
+        Assert.Empty(DateFor(() => _model.StartsAt, p => p.Add(f => f.Clearable, true).Add(f => f.Disabled, true)).FindAll("ib-field-clear"));
     }
 
     [Fact]

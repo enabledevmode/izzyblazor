@@ -78,8 +78,6 @@ class Calendar extends IzzyElement {
     const [hourBox, minuteBox, secondBox] = time ? time.querySelectorAll("input") : [];
     const dayPart = time?.querySelector("select");
     const okButton = this.querySelector<HTMLButtonElement>("[data-ib-ok]");
-    const todayButton = this.querySelector<HTMLButtonElement>("[data-ib-today]");
-    const clearButton = this.querySelector<HTMLButtonElement>("[data-ib-clear]");
     const end = control?.querySelector<HTMLInputElement>("[data-ib-end]");
     const rangeValue = control?.querySelector<HTMLInputElement>("[data-ib-range-value]");
     const summary = this.querySelector("[data-ib-summary]");
@@ -278,7 +276,6 @@ class Calendar extends IzzyElement {
         const named = end && ended !== null && written !== null ? `${dayName.format(date(written))} – ${dayName.format(date(ended))}` : written !== null && !end ? dayName.format(date(written)) + (time ? `, ${text.value.slice(11)}` : "") : null;
         if (toggle) put(toggle, "aria-label", named !== null && data.ibChange ? data.ibChange.replace("{0}", named) : data.ibChoose ?? null);
         if (okButton) set(okButton, "disabled", chosen === null);
-        if (todayButton) set(todayButton, "disabled", blocked(today));
         for (const preset of presets) put(preset, "aria-pressed", String(preset.dataset.start === text.value && preset.dataset.end === end!.value));
         if (summary) {
           const length = started !== null && ended !== null ? ended - started + 1 : 0;
@@ -484,11 +481,8 @@ class Calendar extends IzzyElement {
         } else if (target.classList.contains("ib-calendar-day")) {
           const view = views.find((candidate) => candidate.days.includes(target as HTMLButtonElement))!;
           choose(view.start + view.days.indexOf(target as HTMLButtonElement));
-        } else if (target === todayButton) {
-          cursor = findToday();
-          choose(cursor);
-        } else if (target === clearButton || target === okButton) {
-          write(target === okButton ? chosen : null);
+        } else if (target === okButton) {
+          write(chosen);
           draw();
           close();
         }

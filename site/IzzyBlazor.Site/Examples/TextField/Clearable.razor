@@ -1,0 +1,11 @@
+<Stack Gap="4" MaxWidth="20.Rem" Grow>
+    <TextField @bind-Value="_name" Label="Name" Clearable />
+    <TextField @bind-Value="_search" Label="Search" Clearable StartIcon="Lucide.Search" />
+    <NumberField @bind-Value="_quantity" Label="Quantity" Clearable />
+</Stack>
+
+@code {
+    private string? _name = "Ada Lovelace";
+    private string? _search = "invoices";
+    private int? _quantity = 3;
+}

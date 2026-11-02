@@ -86,6 +86,10 @@
                    data-ib-post="@(PostedZone is null ? null : IsOffset ? "offset" : "utc")"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
+            @if (Clearable && !IsDisabled && !IsReadOnly && Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+            {
+                @ClearButton
+            }
             @if (HasPanel)
             {
                 <Popover Placement="Placement.BottomStart">
@@ -106,19 +110,13 @@
                                 @if (ResolvedType == DateFieldType.DateTime)
                                 {
                                     <div class="ib-calendar-time" role="group" aria-label="@TextDefaults.CalendarTime">
-                                        <div class="ib-field-control">
-                                            <input class="ib-field-input" type="number" inputmode="numeric" min="@(TwelveHours ? 1 : 0)" max="@(TwelveHours ? 12 : 23)" aria-label="@TextDefaults.CalendarHour" />
-                                        </div>
+                                        @TimeBox(TextDefaults.CalendarHour, TwelveHours ? 1 : 0, TwelveHours ? 12 : 23, null)
                                         <span aria-hidden="true">:</span>
-                                        <div class="ib-field-control">
-                                            <input class="ib-field-input" type="number" inputmode="numeric" min="0" max="59" step="@MinuteStep" aria-label="@TextDefaults.CalendarMinute" />
-                                        </div>
+                                        @TimeBox(TextDefaults.CalendarMinute, 0, 59, MinuteStep)
                                         @if (ShowsSeconds)
                                         {
                                             <span aria-hidden="true">:</span>
-                                            <div class="ib-field-control">
-                                                <input class="ib-field-input" type="number" inputmode="numeric" min="0" max="59" aria-label="@TextDefaults.CalendarSecond" />
-                                            </div>
+                                            @TimeBox(TextDefaults.CalendarSecond, 0, 59, null)
                                         }
                                         @if (TwelveHours)
                                         {
@@ -132,17 +130,12 @@
                                         }
                                     </div>
                                 }
-                                <div class="ib-calendar-foot">
-                                    <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-today>@TextDefaults.CalendarToday</Button>
-                                    @if (ShowsClear)
-                                    {
-                                        <Button Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-clear>@TextDefaults.Clear</Button>
-                                    }
-                                    @if (ResolvedType == DateFieldType.DateTime)
-                                    {
+                                @if (ResolvedType == DateFieldType.DateTime)
+                                {
+                                    <div class="ib-calendar-foot">
                                         <Button Size="ControlSize.Sm" data-ib-ok>@TextDefaults.Ok</Button>
-                                    }
-                                </div>
+                                    </div>
+                                }
                             </div>
                         </ib-calendar>
                     </ChildContent>
@@ -198,8 +191,8 @@
     /// </summary>
     [Parameter] public bool UseNative { get; set; }
 
-    /// <summary>Whether the calendar has a Clear button. Defaults to true for a nullable value that isn't required.</summary>
-    [Parameter] public bool? Clearable { get; set; }
+    /// <summary>A button in the field that empties it, for a nullable value, there while it holds something. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
 
     /// <summary>The name of the calendar's button, in place of "Choose date" and "Change date" with the date.</summary>
     [Parameter] public string? ChooseLabel { get; set; }
@@ -215,14 +208,25 @@
     // Nothing to choose from on a field that can't change.
     private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
 
+    // A part of the time, with a NumberField's look and steppers. Not a NumberField, as a field inside a
+    // field's panel would register on the form.
+    private RenderFragment TimeBox(string label, int min, int max, int? step) => __builder =>
+    {
+        <ib-field-control class="ib-field-control ib-has-steppers">
+            <input class="ib-field-input ib-field-number" type="number" inputmode="numeric" min="@min" max="@max" step="@step" aria-label="@label" />
+            <span class="ib-field-steppers" data-ib-steppers hidden>
+                <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@TextDefaults.Increase"><Icon Role="IconRole.ChevronUp" /></button>
+                <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@TextDefaults.Decrease"><Icon Role="IconRole.ChevronDown" /></button>
+            </span>
+        </ib-field-control>
+    };
+
     private bool TwelveHours => ResolvedCulture.DateTimeFormat.ShortTimePattern.Contains('t') && ResolvedCulture.DateTimeFormat.AMDesignator.Length > 0;
 
     // A minute's box steps by Step, when that's whole minutes under an hour.
     private int? MinuteStep => Step is { TotalMinutes: > 1 and < 60 } step && step.Ticks % TimeSpan.TicksPerMinute == 0 ? (int)step.TotalMinutes : null;
 
     private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChoose;
-
-    private bool ShowsClear => Clearable ?? (Nullable.GetUnderlyingType(typeof(TValue)) is not null && !IsRequired);
 
     // A field whose rules a browser's calendar can't show keeps the library's on a phone too.
     private string ControlClass => new ClassBuilder()

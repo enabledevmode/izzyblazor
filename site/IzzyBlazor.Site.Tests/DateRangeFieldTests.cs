@@ -170,26 +170,6 @@ public sealed class DateRangeFieldTests(SiteFixture site) : IClassFixture<SiteFi
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
-    public async Task Clear_empties_both_ends(string mode)
-    {
-        var (page, _, _, _, browser) = await OpenAsync(mode);
-        await using var _ = browser;
-        var form = page.Locator("[data-ex='date-range-field-states']");
-        var start = form.GetByLabel("From");
-        var end = form.GetByLabel("Until");
-        await start.FillAsync("2027-03-08");
-        await end.FillAsync("2027-03-12");
-
-        await Toggle(form).First.ClickAsync();
-        await form.GetByRole(AriaRole.Button, new() { Name = "Clear" }).First.ClickAsync();
-
-        await Assertions.Expect(start).ToHaveValueAsync("");
-        await Assertions.Expect(end).ToHaveValueAsync("");
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_preset_writes_both_and_shows_as_pressed(string mode)
     {
         var (page, _, _, _, browser) = await OpenAsync(mode);

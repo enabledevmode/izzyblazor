@@ -1,5 +1,5 @@
 <Form Model="Model" FormName="time-field-slots" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
-    <TimeField @bind-Value="Model!.Visit" Min="new TimeOnly(9, 0)" Max="new TimeOnly(17, 0)" Step="TimeSpan.FromMinutes(15)" TimeDisabled="AtLunch" Hint="Every 15 minutes, 9 to 5, with no visits over lunch." />
+    <TimeField @bind-Value="Model!.Visit" Min="new TimeOnly(9, 0)" Max="new TimeOnly(17, 0)" Step="TimeSpan.FromMinutes(15)" TimeDisabled="AtLunch" Clearable Hint="Every 15 minutes, 9 to 5, with no visits over lunch." />
     <Row><Button Submit>Book the visit</Button></Row>
     @if (_saved is { } saved)
     {

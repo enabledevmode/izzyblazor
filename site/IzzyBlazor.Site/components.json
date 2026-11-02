@@ -616,6 +616,10 @@
             "noscript": "A plain password input, with no show/hide button.",
             "static": "The script adds the show/hide button."
           } },
+        { "id": "text-field-clearable", "title": "A clear button", "lead": "Use `Clearable` for a button in the field that empties it, there while it holds something. `NumberField`, `DateField`, `DateRangeField` and `TimeField` have it too, for a value that can be empty.",
+          "notes": {
+            "noscript": "The button stays hidden, and the field can be emptied by hand."
+          } },
         { "id": "text-field-icons", "title": "Icons" },
         { "id": "text-field-addons", "title": "Add-ons" },
         { "id": "text-field-validation", "title": "Validation",
