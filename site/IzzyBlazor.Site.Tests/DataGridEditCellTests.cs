@@ -135,6 +135,22 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         Assert.Equal("none", await Layer(other.Locator("td").First));
     }
 
+    [Theory]
+    [InlineData("customer")]
+    [InlineData("status")]
+    [InlineData("date")]
+    [InlineData("total")]
+    public async Task A_cell_being_edited_keeps_its_rows_height(string column)
+    {
+        var (browser, page) = await OpenAsync();
+        await using var _ = browser;
+        const string height = "e => e.getBoundingClientRect().height";
+        var before = await Row(page, 1001).EvaluateAsync<double>(height);
+        await Cell(page, 1001, column).ClickAsync();
+        await Open(page).WaitForAsync();
+        Assert.Equal(before, await Row(page, 1001).EvaluateAsync<double>(height));
+    }
+
     [Fact]
     public async Task A_new_row_is_edited_as_a_row_and_saves()
     {
