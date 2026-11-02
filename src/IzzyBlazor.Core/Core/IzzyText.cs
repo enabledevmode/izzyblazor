@@ -306,6 +306,9 @@ public class IzzyText
     /// <summary>A DataGrid editor's save button.</summary>
     public virtual string Save { get; set; } = "Save";
 
+    /// <summary>A DataGrid editor, when a save would change the row's key.</summary>
+    public virtual string EditKeyChanged { get; set; } = "A row's key can't be changed.";
+
     /// <summary>A DataGrid editor, when its row is no longer among those on the page.</summary>
     public virtual string EditRowGone { get; set; } = "That row is no longer on this page, so nothing was saved.";
 
