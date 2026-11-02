@@ -39,6 +39,22 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Cancel_leaves_the_row_and_the_address_as_they_were(string mode)
+    {
+        var (browser, page) = await OpenAsync(mode);
+        await using var _ = browser;
+        var dialog = await EditFirstRowAsync(page);
+        await dialog.GetByLabel("Customer").FillAsync("Not saved");
+        await dialog.Locator("[data-ib-edit-cancel]").ClickAsync();
+        await Assertions.Expect(page.Locator($"{Grid} dialog[open]")).ToHaveCountAsync(0);
+        await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First).Not.ToContainTextAsync("Not saved");
+        await Assertions.Expect(page.Locator(Grid).Locator("tbody tr").First.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
+        Assert.DoesNotContain("edits-edit", page.Url);
+    }
+
     [Fact]
     public async Task An_error_from_the_save_stays_on_its_field()
     {

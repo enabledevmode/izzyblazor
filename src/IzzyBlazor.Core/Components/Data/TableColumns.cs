@@ -470,11 +470,18 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     }
 
     // Each named outright, so trimming keeps what the column's type can use.
-    private static void OpenField(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
+    private void OpenField(Microsoft.AspNetCore.Components.Rendering.RenderTreeBuilder builder)
     {
         if (Underlying == typeof(string))
         {
-            builder.OpenComponent<TextField>(0);
+            if (EditProperty?.GetCustomAttribute<DataTypeAttribute>()?.DataType == DataType.MultilineText)
+            {
+                builder.OpenComponent<TextArea>(0);
+            }
+            else
+            {
+                builder.OpenComponent<TextField>(0);
+            }
         }
         else if (typeof(TValue) == typeof(bool))
         {

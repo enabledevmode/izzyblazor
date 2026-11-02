@@ -19,7 +19,7 @@ public sealed class EditableOrder
     [Range(0, 1_000_000)]
     public decimal Total { get; set; }
 
-    [StringLength(200)]
+    [StringLength(200), DataType(DataType.MultilineText)]
     public string? Notes { get; set; }
 }
 
