@@ -1,0 +1,9 @@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@* Stripes, a line between columns, and a highlight under the pointer. Lines between rows are on unless
+   RowLines is false. *@
+<DataGrid Items="Rows.All" PageSize="5" Caption="Orders with stripes and lines" Striped ColumnLines RowHover Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" />
+    <PropertyColumn Property="o => o.Date" Format="d" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+</DataGrid>

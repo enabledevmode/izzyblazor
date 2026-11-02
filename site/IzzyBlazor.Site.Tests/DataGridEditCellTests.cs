@@ -114,6 +114,12 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
         await using var _ = browser;
         static Task<string> Layer(ILocator cell) => cell.EvaluateAsync<string>("e => getComputedStyle(e).backgroundImage");
 
+        var asked = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders with stripes and lines']) .ib-table-scroll tbody tr").First;
+        await asked.HoverAsync();
+        Assert.NotEqual("none", await Layer(asked.Locator("td").First));
+
+        // This grid doesn't ask for it, so it's turned on here for the moment a cell is edited.
+        await page.Locator(Grid).EvaluateAsync("e => e.classList.add('ib-table-row-hover')");
         await Row(page, 1002).HoverAsync();
         Assert.NotEqual("none", await Layer(Cell(page, 1002, "customer")));
 
