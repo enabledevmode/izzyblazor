@@ -108,6 +108,28 @@ public sealed class DataGridEditCellTests(SiteFixture site) : IClassFixture<Site
     }
 
     [Fact]
+    public async Task A_row_highlights_only_when_asked_and_not_while_a_cell_in_it_is_edited()
+    {
+        var (browser, page) = await OpenAsync();
+        await using var _ = browser;
+        static Task<string> Layer(ILocator cell) => cell.EvaluateAsync<string>("e => getComputedStyle(e).backgroundImage");
+
+        await Row(page, 1002).HoverAsync();
+        Assert.NotEqual("none", await Layer(Cell(page, 1002, "customer")));
+
+        await Cell(page, 1002, "customer").ClickAsync();
+        await Assertions.Expect(Open(page)).ToHaveCountAsync(1);
+        await Row(page, 1002).Locator("td").First.HoverAsync();
+        Assert.Equal("none", await Layer(Row(page, 1002).Locator("td").First));
+        await page.Keyboard.PressAsync("Escape");
+
+        // Not asked for.
+        var other = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders edited in the row']) .ib-table-scroll tbody tr").First;
+        await other.HoverAsync();
+        Assert.Equal("none", await Layer(other.Locator("td").First));
+    }
+
+    [Fact]
     public async Task A_new_row_is_edited_as_a_row_and_saves()
     {
         var (browser, page) = await OpenAsync();

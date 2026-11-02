@@ -421,6 +421,13 @@
     /// <summary>A class for each row, such as one that highlights overdue orders.</summary>
     [Parameter] public Func<TItem, string?>? RowClass { get; set; }
 
+    /// <summary>
+    /// Highlights the row under the pointer, to help follow a wide one across. Defaults to false, as a
+    /// highlight suggests a row does something. A row with a <c>RowHref</c> always has it, and a row being
+    /// edited never does.
+    /// </summary>
+    [Parameter] public bool RowHover { get; set; }
+
     /// <summary>Alternating row backgrounds.</summary>
     [Parameter] public bool Striped { get; set; }
 
@@ -2018,6 +2025,7 @@
     {
         classes.Add("ib-table");
         classes.Add("ib-table-striped", Striped);
+        classes.Add("ib-table-row-hover", RowHover);
         classes.Add("ib-table-no-row-lines", !RowLines);
         classes.Add("ib-table-column-lines", ColumnLines);
         classes.Add("ib-table-borderless", !Bordered);
