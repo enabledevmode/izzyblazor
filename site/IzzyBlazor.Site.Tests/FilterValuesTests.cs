@@ -127,7 +127,7 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
         await CountIsAsync(Rows(panel), 9);
         Assert.Contains("Select all 9 results", await panel.Locator(".ib-filter-list-all").InnerTextAsync(), StringComparison.Ordinal);
 
-        await All(panel).UncheckAsync();
+        await All(panel).ClickAsync();
         if (mode == "static")
         {
             await panel.Locator(".ib-table-filter-apply").ClickAsync();
