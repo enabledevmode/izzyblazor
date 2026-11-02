@@ -5,7 +5,7 @@ namespace IzzyBlazor.Site.Tests;
 /// <summary>Rearranging a DataGrid's columns in Chromium, and the cookie that keeps it, on the second example.</summary>
 public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
-    private string Url(string mode) => new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString();
+    private string Url(string mode) => new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/columns?mode={mode}").ToString();
 
     private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode)
     {
@@ -55,7 +55,7 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
             var cookies = await page.Context.CookiesAsync();
             Assert.Contains(cookies, c => c.Name == "ib-grid-arrange-example" && c.Value.Contains("customer"));
-            Assert.Equal("/docs/components/data-grid", cookies.First(c => c.Name == "ib-grid-arrange-example").Path);
+            Assert.Equal("/docs/components/data-grid/columns", cookies.First(c => c.Name == "ib-grid-arrange-example").Path);
 
             // The server draws it: the width is in the first HTML, with no script.
             var html = await page.Context.APIRequest.GetAsync(Url(mode));
@@ -155,9 +155,11 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
     [InlineData("static")]
     public async Task Search_filters_as_you_type_and_the_selection_bar_takes_the_toolbars_place(string mode)
     {
-        var (browser, page, _) = await OpenAsync(mode);
+        var browser = await TestBrowser.OpenAsync();
         await using (browser)
         {
+            var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+            await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
             var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
             var toolbar = grid.Locator(".ib-grid-toolbar");
             await toolbar.ScrollIntoViewSettledAsync();

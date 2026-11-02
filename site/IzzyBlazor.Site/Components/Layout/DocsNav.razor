@@ -20,9 +20,23 @@
     @foreach (var category in Registry.Categories)
     {
         <NavGroup Label="@category" Open="@(category == _current?.Category)">
-            @foreach (var component in Registry.InCategory(category))
+            @* A preview isn't listed, but on its own pages it needs its topics. *@
+            @foreach (var component in Registry.InCategory(category).Concat(_current is { Preview: true } && _current.Category == category ? [_current] : []))
             {
-                <NavItem Href="@Registry.OverviewHref(component)">@component.Name</NavItem>
+                @if (component.Topics.Count > 0)
+                {
+                    <NavGroup Label="@component.Name" Open="@(component == _current)">
+                        <NavItem Href="@Registry.OverviewHref(component)" Match="NavLinkMatch.All">Overview</NavItem>
+                        @foreach (var topic in component.Topics)
+                        {
+                            <NavItem Href="@Registry.TopicHref(component, topic)">@topic.Title</NavItem>
+                        }
+                    </NavGroup>
+                }
+                else
+                {
+                    <NavItem Href="@Registry.OverviewHref(component)">@component.Name</NavItem>
+                }
             }
         </NavGroup>
     }
@@ -34,7 +48,7 @@
 
     protected override void OnParametersSet()
     {
-        // docs/components/{id}[/api]
+        // docs/components/{id}[/api, /{topic}]
         var parts = Navigation.ToBaseRelativePath(Navigation.Uri).Split('?', '#')[0].Split('/');
         _current = parts is ["docs", "components", var id, ..] ? Registry.ById(id) : null;
         _section = parts is ["docs", var slug, ..] ? slug : null;

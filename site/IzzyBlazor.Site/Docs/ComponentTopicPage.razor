@@ -1,0 +1,67 @@
+@page "/docs/components/{Id}/{Topic}"
+@attribute [FollowsModeSwitch]
+@inject Registry Registry
+@inject ApiMetadata Api
+@inject NavigationManager Navigation
+
+@*
+    A topic of a component too big for one page (components.json "topics"), with the examples listed
+    under it. The component's API, mode support and keys stay on its Overview, so there's one place to
+    look them up.
+*@
+
+@if (_component is not null && _topic is not null)
+{
+    <PageMeta Title="@($"{_topic.Title} · {_component.Name} · IzzyBlazor")" Description="@_topic.Summary" Indexed="!_component.Preview" />
+
+    <article class="site-article">
+        <ComponentHeader Component="_component" ApiComponent="@Api.Component(_component.Name)" Topic="_topic" />
+
+        <SectionContent SectionName="@ModeSwitch.AsideSection"><ModeSwitch Placement="aside" /></SectionContent>
+        <ModeSwitch Placement="top" />
+
+        @foreach (var paragraph in _topic.Intro)
+        {
+            <TextBlock><InlineCode Text="@paragraph" /></TextBlock>
+        }
+
+        @foreach (var example in _topic.Examples)
+        {
+            <Heading Level="2">@example.Title</Heading>
+            @if (example.Lead is { } lead)
+            {
+                <TextBlock><InlineCode Text="@lead" /></TextBlock>
+            }
+            <ExampleViewer Example="@example.Id" />
+        }
+
+        <PrevNext PreviousHref="@_previous.Href" PreviousTitle="@_previous.Title" NextHref="@_next.Href" NextTitle="@_next.Title" />
+    </article>
+}
+
+@code {
+    [Parameter] public string Id { get; set; } = "";
+
+    [Parameter] public string Topic { get; set; } = "";
+
+    private RegistryComponent? _component;
+    private RegistryTopic? _topic;
+    private (string? Href, string? Title) _previous;
+    private (string? Href, string? Title) _next;
+
+    protected override void OnParametersSet()
+    {
+        _component = Registry.ById(Id);
+        _topic = _component?.Topics.FirstOrDefault(t => t.Id == Topic);
+        if (_component is null || _topic is null)
+        {
+            Navigation.NotFound();
+            return;
+        }
+
+        // Through the component's pages: its Overview, then its topics in order.
+        var at = _component.Topics.IndexOf(_topic);
+        _previous = at == 0 ? (Registry.OverviewHref(_component), "Overview") : (Registry.TopicHref(_component, _component.Topics[at - 1]), _component.Topics[at - 1].Title);
+        _next = at == _component.Topics.Count - 1 ? (null, null) : (Registry.TopicHref(_component, _component.Topics[at + 1]), _component.Topics[at + 1].Title);
+    }
+}

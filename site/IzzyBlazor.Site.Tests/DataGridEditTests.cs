@@ -11,7 +11,7 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/editing?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         return (browser, page);
     }
 

@@ -11,7 +11,7 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
     {
         var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/editing?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         return (browser, page);
     }
 
@@ -78,7 +78,7 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await using var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = false, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString());
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/editing?mode=static").ToString());
         var row = await EditFirstRowAsync(page);
         await row.GetByLabel("Customer").FillAsync("Saved with no script");
         await row.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
@@ -146,7 +146,7 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.AddInitScriptAsync(HoldTheCircuit);
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=interactive").ToString());
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/editing?mode=interactive").ToString());
         await page.WaitForFunctionAsync("() => window.__held.length > 0");
         var grid = $".ib-datagrid:has(.ib-table-scroll[aria-label='{caption}'])";
         await page.Locator(grid).Locator(link).First.ClickAsync();
@@ -164,7 +164,7 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
         await page.AddInitScriptAsync(HoldTheCircuit);
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=interactive").ToString());
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid/editing?mode=interactive").ToString());
         await page.WaitForFunctionAsync("() => window.__held.length > 0");
         const string grid = ".ib-datagrid:has(.ib-table-scroll[aria-label='Orders you can edit'])";
         var firstRow = page.Locator(grid).Locator(".ib-table-scroll tbody tr").First;

@@ -12,7 +12,7 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/filtering?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders to filter" });
         await grid.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await grid.Locator("xpath=ancestor-or-self::ib-table[@data-ib-interactive]").WaitForAsync();

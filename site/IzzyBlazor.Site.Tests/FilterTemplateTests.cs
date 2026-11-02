@@ -10,7 +10,7 @@ public sealed class FilterTemplateTests(SiteFixture site) : IClassFixture<SiteFi
         var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/filtering?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var grid = page.Locator("ib-table", new() { HasText = "Orders by custom filter" });
         await grid.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = "Orders by custom filter" }).WaitForAsync();

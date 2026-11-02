@@ -47,7 +47,7 @@ public sealed class FilterBuilderTests(SiteFixture site) : IClassFixture<SiteFix
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await (await browser.NewContextAsync(new() { Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } })).NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/data-grid/filtering?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = "Orders by builder" }).WaitForAsync();
         var grid = page.Locator("ib-table", new() { HasText = "Orders by builder" });
         await grid.ScrollIntoViewSettledAsync();

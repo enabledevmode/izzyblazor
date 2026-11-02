@@ -6,10 +6,14 @@
         <BreadcrumbItem Href="docs">Docs</BreadcrumbItem>
         <BreadcrumbItem Href="docs/components">Components</BreadcrumbItem>
         <BreadcrumbItem Href="@($"docs/components#{ApiMetadata.Anchor(Component.Category).Replace(' ', '-')}")">@Component.Category</BreadcrumbItem>
+        @if (Topic is not null)
+        {
+            <BreadcrumbItem Href="@Registry.OverviewHref(Component)">@Component.Name</BreadcrumbItem>
+        }
     </Breadcrumb>
     <Row Gap="3" Align="Align.Center" Wrap>
         <Pictogram Name="@Component.Icon" Size="ControlSize.Lg" />
-        <Heading Level="1" Size="TextSize.Xl3">@Component.Name</Heading>
+        <Heading Level="1" Size="TextSize.Xl3">@(Topic?.Title ?? Component.Name)</Heading>
         @if (Component.Preview)
         {
             <Badge Variant="BadgeVariant.Outline">Preview</Badge>
@@ -30,7 +34,7 @@
     @* The registry's one-line summary, the same on every tab, so switching between Overview and
        API changes only what's below. A generated Overview shows the doc comment's fuller summary
        in its body. *@
-    <div class="site-lead">@Component.Summary</div>
+    <div class="site-lead">@(Topic?.Summary ?? Component.Summary)</div>
     <Tabs Label="@($"{Component.Name} pages")">
         <TabLink Href="@Registry.OverviewHref(Component)" Label="Overview" Match="NavLinkMatch.All" />
         <TabLink Href="@Registry.ApiPageHref(Component)" Label="API" Match="NavLinkMatch.All" />
@@ -45,4 +49,7 @@
     [Parameter, EditorRequired] public RegistryComponent Component { get; set; } = null!;
 
     [Parameter] public ApiComponent? ApiComponent { get; set; }
+
+    /// <summary>On a topic's page: it takes the name's and summary's place, and the breadcrumb leads back to the component.</summary>
+    [Parameter] public RegistryTopic? Topic { get; set; }
 }
