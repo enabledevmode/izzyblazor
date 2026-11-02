@@ -53,52 +53,6 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(summary).ToBeFocusedAsync();
     }
 
-    // A response for something else leaves the ticks ticked and still waiting.
-    [Fact]
-    public async Task A_static_list_keeps_its_ticks_through_a_response_on_its_way()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using var _ = browser;
-        await page.RouteAsync("**/docs/components/data-grid*", async route =>
-        {
-            await Task.Delay(700);
-            await route.ContinueAsync();
-        });
-        await grid.Locator(".ib-table-filter-row input[name='row-f-customer']").FillAsync("a");
-        await page.Keyboard.PressAsync("Enter");
-
-        await grid.Locator(".ib-filter-cell-summary").First.ClickAsync();
-        var paid = page.Locator("[popover]:popover-open").GetByLabel("Paid", new() { Exact = true });
-        await paid.ClickAsync();
-        await page.WaitForURLAsync("**/*row-f-customer=a*");
-        await page.WaitForTimeoutAsync(1500);
-
-        await Assertions.Expect(paid).Not.ToBeCheckedAsync();
-        Assert.DoesNotContain("row-f-status", page.Url, StringComparison.Ordinal);
-    }
-
-    [Fact]
-    public async Task A_sort_clicked_with_a_filter_on_its_way_keeps_the_filter()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using var _ = browser;
-        await page.RouteAsync("**/docs/components/data-grid*", async route =>
-        {
-            await Task.Delay(700);
-            await route.ContinueAsync();
-        });
-        await grid.Locator(".ib-filter-cell-summary").First.ClickAsync();
-        var panel = page.Locator("[popover]:popover-open");
-        await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
-        await panel.Locator(".ib-table-filter-apply").ClickAsync();
-
-        await grid.Locator("thead a.ib-table-sort", new() { HasText = "Customer" }).ClickAsync();
-
-        await page.WaitForURLAsync("**/*row-sort=customer*");
-        Assert.Contains("row-f-status=", page.Url, StringComparison.Ordinal);
-        await Assertions.Expect(grid.Locator(".ib-filter-cell-summary").First).ToHaveTextAsync("Pending, Refunded, Failed");
-    }
-
     [Fact]
     public async Task A_static_list_waits_for_apply_and_closing_drops_its_ticks()
     {

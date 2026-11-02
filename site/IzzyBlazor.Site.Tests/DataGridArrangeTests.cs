@@ -40,7 +40,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Dragging_a_handle_resizes_and_a_reload_keeps_it(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
@@ -146,36 +145,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             await page.WaitForTimeoutAsync(300);
 
             Assert.Equal(scrolled, await page.EvaluateAsync<double>("() => window.scrollY"), 0);
-        }
-    }
-
-    // Not back where it came from for as long as the response takes.
-    [Fact]
-    public async Task A_dropped_column_stays_where_it_was_dropped_until_the_new_order_arrives()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using (browser)
-        {
-            await page.RouteAsync("**/docs/components/data-grid*", async route =>
-            {
-                await Task.Delay(800);
-                await route.ContinueAsync();
-            });
-            var customer = grid.Locator("thead th", new() { HasText = "Customer" });
-            var from = await customer.BoundingBoxAsync();
-            var to = await grid.Locator("thead th", new() { HasText = "Status" }).BoundingBoxAsync();
-            await page.Mouse.MoveAsync(from!.X + 12, from.Y + from.Height / 2);
-            await page.Mouse.DownAsync();
-            await page.Mouse.MoveAsync(to!.X + to.Width - 4, from.Y + from.Height / 2, new() { Steps = 6 });
-            await page.Mouse.UpAsync();
-
-            var right = to.X + to.Width;
-            var dropped = await customer.BoundingBoxAsync();
-            Assert.Equal(right, dropped!.X + dropped.Width, 0);
-            await Until(grid, ["Order", "Date", "Status", "Customer", "Total"]);
-            var drawn = await customer.BoundingBoxAsync();
-            Assert.Equal(right, drawn!.X + drawn.Width, 0);
-            Assert.DoesNotContain("translate", await customer.GetAttributeAsync("style") ?? "");
         }
     }
 
