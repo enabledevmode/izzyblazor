@@ -66,9 +66,9 @@
             <div class="ib-date-posts" data-ib-name="@NameAttributeValue">
                 @foreach (var day in Dates)
                 {
-                    <input class="ib-field-input" type="@DateInput" name="@NameAttributeValue" value="@FormatDate(day)" min="@FormatDate(Min)" max="@FormatDate(Max)" aria-label="@ResolvedLabel" />
+                    <input class="ib-field-input" type="@DateInput" name="@NameAttributeValue" value="@FormatDate(day)" min="@FormatDate(Min)" max="@FormatDate(Max)" aria-label="@ResolvedLabel" aria-invalid="@(Invalid ? "true" : null)" aria-describedby="@DescribedBy" />
                 }
-                <input class="ib-field-input" type="@DateInput" name="@NameAttributeValue" min="@FormatDate(Min)" max="@FormatDate(Max)" aria-label="@ResolvedLabel" />
+                <input class="ib-field-input" type="@DateInput" name="@NameAttributeValue" min="@FormatDate(Min)" max="@FormatDate(Max)" aria-label="@ResolvedLabel" aria-invalid="@(Invalid ? "true" : null)" aria-describedby="@DescribedBy" />
             </div>
         }
         @if (Inline)
@@ -79,10 +79,10 @@
                          data-ib-dates="@Joined"
                          data-ib-added="@TextDefaults.CalendarAdded"
                          data-ib-removed="@TextDefaults.CalendarRemoved">
-                <ib-field-control class="ib-field-control ib-calendar-text">@Carrier</ib-field-control>
+                <ib-field-control class="ib-field-control ib-calendar-text ib-date-many">@Carrier</ib-field-control>
                 <div class="ib-calendar-view">
                     <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
-                    @CalendarGrid.Month(Drawn with { Multiple = true }, DescribedBy)
+                    @CalendarGrid.Month(Drawn with { Several = _firstDates }, DescribedBy)
                 </div>
             </ib-calendar>
         }
@@ -114,7 +114,7 @@
                                      data-ib-choose="@ChooseText">
                             <div class="ib-calendar-view">
                                 <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
-                                @CalendarGrid.Month(Drawn with { Multiple = true }, null)
+                                @CalendarGrid.Month(Drawn with { Several = _firstDates }, null)
                             </div>
                         </ib-calendar>
                     </ChildContent>
@@ -160,12 +160,26 @@
 
     private string Summary => string.Join(", ", Dates.Select(day => day.ToString("d", ResolvedCulture)));
 
+    // As the month's cells, these stay as first drawn: what changes reaches the script in data-ib-dates,
+    // and a render writing an older list here would lose a press made since.
+    private HashSet<DateOnly> _firstDates = [];
+    private string _firstJoined = "";
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+        _firstDates = [.. Dates];
+        _firstJoined = Joined;
+    }
+
     private RenderFragment Carrier => @<input @attributes="ControlAttributes"
                                               id="@FieldId"
                                               class="ib-field-input"
                                               type="text"
                                               data-ib-date-list
-                                              value="@Joined"
+                                              readonly
+                                              value="@_firstJoined"
                                               @onchange="Change" />;
 
     /// <inheritdoc />
@@ -204,7 +218,8 @@
     private void Change(ChangeEventArgs e)
     {
         var days = (e.Value?.ToString() ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .Select(text => DateOnly.ParseExact(text, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+            .Select(text => DateOnly.TryParseExact(text, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var day) ? day : default)
+            .Where(day => day != default);
         CurrentValue = ChoiceCollection<TValue, DateOnly>.Create(days);
     }
 

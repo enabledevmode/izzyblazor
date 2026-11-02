@@ -35,7 +35,8 @@
     On a desktop a month is chosen, not typed, and its button shows it, since browsers other than
     Chromium's have no month input. A phone and UseNative keep the browser's input, and with no script
     it's the browser's too, a text box with a pattern where it has none. A year is a number input
-    everywhere, with the page beside it.
+    everywhere, with the page beside it on a desktop. [Range] compares the 1st of the month, so give
+    it a 1st, as a Range starting on March 15 would turn away March.
     DateDisabled, DayClass, ShowWeekNumbers, FirstDayOfWeek, Step, TimeZone and a DateTimeOffset
     throw with these, as they're about days and times.
 
@@ -101,6 +102,7 @@
                    max="@FormatLimit(Max, Range?.Maximum)"
                    step="@StepAttribute"
                    pattern="@(IsMonth ? "[0-9]{4}-[0-9]{2}" : null)"
+                   placeholder="@(IsMonth ? "YYYY-MM" : null)"
                    inputmode="@(IsYear ? "numeric" : null)"
                    required="@IsRequired"
                    disabled="@IsDisabled"
@@ -247,7 +249,7 @@
     private string ControlClass => new ClassBuilder()
         .Add("ib-field-control")
         .Add("ib-date-control", HasPanel)
-        .Add("ib-date-month", HasPanel && IsMonth)
+
         .Add("ib-date-own", HasPanel && DateDisabled is not null)
         .Build()!;
 
@@ -270,8 +272,7 @@
         ? new DateOnly(month / 12, (month % 12) + 1, 1).ToString("Y", ResolvedCulture)
         : ChooseText;
 
-    // The number the script counts in: a year, or a month as year * 12 + month. None for the
-    // default of a value that can't be empty, which is no choice.
+    // The number the script counts in: a year, or a month as year * 12 + month.
     private int? Number(string? text)
     {
         if (text is null)
@@ -281,9 +282,7 @@
 
         var parts = text.Split('-');
         var year = int.Parse(parts[0], System.Globalization.CultureInfo.InvariantCulture);
-        return IsYear ? year
-            : text == "0001-01" ? null
-            : (year * 12) + int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture) - 1;
+        return IsYear ? year : (year * 12) + int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture) - 1;
     }
 
     private static DateOnly? DayOf(string? text) =>
@@ -369,7 +368,11 @@
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Min is not null || Max is not null || DateDisabled is not null;
+    private protected override bool HasOwnRules => Min is not null || Max is not null || DateDisabled is not null || (IsMonth && IsRequired);
+
+    // A month's input is read-only under script, so the browser doesn't check that it's there.
+    /// <inheritdoc />
+    private protected override bool RulesCoverEmpty => IsMonth;
 
     // As the input shows them, in Zone: fixed-width text sorts as the times do.
     /// <inheritdoc />
@@ -380,8 +383,15 @@
         string Said(string limit) => !IsYear && DateTime.TryParse(limit, System.Globalization.CultureInfo.InvariantCulture, out var at)
             ? at.ToString(IsMonth ? "Y" : ResolvedType == DateFieldType.Date ? "d" : "g", culture)
             : limit;
-        return shown is null ? null
-            : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min))
+        if (shown is null)
+        {
+            // [Required] turns away null, and not a default that shows as empty.
+            return IsMonth && IsRequired && (value is not null || Attribute<System.ComponentModel.DataAnnotations.RequiredAttribute>() is null)
+                ? string.Format(culture, TextDefaults.ChoiceRequired, ResolvedLabel)
+                : null;
+        }
+
+        return min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min))
             : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(max))
             : DateDisabled is not null && DayOf(shown) is { } day && DateDisabled(day) ? string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(shown))
             : null;
@@ -413,6 +423,10 @@
 
         DateTime? wall = value switch
         {
+            // A month has no zone to read it in. The default of a value that can't be empty is no choice.
+            DateOnly { Year: 1, Month: 1 } when IsMonth => null,
+            DateTime { Year: 1, Month: 1 } when IsMonth => null,
+            DateTime month when IsMonth => month,
             DateOnly date => date.ToDateTime(TimeOnly.MinValue),
             // Through UTC: ConvertTime throws for a Local time in the server's own DST gap.
             DateTime { Kind: DateTimeKind.Local } local => TimeZoneInfo.ConvertTimeFromUtc(local.ToUniversalTime(), Zone),

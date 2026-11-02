@@ -2656,9 +2656,14 @@
     align-items: center;
   }
 
-  /* A browser draws a date or time left to right on any page, so the button stays on the right of it. */
+  /* A browser draws a date or time left to right on any page, so the button stays on the right of it.
+     A year goes the same way. */
   .ib-date-control:dir(rtl) > ib-popover {
     inset-inline: calc(var(--ib-field-px) - 0.375rem) auto;
+  }
+
+  .ib-date-control:dir(rtl) > .ib-field-number {
+    direction: ltr;
   }
 
   .ib-date-toggle {
@@ -2714,15 +2719,24 @@
     color: transparent;
   }
 
-  .ib-date-control:has([data-ib-cover]) > .ib-field-input::-webkit-datetime-edit {
-    visibility: hidden;
+  .ib-date-control:has([data-ib-cover]) > .ib-field-input::placeholder {
+    color: transparent;
   }
 
-  :not(.ib-field-invalid) > .ib-date-control:has([data-ib-cover]):not(:has(:focus-visible)):hover > .ib-field-input:not(:user-invalid) {
+  /* The list of dates waits under its button, which waits for the script. */
+  .ib-date-many > .ib-field-input {
+    color: transparent;
+  }
+
+  .ib-field:not(.ib-field-invalid) .ib-date-control:has([data-ib-cover]):not(:has(:focus-visible)):hover > .ib-field-input:not(:user-invalid) {
     border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
   }
 
-  .ib-date-control:has([data-ib-cover]):has(.ib-date-toggle:focus-visible) > .ib-field-input {
+  .ib-field-invalid .ib-date-control:has(.ib-date-toggle:focus-visible) > .ib-field-input {
+    box-shadow: 0 0 0 3px color-mix(in oklab, var(--ib-color-danger) 25%, transparent);
+  }
+
+  .ib-field:not(.ib-field-invalid) .ib-date-control:has([data-ib-cover]):has(.ib-date-toggle:focus-visible) > .ib-field-input {
     border-color: var(--ib-color-focus, var(--ib-color-primary));
     box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
   }
@@ -2742,7 +2756,13 @@
     padding-inline: var(--ib-field-px);
     background: none;
     font: inherit;
+    font-size: var(--ib-field-font);
     text-align: start;
+  }
+
+  /* The text stops short of a clear button. */
+  .ib-date-control:has([data-ib-cover]):has(> .ib-field-clear:not([hidden])) .ib-date-toggle {
+    gap: calc(var(--ib-space-2) + 1.5rem);
   }
 
   .ib-date-control:has([data-ib-cover]) .ib-date-toggle:focus-visible {
@@ -2776,6 +2796,16 @@
     .ib-date-posts {
       display: none;
     }
+  }
+
+  /* As with no script, where its code can't load. */
+  .ib-field:has([data-ib-failed]) .ib-date-posts {
+    display: flex;
+  }
+
+  .ib-date-many:has([data-ib-failed]),
+  .ib-field:has(> .ib-date-posts) :is(ib-calendar[data-ib-failed]) {
+    display: none;
   }
 
   @media (scripting: none) {
@@ -2828,6 +2858,13 @@
   .ib-combobox,
   .ib-date-control {
     --ib-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + 0.5rem);
+  }
+
+  /* A phone keeps the browser's input and has no button to clear past. */
+  @media (pointer: coarse) {
+    .ib-date-control:not(.ib-date-own) {
+      --ib-clear-end: var(--ib-space-1);
+    }
   }
 
   .ib-has-steppers:has(> [data-ib-steppers]:not([hidden])) {

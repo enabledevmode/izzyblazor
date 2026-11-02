@@ -219,19 +219,30 @@
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => LimitOf(Min, null) is not null || LimitOf(Max, null) is not null || DateDisabled is not null;
+    private protected override bool HasOwnRules => LimitOf(Min, null) is not null || LimitOf(Max, null) is not null || DateDisabled is not null || IsRequired;
+
+    // Its input is read-only under script, so the browser doesn't check that it's there.
+    /// <inheritdoc />
+    private protected override bool RulesCoverEmpty => true;
 
     /// <inheritdoc />
     private protected override string? OwnRuleError(TValue value)
     {
         var culture = System.Globalization.CultureInfo.CurrentCulture;
+        if ((IsPeriod ? Number(value) : FormatDate(DateOf(value))) is null)
+        {
+            // [Required] turns away null, and not a default that shows as empty.
+            return IsRequired && (value is not null || Attribute<System.ComponentModel.DataAnnotations.RequiredAttribute>() is null)
+                ? string.Format(culture, TextDefaults.ChoiceRequired, ResolvedLabel)
+                : null;
+        }
+
         if (IsPeriod)
         {
             // Fixed-width text sorts as the months and years do.
             var (shown, min, max) = (Number(value), Number(LimitOf(Min, null)), Number(LimitOf(Max, null)));
             string Named(string text) => IsYear ? text : DateOnly.Parse(text, Fixed).ToString("Y", CalendarGrid.Gregorian(culture));
-            return shown is null ? null
-                : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Named(min))
+            return min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Named(min))
                 : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Named(max))
                 : null;
         }

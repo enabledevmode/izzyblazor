@@ -31,7 +31,7 @@ public sealed class MultiDateFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await page.Keyboard.PressAsync("Escape");
         await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
 
-        await Assertions.Expect(example).ToContainTextAsync("3 days off saved.");
+        await Assertions.Expect(example).ToContainTextAsync("Days off saved: 3.");
     }
 
     [Fact]
@@ -55,6 +55,6 @@ public sealed class MultiDateFieldTests(SiteFixture site) : IClassFixture<SiteFi
         await example.Locator(".ib-date-posts input").Last.FillAsync("2027-03-10");
         await example.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
 
-        await Assertions.Expect(example).ToContainTextAsync("3 days off saved.");
+        await Assertions.Expect(example).ToContainTextAsync("Days off saved: 3.");
     }
 }

@@ -21,7 +21,7 @@ namespace IzzyBlazor;
 /// <param name="Text">The text defaults.</param>
 /// <param name="Off">The day numbers of days that can't be chosen, from a disabled-date function.</param>
 /// <param name="DayClasses">The classes of days that have one, by day number.</param>
-/// <param name="Multiple">Whether several days can be chosen.</param>
+/// <param name="Several">The chosen days where several can be chosen, in place of <paramref name="Selected"/>.</param>
 internal readonly record struct CalendarView(
     DateOnly Month,
     DateOnly? Selected,
@@ -39,7 +39,7 @@ internal readonly record struct CalendarView(
     IzzyText Text,
     IReadOnlySet<int>? Off = null,
     IReadOnlyDictionary<int, string>? DayClasses = null,
-    bool Multiple = false);
+    IReadOnlySet<DateOnly>? Several = null);
 
 /// <summary>What <see cref="CalendarGrid.Period"/> draws.</summary>
 /// <param name="Years">Whether it's a page of years, or else of months.</param>
@@ -377,7 +377,7 @@ internal static class CalendarGrid
         builder.AddAttribute(15, "aria-labelledby", view.LabelledBy);
         builder.AddAttribute(16, "aria-describedby", describedBy);
         builder.AddAttribute(17, "aria-readonly", view.ReadOnly ? "true" : null);
-        builder.AddAttribute(17, "aria-multiselectable", view.Multiple ? "true" : null);
+        builder.AddAttribute(17, "aria-multiselectable", view.Several is not null ? "true" : null);
 
         builder.OpenElement(18, "thead");
         builder.OpenElement(19, "tr");
@@ -423,7 +423,7 @@ internal static class CalendarGrid
                 var off = view.Off?.Contains(row + column) == true;
                 builder.OpenElement(33, "td");
                 builder.AddAttribute(34, "class", outside ? "ib-calendar-outside" : null);
-                builder.AddAttribute(35, "aria-selected", date is not null && date == view.Selected ? "true" : null);
+                builder.AddAttribute(35, "aria-selected", date is { } day && (view.Several?.Contains(day) ?? day == view.Selected) ? "true" : null);
                 builder.OpenElement(36, "button");
                 builder.AddAttribute(37, "type", "button");
                 builder.AddAttribute(38, "class", new ClassBuilder()

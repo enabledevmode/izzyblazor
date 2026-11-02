@@ -145,7 +145,11 @@ class PeriodGrid extends IzzyElement {
         }
       }
       // Where there's something to show in its place. A phone's own month input is a good one.
-      if (!panel || (shownText && !matchMedia("(pointer: coarse)").matches)) {
+      const covered = !panel || (shownText && !matchMedia("(pointer: coarse)").matches);
+      // A plain text input from here, in every browser. Where there's no month input the browser's
+      // already made it one, but Blazor goes by the attribute and throws reading its change.
+      if (!years && (covered || input.type !== "month")) put(input, "type", "text");
+      if (covered) {
         set(input, "readOnly", true);
         set(input, "tabIndex", -1);
         put(input, "aria-hidden", "true");

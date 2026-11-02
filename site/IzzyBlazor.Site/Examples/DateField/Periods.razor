@@ -4,7 +4,7 @@
     <Row><Button Submit>Save</Button></Row>
     @if (_saved is { } saved)
     {
-        <Alert Status="Status.Success">Starts @saved.Starts?.ToString("MMMM yyyy"), model year @saved.Year.</Alert>
+        <Alert Status="Status.Success">Starts @(saved.Starts?.ToString("MMMM yyyy") ?? "unset"), model year @(saved.Year?.ToString() ?? "unset").</Alert>
     }
 </Form>
 
