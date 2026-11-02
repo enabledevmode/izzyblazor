@@ -1,0 +1,29 @@
+<Form Model="Model" FormName="multi-date-field-days-off" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <MultiDateField @bind-Value="Model!.DaysOff" Label="Days off" Min="@First" DateDisabled="IsWeekend" Clearable Required
+                    Hint="Weekends are off already." />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">@saved days off saved.</Alert>
+    }
+</Form>
+
+@code {
+    private static readonly DateOnly First = new(2027, 3, 1);
+
+    [SupplyParameterFromForm(FormName = "multi-date-field-days-off")]
+    private Request? Model { get; set; }
+
+    private int? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.DaysOff?.Count;
+
+    private static bool IsWeekend(DateOnly day) => day.DayOfWeek is DayOfWeek.Saturday or DayOfWeek.Sunday;
+
+    public sealed class Request
+    {
+        public List<DateOnly>? DaysOff { get; set; } = [new(2027, 3, 1), new(2027, 3, 5)];
+    }
+}

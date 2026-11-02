@@ -21,6 +21,7 @@ namespace IzzyBlazor;
 /// <param name="Text">The text defaults.</param>
 /// <param name="Off">The day numbers of days that can't be chosen, from a disabled-date function.</param>
 /// <param name="DayClasses">The classes of days that have one, by day number.</param>
+/// <param name="Multiple">Whether several days can be chosen.</param>
 internal readonly record struct CalendarView(
     DateOnly Month,
     DateOnly? Selected,
@@ -37,7 +38,8 @@ internal readonly record struct CalendarView(
     string LabelledBy,
     IzzyText Text,
     IReadOnlySet<int>? Off = null,
-    IReadOnlyDictionary<int, string>? DayClasses = null);
+    IReadOnlyDictionary<int, string>? DayClasses = null,
+    bool Multiple = false);
 
 /// <summary>What <see cref="CalendarGrid.Period"/> draws.</summary>
 /// <param name="Years">Whether it's a page of years, or else of months.</param>
@@ -375,6 +377,7 @@ internal static class CalendarGrid
         builder.AddAttribute(15, "aria-labelledby", view.LabelledBy);
         builder.AddAttribute(16, "aria-describedby", describedBy);
         builder.AddAttribute(17, "aria-readonly", view.ReadOnly ? "true" : null);
+        builder.AddAttribute(17, "aria-multiselectable", view.Multiple ? "true" : null);
 
         builder.OpenElement(18, "thead");
         builder.OpenElement(19, "tr");

@@ -11,7 +11,7 @@ class FieldClear extends IzzyElement {
     const control = this.closest(".ib-field-control, .ib-duration");
     if (!control) return;
     // Not a panel's own controls, nor the hidden input that takes both ends of a range at once.
-    const parts = [...control.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input:not([type=hidden]), textarea, select")].filter((part) => !part.closest("[popover]"));
+    const parts = [...control.querySelectorAll<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>("input:not([type=hidden]), textarea, select")].filter((part) => !part.closest("[popover], .ib-date-posts"));
     const both = control.querySelector<HTMLInputElement>("[data-ib-range-value]");
     const select = parts.find((part): part is HTMLSelectElement => part instanceof HTMLSelectElement);
     const text = control.querySelector<HTMLInputElement>(".ib-duration-text input");

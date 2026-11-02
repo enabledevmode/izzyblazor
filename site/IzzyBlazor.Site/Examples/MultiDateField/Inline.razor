@@ -1,0 +1,24 @@
+<Form Model="Model" FormName="multi-date-field-inline" OnValidSubmit="Save" Grow>
+    <MultiDateField @bind-Value="Model!.Sessions" Inline />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">@saved sessions saved.</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "multi-date-field-inline")]
+    private Plan? Model { get; set; }
+
+    private int? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Sessions?.Length;
+
+    public sealed class Plan
+    {
+        public DateOnly[]? Sessions { get; set; } = [new(2027, 3, 9), new(2027, 3, 16)];
+    }
+}

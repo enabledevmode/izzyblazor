@@ -1,0 +1,256 @@
+@namespace IzzyBlazor
+@typeparam TValue
+@inherits CalendarFieldBase<TValue>
+@attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, it's a date input for each chosen date and one empty one, so one more can be added each time the form posts.")]
+
+@*
+    Several separate days, chosen from a month. Bind it to a collection of DateOnly: an array, List<T>,
+    HashSet<T> or an interface they implement. The dates come back in order, each once.
+    <MultiDateField @bind-Value="Model.DaysOff" />
+    <MultiDateField @bind-Value="Model.DaysOff" Min="@today" DateDisabled="d => d.DayOfWeek == DayOfWeek.Sunday" />
+    <MultiDateField @bind-Value="Model.DaysOff" Inline />
+
+    A day toggles and writes at once, so the panel stays open with nothing to confirm. Inline shows the
+    month on the page in place of the button. Min, Max and DateDisabled are checked for each date on the
+    server, so they hold against a crafted post. With Required, or [Required], it needs at least one.
+    For a run of days in a row, use DateRangeField.
+
+    Accessibility:
+    - The button stands in for an input, so it's named by the field's label and the dates, and takes the
+      hint and errors. Its panel is a non-modal `dialog`, named by the button.
+    - The month is a `grid` with `aria-multiselectable`, and each chosen day has `aria-selected`. A polite
+      announcement says what each press added or removed.
+    - With JavaScript off, it's a labelled date input for each date, and one empty.
+
+    Keyboard:
+    On the button
+    - Enter, Space | Open the month
+    In the days
+    - Left, Right | Move a day (reversed in right-to-left)
+    - Up, Down | Move a week
+    - Home, End | Go to the start or end of the week
+    - Page Up, Page Down | Move a month, keeping the day number or the month's last day
+    - Shift+Page Up, Shift+Page Down | Move a year
+    - Enter, Space | Add the date, or take it off
+    In the panel
+    - Tab, Shift+Tab | Move through the header and the days, and close past either end
+    - Escape | Close, keeping the dates
+    See also: DateField, DateRangeField, Calendar, MultiSelect.
+*@
+
+<FieldFrame Class="@WrapperClass("date-multi")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+            Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
+    @if (IsReadOnly || IsDisabled)
+    {
+        @if (IsDisabled)
+        {
+            <div class="ib-field-control"><input id="@FieldId" class="ib-field-input" type="text" disabled value="@Summary" aria-describedby="@DescribedBy" /></div>
+        }
+        else
+        {
+            @ReadOnlyControl(Summary)
+        }
+        @if (PostsReadOnlyValue)
+        {
+            @foreach (var day in Dates)
+            {
+                <input type="hidden" name="@NameAttributeValue" value="@FormatDate(day)" />
+            }
+        }
+    }
+    else
+    {
+        @if (!RendererInfo.IsInteractive)
+        {
+            @* What posts on a static page. With script these are hidden and it rewrites them; with none they're what there is. *@
+            <div class="ib-date-posts" data-ib-name="@NameAttributeValue">
+                @foreach (var day in Dates)
+                {
+                    <input class="ib-field-input" type="@DateInput" name="@NameAttributeValue" value="@FormatDate(day)" min="@FormatDate(Min)" max="@FormatDate(Max)" aria-label="@ResolvedLabel" />
+                }
+                <input class="ib-field-input" type="@DateInput" name="@NameAttributeValue" min="@FormatDate(Min)" max="@FormatDate(Max)" aria-label="@ResolvedLabel" />
+            </div>
+        }
+        @if (Inline)
+        {
+            <ib-calendar class="ib-calendar"
+                         @attributes="CalendarAttributes"
+                         data-ib-value="@NoValue"
+                         data-ib-dates="@Joined"
+                         data-ib-added="@TextDefaults.CalendarAdded"
+                         data-ib-removed="@TextDefaults.CalendarRemoved">
+                <ib-field-control class="ib-field-control ib-calendar-text">@Carrier</ib-field-control>
+                <div class="ib-calendar-view">
+                    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                    @CalendarGrid.Month(Drawn with { Multiple = true }, DescribedBy)
+                </div>
+            </ib-calendar>
+        }
+        else
+        {
+            <ib-field-control class="ib-field-control ib-date-control ib-date-own ib-date-many" style="@($"anchor-name:{StyleValues.AnchorName(FieldId + "-control")}")">
+                @Carrier
+                @if (Clearable)
+                {
+                    @ClearButton
+                }
+                <Popover Placement="Placement.BottomStart">
+                    <Trigger Context="trigger">
+                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText"
+                                aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")"
+                                aria-describedby="@DescribedBy">
+                            <span class="ib-date-text" data-ib-empty="@(Dates.Count == 0 ? "" : null)">@(Dates.Count == 0 ? ChooseText : Summary)</span>
+                            <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                        </button>
+                    </Trigger>
+                    <ChildContent>
+                        <ib-calendar class="ib-calendar"
+                                     @attributes="CalendarAttributes"
+                                     data-ib-value="@NoValue"
+                                     data-ib-dates="@Joined"
+                                     data-ib-added="@TextDefaults.CalendarAdded"
+                                     data-ib-removed="@TextDefaults.CalendarRemoved"
+                                     data-ib-change="@(ChooseLabel is null ? TextDefaults.CalendarChangeRange : null)"
+                                     data-ib-choose="@ChooseText">
+                            <div class="ib-calendar-view">
+                                <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                                @CalendarGrid.Month(Drawn with { Multiple = true }, null)
+                            </div>
+                        </ib-calendar>
+                    </ChildContent>
+                </Popover>
+            </ib-field-control>
+        }
+    }
+</FieldFrame>
+
+@code {
+    /// <summary>Makes the field read-only: the dates show in a read-only text field, and still post.</summary>
+    [Parameter] public bool ReadOnly { get; set; }
+
+    /// <inheritdoc />
+    protected override bool OwnReadOnly => ReadOnly;
+
+    /// <summary>The earliest day that can be chosen, checked for each date on the server.</summary>
+    [Parameter] public DateOnly? Min { get; set; }
+
+    /// <summary>The latest day that can be chosen, checked for each date on the server.</summary>
+    [Parameter] public DateOnly? Max { get; set; }
+
+    /// <summary>Shows the month on the page in place of a button that opens it.</summary>
+    [Parameter] public bool Inline { get; set; }
+
+    /// <summary>A button in the field that takes off every date, there while there are any. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <summary>The name of the button, in place of "Choose dates" and "Change dates" with the dates.</summary>
+    [Parameter] public string? ChooseLabel { get; set; }
+
+    // Not written in the markup: there, Razor makes the value format a date, and it binds text.
+    private const string DateInput = "date";
+
+    // The script reads the dates, as one value moving would pull its focus there.
+    private static readonly string? NoValue = null;
+
+    private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChooseRange;
+
+    private IReadOnlyList<DateOnly> Dates => ChoiceCollection<TValue, DateOnly>.Items(CurrentValue).Where(day => day != default).Distinct().Order().ToList();
+
+    private string Joined => string.Join(',', Dates.Select(day => FormatDate(day)));
+
+    private string Summary => string.Join(", ", Dates.Select(day => day.ToString("d", ResolvedCulture)));
+
+    private RenderFragment Carrier => @<input @attributes="ControlAttributes"
+                                              id="@FieldId"
+                                              class="ib-field-input"
+                                              type="text"
+                                              data-ib-date-list
+                                              value="@Joined"
+                                              @onchange="Change" />;
+
+    /// <inheritdoc />
+    private protected override bool HoldsValue => Dates.Count > 0;
+
+    /// <inheritdoc />
+    private protected override bool LabelNamesMonth => Inline;
+
+    /// <inheritdoc />
+    private protected override DateOnly? ChosenDay => Dates.Count > 0 ? Dates[0] : null;
+
+    /// <inheritdoc />
+    private protected override DateOnly? FirstDay => Min;
+
+    /// <inheritdoc />
+    private protected override DateOnly? LastDay => Max;
+
+    /// <inheritdoc />
+    private protected override bool HasOwnRules => true;
+
+    /// <inheritdoc />
+    private protected override bool RulesCoverEmpty => true;
+
+    /// <inheritdoc />
+    protected override void OnParametersSet()
+    {
+        if (!typeof(IEnumerable<DateOnly>).IsAssignableFrom(typeof(TValue)))
+        {
+            throw new InvalidOperationException($"MultiDateField doesn't support {typeof(TValue)}. Bind it to a collection of DateOnly: an array, List<DateOnly> or HashSet<DateOnly>, or an interface they implement.");
+        }
+
+        base.OnParametersSet();
+        AskAboutDays();
+    }
+
+    private void Change(ChangeEventArgs e)
+    {
+        var days = (e.Value?.ToString() ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries)
+            .Select(text => DateOnly.ParseExact(text, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture));
+        CurrentValue = ChoiceCollection<TValue, DateOnly>.Create(days);
+    }
+
+    /// <inheritdoc />
+    private protected override string? OwnRuleError(TValue value)
+    {
+        var culture = System.Globalization.CultureInfo.CurrentCulture;
+        if (Dates.Count == 0)
+        {
+            // [Required] turns away null, and not an empty list.
+            return IsRequired && (value is not null || Attribute<System.ComponentModel.DataAnnotations.RequiredAttribute>() is null)
+                ? string.Format(culture, TextDefaults.DatesRequired, ResolvedLabel)
+                : null;
+        }
+
+        string Said(DateOnly day) => day.ToString("d", CalendarGrid.Gregorian(culture));
+        foreach (var day in Dates)
+        {
+            if (day < Min)
+            {
+                return string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(Min.Value));
+            }
+
+            if (day > Max)
+            {
+                return string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(Max.Value));
+            }
+
+            if (DateDisabled?.Invoke(day) == true)
+            {
+                return string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(day));
+            }
+        }
+
+        return null;
+    }
+
+    /// <inheritdoc />
+    protected override string? FormatValueAsString(TValue? value) => Joined;
+
+    /// <inheritdoc />
+    protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
+    {
+        // Read in Change, as a list doesn't go through one string.
+        result = CurrentValue!;
+        validationErrorMessage = null;
+        return true;
+    }
+}

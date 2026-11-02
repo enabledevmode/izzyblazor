@@ -66,7 +66,7 @@ class PeriodGrid extends IzzyElement {
     };
 
     const observer = new MutationObserver(() => draw());
-    observer.observe(this, { attributes: true, subtree: true, attributeFilter: ["data-ib-value", "data-ib-min", "data-ib-max", "data-ib-culture", "data-ib-disabled", "data-ib-readonly", "data-ready", "tabindex"] });
+    observer.observe(this, { attributes: true, subtree: true, attributeFilter: ["data-ib-value", "data-ib-min", "data-ib-max", "data-ib-culture", "data-ib-disabled", "data-ib-readonly", "data-ready", "data-ib-cover", "tabindex"] });
     signal.addEventListener("abort", () => observer.disconnect());
 
     // Its own writes aren't news, even if it stops halfway with an error.
@@ -149,6 +149,7 @@ class PeriodGrid extends IzzyElement {
         set(input, "readOnly", true);
         set(input, "tabIndex", -1);
         put(input, "aria-hidden", "true");
+        if (panel) put(this, "data-ib-cover", "");
       }
       if (data.ready === undefined) data.ready = "";
     };

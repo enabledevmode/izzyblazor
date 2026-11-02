@@ -22,6 +22,9 @@ import { timeParts } from "../time-parts";
  * it changes nothing. On an interactive page both reach C# through one hidden input, as a change on
  * each would make an app see a range with one new end.
  *
+ * In a MultiDateField a day toggles and writes at once, and the panel stays open. An input with no
+ * name holds the dates, joined, and on a static page the named ones that post are rewritten from it.
+ *
  * Dates are whole days since 1970, so moving one is adding to it.
  */
 const DAY = 86400000;
@@ -50,7 +53,7 @@ const parseRuns = (text: string): Runs =>
 const inRuns = (runs: Runs, n: number): boolean => runs.some(([from, to]) => n >= from && n <= to);
 
 // What the server can change, and what enhanced navigation resets.
-const WATCHED = ["data-ib-value", "data-ib-value-end", "data-ib-min", "data-ib-max", "data-ib-off", "data-ib-classes", "data-ib-culture", "data-ib-first-day", "data-ib-week-anchor", "data-ib-hide-adjacent", "data-ib-disabled", "data-ib-readonly", "data-ready", "tabindex", "readonly", "aria-hidden"];
+const WATCHED = ["data-ib-dates", "data-ib-cover", "data-ib-value", "data-ib-value-end", "data-ib-min", "data-ib-max", "data-ib-off", "data-ib-classes", "data-ib-culture", "data-ib-first-day", "data-ib-week-anchor", "data-ib-hide-adjacent", "data-ib-disabled", "data-ib-readonly", "data-ready", "tabindex", "readonly", "aria-hidden"];
 
 class Calendar extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -59,6 +62,9 @@ class Calendar extends IzzyElement {
     const control = panel?.closest(".ib-field-control");
     const text = (control ?? this).querySelector<HTMLInputElement>("input");
     const time = panel?.querySelector(".ib-calendar-time");
+    const many = text?.hasAttribute("data-ib-date-list");
+    const posts = this.closest(".ib-field")?.querySelector<HTMLElement>(".ib-date-posts");
+    const shownText = toggle?.querySelector(".ib-date-text");
     const parts = timeParts(this);
     const okButton = this.querySelector<HTMLButtonElement>("[data-ib-ok]");
     const end = control?.querySelector<HTMLInputElement>("[data-ib-end]");
@@ -110,7 +116,13 @@ class Calendar extends IzzyElement {
     let offText: string | undefined;
     let classed: [Runs, string][] = [];
     let classedText: string | undefined;
+    // What the list last heard from the server, and what it's sent that an echo may still bring back.
+    let heard: string | undefined;
+    const sent = new Set<string>();
+    let shortName: Intl.DateTimeFormat;
+    let fullShort: Intl.DateTimeFormat;
 
+    const listed = (): number[] => text.value.split(",").filter(Boolean).map((day) => parse(day)!);
     const monthOf = (n: number): number => date(n).getUTCFullYear() * 12 + date(n).getUTCMonth();
     const across = (): number => (matchMedia("(min-width: 40rem)").matches ? views.length : 1);
     const rule = (name: string | undefined, fallback: number): number => (name ? Number(name) : fallback);
@@ -145,6 +157,13 @@ class Calendar extends IzzyElement {
           return [parseRuns(line.slice(0, at)), line.slice(at + 1)];
         });
       }
+      if (many && data.ibDates !== heard) {
+        heard = data.ibDates;
+        // An older echo of its own mustn't undo what's been pressed since.
+        if (!sent.has(heard ?? "")) text.value = heard ?? "";
+        else if (heard === text.value) sent.clear();
+      }
+      const picks = many ? listed() : [];
       // Only a new value from the server: on a static page this one stays while a choice waits to
       // post, and an interactive page's echo of a choice mustn't pull focus back from where it's gone.
       if (!seen || data.ibValue !== served) {
@@ -155,7 +174,7 @@ class Calendar extends IzzyElement {
         if (!seen || server !== chosen) {
           chosen = server;
           if (chosen !== null) cursor = chosen;
-          else if (!seen) cursor = clamp(today, min ?? FIRST, max ?? LAST);
+          else if (!seen) cursor = clamp(picks[0] ?? today, min ?? FIRST, max ?? LAST);
         }
         seen = true;
       }
@@ -164,6 +183,8 @@ class Calendar extends IzzyElement {
         const options = { timeZone: "UTC", calendar: "gregory" };
         dayName = new Intl.DateTimeFormat(culture || undefined, { ...options, dateStyle: "full" });
         monthName = new Intl.DateTimeFormat(culture || undefined, { ...options, year: "numeric", month: "long" });
+        fullShort = new Intl.DateTimeFormat(culture || undefined, { ...options, dateStyle: "medium" });
+        shortName = new Intl.DateTimeFormat(culture || undefined, { ...options, month: "short", day: "numeric" });
       }
 
       // Past Min's and Max's months there's nothing to choose, so the month stops there.
@@ -213,7 +234,7 @@ class Calendar extends IzzyElement {
           if (panel) put(day, "autofocus", stop ? "" : null);
           const spanned = spanFrom !== null && spanTo !== null && n >= spanFrom && n <= spanTo && !outside;
           put(cell, "class", [outside ? "ib-calendar-outside" : "", spanned ? "ib-calendar-span" : ""].join(" ").trim() || null);
-          put(cell, "aria-selected", (end ? !outside && (n === spanFrom || (pending === null && n === spanTo)) : n === chosen) ? "true" : null);
+          put(cell, "aria-selected", (many ? picks.includes(n) : end ? !outside && (n === spanFrom || (pending === null && n === spanTo)) : n === chosen) ? "true" : null);
         });
 
         const anchor = data.ibWeekAnchor;
@@ -226,6 +247,7 @@ class Calendar extends IzzyElement {
 
         setText(view.title, monthName.format(date(first)));
         put(view.grid, "aria-readonly", data.ibReadonly !== undefined ? "true" : null);
+        if (many) put(view.grid, "aria-multiselectable", "true");
       });
       set(prev, "disabled", disabled || at(year, month, 1) <= low);
       set(next, "disabled", disabled || at(year, month + count, 0) >= high);
@@ -257,7 +279,14 @@ class Calendar extends IzzyElement {
         // What the input holds, not a choice still waiting for OK.
         const written = parse(text.value);
         const named = end && ended !== null && written !== null ? `${dayName.format(date(written))} – ${dayName.format(date(ended))}` : written !== null && !end ? dayName.format(date(written)) + (time ? `, ${text.value.slice(11)}` : "") : null;
-        if (toggle) put(toggle, "aria-label", named !== null && data.ibChange ? data.ibChange.replace("{0}", named) : data.ibChoose ?? null);
+        const list = picks.map((n) => fullShort.format(date(n))).join(", ");
+        if (toggle) put(toggle, "aria-label", many ? (list && data.ibChange ? data.ibChange.replace("{0}", list) : data.ibChoose ?? null) : named !== null && data.ibChange ? data.ibChange.replace("{0}", named) : data.ibChoose ?? null);
+        if (shownText) {
+          // The button has little room, so no year while they're all this one.
+          const shown = picks.every((n) => date(n).getUTCFullYear() === date(today).getUTCFullYear()) ? shortName : fullShort;
+          setText(shownText, picks.map((n) => shown.format(date(n))).join(", ") || (data.ibChoose ?? ""));
+          put(shownText, "data-ib-empty", list ? null : "");
+        }
         if (okButton) set(okButton, "disabled", chosen === null);
         for (const preset of presets) put(preset, "aria-pressed", String(preset.dataset.start === text.value && preset.dataset.end === end!.value));
         if (summary) {
@@ -269,12 +298,37 @@ class Calendar extends IzzyElement {
           set(text, "readOnly", true);
           if (end) set(end, "readOnly", true);
         }
+        // The button stands in for the list's input.
+        if (many) {
+          set(text, "readOnly", true);
+          set(text, "tabIndex", -1);
+          put(text, "aria-hidden", "true");
+          put(this, "data-ib-cover", "");
+        }
       } else {
         set(text, "readOnly", true);
         set(text, "tabIndex", -1);
         put(text, "aria-hidden", "true");
       }
+      if (posts) writePosts(picks);
       if (data.ready === undefined) data.ready = "";
+    };
+
+    // Named inputs in the place of what the server drew, once what's chosen differs from them.
+    const writePosts = (picks: number[]): void => {
+      const days = picks.map((n) => date(n).toISOString().slice(0, 10));
+      const inputs = [...posts!.children] as HTMLInputElement[];
+      if (inputs.filter((input) => input.value).map((input) => input.value).join() === days.join()) return;
+      // With none, one blank, or Blazor's binding would leave the model's first value in place.
+      posts!.replaceChildren(
+        ...(days.length ? days : [""]).map((day) => {
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = posts!.dataset.ibName ?? "";
+          input.value = day;
+          return input;
+        })
+      );
     };
 
     const focusCursor = (): void => {
@@ -329,6 +383,17 @@ class Calendar extends IzzyElement {
 
     const choose = (n: number): void => {
       const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && !blocked(n);
+      if (allowed && many) {
+        const picks = listed();
+        const had = picks.includes(n);
+        text.value = (had ? picks.filter((pick) => pick !== n) : [...picks, n]).sort((a, b) => a - b).map((pick) => date(pick).toISOString().slice(0, 10)).join();
+        sent.add(text.value);
+        text.dispatchEvent(new Event("input", { bubbles: true }));
+        text.dispatchEvent(new Event("change", { bubbles: true }));
+        move(n, true);
+        live.textContent = (had ? data.ibRemoved : data.ibAdded)!.replace("{0}", dayName.format(date(n)));
+        return;
+      }
       if (allowed && end) {
         if (pending !== null && n >= pending) {
           const from = pending;
@@ -428,6 +493,8 @@ class Calendar extends IzzyElement {
           { signal }
         );
       }
+      // A label or an error's link leads to what shows in the list's place.
+      if (many) text.addEventListener("focus", () => toggle?.focus(), { signal });
     } else {
       text.addEventListener("focus", focusCursor, { signal });
     }
