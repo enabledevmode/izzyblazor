@@ -39,6 +39,29 @@ internal readonly record struct CalendarView(
     IReadOnlySet<int>? Off = null,
     IReadOnlyDictionary<int, string>? DayClasses = null);
 
+/// <summary>What <see cref="CalendarGrid.Period"/> draws.</summary>
+/// <param name="Years">Whether it's a page of years, or else of months.</param>
+/// <param name="Shown">The number of the one to show the page of: a year, or a month as year * 12 + month.</param>
+/// <param name="Selected">The number of the chosen one.</param>
+/// <param name="Culture">The culture for names, from <see cref="CalendarGrid.Gregorian"/>.</param>
+/// <param name="Disabled">Whether nothing can be chosen, and the page shows it.</param>
+/// <param name="ReadOnly">Whether nothing can be chosen.</param>
+/// <param name="Size">The size of its controls.</param>
+/// <param name="TitleId">The id for the page's name.</param>
+/// <param name="LabelledBy">The ids that name the grid.</param>
+/// <param name="Text">The text defaults.</param>
+internal readonly record struct PeriodView(
+    bool Years,
+    int Shown,
+    int? Selected,
+    CultureInfo Culture,
+    bool Disabled,
+    bool ReadOnly,
+    ControlSize Size,
+    string TitleId,
+    string LabelledBy,
+    IzzyText Text);
+
 /// <summary>
 /// The month grid, drawn by everything with a calendar. It's a fragment and not a
 /// <see cref="Calendar{TValue}"/>, as a field inside a field's panel would register twice on the form.
@@ -92,7 +115,7 @@ internal static class CalendarGrid
 
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-calendar-head");
-        builder.AddContent(2, NavButton(view, view.Text.CalendarPrevious, IconRole.ChevronLeft));
+        builder.AddContent(2, NavButton(view.Size, view.Disabled, view.Text.CalendarPrevious, IconRole.ChevronLeft));
         builder.OpenElement(3, "div");
         builder.AddAttribute(4, "class", "ib-calendar-month");
         builder.AddAttribute(5, "id", view.MonthId);
@@ -100,7 +123,7 @@ internal static class CalendarGrid
         builder.CloseElement();
         builder.OpenElement(7, "div");
         builder.AddAttribute(8, "class", "ib-calendar-selects");
-        builder.AddContent(9, Pick(view, view.Text.CalendarMonth, options =>
+        builder.AddContent(9, Pick(view.Disabled, view.Text.CalendarMonth, options =>
         {
             for (var month = 0; month < 12; month++)
             {
@@ -111,7 +134,7 @@ internal static class CalendarGrid
                 options.CloseElement();
             }
         }));
-        builder.AddContent(10, Pick(view, view.Text.CalendarYear, options =>
+        builder.AddContent(10, Pick(view.Disabled, view.Text.CalendarYear, options =>
         {
             // The script adds the rest.
             options.OpenElement(0, "option");
@@ -120,10 +143,92 @@ internal static class CalendarGrid
             options.CloseElement();
         }));
         builder.CloseElement();
-        builder.AddContent(11, NavButton(view, view.Text.CalendarNext, IconRole.ChevronRight));
+        builder.AddContent(11, NavButton(view.Size, view.Disabled, view.Text.CalendarNext, IconRole.ChevronRight));
         builder.CloseElement();
         builder.AddContent(12, Days(view, describedBy));
         builder.AddContent(13, Live);
+    };
+
+    /// <summary>
+    /// A page of twelve months or years, three to a row, as <c>Scripts/elements/period-grid.ts</c> moves
+    /// them: months have the year's select, as a date's month has, and years their span for a title.
+    /// </summary>
+    /// <param name="view">What to draw.</param>
+    /// <param name="describedBy">The ids that describe the grid.</param>
+    public static RenderFragment Period(PeriodView view, string? describedBy) => builder =>
+    {
+        const int page = 12;
+        const int across = 3;
+        var first = view.Shown - (view.Shown % page);
+        var (previous, next) = view.Years
+            ? (view.Text.CalendarEarlierYears, view.Text.CalendarLaterYears)
+            : (view.Text.CalendarPreviousYear, view.Text.CalendarNextYear);
+        var year = first / page;
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-calendar-head");
+        builder.AddContent(2, NavButton(view.Size, view.Disabled, previous, IconRole.ChevronLeft));
+        builder.OpenElement(3, "div");
+        builder.AddAttribute(4, "class", "ib-calendar-month");
+        builder.AddAttribute(5, "id", view.TitleId);
+        builder.AddContent(6, view.Years
+            ? $"{Math.Max(first, 1).ToString(CultureInfo.InvariantCulture)} – {(first + page - 1).ToString(CultureInfo.InvariantCulture)}"
+            : year.ToString(CultureInfo.InvariantCulture));
+        builder.CloseElement();
+        if (!view.Years)
+        {
+            builder.OpenElement(7, "div");
+            builder.AddAttribute(8, "class", "ib-calendar-selects");
+            builder.AddContent(9, Pick(view.Disabled, view.Text.CalendarYear, options =>
+            {
+                // The script adds the rest.
+                options.OpenElement(0, "option");
+                options.AddAttribute(1, "value", year);
+                options.AddContent(2, year);
+                options.CloseElement();
+            }));
+            builder.CloseElement();
+        }
+
+        builder.AddContent(10, NavButton(view.Size, view.Disabled, next, IconRole.ChevronRight));
+        builder.CloseElement();
+
+        builder.OpenElement(11, "table");
+        builder.AddAttribute(12, "class", "ib-calendar-grid ib-period-cells");
+        builder.AddAttribute(13, "role", "grid");
+        builder.AddAttribute(14, "aria-labelledby", view.LabelledBy);
+        builder.AddAttribute(15, "aria-describedby", describedBy);
+        builder.AddAttribute(16, "aria-readonly", view.ReadOnly ? "true" : null);
+        builder.OpenElement(17, "tbody");
+        for (var row = 0; row < page / across; row++)
+        {
+            builder.OpenElement(18, "tr");
+            for (var column = 0; column < across; column++)
+            {
+                var index = (row * across) + column;
+                var number = first + index;
+                var real = !view.Years || number >= 1;
+                builder.OpenElement(19, "td");
+                builder.AddAttribute(20, "aria-selected", number == view.Selected ? "true" : null);
+                builder.OpenElement(21, "button");
+                builder.AddAttribute(22, "type", "button");
+                builder.AddAttribute(23, "class", "ib-calendar-day");
+                // Out of the tab order until the script makes one the grid's stop.
+                builder.AddAttribute(24, "tabindex", "-1");
+                builder.AddAttribute(25, "hidden", !real);
+                builder.AddAttribute(26, "disabled", view.Disabled);
+                builder.AddAttribute(27, "aria-label", view.Years ? null : new DateOnly(Math.Max(year, 1), index + 1, 1).ToString("Y", view.Culture));
+                builder.AddContent(28, view.Years ? (real ? number.ToString(CultureInfo.InvariantCulture) : "") : view.Culture.DateTimeFormat.MonthNames[index]);
+                builder.CloseElement();
+                builder.CloseElement();
+            }
+
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.AddContent(29, Live);
     };
 
     /// <summary>
@@ -136,8 +241,8 @@ internal static class CalendarGrid
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-calendar-months");
         builder.AddAttribute(2, "style", $"--ib-calendar-months:{views.Count}");
-        builder.AddContent(3, NavButton(views[0], views[0].Text.CalendarPrevious, IconRole.ChevronLeft));
-        builder.AddContent(4, NavButton(views[0], views[0].Text.CalendarNext, IconRole.ChevronRight));
+        builder.AddContent(3, NavButton(views[0].Size, views[0].Disabled, views[0].Text.CalendarPrevious, IconRole.ChevronLeft));
+        builder.AddContent(4, NavButton(views[0].Size, views[0].Disabled, views[0].Text.CalendarNext, IconRole.ChevronRight));
         foreach (var view in views)
         {
             builder.OpenElement(5, "div");
@@ -341,17 +446,17 @@ internal static class CalendarGrid
         builder.CloseElement();
     };
 
-    private static RenderFragment NavButton(CalendarView view, string label, IconRole icon) => builder =>
+    private static RenderFragment NavButton(ControlSize size, bool disabled, string label, IconRole icon) => builder =>
     {
         builder.OpenElement(0, "button");
         builder.AddAttribute(1, "type", "button");
         builder.AddAttribute(2, "class", new ClassBuilder()
             .Add("ib-btn ib-btn-neutral ib-btn-ghost ib-btn-icon-only ib-calendar-nav")
-            .Add("ib-btn-sm", view.Size == ControlSize.Sm)
-            .Add("ib-btn-lg", view.Size == ControlSize.Lg)
+            .Add("ib-btn-sm", size == ControlSize.Sm)
+            .Add("ib-btn-lg", size == ControlSize.Lg)
             .Build());
         builder.AddAttribute(3, "aria-label", label);
-        builder.AddAttribute(4, "disabled", view.Disabled);
+        builder.AddAttribute(4, "disabled", disabled);
         builder.OpenComponent<Icon>(5);
         builder.AddComponentParameter(6, nameof(Icon.Role), (IconRole?)icon);
         builder.CloseComponent();
@@ -359,14 +464,14 @@ internal static class CalendarGrid
     };
 
     // A select with no name, as it isn't a value of the form.
-    private static RenderFragment Pick(CalendarView view, string label, RenderFragment options) => builder =>
+    private static RenderFragment Pick(bool disabled, string label, RenderFragment options) => builder =>
     {
         builder.OpenElement(0, "div");
         builder.AddAttribute(1, "class", "ib-field-control ib-has-end");
         builder.OpenElement(2, "select");
         builder.AddAttribute(3, "class", "ib-field-input ib-field-select");
         builder.AddAttribute(4, "aria-label", label);
-        builder.AddAttribute(5, "disabled", view.Disabled);
+        builder.AddAttribute(5, "disabled", disabled);
         builder.AddContent(6, options);
         builder.CloseElement();
         builder.OpenComponent<Icon>(7);

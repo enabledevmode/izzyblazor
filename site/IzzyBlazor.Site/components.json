@@ -693,6 +693,7 @@
         { "feature": "A calendar to choose a date from, or the browser's with UseNative", "noscript": "partial" },
         { "feature": "Min, Max and Step checked before posting, and Min, Max and DateDisabled checked again on the server" },
         { "feature": "Binds DateOnly, DateTime or DateTimeOffset" },
+        { "feature": "A month or a year to choose from a page of twelve", "noscript": "partial" },
         { "feature": "Times read in TimeZone (UTC unless set)", "noscript": "partial", "static": "full", "interactive": "full" }
       ],
       "examples": [
@@ -706,6 +707,11 @@
           "notes": {
             "noscript": "Without the script the server reads the New York time in its own zone, so the saved offset is the server's.",
             "static": "The script posts the New York time with its offset, so the saved value is right."
+          } },
+        { "id": "date-field-periods", "title": "A month or a year", "lead": "`Type` takes a month, held as the 1st of it, or a year, held in an `int`. `Min` and `Max` compare whole months or years.",
+          "notes": {
+            "noscript": "The browser's month input, or a text box with a pattern where it has none, and a number for the year.",
+            "static": "On a desktop, Starts is chosen, not typed. On a phone it's the browser's month input."
           } },
         { "id": "date-field-days", "title": "Disabled days and the browser's calendar", "lead": "Use `DateDisabled` to turn days off, which the server checks too, and `UseNative` to keep the browser's calendar.",
           "notes": {
@@ -770,6 +776,7 @@
           "notes": {
             "static": "The server turns away a day that's off, whatever the browser let through."
           } },
+        { "id": "calendar-periods", "title": "A month or a year", "lead": "`Type` shows a page of months, holding the 1st of one, or of years, holding an `int`." },
         { "id": "calendar-culture", "title": "Culture and weeks", "lead": "Use `Culture` for the names and the first day, `FirstDayOfWeek` for the first day alone, `ShowWeekNumbers` for a column of weeks and `ShowAdjacentDays` to leave out other months' days." },
         { "id": "calendar-states", "title": "Sizes, read-only and disabled", "lead": "Use `Size` for the field and the month together." }
       ]

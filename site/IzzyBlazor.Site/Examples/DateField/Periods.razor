@@ -1,0 +1,30 @@
+<Form Model="Model" FormName="date-field-periods" OnValidSubmit="Save" MaxWidth="20.Rem" Grow>
+    <DateField @bind-Value="Model!.Starts" Type="DateFieldType.Month" Min="@First" Clearable />
+    <DateField @bind-Value="Model!.Year" Type="DateFieldType.Year" Label="Model year" Min="2000" Max="2030" />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Starts @saved.Starts?.ToString("MMMM yyyy"), model year @saved.Year.</Alert>
+    }
+</Form>
+
+@code {
+    private static readonly DateOnly First = new(2027, 1, 1);
+
+    [SupplyParameterFromForm(FormName = "date-field-periods")]
+    private Plan? Model { get; set; }
+
+    // What was saved, not the fields: on an interactive page they follow what's chosen.
+    private (DateOnly? Starts, int? Year)? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = (Model!.Starts, Model.Year);
+
+    public sealed class Plan
+    {
+        public DateOnly? Starts { get; set; } = new DateOnly(2027, 3, 1);
+
+        public int? Year { get; set; }
+    }
+}

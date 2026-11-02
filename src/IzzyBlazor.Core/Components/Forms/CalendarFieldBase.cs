@@ -47,6 +47,7 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
     private string? _offRuns;
     private string? _classRuns;
     private CalendarView? _drawn;
+    private PeriodView? _drawnPeriod;
 
     /// <summary>The day the value falls on, if it has one.</summary>
     private protected abstract DateOnly? ChosenDay { get; }
@@ -180,6 +181,84 @@ public abstract class CalendarFieldBase<[DynamicallyAccessedMembers(DynamicallyA
 
             var today = DateOnly.FromDateTime(DateTime.UtcNow);
             return today < FirstDay ? FirstDay.Value : today > LastDay ? LastDay.Value : today;
+        }
+    }
+
+    /// <summary>What the script reads from a page of months or years, changing as the field does.</summary>
+    /// <param name="years">Whether it's a page of years, or else of months.</param>
+    /// <param name="value">The input's text for the value.</param>
+    /// <param name="min">The input's text for the earliest.</param>
+    /// <param name="max">The input's text for the latest.</param>
+    private protected IReadOnlyDictionary<string, object> PeriodAttributes(bool years, string? value, string? min, string? max)
+    {
+        var attributes = new Dictionary<string, object>
+        {
+            ["data-ib-unit"] = years ? "year" : "month",
+            ["data-ib-culture"] = ResolvedCulture.Name,
+        };
+
+        if (value is not null)
+        {
+            attributes["data-ib-value"] = value;
+        }
+
+        if (min is not null)
+        {
+            attributes["data-ib-min"] = min;
+        }
+
+        if (max is not null)
+        {
+            attributes["data-ib-max"] = max;
+        }
+
+        return attributes;
+    }
+
+    /// <summary>
+    /// The first page stays, as <see cref="Drawn"/> does, so Blazor's diff never writes the cells the
+    /// script has moved on from.
+    /// </summary>
+    /// <param name="years">Whether it's a page of years, or else of months.</param>
+    /// <param name="selected">The chosen one's number: a year, or a month as year * 12 + month.</param>
+    /// <param name="earliest">The earliest one's number, for a first page with no value.</param>
+    /// <param name="latest">The latest one's number, for a first page with no value.</param>
+    private protected PeriodView DrawnPeriod(bool years, int? selected, int? earliest, int? latest)
+    {
+        var culture = ResolvedCulture;
+        if (_drawnPeriod is not { } drawn || drawn.Culture.Name != culture.Name || drawn.Size != Size || drawn.Years != years)
+        {
+            var now = DateTime.UtcNow;
+            var today = years ? now.Year : (now.Year * 12) + now.Month - 1;
+            var titleId = FieldId + "-page";
+            _drawnPeriod = new PeriodView(
+                years,
+                selected ?? Math.Min(Math.Max(today, earliest ?? today), latest ?? today),
+                selected,
+                culture,
+                IsDisabled,
+                IsReadOnly,
+                Size,
+                titleId,
+                string.IsNullOrEmpty(ResolvedLabel) || !LabelNamesMonth ? titleId : $"{LabelId} {titleId}",
+                TextDefaults);
+        }
+
+        return _drawnPeriod.Value;
+    }
+
+    /// <summary>Throws for what a day has and a month or year doesn't.</summary>
+    /// <param name="type">The field's type, for the message.</param>
+    private protected void RefuseDayOptions(DateFieldType type)
+    {
+        var refused = DateDisabled is not null ? nameof(DateDisabled)
+            : DayClass is not null ? nameof(DayClass)
+            : ShowWeekNumbers ? nameof(ShowWeekNumbers)
+            : FirstDayOfWeek is not null ? nameof(FirstDayOfWeek)
+            : null;
+        if (refused is not null)
+        {
+            throw new InvalidOperationException($"{refused} is about days, so it can't go with a Type of {type}.");
         }
     }
 

@@ -1,0 +1,24 @@
+<Form Model="Model" FormName="calendar-periods" OnValidSubmit="Save" Grow>
+    <Calendar @bind-Value="Model!.Starts" Type="DateFieldType.Month" />
+    <Row><Button Submit>Save</Button></Row>
+    @if (_saved is { } saved)
+    {
+        <Alert Status="Status.Success">Starts @saved.ToString("MMMM yyyy").</Alert>
+    }
+</Form>
+
+@code {
+    [SupplyParameterFromForm(FormName = "calendar-periods")]
+    private Plan? Model { get; set; }
+
+    private DateOnly? _saved;
+
+    protected override void OnInitialized() => Model ??= new();
+
+    private void Save() => _saved = Model!.Starts;
+
+    public sealed class Plan
+    {
+        public DateOnly? Starts { get; set; } = new DateOnly(2027, 3, 1);
+    }
+}

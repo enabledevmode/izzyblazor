@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { put, set, setText } from "../quiet-write";
 import { timeParts } from "../time-parts";
 
 /**
@@ -47,24 +48,6 @@ const parseRuns = (text: string): Runs =>
     return [parse(from)!, parse(to ?? from)!];
   });
 const inRuns = (runs: Runs, n: number): boolean => runs.some(([from, to]) => n >= from && n <= to);
-
-// These write only what changed. A draw that changes nothing leaves nothing for an observer to see,
-// here or in anything else on the page, such as a browser extension answering what changes: answering
-// each other, two observers never let the browser paint or take input again.
-const setText = (node: Node, text: string): void => {
-  // Keeps the text node Blazor made, if it did.
-  if (node.textContent === text) return;
-  if (node.firstChild) node.firstChild.nodeValue = text;
-  else node.textContent = text;
-};
-const set = <T extends Element, K extends keyof T>(element: T, name: K, value: T[K]): void => {
-  if (element[name] !== value) element[name] = value;
-};
-const put = (element: Element, name: string, value: string | null): void => {
-  if (element.getAttribute(name) === value) return;
-  if (value === null) element.removeAttribute(name);
-  else element.setAttribute(name, value);
-};
 
 // What the server can change, and what enhanced navigation resets.
 const WATCHED = ["data-ib-value", "data-ib-value-end", "data-ib-min", "data-ib-max", "data-ib-off", "data-ib-classes", "data-ib-culture", "data-ib-first-day", "data-ib-week-anchor", "data-ib-hide-adjacent", "data-ib-disabled", "data-ib-readonly", "data-ready", "tabindex", "readonly", "aria-hidden"];

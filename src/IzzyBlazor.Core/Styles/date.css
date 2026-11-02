@@ -173,6 +173,16 @@
     outline-offset: 2px;
   }
 
+  /* A page of months or years, three to a row in a month's width, so a little taller than a day. */
+  .ib-period-cells .ib-calendar-day {
+    height: calc(var(--ib-calendar-cell) * 1.4);
+  }
+
+  .ib-calendar-selects > :only-child {
+    flex: 1 1 0;
+    width: auto;
+  }
+
   /* A range's months, side by side up to three to a row, with the arrows at the outer edges. A phone
      shows one, which is what the script counts on. */
   .ib-calendar-months {
