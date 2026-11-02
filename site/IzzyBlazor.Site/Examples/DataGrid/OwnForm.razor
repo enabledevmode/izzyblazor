@@ -1,0 +1,45 @@
+@using System.ComponentModel.DataAnnotations
+@* A form of your own in the dialog: its model holds only what it edits, so no other field can be
+   forged, and it says when it has saved. *@
+<DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders with your form" ItemKey="o => o.Number.ToString()" QueryPrefix="own-"
+          EditMode="DataGridEditMode.Dialog" Grow>
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+    <PropertyColumn Property="o => o.Customer" />
+    <PropertyColumn Property="o => o.Quantity" />
+    <EditFormTemplate Context="edit">
+        <Form Model="ModelFor(edit.Item!)" FormName="own-form" OnValidSubmit="() => SaveAsync(edit)">
+            <FormErrors />
+            <NumberField @bind-Value="Model!.Quantity" />
+            <DialogFooter>
+                @edit.Cancel
+                <Button Submit>Save</Button>
+            </DialogFooter>
+        </Form>
+    </EditFormTemplate>
+</DataGrid>
+
+@code {
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    [SupplyParameterFromForm(FormName = "own-form")]
+    private QuantityEdit? Model { get; set; }
+
+    private List<EditableOrder> _orders = [];
+
+    protected override void OnInitialized() => _orders = EditableOrders.For(Http);
+
+    private QuantityEdit ModelFor(EditableOrder order) => Model ??= new() { Quantity = order.Quantity };
+
+    private async Task SaveAsync(DataGridEditFormContext<EditableOrder> edit)
+    {
+        edit.Item!.Quantity = Model!.Quantity;
+        await edit.CloseAsync();
+        Model = null;
+    }
+
+    public sealed class QuantityEdit
+    {
+        [Range(1, 1000)]
+        public int Quantity { get; set; }
+    }
+}

@@ -77,7 +77,7 @@ public sealed class ActionColumn<TItem> : ComponentBase
 }
 
 /// <summary>What a row's actions draw: as buttons, or in its menu.</summary>
-internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, Func<bool, RenderFragment?> Edit, Func<bool, RenderFragment?> Delete);
+internal sealed record RowActionScope(bool InMenu, RowActionOverflow Overflow, Func<bool, string?, RenderFragment?> Edit, Func<bool, string?, RenderFragment?> Delete);
 
 /// <summary>An action in a <c>DataGrid</c>'s <see cref="ActionColumn{TItem}"/>: drawn once as a button or a menu item, by where it shows.</summary>
 public abstract class RowActionBase : ComponentBase
@@ -118,14 +118,12 @@ public abstract class RowActionBase : ComponentBase
         {
             ref var frame = ref frames.Array[i];
             if (frame.FrameType != RenderTreeFrameType.Component
-                || !frame.ComponentType.IsAssignableTo(typeof(RowActionBase))
-                || (frame.ComponentType == typeof(EditAction) && !canEdit)
-                || (frame.ComponentType == typeof(DeleteAction) && !canDelete))
+                || !frame.ComponentType.IsAssignableTo(typeof(RowActionBase)))
             {
                 continue;
             }
 
-            var (visible, overflow) = (true, fallback);
+            var (visible, overflow, reason) = (true, fallback, false);
             for (var a = i + 1; a < frames.Count && frames.Array[a].FrameType == RenderTreeFrameType.Attribute; a++)
             {
                 ref var attribute = ref frames.Array[a];
@@ -137,6 +135,16 @@ public abstract class RowActionBase : ComponentBase
                 {
                     overflow = set;
                 }
+                else if (attribute.AttributeName == nameof(EditAction.DisabledReason) && attribute.AttributeValue is string)
+                {
+                    reason = true;
+                }
+            }
+
+            // One the row can't use shows only if it says why.
+            if ((frame.ComponentType == typeof(EditAction) && !canEdit && !reason) || (frame.ComponentType == typeof(DeleteAction) && !canDelete && !reason))
+            {
+                continue;
             }
 
             if (visible && overflow == RowActionOverflow.Always)
@@ -156,15 +164,201 @@ public abstract class RowActionBase : ComponentBase
 /// <summary>The row's edit action: a pencil, or an item in its menu. Drawn only where the row can be edited.</summary>
 public sealed class EditAction : RowActionBase
 {
+    /// <summary>
+    /// Where <c>ItemEditable</c> says no, the action stays, disabled, with this as its tooltip, in place
+    /// of leaving a gap. The reason can depend on the row.
+    /// </summary>
+    [Parameter] public string? DisabledReason { get; set; }
+
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
-        builder.AddContent(0, scope.Edit(scope.InMenu));
+        builder.AddContent(0, scope.Edit(scope.InMenu, DisabledReason));
 }
 
 /// <summary>The row's delete action, which asks first: a trash can, or an item in its menu. Drawn only where the row can be deleted.</summary>
 public sealed class DeleteAction : RowActionBase
 {
+    /// <summary>
+    /// Where <c>ItemDeletable</c> says no, the action stays, disabled, with this as its tooltip, in place
+    /// of leaving a gap. The reason can depend on the row.
+    /// </summary>
+    [Parameter] public string? DisabledReason { get; set; }
+
     private protected override void Draw(RenderTreeBuilder builder, RowActionScope scope) =>
-        builder.AddContent(0, scope.Delete(scope.InMenu));
+        builder.AddContent(0, scope.Delete(scope.InMenu, DisabledReason));
+}
+
+/// <summary>A row's field in the editor, for a column's <c>EditTemplate</c>.</summary>
+/// <typeparam name="TItem">The type of the rows.</typeparam>
+public sealed class DataGridEditField<TItem>
+{
+    internal DataGridEditField(TItem item, string name, IReadOnlyDictionary<string, object> attributes) => (Item, Name, Attributes) = (item, name, attributes);
+
+    /// <summary>The copy of the row being edited, to bind the field to.</summary>
+    public TItem Item { get; }
+
+    /// <summary>The name the field posts under.</summary>
+    public string Name { get; }
+
+    /// <summary>What a library field needs to fit in: its name, label, hint and span. Pass them with <c>@attributes</c>.</summary>
+    public IReadOnlyDictionary<string, object> Attributes { get; }
+}
+
+/// <summary>What a <see cref="EditFormTemplate{TItem}"/> gets.</summary>
+/// <typeparam name="TItem">The type of the rows.</typeparam>
+public sealed class DataGridEditFormContext<TItem>
+{
+    private readonly Func<Task> _close;
+
+    internal DataGridEditFormContext(TItem? item, bool isNew, RenderFragment cancel, Func<Task> close) => (Item, IsNew, Cancel, _close) = (item, isNew, cancel, close);
+
+    /// <summary>The row as loaded, which isn't a copy, or the default for a new one.</summary>
+    public TItem? Item { get; }
+
+    /// <summary>Whether it's a new row.</summary>
+    public bool IsNew { get; }
+
+    /// <summary>The Cancel button, for your <c>DialogFooter</c>.</summary>
+    public RenderFragment Cancel { get; }
+
+    /// <summary>Closes the dialog and loads the rows again, once your form has saved.</summary>
+    public Task CloseAsync() => _close();
+}
+
+/// <summary>
+/// Your own form in a <c>DataGrid</c>'s edit dialog, in place of the generated one, for what isn't fields
+/// of the row, such as steps or a save across several records. The grid opens and closes the dialog; the
+/// form, its model and its <c>[SupplyParameterFromForm]</c> are yours, and on a static page, so is
+/// guarding against forged fields, with a view model.
+/// </summary>
+public sealed class EditFormTemplate<TItem> : ComponentBase
+{
+    /// <summary>The form. Call <c>context.CloseAsync()</c> when it has saved.</summary>
+    [Parameter] public RenderFragment<DataGridEditFormContext<TItem>>? ChildContent { get; set; }
+
+    [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Table is not DataGrid<TItem> grid)
+        {
+            throw new InvalidOperationException("An EditFormTemplate must be inside a DataGrid.");
+        }
+
+        grid.FormTemplate = this;
+    }
+
+    /// <inheritdoc />
+    protected override bool ShouldRender() => false;
+}
+
+/// <summary>
+/// Arranges a <c>DataGrid</c>'s generated edit dialog with sections, text or another order: write the
+/// library's components around an <see cref="EditField"/> for each column. The grid still draws, binds and
+/// checks each field. An editable column left out is added at the end, as a field that isn't drawn
+/// isn't posted, and would save as empty; to leave one out, set its <c>Editable</c> to false.
+/// </summary>
+/// <example>
+/// <code>
+/// &lt;EditLayout&gt;
+///     &lt;Fieldset Label="Customer"&gt;
+///         &lt;EditField Key="customer" /&gt;
+///     &lt;/Fieldset&gt;
+/// &lt;/EditLayout&gt;
+/// </code>
+/// </example>
+public sealed class EditLayout<TItem> : ComponentBase
+{
+    /// <summary>The fields, and whatever goes around them.</summary>
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
+
+    /// <inheritdoc />
+    protected override void OnInitialized()
+    {
+        if (Table is not DataGrid<TItem> grid)
+        {
+            throw new InvalidOperationException("An EditLayout must be inside a DataGrid.");
+        }
+
+        grid.EditLayoutPart = this;
+    }
+
+    /// <inheritdoc />
+    protected override bool ShouldRender() => false;
+}
+
+/// <summary>Finds a column's field for an <see cref="EditField"/>.</summary>
+internal sealed record DataGridEditFields(Func<string, RenderFragment?> Field);
+
+/// <summary>A column's generated field, placed in an <see cref="EditLayout{TItem}"/>.</summary>
+public sealed class EditField : ComponentBase
+{
+    /// <summary>The column's key: its <c>SortKey</c>, or its property's name in lower case, as in the address.</summary>
+    [Parameter, EditorRequired] public string Key { get; set; } = "";
+
+    [CascadingParameter] private DataGridEditFields? Fields { get; set; }
+
+    /// <inheritdoc />
+    protected override void BuildRenderTree(RenderTreeBuilder builder)
+    {
+        if (Fields is null)
+        {
+            throw new InvalidOperationException("An EditField must be inside a DataGrid's EditLayout.");
+        }
+
+        builder.AddContent(0, Fields.Field(Key) ?? throw new InvalidOperationException($"An EditField names \"{Key}\", which isn't an editable column of this DataGrid."));
+    }
+
+#pragma warning disable BL0006
+    // The attribute's owner: the nearest frame before it that isn't an attribute.
+    private static bool IsEditField(ArrayRange<RenderTreeFrame> frames, int attribute)
+    {
+        var i = attribute - 1;
+        while (i >= 0 && frames.Array[i].FrameType == RenderTreeFrameType.Attribute)
+        {
+            i--;
+        }
+
+        return i >= 0 && frames.Array[i].FrameType == RenderTreeFrameType.Component && frames.Array[i].ComponentType == typeof(EditField);
+    }
+#pragma warning restore BL0006
+
+    // The keys a layout places, in order, read without drawing it.
+    internal static List<string> KeysIn(RenderFragment? layout)
+    {
+        var keys = new List<string>();
+        if (layout is null)
+        {
+            return keys;
+        }
+
+#pragma warning disable BL0006
+        using var builder = new RenderTreeBuilder();
+        layout(builder);
+        var frames = builder.GetFrames();
+        for (var i = 0; i < frames.Count; i++)
+        {
+            if (frames.Array[i].FrameType != RenderTreeFrameType.Attribute)
+            {
+                continue;
+            }
+
+            // In order, and into what's written inside other components, such as a Fieldset. Inside a
+            // component of your own that draws them itself, the grid can't see them.
+            if (frames.Array[i].AttributeValue is RenderFragment inner)
+            {
+                keys.AddRange(KeysIn(inner));
+            }
+            else if (frames.Array[i].AttributeName == nameof(Key) && frames.Array[i].AttributeValue is string key && IsEditField(frames, i))
+            {
+                keys.Add(key);
+            }
+        }
+#pragma warning restore BL0006
+        return keys;
+    }
 }
 
 /// <summary>An action of your own on a row: an icon button with a tooltip, or an item in its menu.</summary>
