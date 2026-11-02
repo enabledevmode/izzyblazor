@@ -55,6 +55,8 @@ const inRuns = (runs: Runs, n: number): boolean => runs.some(([from, to]) => n >
 // What the server can change, and what enhanced navigation resets.
 const WATCHED = ["data-ib-dates", "data-ib-cover", "data-ib-value", "data-ib-value-end", "data-ib-min", "data-ib-max", "data-ib-off", "data-ib-classes", "data-ib-culture", "data-ib-first-day", "data-ib-week-anchor", "data-ib-hide-adjacent", "data-ib-disabled", "data-ib-readonly", "data-ready", "tabindex", "readonly", "aria-hidden"];
 
+const holdsList = (element: HTMLElement): boolean => element.dataset.ibDates !== undefined;
+
 class Calendar extends IzzyElement {
   protected setup(signal: AbortSignal): void {
     const panel = this.closest<HTMLElement>("[popover]");
@@ -62,7 +64,7 @@ class Calendar extends IzzyElement {
     const control = panel?.closest(".ib-field-control");
     const text = (control ?? this).querySelector<HTMLInputElement>("input");
     const time = panel?.querySelector(".ib-calendar-time");
-    const many = text?.hasAttribute("data-ib-date-list");
+    const many = holdsList(this);
     const posts = this.closest(".ib-field")?.querySelector<HTMLElement>(".ib-date-posts");
     const shownText = toggle?.querySelector(".ib-date-text");
     const parts = timeParts(this);
@@ -143,6 +145,12 @@ class Calendar extends IzzyElement {
     };
 
     const paint = (): void => {
+      // Enhanced navigation can bring another kind of field into this element: start again from it.
+      if (holdsList(this) !== many) {
+        put(this, "data-ib-cover", null);
+        this.connectedCallback();
+        return;
+      }
       const today = findToday();
       min = parse(data.ibMin);
       max = parse(data.ibMax);
@@ -318,7 +326,8 @@ class Calendar extends IzzyElement {
     const writePosts = (picks: number[]): void => {
       const days = picks.map((n) => date(n).toISOString().slice(0, 10));
       const inputs = [...posts!.children] as HTMLInputElement[];
-      if (inputs.filter((input) => input.value).map((input) => input.value).join() === days.join()) return;
+      // The server's are date inputs with limits, which would stop the post with nothing to show why.
+      if (inputs.every((input) => input.type === "hidden") && inputs.filter((input) => input.value).map((input) => input.value).join() === days.join()) return;
       // With none, one blank, or Blazor's binding would leave the model's first value in place.
       posts!.replaceChildren(
         ...(days.length ? days : [""]).map((day) => {
@@ -382,7 +391,8 @@ class Calendar extends IzzyElement {
     };
 
     const choose = (n: number): void => {
-      const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && !blocked(n);
+      // A chosen day can always come off, even one the rules have since turned away.
+      const allowed = data.ibDisabled === undefined && data.ibReadonly === undefined && (!blocked(n) || (many && listed().includes(n)));
       if (allowed && many) {
         const picks = listed();
         const had = picks.includes(n);

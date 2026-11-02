@@ -458,6 +458,9 @@ public class IzzyText
     /// <summary>Announced as a day leaves a MultiDateField's dates, with {0} the day.</summary>
     public virtual string CalendarRemoved { get; set; } = "{0} removed";
 
+    /// <summary>The message for a required month or year with none, with {0} its label.</summary>
+    public virtual string ChoiceRequired { get; set; } = "{0} needs a choice.";
+
     /// <summary>The message for a required MultiDateField with no dates, with {0} its label.</summary>
     public virtual string DatesRequired { get; set; } = "{0} needs at least one date.";
 
