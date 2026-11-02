@@ -285,6 +285,40 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_layout_places_a_field_once_and_a_field_it_leaves_out_after_it()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        RenderFragment columns = builder =>
+        {
+            builder.AddContent(0, NameAndQty);
+            builder.OpenComponent<EditLayout<Row>>(1);
+            builder.AddComponentParameter(2, nameof(EditLayout<Row>.ChildContent), (RenderFragment)(layout =>
+            {
+                layout.OpenComponent<Fieldset>(0);
+                layout.AddComponentParameter(1, nameof(Fieldset.Label), "Section");
+                layout.AddComponentParameter(2, nameof(Fieldset.ChildContent), (RenderFragment)(section =>
+                {
+                    section.OpenComponent<EditField>(0);
+                    section.AddComponentParameter(1, nameof(EditField.Key), "qty");
+                    section.CloseComponent();
+                }));
+                layout.CloseComponent();
+            }));
+            builder.CloseComponent();
+        };
+        var cut = Grid(columns, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.EditMode, DataGridEditMode.Dialog)
+            .Add(x => x.OnSave, (DataGridSave<Row> _) => { })
+            .Add(x => x.EditKey, "b2")
+            .Add(x => x.EditKeyChanged, (string? _) => { }));
+
+        var names = cut.FindAll("dialog [name^='ib-edit.']").Select(f => f.GetAttribute("name")).ToList();
+        Assert.Equal(["ib-edit.Qty", "ib-edit.Name"], names);
+        Assert.NotNull(cut.Find("dialog fieldset [name='ib-edit.Qty']"));
+    }
+
+    [Fact]
     public void Export_links_carry_the_sort_and_the_columns_shown_and_no_page()
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("?sort=-qty&page=2");
