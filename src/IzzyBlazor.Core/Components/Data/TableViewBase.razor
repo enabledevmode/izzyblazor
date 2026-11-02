@@ -47,13 +47,14 @@
             @{ var first = true; }
             @foreach (var column in Shown)
             {
-                <td class="@CellClass(column)" style="@CellStyle(column)">
+                var cellEditor = editing ? null : CellEditor(item, column);
+                <td class="@CellClass(column)" style="@CellStyle(column)" data-ib-edit-col="@EditColumnKey(item, column)" data-ib-editing="@(cellEditor is null ? null : "")">
                     @if (first && href is not null)
                     {
                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
                         <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
                     }
-                    @(editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item))
+                    @(cellEditor ?? (editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item)))
                 </td>
                 first = false;
             }
@@ -2166,6 +2167,12 @@
 
     /// <summary>Whether this row is being edited where it stands.</summary>
     internal virtual bool IsEditingRow(TItem item) => false;
+
+    /// <summary>The field for this one cell, if it's the one being edited on its own.</summary>
+    internal virtual RenderFragment? CellEditor(TItem item, ColumnBase<TItem> column) => null;
+
+    /// <summary>The column's name on a cell that starts editing by itself, for the script.</summary>
+    internal virtual string? EditColumnKey(TItem item, ColumnBase<TItem> column) => null;
 
     /// <summary>The new row being edited, which isn't among those loaded.</summary>
     internal virtual TItem? NewRowItem => default;

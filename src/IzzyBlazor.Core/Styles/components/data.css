@@ -1129,11 +1129,11 @@
   }
 
   /* The row reads as the same row: its fields have no box, and line up with the text they replace. */
-  .ib-table-grid > tbody > tr[data-ib-editing] > td {
+  .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]) {
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
-  .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input:not([popover] *) {
+  .ib-datagrid [data-ib-editing] .ib-field-control > .ib-field-input:not([popover] *) {
     padding-inline: 0;
     border: 0;
     border-radius: 0;
@@ -1144,35 +1144,39 @@
     text-align: inherit;
   }
 
-  .ib-datagrid tr[data-ib-editing] .ib-field-control > :not(textarea).ib-field-input:not([popover] *) {
+  .ib-datagrid [data-ib-editing] .ib-field-control > :not(textarea).ib-field-input:not([popover] *) {
     height: 1lh;
   }
 
   /* Chrome indents a date's text a pixel. */
-  tr[data-ib-editing] ::-webkit-datetime-edit {
+  [data-ib-editing] ::-webkit-datetime-edit {
     margin-inline-start: -1px;
   }
 
   /* Focus and errors mark the whole cell, along its bottom edge: at rest a field is only its text. */
-  .ib-table-grid > tbody > tr[data-ib-editing] > td:has(.ib-field-input:focus:not([popover] *)) {
+  .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]):has(.ib-field-input:focus:not([popover] *)) {
     box-shadow: inset 0 -2px var(--ib-color-primary);
   }
 
-  .ib-table-grid > tbody > tr[data-ib-editing] > td:has(.ib-field-invalid:not([popover] *), .ib-field-input:user-invalid:not([popover] *)) {
+  .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]):has(.ib-field-invalid:not([popover] *), .ib-field-input:user-invalid:not([popover] *)) {
     box-shadow: inset 0 -2px var(--ib-color-danger);
   }
 
   /* An error wraps, where a number's cell otherwise stays on one line. */
-  .ib-datagrid .ib-table-grid tr[data-ib-editing] > td {
+  .ib-datagrid .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]) {
     white-space: normal;
   }
 
-  tr[data-ib-editing] .ib-field-error {
+  [data-ib-editing] .ib-field-error {
     text-align: start;
   }
 
-  tr[data-ib-editing] .ib-field-error p {
+  [data-ib-editing] .ib-field-error p {
     align-items: start;
+  }
+
+  [data-ib-interactive] td[data-ib-edit-col] {
+    cursor: text;
   }
 
   /* A new row in an empty grid. */
@@ -1181,16 +1185,16 @@
   }
 
   /* The arrow keys still step. */
-  tr[data-ib-editing] [data-ib-steppers]:not([popover] *) {
+  [data-ib-editing] [data-ib-steppers]:not([popover] *) {
     display: none;
   }
 
-  tr[data-ib-editing] .ib-date-toggle:not([popover] *) {
+  [data-ib-editing] .ib-date-toggle:not([popover] *) {
     background: none;
   }
 
   /* The column's title says it, for a checkbox whose label would repeat it. It's still its name. */
-  tr[data-ib-editing] .ib-check:not([popover] *) {
+  [data-ib-editing] .ib-check:not([popover] *) {
     font-size: 0;
   }
 

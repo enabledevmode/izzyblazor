@@ -90,6 +90,11 @@
     starts at the top of the page. Sorting, filtering or changing page ends the edit, and what's typed
     goes with it. It can't be used with Virtualize or loading on scroll, or with an EditFormTemplate.
 
+    DataGridEditMode.Cell edits one cell at a time on an interactive page, and OnSave runs for each one
+    that changed. A click, Enter, F2 or typing starts it; Tab, Enter or a click elsewhere saves it, and an
+    invalid cell stays open. A new row is edited as with Row, and so is every row on a static page. Besides
+    the limits of Row, it can't be used with RowHref.
+
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.
     - With script it's an ARIA grid, one Tab stop, with the keys below. A cell with one link, button or
@@ -124,6 +129,11 @@
     - Tab, Shift+Tab | Move through its fields, then Save and Cancel
     - Enter | In a field, save
     - Escape | Cancel, once any open list or picker has closed
+    With DataGridEditMode.Cell, on an interactive page
+    - Enter, F2, typing | Edit the cell, from a cell that can be edited
+    - Tab, Shift+Tab | Save it, and edit the next or the one before
+    - Enter | Save it, and go back to the cell
+    - Escape | Cancel, and go back to the cell
     Selecting rows
     - Space | Select or clear the row, from a cell of text
     - Shift+Space | Select or clear the row, from anywhere in it but a field
@@ -166,7 +176,8 @@
     <ib-grid hidden></ib-grid>
     @if (CanEdit || CanDelete)
     {
-        <ib-grid-edit hidden></ib-grid-edit>
+        @* It says which cell to edit by the event a layout uses, which is already registered on every page. *@
+        <ib-grid-edit hidden @oniblayout="OnCellEventAsync"></ib-grid-edit>
     }
     @* Here, not after the rows: it's no part of the layout (data.css), and the footer stays the last child. *@
     @Editor
@@ -251,7 +262,7 @@
     private string? QueryValue(string key) =>
         QueryString.Of(Navigation.Uri).TryGetValue(key, out var value) && value.ToString().Length > 0 ? value.ToString() : null;
 
-    private string? CurrentEditKey => !CanEdit ? null : UseState ? EditKey : QueryValue(EditQueryKey);
+    private string? CurrentEditKey => !CanEdit || CellMode ? null : UseState ? EditKey : QueryValue(EditQueryKey);
 
     private bool Adding => CanAdd && (UseState ? _stateAdding : QueryValue(AddQueryKey) is not null);
 
@@ -264,9 +275,82 @@
     private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
 
     // In a row, only what's shown has a field to post; the rest stays as loaded.
-    private List<ColumnBase<TItem>> EditColumns => (InRow ? Shown : Columns).Where(c => c.IsEditable).ToList();
+    private List<ColumnBase<TItem>> EditColumns => InCell ? (_cellColumn is null ? [] : [_cellColumn]) : (InRow ? Shown : Columns).Where(c => c.IsEditable).ToList();
 
-    private bool InRow => EditMode == DataGridEditMode.Row;
+    // Cell mode where it can be: a static page, with a round trip for each cell, edits rows instead.
+    private bool CellMode => EditMode == DataGridEditMode.Cell && WillBeInteractive;
+
+    private bool InCell => CellMode && !Adding;
+
+    private bool InPlace => EditMode != DataGridEditMode.Dialog;
+
+    private bool InRow => EditMode == DataGridEditMode.Row || (EditMode == DataGridEditMode.Cell && !InCell);
+
+    private string? _cellKey;
+    private ColumnBase<TItem>? _cellColumn;
+    private bool _cellSaving;
+    private string? _cellNext;
+
+    private void EndCell() =>
+        (_cellKey, _cellColumn, _cellNext, _editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, null, null, null, default, default, null, null, null, null);
+
+    private void StartCell(string key, ColumnBase<TItem> column)
+    {
+        EndCell();
+        (_cellKey, _cellColumn) = (key, column);
+    }
+
+    // From the script: a column's key and a row's to start, or nothing to cancel. While a save is on its
+    // way, the next cell waits for how it ends, since an invalid cell stays open.
+    private Task OnCellEventAsync(IzzyLayoutEventArgs e)
+    {
+        if (!InCell)
+        {
+            return Task.CompletedTask;
+        }
+
+        if (string.IsNullOrEmpty(e.Layout))
+        {
+            if (!_cellSaving)
+            {
+                EndCell();
+                StateHasChanged();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        if (_cellSaving)
+        {
+            _cellNext = e.Layout;
+        }
+        else if (_cellKey is null)
+        {
+            StartCellFrom(e.Layout);
+            StateHasChanged();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void StartCellFrom(string address)
+    {
+        var parts = address.Split('\n', 2);
+        var column = parts.Length == 2 ? Shown.FirstOrDefault(c => c.IsEditable && c.EditKey == parts[0]) : null;
+        // Checked here too: what the page says is only what the page says.
+        if (column is not null && RowOf(parts[1]) is { } row && CanEditRow(row))
+        {
+            StartCell(parts[1], column);
+        }
+    }
+
+    /// <inheritdoc />
+    internal override string? EditColumnKey(TItem item, ColumnBase<TItem> column) =>
+        CellMode && column.IsEditable && CanEditRow(item) ? column.EditKey : null;
+
+    /// <inheritdoc />
+    internal override RenderFragment? CellEditor(TItem item, ColumnBase<TItem> column) =>
+        _cellKey is not null && column == _cellColumn && _editModel is not null && KeyOf(item) == _cellKey ? EditCell(column) : null;
 
     /// <inheritdoc />
     internal override IReadOnlyList<string> LinkClears => CanEdit || CanDelete ? [EditQueryKey, AddQueryKey, DeleteQueryKey] : [];
@@ -346,6 +430,12 @@
     {
         base.AddressChanged(location);
         _ending = false;
+        // Sorting or changing page ends it, as it does a row's.
+        if (_cellKey is not null && !_cellSaving)
+        {
+            EndCell();
+        }
+
         if (FindItem is not null)
         {
             _ = InvokeAsync(async () =>
@@ -359,9 +449,14 @@
     // Here and not with the parameters: the parts that decide these are written among the columns.
     private void CheckEditing()
     {
-        if (InRow && FormTemplate is not null)
+        if (CanEdit && EditMode != DataGridEditMode.Dialog && FormTemplate is not null)
         {
             throw new InvalidOperationException($"An EditFormTemplate replaces the edit dialog, so it needs {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+        }
+
+        if (EditMode == DataGridEditMode.Cell && RowHref is not null)
+        {
+            throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Cell)} starts on a click, which a row with a {nameof(RowHref)} follows: use a link in a cell, or {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Row)}.");
         }
 
         if (!CanEdit || FormTemplate is not null)
@@ -432,11 +527,11 @@
             : _editors[column] = column.Editor(_editModel!, $"{DataGridEditBinding<TItem>.Prefix}.{column.EditProperty!.Name}", this,
                 // Opening goes to the first field. After a failed save, a dialog's FormErrors takes focus
                 // instead, and a row's first invalid field, its message beside it.
-                () => InRow
+                () => InPlace
                     ? column == (EditColumns.FirstOrDefault(c => HasError(c)) ?? EditColumns.FirstOrDefault())
                     : column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true,
                 () => _placedFields.GetValueOrDefault(column),
-                InRow ? RowFormId : null);
+                InPlace ? RowFormId : null);
 
     private bool HasError(ColumnBase<TItem> column) =>
         _editContext?.GetValidationMessages(new FieldIdentifier(_editModel!, column.EditProperty!.Name)).Any() == true;
@@ -446,7 +541,7 @@
 
     private DataGridEditFields? _editFields;
 
-    private List<string> PlacedKeys => InRow ? [] : EditField.KeysIn(EditLayoutPart?.ChildContent);
+    private List<string> PlacedKeys => InPlace ? [] : EditField.KeysIn(EditLayoutPart?.ChildContent);
 
     // In the order the dialog draws them: those placed, then the rest.
     private ColumnBase<TItem>? FirstEditColumn =>
@@ -470,6 +565,13 @@
             return;
         }
 
+        // Moving through cells saves only what changed.
+        if (_cellKey is not null && !context.IsModified())
+        {
+            EndCellAndGoOn(_cellNext);
+            return;
+        }
+
         var save = new DataGridSave<TItem>(_editModel, _editItem, _editIsNew, EditProperties, context, _editMessages);
         // A key column left editable: a save to another key would be a save to another row.
         if (!_editIsNew && KeyOf(_editModel) != _editKeyFor)
@@ -478,11 +580,45 @@
             return;
         }
 
-        await OnSave.InvokeAsync(save);
+        _cellSaving = _cellKey is not null;
+        try
+        {
+            await OnSave.InvokeAsync(save);
+        }
+        finally
+        {
+            _cellSaving = false;
+        }
+
+        if (_cellKey is not null)
+        {
+            var next = _cellNext;
+            _cellNext = null;
+            if (!save.HasErrors)
+            {
+                EndCell();
+                await ReloadAsync();
+                EndCellAndGoOn(next);
+            }
+
+            return;
+        }
+
         if (!save.HasErrors)
         {
             await EndEditAsync(saved: true);
         }
+    }
+
+    private void EndCellAndGoOn(string? next)
+    {
+        EndCell();
+        if (next is not null)
+        {
+            StartCellFrom(next);
+        }
+
+        StateHasChanged();
     }
 
     private async Task EndEditAsync(bool saved)
@@ -521,7 +657,7 @@
         get
         {
             var delete = CurrentDeleteKey;
-            var key = Adding ? NewRowKey : CurrentEditKey;
+            var key = Adding ? NewRowKey : _cellKey ?? CurrentEditKey;
             if (_ending || (delete is null && key is null))
             {
                 return null;
@@ -536,7 +672,7 @@
                 }
                 else if (RendererInfo.IsInteractive)
                 {
-                    @(delete is not null ? DeleteDialog(delete) : InRow ? RowForm(key!, default) : EditDialog(key!, default))
+                    @(delete is not null ? DeleteDialog(delete) : InPlace ? RowForm(key!, default) : EditDialog(key!, default))
                 }
                 else
                 {
@@ -669,7 +805,8 @@
     };
 
     private RenderFragment? EditControl(TItem item, bool inMenu, string? reason) =>
-        !CanEditRow(item)
+        InCell ? null
+        : !CanEditRow(item)
             ? CanEdit && reason is not null ? DisabledAction(Lucide.Pencil, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)), reason, inMenu, Accent.Neutral) : null
             : __builder =>
     {
@@ -723,7 +860,7 @@
     private RowActionScope ScopeOf(TItem item, bool inMenu) =>
         new(inMenu, ActionOverflow, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason));
 
-    private (int Buttons, bool Menu) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item), CanDeleteRow(item));
+    private (int Buttons, bool Menu) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item) && !InCell, CanDeleteRow(item));
 
     bool IDataGridToolbar.HasAdd => CanAdd;
 
@@ -749,7 +886,7 @@
     private RenderFragment EditBinding(string key) => builder =>
     {
         builder.OpenComponent<DataGridEditBinding<TItem>>(0);
-        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => InRow ? RowForm(key, posted) : EditDialog(key, posted)));
+        builder.AddComponentParameter(1, nameof(DataGridEditBinding<TItem>.ChildContent), (RenderFragment<TItem?>)(posted => InPlace ? RowForm(key, posted) : EditDialog(key, posted)));
         builder.CloseComponent();
     };
 
@@ -770,7 +907,7 @@
             <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
         }
 
-        <Form Class="ib-grid-edit-form" id="@RowFormId" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync" OnInvalidSubmit="@(() => StateHasChanged())" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+        <Form Class="ib-grid-edit-form" id="@RowFormId" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync" OnInvalidSubmit="@(() => StateHasChanged())" data-ib-edit-for="@(_cellKey is not null ? null : key == NewRowKey ? "" : key)">
             @if (_editModel is not null)
             {
                 <FormErrors ExceptFields="@EditProperties.Select(p => p.Name).ToList()" />
@@ -826,7 +963,8 @@
         </Dialog>
     };
 
-    private bool HasActionCell => ActionColumn is not null || CanEdit || CanDelete;
+    // Cells have no Edit button, but a new row in them still has Save and Cancel.
+    private bool HasActionCell => ActionColumn is not null || CanDelete || (CanEdit && (!CellMode || CanAdd));
 
     /// <summary>
     /// Remembers how each person has arranged the columns, in a cookie under this name, so the server
@@ -1186,9 +1324,9 @@
             Logger?.LogWarning("A DataGrid on a static page needs a {Key} or {Url} for people to rearrange its columns, so it shows no controls.", nameof(LayoutKey), nameof(LayoutSaveUrl));
         }
 
-        if (InRow && (Virtualize || Appending))
+        if (EditMode is DataGridEditMode.Row or DataGridEditMode.Cell && (Virtualize || Appending))
         {
-            throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Row)} can't edit rows that load as they're needed, as an edited row could scroll away with what's typed in it: use {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
+            throw new InvalidOperationException($"{nameof(DataGridEditMode)}.{EditMode} can't edit rows that load as they're needed, as an edited row could scroll away with what's typed in it: use {nameof(DataGridEditMode)}.{nameof(DataGridEditMode.Dialog)}.");
         }
 
         // Rows that load as they're needed can't be counted on to hold the one a link names.
@@ -1649,7 +1787,7 @@
                 // As wide as the most buttons a row has, the ⋮ among them.
                 var buttons = _items.Count == 0 ? 1 : _items.Max(i => ActionCount(i) is var (count, menu) ? count + (menu ? 1 : 0) : 0);
                 // Save and Cancel have to fit, and starting an edit mustn't move the columns.
-                buttons = InRow ? Math.Max(buttons, 2) : buttons;
+                buttons = InRow || (CellMode && CanAdd) ? Math.Max(buttons, 2) : buttons;
                 if (buttons > 1)
                 {
                     style.Append(System.FormattableString.Invariant($"--ib-datagrid-menu:{0.75 + 2.25 * buttons}rem;"));
