@@ -84,16 +84,27 @@ public class TimeFieldRenderTests : BunitContext
     }
 
     [Theory]
-    [InlineData(true, false, false, 30 * 60)]
-    [InlineData(false, true, false, 30 * 60)]
-    [InlineData(false, false, true, 30 * 60)]
-    [InlineData(false, false, false, 30)]
-    [InlineData(false, false, false, 60)]
-    public void There_is_no_list_where_the_browser_serves_better(bool native, bool readOnly, bool disabled, int stepSeconds)
+    [InlineData(true, false, false)]
+    [InlineData(false, true, false)]
+    [InlineData(false, false, true)]
+    public void There_is_no_panel_with_the_browsers_picker_or_nothing_to_change(bool native, bool readOnly, bool disabled)
     {
-        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.UseNative, native).Add(f => f.ReadOnly, readOnly).Add(f => f.Disabled, disabled).Add(f => f.Step, TimeSpan.FromSeconds(stepSeconds)));
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.UseNative, native).Add(f => f.ReadOnly, readOnly).Add(f => f.Disabled, disabled));
 
         Assert.Empty(cut.FindAll("ib-time-slots"));
+    }
+
+    [Theory]
+    [InlineData(30, 3)]
+    [InlineData(60, 2)]
+    public void Where_a_list_would_be_too_long_it_has_boxes_and_ok(int stepSeconds, int boxes)
+    {
+        var cut = TimeFor(() => _model.Opens, p => p.Add(f => f.Step, TimeSpan.FromSeconds(stepSeconds)));
+
+        Assert.Empty(cut.FindAll("[role=option]"));
+        Assert.Equal(boxes, cut.FindAll(".ib-calendar-time input").Count);
+        Assert.All(cut.FindAll(".ib-calendar-time input"), box => Assert.False(box.HasAttribute("name")));
+        Assert.NotEmpty(cut.FindAll("[data-ib-ok]"));
     }
 
     [Fact]

@@ -156,6 +156,97 @@ internal static class CalendarGrid
         builder.AddContent(12, Live);
     };
 
+    /// <summary>
+    /// A box each for the parts of a time, as <c>Scripts/time-parts.ts</c> reads them: an hour and minute,
+    /// a second if asked for, and AM or PM if the culture has them. With a NumberField's look and
+    /// steppers, but not NumberFields, as a field inside a field's panel would register on the form.
+    /// They have no name, so they don't post.
+    /// </summary>
+    public static RenderFragment TimeBoxes(IzzyText text, CultureInfo culture, TimeSpan? step, bool seconds, bool focusFirst) => builder =>
+    {
+        var names = culture.DateTimeFormat;
+        var twelve = names.ShortTimePattern.Contains('t') && names.AMDesignator.Length > 0;
+        // A box steps by Step, when that's whole units under the next one up.
+        int? minuteStep = step is { TotalMinutes: > 1 and < 60 } minutes && minutes.Ticks % TimeSpan.TicksPerMinute == 0 ? (int)minutes.TotalMinutes : null;
+        int? secondStep = step is { TotalSeconds: > 1 and < 60 } each && each.Ticks % TimeSpan.TicksPerSecond == 0 ? (int)each.TotalSeconds : null;
+
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "ib-calendar-time");
+        builder.AddAttribute(2, "role", "group");
+        builder.AddAttribute(3, "aria-label", text.CalendarTime);
+        builder.AddContent(4, TimeBox(text, text.CalendarHour, twelve ? 1 : 0, twelve ? 12 : 23, null, focusFirst));
+        builder.AddMarkupContent(5, "<span aria-hidden=\"true\">:</span>");
+        builder.AddContent(6, TimeBox(text, text.CalendarMinute, 0, 59, minuteStep, false));
+        if (seconds)
+        {
+            builder.AddMarkupContent(7, "<span aria-hidden=\"true\">:</span>");
+            builder.AddContent(8, TimeBox(text, text.CalendarSecond, 0, 59, secondStep, false));
+        }
+
+        if (twelve)
+        {
+            builder.OpenElement(9, "div");
+            builder.AddAttribute(10, "class", "ib-field-control ib-has-end");
+            builder.OpenElement(11, "select");
+            builder.AddAttribute(12, "class", "ib-field-input ib-field-select");
+            builder.AddAttribute(13, "aria-label", text.CalendarDayPart);
+            builder.OpenElement(14, "option");
+            builder.AddAttribute(15, "value", "am");
+            builder.AddContent(16, names.AMDesignator);
+            builder.CloseElement();
+            builder.OpenElement(17, "option");
+            builder.AddAttribute(18, "value", "pm");
+            builder.AddContent(19, names.PMDesignator);
+            builder.CloseElement();
+            builder.CloseElement();
+            builder.OpenComponent<Icon>(20);
+            builder.AddComponentParameter(21, nameof(Icon.Role), (IconRole?)IconRole.ChevronDown);
+            builder.AddComponentParameter(22, nameof(Icon.Class), "ib-field-icon ib-field-icon-end");
+            builder.CloseComponent();
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private static RenderFragment TimeBox(IzzyText text, string label, int min, int max, int? step, bool focus) => builder =>
+    {
+        builder.OpenElement(0, "ib-field-control");
+        builder.AddAttribute(1, "class", "ib-field-control ib-has-steppers");
+        builder.OpenElement(2, "input");
+        builder.AddAttribute(3, "class", "ib-field-input ib-field-number");
+        builder.AddAttribute(4, "type", "number");
+        builder.AddAttribute(5, "inputmode", "numeric");
+        builder.AddAttribute(6, "min", min);
+        builder.AddAttribute(7, "max", max);
+        builder.AddAttribute(8, "step", step);
+        builder.AddAttribute(9, "aria-label", label);
+        builder.AddAttribute(10, "autofocus", focus);
+        builder.CloseElement();
+        builder.OpenElement(11, "span");
+        builder.AddAttribute(12, "class", "ib-field-steppers");
+        builder.AddAttribute(13, "data-ib-steppers", true);
+        builder.AddAttribute(14, "hidden", true);
+        builder.AddContent(15, Stepper(text.Increase, "up", IconRole.ChevronUp));
+        builder.AddContent(16, Stepper(text.Decrease, "down", IconRole.ChevronDown));
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private static RenderFragment Stepper(string label, string direction, IconRole icon) => builder =>
+    {
+        builder.OpenElement(0, "button");
+        builder.AddAttribute(1, "type", "button");
+        builder.AddAttribute(2, "class", "ib-field-step");
+        builder.AddAttribute(3, "data-ib-step", direction);
+        builder.AddAttribute(4, "tabindex", "-1");
+        builder.AddAttribute(5, "aria-label", label);
+        builder.OpenComponent<Icon>(6);
+        builder.AddComponentParameter(7, nameof(Icon.Role), (IconRole?)icon);
+        builder.CloseComponent();
+        builder.CloseElement();
+    };
+
     private static readonly RenderFragment Live = builder =>
     {
         builder.OpenElement(0, "div");
