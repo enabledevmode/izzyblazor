@@ -119,6 +119,61 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         await Assertions.Expect(page.Locator($"{Grid} tr[data-ib-editing]")).ToHaveCountAsync(0);
     }
 
+    private const string HoldTheCircuit = """
+            (() => {
+                const send = WebSocket.prototype.send;
+                window.__held = [];
+                let count = 0, open = false;
+                WebSocket.prototype.send = function (data) {
+                    if (!open && ++count > 1) { window.__held.push(() => send.call(this, data)); return; }
+                    send.call(this, data);
+                };
+                window.__release = () => { open = true; window.__held.forEach(f => f()); };
+            })()
+            """;
+
+    // On a slow machine or connection this moment lasts seconds, so it's held open here: the socket is
+    // up, and what starts the circuit, with the address as it is then, waits to be sent.
+    [Theory]
+    [InlineData("Orders edited in the row", "tbody tr a[aria-label^='Edit']", "tr[data-ib-editing] input[name$='.Customer']")]
+    [InlineData("Orders you can edit", "tbody tr a[aria-label^='Edit']", "dialog[open] input[name$='.Customer']")]
+    [InlineData("Orders edited in the row", "thead a.ib-table-sort:has-text('Customer')", "th[aria-sort='ascending']")]
+    public async Task A_link_clicked_as_the_circuit_starts_still_counts(string caption, string link, string result)
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await page.AddInitScriptAsync(HoldTheCircuit);
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=interactive").ToString());
+        await page.WaitForFunctionAsync("() => window.__held.length > 0");
+        var grid = $".ib-datagrid:has(.ib-table-scroll[aria-label='{caption}'])";
+        await page.Locator(grid).Locator(link).First.ClickAsync();
+        await Assertions.Expect(page.Locator($"{grid} {result}")).ToHaveCountAsync(1);
+        await page.EvaluateAsync("() => window.__release()");
+        await page.Locator($"{grid}[data-ib-interactive]").WaitForAsync();
+        // Long enough for the circuit's first draw, and for it to catch up.
+        await page.WaitForTimeoutAsync(1500);
+        await Assertions.Expect(page.Locator($"{grid} {result}")).ToHaveCountAsync(1);
+    }
+
+    [Fact]
+    public async Task Cancel_gives_focus_back_though_the_circuit_redrew_the_button()
+    {
+        await using var browser = await TestBrowser.OpenAsync();
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
+        await page.AddInitScriptAsync(HoldTheCircuit);
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=interactive").ToString());
+        await page.WaitForFunctionAsync("() => window.__held.length > 0");
+        const string grid = ".ib-datagrid:has(.ib-table-scroll[aria-label='Orders you can edit'])";
+        var firstRow = page.Locator(grid).Locator(".ib-table-scroll tbody tr").First;
+        await firstRow.Locator("a[aria-label^='Edit']").ClickAsync();
+        await page.Locator($"{grid} dialog[open]").WaitForAsync();
+        await page.EvaluateAsync("() => window.__release()");
+        await page.Locator($"{grid}[data-ib-interactive]").WaitForAsync();
+        await page.WaitForTimeoutAsync(1500);
+        await page.Locator($"{grid} dialog[open] [data-ib-edit-cancel]").ClickAsync();
+        await Assertions.Expect(firstRow.Locator("a[aria-label^='Edit']")).ToBeFocusedAsync();
+    }
+
     [Fact]
     public async Task A_picker_in_a_row_keeps_its_own_look()
     {
