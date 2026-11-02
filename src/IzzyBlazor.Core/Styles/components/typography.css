@@ -879,10 +879,10 @@
 
   .ib-prose :where(kbd) {
     padding: 0.125em 0.375em;
-    border: 1px solid transparent;
+    border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-on-surface);
-    color: var(--ib-color-surface);
+    background-color: color-mix(in oklab, var(--ib-color-on-surface) 8%, transparent);
+    color: var(--ib-color-on-surface);
     font-family: var(--ib-font-mono);
     font-size: 0.875em;
   }
