@@ -45,9 +45,6 @@ class Grid extends IzzyElement {
   #load: string | undefined;
   // The frozen columns' widths at each edge, as a scroll padding.
   #clearOf = "";
-  // The row being saved, whose edit button gets focus back. Kept here, as a navigation sets this element up again.
-  #saving: string | null = null;
-  #opening = false;
 
   protected setup(signal: AbortSignal): void {
     const table = this.closest("ib-table")?.querySelector<HTMLTableElement>(":scope > .ib-table-scroll > table");
@@ -94,7 +91,6 @@ class Grid extends IzzyElement {
     this.#on(table, "change", () => this.#syncSelected(), signal);
     setupContextMenu(table, "tbody > tr, thead > tr > th", "[data-ib-row-menu], [data-ib-menu]", () => true, signal);
     this.#on(this.closest("ib-table")!, "ib-selection", () => this.#syncSelected(), signal);
-    this.#watchEditor(this.closest("ib-table")!, signal);
     this.#on(document, "pointerdown", (event) => {
       this.#run = null;
       this.#arrive = null;
@@ -103,58 +99,6 @@ class Grid extends IzzyElement {
       else this.#parked = false;
     }, signal);
     this.#rowsChanged();
-  }
-
-  // A save takes the editor away with the next render, so it can't hand focus back as closing it
-  // does: focus goes to the row's edit button when it's gone.
-  #watchEditor(root: Element, signal: AbortSignal): void {
-    this.#on(root, "submit", (event) => {
-      this.#saving = (event.target as Element).closest("dialog")?.getAttribute("data-ib-edit-for") ?? null;
-    }, signal);
-    const check = () => {
-      if (this.#saving === null || root.querySelector("dialog[data-ib-edit-for]")) return;
-      // The row's first action, or for a row deleted or added, the first there is.
-      (root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(this.#saving)}"] [data-ib-edit]`) ?? root.querySelector<HTMLElement>("[data-ib-edit]"))?.focus();
-      this.#saving = null;
-    };
-    const gone = new MutationObserver(check);
-    gone.observe(root, { childList: true, subtree: true });
-    // Set up again by an enhanced navigation that has already taken the editor away.
-    check();
-
-    // On a static page, only the editor is taken from the page the link leads to: merging a whole page
-    // back in, to add one dialog, takes as long as the page is big. Not on one prerendered for a circuit:
-    // the circuit knows nothing of an editor added this way, and takes it away as it starts.
-    this.#on(root, "click", (event) => {
-      const click = event as MouseEvent;
-      const link = (click.target as Element).closest<HTMLAnchorElement>("a[data-ib-edit]");
-      if (!link || !root.hasAttribute("data-ib-stays-static") || click.ctrlKey || click.metaKey || click.shiftKey) return;
-      click.preventDefault();
-      click.stopPropagation();
-      void this.#openEditor(root, link);
-    }, signal);
-    signal.addEventListener("abort", () => gone.disconnect());
-  }
-
-  async #openEditor(root: Element, link: HTMLAnchorElement): Promise<void> {
-    if (this.#opening) return;
-    this.#opening = true;
-    const named = `ib-dialog[data-query-key="${CSS.escape(link.dataset.ibEdit!)}"]`;
-    try {
-      const page = new DOMParser().parseFromString(await (await fetch(link.href)).text(), "text/html");
-      const editor = page.querySelector(named);
-      if (!editor) throw new Error();
-      root.querySelector(named)?.remove();
-      history.pushState(null, "", link.href);
-      // Where the server draws it, so that a later merge leaves it be.
-      root.querySelector(":scope > ib-grid")?.after(document.adoptNode(editor));
-      // After its own close handler, which takes the key out of the address.
-      editor.querySelector("dialog")?.addEventListener("close", () => setTimeout(() => editor.remove()));
-    } catch {
-      location.href = link.href;
-    } finally {
-      this.#opening = false;
-    }
   }
 
   /** Puts focus where the keys would in this cell, for a header that has just been rearranged. */
@@ -325,6 +269,11 @@ class Grid extends IzzyElement {
       if (control.closest("table") !== table || this.#inOverlay(control)) continue;
       seen.add(control);
       if (!this.#controls.has(control)) this.#controls.set(control, control.getAttribute("tabindex"));
+      // A row being edited is left to Tab: all its fields, then Save and Cancel.
+      if (control.closest("[data-ib-editing]")) {
+        if (this.#controls.get(control) === null) control.removeAttribute("tabindex");
+        continue;
+      }
       if (control.closest(CELLS) !== this.#inside && control.tabIndex !== -1) control.tabIndex = -1;
     }
     for (const control of this.#controls.keys()) {
@@ -423,6 +372,11 @@ class Grid extends IzzyElement {
     }
     const cell = this.#cellOf(target);
     if (!cell) return;
+    if (cell.closest("[data-ib-editing]")) {
+      this.#inGrid = true;
+      this.#key = (cell.parentElement as HTMLElement).dataset.ibKey ?? null;
+      return;
+    }
     if (this.#parked) {
       this.#goTo(this.#number);
       return;
@@ -506,6 +460,14 @@ class Grid extends IzzyElement {
     const cell = this.#cellOf(target);
     if (!cell) return;
     if (this.#isOpen(target)) return;
+    // In a row being edited, keys are the fields' own.
+    if (cell.closest("[data-ib-editing]")) {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        cell.closest("tr")!.querySelector<HTMLElement>("[data-ib-edit-cancel]")?.click();
+      }
+      return;
+    }
     this.#arrive = null;
     const inside = target !== cell && target !== this.#targetOf(cell);
     if (inside && this.#onKeyInside(event, target, cell)) return;
@@ -612,6 +574,7 @@ class Grid extends IzzyElement {
       }
       case "F2":
         if (target === cell && this.#entryOf(cell)) this.#focusInCell(cell, this.#entryOf(cell)!);
+        else if (target === cell) cell.closest("tr")?.querySelector<HTMLElement>("[data-ib-edit-start]")?.click();
         return true;
       case "ArrowUp":
       case "ArrowDown":

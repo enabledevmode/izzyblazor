@@ -28,9 +28,10 @@
     private RenderFragment DataRow(TItem item, int row, int? absolute) => __builder =>
     {
         var key = KeyOf(item);
-        var href = RowHref?.Invoke(item);
+        var editing = IsEditingRow(item);
+        var href = editing ? null : RowHref?.Invoke(item);
         @* The first row of each page Load more adds can take focus, which goes to it when it arrives. *@
-        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@VirtualRowStyle" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
+        <tr @key="(object?)absolute" class="@RowClasses(item, href)" aria-rowindex="@(absolute + HeaderRows + 1)" data-ib-even="@(absolute % 2 == 1 ? "" : null)" style="@VirtualRowStyle" data-ib-key="@(GridColumns ? key : null)" aria-selected="@(GridColumns && Selectable ? (IsSelected(item, key) ? "true" : "false") : null)" aria-current="@(href is null ? CurrentOf(item) : null)" tabindex="@(_pageStarts.Contains(row) || row == _arriveAt ? "-1" : null)" data-ib-autofocus="@(row == _arriveAt ? "" : null)" data-ib-editing="@(editing ? "" : null)" @ref="_rowRefs[absolute is null ? row : -1]">
             @if (Selectable)
             {
                 <td class="@SelectCellClass">
@@ -52,7 +53,7 @@
                         @* One link per row, stretched over it; controls in the row stay clickable above it. *@
                         <a class="ib-table-row-link" href="@href" aria-current="@CurrentOf(item)"><span class="ib-visually-hidden">@LabelOf(item)</span></a>
                     }
-                    @column.Cell(item)
+                    @(editing ? EditCell(column) ?? column.Cell(item) : column.Cell(item))
                 </td>
                 first = false;
             }
@@ -225,6 +226,20 @@
                         }
                     </thead>
                     <tbody>
+                        @if (_loadError is null && NewRowItem is { } added)
+                        {
+                            <tr data-ib-editing="">
+                                @if (Selectable)
+                                {
+                                    <td class="@SelectCellClass"></td>
+                                }
+                                @foreach (var column in Shown)
+                                {
+                                    <td class="@CellClass(column)" style="@CellStyle(column)">@(EditCell(column) ?? column.Cell(added))</td>
+                                }
+                                @LastCell(added)
+                            </tr>
+                        }
                         @if (_loadError is not null)
                         {
                             @* In place of the rows: what went wrong and a way to try again. *@
@@ -647,13 +662,13 @@
     // filters and page (a new filter starts at page 1).
     private IEnumerable<(string Key, string Value)> KeptQuery()
     {
-        var own = _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Concat(ExtraFilterKeys).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
+        var own = _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Concat(ExtraFilterKeys).Concat(LinkClears).Append(PageKey).Append(CursorKey).ToHashSet(StringComparer.OrdinalIgnoreCase);
         return QueryString.Of(Navigation.Uri)
             .Where(q => !own.Contains(q.Key))
             .SelectMany(q => q.Value.Select(v => (q.Key, v ?? "")));
     }
 
-    private string ClearFiltersHref => Navigation.GetUriWithQueryParameters(
+    private string ClearFiltersHref => LinkWith(
         _columns.Where(c => c.CanFilter).SelectMany(FilterQueryKeys).Concat(ReadsFilterText ? [FilterTextKey] : []).Append(PageKey).Append(CursorKey).Distinct().ToDictionary(k => k, _ => (object?)null));
 
     /// <summary>The address's key for a whole filter as text, which a FilterBuilder writes. It's anded with the columns' own.</summary>
@@ -1004,7 +1019,7 @@
         else if (AddressFilter() is { Filter: { } address } read)
         {
             <Tag Label="@(read.Unreadable ? TextDefaults.FilterUnreadable : address.ToString())" Size="ControlSize.Sm"
-                 RemoveHref="@Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [FilterTextKey] = null, [PageKey] = null, [CursorKey] = null })" />
+                 RemoveHref="@LinkWith(new Dictionary<string, object?> { [FilterTextKey] = null, [PageKey] = null, [CursorKey] = null })" />
         }
     };
 
@@ -1667,7 +1682,7 @@
 
         changes[PageKey] = null;
         changes[CursorKey] = null;
-        return Navigation.GetUriWithQueryParameters(changes);
+        return LinkWith(changes);
     }
 
     // The row's GET form, for no script. It holds every filter, as the panels' form does, so either posts
@@ -1811,7 +1826,7 @@
         var changes = ColumnFilter.Write(column, FilterQueryKey(column), value);
         changes[PageKey] = null;
         changes[CursorKey] = null;
-        return Navigation.GetUriWithQueryParameters(changes);
+        return LinkWith(changes);
     }
 
     private async Task ClearFiltersAsync()
@@ -2076,7 +2091,7 @@
     }
 
     private string AddSortHref(ColumnBase<TItem> column) =>
-        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        LinkWith(new Dictionary<string, object?>
         {
             [SortQueryKey] = AddSort(column),
             [PageKey] = null,
@@ -2084,7 +2099,7 @@
         });
 
     private string SortHref(ColumnBase<TItem> column) =>
-        Navigation.GetUriWithQueryParameters(new Dictionary<string, object?>
+        LinkWith(new Dictionary<string, object?>
         {
             [SortQueryKey] = NextSort(column),
             [PageKey] = null,
@@ -2148,6 +2163,15 @@
 
     /// <summary>A last column of the view's own: its header cell.</summary>
     internal virtual RenderFragment? LastHeaderCell => null;
+
+    /// <summary>Whether this row is being edited where it stands.</summary>
+    internal virtual bool IsEditingRow(TItem item) => false;
+
+    /// <summary>The new row being edited, which isn't among those loaded.</summary>
+    internal virtual TItem? NewRowItem => default;
+
+    /// <summary>The field for a column of the row being edited, or null for one that only shows its value.</summary>
+    internal virtual RenderFragment? EditCell(ColumnBase<TItem> column) => null;
 
     /// <summary>A last column of the view's own: its cell in a row.</summary>
     internal virtual RenderFragment? LastCell(TItem item) => null;

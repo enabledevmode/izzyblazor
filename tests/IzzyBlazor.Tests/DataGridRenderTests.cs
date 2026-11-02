@@ -285,6 +285,40 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
+    public void A_row_has_fields_only_for_the_columns_shown_so_a_hidden_one_keeps_its_value()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        RenderFragment columns = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Row, string>>(0);
+            builder.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, string>>)(r => r.Name));
+            builder.AddComponentParameter(2, "Visible", false);
+            builder.CloseComponent();
+            builder.OpenComponent<PropertyColumn<Row, int>>(3);
+            builder.AddComponentParameter(4, "Property", (System.Linq.Expressions.Expression<Func<Row, int>>)(r => r.Qty));
+            builder.CloseComponent();
+        };
+        DataGridSave<Row>? saved = null;
+        var cut = Grid(columns, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.EditMode, DataGridEditMode.Row)
+            .Add(x => x.OnSave, (DataGridSave<Row> s) => { saved = s; })
+            .Add(x => x.EditKey, "b2")
+            .Add(x => x.EditKeyChanged, (string? _) => { }));
+
+        Assert.Equal(["ib-edit.Qty"], cut.FindAll("tr[data-ib-editing] [name^='ib-edit.']").Select(f => f.GetAttribute("name")));
+        var formId = cut.Find("form.ib-grid-edit-form").Id;
+        Assert.Equal(formId, cut.Find("tr[data-ib-editing] input").GetAttribute("form"));
+        Assert.Equal(formId, cut.Find("tr[data-ib-editing] button[type=submit]").GetAttribute("form"));
+
+        cut.Find("form.ib-grid-edit-form").Submit();
+        var target = new Row("changed", 0);
+        saved!.CopyTo(target);
+        Assert.Equal("changed", target.Name);
+        Assert.Equal(2, target.Qty);
+    }
+
+    [Fact]
     public void A_layout_places_a_field_once_and_a_field_it_leaves_out_after_it()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
