@@ -694,7 +694,7 @@
     RenderFragment IDataGridToolbar.ColumnPickerBar(bool showText) => __builder =>
     {
         <div class="ib-toolbar-item ib-col-picker">
-            <Popover Placement="Placement.BottomEnd" data-ib-user-controlled>
+            <Popover Placement="Placement.BottomStart" data-ib-user-controlled>
                 <Trigger>
                     @if (showText)
                     {
@@ -749,7 +749,7 @@
         {
             // Both inside one button, not a split button: one click only ever opens the menu.
             var chevron = IconSet.Current.Get(IconRole.ChevronDown);
-            <Menu Placement="Placement.BottomEnd">
+            <Menu Placement="Placement.BottomStart">
                 <Trigger>
                     @if (showText)
                     {
