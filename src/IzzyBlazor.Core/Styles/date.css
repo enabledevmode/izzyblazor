@@ -20,6 +20,11 @@
     font-size: var(--ib-field-font);
   }
 
+  /* A small field's popup floats free of what made the field small, and its header needs the room. */
+  .ib-pop .ib-calendar {
+    --ib-calendar-cell: max(var(--ib-field-h), var(--ib-control-h-md));
+  }
+
   .ib-calendar-view {
     visibility: visible;
     min-height: 0;
@@ -48,9 +53,12 @@
 
   /* Tighter than a field, as two of them and the buttons share a month's width. */
   .ib-calendar-selects {
+    --ib-field-h: 1.75rem;
     --ib-field-px: var(--ib-space-1);
+    --ib-field-font: var(--ib-control-font-sm);
+    --ib-icon-size: 0.875rem;
     flex: 1 1 0;
-    gap: 2px;
+    gap: var(--ib-space-1);
     min-width: 0;
   }
 
