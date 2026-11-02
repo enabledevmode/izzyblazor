@@ -16,6 +16,12 @@ internal interface IDataGridToolbar
 
     RenderFragment FilterBuilderBar(bool showText);
 
+    bool HasAdd { get; }
+
+    string AddLabel { get; }
+
+    RenderFragment AddBar(bool showText);
+
     bool HasExport { get; }
 
     /// <summary>Whether export opens a menu of both formats, with a chevron beside its icon: a little wider.</summary>
@@ -193,6 +199,28 @@ public sealed class DataGridColumnPicker : DataGridToolbarItem
     private protected override RenderFragment ItemBar => Grid.ColumnPickerBar(Text);
 
     private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.ColumnPickerLabel, startIcon: true, endIcon: false) + (Text ? TableIconExtra : 0);
+}
+
+/// <summary>
+/// Puts a <c>DataGrid</c>'s Add button, from <c>NewItem</c>, among your toolbar items. It stays in the
+/// bar, at the end unless <see cref="DataGridToolbarItem.Position"/> says otherwise.
+/// </summary>
+[ModeSupport]
+public sealed class DataGridAdd : DataGridToolbarItem
+{
+    /// <summary>Creates it, at the toolbar's end.</summary>
+    public DataGridAdd() => Position = ToolbarPosition.End;
+
+    /// <summary>Its text beside its icon, or only its icon. Defaults to the grid's <c>ToolbarLabels</c>.</summary>
+    [Parameter] public bool? ShowText { get; set; }
+
+    private bool Text => ShowText ?? Grid.ToolbarLabels;
+
+    private protected override bool On => Grid.HasAdd;
+
+    private protected override RenderFragment ItemBar => Grid.AddBar(Text);
+
+    private protected override double? ItemWidth => ButtonWidth.Estimate(ControlSize.Sm, !Text, Text, Grid.AddLabel, startIcon: true, endIcon: false);
 }
 
 /// <summary>

@@ -28,16 +28,19 @@ public sealed class DataGridSave<TItem>
     private readonly EditContext _context;
     private readonly ValidationMessageStore _messages;
 
-    internal DataGridSave(TItem item, TItem original, IReadOnlyList<PropertyInfo> editable, EditContext context, ValidationMessageStore messages)
+    internal DataGridSave(TItem item, TItem? original, bool isNew, IReadOnlyList<PropertyInfo> editable, EditContext context, ValidationMessageStore messages)
     {
-        (Item, Original, _editable, _context, _messages) = (item, original, editable, context, messages);
+        (Item, Original, IsNew, _editable, _context, _messages) = (item, original, isNew, editable, context, messages);
     }
 
     /// <summary>The row with its new values: a copy, and valid by its rules. Only editable columns have changed.</summary>
     public TItem Item { get; }
 
-    /// <summary>The row as it was loaded.</summary>
-    public TItem Original { get; }
+    /// <summary>The row as it was loaded, or the default for a new one.</summary>
+    public TItem? Original { get; }
+
+    /// <summary>Whether it's a new row, from <c>NewItem</c>.</summary>
+    public bool IsNew { get; }
 
     internal bool HasErrors { get; private set; }
 

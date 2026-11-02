@@ -243,18 +243,45 @@ public class DataGridRenderTests : BunitContext
     {
         RenderFragment<Row> menu = row => builder =>
         {
-            if (row.Name == "b")
-            {
-                builder.AddMarkupContent(0, "<span>Item</span>");
-            }
+            builder.OpenComponent<RowAction>(0);
+            builder.AddComponentParameter(1, nameof(RowAction.Label), "Item");
+            builder.AddComponentParameter(2, nameof(RowAction.Visible), row.Name == "b");
+            builder.CloseComponent();
         };
-        var cut = Grid(NameAndQty, p => p.Add(x => x.RowMenu, menu));
+        RenderFragment columns = builder =>
+        {
+            builder.AddContent(0, NameAndQty);
+            builder.OpenComponent<ActionColumn<Row>>(1);
+            builder.AddComponentParameter(2, nameof(ActionColumn<Row>.Overflow), RowActionOverflow.Always);
+            builder.AddComponentParameter(3, nameof(ActionColumn<Row>.ChildContent), menu);
+            builder.CloseComponent();
+        };
+        var cut = Grid(columns);
         Assert.Equal(3, cut.FindAll("thead th").Count);
         Assert.Equal(3, cut.FindAll("col").Count);
         Assert.Contains("var(--ib-datagrid-menu)", cut.Find("table").GetAttribute("style"));
         Assert.Single(cut.FindAll("[data-ib-row-menu]"));
         Assert.Equal(3, cut.FindAll("tbody tr")[0].Children.Length);
         Assert.Equal(3, cut.FindAll("tbody tr")[1].Children.Length);
+    }
+
+    [Fact]
+    public void A_bound_EditKey_holds_the_row_being_edited()
+    {
+        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
+        string? key = null;
+        IRenderedComponent<DataGrid<Row>> cut = null!;
+        cut = Grid(NameAndQty, p => p
+            .Add(x => x.ItemKey, r => r.Name + r.Qty)
+            .Add(x => x.EditMode, DataGridEditMode.Dialog)
+            .Add(x => x.OnSave, (DataGridSave<Row> _) => { })
+            .Add(x => x.EditKey, key)
+            .Add(x => x.EditKeyChanged, (string? k) => { key = k; cut.Render(p2 => p2.Add(x => x.EditKey, k)); }));
+
+        Assert.Empty(cut.FindAll("dialog"));
+        cut.FindAll("button[data-ib-edit]")[0].Click();
+        Assert.Equal("b2", key);
+        Assert.Contains("b2", cut.Find("dialog").TextContent);
     }
 
     [Fact]
