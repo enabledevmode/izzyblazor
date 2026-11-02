@@ -19,6 +19,12 @@ class GridEdit extends IzzyElement {
       const form = event.target as Element;
       this.#saving = (form.closest("dialog") ?? form).getAttribute("data-ib-edit-for");
     }, { signal });
+    // A closed dialog gives focus back by itself, but a circuit starting may have redrawn the button.
+    root.addEventListener("close", (event) => {
+      const key = (event.target as Element).getAttribute("data-ib-edit-for");
+      const row = key && root.querySelector(`tr[data-ib-key="${CSS.escape(key)}"]`);
+      if (row && !row.contains(document.activeElement)) this.#focusAction(root, key!);
+    }, { signal, capture: true });
     const check = () => this.#check(root);
     const gone = new MutationObserver(check);
     gone.observe(root, { childList: true, subtree: true });
@@ -60,9 +66,13 @@ class GridEdit extends IzzyElement {
       }
       return;
     }
-    // The row's first action, or for a row deleted or added, the first there is.
-    (root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(this.#saving)}"] [data-ib-edit]`) ?? root.querySelector<HTMLElement>("[data-ib-edit]"))?.focus();
+    this.#focusAction(root, this.#saving);
     this.#saving = null;
+  }
+
+  // The row's first action, or for a row deleted or added, the first there is.
+  #focusAction(root: Element, key: string): void {
+    (root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(key)}"] [data-ib-edit]`) ?? root.querySelector<HTMLElement>("[data-ib-edit]"))?.focus();
   }
 
   // Not in a closed picker, which has controls of its own and can't take focus.

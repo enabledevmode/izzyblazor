@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Components;
+using Microsoft.JSInterop;
 using Microsoft.AspNetCore.Components.Routing;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -154,6 +155,35 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     [Parameter] public string? SelectRowLabel { get; set; }
 
     [Inject] internal NavigationManager Navigation { get; set; } = null!;
+
+    [Inject] private IJSRuntime JS { get; set; } = null!;
+
+    // The circuits whose address has been checked: once for all the views on a page.
+    private static readonly System.Runtime.CompilerServices.ConditionalWeakTable<NavigationManager, object> CheckedAddress = [];
+
+    // A circuit starts with the address as it was when it set out. A link clicked before it has drawn
+    // changes the address with no word to it, so it would draw over what the link opened, while the
+    // address still says otherwise, and the same link then does nothing.
+    private async Task CatchUpWithAddressAsync()
+    {
+        if (!CheckedAddress.TryAdd(Navigation, new()))
+        {
+            return;
+        }
+
+        try
+        {
+            var address = await JS.InvokeAsync<string>("location.toString");
+            if (address != Navigation.Uri)
+            {
+                Navigation.NavigateTo(address, replace: true);
+            }
+        }
+        catch (Exception)
+        {
+            // Only a precaution, which must never cost the view: on a page going away, there's nothing to catch up with.
+        }
+    }
 
     [Inject] internal IServiceProvider Services { get; set; } = null!;
 
@@ -925,6 +955,11 @@ public abstract partial class DataViewBase<TItem> : IDisposable
     /// <inheritdoc />
     protected override async Task OnAfterRenderAsync(bool firstRender)
     {
+        if (firstRender && RendererInfo.IsInteractive && !UseState)
+        {
+            await CatchUpWithAddressAsync();
+        }
+
         // After Load more, the reader carries on from the first item it added.
         if (_focusRow is { } row && _rowRefs.TryGetValue(row, out var element))
         {
