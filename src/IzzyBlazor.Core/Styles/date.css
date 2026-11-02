@@ -258,6 +258,8 @@
     width: anchor-size(width);
     max-width: none;
     max-height: min(20rem, 45dvh);
+    padding: var(--ib-space-1);
+    font-size: var(--ib-field-font);
     --ib-pop-gap: 0.25rem;
   }
 
