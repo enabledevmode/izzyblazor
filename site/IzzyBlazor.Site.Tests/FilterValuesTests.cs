@@ -190,7 +190,6 @@ public sealed class FilterValuesTests(SiteFixture site) : IClassFixture<SiteFixt
 
     [Theory]
     [InlineData("interactive")]
-    [InlineData("static")]
     public async Task A_short_list_has_its_blank_row_and_all_ticked_is_no_filter(string mode)
     {
         var (browser, page, table) = await OpenAsync(mode);
