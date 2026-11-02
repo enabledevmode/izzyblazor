@@ -1,9 +1,10 @@
-@using IzzyBlazor.Site.Examples.Table
+@using System.ComponentModel.DataAnnotations
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
 @* Edit a row with the pencil: a dialog, with no script needed, that saves by a form post. Only the
    editable columns take a value from it: all of them but the key here, including the two that
    aren't shown. A total over 10,000 comes back as an error on its field. Add and Delete come
    from NewItem and OnDelete, and a paid order can't be deleted. *@
-<DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders you can edit" ItemKey="o => o.Number.ToString()" QueryPrefix="edits-"
+<DataGrid TItem="Order" Items="_orders" PageSize="5" Caption="Orders you can edit" ItemKey="o => o.Number.ToString()" QueryPrefix="edits-"
           EditMode="DataGridEditMode.Dialog" OnSave="Save" NewItem="NewOrder" OnDelete="Delete" ItemDeletable="o => o.Status != OrderStatus.Paid" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
     <PropertyColumn Property="o => o.Customer" />
@@ -16,11 +17,14 @@
 @code {
     [CascadingParameter] private HttpContext? Http { get; set; }
 
-    private List<EditableOrder> _orders = [];
+    private List<Order> _orders = [];
 
-    protected override void OnInitialized() => _orders = EditableOrders.For(Http);
+    // Stands in for your database, with a copy of the rows for each visitor to this site.
+    protected override void OnInitialized() => _orders = ExampleRows.For(Http, "editing", () => Rows.All
+        .Select(o => new Order { Number = o.Number, Customer = o.Customer, Date = o.Date, Status = (OrderStatus)o.Status, Total = o.Total })
+        .ToList());
 
-    private void Save(DataGridSave<EditableOrder> save)
+    private void Save(DataGridSave<Order> save)
     {
         if (save.Item.Total > 10_000)
         {
@@ -38,7 +42,28 @@
         save.CopyTo(_orders.First(o => o.Number == save.Item.Number));
     }
 
-    private EditableOrder NewOrder() => new() { Number = _orders.Max(o => o.Number) + 1, Date = DateOnly.FromDateTime(DateTime.Today) };
+    private Order NewOrder() => new() { Number = _orders.Max(o => o.Number) + 1, Date = DateOnly.FromDateTime(DateTime.Today) };
 
-    private void Delete(DataGridDelete<EditableOrder> delete) => _orders.RemoveAll(o => o.Number == delete.Item.Number);
+    private void Delete(DataGridDelete<Order> delete) => _orders.RemoveAll(o => o.Number == delete.Item.Number);
+
+    public enum OrderStatus { Paid, Pending, Refunded, Failed }
+
+    // On a static page a row needs a parameterless constructor and settable properties, for the post to fill.
+    public sealed class Order
+    {
+        public int Number { get; set; }
+
+        [Required, StringLength(60)]
+        public string? Customer { get; set; }
+
+        public DateOnly Date { get; set; }
+
+        public OrderStatus Status { get; set; }
+
+        [Range(0, 1_000_000)]
+        public decimal Total { get; set; }
+
+        [StringLength(200), DataType(DataType.MultilineText)]
+        public string? Notes { get; set; }
+    }
 }

@@ -1,7 +1,8 @@
 @using System.ComponentModel.DataAnnotations
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
 @* A form of your own in the dialog: its model holds only what it edits, so no other field can be
    forged, and it says when it has saved. *@
-<DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders with your form" ItemKey="o => o.Number.ToString()" QueryPrefix="own-"
+<DataGrid TItem="Order" Items="_orders" PageSize="5" Caption="Orders with your form" ItemKey="o => o.Number.ToString()" QueryPrefix="own-"
           EditMode="DataGridEditMode.Dialog" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
     <PropertyColumn Property="o => o.Customer" />
@@ -24,17 +25,29 @@
     [SupplyParameterFromForm(FormName = "own-form")]
     private QuantityEdit? Model { get; set; }
 
-    private List<EditableOrder> _orders = [];
+    private List<Order> _orders = [];
 
-    protected override void OnInitialized() => _orders = EditableOrders.For(Http);
+    // Stands in for your database, with a copy of the rows for each visitor to this site.
+    protected override void OnInitialized() => _orders = ExampleRows.For(Http, "own-form", () => Rows.All
+        .Select(o => new Order { Number = o.Number, Customer = o.Customer })
+        .ToList());
 
-    private QuantityEdit ModelFor(EditableOrder order) => Model ??= new() { Quantity = order.Quantity };
+    private QuantityEdit ModelFor(Order order) => Model ??= new() { Quantity = order.Quantity };
 
-    private async Task SaveAsync(DataGridEditFormContext<EditableOrder> edit)
+    private async Task SaveAsync(DataGridEditFormContext<Order> edit)
     {
         edit.Item!.Quantity = Model!.Quantity;
         await edit.CloseAsync();
         Model = null;
+    }
+
+    public sealed class Order
+    {
+        public int Number { get; set; }
+
+        public string? Customer { get; set; }
+
+        public int Quantity { get; set; } = 1;
     }
 
     public sealed class QuantityEdit
