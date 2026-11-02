@@ -1131,10 +1131,6 @@
   }
 
   /* The row reads as the same row: its fields have no box, and line up with the text they replace. */
-  .ib-table-grid > tbody > * > :is(tr[data-ib-editing] > td, td[data-ib-editing]) {
-    background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
-  }
-
   .ib-datagrid [data-ib-editing] .ib-field-control > .ib-field-input:not([popover] *) {
     padding-inline: 0;
     border: 0;
