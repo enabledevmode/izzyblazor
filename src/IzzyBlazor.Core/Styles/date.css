@@ -313,6 +313,8 @@
 
   /* A box each for the parts of the time, tighter than a field. */
   .ib-calendar-time {
+    /* The month sets the panel's width, and this fits it. */
+    contain: inline-size;
     --ib-field-px: var(--ib-space-2);
     display: flex;
     align-items: center;

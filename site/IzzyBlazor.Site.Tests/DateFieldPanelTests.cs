@@ -133,6 +133,23 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
     }
 
     [Fact]
+    public async Task The_time_fits_the_month_and_doesnt_widen_the_panel()
+    {
+        var (page, _, browser) = await OpenAsync("static");
+        await using (browser)
+        {
+            var calendar = page.Locator("ib-calendar:has(.ib-calendar-time)").First;
+            await calendar.Locator("xpath=ancestor::ib-field-control[contains(@class,'ib-date-control')]").Locator(".ib-date-toggle").ClickAsync();
+            await Assertions.Expect(calendar.Locator("table")).ToBeVisibleAsync();
+
+            var month = (await calendar.Locator("table").BoundingBoxAsync())!;
+            var time = (await calendar.Locator(".ib-calendar-time").BoundingBoxAsync())!;
+            Assert.Equal(month.Width, time.Width, 0);
+            Assert.Equal(month.X, time.X, 0);
+        }
+    }
+
+    [Fact]
     public async Task With_no_script_the_browser_has_the_only_calendar()
     {
         var (_, form, browser) = await OpenAsync("noscript", script: false);
