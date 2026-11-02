@@ -382,8 +382,10 @@ class Table extends IzzyElement {
         if (event.key !== "Enter" || !inPanel || target instanceof HTMLSelectElement || target instanceof HTMLButtonElement || event.isComposing || this.#typing.composing) return;
         event.preventDefault(); // Not the GET form's full reload.
         clearTimeout(this.#timer);
-        this.#apply(false);
+        // Closing first: it moves focus, whose change would otherwise mark this as still waiting, and it
+        // would be dropped as the panel closes.
         this.#closePanel(target);
+        this.#apply(false);
       },
       { signal }
     );
@@ -395,8 +397,8 @@ class Table extends IzzyElement {
         if (!apply || !apply.closest("[popover]")) return;
         event.preventDefault();
         clearTimeout(this.#timer);
-        this.#apply(false);
         this.#closePanel(apply);
+        this.#apply(false);
       },
       { signal }
     );

@@ -542,6 +542,31 @@ public sealed class DataGridFilterTests(SiteFixture site) : IClassFixture<SiteFi
         }
     }
 
+    // Enter closes the panel, and the change that fires isn't something still to apply.
+    [Fact]
+    public async Task A_panel_reopened_before_the_response_keeps_what_was_applied()
+    {
+        var (browser, page, grid) = await OpenAsync("static");
+        await using (browser)
+        {
+            await page.RouteAsync("**/docs/components/data-grid*", async route =>
+            {
+                await Task.Delay(700);
+                await route.ContinueAsync();
+            });
+            var panel = await OpenPanelAsync(page, grid, "Total");
+            await panel.Locator($"input[name='{Prefix}f-total']").FillAsync("300");
+            await page.Keyboard.PressAsync("Enter");
+            await AddressIsAsync(page, "f-total=300");
+
+            panel = await OpenPanelAsync(page, grid, "Total");
+            Assert.Equal("300", await panel.Locator($"input[name='{Prefix}f-total']").First.InputValueAsync());
+            await panel.Locator("select").SelectOptionAsync("gt");
+            await panel.Locator(".ib-table-filter-apply").ClickAsync();
+            await AddressIsAsync(page, "f-total-op=gt&f-total=300");
+        }
+    }
+
     // What the address says wins over a panel's last Apply.
     [Fact]
     public async Task Back_on_a_static_page_leaves_a_panel_showing_the_address()
