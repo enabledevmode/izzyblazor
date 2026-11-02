@@ -60,12 +60,11 @@ public sealed class DateFieldPanelTests(SiteFixture site) : IClassFixture<SiteFi
             await Assertions.Expect(input).ToHaveValueAsync("2027-04-07");
             await Assertions.Expect(input).ToBeFocusedAsync();
 
-            // Past the last stop, Clear, it closes, and the next stop after the button takes focus.
+            // Past the last stop, the days, it closes, and the next stop after the button takes focus.
             var button = form.GetByRole(AriaRole.Button, new() { Name = "Change date, Wednesday, April 7, 2027" });
             await button.FocusAsync();
             await page.Keyboard.PressAsync("Enter");
             await Assertions.Expect(day).ToBeFocusedAsync();
-            await page.Keyboard.PressAsync("Tab");
             await page.Keyboard.PressAsync("Tab");
             await Assertions.Expect(form.Locator("[popover]").First).ToBeHiddenAsync();
             await Assertions.Expect(form.GetByLabel("Reminder", new() { Exact = true })).ToBeFocusedAsync();

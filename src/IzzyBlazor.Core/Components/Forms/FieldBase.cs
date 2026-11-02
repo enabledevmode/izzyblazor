@@ -194,6 +194,29 @@ public abstract class FieldBase<[DynamicallyAccessedMembers(DynamicallyAccessedM
     protected bool ShowsReadOnly => IsReadOnly && !IsDisabled;
 
     /// <summary>
+    /// A button that empties the field, for a field with <c>Clearable</c>: there while it holds
+    /// something, and hidden with no script (<c>Scripts/elements/field-clear.ts</c>).
+    /// </summary>
+    private protected RenderFragment ClearButton => builder =>
+    {
+        var has = !string.IsNullOrEmpty(CurrentValueAsString?.Trim('/'));
+        builder.OpenElement(0, "ib-field-clear");
+        builder.AddAttribute(1, "class", "ib-field-clear");
+        builder.AddAttribute(2, "hidden", !has);
+        builder.AddAttribute(3, "data-ib-has", has ? "" : null);
+        builder.OpenElement(4, "button");
+        builder.AddAttribute(5, "type", "button");
+        // Not with the field's label, or looking the field up by its label would find this too.
+        builder.AddAttribute(6, "aria-label", TextDefaults.Clear);
+        builder.AddAttribute(7, "title", TextDefaults.Clear);
+        builder.OpenComponent<Icon>(8);
+        builder.AddComponentParameter(9, nameof(Icon.Role), (IconRole?)IconRole.Close);
+        builder.CloseComponent();
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    /// <summary>
     /// A read-only text field showing a choice field's value: focusable, and announced as read
     /// only, where a disabled select would be skipped and read as unavailable. The value posts
     /// from hidden inputs (<see cref="PostsReadOnlyValue"/>).

@@ -65,11 +65,18 @@
         {
             <Icon Name="end" Class="ib-field-icon ib-field-icon-end" />
         }
+        @if (Clearable && !IsDisabled && !IsReadOnly)
+        {
+            @ClearButton
+        }
     </ib-field-control>
     </FieldAddons>
 </FieldFrame>
 
 @code {
+    /// <summary>A button in the field that empties it, there while it holds something. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
     /// <summary>Makes the field read-only: it can be focused and its text selected, and it still posts.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 

@@ -288,9 +288,9 @@
     background-color: var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent));
   }
 
-  /* The fill says where the keys are, as a Select's list does. */
   .ib-time-slot:focus-visible {
-    outline: none;
+    outline: 2px solid var(--ib-color-focus, var(--ib-color-primary));
+    outline-offset: -2px;
   }
 
   .ib-time-slot[aria-disabled="true"] {
@@ -311,7 +311,7 @@
     mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M20 6 9 17l-5-5'/%3E%3C/svg%3E") center / contain no-repeat;
   }
 
-  /* A box each for the parts of the time, tighter than a field, with the browser's arrows showing. */
+  /* A box each for the parts of the time, tighter than a field. */
   .ib-calendar-time {
     --ib-field-px: var(--ib-space-2);
     display: flex;
@@ -325,10 +325,6 @@
     min-width: 0;
   }
 
-  .ib-calendar-time input::-webkit-inner-spin-button {
-    opacity: 1;
-  }
-
   .ib-calendar-foot {
     display: flex;
     flex-wrap: wrap;
@@ -337,7 +333,7 @@
     margin-top: var(--ib-space-2);
   }
 
-  /* Today and Clear, with what ends the choice on a line of its own. */
+  /* A date and time's OK, the width of the month. */
   .ib-calendar-foot > [data-ib-ok] {
     flex: 1 0 100%;
   }

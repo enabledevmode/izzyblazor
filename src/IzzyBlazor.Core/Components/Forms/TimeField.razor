@@ -64,6 +64,10 @@
                    readonly="@IsReadOnly"
                    aria-invalid="@(Invalid ? "true" : null)"
                    aria-describedby="@DescribedBy" />
+            @if (Clearable && !IsDisabled && !IsReadOnly && Nullable.GetUnderlyingType(typeof(TValue)) is not null)
+            {
+                @ClearButton
+            }
             @if (HasPanel)
             {
                 <Popover Placement="Placement.BottomStart">
@@ -118,6 +122,9 @@
 
     /// <summary>Whether a time can't be chosen. Checked on the server too, and called for each time in the list on every render, so keep it cheap.</summary>
     [Parameter] public Func<TimeOnly, bool>? TimeDisabled { get; set; }
+
+    /// <summary>A button in the field that empties it, for a nullable value, there while it holds something. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
 
     /// <summary>Keeps the browser's picker in place of the library's list. <see cref="TimeDisabled"/> is then checked only on the server.</summary>
     [Parameter] public bool UseNative { get; set; }

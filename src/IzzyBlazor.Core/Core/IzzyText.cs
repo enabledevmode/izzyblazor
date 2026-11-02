@@ -461,9 +461,6 @@ public class IzzyText
     /// <summary>Under a date range's months, while its first day waits for its second.</summary>
     public virtual string CalendarPickEnd { get; set; } = "Choose the last day";
 
-    /// <summary>A calendar's button that chooses today.</summary>
-    public virtual string CalendarToday { get; set; } = "Today";
-
     /// <summary>A date or time before the field's Min; {0} is its label and {1} the limit.</summary>
     public virtual string TooEarly { get; set; } = "{0} must be {1} or later.";
 
