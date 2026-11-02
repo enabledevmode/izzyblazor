@@ -70,6 +70,45 @@ public sealed class FieldClearTests(SiteFixture site) : IClassFixture<SiteFixtur
         await Assertions.Expect(input).ToHaveValueAsync("");
     }
 
+    [Theory]
+    [InlineData("text-area", "textarea", "static")]
+    [InlineData("text-area", "textarea", "interactive")]
+    [InlineData("select", "select", "static")]
+    [InlineData("select", "select", "interactive")]
+    [InlineData("combobox", ".ib-combobox-input", "static")]
+    [InlineData("combobox", ".ib-combobox-input", "interactive")]
+    [InlineData("duration-field", ".ib-duration-text input", "static")]
+    [InlineData("duration-field", ".ib-duration-text input", "interactive")]
+    public async Task It_empties_every_other_kind_of_field(string component, string holder, string mode)
+    {
+        var (example, browser) = await OpenAsync(component, $"{component}-states", mode);
+        await using var _ = browser;
+        var clear = example.Locator("ib-field-clear").First;
+        var value = clear.Locator("xpath=ancestor::*[contains(@class,'ib-field')][1]/ancestor-or-self::*[contains(concat(' ',@class,' '),' ib-field ')][1]").Locator(holder).First;
+        Assert.NotEqual("", await value.InputValueAsync());
+
+        await clear.Locator("button").ClickAsync();
+
+        await Assertions.Expect(value).ToHaveValueAsync("");
+        await Assertions.Expect(clear).ToBeHiddenAsync();
+    }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task It_removes_every_choice_from_a_multi_select(string mode)
+    {
+        var (example, browser) = await OpenAsync("multi-select", "multi-select-states", mode);
+        await using var _ = browser;
+        var field = example.Locator(".ib-field", new() { Has = example.Page.Locator("ib-field-clear") }).First;
+        await Assertions.Expect(field.Locator(".ib-chip")).Not.ToHaveCountAsync(0);
+
+        await field.Locator("ib-field-clear button").ClickAsync();
+
+        await Assertions.Expect(field.Locator(".ib-chip")).ToHaveCountAsync(0);
+        await Assertions.Expect(field.Locator("ib-field-clear")).ToBeHiddenAsync();
+    }
+
     [Fact]
     public async Task With_no_script_it_stays_out_of_the_way()
     {

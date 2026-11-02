@@ -131,6 +131,10 @@
             <div class="ib-combobox-empty" aria-hidden="true">@(EmptyText ?? TextDefaults.NoMatches)</div>
         </div>
         <span class="ib-visually-hidden ib-combobox-status" role="status"></span>
+        @if (Clearable && !IsDisabled)
+        {
+            @ClearButton
+        }
     </ib-combobox>
     }
     @if (PostsReadOnlyValue)
@@ -144,6 +148,12 @@
 </FieldFrame>
 
 @code {
+    /// <summary>A button in the field that removes every choice, there while there are any. Off by default.</summary>
+    [Parameter] public bool Clearable { get; set; }
+
+    /// <inheritdoc />
+    private protected override bool HoldsValue => CurrentValue is System.Collections.IEnumerable values && values.Cast<object>().Any();
+
     /// <summary>Makes the field read-only: the chosen options show in a read-only text field, and the values still post.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 

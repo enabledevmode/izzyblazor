@@ -2741,7 +2741,8 @@
     --ib-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + var(--ib-space-1));
   }
 
-  /* Past the calendar or list's button, which has padding of its own. */
+  /* Past the button at the end, which has padding of its own. */
+  .ib-combobox,
   .ib-date-control {
     --ib-clear-end: calc(var(--ib-field-px) + var(--ib-icon-size) + 0.5rem);
   }
@@ -2752,6 +2753,18 @@
 
   .ib-has-split-steppers:has(> [data-ib-steppers]:not([hidden])) {
     --ib-clear-end: calc(var(--ib-field-h) + var(--ib-space-1));
+  }
+
+  /* At a text area's first line, and at the end of a duration's boxes, in line with them. */
+  .ib-field-control:has(> textarea) > .ib-field-clear {
+    inset-block: var(--ib-space-1) auto;
+  }
+
+  .ib-duration-boxes > .ib-field-clear {
+    position: static;
+    flex: none;
+    align-self: flex-start;
+    height: var(--ib-field-h);
   }
 
   .ib-field-control:has(> .ib-field-clear[data-ready]:not([hidden])) > .ib-field-input {
