@@ -65,7 +65,7 @@ class GridEdit extends IzzyElement {
       this.#editing = editing;
       const field = this.#field(editing, "[autofocus]") ?? this.#field(editing, "input, select, textarea");
       field?.focus();
-      if (editing?.matches("td")) this.#began(editing, field as HTMLInputElement);
+      this.#began(editing, field as HTMLInputElement);
     }
     if (this.#saving === null) return;
     if (root.querySelector("[data-ib-edit-for]")) {
@@ -86,14 +86,19 @@ class GridEdit extends IzzyElement {
     (root.querySelector<HTMLElement>(`tr[data-ib-key="${CSS.escape(key)}"] [data-ib-edit]`) ?? root.querySelector<HTMLElement>("[data-ib-edit]"))?.focus();
   }
 
-  // A cell has its field: what was typed takes the place of its value, or else it's ready to be.
-  #began(cell: HTMLElement, field: HTMLInputElement | null | undefined): void {
-    this.#cell = this.#addressOf(cell);
-    this.#after = "";
-    if (this.#typed && field?.matches("input:not([type=date], [type=datetime-local], [type=checkbox])")) {
-      field.value = this.#typed;
-      field.dispatchEvent(new Event("input", { bubbles: true }));
-    } else if (field?.matches("input")) (field as HTMLInputElement).select?.();
+  // A row or cell has its field: the cursor goes after its text, and what started a cell by typing goes
+  // there too. A number has no cursor to set, but setting a value leaves one there.
+  #began(editing: HTMLElement | null, field: HTMLInputElement | null | undefined): void {
+    if (editing?.matches("td")) {
+      this.#cell = this.#addressOf(editing);
+      this.#after = "";
+    }
+    if (field?.matches("textarea, input:is([type=text], [type=number], [type=email], [type=tel], [type=url], [type=search])")) {
+      const value = field.value + this.#typed;
+      field.value = "";
+      field.value = value;
+      if (this.#typed) field.dispatchEvent(new Event("input", { bubbles: true }));
+    }
     this.#typed = "";
   }
 

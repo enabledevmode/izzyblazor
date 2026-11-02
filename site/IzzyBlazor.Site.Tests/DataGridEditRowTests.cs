@@ -35,6 +35,9 @@ public sealed class DataGridEditRowTests(SiteFixture site) : IClassFixture<SiteF
         var row = await EditFirstRowAsync(page);
         var customer = row.GetByLabel("Customer");
         await Assertions.Expect(customer).ToBeFocusedAsync();
+        var name = await customer.InputValueAsync();
+        await page.Keyboard.TypeAsync("!");
+        await Assertions.Expect(customer).ToHaveValueAsync(name + "!");
         await customer.FillAsync("Saved In Row");
         await row.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
         await Assertions.Expect(page.Locator($"{Grid} tr[data-ib-editing]")).ToHaveCountAsync(0);
