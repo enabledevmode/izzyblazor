@@ -21,6 +21,14 @@ public enum DataGridEditMode
     /// page. Not with rows that load as they're needed, which could scroll it away.
     /// </summary>
     Row,
+
+    /// <summary>
+    /// One cell at a time, on an interactive page: a click, Enter, F2 or typing starts it, and Tab, Enter
+    /// or a click elsewhere saves it. <c>OnSave</c> runs for each cell that changed. A new row is edited
+    /// as in <see cref="Row"/>, and so is every row on a static page, where a round trip for each cell
+    /// would make moving through them unusable.
+    /// </summary>
+    Cell,
 }
 
 /// <summary>
