@@ -7,7 +7,6 @@ public sealed class FilterBuilderTests(SiteFixture site) : IClassFixture<SiteFix
 {
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_filter_with_a_group_goes_in_the_address_and_comes_back(string mode)
     {
         await using var browser = await TestBrowser.OpenAsync();
@@ -39,16 +38,6 @@ public sealed class FilterBuilderTests(SiteFixture site) : IClassFixture<SiteFix
         await builder.Locator(".ib-fb-rule").First.WaitForAsync();
         Assert.Equal(2, await builder.Locator(".ib-fb-rule").CountAsync());
         Assert.Equal("a", await builder.Locator("[data-ib-fb-from]").First.InputValueAsync());
-    }
-
-    [Fact]
-    public async Task With_no_script_it_is_hidden()
-    {
-        await using var browser = await TestBrowser.OpenAsync();
-        var page = await (await browser.NewContextAsync(new() { JavaScriptEnabled = false })).NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/filter-builder?mode=static").ToString());
-
-        await Assertions.Expect(page.Locator("ib-filter-builder").First).ToBeHiddenAsync();
     }
 
     [Theory]

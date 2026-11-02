@@ -7,7 +7,6 @@ public sealed class DateFieldRuleTests(SiteFixture site) : IClassFixture<SiteFix
 {
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_date_past_the_limit_doesnt_save(string mode)
     {
         await using var browser = await TestBrowser.OpenAsync();

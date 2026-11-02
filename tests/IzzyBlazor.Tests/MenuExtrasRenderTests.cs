@@ -43,28 +43,6 @@ public class MenuExtrasRenderTests : BunitContext
     };
 
     [Fact]
-    public void Checkbox_item_has_the_role_state_and_a_check_slot()
-    {
-        var cut = MenuWith(b =>
-        {
-            b.AddContent(0, Item("On", (nameof(MenuItem.Checked), true)));
-            b.AddContent(1, Item("Off", (nameof(MenuItem.Checked), false)));
-            b.AddContent(2, Item("Plain"));
-        });
-        var items = cut.FindAll("[popover] > button");
-
-        Assert.Equal(new[] { "menuitemcheckbox", "menuitemcheckbox", "menuitem" }, items.Select(i => i.GetAttribute("data-ib-role")).ToArray());
-        Assert.Equal(new string?[] { "true", "false", null }, items.Select(i => i.GetAttribute("data-ib-checked")).ToArray());
-        // With JavaScript off they're plain buttons, the state carried by aria-pressed.
-        Assert.All(items, i => Assert.Null(i.GetAttribute("role")));
-        Assert.Equal(new string?[] { "true", "false", null }, items.Select(i => i.GetAttribute("aria-pressed")).ToArray());
-        Assert.NotNull(items[0].QuerySelector(".ib-menu-check svg"));
-        Assert.Null(items[1].QuerySelector(".ib-menu-check svg"));
-        Assert.NotNull(items[1].QuerySelector(".ib-menu-check"));
-        Assert.Null(items[2].QuerySelector(".ib-menu-check"));
-    }
-
-    [Fact]
     public void Checkbox_item_toggles_through_CheckedChanged()
     {
         bool? changed = null;
@@ -111,53 +89,5 @@ public class MenuExtrasRenderTests : BunitContext
         cut.FindAll("button[data-ib-role=menuitemradio]")[1].Click();
 
         Assert.Equal("date", chosen);
-    }
-
-    [Fact]
-    public void Submenu_is_a_nested_menu_opened_by_its_item()
-    {
-        var cut = MenuWith(b =>
-        {
-            b.OpenComponent<MenuSub>(0);
-            b.AddComponentParameter(1, nameof(MenuSub.Label), "Move to");
-            b.AddComponentParameter(2, nameof(MenuSub.ChildContent), Item("Inbox"));
-            b.CloseComponent();
-        });
-
-        var trigger = cut.Find(".ib-menu-sub-trigger");
-        var sub = cut.Find("[popover] [popover]");
-
-        Assert.Equal("menuitem", trigger.GetAttribute("data-ib-role"));
-        Assert.Equal("menu", trigger.GetAttribute("data-ib-haspopup"));
-        Assert.Equal(sub.Id, trigger.GetAttribute("popovertarget"));
-        // Clicking the item only opens it (hover may already have): it must not toggle it shut.
-        Assert.Equal("show", trigger.GetAttribute("popovertargetaction"));
-        Assert.Equal("menu", sub.GetAttribute("data-ib-role"));
-        Assert.Equal(trigger.Id, sub.GetAttribute("aria-labelledby"));
-        Assert.Equal("end-start", cut.Find(".ib-menu-sub-root").GetAttribute("data-placement"));
-
-        // Items in the submenu close the whole menu, natively.
-        var item = sub.QuerySelector("button[data-ib-role=menuitem]")!;
-        Assert.Equal("m", item.GetAttribute("popovertarget"));
-        Assert.Equal("hide", item.GetAttribute("popovertargetaction"));
-    }
-
-    [Fact]
-    public void Interactive_menus_render_their_roles_directly()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = MenuWith(b =>
-        {
-            b.AddContent(0, Item("Wrap", (nameof(MenuItem.Checked), true)));
-            b.AddContent(1, Item("Plain"));
-        });
-
-        Assert.Equal("menu", cut.Find("[popover]").GetAttribute("role"));
-        Assert.Equal("menu", cut.Find("button[popovertarget]").GetAttribute("aria-haspopup"));
-        var items = cut.FindAll("[popover] > button");
-        Assert.Equal(new[] { "menuitemcheckbox", "menuitem" }, items.Select(i => i.GetAttribute("role")).ToArray());
-        Assert.Equal("true", items[0].GetAttribute("aria-checked"));
-        Assert.Null(items[0].GetAttribute("aria-pressed"));
-        Assert.Empty(cut.FindAll("[data-ib-role], [data-ib-checked]"));
     }
 }

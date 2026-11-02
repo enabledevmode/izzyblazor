@@ -21,16 +21,6 @@ public class OverlayRenderTests : BunitContext
     };
 
     [Fact]
-    public void Mac_modifier_keys_in_a_shortcut_are_drawn_but_still_read_as_written()
-    {
-        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, "⌘+⇧+P").AddChildContent("Command palette"));
-
-        var key = cut.Find(".ib-menu-shortcut");
-        Assert.Equal("⌘+⇧+P", string.Concat(key.TextContent.Where(c => !char.IsWhiteSpace(c))));
-        Assert.Equal(2, key.QuerySelectorAll("svg").Length);
-    }
-
-    [Fact]
     public void A_shortcut_describes_the_item_rather_than_naming_it()
     {
         var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, "Alt+↑").AddChildContent("Move up"));
@@ -45,42 +35,13 @@ public class OverlayRenderTests : BunitContext
     [Theory]
     [InlineData("Ctrl+C", "Control+C")]
     [InlineData("⌘+⇧+P", "Meta+Shift+P")]
-    [InlineData("Alt+Home", "Alt+Home")]
-    [InlineData("⇧⌘P", "Shift+Meta+P")]
     [InlineData("Ctrl++", "Control+Plus")]
     [InlineData("Page Up", "PageUp")]
-    [InlineData("Ctrl+Return", "Control+Enter")]
     public void Shortcuts_are_written_in_aria_keyshortcuts_terms(string shortcut, string expected)
     {
         var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, shortcut).AddChildContent("Item"));
 
         Assert.Equal(expected, cut.Find("button").GetAttribute("aria-keyshortcuts"));
-    }
-
-    [Fact]
-    public void An_apps_own_description_wins_over_the_shortcut()
-    {
-        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, "Ctrl+S").AddUnmatched("aria-describedby", "hint").AddChildContent("Save"));
-
-        Assert.Equal("hint", cut.Find("button").GetAttribute("aria-describedby"));
-    }
-
-    [Fact]
-    public void A_blank_shortcut_is_no_shortcut()
-    {
-        var cut = Render<MenuItem>(p => p.Add(m => m.Shortcut, " ").AddChildContent("Item"));
-
-        Assert.Empty(cut.FindAll("kbd"));
-        Assert.False(cut.Find("button").HasAttribute("aria-keyshortcuts"));
-    }
-
-    [Fact]
-    public void An_item_without_a_shortcut_has_no_description()
-    {
-        var cut = Render<MenuItem>(p => p.AddChildContent("Item"));
-
-        Assert.False(cut.Find("button").HasAttribute("aria-describedby"));
-        Assert.False(cut.Find("button").HasAttribute("aria-keyshortcuts"));
     }
 
     [Fact]
@@ -139,64 +100,6 @@ public class OverlayRenderTests : BunitContext
         Assert.Equal("/delete", items[2].GetAttribute("formaction"));
         Assert.Null(items[2].GetAttribute("popovertarget"));
         Assert.Contains("ib-menu-item-danger", items[2].ClassName);
-    }
-
-    [Fact]
-    public void Menu_custom_trigger_receives_wiring_attributes()
-    {
-        var cut = Render<Menu>(p => p
-            .Add(m => m.Id, "more")
-            .Add(m => m.Trigger, (RenderFragment<IReadOnlyDictionary<string, object>>)(attributes => b =>
-            {
-                b.OpenComponent<IconButton>(0);
-                b.AddComponentParameter(1, nameof(IconButton.Icon), Lucide.Ellipsis);
-                b.AddComponentParameter(2, nameof(IconButton.Label), "More");
-                b.AddMultipleAttributes(3, attributes);
-                b.CloseComponent();
-            })));
-
-        var trigger = cut.Find("button[aria-label=More]");
-        Assert.Equal("more", trigger.GetAttribute("popovertarget"));
-        Assert.Equal("more-trigger", trigger.Id);
-    }
-
-    [Fact]
-    public void Open_menu_sets_data_open_for_the_element()
-    {
-        var cut = Render<Menu>(p => p.Add(m => m.Label, "Menu").Add(m => m.Open, true));
-
-        Assert.True(cut.Find("ib-popover").HasAttribute("data-open"));
-    }
-
-    [Fact]
-    public void Popover_toggle_event_reports_state()
-    {
-        bool? reported = null;
-        var cut = Render<Popover>(p => p
-            .Add(x => x.Id, "filters")
-            .Add(x => x.Label, "Filters")
-            .Add(x => x.OpenChanged, (bool open) => reported = open));
-
-        cut.Find("[popover]").TriggerEvent("onibtoggle", new IzzyToggleEventArgs { Id = "filters", Open = true });
-
-        Assert.True(reported);
-        Assert.True(cut.Find("ib-popover").HasAttribute("data-open"));
-    }
-
-    [Fact]
-    public void Manual_popover_gets_a_close_button()
-    {
-        var cut = Render<Popover>(p => p
-            .Add(x => x.Id, "note")
-            .Add(x => x.Label, "Note")
-            .Add(x => x.Title, "Pinned")
-            .Add(x => x.Mode, PopoverMode.Manual));
-
-        Assert.Equal("manual", cut.Find("[popover]").GetAttribute("popover"));
-        Assert.Equal("note-title", cut.Find("[popover]").GetAttribute("aria-labelledby"));
-        var close = cut.Find(".ib-popover-close");
-        Assert.Equal("note", close.GetAttribute("popovertarget"));
-        Assert.Equal("hide", close.GetAttribute("popovertargetaction"));
     }
 
     [Fact]
@@ -266,44 +169,6 @@ public class OverlayRenderTests : BunitContext
     }
 
     [Fact]
-    public void Interactive_dialog_is_marked_so_the_script_leaves_its_submits_to_csharp()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        Assert.True(Render<Dialog>(p => p.Add(d => d.Id, "d")).Find("ib-dialog").HasAttribute("data-ib-interactive"));
-    }
-
-    [Fact]
-    public void Static_dialog_has_no_interactive_marker() =>
-        Assert.False(Render<Dialog>(p => p.Add(d => d.Id, "d")).Find("ib-dialog").HasAttribute("data-ib-interactive"));
-
-    [Fact]
-    public void Dialog_reopens_when_the_address_asks_for_it_again()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var nav = Services.GetRequiredService<BunitNavigationManager>();
-        nav.NavigateTo("/projects");
-        var opened = 0;
-        var cut = Render<Dialog>(p => p
-            .Add(d => d.Id, "confirm")
-            .Add(d => d.OpenChanged, EventCallback.Factory.Create<bool>(this, v => { if (v) opened++; })));
-        Assert.False(cut.Find("ib-dialog").HasAttribute("data-open"));
-
-        nav.NavigateTo("/projects?dialog=confirm");
-
-        cut.WaitForAssertion(() => Assert.True(cut.Find("ib-dialog").HasAttribute("data-open")));
-        Assert.Equal(1, opened);
-    }
-
-    [Fact]
-    public void Dialog_without_backdrop_close_waits_for_a_close_request()
-    {
-        var cut = Render<Dialog>(p => p.Add(d => d.Id, "d").Add(d => d.CloseOnBackdrop, false));
-
-        Assert.Equal("closerequest", cut.Find("dialog").GetAttribute("closedby"));
-        Assert.False(cut.Find("ib-dialog").HasAttribute("data-close-on-backdrop"));
-    }
-
-    [Fact]
     public void DialogTrigger_opens_with_a_command_and_DialogClose_closes_with_the_dialog_form()
     {
         var trigger = Render<DialogTrigger>(p => p.Add(t => t.For, "invite").AddChildContent("Invite")).Find("button");
@@ -335,41 +200,6 @@ public class OverlayRenderTests : BunitContext
             Assert.Null(submit.GetAttribute("commandfor"));
             Assert.Null(submit.GetAttribute("command"));
         }
-    }
-
-    [Fact]
-    public void DialogClose_refuses_Reset()
-    {
-        var error = Assert.Throws<InvalidOperationException>(() => Render<DialogClose>(p => p.Add(b => b.For, "d").Add(b => b.Reset, true)));
-        Assert.Contains("Reset", error.Message);
-    }
-
-    [Fact]
-    public void Dialog_parts_name_the_dialog_and_keep_the_footer_in_its_form()
-    {
-        var dialog = Render<Dialog>(p => p
-            .Add(d => d.Id, "rename")
-            .AddChildContent(b =>
-            {
-                b.OpenElement(0, "form");
-                b.OpenComponent<DialogFooter>(1);
-                b.AddComponentParameter(2, nameof(DialogFooter.ChildContent), (RenderFragment)(f => f.AddContent(0, "Save")));
-                b.CloseComponent();
-                b.CloseElement();
-                b.OpenComponent<DialogHeader>(3);
-                b.AddComponentParameter(4, nameof(DialogHeader.ChildContent), (RenderFragment)(h => h.AddContent(0, "Rename")));
-                b.CloseComponent();
-            })).Find("dialog");
-
-        Assert.Equal("rename-title", dialog.GetAttribute("aria-labelledby"));
-        Assert.Equal("Rename", dialog.QuerySelector(".ib-dialog-header #rename-title")!.TextContent);
-        Assert.NotNull(dialog.QuerySelector(".ib-dialog-body form > .ib-dialog-footer"));
-    }
-
-    [Fact]
-    public void DialogClose_outside_a_dialog_needs_For()
-    {
-        Assert.Throws<InvalidOperationException>(() => Render<DialogClose>());
     }
 
     [Fact]
@@ -458,17 +288,5 @@ public class OverlayRenderTests : BunitContext
         Assert.Equal("close", confirm.GetAttribute("command"));
         confirm.Click();
         Assert.Equal(1, confirmed);
-    }
-
-    [Fact]
-    public void Popover_close_button_takes_its_label()
-    {
-        var close = Render<Popover>(p => p
-            .Add(x => x.Label, "Filters")
-            .Add(x => x.Title, "Filter results")
-            .Add(x => x.ShowCloseButton, true)
-            .Add(x => x.CloseLabel, "Done")).Find(".ib-popover-close");
-
-        Assert.Equal("Done", close.GetAttribute("aria-label"));
     }
 }

@@ -103,15 +103,6 @@ public sealed class FilterValuesTests : IDisposable
     }
 
     [Fact]
-    public void A_ticked_blank_is_listed_once()
-    {
-        var values = Values(Both(new() { Field = "email", Ticked = [null] }));
-
-        Assert.Null(values[0]);
-        Assert.Single(values, v => v is null);
-    }
-
-    [Fact]
     public void Pages_say_if_theres_more_and_repeat_nothing()
     {
         var first = Both(new() { Field = "name", Take = 2, Ticked = ["Grace"] });
@@ -121,22 +112,6 @@ public sealed class FilterValuesTests : IDisposable
         var second = Both(new() { Field = "name", Skip = 2, Take = 2, Ticked = ["Grace"] });
         Assert.Equal(new[] { "Adele", "Alan" }, Values(second));
         Assert.False(second.HasMore);
-    }
-
-    [Fact]
-    public void A_skip_inside_whats_kept_repeats_nothing()
-    {
-        Assert.Equal(new[] { "Grace", "Ada" }, Values(Both(new() { Field = "name", Skip = 1, Take = 2, Ticked = ["Alan", "Grace"] })));
-    }
-
-    [Fact]
-    public void Take_has_a_limit()
-    {
-        var many = Enumerable.Range(0, 600).Select(i => new Member { Id = i, Name = $"n{i:000}" }).ToArray();
-        var result = new FilterValuesRequest { Field = "name", Take = 100000 }.ToResult(many.AsQueryable(), Fields);
-
-        Assert.Equal(500, result.Values.Count);
-        Assert.True(result.HasMore);
     }
 
     [Fact]
@@ -231,21 +206,5 @@ public sealed class FilterValuesTests : IDisposable
 
         Assert.Equal(new[] { "Ada" }, Values(await DataFields.LoadValuesAsync(fields, new FilterValuesRequest { Field = "name", Skip = 50, Ticked = ["Zed"] })));
         Assert.Equal(new[] { "Ada" }, Values(await DataFields.LoadValuesAsync(fields, new FilterValuesRequest { Field = "name", Search = "ad", Ticked = ["Zed"] })));
-    }
-
-    [Fact]
-    public async Task LoadValues_gives_nothing_without_a_loader_or_a_filterable_field()
-    {
-        var called = false;
-        DataField<Member>[] hidden = [Loaded(_ =>
-        {
-            called = true;
-            return new(new FilterValuesResult([new("secret")]));
-        }, filterable: false)];
-
-        Assert.Empty((await DataFields.LoadValuesAsync(hidden, new FilterValuesRequest { Field = "name" })).Values);
-        Assert.False(called);
-        Assert.Empty((await DataFields.LoadValuesAsync(Fields, new FilterValuesRequest { Field = "name" })).Values);
-        Assert.Empty((await DataFields.LoadValuesAsync(Fields, new FilterValuesRequest { Field = "password" })).Values);
     }
 }

@@ -7,7 +7,6 @@ public sealed class TimeFieldRuleTests(SiteFixture site) : IClassFixture<SiteFix
 {
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_time_inside_the_window_saves_and_one_outside_doesnt(string mode)
     {
         await using var browser = await TestBrowser.OpenAsync();

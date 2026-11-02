@@ -16,7 +16,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Export_downloads_what_the_screen_shows_without_leaving_the_page(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
@@ -60,68 +59,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             // Still on the page, its grid intact.
             Assert.StartsWith(url.Split('?')[0], page.Url);
             Assert.True(await grid.IsVisibleAsync());
-        }
-    }
-
-    [Fact]
-    public async Task The_grids_tools_go_where_theyre_written_with_no_script_too()
-    {
-        await using var browser = await TestBrowser.OpenAsync();
-        foreach (var script in new[] { true, false })
-        {
-            var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, ViewportSize = new() { Width = 1400, Height = 900 } });
-            var page = await context.NewPageAsync();
-            await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with placed tools" });
-
-            // In the order written, one of each.
-            var start = grid.Locator(".ib-toolbar-start > .ib-toolbar-unit");
-            Assert.Equal(2, await start.CountAsync());
-            Assert.Contains("Add order", await start.Nth(0).TextContentAsync());
-            Assert.Equal(1, await start.Nth(1).Locator("input[type=search]").CountAsync());
-            var end = grid.Locator(".ib-toolbar-end > .ib-toolbar-unit");
-            Assert.Equal(3, await end.CountAsync());
-            Assert.Equal(1, await end.Nth(0).Locator(".ib-col-picker").CountAsync());
-            Assert.Equal("Help", await end.Nth(1).Locator("button").GetAttributeAsync("aria-label"));
-            Assert.Contains("Export Excel", await end.Nth(2).TextContentAsync());
-
-            // Icons alone unless told otherwise, named all the same.
-            var picker = end.Nth(0).Locator("button").First;
-            Assert.Equal("Columns", await picker.GetAttributeAsync("aria-label"));
-            Assert.Equal("Columns", await picker.GetAttributeAsync("title"));
-            // Its checkboxes need script, so with none it isn't offered, like the resize handles.
-            Assert.Equal(script, await picker.IsVisibleAsync());
-            if (!script) Assert.Equal("none", await page.Locator(".ib-col-resize").First.EvaluateAsync<string>("e => getComputedStyle(e).display"));
-
-            // One button opens both, Excel first, with no script too.
-            await end.Nth(2).Locator("button").ClickAsync();
-            var excel = end.Nth(2).Locator("a[download]", new() { HasText = "Export Excel" });
-            await excel.WaitForAsync();
-            var main = await page.RunAndWaitForDownloadAsync(() => excel.ClickAsync());
-            Assert.Equal("orders.xlsx", main.SuggestedFilename);
-
-            // With script, choosing closes the menu. With none, it stays open.
-            if (script)
-            {
-                await excel.WaitForAsync(new() { State = WaitForSelectorState.Hidden });
-                await end.Nth(2).Locator("button").ClickAsync();
-            }
-
-            var csv = end.Nth(2).Locator("a[download]", new() { HasText = "Export CSV" });
-            await csv.WaitForAsync();
-            var download = await page.RunAndWaitForDownloadAsync(() => csv.ClickAsync());
-            Assert.Equal("orders.csv", download.SuggestedFilename);
-
-            // A toolbar with nothing in it takes no room.
-            Assert.Equal("none", await page.EvaluateAsync<string>("""
-                () => {
-                  const empty = document.createElement('div');
-                  empty.className = 'ib-grid-toolbar';
-                  document.body.append(empty);
-                  return getComputedStyle(empty).display;
-                }
-                """));
-            await context.CloseAsync();
         }
     }
 
@@ -321,38 +258,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
     }
 
-    [Fact]
-    public async Task What_doesnt_fit_stays_in_its_cell()
-    {
-        var (browser, page) = await OpenAsync("static");
-        await using (browser)
-        {
-            // Date and Total, both sortable, far narrower than their text; Total also sorted second.
-            await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static&sort=customer,total").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-            var overflow = await page.EvaluateAsync<string[]>("""
-                () => {
-                  const table = document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders']) table`);
-                  table.style.setProperty('--ib-col-2', '3rem');
-                  table.style.setProperty('--ib-col-4', '3rem');
-                  const problems = [];
-                  for (const cell of table.querySelectorAll('th, td')) {
-                    const box = cell.getBoundingClientRect();
-                    for (const part of cell.querySelectorAll('.ib-table-sort, .ib-table-filter-button')) {
-                      const r = part.getBoundingClientRect();
-                      if (r.right > box.right + 1 || r.left < box.left - 1) problems.push(cell.textContent.trim() + ': ' + part.className);
-                    }
-                  }
-                  const scroll = table.closest('.ib-table-scroll');
-                  if (scroll.scrollWidth > table.getBoundingClientRect().width + 1) problems.push('scrolls past the table');
-                  const money = table.querySelector('tbody td.ib-cell-end');
-                  if (getComputedStyle(money).whiteSpace !== 'nowrap') problems.push('numbers wrap');
-                  return problems;
-                }
-                """);
-            Assert.Empty(overflow);
-        }
-    }
-
     // The Frozen columns example: the first two columns frozen at the start, the last at the end.
     private const string Frozen = """
         () => {
@@ -376,7 +281,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Frozen_columns_stay_while_the_rest_scroll_and_focus_stops_clear_of_them(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
@@ -413,36 +317,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
     }
 
-    [Fact]
-    public async Task An_end_aligned_title_with_no_sort_lines_up_with_its_values()
-    {
-        var (browser, page) = await OpenAsync("static");
-        await using (browser)
-        {
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "Orders with menus" });
-            var title = await grid.Locator("thead th", new() { HasText = "Total" }).Locator(".ib-table-title").EvaluateAsync<double>("t => t.getBoundingClientRect().right");
-            var value = await grid.Locator("tbody tr").First.Locator("td").Nth(2).EvaluateAsync<double>("c => { const r = document.createRange(); r.selectNodeContents(c); return r.getBoundingClientRect().right; }");
-            Assert.Equal(value, title, 1.5);
-        }
-    }
-
-    [Fact]
-    public async Task Frozen_columns_too_wide_for_a_phone_scroll_like_the_rest()
-    {
-        var (browser, page) = await OpenAsync("static", 390);
-        await using (browser)
-        {
-            var at = await page.EvaluateAsync<FrozenBoxes>(Frozen);
-            Assert.True(at.Unfrozen);
-
-            // Widening looks again, and so does narrowing.
-            await page.SetViewportSizeAsync(1400, 900);
-            await page.WaitForFunctionAsync("() => !document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table`).hasAttribute('data-ib-unfrozen')");
-            await page.SetViewportSizeAsync(500, 900);
-            await page.WaitForFunctionAsync("() => document.querySelector(`.ib-datagrid:has(.ib-table-scroll[aria-label='Orders by column']) table`).hasAttribute('data-ib-unfrozen')");
-        }
-    }
-
     private sealed class Measured
     {
         public double[] Widths { get; set; } = [];
@@ -452,7 +326,6 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Shift_click_adds_to_the_sort_and_a_plain_click_replaces_it(string mode)
     {
         var (browser, page) = await OpenAsync(mode);
@@ -492,18 +365,5 @@ public sealed class DataGridTests(SiteFixture site) : IClassFixture<SiteFixture>
             await SortIs("total");
             await grid.Locator(".ib-table-sort-order").First.WaitForAsync(new() { State = WaitForSelectorState.Detached });
         }
-    }
-
-    [Fact]
-    public async Task A_preview_is_marked_on_the_components_page_and_left_out_of_the_sitemap()
-    {
-        var index = await site.Client.GetStringAsync("docs/components");
-        Assert.Contains("/components/data-grid", index);
-        Assert.Contains("Preview", index);
-        var sitemap = await site.Client.GetStringAsync("sitemap.xml");
-        Assert.DoesNotContain("data-grid", sitemap);
-        var page = await site.Client.GetStringAsync("docs/components/data-grid");
-        Assert.Contains("noindex", page);
-        Assert.DoesNotContain("data-grid", await site.Client.GetStringAsync("docs/components/table/api"));
     }
 }

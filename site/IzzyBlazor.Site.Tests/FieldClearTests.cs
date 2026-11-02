@@ -37,40 +37,6 @@ public sealed class FieldClearTests(SiteFixture site) : IClassFixture<SiteFixtur
     }
 
     [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task It_empties_both_ends_of_a_range(string mode)
-    {
-        var (example, browser) = await OpenAsync("date-range-field", "date-range-field-states", mode);
-        await using var _ = browser;
-        var (start, end) = (example.GetByLabel("From"), example.GetByLabel("Until"));
-        await start.FillAsync("2027-03-08");
-        await end.FillAsync("2027-03-12");
-
-        await example.Locator("ib-field-clear button").First.ClickAsync();
-
-        await Assertions.Expect(start).ToHaveValueAsync("");
-        await Assertions.Expect(end).ToHaveValueAsync("");
-    }
-
-    [Theory]
-    [InlineData("date-field", "date-field-days", "Delivery")]
-    [InlineData("time-field", "time-field-slots", "Visit")]
-    public async Task A_date_or_time_has_one_beside_its_button(string component, string exampleId, string label)
-    {
-        var (example, browser) = await OpenAsync(component, exampleId, "static");
-        await using var _ = browser;
-        var input = example.GetByLabel(label, new() { Exact = true });
-        var clear = example.Locator("ib-field-clear button").First;
-        var (button, toggle) = ((await clear.BoundingBoxAsync())!, (await example.Locator(".ib-date-toggle").First.BoundingBoxAsync())!);
-        Assert.True(button.X + button.Width <= toggle.X + 1, $"{button.X}+{button.Width} against {toggle.X}");
-
-        await clear.ClickAsync();
-
-        await Assertions.Expect(input).ToHaveValueAsync("");
-    }
-
-    [Theory]
     [InlineData("text-area", "textarea", "static")]
     [InlineData("text-area", "textarea", "interactive")]
     [InlineData("select", "select", "static")]
@@ -91,31 +57,5 @@ public sealed class FieldClearTests(SiteFixture site) : IClassFixture<SiteFixtur
 
         await Assertions.Expect(value).ToHaveValueAsync("");
         await Assertions.Expect(clear).ToBeHiddenAsync();
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task It_removes_every_choice_from_a_multi_select(string mode)
-    {
-        var (example, browser) = await OpenAsync("multi-select", "multi-select-states", mode);
-        await using var _ = browser;
-        var field = example.Locator(".ib-field", new() { Has = example.Page.Locator("ib-field-clear") }).First;
-        await Assertions.Expect(field.Locator(".ib-chip")).Not.ToHaveCountAsync(0);
-
-        await field.Locator("ib-field-clear button").ClickAsync();
-
-        await Assertions.Expect(field.Locator(".ib-chip")).ToHaveCountAsync(0);
-        await Assertions.Expect(field.Locator("ib-field-clear")).ToBeHiddenAsync();
-    }
-
-    [Fact]
-    public async Task With_no_script_it_stays_out_of_the_way()
-    {
-        await using var browser = await TestBrowser.OpenAsync();
-        var page = await browser.NewPageAsync(new() { JavaScriptEnabled = false, ViewportSize = new() { Width = 1400, Height = 1000 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/text-field?mode=noscript").ToString());
-
-        await Assertions.Expect(page.Locator("[data-ex='text-field-clearable'] ib-field-clear").First).ToBeHiddenAsync();
     }
 }

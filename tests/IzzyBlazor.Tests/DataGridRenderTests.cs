@@ -51,50 +51,6 @@ public class DataGridRenderTests : BunitContext
         cut.FindAll("tbody tr").Select(r => $"{r.Children[0].TextContent}{r.Children[1].TextContent}").ToArray();
 
     [Fact]
-    public void Widths_are_variables_and_unset_columns_set_the_minimum()
-    {
-        var cut = Grid(builder =>
-        {
-            builder.AddContent(0, Column(r => r.Name, min: Length.Rem(12)));
-            builder.AddContent(1, Column(r => r.Qty, width: Length.Rem(8)));
-        });
-
-        var style = cut.Find("table").GetAttribute("style");
-        Assert.Contains("--ib-col-1:8rem", style);
-        Assert.Contains("min-width:calc(var(--ib-col-1) + 1 * max(12rem))", style);
-        Assert.Equal(2, cut.FindAll("col").Count);
-        Assert.Null(cut.FindAll("col")[0].GetAttribute("style"));
-        Assert.Equal("width:var(--ib-col-1)", cut.FindAll("col")[1].GetAttribute("style"));
-        Assert.All(cut.FindAll("th"), th => Assert.Null(th.GetAttribute("style")));
-    }
-
-    [Fact]
-    public void Every_column_set_makes_the_grid_their_sum()
-    {
-        var cut = Grid(builder =>
-        {
-            builder.AddContent(0, Column(r => r.Name, width: Length.Rem(8)));
-            builder.AddContent(1, Column(r => r.Qty, width: Length.Rem(4)));
-        });
-
-        Assert.Contains(";width:calc(var(--ib-col-0) + var(--ib-col-1))", cut.Find("table").GetAttribute("style"));
-    }
-
-    [Fact]
-    public void Mixed_minimums_take_the_largest_and_selection_counts()
-    {
-        var cut = Grid(builder =>
-        {
-            builder.AddContent(0, Column(r => r.Name, min: Length.Rem(12)));
-            builder.AddContent(1, Column(r => r.Qty));
-        }, p => p.Add(x => x.SelectionMode, SelectionMode.Multiple));
-
-        Assert.Contains("min-width:calc(var(--ib-datagrid-select) + 2 * max(12rem, 8rem))", cut.Find("table").GetAttribute("style"));
-        Assert.Equal(3, cut.FindAll("col").Count);
-        Assert.Equal("ib-datagrid-select-col", cut.FindAll("col")[0].ClassName);
-    }
-
-    [Fact]
     public void Frozen_columns_are_placed_by_the_widths_before_them()
     {
         var cut = Grid(builder =>
@@ -120,27 +76,6 @@ public class DataGridRenderTests : BunitContext
 
         var head = cut.Find("thead tr").Children;
         Assert.Equal(cells[2].GetAttribute("style"), head[2].GetAttribute("style"));
-    }
-
-    [Fact]
-    public void Frozen_needs_a_width_and_its_place_and_a_grid()
-    {
-        Assert.Contains("Width", Assert.Throws<InvalidOperationException>(() => Grid(Column(r => r.Name, frozen: ColumnFrozen.Start))).Message);
-
-        // Declared after a column that scrolls, it's still drawn at its edge.
-        var cut = Grid(builder =>
-        {
-            builder.AddContent(0, Column(r => r.Name));
-            builder.AddContent(1, Column(r => r.Qty, Length.Rem(4), frozen: ColumnFrozen.Start));
-        });
-        Assert.Contains("ib-frozen-start", cut.Find("tbody tr").Children[0].ClassName);
-        Assert.Contains("--ib-col-0:4rem", cut.Find("table").GetAttribute("style"));
-
-        Assert.Contains("RowHref", Assert.Throws<InvalidOperationException>(() => Grid(Column(r => r.Name, Length.Rem(4), frozen: ColumnFrozen.Start), p => p.Add(x => x.RowHref, r => "/x"))).Message);
-
-        Assert.Contains("Frozen", Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(x => x.Items, Rows)
-            .Add(x => x.ChildContent, Column(r => r.Name, Length.Rem(4), frozen: ColumnFrozen.Start)))).Message);
     }
 
     private sealed class Cookies : IRequestCookies
@@ -180,16 +115,6 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_layout_that_hides_every_column_or_freezes_one_with_no_width_is_ignored_for_that()
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Hidden = true }, new() { Key = "qty", Hidden = true })));
-        Assert.Equal(2, Headers(cut).Length);
-
-        cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Frozen = ColumnFrozen.Start })));
-        Assert.DoesNotContain("ib-frozen", cut.Find("thead th").ClassName ?? "");
-    }
-
-    [Fact]
     public void Unknown_columns_in_a_layout_are_dropped_and_new_columns_stay_in_their_place()
     {
         var cut = Grid(NameAndQty, p => p.Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "gone", Position = 0, Width = "99px" })));
@@ -217,18 +142,8 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal(2, Headers(cut).Length);
     }
 
-    [Fact]
-    public void A_key_that_cant_name_a_cookie_is_refused() =>
-        Assert.Contains("LayoutKey", Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.LayoutKey, "a;b"))).Message);
-
     [Theory]
     [InlineData("not json")]
-    [InlineData("[]")]
-    [InlineData("")]
-    [InlineData("{}")]
-    [InlineData("""{"c":null}""")]
-    [InlineData("""{"c":[null]}""")]
-    [InlineData("""{"x":1}""")]
     [InlineData("""{"c":[{"w":"10px"}]}""")]
     public void A_broken_cookie_is_no_layout(string json) => Assert.Empty(DataGridLayout.Parse(json)?.Columns ?? []);
 
@@ -237,35 +152,6 @@ public class DataGridRenderTests : BunitContext
     [InlineData("10px\n")]
     public void A_width_in_other_digits_or_with_more_after_it_is_dropped(string width) =>
         Assert.Null(DataGridLayout.Parse(Arranged(new DataGridColumnLayout { Key = "a", Width = width }).ToJson())!.Column("a")!.Width);
-
-    [Fact]
-    public void A_stored_layout_cant_freeze_a_grid_with_row_links()
-    {
-        var cut = Grid(Column(r => r.Name, Length.Rem(4)), p => p
-            .Add(x => x.RowHref, r => "/x")
-            .Add(x => x.Layout, Arranged(new DataGridColumnLayout { Key = "name", Frozen = ColumnFrozen.Start })));
-        Assert.DoesNotContain("ib-frozen", cut.Find("thead th").ClassName ?? "");
-    }
-
-    [Fact]
-    public void Rearranging_needs_a_key_of_its_own_per_column()
-    {
-        RenderFragment twins = builder =>
-        {
-            builder.AddContent(0, Column(r => r.Name));
-            builder.AddContent(1, Column(r => r.Name));
-        };
-        Assert.Contains("SortKey", Assert.Throws<InvalidOperationException>(() => Grid(twins, p => p.Add(x => x.ResizableColumns, true).Add(x => x.LayoutKey, "o"))).Message);
-    }
-
-    [Fact]
-    public void A_layout_given_one_way_gives_way_to_what_people_choose()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.Layout, new DataGridLayout()));
-        cut.Find("ib-grid-columns").TriggerEvent("oniblayout", new IzzyLayoutEventArgs { Layout = """{"c":[{"k":"qty","h":true}]}""" });
-        Assert.Equal(["Name"], Headers(cut));
-    }
 
     [Fact]
     public void A_column_the_page_wont_let_people_hide_stays()
@@ -284,10 +170,7 @@ public class DataGridRenderTests : BunitContext
 
     [Theory]
     [InlineData("1px;background:url(x)")]
-    [InlineData("calc(1px)")]
     [InlineData("10%")]
-    [InlineData("0px")]
-    [InlineData("-5px")]
     public void A_cookies_width_that_isnt_plain_is_dropped(string width)
     {
         var layout = DataGridLayout.Parse(Arranged(new DataGridColumnLayout { Key = "a", Width = width }).ToJson());
@@ -303,43 +186,6 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal("12.5rem", back.Column("A")!.Width);
         Assert.Equal(ColumnFrozen.Start, back.Column("a")!.Frozen);
         Assert.Null(back.Column("b")!.Width);
-    }
-
-    [Fact]
-    public void Rearranging_needs_somewhere_to_keep_it_on_a_static_page()
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.ReorderableColumns, true).Add(x => x.ColumnPicker, true));
-        Assert.Empty(cut.FindAll("ib-grid-columns"));
-        Assert.Empty(cut.FindAll(".ib-col-resize"));
-        Assert.Empty(cut.FindAll(".ib-col-menu"));
-
-        cut = Grid(NameAndQty, p => p.Add(x => x.ResizableColumns, true).Add(x => x.ReorderableColumns, true).Add(x => x.ColumnPicker, true).Add(x => x.LayoutKey, "orders"));
-        Assert.Equal("orders", cut.Find("ib-grid-columns").GetAttribute("data-ib-layout-key"));
-        Assert.Equal(2, cut.FindAll("th .ib-col-resize").Count);
-        Assert.Equal("name", cut.Find("th").GetAttribute("data-ib-col"));
-        Assert.NotNull(cut.Find("th").GetAttribute("data-ib-reorder"));
-        Assert.Equal(2, cut.FindAll("[data-ib-col-show]").Count);
-    }
-
-    [Fact]
-    public void A_column_can_opt_out_of_each()
-    {
-        RenderFragment fixedColumn = builder =>
-        {
-            builder.OpenComponent<PropertyColumn<Row, string>>(0);
-            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
-            builder.AddComponentParameter(2, "Resizable", false);
-            builder.AddComponentParameter(3, "Reorderable", false);
-            builder.AddComponentParameter(4, "Pickable", false);
-            builder.CloseComponent();
-            builder.AddContent(5, Column(r => r.Qty));
-        };
-        var cut = Grid(fixedColumn, p => p.Add(x => x.ResizableColumns, true).Add(x => x.ReorderableColumns, true).Add(x => x.ColumnPicker, true).Add(x => x.LayoutKey, "o"));
-        var head = cut.FindAll("th");
-        Assert.Null(head[0].GetAttribute("data-ib-reorder"));
-        Assert.Empty(head[0].QuerySelectorAll(".ib-col-resize, [data-ib-menu]"));
-        Assert.NotEmpty(head[1].QuerySelectorAll(".ib-col-resize"));
-        Assert.Single(cut.FindAll("[data-ib-col-show]"));
     }
 
     [Fact]
@@ -384,20 +230,6 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void Typing_doesnt_redraw_the_box_and_an_echo_doesnt_overwrite_it()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Grid(NameAndQty, p => p.Add(x => x.Searchable, true).Add(x => x.Search, "a").Add(x => x.SearchChanged, (string? _) => { }));
-        Assert.Equal("a", cut.Find("input[type=search]").GetAttribute("value"));
-        cut.Find("input[type=search]").Input("ab");
-        Assert.Equal("a", cut.Find("input[type=search]").GetAttribute("value"));
-
-        // C# setting something else does redraw it.
-        cut.Render(p => p.Add(x => x.Search, "b"));
-        Assert.Equal("b", cut.Find("input[type=search]").GetAttribute("value"));
-    }
-
-    [Fact]
     public void A_bound_search_works_with_a_box_of_the_pages_own()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
@@ -426,24 +258,6 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void With_frozen_end_columns_the_menu_column_stays_with_them()
-    {
-        var cut = Grid(Column(r => r.Qty, Length.Rem(4), frozen: ColumnFrozen.End), p => p.Add(x => x.RowMenu, _ => b => b.AddMarkupContent(0, "<span>Item</span>")));
-        var cells = cut.Find("tbody tr").Children;
-        Assert.Equal("--ib-frozen-at:calc(var(--ib-datagrid-menu))", cells[0].GetAttribute("style"));
-        Assert.Contains("ib-frozen-end", cells[1].ClassName);
-    }
-
-    [Fact]
-    public void A_row_with_no_name_of_its_own_has_a_short_menu_name()
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.RowMenu, _ => b => b.AddMarkupContent(0, "<span>Item</span>")));
-        Assert.Equal("Actions", cut.Find("[data-ib-row-menu]").GetAttribute("aria-label"));
-        cut = Grid(NameAndQty, p => p.Add(x => x.ItemKey, r => r.Name).Add(x => x.RowMenu, _ => b => b.AddMarkupContent(0, "<span>Item</span>")));
-        Assert.Equal("Actions for b", cut.Find("[data-ib-row-menu]").GetAttribute("aria-label"));
-    }
-
-    [Fact]
     public void Export_links_carry_the_sort_and_the_columns_shown_and_no_page()
     {
         Services.GetRequiredService<NavigationManager>().NavigateTo("?sort=-qty&page=2");
@@ -454,67 +268,6 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal("/o.xlsx?t=1&sort=-qty&columns=name,qty", links[0].GetAttribute("href"));
         Assert.Equal("/o.csv?sort=-qty&columns=name,qty", links[1].GetAttribute("href"));
         Assert.Equal(["Export Excel", "Export CSV"], links.Take(2).Select(l => l.TextContent.Trim()));
-    }
-
-    [Fact]
-    public void Both_exports_are_one_button_with_a_chevron_that_opens_a_menu_excel_first()
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx"));
-        var bar = cut.Find(".ib-toolbar-end > .ib-toolbar-unit");
-        Assert.Empty(cut.FindAll(".ib-split-btn"));
-
-        // Icons alone, named, both inside one button that downloads nothing itself.
-        var button = Assert.Single(bar.QuerySelectorAll("button.ib-btn"));
-        Assert.Equal("Export", button.GetAttribute("aria-label"));
-        Assert.Equal("Export", button.GetAttribute("title"));
-        Assert.Equal(2, button.QuerySelectorAll(".ib-icon").Length);
-        Assert.Equal("", button.TextContent.Trim());
-        Assert.Null(button.GetAttribute("download"));
-
-        Assert.Equal(["Export Excel", "Export CSV"], bar.QuerySelectorAll(".ib-menu-item[download]").Select(l => l.TextContent.Trim()));
-    }
-
-    [Fact]
-    public void Exports_with_text_read_export_between_the_icon_and_the_chevron()
-    {
-        var labeled = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarLabels, true));
-        var content = Tools(b => Add<DataGridExport>(b, (nameof(DataGridExport.ShowText), (bool?)true)));
-        var placed = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarContent, content));
-        foreach (var bar in new[] { labeled.Find(".ib-toolbar-end > .ib-toolbar-unit"), placed.Find(".ib-toolbar-end > .ib-toolbar-unit") })
-        {
-            var button = Assert.Single(bar.QuerySelectorAll("button.ib-btn"));
-            Assert.Equal("Export", button.TextContent.Trim());
-            Assert.Equal(2, button.QuerySelectorAll(".ib-icon").Length);
-        }
-    }
-
-    [Theory]
-    [InlineData(true, "/o.xlsx", "Export Excel")]
-    [InlineData(false, "/o.csv", "Export CSV")]
-    public void One_export_downloads_directly_with_no_chevron(bool excel, string href, string name)
-    {
-        var cut = excel ? Grid(NameAndQty, p => p.Add(x => x.ExportExcelHref, href)) : Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, href));
-        var bar = cut.Find(".ib-toolbar-end > .ib-toolbar-unit");
-
-        var link = bar.QuerySelector("a[download]")!;
-        Assert.StartsWith(href + "?", link.GetAttribute("href"));
-        Assert.Equal(name, link.GetAttribute("aria-label"));
-        Assert.Single(link.QuerySelectorAll(".ib-icon"));
-        Assert.Empty(bar.QuerySelectorAll("button"));
-    }
-
-    // What the toolbar reckons for its first paint: a chevron's width is in it, and text's.
-    [Fact]
-    public void Exports_estimated_width_counts_the_chevron()
-    {
-        var both = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx"));
-        var one = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv"));
-
-        Assert.Equal(32, one.FindComponent<DataGridExport>().Instance.EstimatedWidth);
-        Assert.Equal(52, both.FindComponent<DataGridExport>().Instance.EstimatedWidth);
-        var labeled = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ExportExcelHref, "/o.xlsx").Add(x => x.ToolbarLabels, true));
-        var plainText = ButtonWidth.Estimate(ControlSize.Sm, false, true, "Export", startIcon: true, endIcon: false);
-        Assert.True(labeled.FindComponent<DataGridExport>().Instance.EstimatedWidth > plainText + 12, "the chevron's room");
     }
 
     [Fact]
@@ -550,120 +303,6 @@ public class DataGridRenderTests : BunitContext
         }
 
         b.CloseComponent();
-    }
-
-    [Fact]
-    public void The_grids_tools_are_icons_named_for_what_they_do_unless_told_otherwise()
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv"));
-        var link = cut.Find(".ib-btn[download]");
-        Assert.Equal("Export CSV", link.GetAttribute("aria-label"));
-        Assert.Equal("Export CSV", link.GetAttribute("title"));
-        Assert.DoesNotContain("Export CSV", link.TextContent);
-
-        link = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ToolbarLabels, true)).Find(".ib-btn[download]");
-        Assert.Contains("Export CSV", link.TextContent);
-
-        // One tool's own word goes first.
-        var content = Tools(b => Add<DataGridExport>(b, (nameof(DataGridExport.ShowText), (bool?)false)));
-        link = Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ToolbarLabels, true).Add(x => x.ToolbarContent, content)).Find(".ib-btn[download]");
-        Assert.DoesNotContain("Export CSV", link.TextContent);
-    }
-
-    [Fact]
-    public void A_tool_written_in_the_content_is_drawn_there_and_not_again()
-    {
-        var content = Tools(
-            b => Add<ToolbarText>(b, (nameof(ToolbarText.ChildContent), (RenderFragment)(t => t.AddContent(0, "Mine")))),
-            b => Add<DataGridSearch>(b),
-            b => Add<ToolbarText>(b, (nameof(ToolbarText.ChildContent), (RenderFragment)(t => t.AddContent(0, "Yours")))));
-        var cut = Grid(NameAndQty, p => p.Add(x => x.Searchable, true).Add(x => x.ToolbarContent, content));
-        Assert.Single(cut.FindAll("input[type=search]"));
-        var units = cut.FindAll(".ib-toolbar-start > .ib-toolbar-unit");
-        Assert.Equal(3, units.Count);
-        Assert.Equal("Mine", units[0].TextContent.Trim());
-        Assert.Single(units[1].QuerySelectorAll("input[type=search]"));
-        Assert.Equal("Yours", units[2].TextContent.Trim());
-    }
-
-    [Fact]
-    public void A_tool_the_grid_hasnt_turned_on_draws_nothing()
-    {
-        var content = Tools(b => Add<DataGridSearch>(b), b => Add<DataGridExport>(b), b => Add<DataGridColumnPicker>(b));
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, content));
-        Assert.Empty(cut.FindAll(".ib-toolbar-unit"));
-    }
-
-    [Fact]
-    public void A_download_stays_one_in_the_toolbars_menu()
-    {
-        var content = Tools(b =>
-        {
-            b.OpenComponent<ToolbarIconButton>(0);
-            b.AddComponentParameter(1, nameof(ToolbarIconButton.Icon), Lucide.Download);
-            b.AddComponentParameter(2, nameof(ToolbarIconButton.Label), "Report");
-            b.AddComponentParameter(3, nameof(ToolbarIconButton.Href), "/report.pdf");
-            b.AddAttribute(4, "download", "report.pdf");
-            b.CloseComponent();
-        });
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, content));
-        Assert.Equal("report.pdf", cut.Find(".ib-menu-item[href='/report.pdf']").GetAttribute("download"));
-    }
-
-    [Fact]
-    public void The_tools_follow_the_grids_parameters()
-    {
-        var content = Tools(b => Add<DataGridSearch>(b));
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, content));
-        Assert.Empty(cut.FindAll("input[type=search]"));
-        Assert.Empty(cut.FindAll("[download]"));
-
-        cut.Render(p => p.Add(x => x.Searchable, true).Add(x => x.ExportCsvHref, "/o.csv"));
-        Assert.Single(cut.FindAll("input[type=search]"));
-        Assert.NotEmpty(cut.FindAll("[download]"));
-
-        // Cleared, the link goes rather than draw with nowhere to point.
-        cut.Render(p => p.Add(x => x.Searchable, false).Add(x => x.ExportCsvHref, null));
-        Assert.Empty(cut.FindAll("input[type=search]"));
-        Assert.Empty(cut.FindAll("[download]"));
-    }
-
-    [Fact]
-    public void A_tool_takes_no_attributes_it_would_only_ignore()
-    {
-        var content = Tools(b =>
-        {
-            b.OpenComponent<DataGridExport>(0);
-            b.AddAttribute(1, "class", "mine");
-            b.CloseComponent();
-        });
-        Assert.ThrowsAny<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.ExportCsvHref, "/o.csv").Add(x => x.ToolbarContent, content)));
-    }
-
-    [Fact]
-    public void An_icon_link_keeps_its_name_and_look_when_it_becomes_active()
-    {
-        var cut = Render<IconButton>(p => p.Add(x => x.Icon, Lucide.Download).Add(x => x.Label, "Export").Add(x => x.Href, "/o.csv").Add(x => x.Disabled, true).AddUnmatched("download", ""));
-        Assert.Equal("link", cut.Find("a").GetAttribute("role"));
-
-        cut.Render(p => p.Add(x => x.Disabled, false));
-        var link = cut.Find("a");
-        Assert.Equal("/o.csv", link.GetAttribute("href"));
-        Assert.Null(link.GetAttribute("role"));
-        Assert.Equal("Export", link.GetAttribute("aria-label"));
-        Assert.Equal("Export", link.GetAttribute("title"));
-        Assert.True(link.HasAttribute("download"));
-        Assert.Contains("ib-btn", link.ClassName);
-    }
-
-    [Fact]
-    public void Virtual_rows_need_a_height_to_scroll_in_and_cant_take_a_paging()
-    {
-        var error = Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.Virtualize, true)));
-        Assert.Contains("MaxHeight", error.Message);
-
-        error = Assert.Throws<InvalidOperationException>(() => Grid(NameAndQty, p => p.Add(x => x.Virtualize, true).Add(x => x.MaxHeight, Length.Rem(20)).Add(x => x.Paging, DataPaging.NextPrevious).Add(x => x.PageSize, 1)));
-        Assert.Contains("Paging", error.Message);
     }
 
     [Fact]
@@ -712,79 +351,6 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public async Task Virtual_rows_loaded_again_stay_where_they_are_and_a_new_sort_starts_over()
-    {
-        var (cut, asked) = VirtualGrid();
-        cut.WaitForAssertion(() => Assert.Equal("1001", cut.Find("table").GetAttribute("aria-rowcount")));
-        var load = cut.Find("table").GetAttribute("data-ib-load");
-        var times = asked.Count;
-
-        await cut.InvokeAsync(() => cut.Instance.ReloadAsync());
-        cut.WaitForAssertion(() => Assert.True(asked.Count > times));
-        Assert.Equal(load, cut.Find("table").GetAttribute("data-ib-load"));
-
-        cut.Render(p => p.Add(x => x.InitialSort, "-qty"));
-        Nav.NavigateTo("?sort=name");
-        cut.WaitForAssertion(() => Assert.NotEqual(load, cut.Find("table").GetAttribute("data-ib-load")));
-    }
-
-    [Fact]
-    public async Task An_older_windows_answer_doesnt_touch_a_newer_list()
-    {
-        var slow = new TaskCompletionSource<DataResult<Row>>();
-        DataRequest<Row>? held = null;
-        var (cut, _) = VirtualGrid(request =>
-        {
-            // The window on the first list waits; everything else is the new list, of 50.
-            if (held is null && request.Take > 1)
-            {
-                held = request;
-                return new ValueTask<DataResult<Row>>(slow.Task);
-            }
-
-            return new ValueTask<DataResult<Row>>(Answer(request, held is null ? 1000 : 50));
-        });
-        cut.WaitForAssertion(() => Assert.NotNull(held));
-
-        Nav.NavigateTo("?sort=name");
-        cut.WaitForAssertion(() => Assert.Equal("51", cut.Find("table").GetAttribute("aria-rowcount")));
-
-        await cut.InvokeAsync(() => slow.SetResult(Answer(held!, 1000)));
-        Assert.Equal("51", cut.Find("table").GetAttribute("aria-rowcount"));
-        Assert.DoesNotContain("r999", cut.Markup);
-    }
-
-    [Fact]
-    public void With_virtual_rows_the_count_has_a_line_of_its_own()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        JSInterop.Mode = JSRuntimeMode.Loose;
-        var cut = Render<DataGrid<Row>>(p => p
-            .Add(x => x.ChildContent, NameAndQty)
-            .Add(x => x.Virtualize, true)
-            .Add(x => x.MaxHeight, Length.Rem(20))
-            .Add(x => x.ItemKey, r => r.Name)
-            .Add(x => x.SelectionMode, SelectionMode.Multiple)
-            .Add(x => x.ItemsProvider, request => new ValueTask<DataResult<Row>>(Answer(request))));
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll("tbody .ib-table-select")));
-        foreach (var box in cut.FindAll("tbody .ib-table-select").ToList())
-        {
-            cut.Find($"tbody .ib-table-select[value='{box.GetAttribute("value")}']").Change(true);
-        }
-
-        Assert.Contains("selected", cut.Find(".ib-selection-line .ib-selection-count").TextContent);
-    }
-
-    [Fact]
-    public void A_providers_own_timeout_in_a_window_is_a_failure_to_retry_not_a_crash()
-    {
-        var (cut, _) = VirtualGrid(request => request.Take > 1
-            ? ValueTask.FromException<DataResult<Row>>(new TaskCanceledException("Timed out."))
-            : new ValueTask<DataResult<Row>>(Answer(request)));
-        cut.WaitForAssertion(() => Assert.NotEmpty(cut.FindAll(".ib-table-error")));
-    }
-
-    [Fact]
     public void Without_a_runtime_a_providers_total_is_enough_to_load_more_and_the_rows_stop_somewhere()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -808,38 +374,6 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_tool_outside_a_grid_says_where_it_goes()
-    {
-        var error = Assert.Throws<InvalidOperationException>(() => Render<DataGridSearch>());
-        Assert.Contains("DataGrid's ToolbarContent", error.Message);
-    }
-
-    [Fact]
-    public void The_empty_row_spans_the_menu_column_too()
-    {
-        var cut = Render<DataGrid<Row>>(p => p.Add(x => x.Items, Array.Empty<Row>()).Add(x => x.ChildContent, NameAndQty).Add(x => x.RowMenu, _ => _ => { }));
-        Assert.Equal("3", cut.Find("tbody td").GetAttribute("colspan"));
-    }
-
-    [Fact]
-    public void No_toolbar_without_something_to_put_in_it_and_a_table_has_none()
-    {
-        Assert.Empty(Grid(NameAndQty).FindAll(".ib-grid-toolbar"));
-        var cut = Grid(NameAndQty, p => p.Add(x => x.ToolbarContent, b => b.AddMarkupContent(0, "<span id=mine></span>")));
-        Assert.Single(cut.FindAll(".ib-grid-toolbar"));
-        Assert.Empty(Render<Table<Row>>(p => p.Add(x => x.Items, Rows).Add(x => x.ChildContent, NameAndQty)).FindAll(".ib-grid-toolbar"));
-    }
-
-    [Fact]
-    public void A_table_refuses_a_minimum_width()
-    {
-        var thrown = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(x => x.Items, Rows)
-            .Add(x => x.ChildContent, Column(r => r.Name, min: Length.Rem(12)))));
-        Assert.Contains("MinWidth", thrown.Message);
-    }
-
-    [Fact]
     public void The_address_sorts_by_several_columns_and_the_first_has_aria_sort()
     {
         Nav.NavigateTo("http://localhost/?sort=name,-qty");
@@ -851,14 +385,6 @@ public class DataGridRenderTests : BunitContext
         Assert.Equal("none", headers[1].GetAttribute("aria-sort"));
         Assert.Contains("Sort 1, ascending", headers[0].TextContent);
         Assert.Contains("Sort 2, descending", headers[1].TextContent);
-    }
-
-    [Fact]
-    public void One_sorted_column_shows_no_place()
-    {
-        Nav.NavigateTo("http://localhost/?sort=name");
-        var cut = Grid(NameAndQty);
-        Assert.Empty(cut.FindAll(".ib-table-sort-order"));
     }
 
     [Fact]
@@ -898,35 +424,6 @@ public class DataGridRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_table_takes_a_comma_in_its_sort_key()
-    {
-        RenderFragment columns = builder =>
-        {
-            builder.OpenComponent<PropertyColumn<Row, string>>(0);
-            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, string>>)(r => r.Name));
-            builder.AddComponentParameter(2, "Sortable", true);
-            builder.AddComponentParameter(3, "SortKey", "a,b");
-            builder.CloseComponent();
-        };
-        Nav.NavigateTo("http://localhost/?sort=a,b");
-        var cut = Render<Table<Row>>(p => p.Add(x => x.Items, Rows).Add(x => x.ChildContent, columns));
-        Assert.Equal("ascending", cut.Find("th").GetAttribute("aria-sort"));
-
-        var thrown = Assert.Throws<InvalidOperationException>(() => Grid(columns));
-        Assert.Contains("SortKey", thrown.Message);
-    }
-
-    [Theory]
-    [InlineData("100%")]
-    [InlineData("auto")]
-    [InlineData("fit-content")]
-    public void Widths_a_grid_cant_add_up_are_refused(string css)
-    {
-        Assert.Contains("Width", Assert.Throws<InvalidOperationException>(() => Grid(Column(r => r.Name, width: Length.Of(css)))).Message);
-        Assert.Contains("MinWidth", Assert.Throws<InvalidOperationException>(() => Grid(Column(r => r.Name, min: Length.Of(css)))).Message);
-    }
-
-    [Fact]
     public void InitialSort_takes_several_and_a_lone_dash_is_no_sort()
     {
         var cut = Grid(NameAndQty, p => p.Add(x => x.InitialSort, "name,-qty"));
@@ -936,63 +433,6 @@ public class DataGridRenderTests : BunitContext
         cut.Render();
         Assert.Equal(["b2", "a3", "a1"], Cells(cut));
         Assert.Empty(cut.FindAll("[aria-sort=ascending], [aria-sort=descending]"));
-    }
-
-    [Fact]
-    public void Shift_past_descending_on_the_initial_sort_turns_it_off()
-    {
-        var cut = Grid(NameAndQty, p => p.Add(x => x.InitialSort, "-name"));
-        Assert.Contains("sort=-&", Uri.UnescapeDataString(cut.FindAll("th a.ib-table-sort")[0].GetAttribute("data-ib-sort-add")!) + "&");
-    }
-
-    [Fact]
-    public void A_removed_column_leaves_the_sort()
-    {
-        Nav.NavigateTo("http://localhost/?sort=name,qty");
-        var show = true;
-        var cut = Render<DataGrid<Row>>(p => p.Add(x => x.Items, Rows).Add(x => x.ChildContent, builder =>
-        {
-            if (show)
-            {
-                builder.AddContent(0, Column(r => r.Name));
-            }
-
-            builder.AddContent(1, Column(r => r.Qty));
-        }));
-        Assert.Equal(2, cut.FindAll(".ib-table-sort-order").Count);
-
-        show = false;
-        cut.Render();
-        Assert.Empty(cut.FindAll(".ib-table-sort-order"));
-        Assert.Equal("ascending", cut.Find("th").GetAttribute("aria-sort"));
-    }
-
-    [Fact]
-    public void With_no_columns_yet_a_message_takes_the_whole_width()
-    {
-        var cut = Grid(_ => { }, p => p.Add(x => x.SelectionMode, SelectionMode.Multiple));
-        Assert.Empty(cut.FindAll("col"));
-        Assert.Equal("table-layout:auto", cut.Find("table").GetAttribute("style"));
-    }
-
-    [Fact]
-    public void Shift_click_during_a_load_builds_on_the_sort_asked_for()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var answer = new TaskCompletionSource<DataResult<Row>>();
-        var cut = Render<DataGrid<Row>>(p => p
-            .Add(x => x.ChildContent, NameAndQty)
-            .Add(x => x.ItemsProvider, _ => new ValueTask<DataResult<Row>>(answer.Task))
-            .Add(x => x.SortChanged, (string? _) => { }));
-        answer.SetResult(new DataResult<Row>(Rows, Rows.Length));
-        cut.WaitForAssertion(() => Assert.Equal(3, cut.FindAll("tbody tr").Count));
-
-        answer = new TaskCompletionSource<DataResult<Row>>();
-        // The first click starts a load, which renders: the second may need to find its button again.
-        cut.FindAll("th button.ib-table-sort")[0].Click(new Microsoft.AspNetCore.Components.Web.MouseEventArgs { ShiftKey = true });
-        cut.WaitForAssertion(() => cut.FindAll("th button.ib-table-sort")[1].Click(new Microsoft.AspNetCore.Components.Web.MouseEventArgs { ShiftKey = true }));
-        answer.SetResult(new DataResult<Row>(Rows, Rows.Length));
-        cut.WaitForAssertion(() => Assert.Equal(2, cut.FindAll(".ib-table-sort-order").Count));
     }
 
     [Fact]

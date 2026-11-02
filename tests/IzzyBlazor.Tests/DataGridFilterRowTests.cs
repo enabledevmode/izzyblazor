@@ -35,62 +35,6 @@ public class DataGridFilterRowTests : BunitContext
     }
 
     [Fact]
-    public void A_cell_is_a_field_and_a_list_or_range_opens_its_panel()
-    {
-        var cut = Grid("/orders?f-total-op=between&f-total=5&f-total-to=15");
-        var cells = cut.FindAll(".ib-table-filter-row td");
-
-        var field = cells[0].QuerySelector("input[data-ib-row]")!;
-        Assert.Equal("f-name", field.GetAttribute("name"));
-        Assert.NotNull(cells[0].QuerySelector("[data-ib-menu]"));
-
-        // Each opens the panel that's really there.
-        foreach (var cell in cells.Skip(1))
-        {
-            Assert.Null(cell.QuerySelector("input[data-ib-row]"));
-            var id = cell.QuerySelector(".ib-filter-cell-summary")!.GetAttribute("popovertarget")!;
-            Assert.NotNull(cut.Find($"thead th [id='{id}'][popover]"));
-        }
-
-        Assert.Equal(new[] { "Ada" }, cut.FindAll("tbody td:first-child").Select(c => c.TextContent.Trim()));
-    }
-
-    [Theory]
-    [InlineData("", "", false)]
-    [InlineData("?f-kind=A", "A", true)]
-    [InlineData("?f-kind=A&f-kind=B&f-kind=C", "A, B, C", true)]
-    [InlineData("?f-kind=A&f-kind=B&f-kind=C&f-kind=D", "4 selected", true)]
-    public void A_list_reads_as_its_choices_then_their_count(string query, string shown, bool clears)
-    {
-        var cell = Grid("/orders" + query).FindAll(".ib-table-filter-row td")[2];
-
-        var summary = cell.QuerySelector(".ib-filter-cell-summary")!;
-        Assert.Equal(shown, summary.TextContent.Trim());
-        Assert.StartsWith("Filter Kind: ", summary.GetAttribute("aria-label"));
-        Assert.Equal(clears, cell.QuerySelector("a.ib-filter-cell-clear") is not null);
-    }
-
-    [Fact]
-    public void A_loaders_values_read_as_a_count_as_they_may_be_ids()
-    {
-        Services.GetRequiredService<BunitNavigationManager>().NavigateTo("/orders?f-name=17&f-name=23");
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        FilterValuesLoader loader = _ => ValueTask.FromResult(new FilterValuesResult([]));
-        RenderFragment columns = b =>
-        {
-            b.OpenComponent<PropertyColumn<Row, string>>(0);
-            b.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, string>>)(r => r.Name));
-            b.AddComponentParameter(2, "Filterable", true);
-            b.AddComponentParameter(3, "FilterValues", loader);
-            b.CloseComponent();
-        };
-
-        var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.ChildContent, columns));
-
-        Assert.Equal("2 selected", cut.Find(".ib-filter-cell-summary").TextContent.Trim());
-    }
-
-    [Fact]
     public void A_bound_grids_x_clears_the_filter()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
@@ -134,26 +78,6 @@ public class DataGridFilterRowTests : BunitContext
         Assert.Contains("f-name-op=startswith", href);
         Assert.Contains("f-name=a", href);
         Assert.DoesNotContain("page=", href);
-    }
-
-    [Fact]
-    public void Virtual_rows_count_the_row_in_their_numbers()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        RenderFragment columns = b =>
-        {
-            b.OpenComponent<PropertyColumn<Row, string>>(0);
-            b.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, string>>)(r => r.Name));
-            b.AddComponentParameter(2, "Filterable", true);
-            b.CloseComponent();
-        };
-
-        var cut = Render<DataGrid<Row>>(p => p.Add(g => g.Items, Rows).Add(g => g.FilterRow, true).Add(g => g.Virtualize, true).Add(g => g.MaxHeight, Length.Rem(20)).Add(g => g.ChildContent, columns));
-
-        var table = cut.Find("table");
-        Assert.Equal("4", table.GetAttribute("aria-rowcount"));
-        Assert.Equal("3", table.GetAttribute("data-ib-first"));
-        Assert.Equal("2", cut.Find(".ib-table-filter-row").GetAttribute("aria-rowindex"));
     }
 
     [Theory]

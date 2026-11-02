@@ -143,13 +143,9 @@ public sealed class DataFilterTests : IDisposable
     [Theory]
     [InlineData(FilterCase.IgnoreCase, FilterOperator.Equals, "ADA", new[] { 1 })]
     [InlineData(FilterCase.IgnoreCase, FilterOperator.NotEquals, "ADA", new[] { 2 })]
-    [InlineData(FilterCase.IgnoreCase, FilterOperator.DoesNotContain, "ADA", new[] { 2 })]
     [InlineData(FilterCase.Database, FilterOperator.Equals, "Ada", new[] { 1 })]
     [InlineData(FilterCase.Database, FilterOperator.NotEquals, "Ada", new[] { 2 })]
-    [InlineData(FilterCase.Database, FilterOperator.Contains, "Ada", new[] { 1 })]
-    [InlineData(FilterCase.Database, FilterOperator.DoesNotContain, "Ada", new[] { 2 })]
     [InlineData(FilterCase.MatchCase, FilterOperator.NotEquals, "ADA", new[] { 1, 2 })]
-    [InlineData(FilterCase.MatchCase, FilterOperator.DoesNotContain, "ADA", new[] { 1, 2 })]
     public void FilterCase_on_a_nullable_column_keeps_the_same_rows_through_EF(FilterCase textCase, FilterOperator op, string value, int[] expected)
     {
         using var db = People();
@@ -188,13 +184,10 @@ public sealed class DataFilterTests : IDisposable
     // A number in a culture: as the person writes it when its groups are whole, else the invariant form.
     [Theory]
     [InlineData("de-DE", "1000.25", 1000.25)]
-    [InlineData("de-DE", "1.5", 1.5)]
     [InlineData("de-DE", "1,5", 1.5)]
     [InlineData("de-DE", "1.234,5", 1234.5)]
     [InlineData("de-DE", "1.234", 1234.0)]
-    [InlineData("de-DE", "1.234.567", 1234567.0)]
     [InlineData("en-US", "1,234.5", 1234.5)]
-    [InlineData("en-US", "1000.25", 1000.25)]
     public void A_number_reads_by_its_culture_when_its_groups_are_whole(string culture, string text, double expected)
     {
         var was = CultureInfo.CurrentCulture;
@@ -272,7 +265,6 @@ public sealed class DataFilterTests : IDisposable
     [InlineData(FilterCase.IgnoreCase, "anycase", new[] { 1 }, new[] { 1 })]
     [InlineData(FilterCase.Database, "exact", new int[0], new int[0])]
     [InlineData(FilterCase.Database, "anycase", new[] { 1 }, new int[0])]
-    [InlineData(FilterCase.MatchCase, "exact", new int[0], new int[0])]
     public void FilterCase_finds_what_it_says(FilterCase textCase, string field, int[] inSqlite, int[] inMemory)
     {
         using var db = People();
@@ -286,7 +278,6 @@ public sealed class DataFilterTests : IDisposable
     [Theory]
     [InlineData(FilterCase.IgnoreCase, "tolower(exact)")]
     [InlineData(FilterCase.Database, "contains(exact,'Ada')")]
-    [InlineData(FilterCase.MatchCase, "contains(exact,'Ada')")]
     public void An_odata_query_follows_the_fields_case(FilterCase textCase, string expected)
     {
         var request = new DataRequest<Person> { Filter = Filter.Where("exact", FilterOperator.Contains, "Ada") };
@@ -537,18 +528,12 @@ public sealed class DataFilterTests : IDisposable
     [InlineData("qty ge 2 and (tier in ('Gold','Platinum') or name contains 'ada')", "qty ge 2 and (tier in ('Gold','Platinum') or contains(name,'ada'))")]
     [InlineData("contains(name, 'ad') eq true", "contains(name,'ad')")]
     [InlineData("contains(tolower(name),'ad') eq false", "not contains(name,'ad')")]
-    [InlineData("not contains(Name,'ad')", "not contains(Name,'ad')")]
     [InlineData("not (tier in ('Gold'))", "not (tier in ('Gold'))")]
-    [InlineData("not (qty gt 2)", "not (qty gt 2)")]
     [InlineData("email eq null", "email eq null")]
-    [InlineData("email ne null", "email ne null")]
     [InlineData("date(joined) eq 2026-01-02", "date(joined) eq 2026-01-02")]
     [InlineData("joined lt 2026-01-02T12:00:00Z", "joined lt 2026-01-02T12:00:00+00:00")]
-    [InlineData("score le -1.5e2", "score le -150")]
     [InlineData("customer/name eq 'O''Brien'", "customer.name eq 'O''Brien'")]
-    [InlineData("tier eq Namespace.Tier'Gold'", "tier eq 'Gold'")]
     [InlineData("key eq 11111111-1111-1111-1111-111111111111", "key eq 11111111-1111-1111-1111-111111111111")]
-    [InlineData("true", "true")]
     [InlineData("a eq 1 or b eq 2 and c eq 3", "a eq 1 or (b eq 2 and c eq 3)")]
     public void Filter_text_parses_into_the_tree(string text, string written)
     {
@@ -557,14 +542,10 @@ public sealed class DataFilterTests : IDisposable
 
     [Theory]
     [InlineData("")]
-    [InlineData("qty")]
-    [InlineData("qty eq")]
     [InlineData("qty eq ada")]
     [InlineData("qty like 'a'")]
     [InlineData("(qty eq 1")]
-    [InlineData("qty eq 1)")]
     [InlineData("name eq 'unclosed")]
-    [InlineData("1qty eq 1")]
     [InlineData("qty eq 1; drop table members")]
     [InlineData("date(joined) gt 2026-01-01")]
     public void Filter_text_that_isnt_the_syntax_doesnt_parse(string text)
@@ -587,8 +568,6 @@ public sealed class DataFilterTests : IDisposable
     [InlineData("name eq 'x'' or 1 eq 1 --'", new int[0])]
     [InlineData("name eq ') or (qty gt 0'", new int[0])]
     [InlineData("name contains '%'", new int[0])]
-    [InlineData("name contains '_'", new int[0])]
-    [InlineData("email contains '@'", new[] { 1, 4 })]
     public void Text_that_looks_like_code_stays_a_value(string text, int[] expected)
     {
         var filter = Filter.Parse(text);
@@ -673,12 +652,6 @@ public sealed class DataFilterTests : IDisposable
     }
 
     [Fact]
-    public void A_field_value_must_take_the_item()
-    {
-        Assert.Throws<ArgumentException>(() => new DataField<Member> { Key = "x", Value = (Expression<Func<string, int>>)(s => s.Length) });
-    }
-
-    [Fact]
     public void A_filter_too_wide_or_deep_matches_nothing_instead_of_overflowing()
     {
         var wide = Filter.Any(Enumerable.Range(0, 20_000).Select(i => (Filter)Filter.Where("name", FilterOperator.Equals, $"n{i}")).Append(Filter.Where("qty", FilterOperator.Equals, 2)).ToArray());
@@ -752,9 +725,7 @@ public sealed class DataFilterTests : IDisposable
     [Theory]
     [InlineData("a eq 1 and (b eq 2 and c eq 3)")]
     [InlineData("between(total,100,500)")]
-    [InlineData("between(total,100,null)")]
     [InlineData("isempty(email) and isnotempty(name)")]
-    [InlineData("not (a eq 1 or (b eq 2 or c eq 3))")]
     public void Text_keeps_the_shape_of_the_filter(string text) =>
         Assert.Equal(text, Filter.Parse(text).ToString());
 

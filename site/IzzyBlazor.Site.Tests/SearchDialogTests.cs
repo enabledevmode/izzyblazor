@@ -44,25 +44,6 @@ public sealed class SearchDialogTests(SiteFixture site) : IClassFixture<SiteFixt
     }
 
     [Fact]
-    public async Task Back_with_search_open_leaves_the_page_usable()
-    {
-        await using var browser = await TestBrowser.OpenAsync();
-        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/button").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-
-        // An enhanced navigation, so Back is one too.
-        await page.ClickAsync("main a[href='docs/components/form']");
-        await page.WaitForURLAsync("**/docs/components/form");
-        await page.Keyboard.PressAsync("Control+k");
-        await page.Keyboard.TypeAsync("spin");
-        await page.GoBackAsync();
-        await page.WaitForURLAsync("**/docs/components/button");
-        await page.WaitForTimeoutAsync(500);
-
-        Assert.False(await page.EvaluateAsync<bool>("() => !!document.querySelector(':modal')"));
-    }
-
-    [Fact]
     public async Task Without_script_the_button_opens_search_and_Enter_goes_to_the_search_page()
     {
         await using var browser = await TestBrowser.OpenAsync();

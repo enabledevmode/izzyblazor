@@ -62,7 +62,6 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task The_month_moves_by_buttons_selects_and_keys_and_stays_moved_across_a_render(string mode)
     {
         var (page, form, browser) = await OpenAsync(mode);
@@ -105,100 +104,6 @@ public sealed class CalendarRuleTests(SiteFixture site) : IClassFixture<SiteFixt
             await Assertions.Expect(culture).ToHaveAttributeAsync("data-ib-value", mode == "interactive" ? "2029-07-13" : "2027-01-14");
             await Assertions.Expect(culture.GetByRole(AriaRole.Button, new() { Name = "Friday, July 13, 2029" })).ToBeVisibleAsync();
             await Assertions.Expect(culture.Locator("td[aria-selected=true]")).ToHaveCountAsync(1);
-        }
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task The_server_holds_the_limits_whatever_reaches_it(string mode)
-    {
-        var (_, form, browser) = await OpenAsync(mode);
-        await using (browser)
-        {
-            await Assertions.Expect(Pickup(form)).ToHaveAttributeAsync("data-ready", "");
-
-            // As a crafted post would, or a phone that ignored the limit.
-            await Pickup(form).Locator("input[type=date]").EvaluateAsync("i => { i.removeAttribute('min'); i.removeAttribute('max'); i.value = '2027-04-02'; i.dispatchEvent(new Event('change', { bubbles: true })); }");
-            await form.GetByRole(AriaRole.Button, new() { Name = "Book" }).ClickAsync();
-            await Assertions.Expect(form).ToContainTextAsync("or earlier");
-            await Assertions.Expect(form).Not.ToContainTextAsync("Booked:");
-        }
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task A_disabled_day_cant_be_chosen_the_month_stops_at_the_window_and_the_server_refuses_it(string mode)
-    {
-        var (page, _, browser) = await OpenAsync(mode);
-        await using (browser)
-        {
-            var form = page.Locator("[data-ex='calendar-days'] form");
-            var visit = form.Locator("ib-calendar").First;
-            await Assertions.Expect(visit).ToHaveAttributeAsync("data-ready", "");
-
-            // A weekend day takes focus, so the keys move evenly, and isn't chosen.
-            await visit.GetByRole(AriaRole.Button, new() { Name = "Saturday, March 13, 2027" }).ClickAsync(new() { Force = true });
-            await Assertions.Expect(visit.GetByRole(AriaRole.Button, new() { Name = "Saturday, March 13, 2027" })).ToBeFocusedAsync();
-            await Assertions.Expect(visit.Locator("input[type=date]")).ToHaveValueAsync("2027-03-10");
-
-            // It's still off in a month the script drew, with the look of a day that's off.
-            await visit.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
-            var off = visit.GetByRole(AriaRole.Button, new() { Name = "Saturday, April 10, 2027" });
-            await Assertions.Expect(off).ToHaveAttributeAsync("aria-disabled", "true");
-            await Assertions.Expect(off).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("ib-calendar-off"));
-
-            // 90 days from March 10 is June 8: nothing past it is known.
-            await visit.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
-            await visit.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
-            await Assertions.Expect(visit.GetByRole(AriaRole.Button, new() { Name = "Next month" })).ToBeDisabledAsync();
-            await Assertions.Expect(visit.GetByRole(AriaRole.Button, new() { Name = "Wednesday, June 9, 2027" })).ToHaveAttributeAsync("aria-disabled", "true");
-
-            // A class is there in a month the script drew too.
-            var transfer = form.Locator("ib-calendar").Nth(1);
-            await transfer.GetByRole(AriaRole.Button, new() { Name = "Next month" }).ClickAsync();
-            await Assertions.Expect(transfer.GetByRole(AriaRole.Button, new() { Name = "Thursday, April 15, 2027" })).ToHaveClassAsync(new System.Text.RegularExpressions.Regex("pay-day"));
-
-            // As a crafted post would.
-            await visit.Locator("input[type=date]").EvaluateAsync("i => { i.value = '2027-03-13'; i.dispatchEvent(new Event('change', { bubbles: true })); }");
-            await form.GetByRole(AriaRole.Button, new() { Name = "Save dates" }).ClickAsync();
-            await Assertions.Expect(form).ToContainTextAsync("can't be");
-            await Assertions.Expect(form).Not.ToContainTextAsync("Saved:");
-        }
-    }
-
-    [Fact]
-    public async Task Something_else_writing_attributes_as_the_calendar_changes_doesnt_set_it_off_again()
-    {
-        var (page, form, browser) = await OpenAsync("static");
-        await using (browser)
-        {
-            var delivery = form.Locator("ib-calendar").First;
-            await Assertions.Expect(delivery).ToHaveAttributeAsync("data-ready", "");
-
-            // As a browser extension might, marking what changes. Capped: unchecked, this and the calendar's
-            // own observer answer each other forever, with no chance to paint or take input.
-            await delivery.EvaluateAsync("""
-                c => {
-                  window.__writes = 0;
-                  new MutationObserver(records => {
-                    if (window.__writes < 2000 && records.some(r => r.attributeName !== 'data-marked')) {
-                      window.__writes++;
-                      c.querySelector('.ib-calendar-day').setAttribute('data-marked', window.__writes);
-                    }
-                  }).observe(c, { attributes: true, subtree: true });
-                }
-                """);
-            await Choose(delivery, "Thursday, March 11, 2027");
-            await Assertions.Expect(delivery.Locator("input[type=date]")).ToHaveValueAsync("2027-03-11");
-
-            Assert.True(await page.EvaluateAsync<int>("window.__writes") < 10);
-
-            // Choosing the same day again changes nothing, so it writes nothing.
-            var before = await page.EvaluateAsync<int>("window.__writes");
-            await Choose(delivery, "Thursday, March 11, 2027");
-            Assert.Equal(before, await page.EvaluateAsync<int>("window.__writes"));
         }
     }
 

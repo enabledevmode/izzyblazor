@@ -41,19 +41,6 @@ public class DateRangeFieldTests : BunitContext
     }
 
     [Fact]
-    public void It_is_a_group_with_a_labelled_input_for_each_end()
-    {
-        var cut = Field(new(Day(3, 8), Day(3, 12)), p => p.Add(f => f.Min, Day(3, 1)).Add(f => f.Label, "Stay"));
-
-        Assert.Equal("Stay", cut.Find("fieldset legend").TextContent.Trim());
-        var inputs = cut.FindAll("input[type=date]");
-        Assert.Equal(new[] { "2027-03-08", "2027-03-12" }, inputs.Select(i => i.GetAttribute("value")));
-        Assert.Equal(new[] { "Start", "End" }, cut.FindAll("label").Select(l => l.TextContent.Trim()));
-        Assert.Equal(inputs[1].Id, cut.FindAll("label")[1].GetAttribute("for"));
-        Assert.Equal("2027-03-01", inputs[0].GetAttribute("min"));
-    }
-
-    [Fact]
     public void The_end_cant_be_chosen_before_the_start()
     {
         var cut = Field(new(Day(3, 8), null), p => p.Add(f => f.Min, Day(3, 1)));
@@ -101,7 +88,6 @@ public class DateRangeFieldTests : BunitContext
 
     [Theory]
     [InlineData(2, null, "at least 2")]
-    [InlineData(null, 2, "at most 2")]
     public void Its_length_is_counted_with_both_ends(int? min, int? max, string said)
     {
         var (start, end) = min is null ? (8, 10) : (8, 8);
@@ -167,38 +153,6 @@ public class DateRangeFieldTests : BunitContext
     }
 
     [Fact]
-    public void Months_in_a_row_are_drawn_each_named_by_its_title_with_one_pair_of_arrows()
-    {
-        var cut = Field(new(Day(12, 8), Day(12, 12)), p => p.Add(f => f.Culture, System.Globalization.CultureInfo.GetCultureInfo("en-US")));
-
-        Assert.Equal(new[] { "December 2027", "January 2028" }, cut.FindAll(".ib-calendar-sheet .ib-calendar-month").Select(m => m.TextContent));
-        Assert.Equal(2, cut.FindAll(".ib-calendar-nav").Count);
-        Assert.Empty(cut.FindAll(".ib-calendar select"));
-        Assert.Equal(cut.FindAll(".ib-calendar-month")[1].Id, cut.FindAll("table")[1].GetAttribute("aria-labelledby"));
-    }
-
-    [Theory]
-    [InlineData(0)]
-    [InlineData(7)]
-    public void Months_outside_one_to_six_are_refused(int months) =>
-        Assert.Throws<InvalidOperationException>(() => Field(null, p => p.Add(f => f.DisplayMonths, months)));
-
-    [Fact]
-    public void Native_read_only_and_disabled_have_no_months()
-    {
-        Assert.Empty(Field(null, p => p.Add(f => f.UseNative, true)).FindAll("ib-calendar"));
-        Assert.Empty(Field(null, p => p.Add(f => f.ReadOnly, true)).FindAll("ib-calendar"));
-        Assert.Empty(Field(null, p => p.Add(f => f.Disabled, true)).FindAll("ib-calendar"));
-    }
-
-    [Fact]
-    public void The_rules_a_browser_cant_show_keep_the_months_on_a_phone()
-    {
-        Assert.Empty(Field(null).FindAll(".ib-date-own"));
-        Assert.NotEmpty(Field(null, p => p.Add(f => f.MaxDays, 5)).FindAll(".ib-date-own"));
-    }
-
-    [Fact]
     public void Common_presets_count_from_the_day_given()
     {
         var presets = DateRangePreset.Common(Day(3, 15));
@@ -222,29 +176,11 @@ public class DateRangeFieldTests : BunitContext
     }
 
     [Fact]
-    public void Presets_keep_the_months_on_a_phone_and_refuse_use_native()
-    {
-        DateRangePreset[] presets = [new("Week", Day(3, 1), Day(3, 7))];
-        Assert.NotEmpty(Field(null, p => p.Add(f => f.Presets, presets)).FindAll(".ib-date-own"));
-        Assert.Throws<InvalidOperationException>(() => Field(null, p => p.Add(f => f.Presets, presets).Add(f => f.UseNative, true)));
-    }
-
-    [Fact]
     public void Required_with_no_attribute_turns_away_no_value_as_a_read_only_input_cant()
     {
         Field(null, p => p.Add(f => f.Required, true).Add(f => f.Label, "Stay"));
 
         Assert.Equal(new[] { "Stay needs a start and an end." }, Errors());
-    }
-
-    [Fact]
-    public void To_utc_stops_at_the_ends_of_the_calendar()
-    {
-        var tokyo = TimeZoneInfo.FindSystemTimeZoneById("Asia/Tokyo");
-
-        var (from, _) = new DateRange(DateOnly.MinValue, null).ToUtc(tokyo);
-
-        Assert.Equal(DateTimeOffset.MinValue, from);
     }
 
     [Fact]

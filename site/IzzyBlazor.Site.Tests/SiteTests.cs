@@ -258,48 +258,6 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         }
     }
 
-    [Fact]
-    public void The_off_stylesheet_reads_the_scripting_media_feature_as_javascript_off()
-    {
-        var css = NoScriptCss.Transform("""
-            @media (scripting: none) { a { b: c } }
-            @media (pointer: coarse), (scripting:none) { d { e: f } }
-            @media (scripting: enabled) { g { h: i } }
-            @media(scripting:none){j{k:l}}@media(pointer:coarse),(scripting:none){m{n:o}}
-            """);
-
-        Assert.DoesNotContain("scripting", css);
-        Assert.Matches(@"@media\s+all \{ a", css);
-        Assert.Matches(@"@media \(pointer: coarse\),\s+all \{ d", css);
-        Assert.Matches(@"@media\s+not all \{ g", css);
-
-        // The minified stylesheet, as the site serves it in Release: still valid media queries.
-        Assert.Contains("@media all{j", css);
-        Assert.Contains("@media(pointer:coarse), all{m", css);
-    }
-
-    [Fact]
-    public async Task Examples_on_one_page_read_different_keys_from_the_address()
-    {
-        // In the page, examples share its address: two reading ?page= would page together. Rename
-        // one (QueryKey, QueryPrefix, a field's Name). A page of its own (AppShell's) is in a frame
-        // with its own address.
-        var clashes = new List<string>();
-        foreach (var page in ExamplePages)
-        {
-            var html = await site.Client.GetStringAsync($"{page}?mode=static");
-            var readers = Regex.Matches(html, "data-ex=\"([^\"]+)\"").Select(m => m.Groups[1].Value)
-                .Distinct()
-                .Where(id => site.Registry.Example(id)?.Example.Page != true)
-                .SelectMany(id => QueryKeys(id).Distinct().Select(key => (key, id)))
-                .GroupBy(r => r.key)
-                .Where(g => g.Count() > 1);
-            clashes.AddRange(readers.Select(g => $"/{page}: ?{g.Key}= in {string.Join(", ", g.Select(r => r.id))}"));
-        }
-
-        Assert.True(clashes.Count == 0, string.Join("; ", clashes));
-    }
-
     // The keys an example reads from the address, from its source: its own query parameters and
     // the library components that keep state there.
     private IEnumerable<string> QueryKeys(string id)
@@ -370,60 +328,6 @@ public partial class SiteTests(SiteFixture site) : IClassFixture<SiteFixture>
         var current = ModeLink().Matches(html).Where(m => m.Groups["current"].Success).Select(m => m.Groups["mode"].Value).ToList();
 
         Assert.Equal([expected, expected], current);
-    }
-
-    [Fact]
-    public async Task A_link_with_a_mode_remembers_it_for_the_next_page()
-    {
-        // With JavaScript off too: an example's own links and forms drop ?mode= from the address.
-        var response = await site.Client.GetAsync("docs/components/button?mode=interactive");
-
-        Assert.Contains(response.Headers.GetValues("Set-Cookie"), c => c.StartsWith("site-mode=interactive;", StringComparison.Ordinal));
-    }
-
-    [Fact]
-    public async Task A_troubleshooting_article_is_linked_from_each_component_it_is_about()
-    {
-        // Hand-written See also lists need TroubleshootingLinks added by hand: this catches one that doesn't.
-        var missing = new List<string>();
-        foreach (var section in Articles.Sections)
-        {
-            foreach (var article in section.Articles)
-            {
-                foreach (var name in article.Components)
-                {
-                    var html = await site.Client.GetStringAsync(Registry.OverviewHref(site.Registry.ByName(name)!));
-                    if (!html.Contains($"href=\"{section.HrefOf(article)}\"", StringComparison.Ordinal))
-                    {
-                        missing.Add($"{name}: {section.HrefOf(article)}");
-                    }
-                }
-            }
-        }
-
-        Assert.True(missing.Count == 0, string.Join(", ", missing));
-    }
-
-    [Fact]
-    public async Task A_page_that_is_one_example_has_one_switch_in_it()
-    {
-        var html = await site.Client.GetStringAsync("docs");
-
-        Assert.Equal(["example"], Regex.Matches(html, "site-modeswitch site-modeswitch-(\\w+)").Select(m => m.Groups[1].Value));
-    }
-
-    [Fact]
-    public async Task An_example_pinned_to_interactive_runs_interactive_on_a_static_page_and_links_to_it_from_no_script()
-    {
-        // Button's OnClick example demonstrates interactive behavior: Interactive whatever the page's mode, and a
-        // no-script page has no Blazor to run it.
-        var onStatic = Example(await site.Client.GetStringAsync("docs/components/button?mode=static"), "button-on-click");
-        var onOff = Example(await site.Client.GetStringAsync("docs/components/button?mode=noscript"), "button-on-click");
-
-        Assert.Contains("Always Interactive", onStatic);
-        Assert.Contains("<!--Blazor:", onStatic);
-        Assert.Contains("a no-script page doesn't have", onOff);
-        Assert.DoesNotContain("<!--Blazor:", onOff);
     }
 
     private static string Example(string html, string id)

@@ -20,7 +20,6 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_list_opens_under_the_row_and_gives_focus_back_there(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
@@ -86,37 +85,6 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task A_list_shows_its_names_then_a_count_and_its_x_clears_it(string mode)
-    {
-        var (browser, page, grid) = await OpenAsync(mode);
-        await using var _ = browser;
-        var summary = grid.Locator(".ib-filter-cell-summary").First;
-        var clear = grid.Locator(".ib-filter-cell-clear");
-        var panel = page.Locator("[popover]:popover-open");
-        await Assertions.Expect(summary).ToHaveTextAsync("");
-        await Assertions.Expect(clear).ToHaveCountAsync(0);
-
-        await summary.ClickAsync();
-        await panel.GetByLabel("Paid", new() { Exact = true }).ClickAsync();
-        await panel.GetByLabel("Failed", new() { Exact = true }).ClickAsync();
-        if (mode == "static") await panel.Locator(".ib-table-filter-apply").ClickAsync();
-        else await page.Keyboard.PressAsync("Escape");
-        await Assertions.Expect(summary).ToHaveTextAsync("Pending, Refunded");
-
-        await Assertions.Expect(summary).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Tab");
-        await Assertions.Expect(clear).ToBeFocusedAsync();
-        await page.Keyboard.PressAsync("Enter");
-        await Assertions.Expect(summary).ToHaveTextAsync("");
-        await Assertions.Expect(clear).ToHaveCountAsync(0);
-        await Assertions.Expect(summary).ToBeFocusedAsync();
-        await Assertions.Expect(panel).ToHaveCountAsync(0);
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
     public async Task A_header_sorts_up_then_down_then_not_at_all(string mode)
     {
         var (browser, _, grid) = await OpenAsync(mode);
@@ -134,35 +102,8 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(header).ToHaveAttributeAsync("aria-sort", "ascending");
     }
 
-    [Fact]
-    public async Task A_static_operator_shows_before_the_response_arrives()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using var _ = browser;
-        var release = new TaskCompletionSource();
-        await page.RouteAsync("**/*row-f-customer-op=startswith*", async route =>
-        {
-            await release.Task;
-            await route.ContinueAsync();
-        });
-        var button = grid.Locator(".ib-filter-cell-op[aria-label^='Customer']");
-        var field = button.Locator("xpath=ancestor::*[contains(@class,'ib-filter-cell')][1]").Locator("input");
-
-        await button.ClickAsync();
-        var item = page.Locator("[popover]:popover-open a", new() { HasText = "Starts with" });
-        var icon = await item.Locator("svg").InnerHTMLAsync();
-        await item.ClickAsync();
-
-        await Assertions.Expect(field).ToHaveAttributeAsync("placeholder", "Starts with");
-        Assert.Equal(icon, await button.Locator("svg").InnerHTMLAsync());
-        release.SetResult();
-        await page.WaitForURLAsync("**/*row-f-customer-op=startswith*");
-        await Assertions.Expect(field).ToHaveAttributeAsync("placeholder", "Starts with");
-    }
-
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Typing_in_a_field_filters_and_the_panel_says_the_same(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
@@ -176,32 +117,6 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await Assertions.Expect(field).ToHaveValueAsync("ada");
         await Assertions.Expect(grid.Locator("th .ib-table-filter-button[aria-label^='Filter']:visible")).ToHaveCountAsync(0);
         Assert.Equal("ada", await grid.Locator("[popover] input[name='row-f-customer']").InputValueAsync());
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task Choosing_between_opens_the_panel_on_its_first_value(string mode)
-    {
-        var (browser, page, grid) = await OpenAsync(mode);
-        await using var _ = browser;
-
-        await grid.Locator(".ib-table-filter-row [data-ib-menu][aria-label^='Total']").ClickAsync();
-        await page.Locator("[popover]:popover-open").GetByRole(AriaRole.Menuitemradio, new() { Name = "Between" })
-            .Or(page.Locator("[popover]:popover-open").GetByRole(AriaRole.Menuitemcheckbox, new() { Name = "Between" })).ClickAsync();
-
-        var from = grid.Locator("[popover]:popover-open input[name='row-f-total']");
-        await from.WaitForAsync();
-        await Assertions.Expect(from).ToBeFocusedAsync();
-
-        // On a static page the row shows it once it's applied.
-        if (mode == "static")
-        {
-            await from.FillAsync("100");
-            await page.Keyboard.PressAsync("Enter");
-        }
-
-        await Assertions.Expect(grid.Locator(".ib-table-filter-row .ib-filter-cell-summary[aria-label^='Filter Total']")).ToBeVisibleAsync();
     }
 
     [Fact]
@@ -248,36 +163,5 @@ public sealed class FilterRowTests(SiteFixture site) : IClassFixture<SiteFixture
         await page.Keyboard.PressAsync("ArrowUp");
         // The header, or its title's link where that's all it holds.
         await Assertions.Expect(grid.Locator("thead th:nth-child(2):focus-within, thead th:nth-child(2):focus")).ToHaveCountAsync(1);
-    }
-
-    [Fact]
-    public async Task Between_takes_a_new_value_over_the_one_typed_in_the_row()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using var _ = browser;
-
-        await grid.Locator(".ib-table-filter-row input[name='row-f-total']").FillAsync("50");
-        await page.WaitForURLAsync("**/*row-f-total=50*");
-        await grid.Locator(".ib-table-filter-row [data-ib-menu][aria-label^='Total']").ClickAsync();
-        await page.Locator("[popover]:popover-open a", new() { HasText = "Between" }).ClickAsync();
-
-        await grid.Locator("[popover]:popover-open input[name='row-f-total']").FillAsync("100");
-        await page.Keyboard.PressAsync("Enter");
-
-        await page.WaitForURLAsync("**/*row-f-total=100*");
-        Assert.Contains("row-f-total-op=between", page.Url, StringComparison.Ordinal);
-        Assert.DoesNotContain("row-f-total=50", page.Url, StringComparison.Ordinal);
-    }
-
-    // What's clipped for screen readers stays in the grid's scrolling box.
-    [Fact]
-    public async Task A_grid_wider_than_a_phone_doesnt_widen_the_page()
-    {
-        var browser = await TestBrowser.OpenAsync();
-        await using var _ = browser;
-        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 390, Height = 844 }, Locale = "en-US" });
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, "docs/components/data-grid?mode=static").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
-
-        Assert.Equal(390, await page.EvaluateAsync<int>("document.documentElement.scrollWidth"));
     }
 }

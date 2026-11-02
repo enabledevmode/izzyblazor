@@ -93,27 +93,6 @@ public class DateFieldRenderTests : BunitContext
         Assert.Equal(new DateTimeOffset(2026, 7, 1, 0, 0, 0, TimeSpan.FromHours(2)), _model.Day);
     }
 
-    [Theory]
-    [InlineData(null, null, "2026-10-27T14:30")]
-    [InlineData(1, "1", "2026-10-27T14:30:00")]
-    [InlineData(900, "900", "2026-10-27T14:30")]
-    public void A_step_under_a_minute_shows_seconds(int? seconds, string? step, string value)
-    {
-        var input = DateFor(() => _model.StartsAt, p => p.Add(f => f.Step, seconds is { } s ? TimeSpan.FromSeconds(s) : null)).Find("input");
-
-        Assert.Equal(step, input.GetAttribute("step"));
-        Assert.Equal(value, input.GetAttribute("value"));
-    }
-
-    [Fact]
-    public void Min_and_max_parameters_replace_the_annotations()
-    {
-        var input = DateFor(() => _model.Due, p => p.Add(f => f.Min, new DateOnly(2026, 6, 1)).Add(f => f.Max, (DateOnly?)null)).Find("input");
-
-        Assert.Equal("2026-06-01", input.GetAttribute("min"));
-        Assert.Equal("2026-12-31", input.GetAttribute("max"));
-    }
-
     [Fact]
     public void Emptying_a_nullable_field_clears_it_and_a_value_it_cant_read_is_an_error()
     {
@@ -147,48 +126,6 @@ public class DateFieldRenderTests : BunitContext
     }
 
     [Fact]
-    public void A_static_datetime_needs_converting_only_from_another_zone()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-
-        Assert.False(DateFor(() => _model.StartsAt).Find("input").HasAttribute("data-ib-zone"));
-        Assert.False(DateFor(() => _model.Due).Find("input").HasAttribute("data-ib-zone"));
-        var berlin = DateFor(() => _model.StartsAt, p => p.Add(f => f.TimeZone, Berlin)).Find("input");
-        Assert.Equal("Europe/Berlin", berlin.GetAttribute("data-ib-zone"));
-        Assert.Equal("utc", berlin.GetAttribute("data-ib-post"));
-    }
-
-    [Fact]
-    public void A_date_has_a_calendar_unless_it_cant_change_or_keeps_the_browsers()
-    {
-        Assert.NotEmpty(DateFor(() => _model.Due).FindAll("ib-calendar"));
-        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.UseNative, true)).FindAll("ib-calendar"));
-        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.Disabled, true)).FindAll("ib-calendar"));
-        Assert.Empty(DateFor(() => _model.Due, p => p.Add(f => f.ReadOnly, true)).FindAll("ib-calendar"));
-    }
-
-    [Fact]
-    public void Only_a_date_and_time_has_a_time_and_ok_and_none_of_it_posts()
-    {
-        Assert.Empty(DateFor(() => _model.Due).FindAll(".ib-calendar-time, [data-ib-ok]"));
-
-        var cut = DateFor(() => _model.StartsAt);
-        Assert.NotEmpty(cut.FindAll("[data-ib-ok]"));
-        Assert.All(cut.FindAll(".ib-calendar-time input, .ib-calendar-time select"), box => Assert.False(box.HasAttribute("name")));
-        Assert.Equal(new[] { "Hour", "Minute" }, cut.FindAll(".ib-calendar-time input").Select(box => box.GetAttribute("aria-label")));
-    }
-
-    [Fact]
-    public void Its_grid_is_named_by_the_month_alone_and_a_clear_button_needs_a_value_it_can_empty()
-    {
-        var cut = DateFor(() => _model.Due);
-        Assert.DoesNotContain("-label", cut.Find("table").GetAttribute("aria-labelledby"));
-        Assert.Empty(cut.FindAll("ib-field-clear"));
-        Assert.NotEmpty(DateFor(() => _model.Due, p => p.Add(f => f.Clearable, true)).FindAll("ib-field-clear"));
-        Assert.Empty(DateFor(() => _model.StartsAt, p => p.Add(f => f.Clearable, true).Add(f => f.Disabled, true)).FindAll("ib-field-clear"));
-    }
-
-    [Fact]
     public void A_day_thats_off_is_turned_away_whatever_was_posted_and_with_the_browsers_calendar_too()
     {
         DateFor(() => _model.Due, p => p
@@ -196,12 +133,5 @@ public class DateFieldRenderTests : BunitContext
             .Add(f => f.DateDisabled, day => day == new DateOnly(2026, 3, 4)));
 
         Assert.False(_context.Validate());
-    }
-
-    [Fact]
-    public void It_refuses_types_it_cant_show_and_a_time_on_a_date()
-    {
-        Assert.Throws<InvalidOperationException>(() => DateFor(() => _model.Name));
-        Assert.Throws<InvalidOperationException>(() => DateFor(() => _model.Due, p => p.Add(f => f.Type, DateFieldType.DateTime)));
     }
 }

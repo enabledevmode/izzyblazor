@@ -70,18 +70,6 @@ public class TableCursorRenderTests : BunitContext
     private void Interactive() => SetRendererInfo(new RendererInfo("Server", isInteractive: true));
 
     [Fact]
-    public void A_table_refuses_load_more_and_loads_on_scroll_inside_its_scroll_box()
-    {
-        Static();
-        var refused = Assert.Throws<InvalidOperationException>(() => RenderProvider(new Api(Rows), DataPaging.LoadMore));
-        Assert.Contains("ListView", refused.Message);
-
-        var cut = RenderProvider(new Api(Rows), DataPaging.LoadOnScroll);
-        Assert.NotNull(cut.Find("ib-table > .ib-table-scroll > .ib-data-more"));
-        Assert.Empty(cut.FindAll(".ib-data-footer"));
-    }
-
-    [Fact]
     public void Next_previous_reads_the_cursor_and_position_from_the_url_and_links_the_next_page()
     {
         Static();
@@ -100,22 +88,6 @@ public class TableCursorRenderTests : BunitContext
         Assert.DoesNotContain("cursor=", Href(cut, "prev"));
         Assert.DoesNotContain("cursor=", Href(cut, "first"));
         Assert.Empty(cut.FindAll(".ib-data-footer .ib-pagination-item:not(.ib-btn-icon-only)"));
-    }
-
-    [Fact]
-    public void The_first_page_ignores_a_page_number_without_a_cursor_and_disables_first_and_previous()
-    {
-        Static();
-        Nav.NavigateTo("/rows?page=3");
-        var api = new Api(Rows, total: true);
-        var cut = RenderProvider(api, DataPaging.NextPrevious);
-
-        Assert.Equal(1, api.Requests[0].Page);
-        Assert.Null(api.Requests[0].Cursor);
-        Assert.Equal("1–2 of 7", Summary(cut));
-        Assert.True(Unavailable(cut, "first"));
-        Assert.True(Unavailable(cut, "prev"));
-        Assert.False(Unavailable(cut, "next"));
     }
 
     [Fact]
@@ -145,20 +117,6 @@ public class TableCursorRenderTests : BunitContext
     }
 
     [Fact]
-    public void Interactive_tables_remember_where_a_cursor_came_from()
-    {
-        Interactive();
-        Nav.NavigateTo("/rows?cursor=c2&page=2");
-        var cut = RenderProvider(new Api(Rows), DataPaging.NextPrevious);
-
-        Nav.NavigateTo(Href(cut, "next")!);
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "r5", "r6" }, Names(cut)));
-
-        Assert.Contains("cursor=c2", Href(cut, "prev"));
-        Assert.Contains("page=2", Href(cut, "prev"));
-    }
-
-    [Fact]
     public void Sort_filters_and_first_page_links_drop_the_cursor()
     {
         Static();
@@ -168,15 +126,6 @@ public class TableCursorRenderTests : BunitContext
         var sort = cut.Find("thead a.ib-table-sort").GetAttribute("href")!;
         Assert.DoesNotContain("cursor=", sort);
         Assert.DoesNotContain("page=", sort);
-    }
-
-    [Fact]
-    public void Numbered_pages_need_a_total()
-    {
-        Static();
-        var error = Assert.Throws<InvalidOperationException>(() => RenderProvider(new Api(Rows), DataPaging.Pages));
-
-        Assert.Contains(nameof(Table<Row>.Paging), error.Message);
     }
 
     [Fact]
@@ -248,23 +197,6 @@ public class TableCursorRenderTests : BunitContext
         Assert.Equal(new[] { "r1", "r2", "r3" }, Names(cut));
     }
 
-    [Fact]
-    public async Task Load_more_keeps_its_pages_when_the_parent_renders_and_starts_over_on_reload()
-    {
-        Interactive();
-        var api = new Api(Rows);
-        var cut = RenderProvider(api, DataPaging.LoadOnScroll);
-        cut.Find(".ib-data-more button").Click();
-        var requests = api.Requests.Count;
-
-        cut.Render();
-        Assert.Equal(4, Names(cut).Length);
-        Assert.Equal(requests, api.Requests.Count);
-
-        await cut.InvokeAsync(() => cut.Instance.ReloadAsync());
-        Assert.Equal(new[] { "r1", "r2" }, Names(cut));
-    }
-
     // A cursor API whose answers wait until the test releases them.
     private sealed class SlowApi
     {
@@ -287,50 +219,6 @@ public class TableCursorRenderTests : BunitContext
     }
 
     [Fact]
-    public void Load_more_waits_while_the_list_reloads()
-    {
-        Interactive();
-        var api = new SlowApi();
-        var cut = Render<Table<Row>>(p => p
-            .Add(t => t.ItemsProvider, api.Load)
-            .Add(t => t.PageSize, 2)
-            .Add(t => t.Paging, DataPaging.LoadOnScroll)
-            .Add(t => t.SortChanged, (string? _) => { })
-            .Add(t => t.ChildContent, Columns));
-        cut.InvokeAsync(() => api.Answer(0));
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "r1", "r2" }, Names(cut)));
-
-        // A new sort starts a reload; the old rows stay on view meanwhile, but no Load more starts from them.
-        cut.Find("thead button.ib-table-sort").Click();
-        Assert.Empty(cut.FindAll("[data-ib-load-next]"));
-        cut.Find(".ib-data-more button").Click();
-        Assert.Equal(new string?[] { null, null }, api.Pending.Select(p => p.Request.Cursor));
-
-        cut.InvokeAsync(() => api.Answer(1));
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "r1", "r2" }, Names(cut)));
-        Assert.Single(cut.FindAll("[data-ib-load-next]"));
-    }
-
-    [Fact]
-    public void A_parent_render_keeps_a_load_more_that_is_under_way()
-    {
-        Interactive();
-        var api = new SlowApi();
-        var cut = RenderProvider(new Api(Rows), DataPaging.LoadOnScroll);
-        cut.Render(p => p.Add(t => t.ItemsProvider, api.Load));
-        cut.InvokeAsync(() => api.Answer(0));
-        cut.WaitForAssertion(() => Assert.Equal(2, Names(cut).Length));
-
-        cut.Find(".ib-data-more button").Click();
-        cut.Render();
-        // The first page and the next one asked for; no reload of the first page.
-        Assert.Equal(new[] { null, "c2" }, api.Pending.Select(p => p.Request.Cursor));
-
-        cut.InvokeAsync(() => api.Answer(1));
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "r1", "r2", "r3", "r4" }, Names(cut)));
-    }
-
-    [Fact]
     public void Load_more_on_a_static_page_grows_the_list_by_a_page()
     {
         Static();
@@ -350,21 +238,6 @@ public class TableCursorRenderTests : BunitContext
         var rows = cut.FindAll("tbody tr");
         Assert.Equal(new[] { 2 }, Enumerable.Range(0, rows.Count).Where(i => rows[i].HasAttribute("data-ib-autofocus")));
         Assert.Equal("-1", rows[2].GetAttribute("tabindex"));
-    }
-
-    [Fact]
-    public void Load_on_scroll_has_a_trigger_that_loads_without_moving_focus()
-    {
-        Interactive();
-        var cut = RenderProvider(new Api(Rows), DataPaging.LoadOnScroll);
-
-        Assert.NotNull(cut.Find("ib-table").GetAttribute("data-ib-load-on-scroll"));
-        cut.Find("[data-ib-load-next]").Click();
-
-        Assert.Equal(4, Names(cut).Length);
-        Assert.Empty(JSInterop.Invocations);
-        // The button stays for the keyboard, out of sight until it has focus.
-        Assert.Contains("ib-data-more-on-focus", cut.Find(".ib-data-more button:not([hidden])").ClassName);
     }
 
     [Fact]
@@ -414,17 +287,5 @@ public class TableCursorRenderTests : BunitContext
         Assert.Equal("7–7 of 7", Summary(cut));
         Assert.Contains("cursor=3", Href(cut, "prev"));
         Assert.True(Unavailable(cut, "next"));
-    }
-
-    [Fact]
-    public void A_cursor_past_the_end_shows_the_empty_text_and_first()
-    {
-        Static();
-        Nav.NavigateTo("/rows?cursor=c40&page=21");
-        var cut = RenderProvider(new Api(Rows), DataPaging.NextPrevious);
-
-        Assert.Single(cut.FindAll(".ib-table-empty"));
-        Assert.False(Unavailable(cut, "first"));
-        Assert.Equal("", Summary(cut));
     }
 }

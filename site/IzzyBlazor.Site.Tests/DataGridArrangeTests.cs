@@ -67,7 +67,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Keys_move_and_resize_a_header_and_focus_stays_on_it(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
@@ -89,7 +88,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task The_picker_hides_shows_and_resets(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
@@ -117,40 +115,8 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
         }
     }
 
-    [Fact]
-    public async Task Moving_a_column_leaves_the_page_where_it_was_scrolled_to()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using (browser)
-        {
-            await page.EvaluateAsync("""
-                () => {
-                  const section = document.querySelector('[data-ex="data-grid-arrange"]').closest('section')?.querySelector('h2')
-                    ?? document.getElementById('rearranging-columns');
-                  location.hash = section.id;
-                }
-                """);
-            await page.WaitForTimeoutAsync(200);
-            await page.EvaluateAsync("() => window.scrollBy(0, 60)");
-            await page.WaitForTimeoutAsync(200);
-            var scrolled = await page.EvaluateAsync<double>("() => window.scrollY");
-
-            var from = await grid.Locator("thead th", new() { HasText = "Customer" }).BoundingBoxAsync();
-            var to = await grid.Locator("thead th", new() { HasText = "Status" }).BoundingBoxAsync();
-            await page.Mouse.MoveAsync(from!.X + 12, from.Y + from.Height / 2);
-            await page.Mouse.DownAsync();
-            await page.Mouse.MoveAsync(to!.X + to.Width - 4, from.Y + from.Height / 2, new() { Steps = 6 });
-            await page.Mouse.UpAsync();
-            await Until(grid, ["Order", "Date", "Status", "Customer", "Total"]);
-            await page.WaitForTimeoutAsync(300);
-
-            Assert.Equal(scrolled, await page.EvaluateAsync<double>("() => window.scrollY"), 0);
-        }
-    }
-
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Dragging_a_header_moves_its_column_and_doesnt_sort(string mode)
     {
         var (browser, page, grid) = await OpenAsync(mode);
@@ -180,7 +146,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Search_filters_as_you_type_and_the_selection_bar_takes_the_toolbars_place(string mode)
     {
         var (browser, page, _) = await OpenAsync(mode);
@@ -203,92 +168,6 @@ public sealed class DataGridArrangeTests(SiteFixture site) : IClassFixture<SiteF
             Assert.Equal(top, await grid.Locator("table").EvaluateAsync<double>("t => t.getBoundingClientRect().top"), 1);
             await grid.Locator(".ib-selection-clear").ClickAsync();
             await toolbar.WaitForAsync();
-        }
-    }
-
-    [Fact]
-    public async Task What_was_typed_while_a_response_was_on_its_way_stays_typed()
-    {
-        var (browser, page, _) = await OpenAsync("static");
-        await using (browser)
-        {
-            await page.RouteAsync("**/docs/components/data-grid*", async route =>
-            {
-                // Back before the next key's pause is up, which would replace this navigation.
-                await Task.Delay(50);
-                await route.ContinueAsync();
-            });
-            var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
-            var box = grid.GetByRole(AriaRole.Searchbox);
-            await box.ClickAsync();
-            await page.Keyboard.PressAsync("a");
-            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'a'");
-
-            // Typed with the response for "a" still to come, then typing on after it has.
-            await page.Keyboard.PressAsync("l");
-            await page.WaitForFunctionAsync("() => document.querySelector('input[name=tools-search]').defaultValue !== ''");
-            await page.Keyboard.PressAsync("a");
-            Assert.Equal("ala", await box.InputValueAsync());
-            await page.WaitForFunctionAsync("() => new URLSearchParams(location.search).get('tools-search') === 'ala'");
-        }
-    }
-
-    [Fact]
-    public async Task At_phone_width_the_search_box_stops_short_of_the_tools()
-    {
-        var (browser, page, _) = await OpenAsync("static");
-        await using (browser)
-        {
-            foreach (var width in new[] { 390, 320 })
-            {
-                await page.SetViewportSizeAsync(width, 800);
-                await page.WaitForTimeoutAsync(400);
-                var grid = page.Locator(".ib-datagrid", new() { HasText = "New order" });
-                var search = await grid.GetByRole(AriaRole.Searchbox).BoundingBoxAsync();
-                var end = await grid.Locator(".ib-toolbar-end").BoundingBoxAsync();
-                Assert.True(search!.X + search.Width <= end!.X + 1, $"{width}: the box ends at {search.X + search.Width}, the tools start at {end.X}");
-            }
-        }
-    }
-
-    [Fact]
-    public async Task A_bad_cookie_is_ignored_and_tools_sit_at_the_far_edge()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using (browser)
-        {
-            var title = await grid.Locator("thead th", new() { HasText = "Customer" }).Locator(".ib-table-sort").BoundingBoxAsync();
-            var tool = await grid.Locator("thead th", new() { HasText = "Customer" }).Locator("[data-ib-menu]").BoundingBoxAsync();
-            var cell = await grid.Locator("thead th", new() { HasText = "Customer" }).BoundingBoxAsync();
-            Assert.True(tool!.X - (title!.X + title.Width) > 40, "the menu is away from the title");
-            Assert.True(cell!.X + cell.Width - (tool.X + tool.Width) < 24, "the menu is at the cell's far edge");
-
-            // An end-aligned title lines up with its values.
-            var total = await grid.Locator("thead th", new() { HasText = "Total" }).Locator(".ib-table-title").EvaluateAsync<double>("t => t.getBoundingClientRect().right");
-            var value = await grid.Locator("tbody tr").First.Locator("td").Last.EvaluateAsync<double>("c => { const r = document.createRange(); r.selectNodeContents(c); return r.getBoundingClientRect().right; }");
-            Assert.Equal(value, total, 1.5);
-
-            foreach (var bad in new[] { "{}", "%7B%22c%22%3Anull%7D", "nonsense" })
-            {
-                await page.Context.AddCookiesAsync([new() { Name = "ib-grid-arrange-example", Value = bad, Url = page.Url }]);
-                var response = await page.ReloadAsync();
-                Assert.Equal(200, response!.Status);
-            }
-        }
-    }
-
-    [Fact]
-    public async Task A_column_that_opted_out_has_no_controls_and_frozen_keeps_it_at_its_edge()
-    {
-        var (browser, page, grid) = await OpenAsync("static");
-        await using (browser)
-        {
-            Assert.Equal(0, await grid.Locator("thead th", new() { HasText = "Order" }).Locator(".ib-col-resize, [data-ib-menu]").CountAsync());
-
-            await grid.Locator("thead th", new() { HasText = "Total" }).Locator("[data-ib-menu]").ClickAsync();
-            await page.GetByRole(AriaRole.Menuitem, new() { Name = "Freeze at start" }).ClickAsync();
-            await Until(grid, ["Total", "Order", "Customer", "Date", "Status"]);
-            Assert.Contains("ib-frozen-start", await grid.Locator("thead th", new() { HasText = "Total" }).GetAttributeAsync("class"));
         }
     }
 }

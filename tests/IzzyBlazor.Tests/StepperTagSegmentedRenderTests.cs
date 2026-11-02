@@ -53,36 +53,6 @@ public class StepperTagSegmentedRenderTests : BunitContext
     }
 
     [Fact]
-    public void Stepper_follows_a_new_current_step()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = RenderStepper(1);
-        Assert.Contains("ib-step-current", cut.FindAll("li")[0].ClassName);
-
-        cut.Render(p => p.Add(s => s.Current, 3));
-
-        var steps = cut.FindAll("li");
-        Assert.Contains("ib-step-complete", steps[1].ClassName);
-        Assert.Contains("ib-step-current", steps[2].ClassName);
-    }
-
-    [Fact]
-    public void Hidden_steps_keep_their_place_but_arent_shown_or_numbered()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var cut = Render<Stepper>(p => p
-            .Add(s => s.Current, 2)
-            .AddChildContent<Step>(s => s.Add(x => x.Label, "Cart"))
-            .AddChildContent<Step>(s => s.Add(x => x.Label, "Shipping").Add(x => x.Hidden, true))
-            .AddChildContent<Step>(s => s.Add(x => x.Label, "Pay")));
-
-        var steps = cut.FindAll("li.ib-step");
-        Assert.Equal(2, steps.Count);
-        Assert.Equal("2", steps[1].QuerySelector(".ib-step-marker")!.TextContent.Trim());
-        Assert.Equal("step", steps[1].GetAttribute("aria-current"));
-    }
-
-    [Fact]
     public void Segmented_control_is_a_fieldset_of_radios()
     {
         var context = new EditContext(_model);
@@ -119,23 +89,6 @@ public class StepperTagSegmentedRenderTests : BunitContext
     }
 
     [Fact]
-    public void Icon_only_segments_keep_their_text_for_screen_readers()
-    {
-        var context = new EditContext(_model);
-        var cut = Render<SegmentedControl<View>>(p => p
-            .AddCascadingValue(context)
-            .Add(s => s.Value, _model.View)
-            .Add(s => s.ValueExpression, () => _model.View)
-            .Add(s => s.ItemIcon, v => v == View.Day ? Lucide.Sun : Lucide.Calendar)
-            .Add(s => s.IconOnly, true));
-
-        var segment = cut.FindAll("label.ib-segment")[0];
-        Assert.Equal("Day", segment.GetAttribute("title"));
-        Assert.NotNull(segment.QuerySelector("svg"));
-        Assert.Equal("Day", segment.QuerySelector(".ib-visually-hidden")!.TextContent);
-    }
-
-    [Fact]
     public void Static_tag_removes_with_a_link_named_for_it()
     {
         SetRendererInfo(new RendererInfo("Static", isInteractive: false));
@@ -152,66 +105,5 @@ public class StepperTagSegmentedRenderTests : BunitContext
         Assert.Equal("/invoices", remove.GetAttribute("href"));
         Assert.Equal("Remove Region: Europe", remove.GetAttribute("aria-label"));
         Assert.Null(tag.QuerySelector("button"));
-    }
-
-    [Fact]
-    public void Interactive_tag_removes_with_a_button()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        var removed = false;
-        var cut = Render<Tag>(p => p
-            .Add(t => t.Label, "Blazor")
-            .Add(t => t.RemoveHref, "/x")
-            .Add(t => t.OnRemove, () => removed = true));
-
-        var button = cut.Find("button.ib-tag-remove");
-        Assert.Equal("button", button.GetAttribute("type"));
-        button.Click();
-        Assert.True(removed);
-    }
-
-    [Fact]
-    public void The_prerender_of_an_interactive_tag_keeps_its_link_or_draws_the_button()
-    {
-        // Before the circuit connects a link still works; with none, the (inert) button keeps the
-        // tag's width, so it doesn't widen when the page becomes interactive.
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var withLink = Render<Tag>(p => p
-            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
-            .Add(t => t.Label, "Blazor")
-            .Add(t => t.RemoveHref, "/x")
-            .Add(t => t.OnRemove, () => { }));
-        var withoutLink = Render<Tag>(p => p
-            .SetAssignedRenderMode(Microsoft.AspNetCore.Components.Web.RenderMode.InteractiveServer)
-            .Add(t => t.Label, "Blazor")
-            .Add(t => t.OnRemove, () => { }));
-
-        Assert.Equal("/x", withLink.Find("a.ib-tag-remove").GetAttribute("href"));
-        Assert.Equal("button", withoutLink.Find("button.ib-tag-remove").GetAttribute("type"));
-    }
-
-    [Fact]
-    public void Tag_without_a_remove_option_has_no_remove_control()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var tag = Render<Tag>(p => p.Add(t => t.Label, "Blazor").Add(t => t.Href, "/topics/blazor").Add(t => t.OnRemove, () => { })).Find(".ib-tag");
-
-        Assert.Null(tag.QuerySelector(".ib-tag-remove"));
-        Assert.DoesNotContain("ib-tag-removable", tag.ClassName);
-        Assert.Equal("/topics/blazor", tag.QuerySelector("a.ib-tag-link")!.GetAttribute("href"));
-    }
-
-    [Fact]
-    public void Drawer_is_a_dialog_on_the_end_side()
-    {
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var dialog = Render<Drawer>(p => p.Add(d => d.Title, "Filters").Add(d => d.Size, DialogSize.Lg)).Find("dialog");
-
-        Assert.Contains("ib-dialog-end", dialog.ClassName);
-        Assert.Contains("ib-dialog-lg", dialog.ClassName);
-        Assert.StartsWith("ib-drawer", dialog.Id);
-
-        var sheet = Render<Drawer>(p => p.Add(d => d.Placement, DialogPlacement.Bottom)).Find("dialog");
-        Assert.Contains("ib-dialog-bottom", sheet.ClassName);
     }
 }

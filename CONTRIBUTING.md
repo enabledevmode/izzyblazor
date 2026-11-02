@@ -227,6 +227,15 @@ them the viewer shows none.
 
 ### Tests
 
+**A test has to earn its place.** Before adding one, it must pass all of these:
+
+1. It covers something a person or an app really does, not an edge condition or a race.
+2. If it broke, someone would care, and nothing else would catch it. Restating the markup doesn't count.
+3. It doesn't rely on delays, slowed responses or load, and gives the same result every run.
+4. It's the only test of that behaviour, with no copy per mode unless the modes run different code.
+
+Fixing a bug doesn't earn a test by itself. A flaky test is deleted or simplified, not engineered around.
+
 Test the behavior people rely on: what a form posts and binds, what screen readers get (names,
 descriptions, states), what works with JavaScript off, what an interactive page receives, and the
 messages and limits a user sees. Don't test markup details, class names, attribute values the

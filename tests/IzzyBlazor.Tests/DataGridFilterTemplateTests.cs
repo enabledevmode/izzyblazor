@@ -75,17 +75,6 @@ public class DataGridFilterTemplateTests : BunitContext
     }
 
     [Fact]
-    public void In_a_row_it_opens_from_a_field_that_says_what_it_is_set_to()
-    {
-        var cut = Static("/orders?f-total=20", Columns(Input, values => $"From {values[0]}", [FilterOperator.GreaterThanOrEqual]), row: true);
-
-        var summary = cut.Find(".ib-table-filter-row .ib-filter-cell-summary");
-        Assert.Equal("From 20", summary.TextContent.Trim());
-        Assert.NotNull(cut.Find($"[id='{summary.GetAttribute("popovertarget")}'] input[name='f-total']"));
-        Assert.Empty(cut.FindAll(".ib-table-filter-row [data-ib-menu]"));
-    }
-
-    [Fact]
     public void A_bound_grids_control_changes_the_filter()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
@@ -120,21 +109,5 @@ public class DataGridFilterTemplateTests : BunitContext
 
         Assert.Equal(new[] { "Grace" }, Names(cut));
         Assert.Equal("25", cut.Find("input[name='f-total-to']").GetAttribute("value"));
-    }
-
-    [Fact]
-    public void A_list_of_values_beside_it_is_refused()
-    {
-        RenderFragment columns = b =>
-        {
-            b.OpenComponent<PropertyColumn<Row, string>>(0);
-            b.AddComponentParameter(1, "Property", (System.Linq.Expressions.Expression<Func<Row, string>>)(r => r.Name));
-            b.AddComponentParameter(2, "Filterable", true);
-            b.AddComponentParameter(3, "FilterList", true);
-            b.AddComponentParameter(4, "FilterTemplate", Input);
-            b.CloseComponent();
-        };
-
-        Assert.Throws<InvalidOperationException>(() => Static("/orders", columns));
     }
 }

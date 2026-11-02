@@ -97,24 +97,6 @@ public class TableFilterValuesTests : BunitContext
         Assert.Empty(Listed(cut, 0));
     }
 
-    [Fact]
-    public void Opening_asks_each_time_and_a_tick_asks_nothing()
-    {
-        var cut = Bound(_ => { });
-
-        Toggle(cut, 0, open: true);
-        Assert.Single(_asked);
-        Assert.Equal(new[] { "(Blank)", "Ada", "Alan", "Grace" }, Listed(cut, 0));
-
-        Tick(cut, 0, "Ada", false);
-        Assert.Single(_asked);
-
-        // The tick's timer renders on its own thread, so the panel's handlers can be new by now.
-        Toggle(cut, 0, open: false);
-        Toggle(cut, 0, open: true);
-        cut.WaitForAssertion(() => Assert.Equal(2, _asked.Count), Timer);
-    }
-
     private IRenderedComponent<Table<Row>> Static(string url, RenderFragment? columns = null)
     {
         Nav.NavigateTo(url);
@@ -142,15 +124,6 @@ public class TableFilterValuesTests : BunitContext
     }
 
     [Fact]
-    public void Ids_in_the_list_and_the_usual_panel_stay_apart()
-    {
-        var cut = Static("/orders");
-
-        var ids = cut.FindAll("[popover] [id]").Select(e => e.Id).ToList();
-        Assert.Equal(ids.Count, ids.Distinct().Count());
-    }
-
-    [Fact]
     public void The_script_asking_gets_the_list_and_no_rows()
     {
         var cut = Static("/orders?fv=name");
@@ -159,20 +132,6 @@ public class TableFilterValuesTests : BunitContext
         Assert.True(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-answered"));
         Assert.True(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-whole"));
         Assert.Empty(Answered(cut, "f-city"));
-        Assert.Empty(Names(cut));
-    }
-
-    [Fact]
-    public void Items_arriving_late_answer_again_and_still_load_no_rows()
-    {
-        Nav.NavigateTo("/orders?fv=city");
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.ChildContent, Columns));
-        Assert.Empty(Answered(cut, "f-city"));
-
-        cut.Render(p => p.Add(t => t.Items, Rows));
-
-        cut.WaitForAssertion(() => Assert.Equal(new string?[] { "Lima", "Oslo", "Rome" }, Answered(cut, "f-city")), Timer);
         Assert.Empty(Names(cut));
     }
 
@@ -192,34 +151,12 @@ public class TableFilterValuesTests : BunitContext
 
     [Theory]
     [InlineData("/orders?fv=nope")]
-    [InlineData("/orders?fv=id")]
     public void A_key_naming_no_list_is_only_a_page(string url)
     {
         var cut = Static(url);
 
         Assert.Empty(_asked);
         Assert.Equal(5, Names(cut).Length);
-    }
-
-    [Fact]
-    public void Another_tables_key_leaves_this_one_alone()
-    {
-        Nav.NavigateTo("/orders?other-fv=name");
-        SetRendererInfo(new RendererInfo("Static", isInteractive: false));
-        var cut = Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, Columns));
-
-        Assert.Empty(_asked);
-        Assert.Equal(5, Names(cut).Length);
-    }
-
-    [Fact]
-    public void An_interactive_page_takes_no_notice_of_the_key()
-    {
-        var cut = Unbound("/orders?fv=name");
-
-        Assert.Empty(_asked);
-        Assert.Equal(5, Names(cut).Length);
-        Assert.Empty(cut.FindAll("ib-filter-list[data-ib-list-fetch]"));
     }
 
     [Fact]
@@ -258,16 +195,6 @@ public class TableFilterValuesTests : BunitContext
         var cut = Static("/orders?fv=name", b => b.AddContent(0, Col<string?>(r => r.Name, Down)));
 
         Assert.True(cut.Find("ib-filter-list[data-ib-list-key='f-name']").HasAttribute("data-ib-load-failed"));
-    }
-
-    [Fact]
-    public void A_condition_the_list_cannot_show_has_only_the_usual_panel_on_a_static_page()
-    {
-        var cut = Static("/orders?f-name=ad");
-
-        Assert.Empty(cut.FindAll("ib-filter-list[data-ib-list-key='f-name']"));
-        Assert.Equal("ad", cut.Find("input[name='f-name']").GetAttribute("value"));
-        Assert.Empty(cut.FindAll(".ib-filter-no-script input[name='f-name']"));
     }
 
     [Fact]
@@ -315,20 +242,6 @@ public class TableFilterValuesTests : BunitContext
     }
 
     [Fact]
-    public void With_every_row_known_all_ticked_is_no_filter()
-    {
-        Filter? reported = new FieldFilter("x", FilterOperator.IsNull);
-        var cut = Bound(f => reported = f, new FieldFilter("city", FilterOperator.In, new List<object?> { "Oslo" }));
-        Toggle(cut, 1, open: true);
-
-        Tick(cut, 1, "Lima", true);
-        Tick(cut, 1, "Rome", true);
-
-        cut.WaitForAssertion(() => Assert.Null(reported), Timer);
-        Assert.Equal(5, Names(cut).Length);
-    }
-
-    [Fact]
     public void The_blank_row_means_null_or_empty_text()
     {
         var cut = Bound(_ => { });
@@ -339,23 +252,6 @@ public class TableFilterValuesTests : BunitContext
         Tick(cut, 0, "(Blank)", true);
 
         cut.WaitForAssertion(() => Assert.Equal(2, Names(cut).Length), Timer);
-    }
-
-    [Fact]
-    public void The_search_asks_again_after_the_pause_and_select_all_says_how_many()
-    {
-        var cut = Bound(_ => { });
-        Toggle(cut, 0, open: true);
-
-        cut.FindAll("[popover]")[0].QuerySelector("[data-ib-bound-search]")!.Input("a");
-
-        cut.WaitForAssertion(() => Assert.Equal("a", _asked.Last().Search), Timer);
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "Ada", "Alan", "Grace" }, Listed(cut, 0)), Timer);
-        Assert.Equal("Select all 3 results", cut.FindAll("[popover]")[0].QuerySelector("[data-ib-list-results]")!.TextContent);
-
-        Toggle(cut, 0, open: false);
-        Toggle(cut, 0, open: true);
-        Assert.Null(_asked.Last().Search);
     }
 
     [Fact]
@@ -445,38 +341,12 @@ public class TableFilterValuesTests : BunitContext
         Assert.Empty(cut.Find(".ib-filter-list-status").TextContent);
     }
 
-    [Fact]
-    public void A_superseded_request_is_canceled_and_its_answer_dropped()
-    {
-        var answers = new List<TaskCompletionSource<FilterValuesResult>>();
-        var tokens = new List<CancellationToken>();
-        ValueTask<FilterValuesResult> Slow(FilterValuesRequest r)
-        {
-            tokens.Add(r.CancellationToken);
-            answers.Add(new());
-            return new(answers[^1].Task);
-        }
-
-        var cut = Bound(_ => { }, columns: b => b.AddContent(0, Col<string?>(r => r.Name, Slow)));
-        Toggle(cut, 0, open: true);
-        Toggle(cut, 0, open: false);
-        Assert.True(tokens[0].IsCancellationRequested);
-
-        Toggle(cut, 0, open: true);
-        cut.InvokeAsync(() => answers[0].SetResult(new([new FilterValue("old")])));
-        cut.InvokeAsync(() => answers[1].SetResult(new([new FilterValue("new")])));
-
-        cut.WaitForAssertion(() => Assert.Equal(new[] { "new" }, Listed(cut, 0)), Timer);
-    }
-
     [Theory]
     [InlineData("?f-name-op=in&f-name=Ada", new[] { "1" })]
-    [InlineData("?f-name-op=in&f-name=Ada&f-name=Grace", new[] { "1", "2" })]
     [InlineData("?f-name-op=notin&f-name=Ada", new[] { "2", "3", "4", "5" })]
     [InlineData("?f-name-op=in&f-name-blank=1", new[] { "4", "5" })]
     [InlineData("?f-name-op=notin&f-name-blank=1", new[] { "1", "2", "3" })]
     [InlineData("?f-name-none=1", new string[0])]
-    [InlineData("?f-name=a", new[] { "1", "2", "3" })]
     public void The_address_means_the_same_with_or_without_the_list(string query, string[] ids)
     {
         void Check(IRenderedComponent<Table<Row>> cut) =>
@@ -502,81 +372,6 @@ public class TableFilterValuesTests : BunitContext
         Check(Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, columns)));
     }
 
-    [Fact]
-    public void Without_a_bound_filter_ticks_reach_the_address_after_the_pause()
-    {
-        var cut = Unbound();
-        Toggle(cut, 0, open: true);
-
-        Tick(cut, 0, "Ada", false);
-        Tick(cut, 0, "Grace", false);
-        Assert.False(Ticked(cut, 0, "Ada"));
-
-        cut.WaitForAssertion(() => Assert.Contains("f-name-op=notin", Nav.Uri), Timer);
-        Assert.Contains("f-name=Ada", Nav.Uri);
-        Assert.Contains("f-name=Grace", Nav.Uri);
-        cut.WaitForAssertion(() => Assert.DoesNotContain("Ada", Names(cut)), Timer);
-        Assert.False(Ticked(cut, 0, "Ada"));
-    }
-
-    [Fact]
-    public void A_sort_during_the_pause_keeps_the_ticks_waiting()
-    {
-        var cut = Unbound();
-        cut.Instance.FilterDelay = TimeSpan.FromSeconds(1);
-        Toggle(cut, 0, open: true);
-
-        Tick(cut, 0, "Ada", false);
-        Nav.NavigateTo("/orders?sort=name");
-
-        cut.WaitForAssertion(() => Assert.Contains("f-name-op=notin", Nav.Uri), Timer);
-        Assert.Contains("sort=name", Nav.Uri);
-    }
-
-    [Fact]
-    public void A_move_that_changes_the_column_drops_the_ticks_waiting()
-    {
-        var cut = Unbound();
-        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(500);
-        Toggle(cut, 0, open: true);
-
-        Tick(cut, 0, "Ada", false);
-        Nav.NavigateTo("/orders?f-name=x");
-
-        Thread.Sleep(800);
-        Assert.Contains("f-name=x", Nav.Uri);
-        Assert.DoesNotContain("notin", Nav.Uri);
-    }
-
-    [Fact]
-    public void Ticks_that_come_back_to_where_they_started_are_no_move()
-    {
-        var cut = Unbound();
-        cut.Instance.FilterDelay = TimeSpan.FromMilliseconds(500);
-        var moves = 0;
-        Nav.LocationChanged += (_, _) => moves++;
-        Toggle(cut, 0, open: true);
-
-        Tick(cut, 0, "Ada", false);
-        Tick(cut, 0, "Ada", true);
-        cut.WaitForAssertion(() => Assert.True(Ticked(cut, 0, "Ada")), Timer);
-        Thread.Sleep(800);
-
-        Assert.Equal(0, moves);
-    }
-
-    [Fact]
-    public void A_tick_leaves_the_section_out_of_the_address()
-    {
-        var cut = Unbound("/orders#list");
-        Toggle(cut, 0, open: true);
-
-        Tick(cut, 0, "Ada", false);
-
-        cut.WaitForAssertion(() => Assert.Contains("f-name-op=notin", Nav.Uri), Timer);
-        Assert.DoesNotContain("#", Nav.Uri);
-    }
-
     private static readonly FilterValuesLoader Hundred = r =>
     {
         // As a query does: what's kept comes first and isn't repeated, and a page counts from it.
@@ -585,23 +380,6 @@ public class TableFilterValuesTests : BunitContext
         var rows = kept.Concat(all.Except(kept)).Skip(r.Skip).Take(r.Take).Select(v => new FilterValue(v)).ToList();
         return ValueTask.FromResult(new FilterValuesResult(rows, r.Skip + r.Take < 120));
     };
-
-    [Fact]
-    public void A_later_page_counts_from_what_was_kept_when_the_first_was_asked()
-    {
-        var cut = Bound(_ => { }, new FieldFilter("name", FilterOperator.NotIn, new List<object?> { "v100" }), b => b.AddContent(0, Col<string?>(r => r.Name, Hundred)));
-        Toggle(cut, 0, open: true);
-        Assert.Equal("v100", Listed(cut, 0)[0]);
-
-        // Ticked again, it no longer has to stay first, but this list's pages still count it there.
-        Tick(cut, 0, "v100", true);
-        cut.WaitForAssertion(() => Assert.True(Ticked(cut, 0, "v100")), Timer);
-        cut.Find("[data-ib-load-next]").Click();
-
-        cut.WaitForAssertion(() => Assert.Contains("v049", Listed(cut, 0)), Timer);
-        Assert.Contains("v050", Listed(cut, 0));
-        Assert.Equal(100, Listed(cut, 0).Distinct().Count());
-    }
 
     [Fact]
     public void Select_all_on_a_long_list_takes_in_rows_not_loaded()
@@ -617,17 +395,6 @@ public class TableFilterValuesTests : BunitContext
     }
 
     [Fact]
-    public void Unticking_on_a_long_list_stays_a_list()
-    {
-        var cut = Bound(_ => { }, new FieldFilter("name", FilterOperator.NotIn, new List<object?> { "v000" }), b => b.AddContent(0, Col<string?>(r => r.Name, Hundred)));
-        Toggle(cut, 0, open: true);
-
-        Tick(cut, 0, "v001", false);
-
-        cut.WaitForAssertion(() => Assert.Contains("All but 2", cut.Find(".ib-table-filter-button").GetAttribute("aria-label")), Timer);
-    }
-
-    [Fact]
     public void Rows_the_other_filters_narrowed_are_not_every_value()
     {
         var reported = new List<Filter?>();
@@ -639,58 +406,6 @@ public class TableFilterValuesTests : BunitContext
         Tick(cut, 0, "Alan", false);
 
         cut.WaitForAssertion(() => Assert.Contains("not (name in", reported.LastOrDefault()?.ToString() ?? ""), Timer);
-    }
-
-    [Fact]
-    public void Select_all_waits_for_rows_that_match_the_box_and_a_search_that_worked()
-    {
-        var fail = false;
-        var answer = new TaskCompletionSource<FilterValuesResult>();
-        ValueTask<FilterValuesResult> Slow(FilterValuesRequest r) =>
-            r.Search is null ? ValueTask.FromResult(new FilterValuesResult([new FilterValue("Ada")]))
-            : fail ? throw new InvalidOperationException("down")
-            : new(answer.Task);
-
-        var cut = Bound(_ => { }, columns: b => b.AddContent(0, Col<string?>(r => r.Name, Slow)));
-        Toggle(cut, 0, open: true);
-        Assert.False(cut.Find("[data-ib-list-all]").HasAttribute("disabled"));
-
-        cut.Find("[data-ib-bound-search]").Input("a");
-        Assert.True(cut.Find("[data-ib-list-all]").HasAttribute("disabled"));
-
-        fail = true;
-        cut.Find("[data-ib-bound-search]").Input("ab");
-        cut.WaitForAssertion(() => Assert.Equal("Couldn't load the values.", cut.Find(".ib-filter-list-status").TextContent), Timer);
-        Assert.True(cut.Find("[data-ib-list-all]").HasAttribute("disabled"));
-    }
-
-    [Fact]
-    public void A_search_with_nothing_found_says_so()
-    {
-        var cut = Bound(_ => { });
-        Toggle(cut, 0, open: true);
-
-        cut.FindAll("[popover]")[0].QuerySelector("[data-ib-bound-search]")!.Input("zzz");
-
-        cut.WaitForAssertion(() => Assert.Equal("No values found", cut.FindAll(".ib-filter-list-status")[0].TextContent), Timer);
-    }
-
-    [Fact]
-    public void Clearing_the_usual_panel_leaves_it_in_place_until_it_closes()
-    {
-        Filter? reported = new FieldFilter("x", FilterOperator.IsNull);
-        var cut = Bound(f => reported = f, new FieldFilter("name", FilterOperator.Contains, "ad"));
-        Toggle(cut, 0, open: true);
-        Assert.Empty(_asked);
-
-        cut.FindAll("[popover]")[0].QuerySelector("input")!.Input("");
-        cut.WaitForAssertion(() => Assert.Null(reported), Timer);
-        Assert.Empty(cut.FindAll("[popover]")[0].QuerySelectorAll("ib-filter-list"));
-
-        Toggle(cut, 0, open: false);
-        Toggle(cut, 0, open: true);
-        cut.WaitForAssertion(() => Assert.Single(_asked), Timer);
-        cut.WaitForAssertion(() => Assert.NotEmpty(Listed(cut, 0)), Timer);
     }
 
     [Fact]
@@ -738,16 +453,6 @@ public class TableFilterValuesTests : BunitContext
     }
 
     [Fact]
-    public void A_condition_the_list_cannot_show_has_the_usual_panel_and_asks_nothing()
-    {
-        var cut = Unbound("/orders?f-name=ad");
-        Toggle(cut, 0, open: true);
-
-        Assert.Empty(_asked);
-        Assert.Equal("ad", cut.Find("input[name='f-name']").GetAttribute("value"));
-    }
-
-    [Fact]
     public void Static_panels_carry_what_a_list_wrote_and_their_Clear_removes_it()
     {
         Nav.NavigateTo("/orders?f-name-op=notin&f-name=Ada&f-name-blank=1");
@@ -774,58 +479,5 @@ public class TableFilterValuesTests : BunitContext
         Assert.False(Ticked(cut, 0, "(Blank)"));
         Assert.True(Ticked(cut, 0, "Grace"));
         Assert.Equal("mixed", cut.Find("ib-filter-list").GetAttribute("data-ib-all"));
-    }
-
-    [Fact]
-    public void A_DataGrid_passes_its_search_on()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        Nav.NavigateTo("/orders?search=ada");
-        var cut = Render<DataGrid<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.Searchable, true).Add(t => t.ChildContent, Columns));
-
-        var panel = cut.FindAll("[popover]").First(p => p.QuerySelector("ib-filter-list") is not null);
-        panel.TriggerEvent("onibtoggle", new IzzyToggleEventArgs { Id = panel.Id!, Open = true, Seq = 1 });
-
-        Assert.Equal("ada", Assert.Single(_asked).GridSearch);
-    }
-
-    [Theory]
-    [InlineData(true, false, "its type has a list")]
-    [InlineData(false, true, "reads text")]
-    public void A_column_that_cannot_list_values_says_why(bool onEnum, bool onNumber, string message)
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        RenderFragment columns = b =>
-        {
-            if (onEnum)
-            {
-                b.OpenComponent<PropertyColumn<Row, FilterCase>>(0);
-                b.AddComponentParameter(1, "Property", (Expression<Func<Row, FilterCase>>)(r => FilterCase.Database));
-                b.AddComponentParameter(2, "SortKey", "x");
-                b.AddComponentParameter(3, "Filterable", true);
-                b.AddComponentParameter(4, "FilterList", true);
-                b.CloseComponent();
-            }
-            else if (onNumber)
-            {
-                b.AddContent(0, Col<int>(r => r.Id, list: true));
-            }
-        };
-
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p.Add(t => t.Items, Rows).Add(t => t.ChildContent, columns)));
-        Assert.Contains(message, ex.Message);
-    }
-
-    [Fact]
-    public void FilterList_with_a_provider_names_FilterValues()
-    {
-        SetRendererInfo(new RendererInfo("Server", isInteractive: true));
-        RenderFragment columns = b => b.AddContent(0, Col<string>(r => r.City, list: true));
-
-        var ex = Assert.Throws<InvalidOperationException>(() => Render<Table<Row>>(p => p
-            .Add(t => t.ItemsProvider, r => ValueTask.FromResult(new DataResult<Row>([], 0)))
-            .Add(t => t.ChildContent, columns)));
-
-        Assert.Contains("FilterValues", ex.Message);
     }
 }

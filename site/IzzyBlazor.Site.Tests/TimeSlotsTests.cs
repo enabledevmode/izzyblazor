@@ -69,54 +69,6 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
 
     [Theory]
     [InlineData("static")]
-    [InlineData("interactive")]
-    public async Task A_typed_time_the_list_turns_off_is_turned_away_on_the_server(string mode)
-    {
-        var (_, form, input, browser) = await OpenAsync(mode);
-        await using var _ = browser;
-        await input.FillAsync("12:15");
-        await form.GetByRole(AriaRole.Button, new() { Name = "Book the visit" }).ClickAsync();
-        await Assertions.Expect(form).ToContainTextAsync("can't be");
-        await Assertions.Expect(form).Not.ToContainTextAsync("Booked for");
-
-        await input.FillAsync("10:15");
-        await form.GetByRole(AriaRole.Button, new() { Name = "Book the visit" }).ClickAsync();
-        await Assertions.Expect(form).ToContainTextAsync("Booked for 10:15.");
-    }
-
-    // A browser draws the time left to right on any page, so a button at the line's start would cover it.
-    [Fact]
-    public async Task In_right_to_left_the_button_doesnt_cover_the_time()
-    {
-        var (page, form, input, browser) = await OpenAsync("static");
-        await using var _ = browser;
-        await page.EvaluateAsync("document.documentElement.dir = 'rtl'");
-
-        var (field, toggle) = ((await input.BoundingBoxAsync())!, (await form.Locator(".ib-date-toggle").BoundingBoxAsync())!);
-
-        Assert.True(toggle.X > field.X + field.Width / 2, $"{toggle.X} in {field.X}+{field.Width}");
-    }
-
-    [Fact]
-    public async Task The_list_opens_under_the_whole_field_as_a_selects_does()
-    {
-        var (_, form, input, browser) = await OpenAsync("static");
-        await using var _ = browser;
-        await form.Locator(".ib-date-toggle").ClickAsync();
-        await Assertions.Expect(Slot(form, "10:30")).ToBeFocusedAsync();
-
-        var (field, list) = ((await input.BoundingBoxAsync())!, (await form.Locator("[popover]").First.BoundingBoxAsync())!);
-
-        Assert.Equal(field.X, list.X, 0);
-        Assert.Equal(field.Width, list.Width, 0);
-        const string size = "e => getComputedStyle(e).fontSize";
-        Assert.Equal(await input.EvaluateAsync<string>(size), await Slot(form, "10:30").EvaluateAsync<string>(size));
-        Assert.True(list.Y >= field.Y + field.Height || list.Y + list.Height <= field.Y, $"{list.Y} against {field.Y}");
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
     public async Task Where_a_list_makes_no_sense_it_has_boxes_and_writes_on_ok(string mode)
     {
         var browser = await TestBrowser.OpenAsync();

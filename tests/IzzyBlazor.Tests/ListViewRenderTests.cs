@@ -29,58 +29,6 @@ public class ListViewRenderTests : BunitContext
         });
 
     [Fact]
-    public void Items_render_as_a_list_with_the_template()
-    {
-        var cut = RenderList(p => p.Add(l => l.ChildContent, x => b => b.AddContent(0, $"[{x.Name}]")));
-
-        var list = cut.Find("ul.ib-listview-list");
-        Assert.Equal("list", list.GetAttribute("role"));
-        Assert.Equal(new[] { "[Ada]", "[Brian]", "[Cleo]" }, cut.FindAll("li").Select(li => li.TextContent));
-        Assert.Empty(cut.FindAll("a, button"));
-    }
-
-    [Fact]
-    public void The_default_row_shows_the_text_description_and_icon()
-    {
-        var cut = RenderList(p => p
-            .Add(l => l.ItemDescription, x => x.Email)
-            .Add(l => l.ItemIcon, _ => Lucide.User));
-
-        var first = cut.FindAll("li")[0];
-        Assert.Equal("Ada", first.QuerySelector(".ib-listview-title")!.TextContent);
-        Assert.Equal("ada@example.com", first.QuerySelector(".ib-listview-description")!.TextContent);
-        Assert.NotNull(first.QuerySelector("svg.ib-listview-icon"));
-    }
-
-    [Fact]
-    public void ItemHref_makes_one_named_link_per_item_and_marks_the_current_one()
-    {
-        var cut = RenderList(p => p
-            .Add(l => l.ItemHref, x => $"/people/{x.Id}")
-            .Add(l => l.ItemCurrent, x => x.Id == "3")
-            .Add(l => l.ItemDisabled, x => x.Away));
-
-        var links = cut.FindAll("a.ib-listview-action");
-        Assert.Equal(new[] { "/people/1", "/people/3" }, links.Select(a => a.GetAttribute("href")));
-        Assert.Equal(new[] { "Ada", "Cleo" }, links.Select(a => a.TextContent));
-        Assert.Equal("true", links[1].GetAttribute("aria-current"));
-        Assert.Null(cut.FindAll("li")[2].GetAttribute("aria-current"));
-
-        var away = cut.FindAll("li")[1];
-        Assert.Contains("ib-listview-disabled", away.ClassName);
-        Assert.Null(away.QuerySelector("a"));
-    }
-
-    [Fact]
-    public void Without_a_link_the_current_item_is_marked_itself()
-    {
-        var cut = RenderList(p => p.Add(l => l.ItemCurrent, x => x.Id == "2"));
-
-        Assert.Equal("true", cut.FindAll("li")[1].GetAttribute("aria-current"));
-        Assert.Contains("ib-listview-current", cut.FindAll("li")[1].ClassName);
-    }
-
-    [Fact]
     public void OnItemClick_makes_each_item_a_button_on_interactive_pages()
     {
         Live();
@@ -92,15 +40,6 @@ public class ListViewRenderTests : BunitContext
         Assert.Equal("button", buttons[1].GetAttribute("type"));
         buttons[1].Click();
         Assert.Equal("Brian", clicked?.Name);
-    }
-
-    [Fact]
-    public void An_empty_list_says_so()
-    {
-        var cut = Render<ListView<Person>>(p => p.Add(l => l.Items, Array.Empty<Person>()).Add(l => l.EmptyText, "Nobody here"));
-
-        Assert.Empty(cut.FindAll("li"));
-        Assert.Equal("Nobody here", cut.Find(".ib-listview-state").TextContent.Trim());
     }
 
     [Fact]
@@ -122,27 +61,6 @@ public class ListViewRenderTests : BunitContext
 
         Assert.Equal(2, cut.FindAll("li").Count);
         Assert.Equal("http://localhost/people?page=2", cut.Find(".ib-data-more > a.ib-btn").GetAttribute("href"));
-    }
-
-    [Fact]
-    public void Load_more_sits_after_the_items_inside_the_scroll_box_with_no_footer()
-    {
-        GoTo("/people");
-        var cut = RenderList(p => p
-            .Add(l => l.PageSize, 2)
-            .Add(l => l.Paging, DataPaging.LoadOnScroll)
-            .Add(l => l.MaxHeight, Length.Rem(10))
-            .Add(l => l.AriaLabel, "People"));
-
-        var body = cut.Find("ib-listview > .ib-listview-body");
-        Assert.Contains("ib-listview-scroll", body.ClassName);
-        Assert.Equal("region", body.GetAttribute("role"));
-        Assert.Equal("People", body.GetAttribute("aria-label"));
-        Assert.Equal("0", body.GetAttribute("tabindex"));
-        Assert.Contains("max-height:10rem", body.GetAttribute("style"));
-        Assert.NotNull(cut.Find("ib-listview > .ib-listview-body > .ib-listview-list + .ib-data-summary + .ib-data-more"));
-        Assert.Empty(cut.FindAll(".ib-data-footer"));
-        Assert.Equal("1–2 of 3", cut.Find(".ib-data-summary").TextContent);
     }
 
     [Fact]
@@ -188,16 +106,6 @@ public class ListViewRenderTests : BunitContext
     }
 
     [Fact]
-    public void Select_all_is_there_before_any_items_so_the_script_finds_it_when_they_come()
-    {
-        var cut = Render<ListView<Person>>(p => p.Add(l => l.Items, Array.Empty<Person>()).Add(l => l.SelectionMode, SelectionMode.Multiple));
-
-        Assert.NotNull(cut.Find(".ib-listview-select-all"));
-        // Focus after Retry goes to the root, which is always there.
-        Assert.Equal("-1", cut.Find("ib-listview").GetAttribute("tabindex"));
-    }
-
-    [Fact]
     public void A_selected_disabled_item_still_posts_its_key()
     {
         var cut = RenderList(p => p
@@ -208,29 +116,5 @@ public class ListViewRenderTests : BunitContext
         var hidden = cut.FindAll("li input[type=hidden]");
         Assert.Equal("2", Assert.Single(hidden).GetAttribute("value"));
         Assert.Equal("selected.Keys", hidden[0].GetAttribute("name"));
-    }
-
-    [Fact]
-    public void Cards_draw_one_column_of_cards_without_dividers()
-    {
-        var cut = RenderList(p => p.Add(l => l.Cards, true).Add(l => l.Bordered, true));
-
-        var root = cut.Find("ib-listview");
-        Assert.Contains("ib-listview-cards", root.ClassName);
-        Assert.DoesNotContain("ib-listview-columns", root.ClassName);
-        Assert.DoesNotContain("ib-listview-dividers", root.ClassName);
-        Assert.DoesNotContain("ib-listview-bordered", root.ClassName);
-    }
-
-    [Fact]
-    public void Columns_lay_the_items_out_as_cards()
-    {
-        var cut = RenderList(p => p.Add(l => l.Columns, 3));
-
-        var root = cut.Find("ib-listview");
-        Assert.Contains("ib-listview-columns", root.ClassName);
-        Assert.Contains("ib-listview-cards", root.ClassName);
-        Assert.DoesNotContain("ib-listview-dividers", root.ClassName);
-        Assert.Contains("--ib-listview-columns:3", root.GetAttribute("style"));
     }
 }

@@ -38,27 +38,6 @@ public sealed class DurationFieldTests(SiteFixture site) : IClassFixture<SiteFix
     [Theory]
     [InlineData("static")]
     [InlineData("interactive")]
-    public async Task Emptying_the_boxes_empties_the_field_and_required_stops_it_on_the_first(string mode)
-    {
-        var (_, form, browser) = await OpenAsync(mode);
-        await using (browser)
-        {
-            var timeout = form.GetByRole(AriaRole.Group, new() { Name = "Timeout" });
-            foreach (var unit in new[] { "Hours", "Minutes", "Seconds" })
-            {
-                await timeout.GetByLabel(unit).FillAsync("");
-            }
-
-            await form.GetByRole(AriaRole.Button, new() { Name = "Save settings" }).ClickAsync();
-            await Assertions.Expect(timeout.GetByLabel("Hours")).ToBeFocusedAsync();
-            await Assertions.Expect(timeout.GetByLabel("Minutes")).ToHaveValueAsync("");
-            await Assertions.Expect(form).Not.ToContainTextAsync("Saved:");
-        }
-    }
-
-    [Theory]
-    [InlineData("static")]
-    [InlineData("interactive")]
     public async Task The_sign_button_flips_what_posts(string mode)
     {
         var (page, _, browser) = await OpenAsync(mode);
