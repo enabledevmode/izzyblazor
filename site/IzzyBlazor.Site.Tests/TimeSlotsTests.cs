@@ -109,6 +109,8 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
 
         Assert.Equal(field.X, list.X, 0);
         Assert.Equal(field.Width, list.Width, 0);
+        const string size = "e => getComputedStyle(e).fontSize";
+        Assert.Equal(await input.EvaluateAsync<string>(size), await Slot(form, "10:30").EvaluateAsync<string>(size));
         Assert.True(list.Y >= field.Y + field.Height || list.Y + list.Height <= field.Y, $"{list.Y} against {field.Y}");
     }
 }
