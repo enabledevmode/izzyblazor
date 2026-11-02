@@ -330,14 +330,15 @@
 
   .ib-calendar-foot {
     display: flex;
+    flex-wrap: wrap;
     justify-content: space-between;
     gap: var(--ib-space-1);
     margin-top: var(--ib-space-2);
   }
 
-  /* Today and Clear at the start, and what ends the choice at the end. */
-  .ib-calendar-foot > [data-ib-cancel] {
-    margin-inline-start: auto;
+  /* Today and Clear, with what ends the choice on a line of its own. */
+  .ib-calendar-foot > [data-ib-ok] {
+    flex: 1 0 100%;
   }
 
   @media (forced-colors: active) {

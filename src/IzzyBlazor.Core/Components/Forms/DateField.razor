@@ -20,7 +20,8 @@
     when the form posts.
 
     With a time, the calendar has a box each for the hour and minute, with seconds if Step has them
-    and AM or PM if the culture does, and OK and Cancel: nothing is written until OK. Min
+    and AM or PM if the culture does, and OK: nothing is written until OK, and closing it any other
+    way, by Escape or a click outside, drops the choice. Min
     and Max stop the days, and their times are checked as the form posts.
 
     A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
@@ -68,7 +69,7 @@
 <FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
-        <ib-field-control class="@ControlClass">
+        <ib-field-control class="@ControlClass" style="@(HasPanel ? $"anchor-name:{StyleValues.AnchorName(FieldId + "-control")}" : null)">
             <input @attributes="ControlAttributes"
                    id="@FieldId"
                    class="ib-field-input"
@@ -87,7 +88,7 @@
                    aria-describedby="@DescribedBy" />
             @if (HasPanel)
             {
-                <Popover Placement="Placement.BottomEnd">
+                <Popover Placement="Placement.BottomStart">
                     <Trigger Context="trigger">
                         <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
                             <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
@@ -139,7 +140,6 @@
                                     }
                                     @if (ResolvedType == DateFieldType.DateTime)
                                     {
-                                        <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" data-ib-cancel>@TextDefaults.Cancel</Button>
                                         <Button Size="ControlSize.Sm" data-ib-ok>@TextDefaults.Ok</Button>
                                     }
                                 </div>
