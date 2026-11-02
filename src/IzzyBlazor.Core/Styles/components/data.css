@@ -1135,25 +1135,31 @@
 
   .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input {
     padding-inline: 0;
-    border-width: 0 0 1px;
+    border: 0;
     border-radius: 0;
+    outline: 0;
     background: none;
+    box-shadow: none;
+    font-size: inherit;
     text-align: inherit;
   }
 
   .ib-datagrid tr[data-ib-editing] .ib-field-control > :not(textarea).ib-field-input {
-    height: 1.5em;
+    height: 1lh;
   }
 
-  .ib-datagrid tr[data-ib-editing] .ib-field-control > .ib-field-input:focus-visible {
-    border-color: var(--ib-color-primary);
-    outline: 0;
-    box-shadow: 0 1px 0 var(--ib-color-primary);
+  /* Chrome indents a date's text a pixel. */
+  tr[data-ib-editing] ::-webkit-datetime-edit {
+    margin-inline-start: -1px;
   }
 
-  .ib-datagrid tr[data-ib-editing] .ib-field-invalid .ib-field-control > .ib-field-input {
-    border-color: var(--ib-color-danger);
-    box-shadow: 0 1px 0 var(--ib-color-danger);
+  /* Focus and errors mark the whole cell, along its bottom edge: at rest a field is only its text. */
+  .ib-table-grid tbody tr[data-ib-editing] > td:has(.ib-field-input:focus) {
+    box-shadow: inset 0 -2px var(--ib-color-primary);
+  }
+
+  .ib-table-grid tbody tr[data-ib-editing] > td:has(.ib-field-invalid, .ib-field-input:user-invalid) {
+    box-shadow: inset 0 -2px var(--ib-color-danger);
   }
 
   /* An error wraps, where a number's cell otherwise stays on one line. */
