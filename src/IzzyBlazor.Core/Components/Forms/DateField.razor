@@ -109,26 +109,7 @@
                                 @CalendarGrid.Month(Drawn, null)
                                 @if (ResolvedType == DateFieldType.DateTime)
                                 {
-                                    <div class="ib-calendar-time" role="group" aria-label="@TextDefaults.CalendarTime">
-                                        @TimeBox(TextDefaults.CalendarHour, TwelveHours ? 1 : 0, TwelveHours ? 12 : 23, null)
-                                        <span aria-hidden="true">:</span>
-                                        @TimeBox(TextDefaults.CalendarMinute, 0, 59, MinuteStep)
-                                        @if (ShowsSeconds)
-                                        {
-                                            <span aria-hidden="true">:</span>
-                                            @TimeBox(TextDefaults.CalendarSecond, 0, 59, null)
-                                        }
-                                        @if (TwelveHours)
-                                        {
-                                            <div class="ib-field-control ib-has-end">
-                                                <select class="ib-field-input ib-field-select" aria-label="@TextDefaults.CalendarDayPart">
-                                                    <option value="am">@ResolvedCulture.DateTimeFormat.AMDesignator</option>
-                                                    <option value="pm">@ResolvedCulture.DateTimeFormat.PMDesignator</option>
-                                                </select>
-                                                <Icon Role="IconRole.ChevronDown" Class="ib-field-icon ib-field-icon-end" />
-                                            </div>
-                                        }
-                                    </div>
+                                    @CalendarGrid.TimeBoxes(TextDefaults, ResolvedCulture, Step, ShowsSeconds, focusFirst: false)
                                 }
                                 @if (ResolvedType == DateFieldType.DateTime)
                                 {
@@ -207,24 +188,6 @@
 
     // Nothing to choose from on a field that can't change.
     private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
-
-    // A part of the time, with a NumberField's look and steppers. Not a NumberField, as a field inside a
-    // field's panel would register on the form.
-    private RenderFragment TimeBox(string label, int min, int max, int? step) => __builder =>
-    {
-        <ib-field-control class="ib-field-control ib-has-steppers">
-            <input class="ib-field-input ib-field-number" type="number" inputmode="numeric" min="@min" max="@max" step="@step" aria-label="@label" />
-            <span class="ib-field-steppers" data-ib-steppers hidden>
-                <button type="button" class="ib-field-step" data-ib-step="up" tabindex="-1" aria-label="@TextDefaults.Increase"><Icon Role="IconRole.ChevronUp" /></button>
-                <button type="button" class="ib-field-step" data-ib-step="down" tabindex="-1" aria-label="@TextDefaults.Decrease"><Icon Role="IconRole.ChevronDown" /></button>
-            </span>
-        </ib-field-control>
-    };
-
-    private bool TwelveHours => ResolvedCulture.DateTimeFormat.ShortTimePattern.Contains('t') && ResolvedCulture.DateTimeFormat.AMDesignator.Length > 0;
-
-    // A minute's box steps by Step, when that's whole minutes under an hour.
-    private int? MinuteStep => Step is { TotalMinutes: > 1 and < 60 } step && step.Ticks % TimeSpan.TicksPerMinute == 0 ? (int)step.TotalMinutes : null;
 
     private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChoose;
 

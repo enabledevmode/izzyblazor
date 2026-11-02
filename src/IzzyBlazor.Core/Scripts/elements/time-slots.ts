@@ -1,4 +1,5 @@
 import { IzzyElement, defineElement } from "../izzy-element";
+import { timeParts } from "../time-parts";
 
 /**
  * <ib-time-slots> is a TimeField's list of times, in a Popover beside its input. Choosing one writes
@@ -7,6 +8,9 @@ import { IzzyElement, defineElement } from "../izzy-element";
  * button's name in step with what the input holds.
  *
  * One Tab stop, the slot that holds it, with arrow keys between them; Tab leaves the list and closes it.
+ *
+ * Where a list makes no sense, as with seconds, it has a box for each part of the time and OK instead:
+ * nothing is written until OK, and Tab goes through them before it closes.
  */
 class TimeSlots extends IzzyElement {
   protected setup(signal: AbortSignal): void {
@@ -17,6 +21,8 @@ class TimeSlots extends IzzyElement {
     // Limits can change on an interactive page, and the server draws the list again.
     let slots: HTMLButtonElement[] = [];
     if (!panel || !toggle || !control || !text) return;
+    const parts = timeParts(this);
+    const ok = this.querySelector<HTMLButtonElement>("[data-ib-ok]");
 
     let stop: HTMLButtonElement | undefined;
     const data = this.dataset;
@@ -77,20 +83,24 @@ class TimeSlots extends IzzyElement {
         // Back to the input if the keys opened it from there.
         opener = document.activeElement === text ? text : toggle;
         stop = startingPoint();
+        parts?.show(text.value);
         draw();
       },
       { signal }
     );
+    const write = (value: string): void => {
+      text.value = value;
+      text.dispatchEvent(new Event("input", { bubbles: true }));
+      text.dispatchEvent(new Event("change", { bubbles: true }));
+      draw();
+      close();
+    };
     this.addEventListener(
       "click",
       (event) => {
+        if (parts && (event.target as Element).closest("[data-ib-ok]")) return write(parts.read());
         const slot = (event.target as Element).closest<HTMLButtonElement>("[role=option]");
-        if (!slot || slot.ariaDisabled) return;
-        text.value = slot.dataset.value!;
-        text.dispatchEvent(new Event("input", { bubbles: true }));
-        text.dispatchEvent(new Event("change", { bubbles: true }));
-        draw();
-        close();
+        if (slot && !slot.ariaDisabled) write(slot.dataset.value!);
       },
       { signal }
     );
@@ -99,6 +109,16 @@ class TimeSlots extends IzzyElement {
       (event) => {
         const at = slots.indexOf(event.target as HTMLButtonElement);
         const moves: Record<string, number> = { ArrowUp: at - 1, ArrowDown: at + 1, Home: 0, End: slots.length - 1 };
+        if (parts) {
+          // In a box, Enter would post the form.
+          if (event.key === "Enter" && (event.target as Element).matches("input")) {
+            event.preventDefault();
+            ok?.click();
+          }
+          if (event.key !== "Tab") return;
+          const stops = [...this.querySelectorAll<HTMLElement>("input, select, button:not([tabindex='-1'])")];
+          if (document.activeElement !== (event.shiftKey ? stops[0] : stops[stops.length - 1])) return;
+        }
         if (event.key === "Tab") {
           if (event.shiftKey) event.preventDefault();
           close(toggle);

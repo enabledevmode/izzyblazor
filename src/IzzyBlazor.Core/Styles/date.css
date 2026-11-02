@@ -263,6 +263,17 @@
     --ib-pop-gap: 0.25rem;
   }
 
+  /* Or a box for each part of the time, with room for them on a narrow field. */
+  .ib-popover.ib-popover:has(ib-time-slots .ib-calendar-time) {
+    width: max(17rem, anchor-size(width));
+    padding: var(--ib-space-2);
+    overflow: visible;
+  }
+
+  .ib-time-slots > .ib-calendar-time {
+    margin-top: 0;
+  }
+
   .ib-time-slots-list {
     display: flex;
     flex-direction: column;

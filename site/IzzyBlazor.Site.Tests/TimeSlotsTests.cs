@@ -113,4 +113,34 @@ public sealed class TimeSlotsTests(SiteFixture site) : IClassFixture<SiteFixture
         Assert.Equal(await input.EvaluateAsync<string>(size), await Slot(form, "10:30").EvaluateAsync<string>(size));
         Assert.True(list.Y >= field.Y + field.Height || list.Y + list.Height <= field.Y, $"{list.Y} against {field.Y}");
     }
+
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task Where_a_list_makes_no_sense_it_has_boxes_and_writes_on_ok(string mode)
+    {
+        var browser = await TestBrowser.OpenAsync();
+        await using var _ = browser;
+        var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 1000 }, Locale = "en-US" });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/time-field?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        var field = page.Locator("[data-ex='time-field-states'] .ib-field", new() { HasText = "With seconds" });
+        await field.Locator("ib-time-slots[data-ready]").WaitForAsync(new() { State = WaitForSelectorState.Attached });
+        var input = field.GetByRole(AriaRole.Textbox, new() { Name = "With seconds" });
+        var before = await input.InputValueAsync();
+        var (hour, minute, second) = (field.GetByRole(AriaRole.Spinbutton, new() { Name = "Hour" }), field.GetByRole(AriaRole.Spinbutton, new() { Name = "Minute" }), field.GetByRole(AriaRole.Spinbutton, new() { Name = "Second" }));
+
+        await field.Locator(".ib-date-toggle").ClickAsync();
+        await Assertions.Expect(hour).ToBeFocusedAsync();
+        await second.FillAsync("45");
+        await page.Keyboard.PressAsync("Escape");
+        await Assertions.Expect(input).ToHaveValueAsync(before);
+
+        await field.Locator(".ib-date-toggle").ClickAsync();
+        await second.FillAsync("45");
+        await minute.FillAsync("20");
+        await field.Locator("[data-ib-ok]").ClickAsync();
+
+        await Assertions.Expect(input).ToHaveValueAsync(new System.Text.RegularExpressions.Regex(":20:45$"));
+        await Assertions.Expect(field.Locator(".ib-date-toggle")).ToBeFocusedAsync();
+    }
 }

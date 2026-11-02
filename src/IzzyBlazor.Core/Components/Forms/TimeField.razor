@@ -18,10 +18,11 @@
     does, which the page can't set; the list follows the page's culture.
 
     The list has a time every Step, or every 30 minutes with no Step, in which case the input still
-    takes any minute. UseNative keeps the browser's picker. So do no script, a Step of seconds, one so
-    short the list would pass 288 times, and a phone, unless the field has TimeDisabled, which a
-    browser's picker can't show: there it's the library's, and on a phone the input can't be typed in.
-    Min, Max and TimeDisabled are checked again on the server.
+    takes any minute. With a Step of seconds, or one so short the list would pass 288 times, there's a
+    box for each part of the time and OK instead, and nothing is written until OK. UseNative keeps the
+    browser's picker. So do no script and a phone, unless the field has TimeDisabled, which a browser's
+    picker can't show: there it's the library's, and on a phone the input can't be typed in. Min, Max and
+    TimeDisabled are checked again on the server, and the boxes leave them to that and the browser.
 
     Accessibility:
     - It renders the browser's own time `input` with a `label` linked to it: screen readers read
@@ -29,8 +30,8 @@
     - Label, hint and errors work as in `TextField`.
     - The list's button is named "Choose time" (`ChooseLabel`), or "Change time" and the time once
       there is one. Its panel is a non-modal `dialog`, named by the button, holding a `listbox`, with
-      the chosen time selected. Focus goes there, or to the next time from now, and on closing back
-      to where it opened from.
+      the chosen time selected, or a labelled group of boxes. Focus goes to the chosen time, or the next
+      from now, or the first box, and on closing back to where it opened from.
 
     Keyboard:
     In the time field
@@ -42,6 +43,11 @@
     - Home, End | Go to the first or last time
     - Enter, Space | Choose the time and close
     - Tab, Shift+Tab | Close, and go on from its button
+    - Escape | Close without changing the value
+    In the boxes
+    - Up, Down | Change the hour, minute or second
+    - Enter | Save the time, and close
+    - Tab, Shift+Tab | Move through the boxes and OK, and close past either end
     - Escape | Close without changing the value
     See also: DateField, TextField, Form.
 *@
@@ -82,6 +88,15 @@
                                        data-ib-change="@(ChooseLabel is null ? TextDefaults.TimeChange : null)"
                                        data-ib-choose="@ChooseText">
                             <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                            @if (Slots.Count == 0)
+                            {
+                                @CalendarGrid.TimeBoxes(TextDefaults, CalendarGrid.Gregorian(System.Globalization.CultureInfo.CurrentCulture), Step, ShowsSeconds, focusFirst: true)
+                                <div class="ib-calendar-foot">
+                                    <Button Size="ControlSize.Sm" data-ib-ok>@TextDefaults.Ok</Button>
+                                </div>
+                            }
+                            else
+                            {
                             <div class="ib-time-slots-list" role="listbox" aria-label="@TextDefaults.TimeList">
                                 @foreach (var slot in Slots)
                                 {
@@ -92,6 +107,7 @@
                                             aria-disabled="@(off ? "true" : null)">@slot.ToString("t", System.Globalization.CultureInfo.CurrentCulture)</button>
                                 }
                             </div>
+                            }
                         </ib-time-slots>
                     </ChildContent>
                 </Popover>
@@ -143,7 +159,7 @@
 
     private string ChooseText => ChooseLabel ?? TextDefaults.TimeChoose;
 
-    private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly && !ShowsSeconds && Slots.Count > 0;
+    private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
 
     // A field whose rule a browser's picker can't show keeps the library's on a phone too.
     private string ControlClass => new ClassBuilder()
@@ -153,7 +169,8 @@
         .Build()!;
 
     // From Min, or midnight, every Step to Max, or the end of the day. With Min after Max, across
-    // midnight. None if there would be too many, as the browser's picker serves those better.
+    // midnight. None if there would be too many, or the Step is seconds, as a list of those is too long
+    // to be any use: the panel has a box for each part instead.
     private List<TimeOnly> Slots
     {
         get
@@ -165,7 +182,7 @@
 
             var step = Step ?? TimeSpan.FromMinutes(30);
             var slots = new List<TimeOnly>();
-            if (step >= TimeSpan.FromMinutes(1))
+            if (!ShowsSeconds && step >= TimeSpan.FromMinutes(1))
             {
                 // A list holds whole minutes, so a Min with seconds starts at the next one.
                 var first = TimeSpan.FromMinutes(Math.Ceiling((ResolvedMin ?? TimeOnly.MinValue).ToTimeSpan().TotalMinutes));
