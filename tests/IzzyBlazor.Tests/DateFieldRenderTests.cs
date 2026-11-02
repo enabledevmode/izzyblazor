@@ -44,6 +44,14 @@ public class DateFieldRenderTests : BunitContext
         });
 
     [Fact]
+    public void A_month_or_year_refuses_what_it_cant_hold()
+    {
+        Assert.Throws<InvalidOperationException>(() => DateFor(() => _model.Due, p => p.Add(f => f.Type, DateFieldType.Year)));
+        Assert.Throws<InvalidOperationException>(() => DateFor(() => _model.EndsAt, p => p.Add(f => f.Type, DateFieldType.Month)));
+        Assert.Throws<InvalidOperationException>(() => DateFor(() => _model.Due, p => p.Add(f => f.Type, DateFieldType.Month).Add(f => f.DateDisabled, _ => false)));
+    }
+
+    [Fact]
     public void A_date_renders_a_date_input_with_the_range_from_annotations()
     {
         var input = DateFor(() => _model.Due).Find("input");

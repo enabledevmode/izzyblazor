@@ -22,6 +22,7 @@ const loaders: Record<string, () => Promise<unknown>> = {
   "ib-color-picker": () => import("./elements/color-picker.js"),
   "ib-duration-field": () => import("./elements/duration-field.js"),
   "ib-calendar": () => import("./elements/calendar.js"),
+  "ib-period-grid": () => import("./elements/period-grid.js"),
   "ib-time-slots": () => import("./elements/time-slots.js"),
   "ib-field-clear": () => import("./elements/field-clear.js"),
   "ib-video": () => import("./elements/video.js"),

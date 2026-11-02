@@ -588,6 +588,12 @@ public enum DateFieldType
 
     /// <summary>A date and a time of day.</summary>
     DateTime,
+
+    /// <summary>A month, held as the 1st of it in a <c>DateOnly</c> or <c>DateTime</c>.</summary>
+    Month,
+
+    /// <summary>A year, held in an <c>int</c>.</summary>
+    Year,
 }
 
 /// <summary>A unit with a box in a <see cref="DurationField{TValue}"/>.</summary>

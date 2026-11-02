@@ -452,6 +452,30 @@ public class IzzyText
     /// <summary>That button once both days are set; {0} is both in full.</summary>
     public virtual string CalendarChangeRange { get; set; } = "Change dates, {0}";
 
+    /// <summary>The name of a month picker's button, with no month yet, and what it shows.</summary>
+    public virtual string CalendarChooseMonth { get; set; } = "Choose month";
+
+    /// <summary>The name of a month picker's button, with {0} the month.</summary>
+    public virtual string CalendarChangeMonth { get; set; } = "Change month, {0}";
+
+    /// <summary>The name of a year picker's button, with no year yet.</summary>
+    public virtual string CalendarChooseYear { get; set; } = "Choose year";
+
+    /// <summary>The name of a year picker's button, with {0} the year.</summary>
+    public virtual string CalendarChangeYear { get; set; } = "Change year, {0}";
+
+    /// <summary>The button for the page of months a year before.</summary>
+    public virtual string CalendarPreviousYear { get; set; } = "Previous year";
+
+    /// <summary>The button for the page of months a year after.</summary>
+    public virtual string CalendarNextYear { get; set; } = "Next year";
+
+    /// <summary>The button for the page of years before.</summary>
+    public virtual string CalendarEarlierYears { get; set; } = "Earlier years";
+
+    /// <summary>The button for the page of years after.</summary>
+    public virtual string CalendarLaterYears { get; set; } = "Later years";
+
     /// <summary>A date range's length, under its months; {0} is how many days.</summary>
     public virtual string CalendarDays { get; set; } = "{0} days";
 

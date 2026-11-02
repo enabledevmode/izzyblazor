@@ -27,6 +27,18 @@
     A DateOnly is a date. A DateTime or DateTimeOffset takes a date and time, or only a date with
     Type="DateFieldType.Date" or [DataType(DataType.Date)] on the property (midnight in TimeZone).
 
+    Type="DateFieldType.Month" takes a month, held as the 1st of it in a DateOnly or DateTime, and
+    Type="DateFieldType.Year" a year, held in an int. Each has a page of twelve to choose from. Min
+    and Max compare whole months or years, so a Min of March 15 allows March.
+    <DateField @bind-Value="Model.Expires" Type="DateFieldType.Month" />
+    <DateField @bind-Value="Model.Year" Type="DateFieldType.Year" Min="2000" Max="2030" />
+    On a desktop a month is chosen, not typed, and its button shows it, since browsers other than
+    Chromium's have no month input. A phone and UseNative keep the browser's input, and with no script
+    it's the browser's too, a text box with a pattern where it has none. A year is a number input
+    everywhere, with the page beside it.
+    DateDisabled, DayClass, ShowWeekNumbers, FirstDayOfWeek, Step, TimeZone and a DateTimeOffset
+    throw with these, as they're about days and times.
+
     TimeZone is the zone the entered time is in, UTC unless set. A DateTimeOffset comes back with
     that zone's offset, and a DateTime comes back in UTC; a DateTime that isn't Local is read as
     UTC. On an interactive page its Kind is Utc. After a static post Blazor's form binding sets it,
@@ -45,6 +57,9 @@
     - The calendar's button is named "Choose date" (`ChooseLabel`), or "Change date" and the date
       once there is one. Its panel is a non-modal `dialog`, named by the button, with the month as
       in `Calendar`. Focus goes to the chosen date or today, and on closing back to where it opened from.
+    - A month's button stands in for its input on a desktop, so it's named by the field's label and
+      the month, and takes the hint and errors. A page of months or years is a `grid`, named by its
+      year or its span, with the chosen one's `aria-selected` and this one's `aria-current`.
 
     Keyboard:
     In the date field
@@ -60,25 +75,33 @@
     - Enter, Space | Choose the date and close; with a time, choose the date and stay open
     In the calendar's time
     - Enter | Save the date and time, and close
+    In a page of months or years
+    - Left, Right | Move one (reversed in right-to-left)
+    - Up, Down | Move a row
+    - Home, End | Go to the start or end of the row
+    - Page Up, Page Down | Move twelve: a year of months, or twelve years
+    - Enter, Space | Choose it and close
     In the calendar
     - Tab, Shift+Tab | Move through the header, the days and the buttons, and close past either end
     - Escape | Close without changing the value
     See also: TimeField, TextField, NumberField, Form.
 *@
 
-<FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
+<FieldFrame Class="@WrapperClass("date")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
     <FieldAddons StartAddon="StartAddon" EndAddon="EndAddon">
         <ib-field-control class="@ControlClass" style="@(HasPanel ? $"anchor-name:{StyleValues.AnchorName(FieldId + "-control")}" : null)">
             <input @attributes="ControlAttributes"
                    id="@FieldId"
-                   class="ib-field-input"
-                   type="@(ResolvedType == DateFieldType.Date ? "date" : "datetime-local")"
+                   class="@(IsYear ? "ib-field-input ib-field-number" : "ib-field-input")"
+                   type="@InputType"
                    name="@NameAttributeValue"
                    @bind="CurrentValueAsString"
                    min="@FormatLimit(Min, Range?.Minimum)"
                    max="@FormatLimit(Max, Range?.Maximum)"
                    step="@StepAttribute"
+                   pattern="@(IsMonth ? "[0-9]{4}-[0-9]{2}" : null)"
+                   inputmode="@(IsYear ? "numeric" : null)"
                    required="@IsRequired"
                    disabled="@IsDisabled"
                    readonly="@IsReadOnly"
@@ -94,11 +117,38 @@
             {
                 <Popover Placement="Placement.BottomStart">
                     <Trigger Context="trigger">
-                        <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
-                            <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
-                        </button>
+                        @if (IsMonth)
+                        {
+                            @* The input is out of sight under this, so it's named with the field's label, and takes the hint and errors. *@
+                            <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText"
+                                    aria-labelledby="@(string.IsNullOrEmpty(ResolvedLabel) ? null : $"{LabelId} {trigger["id"]}")"
+                                    aria-describedby="@DescribedBy">
+                                <span class="ib-date-text" data-ib-empty="@(FormatValueAsString(CurrentValue) is null ? "" : null)">@MonthText</span>
+                                <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                            </button>
+                        }
+                        else
+                        {
+                            <button @attributes="trigger" type="button" class="ib-date-toggle" aria-label="@ChooseText">
+                                <Icon Role="IconRole.Calendar" Class="ib-field-icon" />
+                            </button>
+                        }
                     </Trigger>
                     <ChildContent>
+                        @if (IsPeriod)
+                        {
+                            <ib-period-grid class="ib-calendar"
+                                            @attributes="@PeriodAttributes(IsYear, Format(CurrentValue), FormatLimit(Min, Range?.Minimum), FormatLimit(Max, Range?.Maximum))"
+                                            data-ib-change="@(ChooseLabel is null ? (IsYear ? TextDefaults.CalendarChangeYear : TextDefaults.CalendarChangeMonth) : null)"
+                                            data-ib-choose="@ChooseText">
+                                <div class="ib-calendar-view">
+                                    <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                                    @CalendarGrid.Period(DrawnPeriod(IsYear, Number(Format(CurrentValue)), Number(FormatLimit(Min, Range?.Minimum)), Number(FormatLimit(Max, Range?.Maximum))), null)
+                                </div>
+                            </ib-period-grid>
+                        }
+                        else
+                        {
                         <ib-calendar class="ib-calendar"
                                      @attributes="CalendarAttributes"
                                      data-ib-change="@(ChooseLabel is null ? TextDefaults.CalendarChange : null)"
@@ -119,6 +169,7 @@
                                 }
                             </div>
                         </ib-calendar>
+                        }
                     </ChildContent>
                 </Popover>
             }
@@ -134,8 +185,9 @@
     protected override bool OwnReadOnly => ReadOnly;
 
     /// <summary>
-    /// A date, or a date and time. Defaults to a date for <c>DateOnly</c> and for a property with
-    /// <c>[DataType(DataType.Date)]</c>; otherwise a date and time. A <c>DateOnly</c> can't take a time.
+    /// A date, or a date and time, a month or a year. Defaults to a date for <c>DateOnly</c> and for a
+    /// property with <c>[DataType(DataType.Date)]</c>; otherwise a date and time. A <c>DateOnly</c> can't
+    /// take a time. A month is the 1st of it, in a <c>DateOnly</c> or <c>DateTime</c>; a year is an <c>int</c>.
     /// </summary>
     [Parameter] public DateFieldType? Type { get; set; }
 
@@ -189,14 +241,50 @@
     // Nothing to choose from on a field that can't change.
     private bool HasPanel => !UseNative && !IsDisabled && !IsReadOnly;
 
-    private string ChooseText => ChooseLabel ?? TextDefaults.CalendarChoose;
+    private string ChooseText => ChooseLabel ?? (IsYear ? TextDefaults.CalendarChooseYear : IsMonth ? TextDefaults.CalendarChooseMonth : TextDefaults.CalendarChoose);
 
     // A field whose rules a browser's calendar can't show keeps the library's on a phone too.
     private string ControlClass => new ClassBuilder()
         .Add("ib-field-control")
         .Add("ib-date-control", HasPanel)
+        .Add("ib-date-month", HasPanel && IsMonth)
         .Add("ib-date-own", HasPanel && DateDisabled is not null)
         .Build()!;
+
+    private bool IsMonth => ResolvedType == DateFieldType.Month;
+
+    private bool IsYear => ResolvedType == DateFieldType.Year;
+
+    private bool IsPeriod => IsMonth || IsYear;
+
+    private string InputType => ResolvedType switch
+    {
+        DateFieldType.Date => "date",
+        DateFieldType.Month => "month",
+        DateFieldType.Year => "number",
+        _ => "datetime-local",
+    };
+
+    // The month the button shows until the script writes the same from the input.
+    private string MonthText => Number(Format(CurrentValue)) is { } month
+        ? new DateOnly(month / 12, (month % 12) + 1, 1).ToString("Y", ResolvedCulture)
+        : ChooseText;
+
+    // The number the script counts in: a year, or a month as year * 12 + month. None for the
+    // default of a value that can't be empty, which is no choice.
+    private int? Number(string? text)
+    {
+        if (text is null)
+        {
+            return null;
+        }
+
+        var parts = text.Split('-');
+        var year = int.Parse(parts[0], System.Globalization.CultureInfo.InvariantCulture);
+        return IsYear ? year
+            : text == "0001-01" ? null
+            : (year * 12) + int.Parse(parts[1], System.Globalization.CultureInfo.InvariantCulture) - 1;
+    }
 
     private static DateOnly? DayOf(string? text) =>
         text is null ? null : DateOnly.ParseExact(text.AsSpan(0, 10), "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
@@ -206,13 +294,13 @@
 
     /// <inheritdoc />
     private protected override DateOnly? ChosenDay =>
-        CurrentValue is DateOnly date && date == default ? null : DayOf(Format(CurrentValue));
+        IsPeriod || (CurrentValue is DateOnly date && date == default) ? null : DayOf(Format(CurrentValue));
 
     /// <inheritdoc />
-    private protected override DateOnly? FirstDay => DayOf(FormatLimit(Min, Range?.Minimum));
+    private protected override DateOnly? FirstDay => IsPeriod ? null : DayOf(FormatLimit(Min, Range?.Minimum));
 
     /// <inheritdoc />
-    private protected override DateOnly? LastDay => DayOf(FormatLimit(Max, Range?.Maximum));
+    private protected override DateOnly? LastDay => IsPeriod ? null : DayOf(FormatLimit(Max, Range?.Maximum));
 
     private DateFieldType ResolvedType => Type
         ?? (IsDateOnly || Attribute<System.ComponentModel.DataAnnotations.DataTypeAttribute>()?.DataType == System.ComponentModel.DataAnnotations.DataType.Date
@@ -242,7 +330,14 @@
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if (Underlying != typeof(DateOnly) && Underlying != typeof(DateTime) && Underlying != typeof(DateTimeOffset))
+        if (Underlying == typeof(int) != (Type == DateFieldType.Year))
+        {
+            throw new InvalidOperationException(Type == DateFieldType.Year
+                ? $"A DateField with a Type of Year holds a year, so bind it to int or int?, not {typeof(TValue)}."
+                : "A DateField bound to an int holds a year, so it needs Type=\"DateFieldType.Year\".");
+        }
+
+        if (Underlying != typeof(int) && Underlying != typeof(DateOnly) && Underlying != typeof(DateTime) && Underlying != typeof(DateTimeOffset))
         {
             throw new InvalidOperationException($"DateField doesn't support {typeof(TValue)}. Bind it to DateOnly, DateTime or DateTimeOffset, or a nullable one.");
         }
@@ -250,6 +345,20 @@
         if (IsDateOnly && Type == DateFieldType.DateTime)
         {
             throw new InvalidOperationException("A DateField bound to DateOnly can't take a time. Bind it to DateTime or DateTimeOffset for a date and time.");
+        }
+
+        if (Type == DateFieldType.Month && IsOffset)
+        {
+            throw new InvalidOperationException("A DateField with a Type of Month holds the 1st of the month, so bind it to DateOnly or DateTime: a DateTimeOffset's moment would need a time and zone it doesn't have.");
+        }
+
+        if (Type is DateFieldType.Month or DateFieldType.Year)
+        {
+            RefuseDayOptions(Type.Value);
+            if (Step is not null || TimeZone is not null)
+            {
+                throw new InvalidOperationException($"{(Step is not null ? nameof(Step) : nameof(TimeZone))} is about days and times, so it can't go with a Type of {Type}.");
+            }
         }
 
         base.OnParametersSet();
@@ -268,13 +377,13 @@
     {
         var (shown, min, max) = (Format(value), FormatLimit(Min, null), FormatLimit(Max, null));
         var culture = System.Globalization.CultureInfo.CurrentCulture;
-        string Said(string limit) => DateTime.TryParse(limit, System.Globalization.CultureInfo.InvariantCulture, out var at)
-            ? at.ToString(ResolvedType == DateFieldType.Date ? "d" : "g", culture)
+        string Said(string limit) => !IsYear && DateTime.TryParse(limit, System.Globalization.CultureInfo.InvariantCulture, out var at)
+            ? at.ToString(IsMonth ? "Y" : ResolvedType == DateFieldType.Date ? "d" : "g", culture)
             : limit;
         return shown is null ? null
             : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(min))
             : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(max))
-            : DayOf(shown) is { } day && DateDisabled?.Invoke(day) == true ? string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(shown))
+            : DateDisabled is not null && DayOf(shown) is { } day && DateDisabled(day) ? string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(shown))
             : null;
     }
 
@@ -297,6 +406,11 @@
     // The input's text: the value's date, or its date and time in Zone, as the browser writes them.
     private string? Format(object? value)
     {
+        if (value is int year)
+        {
+            return year == 0 ? null : year.ToString("D4", System.Globalization.CultureInfo.InvariantCulture);
+        }
+
         DateTime? wall = value switch
         {
             DateOnly date => date.ToDateTime(TimeOnly.MinValue),
@@ -308,7 +422,7 @@
         };
 
         return wall?.ToString(
-            ResolvedType == DateFieldType.Date ? "yyyy-MM-dd" : ShowsSeconds ? "yyyy-MM-dd'T'HH:mm:ss" : "yyyy-MM-dd'T'HH:mm",
+            IsMonth ? "yyyy-MM" : ResolvedType == DateFieldType.Date ? "yyyy-MM-dd" : ShowsSeconds ? "yyyy-MM-dd'T'HH:mm:ss" : "yyyy-MM-dd'T'HH:mm",
             System.Globalization.CultureInfo.InvariantCulture);
     }
 
@@ -336,12 +450,27 @@
             return Nullable.GetUnderlyingType(typeof(TValue)) is not null;
         }
 
+        if (IsYear)
+        {
+            if (!int.TryParse(text.Trim(), System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var year) || year is < 1 or > 9999)
+            {
+                return false;
+            }
+
+            result = (TValue)(object)year;
+            return true;
+        }
+
         if (!DateTime.TryParseExact(text.Trim(), InputFormats, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var wall))
         {
             return false;
         }
 
-        if (ResolvedType == DateFieldType.Date)
+        if (IsMonth)
+        {
+            wall = new DateTime(wall.Year, wall.Month, 1);
+        }
+        else if (ResolvedType == DateFieldType.Date)
         {
             wall = wall.Date;
         }
@@ -365,6 +494,6 @@
     // What date and datetime-local inputs post.
     private static readonly string[] InputFormats =
     [
-        "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF",
+        "yyyy-MM", "yyyy-MM-dd", "yyyy-MM-dd'T'HH:mm", "yyyy-MM-dd'T'HH:mm:ss", "yyyy-MM-dd'T'HH:mm:ss.FFFFFFF",
     ];
 }

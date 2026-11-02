@@ -2623,8 +2623,9 @@
   }
 
   @media (scripting: enabled) {
-    ib-calendar:not([data-ib-failed]) > .ib-calendar-text,
-    ib-calendar:not([data-ib-failed], .ib-calendar-range) .ib-calendar-month {
+    :is(ib-calendar, ib-period-grid):not([data-ib-failed]) > .ib-calendar-text,
+    ib-calendar:not([data-ib-failed], .ib-calendar-range) .ib-calendar-month,
+    ib-period-grid[data-ib-unit="month"]:not([data-ib-failed]) .ib-calendar-month {
       position: absolute;
       width: 1px;
       height: 1px;
@@ -2640,7 +2641,7 @@
     }
   }
 
-  ib-calendar[data-ib-failed] :is(.ib-calendar-nav, .ib-calendar-selects) {
+  :is(ib-calendar, ib-period-grid)[data-ib-failed] :is(.ib-calendar-nav, .ib-calendar-selects) {
     display: none;
   }
 
@@ -2691,13 +2692,70 @@
     display: none;
   }
 
+  .ib-date-text {
+    display: none;
+  }
+
   @media not (pointer: coarse) {
-    .ib-date-control:has(:is(ib-calendar, ib-time-slots)[data-ready]) .ib-date-toggle {
+    .ib-date-control:has(:is(ib-calendar, ib-time-slots, ib-period-grid)[data-ready]) .ib-date-toggle {
       display: inline-flex;
     }
 
-    .ib-date-control:has(:is(ib-calendar, ib-time-slots)[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
+    .ib-date-control:has(:is(ib-calendar, ib-time-slots, ib-period-grid)[data-ready]) > .ib-field-input::-webkit-calendar-picker-indicator {
       display: none;
+    }
+
+    /* A month's button is the whole field, as most browsers have no month input to show. The input
+       stays under it with its text hidden, as it draws the field's box. */
+    .ib-date-month:has(ib-period-grid[data-ready]) > .ib-field-input {
+      background-color: var(--ib-field-bg);
+      color: transparent;
+    }
+
+    :not(.ib-field-invalid) > .ib-date-month:not(:has(:focus-visible)):hover > .ib-field-input:not(:user-invalid) {
+      border-color: color-mix(in oklab, var(--ib-color-outline) 55%, var(--ib-color-on-surface));
+    }
+
+    .ib-date-month:has(.ib-date-toggle:focus-visible) > .ib-field-input {
+      border-color: var(--ib-color-focus, var(--ib-color-primary));
+      box-shadow: 0 0 0 3px var(--ib-color-halo, light-dark(color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 22%, transparent), color-mix(in oklab, var(--ib-color-focus, var(--ib-color-primary)) 35%, transparent)));
+    }
+
+    .ib-date-month .ib-date-toggle:focus-visible {
+      outline: none;
+    }
+
+    .ib-date-month:has(ib-period-grid[data-ready]) > .ib-field-input::-webkit-datetime-edit {
+      visibility: hidden;
+    }
+
+    .ib-date-month:has(ib-period-grid[data-ready]) > ib-popover {
+      inset-inline: 0;
+    }
+
+    .ib-date-month:has(ib-period-grid[data-ready]) .ib-date-toggle {
+      flex: 1;
+      align-items: center;
+      justify-content: space-between;
+      height: 100%;
+      padding-inline: var(--ib-field-px);
+      background: none;
+      color: var(--ib-color-subtle);
+      font: inherit;
+      text-align: start;
+    }
+
+    .ib-date-month:has(ib-period-grid[data-ready]) .ib-date-text {
+      display: inline;
+      color: var(--ib-color-on-surface);
+    }
+
+    .ib-date-month .ib-date-text[data-ib-empty] {
+      color: var(--ib-color-subtle);
+    }
+
+    .ib-date-month > .ib-field-clear {
+      z-index: 1;
     }
   }
 

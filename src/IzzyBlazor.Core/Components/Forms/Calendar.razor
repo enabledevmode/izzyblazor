@@ -9,6 +9,11 @@
     <Calendar @bind-Value="Model.Day" />
     <Calendar @bind-Value="Model.Day" Min="@today" Max="@lastDay" ShowWeekNumbers />
 
+    Type="DateFieldType.Month" is a page of months, holding the 1st of one, and
+    Type="DateFieldType.Year" a page of years, holding an int. DateDisabled, DayClass, ShowWeekNumbers
+    and FirstDayOfWeek throw with these, as they're about days.
+    <Calendar @bind-Value="Model.Starts" Type="DateFieldType.Month" />
+
     Names and the first day of the week follow the page's culture, or Culture. It's always the
     Gregorian calendar, which is what a date input posts. A browser's date input carries the value,
     so it posts with the form on a static page and binds on an interactive one. Min and Max stop the
@@ -43,77 +48,170 @@
     - Page Up, Page Down | Move a month, keeping the day number or the month's last day
     - Shift+Page Up, Shift+Page Down | Move a year
     - Enter, Space | Choose the date
+    In a page of months or years
+    - Left, Right | Move one (reversed in right-to-left)
+    - Up, Down | Move a row
+    - Home, End | Go to the start or end of the row
+    - Page Up, Page Down | Move twelve: a year of months, or twelve years
+    - Enter, Space | Choose it
     See also: DateField, TimeField, Form.
 *@
 
 <FieldFrame Class="@WrapperClass("calendar")" Style="@WrapperStyle" Id="@FieldId" LabelId="@LabelId" Label="@ResolvedLabel" HideLabel="HideLabel" Required="IsRequired"
             Hint="@Hint" HintId="@HintId" Errors="Errors" ErrorId="@ErrorId">
-    <ib-calendar class="ib-calendar"
-                 @attributes="CalendarAttributes"
-                 data-ib-disabled="@(IsDisabled ? "" : null)"
-                 data-ib-readonly="@(IsReadOnly ? "" : null)">
-        <ib-field-control class="ib-field-control ib-calendar-text">
-            <input @attributes="ControlAttributes"
-                   id="@FieldId"
-                   class="ib-field-input"
-                   type="@InputType"
-                   name="@NameAttributeValue"
-                   @bind="CurrentValueAsString"
-                   min="@FormatDate(ResolvedMin)"
-                   max="@FormatDate(ResolvedMax)"
-                   required="@IsRequired"
-                   disabled="@IsDisabled"
-                   readonly="@IsReadOnly"
-                   aria-invalid="@(Invalid ? "true" : null)"
-                   aria-describedby="@DescribedBy" />
-        </ib-field-control>
-        <div class="ib-calendar-view">
-            <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
-            @CalendarGrid.Month(Drawn, DescribedBy)
-        </div>
-    </ib-calendar>
+    @if (IsPeriod)
+    {
+        <ib-period-grid class="ib-calendar"
+                        @attributes="@PeriodAttributes(IsYear, Number(CurrentValue), Number(LimitOf(Min, Range?.Minimum)), Number(LimitOf(Max, Range?.Maximum)))"
+                        data-ib-disabled="@(IsDisabled ? "" : null)"
+                        data-ib-readonly="@(IsReadOnly ? "" : null)">
+            @TextInput
+            <div class="ib-calendar-view">
+                <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                @CalendarGrid.Period(DrawnPeriod(IsYear, Count(CurrentValue), Count(LimitOf(Min, Range?.Minimum)), Count(LimitOf(Max, Range?.Maximum))), DescribedBy)
+            </div>
+        </ib-period-grid>
+    }
+    else
+    {
+        <ib-calendar class="ib-calendar"
+                     @attributes="CalendarAttributes"
+                     data-ib-disabled="@(IsDisabled ? "" : null)"
+                     data-ib-readonly="@(IsReadOnly ? "" : null)">
+            @TextInput
+            <div class="ib-calendar-view">
+                <link rel="stylesheet" href="@Assets["_content/IzzyBlazor.Core/date.css"]" />
+                @CalendarGrid.Month(Drawn, DescribedBy)
+            </div>
+        </ib-calendar>
+    }
 </FieldFrame>
 
 @code {
+    private RenderFragment TextInput => @<ib-field-control class="ib-field-control ib-calendar-text">
+        <input @attributes="ControlAttributes"
+               id="@FieldId"
+               class="ib-field-input"
+               type="@InputType"
+               name="@NameAttributeValue"
+               @bind="CurrentValueAsString"
+               min="@MinText"
+               max="@MaxText"
+               required="@IsRequired"
+               disabled="@IsDisabled"
+               readonly="@IsReadOnly"
+               aria-invalid="@(Invalid ? "true" : null)"
+               aria-describedby="@DescribedBy" />
+    </ib-field-control>;
+
     /// <summary>Makes the field read-only: it can be focused, and it still posts.</summary>
     [Parameter] public bool ReadOnly { get; set; }
 
     /// <inheritdoc />
     protected override bool OwnReadOnly => ReadOnly;
 
-    /// <summary>The earliest date. Defaults to <c>[Range]</c>'s minimum.</summary>
-    [Parameter] public DateOnly? Min { get; set; }
+    /// <summary>
+    /// A date, a month or a year. Defaults to a date. A month is the 1st of it in a <c>DateOnly</c>, and
+    /// a year is an <c>int</c>.
+    /// </summary>
+    [Parameter] public DateFieldType? Type { get; set; }
 
-    /// <summary>The latest date. Defaults to <c>[Range]</c>'s maximum.</summary>
-    [Parameter] public DateOnly? Max { get; set; }
+    /// <summary>The earliest value. Defaults to <c>[Range]</c>'s minimum; the type's default value means none.</summary>
+    [Parameter] public TValue? Min { get; set; }
 
-    // Not written in the markup: there, Razor makes @bind format a date, and it binds text.
-    private const string InputType = "date";
+    /// <summary>The latest value. Defaults to <c>[Range]</c>'s maximum; the type's default value means none.</summary>
+    [Parameter] public TValue? Max { get; set; }
+
+    private static readonly IFormatProvider Fixed = System.Globalization.CultureInfo.InvariantCulture;
+
+    private static readonly Type Underlying = Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue);
+
+    private bool IsMonth => Type == DateFieldType.Month;
+
+    private bool IsYear => Type == DateFieldType.Year;
+
+    private bool IsPeriod => IsMonth || IsYear;
+
+    private string InputType => IsYear ? "number" : IsMonth ? "month" : "date";
 
     private System.ComponentModel.DataAnnotations.RangeAttribute? Range =>
         Attribute<System.ComponentModel.DataAnnotations.RangeAttribute>();
 
-    private DateOnly? ResolvedMin => Min ?? Annotated(Range?.Minimum);
+    // A bound value, or a [Range]'s end: none for the type's default.
+    private static object? LimitOf(TValue? limit, object? annotated) =>
+        limit is not null && !EqualityComparer<TValue>.Default.Equals(limit, default) ? limit : annotated;
 
-    private DateOnly? ResolvedMax => Max ?? Annotated(Range?.Maximum);
+    private static DateOnly? DateOf(object? value) => value switch
+    {
+        DateOnly date when date != default => date,
+        // Text from Range(typeof(DateOnly), "2027-01-01", "2027-12-31").
+        string text when DateOnly.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var date) => date,
+        _ => null,
+    };
 
-    private DateOnly? Chosen => CurrentValue is DateOnly date && date != default ? date : null;
+    private DateOnly? ResolvedMin => DateOf(LimitOf(Min, Range?.Minimum));
+
+    private DateOnly? ResolvedMax => DateOf(LimitOf(Max, Range?.Maximum));
+
+    private DateOnly? Chosen => DateOf(CurrentValue);
+
+    // The input's text for a month or a year.
+    private string? Number(object? value) => value switch
+    {
+        int year => year == 0 ? null : year.ToString("D4", Fixed),
+        string text when IsYear => text,
+        _ => DateOf(value)?.ToString("yyyy-MM", Fixed),
+    };
+
+    // The number the script counts in: a year, or a month as year * 12 + month.
+    private int? Count(object? value)
+    {
+        if (Number(value) is not { } text)
+        {
+            return null;
+        }
+
+        var parts = text.Split('-');
+        var year = int.Parse(parts[0], Fixed);
+        return IsYear ? year : (year * 12) + int.Parse(parts[1], Fixed) - 1;
+    }
+
+    private string? MinText => IsPeriod ? Number(LimitOf(Min, Range?.Minimum)) : FormatDate(ResolvedMin);
+
+    private string? MaxText => IsPeriod ? Number(LimitOf(Max, Range?.Maximum)) : FormatDate(ResolvedMax);
 
     /// <inheritdoc />
-    private protected override DateOnly? ChosenDay => Chosen;
+    private protected override DateOnly? ChosenDay => IsPeriod ? null : Chosen;
 
     /// <inheritdoc />
-    private protected override DateOnly? FirstDay => ResolvedMin;
+    private protected override DateOnly? FirstDay => IsPeriod ? null : ResolvedMin;
 
     /// <inheritdoc />
-    private protected override DateOnly? LastDay => ResolvedMax;
+    private protected override DateOnly? LastDay => IsPeriod ? null : ResolvedMax;
 
     /// <inheritdoc />
     protected override void OnParametersSet()
     {
-        if ((Nullable.GetUnderlyingType(typeof(TValue)) ?? typeof(TValue)) != typeof(DateOnly))
+        if (Type == DateFieldType.DateTime)
+        {
+            throw new InvalidOperationException("A Calendar can't take a time. Use a DateField for a date and time.");
+        }
+
+        if (IsYear != (Underlying == typeof(int)))
+        {
+            throw new InvalidOperationException(IsYear
+                ? $"A Calendar with a Type of Year holds a year, so bind it to int or int?, not {typeof(TValue)}."
+                : "A Calendar bound to an int holds a year, so it needs Type=\"DateFieldType.Year\".");
+        }
+
+        if (!IsYear && Underlying != typeof(DateOnly))
         {
             throw new InvalidOperationException($"Calendar doesn't support {typeof(TValue)}. Bind it to DateOnly or DateOnly?.");
+        }
+
+        if (IsPeriod)
+        {
+            RefuseDayOptions(Type!.Value);
         }
 
         base.OnParametersSet();
@@ -121,22 +219,34 @@
     }
 
     /// <inheritdoc />
-    private protected override bool HasOwnRules => Min is not null || Max is not null || DateDisabled is not null;
+    private protected override bool HasOwnRules => LimitOf(Min, null) is not null || LimitOf(Max, null) is not null || DateDisabled is not null;
 
     /// <inheritdoc />
     private protected override string? OwnRuleError(TValue value)
     {
-        var date = (DateOnly)(object)value!;
         var culture = System.Globalization.CultureInfo.CurrentCulture;
+        if (IsPeriod)
+        {
+            // Fixed-width text sorts as the months and years do.
+            var (shown, min, max) = (Number(value), Number(LimitOf(Min, null)), Number(LimitOf(Max, null)));
+            string Named(string text) => IsYear ? text : DateOnly.Parse(text, Fixed).ToString("Y", CalendarGrid.Gregorian(culture));
+            return shown is null ? null
+                : min is not null && string.CompareOrdinal(shown, min) < 0 ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Named(min))
+                : max is not null && string.CompareOrdinal(shown, max) > 0 ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Named(max))
+                : null;
+        }
+
+        var date = (DateOnly)(object)value!;
         string Said(DateOnly limit) => limit.ToString("d", CalendarGrid.Gregorian(culture));
-        return date < Min ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(Min.Value))
-            : date > Max ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(Max.Value))
+        return DateOf(LimitOf(Min, null)) is { } earliest && date < earliest ? string.Format(culture, TextDefaults.TooEarly, ResolvedLabel, Said(earliest))
+            : DateOf(LimitOf(Max, null)) is { } latest && date > latest ? string.Format(culture, TextDefaults.TooLate, ResolvedLabel, Said(latest))
             : DateDisabled?.Invoke(date) == true ? string.Format(culture, TextDefaults.DateUnavailable, ResolvedLabel, Said(date))
             : null;
     }
 
     /// <inheritdoc />
-    protected override string? FormatValueAsString(TValue? value) => value is DateOnly date ? FormatDate(date) : null;
+    protected override string? FormatValueAsString(TValue? value) =>
+        IsPeriod ? Number(value) : value is DateOnly date ? FormatDate(date) : null;
 
     /// <inheritdoc />
     protected override bool TryParseValueFromString(string? value, [System.Diagnostics.CodeAnalysis.MaybeNullWhen(false)] out TValue result, [System.Diagnostics.CodeAnalysis.NotNullWhen(false)] out string? validationErrorMessage)
@@ -150,9 +260,17 @@
                 return true;
             }
         }
-        else if (DateOnly.TryParseExact(value.Trim(), InputFormat, System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.None, out var date))
+        else if (IsYear)
         {
-            result = (TValue)(object)date;
+            if (int.TryParse(value.Trim(), System.Globalization.NumberStyles.None, Fixed, out var year) && year is >= 1 and <= 9999)
+            {
+                result = (TValue)(object)year;
+                return true;
+            }
+        }
+        else if (DateOnly.TryParseExact(value.Trim(), InputFormats, Fixed, System.Globalization.DateTimeStyles.None, out var date))
+        {
+            result = (TValue)(object)(IsMonth ? new DateOnly(date.Year, date.Month, 1) : date);
             return true;
         }
 
@@ -160,14 +278,6 @@
         return false;
     }
 
-    // [Range]'s end: text from Range(typeof(DateOnly), "2027-01-01", "2027-12-31").
-    private static DateOnly? Annotated(object? end) => end switch
-    {
-        DateOnly date => date,
-        string text when DateOnly.TryParse(text, System.Globalization.CultureInfo.InvariantCulture, out var date) => date,
-        _ => null,
-    };
-
-    // What date inputs post.
-    private const string InputFormat = "yyyy-MM-dd";
+    // What date and month inputs post.
+    private static readonly string[] InputFormats = ["yyyy-MM-dd", "yyyy-MM"];
 }
