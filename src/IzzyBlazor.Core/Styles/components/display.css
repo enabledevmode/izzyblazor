@@ -11,12 +11,11 @@
     min-width: calc(round(nearest, 1.5em, 2px) + 2px);
     padding-inline: 0.375em;
     padding-inline: round(nearest, 0.375em, 1px);
-    /* Ink, the page's own text color and background swapped. The border shows where a forced-colors
-       mode takes the fill away. */
-    border: 1px solid transparent;
+    /* A soft fill over whatever it's on. The border sets it apart from inline code. */
+    border: 1px solid var(--ib-color-border);
     border-radius: var(--ib-radius-sm);
-    background-color: var(--ib-color-on-surface);
-    color: var(--ib-color-surface);
+    background-color: color-mix(in oklab, var(--ib-color-on-surface) 8%, transparent);
+    color: var(--ib-color-on-surface);
     font-family: var(--ib-font-mono);
     font-size: 0.875em;
     font-weight: var(--ib-weight-medium);
