@@ -16,6 +16,8 @@ public sealed class EditableOrder
 
     public OrderStatus Status { get; set; }
 
+    public int Quantity { get; set; } = 1;
+
     [Range(0, 1_000_000)]
     public decimal Total { get; set; }
 
@@ -40,7 +42,9 @@ public static class EditableOrders
             return Fresh();
         }
 
-        if (!http.Request.Cookies.TryGetValue(Cookie, out var visitor) || visitor.Length > 40)
+        // Several examples on one page ask during the same request.
+        var visitor = http.Items[Cookie] as string;
+        if (visitor is null && (!http.Request.Cookies.TryGetValue(Cookie, out visitor) || visitor.Length > 40))
         {
             // Only a save needs to find these again; no cookie for someone who only reads the page.
             if (!HttpMethods.IsPost(http.Request.Method) || http.Response.HasStarted)
@@ -49,6 +53,7 @@ public static class EditableOrders
             }
 
             visitor = Guid.NewGuid().ToString("N");
+            http.Items[Cookie] = visitor;
             http.Response.Cookies.Append(Cookie, visitor, new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.Lax, MaxAge = TimeSpan.FromHours(1), Secure = http.Request.IsHttps });
         }
 

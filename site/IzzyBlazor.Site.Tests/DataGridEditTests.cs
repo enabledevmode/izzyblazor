@@ -93,6 +93,63 @@ public sealed class DataGridEditTests(SiteFixture site) : IClassFixture<SiteFixt
         Assert.Equal(0, await dialog.GetByRole(AriaRole.Button, new() { Name = "Delete" }).CountAsync());
     }
 
+    [Theory]
+    [InlineData("static")]
+    [InlineData("interactive")]
+    public async Task A_layout_places_each_field_once_and_the_rest_after_it(string mode)
+    {
+        var (browser, page) = await OpenAsync(mode);
+        await using var _ = browser;
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders in sections'])");
+        var rows = grid.Locator(".ib-table-scroll tbody tr");
+        await rows.First.Locator("[aria-label^='Edit']").ClickAsync();
+        var dialog = grid.Locator("dialog[open]");
+        await Assertions.Expect(dialog.Locator("input[name='ib-edit.Customer']")).ToHaveCountAsync(1);
+        await Assertions.Expect(dialog.Locator("textarea[name='ib-edit.Notes']")).ToHaveCountAsync(1);
+        await dialog.Locator("input[name='ib-edit.Customer']").FillAsync("Sectioned");
+        await dialog.GetByRole(AriaRole.Radio, new() { Name = "Refunded" }).CheckAsync(new() { Force = true });
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        await Assertions.Expect(rows.First).ToContainTextAsync("Sectioned");
+        await Assertions.Expect(rows.First).ToContainTextAsync("Refunded");
+    }
+
+    // 99999999999 passes a number input's check, and doesn't fit an int: Blazor would save 0, with no error.
+    [Fact]
+    public async Task A_form_of_your_own_refuses_a_number_that_wont_fit_and_saves_one_that_will()
+    {
+        var (browser, page) = await OpenAsync("static");
+        await using var _ = browser;
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders with your form'])");
+        var rows = grid.Locator(".ib-table-scroll tbody tr");
+        await rows.First.Locator("[aria-label^='Edit']").ClickAsync();
+        var dialog = grid.Locator("dialog[open]");
+        await dialog.GetByLabel("Quantity").FillAsync("99999999999");
+        await dialog.Locator("input[name$='Quantity']").EvaluateAsync("i => i.form.noValidate = true");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(dialog.Locator(".ib-form-errors")).ToContainTextAsync("not valid");
+
+        await dialog.GetByLabel("Quantity").FillAsync("7");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        await Assertions.Expect(rows.First).ToContainTextAsync("7");
+    }
+
+    [Fact]
+    public async Task A_form_of_your_own_closes_after_saving_on_an_interactive_page()
+    {
+        var (browser, page) = await OpenAsync("interactive");
+        await using var _ = browser;
+        var grid = page.Locator(".ib-datagrid:has(.ib-table-scroll[aria-label='Orders with your form'])");
+        var rows = grid.Locator(".ib-table-scroll tbody tr");
+        await rows.First.Locator("[aria-label^='Edit']").ClickAsync();
+        var dialog = grid.Locator("dialog[open]");
+        await dialog.GetByLabel("Quantity").FillAsync("7");
+        await dialog.GetByRole(AriaRole.Button, new() { Name = "Save" }).ClickAsync();
+        await Assertions.Expect(dialog).ToHaveCountAsync(0);
+        await Assertions.Expect(rows.First).ToContainTextAsync("7");
+    }
+
     [Fact]
     public async Task An_error_from_the_save_stays_on_its_field()
     {

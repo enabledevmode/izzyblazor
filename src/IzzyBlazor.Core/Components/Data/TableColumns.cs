@@ -125,6 +125,21 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// </summary>
     [Parameter] public bool? Editable { get; set; }
 
+    /// <summary>The field's label in the editor, if not the column's title.</summary>
+    [Parameter] public string? EditLabel { get; set; }
+
+    /// <summary>The field's hint in the editor.</summary>
+    [Parameter] public string? EditHint { get; set; }
+
+    /// <summary>The columns the field spans in a dialog with <c>EditFormColumns</c>, such as <c>GridSpan.Full</c>.</summary>
+    [Parameter] public Responsive<int> EditColSpan { get; set; }
+
+    /// <summary>
+    /// Your own field for the column, in place of the one for its type. Bind it to <c>context.Item</c>,
+    /// and pass <c>context.Attributes</c>: <c>&lt;Select @bind-Value="context.Item.OwnerId" Items="owners" @attributes="context.Attributes" /&gt;</c>.
+    /// </summary>
+    [Parameter] public RenderFragment<DataGridEditField<TItem>>? EditTemplate { get; set; }
+
     /// <summary>A class for this column's cells and header.</summary>
     [Parameter] public string? Class { get; set; }
 
@@ -186,7 +201,15 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     internal bool IsEditable => Editable ?? (Visible && EditableByDefault);
 
     /// <summary>Whether it's editable when <see cref="Editable"/> isn't set.</summary>
-    internal virtual bool EditableByDefault => false;
+    internal bool EditableByDefault =>
+        EditProblem is null
+        && EditProperty is { } property
+        && property.GetCustomAttribute<KeyAttribute>() is null
+        && property.GetCustomAttribute<EditableAttribute>() is not { AllowEdit: false }
+        && property.GetCustomAttribute<System.ComponentModel.ReadOnlyAttribute>() is not { IsReadOnly: true };
+
+    /// <summary>Its name in an <c>EditField</c>.</summary>
+    internal string? EditKey => Key ?? EditProperty?.Name.ToLowerInvariant();
 
     /// <summary>The property a save writes.</summary>
     internal virtual PropertyInfo? EditProperty => null;
@@ -195,7 +218,26 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     protected virtual string? EditProblem => $"The \"{HeaderText}\" column can't be edited: only a PropertyColumn can, for now.";
 
     /// <summary>The field that edits this column on <paramref name="model"/>, posting under <paramref name="name"/>.</summary>
-    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus) => _ => { };
+    internal virtual RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus) => builder =>
+    {
+        var attributes = new Dictionary<string, object> { ["name"] = name, ["Label"] = EditLabel ?? HeaderText };
+        if (EditHint is not null)
+        {
+            attributes["Hint"] = EditHint;
+        }
+
+        if (!EditColSpan.IsEmpty)
+        {
+            attributes["ColSpan"] = EditColSpan;
+        }
+
+        if (autofocus())
+        {
+            attributes["autofocus"] = true;
+        }
+
+        builder.AddContent(0, EditTemplate, new DataGridEditField<TItem>(model, name, attributes));
+    };
 
     /// <inheritdoc />
     protected override void OnInitialized()
@@ -433,14 +475,6 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         Property?.Body is MemberExpression { Expression: ParameterExpression, Member: PropertyInfo property } ? property : null;
 
     /// <inheritdoc />
-    internal override bool EditableByDefault =>
-        EditProblem is null
-        && EditProperty is { } property
-        && property.GetCustomAttribute<KeyAttribute>() is null
-        && property.GetCustomAttribute<EditableAttribute>() is not { AllowEdit: false }
-        && property.GetCustomAttribute<System.ComponentModel.ReadOnlyAttribute>() is not { IsReadOnly: true };
-
-    /// <inheritdoc />
     protected override string? EditProblem
     {
         get
@@ -450,7 +484,7 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
                 return $"The \"{HeaderText}\" column can't be edited: only a settable property of the row itself can, not a nested one or a computed one.";
             }
 
-            return Underlying == typeof(string) || Underlying.IsEnum || typeof(TValue) == typeof(bool) || IsNumeric(Underlying)
+            return EditTemplate is not null || Underlying == typeof(string) || Underlying.IsEnum || typeof(TValue) == typeof(bool) || IsNumeric(Underlying)
                 || Underlying == typeof(DateOnly) || Underlying == typeof(DateTime) || Underlying == typeof(DateTimeOffset)
                 || Underlying == typeof(TimeOnly) || Underlying == typeof(TimeSpan)
                 ? null
@@ -461,13 +495,18 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
     /// <inheritdoc />
     internal override RenderFragment Editor(TItem model, string name, object receiver, Func<bool> autofocus)
     {
+        if (EditTemplate is not null)
+        {
+            return base.Editor(model, name, receiver, autofocus);
+        }
+
         var property = EditProperty!;
         var value = Expression.Lambda<Func<TValue>>(Expression.Property(Expression.Constant(model, typeof(TItem)), property));
         var changed = EventCallback.Factory.Create<TValue>(receiver, v => property.SetValue(model, v));
         return builder =>
         {
             OpenField(builder);
-            builder.AddComponentParameter(1, "Label", HeaderText);
+            builder.AddComponentParameter(1, "Label", EditLabel ?? HeaderText);
             builder.AddComponentParameter(2, "Value", (TValue)property.GetValue(model)!);
             builder.AddComponentParameter(3, "ValueChanged", changed);
             builder.AddComponentParameter(4, "ValueExpression", value);
@@ -482,6 +521,16 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
                 var choices = DataFields.EnumChoices(Underlying)!;
                 builder.AddComponentParameter(7, "Items", choices.Select(c => (TValue)Enum.Parse(Underlying, c.Value)).ToList());
                 builder.AddComponentParameter(8, "ItemText", (Func<TValue, string>)(v => choices.FirstOrDefault(c => c.Value == v?.ToString()).Text ?? ""));
+            }
+
+            if (EditHint is not null)
+            {
+                builder.AddComponentParameter(9, "Hint", EditHint);
+            }
+
+            if (!EditColSpan.IsEmpty)
+            {
+                builder.AddComponentParameter(10, "ColSpan", EditColSpan);
             }
 
             builder.CloseComponent();
@@ -548,6 +597,23 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
     /// <see cref="ColumnBase{TItem}.SortKey"/>.
     /// </summary>
     [Parameter] public Expression<Func<TItem, string?>>? FilterBy { get; set; }
+
+    /// <summary>
+    /// The property of the row this column edits, with an <see cref="ColumnBase{TItem}.EditTemplate"/>:
+    /// <c>o =&gt; o.OwnerId</c>. A template column isn't editable without both.
+    /// </summary>
+    [Parameter] public Expression<Func<TItem, object?>>? EditBy { get; set; }
+
+    /// <inheritdoc />
+    internal override PropertyInfo? EditProperty =>
+        (EditBy?.Body is UnaryExpression { NodeType: ExpressionType.Convert } convert ? convert.Operand : EditBy?.Body)
+            is MemberExpression { Expression: ParameterExpression, Member: PropertyInfo property } ? property : null;
+
+    /// <inheritdoc />
+    protected override string? EditProblem =>
+        EditBy is null || EditTemplate is null ? $"The \"{HeaderText}\" column needs {nameof(EditBy)} and an {nameof(EditTemplate)} to be edited."
+        : EditProperty is not { CanWrite: true } ? $"The \"{HeaderText}\" column's {nameof(EditBy)} must be a settable property of the row itself."
+        : null;
 
     /// <inheritdoc />
     protected override bool HasSortExpression => SortBy is not null;

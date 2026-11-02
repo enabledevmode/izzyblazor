@@ -176,6 +176,23 @@
     /// </summary>
     [Parameter] public EventCallback<DataGridSave<TItem>> OnSave { get; set; }
 
+    /// <summary>How many columns the generated dialog lays its fields out in, as <c>Form</c>'s <c>Columns</c>. Defaults to 1.</summary>
+    [Parameter] public int EditFormColumns { get; set; } = 1;
+
+    /// <summary>The edit dialog's size.</summary>
+    [Parameter] public DialogSize EditDialogSize { get; set; } = DialogSize.Md;
+
+    /// <summary>The edit dialog's title, from the row, which is the default for a new one. Defaults to "Edit" and the row's label.</summary>
+    [Parameter] public Func<TItem?, string>? EditDialogTitle { get; set; }
+
+    /// <summary>
+    /// Finds a row that isn't among those loaded, by its key, for the edit dialog and the delete
+    /// confirmation: a link to a row on another page, say. A grid that loads rows as they're needed
+    /// (<c>Virtualize</c>, or <c>Paging</c> by loading more) has to have it. Return null for a row this
+    /// person can't reach: <c>ItemEditable</c> and <c>ItemDeletable</c> are checked on what it returns.
+    /// </summary>
+    [Parameter] public Func<string, Task<TItem?>>? FindItem { get; set; }
+
     /// <summary>
     /// A new row's starting values. Setting it adds an Add button to the toolbar, and <c>OnSave</c> gets
     /// the row with <c>IsNew</c> set.
@@ -236,11 +253,95 @@
     private string? CurrentDeleteKey => !CanDelete ? null : UseState ? _stateDeleteKey : QueryValue(DeleteQueryKey);
 
     private bool _stateAdding;
+    private bool _ending;
     private string? _stateDeleteKey;
 
     private string EditEndHref => Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { [EditQueryKey] = null, [AddQueryKey] = null, [DeleteQueryKey] = null });
 
     private List<ColumnBase<TItem>> EditColumns => Columns.Where(c => c.IsEditable).ToList();
+
+    /// <summary>The form written in place of the generated one.</summary>
+    internal EditFormTemplate<TItem>? FormTemplate { get; set; }
+
+    /// <summary>The arrangement of the generated form's fields.</summary>
+    internal EditLayout<TItem>? EditLayoutPart { get; set; }
+
+    private string? _foundKey;
+    private TItem? _found;
+    private bool _finding;
+
+    // A row by its key: one loaded, or else the one FindItem found.
+    private TItem? RowOf(string key)
+    {
+        foreach (var item in _items)
+        {
+            if (KeyOf(item) == key)
+            {
+                return item;
+            }
+        }
+
+        return _foundKey == key ? _found : default;
+    }
+
+    private async Task FindRowAsync()
+    {
+        var key = Adding ? null : CurrentDeleteKey ?? CurrentEditKey;
+        if (FindItem is null || key is null || key == _foundKey || _items.Any(i => KeyOf(i) == key))
+        {
+            return;
+        }
+
+        (_foundKey, _found, _finding) = (key, default, true);
+        try
+        {
+            _found = await FindItem(key);
+        }
+        finally
+        {
+            _finding = false;
+        }
+    }
+
+    private async Task LoadThenFindAsync()
+    {
+        await base.OnParametersSetAsync();
+        await FindRowAsync();
+    }
+
+    /// <inheritdoc />
+    internal override void AddressChanged(string location)
+    {
+        base.AddressChanged(location);
+        _ending = false;
+        if (FindItem is not null)
+        {
+            _ = InvokeAsync(async () =>
+            {
+                await FindRowAsync();
+                StateHasChanged();
+            });
+        }
+    }
+
+    // Here and not with the parameters: the parts that decide these are written among the columns.
+    private void CheckEditing()
+    {
+        if (!CanEdit || FormTemplate is not null)
+        {
+            return;
+        }
+
+        if (!OnSave.HasDelegate)
+        {
+            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, or an EditFormTemplate of your own.");
+        }
+
+        if (!WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
+        {
+            throw new InvalidOperationException($"A DataGrid on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
+        }
+    }
 
     private List<PropertyInfo> EditProperties => EditColumns.Select(c => c.EditProperty!).ToList();
 
@@ -260,7 +361,7 @@
     {
         if (key != _editKeyFor)
         {
-            (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors) = (key, default, default, null, null, null);
+            (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (key, default, default, null, null, null, null);
         }
 
         if (_editModel is not null)
@@ -270,9 +371,9 @@
 
         _editIsNew = key == NewRowKey;
         // A row that can't be edited isn't found, so a link or a post made by hand gets no further.
-        if (_editIsNew || (_items.FirstOrDefault(i => KeyOf(i) == key) is { } found && CanEditRow(found)))
+        if (_editIsNew || (RowOf(key) is { } found && CanEditRow(found)))
         {
-            var item = _editIsNew ? NewItem!() : _items.First(i => KeyOf(i) == key);
+            var item = _editIsNew ? NewItem!() : RowOf(key)!;
             _editItem = _editIsNew ? default : item;
             _editModel = posted is not null ? DataGridEditCopy.Restore(posted, item, EditProperties)
                 : _editIsNew ? item
@@ -293,7 +394,18 @@
             ? editor
             : _editors[column] = column.Editor(_editModel!, $"{DataGridEditBinding<TItem>.Prefix}.{column.EditProperty!.Name}", this,
                 // Opening goes to the first field. After a failed save, FormErrors takes focus instead.
-                () => column == EditColumns.FirstOrDefault() && _editContext?.GetValidationMessages().Any() != true);
+                () => column == FirstEditColumn && _editContext?.GetValidationMessages().Any() != true);
+
+    private DataGridEditFields? _editFields;
+
+    private List<string> PlacedKeys => EditField.KeysIn(EditLayoutPart?.ChildContent);
+
+    // In the order the dialog draws them: those placed, then the rest.
+    private ColumnBase<TItem>? FirstEditColumn =>
+        PlacedKeys.Select(k => EditColumns.FirstOrDefault(c => c.EditKey == k)).FirstOrDefault(c => c is not null) ?? EditColumns.FirstOrDefault();
+
+    private DataGridEditFields EditFieldsOf => _editFields ??= new(key =>
+        EditColumns.FirstOrDefault(c => c.EditKey == key) is { } column ? EditorOf(column) : null);
 
     private async Task SaveEditAsync(EditContext context)
     {
@@ -320,7 +432,7 @@
     private async Task EndEditAsync(bool saved)
     {
         // Cleared whether or not the key changes: a bound parent may keep it, and the next edit starts afresh.
-        (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors) = (null, default, default, null, null, null);
+        (_editKeyFor, _editItem, _editModel, _editContext, _editMessages, _editors, _editFields) = (null, default, default, null, null, null, null);
         if (UseState)
         {
             (_stateAdding, _stateDeleteKey) = (false, null);
@@ -331,6 +443,9 @@
         }
         else
         {
+            // On an interactive page the address hasn't changed yet at the next render, and it mustn't
+            // draw the editor again for it.
+            _ending = true;
             Navigation.NavigateTo(EditEndHref);
         }
 
@@ -351,14 +466,19 @@
         {
             var delete = CurrentDeleteKey;
             var key = Adding ? NewRowKey : CurrentEditKey;
-            if (delete is null && key is null)
+            if (_ending || (delete is null && key is null))
             {
                 return null;
             }
 
             return __builder =>
             {
-                if (RendererInfo.IsInteractive)
+                @* The form's name is the page's to match, so it's outside this grid's scope. *@
+                if (delete is null && FormTemplate is not null)
+                {
+                    @OwnFormDialog(key!)
+                }
+                else if (RendererInfo.IsInteractive)
                 {
                     @(delete is not null ? DeleteDialog(delete) : EditDialog(key!, default))
                 }
@@ -396,8 +516,8 @@
     private RenderFragment DeleteDialog(string key) => __builder =>
     {
         // A row that can't be deleted isn't found, so a link or a post made by hand gets no further.
-        var item = _items.FirstOrDefault(i => KeyOf(i) == key && CanDeleteRow(i));
-        var found = item is not null;
+        var item = RowOf(key);
+        var found = item is not null && CanDeleteRow(item);
         var culture = System.Globalization.CultureInfo.CurrentCulture;
         if (_deleteContext is null)
         {
@@ -412,18 +532,45 @@
                     <FormErrors />
                     @TextDefaults.DeleteWarning
                 }
-                else if (!IsLoading)
+                else if (!IsLoading && !_finding)
                 {
                     <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
                 }
                 <DialogFooter>
-                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+                    @EditCancel
                     @if (found)
                     {
                         <Button Submit Accent="Accent.Danger">@TextDefaults.Delete</Button>
                     }
                 </DialogFooter>
             </Form>
+        </Dialog>
+    };
+
+    @* A link, which leaves the address clean with no script. With script, the dialog closes in the
+       browser instead, with no round trip, and gives focus back to the row. *@
+    private RenderFragment EditCancel => __builder =>
+    {
+        <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+    };
+
+    private RenderFragment OwnFormDialog(string key) => __builder =>
+    {
+        var isNew = key == NewRowKey;
+        var item = isNew ? default : RowOf(key);
+        var found = isNew || (item is not null && CanEditRow(item));
+        var label = EditDialogTitle?.Invoke(item)
+            ?? (isNew ? TextDefaults.Add : item is null ? TextDefaults.Edit : string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)));
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(isNew ? AddQueryKey : EditQueryKey)" Title="@label" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(isNew ? "" : key)">
+            @if (found)
+            {
+                @FormTemplate!.ChildContent?.Invoke(new DataGridEditFormContext<TItem>(item, isNew, EditCancel, () => EndEditAsync(saved: true)))
+            }
+            else if (!IsLoading && !_finding)
+            {
+                <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
+                <DialogFooter>@EditCancel</DialogFooter>
+            }
         </Dialog>
     };
 
@@ -449,7 +596,26 @@
         }
     };
 
-    private RenderFragment? EditControl(TItem item, bool inMenu) => !CanEditRow(item) ? null : __builder =>
+    // An action the row can't use, which says why.
+    private RenderFragment DisabledAction(IconData icon, string label, string reason, bool inMenu, Accent accent) => __builder =>
+    {
+        @if (inMenu)
+        {
+            <MenuItem Icon="icon" Accent="accent" Disabled title="@reason">@label</MenuItem>
+        }
+        else
+        {
+            @* On the span, as a disabled button takes no pointer. *@
+            <span title="@reason">
+                <IconButton Icon="icon" Label="@($"{label}: {reason}")" Disabled Variant="ButtonVariant.Ghost" Accent="Accent.Neutral" Size="ControlSize.Sm" />
+            </span>
+        }
+    };
+
+    private RenderFragment? EditControl(TItem item, bool inMenu, string? reason) =>
+        !CanEditRow(item)
+            ? CanEdit && reason is not null ? DisabledAction(Lucide.Pencil, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)), reason, inMenu, Accent.Neutral) : null
+            : __builder =>
     {
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item));
         var key = KeyOf(item);
@@ -473,7 +639,10 @@
 
     private void StartDelete(string key) => (_stateDeleteKey, _deleteContext) = (key, null);
 
-    private RenderFragment? DeleteControl(TItem item, bool inMenu) => !CanDeleteRow(item) ? null : __builder =>
+    private RenderFragment? DeleteControl(TItem item, bool inMenu, string? reason) =>
+        !CanDeleteRow(item)
+            ? CanDelete && reason is not null ? DisabledAction(Lucide.Trash, string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item)), reason, inMenu, Accent.Danger) : null
+            : __builder =>
     {
         var label = string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.DeleteItem, LabelOf(item));
         var key = KeyOf(item);
@@ -496,7 +665,7 @@
     };
 
     private RowActionScope ScopeOf(TItem item, bool inMenu) =>
-        new(inMenu, ActionOverflow, menu => EditControl(item, menu), menu => DeleteControl(item, menu));
+        new(inMenu, ActionOverflow, (menu, reason) => EditControl(item, menu, reason), (menu, reason) => DeleteControl(item, menu, reason));
 
     private (int Buttons, bool Menu) ActionCount(TItem item) => RowActionBase.Count(ActionsOf(item), ActionOverflow, CanEditRow(item), CanDeleteRow(item));
 
@@ -531,10 +700,10 @@
     private RenderFragment EditDialog(string key, TItem? posted) => __builder =>
     {
         SyncEdit(key, posted);
-        var missing = _editModel is null && !IsLoading;
-        var title = _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
-        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
-            <Form EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
+        var missing = _editModel is null && !IsLoading && !_finding;
+        var title = EditDialogTitle is not null && _editModel is not null ? EditDialogTitle(_editIsNew ? default : _editItem) : _editIsNew ? TextDefaults.Add : _editItem is { } item ? string.Format(System.Globalization.CultureInfo.CurrentCulture, TextDefaults.EditItem, LabelOf(item)) : TextDefaults.Edit;
+        <Dialog Open="true" OpenChanged="OnEditDialogChangedAsync" QueryKey="@(key == NewRowKey ? AddQueryKey : EditQueryKey)" Title="@title" Size="EditDialogSize" CloseOnBackdrop="false" ShowCloseButton="false" data-ib-edit-for="@(key == NewRowKey ? "" : key)">
+            <Form Columns="EditFormColumns" EditContext="_editContext" FormName="@(RendererInfo.IsInteractive ? null : DataGridEditBinding<TItem>.FormName)" OnValidSubmit="SaveEditAsync">
                 @if (missing)
                 {
                     <Alert Status="Status.Warning">@TextDefaults.EditRowGone</Alert>
@@ -542,15 +711,18 @@
                 else if (_editModel is not null)
                 {
                     <FormErrors />
-                    @foreach (var column in EditColumns)
+                    var placed = PlacedKeys;
+                    @if (EditLayoutPart is not null)
+                    {
+                        <CascadingValue TValue="DataGridEditFields" Value="EditFieldsOf">@EditLayoutPart.ChildContent</CascadingValue>
+                    }
+                    @foreach (var column in EditColumns.Where(c => !placed.Contains(c.EditKey!)))
                     {
                         @EditorOf(column)
                     }
                 }
                 <DialogFooter>
-                    @* A link, which leaves the address clean with no script. With script, the dialog closes
-                       in the browser instead, with no round trip, and gives focus back to the row. *@
-                    <Button Variant="ButtonVariant.Outline" Accent="Accent.Neutral" Href="@EditEndHref" data-ib-edit-cancel>@TextDefaults.Cancel</Button>
+                    @EditCancel
                     @if (!missing)
                     {
                         <Button Submit>@TextDefaults.Save</Button>
@@ -868,19 +1040,14 @@
     /// <inheritdoc />
     protected override Task OnParametersSetAsync()
     {
-        if (CanEdit && (!OnSave.HasDelegate || ItemKey is null))
+        if (CanEdit && ItemKey is null)
         {
-            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(OnSave)} to save rows, and an {nameof(ItemKey)} to know which row is being edited.");
+            throw new InvalidOperationException($"A DataGrid with an {nameof(EditMode)} needs an {nameof(ItemKey)} to know which row is being edited.");
         }
 
         if (CanDelete && ItemKey is null)
         {
             throw new InvalidOperationException($"A DataGrid with an {nameof(OnDelete)} needs an {nameof(ItemKey)} to know which row to delete.");
-        }
-
-        if (CanEdit && !WillBeInteractive && !DataGridEditCopy.CanPost<TItem>())
-        {
-            throw new InvalidOperationException($"A DataGrid on a static page saves by a form post, so {typeof(TItem).Name} needs a parameterless constructor: Blazor can't fill constructor parameters that aren't posted. Add one, or give the grid a row type of its own.");
         }
 
         if (Virtualize)
@@ -925,7 +1092,13 @@
             Logger?.LogWarning("A DataGrid on a static page needs a {Key} or {Url} for people to rearrange its columns, so it shows no controls.", nameof(LayoutKey), nameof(LayoutSaveUrl));
         }
 
-        return base.OnParametersSetAsync();
+        // Rows that load as they're needed can't be counted on to hold the one a link names.
+        if (CanEdit && FindItem is null && (Virtualize || Appending))
+        {
+            throw new InvalidOperationException($"A DataGrid that loads rows as they're needed can't edit one it hasn't loaded: give it a {nameof(FindItem)}.");
+        }
+
+        return LoadThenFindAsync();
     }
 
     private bool _warned;
@@ -1343,6 +1516,7 @@
             }
 
             CheckFrozen();
+            CheckEditing();
             var style = new System.Text.StringBuilder();
             var parts = new List<string>();
             var unset = new List<string>();
