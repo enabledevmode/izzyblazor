@@ -101,7 +101,6 @@ class Table extends IzzyElement {
     const cell = panel && this.querySelector<HTMLElement>(`.ib-filter-cell[data-ib-panel="${CSS.escape(panel.id)}"]`);
     if (!cell) return;
     panel!.style.setProperty("position-anchor", cell.style.getPropertyValue("anchor-name"));
-    panel!.classList.replace("ib-place-bottom-end", "ib-place-bottom-start");
   }
 
   protected setup(signal: AbortSignal): void {
