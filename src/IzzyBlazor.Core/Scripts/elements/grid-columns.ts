@@ -249,7 +249,7 @@ class GridColumns extends IzzyElement {
       // At least one stays.
       if (this.#headers.length <= 1) return;
       entry.h = true;
-    } else delete entry.h;
+    } else entry.h = false; // Said outright: a column can start hidden.
     void this.#save(columns, true, null);
   }
 

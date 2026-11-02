@@ -123,11 +123,12 @@ class Grid extends IzzyElement {
     check();
 
     // On a static page, only the editor is taken from the page the link leads to: merging a whole page
-    // back in, to add one dialog, takes as long as the page is big. Interactive pages already just add it.
+    // back in, to add one dialog, takes as long as the page is big. Not on one prerendered for a circuit:
+    // the circuit knows nothing of an editor added this way, and takes it away as it starts.
     this.#on(root, "click", (event) => {
       const click = event as MouseEvent;
       const link = (click.target as Element).closest<HTMLAnchorElement>("a[data-ib-edit]");
-      if (!link || root.hasAttribute("data-ib-interactive") || click.ctrlKey || click.metaKey || click.shiftKey) return;
+      if (!link || !root.hasAttribute("data-ib-stays-static") || click.ctrlKey || click.metaKey || click.shiftKey) return;
       click.preventDefault();
       click.stopPropagation();
       void this.#openEditor(root, link);

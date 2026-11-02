@@ -1,5 +1,5 @@
-@* Drag a header's edge or the header itself, or use the keys and the ⋮ menu in each header. The layout
-   is kept per person in a cookie, and the server draws it on the first paint: reload to see. *@
+@* Drag a header's edge or the header itself, or use the keys and the ⋮ menu in each header. Weekday starts
+   hidden: show it from the picker. The layout is kept per person in a cookie, and the server draws it on the first paint: reload to see. *@
 @using Rows = IzzyBlazor.Site.Examples.Table.Orders
 <DataGrid Items="Rows.All" PageSize="5" Caption="Orders you arrange" LayoutKey="arrange-example" ResizableColumns ReorderableColumns ColumnPicker Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Resizable="false" Reorderable="false" Pickable="false" />
@@ -9,4 +9,5 @@
         <Badge Status="Rows.StatusOf(context.Status)" Dot>@context.Status</Badge>
     </TemplateColumn>
     <PropertyColumn Property="o => o.Total" Format="C" Sortable />
+    <PropertyColumn Property="o => o.Date.DayOfWeek" Title="Weekday" Width="8.Rem" Visible="false" />
 </DataGrid>
