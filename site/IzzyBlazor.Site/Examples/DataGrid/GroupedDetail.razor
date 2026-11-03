@@ -1,0 +1,21 @@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@using Status = IzzyBlazor.Site.Examples.Table.OrderStatus
+@* In groups, a row's detail sits under it, one level in. One opens at a time, and a refunded order
+   has none. *@
+<DataGrid Items="Rows.All" PageSize="2" Caption="Orders in groups with details" QueryPrefix="summary-" Grow
+          ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")"
+          InitialGroup="status" GroupsOpen SingleDetail ItemHasDetail="o => o.Status != Status.Refunded">
+    <ChildContent>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" />
+        <PropertyColumn Property="o => o.Status" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+    </ChildContent>
+    <DetailTemplate>
+        <DescriptionList Columns="3" Size="ControlSize.Sm">
+            <DescriptionItem Term="Placed">@context.Date.ToString("MMMM d")</DescriptionItem>
+            <DescriptionItem Term="Lines">@OrderLines.For(context.Number).Count</DescriptionItem>
+            <DescriptionItem Term="Items">@OrderLines.For(context.Number).Sum(l => l.Quantity)</DescriptionItem>
+        </DescriptionList>
+    </DetailTemplate>
+</DataGrid>
