@@ -616,6 +616,21 @@ public class IzzyText
 
     // Data and feedback
 
+    /// <summary>A DataGrid header menu's item that groups by the column.</summary>
+    public virtual string GroupByColumn { get; set; } = "Group by this column";
+
+    /// <summary>A DataGrid header menu's item that stops grouping by the column.</summary>
+    public virtual string GroupRemove { get; set; } = "Stop grouping by this column";
+
+    /// <summary>Before what a DataGrid is grouped by.</summary>
+    public virtual string GroupedBy { get; set; } = "Grouped by";
+
+    /// <summary>Opens all of a DataGrid's groups.</summary>
+    public virtual string GroupExpandAll { get; set; } = "Expand all";
+
+    /// <summary>Closes all of a DataGrid's groups.</summary>
+    public virtual string GroupCollapseAll { get; set; } = "Collapse all";
+
     /// <summary>A DataGrid group with no value.</summary>
     public virtual string GroupNone { get; set; } = "(None)";
 

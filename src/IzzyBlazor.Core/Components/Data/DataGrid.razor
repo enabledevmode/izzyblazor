@@ -1562,7 +1562,7 @@
 
     /// <inheritdoc />
     internal override bool HasHeaderMenu(ColumnBase<TItem> column) =>
-        CanResize(column) || CanMove(column);
+        CanResize(column) || CanMove(column) || CanGroupBy(column);
 
     /// <inheritdoc />
     internal override RenderFragment? HeaderMenu(ColumnBase<TItem> column) => !HasHeaderMenu(column) ? null : __builder =>
@@ -1578,6 +1578,22 @@
                 </button>
             </Trigger>
             <ChildContent>
+                @if (CanGroupBy(column))
+                {
+                    var grouped = GroupsBy(column);
+                    @if (UseState)
+                    {
+                        <MenuItem OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
+                    }
+                    else
+                    {
+                        <MenuItem Href="@GroupHref(GroupTextWith(column, !grouped))">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
+                    }
+                    @if (CanMove(column) || CanResize(column))
+                    {
+                        <MenuDivider />
+                    }
+                }
                 @if (CanMove(column))
                 {
                     <MenuItem Disabled="zone.FirstOrDefault() == column" data-ib-col-action="left" data-ib-col="@key">@TextDefaults.ColumnMoveStart</MenuItem>
@@ -1859,6 +1875,45 @@
                 </CascadingValue>
             </div>
         }
+
+        if (GroupedNow)
+        {
+            @GroupBar
+        }
+    };
+
+    // What's grouped, each removable when people can change it, and open or close them all.
+    private RenderFragment GroupBar => __builder =>
+    {
+        <div class="ib-grid-group-bar" role="group" aria-label="@TextDefaults.GroupedBy">
+            <span class="ib-grid-group-column">@TextDefaults.GroupedBy</span>
+            @foreach (var level in Grouping.Levels)
+            {
+                var column = level.Column;
+                @if (!Groupable)
+                {
+                    <Tag Label="@column.HeaderText" Size="ControlSize.Sm" />
+                }
+                else if (UseState)
+                {
+                    <Tag Label="@column.HeaderText" Size="ControlSize.Sm" OnRemove="@(EventCallback.Factory.Create(this, () => SetGroupAsync(GroupTextWith(column, false))))" />
+                }
+                else
+                {
+                    <Tag Label="@column.HeaderText" Size="ControlSize.Sm" RemoveHref="@GroupHref(GroupTextWith(column, false))" />
+                }
+            }
+            @if (UseState)
+            {
+                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" OnClick="() => SetAllOpenAsync(true)">@TextDefaults.GroupExpandAll</Button>
+                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" OnClick="() => SetAllOpenAsync(false)">@TextDefaults.GroupCollapseAll</Button>
+            }
+            else
+            {
+                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" Href="@AllOpenHref(true)">@TextDefaults.GroupExpandAll</Button>
+                <Button Accent="Accent.Neutral" Variant="ButtonVariant.Ghost" Size="ControlSize.Sm" Href="@AllOpenHref(false)">@TextDefaults.GroupCollapseAll</Button>
+            }
+        </div>
     };
 
     /// <inheritdoc />

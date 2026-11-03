@@ -1551,6 +1551,14 @@
     font-weight: var(--ib-weight-semibold);
   }
 
+  .ib-grid-group-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--ib-space-2);
+    margin-block-end: var(--ib-space-2);
+  }
+
   .ib-grid-group > th {
     padding-inline-start: calc(var(--ib-table-px) + var(--ib-group-depth) * 1.25rem);
     background-color: var(--ib-color-surface-sunken);

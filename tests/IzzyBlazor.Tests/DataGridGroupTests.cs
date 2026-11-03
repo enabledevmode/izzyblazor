@@ -161,6 +161,28 @@ public class DataGridGroupTests : BunitContext
     }
 
     [Fact]
+    public void People_group_and_ungroup_and_open_them_all_by_links()
+    {
+        var cut = Grid("/sales?page=1", p => p.Add(x => x.PageSize, 2));
+        Assert.Empty(cut.FindAll(".ib-grid-group-bar"));
+
+        var byRegion = cut.FindAll("a.ib-menu-item, .ib-col-menu a").First(a => a.TextContent.Contains("Group by") && a.GetAttribute("href")!.Contains("group=region"));
+        cut = Grid(byRegion.GetAttribute("href")!, p => p.Add(x => x.PageSize, 2));
+        Assert.Equal(new[] { "g:East/Coast", "g:North" }, Rows(cut));
+        Assert.DoesNotContain("page=", Nav.Uri);
+
+        var all = cut.FindAll(".ib-grid-group-bar a").First(a => a.TextContent.Contains("Expand all"));
+        cut = Grid(all.GetAttribute("href")!, p => p.Add(x => x.PageSize, 2));
+        Assert.Equal(new[] { "g:East/Coast", "r:1", "r:2", "r:3", "g:North", "r:4" }, Rows(cut));
+
+        var remove = cut.Find(".ib-grid-group-bar .ib-tag a, .ib-grid-group-bar a[aria-label]");
+        cut = Grid(remove.GetAttribute("href")!, p => p.Add(x => x.PageSize, 2));
+        Assert.Empty(cut.FindAll("tr.ib-grid-group"));
+        Assert.Equal(new[] { "r:1", "r:2" }, Rows(cut));
+        Assert.DoesNotContain("open", Nav.Uri);
+    }
+
+    [Fact]
     public void Bound_on_an_interactive_page_it_opens_in_state()
     {
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));

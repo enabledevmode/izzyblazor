@@ -382,5 +382,39 @@ public partial class DataGrid<TItem>
         await ReloadIfStaleAsync();
     }
 
+    private bool CanGroupBy(ColumnBase<TItem> column) => Groupable && column.CanGroup;
+
+    // The grouping with this column added at the end, or taken out.
+    private string GroupTextWith(ColumnBase<TItem> column, bool on)
+    {
+        var tokens = Grouping.Levels.Where(l => l.Column != column).Select(l => (l.Descending ? "-" : "") + l.Field);
+        return string.Join(",", on ? tokens.Append(column.Key!) : tokens);
+    }
+
+    // A new grouping starts at the first page with nothing open. None at all is an empty value, or
+    // InitialGroup would come back.
+    private string GroupHref(string text) => LinkWith(new Dictionary<string, object?>
+    {
+        [GroupKey] = text.Length > 0 || Group is not null || InitialGroup is not null ? text : null,
+        [OpenKey] = null,
+        [ShutKey] = null,
+        [PageKey] = null,
+        [CursorKey] = null,
+    });
+
+    private string AllOpenHref(bool open) => LinkWith(new Dictionary<string, object?>
+    {
+        [OpenKey] = open && !GroupsOpen ? "*" : null,
+        [ShutKey] = !open && GroupsOpen ? "*" : null,
+    });
+
+    private async Task SetAllOpenAsync(bool open)
+    {
+        IReadOnlyList<string> list = open ? ["*"] : GroupsOpen ? ["!*"] : [];
+        _stateOpen = list;
+        await OpenGroupsChanged.InvokeAsync(list);
+        await ReloadIfStaleAsync();
+    }
+
     private bool GroupBound => GroupChanged.HasDelegate || OpenGroupsChanged.HasDelegate;
 }
