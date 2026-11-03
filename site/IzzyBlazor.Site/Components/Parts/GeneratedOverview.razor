@@ -23,12 +23,7 @@
 @if (Component.Topics.Count > 0)
 {
     <Heading Level="2">Topics</Heading>
-    <ul>
-        @foreach (var topic in Component.Topics)
-        {
-            <li><a href="@Registry.TopicHref(Component, topic)">@topic.Title</a>: @topic.Summary</li>
-        }
-    </ul>
+    <OverviewTopics Component="Component" />
 }
 
 @foreach (var example in Component.Examples)

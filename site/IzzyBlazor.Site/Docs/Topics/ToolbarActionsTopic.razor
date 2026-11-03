@@ -1,0 +1,17 @@
+@* Toolbar's Actions page, moved from its Overview: form posts, OnClick, toggle buttons and split buttons. *@
+
+<Heading Level="2">Posting a form</Heading>
+<TextBlock>Use <Code>Submit</Code>, <Code>Name</Code> and <Code>Value</Code> on its buttons as on a Button: in the … menu they post the same, with JavaScript off too. Put the form around the toolbar.</TextBlock>
+<ExampleViewer Example="toolbar-bulk-actions" />
+
+<Heading Level="2">Running C# on click</Heading>
+<TextBlock>Use <Code>OnClick</Code> on its buttons on interactive pages; it runs from the bar or the menu.</TextBlock>
+<ExampleViewer Example="toolbar-on-click" />
+
+<Heading Level="2">Toggle buttons</Heading>
+<TextBlock>Use <Code>@@bind-Pressed</Code> on its buttons for tools that turn on and off. In the … menu they're checkbox items that toggle the same.</TextBlock>
+<ExampleViewer Example="toolbar-toggles" />
+
+<Heading Level="2">Split buttons</Heading>
+<TextBlock>Use <Code>ToolbarSplitButton</Code> for a main action with a menu of related ones. In the … menu it's a submenu named by its <Code>MenuLabel</Code>, with the main action as the first item. See <Anchor Href="docs/components/split-button">SplitButton</Anchor>.</TextBlock>
+<ExampleViewer Example="toolbar-split-button" />

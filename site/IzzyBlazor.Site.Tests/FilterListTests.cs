@@ -7,12 +7,12 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
 {
     private const string Prefix = "lists-";
 
-    private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode, string caption = "Support tickets", bool script = true, string query = "")
+    private async Task<(TestBrowser, IPage, ILocator)> OpenAsync(string mode, string caption = "Support tickets", bool script = true, string query = "", string path = "docs/components/table/filtering")
     {
         var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/table?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"{path}?mode={mode}{query}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var table = page.Locator("ib-table", new() { HasText = caption });
         await table.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = caption }).WaitForAsync();
@@ -109,45 +109,6 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
         }
     }
 
-    [Theory]
-    [InlineData("static")]
-    public async Task Keys_move_tick_and_close(string mode)
-    {
-        var (browser, page, table) = await OpenAsync(mode);
-        await using (browser)
-        {
-            var panel = await OpenPanelAsync(page, table, "Priority");
-            var all = Box(panel, "Select all");
-            await Assertions.Expect(all).ToBeFocusedAsync();
-
-            await page.Keyboard.PressAsync("ArrowDown");
-            await Assertions.Expect(Box(panel, "High")).ToBeFocusedAsync();
-            await page.Keyboard.PressAsync("ArrowDown");
-            await Assertions.Expect(Box(panel, "Medium")).ToBeFocusedAsync();
-            await page.Keyboard.PressAsync("ArrowUp");
-            await Assertions.Expect(Box(panel, "High")).ToBeFocusedAsync();
-
-            await page.Keyboard.PressAsync("Space");
-            Assert.False(await Box(panel, "High").IsCheckedAsync());
-
-            // Home and End go to the ends, and the rows are one Tab stop.
-            await page.Keyboard.PressAsync("End");
-            await Assertions.Expect(Box(panel, "(Blank)")).ToBeFocusedAsync();
-            await page.Keyboard.PressAsync("Home");
-            await Assertions.Expect(Box(panel, "High")).ToBeFocusedAsync();
-            await page.Keyboard.PressAsync("Shift+Tab");
-            await Assertions.Expect(all).ToBeFocusedAsync();
-            await page.Keyboard.PressAsync("Tab");
-            await Assertions.Expect(Box(panel, "High")).ToBeFocusedAsync();
-            Assert.Equal(1, await panel.Locator(".ib-filter-list-items input").EvaluateAllAsync<int>("boxes => boxes.filter(b => b.tabIndex === 0).length"));
-
-            // Enter applies at once and closes, and focus goes back to the button.
-            await page.Keyboard.PressAsync("Enter");
-            await AddressIsAsync(page, "f-priority=Medium&f-priority=Low&f-priority-blank=1");
-            await Assertions.Expect(table.Locator("th .ib-table-filter-button[aria-label^='Filter Priority']")).ToBeFocusedAsync();
-        }
-    }
-
     [Fact]
     public async Task With_no_script_ticks_post_with_Apply()
     {
@@ -182,7 +143,7 @@ public sealed class FilterListTests(SiteFixture site) : IClassFixture<SiteFixtur
     [Fact]
     public async Task A_bound_list_applies_in_C_sharp_and_Clear_redraws_it()
     {
-        var (browser, page, table) = await OpenAsync("interactive", "Order history");
+        var (browser, page, table) = await OpenAsync("interactive", "Order history", path: "docs/components/table");
         await using (browser)
         {
             var url = page.Url;

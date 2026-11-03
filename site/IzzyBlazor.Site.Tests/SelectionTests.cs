@@ -10,7 +10,7 @@ public sealed class SelectionTests(SiteFixture site) : IClassFixture<SiteFixture
         var browser = await TestBrowser.OpenAsync();
         var context = await browser.NewContextAsync(new() { JavaScriptEnabled = script, Locale = "en-US", ViewportSize = new() { Width = 1400, Height = 900 } });
         var page = await context.NewPageAsync();
-        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/table?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
+        await page.GotoAsync(new Uri(site.Client.BaseAddress!, $"docs/components/table/selection?mode={mode}").ToString(), new() { WaitUntil = WaitUntilState.NetworkIdle });
         var table = page.Locator("ib-table", new() { HasText = caption });
         await table.ScrollIntoViewSettledAsync();
         if (mode == "interactive") await page.Locator("ib-table[data-ib-interactive]", new() { HasText = caption }).WaitForAsync();
