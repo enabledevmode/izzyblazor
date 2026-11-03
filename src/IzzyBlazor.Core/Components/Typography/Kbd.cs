@@ -17,7 +17,7 @@ namespace IzzyBlazor;
 /// <accessibility>
 /// <list type="bullet">
 /// <item>It renders a <c>kbd</c>; a combination is a <c>kbd</c> holding one <c>kbd</c> per key, as the HTML spec describes.</item>
-/// <item>Keys and the <see cref="Separator"/> are plain text, so screen readers read them as written.</item>
+/// <item><c>Keys</c> and the <see cref="Separator"/> are plain text, so screen readers read them as written.</item>
 /// </list>
 /// </accessibility>
 /// <seealso cref="Code"/>

@@ -4,7 +4,7 @@
 @attribute [ModeSupport(NoScript = ModeLevel.Partial, NoScriptNotes = "With JavaScript off, the browser's own picker opens in place of the library's list.")]
 
 @*
-    A time of day: the browser's own time input, so it posts with the form, checks Min, Max and
+    A time of day: the browser's own time input, so it posts with the form, checks `Min`, `Max` and
     Step before posting and takes a typed time, and the library's list of times to choose from. Bind
     it to TimeOnly or TimeOnly?. For a length of time, as in a timeout, a TimeSpan isn't a time of
     day and doesn't bind here.
@@ -21,7 +21,7 @@
     takes any minute. With a Step of seconds, or one so short the list would pass 288 times, there's a
     box for each part of the time and OK instead, and nothing is written until OK. UseNative keeps the
     browser's picker. So do no script and a phone, unless the field has TimeDisabled, which a browser's
-    picker can't show: there it's the library's, and on a phone the input can't be typed in. Min, Max and
+    picker can't show: there it's the library's, and on a phone the input can't be typed in. `Min`, `Max` and
     TimeDisabled are checked again on the server, and the boxes leave them to that and the browser.
 
     Accessibility:

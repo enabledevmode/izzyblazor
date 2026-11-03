@@ -32,6 +32,27 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
     private readonly HashSet<Type> _usedTypes = [];
     private readonly Dictionary<Type, object?> _instances = [];
 
+    // Names with an inner capital, other than the component's own; a single word such as Table is
+    // also an ordinary word. Types go only by Type.Value, as "the DataRequest" reads as a name anyway.
+    private static List<ApiComponent> MarkCode(List<ApiComponent> components, List<ApiBase> bases, List<ApiType> types)
+    {
+        var known = components.Select(c => c.Name).Concat(types.Select(t => t.Name)).Where(n => n.Skip(1).Any(char.IsUpper)).ToHashSet(StringComparer.Ordinal);
+        var enums = types.Select(t => t.Name).Concat(known).ToHashSet(StringComparer.Ordinal);
+        return components.Select(component =>
+        {
+            var own = component.Properties.Concat(component.Events).Select(m => m.Name)
+                .Concat(bases.Where(b => component.Bases?.Contains(b.Name) == true).SelectMany(b => b.Properties).Select(m => m.Name))
+                .ToHashSet(StringComparer.Ordinal);
+            var others = enums.Where(n => n != component.Name).ToHashSet(StringComparer.Ordinal);
+            return component with
+            {
+                Summary = ProseCode.Apply(component.Summary, own, others),
+                Remarks = ProseCode.Apply(component.Remarks, own, others),
+                Accessibility = ProseCode.Apply(component.Accessibility, own, others),
+            };
+        }).ToList();
+    }
+
     public ApiFile Read(IEnumerable<Assembly> assemblies)
     {
         var list = assemblies.ToList();
@@ -56,7 +77,7 @@ public sealed partial class ApiReader(XmlDocs docs, string version, RazorHeaders
             .Select(ReadType)
             .ToList();
 
-        return new ApiFile { Version = version, Components = components, Bases = bases, Types = types };
+        return new ApiFile { Version = version, Components = MarkCode(components, bases, types), Bases = bases, Types = types };
     }
 
     public static bool IsComponent(Type type) =>

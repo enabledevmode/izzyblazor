@@ -16,12 +16,12 @@
     needs: Shift+click on a header sorts by several columns (?sort=customer,-total), and column
     widths are set by the server, so nothing moves when the script arrives.
 
-    A column with a Width keeps it (a fixed length, not a percent). Columns without one share the rest of the space, down to their
-    MinWidth (8rem by default), and then the grid scrolls sideways. If every column has a Width, the
+    A column with a `Width` keeps it (a fixed length, not a percent). Columns without one share the rest of the space, down to their
+    `MinWidth` (8rem by default), and then the grid scrolls sideways. If every column has a `Width`, the
     grid is as wide as their sum.
 
-    Frozen keeps a column in view at the grid's start or end, with no script, and is drawn at that
-    edge wherever it's declared. It needs a Width. On a phone they scroll like the rest, and so they
+    `Frozen` keeps a column in view at the grid's start or end, with no script, and is drawn at that
+    edge wherever it's declared. It needs a `Width`. On a phone they scroll like the rest, and so they
     do if the script finds they'd leave too little room for the rows. RowHref can't be used with it.
 
     <DataGrid Items="orders" ItemKey="o => o.Id" PageSize="20" Caption="Orders">
@@ -30,38 +30,38 @@
         <PropertyColumn Property="o => o.Total" Format="C" Sortable Width="10.Rem" />
     </DataGrid>
 
-    LayoutKey remembers how one person has arranged the columns (widths, order, hidden, frozen) in a
+    `LayoutKey` remembers how one person has arranged the columns (widths, order, hidden, frozen) in a
     cookie, so the server draws it on the first paint with no flash. It's per person and per page; a
     shared link still shows the same rows, since sort, filter and page are in the address. To keep
     layouts in a database instead, bind Layout.
 
-    ResizableColumns, ReorderableColumns and ColumnPicker let people rearrange the columns, with
+    `ResizableColumns`, `ReorderableColumns` and `ColumnPicker` let people rearrange the columns, with
     script, by pointer, keys, a menu in each header and a picker above the grid. On a static page they
     need somewhere to keep the result: a LayoutKey, or Layout with a LayoutSaveUrl.
 
-    A toolbar above the grid holds ToolbarContent (Toolbar's items), the search box with Searchable,
+    A toolbar above the grid holds `ToolbarContent` (Toolbar's items), the search box with `Searchable`,
     export and the Columns button, which show their icons alone unless ToolbarLabels is set. Write
-    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the bar of SelectionActions takes its place. Searchable
+    DataGridSearch, DataGridExport or DataGridColumnPicker in ToolbarContent to place one among your items. While rows are selected, the bar of SelectionActions takes its place. `Searchable`
     searches the text columns; the words go in the address (?search=), and with script apply as
     you type.
 
-    Virtualize draws only the rows in view, for tens of thousands of them, on an interactive page: give
-    it a MaxHeight, and keep rows to one line of RowHeight. An ItemsProvider gets each window as a Skip
-    and Take, and returns the Total. On a static page it loads on scroll instead, by PageSize (50 if
+    `Virtualize` draws only the rows in view, for tens of thousands of them, on an interactive page: give
+    it a MaxHeight, and keep rows to one line of RowHeight. An ItemsProvider gets each window as a `Skip`
+    and `Take`, and returns the `Total`. On a static page it loads on scroll instead, by PageSize (50 if
     not set), up to 2,000 rows. If the focused row scrolls away, focus waits on the scroll box and goes back when it
     returns, or on the next key, which scrolls to it. Browser find, and Shift ranges of selection,
-    reach the rows drawn, unless SelectAllMode is All.
+    reach the rows drawn, unless `SelectAllMode` is `All`.
 
-    ExportExcelHref, and ExportCsvHref beside it if CSV is wanted too, add plain links to endpoints the
-    app maps with DataExport. With both, one button with a chevron opens a menu of them. They
+    `ExportExcelHref`, and `ExportCsvHref` beside it if CSV is wanted too, add plain links to endpoints the
+    app maps with `DataExport`. With both, one button with a chevron opens a menu of them. They
     carry the filter, sort, search and visible columns, in every mode and with no script. The
     endpoint's fields decide what's written, and head the file. A download matches the screen when
     they have the grid's keys: a column whose key they don't have is left out, a filter on it matches
     nothing, and a sort on it is ignored. Search covers their searchable fields, which may not be the
-    grid's text columns. Text doesn't carry FilterCase, so a grid that sets it needs the same Case on
+    grid's text columns. Text doesn't carry `FilterCase`, so a grid that sets it needs the same `Case` on
     those fields.
 
-    ActionColumn holds a row's actions in a last column: EditAction, DeleteAction and your own
+    `ActionColumn` holds a row's actions in a last column: EditAction, DeleteAction and your own
     RowActions, each a button, or with Overflow="RowActionOverflow.Always" in a ⋮ menu, which works
     with no script. A grid with editing has one by itself. With script a right-click on the row, a long
     press, Shift+F10 or the menu key opens the row's menu. It acts on the row it opened on, and doesn't
@@ -69,7 +69,7 @@
     browser's menu, with its "open in new tab": that includes the whole of a row with RowHref, whose ⋮
     button and Shift+F10 still open the menu.
 
-    EditMode with OnSave edits a row, with no script needed. Each column gets a field chosen by its type
+    `EditMode` with `OnSave` edits a row, with no script needed. Each column gets a field chosen by its type
     (a text area for text with [DataType(DataType.MultilineText)]) if it can be edited, shown or not:
     set Editable="false" on what can't be, such as the key, which a save can't change. Visible="false"
     starts a column hidden, for a field the table doesn't show, or for people to show from the picker. Each row has an Edit link, which puts
@@ -85,15 +85,15 @@
         <PropertyColumn Property="o => o.Notes" Visible="false" />
     </DataGrid>
 
-    DataGridEditMode.Row edits where the row stands, with Save and Cancel in place of its actions, also
+    `DataGridEditMode.Row` edits where the row stands, with Save and Cancel in place of its actions, also
     with no script. Only the columns shown have a field, so a hidden one keeps its value. A new row
     starts at the top of the page. Sorting, filtering or changing page ends the edit, and what's typed
     goes with it. It can't be used with Virtualize or loading on scroll, or with an EditFormTemplate.
 
-    DataGridEditMode.Cell edits one cell at a time on an interactive page, and OnSave runs for each one
+    `DataGridEditMode.Cell` edits one cell at a time on an interactive page, and OnSave runs for each one
     that changed. A click, Enter, F2 or typing starts it; Tab, Enter or a click elsewhere saves it, and an
-    invalid cell stays open. A new row is edited as with Row, and so is every row on a static page. Besides
-    the limits of Row, it can't be used with RowHref.
+    invalid cell stays open. A new row is edited as with `Row`, and so is every row on a static page. Besides
+    the limits of `Row`, it can't be used with `RowHref`.
 
     Accessibility:
     - `Caption` names the grid for screen readers; it isn't shown.

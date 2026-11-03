@@ -110,6 +110,19 @@ public class DocsGenTests
             header.Remarks);
     }
 
+    [Theory]
+    [InlineData("Set Editable=&quot;false&quot; on it.", "Set <code>Editable=&quot;false&quot;</code> on it.")]
+    [InlineData("With [DataType(DataType.Date)] set.", "With <code>[DataType(DataType.Date)]</code> set.")]
+    [InlineData("It goes in the address (?edit=42), and ?sort=a,-b, then.", "It goes in the address (<code>?edit=42</code>), and <code>?sort=a,-b</code>, then.")]
+    [InlineData("Its ItemKey and the CardHeader, with RowOverflow.Always.", "Its <code>ItemKey</code> and the <code>CardHeader</code>, with <code>RowOverflow.Always</code>.")]
+    [InlineData("Set its Max. Max is a word here, and JavaScript isn't known.", "Set its <code>Max</code>. Max is a word here, and JavaScript isn&#39;t known.")]
+    [InlineData("<p>Already <code>ItemKey</code>, a <a href=\"x\">ItemKey</a>.</p>", "<p>Already <code>ItemKey</code>, a <a href=\"x\">ItemKey</a>.</p>")]
+    public void Prose_marks_what_is_plainly_code(string html, string expected)
+    {
+        var actual = IzzyBlazor.DocsGen.ProseCode.Apply(html.Replace("isn't", "isn&#39;t"), new HashSet<string> { "Max", "ItemKey", "Editable" }, new HashSet<string> { "CardHeader", "RowOverflow" });
+        Assert.Equal(expected, actual);
+    }
+
     [Fact]
     public void A_components_keys_are_grouped_by_where_focus_is_and_a_screen_lists_them()
     {
