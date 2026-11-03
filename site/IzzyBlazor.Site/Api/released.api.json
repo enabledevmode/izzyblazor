@@ -1,5 +1,5 @@
 {
-  "version": "0.1.0-alpha.19",
+  "version": "0.1.0-alpha.20",
   "components": [
     {
       "name": "Accordion",
@@ -112,6 +112,35 @@
       "events": [],
       "methods": [],
       "types": []
+    },
+    {
+      "name": "ActionColumn",
+      "displayName": "ActionColumn\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ActionColumn\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Overflow",
+          "type": "RowActionOverflow",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "RowActionOverflow"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "Alert",
@@ -293,6 +322,31 @@
           "type": "Breakpoint"
         },
         {
+          "name": "SmallScreen",
+          "type": "AsideSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Padding",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Id",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CloseLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "Bg",
           "type": "Color?"
         },
@@ -308,6 +362,7 @@
       "events": [],
       "methods": [],
       "types": [
+        "AsideSmallScreen",
         "Breakpoint",
         "Color",
         "ColorScheme",
@@ -610,6 +665,40 @@
         "SidebarSmallScreen",
         "VerticalPosition"
       ]
+    },
+    {
+      "name": "AsideToggle",
+      "displayName": "AsideToggle",
+      "fullName": "IzzyBlazor.AsideToggle",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "For",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ButtonVariant"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "AspectRatio",
@@ -1151,6 +1240,92 @@
         "ControlSize",
         "Orientation"
       ]
+    },
+    {
+      "name": "Calendar",
+      "displayName": "Calendar\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.Calendar\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Type",
+          "type": "DateFieldType?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FirstDayOfWeek",
+          "type": "DayOfWeek?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Culture",
+          "type": "CultureInfo?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowWeekNumbers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowAdjacentDays",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabled",
+          "type": "Func\u003CDateOnly, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabledWindow",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DayClass",
+          "type": "Func\u003CDateOnly, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DateFieldType"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "Card",
@@ -1838,6 +2013,11 @@
       ],
       "properties": [
         {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "ReadOnly",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
@@ -2139,6 +2319,888 @@
         "ButtonVariant",
         "ControlSize"
       ]
+    },
+    {
+      "name": "DataGridAdd",
+      "displayName": "DataGridAdd",
+      "fullName": "IzzyBlazor.DataGridAdd",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ShowText",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridColumnPicker",
+      "displayName": "DataGridColumnPicker",
+      "fullName": "IzzyBlazor.DataGridColumnPicker",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ShowText",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridExport",
+      "displayName": "DataGridExport",
+      "fullName": "IzzyBlazor.DataGridExport",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowText",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridFilterBuilder",
+      "displayName": "DataGridFilterBuilder",
+      "fullName": "IzzyBlazor.DataGridFilterBuilder",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "ShowText",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridSearch",
+      "displayName": "DataGridSearch",
+      "fullName": "IzzyBlazor.DataGridSearch",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGrid",
+      "displayName": "DataGrid\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.DataGrid\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "DetailTemplate",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemHasDetail",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "OpenDetails",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DetailsOpen",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SingleDetail",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Groupable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Group",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "InitialGroup",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupsOpen",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "OpenGroups",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupRowLimit",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupPanel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowGroupedColumns",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SmallScreen",
+          "type": "DataGridSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Nonce",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EditMode",
+          "type": "DataGridEditMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FindItem",
+          "type": "Func\u003Cstring, Task\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NewItem",
+          "type": "Func\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemEditable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemDeletable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EditKey",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EditCopy",
+          "type": "Func\u003CTItem, TItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LayoutKey",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Layout",
+          "type": "DataGridLayout?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LayoutSaveUrl",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ResizableColumns",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ReorderableColumns",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ColumnPicker",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Virtualize",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowHeight",
+          "type": "double",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToolbarLabels",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ExportCsvHref",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ExportExcelHref",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToolbarContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Searchable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Search",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SearchLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterRow",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterBuilder",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupsProvider",
+          "type": "Func\u003CDataGroupRequest\u003CTItem\u003E, ValueTask\u003CDataGroupResult\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "InitialSort",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Sort",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "Filter?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterCase",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterPanel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Caption",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowClass",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowHover",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Striped",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowLines",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ColumnLines",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShadedHeader",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Bordered",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowHref",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowCurrent",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RowLabel",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterFromAddress",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemsProvider",
+          "type": "Func\u003CDataRequest\u003CTItem\u003E, ValueTask\u003CDataResult\u003CTItem\u003E\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PageSize",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PageSizeOptions",
+          "type": "IReadOnlyList\u003Cint\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Page",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Paging",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadMoreText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cursor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "QueryPrefix",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EmptyContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ErrorContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionMode",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Selection",
+          "type": "Selection?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemSelectable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectAllMode",
+          "type": "SelectAllMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionActions",
+          "type": "RenderFragment\u003CSelection\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectAllLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectRowLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnSave",
+          "type": "EventCallback\u003CDataGridSave\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "OnDelete",
+          "type": "EventCallback\u003CDataGridDelete\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "methods": [
+        {
+          "name": "ReloadAsync",
+          "type": "Task ReloadAsync()",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "types": [
+        "ControlSize",
+        "DataGridDelete",
+        "DataGridEditMode",
+        "DataGridLayout",
+        "DataGridSave",
+        "DataGridSmallScreen",
+        "DataGroupRequest",
+        "DataGroupResult",
+        "DataPaging",
+        "DataRequest",
+        "DataResult",
+        "Filter",
+        "FilterCase",
+        "Length",
+        "SelectAllMode",
+        "Selection",
+        "SelectionMode"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DateField",
+      "displayName": "DateField\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.DateField\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Type",
+          "type": "DateFieldType?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Step",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "TimeZone",
+          "type": "TimeZoneInfo?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "StartAddon",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EndAddon",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "UseNative",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChooseLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FirstDayOfWeek",
+          "type": "DayOfWeek?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Culture",
+          "type": "CultureInfo?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowWeekNumbers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowAdjacentDays",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabled",
+          "type": "Func\u003CDateOnly, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabledWindow",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DayClass",
+          "type": "Func\u003CDateOnly, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DateFieldType"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DateRangeField",
+      "displayName": "DateRangeField",
+      "fullName": "IzzyBlazor.DateRangeField",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MinDays",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxDays",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AllowDisabledInRange",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "UseNative",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayMonths",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Presets",
+          "type": "IReadOnlyList\u003CDateRangePreset\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChooseLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "StartText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EndText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FirstDayOfWeek",
+          "type": "DayOfWeek?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Culture",
+          "type": "CultureInfo?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowWeekNumbers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowAdjacentDays",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabled",
+          "type": "Func\u003CDateOnly, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabledWindow",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DayClass",
+          "type": "Func\u003CDateOnly, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "DateRange?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DateRange",
+        "DateRangePreset"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DeleteAction",
+      "displayName": "DeleteAction",
+      "fullName": "IzzyBlazor.DeleteAction",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "DisabledReason",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Overflow",
+          "type": "RowActionOverflow?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "RowActionOverflow"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "DescriptionItem",
@@ -2633,6 +3695,102 @@
       ]
     },
     {
+      "name": "Diff",
+      "displayName": "Diff",
+      "fullName": "IzzyBlazor.Diff",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "OldText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NewText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Lines",
+          "type": "IReadOnlyList\u003CDiffLine\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Language",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Highlight",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Layout",
+          "type": "DiffLayout",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Context",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Fold",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MarkWords",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LineNumbers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxChanges",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SameText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "TooManyText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DiffLayout",
+        "DiffLine",
+        "Length"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "Divider",
       "displayName": "Divider",
       "fullName": "IzzyBlazor.Divider",
@@ -2729,6 +3887,280 @@
         "DialogPlacement",
         "DialogSize"
       ]
+    },
+    {
+      "name": "DropZoneGroup",
+      "displayName": "DropZoneGroup\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.DropZoneGroup\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ZoneOf",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Order",
+          "type": "ListOrder?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SubmitOnMove",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnMove",
+          "type": "EventCallback\u003CListMoveEventArgs\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "ListMoveEventArgs",
+        "ListOrder"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DurationField",
+      "displayName": "DurationField\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.DurationField\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LargestUnit",
+          "type": "DurationUnit",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SmallestUnit",
+          "type": "DurationUnit",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Step",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DurationUnit"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "EditAction",
+      "displayName": "EditAction",
+      "fullName": "IzzyBlazor.EditAction",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "DisabledReason",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Overflow",
+          "type": "RowActionOverflow?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "RowActionOverflow"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "EditField",
+      "displayName": "EditField",
+      "fullName": "IzzyBlazor.EditField",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Key",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Hint",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ColSpan",
+          "type": "Responsive\u003Cint\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "EditFormTemplate",
+      "displayName": "EditFormTemplate\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.EditFormTemplate\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment\u003CDataGridEditFormContext\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "DialogSize",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Title",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DataGridEditFormContext",
+        "DialogSize"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "EditLayout",
+      "displayName": "EditLayout\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.EditLayout\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Columns",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Layout",
+          "type": "FormLayout",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "DialogSize",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Title",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DialogSize",
+        "FormLayout"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "EmptyState",
@@ -3053,6 +4485,64 @@
       "types": []
     },
     {
+      "name": "FilterBuilder",
+      "displayName": "FilterBuilder\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.FilterBuilder\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Fields",
+          "type": "IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "Filter?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PageKey",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CursorKey",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxDepth",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "DataField",
+        "Filter"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "FilterCheckbox",
       "displayName": "FilterCheckbox",
       "fullName": "IzzyBlazor.FilterCheckbox",
@@ -3078,6 +4568,53 @@
       "types": [
         "ControlSize"
       ]
+    },
+    {
+      "name": "FilterDate",
+      "displayName": "FilterDate",
+      "fullName": "IzzyBlazor.FilterDate",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Type",
+          "type": "DateFieldType",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Label",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [
+        "ControlSize",
+        "DateFieldType"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "FilterForm",
@@ -3318,6 +4855,11 @@
         {
           "name": "Title",
           "type": "string?"
+        },
+        {
+          "name": "ExceptFields",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         }
       ],
       "events": [],
@@ -3930,6 +5472,295 @@
       ]
     },
     {
+      "name": "ListView",
+      "displayName": "ListView\u003CTItem\u003E",
+      "fullName": "IzzyBlazor.ListView\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TItem"
+      ],
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemText",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemDescription",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemIcon",
+          "type": "Func\u003CTItem, IconData?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemLabel",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemHref",
+          "type": "Func\u003CTItem, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemCurrent",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemActions",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemMenu",
+          "type": "RenderFragment\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemDisabled",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Orientation",
+          "type": "Orientation",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Columns",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxHeight",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cards",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Dividers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Bordered",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AriaLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Reorderable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Order",
+          "type": "ListOrder?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SubmitOnMove",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DragWholeItem",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Zone",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Accepts",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxItems",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemsProvider",
+          "type": "Func\u003CDataRequest\u003CTItem\u003E, ValueTask\u003CDataResult\u003CTItem\u003E\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PageSize",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PageSizeOptions",
+          "type": "IReadOnlyList\u003Cint\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Page",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Paging",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadMoreText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cursor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "QueryPrefix",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EmptyContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ErrorContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionMode",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Selection",
+          "type": "Selection?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemSelectable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectAllMode",
+          "type": "SelectAllMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionActions",
+          "type": "RenderFragment\u003CSelection\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectAllLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectRowLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnItemClick",
+          "type": "EventCallback\u003CTItem\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "OnMove",
+          "type": "EventCallback\u003CListMoveEventArgs\u003CTItem\u003E\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "methods": [
+        {
+          "name": "ReloadAsync",
+          "type": "Task ReloadAsync()",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "types": [
+        "ControlSize",
+        "DataPaging",
+        "DataRequest",
+        "DataResult",
+        "Length",
+        "ListMoveEventArgs",
+        "ListOrder",
+        "Orientation",
+        "SelectAllMode",
+        "Selection",
+        "SelectionMode"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "Menu",
       "displayName": "Menu",
       "fullName": "IzzyBlazor.Menu",
@@ -4171,6 +6002,100 @@
       "types": []
     },
     {
+      "name": "MultiDateField",
+      "displayName": "MultiDateField\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.MultiDateField\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Inline",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChooseLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FirstDayOfWeek",
+          "type": "DayOfWeek?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Culture",
+          "type": "CultureInfo?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowWeekNumbers",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ShowAdjacentDays",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabled",
+          "type": "Func\u003CDateOnly, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateDisabledWindow",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DayClass",
+          "type": "Func\u003CDateOnly, string?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "MultiSelect",
       "displayName": "MultiSelect\u003CTValue, TItem\u003E",
       "fullName": "IzzyBlazor.MultiSelect\u00602",
@@ -4184,6 +6109,11 @@
         "FieldBase"
       ],
       "properties": [
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
         {
           "name": "ReadOnly",
           "type": "bool",
@@ -4387,6 +6317,11 @@
       ],
       "properties": [
         {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "ReadOnly",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
@@ -4504,6 +6439,11 @@
         {
           "name": "QueryKey",
           "type": "string"
+        },
+        {
+          "name": "ClearKeys",
+          "type": "IReadOnlyList\u003Cstring\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Siblings",
@@ -4751,8 +6691,34 @@
           "type": "bool"
         },
         {
-          "name": "FilterMultiple",
-          "type": "bool"
+          "name": "FilterOperators",
+          "type": "IReadOnlyList\u003CFilterOperator\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "Func\u003CFieldFilter, Expression\u003CFunc\u003CTItem, bool\u003E\u003E?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterValues",
+          "type": "FilterValuesLoader?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterList",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterTemplate",
+          "type": "RenderFragment\u003CFilterTemplateContext\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterText",
+          "type": "Func\u003CIReadOnlyList\u003Cstring?\u003E, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Align",
@@ -4761,6 +6727,56 @@
         {
           "name": "Width",
           "type": "Length?"
+        },
+        {
+          "name": "MinWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Frozen",
+          "type": "ColumnFrozen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Resizable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Reorderable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Pickable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Editable",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EditTemplate",
+          "type": "RenderFragment\u003CDataGridEditField\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Class",
@@ -4773,12 +6789,76 @@
         {
           "name": "Footer",
           "type": "RenderFragment?"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupAggregate",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupFooterAggregate",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateBy",
+          "type": "Expression\u003CFunc\u003CIEnumerable\u003CTItem\u003E, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Groupable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupTemplate",
+          "type": "RenderFragment\u003CDataGridGroup\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateTemplate",
+          "type": "RenderFragment\u003CDataGridAggregate\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
         "CellAlign",
+        "ColumnFrozen",
+        "DataAggregate",
+        "DataGridAggregate",
+        "DataGridEditField",
+        "DataGridGroup",
+        "FieldFilter",
+        "FilterOperator",
+        "FilterTemplateContext",
+        "FilterValuesLoader",
         "Length"
       ]
     },
@@ -4854,6 +6934,27 @@
       ]
     },
     {
+      "name": "ReconnectDialog",
+      "displayName": "ReconnectDialog",
+      "fullName": "IzzyBlazor.ReconnectDialog",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Title",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "Row",
       "displayName": "Row",
       "fullName": "IzzyBlazor.Row",
@@ -4900,6 +7001,73 @@
         "Align",
         "Justify"
       ]
+    },
+    {
+      "name": "RowAction",
+      "displayName": "RowAction",
+      "fullName": "IzzyBlazor.RowAction",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [],
+      "properties": [
+        {
+          "name": "Icon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Overflow",
+          "type": "RowActionOverflow?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "RowActionOverflow"
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "Section",
@@ -4999,6 +7167,11 @@
           "name": "ReadOnly",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
+        },
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Items",
@@ -5350,6 +7523,155 @@
       ]
     },
     {
+      "name": "SplitButton",
+      "displayName": "SplitButton",
+      "fullName": "IzzyBlazor.SplitButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IconOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "External",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Submit",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MenuLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MainDisabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MenuDisabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Placement",
+          "type": "Placement",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PanelWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Length",
+        "Placement"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "Stack",
       "displayName": "Stack",
       "fullName": "IzzyBlazor.Stack",
@@ -5677,24 +7999,23 @@
       ],
       "properties": [
         {
-          "name": "Items",
-          "type": "IEnumerable\u003CTItem\u003E?"
+          "name": "SmallScreen",
+          "type": "TableSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
-          "name": "ItemsProvider",
-          "type": "Func\u003CTableRequest\u003CTItem\u003E, ValueTask\u003CTableResult\u003CTItem\u003E\u003E\u003E?"
+          "name": "StackBelow",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Nonce",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "ChildContent",
           "type": "RenderFragment?"
-        },
-        {
-          "name": "PageSize",
-          "type": "int?"
-        },
-        {
-          "name": "PageSizeOptions",
-          "type": "IReadOnlyList\u003Cint\u003E?"
         },
         {
           "name": "InitialSort",
@@ -5705,36 +8026,32 @@
           "type": "string?"
         },
         {
-          "name": "Page",
-          "type": "int?"
+          "name": "Filter",
+          "type": "Filter?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
-          "name": "FilterPlacement",
-          "type": "FilterPlacement"
+          "name": "FilterCase",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
-          "name": "Filters",
-          "type": "IReadOnlyDictionary\u003Cstring, string\u003E?"
-        },
-        {
-          "name": "QueryPrefix",
-          "type": "string"
+          "name": "FilterPanel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Caption",
           "type": "string?"
         },
         {
-          "name": "EmptyContent",
-          "type": "RenderFragment?"
-        },
-        {
-          "name": "EmptyText",
-          "type": "string?"
-        },
-        {
           "name": "RowClass",
           "type": "Func\u003CTItem, string?\u003E?"
+        },
+        {
+          "name": "RowHover",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Striped",
@@ -5749,6 +8066,11 @@
           "type": "bool"
         },
         {
+          "name": "ShadedHeader",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "Bordered",
           "type": "bool"
         },
@@ -5761,32 +8083,111 @@
           "type": "Length?"
         },
         {
-          "name": "ItemKey",
-          "type": "Func\u003CTItem, string\u003E?"
-        },
-        {
-          "name": "Selectable",
-          "type": "bool"
-        },
-        {
-          "name": "SelectionName",
-          "type": "string?"
-        },
-        {
-          "name": "SelectedKeys",
-          "type": "IReadOnlyCollection\u003Cstring\u003E?"
-        },
-        {
           "name": "RowHref",
           "type": "Func\u003CTItem, string?\u003E?"
+        },
+        {
+          "name": "RowCurrent",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "RowLabel",
           "type": "Func\u003CTItem, string\u003E?"
         },
         {
+          "name": "FilterFromAddress",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Items",
+          "type": "IEnumerable\u003CTItem\u003E?"
+        },
+        {
+          "name": "ItemsProvider",
+          "type": "Func\u003CDataRequest\u003CTItem\u003E, ValueTask\u003CDataResult\u003CTItem\u003E\u003E\u003E?"
+        },
+        {
+          "name": "PageSize",
+          "type": "int?"
+        },
+        {
+          "name": "PageSizeOptions",
+          "type": "IReadOnlyList\u003Cint\u003E?"
+        },
+        {
+          "name": "Page",
+          "type": "int?"
+        },
+        {
+          "name": "Paging",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadMoreText",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cursor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "QueryPrefix",
+          "type": "string"
+        },
+        {
+          "name": "EmptyContent",
+          "type": "RenderFragment?"
+        },
+        {
+          "name": "EmptyText",
+          "type": "string?"
+        },
+        {
+          "name": "ErrorContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemKey",
+          "type": "Func\u003CTItem, string\u003E?"
+        },
+        {
           "name": "Loading",
           "type": "bool"
+        },
+        {
+          "name": "SelectionMode",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionName",
+          "type": "string?"
+        },
+        {
+          "name": "Selection",
+          "type": "Selection?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ItemSelectable",
+          "type": "Func\u003CTItem, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectAllMode",
+          "type": "SelectAllMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SelectionActions",
+          "type": "RenderFragment\u003CSelection\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "SelectAllLabel",
@@ -5798,13 +8199,25 @@
         }
       ],
       "events": [],
-      "methods": [],
+      "methods": [
+        {
+          "name": "ReloadAsync",
+          "type": "Task ReloadAsync()",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
       "types": [
         "ControlSize",
-        "FilterPlacement",
+        "DataPaging",
+        "DataRequest",
+        "DataResult",
+        "Filter",
+        "FilterCase",
         "Length",
-        "TableRequest",
-        "TableResult"
+        "SelectAllMode",
+        "Selection",
+        "SelectionMode",
+        "TableSmallScreen"
       ]
     },
     {
@@ -5957,6 +8370,11 @@
           "type": "Expression\u003CFunc\u003CTItem, string?\u003E\u003E?"
         },
         {
+          "name": "EditBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "Title",
           "type": "string?"
         },
@@ -5973,8 +8391,34 @@
           "type": "bool"
         },
         {
-          "name": "FilterMultiple",
-          "type": "bool"
+          "name": "FilterOperators",
+          "type": "IReadOnlyList\u003CFilterOperator\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "Func\u003CFieldFilter, Expression\u003CFunc\u003CTItem, bool\u003E\u003E?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterValues",
+          "type": "FilterValuesLoader?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterList",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterTemplate",
+          "type": "RenderFragment\u003CFilterTemplateContext\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterText",
+          "type": "Func\u003CIReadOnlyList\u003Cstring?\u003E, string\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Align",
@@ -5983,6 +8427,56 @@
         {
           "name": "Width",
           "type": "Length?"
+        },
+        {
+          "name": "MinWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Frozen",
+          "type": "ColumnFrozen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MaxWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Resizable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Reorderable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Pickable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Visible",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Editable",
+          "type": "bool?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EditTemplate",
+          "type": "RenderFragment\u003CDataGridEditField\u003CTItem\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
           "name": "Class",
@@ -5995,12 +8489,76 @@
         {
           "name": "Footer",
           "type": "RenderFragment?"
+        },
+        {
+          "name": "Aggregate",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupAggregate",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupFooterAggregate",
+          "type": "DataAggregate?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateBy",
+          "type": "Expression\u003CFunc\u003CIEnumerable\u003CTItem\u003E, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Groupable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupBy",
+          "type": "Expression\u003CFunc\u003CTItem, object?\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupFormat",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GroupTemplate",
+          "type": "RenderFragment\u003CDataGridGroup\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateTemplate",
+          "type": "RenderFragment\u003CDataGridAggregate\u003E?",
+          "addedIn": "0.1.0-alpha.20"
         }
       ],
       "events": [],
       "methods": [],
       "types": [
         "CellAlign",
+        "ColumnFrozen",
+        "DataAggregate",
+        "DataGridAggregate",
+        "DataGridEditField",
+        "DataGridGroup",
+        "FieldFilter",
+        "FilterOperator",
+        "FilterTemplateContext",
+        "FilterValuesLoader",
         "Length"
       ]
     },
@@ -6014,6 +8572,11 @@
         "FieldBase"
       ],
       "properties": [
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
         {
           "name": "ReadOnly",
           "type": "bool",
@@ -6158,6 +8721,11 @@
       ],
       "properties": [
         {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "ReadOnly",
           "type": "bool",
           "addedIn": "0.1.0-alpha.13"
@@ -6220,6 +8788,85 @@
       "types": [
         "TextFieldType"
       ]
+    },
+    {
+      "name": "TimeField",
+      "displayName": "TimeField\u003CTValue\u003E",
+      "fullName": "IzzyBlazor.TimeField\u00601",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "typeParameters": [
+        "TValue"
+      ],
+      "bases": [
+        "FieldBase"
+      ],
+      "properties": [
+        {
+          "name": "ReadOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "TimeOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "TimeOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Step",
+          "type": "TimeSpan?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "TimeDisabled",
+          "type": "Func\u003CTimeOnly, bool\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Clearable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "UseNative",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChooseLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "StartAddon",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EndAddon",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "TValue",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DisplayName",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [],
+      "methods": [],
+      "types": [],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "Timeline",
@@ -6938,6 +9585,172 @@
       "addedIn": "0.1.0-alpha.13"
     },
     {
+      "name": "ToolbarSplitButton",
+      "displayName": "ToolbarSplitButton",
+      "fullName": "IzzyBlazor.ToolbarSplitButton",
+      "package": "IzzyBlazor.Core",
+      "tier": "Free",
+      "bases": [
+        "LayoutItemBase",
+        "IzzyComponentBase"
+      ],
+      "properties": [
+        {
+          "name": "Position",
+          "type": "ToolbarPosition",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Priority",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Overflow",
+          "type": "ToolbarOverflow",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "StartIcon",
+          "type": "IconData?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IconOnly",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Href",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "External",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Submit",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FormAction",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Form",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MenuLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Accent",
+          "type": "Accent?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Variant",
+          "type": "ButtonVariant?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Size",
+          "type": "ControlSize?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Disabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Loading",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadingLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NewTabLabel",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FullWidth",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MainDisabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MenuDisabled",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Placement",
+          "type": "Placement",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "PanelWidth",
+          "type": "Length?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ChildContent",
+          "type": "RenderFragment?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "events": [
+        {
+          "name": "OnClick",
+          "type": "EventCallback\u003CMouseEventArgs\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "methods": [],
+      "types": [
+        "Accent",
+        "ButtonVariant",
+        "ControlSize",
+        "Length",
+        "Placement",
+        "ToolbarOverflow",
+        "ToolbarPosition"
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "ToolbarText",
       "displayName": "ToolbarText",
       "fullName": "IzzyBlazor.ToolbarText",
@@ -7473,6 +10286,29 @@
       ]
     },
     {
+      "name": "AsideSmallScreen",
+      "fullName": "IzzyBlazor.AsideSmallScreen",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Hidden",
+          "type": "AsideSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Below",
+          "type": "AsideSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Drawer",
+          "type": "AsideSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "AvatarSize",
       "fullName": "IzzyBlazor.AvatarSize",
       "kind": "enum",
@@ -7759,6 +10595,11 @@
           "type": "Color"
         },
         {
+          "name": "SurfaceSunken",
+          "type": "Color",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "FillSubtle",
           "type": "Color",
           "addedIn": "0.1.0-alpha.16"
@@ -7919,6 +10760,29 @@
       ]
     },
     {
+      "name": "ColumnFrozen",
+      "fullName": "IzzyBlazor.ColumnFrozen",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "ColumnFrozen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Start",
+          "type": "ColumnFrozen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "End",
+          "type": "ColumnFrozen",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "ConfirmOptions",
       "fullName": "IzzyBlazor.ConfirmOptions",
       "kind": "class",
@@ -7999,6 +10863,733 @@
       ]
     },
     {
+      "name": "DataAggregate",
+      "fullName": "IzzyBlazor.DataAggregate",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Sum",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Avg",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Min",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Max",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Count",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Custom",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataField",
+      "fullName": "IzzyBlazor.DataField\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Key",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "LambdaExpression",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Type",
+          "type": "Type",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Caption",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Format",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Sortable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filterable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Searchable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Groupable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Aggregatable",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AggregateBy",
+          "type": "LambdaExpression?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Case",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Operators",
+          "type": "IReadOnlyList\u003CFilterOperator\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Choices",
+          "type": "IReadOnlyList\u003CValueTuple\u003Cstring, string\u003E\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "Func\u003CFieldFilter, Expression\u003CFunc\u003CTItem, bool\u003E\u003E?\u003E?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FilterValues",
+          "type": "FilterValuesLoader?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridAggregate",
+      "fullName": "IzzyBlazor.DataGridAggregate",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Type",
+          "type": "DataAggregate",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "object?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Text",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Group",
+          "type": "DataGroup",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridDelete",
+      "fullName": "IzzyBlazor.DataGridDelete\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridEditField",
+      "fullName": "IzzyBlazor.DataGridEditField\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Name",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Attributes",
+          "type": "IReadOnlyDictionary\u003Cstring, object\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridEditFormContext",
+      "fullName": "IzzyBlazor.DataGridEditFormContext\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsNew",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cancel",
+          "type": "RenderFragment",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CloseAsync",
+          "type": "Task CloseAsync()",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridEditMode",
+      "fullName": "IzzyBlazor.DataGridEditMode",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "DataGridEditMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Dialog",
+          "type": "DataGridEditMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Row",
+          "type": "DataGridEditMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cell",
+          "type": "DataGridEditMode",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridGroup",
+      "fullName": "IzzyBlazor.DataGridGroup",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Value",
+          "type": "object?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Text",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Group",
+          "type": "DataGroup",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Level",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsOpen",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridLayout",
+      "fullName": "IzzyBlazor.DataGridLayout",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Parse",
+          "type": "DataGridLayout? Parse(string? json)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Columns",
+          "type": "IReadOnlyList\u003CDataGridColumnLayout\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Column",
+          "type": "DataGridColumnLayout? Column(string key)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToJson",
+          "type": "string ToJson()",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridSave",
+      "fullName": "IzzyBlazor.DataGridSave\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Original",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsNew",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError\u003CTValue\u003E(Expression\u003CFunc\u003CTItem, TValue\u003E\u003E field, string message)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AddError",
+          "type": "void AddError(string message)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CopyTo",
+          "type": "void CopyTo(TItem target)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGridSmallScreen",
+      "fullName": "IzzyBlazor.DataGridSmallScreen",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Scroll",
+          "type": "DataGridSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "HideColumns",
+          "type": "DataGridSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGroupRequest",
+      "fullName": "IzzyBlazor.DataGroupRequest\u00601",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Keys",
+          "type": "IReadOnlyList\u003CSortField\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Aggregates",
+          "type": "IReadOnlyList\u003CDataAggregateField\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "Filter?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Search",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Skip",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Take",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NeedsTotal",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CancellationToken",
+          "type": "CancellationToken",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToQueryString",
+          "type": "string ToQueryString()",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResult",
+          "type": "DataGroupResult ToResult(IQueryable\u003CTItem\u003E source)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResult",
+          "type": "DataGroupResult ToResult(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResultAsync",
+          "type": "Task\u003CDataGroupResult\u003E ToResultAsync(IQueryable\u003CTItem\u003E source, Func\u003CIQueryable\u003Cobject?[]\u003E, CancellationToken, Task\u003Cint\u003E\u003E count, Func\u003CIQueryable\u003Cobject?[]\u003E, CancellationToken, Task\u003CList\u003Cobject?[]\u003E\u003E\u003E list)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResultAsync",
+          "type": "Task\u003CDataGroupResult\u003E ToResultAsync(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields, Func\u003CIQueryable\u003Cobject?[]\u003E, CancellationToken, Task\u003Cint\u003E\u003E count, Func\u003CIQueryable\u003Cobject?[]\u003E, CancellationToken, Task\u003CList\u003Cobject?[]\u003E\u003E\u003E list)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataGroupResult",
+      "fullName": "IzzyBlazor.DataGroupResult",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Groups",
+          "type": "IReadOnlyList\u003CDataGroup\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Total",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataPaging",
+      "fullName": "IzzyBlazor.DataPaging",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Pages",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NextPrevious",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadMore",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LoadOnScroll",
+          "type": "DataPaging",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataRequest",
+      "fullName": "IzzyBlazor.DataRequest\u00601",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Sort",
+          "type": "IReadOnlyList\u003CSortField\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "Filter?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Search",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Skip",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Take",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cursor",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NeedsTotal",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CancellationToken",
+          "type": "CancellationToken",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Page",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Apply",
+          "type": "IQueryable\u003CTItem\u003E Apply(IQueryable\u003CTItem\u003E source)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Apply",
+          "type": "IQueryable\u003CTItem\u003E Apply(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ApplyFiltering",
+          "type": "IQueryable\u003CTItem\u003E ApplyFiltering(IQueryable\u003CTItem\u003E source)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ApplyFiltering",
+          "type": "IQueryable\u003CTItem\u003E ApplyFiltering(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ApplySorting",
+          "type": "IQueryable\u003CTItem\u003E ApplySorting(IQueryable\u003CTItem\u003E source)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ApplySorting",
+          "type": "IQueryable\u003CTItem\u003E ApplySorting(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToODataQuery",
+          "type": "string ToODataQuery()",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToODataQuery",
+          "type": "string ToODataQuery(IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToQueryString",
+          "type": "string ToQueryString()",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResult",
+          "type": "DataResult\u003CTItem\u003E ToResult(IQueryable\u003CTItem\u003E source)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResult",
+          "type": "DataResult\u003CTItem\u003E ToResult(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResultAsync",
+          "type": "Task\u003CDataResult\u003CTItem\u003E\u003E ToResultAsync(IQueryable\u003CTItem\u003E source, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003Cint\u003E\u003E count, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003CList\u003CTItem\u003E\u003E\u003E list)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToResultAsync",
+          "type": "Task\u003CDataResult\u003CTItem\u003E\u003E ToResultAsync(IQueryable\u003CTItem\u003E source, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003Cint\u003E\u003E count, Func\u003CIQueryable\u003CTItem\u003E, CancellationToken, Task\u003CList\u003CTItem\u003E\u003E\u003E list)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DataResult",
+      "fullName": "IzzyBlazor.DataResult\u00601",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Items",
+          "type": "IReadOnlyList\u003CTItem\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Total",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Next",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Previous",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DateFieldType",
+      "fullName": "IzzyBlazor.DateFieldType",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Date",
+          "type": "DateFieldType",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DateTime",
+          "type": "DateFieldType",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Month",
+          "type": "DateFieldType",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Year",
+          "type": "DateFieldType",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DateRange",
+      "fullName": "IzzyBlazor.DateRange",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Start",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "End",
+          "type": "DateOnly?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsEmpty",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Days",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Contains",
+          "type": "bool Contains(DateOnly day)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Contains",
+          "type": "bool Contains(DateTime time)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToUtc",
+          "type": "ValueTuple\u003CDateTimeOffset?, DateTimeOffset?\u003E ToUtc(TimeZoneInfo zone)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DateRangePreset",
+      "fullName": "IzzyBlazor.DateRangePreset",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Label",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Start",
+          "type": "DateOnly",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "End",
+          "type": "DateOnly",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "DialogPlacement",
       "fullName": "IzzyBlazor.DialogPlacement",
       "kind": "enum",
@@ -8053,6 +11644,52 @@
       ]
     },
     {
+      "name": "DiffLayout",
+      "fullName": "IzzyBlazor.DiffLayout",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Unified",
+          "type": "DiffLayout",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Split",
+          "type": "DiffLayout",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "DiffLine",
+      "fullName": "IzzyBlazor.DiffLine",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Kind",
+          "type": "DiffKind",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "OldNumber",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NewNumber",
+          "type": "int?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Text",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "Direction",
       "fullName": "IzzyBlazor.Direction",
       "kind": "enum",
@@ -8095,19 +11732,310 @@
       ]
     },
     {
-      "name": "FilterPlacement",
-      "fullName": "IzzyBlazor.FilterPlacement",
+      "name": "DurationUnit",
+      "fullName": "IzzyBlazor.DurationUnit",
       "kind": "enum",
       "members": [
         {
-          "name": "Header",
-          "type": "FilterPlacement"
+          "name": "Seconds",
+          "type": "DurationUnit",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
-          "name": "Row",
-          "type": "FilterPlacement"
+          "name": "Minutes",
+          "type": "DurationUnit",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Hours",
+          "type": "DurationUnit",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Days",
+          "type": "DurationUnit",
+          "addedIn": "0.1.0-alpha.20"
         }
-      ]
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "FieldFilter",
+      "fullName": "IzzyBlazor.FieldFilter",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Field",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Operator",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "object?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value2",
+          "type": "object?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MatchCase",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Values",
+          "type": "IReadOnlyList\u003Cobject?\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "Filter",
+      "fullName": "IzzyBlazor.Filter",
+      "kind": "record",
+      "members": [
+        {
+          "name": "Parse",
+          "type": "Filter Parse(string text)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Find",
+          "type": "FieldFilter? Find(string field)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "FilterCase",
+      "fullName": "IzzyBlazor.FilterCase",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "IgnoreCase",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MatchCase",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Database",
+          "type": "FilterCase",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "FilterOperator",
+      "fullName": "IzzyBlazor.FilterOperator",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Equals",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NotEquals",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LessThan",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "LessThanOrEqual",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GreaterThan",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "GreaterThanOrEqual",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Between",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Contains",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "DoesNotContain",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "StartsWith",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EndsWith",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "In",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "NotIn",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsNull",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsNotNull",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsEmpty",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsNotEmpty",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "OnDay",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "FilterTemplateContext",
+      "fullName": "IzzyBlazor.FilterTemplateContext",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Name",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Operator",
+          "type": "FilterOperator",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Values",
+          "type": "IReadOnlyList\u003Cstring?\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Value",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "To",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsFiltered",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Attributes",
+          "type": "IReadOnlyDictionary\u003Cstring, object\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToAttributes",
+          "type": "IReadOnlyDictionary\u003Cstring, object\u003E",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "CheckboxAttributes",
+          "type": "IReadOnlyDictionary\u003Cstring, object\u003E CheckboxAttributes(string value)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Has",
+          "type": "bool Has(string value)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SetAsync",
+          "type": "Task SetAsync(string? value)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "SetValuesAsync",
+          "type": "Task SetValuesAsync(IEnumerable\u003Cstring?\u003E values)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "FilterValuesLoader",
+      "fullName": "IzzyBlazor.FilterValuesLoader",
+      "kind": "delegate",
+      "members": [
+        {
+          "name": "Target",
+          "type": "object?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Method",
+          "type": "MethodInfo",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "BeginInvoke",
+          "type": "IAsyncResult BeginInvoke(FilterValuesRequest request, AsyncCallback callback, object object)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "EndInvoke",
+          "type": "ValueTask\u003CFilterValuesResult\u003E EndInvoke(IAsyncResult result)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Invoke",
+          "type": "ValueTask\u003CFilterValuesResult\u003E Invoke(FilterValuesRequest request)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "FontFamily",
@@ -8242,6 +12170,21 @@
           "type": "IconRole"
         },
         {
+          "name": "MoreVertical",
+          "type": "IconRole",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Export",
+          "type": "IconRole",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Columns",
+          "type": "IconRole",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
           "name": "Info",
           "type": "IconRole"
         },
@@ -8340,6 +12283,21 @@
         {
           "name": "Upload",
           "type": "IconRole"
+        },
+        {
+          "name": "FirstPage",
+          "type": "IconRole",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Panel",
+          "type": "IconRole",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "RangeTo",
+          "type": "IconRole",
+          "addedIn": "0.1.0-alpha.20"
         }
       ]
     },
@@ -8566,6 +12524,87 @@
       ]
     },
     {
+      "name": "ListMoveEventArgs",
+      "fullName": "IzzyBlazor.ListMoveEventArgs\u00601",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Item",
+          "type": "TItem",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Key",
+          "type": "string",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FromIndex",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToIndex",
+          "type": "int",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "FromZone",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ToZone",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Cancel",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "ListOrder",
+      "fullName": "IzzyBlazor.ListOrder",
+      "kind": "class",
+      "members": [
+        {
+          "name": "Keys",
+          "type": "string[]?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Zones",
+          "type": "string[]?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Move",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Arrange",
+          "type": "IReadOnlyList\u003CTItem\u003E Arrange\u003CTItem\u003E(IReadOnlyList\u003CTItem\u003E items, Func\u003CTItem, string\u003E key)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Arrange",
+          "type": "IReadOnlyList\u003CListPlace\u003CTItem\u003E\u003E Arrange\u003CTItem\u003E(IReadOnlyList\u003CTItem\u003E items, Func\u003CTItem, string\u003E key, Func\u003CTItem, string\u003E zoneOf)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "ZoneOf",
+          "type": "string? ZoneOf(string key)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "MenuButtonPosition",
       "fullName": "IzzyBlazor.MenuButtonPosition",
       "kind": "enum",
@@ -8754,6 +12793,29 @@
       ]
     },
     {
+      "name": "RowActionOverflow",
+      "fullName": "IzzyBlazor.RowActionOverflow",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Auto",
+          "type": "RowActionOverflow",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Never",
+          "type": "RowActionOverflow",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Always",
+          "type": "RowActionOverflow",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
       "name": "SectionSpacing",
       "fullName": "IzzyBlazor.SectionSpacing",
       "kind": "enum",
@@ -8775,6 +12837,130 @@
           "type": "SectionSpacing"
         }
       ]
+    },
+    {
+      "name": "SelectAllMode",
+      "fullName": "IzzyBlazor.SelectAllMode",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "Page",
+          "type": "SelectAllMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "All",
+          "type": "SelectAllMode",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "Selection",
+      "fullName": "IzzyBlazor.Selection",
+      "kind": "class",
+      "members": [
+        {
+          "name": "None",
+          "type": "Selection",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Of",
+          "type": "Selection Of(IEnumerable\u003Cstring\u003E keys)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "AllOf",
+          "type": "Selection AllOf\u003CTItem\u003E(DataRequest\u003CTItem\u003E request)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Keys",
+          "type": "string[]?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "All",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Filter",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Search",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "KeyList",
+          "type": "string?",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "IsEmpty",
+          "type": "bool",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Apply",
+          "type": "IQueryable\u003CTItem\u003E Apply\u003CTItem\u003E(IQueryable\u003CTItem\u003E source, Expression\u003CFunc\u003CTItem, string\u003E\u003E key)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Apply",
+          "type": "IQueryable\u003CTItem\u003E Apply\u003CTItem\u003E(IQueryable\u003CTItem\u003E source, Expression\u003CFunc\u003CTItem, string\u003E\u003E key, IReadOnlyList\u003CDataField\u003CTItem\u003E\u003E fields)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Contains",
+          "type": "bool Contains(string key)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Count",
+          "type": "int? Count(int? total)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "MatchesScope",
+          "type": "bool MatchesScope(Filter? filter, string? search)",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "With",
+          "type": "Selection With(string key, bool selected)",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
+    },
+    {
+      "name": "SelectionMode",
+      "fullName": "IzzyBlazor.SelectionMode",
+      "kind": "enum",
+      "members": [
+        {
+          "name": "None",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Single",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.20"
+        },
+        {
+          "name": "Multiple",
+          "type": "SelectionMode",
+          "addedIn": "0.1.0-alpha.20"
+        }
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "Shadow",
@@ -8937,62 +13123,22 @@
       ]
     },
     {
-      "name": "TableRequest",
-      "fullName": "IzzyBlazor.TableRequest\u00601",
-      "kind": "record",
+      "name": "TableSmallScreen",
+      "fullName": "IzzyBlazor.TableSmallScreen",
+      "kind": "enum",
       "members": [
         {
-          "name": "SortKey",
-          "type": "string?"
+          "name": "Scroll",
+          "type": "TableSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
         },
         {
-          "name": "Descending",
-          "type": "bool"
-        },
-        {
-          "name": "Page",
-          "type": "int"
-        },
-        {
-          "name": "PageSize",
-          "type": "int?"
-        },
-        {
-          "name": "Filters",
-          "type": "IReadOnlyDictionary\u003Cstring, string\u003E"
-        },
-        {
-          "name": "Skip",
-          "type": "int"
-        },
-        {
-          "name": "Apply",
-          "type": "IQueryable\u003CTItem\u003E Apply(IQueryable\u003CTItem\u003E source)"
-        },
-        {
-          "name": "ApplyFiltering",
-          "type": "IQueryable\u003CTItem\u003E ApplyFiltering(IQueryable\u003CTItem\u003E source)"
-        },
-        {
-          "name": "ApplySorting",
-          "type": "IQueryable\u003CTItem\u003E ApplySorting(IQueryable\u003CTItem\u003E source)"
+          "name": "Stack",
+          "type": "TableSmallScreen",
+          "addedIn": "0.1.0-alpha.20"
         }
-      ]
-    },
-    {
-      "name": "TableResult",
-      "fullName": "IzzyBlazor.TableResult\u00601",
-      "kind": "record",
-      "members": [
-        {
-          "name": "Items",
-          "type": "IReadOnlyList\u003CTItem\u003E"
-        },
-        {
-          "name": "TotalItems",
-          "type": "int"
-        }
-      ]
+      ],
+      "addedIn": "0.1.0-alpha.20"
     },
     {
       "name": "TabsVariant",
