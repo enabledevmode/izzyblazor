@@ -296,7 +296,7 @@ public class DataGridGroupTests : BunitContext
         Assert.Equal(new[] { "g:East/Coast", "g:North" }, Rows(cut));
         Assert.DoesNotContain("page=", Nav.Uri);
 
-        var all = cut.Find("thead .ib-grid-group-all");
+        var all = cut.Find("thead .ib-grid-expand");
         Assert.Equal("Expand all groups", all.GetAttribute("aria-label"));
         cut = Grid(all.GetAttribute("href")!, p => p.Add(x => x.PageSize, 2));
         Assert.Equal(new[] { "g:East/Coast", "r:1", "r:2", "r:3", "g:North", "r:4" }, Rows(cut));
@@ -318,7 +318,7 @@ public class DataGridGroupTests : BunitContext
             .Add(x => x.GroupsOpen, true));
         Assert.Contains("r:1", Rows(cut));
 
-        cut.Find("thead button.ib-grid-group-all").Click();
+        cut.Find("thead button.ib-grid-expand").Click();
         Assert.DoesNotContain("r:1", Rows(cut));
 
         cut.Find("tr.ib-grid-group button").Click();

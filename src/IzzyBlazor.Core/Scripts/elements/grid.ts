@@ -54,7 +54,7 @@ class Grid extends IzzyElement {
     // A group's box ticks the rows drawn under it, and they report their own changes.
     this.#on(table, "change", (event) => {
       const box = event.target as HTMLInputElement;
-      if (box.matches(".ib-table-group-select")) {
+      if (box.matches(".ib-table-group-select") && box.closest("table") === this.#table) {
         // Each click comes back here, and would change the box along the way.
         const on = box.checked;
         for (const own of this.#underGroup(box)) if (!own.disabled && own.checked !== on) own.click();
@@ -98,11 +98,18 @@ class Grid extends IzzyElement {
     this.#on(table, "keydown", (event) => this.#onKey(event as KeyboardEvent), signal, true);
     this.#on(table, "focusin", (event) => this.#onFocusIn(event as FocusEvent), signal);
     this.#on(table, "focusout", (event) => this.#onFocusOut(event as FocusEvent), signal);
+    // Escape in a grid inside a detail goes back to the detail, if that grid didn't use it.
+    this.#on(table, "keydown", (event) => {
+      const inside = this.#inside;
+      if ((event as KeyboardEvent).key !== "Escape" || event.defaultPrevented || !inside?.parentElement!.matches(".ib-grid-detail") || event.target === inside) return;
+      event.preventDefault();
+      inside.focus();
+    }, signal);
     this.#on(table, "change", (event) => {
       // A group's box ticks the rows drawn under it, and they report their own changes. Each click
       // comes back here, and would change the box along the way.
       const box = event.target as HTMLInputElement;
-      if (box.matches(".ib-table-group-select")) {
+      if (box.matches(".ib-table-group-select") && box.closest("table") === this.#table) {
         const on = box.checked;
         for (const own of this.#underGroup(box)) if (!own.disabled && own.checked !== on) own.click();
       }
@@ -132,6 +139,8 @@ class Grid extends IzzyElement {
     const box = this.#box;
     const cells = table?.tHead?.rows[0]?.cells;
     if (!table || !box || !cells || box.clientWidth === 0) return;
+    // A detail's content is as wide as the box, so it stays in view.
+    table.style.setProperty("--ib-box", `${box.clientWidth}px`);
     let [start, end] = [0, 0];
     for (const cell of cells) {
       if (cell.matches(".ib-frozen-start")) start += cell.offsetWidth;
@@ -242,6 +251,11 @@ class Grid extends IzzyElement {
     return cell && cell.closest("table") === this.#table ? cell : null;
   }
 
+  // The detail cell a grid of its own is in: its cells are that grid's, and focus in them is in the detail.
+  #detailOf(target: Element): HTMLTableCellElement | undefined {
+    return [...this.#table!.querySelectorAll<HTMLTableCellElement>(":scope > tbody > .ib-grid-detail > td")].find((cell) => cell.contains(target));
+  }
+
   // In an overlay of the grid's own (a cell's menu, a filter panel), not one the grid itself is in.
   #inOverlay(el: Element): boolean {
     const overlay = el.closest("[popover], dialog");
@@ -262,20 +276,27 @@ class Grid extends IzzyElement {
 
   /** Where arrows land in a cell: its one control that leaves them alone, else the cell. */
   #targetOf(cell: HTMLTableCellElement): HTMLElement {
+    // A row's detail is one stop, whatever it holds: Enter goes in.
+    if (cell.parentElement!.matches(".ib-grid-detail")) return cell;
     const controls = this.#controlsOf(cell);
     return controls.length === 1 && !this.#keepsArrows(controls[0]) ? controls[0] : cell;
   }
 
   /** Where Enter and F2 go in: a filter cell's field, past its operator button, else the first control. */
   #entryOf(cell: HTMLTableCellElement): HTMLElement | undefined {
-    return cell.querySelector<HTMLElement>("[data-ib-enter]") ?? this.#controlsOf(cell)[0];
+    return this.#own(cell, "[data-ib-enter]") ?? this.#controlsOf(cell)[0];
+  }
+
+  // The first in a cell that's this grid's, not a grid's inside it.
+  #own(cell: Element, selector: string): HTMLElement | undefined {
+    return [...cell.querySelectorAll<HTMLElement>(selector)].find((el) => el.closest("table") === this.#table);
   }
 
   #prepare(): void {
     const table = this.#table;
     if (!table) return;
     // Group rows have levels, which ARIA only allows on a row in a treegrid.
-    table.setAttribute("role", table.querySelector("tr[aria-level]") ? "treegrid" : "grid");
+    table.setAttribute("role", table.querySelector(":scope > * > tr[aria-level]") ? "treegrid" : "grid");
     if (table.closest("ib-table")?.querySelector(".ib-table-select-all")) table.setAttribute("aria-multiselectable", "true");
     else table.removeAttribute("aria-multiselectable");
 
@@ -385,7 +406,7 @@ class Grid extends IzzyElement {
       const box = row.querySelector<HTMLInputElement>(":scope > td > .ib-table-select");
       if (box) row.setAttribute("aria-selected", String(box.checked));
     }
-    for (const box of this.#table?.querySelectorAll<HTMLInputElement>(".ib-table-group-select") ?? []) {
+    for (const box of this.#table?.querySelectorAll<HTMLInputElement>(":scope > tbody > tr > td > .ib-table-group-select") ?? []) {
       const under = this.#underGroup(box);
       box.checked = under.length > 0 && under.every((b) => b.checked || b.disabled);
     }
@@ -410,7 +431,7 @@ class Grid extends IzzyElement {
       if (target.closest("table") === this.#table) this.#focusCell(this.#atColumn(target, this.#column));
       return;
     }
-    const cell = this.#cellOf(target);
+    const cell = this.#cellOf(target) ?? this.#detailOf(target);
     if (!cell) return;
     if (cell.closest("[data-ib-editing]")) {
       this.#inGrid = true;
@@ -506,7 +527,7 @@ class Grid extends IzzyElement {
     if (cell.closest("[data-ib-editing]")) {
       if (event.key === "Escape") {
         event.preventDefault();
-        cell.closest("tr")!.querySelector<HTMLElement>("[data-ib-edit-cancel]")?.click();
+        this.#own(cell.closest("tr")!, "[data-ib-edit-cancel]")?.click();
       }
       return;
     }
@@ -524,7 +545,7 @@ class Grid extends IzzyElement {
 
   // An open list or picker has the keys first: Escape closes it, and focus stays.
   #isOpen(target: HTMLElement): boolean {
-    if (target.getAttribute("aria-expanded") === "true" && !target.matches(".ib-grid-group-toggle, .ib-grid-group-all")) return true;
+    if (target.getAttribute("aria-expanded") === "true" && !target.matches(".ib-grid-group-toggle, .ib-grid-expand")) return true;
     const select = target.closest("select");
     if (!select) return false;
     try {
@@ -563,7 +584,7 @@ class Grid extends IzzyElement {
 
   #openMenu(event: KeyboardEvent, cell: HTMLTableCellElement): boolean {
     if (event.key !== "ArrowDown") return false;
-    const menu = cell.querySelector<HTMLElement>("[data-ib-menu]") ?? cell.querySelector<HTMLElement>("[popovertarget]:not(:disabled, [popover] *)");
+    const menu = this.#own(cell, "[data-ib-menu]") ?? this.#own(cell, "[popovertarget]:not(:disabled, [popover] *)");
     menu?.click();
     return !!menu;
   }
@@ -603,7 +624,7 @@ class Grid extends IzzyElement {
       case "Enter": {
         if (target !== cell) return false;
         if (event.repeat) return true;
-        const primary = cell.querySelector<HTMLElement>("[data-ib-primary]");
+        const primary = this.#own(cell, "[data-ib-primary]");
         if (primary) {
           // Carrying Shift, which adds a column to the sort.
           primary.dispatchEvent(new MouseEvent("click", { bubbles: true, cancelable: true, shiftKey: event.shiftKey }));
@@ -611,12 +632,12 @@ class Grid extends IzzyElement {
         }
         const control = this.#entryOf(cell);
         if (control) this.#focusInCell(cell, control);
-        else cell.closest("tr")?.querySelector<HTMLElement>(".ib-table-row-link")?.click();
+        else this.#own(cell.closest("tr")!, ".ib-table-row-link")?.click();
         return true;
       }
       case "F2":
         if (target === cell && this.#entryOf(cell)) this.#focusInCell(cell, this.#entryOf(cell)!);
-        else if (target === cell) cell.closest("tr")?.querySelector<HTMLElement>("[data-ib-edit-start]")?.click();
+        else if (target === cell) this.#own(cell.closest("tr")!, "[data-ib-edit-start]")?.click();
         return true;
       case "ArrowUp":
       case "ArrowDown":

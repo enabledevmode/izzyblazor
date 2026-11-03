@@ -399,12 +399,11 @@
 
   /* A state layer over the cell's own background, so it shows on striped rows too. A row that's a link
      always has it, as all of it can be clicked; for the rest it's asked for, and an edit has its own. */
-  .ib-table-row-hover .ib-table-grid > tbody > tr:not(.ib-table-empty, .ib-grid-group, .ib-grid-group-foot, [data-ib-editing], :has(> td[data-ib-editing])):hover > td,
+  .ib-table-row-hover .ib-table-grid > tbody > tr:not(.ib-table-empty, .ib-grid-group, .ib-grid-group-foot, .ib-grid-detail, [data-ib-editing], :has(> td[data-ib-editing])):hover > td,
   .ib-table-grid > tbody > tr.ib-table-row-linked:hover > td {
     background-image: linear-gradient(var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)), var(--ib-state-hover, color-mix(in oklab, var(--ib-color-on-surface) 6%, transparent)));
   }
 
-  .ib-table-striped .ib-table-grid > tbody > tr:nth-child(even):where(:not([aria-rowindex])) > td,
   .ib-table-striped .ib-table-grid > tbody > tr[data-ib-even] > td {
     background-color: var(--ib-table-stripe);
   }
@@ -1613,7 +1612,7 @@
     inset-inline-start: var(--ib-group-at);
   }
 
-  :is(.ib-grid-group-toggle, .ib-grid-group-all) {
+  :is(.ib-grid-group-toggle, .ib-grid-expand) {
     display: inline-flex;
     align-items: center;
     color: inherit;
@@ -1623,7 +1622,7 @@
 
   /* Every chevron is centered in its lead column, in the header too, and the label after it starts
      where the next column's text does. */
-  :is(.ib-grid-group-toggle, .ib-grid-group-all) > svg {
+  :is(.ib-grid-group-toggle, .ib-grid-expand) > svg {
     box-sizing: content-box;
     width: 1rem;
     height: 1rem;
@@ -1634,29 +1633,47 @@
     margin-inline-end: var(--ib-table-px);
   }
 
-  .ib-table-grid > thead > tr > th.ib-grid-lead {
+  .ib-table-grid > * > tr > .ib-grid-lead {
     padding-inline: 0;
   }
 
   /* Off the text's baseline, so each chevron sits in the middle of its row. */
-  .ib-grid-group-all {
+  .ib-grid-expand {
     display: flex;
+    /* Inside its cell, which clips. */
+    outline-offset: -2px;
   }
 
   .ib-grid-group-toggle {
     vertical-align: middle;
   }
 
-  :is(.ib-grid-group-toggle, .ib-grid-group-all)[aria-expanded="true"] > svg {
+  :is(.ib-grid-group-toggle, .ib-grid-expand)[aria-expanded="true"] > svg {
     rotate: 90deg;
   }
 
-  :is(.ib-grid-group-toggle, .ib-grid-group-all) > svg:dir(rtl) {
+  :is(.ib-grid-group-toggle, .ib-grid-expand) > svg:dir(rtl) {
     scale: -1 1;
   }
 
-  :is(.ib-grid-group-toggle, .ib-grid-group-all)[aria-expanded="true"] > svg:dir(rtl) {
+  :is(.ib-grid-group-toggle, .ib-grid-expand)[aria-expanded="true"] > svg:dir(rtl) {
     rotate: -90deg;
+  }
+
+  /* A row's detail: under its data, in view as the grid scrolls sideways (--ib-box is the box's width). */
+  .ib-grid-detail > td {
+    padding: 0;
+    overflow: visible;
+    background-color: var(--ib-color-surface-sunken);
+  }
+
+  .ib-grid-detail-content {
+    position: sticky;
+    inset-inline-start: 0;
+    box-sizing: border-box;
+    max-inline-size: var(--ib-box);
+    padding-block: var(--ib-space-3);
+    padding-inline: calc(var(--ib-detail-at) + var(--ib-table-px)) var(--ib-table-px);
   }
 
   .ib-grid-group-aggregate {
@@ -1814,7 +1831,6 @@
     background-image: linear-gradient(var(--ib-frozen-hover, transparent), var(--ib-frozen-hover, transparent)), linear-gradient(var(--ib-frozen-tint, transparent), var(--ib-frozen-tint, transparent));
   }
 
-  .ib-table-striped.ib-datagrid .ib-table-grid > tbody > tr:nth-child(even):where(:not([aria-rowindex])) > .ib-frozen,
   .ib-table-striped.ib-datagrid .ib-table-grid > tbody > tr[data-ib-even] > .ib-frozen {
     --ib-frozen-tint: var(--ib-table-stripe);
   }
