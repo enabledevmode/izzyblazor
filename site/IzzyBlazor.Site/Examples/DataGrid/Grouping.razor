@@ -2,7 +2,7 @@
 @* Choose "Group by this column" in a header's menu, or start from the address. Each group's row is a
    link that opens it, its count is the whole group's, and a page holds whole groups. *@
 <DataGrid Items="Rows.All" PageSize="3" Caption="Orders in groups" ItemKey="o => o.Number.ToString()"
-          Groupable InitialGroup="status" QueryPrefix="grouped-" SelectionMode="SelectionMode.Multiple" Grow>
+          Groupable InitialGroup="status" QueryPrefix="grouped-" Grow>
     <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Groupable="false" />
     <PropertyColumn Property="o => o.Customer" Sortable />
     <PropertyColumn Property="o => o.Status" Filterable />

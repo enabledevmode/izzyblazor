@@ -1584,21 +1584,21 @@
     text-decoration: none;
   }
 
+  /* Every chevron is centered in its lead column, in the header too, and the label after it starts
+     where the next column's text does. */
   :is(.ib-grid-group-toggle, .ib-grid-group-all) > svg {
     box-sizing: content-box;
-    padding-inline: calc((var(--ib-datagrid-group) - 1em) / 2);
-  }
-
-  .ib-grid-group-all > svg {
-    padding-inline: 0;
+    width: 1rem;
+    height: 1rem;
+    padding-inline: calc((var(--ib-datagrid-group) - 1rem) / 2);
   }
 
   .ib-grid-group-toggle > svg {
-    margin-inline-end: calc(var(--ib-table-px) - (var(--ib-datagrid-group) - 1em) / 2);
+    margin-inline-end: var(--ib-table-px);
   }
 
-  .ib-grid-lead:has(.ib-grid-group-all) {
-    text-align: center;
+  .ib-table-grid > thead > tr > th.ib-grid-lead {
+    padding-inline: 0;
   }
 
   :is(.ib-grid-group-toggle, .ib-grid-group-all)[aria-expanded="true"] > svg {
