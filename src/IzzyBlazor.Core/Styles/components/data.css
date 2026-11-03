@@ -824,9 +824,20 @@
   }
 
   /* A DataGrid's FilterRow. */
-  /* Less above, under the titles' own padding, and the rows' below, so the fields sit in the middle. */
+  /* The fields sit in the middle: between two lines, the same above and below; shaded, with no line
+     under the titles, none above, where their own padding is the gap. */
+  .ib-table {
+    --ib-filter-row-pt: 0.5rem;
+    --ib-filter-row-pb: 0.5rem;
+  }
+
+  .ib-table-shaded-head {
+    --ib-filter-row-pt: 0;
+    --ib-filter-row-pb: var(--ib-table-py);
+  }
+
   .ib-table-filter-row > td {
-    padding-block: 0.25rem var(--ib-table-py);
+    padding-block: var(--ib-filter-row-pt) var(--ib-filter-row-pb);
     border-block-end: 1px solid var(--ib-table-line, var(--ib-color-border));
   }
 
@@ -919,7 +930,7 @@
 
   /* The scrollbar starts under the row too. */
   .ib-table-sticky > .ib-table-scroll:has(.ib-table-filter-row) {
-    --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px + var(--ib-control-h-sm) + 0.25rem + var(--ib-table-py) + 1px);
+    --ib-table-head-h: calc(var(--ib-table-py) * 2 + var(--ib-table-head-line) + 1px + var(--ib-control-h-sm) + var(--ib-filter-row-pt) + var(--ib-filter-row-pb) + 1px);
   }
 
   /* A list the script fetches, or the usual panel where there's no script to do that. */
