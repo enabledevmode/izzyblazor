@@ -57,11 +57,12 @@
             }
             @if (WidthSwitch || _example.WidthSwitch)
             {
-                <fieldset class="ex-widths">
-                    <legend class="ib-visually-hidden">Preview width</legend>
-                    <label title="Desktop width"><input type="radio" name="@($"{_uid}-width")" value="desktop" checked /><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></label>
-                    <label title="Phone width"><input type="radio" name="@($"{_uid}-width")" value="phone" /><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></label>
-                </fieldset>
+                @* Links, with the choice in the address (?phone=), so it stays through the example's own
+                   links, such as a grid row's button on a static page, and works with no script. *@
+                <nav class="ex-widths" aria-label="Preview width">
+                    <a href="@WidthHref(false)" title="Desktop width" aria-current="@(_phone ? null : "true")"><Icon Name="Lucide.Monitor" /><span class="ib-visually-hidden">Desktop</span></a>
+                    <a href="@WidthHref(true)" title="Phone width" aria-current="@(_phone ? "true" : null)"><Icon Name="Lucide.Smartphone" /><span class="ib-visually-hidden">Phone</span></a>
+                </nav>
             }
             @if (ModeSwitch)
             {
@@ -135,6 +136,21 @@
     private string _uid = "";
     private string _pageMode = "static";
     private string _mode = "static";
+    private bool _phone;
+    private List<string> _phones = [];
+
+    // The address with this example at a phone's width or not; the others keep theirs.
+    private string WidthHref(bool phone)
+    {
+        var list = _phones.Where(p => p != Example).ToList();
+        if (phone)
+        {
+            list.Add(Example);
+        }
+
+        var uri = Navigation.GetUriWithQueryParameters(new Dictionary<string, object?> { ["phone"] = list.Count == 0 ? null : list.ToArray() });
+        return $"{uri}#{_uid}";
+    }
 
     private string Title => _example!.Title;
 
@@ -149,7 +165,9 @@
             ?? throw new InvalidOperationException($"Example \"{Example}\" is in components.json but has no Examples/.../*.razor file.");
         _example = found.Example;
         _source = Catalog.SourceOf(Example);
-        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "") + (Deep ? " ex-deep" : "");
+        _phones = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(new Uri(Navigation.Uri).Query).TryGetValue("phone", out var phones) ? phones.OfType<string>().ToList() : [];
+        _phone = (WidthSwitch || _example.WidthSwitch) && _phones.Contains(Example);
+        _class = (_example.Page ? "ex ex-page" : "ex") + (_example.Modes.Count == 1 ? " ex-fixed" : "") + (Deep ? " ex-deep" : "") + (_phone ? " ex-phone" : "");
         _uid = $"ex-{Example}";
         // A page with the switch shows its mode (?mode=, then the cookie); any other page, Static.
         _pageMode = FollowsModeSwitchAttribute.PageMode(HttpContext, Registry);
