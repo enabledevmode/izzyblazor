@@ -313,13 +313,17 @@ class Grid extends IzzyElement {
   }
 
   #focusInCell(cell: HTMLTableCellElement, target: HTMLElement): void {
-    // Clear of the frozen columns, only while the keys move focus: a frozen cell would count as
-    // under them and move the grid, and a click on one would too.
+    target.focus({ preventScroll: true });
+    this.#reveal(cell);
+  }
+
+  // Clear of the frozen columns, only while focus is moved here: a frozen cell would count as under
+  // them and move the grid, and a click on one would too. The browser leaves a partly visible cell as
+  // it is; the ring and text should show.
+  #reveal(cell: HTMLTableCellElement): void {
     const box = this.#box;
     const padding = !cell.matches(".ib-frozen") && box ? this.#clearOf : "";
     if (padding) box!.style.scrollPaddingInline = padding;
-    target.focus({ preventScroll: true });
-    // The browser leaves a partly visible cell as it is; the ring and text should show.
     cell.scrollIntoView({ block: "nearest", inline: "nearest" });
     if (padding) box!.style.removeProperty("scroll-padding-inline");
   }
@@ -375,6 +379,7 @@ class Grid extends IzzyElement {
     if (cell.closest("[data-ib-editing]")) {
       this.#inGrid = true;
       this.#key = (cell.parentElement as HTMLElement).dataset.ibKey ?? null;
+      this.#reveal(cell);
       return;
     }
     if (this.#parked) {
@@ -445,7 +450,8 @@ class Grid extends IzzyElement {
     const active = document.activeElement;
     const lost = active === document.body;
     const row = this.#key === null ? null : rows.find((r) => r.dataset.ibKey === this.#key);
-    if (row && !row.contains(active)) {
+    // Not a row being edited, where focus may rightly have gone to its errors above the grid.
+    if (row && !row.contains(active) && !row.matches("[data-ib-editing], :has(> [data-ib-editing])")) {
       this.#focusCell(this.#atColumn(row, this.#column));
     } else if (!row && lost) {
       this.#focusCell(this.#atColumn(rows[Math.min(this.#rowIndex, rows.length - 1)], this.#column));
