@@ -384,7 +384,8 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   background: transparent;
   color-scheme: normal;
 }
-/* A demo's phone width: the window narrows, so the page in it lays out as on a phone. Only where
+/* A phone width: a demo's window narrows, so the page in it lays out as on a phone, and an example's
+   box, for one that lays out by its own width. Only where
    that differs from its full width: under 640px (the library's sm) the page lays out as on a phone
    either way, so the switch goes, and a Phone picked in a wider window no longer applies. */
 .ex:has(> .ex-tools > .ex-widths) { container: ex / inline-size; }
@@ -392,7 +393,7 @@ a.site-member-name:hover code { color: var(--ib-color-primary-text); }
   .ex-tools > .ex-widths { display: none; }
 }
 @container ex (width >= 640px) {
-  .ex:has(.ex-widths input[value="phone"]:checked) .ex-window {
+  .ex:has(.ex-widths input[value="phone"]:checked) .ex-stage {
     width: 390px;
     max-width: 100%;
     margin-inline: auto;
