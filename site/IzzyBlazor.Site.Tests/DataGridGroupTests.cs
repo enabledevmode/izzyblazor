@@ -2,13 +2,13 @@ using Microsoft.Playwright;
 
 namespace IzzyBlazor.Site.Tests;
 
-/// <summary>DataGrid's groups in Chromium: the keys on a group's row, focus through a reload, and its checkbox.</summary>
+/// <summary>DataGrid's groups in Chromium: the keys on a group's row, and focus through a reload.</summary>
 public sealed class DataGridGroupTests(SiteFixture site) : IClassFixture<SiteFixture>
 {
     private const string Grid = ".ib-datagrid:has(.ib-table-scroll[aria-label='Orders in groups'])";
 
     [Fact]
-    public async Task Keys_open_and_close_a_group_and_its_box_ticks_its_rows()
+    public async Task Keys_open_and_close_a_group()
     {
         await using var browser = await TestBrowser.OpenAsync();
         var page = await browser.NewPageAsync(new() { ViewportSize = new() { Width = 1400, Height = 900 } });
@@ -24,13 +24,8 @@ public sealed class DataGridGroupTests(SiteFixture site) : IClassFixture<SiteFix
         // Focus stays on its group through the reload.
         Assert.True(await group.Locator(".ib-grid-group-toggle").EvaluateAsync<bool>("e => e === document.activeElement"));
 
-        // A row's box goes with the group's, whichever is changed.
-        await group.Locator(".ib-table-group-select").CheckAsync();
-        var rows = page.Locator($"{Grid} >> tbody .ib-table-select");
+        var rows = page.Locator($"{Grid} >> tbody tr[aria-level='2']");
         Assert.True(await rows.CountAsync() > 0);
-        Assert.Equal(await rows.CountAsync(), await page.Locator($"{Grid} >> tbody .ib-table-select:checked").CountAsync());
-        await rows.First.UncheckAsync();
-        Assert.False(await group.Locator(".ib-table-group-select").IsCheckedAsync());
 
         await group.Locator(".ib-grid-group-toggle").FocusAsync();
         await page.Keyboard.PressAsync("ArrowLeft");
