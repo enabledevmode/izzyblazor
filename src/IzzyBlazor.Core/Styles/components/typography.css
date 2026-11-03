@@ -807,7 +807,8 @@
     color: var(--ib-color-muted);
   }
 
-  .ib-prose :where(code) {
+  /* Inline: code in a block, the library's or a plain pre, takes its look from the block. */
+  .ib-prose :where(code:not(pre code)) {
     padding: 0.125em 0.375em;
     border-radius: var(--ib-radius-sm);
     background-color: var(--ib-color-fill);
@@ -825,13 +826,6 @@
     font-size: var(--ib-text-sm);
     line-height: 1.375rem;
     tab-size: 4;
-  }
-
-  .ib-prose :where(pre:not(.ib-code-pre) code) {
-    padding: 0;
-    border-radius: 0;
-    background: none;
-    font-size: inherit;
   }
 
   .ib-prose :where(hr) {
