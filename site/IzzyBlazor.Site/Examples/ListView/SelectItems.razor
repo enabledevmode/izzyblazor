@@ -7,7 +7,7 @@
     {
         <input type="hidden" name="archived" value="@id" />
     }
-    <Stack Gap="3" MaxWidth="28.Rem">
+    <Stack Gap="3" MaxWidth="28.Rem" Grow>
         <ListView Items="Inbox" ItemKey="m => m.Id" ItemText="m => m.Subject" ItemDescription="m => m.From"
                   SelectionMode="SelectionMode.Multiple" SelectAllLabel="Select all messages" @bind-Selection="_selected" EmptyText="Nothing left in the inbox." Bordered />
         <Row Gap="3" Align="Align.Center" Wrap>
