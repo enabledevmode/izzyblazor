@@ -616,6 +616,21 @@ public class IzzyText
 
     // Data and feedback
 
+    /// <summary>The word before a DataGrid column's Sum.</summary>
+    public virtual string AggregateSum { get; set; } = "Sum";
+
+    /// <summary>The word before a DataGrid column's Avg.</summary>
+    public virtual string AggregateAvg { get; set; } = "Avg";
+
+    /// <summary>The word before a DataGrid column's Min.</summary>
+    public virtual string AggregateMin { get; set; } = "Min";
+
+    /// <summary>The word before a DataGrid column's Max.</summary>
+    public virtual string AggregateMax { get; set; } = "Max";
+
+    /// <summary>The word before a DataGrid column's Count.</summary>
+    public virtual string AggregateCount { get; set; } = "Count";
+
     /// <summary>Table with no rows.</summary>
     public virtual string NoItems { get; set; } = "No items";
 

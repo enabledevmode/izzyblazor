@@ -1551,6 +1551,11 @@
     font-weight: var(--ib-weight-semibold);
   }
 
+  .ib-grid-aggregate-word {
+    color: var(--ib-color-muted);
+    font-weight: var(--ib-weight-normal);
+  }
+
   /* The bar of a page's actions on the selection, above the items. Tinted while something is selected. */
   .ib-selection-bar {
     display: flex;

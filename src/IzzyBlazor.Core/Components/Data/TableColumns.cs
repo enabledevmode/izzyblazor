@@ -142,9 +142,67 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     /// <summary>Content for this column in the table's footer row, in place of <see cref="FooterText"/>.</summary>
     [Parameter] public RenderFragment? Footer { get; set; }
 
-    internal bool HasFooter => Footer is not null || FooterText is not null;
+    /// <summary>
+    /// Works this out over all the rows the filters match, not just the page, and shows it in the
+    /// grid's footer and on each group's row. Not for a Table.
+    /// </summary>
+    [Parameter] public DataAggregate? Aggregate { get; set; }
 
-    internal RenderFragment FooterCell => Footer ?? (b => b.AddContent(0, FooterText));
+    /// <summary>
+    /// Your own aggregate, as an expression over the rows, so it runs in the database:
+    /// <c>g =&gt; g.Sum(o =&gt; o.Profit) / g.Sum(o =&gt; o.Total)</c>. Not for a Table.
+    /// </summary>
+    [Parameter] public Expression<Func<IEnumerable<TItem>, object?>>? AggregateBy { get; set; }
+
+    /// <summary>A .NET format string for the aggregate. Defaults to the column's own, except for a count or your own aggregate.</summary>
+    [Parameter] public string? AggregateFormat { get; set; }
+
+    /// <summary>The word before the aggregate, such as "Total"; empty for none. Defaults to the aggregate's name, and to none for your own.</summary>
+    [Parameter] public string? AggregateLabel { get; set; }
+
+    internal DataAggregate? EffectiveAggregate => AggregateBy is not null ? DataAggregate.Custom : Aggregate;
+
+    /// <summary>The aggregate's name in a request. A template column needn't have a key.</summary>
+    internal string AggregateKey => Key ?? HeaderText;
+
+    internal bool HasFooter => Footer is not null || FooterText is not null || EffectiveAggregate is not null;
+
+    internal RenderFragment? WrittenFooter => Footer ?? (FooterText is null ? null : b => b.AddContent(0, FooterText));
+
+    /// <summary>The column's own format, which its aggregate takes.</summary>
+    internal virtual string? ValueFormat => null;
+
+    /// <summary>Why this column's <see cref="Aggregate"/> can't work, or null when it can.</summary>
+    protected virtual string? AggregateProblem => null;
+
+    /// <summary>The aggregate of a group as text, or null when it has none.</summary>
+    internal string? AggregateText(DataGroup? group)
+    {
+        if (EffectiveAggregate is not { } type || group is null || !group.Values.TryGetValue(AggregateKey, out var raw))
+        {
+            return null;
+        }
+
+        var value = FilterConvert.Unwrap(raw);
+        if (type is DataAggregate.Min or DataAggregate.Max && ValueType is { } valueType && FilterConvert.TryConvert(valueType, value, out var typed))
+        {
+            value = typed;
+        }
+
+        var format = AggregateFormat ?? (type is DataAggregate.Count or DataAggregate.Custom ? null : ValueFormat) ?? (type == DataAggregate.Avg ? "0.##" : null);
+        return format is not null && value is IFormattable formattable ? formattable.ToString(format, CultureInfo.CurrentCulture) : value?.ToString();
+    }
+
+    /// <summary>The word before the aggregate.</summary>
+    internal string? AggregateWord(IzzyText text) => AggregateLabel ?? EffectiveAggregate switch
+    {
+        DataAggregate.Sum => text.AggregateSum,
+        DataAggregate.Avg => text.AggregateAvg,
+        DataAggregate.Min => text.AggregateMin,
+        DataAggregate.Max => text.AggregateMax,
+        DataAggregate.Count => text.AggregateCount,
+        _ => null,
+    };
 
     [CascadingParameter] internal TableViewBase<TItem>? Table { get; set; }
 
@@ -272,6 +330,24 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
             throw new InvalidOperationException($"The \"{HeaderText}\" column sets {nameof(Visible)}, which only a DataGrid's columns take.");
         }
 
+        if (EffectiveAggregate is not null)
+        {
+            if (Table is { GridColumns: false })
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column has an {nameof(Aggregate)}, which only a DataGrid's columns take.");
+            }
+
+            if (EffectiveAggregate == DataAggregate.Custom && AggregateBy is null)
+            {
+                throw new InvalidOperationException($"The \"{HeaderText}\" column's {nameof(Aggregate)} is Custom, so it needs an {nameof(AggregateBy)}.");
+            }
+
+            if (AggregateBy is null && AggregateProblem is { } aggregate)
+            {
+                throw new InvalidOperationException(aggregate);
+            }
+        }
+
         if (Editable == true)
         {
             if (Table is { GridColumns: false })
@@ -339,7 +415,7 @@ public abstract class ColumnBase<TItem> : ComponentBase, IDisposable
     private object? _shown;
 
     /// <summary>What the table shows for this column, apart from cell templates: a change re-renders the table. Equal when nothing changed, as a list written in place is a new one on each render.</summary>
-    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible);
+    protected virtual object Shown => (Title, Sortable, SortKey, Align, Width, MinWidth, MaxWidth, Resizable, Reorderable, Pickable, Frozen, Class, FooterText, Footer is not null, Filterable, FilterOperators is null ? null : string.Join(',', FilterOperators), HasValueList, FilterTemplate is not null, Editable, Visible, (EffectiveAggregate, AggregateFormat, AggregateLabel));
 
     /// <inheritdoc />
     public override async Task SetParametersAsync(ParameterView parameters)
@@ -393,6 +469,19 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
 
     /// <inheritdoc />
     protected override object Shown => (base.Shown, Format);
+
+    /// <inheritdoc />
+    internal override string? ValueFormat => Format;
+
+    /// <inheritdoc />
+    protected override string? AggregateProblem => Aggregate switch
+    {
+        DataAggregate.Sum or DataAggregate.Avg when FilterConvert.KindOf(typeof(TValue)) != FieldKind.Number =>
+            $"The \"{HeaderText}\" column's {nameof(Aggregate)} is {Aggregate}, which only numbers take.",
+        DataAggregate.Min or DataAggregate.Max when FilterConvert.KindOf(typeof(TValue)) is not (FieldKind.Number or FieldKind.Date or FieldKind.Time or FieldKind.Text) =>
+            $"The \"{HeaderText}\" column's {nameof(Aggregate)} is {Aggregate}, which {typeof(TValue).Name} values don't take.",
+        _ => null,
+    };
 
     /// <inheritdoc />
     protected override string? DefaultTitle =>
@@ -457,6 +546,8 @@ public class PropertyColumn<TItem, [DynamicallyAccessedMembers(DynamicallyAccess
         Sortable = CanSort,
         Filterable = CanFilter,
         Searchable = FilterKind == ColumnFilterKind.Text,
+        Aggregatable = EffectiveAggregate is not null,
+        AggregateBy = AggregateBy,
         Operators = ColumnFilter.FieldOperators(this),
         Case = Table?.FilterCase ?? FilterCase.IgnoreCase,
         Choices = FilterKind == ColumnFilterKind.Choice ? FilterChoices(text) : null,
@@ -631,6 +722,9 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
         : null;
 
     /// <inheritdoc />
+    protected override string? AggregateProblem => Aggregate == DataAggregate.Count ? null : $"The \"{HeaderText}\" column has no one value to work out an {Aggregate} on: use {nameof(AggregateBy)}.";
+
+    /// <inheritdoc />
     protected override bool HasSortExpression => SortBy is not null;
 
     /// <inheritdoc />
@@ -645,10 +739,22 @@ public class TemplateColumn<TItem> : ColumnBase<TItem>
     internal override Type? ValueType => FilterBy is null ? null : typeof(string);
 
     /// <inheritdoc />
-    internal override DataField<TItem>? ToField(IzzyText text) => Key is not { } key || (FilterBy ?? (LambdaExpression?)SortBy) is not { } value ? null : new()
+    internal override DataField<TItem>? ToField(IzzyText text) => Key is not { } key || (FilterBy ?? (LambdaExpression?)SortBy) is not { } value
+        ? EffectiveAggregate is null ? null : new()
+        {
+            // Nothing to read but the aggregate.
+            Key = AggregateKey,
+            Value = (Expression<Func<TItem, int>>)(_ => 0),
+            Caption = HeaderText,
+            Aggregatable = true,
+            AggregateBy = AggregateBy,
+        }
+        : new()
     {
         Key = key,
         Value = value,
+        Aggregatable = EffectiveAggregate is not null,
+        AggregateBy = AggregateBy,
         SortValue = FilterBy is null ? null : SortBy,
         Caption = HeaderText,
         Sortable = CanSort,
