@@ -84,6 +84,8 @@ public sealed class Registry
 
     public static string TopicHref(RegistryComponent component, RegistryTopic topic) => $"docs/components/{component.Id}/{topic.Id}";
 
+    public static string TopicApiHref(RegistryComponent component, RegistryTopic topic) => $"{TopicHref(component, topic)}/api";
+
     /// <summary>The page an example is shown on: its topic's, or the component's Overview.</summary>
     public static string ExamplePageHref(RegistryComponent component, RegistryExample example) =>
         component.Topics.FirstOrDefault(t => t.Examples.Contains(example)) is { } topic ? TopicHref(component, topic) : OverviewHref(component);
@@ -180,6 +182,13 @@ public sealed record RegistryTopic
     /// <summary>Paragraphs before its examples, with <c>`code`</c> as in an example's lead.</summary>
     public List<string> Intro { get; init; } = [];
     public List<RegistryExample> Examples { get; init; } = [];
+
+    /// <summary>
+    /// The API it's about, for its own API page: the component's members (<c>SmallScreen</c>), a part
+    /// whole (<c>DataGridExport</c>) or one of its members (<c>ActionColumn.Overflow</c>), and a column's
+    /// (<c>Column.Priority</c>, on PropertyColumn and TemplateColumn). The types they use come with them.
+    /// </summary>
+    public List<string> Members { get; init; } = [];
 }
 
 public sealed record RegistryFeature
