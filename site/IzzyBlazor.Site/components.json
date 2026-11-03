@@ -108,7 +108,7 @@
       "topics": [
         {
           "id": "width-and-scrolling", "title": "Width and scrolling", "summary": "A reading column, and a shell that fills the window and scrolls only its main area.", "members": ["ContentWidth", "ScrollMode", "AppHeader.ContentWidth", "AppMain.ContentWidth", "AppFooter.ContentWidth"],
-          "examples": []
+          "examples": [], "scenarios": ["reading-column", "desktop-app-scrolling"]
         },
         {
           "id": "aside", "title": "Asides", "summary": "A column beside the main area: an outline, a page's own panel, and a drawer people open.", "members": ["AppAside", "AsideToggle"],
@@ -493,7 +493,7 @@
       ],
       "topics": [
         {
-          "id": "overflow", "title": "What doesn't fit", "summary": "Which controls move into the … menu first, icons before the menu, and wrapping instead.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
+          "id": "overflow", "title": "What doesn't fit", "summary": "Which controls move into the … menu first, icons before the menu, and wrapping instead.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "ToolbarButton.StartIcon", "ToolbarMenu.StartIcon", "ToolbarSplitButton.StartIcon", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
           "examples": [
             { "id": "toolbar-priority", "title": "What moves first" },
             { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
@@ -1533,7 +1533,7 @@
           ]
         },
         {
-          "id": "loading-data", "title": "Loading data", "summary": "Rows from a database or an API, paging by cursor, loading on scroll, and a failed load.", "members": ["Items", "ItemsProvider", "PageSize", "Page", "Paging", "Cursor", "LoadMoreText", "Loading", "ErrorContent", "ReloadAsync"],
+          "id": "loading-data", "title": "Loading data", "summary": "Rows from a database or an API, paging by cursor, loading on scroll, and a failed load.", "members": ["Items", "ItemsProvider", "PageSize", "Page", "Paging", "Cursor", "LoadMoreText", "MaxHeight", "ItemKey", "Column.Filter", "Loading", "ErrorContent", "ReloadAsync"],
           "examples": [
             { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {

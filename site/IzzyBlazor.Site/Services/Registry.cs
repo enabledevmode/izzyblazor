@@ -88,7 +88,9 @@ public sealed class Registry
 
     /// <summary>The page an example is shown on: its topic's, or the component's Overview.</summary>
     public static string ExamplePageHref(RegistryComponent component, RegistryExample example) =>
-        component.Topics.FirstOrDefault(t => t.Examples.Contains(example)) is { } topic ? TopicHref(component, topic) : OverviewHref(component);
+        component.Topics.FirstOrDefault(t => t.Examples.Contains(example)
+            || component.Scenarios.Any(s => s.Example == example && t.Scenarios.Contains(s.Id))) is { } topic
+            ? TopicHref(component, topic) : OverviewHref(component);
 
     /// <summary>Where a component's Demos tab goes: its first scenario (it has no demos page of its own).</summary>
     public static string DemosHref(RegistryComponent component) => ScenarioHref(component, component.Scenarios[0]);
@@ -182,6 +184,9 @@ public sealed record RegistryTopic
     /// <summary>Paragraphs before its examples, with <c>`code`</c> as in an example's lead.</summary>
     public List<string> Intro { get; init; } = [];
     public List<RegistryExample> Examples { get; init; } = [];
+
+    /// <summary>The component's scenarios (by id) whose examples it shows, as AppShell's Width and scrolling does.</summary>
+    public List<string> Scenarios { get; init; } = [];
 
     /// <summary>
     /// The API it's about, for its own API page: the component's members (<c>SmallScreen</c>), a part
