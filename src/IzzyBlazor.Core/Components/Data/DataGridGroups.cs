@@ -22,9 +22,9 @@ public sealed record DataGridAggregate(DataAggregate Type, object? Value, string
 public sealed record DataGridGroup(object? Value, string Text, DataGroup Group, int Level, bool IsOpen);
 
 /// <summary>
-/// A data grid with editing, grouping, filters and columns people arrange, its state in the address
-/// so it works on static pages too. Cells take arrow keys, a row can open a detail, columns hide to fit
-/// a phone, and it exports to CSV and Excel.
+/// A data grid for sorting, filtering, grouping and editing rows, with its state in the URL so it
+/// works on static pages too. Users can resize, move and hide columns, open a row's detail, and
+/// export to CSV or Excel; columns that don't fit a phone hide.
 /// </summary>
 /// <typeparam name="TItem">The type of the items.</typeparam>
 public partial class DataGrid<TItem>

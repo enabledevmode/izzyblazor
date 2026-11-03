@@ -1500,21 +1500,21 @@
       ],
       "topics": [
         {
-          "id": "filtering", "title": "Filtering", "summary": "A filter in each column's header, lists of values, operators, and filters in the address.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromAddress", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
+          "id": "filtering", "title": "Filtering", "summary": "Filters in column headers, lists of values, operators, and filters in the URL.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromAddress", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
           "examples": [
             { "id": "table-filters", "title": "Column filters",
           "notes": {
             "noscript": "Press Enter or Apply in the filter to submit it.",
             "static": "Filters apply as you type." } },
-            { "id": "table-filter-lists", "title": "Lists of values", "lead": "An enum or bool column's filter is a list of checkboxes. All ticked is no filter, and none ticked shows no rows.",
+            { "id": "table-filter-lists", "title": "Lists of values", "lead": "An enum or bool column's filter is a list of checkboxes. When every box is checked, the column isn't filtered. When none is checked, no rows match.",
           "notes": {
-            "noscript": "Tick and press Apply. There's no Select all or search, and none ticked is no filter.",
-            "static": "Ticks apply after a short pause." } },
-            { "id": "table-filter-values", "title": "Lists of looked-up values", "lead": "Use `FilterList` to list a text column's values from `Items`, or `FilterValues` to find them yourself. The list asks when its panel opens, a page at a time, and the other filters narrow it.",
+            "noscript": "Check the boxes and press Apply. There's no Select all or search, and with no box checked the column isn't filtered.",
+            "static": "A change applies after a short pause." } },
+            { "id": "table-filter-values", "title": "Lists of looked-up values", "lead": "Use `FilterList` to list a text column's values from `Items`, or `FilterValues` to load them yourself. The values load a page at a time when the panel opens, and the list shows only the values the other filters leave.",
           "notes": {
             "noscript": "The columns show their usual filter in place of the list.",
-            "static": "The script asks this page's own address for the values, with one more key, and takes the list from the response." } },
-            { "id": "table-filter-operators", "title": "Choosing an operator", "lead": "Use `FilterOperators` on a column to choose an operator in its filter; the first is the default." }
+            "static": "IzzyBlazor's script loads the values from the server when the panel opens." } },
+            { "id": "table-filter-operators", "title": "Choosing an operator", "lead": "Use `FilterOperators` on a column to let the user choose the operator in its filter. The first one is the default." }
           ]
         },
         {
@@ -1600,31 +1600,32 @@
       ]
     },
     {
-      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "Edit, group, filter by row and arrange columns, with state in the URL.", "keywords": ["data grid", "datagrid", "grid"],
+      "id": "data-grid", "icon": "Table2", "name": "DataGrid", "category": "Data display", "parts": ["ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "DataGridSearch", "DataGridExport", "DataGridFilterBuilder", "DataGridColumnPicker"], "summary": "A grid for editing, grouping and filtering rows, with columns users arrange and its state in the URL.", "keywords": ["data grid", "datagrid", "grid"],
       "features": [
         { "feature": "Sort, filter and page through the URL" },
         { "feature": "Column widths and sideways scrolling, set by the server" },
         { "feature": "Frozen columns" },
-        { "feature": "Groups from all the data, a page of them, each opened by a link", "member": "Groupable" },
+        { "feature": "Grouping over all the data, a page of groups at a time", "member": "Groupable" },
         { "feature": "Aggregates over everything the filters match, in the footer and on groups" },
-        { "feature": "Virtual rows on interactive pages, loading on scroll on static ones", "member": "Virtualize" },
-        { "feature": "A toolbar with search in the address, its tools placed among yours" },
+        { "feature": "Virtual rows on interactive pages; loading on scroll on static pages", "member": "Virtualize" },
+        { "feature": "A toolbar with search, and room for your own buttons" },
         { "feature": "CSV and Excel export, streamed from an endpoint you map", "member": "ExportCsvHref" },
         { "feature": "Editing a row in a dialog, saved by a form post", "member": "EditMode" },
-        { "feature": "Row menus (right-click, long press and keys open them too)", "member": "ActionColumn" },
-        { "feature": "Resizing, moving and hiding columns, kept per person", "member": "ResizableColumns" },
+        { "feature": "Row menus, also opened by right-click, long press or the keyboard", "member": "ActionColumn" },
+        { "feature": "Resizing, moving and hiding columns, saved per user", "member": "ResizableColumns" },
         { "feature": "Selected rows post with a form" },
         { "feature": "Shift+click sorts by several columns", "noscript": "none" },
         { "feature": "One Tab stop and arrow keys between cells, with selection keys", "noscript": "none" }
       ],
       "examples": [
-        { "id": "data-grid-columns", "title": "Columns", "lead": "Give a column a `Width` to keep it, and the others share the rest down to their `MinWidth`, when the grid scrolls sideways. Shift+click a header to add it to the sort." },
-        { "id": "data-grid-appearance", "title": "Row appearance", "lead": "`Striped` alternates the rows' backgrounds, `ColumnLines` adds a line between columns, `ShadedHeader` shades the header, and `RowLines` set to false takes away the line between rows. `RowHover` highlights the row under the pointer, to help follow a wide one across. It's off by default, as a highlight suggests a row does something: a row with a `RowHref` always has it." },
-        { "id": "data-grid-toolbar", "title": "Toolbar and search", "lead": "`ToolbarContent` puts your own `ToolbarButton`s above the grid, and `Searchable` adds a search box across the text columns, with the words in the address. While rows are selected, the bar of `SelectionActions` takes the toolbar's place, and `SelectAllMode` says what the header checkbox takes: the page, or every row the filters match." },
-        { "id": "data-grid-row-menu", "title": "Row menus", "lead": "An `ActionColumn` with `Overflow` set to `RowActionOverflow.Always` gives each row a ⋮ menu of `RowAction`s, and with script a right-click, a long press, Shift+F10 or the menu key open the same menu. It acts on the row it opened on, whatever is selected. A right-click on a link keeps the browser's menu." },
-        { "id": "data-grid-cells", "title": "Controls in cells", "lead": "Tab moves into the grid once, and arrow keys move between its cells. A cell with one button or link focuses it directly, so Enter uses it. In a cell with several controls or a field, press Enter to go in and Escape to come back." },
-        { "id": "data-grid-virtual-rows", "title": "Virtual rows", "lead": "`Virtualize` draws only the rows in view, on an interactive page, so 100,000 rows scroll as easily as 100. Give it a `MaxHeight`, and keep rows to one line of `RowHeight`. On a static page, as here unless you switch this page to Interactive, the same grid loads more rows on scroll instead." },
-        { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "Write `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` in `ToolbarContent` to place the grid's own tools among yours, in the order written; one you don't write keeps its usual place, and the grid's parameter still turns it on. Write them directly in `ToolbarContent`, not inside a component of your own. Export and Columns show only their icons with a hover tooltip, as suits a grid used all day: `ToolbarLabels` adds text to both, and `ShowText` to one." }
+        { "id": "data-grid-basic", "title": "A basic grid", "lead": "Give the grid `Items`, an `ItemKey` and a column for each value. `PropertyColumn` shows a property; add `Sortable` to sort by it and `Filterable` to filter it. `PageSize` sets the rows per page. The sort, filters and page are kept in the URL, so the grid works on static pages and with JavaScript off. DataGrid is built on Table: use Table for a plain list of records, and DataGrid when users edit, group or arrange columns." },
+        { "id": "data-grid-columns", "title": "Columns", "lead": "Use `Width` to give a column a fixed width. Columns without one share the remaining space, down to their `MinWidth`; below that, the grid scrolls sideways. Shift+click a header to add that column to the sort." },
+        { "id": "data-grid-appearance", "title": "Row appearance", "lead": "Use `Striped` to alternate row backgrounds, `ColumnLines` to add lines between columns, and `ShadedHeader` to shade the header. Set `RowLines` to false to remove the lines between rows. Use `RowHover` to highlight the row under the pointer, which helps on wide rows. It's off by default because a highlight suggests the row can be clicked; rows with a `RowHref` always have it." },
+        { "id": "data-grid-toolbar", "title": "Toolbar and search", "lead": "Use `ToolbarContent` to put your own `ToolbarButton`s above the grid, and `Searchable` to add a search box that searches the text columns. The search is kept in the URL. While rows are selected, `SelectionActions` replaces the toolbar. `SelectAllMode` sets what the header checkbox selects: the current page, or every row that matches the filters." },
+        { "id": "data-grid-row-menu", "title": "Row menus", "lead": "Use an `ActionColumn` of `RowAction`s, with `Overflow` set to `RowActionOverflow.Always`, to give each row a ⋮ menu. With IzzyBlazor's script, a right-click, a long press, Shift+F10 or the menu key opens the same menu. The menu acts on the row it was opened from, whatever is selected. Right-clicking a link still opens the browser's own menu." },
+        { "id": "data-grid-cells", "title": "Controls in cells", "lead": "Use a `TemplateColumn` to put buttons, links or fields in a cell. The grid is one Tab stop, and the arrow keys move between cells. In a cell with one button or link, the arrow keys focus it directly, so Enter activates it. In a cell with several controls or a field, press Enter to move into it and Escape to come back out." },
+        { "id": "data-grid-virtual-rows", "title": "Virtual rows", "lead": "Use `Virtualize` on interactive pages to render only the rows in view, so 100,000 rows scroll as easily as 100. It needs a `MaxHeight`, and each row must fit one line of `RowHeight`. On static pages the same grid loads more rows as the user scrolls. This example is static unless you switch the page to Interactive." },
+        { "id": "data-grid-toolbar-order", "title": "Placing the toolbar's tools", "lead": "To place the grid's own tools among your buttons, add `DataGridSearch`, `DataGridExport` or `DataGridColumnPicker` to `ToolbarContent`. They appear in the order written. A tool you don't add stays in its usual place; the grid's parameter still turns it on. Add them directly in `ToolbarContent`, not inside a component of your own. Export and Columns show only an icon with a tooltip. Use `ToolbarLabels` to add text to both, or `ShowText` on one." }
       ],
       "topics": [
         {

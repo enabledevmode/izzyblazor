@@ -1,35 +1,58 @@
-@* Table's Filtering page, moved from its Overview: the column filters, lists of values, the address,
+@* Table's Filtering page, moved from its Overview: the column filters, lists of values, the URL,
    operators, and filters in code. *@
 
 <Heading Level="2">Column filters</Heading>
-<TextBlock>Use <Code>Filterable</Code> on a column for a filter in its header. Text matches anywhere, a date its day, enums and booleans get a list of checkboxes, and a number takes a range: at least, at most, or both.</TextBlock>
+<TextBlock>Use <Code>Filterable</Code> on a column to put a filter in its header. How it filters depends on the column's type:</TextBlock>
+<Prose Class="site-table ib-scroll">
+    <table>
+        <thead><tr><th>Column type</th><th>Filter</th></tr></thead>
+        <tbody>
+            <tr><td>Text</td><td>Contains the text, anywhere in the value</td></tr>
+            <tr><td>Number</td><td>A range: at least, at most, or between</td></tr>
+            <tr><td>Date</td><td>On that day</td></tr>
+            <tr><td>Enum or bool</td><td>A list of checkboxes</td></tr>
+        </tbody>
+    </table>
+</Prose>
 <ExampleViewer Example="table-filters" />
-<TextBlock>The funnel is marked while its column is filtered, and Clear in its panel removes that filter. Use <Code>FilterPanel</Code> for a row below the table that lists every filter, with Clear for all of them; it's always there, so filtering doesn't move anything.</TextBlock>
+<TextBlock>The funnel in the header is marked while its column is filtered. Clear, in the filter's panel, removes that column's filter.</TextBlock>
+<TextBlock>Use <Code>FilterPanel</Code> to add a row below the table that lists every active filter. Each one can be removed on its own, or all at once with Clear filters. The row is always there, so the table doesn't move when a filter is added.</TextBlock>
 
 <Heading Level="2">Lists of values</Heading>
-<TextBlock>An enum or bool column's filter is a list of checkboxes. Every box ticked is no filter, and none ticked shows no rows.</TextBlock>
+<TextBlock>An enum or bool column's filter is a list of checkboxes. When every box is checked, the column isn't filtered. When none is checked, no rows match.</TextBlock>
 <ExampleViewer Example="table-filter-lists" />
-<TextBlock>A text column can list its values too. <Code>FilterList</Code> reads them from <Code>Items</Code>, and <Code>FilterValues</Code> finds them yourself, as from a database, with <Code>FilterValuesRequest.ToResultAsync</Code> doing the work. Each list shows what the other filters leave, and keeps what's ticked listed so it can be unticked.</TextBlock>
+<TextBlock>A text column can show a list of its values too. Use <Code>FilterList</Code> to take the values from <Code>Items</Code>. To load them yourself, for example from a database, use <Code>FilterValues</Code>; <Code>FilterValuesRequest.ToResultAsync</Code> runs the query for you.</TextBlock>
 <ExampleViewer Example="table-filter-values" />
+<TextBlock>Each list shows only the values the other filters leave. A value that's checked stays in the list, so it can be unchecked.</TextBlock>
 
-<Heading Level="2">Filters in the address</Heading>
-<TextBlock>Filters go in the URL as <Code>?f-customer=ada</Code> (in the <Anchor Href="docs/components/table/filtering#ex-table-filters">Column filters</Anchor> example, <Code>?orders-f-customer=ada</Code>: that table has a <Code>QueryPrefix</Code>, so it sorts and pages apart from the others on the page, as under <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>). A number's two ends go in as <Code>?f-total=100&amp;f-total-to=500</Code>, so the form needs no script. For filters of your own, use a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
+<Heading Level="2">Filters in the URL</Heading>
+<TextBlock>Each filter is kept in the URL, so a filtered table can be bookmarked or shared, and filtering works with JavaScript off. A text filter is <Code>?f-customer=ada</Code>. A number range has two keys: <Code>?f-total=100&amp;f-total-to=500</Code>.</TextBlock>
+<TextBlock>If the table has a <Code>QueryPrefix</Code>, the keys start with it. The <Anchor Href="docs/components/table/filtering#ex-table-filters">Column filters</Anchor> example uses <Code>orders</Code>, so its key is <Code>?orders-f-customer=ada</Code>. See <Anchor Href="docs/components/table#several-tables-on-a-page">Several tables on a page</Anchor>.</TextBlock>
+<TextBlock>For filters that aren't tied to a column, put a <Anchor Href="docs/components/filter-form">FilterForm</Anchor> above the table.</TextBlock>
 
 <Heading Level="2">Choosing an operator</Heading>
-<TextBlock>Use <Code>FilterOperators</Code> to choose an operator in a column's filter, as a DataGrid's columns do by default, or to limit the ones it offers. The first is the default, and a condition with any other matches nothing, even in an address written by hand. It goes in the address when it isn't the default, with its value: <Code>?f-total-op=between&amp;f-total=100&amp;f-total-to=500</Code>.</TextBlock>
+<TextBlock>Use <Code>FilterOperators</Code> to let the user choose the operator in a column's filter, or to limit which operators it offers. DataGrid columns offer a choice by default.</TextBlock>
 <ExampleViewer Example="table-filter-operators" />
+<TextBlock>The first operator in the list is the default. A condition with an operator that isn't in the list matches nothing, even when someone types it into the URL. When the operator isn't the default, it goes in the URL with the value: <Code>?f-total-op=between&amp;f-total=100&amp;f-total-to=500</Code>.</TextBlock>
 
 <Heading Level="2">Filters in code</Heading>
-<TextBlock>The filter is a <Code>Filter</Code>: <Code>Filter.All</Code> of one condition per filtered column (contains for text, between for a number, equals for a date, in for a choice, whose <Code>Values</Code> are what's ticked, with null for the blank row and none for nothing ticked). Set one in C# with <Code>@@bind-Filter</Code> to filter from code, on an interactive page. A condition no column's panel can show, such as an or, still applies, and shows as a tag that removes it:</TextBlock>
+<TextBlock>On interactive pages, use <Code>@@bind-Filter</Code> to read or set the table's filter from C#. The value is a <Code>Filter</Code>: the conditions of every filtered column, joined by and.</TextBlock>
 <Code Block Language="razor">@BoundFilter</Code>
-<TextBlock><Anchor Href="docs/common/data">Data and filters</Anchor> has the operators and the filter syntax, and <Anchor Href="docs/components/table/loading-data">Loading data</Anchor> how a column's condition reaches the database.</TextBlock>
+<TextBlock>A condition that a column's filter can show appears in that column's filter, as if the user had set it. Any other condition, such as two conditions joined by or, still applies. It's shown as a tag below the rows, and removing the tag removes the condition.</TextBlock>
+<TextBlock><Anchor Href="docs/common/data">Data and filters</Anchor> lists the operators and the filter syntax. <Anchor Href="docs/components/table/loading-data">Loading data</Anchor> shows how a column's condition reaches the database.</TextBlock>
 
 @code {
     private const string BoundFilter = """
         <Table Items="orders" @bind-Filter="filter">...</Table>
 
         @code {
-            Filter? filter = Filter.Where("status", FilterOperator.Equals, "Paid");
+            // Shown in the Status column's filter: Paid is checked.
+            Filter? filter = Filter.In("status", ["Paid"]);
+
+            // No column's filter can show an or, so this one is shown as a tag.
+            void PaidOrLarge() => filter = Filter.Any(
+                Filter.In("status", ["Paid"]),
+                Filter.Where("total", FilterOperator.GreaterThanOrEqual, 1000));
         }
         """;
 }
