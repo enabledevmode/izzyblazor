@@ -127,7 +127,7 @@ public class DocsGenTests
     public void A_components_keys_are_grouped_by_where_focus_is_and_a_screen_lists_them()
     {
         var keyboard = Api.Component("DataGrid")!.Keyboard!;
-        Assert.Equal(["In the rows", "Inside a cell", "In a row being edited", "With DataGridEditMode.Cell, on an interactive page", "Selecting rows", "On a header", "In the footer", "In the filter row", "Inside a filter cell", "In a filter panel", "In a filter's list"], keyboard.Select(g => g.Title));
+        Assert.Equal(["In the rows", "Inside a cell", "Groups and details", "In a row being edited", "With DataGridEditMode.Cell, on an interactive page", "Selecting rows", "On a header", "In the footer", "In the filter row", "Inside a filter cell", "In a filter panel", "In a filter's list"], keyboard.Select(g => g.Title));
         var home = keyboard[0].Rows.Single(r => r.Keys.Contains("Ctrl+Home"));
         Assert.Equal(["Ctrl+Home", "Ctrl+End"], home.Keys);
         Assert.Equal("Move to the first cell of the first row, or the last cell of the last", home.Action);

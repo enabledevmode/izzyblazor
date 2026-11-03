@@ -1625,7 +1625,8 @@
         {
           "id": "master-detail", "title": "Master-detail", "summary": "Open a row's detail under it, such as its lines in a grid of their own.",
           "examples": [
-            { "id": "data-grid-master-detail", "title": "A row's detail", "lead": "Use `DetailTemplate` for what a row opens under it, across the grid, with `ItemKey` to keep open rows by. Each row gets a button in a column of its own, and the header's opens them all. Open rows are in the address, as `?detail=1004`, so this works on a static page with no script; bind `OpenDetails` to keep them in the component. Only open rows draw the detail, so a grid in it loads its rows when it's opened. Give a nested grid its own `QueryPrefix`, or every row's grid would share one sort and page." }
+            { "id": "data-grid-master-detail", "title": "A row's detail", "lead": "Use `DetailTemplate` for what a row opens under it, across the grid, with `ItemKey` to keep open rows by. Each row gets a button in a column of its own, and the header's opens them all. Open rows are in the address, as `?detail=1004`, so this works on a static page with no script; bind `OpenDetails` to keep them in the component. Only open rows draw the detail, so a grid in it loads its rows when it's opened. Give a nested grid its own `QueryPrefix`, or every row's grid would share one sort and page. With an `ItemsProvider`, it asks for a row's lines only when the row opens." },
+            { "id": "data-grid-grouped-detail", "title": "Details in groups", "lead": "In a grouped grid, a row's detail sits under it, inside its group, with the button one level in from the group's. `SingleDetail` keeps one open at a time, and `ItemHasDetail` leaves the button off rows with nothing to show. `DetailsOpen` starts every row open instead." }
           ]
         },
         {
