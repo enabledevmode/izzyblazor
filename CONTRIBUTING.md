@@ -216,10 +216,14 @@ outside the Release workflow and broke the Live examples until it was removed.
 An Overview is for using the component; the API page is the reference. Follow Button's:
 
 1. **Usage**: a short code block of the common cases, ready to copy.
-2. **A section per thing to do**: a heading, a sentence that says what the feature does, and
-   how to turn it on ("A loading button shows a spinner and ignores clicks. Set `Loading` while
-   the work runs."), then its example. Details such as ARIA attributes and edge cases go in the
-   parameter's doc comment or the Accessibility section, not the sentence.
+2. **A section per feature**, in this order: what it is, as the user sees it; when to use it,
+   next to the alternatives; how to turn it on; then the details. "A filter row is a row of
+   fields under the column titles. The user types in a field to filter that column without
+   opening a panel, which suits grids that people filter all day. Set `FilterRow` on the grid to
+   add it." Never open with the parameter ("Use `FilterRow` for…"): the reader doesn't know yet
+   what it is. Then its example. Details such as ARIA attributes and edge cases go in the
+   parameter's doc comment or the Accessibility section. A `components.json` lead follows the
+   same order.
 3. **Mode support**, **Accessibility** (from the doc comment, as above), **Parameters**
    (`<ParameterTable Compact />`) and **See also**, after the examples.
 
