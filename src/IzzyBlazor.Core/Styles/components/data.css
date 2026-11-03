@@ -508,7 +508,8 @@
   .ib-table-filter-button[data-active]::after {
     content: "";
     position: absolute;
-    top: calc(50% - var(--ib-control-icon-sm) / 2 - 1px);
+    /* Centered on the funnel's top line, a quarter of the way down the icon. */
+    top: calc(50% - var(--ib-control-icon-sm) / 4 - 4px);
     inset-inline-end: calc(50% - var(--ib-control-icon-sm) / 2 - 2px);
     width: 6px;
     height: 6px;
