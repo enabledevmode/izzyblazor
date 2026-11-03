@@ -1577,6 +1577,7 @@
   }
 
   .ib-grid-group-chip {
+    display: flex;
     cursor: grab;
   }
 
