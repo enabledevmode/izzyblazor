@@ -1339,7 +1339,7 @@
             }
             @if (node.Depth > 0)
             {
-                <td class="@LeadClass" colspan="@node.Depth"></td>
+                <td class="@LeadClass" style="@LeadStyle" colspan="@node.Depth"></td>
             }
             <th scope="row" colspan="@(LeadSpan - node.Depth + span)" style="@LabelAt(node.Depth)">
                 @* Sticks, as the cell is as wide as its columns and a frozen column may be under it. *@
@@ -1636,7 +1636,7 @@
     internal override IReadOnlyDictionary<string, object>? HeaderAttributes(ColumnBase<TItem> column)
     {
         // A header that can be dragged to the bar of what's grouped.
-        var group = ShowsGroupBar && CanGroupBy(column) && !GroupsBy(column);
+        var group = ShowsGroupBar && CanGroupBy(column) && !GroupsBy(column) && HasRoomToGroup;
         if (!Rearrangeable && !group)
         {
             return null;
@@ -1690,11 +1690,11 @@
                     var grouped = GroupsBy(column);
                     @if (UseState)
                     {
-                        <MenuItem OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
+                        <MenuItem OnClick="() => SetGroupAsync(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
                     }
                     else
                     {
-                        <MenuItem Href="@GroupHref(GroupTextWith(column, !grouped))">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
+                        <MenuItem Href="@GroupHref(GroupTextWith(column, !grouped))" Disabled="@(!grouped && !HasRoomToGroup)">@(grouped ? TextDefaults.GroupRemove : TextDefaults.GroupByColumn)</MenuItem>
                     }
                     @if (CanMove(column) || CanResize(column))
                     {

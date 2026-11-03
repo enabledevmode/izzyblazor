@@ -75,4 +75,28 @@ public class DataGridAggregateTests : BunitContext
 
         Assert.Contains("GroupsProvider", error.GetBaseException().Message);
     }
+
+    [Theory]
+    [InlineData("AggregateBy", "no place shows")]
+    [InlineData("AggregateLabel", "different aggregates")]
+    public void A_column_set_up_to_show_nothing_or_one_label_for_two_says_so(string parameter, string message)
+    {
+        RenderFragment columns = builder =>
+        {
+            builder.OpenComponent<PropertyColumn<Row, int>>(0);
+            builder.AddComponentParameter(1, "Property", (Expression<Func<Row, int>>)(r => r.Qty));
+            builder.AddComponentParameter(2, "GroupAggregate", (DataAggregate?)DataAggregate.Sum);
+            builder.AddComponentParameter(3, "Aggregate", parameter == "AggregateLabel" ? (DataAggregate?)DataAggregate.Max : null);
+            builder.AddComponentParameter(4, parameter, parameter == "AggregateBy"
+                ? (object)(Expression<Func<IEnumerable<Row>, object?>>)(g => g.Sum(r => r.Qty))
+                : "Latest");
+            builder.CloseComponent();
+        };
+
+        var error = Assert.ThrowsAny<Exception>(() => Render<DataGrid<Row>>(p => p
+            .Add(x => x.Items, Rows)
+            .Add(x => x.ChildContent, columns)));
+
+        Assert.Contains(message, error.GetBaseException().Message);
+    }
 }

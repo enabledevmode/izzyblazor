@@ -334,11 +334,13 @@ public class DataGridGroupTests : BunitContext
     {
         var cut = Grid("/sales", p => p.Add(x => x.GroupPanel, true));
         Assert.Contains("Drag a column header here", cut.Find(".ib-grid-group-bar").TextContent);
-        Assert.Equal("region", cut.Find("thead th[data-ib-group='region']").GetAttribute("data-ib-group"));
+        Assert.NotEmpty(cut.FindAll("thead th[data-ib-group='region']"));
 
         SetRendererInfo(new RendererInfo("Server", isInteractive: true));
         string? group = null;
         cut = Grid("/sales", p => p.Add(x => x.Group, "region").Add(x => x.GroupChanged, v => group = v));
+        // Grouped already, its header isn't offered again.
+        Assert.Empty(cut.FindAll("thead th[data-ib-group='region']"));
 
         // What the script writes when a header or chip is dropped.
         cut.Find(".ib-grid-group-bar input.ib-grid-group-set").Change("rep,region");

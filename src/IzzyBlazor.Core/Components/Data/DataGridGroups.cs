@@ -429,6 +429,9 @@ public partial class DataGrid<TItem>
 
     private bool CanGroupBy(ColumnBase<TItem> column) => Groupable && GroupsAvailable && column.CanGroup;
 
+    // Whether another level fits: past the last, one would be dropped without a word.
+    private bool HasRoomToGroup => Grouping.Levels.Count < DataGroupRequest<TItem>.MaxLevels;
+
     // Without a GroupsProvider there's nothing to ask for groups, so the address can't start any.
     private bool GroupsAvailable => ItemsProvider is null || GroupsProvider is not null;
 

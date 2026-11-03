@@ -349,9 +349,9 @@ class Grid extends IzzyElement {
     if (padding) box!.style.removeProperty("scroll-padding-inline");
   }
 
-  // Not the cells of a column hidden at this width.
+  // Not the cells of a column hidden at this width, nor a group level's empty lead.
   #visibleCells(row: HTMLTableRowElement): HTMLTableCellElement[] {
-    return [...row.cells].filter((cell) => cell.checkVisibility());
+    return [...row.cells].filter((cell) => cell.checkVisibility() && !cell.matches(".ib-grid-lead:empty"));
   }
 
   /** The visible cell of a row nearest a column, counting spans. */
