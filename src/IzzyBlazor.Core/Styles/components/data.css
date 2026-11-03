@@ -1576,21 +1576,23 @@
     font-size: var(--ib-text-sm);
   }
 
-  .ib-grid-group-bar[data-ib-drop] {
-    outline: 1px dashed var(--ib-color-primary);
-    outline-offset: 2px;
-  }
-
   .ib-grid-group-chip {
     cursor: grab;
   }
 
-  :is(.ib-grid-group-chip[data-ib-drop-before], .ib-grid-group-bar[data-ib-drop-end] > .ib-grid-group-chip:last-of-type) {
-    box-shadow: -3px 0 var(--ib-color-primary);
+  .ib-grid-group-chip[data-ib-lifted] {
+    opacity: 0.4;
   }
 
-  .ib-grid-group-bar[data-ib-drop-end] > .ib-grid-group-chip:last-of-type {
-    box-shadow: 3px 0 var(--ib-color-primary);
+  /* Where a drop would land: a chip of what's dragged. */
+  .ib-grid-group-ghost {
+    border: 1px dashed var(--ib-color-primary);
+    background-color: var(--ib-color-primary-soft);
+    color: var(--ib-color-primary-text);
+  }
+
+  .ib-grid-group-hint:has(~ .ib-grid-group-ghost) {
+    display: none;
   }
 
   .ib-grid-lead-col {
