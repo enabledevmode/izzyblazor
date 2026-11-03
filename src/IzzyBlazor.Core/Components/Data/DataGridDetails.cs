@@ -48,7 +48,10 @@ public partial class DataGrid<TItem>
 
     internal bool HasDetails => DetailTemplate is not null;
 
-    private bool HasDetail(TItem item) => HasDetails && (ItemHasDetail?.Invoke(item) ?? true);
+    // A row's detail holds its template, or the values of hidden columns, or both.
+    private bool HasTemplateDetail(TItem item) => HasDetails && (ItemHasDetail?.Invoke(item) ?? true);
+
+    private bool HasDetail(TItem item) => HasTemplateDetail(item) || Hiding;
 
     private bool DetailOpen(TItem item) => HasDetail(item) && Details.IsOpen(KeyOf(item));
 
@@ -138,9 +141,14 @@ public partial class DataGrid<TItem>
 
     private void CheckDetails()
     {
-        if (!HasDetails)
+        if (!HasDetails && ItemHasDetail is not null)
         {
-            if (ItemHasDetail is not null || DetailsOpen || SingleDetail || OpenDetails is not null)
+            throw new InvalidOperationException($"The DataGrid sets {nameof(ItemHasDetail)} with no {nameof(DetailTemplate)} to show.");
+        }
+
+        if (!HasExpander)
+        {
+            if (DetailsOpen || SingleDetail || OpenDetails is not null)
             {
                 throw new InvalidOperationException($"The DataGrid sets up details with no {nameof(DetailTemplate)} to show.");
             }
@@ -148,14 +156,16 @@ public partial class DataGrid<TItem>
             return;
         }
 
+        // Hidden columns' values show in the row's detail, so hiding needs what a detail needs.
+        var what = HasDetails ? $"a {nameof(DetailTemplate)}" : $"{nameof(SmallScreen)}=\"HideColumns\"";
         if (ItemKey is null)
         {
-            throw new InvalidOperationException($"A DataGrid with a {nameof(DetailTemplate)} needs an ItemKey: open rows are kept by it.");
+            throw new InvalidOperationException($"A DataGrid with {what} needs an ItemKey: open rows are kept by it.");
         }
 
         if (Virtualize)
         {
-            throw new InvalidOperationException($"A DataGrid with a {nameof(DetailTemplate)} can't {nameof(Virtualize)}: an open detail changes a row's height.");
+            throw new InvalidOperationException($"A DataGrid with {what} can't {nameof(Virtualize)}: an open detail changes a row's height.");
         }
 
         if (SingleDetail && DetailsOpen)

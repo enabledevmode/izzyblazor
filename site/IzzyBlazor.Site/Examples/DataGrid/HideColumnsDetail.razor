@@ -1,0 +1,17 @@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@* Grouped, with a detail of its own and the total kept at the end: hidden values come first in the
+   detail, above what the template draws. *@
+<DataGrid Items="Rows.All" PageSize="2" Caption="Orders in groups that fit a phone" QueryPrefix="narrow-groups-"
+          ItemKey="o => o.Number.ToString()" RowLabel="@(o => $"Order {o.Number}")"
+          SmallScreen="DataGridSmallScreen.HideColumns" InitialGroup="status" GroupsOpen>
+    <ChildContent>
+        <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" />
+        <PropertyColumn Property="o => o.Customer" Priority="1" />
+        <PropertyColumn Property="o => o.Date" Format="MMM d" Width="7.Rem" />
+        <PropertyColumn Property="o => o.Status" Width="8.Rem" />
+        <PropertyColumn Property="o => o.Total" Format="C" Width="8.Rem" Frozen="ColumnFrozen.End" />
+    </ChildContent>
+    <DetailTemplate>
+        @OrderLines.For(context.Number).Count lines, @OrderLines.For(context.Number).Sum(l => l.Quantity) items
+    </DetailTemplate>
+</DataGrid>
