@@ -1,0 +1,37 @@
+@* file: EditableOrder.cs *@
+@using Rows = IzzyBlazor.Site.Examples.Table.Orders
+@* Narrow, editing a row opens its detail, with the fields of the columns hidden to fit. Save and
+   Cancel stay in the row. *@
+<DataGrid TItem="EditableOrder" Items="_orders" PageSize="5" Caption="Orders edited on a phone" ItemKey="o => o.Number.ToString()" QueryPrefix="phone-"
+          RowLabel="@(o => $"Order {o.Number}")" EditMode="DataGridEditMode.Row" OnSave="Save" NewItem="NewOrder"
+          SmallScreen="DataGridSmallScreen.HideColumns">
+    <PropertyColumn Property="o => o.Number" Title="Order" Align="CellAlign.Start" Width="6.Rem" Editable="false" />
+    <PropertyColumn Property="o => o.Customer" MinWidth="9.Rem" Priority="1" />
+    <PropertyColumn Property="o => o.Status" Width="9.Rem" />
+    <PropertyColumn Property="o => o.Date" Width="10.Rem" />
+    <PropertyColumn Property="o => o.Total" Format="C" Width="9.Rem" />
+</DataGrid>
+
+@code {
+    [CascadingParameter] private HttpContext? Http { get; set; }
+
+    private List<EditableOrder> _orders = [];
+
+    // Stands in for your database, with a copy of the rows for each visitor to this site.
+    protected override void OnInitialized() => _orders = ExampleRows.For(Http, "edit-on-phone", () => Rows.All
+        .Select(o => new EditableOrder { Number = o.Number, Customer = o.Customer, Date = o.Date, Status = (OrderStatus)o.Status, Total = o.Total })
+        .ToList());
+
+    private void Save(DataGridSave<EditableOrder> save)
+    {
+        if (save.IsNew)
+        {
+            _orders.Insert(0, save.Item);
+            return;
+        }
+
+        save.CopyTo(_orders.First(o => o.Number == save.Item.Number));
+    }
+
+    private EditableOrder NewOrder() => new() { Number = _orders.Max(o => o.Number) + 1, Date = DateOnly.FromDateTime(DateTime.Today) };
+}

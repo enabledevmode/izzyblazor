@@ -224,10 +224,15 @@ public partial class DataGrid<TItem>
         builder.CloseElement();
     };
 
-    /// <summary>The hidden columns' values, at the start of an open row's detail.</summary>
+    /// <summary>
+    /// The hidden columns' values, at the start of an open row's detail; their fields, for a row being
+    /// edited. A field is then in its cell too: the script posts only the one that shows. With no
+    /// script, the detail shows the value instead (data.css), and the cell's field posts it unchanged.
+    /// </summary>
     private RenderFragment HiddenValues(TItem item) => builder =>
     {
         var levels = Plan.Levels;
+        var editing = IsEditingRow(item) || (RowEditKey == NewRowKey && ReferenceEquals(item, NewRowItem));
         builder.OpenElement(0, "dl");
         builder.AddAttribute(1, "class", "ib-grid-hidden");
         foreach (var column in Shown.Where(levels.ContainsKey))
@@ -238,7 +243,22 @@ public partial class DataGrid<TItem>
             builder.AddContent(5, column.HeaderText);
             builder.CloseElement();
             builder.OpenElement(6, "dd");
-            builder.AddContent(7, column.Cell(item));
+            if (editing && EditCell(column) is { } field)
+            {
+                builder.OpenElement(7, "div");
+                builder.AddAttribute(8, "class", "ib-grid-hidden-field");
+                builder.AddContent(9, field);
+                builder.CloseElement();
+                builder.OpenElement(10, "span");
+                builder.AddAttribute(11, "class", "ib-grid-hidden-value");
+                builder.AddContent(12, column.Cell(item));
+                builder.CloseElement();
+            }
+            else
+            {
+                builder.AddContent(13, column.Cell(item));
+            }
+
             builder.CloseElement();
             builder.CloseElement();
         }
