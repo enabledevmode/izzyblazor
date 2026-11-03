@@ -72,6 +72,10 @@
 <TextBlock>Use <Code>Size</Code>, <Code>Striped</Code>, <Code>ColumnLines</Code>, <Code>RowLines</Code> and <Code>Bordered</Code> for the look; turn <Code>Bordered</Code> off for a table in a card. <Code>MaxHeight</Code> scrolls the rows under a sticky header, and <Code>EmptyText</Code> shows when there are none.</TextBlock>
 <Code Block Language="razor">@Look</Code>
 
+<Heading Level="2">On a phone</Heading>
+<TextBlock>A table too wide for its space scrolls sideways. With <Code>SmallScreen="TableSmallScreen.Stack"</Code>, each row becomes a card of lines instead, a column's title beside its value, and the header's sort and filter buttons stay in a row above. It goes by the table's own width, worked out on the server from its columns' <Code>Width</Code> (8rem for one without), so it's right at the first paint with no script; set <Code>Breakpoint</Code> to choose the width. For hiding columns instead, use a <Anchor Href="docs/components/data-grid/small-screens">DataGrid</Anchor>.</TextBlock>
+<ExampleViewer Example="table-stacked" />
+
 <Heading Level="2">Mode support</Heading>
 <ModeSupportTable Component="Component" ApiComponent="ApiComponent" />
 

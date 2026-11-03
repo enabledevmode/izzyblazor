@@ -1506,6 +1506,7 @@
             "noscript": "Nothing loads on scroll: Load more shows under the rows, a link that reloads the table with one more page.",
             "static": "Scroll the rows: the next page loads as the last one comes into view, by the Load more link, which enhanced navigation swaps in with the scroll kept. Tab to the hidden button to load from the keyboard.",
             "interactive": "Scroll the rows: the next page loads as the last one comes into view. Tab to the hidden Load more button to load from the keyboard." } },
+        { "id": "table-stacked", "title": "Rows that stack on a phone", "lead": "With `SmallScreen=\"TableSmallScreen.Stack\"`, a table too narrow for its columns turns each row into a card of lines, a column's title beside its value, instead of scrolling sideways. The header's sort and filter buttons stay, in a row above. It goes by the table's own width, worked out on the server from its columns, or set `Breakpoint`, and needs no script." },
         { "id": "table-load-error", "title": "When loading fails",
           "notes": {
             "noscript": "Retry is a link that loads the page again. Bring the API back, then the rows come.",
