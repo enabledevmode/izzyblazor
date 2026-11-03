@@ -107,11 +107,11 @@
       ],
       "topics": [
         {
-          "id": "width-and-scrolling", "title": "Width and scrolling", "summary": "A reading column, and a shell that fills the window and scrolls only its main area.", "members": ["ContentWidth", "ScrollMode", "AppHeader.ContentWidth", "AppMain.ContentWidth", "AppFooter.ContentWidth"],
+          "id": "width-and-scrolling", "title": "Width and scrolling", "summary": "Choose between a narrow reading column and a shell that fills the window, where only the main area scrolls.", "members": ["ContentWidth", "ScrollMode", "AppHeader.ContentWidth", "AppMain.ContentWidth", "AppFooter.ContentWidth"],
           "examples": [], "scenarios": ["reading-column", "desktop-app-scrolling"]
         },
         {
-          "id": "aside", "title": "Asides", "summary": "A column beside the main area: an outline, a page's own panel, and a drawer people open.", "members": ["AppAside", "AsideToggle"],
+          "id": "aside", "title": "Asides", "summary": "Add a column beside the main area, such as an outline or a panel of the page's own, and decide how it behaves on phones.", "members": ["AppAside", "AsideToggle"],
           "examples": [
             { "id": "app-shell-detail-panel", "title": "A panel for the chosen row", "height": 520, "page": true },
             { "id": "app-shell-aside-drawer", "title": "A panel people open", "height": 420, "page": true,
@@ -493,7 +493,7 @@
       ],
       "topics": [
         {
-          "id": "overflow", "title": "What doesn't fit", "summary": "Which controls move into the … menu first, icons before the menu, and wrapping instead.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "ToolbarButton.StartIcon", "ToolbarMenu.StartIcon", "ToolbarSplitButton.StartIcon", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
+          "id": "overflow", "title": "What doesn't fit", "summary": "Decide what happens when a toolbar runs out of room: which controls move into its … menu first, or whether it wraps instead.", "members": ["Wrap", "CollapseLabels", "MoreLabel", "ToolbarButton.StartIcon", "ToolbarMenu.StartIcon", "ToolbarSplitButton.StartIcon", "ToolbarButton.Priority", "ToolbarButton.Overflow", "ToolbarIconButton.Priority", "ToolbarIconButton.Overflow", "ToolbarButtonGroup.Priority", "ToolbarButtonGroup.Overflow", "ToolbarMenu.Priority", "ToolbarMenu.Overflow", "ToolbarSplitButton.Priority", "ToolbarSplitButton.Overflow", "ToolbarItem.Priority", "ToolbarItem.Overflow"],
           "examples": [
             { "id": "toolbar-priority", "title": "What moves first" },
             { "id": "toolbar-collapse-labels", "title": "Icons before the menu" },
@@ -501,7 +501,7 @@
           ]
         },
         {
-          "id": "actions", "title": "Actions", "summary": "Form posts, C# on click, toggle buttons and split buttons, from the bar or the menu.", "members": ["ToolbarSplitButton", "ToolbarButton.Submit", "ToolbarButton.Name", "ToolbarButton.Value", "ToolbarButton.FormAction", "ToolbarButton.Form", "ToolbarButton.Pressed", "ToolbarButton.OnClick", "ToolbarIconButton.Submit", "ToolbarIconButton.Name", "ToolbarIconButton.Value", "ToolbarIconButton.FormAction", "ToolbarIconButton.Form", "ToolbarIconButton.Pressed", "ToolbarIconButton.OnClick"],
+          "id": "actions", "title": "Actions", "summary": "Make toolbar buttons post a form or run C#, and use toggle and split buttons, whether they're on the bar or in its menu.", "members": ["ToolbarSplitButton", "ToolbarButton.Submit", "ToolbarButton.Name", "ToolbarButton.Value", "ToolbarButton.FormAction", "ToolbarButton.Form", "ToolbarButton.Pressed", "ToolbarButton.OnClick", "ToolbarIconButton.Submit", "ToolbarIconButton.Name", "ToolbarIconButton.Value", "ToolbarIconButton.FormAction", "ToolbarIconButton.Form", "ToolbarIconButton.Pressed", "ToolbarIconButton.OnClick"],
           "examples": [
             { "id": "toolbar-bulk-actions", "title": "Posting a form",
           "notes": {
@@ -1500,7 +1500,7 @@
       ],
       "topics": [
         {
-          "id": "filtering", "title": "Filtering", "summary": "Filters in column headers, lists of values, operators, and filters in the URL.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromAddress", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
+          "id": "filtering", "title": "Filtering", "summary": "Let users filter each column from its header, and read or set the filter from the URL or from C#.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterFromAddress", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
           "examples": [
             { "id": "table-filters", "title": "Column filters",
           "notes": {
@@ -1518,7 +1518,7 @@
           ]
         },
         {
-          "id": "selection", "title": "Selection", "summary": "Checkboxes that post with a form, totals, and actions on the selected rows.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel", "Column.FooterText", "Column.Footer"],
+          "id": "selection", "title": "Selection", "summary": "Let users select rows with checkboxes and act on the selection, whether it posts with a form or is bound in C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel", "Column.FooterText", "Column.Footer"],
           "examples": [
             { "id": "table-select-rows", "title": "Selection and totals",
           "notes": {
@@ -1533,7 +1533,7 @@
           ]
         },
         {
-          "id": "loading-data", "title": "Loading data", "summary": "Rows from a database or an API, paging by cursor, loading on scroll, and a failed load.", "members": ["Items", "ItemsProvider", "PageSize", "Page", "Paging", "Cursor", "LoadMoreText", "MaxHeight", "ItemKey", "Column.Filter", "Loading", "ErrorContent", "ReloadAsync"],
+          "id": "loading-data", "title": "Loading data", "summary": "Load rows from a database or an API a page at a time, and show the user what happens when a load fails.", "members": ["Items", "ItemsProvider", "PageSize", "Page", "Paging", "Cursor", "LoadMoreText", "MaxHeight", "ItemKey", "Column.Filter", "Loading", "ErrorContent", "ReloadAsync"],
           "examples": [
             { "id": "table-cursor-pages", "title": "Next and previous by cursor",
           "notes": {
@@ -1629,14 +1629,14 @@
       ],
       "topics": [
         {
-          "id": "columns", "title": "Columns", "summary": "Let people resize, move, hide and freeze columns.", "members": ["LayoutKey", "Layout", "LayoutSaveUrl", "ResizableColumns", "ReorderableColumns", "ColumnPicker", "DataGridColumnPicker", "Column.Title", "Column.Align", "Column.Width", "Column.MinWidth", "Column.MaxWidth", "Column.Frozen", "Column.Resizable", "Column.Reorderable", "Column.Pickable", "Column.Visible"],
+          "id": "columns", "title": "Columns", "summary": "Let users resize, move, hide and freeze columns, and keep their layout for the next visit.", "members": ["LayoutKey", "Layout", "LayoutSaveUrl", "ResizableColumns", "ReorderableColumns", "ColumnPicker", "DataGridColumnPicker", "Column.Title", "Column.Align", "Column.Width", "Column.MinWidth", "Column.MaxWidth", "Column.Frozen", "Column.Resizable", "Column.Reorderable", "Column.Pickable", "Column.Visible"],
           "examples": [
             { "id": "data-grid-arrange", "title": "Rearranging columns", "lead": "`ResizableColumns`, `ReorderableColumns` and `ColumnPicker` let people change the columns. A `LayoutKey` keeps what they chose in a cookie, per person and per page, and the server draws it on the first paint. Drag a handle or a header, or use the keys and the ⋮ menu in each header. `Visible` set to false starts a column hidden, and the picker can show it; with `Pickable` false too, it stays hidden." },
             { "id": "data-grid-frozen", "title": "Frozen columns", "lead": "Use `Frozen` to keep a column in view at the grid's start or end while the rest scroll sideways. It works with no script. A frozen column needs a `Width`, and is drawn at its edge wherever it's declared. On a phone they scroll like the rest." }
           ]
         },
         {
-          "id": "filtering", "title": "Filtering", "summary": "A filter on each column, a row of filters, one of your own, and a builder for what they can't hold.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterRow", "FilterBuilder", "FilterFromAddress", "Searchable", "Search", "SearchLabel", "DataGridSearch", "DataGridFilterBuilder", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
+          "id": "filtering", "title": "Filtering", "summary": "Let users filter each column, from its header or a row of fields under the titles, and build filters across columns when they need more.", "members": ["Filter", "FilterCase", "FilterPanel", "FilterRow", "FilterBuilder", "FilterFromAddress", "Searchable", "Search", "SearchLabel", "DataGridSearch", "DataGridFilterBuilder", "Column.Filterable", "Column.FilterOperators", "Column.Filter", "Column.FilterValues", "Column.FilterList", "Column.FilterTemplate", "Column.FilterText"],
           "examples": [
             { "id": "data-grid-filters", "title": "Column filters", "lead": "Use `Filterable` on a column for a filter in its header, where text, numbers and dates choose an operator above the value, and `FilterOperators` to limit them; the first is the default. `FilterPanel` lists what's in use below the rows.",
           "notes": {
@@ -1653,26 +1653,26 @@
           ]
         },
         {
-          "id": "aggregates", "title": "Aggregates", "summary": "Totals over every row the filters match, in the footer.", "members": ["Column.Aggregate", "Column.GroupAggregate", "Column.GroupFooterAggregate", "Column.AggregateBy", "Column.AggregateFormat", "Column.AggregateLabel", "Column.AggregateTemplate", "Column.FooterText", "Column.Footer"],
+          "id": "aggregates", "title": "Aggregates", "summary": "Show totals, averages and counts in the footer, calculated over every row the filters match.", "members": ["Column.Aggregate", "Column.GroupAggregate", "Column.GroupFooterAggregate", "Column.AggregateBy", "Column.AggregateFormat", "Column.AggregateLabel", "Column.AggregateTemplate", "Column.FooterText", "Column.Footer"],
           "examples": [
             { "id": "data-grid-aggregates", "title": "Footer totals", "lead": "Use `Aggregate` on a column for a sum, average, lowest, highest or count in the footer, or `AggregateBy` for your own, as an expression that runs in the database. It covers every row the filters match, not the page, and needs no grouping. With an `ItemsProvider`, add a `GroupsProvider`, which answers for the totals." }
           ]
         },
         {
-          "id": "grouping", "title": "Grouping", "summary": "Group by columns, a page of groups at a time, with values for each group.", "members": ["Groupable", "Group", "InitialGroup", "GroupsOpen", "OpenGroups", "GroupRowLimit", "GroupPanel", "ShowGroupedColumns", "GroupsProvider", "Column.Groupable", "Column.GroupBy", "Column.GroupFormat", "Column.GroupTemplate"],
+          "id": "grouping", "title": "Grouping", "summary": "Let users group rows by one or more columns, with a count or total on each group.", "members": ["Groupable", "Group", "InitialGroup", "GroupsOpen", "OpenGroups", "GroupRowLimit", "GroupPanel", "ShowGroupedColumns", "GroupsProvider", "Column.Groupable", "Column.GroupBy", "Column.GroupFormat", "Column.GroupTemplate"],
           "examples": [
             { "id": "data-grid-grouping", "title": "Groups", "lead": "Use `Groupable` to let people group from a header's menu, and `InitialGroup` to start grouped. Both are in the address, as `?group=status`, and a group's row is a link that opens it, so this works on a static page with no script. A page counts top-level groups, so a group is never split, and a group's count is the whole group's. `GroupAggregate` shows a value on each group's row and `GroupFooterAggregate` one under an open group's rows, separate from the footer's `Aggregate`. With an `ItemsProvider`, add a `GroupsProvider`: rows still come from your provider, with the group's value in the filter." }
           ]
         },
         {
-          "id": "master-detail", "title": "Master-detail", "summary": "Open a row's detail under it, such as its lines in a grid of their own.", "members": ["DetailTemplate", "ItemHasDetail", "OpenDetails", "DetailsOpen", "SingleDetail", "ItemKey"],
+          "id": "master-detail", "title": "Master-detail", "summary": "Let users open a row to see more about it underneath, such as an order's lines in a grid of their own.", "members": ["DetailTemplate", "ItemHasDetail", "OpenDetails", "DetailsOpen", "SingleDetail", "ItemKey"],
           "examples": [
             { "id": "data-grid-master-detail", "title": "A row's detail", "lead": "Use `DetailTemplate` for what a row opens under it, across the grid, with `ItemKey` to keep open rows by. Each row gets a button in a column of its own, and the header's opens them all. Open rows are in the address, as `?detail=1004`, so this works on a static page with no script; bind `OpenDetails` to keep them in the component. Only open rows draw the detail, so a grid in it loads its rows when it's opened. Give a nested grid its own `QueryPrefix`, or every row's grid would share one sort and page. With an `ItemsProvider`, it asks for a row's lines only when the row opens." },
             { "id": "data-grid-grouped-detail", "title": "Details in groups", "lead": "In a grouped grid, a row's detail sits under it, inside its group, with the button one level in from the group's. `SingleDetail` keeps one open at a time, and `ItemHasDetail` leaves the button off rows with nothing to show. `DetailsOpen` starts every row open instead." }
           ]
         },
         {
-          "id": "adaptability", "title": "Adaptability", "summary": "Fit phones and narrow spaces: hide columns that don't fit, and show their values under the row.", "members": ["SmallScreen", "Nonce", "ItemKey", "Column.Priority", "ActionColumn.Overflow"],
+          "id": "adaptability", "title": "Adaptability", "summary": "Make a grid fit a phone or a narrow panel by hiding the columns that don't fit and showing their values under the row.", "members": ["SmallScreen", "Nonce", "ItemKey", "Column.Priority", "ActionColumn.Overflow"],
           "examples": [
             { "id": "data-grid-hide-columns", "widthSwitch": true, "title": "Columns that hide", "lead": "With `SmallScreen=\"DataGridSmallScreen.HideColumns\"`, columns that don't fit the grid's width hide, lowest `Priority` first and the last of equals first, instead of the grid scrolling sideways. A button at the start of each row then opens its detail, with the hidden columns' values in it, labels over values. The row's actions move into its ⋮ menu then, unless one says `Overflow=\"RowActionOverflow.Never\"`. The toolbar folds by its own width: your `ToolbarContent` and Export move into its \"…\" menu, while search, Add and Columns stay, as icons. The first column and frozen ones never hide. It goes by the grid's own width, so it works in a side panel too, and the grid takes all of that width; it's worked out on the server, so it's right from the first paint, with no script. Hiding needs an `ItemKey`, as open rows are kept by it, and can't be used with `Virtualize`. A hidden column's header goes with it: sort or filter it from the column picker or the filter chips. With a `DetailTemplate`, the hidden values come first in its detail." },
             { "id": "data-grid-hide-columns-detail", "widthSwitch": true, "title": "With groups and a detail", "lead": "Grouped, a row's button sits one level in from its group's, as for any detail. With a `DetailTemplate`, the button column is always there, and the hidden values come first in the detail, above the template. A frozen column, here the total at the end, never hides." },
@@ -1680,7 +1680,7 @@
           ]
         },
         {
-          "id": "editing", "title": "Editing", "summary": "Edit in a dialog, in the row, or a cell at a time.", "members": ["EditMode", "FindItem", "NewItem", "ItemEditable", "ItemDeletable", "EditKey", "EditCopy", "OnSave", "OnDelete", "ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "Column.Editable", "Column.EditTemplate"],
+          "id": "editing", "title": "Editing", "summary": "Let users add, edit and delete rows, in a dialog, in the row itself, or one cell at a time.", "members": ["EditMode", "FindItem", "NewItem", "ItemEditable", "ItemDeletable", "EditKey", "EditCopy", "OnSave", "OnDelete", "ActionColumn", "RowAction", "EditAction", "DeleteAction", "EditLayout", "EditField", "EditFormTemplate", "DataGridAdd", "Column.Editable", "Column.EditTemplate"],
           "intro": [
             "Choose a mode by what there is to edit. `DataGridEditMode.Dialog` has room for many fields, including ones the table doesn't show, and works with rows that load as they're needed. `DataGridEditMode.Row` keeps the row in place, for a few short fields. `DataGridEditMode.Cell` is the quickest way to change one value at a time, on an interactive page. Dialog and Row work on static pages with no script.",
             "A field shows the value itself, not what the column's `Format` makes of it: a number has no currency sign, and a date follows the browser's language, which can differ from the server's culture the column formats with."
@@ -1694,7 +1694,7 @@
           ]
         },
         {
-          "id": "export", "title": "Export", "summary": "Download what's on screen as Excel or CSV.", "members": ["ExportCsvHref", "ExportExcelHref", "DataGridExport"],
+          "id": "export", "title": "Export", "summary": "Let users download what they see, with the same filters and sort, as an Excel or CSV file.", "members": ["ExportCsvHref", "ExportExcelHref", "DataGridExport"],
           "examples": [
             { "id": "data-grid-export", "title": "Export to Excel", "lead": "`ExportExcelHref` adds a link to an endpoint you map with `DataExport.WriteExcelAsync`, which streams rows from the database with flat memory. The link carries the filter, sort, search and visible columns, and works with no script. The fields you give `DataExport` decide what can be written, whatever the address says, and their captions head the file. Give them the grid's keys so a download matches the screen: a filter on a key they don't have matches nothing." },
             { "id": "data-grid-export-both", "title": "Excel and CSV", "lead": "Add `ExportCsvHref` to offer CSV too: one button with a chevron then opens a menu of both, Excel first." }
@@ -1719,13 +1719,13 @@
       ],
       "topics": [
         {
-          "id": "selection", "title": "Selection", "summary": "Checkboxes or radio buttons on items, posted with a form or bound in C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel"],
+          "id": "selection", "title": "Selection", "summary": "Let users select items with checkboxes or radio buttons, whether the selection posts with a form or is bound in C#.", "members": ["ItemKey", "SelectionMode", "SelectionName", "Selection", "ItemSelectable", "SelectAllMode", "SelectionActions", "SelectAllLabel", "SelectRowLabel"],
           "examples": [
             {"id": "list-view-select-items", "title": "Selection", "lead": "Use `SelectionMode` to give each item a checkbox, or a radio button with `SelectionMode.Single`. Inside a form, the selected items post their `ItemKey` as a `Selection`. On interactive pages, use `@bind-Selection` to read and set it from C#. `SelectAllMode` sets what select-all selects: the current page, or every matching item. With IzzyBlazor's script, a checkbox above the list selects the page."}
           ]
         },
         {
-          "id": "loading-data", "title": "Loading data", "summary": "Items from a list or a provider, a page at a time, with Load more or loading on scroll.", "members": ["Items", "ItemsProvider", "ItemKey", "PageSize", "PageSizeOptions", "Page", "Paging", "LoadMoreText", "Cursor", "QueryPrefix", "Loading", "EmptyContent", "EmptyText", "ErrorContent", "ReloadAsync"],
+          "id": "loading-data", "title": "Loading data", "summary": "Load items a page at a time, from a list in memory or from a database, with a Load more button or as the user scrolls.", "members": ["Items", "ItemsProvider", "ItemKey", "PageSize", "PageSizeOptions", "Page", "Paging", "LoadMoreText", "Cursor", "QueryPrefix", "Loading", "EmptyContent", "EmptyText", "ErrorContent", "ReloadAsync"],
           "intro": [
             "Give the list its items with `Items`, or load them a page at a time with an `ItemsProvider`, which works as it does in Table (see Table's Loading data page). Numbered pages and `DataPaging.NextPrevious` work as in Table too; this page shows the two paging styles that suit a list."
           ],
@@ -1735,7 +1735,7 @@
           ]
         },
         {
-          "id": "reordering", "title": "Reordering", "summary": "Let users reorder items by dragging, a handle's menu or the keyboard, and save the new order.", "members": ["Reorderable", "Name", "Order", "SubmitOnMove", "DragWholeItem", "OnMove", "Zone", "Accepts", "MaxItems"],
+          "id": "reordering", "title": "Reordering", "summary": "Let users put items in their own order, by dragging or from the keyboard, and save the new order.", "members": ["Reorderable", "Name", "Order", "SubmitOnMove", "DragWholeItem", "OnMove", "Zone", "Accepts", "MaxItems"],
           "intro": [
             "Every move can be made three ways: by dragging, from a menu of moves, or with Alt+arrow keys. The menu also works with JavaScript off, where each move posts the form. To move items between lists, such as the columns of a board, put the lists in a `DropZoneGroup`."
           ],
